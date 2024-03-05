@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "storybook": "storybook dev -p 6006",
     "lint": "next lint"
   },
   "dependencies": {
