@@ -159,7 +159,7 @@ export const theme = createTheme({
               fontSize: 14,
               fontWeight: 600,
               lineHeight: "20px",
-              color: "#FFFFFF",
+              color: COLORS.white,
               "&:hover": {
                 background: COLORS.blackRock,
                 boxShadow: "none",
@@ -351,6 +351,76 @@ export const theme = createTheme({
                 opacity: 0.6,
               },
             }),
+        }),
+      },
+    },
+    MuiSwitch: {
+      styleOverrides: {
+        root: () => ({
+          width: 36,
+          height: 20,
+          borderRadius: 10,
+          padding: 0,
+          display: "flex",
+          "&:active": {
+            "& .MuiSwitch-thumb": {
+              width: 15,
+            },
+          },
+          "& .MuiSwitch-switchBase": {
+            padding: 2,
+            "&.Mui-checked": {
+              transform: "translateX(16px)",
+              color: COLORS.white,
+              "& + .MuiSwitch-track": {
+                opacity: 1,
+                backgroundColor: "#FFFFFF4D",
+              },
+            },
+          },
+          "& .MuiSwitch-thumb": {
+            width: 16,
+            height: 16,
+            borderRadius: 8,
+            transition: theme.transitions.create(["width"], {
+              duration: 200,
+            }),
+          },
+          "& .MuiSwitch-track": {
+            borderRadius: 16 / 2,
+            opacity: 1,
+            backgroundColor: "#FFFFFF4D",
+            boxSizing: "border-box",
+          },
+          "& .MuiButtonBase-root.MuiSwitch-switchBase:hover": {
+            backgroundColor: "transparent",
+          },
+        }),
+      },
+    },
+    MuiTooltip: {
+      defaultProps: {
+        arrow: true,
+      },
+      styleOverrides: {
+        tooltip: () => ({
+          minWidth: "120px",
+          padding: "12px",
+          border: "none",
+          borderRadius: "8px",
+
+          fontSize: 10,
+          fontWeight: 500,
+          lineHeight: "16px",
+          letterSpacing: "0.2px",
+          color: COLORS.white,
+          backgroundColor: COLORS.blackRock,
+
+          "& .MuiTooltip-arrow": {
+            height: "4px",
+            width: "10px",
+            color: COLORS.blackRock,
+          },
         }),
       },
     },

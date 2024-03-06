@@ -9,6 +9,7 @@ export const COLORS = {
   whiteSmoke: "#F4F4F8",
   hintOfRed: "#F9F9FA",
   alabaster: "#FAFAFA",
+  white: "#FFFFFF",
 
   dullRed: "#C24647",
   carminePink: "#F1464B",
