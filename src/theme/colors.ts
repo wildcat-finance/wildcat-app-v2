@@ -1,6 +1,7 @@
 export const COLORS = {
   bunker: "#141414",
   blackRock: "#30313E",
+  blackRock03: "#30313E08",
   santasGrey: "#A0A0B0",
   greySuit: "#BEBECE",
   iron: "#D6D6DE",

@@ -169,7 +169,6 @@ export const theme = createTheme({
                 backgroundColor: COLORS.athensGrey,
               },
             }),
-          // TODO: check hover color
           ...(ownerState.variant === "text" &&
             ownerState.size === "small" && {
               height: 28,
@@ -183,7 +182,7 @@ export const theme = createTheme({
               color: COLORS.bunker,
               "&:hover": {
                 boxShadow: "none",
-                backgroundColor: "#23232308",
+                backgroundColor: COLORS.blackRock03,
               },
               "&.Mui-disabled": {
                 opacity: 0.6,
@@ -202,7 +201,7 @@ export const theme = createTheme({
               color: COLORS.bunker,
               "&:hover": {
                 boxShadow: "none",
-                backgroundColor: "#23232308",
+                backgroundColor: COLORS.blackRock03,
               },
               "&.Mui-disabled": {
                 opacity: 0.6,
@@ -221,7 +220,7 @@ export const theme = createTheme({
               color: COLORS.bunker,
               "&:hover": {
                 boxShadow: "none",
-                backgroundColor: "#23232308",
+                backgroundColor: COLORS.blackRock03,
               },
               "&.Mui-disabled": {
                 opacity: 0.6,
@@ -240,7 +239,7 @@ export const theme = createTheme({
               color: COLORS.bunker,
               "&:hover": {
                 borderColor: COLORS.blackRock,
-                background: "#30313E08",
+                background: COLORS.blackRock03,
                 boxShadow: "none",
               },
               "&.Mui-disabled": {
@@ -260,7 +259,7 @@ export const theme = createTheme({
               color: COLORS.bunker,
               "&:hover": {
                 borderColor: COLORS.blackRock,
-                background: "#30313E08",
+                background: COLORS.blackRock03,
                 boxShadow: "none",
               },
               "&.Mui-disabled": {
@@ -281,7 +280,7 @@ export const theme = createTheme({
               color: COLORS.bunker,
               "&:hover": {
                 borderColor: COLORS.blackRock,
-                background: "#30313E08",
+                background: COLORS.blackRock03,
                 boxShadow: "none",
               },
               "&.Mui-disabled": {
@@ -302,7 +301,7 @@ export const theme = createTheme({
               color: COLORS.bunker,
               "&:hover": {
                 borderColor: COLORS.iron,
-                background: "#30313E08",
+                background: COLORS.blackRock03,
                 boxShadow: "none",
               },
               "&.Mui-disabled": {
@@ -323,7 +322,7 @@ export const theme = createTheme({
               color: COLORS.bunker,
               "&:hover": {
                 borderColor: COLORS.iron,
-                background: "#30313E08",
+                background: COLORS.blackRock03,
                 boxShadow: "none",
               },
               "&.Mui-disabled": {
@@ -344,7 +343,7 @@ export const theme = createTheme({
               color: COLORS.bunker,
               "&:hover": {
                 borderColor: COLORS.iron,
-                background: "#30313E08",
+                background: COLORS.blackRock03,
                 boxShadow: "none",
               },
               "&.Mui-disabled": {
@@ -373,8 +372,8 @@ export const theme = createTheme({
               transform: "translateX(16px)",
               color: COLORS.white,
               "& + .MuiSwitch-track": {
-                opacity: 1,
-                backgroundColor: "#FFFFFF4D",
+                opacity: 0.3,
+                backgroundColor: COLORS.white,
               },
             },
           },
@@ -388,8 +387,8 @@ export const theme = createTheme({
           },
           "& .MuiSwitch-track": {
             borderRadius: 16 / 2,
-            opacity: 1,
-            backgroundColor: "#FFFFFF4D",
+            opacity: 0.3,
+            backgroundColor: COLORS.white,
             boxSizing: "border-box",
           },
           "& .MuiButtonBase-root.MuiSwitch-switchBase:hover": {
