@@ -116,18 +116,18 @@ export const theme = createTheme({
               height: 28,
               padding: "6px 12px",
               borderRadius: 8,
-              backgroundColor: COLORS.buttonBackground,
+              backgroundColor: COLORS.bunker,
 
               fontSize: 10,
               fontWeight: 600,
               lineHeight: "16px",
               "&:hover": {
-                background: COLORS.buttonBackgroundHoverDark,
+                background: COLORS.blackRock,
                 boxShadow: "none",
               },
               "&.Mui-disabled": {
-                color: COLORS.buttonTextLight,
-                backgroundColor: COLORS.buttonBackgroundDisabled,
+                color: COLORS.santasGrey,
+                backgroundColor: COLORS.athensGrey,
               },
             }),
           ...(ownerState.variant === "contained" &&
@@ -135,18 +135,18 @@ export const theme = createTheme({
               height: 32,
               padding: "6px 12px",
               borderRadius: 8,
-              backgroundColor: COLORS.buttonBackground,
+              backgroundColor: COLORS.bunker,
 
               fontSize: 10,
               fontWeight: 600,
               lineHeight: "16px",
               "&:hover": {
-                background: COLORS.buttonBackgroundHoverDark,
+                background: COLORS.blackRock,
                 boxShadow: "none",
               },
               "&.Mui-disabled": {
-                color: COLORS.buttonTextLight,
-                backgroundColor: COLORS.buttonBackgroundDisabled,
+                color: COLORS.santasGrey,
+                backgroundColor: COLORS.athensGrey,
               },
             }),
           ...(ownerState.variant === "contained" &&
@@ -154,21 +154,22 @@ export const theme = createTheme({
               height: 40,
               padding: "10px 20px",
               borderRadius: 12,
-              backgroundColor: "#2E2E2E",
+              backgroundColor: COLORS.bunker,
 
               fontSize: 14,
               fontWeight: 600,
               lineHeight: "20px",
               color: "#FFFFFF",
               "&:hover": {
-                background: COLORS.buttonBackgroundHoverDark,
+                background: COLORS.blackRock,
                 boxShadow: "none",
               },
               "&.Mui-disabled": {
-                color: COLORS.buttonTextLight,
-                backgroundColor: COLORS.buttonBackgroundDisabled,
+                color: COLORS.santasGrey,
+                backgroundColor: COLORS.athensGrey,
               },
             }),
+          // TODO: check hover color
           ...(ownerState.variant === "text" &&
             ownerState.size === "small" && {
               height: 28,
@@ -179,10 +180,10 @@ export const theme = createTheme({
               fontSize: 10,
               fontWeight: 600,
               lineHeight: "16px",
-              color: COLORS.buttonText,
+              color: COLORS.bunker,
               "&:hover": {
                 boxShadow: "none",
-                backgroundColor: COLORS.buttonBackgroundHoverLight,
+                backgroundColor: "#23232308",
               },
               "&.Mui-disabled": {
                 opacity: 0.6,
@@ -198,10 +199,10 @@ export const theme = createTheme({
               fontSize: 10,
               fontWeight: 600,
               lineHeight: "16px",
-              color: COLORS.buttonText,
+              color: COLORS.bunker,
               "&:hover": {
                 boxShadow: "none",
-                backgroundColor: COLORS.buttonBackgroundHoverLight,
+                backgroundColor: "#23232308",
               },
               "&.Mui-disabled": {
                 opacity: 0.6,
@@ -217,10 +218,10 @@ export const theme = createTheme({
               fontSize: 14,
               fontWeight: 600,
               lineHeight: "20px",
-              color: COLORS.buttonText,
+              color: COLORS.bunker,
               "&:hover": {
                 boxShadow: "none",
-                backgroundColor: COLORS.buttonBackgroundHoverLight,
+                backgroundColor: "#23232308",
               },
               "&.Mui-disabled": {
                 opacity: 0.6,
@@ -231,15 +232,15 @@ export const theme = createTheme({
               height: 28,
               padding: "6px 12px",
               borderRadius: 8,
-              borderColor: COLORS.buttonBorderDark,
+              borderColor: COLORS.blackRock,
 
               fontSize: 10,
               fontWeight: 600,
               lineHeight: "16px",
-              color: COLORS.buttonText,
+              color: COLORS.bunker,
               "&:hover": {
-                borderColor: COLORS.buttonBorderDark,
-                background: COLORS.buttonBackgroundHoverLight,
+                borderColor: COLORS.blackRock,
+                background: "#30313E08",
                 boxShadow: "none",
               },
               "&.Mui-disabled": {
@@ -251,15 +252,15 @@ export const theme = createTheme({
               height: 32,
               padding: "6px 12px",
               borderRadius: 8,
-              borderColor: COLORS.buttonBorderDark,
+              borderColor: COLORS.blackRock,
 
               fontSize: 10,
               fontWeight: 600,
               lineHeight: "16px",
-              color: COLORS.buttonText,
+              color: COLORS.bunker,
               "&:hover": {
-                borderColor: COLORS.buttonBorderDark,
-                background: COLORS.buttonBackgroundHoverLight,
+                borderColor: COLORS.blackRock,
+                background: "#30313E08",
                 boxShadow: "none",
               },
               "&.Mui-disabled": {
@@ -271,16 +272,16 @@ export const theme = createTheme({
               height: 40,
               padding: "10px 20px",
               borderRadius: 12,
-              borderColor: COLORS.buttonBorderDark,
+              borderColor: COLORS.blackRock,
               background: "transparent",
 
               fontSize: 14,
               fontWeight: 600,
               lineHeight: "20px",
-              color: COLORS.buttonText,
+              color: COLORS.bunker,
               "&:hover": {
-                borderColor: COLORS.buttonBorderDark,
-                background: COLORS.buttonBackgroundHoverLight,
+                borderColor: COLORS.blackRock,
+                background: "#30313E08",
                 boxShadow: "none",
               },
               "&.Mui-disabled": {
@@ -293,15 +294,15 @@ export const theme = createTheme({
               height: 28,
               padding: "6px 12px",
               borderRadius: 8,
-              borderColor: COLORS.buttonBorderLight,
+              borderColor: COLORS.iron,
 
               fontSize: 10,
               fontWeight: 600,
               lineHeight: "16px",
-              color: COLORS.buttonText,
+              color: COLORS.bunker,
               "&:hover": {
-                borderColor: COLORS.buttonBorderLight,
-                background: COLORS.buttonBackgroundHoverLight,
+                borderColor: COLORS.iron,
+                background: "#30313E08",
                 boxShadow: "none",
               },
               "&.Mui-disabled": {
@@ -314,15 +315,15 @@ export const theme = createTheme({
               height: 32,
               padding: "6px 12px",
               borderRadius: 8,
-              borderColor: COLORS.buttonBorderLight,
+              borderColor: COLORS.iron,
 
               fontSize: 10,
               fontWeight: 600,
               lineHeight: "16px",
-              color: COLORS.buttonText,
+              color: COLORS.bunker,
               "&:hover": {
-                borderColor: COLORS.buttonBorderLight,
-                background: COLORS.buttonBackgroundHoverLight,
+                borderColor: COLORS.iron,
+                background: "#30313E08",
                 boxShadow: "none",
               },
               "&.Mui-disabled": {
@@ -335,15 +336,15 @@ export const theme = createTheme({
               height: 40,
               padding: "10px 20px",
               borderRadius: 12,
-              borderColor: COLORS.buttonBorderLight,
+              borderColor: COLORS.iron,
 
               fontSize: 14,
               fontWeight: 600,
               lineHeight: "20px",
-              color: COLORS.buttonText,
+              color: COLORS.bunker,
               "&:hover": {
-                borderColor: COLORS.buttonBorderLight,
-                background: COLORS.buttonBackgroundHoverLight,
+                borderColor: COLORS.iron,
+                background: "#30313E08",
                 boxShadow: "none",
               },
               "&.Mui-disabled": {
