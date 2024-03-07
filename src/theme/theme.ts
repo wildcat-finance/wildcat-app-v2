@@ -423,5 +423,31 @@ export const theme = createTheme({
         }),
       },
     },
+    MuiDivider: {
+      styleOverrides: {
+        root: () => ({
+          height: "1px",
+          padding: "0px",
+          borderColor: COLORS.athensGrey,
+        }),
+      },
+    },
+    MuiRadio: {
+      defaultProps: {
+        disableRipple: true,
+      },
+      styleOverrides: {
+        root: {
+          "&.MuiRadio-root": {
+            border: `1px solid ${COLORS.iron}`,
+            padding: "0px",
+            transition: "border 0.2s",
+            "&:hover": {
+              borderColor: COLORS.santasGrey,
+            },
+          },
+        },
+      },
+    },
   },
 })

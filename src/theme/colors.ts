@@ -11,6 +11,9 @@ export const COLORS = {
   hintOfRed: "#F9F9FA",
   alabaster: "#FAFAFA",
   white: "#FFFFFF",
+  white01: "#FFFFFF1A",
+  white03: "#FFFFFF4D",
+  white04: "#FFFFFF66",
 
   dullRed: "#C24647",
   carminePink: "#F1464B",
