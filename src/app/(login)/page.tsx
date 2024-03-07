@@ -1,5 +1,4 @@
 import { Button, Typography } from "@mui/material"
-import Image from "next/image"
 import {
   Illustration,
   ContentContainer,
@@ -13,19 +12,19 @@ import {
 } from "./styled"
 
 import illustration from "../../assets/pictures/login_page.png"
-import wildcatLogo from "../../assets/logos/wildcat_logo.svg"
+import WildcatLogo from "../../assets/logos/wildcat_logo.svg"
 
 export default function LoginPage() {
   return (
     <>
       <Header>
-        <Image src={wildcatLogo} alt="Logo" />
+        <WildcatLogo />
         <Button variant="outlined" color="secondary" size="large">
           Connect a wallet
         </Button>
       </Header>
       <ContentContainer>
-        <Illustration src={illustration} alt="картин очка" />
+        <Illustration src={illustration} alt="Illustration" />
         <ConnectContainer>
           <Title variant="title1Highlighted">Connect your wallet</Title>
           <Description variant="text1">
