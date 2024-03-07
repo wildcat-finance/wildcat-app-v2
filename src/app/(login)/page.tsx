@@ -12,7 +12,7 @@ import {
 } from "./styled"
 
 import illustration from "../../assets/pictures/login_page.png"
-import WildcatLogo from "../../assets/logos/wildcat_logo.svg"
+import WildcatLogo from "../../assets/icons/logo_white.svg"
 
 export default function LoginPage() {
   return (
