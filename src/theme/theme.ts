@@ -449,5 +449,17 @@ export const theme = createTheme({
         },
       },
     },
+    MuiCheckbox: {
+      defaultProps: {
+        disableRipple: true,
+      },
+      styleOverrides: {
+        root: {
+          "&.MuiCheckbox-root": {
+            padding: "0px",
+          },
+        },
+      },
+    },
   },
 })
