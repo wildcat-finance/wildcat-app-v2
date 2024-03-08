@@ -11,7 +11,7 @@ import {
   DownloadIcon,
 } from "./styled"
 
-import illustration from "../../assets/pictures/login_page.png"
+import illustration from "../../assets/pictures/login_page.webp"
 import WildcatLogo from "../../assets/icons/logo_white.svg"
 
 export default function LoginPage() {
