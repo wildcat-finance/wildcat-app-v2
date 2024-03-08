@@ -48,5 +48,8 @@
     "prettier": "3.1.1",
     "storybook": "^7.6.6",
     "typescript": "^5"
+  },
+  "resolutions": {
+    "jackspeak": "2.1.1"
   }
 }
