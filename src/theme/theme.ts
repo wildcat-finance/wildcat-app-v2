@@ -1,6 +1,12 @@
 import { createTheme } from "@mui/material"
 import { COLORS } from "./colors"
 
+declare module "@mui/material/SvgIcon" {
+  interface SvgIconPropsSizeOverrides {
+    huge: true
+  }
+}
+
 declare module "@mui/material/styles" {
   interface TypographyVariants {
     title1Highlighted: React.CSSProperties
@@ -103,6 +109,16 @@ export const theme = createTheme({
     },
   },
   components: {
+    MuiSvgIcon: {
+      variants: [
+        {
+          props: { fontSize: "huge" },
+          style: {
+            fontSize: "20px",
+          },
+        },
+      ],
+    },
     MuiChip: {
       styleOverrides: {
         root: ({ ownerState }) => ({

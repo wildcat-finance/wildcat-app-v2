@@ -1,4 +1,5 @@
-import { Box, Chip, SvgIcon } from "@mui/material"
+import { Box, Chip } from "@mui/material"
+import SvgIcon from "@mui/material/SvgIcon"
 import { COLORS } from "../../theme/colors"
 
 import Checked from "../../assets/icons/check24_icon.svg"
@@ -67,7 +68,11 @@ export const WildcatChip = ({ variant = "filled", type }: WildcatChipProps) => {
     case "filled": {
       return (
         <Chip
-          icon={<SvgIcon sx={{ fontSize: "12px" }}>{chipConfig.icon}</SvgIcon>}
+          icon={
+            <SvgIcon fontSize="huge">
+              {chipConfig.icon}
+            </SvgIcon>
+          }
           label={chipConfig.label}
           sx={{
             backgroundColor: chipConfig.backgroundColor,
