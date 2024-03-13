@@ -22,8 +22,13 @@ export const COLORS = {
   cherub: "#F7D7DA",
   remy: "#FDEDF0",
 
+  butteredRum: "#9E7A11",
+  galliano: "#D7A820",
+  oasis: "#FBEDC3",
+
   ultramarineBlue: "#3E68FF",
   blueRibbon: "#3E68FF",
+  cornflowerBlue: "#6688FF",
   hawkesBlue: "#D2DDFF",
   glitter: "#E4EBFE",
 }

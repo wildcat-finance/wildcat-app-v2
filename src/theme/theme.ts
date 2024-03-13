@@ -103,6 +103,44 @@ export const theme = createTheme({
     },
   },
   components: {
+    MuiChip: {
+      styleOverrides: {
+        root: ({ ownerState }) => ({
+          height: "fit-content",
+          display: "flex",
+          columnGap: "2px",
+          borderRadius: "4px",
+          padding: "0 8px",
+          ...(ownerState.variant === "filled" && {
+            "& .MuiChip-label": {
+              fontSize: "10px",
+              lineHeight: "16px",
+              fontWeight: 500,
+
+              padding: 0,
+            },
+            "& .MuiChip-icon": {
+              color: "none",
+              margin: 0,
+            },
+          }),
+          ...(ownerState.variant === "outlined" && {
+            border: "none",
+            padding: 0,
+            "& .MuiChip-label": {
+              fontSize: "10px",
+              lineHeight: "16px",
+              fontWeight: 500,
+
+              padding: 0,
+            },
+            "& .MuiChip-icon": {
+              margin: 0,
+            },
+          }),
+        }),
+      },
+    },
     MuiButton: {
       defaultProps: {
         disableRipple: true,
