@@ -2,7 +2,8 @@ import * as React from "react"
 import { styled } from "@mui/material/styles"
 import { CheckboxProps } from "@mui/material/Checkbox"
 import { Checkbox as MUICheckbox } from "@mui/material"
-import { COLORS } from "../../../theme/colors"
+
+import { COLORS } from "@/theme/colors"
 
 const Icon = styled("span")({
   border: `1px solid ${COLORS.iron}`,

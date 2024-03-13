@@ -2,7 +2,8 @@ import * as React from "react"
 import { styled } from "@mui/material/styles"
 import { RadioProps } from "@mui/material/Radio"
 import { Radio as MUIRadio } from "@mui/material"
-import { COLORS } from "../../../theme/colors"
+
+import { COLORS } from "@/theme/colors"
 
 const Icon = styled("span")({
   display: "flex",
