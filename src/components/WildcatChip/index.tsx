@@ -17,49 +17,50 @@ export const WildcatChip = ({ variant = "filled", type }: WildcatChipProps) => {
     case "healthy": {
       chipConfig = {
         label: "Healthy",
-        icon: <Checked fill={COLORS.blueRibbon} />,
+        icon: <Checked />,
         backgroundColor: COLORS.glitter,
         fontColor: COLORS.blueRibbon,
+        iconColor: "blueRibbon",
       }
       break
     }
     case "penalty": {
       chipConfig = {
         label: "Penalty",
-        icon: <Checked fill={COLORS.dullRed} />,
+        icon: <Checked />,
         backgroundColor: COLORS.cherub,
         fontColor: COLORS.dullRed,
+        iconColor: "dullRed",
       }
       break
     }
     case "delinquent": {
       chipConfig = {
         label: "Delinquent",
-        icon: (
-          <Checked
-            fill={variant === "text" ? COLORS.galliano : COLORS.butteredRum}
-          />
-        ),
+        icon: <Checked />,
         backgroundColor: COLORS.oasis,
         fontColor: variant === "text" ? COLORS.galliano : COLORS.butteredRum,
+        iconColor: "butteredRum",
       }
       break
     }
     case "terminated": {
       chipConfig = {
         label: "Terminated",
-        icon: <Checked fill={COLORS.santasGrey} />,
+        icon: <Checked />,
         backgroundColor: COLORS.whiteSmoke,
         fontColor: COLORS.santasGrey,
+        iconColor: "santasGrey",
       }
       break
     }
     default: {
       chipConfig = {
         label: "Healthy",
-        icon: <Checked fill={COLORS.blueRibbon} />,
+        icon: <Checked />,
         backgroundColor: COLORS.glitter,
         fontColor: COLORS.blueRibbon,
+        iconColor: "blueRibbon",
       }
     }
   }
@@ -69,7 +70,7 @@ export const WildcatChip = ({ variant = "filled", type }: WildcatChipProps) => {
       return (
         <Chip
           icon={
-            <SvgIcon fontSize="huge">
+            <SvgIcon fontSize="small" color={chipConfig.iconColor}>
               {chipConfig.icon}
             </SvgIcon>
           }

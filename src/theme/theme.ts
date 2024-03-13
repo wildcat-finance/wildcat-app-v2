@@ -1,8 +1,36 @@
 import { createTheme } from "@mui/material"
 import { COLORS } from "./colors"
 
+declare module "@mui/material/styles" {
+  interface Palette {
+    blueRibbon: Palette["primary"]
+    dullRed: Palette["primary"]
+    butteredRum: Palette["primary"]
+    santasGrey: Palette["primary"]
+  }
+
+  interface PaletteOptions {
+    blueRibbon?: PaletteOptions["primary"]
+    dullRed?: PaletteOptions["primary"]
+    butteredRum?: PaletteOptions["primary"]
+    santasGrey?: PaletteOptions["primary"]
+  }
+}
+
+declare module "@mui/material/SvgIcon" {
+  interface SvgIconPropsColorOverrides {
+    blueRibbon: true
+    dullRed: true
+    butteredRum: true
+    santasGrey: true
+  }
+}
+
 declare module "@mui/material/SvgIcon" {
   interface SvgIconPropsSizeOverrides {
+    small: true
+    medium: true
+    big: true
     huge: true
   }
 }
@@ -51,6 +79,20 @@ declare module "@mui/material/Typography" {
 }
 
 export const theme = createTheme({
+  palette: {
+    blueRibbon: {
+      main: "#3E68FF",
+    },
+    dullRed: {
+      main: "#C24647",
+    },
+    butteredRum: {
+      main: "#9E7A11",
+    },
+    santasGrey: {
+      main: "#A0A0B0",
+    },
+  },
   typography: {
     title1Highlighted: {
       fontSize: 32,
@@ -114,7 +156,25 @@ export const theme = createTheme({
         {
           props: { fontSize: "huge" },
           style: {
+            fontSize: "30px",
+          },
+        },
+        {
+          props: { fontSize: "big" },
+          style: {
             fontSize: "20px",
+          },
+        },
+        {
+          props: { fontSize: "medium" },
+          style: {
+            fontSize: "16px",
+          },
+        },
+        {
+          props: { fontSize: "small" },
+          style: {
+            fontSize: "12px",
           },
         },
       ],
