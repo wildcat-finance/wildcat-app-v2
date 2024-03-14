@@ -1,11 +1,11 @@
 import type { Meta } from "@storybook/react"
 import { Box } from "@mui/material"
-import { WildcatChip } from "../components/WildcatChip"
+import { MarketStatusChip } from "@/components/extended/MarketStatusChip"
 
 export default {
   title: "Components/Wildcat Chip",
-  component: WildcatChip,
-} as Meta<typeof WildcatChip>
+  component: MarketStatusChip,
+} as Meta<typeof MarketStatusChip>
 
 export const Chip = () => (
   <Box
@@ -23,10 +23,10 @@ export const Chip = () => (
         gap: "10px",
       }}
     >
-      <WildcatChip type="healthy" />
-      <WildcatChip type="penalty" />
-      <WildcatChip type="delinquent" />
-      <WildcatChip type="terminated" />
+      <MarketStatusChip type="healthy" />
+      <MarketStatusChip type="penalty" />
+      <MarketStatusChip type="delinquent" />
+      <MarketStatusChip type="terminated" />
     </Box>
     <Box
       sx={{
@@ -36,10 +36,10 @@ export const Chip = () => (
         gap: "10px",
       }}
     >
-      <WildcatChip variant="text" type="healthy" />
-      <WildcatChip variant="text" type="penalty" />
-      <WildcatChip variant="text" type="delinquent" />
-      <WildcatChip variant="text" type="terminated" />
+      <MarketStatusChip variant="text" type="healthy" />
+      <MarketStatusChip variant="text" type="penalty" />
+      <MarketStatusChip variant="text" type="delinquent" />
+      <MarketStatusChip variant="text" type="terminated" />
     </Box>
   </Box>
 )

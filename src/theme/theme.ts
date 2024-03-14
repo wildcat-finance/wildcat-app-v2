@@ -585,7 +585,7 @@ export const theme = createTheme({
             "& .MuiFormHelperText-root": {
               margin: "4px 0 0",
               "&.Mui-error": {
-                color: "rgba(250, 111, 119, 1)",
+                color: COLORS.wildWatermelon,
               },
             },
             "& .MuiFilledInput-underline": {
@@ -603,21 +603,21 @@ export const theme = createTheme({
 
               backgroundColor: "transparent",
               borderRadius: 12,
-              border: "1px solid rgba(0, 0, 0, 0.1)",
+              border: `1px solid ${COLORS.whiteLilac}`,
               paddingRight: "16px",
 
               "&:hover": {
-                border: "1px solid rgba(0, 0, 0, 0.3)",
+                borderColor: COLORS.greySuit,
                 backgroundColor: "transparent",
               },
 
               "&.Mui-focused": {
-                border: "1px solid rgba(0, 0, 0, 0.7)",
+                borderColor: COLORS.black07,
                 backgroundColor: "transparent",
               },
             },
             "& .MuiInputBase-root.Mui-error": {
-              borderColor: "rgba(250, 111, 119, 1)",
+              borderColor: COLORS.wildWatermelon,
             },
             "& .MuiInputBase-input": {
               padding: "24px 16px 8px",
@@ -630,22 +630,22 @@ export const theme = createTheme({
             fontSize: 12,
             fontWeight: 500,
             lineHeight: "20px",
-            color: "rgba(0, 0, 0, 0.2)",
+            color: COLORS.santasGrey,
             letterSpacing: "0.2px",
 
-            top: "2px",
+            top: "0px",
             left: "5px",
 
             "&.Mui-focused": {
               left: "5px",
-              top: "3.5px",
+              top: "3px",
               color: "rgba(0, 0, 0, 0.2) !important",
               backgroundColor: "transparent !important",
             },
 
             "&.MuiInputLabel-shrink": {
               left: "5px",
-              top: "3.5px",
+              top: "3px",
               color: "rgba(0, 0, 0, 0.2) !important",
             },
 

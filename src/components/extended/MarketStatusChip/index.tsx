@@ -1,16 +1,21 @@
 import { Box, Chip } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
-import { COLORS } from "../../theme/colors"
+import Image from "next/image"
+import { COLORS } from "@/theme/colors"
 
-import Checked from "../../assets/icons/check24_icon.svg"
-import Arrow from "../../assets/icons/textChipArrow_icon.svg"
+import Checked from "../../../assets/icons/check_icon.svg"
+import Arrow from "../../../assets/icons/textChipArrow_icon.svg"
+import Fire from "../../../assets/icons/fire_icon.png"
 
-type WildcatChipProps = {
+type MarketStatusChipProps = {
   variant?: "filled" | "text"
   type: "healthy" | "penalty" | "delinquent" | "terminated"
 }
 
-export const WildcatChip = ({ variant = "filled", type }: WildcatChipProps) => {
+export const MarketStatusChip = ({
+  variant = "filled",
+  type,
+}: MarketStatusChipProps) => {
   let chipConfig
 
   switch (type) {
@@ -70,9 +75,13 @@ export const WildcatChip = ({ variant = "filled", type }: WildcatChipProps) => {
       return (
         <Chip
           icon={
-            <SvgIcon fontSize="small" color={chipConfig.iconColor}>
-              {chipConfig.icon}
-            </SvgIcon>
+            type === "penalty" ? (
+              <Image src={Fire} alt="Fire icon" height={12} width={12} />
+            ) : (
+              <SvgIcon fontSize="small" color={chipConfig.iconColor}>
+                {chipConfig.icon}
+              </SvgIcon>
+            )
           }
           label={chipConfig.label}
           sx={{
