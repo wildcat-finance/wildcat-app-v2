@@ -1,7 +1,6 @@
 import {
   Box,
   InputAdornment,
-  MenuItem,
   TextField,
   Typography,
 } from "@mui/material"
@@ -11,21 +10,6 @@ export default {
   title: "Components/Textfield",
   component: TextField,
 } as Meta<typeof TextField>
-
-const MOCK = [
-  {
-    value: "Item 1",
-    id: "1",
-  },
-  {
-    value: "Item 2",
-    id: "2",
-  },
-  {
-    value: "Item 3",
-    id: "3",
-  },
-]
 
 export const Text = () => (
   <Box
@@ -79,21 +63,21 @@ export const Text = () => (
         disabled
       />
     </Box>
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        gap: "10px",
-      }}
-    >
-      <TextField select label="Placeholder" sx={{ width: "245px" }}>
-        {MOCK.map((item) => (
-          <MenuItem key={item.id} value={item.value}>
-            {item.value}
-          </MenuItem>
-        ))}
-      </TextField>
-    </Box>
+    {/* <Box */}
+    {/*  sx={{ */}
+    {/*    display: "flex", */}
+    {/*    flexDirection: "row", */}
+    {/*    alignItems: "center", */}
+    {/*    gap: "10px", */}
+    {/*  }} */}
+    {/* > */}
+    {/*  <TextField select label="Placeholder" sx={{ width: "245px" }}> */}
+    {/*    {MOCK.map((item) => ( */}
+    {/*      <MenuItem key={item.id} value={item.value}> */}
+    {/*        {item.value} */}
+    {/*      </MenuItem> */}
+    {/*    ))} */}
+    {/*  </TextField> */}
+    {/* </Box> */}
   </Box>
 )

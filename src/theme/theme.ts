@@ -623,9 +623,6 @@ export const theme = createTheme({
               padding: "24px 16px 8px",
             },
           }),
-          ...(ownerState.select === true && {
-            width: "260px",
-          }),
           "& .MuiFormLabel-root": {
             fontSize: 12,
             fontWeight: 500,
@@ -639,7 +636,7 @@ export const theme = createTheme({
             "&.Mui-focused": {
               left: "5px",
               top: "3px",
-              color: "rgba(0, 0, 0, 0.2) !important",
+              color: COLORS.santasGrey,
               backgroundColor: "transparent !important",
             },
 
@@ -653,15 +650,90 @@ export const theme = createTheme({
               color: "rgba(0, 0, 0, 0.2)",
             },
           },
+        }),
+      },
+    },
+    MuiFormLabel: {
+      styleOverrides: {
+        root: {
+          fontSize: 12,
+          fontWeight: 500,
+          lineHeight: "20px",
+          color: COLORS.santasGrey,
+          letterSpacing: "0.2px",
+          top: "0px",
+          left: "3px",
 
-          "& .MuiSelect-select": {
-            "&:focused": {
+          "&.Mui-focused": {
+            left: "3px",
+            top: "17px",
+            color: `${COLORS.santasGrey} !important`,
+            backgroundColor: "transparent !important",
+          },
+
+          "&.MuiInputLabel-shrink": {
+            left: "3px",
+            top: "17px",
+            color: `${COLORS.santasGrey} !important`,
+          },
+        },
+      },
+    },
+    MuiSelect: {
+      defaultProps: {
+        variant: "filled",
+      },
+      styleOverrides: {
+        root: ({ ownerState }) => ({
+          ...(ownerState.variant === "filled" && {
+            "&.MuiFilledInput-underline": {
+              "&::before": {
+                borderBottom: "none !important",
+              },
+              "&::after": {
+                borderBottom: "none !important",
+              },
+            },
+            "&.MuiInputBase-root": {
+              height: "52px",
+
+              fontSize: 12,
+              fontWeight: 500,
+              lineHeight: "20px",
+
+              backgroundColor: "transparent",
+              borderRadius: 12,
+              border: `1px solid ${COLORS.whiteLilac}`,
+              paddingRight: "16px",
+
+              "&:hover": {
+                borderColor: COLORS.greySuit,
+                backgroundColor: "transparent",
+              },
+
+              "&.Mui-focused": {
+                borderColor: COLORS.black07,
+                backgroundColor: "transparent",
+              },
+            },
+            "&.MuiFormHelperText-root": {
+              margin: "4px 0 0",
+              "&.Mui-error": {
+                color: COLORS.wildWatermelon,
+              },
+            },
+
+            "& .MuiSelect-select": {
+              fontSize: 12,
+              fontWeight: 500,
+              lineHeight: "20px",
+
+              padding: "24px 16px 8px",
+
               backgroundColor: "transparent !important",
               background: "transparent",
             },
-            backgroundColor: "transparent !important",
-            background: "transparent",
-          },
+          }),
         }),
       },
     },
@@ -675,8 +747,11 @@ export const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          padding: "6px",
+          minWidth: "fit-content !important",
+          width: "260px",
+          boxSizing: "border-box",
           border: `1px solid ${COLORS.athensGrey}`,
+          padding: "8px 12px",
           borderRadius: "12px",
           marginTop: "2px",
           boxShadow: "0 2px 10px 0 rgba(0, 0, 0, 0.05)",
@@ -686,6 +761,7 @@ export const theme = createTheme({
     MuiMenuItem: {
       styleOverrides: {
         root: {
+          padding: 6,
           fontSize: "12px",
           lineHeight: "20px",
           fontWeight: 500,
