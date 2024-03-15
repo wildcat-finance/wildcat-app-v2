@@ -1,10 +1,8 @@
-import {
-  Box,
-  InputAdornment,
-  TextField,
-  Typography,
-} from "@mui/material"
+import { Box, InputAdornment, TextField, Typography } from "@mui/material"
 import type { Meta } from "@storybook/react"
+import SvgIcon from "@mui/material/SvgIcon"
+import { COLORS } from "@/theme/colors"
+import Icon from "../assets/icons/clock_icon.svg"
 
 export default {
   title: "Components/Textfield",
@@ -16,7 +14,7 @@ export const Text = () => (
     sx={{
       display: "flex",
       flexDirection: "column",
-      gap: "15px",
+      rowGap: "30px",
     }}
   >
     <Box
@@ -39,9 +37,8 @@ export const Text = () => (
       />
 
       <TextField
-        error
         label="Placeholder"
-        helperText="Error Text"
+        value="Text"
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
@@ -62,22 +59,103 @@ export const Text = () => (
         }}
         disabled
       />
+
+      <TextField
+        error
+        label="Placeholder"
+        helperText="Error Text"
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <Typography variant="text3">ETH</Typography>
+            </InputAdornment>
+          ),
+        }}
+      />
     </Box>
-    {/* <Box */}
-    {/*  sx={{ */}
-    {/*    display: "flex", */}
-    {/*    flexDirection: "row", */}
-    {/*    alignItems: "center", */}
-    {/*    gap: "10px", */}
-    {/*  }} */}
-    {/* > */}
-    {/*  <TextField select label="Placeholder" sx={{ width: "245px" }}> */}
-    {/*    {MOCK.map((item) => ( */}
-    {/*      <MenuItem key={item.id} value={item.value}> */}
-    {/*        {item.value} */}
-    {/*      </MenuItem> */}
-    {/*    ))} */}
-    {/*  </TextField> */}
-    {/* </Box> */}
+
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "flex-start",
+        gap: "10px",
+      }}
+    >
+      <TextField size="medium" label="Placeholder" />
+
+      <TextField size="medium" label="Placeholder" value="Text" />
+
+      <TextField size="medium" label="Placeholder" disabled />
+
+      <TextField
+        size="medium"
+        error
+        label="Placeholder"
+        helperText="Error Text"
+      />
+    </Box>
+
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "flex-start",
+        gap: "10px",
+      }}
+    >
+      <TextField
+        size="small"
+        label="Placeholder"
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SvgIcon
+                fontSize="small"
+                sx={{ "& path": { fill: `${COLORS.whiteLilac}` } }}
+              >
+                <Icon />
+              </SvgIcon>
+            </InputAdornment>
+          ),
+        }}
+      />
+
+      <TextField
+        size="small"
+        label="Placeholder"
+        value="Text"
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SvgIcon
+                fontSize="small"
+                sx={{ "& path": { fill: `${COLORS.whiteLilac}` } }}
+              >
+                <Icon />
+              </SvgIcon>
+            </InputAdornment>
+          ),
+        }}
+      />
+
+      <TextField
+        size="small"
+        label="Placeholder"
+        disabled
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SvgIcon
+                fontSize="small"
+                sx={{ "& path": { fill: `${COLORS.whiteLilac}` } }}
+              >
+                <Icon />
+              </SvgIcon>
+            </InputAdornment>
+          ),
+        }}
+      />
+    </Box>
   </Box>
 )

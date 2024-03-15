@@ -3,6 +3,7 @@ export const COLORS = {
   bunker: "#141414",
   blackRock: "#30313E",
   blackRock03: "#30313E08",
+  blackRock07: "#30313EB2",
   santasGrey: "#A0A0B0",
   greySuit: "#BEBECE",
   iron: "#D6D6DE",
