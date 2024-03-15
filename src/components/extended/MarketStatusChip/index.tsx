@@ -4,6 +4,8 @@ import Image from "next/image"
 import { COLORS } from "@/theme/colors"
 
 import Checked from "../../../assets/icons/check_icon.svg"
+import Cross from "../../../assets/icons/cross_icon.svg"
+import Clock from "../../../assets/icons/clock_icon.svg"
 import Arrow from "../../../assets/icons/textChipArrow_icon.svg"
 import Fire from "../../../assets/icons/fire_icon.png"
 
@@ -25,37 +27,33 @@ export const MarketStatusChip = ({
         icon: <Checked />,
         backgroundColor: COLORS.glitter,
         fontColor: COLORS.blueRibbon,
-        iconColor: "blueRibbon",
       }
       break
     }
     case "penalty": {
       chipConfig = {
         label: "Penalty",
-        icon: <Checked />,
+        icon: "",
         backgroundColor: COLORS.cherub,
         fontColor: COLORS.dullRed,
-        iconColor: "dullRed",
       }
       break
     }
     case "delinquent": {
       chipConfig = {
         label: "Delinquent",
-        icon: <Checked />,
+        icon: <Clock />,
         backgroundColor: COLORS.oasis,
         fontColor: variant === "text" ? COLORS.galliano : COLORS.butteredRum,
-        iconColor: "butteredRum",
       }
       break
     }
     case "terminated": {
       chipConfig = {
         label: "Terminated",
-        icon: <Checked />,
+        icon: <Cross />,
         backgroundColor: COLORS.whiteSmoke,
         fontColor: COLORS.santasGrey,
-        iconColor: "santasGrey",
       }
       break
     }
@@ -65,7 +63,6 @@ export const MarketStatusChip = ({
         icon: <Checked />,
         backgroundColor: COLORS.glitter,
         fontColor: COLORS.blueRibbon,
-        iconColor: "blueRibbon",
       }
     }
   }
@@ -78,7 +75,10 @@ export const MarketStatusChip = ({
             type === "penalty" ? (
               <Image src={Fire} alt="Fire icon" height={12} width={12} />
             ) : (
-              <SvgIcon fontSize="small" color={chipConfig.iconColor}>
+              <SvgIcon
+                fontSize="tiny"
+                sx={{ "& path": { fill: `${chipConfig.fontColor}` } }}
+              >
                 {chipConfig.icon}
               </SvgIcon>
             )
