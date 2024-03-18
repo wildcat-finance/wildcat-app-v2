@@ -1,6 +1,8 @@
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material"
 import type { Meta } from "@storybook/react"
-// import Icon from "../assets/icons/downArrow_icon.svg"
+import SvgIcon from "@mui/material/SvgIcon"
+import { ExtendedSelect } from "@/components/extended/ExtendedSelect"
+import Icon from "../assets/icons/downArrow_icon.svg"
 
 export default {
   title: "Components/Select",
@@ -23,20 +25,11 @@ const MOCK = [
 ]
 
 export const ThemedSelect = () => (
-  <FormControl fullWidth>
-    <InputLabel id="demo-simple-select-label">Placeholder</InputLabel>
-    <Select
-      label="Placeholder"
-      labelId="demo-simple-select-label"
-      id="demo-simple-select"
-      sx={{ width: "260px" }}
-      // IconComponent={() => <Icon />}
-    >
-      {MOCK.map((item) => (
-        <MenuItem key={item.id} value={item.value}>
-          {item.value}
-        </MenuItem>
-      ))}
-    </Select>
-  </FormControl>
+  <ExtendedSelect label="Placeholder">
+    {MOCK.map((item) => (
+      <MenuItem key={item.id} value={item.value}>
+        {item.value}
+      </MenuItem>
+    ))}
+  </ExtendedSelect>
 )

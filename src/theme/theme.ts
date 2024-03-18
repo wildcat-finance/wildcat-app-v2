@@ -3,6 +3,8 @@ import { TYPOGRAPHY } from "@/theme/typography"
 import { PALETTE } from "@/theme/palette"
 import { COLORS } from "./colors"
 
+import DownArrow from "../assets/icons/downArrow20_icon.svg"
+
 declare module "@mui/material/styles" {
   interface Palette {
     blueRibbon: Palette["primary"]
@@ -548,10 +550,12 @@ export const theme = createTheme({
       defaultProps: {
         variant: "filled",
         size: "regular",
+        autoComplete: "off",
       },
       styleOverrides: {
         root: ({ ownerState }) => ({
           width: "260px",
+
           ...(ownerState.disabled && {
             "& .MuiTypography-root": {
               color: COLORS.greySuit,
@@ -841,6 +845,7 @@ export const theme = createTheme({
     MuiSelect: {
       defaultProps: {
         variant: "filled",
+        IconComponent: DownArrow,
       },
       styleOverrides: {
         root: ({ ownerState }) => ({
@@ -853,6 +858,12 @@ export const theme = createTheme({
                 borderBottom: "none !important",
               },
             },
+
+            "& .MuiSelect-icon": {
+              top: "unset",
+              right: "11px",
+            },
+
             "&.MuiInputBase-root": {
               height: "52px",
 
@@ -929,12 +940,18 @@ export const theme = createTheme({
           "&:hover": {
             background: COLORS.hintOfRed,
           },
+          "&.Mui-focusVisible": {
+            background: COLORS.hintOfRed,
+          },
           "&.Mui-selected": {
             background: "transparent",
             color: COLORS.santasGrey,
             "&:hover": {
               background: "transparent",
               cursor: "pointer",
+            },
+            "&.Mui-focusVisible": {
+              background: "transparent",
             },
           },
         },
