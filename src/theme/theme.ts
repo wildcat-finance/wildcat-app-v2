@@ -930,6 +930,9 @@ export const theme = createTheme({
       },
     },
     MuiMenuItem: {
+      defaultProps: {
+        disableRipple: true,
+      },
       styleOverrides: {
         root: {
           padding: "6px 12px",
