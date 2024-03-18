@@ -876,6 +876,7 @@ export const theme = createTheme({
               borderRadius: 12,
               border: `1px solid ${COLORS.whiteLilac}`,
               paddingRight: "16px",
+              transition: "border 0.2s",
 
               "&:hover": {
                 borderColor: COLORS.greySuit,
@@ -891,6 +892,30 @@ export const theme = createTheme({
               margin: "4px 0 0",
               "&.Mui-error": {
                 color: COLORS.wildWatermelon,
+              },
+            },
+
+            "& .MuiFormLabel-root": {
+              fontSize: 12,
+              fontWeight: 500,
+              lineHeight: "20px",
+              color: COLORS.santasGrey,
+              letterSpacing: "0.2px",
+
+              top: "0px",
+              left: "5px",
+
+              "&.Mui-focused": {
+                left: "5px",
+                top: "3px",
+                color: COLORS.santasGrey,
+                backgroundColor: "transparent !important",
+              },
+
+              "&.MuiInputLabel-shrink": {
+                left: "5px",
+                top: "3px",
+                color: COLORS.santasGrey,
               },
             },
 
