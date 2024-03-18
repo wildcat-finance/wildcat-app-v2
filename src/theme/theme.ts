@@ -617,20 +617,16 @@ export const theme = createTheme({
                 lineHeight: "20px",
                 color: COLORS.santasGrey,
                 letterSpacing: "0.2px",
-
-                top: "0px",
-                left: "5px",
+                transform: "translate(17px, 15px) scale(1)",
 
                 "&.Mui-focused": {
-                  left: "5px",
-                  top: "3px",
+                  transform: "translate(17px, 9px) scale(0.75)",
                   color: COLORS.santasGrey,
                   backgroundColor: "transparent !important",
                 },
 
                 "&.MuiInputLabel-shrink": {
-                  left: "5px",
-                  top: "3px",
+                  transform: "translate(17px, 9px) scale(0.75)",
                   color: COLORS.santasGrey,
                 },
 
@@ -704,12 +700,10 @@ export const theme = createTheme({
                 color: COLORS.santasGrey,
                 letterSpacing: "0.2px",
 
-                top: "-4px",
-                left: "5px",
+                transform: "translate(17px, 12px) scale(1)",
 
                 "&.Mui-focused": {
-                  left: "5px",
-                  top: "0px",
+                  transform: "translate(17px, 7px) scale(0.8)",
                   color: COLORS.santasGrey,
                   backgroundColor: "transparent !important",
                 },
@@ -719,8 +713,7 @@ export const theme = createTheme({
                   fontWeight: 500,
                   lineHeight: "16px",
 
-                  left: "5px",
-                  top: "0px",
+                  transform: "translate(17px, 7px) scale(0.8)",
                   color: COLORS.santasGrey,
                 },
 
@@ -791,8 +784,7 @@ export const theme = createTheme({
                 letterSpacing: "0.2px",
 
                 "&.MuiInputLabel-shrink": {
-                  top: "6px",
-                  left: "13px",
+                  transform: "translate(26px, 8.5px) scale(1)",
 
                   "&.Mui-focused": {
                     display: "none",
@@ -832,19 +824,15 @@ export const theme = createTheme({
           lineHeight: "20px",
           color: COLORS.santasGrey,
           letterSpacing: "0.2px",
-          top: "0px",
-          left: "3px",
 
           "&.Mui-focused": {
-            left: "3px",
-            top: "17px",
+            transform: "translate(17px, 9px) scale(0.75)",
             color: `${COLORS.santasGrey} !important`,
             backgroundColor: "transparent !important",
           },
 
           "&.MuiInputLabel-shrink": {
-            left: "3px",
-            top: "17px",
+            transform: "translate(17px, 9px) scale(0.75)",
             color: `${COLORS.santasGrey} !important`,
           },
         },
@@ -895,30 +883,6 @@ export const theme = createTheme({
               },
             },
 
-            "& .MuiFormLabel-root": {
-              fontSize: 12,
-              fontWeight: 500,
-              lineHeight: "20px",
-              color: COLORS.santasGrey,
-              letterSpacing: "0.2px",
-
-              top: "0px",
-              left: "5px",
-
-              "&.Mui-focused": {
-                left: "5px",
-                top: "3px",
-                color: COLORS.santasGrey,
-                backgroundColor: "transparent !important",
-              },
-
-              "&.MuiInputLabel-shrink": {
-                left: "5px",
-                top: "3px",
-                color: COLORS.santasGrey,
-              },
-            },
-
             "& .MuiSelect-select": {
               fontSize: 12,
               fontWeight: 500,
@@ -947,7 +911,7 @@ export const theme = createTheme({
           width: "260px",
           boxSizing: "border-box",
           border: `1px solid ${COLORS.athensGrey}`,
-          padding: "8px 12px",
+          padding: 8,
           borderRadius: "12px",
           marginTop: "2px",
           boxShadow: "0 2px 10px 0 rgba(0, 0, 0, 0.05)",
@@ -957,7 +921,7 @@ export const theme = createTheme({
     MuiMenuItem: {
       styleOverrides: {
         root: {
-          padding: 6,
+          padding: "6px 12px",
           fontSize: "12px",
           lineHeight: "20px",
           fontWeight: 500,
@@ -967,8 +931,10 @@ export const theme = createTheme({
           },
           "&.Mui-selected": {
             background: "transparent",
+            color: COLORS.santasGrey,
             "&:hover": {
-              background: COLORS.hintOfRed,
+              background: "transparent",
+              cursor: "pointer",
             },
           },
         },
