@@ -112,7 +112,7 @@ export const Text = () => (
             <InputAdornment position="start">
               <SvgIcon
                 fontSize="small"
-                sx={{ "& path": { fill: `${COLORS.whiteLilac}` } }}
+                sx={{ "& path": { fill: `${COLORS.greySuit}` } }}
               >
                 <Icon />
               </SvgIcon>
@@ -130,7 +130,7 @@ export const Text = () => (
             <InputAdornment position="start">
               <SvgIcon
                 fontSize="small"
-                sx={{ "& path": { fill: `${COLORS.whiteLilac}` } }}
+                sx={{ "& path": { fill: `${COLORS.greySuit}` } }}
               >
                 <Icon />
               </SvgIcon>
@@ -148,7 +148,7 @@ export const Text = () => (
             <InputAdornment position="start">
               <SvgIcon
                 fontSize="small"
-                sx={{ "& path": { fill: `${COLORS.whiteLilac}` } }}
+                sx={{ "& path": { fill: `${COLORS.greySuit}` } }}
               >
                 <Icon />
               </SvgIcon>

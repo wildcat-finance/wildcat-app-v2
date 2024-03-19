@@ -2,6 +2,7 @@ import { ReactNode } from "react"
 import { Box, FormControl, InputLabel, Select } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 
+import { COLORS } from "@/theme/colors"
 import Icon from "../../../assets/icons/clock_icon.svg"
 
 export type ExtendedSelectProps = {
@@ -45,6 +46,8 @@ export const ExtendedSelect = ({
             <SvgIcon
               fontSize="small"
               sx={{
+                "& path": { fill: `${COLORS.greySuit}` },
+
                 position: "absolute",
                 top: "29.5%",
                 left: "10px",

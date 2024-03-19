@@ -1,4 +1,4 @@
-import { Box, MenuItem, Select } from "@mui/material"
+import { Box, MenuItem, Select, Typography } from "@mui/material"
 import type { Meta } from "@storybook/react"
 import { ExtendedSelect } from "@/components/extended/ExtendedSelect"
 
@@ -41,15 +41,7 @@ export const ThemedSelect = () => (
     <ExtendedSelect small label="Placeholder">
       {MOCK.map((item) => (
         <MenuItem key={item.id} value={item.value}>
-          {item.value}
-        </MenuItem>
-      ))}
-    </ExtendedSelect>
-
-    <ExtendedSelect small label="Placeholder">
-      {MOCK.map((item) => (
-        <MenuItem key={item.id} value={item.value}>
-          {item.value}
+          <Typography variant="text4">{item.value}</Typography>
         </MenuItem>
       ))}
     </ExtendedSelect>
