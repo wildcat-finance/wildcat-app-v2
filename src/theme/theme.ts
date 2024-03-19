@@ -846,65 +846,122 @@ export const theme = createTheme({
       defaultProps: {
         variant: "filled",
         IconComponent: DownArrow,
+        size: "medium",
       },
       styleOverrides: {
         root: ({ ownerState }) => ({
-          ...(ownerState.variant === "filled" && {
-            "&.MuiFilledInput-underline": {
-              "&::before": {
-                borderBottom: "none !important",
+          ...(ownerState.variant === "filled" &&
+            ownerState.size === "medium" && {
+              "&.MuiFilledInput-underline": {
+                "&::before": {
+                  borderBottom: "none !important",
+                },
+                "&::after": {
+                  borderBottom: "none !important",
+                },
               },
-              "&::after": {
-                borderBottom: "none !important",
+
+              "& .MuiSelect-icon": {
+                top: "unset",
+                right: "11px",
               },
-            },
 
-            "& .MuiSelect-icon": {
-              top: "unset",
-              right: "11px",
-            },
+              "&.MuiInputBase-root": {
+                height: "52px",
 
-            "&.MuiInputBase-root": {
-              height: "52px",
+                fontSize: 12,
+                fontWeight: 500,
+                lineHeight: "20px",
 
-              fontSize: 12,
-              fontWeight: 500,
-              lineHeight: "20px",
-
-              backgroundColor: "transparent",
-              borderRadius: 12,
-              border: `1px solid ${COLORS.whiteLilac}`,
-              paddingRight: "16px",
-              transition: "border 0.2s",
-
-              "&:hover": {
-                borderColor: COLORS.greySuit,
                 backgroundColor: "transparent",
+                borderRadius: 12,
+                border: `1px solid ${COLORS.whiteLilac}`,
+                paddingRight: "16px",
+                transition: "border 0.2s",
+
+                "&:hover": {
+                  borderColor: COLORS.greySuit,
+                  backgroundColor: "transparent",
+                },
+
+                "&.Mui-focused": {
+                  borderColor: COLORS.black07,
+                  backgroundColor: "transparent",
+                },
+              },
+              "&.MuiFormHelperText-root": {
+                margin: "4px 0 0",
+                "&.Mui-error": {
+                  color: COLORS.wildWatermelon,
+                },
               },
 
-              "&.Mui-focused": {
-                borderColor: COLORS.black07,
+              "& .MuiSelect-select": {
+                fontSize: 12,
+                fontWeight: 500,
+                lineHeight: "20px",
+
+                padding: "24px 16px 8px",
+
+                backgroundColor: "transparent !important",
+                background: "transparent",
+              },
+            }),
+          ...(ownerState.variant === "filled" &&
+            ownerState.size === "small" && {
+              "&.MuiFilledInput-underline": {
+                "&::before": {
+                  borderBottom: "none !important",
+                },
+                "&::after": {
+                  borderBottom: "none !important",
+                },
+              },
+
+              "& .MuiSelect-icon": {
+                display: "none",
+              },
+
+              "&.MuiInputBase-root": {
+                height: "32px",
+
+                fontSize: 12,
+                fontWeight: 500,
+                lineHeight: "20px",
+
                 backgroundColor: "transparent",
+                borderRadius: 8,
+                border: `1px solid ${COLORS.whiteLilac}`,
+                transition: "border 0.2s",
+
+                "&:hover": {
+                  borderColor: COLORS.greySuit,
+                  backgroundColor: "transparent",
+                },
+
+                "&.Mui-focused": {
+                  borderColor: COLORS.black07,
+                  backgroundColor: "transparent",
+                },
               },
-            },
-            "&.MuiFormHelperText-root": {
-              margin: "4px 0 0",
-              "&.Mui-error": {
-                color: COLORS.wildWatermelon,
+              "&.MuiFormHelperText-root": {
+                margin: "4px 0 0",
+                "&.Mui-error": {
+                  color: COLORS.wildWatermelon,
+                },
               },
-            },
 
-            "& .MuiSelect-select": {
-              fontSize: 12,
-              fontWeight: 500,
-              lineHeight: "20px",
+              "& .MuiSelect-select": {
+                fontSize: 10,
+                fontWeight: 500,
+                lineHeight: "16px",
 
-              padding: "24px 16px 8px",
+                padding: "8px 6px 8px 28px",
 
-              backgroundColor: "transparent !important",
-              background: "transparent",
-            },
-          }),
+                backgroundColor: "transparent !important",
+                background: "transparent",
+              },
+            }),
         }),
       },
     },

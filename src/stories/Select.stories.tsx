@@ -1,8 +1,6 @@
-import { FormControl, InputLabel, MenuItem, Select } from "@mui/material"
+import { Box, MenuItem, Select } from "@mui/material"
 import type { Meta } from "@storybook/react"
-import SvgIcon from "@mui/material/SvgIcon"
 import { ExtendedSelect } from "@/components/extended/ExtendedSelect"
-import Icon from "../assets/icons/downArrow_icon.svg"
 
 export default {
   title: "Components/Select",
@@ -25,11 +23,35 @@ const MOCK = [
 ]
 
 export const ThemedSelect = () => (
-  <ExtendedSelect label="Placeholder">
-    {MOCK.map((item) => (
-      <MenuItem key={item.id} value={item.value}>
-        {item.value}
-      </MenuItem>
-    ))}
-  </ExtendedSelect>
+  <Box
+    sx={{
+      display: "flex",
+      flexDirection: "column",
+      rowGap: "30px",
+    }}
+  >
+    <ExtendedSelect label="Placeholder">
+      {MOCK.map((item) => (
+        <MenuItem key={item.id} value={item.value}>
+          {item.value}
+        </MenuItem>
+      ))}
+    </ExtendedSelect>
+
+    <ExtendedSelect small label="Placeholder">
+      {MOCK.map((item) => (
+        <MenuItem key={item.id} value={item.value}>
+          {item.value}
+        </MenuItem>
+      ))}
+    </ExtendedSelect>
+
+    <ExtendedSelect small label="Placeholder">
+      {MOCK.map((item) => (
+        <MenuItem key={item.id} value={item.value}>
+          {item.value}
+        </MenuItem>
+      ))}
+    </ExtendedSelect>
+  </Box>
 )
