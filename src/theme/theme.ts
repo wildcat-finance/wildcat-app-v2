@@ -260,9 +260,9 @@ export const theme = createTheme({
               borderRadius: 8,
               background: "transparent",
 
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: 600,
-              lineHeight: "16px",
+              lineHeight: "12px",
               color: COLORS.bunker,
               "&:hover": {
                 boxShadow: "none",
