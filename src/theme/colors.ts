@@ -29,7 +29,7 @@ export const COLORS = {
   oasis: "#FBEDC3",
 
   ultramarineBlue: "#3E68FF",
-  blueRibbon: "#3E68FF",
+  blueRibbon: "#4971FF",
   cornflowerBlue: "#6688FF",
   hawkesBlue: "#D2DDFF",
   glitter: "#E4EBFE",

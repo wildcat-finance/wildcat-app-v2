@@ -1,11 +1,11 @@
-import { Box, MenuItem, Select, Typography } from "@mui/material"
+import { Box, MenuItem, Typography } from "@mui/material"
 import type { Meta } from "@storybook/react"
 import { ExtendedSelect } from "@/components/extended/ExtendedSelect"
 
 export default {
   title: "Components/Select",
-  component: Select,
-} as Meta<typeof Select>
+  component: ExtendedSelect,
+} as Meta<typeof ExtendedSelect>
 
 const MOCK = [
   {
