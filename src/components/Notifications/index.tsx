@@ -1,7 +1,8 @@
 import { Box, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import { COLORS } from "@/theme/colors"
-import Icon from "../../assets/icons/cross_icon.svg"
+import CloseIcon from "../../assets/icons/cross_icon.svg"
+import QuestionIcon from "../../assets/icons/circledQuestion_icon.svg"
 
 type NotificationsProps = {
   type?: "normal" | "penalty"
@@ -47,7 +48,7 @@ export const Notifications = ({
             fontSize="big"
             sx={{ "& path": { fill: `${COLORS.greySuit}` } }}
           >
-            <Icon />
+            <CloseIcon />
           </SvgIcon>
         </Box>
       )
@@ -86,7 +87,17 @@ export const Notifications = ({
                 {timeAgo} ago
               </Typography>
             </Box>
-            <Typography variant="text1">{title}</Typography>
+            <Box
+              sx={{ display: "flex", alignItems: "center", columnGap: "6px" }}
+            >
+              <Typography variant="text1">{title}</Typography>
+              <SvgIcon
+                fontSize="small"
+                sx={{ "& path": { fill: `${COLORS.greySuit}` } }}
+              >
+                <QuestionIcon />
+              </SvgIcon>
+            </Box>
             <Typography
               variant="text4"
               sx={{ width: "170px", color: COLORS.santasGrey }}
@@ -98,7 +109,7 @@ export const Notifications = ({
             fontSize="big"
             sx={{ "& path": { fill: `${COLORS.greySuit}` } }}
           >
-            <Icon />
+            <CloseIcon />
           </SvgIcon>
         </Box>
       )
@@ -133,7 +144,7 @@ export const Notifications = ({
             fontSize="big"
             sx={{ "& path": { fill: `${COLORS.greySuit}` } }}
           >
-            <Icon />
+            <CloseIcon />
           </SvgIcon>
         </Box>
       )

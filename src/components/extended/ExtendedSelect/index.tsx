@@ -3,7 +3,7 @@ import { Box, FormControl, InputLabel, Select } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 
 import { COLORS } from "@/theme/colors"
-import Icon from "../../../assets/icons/clock_icon.svg"
+import Icon from "../../../assets/icons/search_icon.svg"
 
 export type ExtendedSelectProps = {
   label: string
