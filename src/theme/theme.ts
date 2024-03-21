@@ -372,8 +372,7 @@ export const theme = createTheme({
       },
       styleOverrides: {
         root: ({ ownerState }) => ({
-          width: "260px",
-
+          fontFamily: "inherit",
           ...(ownerState.disabled && {
             "& .MuiTypography-root": {
               color: COLORS.greySuit,
@@ -560,9 +559,9 @@ export const theme = createTheme({
               },
 
               "& .MuiInputBase-root": {
-                fontSize: 10,
+                fontSize: 12,
                 fontWeight: 500,
-                lineHeight: "16px",
+                lineHeight: "20px",
                 paddingLeft: "8px",
                 color: COLORS.blackRock,
 
@@ -595,18 +594,18 @@ export const theme = createTheme({
               },
 
               "& .MuiInputBase-input": {
-                padding: "8px 6px 8px 4px",
+                padding: "6px 6px 6px 4px",
               },
 
               "& .MuiFormLabel-root": {
-                fontSize: 10,
+                fontSize: 12,
                 fontWeight: 500,
-                lineHeight: "16px",
+                lineHeight: "20px",
                 color: COLORS.santasGrey,
                 letterSpacing: "0.2px",
 
                 "&.MuiInputLabel-shrink": {
-                  transform: "translate(26px, 8.5px) scale(1)",
+                  transform: "translate(29px, 5.5px) scale(1)",
 
                   "&.Mui-focused": {
                     display: "none",
@@ -831,6 +830,29 @@ export const theme = createTheme({
             "&.Mui-focusVisible": {
               background: "transparent",
             },
+          },
+        },
+      },
+    },
+    MuiFormGroup: {
+      styleOverrides: {
+        root: {
+          rowGap: "12px",
+        },
+      },
+    },
+    MuiFormControlLabel: {
+      styleOverrides: {
+        root: {
+          margin: 0,
+          alignItems: "center",
+          columnGap: "8px",
+
+          "& .MuiTypography-root": {
+            fontFamily: "inherit",
+            fontSize: 12,
+            lineHeight: "20px",
+            fontWeight: 500,
           },
         },
       },

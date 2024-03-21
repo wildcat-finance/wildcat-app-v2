@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from "react"
 import { styled } from "@mui/material/styles"
 import { RadioProps } from "@mui/material/Radio"
@@ -25,6 +27,6 @@ const CheckedIcon = styled(Icon)({
   },
 })
 
-export default function Radio(props: RadioProps) {
+export default function RadioButton(props: RadioProps) {
   return <MUIRadio checkedIcon={<CheckedIcon />} icon={<Icon />} {...props} />
 }
