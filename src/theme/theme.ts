@@ -1,6 +1,20 @@
 import { createTheme } from "@mui/material"
 import { TYPOGRAPHY } from "@/theme/typography"
 import { PALETTE } from "@/theme/palette"
+import {
+  largeContainedButton,
+  largeOutlinedButton,
+  largeOutlinedSecondaryButton,
+  largeTextButton,
+  mediumContainedButton,
+  mediumOutlinedButton,
+  mediumOutlinedSecondaryButton,
+  mediumTextButton,
+  smallContainedButton,
+  smallOutlinedButton,
+  smallOutlinedSecondaryButton,
+  smallTextButton,
+} from "@/theme/overrides/Buttons"
 import { COLORS } from "./colors"
 
 import DownArrow from "../assets/icons/downArrow20_icon.svg"
@@ -176,245 +190,49 @@ export const theme = createTheme({
         root: ({ ownerState }) => ({
           boxShadow: "none",
           textTransform: "none",
+
           ...(ownerState.variant === "contained" &&
-            ownerState.size === "small" && {
-              height: 28,
-              padding: "6px 12px",
-              borderRadius: 8,
-              backgroundColor: COLORS.bunker,
-
-              fontSize: 10,
-              fontWeight: 600,
-              lineHeight: "16px",
-              "&:hover": {
-                background: COLORS.blackRock,
-                boxShadow: "none",
-              },
-              "&.Mui-disabled": {
-                color: COLORS.santasGrey,
-                backgroundColor: COLORS.athensGrey,
-              },
-            }),
+            ownerState.size === "small" &&
+            smallContainedButton),
           ...(ownerState.variant === "contained" &&
-            ownerState.size === "medium" && {
-              height: 32,
-              padding: "6px 12px",
-              borderRadius: 8,
-              backgroundColor: COLORS.bunker,
-
-              fontSize: 10,
-              fontWeight: 600,
-              lineHeight: "16px",
-              "&:hover": {
-                background: COLORS.blackRock,
-                boxShadow: "none",
-              },
-              "&.Mui-disabled": {
-                color: COLORS.santasGrey,
-                backgroundColor: COLORS.athensGrey,
-              },
-            }),
+            ownerState.size === "medium" &&
+            mediumContainedButton),
           ...(ownerState.variant === "contained" &&
-            ownerState.size === "large" && {
-              height: 40,
-              padding: "10px 20px",
-              borderRadius: 12,
-              backgroundColor: COLORS.bunker,
+            ownerState.size === "large" &&
+            largeContainedButton),
 
-              fontSize: 14,
-              fontWeight: 600,
-              lineHeight: "20px",
-              color: COLORS.white,
-              "&:hover": {
-                background: COLORS.blackRock,
-                boxShadow: "none",
-              },
-              "&.Mui-disabled": {
-                color: COLORS.santasGrey,
-                backgroundColor: COLORS.athensGrey,
-              },
-            }),
           ...(ownerState.variant === "text" &&
-            ownerState.size === "small" && {
-              height: 28,
-              padding: "6px 12px",
-              borderRadius: 8,
-              background: "transparent",
-
-              fontSize: 10,
-              fontWeight: 600,
-              lineHeight: "16px",
-              color: COLORS.bunker,
-              "&:hover": {
-                boxShadow: "none",
-                backgroundColor: COLORS.blackRock03,
-              },
-              "&.Mui-disabled": {
-                opacity: 0.6,
-              },
-            }),
+            ownerState.size === "small" &&
+            smallTextButton),
           ...(ownerState.variant === "text" &&
-            ownerState.size === "medium" && {
-              height: 32,
-              padding: "6px 12px",
-              borderRadius: 8,
-              background: "transparent",
-
-              fontSize: 12,
-              fontWeight: 600,
-              lineHeight: "12px",
-              color: COLORS.bunker,
-              "&:hover": {
-                boxShadow: "none",
-                backgroundColor: COLORS.blackRock03,
-              },
-              "&.Mui-disabled": {
-                opacity: 0.6,
-              },
-            }),
+            ownerState.size === "medium" &&
+            mediumTextButton),
           ...(ownerState.variant === "text" &&
-            ownerState.size === "large" && {
-              height: 40,
-              padding: "10px 20px",
-              borderRadius: 12,
-              background: "transparent",
+            ownerState.size === "large" &&
+            largeTextButton),
 
-              fontSize: 14,
-              fontWeight: 600,
-              lineHeight: "20px",
-              color: COLORS.bunker,
-              "&:hover": {
-                boxShadow: "none",
-                backgroundColor: COLORS.blackRock03,
-              },
-              "&.Mui-disabled": {
-                opacity: 0.6,
-              },
-            }),
           ...(ownerState.variant === "outlined" &&
-            ownerState.size === "small" && {
-              height: 28,
-              padding: "6px 12px",
-              borderRadius: 8,
-              borderColor: COLORS.blackRock,
-
-              fontSize: 10,
-              fontWeight: 600,
-              lineHeight: "16px",
-              color: COLORS.bunker,
-              "&:hover": {
-                borderColor: COLORS.blackRock,
-                background: COLORS.blackRock03,
-                boxShadow: "none",
-              },
-              "&.Mui-disabled": {
-                opacity: 0.6,
-              },
-            }),
+            ownerState.size === "small" &&
+            smallOutlinedButton),
           ...(ownerState.variant === "outlined" &&
-            ownerState.size === "medium" && {
-              height: 32,
-              padding: "6px 12px",
-              borderRadius: 8,
-              borderColor: COLORS.blackRock,
-
-              fontSize: 10,
-              fontWeight: 600,
-              lineHeight: "16px",
-              color: COLORS.bunker,
-              "&:hover": {
-                borderColor: COLORS.blackRock,
-                background: COLORS.blackRock03,
-                boxShadow: "none",
-              },
-              "&.Mui-disabled": {
-                opacity: 0.6,
-              },
-            }),
+            ownerState.size === "medium" &&
+            mediumOutlinedButton),
           ...(ownerState.variant === "outlined" &&
-            ownerState.size === "large" && {
-              height: 40,
-              padding: "10px 20px",
-              borderRadius: 12,
-              borderColor: COLORS.blackRock,
-              background: "transparent",
+            ownerState.size === "large" &&
+            largeOutlinedButton),
 
-              fontSize: 14,
-              fontWeight: 600,
-              lineHeight: "20px",
-              color: COLORS.bunker,
-              "&:hover": {
-                borderColor: COLORS.blackRock,
-                background: COLORS.blackRock03,
-                boxShadow: "none",
-              },
-              "&.Mui-disabled": {
-                opacity: 0.6,
-              },
-            }),
           ...(ownerState.variant === "outlined" &&
             ownerState.color === "secondary" &&
-            ownerState.size === "small" && {
-              height: 28,
-              padding: "6px 12px",
-              borderRadius: 8,
-              borderColor: COLORS.iron,
-
-              fontSize: 10,
-              fontWeight: 600,
-              lineHeight: "16px",
-              color: COLORS.bunker,
-              "&:hover": {
-                borderColor: COLORS.iron,
-                background: COLORS.blackRock03,
-                boxShadow: "none",
-              },
-              "&.Mui-disabled": {
-                opacity: 0.6,
-              },
-            }),
+            ownerState.size === "small" &&
+            smallOutlinedSecondaryButton),
           ...(ownerState.variant === "outlined" &&
             ownerState.color === "secondary" &&
-            ownerState.size === "medium" && {
-              height: 32,
-              padding: "6px 12px",
-              borderRadius: 8,
-              borderColor: COLORS.iron,
-
-              fontSize: 10,
-              fontWeight: 600,
-              lineHeight: "16px",
-              color: COLORS.bunker,
-              "&:hover": {
-                borderColor: COLORS.iron,
-                background: COLORS.blackRock03,
-                boxShadow: "none",
-              },
-              "&.Mui-disabled": {
-                opacity: 0.6,
-              },
-            }),
+            ownerState.size === "medium" &&
+            mediumOutlinedSecondaryButton),
           ...(ownerState.variant === "outlined" &&
             ownerState.color === "secondary" &&
-            ownerState.size === "large" && {
-              height: 40,
-              padding: "10px 20px",
-              borderRadius: 12,
-              borderColor: COLORS.iron,
-
-              fontSize: 14,
-              fontWeight: 600,
-              lineHeight: "20px",
-              color: COLORS.bunker,
-              "&:hover": {
-                borderColor: COLORS.iron,
-                background: COLORS.blackRock03,
-                boxShadow: "none",
-              },
-              "&.Mui-disabled": {
-                opacity: 0.6,
-              },
-            }),
+            ownerState.size === "large" &&
+            largeOutlinedSecondaryButton),
         }),
       },
     },
