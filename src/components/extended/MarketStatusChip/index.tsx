@@ -3,16 +3,12 @@ import SvgIcon from "@mui/material/SvgIcon"
 import Image from "next/image"
 import { COLORS } from "@/theme/colors"
 
+import { MarketStatusChipProps } from "@/components/extended/MarketStatusChip/type"
 import Checked from "../../../assets/icons/check_icon.svg"
 import Cross from "../../../assets/icons/cross_icon.svg"
 import Clock from "../../../assets/icons/clock_icon.svg"
 import Arrow from "../../../assets/icons/textChipArrow_icon.svg"
 import Fire from "../../../assets/icons/fire_icon.png"
-
-type MarketStatusChipProps = {
-  variant?: "filled" | "text"
-  type: "healthy" | "penalty" | "delinquent" | "terminated"
-}
 
 export const MarketStatusChip = ({
   variant = "filled",

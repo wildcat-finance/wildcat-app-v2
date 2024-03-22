@@ -1,15 +1,14 @@
-import { ReactNode } from "react"
 import { Box, FormControl, InputLabel, Select } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 
-import { COLORS } from "@/theme/colors"
-import Icon from "../../../assets/icons/search_icon.svg"
+import { ExtendedSelectProps } from "@/components/extended/ExtendedSelect/type"
 
-export type ExtendedSelectProps = {
-  label: string
-  children: ReactNode
-  small?: boolean
-}
+import {
+  FormControlContainer,
+  SearchIcon,
+  SelectContainer,
+} from "@/components/extended/ExtendedSelect/style"
+import Icon from "../../../assets/icons/search_icon.svg"
 
 export const ExtendedSelect = ({
   label,
@@ -21,39 +20,16 @@ export const ExtendedSelect = ({
       return (
         <FormControl>
           <InputLabel>{label}</InputLabel>
-          <Select sx={{ width: "260px" }}>{children}</Select>
+          <Select>{children}</Select>
         </FormControl>
       )
     }
     case true: {
       return (
         <Box>
-          <FormControl sx={{ position: "relative", width: "260px" }}>
-            <InputLabel
-              sx={{
-                fontSize: "10px",
-                transform: "translate(29.15px, 6px) scale(1)",
-                "&.Mui-focused": {
-                  display: "none",
-                },
-                "&.MuiFormLabel-filled": {
-                  display: "none",
-                },
-              }}
-            >
-              {label}
-            </InputLabel>
-            <SvgIcon
-              fontSize="small"
-              sx={{
-                "& path": { fill: `${COLORS.greySuit}` },
-
-                position: "absolute",
-                top: "29.5%",
-                left: "10px",
-                zIndex: -1,
-              }}
-            >
+          <FormControl sx={FormControlContainer}>
+            <InputLabel sx={SelectContainer}>{label}</InputLabel>
+            <SvgIcon fontSize="small" sx={SearchIcon}>
               <Icon />
             </SvgIcon>
             <Select size="small">{children}</Select>
@@ -65,7 +41,7 @@ export const ExtendedSelect = ({
       return (
         <FormControl>
           <InputLabel>{label}</InputLabel>
-          <Select sx={{ width: "260px" }}>{children}</Select>
+          <Select>{children}</Select>
         </FormControl>
       )
     }

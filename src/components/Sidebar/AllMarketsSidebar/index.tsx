@@ -12,6 +12,7 @@ import { COLORS } from "@/theme/colors"
 import SvgIcon from "@mui/material/SvgIcon"
 import Icon from "@/assets/icons/search_icon.svg"
 import RadioButton from "@/components/extended/RadioButton"
+import { ContentContainer } from "@/components/Sidebar/AllMarketsSidebar/style"
 
 const MOCK = [
   {
@@ -29,17 +30,7 @@ const MOCK = [
 ]
 
 export const AllMarketsSidebar = () => (
-  <Box
-    sx={{
-      minHeight: "calc(100vh - 82px - 43px)",
-      minWidth: "267px",
-      borderRight: `1px solid ${COLORS.blackRock006}`,
-      padding: "42px 16px 0px",
-      display: "flex",
-      flexDirection: "column",
-      rowGap: "24px",
-    }}
-  >
+  <Box sx={ContentContainer}>
     <TextField
       fullWidth
       size="small"
@@ -62,7 +53,7 @@ export const AllMarketsSidebar = () => (
 
     <Box>
       <FormControl>
-        <Typography variant="text2" sx={{ mb: "12px" }}>
+        <Typography variant="text2" mb="12px">
           Market Status
         </Typography>
         <RadioGroup defaultValue="all" name="radio-buttons-group">
@@ -90,7 +81,7 @@ export const AllMarketsSidebar = () => (
 
     <Box>
       <FormControl>
-        <Typography variant="text2" sx={{ mb: "12px" }}>
+        <Typography variant="text2" mb="12px">
           Underlying asset
         </Typography>
         <RadioGroup defaultValue="all" name="radio-buttons-group">

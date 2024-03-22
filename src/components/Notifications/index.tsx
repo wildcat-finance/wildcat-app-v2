@@ -1,15 +1,18 @@
 import { Box, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import { COLORS } from "@/theme/colors"
+import { NotificationsProps } from "@/components/Notifications/type"
+import {
+  ContentContainer,
+  Description,
+  Dot,
+  PenaltyDescription,
+  TimeAgoContainer,
+  TitleContainer,
+  TypoContainer,
+} from "@/components/Notifications/style"
 import CloseIcon from "../../assets/icons/cross_icon.svg"
 import QuestionIcon from "../../assets/icons/circledQuestion_icon.svg"
-
-type NotificationsProps = {
-  type?: "normal" | "penalty"
-  timeAgo: string
-  title?: string
-  description: string
-}
 
 export const Notifications = ({
   type = "normal",
@@ -20,27 +23,12 @@ export const Notifications = ({
   switch (type) {
     case "normal": {
       return (
-        <Box
-          sx={{
-            width: "225px",
-            padding: "12px",
-            borderRadius: "12px",
-            display: "flex",
-            justifyContent: "space-between",
-            backgroundColor: COLORS.blackRock03,
-          }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              rowGap: "6px",
-            }}
-          >
+        <Box sx={ContentContainer}>
+          <Box sx={TypoContainer}>
             <Typography variant="caption" sx={{ color: COLORS.greySuit }}>
               {timeAgo} ago
             </Typography>
-            <Typography variant="text4" sx={{ width: "170px" }}>
+            <Typography variant="text4" sx={Description}>
               {description}
             </Typography>
           </Box>
@@ -55,41 +43,15 @@ export const Notifications = ({
     }
     case "penalty": {
       return (
-        <Box
-          sx={{
-            width: "225px",
-            padding: "12px",
-            borderRadius: "12px",
-            display: "flex",
-            justifyContent: "space-between",
-            backgroundColor: COLORS.blackRock03,
-          }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              rowGap: "6px",
-            }}
-          >
-            <Box
-              sx={{ display: "flex", columnGap: "4px", alignItems: "center" }}
-            >
-              <Box
-                sx={{
-                  width: "6px",
-                  height: "6px",
-                  borderRadius: "50%",
-                  backgroundColor: COLORS.carminePink,
-                }}
-              />
+        <Box sx={ContentContainer}>
+          <Box sx={TypoContainer}>
+            <Box sx={TimeAgoContainer}>
+              <Box sx={Dot} />
               <Typography variant="caption" sx={{ color: COLORS.greySuit }}>
                 {timeAgo} ago
               </Typography>
             </Box>
-            <Box
-              sx={{ display: "flex", alignItems: "center", columnGap: "6px" }}
-            >
+            <Box sx={TitleContainer}>
               <Typography variant="text1">{title}</Typography>
               <SvgIcon
                 fontSize="small"
@@ -98,10 +60,7 @@ export const Notifications = ({
                 <QuestionIcon />
               </SvgIcon>
             </Box>
-            <Typography
-              variant="text4"
-              sx={{ width: "170px", color: COLORS.santasGrey }}
-            >
+            <Typography variant="text4" sx={PenaltyDescription}>
               {description}
             </Typography>
           </Box>
@@ -116,23 +75,8 @@ export const Notifications = ({
     }
     default: {
       return (
-        <Box
-          sx={{
-            width: "225px",
-            padding: "12px",
-            borderRadius: "12px",
-            display: "flex",
-            justifyContent: "space-between",
-            backgroundColor: COLORS.blackRock03,
-          }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              rowGap: "6px",
-            }}
-          >
+        <Box sx={ContentContainer}>
+          <Box sx={TypoContainer}>
             <Typography variant="caption" sx={{ color: COLORS.greySuit }}>
               {timeAgo} ago
             </Typography>

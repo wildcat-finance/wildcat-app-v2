@@ -1,10 +1,6 @@
 import { Box, Typography } from "@mui/material"
 import { COLORS } from "@/theme/colors"
-
-type InfoBoxProps = {
-  color: "blue" | "red"
-  text: string
-}
+import { InfoBoxProps } from "@/components/InfoBox/type"
 
 export const InfoBox = ({ color, text }: InfoBoxProps) => (
   <Box

@@ -3,6 +3,7 @@ import { Header } from "@/components/Header"
 import { Sidebar } from "@/components/Sidebar"
 import { Footer } from "@/components/Footer"
 
+import { ContentContainer, PageContainer } from "@/app/borrower/layout-style"
 import Image from "../../assets/pictures/background.webp"
 
 export default function BorrowerLayout({
@@ -20,24 +21,8 @@ export default function BorrowerLayout({
       }}
     >
       <Header />
-      <Box
-        sx={{
-          margin: "0 6px",
-          borderRadius: "12px 12px 0px 0px",
-          backgroundColor: "white",
-
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <Box
-          sx={{
-            minHeight: "calc(100vh - 82px - 43px)",
-            width: "100%",
-            display: "flex",
-            flexDirection: "row",
-          }}
-        >
+      <Box sx={PageContainer}>
+        <Box sx={ContentContainer}>
           <Sidebar />
           {children}
         </Box>
