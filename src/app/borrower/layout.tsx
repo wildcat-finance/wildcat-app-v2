@@ -24,7 +24,7 @@ export default function BorrowerLayout({
       <Box sx={PageContainer}>
         <Box sx={ContentContainer}>
           <Sidebar />
-          {children}
+          <Box sx={{ width: "100%" }}>{children}</Box>
         </Box>
         <Footer />
       </Box>

@@ -188,6 +188,7 @@ export const theme = createTheme({
       },
       styleOverrides: {
         root: ({ ownerState }) => ({
+          fontFamily: "inherit",
           boxShadow: "none",
           textTransform: "none",
 

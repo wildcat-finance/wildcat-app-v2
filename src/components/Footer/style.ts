@@ -3,7 +3,7 @@ export const ContentContainer = {
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  padding: "0 20px 15px 25px",
+  padding: "0 14px 15px 16px",
 }
 
 export const DownloadIcon = { rotate: "270deg", marginLeft: "2px" }

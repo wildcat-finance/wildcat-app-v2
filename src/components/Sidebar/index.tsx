@@ -1,7 +1,18 @@
+"use client"
+
 import { AllMarketsSidebar } from "@/components/Sidebar/AllMarketsSidebar"
+import { usePathname } from "next/navigation"
+import { Box } from "@mui/material"
+import { ROUTES } from "@/routes"
+import { MarketSidebar } from "@/components/Sidebar/MarketSidebar"
 
 export const Sidebar = () => {
-  let sidebarType
+  const pathname = usePathname()
 
-  return <AllMarketsSidebar />
+  return (
+    <Box>
+      {pathname === ROUTES.borrower && <AllMarketsSidebar />}
+      {pathname === ROUTES.borrowerMarket && <MarketSidebar />}
+    </Box>
+  )
 }

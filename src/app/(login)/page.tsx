@@ -1,4 +1,6 @@
 import { Button, Typography } from "@mui/material"
+import Link from "next/link"
+import { ROUTES } from "@/routes"
 import {
   Illustration,
   ContentContainer,
@@ -30,9 +32,11 @@ export default function LoginPage() {
           <Description variant="text1">
             Please connect your wallet to access the app
           </Description>
-          <Button variant="contained" size="large">
-            Connect a wallet
-          </Button>
+          <Link href={ROUTES.borrower}>
+            <Button variant="contained" size="large">
+              Connect a wallet
+            </Button>
+          </Link>
         </ConnectContainer>
       </ContentContainer>
       <Footer>
