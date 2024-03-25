@@ -7,12 +7,14 @@ import {
   RadioGroup,
   TextField,
   Typography,
+  SvgIcon,
 } from "@mui/material"
+
 import { COLORS } from "@/theme/colors"
-import SvgIcon from "@mui/material/SvgIcon"
-import Icon from "@/assets/icons/search_icon.svg"
-import RadioButton from "@/components/extended/RadioButton"
 import { ContentContainer } from "@/components/Sidebar/AllMarketsSidebar/style"
+
+import Icon from "@/assets/icons/search_icon.svg"
+import ExtendedRadio from "../../extended/ExtendedRadio"
 
 const MOCK = [
   {
@@ -57,20 +59,24 @@ export const AllMarketsSidebar = () => (
           Market Status
         </Typography>
         <RadioGroup defaultValue="all" name="radio-buttons-group">
-          <FormControlLabel value="all" control={<RadioButton />} label="All" />
+          <FormControlLabel
+            value="all"
+            control={<ExtendedRadio />}
+            label="All"
+          />
           <FormControlLabel
             value="healty"
-            control={<RadioButton />}
+            control={<ExtendedRadio />}
             label="Healty"
           />
           <FormControlLabel
             value="delinquent"
-            control={<RadioButton />}
+            control={<ExtendedRadio />}
             label="Delinquent"
           />
           <FormControlLabel
             value="penalty"
-            control={<RadioButton />}
+            control={<ExtendedRadio />}
             label="Penalty"
           />
         </RadioGroup>
@@ -85,12 +91,16 @@ export const AllMarketsSidebar = () => (
           Underlying asset
         </Typography>
         <RadioGroup defaultValue="all" name="radio-buttons-group">
-          <FormControlLabel value="all" control={<RadioButton />} label="All" />
+          <FormControlLabel
+            value="all"
+            control={<ExtendedRadio />}
+            label="All"
+          />
           {MOCK.map((asset) => (
             <FormControlLabel
               key={asset.id}
               value={asset.underlyingAsset}
-              control={<RadioButton />}
+              control={<ExtendedRadio />}
               label={asset.underlyingAsset}
             />
           ))}

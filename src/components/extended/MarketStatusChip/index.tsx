@@ -1,9 +1,10 @@
 import { Box, Chip } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import Image from "next/image"
-import { COLORS } from "@/theme/colors"
 
+import { COLORS } from "@/theme/colors"
 import { MarketStatusChipProps } from "@/components/extended/MarketStatusChip/type"
+
 import Checked from "../../../assets/icons/check_icon.svg"
 import Cross from "../../../assets/icons/cross_icon.svg"
 import Clock from "../../../assets/icons/clock_icon.svg"

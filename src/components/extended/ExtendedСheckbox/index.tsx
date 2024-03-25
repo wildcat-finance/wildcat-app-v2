@@ -67,7 +67,7 @@ const CheckedIconSmall = styled(Icon)({
   },
 })
 
-export default function Checkbox(props: CheckboxProps) {
+export default function ExtendedCheckbox(props: CheckboxProps) {
   return props.size === "small" ? (
     <MUICheckbox
       checkedIcon={<CheckedIconSmall />}

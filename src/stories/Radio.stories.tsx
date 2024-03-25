@@ -1,6 +1,6 @@
 import { Box, Radio as MUIRadio } from "@mui/material"
 import type { Meta } from "@storybook/react"
-import RadioButton from "../components/extended/RadioButton"
+import ExtendedRadio from "../components/extended/ExtendedRadio"
 
 export default {
   title: "Components/Radio",
@@ -23,9 +23,9 @@ export const ThemedRadioButton = () => (
         gap: "10px",
       }}
     >
-      <RadioButton />
-      <RadioButton defaultChecked />
-      <RadioButton disabled />
+      <ExtendedRadio />
+      <ExtendedRadio defaultChecked />
+      <ExtendedRadio disabled />
     </Box>
   </Box>
 )

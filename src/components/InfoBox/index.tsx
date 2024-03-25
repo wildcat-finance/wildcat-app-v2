@@ -1,8 +1,9 @@
 import { Box, Typography } from "@mui/material"
-import { COLORS } from "@/theme/colors"
-import { InfoBoxProps } from "@/components/InfoBox/type"
 
-export const InfoBox = ({ color, text }: InfoBoxProps) => (
+import { AlertProps } from "@/components/InfoBox/type"
+import { COLORS } from "@/theme/colors"
+
+export const Alert = ({ color, text }: AlertProps) => (
   <Box
     sx={{
       maxWidth: "460px",

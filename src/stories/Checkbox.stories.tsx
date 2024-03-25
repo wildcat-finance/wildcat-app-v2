@@ -1,6 +1,6 @@
 import { Box, Checkbox as MUICheckbox } from "@mui/material"
 import type { Meta } from "@storybook/react"
-import Checkbox from "../components/extended/Сheckbox"
+import ExtendedCheckbox from "../components/extended/ExtendedСheckbox"
 
 export default {
   title: "Components/Checkbox",
@@ -23,8 +23,8 @@ export const ThemedCheckbox = () => (
         gap: "10px",
       }}
     >
-      <Checkbox size="small" />
-      <Checkbox />
+      <ExtendedCheckbox size="small" />
+      <ExtendedCheckbox />
     </Box>
     <Box
       sx={{
@@ -34,8 +34,8 @@ export const ThemedCheckbox = () => (
         gap: "10px",
       }}
     >
-      <Checkbox size="small" defaultChecked />
-      <Checkbox defaultChecked />
+      <ExtendedCheckbox size="small" defaultChecked />
+      <ExtendedCheckbox defaultChecked />
     </Box>
     <Box
       sx={{
@@ -45,8 +45,8 @@ export const ThemedCheckbox = () => (
         gap: "10px",
       }}
     >
-      <Checkbox size="small" disabled />
-      <Checkbox disabled />
+      <ExtendedCheckbox size="small" disabled />
+      <ExtendedCheckbox disabled />
     </Box>
   </Box>
 )

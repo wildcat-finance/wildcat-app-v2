@@ -27,6 +27,6 @@ const CheckedIcon = styled(Icon)({
   },
 })
 
-export default function RadioButton(props: RadioProps) {
+export default function ExtendedRadio(props: RadioProps) {
   return <MUIRadio checkedIcon={<CheckedIcon />} icon={<Icon />} {...props} />
 }

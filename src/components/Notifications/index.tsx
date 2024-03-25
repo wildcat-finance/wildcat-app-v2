@@ -1,7 +1,9 @@
 import { Box, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
+
 import { COLORS } from "@/theme/colors"
 import { NotificationsProps } from "@/components/Notifications/type"
+
 import {
   ContentContainer,
   Description,
@@ -11,6 +13,7 @@ import {
   TitleContainer,
   TypoContainer,
 } from "@/components/Notifications/style"
+
 import CloseIcon from "../../assets/icons/cross_icon.svg"
 import QuestionIcon from "../../assets/icons/circledQuestion_icon.svg"
 

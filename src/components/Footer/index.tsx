@@ -1,4 +1,5 @@
 import { Box, Button, Typography } from "@mui/material"
+
 import { ContentContainer, DownloadIcon } from "@/components/Footer/style"
 
 export const Footer = () => (
