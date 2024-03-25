@@ -146,6 +146,7 @@ export const theme = createTheme({
     MuiChip: {
       styleOverrides: {
         root: ({ ownerState }) => ({
+          width: "fit-content",
           height: "fit-content",
           display: "flex",
           alignItems: "center",

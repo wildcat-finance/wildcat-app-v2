@@ -23,10 +23,10 @@ export const Chip = () => (
         gap: "10px",
       }}
     >
-      <MarketStatusChip type="healthy" />
-      <MarketStatusChip type="penalty" />
-      <MarketStatusChip type="delinquent" />
-      <MarketStatusChip type="terminated" />
+      <MarketStatusChip status="healthy" />
+      <MarketStatusChip status="penalty" />
+      <MarketStatusChip status="delinquent" />
+      <MarketStatusChip status="terminated" />
     </Box>
     <Box
       sx={{
@@ -36,10 +36,10 @@ export const Chip = () => (
         gap: "10px",
       }}
     >
-      <MarketStatusChip variant="text" type="healthy" />
-      <MarketStatusChip variant="text" type="penalty" />
-      <MarketStatusChip variant="text" type="delinquent" />
-      <MarketStatusChip variant="text" type="terminated" />
+      <MarketStatusChip variant="text" status="healthy" />
+      <MarketStatusChip variant="text" status="penalty" />
+      <MarketStatusChip variant="text" status="delinquent" />
+      <MarketStatusChip variant="text" status="terminated" />
     </Box>
   </Box>
 )

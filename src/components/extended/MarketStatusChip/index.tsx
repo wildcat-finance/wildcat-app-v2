@@ -13,11 +13,11 @@ import Fire from "../../../assets/icons/fire_icon.png"
 
 export const MarketStatusChip = ({
   variant = "filled",
-  type,
+  status,
 }: MarketStatusChipProps) => {
   let chipConfig
 
-  switch (type) {
+  switch (status) {
     case "healthy": {
       chipConfig = {
         label: "Healthy",
@@ -69,7 +69,7 @@ export const MarketStatusChip = ({
       return (
         <Chip
           icon={
-            type === "penalty" ? (
+            status === "penalty" ? (
               <Image src={Fire} alt="Fire icon" height={12} width={12} />
             ) : (
               <SvgIcon
@@ -104,7 +104,7 @@ export const MarketStatusChip = ({
               color: chipConfig.fontColor,
             }}
           />
-          {(type === "penalty" || type === "delinquent") && (
+          {(status === "penalty" || status === "delinquent") && (
             <Arrow
               fill={chipConfig.fontColor}
               style={{ position: "relative", top: "-2px" }}
