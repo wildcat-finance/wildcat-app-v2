@@ -1,6 +1,6 @@
 import { Box, Typography } from "@mui/material"
 
-import { AlertProps } from "@/components/InfoBox/type"
+import { AlertProps } from "@/components/Alert/type"
 import { COLORS } from "@/theme/colors"
 
 export const Alert = ({ color, text }: AlertProps) => (

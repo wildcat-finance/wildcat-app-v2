@@ -18,7 +18,12 @@ export const MarketCycleChip = ({ color, time }: MarketCycleChipProps) => (
           color === "blue" ? COLORS.ultramarineBlue : COLORS.carminePink,
       }}
     />
-    <Typography variant="text4" sx={{ color: color === "blue" ? COLORS.ultramarineBlue : COLORS.carminePink }}>
+    <Typography
+      variant="text4"
+      sx={{
+        color: color === "blue" ? COLORS.ultramarineBlue : COLORS.carminePink,
+      }}
+    >
       {time} left
     </Typography>
   </Box>

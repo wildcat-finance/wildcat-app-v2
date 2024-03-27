@@ -1,9 +1,9 @@
 import type { Meta } from "@storybook/react"
-import { Alert } from "@/components/InfoBox"
+import { Alert } from "../components/Alert"
 import { Box } from "@mui/material"
 
 export default {
-  title: "Components/InfoBox",
+  title: "Components/Alert",
   component: Alert,
 } as Meta<typeof Alert>
 
