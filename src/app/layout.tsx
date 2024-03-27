@@ -1,6 +1,9 @@
 import type { Metadata } from "next"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
 
+import { WagmiProvider } from "@/providers/WagmiProvider"
+import { QueryProvider } from "@/providers/QueryProvider"
+
 import "./globals.css"
 import { Inter } from "next/font/google"
 
@@ -21,7 +24,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ThemeRegistry>{children}</ThemeRegistry>
+        <QueryProvider>
+          <WagmiProvider>
+            <ThemeRegistry>{children}</ThemeRegistry>
+          </WagmiProvider>
+        </QueryProvider>
       </body>
     </html>
   )

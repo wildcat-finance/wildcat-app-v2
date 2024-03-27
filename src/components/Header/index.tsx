@@ -6,6 +6,7 @@ import {
   NavContainer,
 } from "@/components/Header/style"
 
+import { ConnectWalletDialog } from "@/components/ConnectWalletDialog"
 import Logo from "../../assets/icons/logo_white.svg"
 
 export const Header = () => (
@@ -16,8 +17,9 @@ export const Header = () => (
       <Switch />
       <Typography variant="text2Highlighted">Lenders</Typography>
     </Box>
-    <Button size="medium" sx={ConnectButton}>
-      Connect a wallet
-    </Button>
+    {/* <Button size="medium" sx={ConnectButton}> */}
+    {/*  Connect a wallet */}
+    {/* </Button> */}
+    <ConnectWalletDialog />
   </Box>
 )
