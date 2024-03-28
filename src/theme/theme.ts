@@ -5,12 +5,15 @@ import {
   largeContainedButton,
   largeOutlinedButton,
   largeOutlinedSecondaryButton,
+  largeSecondaryContainedButton,
   largeTextButton,
   mediumContainedButton,
   mediumOutlinedButton,
   mediumOutlinedSecondaryButton,
+  mediumSecondaryContainedButton,
   mediumTextButton,
   smallContainedButton,
+  smallContainedSecondaryButton,
   smallOutlinedButton,
   smallOutlinedSecondaryButton,
   smallTextButton,
@@ -235,6 +238,19 @@ export const theme = createTheme({
             ownerState.color === "secondary" &&
             ownerState.size === "large" &&
             largeOutlinedSecondaryButton),
+
+          ...(ownerState.variant === "contained" &&
+            ownerState.color === "secondary" &&
+            ownerState.size === "small" &&
+            smallContainedSecondaryButton),
+          ...(ownerState.variant === "contained" &&
+            ownerState.color === "secondary" &&
+            ownerState.size === "medium" &&
+            mediumSecondaryContainedButton),
+          ...(ownerState.variant === "contained" &&
+            ownerState.color === "secondary" &&
+            ownerState.size === "large" &&
+            largeSecondaryContainedButton),
         }),
       },
     },

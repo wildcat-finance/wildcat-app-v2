@@ -19,7 +19,11 @@ export const MarketSidebar = () => (
         fullWidth
         variant="text"
         size="medium"
-        sx={{ color: COLORS.greySuit, justifyContent: "flex-start", marginBottom: "14px" }}
+        sx={{
+          color: COLORS.greySuit,
+          justifyContent: "flex-start",
+          marginBottom: "14px",
+        }}
       >
         <SvgIcon
           fontSize="small"
@@ -46,7 +50,11 @@ export const MarketSidebar = () => (
       </Button>
     </Box>
 
-    <Button variant="outlined" color="secondary" sx={{ fontWeight: 500, marginTop: "24px" }}>
+    <Button
+      variant="outlined"
+      color="secondary"
+      sx={{ fontWeight: 500, marginTop: "24px" }}
+    >
       <SvgIcon fontSize="small" sx={{ marginRight: "4px" }}>
         <Cross />
       </SvgIcon>

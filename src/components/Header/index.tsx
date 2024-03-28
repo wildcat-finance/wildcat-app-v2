@@ -1,12 +1,8 @@
-import { Box, Button, Switch, Typography } from "@mui/material"
+import { Box, Switch, Typography } from "@mui/material"
 
-import {
-  ConnectButton,
-  ContentContainer,
-  NavContainer,
-} from "@/components/Header/style"
+import { ContentContainer, NavContainer } from "@/components/Header/style"
 
-import { ConnectWalletDialog } from "@/components/ConnectWalletDialog"
+import { HeaderButton } from "../HeaderButton"
 import Logo from "../../assets/icons/logo_white.svg"
 
 export const Header = () => (
@@ -17,9 +13,6 @@ export const Header = () => (
       <Switch />
       <Typography variant="text2Highlighted">Lenders</Typography>
     </Box>
-    {/* <Button size="medium" sx={ConnectButton}> */}
-    {/*  Connect a wallet */}
-    {/* </Button> */}
-    <ConnectWalletDialog />
+    <HeaderButton />
   </Box>
 )

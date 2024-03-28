@@ -61,6 +61,67 @@ export const largeContainedButton = {
   },
 }
 
+export const smallContainedSecondaryButton = {
+  fontSize: 10,
+  lineHeight: "16px",
+  fontWeight: 600,
+  color: COLORS.bunker,
+
+  padding: "6px 12px",
+  borderRadius: 8,
+  backgroundColor: COLORS.whiteSmoke,
+
+  "&:hover": {
+    background: COLORS.athensGrey,
+    boxShadow: "none",
+  },
+
+  "&.Mui-disabled": {
+    color: COLORS.santasGrey,
+    backgroundColor: COLORS.athensGrey,
+  },
+}
+export const mediumSecondaryContainedButton = {
+  fontSize: 12,
+  lineHeight: "12px",
+  fontWeight: 600,
+  color: COLORS.bunker,
+
+  padding: "12px",
+  borderRadius: 10,
+  backgroundColor: COLORS.whiteSmoke,
+
+  "&:hover": {
+    background: COLORS.athensGrey,
+    boxShadow: "none",
+  },
+
+  "&.Mui-disabled": {
+    color: COLORS.santasGrey,
+    backgroundColor: COLORS.athensGrey,
+  },
+}
+export const largeSecondaryContainedButton = {
+  fontSize: 14,
+  lineHeight: "20px",
+  fontWeight: 600,
+  color: COLORS.bunker,
+
+  padding: "10px 20px",
+  borderRadius: 12,
+  backgroundColor: COLORS.whiteSmoke,
+
+  "&:hover": {
+    background: COLORS.athensGrey,
+    boxShadow: "none",
+  },
+
+  "&.Mui-disabled": {
+    color: COLORS.santasGrey,
+    backgroundColor: COLORS.athensGrey,
+  },
+}
+
 export const smallTextButton = {
   fontSize: 10,
   lineHeight: "16px",
