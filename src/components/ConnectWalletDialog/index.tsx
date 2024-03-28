@@ -2,14 +2,18 @@
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
 import { ConnectButton } from "@/components/Header/style"
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { COLORS } from "@/theme/colors"
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { sepolia } from "wagmi/chains"
+import { TargetNetwork } from "@/config/network"
 
 export const ConnectWalletDialog = () => {
-  const { isConnected, chainId } = useAccount()
+  const { address, isConnected } = useAccount()
   const { connectors, connect } = useConnect()
   const { disconnect } = useDisconnect()
+  const { isWrongNetwork } = useCurrentNetwork()
   const { switchChain } = useSwitchChain()
 
   const [open, setOpen] = useState(false)
@@ -22,10 +26,20 @@ export const ConnectWalletDialog = () => {
     setOpen(false)
   }
 
+  const getButtonText = useCallback(() => {
+    if (isConnected && isWrongNetwork) {
+      return "Wrong Network"
+    }
+    if (isConnected && address) {
+      return `${address.slice(0, 4)}..${address.slice(-4, address.length)}`
+    }
+    return "Connect a wallet"
+  }, [isConnected, address, isWrongNetwork])
+
   return (
     <>
       <Button size="medium" sx={ConnectButton} onClick={handleClickOpen}>
-        Connect a wallet
+        {getButtonText()}
       </Button>
 
       <Dialog
@@ -33,7 +47,6 @@ export const ConnectWalletDialog = () => {
         onClose={handleClose}
         sx={{
           "& .MuiDialog-paper": {
-            height: "256px",
             width: "320px",
             borderRadius: "12px",
             borderColor: "#0000001A",
@@ -42,23 +55,45 @@ export const ConnectWalletDialog = () => {
 
             display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between",
+            rowGap: "32px",
           },
         }}
       >
         <Typography variant="text1" sx={{ textAlign: "center" }}>
-          Connect Wallet
+          {getButtonText()}
         </Typography>
         <Box sx={{ display: "flex", flexDirection: "column", rowGap: "4px" }}>
-          {connectors.map((connector) => (
+          {!isConnected &&
+            connectors
+              .filter(
+                (connector) =>
+                  !(connector.name === "Safe" || connector.name === "Injected"),
+              )
+              .map((connector) => (
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={() => connect({ connector })}
+                >
+                  <Typography variant="text2">{connector.name}</Typography>
+                </Button>
+              ))}
+          {isConnected && (
+            <Button variant="contained" fullWidth onClick={() => disconnect()}>
+              <Typography variant="text2">Disconnect</Typography>
+            </Button>
+          )}
+          {isConnected && isWrongNetwork && (
             <Button
               variant="contained"
               fullWidth
-              onClick={() => connect({ connector })}
+              onClick={() => switchChain({ chainId: sepolia.id })}
             >
-              <Typography variant="text2">{connector.name}</Typography>
+              <Typography variant="text2">
+                Switch to {TargetNetwork.name}
+              </Typography>
             </Button>
-          ))}
+          )}
         </Box>
         <Typography
           variant="text4"
