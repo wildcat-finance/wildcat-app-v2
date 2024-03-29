@@ -1,11 +1,12 @@
 "use client"
 
-import { Button } from "@mui/material"
-import { ConnectButton } from "@/components/HeaderButton/style"
 import { useState, useCallback } from "react"
 import { useAccount } from "wagmi"
+import { Button } from "@mui/material"
+
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 
+import { ConnectButton } from "@/components/HeaderButton/style"
 import { ProfileDialog } from "@/components/HeaderButton/ProfileDialog"
 import { ConnectWalletDialog } from "@/components/HeaderButton/ConnectWalletDialog"
 

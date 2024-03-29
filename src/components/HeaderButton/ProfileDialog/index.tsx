@@ -1,20 +1,34 @@
 import { useAccount, useDisconnect, useSwitchChain } from "wagmi"
-import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-import { Box, Button, Dialog, IconButton, Typography } from "@mui/material"
-import SvgIcon from "@mui/material/SvgIcon"
-import { COLORS } from "@/theme/colors"
-import { sepolia } from "wagmi/chains"
-import { TargetNetwork } from "@/config/network"
 import { useCopyToClipboard } from "react-use"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { sepolia } from "wagmi/chains"
 
+import {
+  Box,
+  Button,
+  Dialog,
+  IconButton,
+  Typography,
+  SvgIcon,
+} from "@mui/material"
 import Link from "next/link"
+
+import { TargetNetwork } from "@/config/network"
+
+import {
+  AddressButtons,
+  AddressContainer,
+  ContentContainer,
+  DialogContainer,
+  ProfileContainer,
+  WrongNetworkButton,
+  WrongNetworkContainer,
+} from "@/components/HeaderButton/ProfileDialog/style"
+
+import { ProfileDialogProps } from "@/components/HeaderButton/ProfileDialog/type"
+
 import Copy from "../../../assets/icons/copy_icon.svg"
 import LinkIcon from "../../../assets/icons/link_icon.svg"
-
-export type ProfileDialogProps = {
-  open: boolean
-  handleClose: () => void
-}
 
 export const ProfileDialog = ({ open, handleClose }: ProfileDialogProps) => {
   const [state, copyToClipboard] = useCopyToClipboard()
@@ -28,61 +42,21 @@ export const ProfileDialog = ({ open, handleClose }: ProfileDialogProps) => {
     copyToClipboard(text)
   }
 
+  const handleClickDisconnect = () => {
+    disconnect()
+    handleClose()
+  }
+
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      sx={{
-        "& .MuiDialog-paper": {
-          height: "256px",
-          width: "320px",
-          borderRadius: "12px",
-          borderColor: "#0000001A",
-          margin: 0,
-          padding: "16px",
-
-          display: "flex",
-          flexDirection: "column",
-        },
-      }}
-    >
-      <Box
-        sx={{
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
+    <Dialog open={open} onClose={handleClose} sx={DialogContainer}>
+      <Box sx={ContentContainer}>
         {isConnected && isWrongNetwork && (
-          <Box
-            sx={{
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-
-              padding: "8px 8px 8px 12px",
-              borderRadius: "12px",
-              backgroundColor: COLORS.remy,
-              color: COLORS.dullRed,
-            }}
-          >
+          <Box sx={WrongNetworkContainer}>
             <Typography variant="text3">Wrong Network</Typography>
             <Button
               variant="outlined"
               size="small"
-              sx={{
-                backgroundColor: "transparent",
-                color: COLORS.dullRed,
-                borderColor: COLORS.azalea,
-                transition: "border 0.2s",
-
-                "&:hover": {
-                  borderColor: COLORS.dullRed,
-                  backgroundColor: "transparent",
-                },
-              }}
+              sx={WrongNetworkButton}
               onClick={() => switchChain({ chainId: sepolia.id })}
             >
               Switch to {TargetNetwork.name}
@@ -90,16 +64,7 @@ export const ProfileDialog = ({ open, handleClose }: ProfileDialogProps) => {
           </Box>
         )}
 
-        <Box
-          sx={{
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            rowGap: "12px",
-          }}
-        >
+        <Box sx={ProfileContainer}>
           <Box
             width="32px"
             height="32px"
@@ -107,23 +72,14 @@ export const ProfileDialog = ({ open, handleClose }: ProfileDialogProps) => {
             borderRadius="50%"
           />
           {address && (
-            <Box
-              sx={{ display: "flex", alignItems: "center", columnGap: "4px" }}
-            >
+            <Box sx={AddressContainer}>
               <Typography variant="text1">
                 {address.slice(0, 4)}..{address.slice(-4, address.length)}
               </Typography>
 
               <IconButton
                 disableRipple
-                sx={{
-                  padding: 0,
-                  "& path": {
-                    fill: `${COLORS.greySuit}`,
-                    transition: "fill 0.2s",
-                  },
-                  "& :hover": { "& path": { fill: `${COLORS.santasGrey}` } },
-                }}
+                sx={AddressButtons}
                 onClick={() => handleCopyAddress(address?.toString())}
               >
                 <SvgIcon fontSize="medium">
@@ -136,17 +92,7 @@ export const ProfileDialog = ({ open, handleClose }: ProfileDialogProps) => {
                 target="_blank"
                 style={{ display: "flex", justifyContent: "center" }}
               >
-                <IconButton
-                  disableRipple
-                  sx={{
-                    padding: 0,
-                    "& path": {
-                      fill: `${COLORS.greySuit}`,
-                      transition: "fill 0.2s",
-                    },
-                    "& :hover": { "& path": { fill: `${COLORS.santasGrey}` } },
-                  }}
-                >
+                <IconButton disableRipple sx={AddressButtons}>
                   <SvgIcon fontSize="medium">
                     <LinkIcon />
                   </SvgIcon>
@@ -160,7 +106,7 @@ export const ProfileDialog = ({ open, handleClose }: ProfileDialogProps) => {
           variant="contained"
           color="secondary"
           fullWidth
-          onClick={() => disconnect()}
+          onClick={handleClickDisconnect}
         >
           <Typography variant="text2">Disconnect</Typography>
         </Button>
