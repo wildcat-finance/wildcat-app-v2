@@ -8,7 +8,6 @@ import { TargetNetwork } from "@/config/network"
 import { useCopyToClipboard } from "react-use"
 
 import Link from "next/link"
-import Cross from "../../../assets/icons/cross_icon.svg"
 import Copy from "../../../assets/icons/copy_icon.svg"
 import LinkIcon from "../../../assets/icons/link_icon.svg"
 
@@ -35,53 +34,65 @@ export const ProfileDialog = ({ open, handleClose }: ProfileDialogProps) => {
       onClose={handleClose}
       sx={{
         "& .MuiDialog-paper": {
+          height: "256px",
           width: "320px",
           borderRadius: "12px",
           borderColor: "#0000001A",
           margin: 0,
-          padding: "16px 24px",
+          padding: "16px",
 
           display: "flex",
           flexDirection: "column",
         },
       }}
     >
-      <IconButton
-        disableRipple
-        sx={{ padding: 0, marginLeft: "auto" }}
-        onClick={handleClose}
-      >
-        <SvgIcon
-          fontSize="medium"
-          sx={{ "& path": { fill: `${COLORS.greySuit}` } }}
-        >
-          <Cross />
-        </SvgIcon>
-      </IconButton>
       <Box
         sx={{
+          height: "100%",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "space-around",
         }}
       >
         {isConnected && isWrongNetwork && (
-          <Button
-            variant="contained"
-            color="secondary"
-            fullWidth
-            onClick={() => switchChain({ chainId: sepolia.id })}
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+
+              padding: "8px 8px 8px 12px",
+              borderRadius: "12px",
+              backgroundColor: COLORS.remy,
+              color: COLORS.dullRed,
+            }}
           >
-            <Typography variant="text2">
+            <Typography variant="text3">Wrong Network</Typography>
+            <Button
+              variant="outlined"
+              size="small"
+              sx={{
+                backgroundColor: "transparent",
+                color: COLORS.dullRed,
+                borderColor: COLORS.azalea,
+                transition: "border 0.2s",
+
+                "&:hover": {
+                  borderColor: COLORS.dullRed,
+                  backgroundColor: "transparent",
+                },
+              }}
+              onClick={() => switchChain({ chainId: sepolia.id })}
+            >
               Switch to {TargetNetwork.name}
-            </Typography>
-          </Button>
+            </Button>
+          </Box>
         )}
 
         <Box
           sx={{
-            height: "180px",
+            height: "100%",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -123,6 +134,7 @@ export const ProfileDialog = ({ open, handleClose }: ProfileDialogProps) => {
               <Link
                 href={`https://etherscan.io/address/${address}`}
                 target="_blank"
+                style={{ display: "flex", justifyContent: "center" }}
               >
                 <IconButton
                   disableRipple
