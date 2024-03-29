@@ -1,4 +1,5 @@
 export const ConnectButton = {
+  minHeight: "36px",
   width: "156px",
   color: "#FFFFFF",
   backgroundColor: "#FFFFFF1A",

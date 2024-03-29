@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { useAccount } from "wagmi"
 import { Button } from "@mui/material"
 
@@ -15,6 +15,7 @@ export const HeaderButton = () => {
   const { isWrongNetwork } = useCurrentNetwork()
 
   const [open, setOpen] = useState(false)
+  const [buttonText, setButtonText] = useState("")
 
   const handleClickOpen = () => {
     setOpen(true)
@@ -24,20 +25,22 @@ export const HeaderButton = () => {
     setOpen(false)
   }
 
-  const getButtonText = useCallback(() => {
+  useEffect(() => {
     if (isConnected && isWrongNetwork) {
-      return "Wrong Network"
+      setButtonText("Wrong Network")
+    } else if (isConnected && address) {
+      setButtonText(
+        `${address.slice(0, 4)}..${address.slice(-4, address.length)}`,
+      )
+    } else if (!isConnected) {
+      setButtonText("Connect a wallet")
     }
-    if (isConnected && address) {
-      return `${address.slice(0, 4)}..${address.slice(-4, address.length)}`
-    }
-    return "Connect a wallet"
   }, [isConnected, address, isWrongNetwork])
 
   return (
     <>
       <Button size="medium" sx={ConnectButton} onClick={handleClickOpen}>
-        {getButtonText()}
+        {buttonText}
       </Button>
 
       {isConnected ? (

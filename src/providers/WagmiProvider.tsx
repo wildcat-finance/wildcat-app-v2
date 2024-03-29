@@ -7,5 +7,7 @@ import { config } from "@/lib/config"
 import { GenericProviderProps } from "./types"
 
 export const WagmiProvider = ({ children }: GenericProviderProps) => (
-  <WagmiConfig config={config}>{children}</WagmiConfig>
+  <WagmiConfig reconnectOnMount config={config}>
+    {children}
+  </WagmiConfig>
 )
