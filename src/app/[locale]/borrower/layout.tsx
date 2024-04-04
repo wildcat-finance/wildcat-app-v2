@@ -3,8 +3,8 @@ import { Header } from "@/components/Header"
 import { Sidebar } from "@/components/Sidebar"
 import { Footer } from "@/components/Footer"
 
-import { ContentContainer, PageContainer } from "@/app/borrower/layout-style"
-import Image from "../../assets/pictures/background.webp"
+import { ContentContainer, PageContainer } from "@/app/[locale]/borrower/layout-style"
+import Image from "../../../assets/pictures/background.webp"
 
 export default function BorrowerLayout({
   children,

@@ -1,6 +1,7 @@
 import { Button, Typography } from "@mui/material"
 import Link from "next/link"
 import { ROUTES } from "@/routes"
+import initTranslations from "@/app/i18n"
 import {
   Illustration,
   ContentContainer,
@@ -13,28 +14,34 @@ import {
   DownloadIcon,
 } from "./styled"
 
-import illustration from "../../assets/pictures/login_page.webp"
-import WildcatLogo from "../../assets/icons/logo_white.svg"
+import illustration from "../../../assets/pictures/login_page.webp"
+import WildcatLogo from "../../../assets/icons/logo_white.svg"
 
-export default function LoginPage() {
+const i18nNamespaces = ["login"]
+
+export default async function LoginPage({
+  params: { locale },
+}: {
+  params: { locale: string }
+}) {
+  const { t, resources } = await initTranslations(locale, i18nNamespaces)
+
   return (
     <>
       <Header>
         <WildcatLogo />
         <Button variant="outlined" color="secondary" size="large">
-          Connect a wallet
+          {t("connectWallet")}
         </Button>
       </Header>
       <ContentContainer>
         <Illustration src={illustration} alt="Illustration" />
         <ConnectContainer>
-          <Title variant="title1Highlighted">Connect your wallet</Title>
-          <Description variant="text1">
-            Please connect your wallet to access the app
-          </Description>
+          <Title variant="title1Highlighted">{t("header")}</Title>
+          <Description variant="text1">{t("greeting")}</Description>
           <Link href={ROUTES.borrower}>
             <Button variant="contained" size="large">
-              Connect a wallet
+              {t("connectWallet")}
             </Button>
           </Link>
         </ConnectContainer>
