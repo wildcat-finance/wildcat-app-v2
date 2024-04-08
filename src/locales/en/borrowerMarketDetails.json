@@ -1,0 +1,11 @@
+{
+  "backButton": "Back to My Markets",
+  "borrowRepayLinkButton": "Borrow and Repay",
+  "statusDetailsLinkButton": "Status and Details",
+  "withdrawalRequestsLinkButton": "Withdrawal Requests",
+  "lendersLinkButton": "Authorised Lenders",
+  "terminateButton": "Terminate Market",
+  "editLendersButton": "Edit Lenders",
+  "adjustCapacityButton": "Adjust Capacity",
+  "aprButton": "Adjust Base APR"
+}
