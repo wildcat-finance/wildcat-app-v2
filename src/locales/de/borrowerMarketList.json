@@ -1,0 +1,11 @@
+{
+  "header": "Alle Märkte",
+  "newMarketButton": "Neuer Markt",
+  "search": "Suche nach Marktnamen",
+  "statusRadioTitle": "Marktstatus",
+  "assetRadioTitle": "Basiswert",
+  "allRadio": "Alle",
+  "healthyRadio": "Gesund",
+  "delinquentRadio": "Delinquent",
+  "penaltyRadio": "Strafe"
+}
