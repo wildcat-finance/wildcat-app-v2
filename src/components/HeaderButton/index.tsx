@@ -9,6 +9,9 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { ConnectButton } from "@/components/HeaderButton/style"
 import { ProfileDialog } from "@/components/HeaderButton/ProfileDialog"
 import { ConnectWalletDialog } from "@/components/HeaderButton/ConnectWalletDialog"
+import SvgIcon from "@mui/material/SvgIcon"
+import { COLORS } from "@/theme/colors"
+import Wallet from "../../assets/icons/wallet_icon.svg"
 
 export const HeaderButton = () => {
   const { address, isConnected } = useAccount()
@@ -40,6 +43,14 @@ export const HeaderButton = () => {
   return (
     <>
       <Button size="medium" sx={ConnectButton} onClick={handleClickOpen}>
+        {isConnected && (
+          <SvgIcon
+            fontSize="small"
+            sx={{ "& path": { fill: `${COLORS.white}` } }}
+          >
+            <Wallet />
+          </SvgIcon>
+        )}
         {buttonText}
       </Button>
 

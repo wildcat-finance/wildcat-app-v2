@@ -27,10 +27,15 @@ import {
 
 import { ProfileDialogProps } from "@/components/HeaderButton/ProfileDialog/type"
 
+import { COLORS } from "@/theme/colors"
 import Copy from "../../../assets/icons/copy_icon.svg"
 import LinkIcon from "../../../assets/icons/link_icon.svg"
 
-export const ProfileDialog = ({ open, handleClose }: ProfileDialogProps) => {
+export const ProfileDialog = ({
+  open,
+  handleClose,
+  name,
+}: ProfileDialogProps) => {
   const [state, copyToClipboard] = useCopyToClipboard()
 
   const { address, isConnected } = useAccount()
@@ -71,35 +76,47 @@ export const ProfileDialog = ({ open, handleClose }: ProfileDialogProps) => {
             bgcolor="#F4F4F8"
             borderRadius="50%"
           />
-          {address && (
-            <Box sx={AddressContainer}>
-              <Typography variant="text1">
-                {address.slice(0, 4)}..{address.slice(-4, address.length)}
-              </Typography>
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            rowGap="2px"
+          >
+            {address && (
+              <Box sx={AddressContainer}>
+                <Typography variant="text1">
+                  {address.slice(0, 4)}..{address.slice(-4, address.length)}
+                </Typography>
 
-              <IconButton
-                disableRipple
-                sx={AddressButtons}
-                onClick={() => handleCopyAddress(address?.toString())}
-              >
-                <SvgIcon fontSize="medium">
-                  <Copy />
-                </SvgIcon>
-              </IconButton>
-
-              <Link
-                href={`https://etherscan.io/address/${address}`}
-                target="_blank"
-                style={{ display: "flex", justifyContent: "center" }}
-              >
-                <IconButton disableRipple sx={AddressButtons}>
+                <IconButton
+                  disableRipple
+                  sx={AddressButtons}
+                  onClick={() => handleCopyAddress(address?.toString())}
+                >
                   <SvgIcon fontSize="medium">
-                    <LinkIcon />
+                    <Copy />
                   </SvgIcon>
                 </IconButton>
-              </Link>
-            </Box>
-          )}
+
+                <Link
+                  href={`https://etherscan.io/address/${address}`}
+                  target="_blank"
+                  style={{ display: "flex", justifyContent: "center" }}
+                >
+                  <IconButton disableRipple sx={AddressButtons}>
+                    <SvgIcon fontSize="medium">
+                      <LinkIcon />
+                    </SvgIcon>
+                  </IconButton>
+                </Link>
+              </Box>
+            )}
+            {name && (
+              <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
+                {name}
+              </Typography>
+            )}
+          </Box>
         </Box>
 
         <Button

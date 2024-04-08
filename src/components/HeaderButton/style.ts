@@ -1,6 +1,8 @@
 export const ConnectButton = {
   minHeight: "36px",
   width: "156px",
+  alignItems: "center",
+  columnGap: "8px",
   color: "#FFFFFF",
   backgroundColor: "#FFFFFF1A",
   border: "none",
