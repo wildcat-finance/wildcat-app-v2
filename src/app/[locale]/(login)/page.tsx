@@ -2,6 +2,7 @@ import { Button, Typography } from "@mui/material"
 import Link from "next/link"
 import { ROUTES } from "@/routes"
 import initTranslations from "@/app/i18n"
+import TranslationsProvider from "@/components/TranslationsProvider"
 import {
   Illustration,
   ContentContainer,
@@ -27,7 +28,11 @@ export default async function LoginPage({
   const { t, resources } = await initTranslations(locale, i18nNamespaces)
 
   return (
-    <>
+    <TranslationsProvider
+      namespaces={i18nNamespaces}
+      locale={locale}
+      resources={resources}
+    >
       <Header>
         <WildcatLogo />
         <Button variant="outlined" color="secondary" size="large">
@@ -37,7 +42,7 @@ export default async function LoginPage({
       <ContentContainer>
         <Illustration src={illustration} alt="Illustration" />
         <ConnectContainer>
-          <Title variant="title1Highlighted">{t("header")}</Title>
+          <Title variant="title1Highlighted">{t("title")}</Title>
           <Description variant="text1">{t("greeting")}</Description>
           <Link href={ROUTES.borrower}>
             <Button variant="contained" size="large">
@@ -48,13 +53,13 @@ export default async function LoginPage({
       </ContentContainer>
       <Footer>
         <Copyright variant="text4Highlighted">
-          Wildcat © All Rights reserved. 2023
+          Wildcat © {t("rights")}. 2023
         </Copyright>
         <Button variant="text" size="small">
-          <Typography variant="text4Highlighted">Download Agreement</Typography>
+          <Typography variant="text4Highlighted">{t("agreement")}</Typography>
           <DownloadIcon>⇤</DownloadIcon>
         </Button>
       </Footer>
-    </>
+    </TranslationsProvider>
   )
 }

@@ -1,5 +1,7 @@
 {
-  "header": "Connect your wallet",
+  "title": "Connect your wallet",
   "greeting": "Please connect your wallet to access the app",
-  "connectWallet": "Connect a wallet"
+  "connectWallet": "Connect a wallet",
+  "rights": "All Rights reserved",
+  "agreement": "Download Agreement"
 }
