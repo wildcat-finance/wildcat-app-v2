@@ -12,7 +12,12 @@ import { ReactNode } from "react"
 import initTranslations from "@/app/i18n"
 import Image from "../../../assets/pictures/background.webp"
 
-const i18nNamespaces = ["borrowerMarketList", "borrowerMarketDetails", "footer"]
+const i18nNamespaces = [
+  "borrowerMarketList",
+  "borrowerMarketDetails",
+  "header",
+  "footer",
+]
 
 export default async function BorrowerLayout({
   children,
@@ -37,7 +42,7 @@ export default async function BorrowerLayout({
           backgroundSize: "100% 100%",
         }}
       >
-        <Header />
+        <Header t={t} />
         <Box sx={PageContainer}>
           <Box sx={ContentContainer}>
             <Sidebar />
