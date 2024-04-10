@@ -12,7 +12,7 @@ import { ReactNode } from "react"
 import initTranslations from "@/app/i18n"
 import Image from "../../../assets/pictures/background.webp"
 
-const i18nNamespaces = ["borrowerMarketList", "borrowerMarketDetails"]
+const i18nNamespaces = ["borrowerMarketList", "borrowerMarketDetails", "footer"]
 
 export default async function BorrowerLayout({
   children,
@@ -21,7 +21,7 @@ export default async function BorrowerLayout({
   children: ReactNode
   params: { locale: string }
 }) {
-  const { resources } = await initTranslations(locale, i18nNamespaces)
+  const { t, resources } = await initTranslations(locale, i18nNamespaces)
 
   return (
     <TranslationsProvider
@@ -43,7 +43,7 @@ export default async function BorrowerLayout({
             <Sidebar />
             <Box sx={{ width: "100%" }}>{children}</Box>
           </Box>
-          <Footer />
+          <Footer t={t} />
         </Box>
       </Box>
     </TranslationsProvider>
