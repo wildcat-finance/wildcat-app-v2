@@ -7,5 +7,5 @@
   "terminateButton": "Terminate Market",
   "editLendersButton": "Edit Lenders",
   "adjustCapacityButton": "Adjust Capacity",
-  "aprButton": "Adjust Base APR"
+  "adjustAPRButton": "Adjust Base APR"
 }

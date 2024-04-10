@@ -1,7 +1,7 @@
 {
   "header": "All markets",
   "newMarketButton": "New Market",
-  "search": "Search by Market Name",
+  "searchMarketName": "Search by Market Name",
   "statusRadioTitle": "Market Status",
   "assetRadioTitle": "Underlying asset",
   "allRadio": "All",

@@ -14,6 +14,7 @@ import { COLORS } from "@/theme/colors"
 import { ContentContainer } from "@/components/Sidebar/AllMarketsSidebar/style"
 
 import Icon from "@/assets/icons/search_icon.svg"
+import { useTranslation } from "react-i18next"
 import ExtendedRadio from "../../extended/ExtendedRadio"
 
 const MOCK = [
@@ -31,81 +32,85 @@ const MOCK = [
   },
 ]
 
-export const AllMarketsSidebar = () => (
-  <Box sx={ContentContainer}>
-    <TextField
-      fullWidth
-      size="small"
-      label="Search by Market Name"
-      InputProps={{
-        startAdornment: (
-          <InputAdornment position="start">
-            <SvgIcon
-              fontSize="small"
-              sx={{ "& path": { fill: `${COLORS.greySuit}` } }}
-            >
-              <Icon />
-            </SvgIcon>
-          </InputAdornment>
-        ),
-      }}
-    />
+export const AllMarketsSidebar = () => {
+  const { t } = useTranslation()
 
-    <Divider />
+  return (
+    <Box sx={ContentContainer}>
+      <TextField
+        fullWidth
+        size="small"
+        label={t("searchMarketName")}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SvgIcon
+                fontSize="small"
+                sx={{ "& path": { fill: `${COLORS.greySuit}` } }}
+              >
+                <Icon />
+              </SvgIcon>
+            </InputAdornment>
+          ),
+        }}
+      />
 
-    <Box>
-      <FormControl>
-        <Typography variant="text2" mb="12px">
-          Market Status
-        </Typography>
-        <RadioGroup defaultValue="all" name="radio-buttons-group">
-          <FormControlLabel
-            value="all"
-            control={<ExtendedRadio />}
-            label="All"
-          />
-          <FormControlLabel
-            value="healty"
-            control={<ExtendedRadio />}
-            label="Healty"
-          />
-          <FormControlLabel
-            value="delinquent"
-            control={<ExtendedRadio />}
-            label="Delinquent"
-          />
-          <FormControlLabel
-            value="penalty"
-            control={<ExtendedRadio />}
-            label="Penalty"
-          />
-        </RadioGroup>
-      </FormControl>
-    </Box>
+      <Divider />
 
-    <Divider />
-
-    <Box>
-      <FormControl>
-        <Typography variant="text2" mb="12px">
-          Underlying asset
-        </Typography>
-        <RadioGroup defaultValue="all" name="radio-buttons-group">
-          <FormControlLabel
-            value="all"
-            control={<ExtendedRadio />}
-            label="All"
-          />
-          {MOCK.map((asset) => (
+      <Box>
+        <FormControl>
+          <Typography variant="text2" mb="12px">
+            {t("statusRadioTitle")}
+          </Typography>
+          <RadioGroup defaultValue="all" name="radio-buttons-group">
             <FormControlLabel
-              key={asset.id}
-              value={asset.underlyingAsset}
+              value="all"
               control={<ExtendedRadio />}
-              label={asset.underlyingAsset}
+              label={t("allRadio")}
             />
-          ))}
-        </RadioGroup>
-      </FormControl>
+            <FormControlLabel
+              value="healty"
+              control={<ExtendedRadio />}
+              label={t("healthyRadio")}
+            />
+            <FormControlLabel
+              value="delinquent"
+              control={<ExtendedRadio />}
+              label={t("delinquentRadio")}
+            />
+            <FormControlLabel
+              value="penalty"
+              control={<ExtendedRadio />}
+              label={t("penaltyRadio")}
+            />
+          </RadioGroup>
+        </FormControl>
+      </Box>
+
+      <Divider />
+
+      <Box>
+        <FormControl>
+          <Typography variant="text2" mb="12px">
+            {t("assetRadioTitle")}
+          </Typography>
+          <RadioGroup defaultValue="all" name="radio-buttons-group">
+            <FormControlLabel
+              value="all"
+              control={<ExtendedRadio />}
+              label={t("allRadio")}
+            />
+            {MOCK.map((asset) => (
+              <FormControlLabel
+                key={asset.id}
+                value={asset.underlyingAsset}
+                control={<ExtendedRadio />}
+                label={asset.underlyingAsset}
+              />
+            ))}
+          </RadioGroup>
+        </FormControl>
+      </Box>
     </Box>
-  </Box>
-)
+  )
+}

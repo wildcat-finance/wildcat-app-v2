@@ -2,7 +2,6 @@ import { Button, Typography } from "@mui/material"
 import Link from "next/link"
 import { ROUTES } from "@/routes"
 import initTranslations from "@/app/i18n"
-import TranslationsProvider from "@/components/TranslationsProvider"
 import {
   Illustration,
   ContentContainer,
@@ -18,21 +17,15 @@ import {
 import illustration from "../../../assets/pictures/login_page.webp"
 import WildcatLogo from "../../../assets/icons/logo_white.svg"
 
-const i18nNamespaces = ["login"]
-
 export default async function LoginPage({
   params: { locale },
 }: {
   params: { locale: string }
 }) {
-  const { t, resources } = await initTranslations(locale, i18nNamespaces)
+  const { t } = await initTranslations(locale, ["login"])
 
   return (
-    <TranslationsProvider
-      namespaces={i18nNamespaces}
-      locale={locale}
-      resources={resources}
-    >
+    <>
       <Header>
         <WildcatLogo />
         <Button variant="outlined" color="secondary" size="large">
@@ -60,6 +53,6 @@ export default async function LoginPage({
           <DownloadIcon>⇤</DownloadIcon>
         </Button>
       </Footer>
-    </TranslationsProvider>
+    </>
   )
 }
