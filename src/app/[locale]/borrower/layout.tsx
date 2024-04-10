@@ -1,5 +1,5 @@
 import { Box } from "@mui/material"
-import { Header } from "@/components/Header"
+import Header from "@/components/Header"
 import { Sidebar } from "@/components/Sidebar"
 import { Footer } from "@/components/Footer"
 
@@ -42,7 +42,7 @@ export default async function BorrowerLayout({
           backgroundSize: "100% 100%",
         }}
       >
-        <Header t={t} />
+        <Header params={{ locale }} />
         <Box sx={PageContainer}>
           <Box sx={ContentContainer}>
             <Sidebar />

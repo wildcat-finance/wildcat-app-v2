@@ -11,7 +11,6 @@ import { ProfileDialog } from "@/components/HeaderButton/ProfileDialog"
 import { ConnectWalletDialog } from "@/components/HeaderButton/ConnectWalletDialog"
 import SvgIcon from "@mui/material/SvgIcon"
 import { COLORS } from "@/theme/colors"
-import { TFunction } from "i18next"
 import Wallet from "../../assets/icons/wallet_icon.svg"
 
 export const HeaderButton = () => {

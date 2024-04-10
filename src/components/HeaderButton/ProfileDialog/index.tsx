@@ -28,6 +28,7 @@ import {
 import { ProfileDialogProps } from "@/components/HeaderButton/ProfileDialog/type"
 
 import { COLORS } from "@/theme/colors"
+import { useTranslation } from "react-i18next"
 import Copy from "../../../assets/icons/copy_icon.svg"
 import LinkIcon from "../../../assets/icons/link_icon.svg"
 
@@ -36,6 +37,7 @@ export const ProfileDialog = ({
   handleClose,
   name,
 }: ProfileDialogProps) => {
+  const { t } = useTranslation()
   const [state, copyToClipboard] = useCopyToClipboard()
 
   const { address, isConnected } = useAccount()
@@ -57,14 +59,14 @@ export const ProfileDialog = ({
       <Box sx={ContentContainer}>
         {isConnected && isWrongNetwork && (
           <Box sx={WrongNetworkContainer}>
-            <Typography variant="text3">Wrong Network</Typography>
+            <Typography variant="text3">{t("modalWrongNetwork")}</Typography>
             <Button
               variant="outlined"
               size="small"
               sx={WrongNetworkButton}
               onClick={() => switchChain({ chainId: sepolia.id })}
             >
-              Switch to {TargetNetwork.name}
+              {t("modalSwitchButton")} {TargetNetwork.name}
             </Button>
           </Box>
         )}
@@ -125,7 +127,7 @@ export const ProfileDialog = ({
           fullWidth
           onClick={handleClickDisconnect}
         >
-          <Typography variant="text2">Disconnect</Typography>
+          <Typography variant="text2">{t("modalDisconnect")}</Typography>
         </Button>
       </Box>
     </Dialog>

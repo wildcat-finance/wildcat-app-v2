@@ -1,5 +1,12 @@
 {
   "borrower": "Borrower",
   "lender": "Lender",
-  "connectWallet": "Connect a wallet"
+  "connectWallet": "Connect a wallet",
+
+  "modalHeader": "Connect wallet",
+  "modalTerms": "By connecting a wallet, you agree to Wildcat Terms of Service and consent to its Privacy Policy",
+
+  "modalWrongNetwork": "Wrong Network",
+  "modalSwitchButton": "Switch to",
+  "modalDisconnect": "Disconnect"
 }

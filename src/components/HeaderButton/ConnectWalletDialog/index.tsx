@@ -23,6 +23,7 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import MetaMask from "@/assets/icons/meta_icon.svg"
 import WalletConnect from "@/assets/icons/walletConnect_icon.svg"
 import CoinBase from "@/assets/icons/coinbase_icon.svg"
+import { useTranslation } from "react-i18next"
 
 const walletIcons = {
   MetaMask: <MetaMask />,
@@ -35,6 +36,7 @@ export const ConnectWalletDialog = ({
   handleClose,
 }: ConnectWalletDialogProps) => {
   const { connectors, connect } = useConnect()
+  const { t } = useTranslation()
 
   const handleClickConnect = (connector: CreateConnectorFn | Connector) => {
     connect({ connector })
@@ -46,7 +48,7 @@ export const ConnectWalletDialog = ({
       <Box sx={TitleContainer}>
         <Box width="16px" height="16px" />
         <Typography variant="text1" textAlign="center">
-          Connect Wallet
+          {t("modalHeader")}
         </Typography>
         <IconButton disableRipple onClick={handleClose}>
           <SvgIcon fontSize="medium" sx={CloseButtonIcon}>
@@ -77,8 +79,7 @@ export const ConnectWalletDialog = ({
           ))}
       </Box>
       <Typography variant="text4" sx={Terms}>
-        By connecting a wallet, you agree to Wildcat Terms of Service ans
-        consent to its Privacy Policy
+        {t("modalTerms")}
       </Typography>
     </Dialog>
   )
