@@ -1,23 +1,12 @@
 import { Box } from "@mui/material"
-import Header from "@/components/Header"
 import { Sidebar } from "@/components/Sidebar"
-import { Footer } from "@/components/Footer"
 
-import {
-  ContentContainer,
-  PageContainer,
-} from "@/app/[locale]/borrower/layout-style"
+import { ContentContainer } from "@/app/[locale]/borrower/layout-style"
 import TranslationsProvider from "@/components/TranslationsProvider"
 import { ReactNode } from "react"
 import initTranslations from "@/app/i18n"
-import Image from "../../../assets/pictures/background.webp"
 
-const i18nNamespaces = [
-  "borrowerMarketList",
-  "borrowerMarketDetails",
-  "header",
-  "footer",
-]
+const i18nNamespaces = ["borrowerMarketList", "borrowerMarketDetails"]
 
 export default async function BorrowerLayout({
   children,
@@ -26,7 +15,7 @@ export default async function BorrowerLayout({
   children: ReactNode
   params: { locale: string }
 }) {
-  const { t, resources } = await initTranslations(locale, i18nNamespaces)
+  const { resources } = await initTranslations(locale, i18nNamespaces)
 
   return (
     <TranslationsProvider
@@ -34,22 +23,9 @@ export default async function BorrowerLayout({
       locale={locale}
       resources={resources}
     >
-      <Box
-        sx={{
-          backgroundImage: `url(${Image.src})`,
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "100% 100%",
-        }}
-      >
-        <Header params={{ locale }} />
-        <Box sx={PageContainer}>
-          <Box sx={ContentContainer}>
-            <Sidebar />
-            <Box sx={{ width: "100%" }}>{children}</Box>
-          </Box>
-          <Footer t={t} />
-        </Box>
+      <Box sx={ContentContainer}>
+        <Sidebar />
+        <Box sx={{ width: "100%" }}>{children}</Box>
       </Box>
     </TranslationsProvider>
   )

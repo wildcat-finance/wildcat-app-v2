@@ -43,14 +43,14 @@ export const HeaderButton = () => {
   return (
     <>
       <Button size="medium" sx={ConnectButton} onClick={handleClickOpen}>
-        {isConnected && (
-          <SvgIcon
-            fontSize="small"
-            sx={{ "& path": { fill: `${COLORS.white}` } }}
-          >
-            <Wallet />
-          </SvgIcon>
-        )}
+        {/* {isConnected && ( */}
+        {/*  <SvgIcon */}
+        {/*    fontSize="small" */}
+        {/*    sx={{ "& path": { fill: `${COLORS.white}` } }} */}
+        {/*  > */}
+        {/*    <Wallet /> */}
+        {/*  </SvgIcon> */}
+        {/* )} */}
         {buttonText}
       </Button>
 

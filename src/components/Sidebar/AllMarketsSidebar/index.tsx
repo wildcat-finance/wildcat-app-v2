@@ -40,7 +40,7 @@ export const AllMarketsSidebar = () => {
       <TextField
         fullWidth
         size="small"
-        label={t("searchMarketName")}
+        label={t("borrowerMarketList:searchMarketName")}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -60,28 +60,28 @@ export const AllMarketsSidebar = () => {
       <Box>
         <FormControl>
           <Typography variant="text2" mb="12px">
-            {t("statusRadioTitle")}
+            {t("borrowerMarketList:statusRadioTitle")}
           </Typography>
           <RadioGroup defaultValue="all" name="radio-buttons-group">
             <FormControlLabel
               value="all"
               control={<ExtendedRadio />}
-              label={t("allRadio")}
+              label={t("borrowerMarketList:allRadio")}
             />
             <FormControlLabel
               value="healty"
               control={<ExtendedRadio />}
-              label={t("healthyRadio")}
+              label={t("borrowerMarketList:healthyRadio")}
             />
             <FormControlLabel
               value="delinquent"
               control={<ExtendedRadio />}
-              label={t("delinquentRadio")}
+              label={t("borrowerMarketList:delinquentRadio")}
             />
             <FormControlLabel
               value="penalty"
               control={<ExtendedRadio />}
-              label={t("penaltyRadio")}
+              label={t("borrowerMarketList:penaltyRadio")}
             />
           </RadioGroup>
         </FormControl>
@@ -92,13 +92,13 @@ export const AllMarketsSidebar = () => {
       <Box>
         <FormControl>
           <Typography variant="text2" mb="12px">
-            {t("assetRadioTitle")}
+            {t("borrowerMarketList:assetRadioTitle")}
           </Typography>
           <RadioGroup defaultValue="all" name="radio-buttons-group">
             <FormControlLabel
               value="all"
               control={<ExtendedRadio />}
-              label={t("allRadio")}
+              label={t("borrowerMarketList:allRadio")}
             />
             {MOCK.map((asset) => (
               <FormControlLabel
