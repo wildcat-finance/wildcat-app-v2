@@ -884,7 +884,7 @@ export default async function Agreement() {
             deems necessary for ongoing security; and
           </Typography>
 
-          <Typography variant="text2">
+          <Typography variant="text2" sx={{ marginBottom: "100px" }}>
             ○ overseeing any bug bounty programs existing at any such time,
             diagnosing and adjusting identified bugs and paying rewards under
             any bug bounty program to a whitehat that accurately identifies a
@@ -893,40 +893,39 @@ export default async function Agreement() {
         </Box>
         <Box
           sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "flex-end",
+            gap: "16px",
+
             position: "absolute",
-            zIndex: 1,
             bottom: "0",
-            height: "236px",
+            height: "300px",
             width: "690px",
+
+            paddingBottom: "44px",
+
             backgroundImage:
-              "linear-gradient(10deg, #FFFFFF, #FFFFFF80, #FFFFFF00)",
+              "linear-gradient(3deg, #FFFFFF 40%, #FFFFFF00 73%)",
+
+            pointerEvents: "none",
           }}
         >
-          <Box
-            sx={{
-              marginTop: "153px",
-
-              display: "flex",
-              justifyContent: "center",
-              columnGap: "16px",
-            }}
+          <Button
+            variant="contained"
+            size="large"
+            sx={{ width: "168.63px", height: "44px" }}
           >
-            <Button
-              variant="contained"
-              size="large"
-              sx={{ width: "168.63px", height: "44px" }}
-            >
-              Sign and continue
-            </Button>
-            <Button
-              variant="contained"
-              color="secondary"
-              size="large"
-              sx={{ width: "168.63px", height: "44px" }}
-            >
-              Download
-            </Button>
-          </Box>
+            Sign and continue
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            size="large"
+            sx={{ width: "168.63px", height: "44px" }}
+          >
+            Download
+          </Button>
         </Box>
       </Box>
     </Box>
