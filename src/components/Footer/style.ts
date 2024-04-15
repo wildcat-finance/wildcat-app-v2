@@ -1,4 +1,5 @@
 export const ContentContainer = {
+  minHeight: "43px",
   width: "100%",
   display: "flex",
   justifyContent: "space-between",

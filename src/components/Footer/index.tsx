@@ -1,18 +1,26 @@
+"use client"
+
 import { Box, Button, Typography } from "@mui/material"
 
 import { ContentContainer, DownloadIcon } from "@/components/Footer/style"
-import { TFunction } from "i18next"
+import { usePathname } from "next/navigation"
 
-export const Footer = ({ t }: { t: TFunction }) => (
-  <Box sx={ContentContainer}>
-    <Typography variant="text4Highlighted">
-      Wildcat © {t("footer:rights")}. 2023
-    </Typography>
-    <Button variant="text" size="small">
+export const Footer = () => {
+  const pathname = usePathname()
+
+  const showFooter = pathname !== "/agreement"
+
+  return (
+    <Box sx={ContentContainer}>
       <Typography variant="text4Highlighted">
-        {t("footer:agreement")}
+        Wildcat © All Rights reserved. 2023
       </Typography>
-      <Box sx={DownloadIcon}>⇤</Box>
-    </Button>
-  </Box>
-)
+      {showFooter && (
+        <Button variant="text" size="small">
+          <Typography variant="text4Highlighted">Download Agreement</Typography>
+          <Box sx={DownloadIcon}>⇤</Box>
+        </Button>
+      )}
+    </Box>
+  )
+}

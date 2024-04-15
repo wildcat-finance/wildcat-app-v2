@@ -13,7 +13,7 @@ import Header from "@/components/Header"
 import { Footer } from "@/components/Footer"
 import { Box } from "@mui/material"
 import initTranslations from "@/app/i18n"
-import { PageContainer } from "@/app/[locale]/layout-style"
+import { ContentContainer, PageContainer } from "@/app/[locale]/layout-style"
 import i18nConfig from "../../../i18nConfig"
 
 const inter = Inter({
@@ -56,8 +56,8 @@ export default async function RootLayout({
               >
                 <Header params={{ locale }} />
                 <Box sx={PageContainer}>
-                  {children}
-                  <Footer t={t} />
+                  <Box sx={ContentContainer}>{children}</Box>
+                  <Footer />
                 </Box>
               </Box>
             </ThemeRegistry>

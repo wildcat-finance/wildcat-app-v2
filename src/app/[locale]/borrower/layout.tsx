@@ -1,7 +1,6 @@
 import { Box } from "@mui/material"
 import { Sidebar } from "@/components/Sidebar"
 
-import { ContentContainer } from "@/app/[locale]/borrower/layout-style"
 import TranslationsProvider from "@/components/TranslationsProvider"
 import { ReactNode } from "react"
 import initTranslations from "@/app/i18n"
@@ -23,10 +22,8 @@ export default async function BorrowerLayout({
       locale={locale}
       resources={resources}
     >
-      <Box sx={ContentContainer}>
-        <Sidebar />
-        <Box sx={{ width: "100%" }}>{children}</Box>
-      </Box>
+      <Sidebar />
+      <Box width="100%">{children}</Box>
     </TranslationsProvider>
   )
 }
