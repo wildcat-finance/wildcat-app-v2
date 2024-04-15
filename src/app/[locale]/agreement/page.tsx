@@ -1,4 +1,5 @@
 import { Box, Button, Typography } from "@mui/material"
+import { AgreementActions } from "@/app/[locale]/agreement/AgreementActions"
 
 export default async function Agreement() {
   const a = "a"
@@ -903,34 +904,8 @@ export default async function Agreement() {
             pointerEvents: "none",
           }}
         />
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: "0",
-            width: "100%",
-            justifyContent: "center",
-            paddingBottom: "44px",
-            display: "flex",
-            gap: "16px",
-          }}
-        >
-          <Button
-            variant="contained"
-            size="large"
-            sx={{ width: "168.63px", height: "44px" }}
-          >
-            Sign and continue
-          </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            size="large"
-            sx={{ width: "168.63px", height: "44px" }}
-          >
-            Download
-          </Button>
-        </Box>
       </Box>
+      <AgreementActions />
     </Box>
   )
 }
