@@ -885,7 +885,7 @@ export default async function Agreement() {
             deems necessary for ongoing security; and
           </Typography>
 
-          <Typography variant="text2" sx={{ marginBottom: "100px" }}>
+          <Typography variant="text2" sx={{ marginBottom: "130px" }}>
             ○ overseeing any bug bounty programs existing at any such time,
             diagnosing and adjusting identified bugs and paying rewards under
             any bug bounty program to a whitehat that accurately identifies a
@@ -894,22 +894,24 @@ export default async function Agreement() {
         </Box>
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "flex-end",
-            gap: "16px",
-
             position: "absolute",
             bottom: "0",
-            height: "300px",
+            height: "256px",
             width: "690px",
-
-            paddingBottom: "44px",
-
             backgroundImage:
               "linear-gradient(3deg, #FFFFFF 40%, #FFFFFF00 73%)",
-
-            // pointerEvents: "none",
+            pointerEvents: "none",
+          }}
+        />
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: "0",
+            width: "100%",
+            justifyContent: "center",
+            paddingBottom: "44px",
+            display: "flex",
+            gap: "16px",
           }}
         >
           <Button
