@@ -16,7 +16,6 @@ export default async function Agreement() {
       <Box
         sx={{
           maxWidth: "690px",
-          maxHeight: "630px",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -29,6 +28,8 @@ export default async function Agreement() {
 
         <Box
           sx={{
+            maxHeight: "calc(100vh - 230px)",
+
             overflow: "scroll",
             display: "flex",
             flexDirection: "column",
@@ -908,7 +909,7 @@ export default async function Agreement() {
             backgroundImage:
               "linear-gradient(3deg, #FFFFFF 40%, #FFFFFF00 73%)",
 
-            pointerEvents: "none",
+            // pointerEvents: "none",
           }}
         >
           <Button
