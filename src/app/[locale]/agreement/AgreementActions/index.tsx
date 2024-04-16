@@ -1,4 +1,5 @@
 import { Box, Button } from "@mui/material"
+import Link from "next/link"
 
 export const AgreementActions = () => {
   const a = "a"
@@ -21,14 +22,20 @@ export const AgreementActions = () => {
       >
         Sign and continue
       </Button>
-      <Button
-        variant="contained"
-        color="secondary"
-        size="large"
-        sx={{ width: "168.63px", height: "44px" }}
+      <Link
+        href="/pdf/Wildcat_Protocol_Services_Agreement.pdf"
+        target="_blank"
+        download
       >
-        Download
-      </Button>
+        <Button
+          variant="contained"
+          color="secondary"
+          size="large"
+          sx={{ width: "168.63px", height: "44px" }}
+        >
+          Download
+        </Button>
+      </Link>
     </Box>
   )
 }
