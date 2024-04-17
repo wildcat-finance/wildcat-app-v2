@@ -14,11 +14,13 @@ export enum EtherscanEntity {
 export const NETWORKS = {
   Sepolia: {
     chainId: 11155111,
+    stringID: "sepolia",
     name: "Sepolia",
     etherscanUrl: "https://sepolia.etherscan.io",
   },
   Mainnet: {
     chainId: 1,
+    stringID: "mainnet",
     name: "Mainnet",
     etherscanUrl: "https://etherscan.io",
   },

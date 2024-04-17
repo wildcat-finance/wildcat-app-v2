@@ -1,6 +1,7 @@
-import { Box, Typography } from "@mui/material"
-import { AgreementActions } from "@/app/[locale]/agreement/AgreementActions"
+import { Box, Button, Typography } from "@mui/material"
 import { AgreementText } from "@/app/[locale]/agreement/AgreementText"
+import Link from "next/link"
+import { SignButton } from "@/app/[locale]/agreement/SignButton"
 
 export default async function Agreement() {
   const a = "a"
@@ -42,7 +43,35 @@ export default async function Agreement() {
           }}
         />
       </Box>
-      <AgreementActions />
+
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: "0",
+          width: "100%",
+          justifyContent: "center",
+          paddingBottom: "44px",
+          display: "flex",
+          gap: "16px",
+        }}
+      >
+        <SignButton />
+
+        <Link
+          href="/pdf/Wildcat_Protocol_Services_Agreement.pdf"
+          target="_blank"
+          download
+        >
+          <Button
+            variant="contained"
+            color="secondary"
+            size="large"
+            sx={{ width: "168.63px", height: "44px" }}
+          >
+            Download
+          </Button>
+        </Link>
+      </Box>
     </Box>
   )
 }
