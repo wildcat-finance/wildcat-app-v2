@@ -6,22 +6,25 @@ import { useSignAgreement } from "@/app/[locale]/agreement/hooks/useSignAgreemen
 import { useSubmitSignature } from "@/app/[locale]/agreement/hooks/useSubmitSignature"
 import { useAccount } from "wagmi"
 import dayjs from "dayjs"
+import { useGnosisSafeSDK } from "@/hooks/useGnosisSafeSDK"
 
 const DATE_FORMAT = "MMMM DD, YYYY"
 
 export const SignButton = () => {
   const address = useAccount().address?.toLowerCase()
+  const { sdk } = useGnosisSafeSDK()
 
   const { mutateAsync: signAgreement } = useSignAgreement()
   const { mutateAsync: submitSignature } = useSubmitSignature()
 
   const [dateSigned, setDateSigned] = useState<string>("")
+  const [safeTxHash, setSafeTxHash] = useState<string | undefined>(undefined)
 
   const organization = "Wildcat Finance"
 
   useEffect(() => {
     setDateSigned(dayjs(Date.now()).format(DATE_FORMAT))
-  })
+  }, [])
 
   const handleSign = async () => {
     const result = await signAgreement({
@@ -29,6 +32,7 @@ export const SignButton = () => {
       dateSigned,
       address,
     })
+    console.log(result)
     if (result.signature) {
       console.log({
         signature: result.signature,
@@ -43,8 +47,8 @@ export const SignButton = () => {
         address: address as string,
       })
     } else if (result.safeTxHash) {
-      // console.log(await sdk?.txs.getBySafeTxHash(result.safeTxHash))
-      // setSafeTxHash(result.safeTxHash)
+      console.log(await sdk?.txs.getBySafeTxHash(result.safeTxHash))
+      setSafeTxHash(result.safeTxHash)
     }
   }
 

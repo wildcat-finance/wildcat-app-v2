@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
 
-import { WagmiProvider } from "@/providers/WagmiProvider"
 import { QueryProvider } from "@/providers/QueryProvider"
 
 import "./globals.css"
@@ -14,6 +13,10 @@ import { Footer } from "@/components/Footer"
 import { Box } from "@mui/material"
 import initTranslations from "@/app/i18n"
 import { ContentContainer, PageContainer } from "@/app/[locale]/layout-style"
+import { cookieToInitialState } from "wagmi"
+import { config } from "@/lib/config"
+import { headers } from "next/headers"
+import { Providers } from "@/providers/Providers"
 import i18nConfig from "../../../i18nConfig"
 
 const inter = Inter({
@@ -29,6 +32,8 @@ export function generateStaticParams() {
   return i18nConfig.locales.map((locale) => ({ locale }))
 }
 
+// const initialState = cookieToInitialState(config, headers().get("cookie"))
+
 const i18nNamespaces = ["header", "footer"]
 
 export default async function RootLayout({
@@ -43,26 +48,25 @@ export default async function RootLayout({
   return (
     <html lang={locale} dir={dir(locale)}>
       <body className={inter.className}>
-        <QueryProvider>
-          <WagmiProvider>
-            <ThemeRegistry>
-              <Box
-                sx={{
-                  backgroundImage: `url(${Image.src})`,
-                  backgroundPosition: "center",
-                  backgroundRepeat: "no-repeat",
-                  backgroundSize: "100% 100%",
-                }}
-              >
-                <Header params={{ locale }} />
-                <Box sx={PageContainer}>
-                  <Box sx={ContentContainer}>{children}</Box>
-                  <Footer />
-                </Box>
+        {/* <Providers initialState={initialState}> */}
+        <Providers>
+          <ThemeRegistry>
+            <Box
+              sx={{
+                backgroundImage: `url(${Image.src})`,
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                backgroundSize: "100% 100%",
+              }}
+            >
+              <Header params={{ locale }} />
+              <Box sx={PageContainer}>
+                <Box sx={ContentContainer}>{children}</Box>
+                <Footer />
               </Box>
-            </ThemeRegistry>
-          </WagmiProvider>
-        </QueryProvider>
+            </Box>
+          </ThemeRegistry>
+        </Providers>
       </body>
     </html>
   )

@@ -5,6 +5,8 @@ import { useMutation } from "@tanstack/react-query"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 
 import { toastifyRequest } from "@/components/toasts"
+import { useGnosisSafeSDK } from "@/hooks/useGnosisSafeSDK"
+
 import AgreementText from "../../../../config/wildcat-service-agreement.json"
 
 export type SignAgreementProps = {
@@ -14,7 +16,7 @@ export type SignAgreementProps = {
 }
 
 export const useSignAgreement = () => {
-  // const { sdk } = useGnosisSafeSDK()
+  const { sdk } = useGnosisSafeSDK()
   const signer = useEthersSigner()
 
   return useMutation({
@@ -30,27 +32,27 @@ export const useSignAgreement = () => {
         }
         agreementText = `${agreementText}\n\nOrganization Name: ${name}`
 
-        // if (sdk) {
-        //   const settings = {
-        //     offChainSigning: true,
-        //   }
-        //   console.log(
-        //     `Set safe settings: ${await sdk.eth.setSafeSettings([settings])}`,
-        //   )
-        //   const result = (await sdk.txs.signMessage(agreementText)) as any
-        //   console.log(`Gnosis Result:`)
-        //   console.log(result)
-        //   if (result.safeTxHash) {
-        //     return {
-        //       signature: undefined,
-        //       safeTxHash: result.safeTxHash as string,
-        //     }
-        //   }
-        //   return {
-        //     signature: result.signature as string,
-        //     safeTxHash: undefined,
-        //   }
-        // }
+        if (sdk) {
+          const settings = {
+            offChainSigning: true,
+          }
+          console.log(
+            `Set safe settings: ${await sdk.eth.setSafeSettings([settings])}`,
+          )
+          const result = (await sdk.txs.signMessage(agreementText)) as any
+          console.log(`Gnosis Result:`)
+          console.log(result)
+          if (result.safeTxHash) {
+            return {
+              signature: undefined,
+              safeTxHash: result.safeTxHash as string,
+            }
+          }
+          return {
+            signature: result.signature as string,
+            safeTxHash: undefined,
+          }
+        }
         const signatureResult = await signer.then((s) =>
           s.signMessage(agreementText),
         )
