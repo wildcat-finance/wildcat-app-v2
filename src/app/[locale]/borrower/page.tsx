@@ -11,7 +11,6 @@ export default async function Borrower({
   params: { locale: string }
 }) {
   const { t } = await initTranslations(locale, ["borrowerMarketList"])
-  const { address } = useAccount()
 
   return (
     <Box>

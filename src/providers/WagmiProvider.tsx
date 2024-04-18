@@ -6,8 +6,11 @@ import { WagmiConfig } from "wagmi"
 import { config } from "@/lib/config"
 import { GenericProviderProps } from "./types"
 
-export const WagmiProvider = ({ children }: GenericProviderProps) => (
-  <WagmiConfig reconnectOnMount config={config}>
+export const WagmiProvider = ({
+  children,
+  initialState,
+}: GenericProviderProps) => (
+  <WagmiConfig reconnectOnMount config={config} initialState={initialState}>
     {children}
   </WagmiConfig>
 )
