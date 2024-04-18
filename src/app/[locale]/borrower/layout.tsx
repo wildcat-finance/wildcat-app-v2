@@ -1,8 +1,9 @@
+import { ReactNode } from "react"
+
 import { Box } from "@mui/material"
 import { Sidebar } from "@/components/Sidebar"
 
 import TranslationsProvider from "@/components/TranslationsProvider"
-import { ReactNode } from "react"
 import initTranslations from "@/app/i18n"
 
 const i18nNamespaces = ["borrowerMarketList", "borrowerMarketDetails"]

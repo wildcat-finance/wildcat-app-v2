@@ -27,6 +27,15 @@ const nextConfig = {
 
     return config
   },
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/borrower',
+        permanent: true,
+      },
+    ]
+  },
 };
 
 export default nextConfig;

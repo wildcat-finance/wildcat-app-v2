@@ -3,6 +3,7 @@ import Link from "next/link"
 import { ROUTES } from "@/routes"
 import { ContentContainer } from "@/app/[locale]/borrower/page-style"
 import initTranslations from "@/app/i18n"
+import { useAccount } from "wagmi"
 
 export default async function Borrower({
   params: { locale },
@@ -10,6 +11,7 @@ export default async function Borrower({
   params: { locale: string }
 }) {
   const { t } = await initTranslations(locale, ["borrowerMarketList"])
+  const { address } = useAccount()
 
   return (
     <Box>

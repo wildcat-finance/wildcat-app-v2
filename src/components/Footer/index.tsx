@@ -8,7 +8,6 @@ import Link from "next/link"
 
 export const Footer = () => {
   const pathname = usePathname()
-
   const showFooter = pathname !== "/agreement"
 
   return (

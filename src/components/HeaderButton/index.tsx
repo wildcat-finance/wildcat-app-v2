@@ -9,9 +9,8 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { ConnectButton } from "@/components/HeaderButton/style"
 import { ProfileDialog } from "@/components/HeaderButton/ProfileDialog"
 import { ConnectWalletDialog } from "@/components/HeaderButton/ConnectWalletDialog"
-import SvgIcon from "@mui/material/SvgIcon"
-import { COLORS } from "@/theme/colors"
-import Wallet from "../../assets/icons/wallet_icon.svg"
+import { useRouter } from "next/navigation"
+import { useHasSignedSla } from "@/hooks/useHasSignedSla"
 
 export const HeaderButton = () => {
   const { address, isConnected } = useAccount()
@@ -28,6 +27,14 @@ export const HeaderButton = () => {
     setOpen(false)
   }
 
+  // const router = useRouter()
+  // const { hasSignedAgreement } = useHasSignedSla()
+  // useEffect(() => {
+  //   if (!hasSignedAgreement) {
+  //     router.push("/agreement")
+  //   }
+  // })
+
   useEffect(() => {
     if (isConnected && isWrongNetwork) {
       setButtonText("Wrong Network")
@@ -43,14 +50,6 @@ export const HeaderButton = () => {
   return (
     <>
       <Button size="medium" sx={ConnectButton} onClick={handleClickOpen}>
-        {/* {isConnected && ( */}
-        {/*  <SvgIcon */}
-        {/*    fontSize="small" */}
-        {/*    sx={{ "& path": { fill: `${COLORS.white}` } }} */}
-        {/*  > */}
-        {/*    <Wallet /> */}
-        {/*  </SvgIcon> */}
-        {/* )} */}
         {buttonText}
       </Button>
 
