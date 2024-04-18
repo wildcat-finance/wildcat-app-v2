@@ -61,6 +61,7 @@ export function useGnosisSafeSDK(): GnosisSafeHook {
     console.log(`useGnosisSafeSDK :: Connected to safe: ${isConnectedToSafe}`)
     if (isConnectedToSafe && !sdk) {
       if (!connector) throw Error("No connector found")
+      // TODO: check connector options in wagmi v2
       setSdk(new SafeAppsSDK(connector!.options))
     }
     return undefined
