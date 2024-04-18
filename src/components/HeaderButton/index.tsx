@@ -9,11 +9,11 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { ConnectButton } from "@/components/HeaderButton/style"
 import { ProfileDialog } from "@/components/HeaderButton/ProfileDialog"
 import { ConnectWalletDialog } from "@/components/HeaderButton/ConnectWalletDialog"
-import { useRouter } from "next/navigation"
-import { useHasSignedSla } from "@/hooks/useHasSignedSla"
 
 export const HeaderButton = () => {
   const { address, isConnected } = useAccount()
+  console.log("Address", address, "is connected:", isConnected)
+
   const { isWrongNetwork } = useCurrentNetwork()
 
   const [open, setOpen] = useState(false)
@@ -26,14 +26,6 @@ export const HeaderButton = () => {
   const handleClose = () => {
     setOpen(false)
   }
-
-  // const router = useRouter()
-  // const { hasSignedAgreement } = useHasSignedSla()
-  // useEffect(() => {
-  //   if (!hasSignedAgreement) {
-  //     router.push("/agreement")
-  //   }
-  // })
 
   useEffect(() => {
     if (isConnected && isWrongNetwork) {

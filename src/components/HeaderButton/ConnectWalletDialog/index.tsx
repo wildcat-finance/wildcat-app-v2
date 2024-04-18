@@ -65,6 +65,7 @@ export const ConnectWalletDialog = ({
           .reverse()
           .map((connector) => (
             <Button
+              key={connector.id}
               variant="contained"
               color="secondary"
               fullWidth
