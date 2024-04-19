@@ -23,14 +23,14 @@ import {
   ProfileContainer,
   WrongNetworkButton,
   WrongNetworkContainer,
-} from "@/components/HeaderButton/ProfileDialog/style"
+} from "@/components/Header/HeaderButton/ProfileDialog/style"
 
-import { ProfileDialogProps } from "@/components/HeaderButton/ProfileDialog/type"
+import { ProfileDialogProps } from "@/components/Header/HeaderButton/ProfileDialog/type"
 
 import { COLORS } from "@/theme/colors"
 import { useTranslation } from "react-i18next"
-import Copy from "../../../assets/icons/copy_icon.svg"
-import LinkIcon from "../../../assets/icons/link_icon.svg"
+import Copy from "../../../../assets/icons/copy_icon.svg"
+import LinkIcon from "../../../../assets/icons/link_icon.svg"
 
 export const ProfileDialog = ({
   open,

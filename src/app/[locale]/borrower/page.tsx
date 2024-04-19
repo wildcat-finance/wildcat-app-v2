@@ -3,7 +3,7 @@ import Link from "next/link"
 import { ROUTES } from "@/routes"
 import { ContentContainer } from "@/app/[locale]/borrower/page-style"
 import initTranslations from "@/app/i18n"
-import { useAccount } from "wagmi"
+import { MarketListAlert } from "@/app/[locale]/borrower/MarketListAlert"
 
 export default async function Borrower({
   params: { locale },
@@ -22,6 +22,8 @@ export default async function Borrower({
           </Button>
         </Link>
       </Box>
+
+      <MarketListAlert />
     </Box>
   )
 }

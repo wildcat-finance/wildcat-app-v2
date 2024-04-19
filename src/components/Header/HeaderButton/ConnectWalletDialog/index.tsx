@@ -15,9 +15,9 @@ import {
   DialogContainer,
   Terms,
   TitleContainer,
-} from "@/components/HeaderButton/ConnectWalletDialog/style"
+} from "@/components/Header/HeaderButton/ConnectWalletDialog/style"
 
-import { ConnectWalletDialogProps } from "@/components/HeaderButton/ConnectWalletDialog/type"
+import { ConnectWalletDialogProps } from "@/components/Header/HeaderButton/ConnectWalletDialog/type"
 
 import Cross from "@/assets/icons/cross_icon.svg"
 import MetaMask from "@/assets/icons/meta_icon.svg"

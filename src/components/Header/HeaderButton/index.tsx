@@ -6,9 +6,9 @@ import { Button } from "@mui/material"
 
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 
-import { ConnectButton } from "@/components/HeaderButton/style"
-import { ProfileDialog } from "@/components/HeaderButton/ProfileDialog"
-import { ConnectWalletDialog } from "@/components/HeaderButton/ConnectWalletDialog"
+import { ConnectButton } from "@/components/Header/HeaderButton/style"
+import { ProfileDialog } from "@/components/Header/HeaderButton/ProfileDialog"
+import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWalletDialog"
 
 export const HeaderButton = () => {
   const { address, isConnected } = useAccount()

@@ -24,7 +24,9 @@ export default async function BorrowerLayout({
       resources={resources}
     >
       <Sidebar />
-      <Box width="100%">{children}</Box>
+      <Box width="100%" padding="0px 16px 0px 14px">
+        {children}
+      </Box>
     </TranslationsProvider>
   )
 }
