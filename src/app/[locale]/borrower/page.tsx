@@ -5,12 +5,18 @@ import Link from "next/link"
 import { ROUTES } from "@/routes"
 import { ContentContainer } from "@/app/[locale]/borrower/page-style"
 import { Banner } from "@/components/Banner"
-import { useBorrowerBannerState } from "@/hooks/useBorrowerBannerState"
 import { useTranslation } from "react-i18next"
 
 export default function Borrower() {
   const { t } = useTranslation()
-  const bannerData = useBorrowerBannerState()
+  const bannerData = {
+    hideBanner: false,
+    hideCreateButton: false,
+    title: "Apply to become a borrower",
+    text: "We see you aren't whitelisted as a borrower. Please complete this Typeform and we'll reach out for next steps.",
+    buttonText: "Leave a Request",
+    url: "https://forms.gle/irca7KeC7ASmkRh16",
+  }
 
   return (
     <Box>
