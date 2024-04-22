@@ -1,7 +1,7 @@
 "use client"
 
 import { Box, Button, Typography } from "@mui/material"
-import { MarketStatusChip } from "@/components/extended/MarketStatusChip"
+import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
 import {
   ElseButtonContainer,

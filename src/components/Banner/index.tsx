@@ -4,23 +4,34 @@ import {
   MarketListAlertContainer,
   RequestButton,
   TextContainer,
-} from "@/components/LinkAlert/style"
+} from "@/components/Banner/style"
 
-export const LinkAlert = () => {
+export type BannerProps = {
+  title: string | undefined
+  text: string | undefined
+  buttonText: string | undefined
+  buttonLink: string | undefined
+}
+
+export const Banner = ({
+  title,
+  text,
+  buttonText,
+  buttonLink,
+}: BannerProps) => {
   const alertState = "whitelist"
 
   return (
     <Box className="test" sx={MarketListAlertContainer}>
       <Box sx={TextContainer}>
-        <Typography variant="title2">Apply to become a borrower</Typography>
+        <Typography variant="title2">{title}</Typography>
         <Typography variant="text2" sx={{ color: "#FFFFFF99" }}>
-          We see you aren&apos;t whitelisted as a borrower. Please complete this
-          Typeform and we&apos;ll reach out for next steps.
+          {text}
         </Typography>
       </Box>
-      <Link href="https://forms.gle/irca7KeC7ASmkRh16" target="_blank">
+      <Link href={buttonLink || ""} target="_blank">
         <Button size="large" sx={RequestButton}>
-          Leave a Request
+          {buttonText}
         </Button>
       </Link>
     </Box>

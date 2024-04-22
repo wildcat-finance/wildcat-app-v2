@@ -15,7 +15,7 @@ import { ContentContainer } from "@/components/Sidebar/AllMarketsSidebar/style"
 
 import Icon from "@/assets/icons/search_icon.svg"
 import { useTranslation } from "react-i18next"
-import ExtendedRadio from "../../extended/ExtendedRadio"
+import ExtendedRadio from "@/components/@extended/ExtendedRadio"
 
 const MOCK = [
   {

@@ -1,4 +1,5 @@
 import { COLORS } from "@/theme/colors"
+import Image from "@/assets/pictures/banner_bg.png"
 
 export const MarketListAlertContainer = {
   width: "100%",
@@ -12,7 +13,11 @@ export const MarketListAlertContainer = {
   marginBottom: "32px",
   borderRadius: "16px",
   color: "white",
-  backgroundColor: COLORS.bunker,
+
+  backgroundImage: `url(${Image.src})`,
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
+  backgroundSize: "100% 100%",
 }
 
 export const TextContainer = {

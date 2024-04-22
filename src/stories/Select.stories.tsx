@@ -1,6 +1,6 @@
 import { Box, MenuItem, Typography } from "@mui/material"
 import type { Meta } from "@storybook/react"
-import { ExtendedSelect } from "@/components/extended/ExtendedSelect"
+import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 
 export default {
   title: "Components/Select",

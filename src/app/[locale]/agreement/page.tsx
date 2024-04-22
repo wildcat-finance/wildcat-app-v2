@@ -1,7 +1,7 @@
 import { Box, Button, Typography } from "@mui/material"
-import { AgreementText } from "@/app/[locale]/agreement/AgreementText"
+import { AgreementText } from "components/AgreementText"
 import Link from "next/link"
-import { SignButton } from "@/app/[locale]/agreement/SignButton"
+import { SignButton } from "components/SignButton"
 
 export default async function Agreement() {
   const a = "a"
