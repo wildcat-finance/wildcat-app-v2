@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   webpack(config) {
+    // Fix pino-pretty and lokijs resolve
+    config.externals.push('pino-pretty', 'lokijs', 'encoding')
+
     // Grab the existing rule that handles SVG imports
     const fileLoaderRule = config.module.rules.find((rule) =>
       rule.test?.test?.('.svg'),
