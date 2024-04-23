@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { useMutation } from "@tanstack/react-query"
 
 import { useEthersSigner } from "@/hooks/useEthersSigner"
@@ -53,9 +51,7 @@ export const useSignAgreement = () => {
             safeTxHash: undefined,
           }
         }
-        const signatureResult = await signer.then((s) =>
-          s.signMessage(agreementText),
-        )
+        const signatureResult = await signer.signMessage(agreementText)
         return { signature: signatureResult }
       }
       let result: { signature?: string; safeTxHash?: string } = {}
