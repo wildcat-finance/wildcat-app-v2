@@ -12,7 +12,6 @@ import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWal
 
 export const HeaderButton = () => {
   const { address, isConnected } = useAccount()
-  console.log("Address", address, "is connected:", isConnected)
 
   const { isWrongNetwork } = useCurrentNetwork()
 
