@@ -10,6 +10,7 @@ import { headers } from "next/headers"
 import { cookieToInitialState } from "wagmi"
 
 import { WagmiQueryProviders } from "@/providers/WagmiQueryProviders"
+import { AuthProvider } from "@/providers/AuthProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
 import Header from "@/components/Header"
 import { Footer } from "@/components/Footer"
@@ -44,22 +45,24 @@ export default async function RootLayout({
     <html lang={locale} dir={dir(locale)}>
       <body className={inter.className}>
         <WagmiQueryProviders initialState={initialState}>
-          <ThemeRegistry>
-            <Box
-              sx={{
-                backgroundImage: `url(${Image.src})`,
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
-                backgroundSize: "100% 100%",
-              }}
-            >
-              <Header params={{ locale }} />
-              <Box sx={PageContainer}>
-                <Box sx={ContentContainer}>{children}</Box>
-                <Footer />
+          <AuthProvider>
+            <ThemeRegistry>
+              <Box
+                sx={{
+                  backgroundImage: `url(${Image.src})`,
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                  backgroundSize: "100% 100%",
+                }}
+              >
+                <Header params={{ locale }} />
+                <Box sx={PageContainer}>
+                  <Box sx={ContentContainer}>{children}</Box>
+                  <Footer />
+                </Box>
               </Box>
-            </Box>
-          </ThemeRegistry>
+            </ThemeRegistry>
+          </AuthProvider>
         </WagmiQueryProviders>
       </body>
     </html>

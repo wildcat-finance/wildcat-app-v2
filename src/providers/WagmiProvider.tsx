@@ -4,7 +4,7 @@ import React from "react"
 import { WagmiConfig } from "wagmi"
 
 import { config } from "@/lib/config"
-import { GenericProviderProps } from "./types"
+import { GenericProviderProps } from "./interface"
 
 export const WagmiProvider = ({
   children,

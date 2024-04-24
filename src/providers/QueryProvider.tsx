@@ -2,7 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
-import { GenericProviderProps } from "./types"
+import { GenericProviderProps } from "./interface"
 
 const queryClient = new QueryClient()
 

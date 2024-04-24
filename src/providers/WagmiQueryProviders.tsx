@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { WagmiProvider } from "wagmi"
 
 import { config } from "@/lib/config"
-import { GenericProviderProps } from "@/providers/types"
+import { GenericProviderProps } from "@/providers/interface"
 
 const queryClient = new QueryClient()
 
