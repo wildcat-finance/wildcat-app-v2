@@ -1,11 +1,15 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
+export const SLA_SIGNATURE_KEY = "sla-signature"
+export const BORROWER_SIGNATURE_KEY = "borrower-signature"
+export const SLA_SIGNATURES_KEY = "sla_signatures"
+
 export type AgreementStore = {
   setSlaSignature: (address: string, signature: string) => void
   setBorrowerSignature: (address: string, signature: string) => void
-  [key: `sla-signature-${string}`]: string
-  [key: `borrower-signature-${string}`]: string
+  [key: `${typeof SLA_SIGNATURE_KEY}-${string}`]: string
+  [key: `${typeof BORROWER_SIGNATURE_KEY}-${string}`]: string
 }
 
 export const useAgreementStore = create<AgreementStore>()(
@@ -13,15 +17,15 @@ export const useAgreementStore = create<AgreementStore>()(
     (set) => ({
       setSlaSignature: (address: string, signature: string) =>
         set({
-          [`sla-signature-${address.toLowerCase()}`]: signature,
+          [`${SLA_SIGNATURE_KEY}-${address.toLowerCase()}`]: signature,
         }),
       setBorrowerSignature: (address: string, signature: string) =>
         set({
-          [`borrower-signature-${address.toLowerCase()}`]: signature,
+          [`${SLA_SIGNATURE_KEY}-${address.toLowerCase()}`]: signature,
         }),
     }),
     {
-      name: "sla_signatures",
+      name: SLA_SIGNATURES_KEY,
     },
   ),
 )
