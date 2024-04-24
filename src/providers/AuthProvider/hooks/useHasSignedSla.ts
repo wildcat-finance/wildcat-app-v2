@@ -13,7 +13,7 @@ export const useHasSignedSla = (address: `0x${string}` | undefined) =>
     enabled: false,
     queryFn: async () => {
       const { isSigned }: Response = await fetch(
-        `/api/service-agreement/${address}`,
+        `/api/sla/${address}`,
       ).then((res) => res.json())
 
       return { isSigned }

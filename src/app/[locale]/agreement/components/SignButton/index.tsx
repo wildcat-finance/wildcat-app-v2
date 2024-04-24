@@ -14,17 +14,18 @@ export const SignButton = () => {
   const address = useAccount().address?.toLowerCase()
   const { sdk } = useGnosisSafeSDK()
 
-  const { mutateAsync: signAgreement } = useSignAgreement()
-  const { mutateAsync: submitSignature } = useSubmitSignature()
+  const { mutateAsync: signAgreement, isPending: isSignPending } = useSignAgreement()
+  const { mutateAsync: submitSignature, isPending: isSumbitPending } = useSubmitSignature()
 
   const [dateSigned, setDateSigned] = useState<string>("")
-  const [safeTxHash, setSafeTxHash] = useState<string | undefined>(undefined)
 
   const organization = "Wildcat Finance"
 
   useEffect(() => {
     setDateSigned(dayjs(Date.now()).format(DATE_FORMAT))
   }, [])
+
+  const isSigning = isSignPending || isSumbitPending
 
   const handleSign = async () => {
     const result = await signAgreement({
@@ -33,6 +34,7 @@ export const SignButton = () => {
       address,
     })
     console.log(result)
+
     if (result.signature) {
       console.log({
         signature: result.signature,
@@ -48,7 +50,6 @@ export const SignButton = () => {
       })
     } else if (result.safeTxHash) {
       console.log(await sdk?.txs.getBySafeTxHash(result.safeTxHash))
-      setSafeTxHash(result.safeTxHash)
     }
   }
 
@@ -56,10 +57,11 @@ export const SignButton = () => {
     <Button
       variant="contained"
       size="large"
-      sx={{ width: "168.63px", height: "44px" }}
+      sx={{ width: "169", height: "44px" }}
       onClick={handleSign}
+      disabled={isSigning}
     >
-      Sign and continue
+      {isSigning ? "Signing..." : "Sign and continue"}
     </Button>
   )
 }

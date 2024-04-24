@@ -1,5 +1,6 @@
-import { Box, Button, Typography } from "@mui/material"
 import Link from "next/link"
+import { Box, Button, Typography } from "@mui/material"
+
 import { AgreementText } from "./components/AgreementText"
 import { SignButton } from "./components/SignButton"
 
@@ -54,7 +55,8 @@ export default async function Agreement() {
           gap: "16px",
         }}
       >
-        <SignButton />
+
+        <SignButton  />
 
         <Link
           href="/pdf/Wildcat_Protocol_Services_Agreement.pdf"

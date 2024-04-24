@@ -28,7 +28,6 @@ export const useSignAgreement = () => {
         if (dateSigned) {
           agreementText = `${agreementText}\n\nDate: ${dateSigned}`
         }
-        agreementText = `${agreementText}\n\nOrganization Name: ${name}`
 
         if (sdk) {
           const settings = {

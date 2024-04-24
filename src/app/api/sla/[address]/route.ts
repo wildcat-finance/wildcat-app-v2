@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 
-export const AGREEMENT_PATH = "/agreement"
-
 export async function getSignedServiceAgreement(address: `0x${string}`) {
   let signed: boolean
 
