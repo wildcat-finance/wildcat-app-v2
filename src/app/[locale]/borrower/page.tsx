@@ -6,13 +6,9 @@ import { ROUTES } from "@/routes"
 import { ContentContainer } from "@/app/[locale]/borrower/page-style"
 import { Banner } from "@/components/Banner"
 import { useTranslation } from "react-i18next"
-import { useConnectorClient } from "wagmi"
 
 export default function Borrower() {
   const { t } = useTranslation()
-  const connector = useConnectorClient()
-
-  console.log("CONNECTOR", connector)
 
   const bannerData = {
     hideBanner: false,
