@@ -5,7 +5,7 @@ import SafeAppsSDK, {
 } from "@safe-global/safe-apps-sdk"
 import { useQuery } from "@tanstack/react-query"
 import { useEffect, useMemo, useState } from "react"
-import { useAccount } from "wagmi"
+import { useAccount, useConnectorClient } from "wagmi"
 
 export type GnosisSafeHook = {
   isConnectedToSafe: boolean
@@ -51,10 +51,12 @@ export function useSafeTxDetails({
 }
 
 export function useGnosisSafeSDK(): GnosisSafeHook {
-  const { isConnected, connector, address } = useAccount()
+  const { isConnected, address } = useAccount()
+  const connector = useConnectorClient()
+
   const [sdk, setSdk] = useState<SafeAppsSDK | undefined>(undefined)
   const isConnectedToSafe = useMemo(
-    () => isConnected && connector?.name === "Safe",
+    () => isConnected && connector.data?.name === "Safe",
     [isConnected, address],
   )
   useEffect(() => {
@@ -62,7 +64,9 @@ export function useGnosisSafeSDK(): GnosisSafeHook {
     if (isConnectedToSafe && !sdk) {
       if (!connector) throw Error("No connector found")
       // TODO: check connector options in wagmi v2
-      setSdk(new SafeAppsSDK(connector!.options))
+      setSdk(
+        new SafeAppsSDK(),
+      )
     }
     return undefined
   }, [isConnectedToSafe])

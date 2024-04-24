@@ -17,6 +17,7 @@
     "@mui/material": "^5.15.1",
     "@mui/material-nextjs": "^5.15.0",
     "@mui/system": "^5.15.1",
+    "@safe-global/safe-apps-sdk": "^9.0.0",
     "@tanstack/react-query": "^5.28.9",
     "@wildcatfi/wildcat-sdk": "^2.0.68",
     "dayjs": "^1.11.10",
