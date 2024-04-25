@@ -41,7 +41,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  return
+  return NextResponse.next()
 }
 
 export const config = {
