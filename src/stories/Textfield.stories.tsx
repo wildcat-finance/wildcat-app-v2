@@ -1,7 +1,9 @@
 import { Box, InputAdornment, TextField, Typography } from "@mui/material"
-import type { Meta } from "@storybook/react"
 import SvgIcon from "@mui/material/SvgIcon"
+import type { Meta } from "@storybook/react"
+
 import { COLORS } from "@/theme/colors"
+
 import Icon from "../assets/icons/search_icon.svg"
 
 export default {

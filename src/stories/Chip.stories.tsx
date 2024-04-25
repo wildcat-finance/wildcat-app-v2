@@ -1,5 +1,6 @@
-import type { Meta } from "@storybook/react"
 import { Box } from "@mui/material"
+import type { Meta } from "@storybook/react"
+
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 
 export default {

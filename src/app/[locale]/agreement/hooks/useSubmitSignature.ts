@@ -1,9 +1,10 @@
-import { useRouter } from "next/navigation"
 import { useMutation } from "@tanstack/react-query"
+import { useRouter } from "next/navigation"
 
-import { TargetNetwork } from "@/config/network"
 import { API_URL } from "@/config/api"
+import { TargetNetwork } from "@/config/network"
 import { ROUTES } from "@/routes"
+
 import { SignatureSubmissionProps } from "./interface"
 
 export function useSubmitSignature() {

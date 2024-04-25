@@ -1,6 +1,5 @@
 import { createTheme } from "@mui/material"
-import { TYPOGRAPHY } from "@/theme/typography"
-import { PALETTE } from "@/theme/palette"
+
 import {
   largeContainedButton,
   largeOutlinedButton,
@@ -18,8 +17,10 @@ import {
   smallOutlinedSecondaryButton,
   smallTextButton,
 } from "@/theme/overrides/Buttons"
-import { COLORS } from "./colors"
+import { PALETTE } from "@/theme/palette"
+import { TYPOGRAPHY } from "@/theme/typography"
 
+import { COLORS } from "./colors"
 import DownArrow from "../assets/icons/downArrow20_icon.svg"
 
 declare module "@mui/material/styles" {

@@ -1,7 +1,8 @@
 import { Box, Button, Typography } from "@mui/material"
 import Link from "next/link"
-import { MarketListAlertContainer, RequestButton, TextContainer } from "./style"
+
 import { BannerProps } from "./interface"
+import { MarketListAlertContainer, RequestButton, TextContainer } from "./style"
 
 export const LeadBanner = ({
   title,

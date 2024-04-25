@@ -9,13 +9,12 @@ import {
   Typography,
   SvgIcon,
 } from "@mui/material"
-
-import { COLORS } from "@/theme/colors"
-import { ContentContainer } from "@/components/Sidebar/AllMarketsSidebar/style"
+import { useTranslation } from "react-i18next"
 
 import Icon from "@/assets/icons/search_icon.svg"
-import { useTranslation } from "react-i18next"
 import ExtendedRadio from "@/components/@extended/ExtendedRadio"
+import { ContentContainer } from "@/components/Sidebar/AllMarketsSidebar/style"
+import { COLORS } from "@/theme/colors"
 
 const MOCK = [
   {

@@ -1,5 +1,6 @@
 import { Box, Radio as MUIRadio } from "@mui/material"
 import type { Meta } from "@storybook/react"
+
 import ExtendedRadio from "@/components/@extended/ExtendedRadio"
 
 export default {

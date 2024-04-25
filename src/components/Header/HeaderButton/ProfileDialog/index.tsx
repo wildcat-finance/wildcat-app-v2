@@ -1,8 +1,3 @@
-import { useAccount, useDisconnect, useSwitchChain } from "wagmi"
-import { useCopyToClipboard } from "react-use"
-import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-import { sepolia } from "wagmi/chains"
-
 import {
   Box,
   Button,
@@ -12,8 +7,10 @@ import {
   SvgIcon,
 } from "@mui/material"
 import Link from "next/link"
-
-import { TargetNetwork } from "@/config/network"
+import { useTranslation } from "react-i18next"
+import { useCopyToClipboard } from "react-use"
+import { useAccount, useDisconnect, useSwitchChain } from "wagmi"
+import { sepolia } from "wagmi/chains"
 
 import {
   AddressButtons,
@@ -24,11 +21,11 @@ import {
   WrongNetworkButton,
   WrongNetworkContainer,
 } from "@/components/Header/HeaderButton/ProfileDialog/style"
-
 import { ProfileDialogProps } from "@/components/Header/HeaderButton/ProfileDialog/type"
-
+import { TargetNetwork } from "@/config/network"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { COLORS } from "@/theme/colors"
-import { useTranslation } from "react-i18next"
+
 import Copy from "../../../../assets/icons/copy_icon.svg"
 import LinkIcon from "../../../../assets/icons/link_icon.svg"
 

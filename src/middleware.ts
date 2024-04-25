@@ -1,9 +1,10 @@
-import { i18nRouter } from "next-i18n-router"
 import { NextRequest, NextResponse } from "next/server"
+import { i18nRouter } from "next-i18n-router"
 import { State, deserialize } from "wagmi"
 
-import { ROUTES } from "@/routes"
 import { getSignedServiceAgreement } from "@/app/api/sla/[address]/services"
+import { ROUTES } from "@/routes"
+
 import i18nConfig from "../i18nConfig"
 
 export async function middleware(request: NextRequest) {

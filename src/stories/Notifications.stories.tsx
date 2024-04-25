@@ -1,6 +1,7 @@
-import type { Meta } from "@storybook/react"
-import { Notifications } from "@/components/Notifications"
 import { Box } from "@mui/material"
+import type { Meta } from "@storybook/react"
+
+import { Notifications } from "@/components/Notifications"
 
 export default {
   title: "Components/Notifications",

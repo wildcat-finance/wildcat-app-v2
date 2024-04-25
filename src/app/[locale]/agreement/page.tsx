@@ -1,5 +1,5 @@
-import Link from "next/link"
 import { Box, Button, Typography } from "@mui/material"
+import Link from "next/link"
 
 import { AgreementText } from "./components/AgreementText"
 import { SignButton } from "./components/SignButton"

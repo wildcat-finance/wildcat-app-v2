@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
-import { useAccount } from "wagmi"
 import { getController, Signer } from "@wildcatfi/wildcat-sdk"
+import { useAccount } from "wagmi"
 
 import { TargetChainId } from "@/config/network"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+
 import { useCurrentNetwork } from "./useCurrentNetwork"
 
 export const GET_CONTROLLER_KEY = "controller"

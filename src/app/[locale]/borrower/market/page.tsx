@@ -1,7 +1,8 @@
 import { Box } from "@mui/material"
+
+import initTranslations from "@/app/i18n"
 import { MarketHeader } from "@/components/MarketHeader"
 import TranslationsProvider from "@/components/TranslationsProvider"
-import initTranslations from "@/app/i18n"
 
 const i18nNamespaces = ["borrowerMarketDetails"]
 

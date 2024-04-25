@@ -1,12 +1,13 @@
 "use client"
 
+import { Box, Button, Typography } from "@mui/material"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
-import { Box, Button, Typography } from "@mui/material"
 
-import { ROUTES } from "@/routes"
 import { ContentContainer } from "@/app/[locale]/borrower/page-style"
 import { LeadBanner } from "@/components/LeadBanner"
+import { ROUTES } from "@/routes"
+
 import { useBorrowerInvitationRedirect } from "./hooks/useBorrowerInvitationRedirect"
 
 export default function Borrower() {

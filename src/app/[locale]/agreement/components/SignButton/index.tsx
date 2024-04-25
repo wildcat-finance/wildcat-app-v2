@@ -1,11 +1,13 @@
 "use client"
 
-import { Button } from "@mui/material"
 import { useEffect, useState } from "react"
+
+import { Button } from "@mui/material"
+import dayjs from "dayjs"
+import { useAccount } from "wagmi"
+
 import { useSignAgreement } from "@/app/[locale]/agreement/hooks/useSignAgreement"
 import { useSubmitSignature } from "@/app/[locale]/agreement/hooks/useSubmitSignature"
-import { useAccount } from "wagmi"
-import dayjs from "dayjs"
 import { useGnosisSafeSDK } from "@/hooks/useGnosisSafeSDK"
 
 const DATE_FORMAT = "MMMM DD, YYYY"

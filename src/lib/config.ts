@@ -1,6 +1,6 @@
 import { http, createConfig, createStorage, cookieStorage } from "wagmi"
-import { injected, coinbaseWallet, safe, walletConnect } from "wagmi/connectors"
 import { mainnet, sepolia } from "wagmi/chains"
+import { injected, coinbaseWallet, safe, walletConnect } from "wagmi/connectors"
 
 export const config = createConfig({
   chains: [mainnet, sepolia],

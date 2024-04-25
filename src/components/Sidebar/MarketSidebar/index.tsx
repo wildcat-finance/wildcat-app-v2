@@ -1,15 +1,15 @@
 import { Box, Button } from "@mui/material"
+import SvgIcon from "@mui/material/SvgIcon"
+import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import {
   ContentContainer,
   MenuItemButton,
 } from "@/components/Sidebar/MarketSidebar/style"
-import { COLORS } from "@/theme/colors"
-import Link from "next/link"
 import { ROUTES } from "@/routes"
-import SvgIcon from "@mui/material/SvgIcon"
+import { COLORS } from "@/theme/colors"
 
-import { useTranslation } from "react-i18next"
 import BackArrow from "../../../assets/icons/backArrow_icon.svg"
 import Cross from "../../../assets/icons/cross_icon.svg"
 

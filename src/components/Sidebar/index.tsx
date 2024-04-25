@@ -1,10 +1,11 @@
 "use client"
 
-import { AllMarketsSidebar } from "@/components/Sidebar/AllMarketsSidebar"
-import { usePathname } from "next/navigation"
 import { Box } from "@mui/material"
-import { ROUTES } from "@/routes"
+import { usePathname } from "next/navigation"
+
+import { AllMarketsSidebar } from "@/components/Sidebar/AllMarketsSidebar"
 import { MarketSidebar } from "@/components/Sidebar/MarketSidebar"
+import { ROUTES } from "@/routes"
 
 export const Sidebar = () => {
   const pathname = usePathname()

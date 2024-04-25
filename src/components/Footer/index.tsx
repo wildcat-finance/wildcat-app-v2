@@ -1,10 +1,10 @@
 "use client"
 
 import { Box, Button, Typography } from "@mui/material"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 import { ContentContainer, DownloadIcon } from "@/components/Footer/style"
-import { usePathname } from "next/navigation"
-import Link from "next/link"
 
 export const Footer = () => {
   const pathname = usePathname()

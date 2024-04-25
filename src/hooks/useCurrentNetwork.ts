@@ -1,4 +1,5 @@
 import { useAccount } from "wagmi"
+
 import { NETWORKS, TargetChainId } from "@/config/network"
 
 export const useCurrentNetwork = () => {

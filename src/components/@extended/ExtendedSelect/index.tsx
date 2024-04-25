@@ -1,13 +1,13 @@
 import { Box, FormControl, InputLabel, Select } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 
-import { ExtendedSelectProps } from "@/components/@extended/ExtendedSelect/type"
-
 import {
   FormControlContainer,
   SearchIcon,
   SelectContainer,
 } from "@/components/@extended/ExtendedSelect/style"
+import { ExtendedSelectProps } from "@/components/@extended/ExtendedSelect/type"
+
 import Icon from "../../../assets/icons/search_icon.svg"
 
 export const ExtendedSelect = ({

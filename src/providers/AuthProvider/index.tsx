@@ -1,9 +1,10 @@
 "use client"
 
 import { useEffect } from "react"
+
 import { useRouter } from "next/navigation"
-import { useAccount } from "wagmi"
 import { usePrevious } from "react-use"
+import { useAccount } from "wagmi"
 
 import { GenericProviderProps } from "@/providers/interface"
 

@@ -1,4 +1,3 @@
-import { Connector, CreateConnectorFn, useConnect } from "wagmi"
 import {
   Box,
   Button,
@@ -7,7 +6,13 @@ import {
   Typography,
   SvgIcon,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
+import { Connector, CreateConnectorFn, useConnect } from "wagmi"
 
+import CoinBase from "@/assets/icons/coinbase_icon.svg"
+import Cross from "@/assets/icons/cross_icon.svg"
+import MetaMask from "@/assets/icons/meta_icon.svg"
+import WalletConnect from "@/assets/icons/walletConnect_icon.svg"
 import {
   Buttons,
   ButtonsContainer,
@@ -16,14 +21,7 @@ import {
   Terms,
   TitleContainer,
 } from "@/components/Header/HeaderButton/ConnectWalletDialog/style"
-
 import { ConnectWalletDialogProps } from "@/components/Header/HeaderButton/ConnectWalletDialog/type"
-
-import Cross from "@/assets/icons/cross_icon.svg"
-import MetaMask from "@/assets/icons/meta_icon.svg"
-import WalletConnect from "@/assets/icons/walletConnect_icon.svg"
-import CoinBase from "@/assets/icons/coinbase_icon.svg"
-import { useTranslation } from "react-i18next"
 
 const walletIcons = {
   MetaMask: <MetaMask />,

@@ -1,5 +1,5 @@
-import { COLORS } from "@/theme/colors"
 import Image from "@/assets/pictures/banner_bg.png"
+import { COLORS } from "@/theme/colors"
 
 export const MarketListAlertContainer = {
   width: "100%",

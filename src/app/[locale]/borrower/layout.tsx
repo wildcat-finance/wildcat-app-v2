@@ -1,10 +1,10 @@
 import { ReactNode } from "react"
 
 import { Box } from "@mui/material"
-import { Sidebar } from "@/components/Sidebar"
 
-import TranslationsProvider from "@/components/TranslationsProvider"
 import initTranslations from "@/app/i18n"
+import { Sidebar } from "@/components/Sidebar"
+import TranslationsProvider from "@/components/TranslationsProvider"
 import { useGetController } from "@/hooks/useGetController"
 
 const i18nNamespaces = ["borrowerMarketList", "borrowerMarketDetails"]

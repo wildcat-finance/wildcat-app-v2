@@ -1,4 +1,5 @@
 import { Box, Typography } from "@mui/material"
+
 import { COLORS } from "@/theme/colors"
 
 export type MarketCycleChipProps = {

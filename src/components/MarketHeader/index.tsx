@@ -1,13 +1,14 @@
 "use client"
 
 import { Box, Button, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
+
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
 import {
   ElseButtonContainer,
   ElseButtonText,
 } from "@/components/MarketHeader/style"
-import { useTranslation } from "react-i18next"
 
 export const MarketHeader = () => {
   const { t } = useTranslation()

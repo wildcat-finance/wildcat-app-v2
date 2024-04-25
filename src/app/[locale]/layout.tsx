@@ -1,22 +1,23 @@
 import "./globals.css"
-import { ContentContainer, PageContainer } from "@/app/[locale]/layout-style"
-import { Inter } from "next/font/google"
-import { Box } from "@mui/material"
 
 import { ReactNode } from "react"
+
+import { Box } from "@mui/material"
 import { dir } from "i18next"
 import type { Metadata } from "next"
+import { Inter } from "next/font/google"
 import { headers } from "next/headers"
 import { cookieToInitialState } from "wagmi"
 
-import { WagmiQueryProviders } from "@/providers/WagmiQueryProviders"
-import { AuthProvider } from "@/providers/AuthProvider"
-import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
-import Header from "@/components/Header"
-import { Footer } from "@/components/Footer"
+import { ContentContainer, PageContainer } from "@/app/[locale]/layout-style"
 import Image from "@/assets/pictures/background.webp"
-
+import { Footer } from "@/components/Footer"
+import Header from "@/components/Header"
+import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
 import { config } from "@/lib/config"
+import { AuthProvider } from "@/providers/AuthProvider"
+import { WagmiQueryProviders } from "@/providers/WagmiQueryProviders"
+
 import i18nConfig from "../../../i18nConfig"
 
 const inter = Inter({

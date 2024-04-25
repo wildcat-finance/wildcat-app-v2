@@ -1,8 +1,7 @@
 import { useMutation } from "@tanstack/react-query"
 
-import { useEthersSigner } from "@/hooks/useEthersSigner"
-
 import { toastifyRequest } from "@/components/toasts"
+import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useGnosisSafeSDK } from "@/hooks/useGnosisSafeSDK"
 
 import AgreementText from "../../../../config/wildcat-service-agreement.json"
