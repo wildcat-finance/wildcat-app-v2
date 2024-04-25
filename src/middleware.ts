@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { State, deserialize } from "wagmi"
 
 import { ROUTES } from "@/routes"
-import { getSignedServiceAgreement } from "@/app/api/sla/[address]/route"
+import { getSignedServiceAgreement } from "@/app/api/sla/[address]/services"
 import i18nConfig from "../i18nConfig"
 
 export async function middleware(request: NextRequest) {

@@ -14,8 +14,10 @@ export const SignButton = () => {
   const address = useAccount().address?.toLowerCase()
   const { sdk } = useGnosisSafeSDK()
 
-  const { mutateAsync: signAgreement, isPending: isSignPending } = useSignAgreement()
-  const { mutateAsync: submitSignature, isPending: isSumbitPending } = useSubmitSignature()
+  const { mutateAsync: signAgreement, isPending: isSignPending } =
+    useSignAgreement()
+  const { mutateAsync: submitSignature, isPending: isSumbitPending } =
+    useSubmitSignature()
 
   const [dateSigned, setDateSigned] = useState<string>("")
 

@@ -10,7 +10,6 @@ export default async function Agreement() {
       className="text"
       sx={{
         padding: "50px 0 3px",
-
         width: "100%",
         display: "flex",
         justifyContent: "center",
@@ -55,8 +54,7 @@ export default async function Agreement() {
           gap: "16px",
         }}
       >
-
-        <SignButton  />
+        <SignButton />
 
         <Link
           href="/pdf/Wildcat_Protocol_Services_Agreement.pdf"

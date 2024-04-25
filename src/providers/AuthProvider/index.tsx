@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }: GenericProviderProps) => {
     if (!isInitialRender && address && address !== previousAddress) {
       refresh()
     }
-  }, [address])
+  }, [address, isConnected])
 
   return children
 }

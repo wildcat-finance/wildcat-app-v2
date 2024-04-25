@@ -36,18 +36,21 @@ export const useSignAgreement = () => {
           console.log(
             `Set safe settings: ${await sdk.eth.setSafeSettings([settings])}`,
           )
-          const result = (await sdk.txs.signMessage(agreementText)) as any
-          console.log(`Gnosis Result:`)
+
+          const result = await sdk.txs.signMessage(agreementText)
           console.log(result)
-          if (result.safeTxHash) {
+
+          if ("safeTxHash" in result) {
             return {
               signature: undefined,
-              safeTxHash: result.safeTxHash as string,
+              safeTxHash: result.safeTxHash,
             }
           }
-          return {
-            signature: result.signature as string,
-            safeTxHash: undefined,
+          if ("signature" in result) {
+            return {
+              signature: result.signature as string,
+              safeTxHash: undefined,
+            }
           }
         }
         const signatureResult = await signer.signMessage(agreementText)
