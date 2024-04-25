@@ -28,7 +28,7 @@ export function useSubmitSignature() {
       })
     },
     onSuccess: () => {
-      replace(ROUTES.borrower)
+      replace(ROUTES.borrower.root)
     },
     onError(error) {
       console.log(error)

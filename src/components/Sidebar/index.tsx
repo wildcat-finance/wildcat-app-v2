@@ -11,8 +11,8 @@ export const Sidebar = () => {
 
   return (
     <Box>
-      {pathname === ROUTES.borrower && <AllMarketsSidebar />}
-      {pathname === ROUTES.borrowerMarket && <MarketSidebar />}
+      {pathname === ROUTES.borrower.root && <AllMarketsSidebar />}
+      {pathname === ROUTES.borrower.market && <MarketSidebar />}
     </Box>
   )
 }

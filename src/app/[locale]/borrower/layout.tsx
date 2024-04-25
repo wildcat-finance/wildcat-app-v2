@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/Sidebar"
 
 import TranslationsProvider from "@/components/TranslationsProvider"
 import initTranslations from "@/app/i18n"
+import { useGetController } from "@/hooks/useGetController"
 
 const i18nNamespaces = ["borrowerMarketList", "borrowerMarketDetails"]
 

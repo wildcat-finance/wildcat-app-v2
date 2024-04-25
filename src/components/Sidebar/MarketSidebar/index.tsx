@@ -18,7 +18,7 @@ export const MarketSidebar = () => {
 
   return (
     <Box sx={ContentContainer}>
-      <Link href={ROUTES.borrower} passHref>
+      <Link href={ROUTES.borrower.root} passHref>
         <Button
           fullWidth
           variant="text"

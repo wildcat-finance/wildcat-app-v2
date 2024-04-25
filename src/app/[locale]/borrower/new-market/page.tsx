@@ -5,7 +5,7 @@ import initTranslations from "@/app/i18n"
 
 const i18nNamespaces = ["borrowerMarketDetails"]
 
-export default async function Market({
+export default async function NewMarket({
   params: { locale },
 }: {
   params: { locale: string }
