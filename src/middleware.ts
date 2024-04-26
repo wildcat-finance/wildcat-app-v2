@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
+import { i18nRouter } from "next-i18n-router"
 import { State, deserialize } from "wagmi"
 
 import { getSignedServiceAgreement } from "@/app/api/sla/[address]/services"
 import { ROUTES } from "@/routes"
+
+import i18nConfig from "../i18nConfig"
 
 export async function middleware(request: NextRequest) {
   const wagmiStoreCookie = request.cookies.get("wagmi.store")
@@ -41,7 +44,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  return
+  return i18nRouter(request, i18nConfig)
 }
 
 export const config = {
