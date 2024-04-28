@@ -13235,10 +13235,10 @@ neo-async@^2.5.0, neo-async@^2.6.2:
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
-next-i18n-router@^5.4.0:
-  version "5.4.0"
-  resolved "https://registry.yarnpkg.com/next-i18n-router/-/next-i18n-router-5.4.0.tgz#53c782508d3048128741840fbc99204a8d674a30"
-  integrity sha512-B8RPDNw74YpHIjsKI+8rc6JKXSAibmRlzeJ77NcYuUCs+geLWvaLMXRc2DasEwB5b/NyF2IC3aVz1RCA6nrj4w==
+next-i18n-router@^5.4.2:
+  version "5.4.2"
+  resolved "https://registry.yarnpkg.com/next-i18n-router/-/next-i18n-router-5.4.2.tgz#c3e21fd9cf9d940c858bd9a1d14ac99810c2eb26"
+  integrity sha512-ixLQaA4TlQ7e107vZa0pxC3mxVxQ6wDq79V6DFj8L1S/yk8+RSnHDXKeEVgsXjkruZ4nINIkV8kgabHNXRFpBQ==
   dependencies:
     "@formatjs/intl-localematcher" "^0.5.2"
     negotiator "^0.6.3"
