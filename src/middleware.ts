@@ -3,7 +3,7 @@ import { i18nRouter } from "next-i18n-router"
 import { State, deserialize } from "wagmi"
 
 import { getSignedServiceAgreement } from "@/app/api/sla/[address]/services"
-import { ROUTES } from "@/routes"
+import { shouldRedirectSA } from "@/providers/AuthProvider/utils/shouldRedirectSA"
 
 import i18nConfig from "../i18nConfig"
 
@@ -28,19 +28,15 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Do not show agreement page if Wallet connected & signed SA
-  // or if Wallet is not connected
-  const isAgreementPath = request.nextUrl.pathname === ROUTES.agreement
-  if (isAgreementPath && (isSigned || !connectedAddress)) {
-    const url = request.nextUrl.clone()
-    url.pathname = "/"
-    return NextResponse.redirect(url)
-  }
+  const redirectionSAResult = shouldRedirectSA(
+    connectedAddress,
+    request.nextUrl.pathname,
+    isSigned,
+  )
 
-  // Redirect to agreement page if wallet connected but not signed SA
-  if (!isAgreementPath && connectedAddress && !isSigned) {
+  if (redirectionSAResult) {
     const url = request.nextUrl.clone()
-    url.pathname = ROUTES.agreement
+    url.pathname = redirectionSAResult
     return NextResponse.redirect(url)
   }
 
