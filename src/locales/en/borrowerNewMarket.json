@@ -1,0 +1,61 @@
+{
+  "sidebar": {
+    "backButton": "To Markets",
+    "description": "Market Description",
+    "legalInfo": "Legal Info",
+    "confirmation": "Confirmation"
+  },
+  "page": {
+    "header": "Create New market",
+    "form": {
+      "titles": {
+        "Definition": "Definition",
+        "amountDuties": "Amount and Duties",
+        "graceWithdrawals": "Grace and Withdrawals"
+      },
+      "fields": {
+        "marketName": "Market Name",
+        "marketNamePlaceholder": "Use more than 1 character, e.g. blsm",
+
+        "MLA": "Master Loan Agreement",
+        "KYC": "KYC Preferences",
+        "type": "Select market type",
+        "dropdownPlaceholder": "Please select",
+
+        "asset": "Underlying asset",
+        "assetPlaceholder": "Search name or paste address",
+
+        "tokenName": "Market token name",
+        "tokenNamePlaceholder": "Use more than 1 character, e.g. Blossom",
+        "tokenNameChip": "Asset Name",
+
+        "tokenSymbol": "Market token symbol",
+        "tokenSymbolPlaceholder": "Use more than 1 character, e.g. BLSM",
+        "tokenSymbolChip": "Asset Symbol",
+
+        "maxCapacity": "Max. Borrowing Capacity",
+        "maxCapacityPlaceholder": "under 1000",
+        "maxCapacityChip": "Token Symbol",
+
+        "baseAPR": "Base APR",
+        "APRPlaceholder": "10-20",
+
+        "penaltyAPR": "Penalty APR",
+        "penaltyAPRPlaceholder": "10-20",
+
+        "ratio": "Reserve Ratio",
+        "ratioPlaceholder": "10-20",
+
+        "gracePeriod": "Grace Period",
+        "gracePeriodPlaceholder": "10-20",
+
+        "withdrawalCycle": "Withdrawal cycle length",
+        "withdrawalCyclePlaceholder": "10-20"
+      },
+      "buttons": {
+        "next": "Next",
+        "back": "Back"
+      }
+    }
+  }
+}

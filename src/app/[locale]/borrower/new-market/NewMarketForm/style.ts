@@ -1,7 +1,5 @@
 import { COLORS } from "@/theme/colors"
 
-export const newMarketContainer = { padding: "52px 366px 0 101px" }
-
 export const DividerStyle = { margin: "36px 0" }
 
 export const InputGroupContainer = {
@@ -17,11 +15,11 @@ export const ButtonsContainer = {
   marginTop: "42px",
 }
 
-export const backButton = { width: "140px", justifyContent: "flex-start" }
+export const BackButton = { justifyContent: "flex-start" }
 
-export const backButtonArrow = {
+export const BackButtonArrow = {
   marginRight: "4px",
   "& path": { fill: `${COLORS.bunker}` },
 }
 
-export const nextButton = { width: "140px" }
+export const NextButton = { width: "140px" }

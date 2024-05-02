@@ -19,7 +19,7 @@ export const NewMarketSidebar = () => (
         <SvgIcon fontSize="small" sx={BackButtonIcon}>
           <BackArrow />
         </SvgIcon>
-        Back
+        To Markets
       </Button>
     </Link>
 

@@ -391,7 +391,6 @@ export const theme = createTheme({
       },
       styleOverrides: {
         root: ({ ownerState }) => ({
-
           ...(ownerState.disabled && {
             "& .MuiTypography-root": {
               color: COLORS.greySuit,
@@ -417,7 +416,7 @@ export const theme = createTheme({
                 backgroundColor: "transparent",
                 borderRadius: 12,
                 border: `1px solid ${COLORS.whiteLilac}`,
-                paddingRight: "16px",
+                paddingRight: "10px",
                 transition: "border 0.2s",
 
                 "&:hover": {
@@ -449,7 +448,7 @@ export const theme = createTheme({
               },
 
               "& .MuiInputBase-input": {
-                padding: "24px 16px 8px",
+                padding: "24px 10px 8px 16px",
               },
 
               "& .MuiFormLabel-root": {
@@ -652,7 +651,7 @@ export const theme = createTheme({
     MuiInputAdornment: {
       styleOverrides: {
         root: {
-          color: COLORS.blackRock,
+          color: COLORS.santasGrey,
           margin: "0px !important",
           height: "20px",
 
@@ -695,6 +694,8 @@ export const theme = createTheme({
         root: ({ ownerState }) => ({
           ...(ownerState.variant === "filled" &&
             ownerState.size === "medium" && {
+              fontFamily: "inherit",
+
               "&.MuiFilledInput-underline": {
                 "&::before": {
                   borderBottom: "none !important",
@@ -740,6 +741,7 @@ export const theme = createTheme({
               },
 
               "& .MuiSelect-select": {
+                fontFamily: "inherit",
                 fontSize: 12,
                 fontWeight: 500,
                 lineHeight: "20px",
@@ -819,7 +821,6 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           minWidth: "fit-content !important",
-          width: "260px",
           boxSizing: "border-box",
           border: `1px solid ${COLORS.athensGrey}`,
           padding: 8,
@@ -835,6 +836,7 @@ export const theme = createTheme({
       },
       styleOverrides: {
         root: {
+          fontFamily: "inherit",
           padding: "6px 12px",
           fontSize: "12px",
           lineHeight: "20px",

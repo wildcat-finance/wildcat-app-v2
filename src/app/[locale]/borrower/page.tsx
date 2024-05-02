@@ -15,7 +15,7 @@ export default function Borrower() {
   const bannerDisplayConfig = useBorrowerInvitationRedirect()
 
   return (
-    <Box>
+    <Box padding="0 16px">
       <Box sx={ContentContainer}>
         <Typography variant="title2">{t("header")}</Typography>
 
