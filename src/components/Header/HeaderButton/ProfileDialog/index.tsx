@@ -22,7 +22,7 @@ import {
   WrongNetworkContainer,
 } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { ProfileDialogProps } from "@/components/Header/HeaderButton/ProfileDialog/type"
-import { TargetNetwork } from "@/config/network"
+import { EtherscanBaseUrl, TargetNetwork } from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { COLORS } from "@/theme/colors"
 
@@ -98,7 +98,7 @@ export const ProfileDialog = ({
                 </IconButton>
 
                 <Link
-                  href={`https://etherscan.io/address/${address}`}
+                  href={`${EtherscanBaseUrl}/address/${address}`}
                   target="_blank"
                   style={{ display: "flex", justifyContent: "center" }}
                 >
