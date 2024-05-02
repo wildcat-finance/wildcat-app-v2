@@ -2,6 +2,6 @@ import { ReactNode } from "react"
 
 export type ExtendedSelectProps = {
   label: string
-  children: ReactNode
+  children?: ReactNode
   small?: boolean
 }

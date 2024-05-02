@@ -5,7 +5,6 @@ import { Box } from "@mui/material"
 import initTranslations from "@/app/i18n"
 import { Sidebar } from "@/components/Sidebar"
 import TranslationsProvider from "@/components/TranslationsProvider"
-import { useGetController } from "@/hooks/useGetController"
 
 const i18nNamespaces = ["borrowerMarketList", "borrowerMarketDetails"]
 
@@ -25,9 +24,7 @@ export default async function BorrowerLayout({
       resources={resources}
     >
       <Sidebar />
-      <Box width="100%" padding="0px 16px 0px 14px">
-        {children}
-      </Box>
+      <Box width="100%">{children}</Box>
     </TranslationsProvider>
   )
 }

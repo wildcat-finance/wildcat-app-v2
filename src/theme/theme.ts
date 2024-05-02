@@ -391,7 +391,7 @@ export const theme = createTheme({
       },
       styleOverrides: {
         root: ({ ownerState }) => ({
-          fontFamily: "inherit",
+
           ...(ownerState.disabled && {
             "& .MuiTypography-root": {
               color: COLORS.greySuit,
@@ -408,6 +408,7 @@ export const theme = createTheme({
                 },
               },
               "& .MuiInputBase-root": {
+                fontFamily: "inherit",
                 fontSize: 12,
                 fontWeight: 500,
                 lineHeight: "20px",
@@ -452,6 +453,7 @@ export const theme = createTheme({
               },
 
               "& .MuiFormLabel-root": {
+                fontFamily: "inherit",
                 fontSize: 12,
                 fontWeight: 500,
                 lineHeight: "20px",
@@ -491,6 +493,7 @@ export const theme = createTheme({
               },
 
               "& .MuiInputBase-root": {
+                fontFamily: "inherit",
                 fontSize: 12,
                 fontWeight: 500,
                 lineHeight: "20px",
@@ -534,6 +537,7 @@ export const theme = createTheme({
               },
 
               "& .MuiFormLabel-root": {
+                fontFamily: "inherit",
                 fontSize: 12,
                 fontWeight: 500,
                 lineHeight: "20px",
@@ -578,6 +582,7 @@ export const theme = createTheme({
               },
 
               "& .MuiInputBase-root": {
+                fontFamily: "inherit",
                 fontSize: 12,
                 fontWeight: 500,
                 lineHeight: "20px",
@@ -617,6 +622,7 @@ export const theme = createTheme({
               },
 
               "& .MuiFormLabel-root": {
+                fontFamily: "inherit",
                 fontSize: 12,
                 fontWeight: 500,
                 lineHeight: "20px",
@@ -659,6 +665,7 @@ export const theme = createTheme({
     MuiFormLabel: {
       styleOverrides: {
         root: {
+          fontFamily: "inherit",
           fontSize: 12,
           fontWeight: 500,
           lineHeight: "20px",
