@@ -26,3 +26,12 @@ export const MenuItemButton = {
   fontWeight: "500",
   justifyContent: "flex-start",
 }
+
+export const MenuItemButtonSelected = {
+  fontSize: "14px",
+  lineHeight: "20px",
+  fontWeight: "500",
+  justifyContent: "flex-start",
+  boxShadow: "none",
+  backgroundColor: COLORS.blackRock03,
+}

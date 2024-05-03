@@ -13,6 +13,7 @@ import { ContentContainer, PageContainer } from "@/app/[locale]/layout-style"
 import Image from "@/assets/pictures/background.webp"
 import { Footer } from "@/components/Footer"
 import Header from "@/components/Header"
+import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
 import { config } from "@/lib/config"
 import { AuthProvider } from "@/providers/AuthProvider"
@@ -47,22 +48,24 @@ export default async function RootLayout({
       <body className={inter.className}>
         <WagmiQueryProviders initialState={initialState}>
           <AuthProvider>
-            <ThemeRegistry>
-              <Box
-                sx={{
-                  backgroundImage: `url(${Image.src})`,
-                  backgroundPosition: "center",
-                  backgroundRepeat: "no-repeat",
-                  backgroundSize: "100% 100%",
-                }}
-              >
-                <Header params={{ locale }} />
-                <Box sx={PageContainer}>
-                  <Box sx={ContentContainer}>{children}</Box>
-                  <Footer />
+            <StoreProvider>
+              <ThemeRegistry>
+                <Box
+                  sx={{
+                    backgroundImage: `url(${Image.src})`,
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
+                    backgroundSize: "100% 100%",
+                  }}
+                >
+                  <Header params={{ locale }} />
+                  <Box sx={PageContainer}>
+                    <Box sx={ContentContainer}>{children}</Box>
+                    <Footer />
+                  </Box>
                 </Box>
-              </Box>
-            </ThemeRegistry>
+              </ThemeRegistry>
+            </StoreProvider>
           </AuthProvider>
         </WagmiQueryProviders>
       </body>

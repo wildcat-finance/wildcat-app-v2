@@ -15,6 +15,11 @@ import SvgIcon from "@mui/material/SvgIcon"
 import { ConfirmationFormItem } from "@/app/[locale]/borrower/new-market/ConfirmationModal/ConfirmationFormItem"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
+import { useAppDispatch } from "@/store/hooks"
+import {
+  setNextStep,
+  setPreviousStep,
+} from "@/store/slices/routingSlice/routingSlice"
 
 import {
   BackArrowButton,
@@ -36,9 +41,16 @@ import {
 
 export const ConfirmationModal = () => {
   const [open, setOpen] = useState(false)
+  const dispatch = useAppDispatch()
 
-  const handleToggleModal = () => {
-    setOpen(!open)
+  const handleClickOpen = () => {
+    setOpen(true)
+    dispatch(setNextStep())
+  }
+
+  const handleClickClose = () => {
+    setOpen(false)
+    dispatch(setPreviousStep())
   }
 
   return (
@@ -47,14 +59,14 @@ export const ConfirmationModal = () => {
         size="large"
         variant="contained"
         sx={ConfirmButton}
-        onClick={handleToggleModal}
+        onClick={handleClickOpen}
       >
         Confirm
       </Button>
 
-      <Dialog open={open} onClose={handleToggleModal} sx={DialogContainer}>
+      <Dialog open={open} onClose={handleClickClose} sx={DialogContainer}>
         <Box sx={HeaderModalContainer}>
-          <IconButton onClick={handleToggleModal}>
+          <IconButton onClick={handleClickClose}>
             <SvgIcon fontSize="big" sx={BackArrowButton}>
               <BackArrow />
             </SvgIcon>
@@ -64,7 +76,7 @@ export const ConfirmationModal = () => {
             Review your new market’s details
           </Typography>
 
-          <IconButton onClick={handleToggleModal}>
+          <IconButton onClick={handleClickClose}>
             <SvgIcon fontSize="big" sx={CrossButton}>
               <Cross />
             </SvgIcon>
