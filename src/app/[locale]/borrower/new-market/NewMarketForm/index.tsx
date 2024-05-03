@@ -23,12 +23,17 @@ import {
   BackButtonArrow,
   ButtonsContainer,
   DividerStyle,
+  DropdownOption,
   InputGroupContainer,
   NextButton,
 } from "./style"
 
 export const NewMarketForm = () => (
-  <Box marginTop="28px">
+  <Box>
+    <Box marginBottom="28px">
+      <Typography variant="title2">Create New market</Typography>
+    </Box>
+
     <Typography variant="text1">Definition</Typography>
 
     <InputLabel label="Market Name" margin="16px 0 0 0">
@@ -38,10 +43,10 @@ export const NewMarketForm = () => (
     <Box sx={InputGroupContainer}>
       <InputLabel label="Master Loan Agreement">
         <ExtendedSelect label="Please Select">
-          <MenuItem value="noMLA" sx={{ maxWidth: "360px" }}>
+          <MenuItem value="noMLA" sx={DropdownOption}>
             No MLA
           </MenuItem>
-          <MenuItem value="wildcatMLA" sx={{ width: "360px" }}>
+          <MenuItem value="wildcatMLA" sx={DropdownOption}>
             Wildcat MLA template
           </MenuItem>
         </ExtendedSelect>
@@ -49,7 +54,7 @@ export const NewMarketForm = () => (
 
       <InputLabel label="KYC Preferences">
         <ExtendedSelect label="Please Select">
-          <MenuItem value="share" sx={{ width: "360px" }}>
+          <MenuItem value="share" sx={DropdownOption}>
             Share contact info for direct KYC
           </MenuItem>
         </ExtendedSelect>
@@ -57,7 +62,7 @@ export const NewMarketForm = () => (
 
       <InputLabel label="Select market type">
         <ExtendedSelect label="Please Select">
-          <MenuItem value="standard" sx={{ width: "360px" }}>
+          <MenuItem value="standard" sx={DropdownOption}>
             Standard Wildcat Market
           </MenuItem>
         </ExtendedSelect>

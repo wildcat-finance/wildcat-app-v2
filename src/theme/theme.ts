@@ -885,5 +885,22 @@ export const theme = createTheme({
         },
       },
     },
+    MuiIconButton: {
+      defaultProps: {
+        disableRipple: true,
+      },
+      styleOverrides: {
+        root: {
+          margin: 0,
+          padding: 0,
+          borderRadius: 0,
+
+          "&:hover": {
+            background: "transparent",
+            cursor: "pointer",
+          },
+        },
+      },
+    },
   },
 })

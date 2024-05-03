@@ -1,6 +1,14 @@
 import { COLORS } from "@/theme/colors"
 
-export const DividerStyle = { margin: "36px 0" }
+export const TitleContainer = {
+  marginBottom: "28px",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  rowGap: "8px",
+}
+
+export const Description = { color: COLORS.santasGrey }
 
 export const InputGroupContainer = {
   display: "grid",
@@ -23,5 +31,3 @@ export const BackButtonArrow = {
   marginRight: "4px",
   "& path": { fill: `${COLORS.bunker}` },
 }
-
-export const NextButton = { width: "140px" }
