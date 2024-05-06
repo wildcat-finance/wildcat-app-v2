@@ -1,5 +1,7 @@
 "use client"
 
+import { useState } from "react"
+
 import {
   Box,
   Button,
@@ -10,12 +12,26 @@ import {
   Typography,
 } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
+import { Token } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
+import { useDeployMarket } from "@/app/[locale]/borrower/new-market/hooks/useDeployMarket"
+import {
+  defaultMarketForm,
+  useNewMarketForm,
+} from "@/app/[locale]/borrower/new-market/hooks/useNewMarketForm"
+import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
+import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
 import { InputLabel } from "@/components/InputLabel"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
+import { useGetController } from "@/hooks/useGetController"
+import {
+  mockedKYCPreferencesOptions,
+  mockedMarketTypesOptions,
+  mockedMLATemplatesOptions,
+} from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setNextStep } from "@/store/slices/routingSlice/routingSlice"
@@ -31,11 +47,107 @@ import {
 } from "./style"
 
 export const NewMarketForm = () => {
-  const dispatch = useAppDispatch()
+  const { data: controller, isLoading: isControllerLoading } =
+    useGetController()
 
+  const { deployNewMarket, isDeploying } = useDeployMarket()
+
+  const {
+    handleSubmit,
+    getValues,
+    setValue,
+    watch,
+    register,
+    formState: { errors },
+    trigger,
+    setFocus,
+    setError,
+  } = useNewMarketForm()
+
+  const assetWatch = watch("asset")
+
+  const [tokenAsset, setTokenAsset] = useState<Token | undefined>()
+  const [selectedType, setSelectedType] =
+    useState<ExtendedSelectOptionItem | null>(mockedMarketTypesOptions[0])
+  const [selectedKYC, setSelectedKYC] =
+    useState<ExtendedSelectOptionItem | null>(mockedKYCPreferencesOptions[0])
+  const [selectedMLA, setSelectedMLA] =
+    useState<ExtendedSelectOptionItem | null>(mockedMLATemplatesOptions[0])
+
+  const handleMarketTypeSelect = (value: ExtendedSelectOptionItem | null) => {
+    setValue("marketType", value?.value || "")
+    setSelectedType(value)
+  }
+  const handleKYCSelect = (value: ExtendedSelectOptionItem | null) => {
+    setValue("kyc", value?.value || "")
+    setSelectedKYC(value)
+  }
+  const handleMLASelect = (value: ExtendedSelectOptionItem | null) => {
+    setValue("mla", value?.value || "")
+    setSelectedMLA(value)
+  }
+
+  const handleValidateForm = async () => {
+    const isValid = await trigger()
+
+    if (!isValid) {
+      const firstErrorField = Object.keys(
+        errors,
+      )[0] as keyof MarketValidationSchemaType
+
+      if (firstErrorField) setFocus(firstErrorField)
+    }
+
+    return isValid
+  }
+
+  const setTokenSelectError = (message: string) => {
+    setError("asset", {
+      type: "manual",
+      message,
+    })
+  }
+
+  const assetRegister = register("asset")
+  const marketTypeRegister = register("marketType")
+  const kycRegister = register("kyc")
+  const mlaRegister = register("mla")
+
+  const handleTokenSelect = async (value: string) => {
+    setValue("asset", value)
+    await trigger("asset")
+  }
+
+  const getNumberFieldDefaultValue = (
+    field: keyof MarketValidationSchemaType,
+  ) => defaultMarketForm[field]
+
+  const dispatch = useAppDispatch()
   const handleClickNext = () => {
     dispatch(setNextStep())
   }
+
+  const isLoading = isDeploying || isControllerLoading
+
+  // const handleDeployMarket = handleSubmit(() => {
+  //   const marketParams = getValues()
+  //
+  //   if (assetData && tokenAsset) {
+  //     deployNewMarket({
+  //       namePrefix: `${marketParams.namePrefix.trimEnd()} `,
+  //       symbolPrefix: marketParams.symbolPrefix,
+  //       annualInterestBips: Number(marketParams.annualInterestBips) * 100,
+  //       delinquencyFeeBips: Number(marketParams.delinquencyFeeBips) * 100,
+  //       reserveRatioBips: Number(marketParams.reserveRatioBips) * 100,
+  //       delinquencyGracePeriod:
+  //         Number(marketParams.delinquencyGracePeriod) * 60 * 60,
+  //       withdrawalBatchDuration:
+  //         Number(marketParams.withdrawalBatchDuration) * 60 * 60,
+  //       maxTotalSupply: Number(marketParams.maxTotalSupply.replace(/,/g, "")), // Remove commas from maxTotalSupply
+  //       assetData: tokenAsset,
+  //     })
+  //   }
+  // })
 
   return (
     <Box>

@@ -4,8 +4,6 @@ import { useEffect } from "react"
 
 import { Box } from "@mui/material"
 
-import { LegalInfoForm } from "@/app/[locale]/borrower/new-market/LegalInfoForm"
-import { NewMarketForm } from "@/app/[locale]/borrower/new-market/NewMarketForm"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   newMarketSteps,
@@ -15,6 +13,9 @@ import {
   setCurrentFlow,
   setCurrentStep,
 } from "@/store/slices/routingSlice/routingSlice"
+
+import { LegalInfoForm } from "./components/LegalInfoForm"
+import { NewMarketForm } from "./components/NewMarketForm"
 
 export default function NewMarket() {
   const dispatch = useAppDispatch()

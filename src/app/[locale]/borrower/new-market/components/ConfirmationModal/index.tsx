@@ -12,7 +12,6 @@ import {
 } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 
-import { ConfirmationFormItem } from "@/app/[locale]/borrower/new-market/ConfirmationModal/ConfirmationFormItem"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { useAppDispatch } from "@/store/hooks"
@@ -21,6 +20,7 @@ import {
   setPreviousStep,
 } from "@/store/slices/routingSlice/routingSlice"
 
+import { ConfirmationFormItem } from "./ConfirmationFormItem"
 import {
   BackArrowButton,
   ButtonContainer,

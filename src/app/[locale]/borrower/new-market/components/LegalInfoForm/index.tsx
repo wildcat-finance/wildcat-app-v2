@@ -1,7 +1,6 @@
 import { Box, Button, MenuItem, TextField, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 
-import { ConfirmationModal } from "@/app/[locale]/borrower/new-market/ConfirmationModal"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { InputLabel } from "@/components/InputLabel"
@@ -17,6 +16,7 @@ import {
   InputGroupContainer,
   TitleContainer,
 } from "./style"
+import { ConfirmationModal } from "../ConfirmationModal"
 
 export const LegalInfoForm = () => {
   const dispatch = useAppDispatch()
@@ -41,7 +41,7 @@ export const LegalInfoForm = () => {
       <Box sx={InputGroupContainer}>
         <InputLabel label="Jurisdiction">
           <ExtendedSelect label="Please Select">
-            <MenuItem value="noMLA" sx={DropdownOption}>
+            <MenuItem value="uk" sx={DropdownOption}>
               UK
             </MenuItem>
           </ExtendedSelect>
@@ -49,7 +49,7 @@ export const LegalInfoForm = () => {
 
         <InputLabel label="Legal Nature">
           <ExtendedSelect label="Please Select">
-            <MenuItem value="share" sx={DropdownOption}>
+            <MenuItem value="llc" sx={DropdownOption}>
               LLC
             </MenuItem>
           </ExtendedSelect>

@@ -441,6 +441,7 @@ export const theme = createTheme({
               },
 
               "& .MuiFormHelperText-root": {
+                fontFamily: "inherit",
                 margin: "4px 0 0",
                 "&.Mui-error": {
                   color: COLORS.wildWatermelon,
@@ -525,6 +526,7 @@ export const theme = createTheme({
               },
 
               "& .MuiFormHelperText-root": {
+                fontFamily: "inherit",
                 margin: "4px 0 0",
                 "&.Mui-error": {
                   color: COLORS.wildWatermelon,
@@ -613,6 +615,7 @@ export const theme = createTheme({
               },
 
               "& .MuiFormHelperText-root": {
+                fontFamily: "inherit",
                 margin: "4px 0 0",
               },
 
@@ -734,6 +737,7 @@ export const theme = createTheme({
                 },
               },
               "&.MuiFormHelperText-root": {
+                fontFamily: "inherit",
                 margin: "4px 0 0",
                 "&.Mui-error": {
                   color: COLORS.wildWatermelon,
@@ -790,6 +794,7 @@ export const theme = createTheme({
                 },
               },
               "&.MuiFormHelperText-root": {
+                fontFamily: "inherit",
                 margin: "4px 0 0",
                 "&.Mui-error": {
                   color: COLORS.wildWatermelon,
