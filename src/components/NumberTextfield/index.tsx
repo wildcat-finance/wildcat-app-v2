@@ -7,6 +7,7 @@ type NumberTextFieldProps = NumericFormatProps & {
   endAdornment?: ReactNode
   label?: ReactNode
   error?: boolean
+  helperText?: string
 }
 
 export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
@@ -18,6 +19,7 @@ export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
       endAdornment,
       label,
       error,
+      helperText,
       decimalScale = 2,
     } = props
 
@@ -27,6 +29,7 @@ export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
         {...{
           label,
           error,
+          helperText,
           InputProps: {
             ...{
               endAdornment: (

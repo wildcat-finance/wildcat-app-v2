@@ -7,14 +7,14 @@ export const mockedMarketTypes = [
   },
 ]
 
-export const mockedKYCPreferences = [
+const mockedKYCPreferences = [
   {
     label: "Share contact info for direct KYC",
     value: "share",
   },
 ]
 
-export const mockedMLATemplates = [
+const mockedMLATemplates = [
   {
     label: "No MLA",
     value: "noMLA",
@@ -22,6 +22,20 @@ export const mockedMLATemplates = [
   {
     label: "Wildcat MLA template",
     value: "wildcatMLA",
+  },
+]
+
+const mockedJurisdictions = [
+  {
+    label: "UK",
+    value: "uk",
+  },
+]
+
+const mockedNatures = [
+  {
+    label: "LLC",
+    value: "llc",
   },
 ]
 
@@ -41,6 +55,20 @@ export const mockedKYCPreferencesOptions: ExtendedSelectOptionItem[] =
 
 export const mockedMLATemplatesOptions: ExtendedSelectOptionItem[] =
   mockedMLATemplates.map((marketType) => ({
+    id: marketType.value,
+    label: marketType.label,
+    value: marketType.value,
+  }))
+
+export const mockedJurisdictionsOptions: ExtendedSelectOptionItem[] =
+  mockedJurisdictions.map((marketType) => ({
+    id: marketType.value,
+    label: marketType.label,
+    value: marketType.value,
+  }))
+
+export const mockedNaturesOptions: ExtendedSelectOptionItem[] =
+  mockedNatures.map((marketType) => ({
     id: marketType.value,
     label: marketType.label,
     value: marketType.value,

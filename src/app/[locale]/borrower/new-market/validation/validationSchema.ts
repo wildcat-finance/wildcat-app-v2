@@ -32,7 +32,7 @@ export const infoValidationSchema = z.object({
   jurisdiction: z.string().min(1),
   legalNature: z.string().min(1),
   address: z.string().min(1),
-  email: z.string().min(1),
+  email: z.string().email(),
 })
 
 export type MarketValidationSchemaType = z.infer<typeof marketValidationSchema>

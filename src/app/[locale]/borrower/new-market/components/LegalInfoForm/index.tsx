@@ -1,9 +1,10 @@
-import { Box, Button, MenuItem, TextField, Typography } from "@mui/material"
+import { Box, Button, TextField, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { InputLabel } from "@/components/InputLabel"
+import { mockedJurisdictionsOptions, mockedNaturesOptions } from "@/mocks/mocks"
 import { useAppDispatch } from "@/store/hooks"
 import { setPreviousStep } from "@/store/slices/routingSlice/routingSlice"
 
@@ -40,19 +41,19 @@ export const LegalInfoForm = () => {
 
       <Box sx={InputGroupContainer}>
         <InputLabel label="Jurisdiction">
-          <ExtendedSelect label="Please Select">
-            <MenuItem value="uk" sx={DropdownOption}>
-              UK
-            </MenuItem>
-          </ExtendedSelect>
+          <ExtendedSelect
+            label="Please Select"
+            options={mockedJurisdictionsOptions}
+            optionSX={DropdownOption}
+          />
         </InputLabel>
 
         <InputLabel label="Legal Nature">
-          <ExtendedSelect label="Please Select">
-            <MenuItem value="llc" sx={DropdownOption}>
-              LLC
-            </MenuItem>
-          </ExtendedSelect>
+          <ExtendedSelect
+            label="Please Select"
+            options={mockedNaturesOptions}
+            optionSX={DropdownOption}
+          />
         </InputLabel>
 
         <InputLabel label="Address">

@@ -1,4 +1,4 @@
-import { ReactNode } from "react"
+import { SelectProps, SxProps, Theme } from "@mui/material"
 
 export type ExtendedSelectOptionItem<T = string> = {
   value: T
@@ -6,8 +6,9 @@ export type ExtendedSelectOptionItem<T = string> = {
   label: string
 }
 
-export type ExtendedSelectProps = {
-  label: string
-  children?: ReactNode
+export type ExtendedSelectProps = Omit<SelectProps, "variant"> & {
+  options: ExtendedSelectOptionItem[]
   small?: boolean
+  selectSX?: SxProps<Theme>
+  optionSX?: SxProps<Theme>
 }
