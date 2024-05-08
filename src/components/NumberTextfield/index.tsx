@@ -3,11 +3,11 @@ import { forwardRef, ReactNode } from "react"
 import { InputAdornment, TextField, TextFieldProps } from "@mui/material"
 import { NumericFormat, NumericFormatProps } from "react-number-format"
 
-type NumberInputProps = NumericFormatProps & {
+type NumberTextfieldProps = NumericFormatProps & {
   endAdornment?: ReactNode
 }
 
-export const NumberInput = forwardRef<TextFieldProps, NumberInputProps>(
+export const NumberTextfield = forwardRef<TextFieldProps, NumberTextfieldProps>(
   (props, ref) => {
     const {
       onChange,
