@@ -25,6 +25,7 @@ import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
 import { InputLabel } from "@/components/InputLabel"
+import { NumberInput } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { useGetController } from "@/hooks/useGetController"
 import {
@@ -226,15 +227,10 @@ export const NewMarketForm = () => {
 
       <Box sx={InputGroupContainer}>
         <InputLabel label="Max. Borrowing Capacity">
-          <TextField
-            label="under 1000"
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <TextfieldChip text="Token Symbol" />
-                </InputAdornment>
-              ),
-            }}
+          <NumberInput
+            {...register("maxTotalSupply")}
+            placeholder="under 1000"
+            endAdornment={<TextfieldChip text="Token Symbol" />}
           />
         </InputLabel>
 

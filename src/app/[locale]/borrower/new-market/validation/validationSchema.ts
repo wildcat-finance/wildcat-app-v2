@@ -27,4 +27,14 @@ export const marketValidationSchema = z.object({
   withdrawalBatchDuration: z.coerce.number(),
 })
 
+export const infoValidationSchema = z.object({
+  legalName: z.string().min(1),
+  jurisdiction: z.string().min(1),
+  legalNature: z.string().min(1),
+  address: z.string().min(1),
+  email: z.string().min(1),
+})
+
 export type MarketValidationSchemaType = z.infer<typeof marketValidationSchema>
+
+export type InfoValidationSchemaType = z.infer<typeof marketValidationSchema>

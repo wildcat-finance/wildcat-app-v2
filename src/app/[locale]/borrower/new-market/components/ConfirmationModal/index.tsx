@@ -12,7 +12,6 @@ import {
 } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 
-import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { useAppDispatch } from "@/store/hooks"
 import {
@@ -22,7 +21,6 @@ import {
 
 import { ConfirmationFormItem } from "./ConfirmationFormItem"
 import {
-  BackArrowButton,
   ButtonContainer,
   ButtonStyle,
   ConfirmButton,
@@ -66,11 +64,7 @@ export const ConfirmationModal = () => {
 
       <Dialog open={open} onClose={handleClickClose} sx={DialogContainer}>
         <Box sx={HeaderModalContainer}>
-          <IconButton onClick={handleClickClose}>
-            <SvgIcon fontSize="big" sx={BackArrowButton}>
-              <BackArrow />
-            </SvgIcon>
-          </IconButton>
+          <Box width="20px" height="20px" />
 
           <Typography variant="title3">
             Review your new market’s details

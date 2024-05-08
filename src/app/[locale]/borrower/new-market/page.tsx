@@ -58,7 +58,7 @@ export default function NewMarket() {
     default: {
       return (
         <Box padding="38px 366px 52px 101px">
-          <LegalInfoForm />
+          <NewMarketForm />
         </Box>
       )
     }

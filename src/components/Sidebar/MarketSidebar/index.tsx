@@ -26,7 +26,7 @@ export const MarketSidebar = () => {
           sx={{
             color: COLORS.greySuit,
             justifyContent: "flex-start",
-            marginBottom: "14px",
+            marginBottom: "12px",
           }}
         >
           <SvgIcon

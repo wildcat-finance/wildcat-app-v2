@@ -12,7 +12,7 @@ export const ContentContainer = {
 export const BackButton = {
   color: COLORS.greySuit,
   justifyContent: "flex-start",
-  marginBottom: "14px",
+  marginBottom: "12px",
 }
 
 export const BackButtonIcon = {
