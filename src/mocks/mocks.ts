@@ -1,5 +1,20 @@
 import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
 
+const MOCK = [
+  {
+    label: "Item 1",
+    value: "1",
+  },
+  {
+    label: "Item 2",
+    value: "2",
+  },
+  {
+    label: "Item 3",
+    value: "3",
+  },
+]
+
 export const mockedMarketTypes = [
   {
     label: "Standard Loan",
@@ -39,6 +54,14 @@ const mockedNatures = [
   },
 ]
 
+export const mockedStories: ExtendedSelectOptionItem[] = MOCK.map(
+  (mockItem) => ({
+    id: mockItem.value,
+    label: mockItem.label,
+    value: mockItem.value,
+  }),
+)
+
 export const mockedMarketTypesOptions: ExtendedSelectOptionItem[] =
   mockedMarketTypes.map((marketType) => ({
     id: marketType.value,
@@ -47,29 +70,29 @@ export const mockedMarketTypesOptions: ExtendedSelectOptionItem[] =
   }))
 
 export const mockedKYCPreferencesOptions: ExtendedSelectOptionItem[] =
-  mockedKYCPreferences.map((marketType) => ({
-    id: marketType.value,
-    label: marketType.label,
-    value: marketType.value,
+  mockedKYCPreferences.map((kycOption) => ({
+    id: kycOption.value,
+    label: kycOption.label,
+    value: kycOption.value,
   }))
 
 export const mockedMLATemplatesOptions: ExtendedSelectOptionItem[] =
-  mockedMLATemplates.map((marketType) => ({
-    id: marketType.value,
-    label: marketType.label,
-    value: marketType.value,
+  mockedMLATemplates.map((mlaOption) => ({
+    id: mlaOption.value,
+    label: mlaOption.label,
+    value: mlaOption.value,
   }))
 
 export const mockedJurisdictionsOptions: ExtendedSelectOptionItem[] =
-  mockedJurisdictions.map((marketType) => ({
-    id: marketType.value,
-    label: marketType.label,
-    value: marketType.value,
+  mockedJurisdictions.map((jurisdictionOption) => ({
+    id: jurisdictionOption.value,
+    label: jurisdictionOption.label,
+    value: jurisdictionOption.value,
   }))
 
 export const mockedNaturesOptions: ExtendedSelectOptionItem[] =
-  mockedNatures.map((marketType) => ({
-    id: marketType.value,
-    label: marketType.label,
-    value: marketType.value,
+  mockedNatures.map((natureOption) => ({
+    id: natureOption.value,
+    label: natureOption.label,
+    value: natureOption.value,
   }))

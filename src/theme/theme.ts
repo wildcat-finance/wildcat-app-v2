@@ -442,6 +442,9 @@ export const theme = createTheme({
 
               "& .MuiFormHelperText-root": {
                 fontFamily: "inherit",
+                fontSize: "10px",
+                lineHeight: "16px",
+                fontWeight: 500,
                 margin: "4px 0 0",
                 "&.Mui-error": {
                   color: COLORS.wildWatermelon,

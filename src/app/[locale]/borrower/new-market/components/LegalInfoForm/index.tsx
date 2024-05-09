@@ -1,8 +1,17 @@
+import { useState } from "react"
+
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Box, Button, TextField, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
+import { useForm } from "react-hook-form"
 
+import {
+  infoValidationSchema,
+  InfoValidationSchemaType,
+} from "@/app/[locale]/borrower/new-market/validation/validationSchema"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
+import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
 import { InputLabel } from "@/components/InputLabel"
 import { mockedJurisdictionsOptions, mockedNaturesOptions } from "@/mocks/mocks"
 import { useAppDispatch } from "@/store/hooks"
@@ -20,6 +29,30 @@ import {
 import { ConfirmationModal } from "../ConfirmationModal"
 
 export const LegalInfoForm = () => {
+  const {
+    register,
+    setValue,
+    formState: { errors },
+  } = useForm<InfoValidationSchemaType>({
+    resolver: zodResolver(infoValidationSchema),
+    mode: "onChange",
+  })
+
+  const [jurisdiction, setJurisdiction] =
+    useState<ExtendedSelectOptionItem | null>(mockedJurisdictionsOptions[0])
+  const [nature, setNature] = useState<ExtendedSelectOptionItem | null>(
+    mockedNaturesOptions[0],
+  )
+
+  const handleJurisdictionSelect = (value: ExtendedSelectOptionItem | null) => {
+    setValue("jurisdiction", value?.value || "")
+    setJurisdiction(value)
+  }
+  const handleNatureSelect = (value: ExtendedSelectOptionItem | null) => {
+    setValue("legalNature", value?.value || "")
+    setNature(value)
+  }
+
   const dispatch = useAppDispatch()
 
   const handleClickBack = () => {
@@ -36,7 +69,12 @@ export const LegalInfoForm = () => {
       </Box>
 
       <InputLabel label="Full legal name" margin="16px 0 0 0">
-        <TextField label="Use more than 1 character" />
+        <TextField
+          label="Use more than 1 character"
+          error={Boolean(errors.legalName)}
+          helperText={errors.legalName?.message}
+          {...register("legalName")}
+        />
       </InputLabel>
 
       <Box sx={InputGroupContainer}>
@@ -57,11 +95,21 @@ export const LegalInfoForm = () => {
         </InputLabel>
 
         <InputLabel label="Address">
-          <TextField label="Enter a location" />
+          <TextField
+            label="Enter a location"
+            error={Boolean(errors.address)}
+            helperText={errors.address?.message}
+            {...register("address")}
+          />
         </InputLabel>
 
         <InputLabel label="Email">
-          <TextField label="example@domain.com" />
+          <TextField
+            label="example@domain.com"
+            error={Boolean(errors.email)}
+            helperText={errors.email?.message}
+            {...register("email")}
+          />
         </InputLabel>
       </Box>
 

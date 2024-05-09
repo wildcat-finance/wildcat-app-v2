@@ -37,4 +37,4 @@ export const infoValidationSchema = z.object({
 
 export type MarketValidationSchemaType = z.infer<typeof marketValidationSchema>
 
-export type InfoValidationSchemaType = z.infer<typeof marketValidationSchema>
+export type InfoValidationSchemaType = z.infer<typeof infoValidationSchema>
