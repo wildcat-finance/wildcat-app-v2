@@ -151,7 +151,7 @@ export const NewMarketForm = () => {
 
   return (
     <Box>
-      <Box marginBottom="28px">
+      <Box marginBottom="20px">
         <Typography variant="title2">Create New market</Typography>
       </Box>
 
@@ -234,7 +234,7 @@ export const NewMarketForm = () => {
 
       <Divider sx={DividerStyle} />
 
-      <Typography variant="title3">Amount and Duties</Typography>
+      <Typography variant="text1">Amount and Duties</Typography>
 
       <Box sx={InputGroupContainer}>
         <InputLabel label="Max. Borrowing Capacity">
@@ -250,6 +250,7 @@ export const NewMarketForm = () => {
         <InputLabel label="Base APR">
           <NumberTextField
             label="10-20"
+            max={100}
             error={Boolean(errors.annualInterestBips)}
             helperText={errors.annualInterestBips?.message}
             endAdornment={<Typography variant="text2">%</Typography>}
@@ -260,6 +261,7 @@ export const NewMarketForm = () => {
         <InputLabel label="Penalty APR">
           <NumberTextField
             label="10-20"
+            max={100}
             error={Boolean(errors.delinquencyFeeBips)}
             helperText={errors.delinquencyFeeBips?.message}
             endAdornment={<Typography variant="text2">%</Typography>}
@@ -270,6 +272,7 @@ export const NewMarketForm = () => {
         <InputLabel label="Reserve Ratio">
           <NumberTextField
             label="10-20"
+            max={100}
             error={Boolean(errors.reserveRatioBips)}
             helperText={errors.reserveRatioBips?.message}
             endAdornment={<Typography variant="text2">%</Typography>}
@@ -280,7 +283,7 @@ export const NewMarketForm = () => {
 
       <Divider sx={DividerStyle} />
 
-      <Typography variant="title3">Grace and Withdrawals</Typography>
+      <Typography variant="text1">Grace and Withdrawals</Typography>
 
       <Box sx={InputGroupContainer}>
         <InputLabel label="Grace period">

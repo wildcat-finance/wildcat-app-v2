@@ -21,6 +21,9 @@ export const BackButtonIcon = {
 }
 
 export const MenuItemButton = {
+  letterSpacing: "0.01px",
+  padding: "8px 12px",
+
   fontSize: "14px",
   lineHeight: "20px",
   fontWeight: "500",
@@ -28,7 +31,10 @@ export const MenuItemButton = {
 }
 
 export const MenuItemButtonSelected = {
+  padding: "8px 12px",
+
   fontSize: "14px",
+  letterSpacing: "0.01px",
   lineHeight: "20px",
   fontWeight: "500",
   justifyContent: "flex-start",
