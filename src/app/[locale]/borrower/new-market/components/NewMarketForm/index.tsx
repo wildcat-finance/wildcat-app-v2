@@ -7,6 +7,7 @@ import {
   Button,
   Divider,
   InputAdornment,
+  SelectChangeEvent,
   TextField,
   Typography,
 } from "@mui/material"
@@ -67,24 +68,51 @@ export const NewMarketForm = () => {
   const assetWatch = watch("asset")
 
   const [tokenAsset, setTokenAsset] = useState<Token | undefined>()
-  const [selectedType, setSelectedType] =
-    useState<ExtendedSelectOptionItem | null>(mockedMarketTypesOptions[0])
-  const [selectedKYC, setSelectedKYC] =
-    useState<ExtendedSelectOptionItem | null>(mockedKYCPreferencesOptions[0])
-  const [selectedMLA, setSelectedMLA] =
-    useState<ExtendedSelectOptionItem | null>(mockedMLATemplatesOptions[0])
+  const [selectedType, setSelectedType] = useState<
+    ExtendedSelectOptionItem | undefined
+  >()
+  const [selectedKYC, setSelectedKYC] = useState<
+    ExtendedSelectOptionItem | undefined
+  >()
+  const [selectedMLA, setSelectedMLA] = useState<
+    ExtendedSelectOptionItem | undefined
+  >()
 
-  const handleMarketTypeSelect = (value: ExtendedSelectOptionItem | null) => {
-    setValue("marketType", value?.value || "")
-    setSelectedType(value)
+  const handleMarketTypeSelect = (
+    event: SelectChangeEvent<ExtendedSelectOptionItem | null>,
+  ) => {
+    setValue("marketType", event.target.value?.toString() || "")
+    if (event.target.value) {
+      setSelectedType(
+        mockedMarketTypesOptions.find(
+          (item) => item.value === event.target.value,
+        ),
+      )
+    }
   }
-  const handleKYCSelect = (value: ExtendedSelectOptionItem | null) => {
-    setValue("kyc", value?.value || "")
-    setSelectedKYC(value)
+  const handleKYCSelect = (
+    event: SelectChangeEvent<ExtendedSelectOptionItem | null>,
+  ) => {
+    setValue("kyc", event.target.value?.toString() || "")
+    if (event.target.value) {
+      setSelectedType(
+        mockedKYCPreferencesOptions.find(
+          (item) => item.value === event.target.value,
+        ),
+      )
+    }
   }
-  const handleMLASelect = (value: ExtendedSelectOptionItem | null) => {
-    setValue("mla", value?.value || "")
-    setSelectedMLA(value)
+  const handleMLASelect = (
+    event: SelectChangeEvent<ExtendedSelectOptionItem | null>,
+  ) => {
+    setValue("mla", event.target.value?.toString() || "")
+    if (event.target.value) {
+      setSelectedType(
+        mockedMLATemplatesOptions.find(
+          (item) => item.value === event.target.value,
+        ),
+      )
+    }
   }
 
   const handleValidateForm = async () => {
@@ -170,24 +198,36 @@ export const NewMarketForm = () => {
         <InputLabel label="Master Loan Agreement">
           <ExtendedSelect
             label="Please Select"
+            value={selectedMLA}
             options={mockedMLATemplatesOptions}
             optionSX={DropdownOption}
+            ref={mlaRegister.ref}
+            onBlur={mlaRegister.onBlur}
+            onChange={handleMLASelect}
           />
         </InputLabel>
 
         <InputLabel label="KYC Preferences">
           <ExtendedSelect
             label="Please Select"
+            value={selectedKYC}
             options={mockedKYCPreferencesOptions}
             optionSX={DropdownOption}
+            ref={kycRegister.ref}
+            onBlur={kycRegister.onBlur}
+            onChange={handleKYCSelect}
           />
         </InputLabel>
 
         <InputLabel label="Select market type">
           <ExtendedSelect
             label="Please Select"
+            value={selectedMLA}
             options={mockedMarketTypesOptions}
             optionSX={DropdownOption}
+            ref={marketTypeRegister.ref}
+            onBlur={marketTypeRegister.onBlur}
+            onChange={handleMarketTypeSelect}
           />
         </InputLabel>
 

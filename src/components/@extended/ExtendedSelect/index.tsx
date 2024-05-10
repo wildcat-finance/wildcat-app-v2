@@ -1,4 +1,11 @@
-import { Box, FormControl, InputLabel, MenuItem, Select } from "@mui/material"
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Typography,
+} from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 
 import {
@@ -16,13 +23,14 @@ export const ExtendedSelect = ({
   small,
   selectSX,
   optionSX,
+  ...rest
 }: ExtendedSelectProps) => {
   switch (small) {
     case false: {
       return (
         <FormControl>
           <InputLabel>{label}</InputLabel>
-          <Select sx={selectSX}>
+          <Select sx={selectSX} {...rest}>
             {options.map((option) => (
               <MenuItem key={option.id} value={option.value} sx={optionSX}>
                 {option.label}
@@ -40,10 +48,10 @@ export const ExtendedSelect = ({
             <SvgIcon fontSize="small" sx={SearchIcon}>
               <Icon />
             </SvgIcon>
-            <Select size="small">
+            <Select size="small" sx={selectSX} {...rest}>
               {options.map((option) => (
                 <MenuItem key={option.id} value={option.value} sx={optionSX}>
-                  {option.label}
+                  <Typography variant="text4">{option.label}</Typography>
                 </MenuItem>
               ))}
             </Select>
@@ -55,7 +63,7 @@ export const ExtendedSelect = ({
       return (
         <FormControl>
           <InputLabel>{label}</InputLabel>
-          <Select sx={selectSX}>
+          <Select sx={selectSX} {...rest}>
             {options.map((option) => (
               <MenuItem key={option.id} value={option.value} sx={optionSX}>
                 {option.label}

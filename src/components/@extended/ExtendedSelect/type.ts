@@ -6,8 +6,11 @@ export type ExtendedSelectOptionItem<T = string> = {
   label: string
 }
 
-export type ExtendedSelectProps = Omit<SelectProps, "variant"> & {
-  options: ExtendedSelectOptionItem[]
+export type ExtendedSelectProps<Value = string> = Omit<
+  SelectProps<ExtendedSelectOptionItem<Value>>,
+  "variant"
+> & {
+  options: ExtendedSelectOptionItem<Value>[]
   small?: boolean
   selectSX?: SxProps<Theme>
   optionSX?: SxProps<Theme>
