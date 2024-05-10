@@ -24,6 +24,10 @@ export default function NewMarket() {
     (state) => state.routing.routes.newMarketFlow.currentStep,
   )
 
+  const hideLegalInfoStep = useAppSelector(
+    (state) => state.routing.hideInfoStep,
+  )
+
   useEffect(() => {
     dispatch(setCurrentFlow("newMarketFlow"))
     dispatch(setCurrentStep(STEPS_NAME.marketDescription))
@@ -38,8 +42,7 @@ export default function NewMarket() {
       )
     }
 
-    case newMarketSteps.legalInformation.name ||
-      newMarketSteps.confirmation.name: {
+    case newMarketSteps.legalInformation.name: {
       return (
         <Box padding="38px 366px 52px 101px">
           <LegalInfoForm />
@@ -50,7 +53,7 @@ export default function NewMarket() {
     case newMarketSteps.confirmation.name: {
       return (
         <Box padding="38px 366px 52px 101px">
-          <LegalInfoForm />
+          {hideLegalInfoStep ? <NewMarketForm /> : <LegalInfoForm />}
         </Box>
       )
     }

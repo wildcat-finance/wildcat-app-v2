@@ -15,6 +15,7 @@ import SvgIcon from "@mui/material/SvgIcon"
 import { Token } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
+import { ConfirmationModal } from "@/app/[locale]/borrower/new-market/components/ConfirmationModal"
 import { useDeployMarket } from "@/app/[locale]/borrower/new-market/hooks/useDeployMarket"
 import {
   defaultMarketForm,
@@ -34,8 +35,11 @@ import {
   mockedMLATemplatesOptions,
 } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
-import { useAppDispatch } from "@/store/hooks"
-import { setNextStep } from "@/store/slices/routingSlice/routingSlice"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import {
+  setHideInfoStep,
+  setNextStep,
+} from "@/store/slices/routingSlice/routingSlice"
 
 import {
   BackButton,
@@ -48,6 +52,12 @@ import {
 } from "./style"
 
 export const NewMarketForm = () => {
+  const dispatch = useAppDispatch()
+
+  const hideLegalInfoStep = useAppSelector(
+    (state) => state.routing.hideInfoStep,
+  )
+
   const { data: controller, isLoading: isControllerLoading } =
     useGetController()
 
@@ -106,6 +116,11 @@ export const NewMarketForm = () => {
     event: SelectChangeEvent<ExtendedSelectOptionItem | null>,
   ) => {
     setValue("mla", event.target.value?.toString() || "")
+    if (event.target.value === "noMLA") {
+      dispatch(setHideInfoStep(true))
+    } else {
+      dispatch(setHideInfoStep(false))
+    }
     if (event.target.value) {
       setSelectedType(
         mockedMLATemplatesOptions.find(
@@ -150,7 +165,6 @@ export const NewMarketForm = () => {
     field: keyof MarketValidationSchemaType,
   ) => defaultMarketForm[field]
 
-  const dispatch = useAppDispatch()
   const handleClickNext = () => {
     dispatch(setNextStep())
   }
@@ -357,14 +371,18 @@ export const NewMarketForm = () => {
           </Button>
         </Link>
 
-        <Button
-          size="large"
-          variant="contained"
-          sx={NextButton}
-          onClick={handleClickNext}
-        >
-          Next
-        </Button>
+        {hideLegalInfoStep ? (
+          <ConfirmationModal />
+        ) : (
+          <Button
+            size="large"
+            variant="contained"
+            sx={NextButton}
+            onClick={handleClickNext}
+          >
+            Next
+          </Button>
+        )}
       </Box>
     </Box>
   )

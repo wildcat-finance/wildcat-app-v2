@@ -2,15 +2,16 @@
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
-import { newMarketSteps } from "./flowsSteps"
+import { newMarketSteps, STEPS_NAME } from "./flowsSteps"
 import { TFlowName, TRoutingType } from "./types"
 
 export const initialState: TRoutingType = {
   currentFlow: "",
+  hideInfoStep: true,
   routes: {
     newMarketFlow: {
       currentStep: "",
-      initStep: "lastTransfers",
+      initStep: STEPS_NAME.marketDescription,
       steps: newMarketSteps,
     },
   },
@@ -42,16 +43,24 @@ const routingSlice = createSlice({
         state.routes[state.currentFlow as TFlowName].currentStep = ""
       }
     },
-    setPreviousStep: (state) => {
+    setPreviousStep: (state, action: PayloadAction<string | undefined>) => {
       const { previousStep } =
         state.routes[state.currentFlow as TFlowName].steps[
           state.routes[state.currentFlow as TFlowName].currentStep
         ]
+      if (action.payload) {
+        state.routes[state.currentFlow as TFlowName].currentStep =
+          action.payload
+        return
+      }
       if (previousStep) {
         state.routes[state.currentFlow as TFlowName].currentStep = previousStep
       } else {
         state.routes[state.currentFlow as TFlowName].currentStep = ""
       }
+    },
+    setHideInfoStep: (state, action) => {
+      state.hideInfoStep = action.payload
     },
     resetSteps: () => initialState,
   },
@@ -62,6 +71,7 @@ export const {
   setCurrentStep,
   setNextStep,
   setPreviousStep,
+  setHideInfoStep,
   resetSteps,
 } = routingSlice.actions
 

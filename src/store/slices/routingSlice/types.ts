@@ -14,6 +14,7 @@ export type TFlowName = "newMarketFlow"
 
 export type TRoutingType = {
   currentFlow: TFlowName | ""
+  hideInfoStep: boolean
   routes: {
     newMarketFlow: ScenarioSteps
   }

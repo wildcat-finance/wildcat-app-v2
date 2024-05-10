@@ -25,6 +25,10 @@ export const NewMarketSidebar = () => {
     (state) => state.routing.routes.newMarketFlow.currentStep,
   )
 
+  const hideLegalInfoStep = useAppSelector(
+    (state) => state.routing.hideInfoStep,
+  )
+
   const handleClickDescription = () => {
     dispatch(setCurrentStep(STEPS_NAME.marketDescription))
   }
@@ -60,14 +64,16 @@ export const NewMarketSidebar = () => {
         >
           Market Description
         </Button>
-        <Button
-          variant="text"
-          size="medium"
-          sx={checkButtonStyle(STEPS_NAME.legalInformation)}
-          onClick={handleClickInformation}
-        >
-          Legal Info
-        </Button>
+        {!hideLegalInfoStep && (
+          <Button
+            variant="text"
+            size="medium"
+            sx={checkButtonStyle(STEPS_NAME.legalInformation)}
+            onClick={handleClickInformation}
+          >
+            Legal Info
+          </Button>
+        )}
         <Button
           variant="text"
           size="medium"

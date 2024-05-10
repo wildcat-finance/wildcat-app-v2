@@ -13,7 +13,8 @@ import {
 import SvgIcon from "@mui/material/SvgIcon"
 
 import Cross from "@/assets/icons/cross_icon.svg"
-import { useAppDispatch } from "@/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { STEPS_NAME } from "@/store/slices/routingSlice/flowsSteps"
 import {
   setNextStep,
   setPreviousStep,
@@ -40,15 +41,24 @@ import {
 export const ConfirmationModal = () => {
   const [open, setOpen] = useState(false)
   const dispatch = useAppDispatch()
+  const hideLegalInfoStep = useAppSelector(
+    (state) => state.routing.hideInfoStep,
+  )
 
   const handleClickOpen = () => {
     setOpen(true)
-    dispatch(setNextStep())
+    dispatch(setNextStep(STEPS_NAME.confirmation))
   }
 
   const handleClickClose = () => {
     setOpen(false)
-    dispatch(setPreviousStep())
+    dispatch(
+      setPreviousStep(
+        hideLegalInfoStep
+          ? STEPS_NAME.marketDescription
+          : STEPS_NAME.legalInformation,
+      ),
+    )
   }
 
   return (
