@@ -38,7 +38,13 @@ const nextConfig = {
         permanent: true,
       },
     ]
-  }
+  },
+  // Show HIT or MISS cache for GET requests
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+  },
 };
 
 export default nextConfig;

@@ -50,6 +50,7 @@ import {
   InputGroupContainer,
   NextButton,
 } from "./style"
+import { TokenSelector } from "./UnderlyingAssetSelect"
 
 export const NewMarketForm = () => {
   const dispatch = useAppDispatch()
@@ -252,6 +253,8 @@ export const NewMarketForm = () => {
             helperText={errors.asset?.message}
           />
         </InputLabel>
+
+        <TokenSelector />
       </Box>
 
       <InputLabel label="Market token name" margin="36px 0 0 0">
