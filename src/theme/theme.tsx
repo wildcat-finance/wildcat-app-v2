@@ -1,4 +1,4 @@
-import { createTheme } from "@mui/material"
+import { Box, createTheme, MenuItem, Typography } from "@mui/material"
 
 import {
   largeContainedButton,
@@ -909,6 +909,23 @@ export const theme = createTheme({
           "&:hover": {
             background: "transparent",
             cursor: "pointer",
+          },
+        },
+      },
+    },
+    MuiAutocomplete: {
+      defaultProps: {
+        renderOption: (props, option, state, ownerState) => (
+          <MenuItem {...props}>{ownerState.getOptionLabel(option)}</MenuItem>
+        ),
+      },
+      styleOverrides: {
+        root: {
+          "& .MuiAutocomplete-popper": {
+            border: "1px solid red",
+          },
+          "& .MuiAutocomplete-inputRoot": {
+            padding: "8px 11px !important",
           },
         },
       },

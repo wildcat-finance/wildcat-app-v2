@@ -247,14 +247,8 @@ export const NewMarketForm = () => {
         </InputLabel>
 
         <InputLabel label="Underlying asset">
-          <TextField
-            label="Search name or paste address"
-            error={Boolean(errors.asset)}
-            helperText={errors.asset?.message}
-          />
+          <TokenSelector />
         </InputLabel>
-
-        <TokenSelector />
       </Box>
 
       <InputLabel label="Market token name" margin="36px 0 0 0">
