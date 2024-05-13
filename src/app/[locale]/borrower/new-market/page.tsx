@@ -36,7 +36,11 @@ export default function NewMarket() {
   switch (newMarketStep) {
     case newMarketSteps.marketDescription.name: {
       return (
-        <Box padding="38px 366px 52px 101px">
+        <Box
+          padding="38px 367px 52px 100px"
+          display="flex"
+          justifyContent="space-around"
+        >
           <NewMarketForm />
         </Box>
       )
@@ -44,7 +48,11 @@ export default function NewMarket() {
 
     case newMarketSteps.legalInformation.name: {
       return (
-        <Box padding="38px 366px 52px 101px">
+        <Box
+          padding="38px 367px 52px 100px"
+          display="flex"
+          justifyContent="space-around"
+        >
           <LegalInfoForm />
         </Box>
       )
@@ -52,7 +60,11 @@ export default function NewMarket() {
 
     case newMarketSteps.confirmation.name: {
       return (
-        <Box padding="38px 366px 52px 101px">
+        <Box
+          padding="38px 367px 52px 100px"
+          display="flex"
+          justifyContent="space-around"
+        >
           {hideLegalInfoStep ? <NewMarketForm /> : <LegalInfoForm />}
         </Box>
       )
@@ -60,7 +72,11 @@ export default function NewMarket() {
 
     default: {
       return (
-        <Box padding="38px 366px 52px 101px">
+        <Box
+          padding="38px 367px 52px 100px"
+          display="flex"
+          justifyContent="space-around"
+        >
           <NewMarketForm />
         </Box>
       )

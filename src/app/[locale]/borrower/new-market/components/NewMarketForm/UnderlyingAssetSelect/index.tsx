@@ -34,8 +34,6 @@ const MyPopper = (props: JSX.IntrinsicAttributes & PopperProps) => (
 export const TokenSelector = () => {
   const { handleChange, query, tokens, isLoading } = useTokensList()
 
-  console.log(query, "test")
-
   const tokenOptions = tokens.map(({ name }) => name)
 
   return (

@@ -60,7 +60,7 @@ export const LegalInfoForm = () => {
   }
 
   return (
-    <Box>
+    <Box maxWidth="766px" width="100%">
       <Box sx={TitleContainer}>
         <Typography variant="title2">Share your legal info with us</Typography>
         <Typography variant="text2" sx={Description}>

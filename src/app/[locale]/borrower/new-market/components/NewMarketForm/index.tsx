@@ -193,7 +193,7 @@ export const NewMarketForm = () => {
   // })
 
   return (
-    <Box>
+    <Box maxWidth="766px" width="100%">
       <Box marginBottom="20px">
         <Typography variant="title2">Create New market</Typography>
       </Box>
