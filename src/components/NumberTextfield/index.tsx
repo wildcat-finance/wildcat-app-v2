@@ -3,7 +3,10 @@ import { forwardRef, ReactNode } from "react"
 import { InputAdornment, TextField, TextFieldProps } from "@mui/material"
 import { NumericFormat, NumericFormatProps } from "react-number-format"
 
-type NumberTextFieldProps = NumericFormatProps & {
+type NumberTextFieldProps = Omit<
+  NumericFormatProps,
+  "customInput" | "size" | "color"
+> & {
   endAdornment?: ReactNode
   label?: ReactNode
   error?: boolean
@@ -21,6 +24,7 @@ export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
       error,
       helperText,
       decimalScale,
+      ...rest
     } = props
 
     return (
@@ -41,7 +45,7 @@ export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
         getInputRef={ref}
         onChange={onChange}
         decimalSeparator="."
-        // thousandSeparator=","
+        thousandSeparator=","
         allowNegative={false}
         isAllowed={(values) => {
           const { floatValue, value } = values
@@ -77,6 +81,7 @@ export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
 
           return true
         }}
+        {...rest}
       />
     )
   },

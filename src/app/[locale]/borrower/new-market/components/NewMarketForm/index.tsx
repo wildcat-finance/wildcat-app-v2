@@ -14,13 +14,11 @@ import {
 import SvgIcon from "@mui/material/SvgIcon"
 import { Token } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { UseFormReturn } from "react-hook-form"
 
 import { ConfirmationModal } from "@/app/[locale]/borrower/new-market/components/ConfirmationModal"
 import { useDeployMarket } from "@/app/[locale]/borrower/new-market/hooks/useDeployMarket"
-import {
-  defaultMarketForm,
-  useNewMarketForm,
-} from "@/app/[locale]/borrower/new-market/hooks/useNewMarketForm"
+import { defaultMarketForm } from "@/app/[locale]/borrower/new-market/hooks/useNewMarketForm"
 import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
@@ -52,7 +50,11 @@ import {
 } from "./style"
 import { TokenSelector } from "./UnderlyingAssetSelect"
 
-export const NewMarketForm = () => {
+type NewMarketFormProps = {
+  form: UseFormReturn<MarketValidationSchemaType>
+}
+
+export const NewMarketForm = ({ form }: NewMarketFormProps) => {
   const dispatch = useAppDispatch()
 
   const hideLegalInfoStep = useAppSelector(
@@ -74,7 +76,8 @@ export const NewMarketForm = () => {
     trigger,
     setFocus,
     setError,
-  } = useNewMarketForm()
+    control,
+  } = form
 
   const assetWatch = watch("asset")
 
@@ -291,6 +294,7 @@ export const NewMarketForm = () => {
         <InputLabel label="Max. Borrowing Capacity">
           <NumberTextField
             label="under 1000"
+            value={getValues("maxTotalSupply")}
             error={Boolean(errors.maxTotalSupply)}
             helperText={errors.maxTotalSupply?.message}
             endAdornment={<TextfieldChip text="Token Symbol" />}
@@ -301,6 +305,7 @@ export const NewMarketForm = () => {
         <InputLabel label="Base APR">
           <NumberTextField
             label="10-20"
+            value={getValues("annualInterestBips")}
             error={Boolean(errors.annualInterestBips)}
             helperText={errors.annualInterestBips?.message}
             endAdornment={<Typography variant="text2">%</Typography>}
@@ -311,6 +316,7 @@ export const NewMarketForm = () => {
         <InputLabel label="Penalty APR">
           <NumberTextField
             label="10-20"
+            value={getValues("delinquencyFeeBips")}
             error={Boolean(errors.delinquencyFeeBips)}
             helperText={errors.delinquencyFeeBips?.message}
             endAdornment={<Typography variant="text2">%</Typography>}
@@ -321,6 +327,7 @@ export const NewMarketForm = () => {
         <InputLabel label="Reserve Ratio">
           <NumberTextField
             label="10-20"
+            value={getValues("reserveRatioBips")}
             error={Boolean(errors.reserveRatioBips)}
             helperText={errors.reserveRatioBips?.message}
             endAdornment={<Typography variant="text2">%</Typography>}
@@ -337,6 +344,7 @@ export const NewMarketForm = () => {
         <InputLabel label="Grace period">
           <NumberTextField
             label="10-20"
+            value={getValues("delinquencyGracePeriod")}
             error={Boolean(errors.delinquencyGracePeriod)}
             helperText={errors.delinquencyGracePeriod?.message}
             endAdornment={<Typography variant="text2">hours</Typography>}
@@ -347,6 +355,7 @@ export const NewMarketForm = () => {
         <InputLabel label="Withdrawal cycle length">
           <NumberTextField
             label="10-20"
+            value={getValues("withdrawalBatchDuration")}
             error={Boolean(errors.withdrawalBatchDuration)}
             helperText={errors.withdrawalBatchDuration?.message}
             endAdornment={<Typography variant="text2">hours</Typography>}
