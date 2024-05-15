@@ -14,7 +14,7 @@ import {
 import SvgIcon from "@mui/material/SvgIcon"
 import { Token } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
-import { UseFormReturn } from "react-hook-form"
+import { useController, UseFormReturn } from "react-hook-form"
 
 import { ConfirmationModal } from "@/app/[locale]/borrower/new-market/components/ConfirmationModal"
 import { useDeployMarket } from "@/app/[locale]/borrower/new-market/hooks/useDeployMarket"
@@ -76,7 +76,6 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
     trigger,
     setFocus,
     setError,
-    control,
   } = form
 
   const assetWatch = watch("asset")
@@ -92,46 +91,21 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
     ExtendedSelectOptionItem | undefined
   >()
 
-  const handleMarketTypeSelect = (
-    event: SelectChangeEvent<ExtendedSelectOptionItem | null>,
-  ) => {
-    setValue("marketType", event.target.value?.toString() || "")
-    if (event.target.value) {
-      setSelectedType(
-        mockedMarketTypesOptions.find(
-          (item) => item.value === event.target.value,
-        ),
-      )
-    }
-  }
-  const handleKYCSelect = (
-    event: SelectChangeEvent<ExtendedSelectOptionItem | null>,
-  ) => {
-    setValue("kyc", event.target.value?.toString() || "")
-    if (event.target.value) {
-      setSelectedType(
-        mockedKYCPreferencesOptions.find(
-          (item) => item.value === event.target.value,
-        ),
-      )
-    }
-  }
-  const handleMLASelect = (
-    event: SelectChangeEvent<ExtendedSelectOptionItem | null>,
-  ) => {
+  const handleMLASelect = (event: SelectChangeEvent<string | null>) => {
     setValue("mla", event.target.value?.toString() || "")
     if (event.target.value === "noMLA") {
       dispatch(setHideInfoStep(true))
     } else {
       dispatch(setHideInfoStep(false))
     }
-    if (event.target.value) {
-      setSelectedType(
-        mockedMLATemplatesOptions.find(
-          (item) => item.value === event.target.value,
-        ),
-      )
-    }
+  }
+
+  const handleKYCSelect = (event: SelectChangeEvent<string | null>) => {
+    setValue("kyc", event.target.value?.toString() || "")
+  }
+
+  const handleMarketTypeSelect = (event: SelectChangeEvent<string | null>) => {
+    setValue("marketType", event.target.value?.toString() || "")
   }
 
   const handleValidateForm = async () => {
@@ -156,9 +130,6 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
   }
 
   const assetRegister = register("asset")
-  const marketTypeRegister = register("marketType")
-  const kycRegister = register("kyc")
-  const mlaRegister = register("mla")
 
   const handleTokenSelect = async (value: string) => {
     setValue("asset", value)
@@ -216,11 +187,13 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
         <InputLabel label="Master Loan Agreement">
           <ExtendedSelect
             label="Please Select"
-            value={selectedMLA}
+            value={
+              mockedMLATemplatesOptions.find(
+                (el) => el.value === getValues("mla"),
+              )?.value
+            }
             options={mockedMLATemplatesOptions}
             optionSX={DropdownOption}
-            ref={mlaRegister.ref}
-            onBlur={mlaRegister.onBlur}
             onChange={handleMLASelect}
           />
         </InputLabel>
@@ -228,11 +201,13 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
         <InputLabel label="KYC Preferences">
           <ExtendedSelect
             label="Please Select"
-            value={selectedKYC}
+            value={
+              mockedKYCPreferencesOptions.find(
+                (el) => el.value === getValues("kyc"),
+              )?.value
+            }
             options={mockedKYCPreferencesOptions}
             optionSX={DropdownOption}
-            ref={kycRegister.ref}
-            onBlur={kycRegister.onBlur}
             onChange={handleKYCSelect}
           />
         </InputLabel>
@@ -240,11 +215,13 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
         <InputLabel label="Select market type">
           <ExtendedSelect
             label="Please Select"
-            value={selectedMLA}
+            value={
+              mockedMarketTypesOptions.find(
+                (el) => el.value === getValues("marketType"),
+              )?.value
+            }
             options={mockedMarketTypesOptions}
             optionSX={DropdownOption}
-            ref={marketTypeRegister.ref}
-            onBlur={marketTypeRegister.onBlur}
             onChange={handleMarketTypeSelect}
           />
         </InputLabel>

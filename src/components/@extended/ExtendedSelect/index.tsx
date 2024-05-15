@@ -25,6 +25,8 @@ export const ExtendedSelect = ({
   optionSX,
   ...rest
 }: ExtendedSelectProps) => {
+  console.log(rest.value, "select value blyat")
+
   switch (small) {
     case false: {
       return (

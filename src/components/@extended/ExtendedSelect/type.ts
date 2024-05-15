@@ -7,7 +7,7 @@ export type ExtendedSelectOptionItem<T = string> = {
 }
 
 export type ExtendedSelectProps<Value = string> = Omit<
-  SelectProps<ExtendedSelectOptionItem<Value>>,
+  SelectProps<string>,
   "variant"
 > & {
   options: ExtendedSelectOptionItem<Value>[]
