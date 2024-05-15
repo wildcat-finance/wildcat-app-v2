@@ -1,8 +1,14 @@
 "use client"
 
-import { JSX, ElementType, RefAttributes } from "react"
+import { JSX } from "react"
 
-import { Autocomplete, Popper, TextField, PopperProps } from "@mui/material"
+import {
+  Autocomplete,
+  Popper,
+  TextField,
+  PopperProps,
+  MenuItem,
+} from "@mui/material"
 
 import { useTokensList } from "./hooks/useTokensList"
 
@@ -34,7 +40,7 @@ const MyPopper = (props: JSX.IntrinsicAttributes & PopperProps) => (
 export const TokenSelector = () => {
   const { handleChange, query, tokens, isLoading } = useTokensList()
 
-  const tokenOptions = tokens.map(({ name }) => name)
+  console.log(query, "query")
 
   return (
     <div>
@@ -53,8 +59,16 @@ export const TokenSelector = () => {
             label="Search name or paste address"
           />
         )}
-        options={tokenOptions}
-        getOptionLabel={(option) => `${option}`}
+        renderOption={(props, option) => (
+          <MenuItem key={option.address} {...props}>
+            {`${option.name}`}
+          </MenuItem>
+        )}
+        isOptionEqualToValue={(option, value) =>
+          option.address === value.address
+        }
+        getOptionLabel={(option) => `${option.name}`}
+        options={tokens}
         popupIcon={null}
       />
     </div>

@@ -81,15 +81,6 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
   const assetWatch = watch("asset")
 
   const [tokenAsset, setTokenAsset] = useState<Token | undefined>()
-  const [selectedType, setSelectedType] = useState<
-    ExtendedSelectOptionItem | undefined
-  >()
-  const [selectedKYC, setSelectedKYC] = useState<
-    ExtendedSelectOptionItem | undefined
-  >()
-  const [selectedMLA, setSelectedMLA] = useState<
-    ExtendedSelectOptionItem | undefined
-  >()
 
   const handleMLASelect = (event: SelectChangeEvent<string | null>) => {
     setValue("mla", event.target.value?.toString() || "")

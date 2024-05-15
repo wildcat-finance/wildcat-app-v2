@@ -914,11 +914,6 @@ export const theme = createTheme({
       },
     },
     MuiAutocomplete: {
-      defaultProps: {
-        renderOption: (props, option, state, ownerState) => (
-          <MenuItem {...props}>{ownerState.getOptionLabel(option)}</MenuItem>
-        ),
-      },
       styleOverrides: {
         root: {
           "& .MuiAutocomplete-popper": {
