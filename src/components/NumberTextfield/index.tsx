@@ -20,7 +20,7 @@ export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
       label,
       error,
       helperText,
-      decimalScale = 2,
+      decimalScale,
     } = props
 
     return (
@@ -41,7 +41,7 @@ export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
         getInputRef={ref}
         onChange={onChange}
         decimalSeparator="."
-        thousandSeparator=","
+        // thousandSeparator=","
         allowNegative={false}
         isAllowed={(values) => {
           const { floatValue, value } = values

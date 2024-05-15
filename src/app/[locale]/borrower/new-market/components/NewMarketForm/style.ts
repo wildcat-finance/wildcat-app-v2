@@ -1,12 +1,11 @@
 import { COLORS } from "@/theme/colors"
 
-export const DividerStyle = { margin: "36px 0" }
+export const DividerStyle = { margin: "36px 0 32px" }
 
 export const InputGroupContainer = {
   display: "grid",
   gridTemplateColumns: "1fr 1fr",
   gap: "38px 10px",
-  marginTop: "36px",
 }
 
 export const ButtonsContainer = {

@@ -37,17 +37,9 @@ export const LegalInfoForm = () => {
     resolver: zodResolver(infoValidationSchema),
     mode: "onChange",
   })
-
-  const [jurisdiction, setJurisdiction] =
-    useState<ExtendedSelectOptionItem | null>(mockedJurisdictionsOptions[0])
   const [nature, setNature] = useState<ExtendedSelectOptionItem | null>(
     mockedNaturesOptions[0],
   )
-
-  const handleJurisdictionSelect = (value: ExtendedSelectOptionItem | null) => {
-    setValue("jurisdiction", value?.value || "")
-    setJurisdiction(value)
-  }
   const handleNatureSelect = (value: ExtendedSelectOptionItem | null) => {
     setValue("legalNature", value?.value || "")
     setNature(value)
@@ -87,10 +79,11 @@ export const LegalInfoForm = () => {
         </InputLabel>
 
         <InputLabel label="Legal Nature">
-          <ExtendedSelect
-            label="Please Select"
-            options={mockedNaturesOptions}
-            optionSX={DropdownOption}
+          <TextField
+            label="Use code of country"
+            error={Boolean(errors.jurisdiction)}
+            helperText={errors.jurisdiction?.message}
+            {...register("jurisdiction")}
           />
         </InputLabel>
 

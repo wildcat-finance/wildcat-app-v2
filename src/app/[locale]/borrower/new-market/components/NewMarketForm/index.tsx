@@ -209,7 +209,7 @@ export const NewMarketForm = () => {
         />
       </InputLabel>
 
-      <Box sx={InputGroupContainer}>
+      <Box sx={InputGroupContainer} marginTop="36px">
         <InputLabel label="Master Loan Agreement">
           <ExtendedSelect
             label="Please Select"
@@ -287,7 +287,7 @@ export const NewMarketForm = () => {
 
       <Typography variant="text1">Amount and Duties</Typography>
 
-      <Box sx={InputGroupContainer}>
+      <Box sx={InputGroupContainer} marginTop="16px">
         <InputLabel label="Max. Borrowing Capacity">
           <NumberTextField
             label="under 1000"
@@ -301,7 +301,6 @@ export const NewMarketForm = () => {
         <InputLabel label="Base APR">
           <NumberTextField
             label="10-20"
-            max={100}
             error={Boolean(errors.annualInterestBips)}
             helperText={errors.annualInterestBips?.message}
             endAdornment={<Typography variant="text2">%</Typography>}
@@ -312,7 +311,6 @@ export const NewMarketForm = () => {
         <InputLabel label="Penalty APR">
           <NumberTextField
             label="10-20"
-            max={100}
             error={Boolean(errors.delinquencyFeeBips)}
             helperText={errors.delinquencyFeeBips?.message}
             endAdornment={<Typography variant="text2">%</Typography>}
@@ -323,7 +321,6 @@ export const NewMarketForm = () => {
         <InputLabel label="Reserve Ratio">
           <NumberTextField
             label="10-20"
-            max={100}
             error={Boolean(errors.reserveRatioBips)}
             helperText={errors.reserveRatioBips?.message}
             endAdornment={<Typography variant="text2">%</Typography>}
@@ -336,7 +333,7 @@ export const NewMarketForm = () => {
 
       <Typography variant="text1">Grace and Withdrawals</Typography>
 
-      <Box sx={InputGroupContainer}>
+      <Box sx={InputGroupContainer} marginTop="16px">
         <InputLabel label="Grace period">
           <NumberTextField
             label="10-20"
