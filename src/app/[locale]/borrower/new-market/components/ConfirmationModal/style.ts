@@ -60,9 +60,13 @@ export const FooterModalContainer = {
   flexDirection: "column",
   rowGap: "16px",
   padding: "0 24px 20px 24px",
+  marginTop: "auto",
 }
 
-export const ButtonContainer = { display: "flex", columnGap: "8px" }
+export const ButtonContainer = {
+  display: "flex",
+  columnGap: "8px",
+}
 
 export const ButtonStyle = { width: "100%" }
 

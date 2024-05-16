@@ -4,6 +4,7 @@ import { useEffect } from "react"
 
 import { Box } from "@mui/material"
 
+import { ConfirmationModal } from "@/app/[locale]/borrower/new-market/components/ConfirmationModal"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   newMarketSteps,
@@ -71,9 +72,22 @@ export default function NewMarket() {
           justifyContent="space-around"
         >
           {hideLegalInfoStep ? (
-            <NewMarketForm form={newMarketForm} />
+            <>
+              <ConfirmationModal
+                open={newMarketStep === newMarketSteps.confirmation.name}
+                getMarketValues={newMarketForm.getValues}
+              />
+              <NewMarketForm form={newMarketForm} />
+            </>
           ) : (
-            <LegalInfoForm form={legalInfoForm} />
+            <>
+              <ConfirmationModal
+                open={newMarketStep === newMarketSteps.confirmation.name}
+                getMarketValues={newMarketForm.getValues}
+                getInfoValues={legalInfoForm.getValues}
+              />
+              <LegalInfoForm form={legalInfoForm} />
+            </>
           )}
         </Box>
       )

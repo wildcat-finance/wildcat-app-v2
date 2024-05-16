@@ -16,7 +16,6 @@ import { Token } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { UseFormReturn } from "react-hook-form"
 
-import { ConfirmationModal } from "@/app/[locale]/borrower/new-market/components/ConfirmationModal"
 import { useDeployMarket } from "@/app/[locale]/borrower/new-market/hooks/useDeployMarket"
 import { defaultMarketForm } from "@/app/[locale]/borrower/new-market/hooks/useNewMarketForm"
 import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
@@ -71,7 +70,7 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
     setValue,
     watch,
     register,
-    formState: { errors },
+    formState: { errors, isValid },
     trigger,
     setFocus,
     setError,
@@ -98,19 +97,19 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
     setValue("marketType", event.target.value?.toString() || "")
   }
 
-  const handleValidateForm = async () => {
-    const isValid = await trigger()
-
-    if (!isValid) {
-      const firstErrorField = Object.keys(
-        errors,
-      )[0] as keyof MarketValidationSchemaType
-
-      if (firstErrorField) setFocus(firstErrorField)
-    }
-
-    return isValid
-  }
+  // const handleValidateForm = async () => {
+  //   const isValid = await trigger()
+  //
+  //   if (!isValid) {
+  //     const firstErrorField = Object.keys(
+  //       errors,
+  //     )[0] as keyof MarketValidationSchemaType
+  //
+  //     if (firstErrorField) setFocus(firstErrorField)
+  //   }
+  //
+  //   return isValid
+  // }
 
   const setTokenSelectError = (message: string) => {
     setError("asset", {
@@ -131,7 +130,9 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
   ) => defaultMarketForm[field]
 
   const handleClickNext = () => {
-    dispatch(setNextStep())
+    dispatch(
+      setNextStep(hideLegalInfoStep ? "confirmation" : "legalInformation"),
+    )
   }
 
   const isLoading = isDeploying || isControllerLoading
@@ -341,18 +342,15 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
           </Button>
         </Link>
 
-        {hideLegalInfoStep ? (
-          <ConfirmationModal />
-        ) : (
-          <Button
-            size="large"
-            variant="contained"
-            sx={NextButton}
-            onClick={handleClickNext}
-          >
-            Next
-          </Button>
-        )}
+        <Button
+          size="large"
+          variant="contained"
+          sx={NextButton}
+          onClick={handleClickNext}
+          disabled={!isValid}
+        >
+          {hideLegalInfoStep ? "Confirm" : "Next"}
+        </Button>
       </Box>
     </Box>
   )

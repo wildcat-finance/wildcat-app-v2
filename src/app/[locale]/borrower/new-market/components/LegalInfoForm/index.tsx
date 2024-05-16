@@ -14,9 +14,13 @@ import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { InputLabel } from "@/components/InputLabel"
 import { mockedNaturesOptions } from "@/mocks/mocks"
 import { useAppDispatch } from "@/store/hooks"
-import { setPreviousStep } from "@/store/slices/routingSlice/routingSlice"
+import {
+  setNextStep,
+  setPreviousStep,
+} from "@/store/slices/routingSlice/routingSlice"
 
 import {
+  ConfirmButton,
   BackButton,
   BackButtonArrow,
   ButtonsContainer,
@@ -25,7 +29,6 @@ import {
   InputGroupContainer,
   TitleContainer,
 } from "./style"
-import { ConfirmationModal } from "../ConfirmationModal"
 
 export type LegalInfoFormProps = {
   form: UseFormReturn<InfoValidationSchemaType>
@@ -36,7 +39,7 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
     register,
     setValue,
     getValues,
-    formState: { errors },
+    formState: { errors, isValid },
   } = form
 
   const handleNatureSelect = (event: SelectChangeEvent<string | null>) => {
@@ -47,6 +50,10 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
 
   const handleClickBack = () => {
     dispatch(setPreviousStep())
+  }
+
+  const handleClickConfirm = () => {
+    dispatch(setNextStep())
   }
 
   return (
@@ -123,7 +130,15 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
           Back
         </Button>
 
-        <ConfirmationModal />
+        <Button
+          size="large"
+          variant="contained"
+          sx={ConfirmButton}
+          onClick={handleClickConfirm}
+          disabled={!isValid}
+        >
+          Confirm
+        </Button>
       </Box>
     </Box>
   )

@@ -31,3 +31,5 @@ export const BackButtonArrow = {
   marginRight: "4px",
   "& path": { fill: `${COLORS.bunker}` },
 }
+
+export const ConfirmButton = { width: "140px" }

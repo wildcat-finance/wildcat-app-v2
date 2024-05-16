@@ -8,9 +8,10 @@ export const marketValidationSchema = z.object({
   mla: z.string().min(1),
   kyc: z.string().min(1),
   marketType: z.string().min(1),
-  asset: z.string().refine((value) => utils.isAddress(value), {
-    message: "Invalid address: please ensure you have the correct token.",
-  }),
+  // asset: z.string().refine((value) => utils.isAddress(value), {
+  //   message: "Invalid address: please ensure you have the correct token.",
+  // }),
+  asset: z.string(),
   namePrefix: z
     .string()
     .min(3)
@@ -19,12 +20,12 @@ export const marketValidationSchema = z.object({
     .string()
     .min(3)
     .refine(isLetterNumber.validate, isLetterNumber.message),
-  maxTotalSupply: z.coerce.string(),
-  annualInterestBips: z.coerce.number(),
-  delinquencyFeeBips: z.coerce.number(),
-  reserveRatioBips: z.coerce.number(),
-  delinquencyGracePeriod: z.coerce.number(),
-  withdrawalBatchDuration: z.coerce.number(),
+  maxTotalSupply: z.coerce.string().min(1),
+  annualInterestBips: z.coerce.number().gt(0),
+  delinquencyFeeBips: z.coerce.number().gt(0),
+  reserveRatioBips: z.coerce.number().gt(0),
+  delinquencyGracePeriod: z.coerce.number().gt(0),
+  withdrawalBatchDuration: z.coerce.number().gt(0),
 })
 
 export const infoValidationSchema = z.object({
