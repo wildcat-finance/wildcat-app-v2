@@ -165,7 +165,7 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
 
       <Typography variant="text1">Definition</Typography>
 
-      <InputLabel label="Market Name" margin="16px 0 0 0">
+      <InputLabel label="Market Name" margin="16px 0 0 0" tooltipText="TBD">
         <TextField
           label="Use more than 1 character, e.g. blsm"
           error={Boolean(errors.marketName)}
@@ -175,7 +175,7 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
       </InputLabel>
 
       <Box sx={InputGroupContainer} marginTop="36px">
-        <InputLabel label="Master Loan Agreement">
+        <InputLabel label="Master Loan Agreement" tooltipText="TBD">
           <ExtendedSelect
             label="Please Select"
             value={
@@ -189,7 +189,7 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
           />
         </InputLabel>
 
-        <InputLabel label="KYC Preferences">
+        <InputLabel label="KYC Preferences" tooltipText="TBD">
           <ExtendedSelect
             label="Please Select"
             value={
@@ -203,7 +203,7 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
           />
         </InputLabel>
 
-        <InputLabel label="Select market type">
+        <InputLabel label="Select market type" tooltipText="TBD">
           <ExtendedSelect
             label="Please Select"
             value={
@@ -217,12 +217,16 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
           />
         </InputLabel>
 
-        <InputLabel label="Underlying asset">
+        <InputLabel label="Underlying asset" tooltipText="TBD">
           <TokenSelector />
         </InputLabel>
       </Box>
 
-      <InputLabel label="Market token name" margin="36px 0 0 0">
+      <InputLabel
+        label="Market token name"
+        margin="36px 0 0 0"
+        tooltipText="TBD"
+      >
         <TextField
           label="Use more than 1 character, e.g. Blossom"
           error={Boolean(errors.namePrefix)}
@@ -238,7 +242,11 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
         />
       </InputLabel>
 
-      <InputLabel label="Market token symbol" margin="36px 0 0 0">
+      <InputLabel
+        label="Market token symbol"
+        margin="36px 0 0 0"
+        tooltipText="TBD"
+      >
         <TextField
           label="Use more than 1 character, e.g. blsm"
           error={Boolean(errors.symbolPrefix)}
@@ -259,7 +267,7 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
       <Typography variant="text1">Amount and Duties</Typography>
 
       <Box sx={InputGroupContainer} marginTop="16px">
-        <InputLabel label="Max. Borrowing Capacity">
+        <InputLabel label="Max. Borrowing Capacity" tooltipText="TBD">
           <NumberTextField
             label="under 1000"
             value={getValues("maxTotalSupply")}
@@ -270,7 +278,7 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
           />
         </InputLabel>
 
-        <InputLabel label="Base APR">
+        <InputLabel label="Base APR" tooltipText="TBD">
           <NumberTextField
             label="10-20"
             value={getValues("annualInterestBips")}
@@ -281,7 +289,7 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
           />
         </InputLabel>
 
-        <InputLabel label="Penalty APR">
+        <InputLabel label="Penalty APR" tooltipText="TBD">
           <NumberTextField
             label="10-20"
             value={getValues("delinquencyFeeBips")}
@@ -292,7 +300,7 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
           />
         </InputLabel>
 
-        <InputLabel label="Reserve Ratio">
+        <InputLabel label="Reserve Ratio" tooltipText="TBD">
           <NumberTextField
             label="10-20"
             value={getValues("reserveRatioBips")}
@@ -309,7 +317,7 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
       <Typography variant="text1">Grace and Withdrawals</Typography>
 
       <Box sx={InputGroupContainer} marginTop="16px">
-        <InputLabel label="Grace period">
+        <InputLabel label="Grace period" tooltipText="TBD">
           <NumberTextField
             label="10-20"
             value={getValues("delinquencyGracePeriod")}
@@ -320,7 +328,7 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
           />
         </InputLabel>
 
-        <InputLabel label="Withdrawal cycle length">
+        <InputLabel label="Withdrawal cycle length" tooltipText="TBD">
           <NumberTextField
             label="10-20"
             value={getValues("withdrawalBatchDuration")}

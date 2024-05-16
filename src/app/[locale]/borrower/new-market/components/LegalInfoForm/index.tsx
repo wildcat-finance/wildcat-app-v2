@@ -65,7 +65,7 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
         </Typography>
       </Box>
 
-      <InputLabel label="Full legal name" margin="16px 0 0 0">
+      <InputLabel label="Full legal name" margin="16px 0 0 0" tooltipText="TBD">
         <TextField
           label="Use more than 1 character"
           error={Boolean(errors.legalName)}
@@ -75,7 +75,7 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
       </InputLabel>
 
       <Box sx={InputGroupContainer}>
-        <InputLabel label="Jurisdiction">
+        <InputLabel label="Jurisdiction" tooltipText="TBD">
           <TextField
             label="Use code of country"
             error={Boolean(errors.jurisdiction)}
@@ -84,7 +84,7 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
           />
         </InputLabel>
 
-        <InputLabel label="Legal Nature">
+        <InputLabel label="Legal Nature" tooltipText="TBD">
           <ExtendedSelect
             label="Please Select"
             value={
@@ -98,7 +98,7 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
           />
         </InputLabel>
 
-        <InputLabel label="Address">
+        <InputLabel label="Address" tooltipText="TBD">
           <TextField
             label="Enter a location"
             error={Boolean(errors.address)}
@@ -107,7 +107,7 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
           />
         </InputLabel>
 
-        <InputLabel label="Email">
+        <InputLabel label="Email" tooltipText="TBD">
           <TextField
             label="example@domain.com"
             error={Boolean(errors.email)}

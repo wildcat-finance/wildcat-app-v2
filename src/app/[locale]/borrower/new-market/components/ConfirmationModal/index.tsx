@@ -11,6 +11,7 @@ import {
 import SvgIcon from "@mui/material/SvgIcon"
 
 import Cross from "@/assets/icons/cross_icon.svg"
+import { mockedMarketTypesOptions } from "@/mocks/mocks"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { STEPS_NAME } from "@/store/slices/routingSlice/flowsSteps"
 import { setPreviousStep } from "@/store/slices/routingSlice/routingSlice"
@@ -54,6 +55,10 @@ export const ConfirmationModal = ({
     )
   }
 
+  const marketTypeValue = mockedMarketTypesOptions.find(
+    (el) => el.value === getMarketValues("marketType"),
+  )?.label
+
   return (
     <Dialog open={open} onClose={handleClickClose} sx={DialogContainer}>
       <Box sx={HeaderModalContainer}>
@@ -84,7 +89,7 @@ export const ConfirmationModal = ({
           />
           <ConfirmationFormItem
             label="Market Type"
-            value={getMarketValues("marketType")}
+            value={marketTypeValue || ""}
           />
           <ConfirmationFormItem
             label="Market token name"

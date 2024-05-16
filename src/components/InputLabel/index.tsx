@@ -9,12 +9,17 @@ import {
 } from "@/components/InputLabel/style"
 import { InputLabelProps } from "@/components/InputLabel/type"
 
-export const InputLabel = ({ label, margin, children }: InputLabelProps) => (
+export const InputLabel = ({
+  label,
+  margin,
+  tooltipText,
+  children,
+}: InputLabelProps) => (
   <Box margin={margin} sx={InputContainer}>
     <Box sx={InputLabelContainer}>
       <Typography variant="text3">{label}</Typography>
       <Tooltip
-        title="Description here"
+        title={tooltipText}
         placement="right"
         // TransitionProps={{ timeout: 400 }}
       >

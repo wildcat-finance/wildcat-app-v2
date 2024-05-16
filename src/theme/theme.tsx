@@ -1,4 +1,4 @@
-import { createTheme, MenuItem } from "@mui/material"
+import { createTheme } from "@mui/material"
 
 import {
   largeContainedButton,
@@ -196,6 +196,7 @@ export const theme = createTheme({
           fontFamily: "inherit",
           boxShadow: "none",
           textTransform: "none",
+          letterSpacing: 0,
 
           ...(ownerState.variant === "contained" &&
             ownerState.size === "small" &&
@@ -922,6 +923,13 @@ export const theme = createTheme({
           "& .MuiAutocomplete-inputRoot": {
             padding: "8px 11px !important",
           },
+        },
+      },
+    },
+    MuiTypography: {
+      styleOverrides: {
+        root: {
+          letterSpacing: 0,
         },
       },
     },
