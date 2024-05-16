@@ -4,7 +4,7 @@ import { COLORS } from "@/theme/colors"
 
 export type ConfirmationFormItemProps = {
   label: string
-  value: string
+  value: string | number
 }
 
 export const ConfirmationFormItem = ({

@@ -14,7 +14,7 @@ import {
 import SvgIcon from "@mui/material/SvgIcon"
 import { Token } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
-import { useController, UseFormReturn } from "react-hook-form"
+import { UseFormReturn } from "react-hook-form"
 
 import { ConfirmationModal } from "@/app/[locale]/borrower/new-market/components/ConfirmationModal"
 import { useDeployMarket } from "@/app/[locale]/borrower/new-market/hooks/useDeployMarket"
@@ -22,7 +22,6 @@ import { defaultMarketForm } from "@/app/[locale]/borrower/new-market/hooks/useN
 import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
-import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
 import { InputLabel } from "@/components/InputLabel"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"

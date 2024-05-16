@@ -27,6 +27,10 @@ const mockedKYCPreferences = [
     label: "Share contact info for direct KYC",
     value: "share",
   },
+  {
+    label: "Not share",
+    value: "notShare",
+  },
 ]
 
 const mockedMLATemplates = [
@@ -40,17 +44,18 @@ const mockedMLATemplates = [
   },
 ]
 
-const mockedJurisdictions = [
-  {
-    label: "UK",
-    value: "uk",
-  },
-]
-
 const mockedNatures = [
   {
-    label: "LLC",
+    label: "Private Individual",
+    value: "pi",
+  },
+  {
+    label: "Limited Liability Company",
     value: "llc",
+  },
+  {
+    label: "Decentralised Autonomous Organisation",
+    value: "dao",
   },
 ]
 
@@ -81,13 +86,6 @@ export const mockedMLATemplatesOptions: ExtendedSelectOptionItem[] =
     id: mlaOption.value,
     label: mlaOption.label,
     value: mlaOption.value,
-  }))
-
-export const mockedJurisdictionsOptions: ExtendedSelectOptionItem[] =
-  mockedJurisdictions.map((jurisdictionOption) => ({
-    id: jurisdictionOption.value,
-    label: jurisdictionOption.label,
-    value: jurisdictionOption.value,
   }))
 
 export const mockedNaturesOptions: ExtendedSelectOptionItem[] =

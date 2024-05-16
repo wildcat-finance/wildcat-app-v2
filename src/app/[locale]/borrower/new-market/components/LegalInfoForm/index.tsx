@@ -1,19 +1,18 @@
-import { useState } from "react"
-
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Box, Button, TextField, Typography } from "@mui/material"
-import SvgIcon from "@mui/material/SvgIcon"
-import { useForm } from "react-hook-form"
-
 import {
-  infoValidationSchema,
-  InfoValidationSchemaType,
-} from "@/app/[locale]/borrower/new-market/validation/validationSchema"
+  Box,
+  Button,
+  SelectChangeEvent,
+  TextField,
+  Typography,
+} from "@mui/material"
+import SvgIcon from "@mui/material/SvgIcon"
+import { UseFormReturn } from "react-hook-form"
+
+import { InfoValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
-import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
 import { InputLabel } from "@/components/InputLabel"
-import { mockedJurisdictionsOptions, mockedNaturesOptions } from "@/mocks/mocks"
+import { mockedNaturesOptions } from "@/mocks/mocks"
 import { useAppDispatch } from "@/store/hooks"
 import { setPreviousStep } from "@/store/slices/routingSlice/routingSlice"
 
@@ -28,21 +27,20 @@ import {
 } from "./style"
 import { ConfirmationModal } from "../ConfirmationModal"
 
-export const LegalInfoForm = () => {
+export type LegalInfoFormProps = {
+  form: UseFormReturn<InfoValidationSchemaType>
+}
+
+export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
   const {
     register,
     setValue,
+    getValues,
     formState: { errors },
-  } = useForm<InfoValidationSchemaType>({
-    resolver: zodResolver(infoValidationSchema),
-    mode: "onChange",
-  })
-  const [nature, setNature] = useState<ExtendedSelectOptionItem | null>(
-    mockedNaturesOptions[0],
-  )
-  const handleNatureSelect = (value: ExtendedSelectOptionItem | null) => {
-    setValue("legalNature", value?.value || "")
-    setNature(value)
+  } = form
+
+  const handleNatureSelect = (event: SelectChangeEvent<string | null>) => {
+    setValue("legalNature", event.target.value?.toString() || "")
   }
 
   const dispatch = useAppDispatch()
@@ -71,19 +69,25 @@ export const LegalInfoForm = () => {
 
       <Box sx={InputGroupContainer}>
         <InputLabel label="Jurisdiction">
-          <ExtendedSelect
-            label="Please Select"
-            options={mockedJurisdictionsOptions}
-            optionSX={DropdownOption}
-          />
-        </InputLabel>
-
-        <InputLabel label="Legal Nature">
           <TextField
             label="Use code of country"
             error={Boolean(errors.jurisdiction)}
             helperText={errors.jurisdiction?.message}
             {...register("jurisdiction")}
+          />
+        </InputLabel>
+
+        <InputLabel label="Legal Nature">
+          <ExtendedSelect
+            label="Please Select"
+            value={
+              mockedNaturesOptions.find(
+                (el) => el.value === getValues("legalNature"),
+              )?.value
+            }
+            options={mockedNaturesOptions}
+            optionSX={DropdownOption}
+            onChange={handleNatureSelect}
           />
         </InputLabel>
 

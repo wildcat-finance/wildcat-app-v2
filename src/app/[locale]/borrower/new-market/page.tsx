@@ -4,7 +4,8 @@ import { useEffect } from "react"
 
 import { Box } from "@mui/material"
 
-import { useNewMarketForm } from "@/app/[locale]/borrower/new-market/hooks/useNewMarketForm"
+import { useLegalInfoForm } from "../../borrower/new-market/hooks/useLegalInfoForm"
+import { useNewMarketForm } from "../../borrower/new-market/hooks/useNewMarketForm"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   newMarketSteps,
@@ -22,6 +23,7 @@ export default function NewMarket() {
   const dispatch = useAppDispatch()
 
   const newMarketForm = useNewMarketForm()
+  const legalInfoForm = useLegalInfoForm()
 
   const newMarketStep = useAppSelector(
     (state) => state.routing.routes.newMarketFlow.currentStep,
@@ -56,7 +58,7 @@ export default function NewMarket() {
           display="flex"
           justifyContent="space-around"
         >
-          <LegalInfoForm />
+          <LegalInfoForm form={legalInfoForm} />
         </Box>
       )
     }
@@ -71,7 +73,7 @@ export default function NewMarket() {
           {hideLegalInfoStep ? (
             <NewMarketForm form={newMarketForm} />
           ) : (
-            <LegalInfoForm />
+            <LegalInfoForm form={legalInfoForm} />
           )}
         </Box>
       )

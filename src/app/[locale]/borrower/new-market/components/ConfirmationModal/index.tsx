@@ -12,6 +12,8 @@ import {
 } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 
+import { useLegalInfoForm } from "@/app/[locale]/borrower/new-market/hooks/useLegalInfoForm"
+import { useNewMarketForm } from "@/app/[locale]/borrower/new-market/hooks/useNewMarketForm"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { STEPS_NAME } from "@/store/slices/routingSlice/flowsSteps"
@@ -40,7 +42,12 @@ import {
 
 export const ConfirmationModal = () => {
   const [open, setOpen] = useState(false)
+
+  const { getValues: getMarketValues } = useNewMarketForm()
+  const { getValues: getInfoValues } = useLegalInfoForm()
+
   const dispatch = useAppDispatch()
+
   const hideLegalInfoStep = useAppSelector(
     (state) => state.routing.hideInfoStep,
   )
@@ -91,24 +98,41 @@ export const ConfirmationModal = () => {
           <Typography variant="text3">DEFINITION</Typography>
 
           <Box sx={FormModalGroupContainer}>
-            <ConfirmationFormItem label="Market Name" value="" />
-            <ConfirmationFormItem label="Underlying asset" value="" />
-            <ConfirmationFormItem label="Market Type" value="" />
-            <ConfirmationFormItem label="Market token name" value="" />
-            <ConfirmationFormItem label="Market token symbol" value="" />
-            <Box display="flex" flexDirection="column" rowGap="6px">
-              <Typography variant="text3" sx={MLATitle}>
-                Market Master Loan Agreement
-              </Typography>
-              <Button
-                variant="contained"
-                color="secondary"
-                size="small"
-                sx={MLAButton}
-              >
-                View MLA
-              </Button>
-            </Box>
+            <ConfirmationFormItem
+              label="Market Name"
+              value={getMarketValues("marketName")}
+            />
+            <ConfirmationFormItem
+              label="Underlying asset"
+              value={getMarketValues("asset")}
+            />
+            <ConfirmationFormItem
+              label="Market Type"
+              value={getMarketValues("marketType")}
+            />
+            <ConfirmationFormItem
+              label="Market token name"
+              value={getMarketValues("namePrefix")}
+            />
+            <ConfirmationFormItem
+              label="Market token symbol"
+              value={getMarketValues("symbolPrefix")}
+            />
+            {getMarketValues("mla") === "wildcatMLA" && (
+              <Box display="flex" flexDirection="column" rowGap="6px">
+                <Typography variant="text3" sx={MLATitle}>
+                  Market Master Loan Agreement
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="small"
+                  sx={MLAButton}
+                >
+                  View MLA
+                </Button>
+              </Box>
+            )}
           </Box>
 
           <Divider sx={DividerStyle} />
@@ -116,33 +140,66 @@ export const ConfirmationModal = () => {
           <Typography variant="text3">AMOUNT AND DUTIES</Typography>
 
           <Box sx={FormModalGroupContainer}>
-            <ConfirmationFormItem label="Max. Borrowing Capacity" value="" />
-            <ConfirmationFormItem label="Base APR" value="" />
-            <ConfirmationFormItem label="Penalty APR" value="" />
-            <ConfirmationFormItem label="Reserve Ratio" value="" />
+            <ConfirmationFormItem
+              label="Max. Borrowing Capacity"
+              value={getMarketValues("maxTotalSupply")}
+            />
+            <ConfirmationFormItem
+              label="Base APR"
+              value={getMarketValues("annualInterestBips")}
+            />
+            <ConfirmationFormItem
+              label="Penalty APR"
+              value={getMarketValues("delinquencyFeeBips")}
+            />
+            <ConfirmationFormItem
+              label="Reserve Ratio"
+              value={getMarketValues("reserveRatioBips")}
+            />
           </Box>
 
           <Divider sx={DividerStyle} />
 
           <Typography variant="text3">GRACE AND WITHDRAWALS</Typography>
 
-          <Box sx={FormModalGroupContainer}>
-            <ConfirmationFormItem label="Grace period" value="" />
-            <ConfirmationFormItem label="Withdrawal cycle length" value="" />
-          </Box>
-
-          <Divider sx={DividerStyle} />
-
-          <Typography variant="text3">BORROWER INFO</Typography>
-
-          <Box sx={FormModalGroupContainer} marginBottom="30px">
+          <Box
+            sx={FormModalGroupContainer}
+            marginBottom={hideLegalInfoStep ? "30px" : ""}
+          >
             <ConfirmationFormItem
-              label="Legal Name and Jurisdiction"
-              value=""
+              label="Grace period"
+              value={getMarketValues("delinquencyGracePeriod")}
             />
-            <ConfirmationFormItem label="Address" value="" />
-            <ConfirmationFormItem label="Email" value="" />
+            <ConfirmationFormItem
+              label="Withdrawal cycle length"
+              value={getMarketValues("withdrawalBatchDuration")}
+            />
           </Box>
+
+          {!hideLegalInfoStep && (
+            <>
+              <Divider sx={DividerStyle} />
+
+              <Typography variant="text3">BORROWER INFO</Typography>
+
+              <Box sx={FormModalGroupContainer} marginBottom="30px">
+                <ConfirmationFormItem
+                  label="Legal Name and Jurisdiction"
+                  value={`${getInfoValues("legalName")} / ${getInfoValues(
+                    "jurisdiction",
+                  )}`}
+                />
+                <ConfirmationFormItem
+                  label="Address"
+                  value={getInfoValues("address")}
+                />
+                <ConfirmationFormItem
+                  label="Email"
+                  value={getInfoValues("email")}
+                />
+              </Box>
+            </>
+          )}
         </Box>
 
         <Box sx={Gradient} />
