@@ -20,7 +20,7 @@ export const marketValidationSchema = z.object({
     .string()
     .min(3)
     .refine(isLetterNumber.validate, isLetterNumber.message),
-  maxTotalSupply: z.coerce.string().min(1),
+  maxTotalSupply: z.coerce.number().gt(0),
   annualInterestBips: z.coerce.number().gt(0),
   delinquencyFeeBips: z.coerce.number().gt(0),
   reserveRatioBips: z.coerce.number().gt(0),

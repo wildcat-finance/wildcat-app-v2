@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import {
   Box,
@@ -33,6 +33,8 @@ import {
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
+  setDisableConfirmationStepSidebar,
+  setDisableInfoStepSidebar,
   setHideInfoStep,
   setNextStep,
 } from "@/store/slices/routingSlice/routingSlice"
@@ -43,6 +45,7 @@ import {
   ButtonsContainer,
   DividerStyle,
   DropdownOption,
+  endDecorator,
   InputGroupContainer,
   NextButton,
 } from "./style"
@@ -97,20 +100,6 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
     setValue("marketType", event.target.value?.toString() || "")
   }
 
-  // const handleValidateForm = async () => {
-  //   const isValid = await trigger()
-  //
-  //   if (!isValid) {
-  //     const firstErrorField = Object.keys(
-  //       errors,
-  //     )[0] as keyof MarketValidationSchemaType
-  //
-  //     if (firstErrorField) setFocus(firstErrorField)
-  //   }
-  //
-  //   return isValid
-  // }
-
   const setTokenSelectError = (message: string) => {
     setError("asset", {
       type: "manual",
@@ -156,6 +145,16 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
   //     })
   //   }
   // })
+
+  useEffect(() => {
+    if (hideLegalInfoStep) {
+      dispatch(setDisableConfirmationStepSidebar(!isValid))
+      dispatch(setDisableInfoStepSidebar(true))
+    } else {
+      dispatch(setDisableConfirmationStepSidebar(true))
+      dispatch(setDisableInfoStepSidebar(!isValid))
+    }
+  }, [isValid, hideLegalInfoStep])
 
   return (
     <Box maxWidth="766px" width="100%">
@@ -284,7 +283,11 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
             value={getValues("annualInterestBips")}
             error={Boolean(errors.annualInterestBips)}
             helperText={errors.annualInterestBips?.message}
-            endAdornment={<Typography variant="text2">%</Typography>}
+            endAdornment={
+              <Typography variant="text2" sx={endDecorator}>
+                %
+              </Typography>
+            }
             {...register("annualInterestBips")}
           />
         </InputLabel>
@@ -295,7 +298,11 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
             value={getValues("delinquencyFeeBips")}
             error={Boolean(errors.delinquencyFeeBips)}
             helperText={errors.delinquencyFeeBips?.message}
-            endAdornment={<Typography variant="text2">%</Typography>}
+            endAdornment={
+              <Typography variant="text2" sx={endDecorator}>
+                %
+              </Typography>
+            }
             {...register("delinquencyFeeBips")}
           />
         </InputLabel>
@@ -306,7 +313,11 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
             value={getValues("reserveRatioBips")}
             error={Boolean(errors.reserveRatioBips)}
             helperText={errors.reserveRatioBips?.message}
-            endAdornment={<Typography variant="text2">%</Typography>}
+            endAdornment={
+              <Typography variant="text2" sx={endDecorator}>
+                %
+              </Typography>
+            }
             {...register("reserveRatioBips")}
           />
         </InputLabel>
@@ -323,7 +334,11 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
             value={getValues("delinquencyGracePeriod")}
             error={Boolean(errors.delinquencyGracePeriod)}
             helperText={errors.delinquencyGracePeriod?.message}
-            endAdornment={<Typography variant="text2">hours</Typography>}
+            endAdornment={
+              <Typography variant="text2" sx={endDecorator}>
+                hours
+              </Typography>
+            }
             {...register("delinquencyGracePeriod")}
           />
         </InputLabel>
@@ -334,7 +349,11 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
             value={getValues("withdrawalBatchDuration")}
             error={Boolean(errors.withdrawalBatchDuration)}
             helperText={errors.withdrawalBatchDuration?.message}
-            endAdornment={<Typography variant="text2">hours</Typography>}
+            endAdornment={
+              <Typography variant="text2" sx={endDecorator}>
+                hours
+              </Typography>
+            }
             {...register("withdrawalBatchDuration")}
           />
         </InputLabel>

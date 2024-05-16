@@ -8,6 +8,8 @@ import { TFlowName, TRoutingType } from "./types"
 export const initialState: TRoutingType = {
   currentFlow: "",
   hideInfoStep: true,
+  disableInfoStepSidebar: true,
+  disableConfirmationStepSidebar: true,
   routes: {
     newMarketFlow: {
       currentStep: "",
@@ -62,6 +64,12 @@ const routingSlice = createSlice({
     setHideInfoStep: (state, action) => {
       state.hideInfoStep = action.payload
     },
+    setDisableInfoStepSidebar: (state, action) => {
+      state.disableInfoStepSidebar = action.payload
+    },
+    setDisableConfirmationStepSidebar: (state, action) => {
+      state.disableConfirmationStepSidebar = action.payload
+    },
     resetSteps: () => initialState,
   },
 })
@@ -72,6 +80,8 @@ export const {
   setNextStep,
   setPreviousStep,
   setHideInfoStep,
+  setDisableInfoStepSidebar,
+  setDisableConfirmationStepSidebar,
   resetSteps,
 } = routingSlice.actions
 

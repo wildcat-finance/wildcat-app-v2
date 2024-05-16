@@ -187,9 +187,11 @@ export const ConfirmationModal = ({
 
       <Box sx={FooterModalContainer}>
         <Box sx={ButtonContainer}>
-          <Button size="large" variant="contained" sx={ButtonStyle}>
-            Sign MLA
-          </Button>
+          {!hideLegalInfoStep && (
+            <Button size="large" variant="contained" sx={ButtonStyle}>
+              Sign MLA
+            </Button>
+          )}
           <Button size="large" variant="contained" sx={ButtonStyle}>
             Deploy Market
           </Button>

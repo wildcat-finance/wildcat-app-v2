@@ -29,6 +29,14 @@ export const NewMarketSidebar = () => {
     (state) => state.routing.hideInfoStep,
   )
 
+  const disableInfoStepButton = useAppSelector(
+    (state) => state.routing.disableInfoStepSidebar,
+  )
+
+  const disableConfirmationStepButton = useAppSelector(
+    (state) => state.routing.disableConfirmationStepSidebar,
+  )
+
   const handleClickDescription = () => {
     dispatch(setCurrentStep(STEPS_NAME.marketDescription))
   }
@@ -70,6 +78,7 @@ export const NewMarketSidebar = () => {
             size="medium"
             sx={checkButtonStyle(STEPS_NAME.legalInformation)}
             onClick={handleClickInformation}
+            disabled={disableInfoStepButton}
           >
             Legal Info
           </Button>
@@ -78,6 +87,7 @@ export const NewMarketSidebar = () => {
           variant="text"
           size="medium"
           sx={checkButtonStyle(STEPS_NAME.confirmation)}
+          disabled={disableConfirmationStepButton}
         >
           Confirmation
         </Button>

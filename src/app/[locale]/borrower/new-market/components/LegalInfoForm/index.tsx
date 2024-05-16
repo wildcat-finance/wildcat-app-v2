@@ -1,3 +1,5 @@
+import { useEffect } from "react"
+
 import {
   Box,
   Button,
@@ -15,6 +17,7 @@ import { InputLabel } from "@/components/InputLabel"
 import { mockedNaturesOptions } from "@/mocks/mocks"
 import { useAppDispatch } from "@/store/hooks"
 import {
+  setDisableConfirmationStepSidebar,
   setNextStep,
   setPreviousStep,
 } from "@/store/slices/routingSlice/routingSlice"
@@ -55,6 +58,10 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
   const handleClickConfirm = () => {
     dispatch(setNextStep())
   }
+
+  useEffect(() => {
+    dispatch(setDisableConfirmationStepSidebar(!isValid))
+  }, [isValid])
 
   return (
     <Box maxWidth="766px" width="100%">

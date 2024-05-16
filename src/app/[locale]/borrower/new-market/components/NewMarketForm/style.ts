@@ -18,6 +18,8 @@ export const DropdownOption = { width: "360px" }
 
 export const BackButton = { justifyContent: "flex-start" }
 
+export const endDecorator = { color: COLORS.santasGrey }
+
 export const BackButtonArrow = {
   marginRight: "4px",
   "& path": { fill: `${COLORS.bunker}` },

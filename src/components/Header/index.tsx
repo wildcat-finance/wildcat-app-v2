@@ -3,6 +3,7 @@ import { Box, Switch, Typography } from "@mui/material"
 import initTranslations from "@/app/i18n"
 import { ContentContainer, NavContainer } from "@/components/Header/style"
 import TranslationsProvider from "@/components/TranslationsProvider"
+import { COLORS } from "@/theme/colors"
 
 import { HeaderButton } from "./HeaderButton"
 import Logo from "../../assets/icons/logo_white.svg"
@@ -25,11 +26,11 @@ export default async function Header({
       <Box sx={ContentContainer}>
         <Logo />
         <Box sx={NavContainer}>
-          <Typography variant="text2Highlighted">
+          <Typography variant="text2Highlighted" sx={{ color: COLORS.white }}>
             {t("header:borrower")}
           </Typography>
           <Switch />
-          <Typography variant="text2Highlighted">
+          <Typography variant="text2Highlighted" sx={{ color: COLORS.white }}>
             {t("header:lender")}
           </Typography>
         </Box>

@@ -446,6 +446,7 @@ export const theme = createTheme({
                 fontSize: "10px",
                 lineHeight: "16px",
                 fontWeight: 500,
+                letterSpacing: 0,
                 margin: "4px 0 0",
                 "&.Mui-error": {
                   color: COLORS.wildWatermelon,
@@ -535,6 +536,7 @@ export const theme = createTheme({
 
               "& .MuiFormHelperText-root": {
                 fontFamily: "inherit",
+                letterSpacing: 0,
                 margin: "4px 0 0",
                 "&.Mui-error": {
                   color: COLORS.wildWatermelon,
@@ -623,6 +625,7 @@ export const theme = createTheme({
               },
 
               "& .MuiFormHelperText-root": {
+                letterSpacing: 0,
                 fontFamily: "inherit",
                 margin: "4px 0 0",
               },
@@ -744,6 +747,7 @@ export const theme = createTheme({
                 },
               },
               "&.MuiFormHelperText-root": {
+                letterSpacing: 0,
                 fontFamily: "inherit",
                 margin: "4px 0 0",
                 "&.Mui-error": {
@@ -801,6 +805,7 @@ export const theme = createTheme({
                 },
               },
               "&.MuiFormHelperText-root": {
+                letterSpacing: 0,
                 fontFamily: "inherit",
                 margin: "4px 0 0",
                 "&.Mui-error": {
@@ -929,6 +934,7 @@ export const theme = createTheme({
     MuiTypography: {
       styleOverrides: {
         root: {
+          color: COLORS.bunker,
           letterSpacing: 0,
         },
       },

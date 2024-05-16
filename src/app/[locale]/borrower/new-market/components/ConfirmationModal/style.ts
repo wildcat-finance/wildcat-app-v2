@@ -72,6 +72,7 @@ export const ButtonStyle = { width: "100%" }
 
 export const Note = {
   width: "550px",
+  padding: "0 20px 0 20px",
   textAlign: "center",
   color: COLORS.santasGrey,
 }
