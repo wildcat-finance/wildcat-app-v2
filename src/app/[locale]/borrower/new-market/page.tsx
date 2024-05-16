@@ -4,8 +4,6 @@ import { useEffect } from "react"
 
 import { Box } from "@mui/material"
 
-import { useLegalInfoForm } from "../../borrower/new-market/hooks/useLegalInfoForm"
-import { useNewMarketForm } from "../../borrower/new-market/hooks/useNewMarketForm"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   newMarketSteps,
@@ -18,6 +16,8 @@ import {
 
 import { LegalInfoForm } from "./components/LegalInfoForm"
 import { NewMarketForm } from "./components/NewMarketForm"
+import { useLegalInfoForm } from "./hooks/useLegalInfoForm"
+import { useNewMarketForm } from "./hooks/useNewMarketForm"
 
 export default function NewMarket() {
   const dispatch = useAppDispatch()
