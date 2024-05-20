@@ -15,7 +15,6 @@ import {
 
 export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   marketType: mockedMarketTypes[0].value,
-  asset: "SMT",
   maxTotalSupply: undefined,
   annualInterestBips: undefined,
   delinquencyFeeBips: undefined,

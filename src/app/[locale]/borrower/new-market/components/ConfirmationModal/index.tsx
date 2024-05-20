@@ -1,5 +1,3 @@
-"use client"
-
 import {
   Box,
   Button,
@@ -36,8 +34,10 @@ import { ConfirmationModalProps } from "./type"
 
 export const ConfirmationModal = ({
   open,
+  tokenAsset,
   getMarketValues,
   getInfoValues,
+  handleDeployMarket,
 }: ConfirmationModalProps) => {
   const dispatch = useAppDispatch()
 
@@ -84,12 +84,12 @@ export const ConfirmationModal = ({
             value={getMarketValues("marketName")}
           />
           <ConfirmationFormItem
-            label="Underlying asset"
-            value={getMarketValues("asset")}
-          />
-          <ConfirmationFormItem
             label="Market Type"
             value={marketTypeValue || ""}
+          />
+          <ConfirmationFormItem
+            label="Underlying asset"
+            value={tokenAsset?.name || ""}
           />
           <ConfirmationFormItem
             label="Market token name"
@@ -97,7 +97,7 @@ export const ConfirmationModal = ({
           />
           <ConfirmationFormItem
             label="Market token symbol"
-            value={getMarketValues("symbolPrefix")}
+            value={`${getMarketValues("symbolPrefix")}${tokenAsset?.symbol}`}
           />
           {getMarketValues("mla") === "wildcatMLA" && (
             <Box display="flex" flexDirection="column" rowGap="6px">
@@ -123,19 +123,19 @@ export const ConfirmationModal = ({
         <Box sx={FormModalGroupContainer}>
           <ConfirmationFormItem
             label="Max. Borrowing Capacity"
-            value={getMarketValues("maxTotalSupply")}
+            value={`${getMarketValues("maxTotalSupply")} ${tokenAsset?.symbol}`}
           />
           <ConfirmationFormItem
             label="Base APR"
-            value={getMarketValues("annualInterestBips")}
+            value={`${getMarketValues("annualInterestBips")}%`}
           />
           <ConfirmationFormItem
             label="Penalty APR"
-            value={getMarketValues("delinquencyFeeBips")}
+            value={`${getMarketValues("delinquencyFeeBips")}%`}
           />
           <ConfirmationFormItem
             label="Reserve Ratio"
-            value={getMarketValues("reserveRatioBips")}
+            value={`${getMarketValues("reserveRatioBips")}%`}
           />
         </Box>
 
@@ -149,11 +149,11 @@ export const ConfirmationModal = ({
         >
           <ConfirmationFormItem
             label="Grace period"
-            value={getMarketValues("delinquencyGracePeriod")}
+            value={`${getMarketValues("delinquencyGracePeriod")} hours`}
           />
           <ConfirmationFormItem
             label="Withdrawal cycle length"
-            value={getMarketValues("withdrawalBatchDuration")}
+            value={`${getMarketValues("withdrawalBatchDuration")} hours`}
           />
         </Box>
 
@@ -192,7 +192,12 @@ export const ConfirmationModal = ({
               Sign MLA
             </Button>
           )}
-          <Button size="large" variant="contained" sx={ButtonStyle}>
+          <Button
+            size="large"
+            variant="contained"
+            sx={ButtonStyle}
+            onClick={handleDeployMarket}
+          >
             Deploy Market
           </Button>
         </Box>

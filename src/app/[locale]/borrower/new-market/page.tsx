@@ -1,10 +1,14 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 import { Box } from "@mui/material"
+import { Token } from "@wildcatfi/wildcat-sdk"
 
 import { ConfirmationModal } from "@/app/[locale]/borrower/new-market/components/ConfirmationModal"
+import { useDeployMarket } from "@/app/[locale]/borrower/new-market/hooks/useDeployMarket"
+import { useTokenMetadata } from "@/app/[locale]/borrower/new-market/hooks/useTokenMetadata"
+import { useGetController } from "@/hooks/useGetController"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   newMarketSteps,
@@ -25,6 +29,46 @@ export default function NewMarket() {
 
   const newMarketForm = useNewMarketForm()
   const legalInfoForm = useLegalInfoForm()
+
+  const { deployNewMarket, isDeploying } = useDeployMarket()
+  const { data: controller, isLoading: isControllerLoading } =
+    useGetController()
+
+  // const assetWatch = newMarketForm.watch("asset")
+  const assetWatch = "0x3a4c4d83f5eb141febf8a94f1104f9215195c409" // USDT token address, temporary hardcoded value
+
+  const { data: assetData } = useTokenMetadata({
+    address: assetWatch?.toLowerCase(),
+  })
+
+  const [tokenAsset, setTokenAsset] = useState<Token | undefined>()
+
+  useEffect(() => {
+    setTokenAsset(assetData)
+    newMarketForm.setValue("asset", String(assetData?.name))
+  }, [assetData])
+
+  const isLoading = isDeploying || isControllerLoading
+
+  const handleDeployMarket = newMarketForm.handleSubmit(() => {
+    const marketParams = newMarketForm.getValues()
+
+    if (assetData && tokenAsset) {
+      deployNewMarket({
+        namePrefix: `${marketParams.namePrefix.trimEnd()} `,
+        symbolPrefix: marketParams.symbolPrefix,
+        annualInterestBips: Number(marketParams.annualInterestBips) * 100,
+        delinquencyFeeBips: Number(marketParams.delinquencyFeeBips) * 100,
+        reserveRatioBips: Number(marketParams.reserveRatioBips) * 100,
+        delinquencyGracePeriod:
+          Number(marketParams.delinquencyGracePeriod) * 60 * 60,
+        withdrawalBatchDuration:
+          Number(marketParams.withdrawalBatchDuration) * 60 * 60,
+        maxTotalSupply: marketParams.maxTotalSupply,
+        assetData: tokenAsset,
+      })
+    }
+  })
 
   const newMarketStep = useAppSelector(
     (state) => state.routing.routes.newMarketFlow.currentStep,
@@ -47,7 +91,7 @@ export default function NewMarket() {
           display="flex"
           justifyContent="space-around"
         >
-          <NewMarketForm form={newMarketForm} />
+          <NewMarketForm form={newMarketForm} tokenAsset={tokenAsset} />
         </Box>
       )
     }
@@ -75,16 +119,20 @@ export default function NewMarket() {
             <>
               <ConfirmationModal
                 open={newMarketStep === newMarketSteps.confirmation.name}
+                tokenAsset={tokenAsset}
                 getMarketValues={newMarketForm.getValues}
+                handleDeployMarket={handleDeployMarket}
               />
-              <NewMarketForm form={newMarketForm} />
+              <NewMarketForm form={newMarketForm} tokenAsset={tokenAsset} />
             </>
           ) : (
             <>
               <ConfirmationModal
                 open={newMarketStep === newMarketSteps.confirmation.name}
+                tokenAsset={tokenAsset}
                 getMarketValues={newMarketForm.getValues}
                 getInfoValues={legalInfoForm.getValues}
+                handleDeployMarket={handleDeployMarket}
               />
               <LegalInfoForm form={legalInfoForm} />
             </>
@@ -100,7 +148,7 @@ export default function NewMarket() {
           display="flex"
           justifyContent="space-around"
         >
-          <NewMarketForm form={newMarketForm} />
+          <NewMarketForm form={newMarketForm} tokenAsset={tokenAsset} />
         </Box>
       )
     }

@@ -16,7 +16,6 @@ import { Token } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { UseFormReturn } from "react-hook-form"
 
-import { useDeployMarket } from "@/app/[locale]/borrower/new-market/hooks/useDeployMarket"
 import { defaultMarketForm } from "@/app/[locale]/borrower/new-market/hooks/useNewMarketForm"
 import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
@@ -24,7 +23,6 @@ import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { InputLabel } from "@/components/InputLabel"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
-import { useGetController } from "@/hooks/useGetController"
 import {
   mockedKYCPreferencesOptions,
   mockedMarketTypesOptions,
@@ -53,22 +51,17 @@ import { TokenSelector } from "./UnderlyingAssetSelect"
 
 type NewMarketFormProps = {
   form: UseFormReturn<MarketValidationSchemaType>
+  tokenAsset: Token | undefined
 }
 
-export const NewMarketForm = ({ form }: NewMarketFormProps) => {
+export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
   const dispatch = useAppDispatch()
 
   const hideLegalInfoStep = useAppSelector(
     (state) => state.routing.hideInfoStep,
   )
 
-  const { data: controller, isLoading: isControllerLoading } =
-    useGetController()
-
-  const { deployNewMarket, isDeploying } = useDeployMarket()
-
   const {
-    handleSubmit,
     getValues,
     setValue,
     watch,
@@ -78,10 +71,6 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
     setFocus,
     setError,
   } = form
-
-  const assetWatch = watch("asset")
-
-  const [tokenAsset, setTokenAsset] = useState<Token | undefined>()
 
   const handleMLASelect = (event: SelectChangeEvent<string | null>) => {
     setValue("mla", event.target.value?.toString() || "")
@@ -123,28 +112,6 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
       setNextStep(hideLegalInfoStep ? "confirmation" : "legalInformation"),
     )
   }
-
-  const isLoading = isDeploying || isControllerLoading
-
-  // const handleDeployMarket = handleSubmit(() => {
-  //   const marketParams = getValues()
-  //
-  //   if (assetData && tokenAsset) {
-  //     deployNewMarket({
-  //       namePrefix: `${marketParams.namePrefix.trimEnd()} `,
-  //       symbolPrefix: marketParams.symbolPrefix,
-  //       annualInterestBips: Number(marketParams.annualInterestBips) * 100,
-  //       delinquencyFeeBips: Number(marketParams.delinquencyFeeBips) * 100,
-  //       reserveRatioBips: Number(marketParams.reserveRatioBips) * 100,
-  //       delinquencyGracePeriod:
-  //         Number(marketParams.delinquencyGracePeriod) * 60 * 60,
-  //       withdrawalBatchDuration:
-  //         Number(marketParams.withdrawalBatchDuration) * 60 * 60,
-  //       maxTotalSupply: Number(marketParams.maxTotalSupply.replace(/,/g, "")), // Remove commas from maxTotalSupply
-  //       assetData: tokenAsset,
-  //     })
-  //   }
-  // })
 
   useEffect(() => {
     if (hideLegalInfoStep) {
@@ -233,7 +200,7 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <TextfieldChip text="Asset Name" />
+                <TextfieldChip text={tokenAsset?.name || "Asset Name"} />
               </InputAdornment>
             ),
           }}
@@ -253,7 +220,7 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <TextfieldChip text="Asset Symbol" />
+                <TextfieldChip text={tokenAsset?.symbol || "Asset Symbol"} />
               </InputAdornment>
             ),
           }}
@@ -272,7 +239,9 @@ export const NewMarketForm = ({ form }: NewMarketFormProps) => {
             value={getValues("maxTotalSupply")}
             error={Boolean(errors.maxTotalSupply)}
             helperText={errors.maxTotalSupply?.message}
-            endAdornment={<TextfieldChip text="Token Symbol" />}
+            endAdornment={
+              <TextfieldChip text={tokenAsset?.symbol || "Token Symbol"} />
+            }
             {...register("maxTotalSupply")}
           />
         </InputLabel>
