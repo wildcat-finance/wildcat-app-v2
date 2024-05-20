@@ -30,6 +30,7 @@ const nextConfig = {
 
     return config
   },
+
   async redirects() {
     return [
       {
@@ -44,6 +45,17 @@ const nextConfig = {
     fetches: {
       fullUrl: true,
     },
+  },
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        pathname: '/**',
+        hostname: process.env.NEXT_PUBLIC_TOKENS_IMG_HOSTNAME,
+        port: '',
+      },
+    ],
   },
 };
 
