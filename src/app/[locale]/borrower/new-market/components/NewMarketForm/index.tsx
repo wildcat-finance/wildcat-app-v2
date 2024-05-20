@@ -16,6 +16,8 @@ import { Token } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { UseFormReturn } from "react-hook-form"
 
+import { FinalPopup } from "@/app/[locale]/borrower/new-market/components/Popups/FinalPopup"
+import { LoadingPopup } from "@/app/[locale]/borrower/new-market/components/Popups/LoadingPopup"
 import { defaultMarketForm } from "@/app/[locale]/borrower/new-market/hooks/useNewMarketForm"
 import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
