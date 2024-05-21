@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-import { commitHash, buildTime } from './scripts/build.js'
+import { buildTime } from './scripts/build.js'
 
 const nextConfig = {
   webpack(config) {
@@ -62,7 +62,7 @@ const nextConfig = {
 
   env: {
     BUILD_TIME: buildTime,
-    COMMIT_HASH: commitHash
+    // COMMIT_HASH: commitHash
   }
 };
 

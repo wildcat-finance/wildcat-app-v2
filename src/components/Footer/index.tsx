@@ -15,7 +15,7 @@ import {
 const DEPLOY_DATE_FORMAT = "DD.MM.YYYY HH:mm"
 
 const getCommitInfo = () => {
-  if (process.env.NODE_ENV !== "production" || !process.env.COMMIT_HASH)
+  if (process.env.NODE_ENV !== "production" || !process.env.NEXT_PUBLIC_COMMIT_HASH)
     return null
 
   return (
@@ -25,7 +25,7 @@ const getCommitInfo = () => {
         target="_blank"
         style={CommitHashLinkSx}
       >
-        {process.env.COMMIT_HASH}
+        {process.env.NEXT_PUBLIC_COMMIT_HASH}
       </Link>
       {dayjs(process.env.BUILD_TIME).format(DEPLOY_DATE_FORMAT)}
     </div>
