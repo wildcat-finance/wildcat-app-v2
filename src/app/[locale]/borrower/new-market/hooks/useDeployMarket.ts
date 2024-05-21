@@ -40,7 +40,12 @@ export const useDeployMarket = () => {
     sendTransactions: sendGnosisTransactions,
   } = useGnosisSafeSDK()
 
-  const { mutate: deployNewMarket, isPending: isDeploying } = useMutation({
+  const {
+    mutate: deployNewMarket,
+    isPending: isDeploying,
+    isSuccess,
+    isError,
+  } = useMutation({
     mutationFn: async (marketParams: DeployNewMarketParams) => {
       if (!signer || !controller || !marketParams) {
         return
@@ -175,5 +180,7 @@ export const useDeployMarket = () => {
   return {
     deployNewMarket,
     isDeploying,
+    isSuccess,
+    isError,
   }
 }

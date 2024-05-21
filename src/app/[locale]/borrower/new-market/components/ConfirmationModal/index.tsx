@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react"
+
 import {
   Box,
   Button,
@@ -8,13 +10,25 @@ import {
 } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 
+import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
+import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
+import { Loader } from "@/components/Loader"
 import { mockedMarketTypesOptions } from "@/mocks/mocks"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { STEPS_NAME } from "@/store/slices/routingSlice/flowsSteps"
 import { setPreviousStep } from "@/store/slices/routingSlice/routingSlice"
 
 import { ConfirmationFormItem } from "./ConfirmationFormItem"
+import {
+  DeployButtonContainer,
+  DeployCloseButtonIcon,
+  DeployContentContainer,
+  DeployMainContainer,
+  DeployHeaderContainer,
+  DeploySubtitle,
+  DeployTypoBox,
+} from "./deploy-style"
 import {
   ButtonContainer,
   ButtonStyle,
@@ -29,7 +43,7 @@ import {
   MLAButton,
   MLATitle,
   Note,
-} from "./style"
+} from "./review-style"
 import { ConfirmationModalProps } from "./type"
 
 export const ConfirmationModal = ({
@@ -38,7 +52,22 @@ export const ConfirmationModal = ({
   getMarketValues,
   getInfoValues,
   handleDeployMarket,
+  isLoading,
+  isError,
+  isSuccess,
 }: ConfirmationModalProps) => {
+  const [showErrorPopup, setShowErrorPopup] = useState(false)
+
+  useEffect(() => {
+    if (isError) {
+      setShowErrorPopup(true)
+    }
+  }, [isError])
+
+  const handleResetModal = () => {
+    setShowErrorPopup(false)
+  }
+
   const dispatch = useAppDispatch()
 
   const hideLegalInfoStep = useAppSelector(
@@ -58,6 +87,121 @@ export const ConfirmationModal = ({
   const marketTypeValue = mockedMarketTypesOptions.find(
     (el) => el.value === getMarketValues("marketType"),
   )?.label
+
+  if (showErrorPopup) {
+    return (
+      <Dialog open={open} onClose={handleClickClose} sx={DialogContainer}>
+        <Box sx={DeployHeaderContainer}>
+          <Box width="20px" height="20px" />
+          <IconButton disableRipple onClick={handleClickClose}>
+            <SvgIcon fontSize="big" sx={DeployCloseButtonIcon}>
+              <Cross />
+            </SvgIcon>
+          </IconButton>
+        </Box>
+        <Box padding="24px" sx={DeployContentContainer}>
+          <Box margin="auto" sx={DeployMainContainer}>
+            <SvgIcon fontSize="colossal">
+              <CircledCrossRed />
+            </SvgIcon>
+
+            <Box sx={DeployTypoBox}>
+              <Typography variant="title3">
+                Oops! Something goes wrong
+              </Typography>
+              <Typography variant="text3" sx={DeploySubtitle}>
+                Explanatory message about the problem.
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box sx={DeployButtonContainer}>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="large"
+              fullWidth
+              onClick={handleResetModal}
+            >
+              Back to review step
+            </Button>
+            <Button
+              variant="contained"
+              size="large"
+              fullWidth
+              onClick={() => {
+                handleResetModal()
+                handleDeployMarket()
+              }}
+            >
+              Try Again
+            </Button>
+          </Box>
+        </Box>
+      </Dialog>
+    )
+  }
+
+  if (isSuccess) {
+    return (
+      <Dialog open={open} sx={DialogContainer}>
+        <Box padding="24px" sx={DeployContentContainer}>
+          <Box
+            margin="auto"
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              rowGap: "24px",
+            }}
+          >
+            <SvgIcon fontSize="colossal">
+              <CircledCheckBlue />
+            </SvgIcon>
+
+            <Box sx={DeployTypoBox}>
+              <Typography variant="title3">Market was created</Typography>
+              <Typography variant="text3" sx={DeploySubtitle}>
+                Market successfully created. You can onboard Lenders and borrow
+                money now.
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box sx={DeployButtonContainer}>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="large"
+              fullWidth
+            >
+              View and download MLA
+            </Button>
+            <Button variant="contained" size="large" fullWidth>
+              Go to the Market
+            </Button>
+          </Box>
+        </Box>
+      </Dialog>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <Dialog open={open} sx={DialogContainer}>
+        <Box sx={DeployContentContainer} rowGap="24px">
+          <Loader />
+
+          <Box sx={DeployTypoBox}>
+            <Typography variant="text1">Just wait a bit...</Typography>
+            <Typography variant="text3" sx={DeploySubtitle}>
+              Transaction in process.
+            </Typography>
+          </Box>
+        </Box>
+      </Dialog>
+    )
+  }
 
   return (
     <Dialog open={open} onClose={handleClickClose} sx={DialogContainer}>

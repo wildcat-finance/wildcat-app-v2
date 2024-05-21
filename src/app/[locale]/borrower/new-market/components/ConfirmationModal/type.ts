@@ -8,5 +8,8 @@ export type ConfirmationModalProps = {
   tokenAsset: Token | undefined
   getMarketValues: ReturnType<typeof useNewMarketForm>["getValues"]
   getInfoValues?: ReturnType<typeof useLegalInfoForm>["getValues"]
+  isLoading: boolean
+  isError: boolean
+  isSuccess: boolean
   handleDeployMarket: () => void
 }

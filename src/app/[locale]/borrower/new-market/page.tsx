@@ -5,7 +5,6 @@ import { useEffect, useState } from "react"
 import { Box } from "@mui/material"
 import { Token } from "@wildcatfi/wildcat-sdk"
 
-import { ConfirmationModal } from "@/app/[locale]/borrower/new-market/components/ConfirmationModal"
 import { useDeployMarket } from "@/app/[locale]/borrower/new-market/hooks/useDeployMarket"
 import { useTokenMetadata } from "@/app/[locale]/borrower/new-market/hooks/useTokenMetadata"
 import { useGetController } from "@/hooks/useGetController"
@@ -19,6 +18,7 @@ import {
   setCurrentStep,
 } from "@/store/slices/routingSlice/routingSlice"
 
+import { ConfirmationModal } from "./components/ConfirmationModal"
 import { LegalInfoForm } from "./components/LegalInfoForm"
 import { NewMarketForm } from "./components/NewMarketForm"
 import { useLegalInfoForm } from "./hooks/useLegalInfoForm"
@@ -30,9 +30,11 @@ export default function NewMarket() {
   const newMarketForm = useNewMarketForm()
   const legalInfoForm = useLegalInfoForm()
 
-  const { deployNewMarket, isDeploying } = useDeployMarket()
   const { data: controller, isLoading: isControllerLoading } =
     useGetController()
+  const { deployNewMarket, isDeploying, isSuccess, isError } = useDeployMarket()
+
+  const isLoading = isControllerLoading || isDeploying
 
   // const assetWatch = newMarketForm.watch("asset")
   const assetWatch = "0x3a4c4d83f5eb141febf8a94f1104f9215195c409" // USDT token address, temporary hardcoded value
@@ -47,8 +49,6 @@ export default function NewMarket() {
     setTokenAsset(assetData)
     newMarketForm.setValue("asset", String(assetData?.name))
   }, [assetData])
-
-  const isLoading = isDeploying || isControllerLoading
 
   const handleDeployMarket = newMarketForm.handleSubmit(() => {
     const marketParams = newMarketForm.getValues()
@@ -122,6 +122,9 @@ export default function NewMarket() {
                 tokenAsset={tokenAsset}
                 getMarketValues={newMarketForm.getValues}
                 handleDeployMarket={handleDeployMarket}
+                isLoading={isLoading}
+                isError={isError}
+                isSuccess={isSuccess}
               />
               <NewMarketForm form={newMarketForm} tokenAsset={tokenAsset} />
             </>
@@ -133,6 +136,9 @@ export default function NewMarket() {
                 getMarketValues={newMarketForm.getValues}
                 getInfoValues={legalInfoForm.getValues}
                 handleDeployMarket={handleDeployMarket}
+                isLoading={isLoading}
+                isError={isError}
+                isSuccess={isSuccess}
               />
               <LegalInfoForm form={legalInfoForm} />
             </>

@@ -1,7 +1,5 @@
 import { COLORS } from "@/theme/colors"
 
-export const ConfirmButton = { width: "140px" }
-
 export const DialogContainer = {
   "& .MuiDialog-paper": {
     height: "776px",
@@ -21,10 +19,6 @@ export const HeaderModalContainer = {
 
   padding: "20px 24px",
   borderBottom: `1px solid ${COLORS.athensGrey}`,
-}
-
-export const BackArrowButton = {
-  "& path": { fill: `${COLORS.bunker}` },
 }
 
 export const CrossButton = {

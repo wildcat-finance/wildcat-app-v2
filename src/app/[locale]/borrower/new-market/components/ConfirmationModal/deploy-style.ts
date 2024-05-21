@@ -1,48 +1,43 @@
 import { COLORS } from "@/theme/colors"
 
-export const FinalDialogContainer = {
-  "& .MuiDialog-paper": {
-    height: "400px",
-    width: "440px",
-    borderRadius: "20px",
-    borderColor: COLORS.black01,
-    margin: 0,
-    padding: "24px",
-  },
-}
-
-export const FinalCloseButtonIcon = { "& path": { fill: `${COLORS.black}` } }
-
-export const FinalTitleContainer = {
+export const DeployHeaderContainer = {
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
+  padding: "24px 24px 0",
 }
 
-export const FinalContentContainer = {
+export const DeployCloseButtonIcon = { "& path": { fill: `${COLORS.black}` } }
+
+export const DeployContentContainer = {
   height: "100%",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
+}
+
+export const DeployMainContainer = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
   rowGap: "24px",
 }
 
-export const FinalTypoBox = {
+export const DeployTypoBox = {
   display: "flex",
   flexDirection: "column",
   rowGap: "8px",
   alignItems: "center",
 }
 
-export const FinalSubtitle = {
+export const DeploySubtitle = {
   color: COLORS.santasGrey,
   width: "250px",
   textAlign: "center",
 }
 
-export const FinalButtonContainer = {
-  marginTop: "auto",
+export const DeployButtonContainer = {
   display: "flex",
   flexDirection: "column",
   width: "100%",

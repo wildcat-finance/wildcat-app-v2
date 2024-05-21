@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 
 import {
   Box,
@@ -16,10 +16,6 @@ import { Token } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { UseFormReturn } from "react-hook-form"
 
-import { FinalPopup } from "@/app/[locale]/borrower/new-market/components/Popups/FinalPopup"
-import { LoadingPopup } from "@/app/[locale]/borrower/new-market/components/Popups/LoadingPopup"
-import { defaultMarketForm } from "@/app/[locale]/borrower/new-market/hooks/useNewMarketForm"
-import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { InputLabel } from "@/components/InputLabel"
@@ -50,6 +46,8 @@ import {
   NextButton,
 } from "./style"
 import { TokenSelector } from "./UnderlyingAssetSelect"
+import { defaultMarketForm } from "../../hooks/useNewMarketForm"
+import { MarketValidationSchemaType } from "../../validation/validationSchema"
 
 type NewMarketFormProps = {
   form: UseFormReturn<MarketValidationSchemaType>
