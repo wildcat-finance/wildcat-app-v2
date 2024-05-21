@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+import { commitHash, buildTime } from './scripts/build.js'
+
 const nextConfig = {
   webpack(config) {
     // Fix pino-pretty and lokijs resolve
@@ -57,6 +59,11 @@ const nextConfig = {
       },
     ],
   },
+
+  env: {
+    BUILD_TIME: buildTime,
+    COMMIT_HASH: commitHash
+  }
 };
 
 export default nextConfig;

@@ -26,7 +26,8 @@
     "import"
   ],
   "ignorePatterns": [
-    "node_modules/"
+    "node_modules/",
+    "scripts/"
   ],
   "parserOptions": {
     "project": "./tsconfig.json",
