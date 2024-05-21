@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+import { buildTime } from './scripts/build.js'
+
 const nextConfig = {
   webpack(config) {
     // Fix pino-pretty and lokijs resolve
@@ -30,6 +32,7 @@ const nextConfig = {
 
     return config
   },
+
   async redirects() {
     return [
       {
@@ -45,6 +48,22 @@ const nextConfig = {
       fullUrl: true,
     },
   },
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        pathname: '/**',
+        hostname: process.env.NEXT_PUBLIC_TOKENS_IMG_HOSTNAME,
+        port: '',
+      },
+    ],
+  },
+
+  env: {
+    BUILD_TIME: buildTime,
+    // COMMIT_HASH: commitHash
+  }
 };
 
 export default nextConfig;

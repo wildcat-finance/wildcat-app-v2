@@ -8,7 +8,11 @@ import {
   TextField,
   PopperProps,
   MenuItem,
+  createFilterOptions,
 } from "@mui/material"
+import Image from "next/image"
+
+import { TokenInfo } from "@/app/api/tokens-list/interface"
 
 import { useTokensList } from "./hooks/useTokensList"
 
@@ -37,15 +41,18 @@ const MyPopper = (props: JSX.IntrinsicAttributes & PopperProps) => (
   />
 )
 
-export const TokenSelector = () => {
-  const { handleChange, query, tokens, isLoading } = useTokensList()
+const filterOptions = createFilterOptions({
+  stringify: (option: TokenInfo) => `${option.address}${option.name}`,
+})
 
-  console.log(query, "query")
+export const TokenSelector = () => {
+  const { handleChange, query, isLoading, tokens } = useTokensList()
 
   return (
     <div>
       <Autocomplete
         PopperComponent={MyPopper}
+        filterOptions={filterOptions}
         noOptionsText={
           isLoading
             ? "Loading..."
@@ -61,6 +68,15 @@ export const TokenSelector = () => {
         )}
         renderOption={(props, option) => (
           <MenuItem key={option.address} {...props}>
+            {option.logoURI && (
+              <Image
+                width={20}
+                height={20}
+                style={{ marginRight: 10 }}
+                src={option.logoURI}
+                alt={option.name}
+              />
+            )}
             {`${option.name}`}
           </MenuItem>
         )}

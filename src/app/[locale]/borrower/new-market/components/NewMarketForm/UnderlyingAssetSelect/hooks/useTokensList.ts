@@ -24,12 +24,6 @@ export const useTokensList = () => {
     [query],
   )
 
-  useEffect(() => {
-    if (query.length >= MINIMUM_SEARCH_QUERY_LENGTH) {
-      refetch()
-    }
-  }, [query, refetch])
-
   return {
     query,
     handleChange,
