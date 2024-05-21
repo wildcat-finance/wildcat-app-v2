@@ -1,6 +1,8 @@
-import { ChangeEvent, useEffect, useState } from "react"
+import { ChangeEvent, useState } from "react"
 
 import { useDebounce } from "react-use"
+
+import { TokenInfo } from "@/app/api/tokens-list/interface"
 
 import { useGetTokensList } from "./useGetTokensList"
 
@@ -12,6 +14,18 @@ export const useTokensList = () => {
 
   const handleChange = async (evt: ChangeEvent<HTMLInputElement>) => {
     setTokenQuery(evt.target.value)
+  }
+
+  const handleSelect = (token: TokenInfo | null) => {
+    if (token) {
+      setTokenQuery(token.name)
+    } else {
+      setTokenQuery("")
+    }
+  }
+
+  const setQuery = (newQuery: string) => {
+    setTokenQuery(newQuery)
   }
 
   useDebounce(
@@ -27,6 +41,8 @@ export const useTokensList = () => {
   return {
     query,
     handleChange,
+    handleSelect,
+    setQuery,
     tokens: tokens || [],
     ...queryData,
   }

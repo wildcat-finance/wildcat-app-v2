@@ -46,18 +46,15 @@ const filterOptions = createFilterOptions({
 })
 
 export const TokenSelector = () => {
-  const { handleChange, query, isLoading, tokens } = useTokensList()
+  const { handleChange, handleSelect, query, setQuery, isLoading, tokens } =
+    useTokensList()
 
   return (
     <div>
       <Autocomplete
         PopperComponent={MyPopper}
         filterOptions={filterOptions}
-        noOptionsText={
-          isLoading
-            ? "Loading..."
-            : "Enter the first three letters of the asset"
-        }
+        noOptionsText={isLoading ? "Loading..." : "Enter token name"}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -77,15 +74,21 @@ export const TokenSelector = () => {
                 alt={option.name}
               />
             )}
-            {`${option.name}`}
+            {option.name}
           </MenuItem>
         )}
         isOptionEqualToValue={(option, value) =>
           option.address === value.address
         }
-        getOptionLabel={(option) => `${option.name}`}
+        getOptionLabel={(option) => option.name}
         options={tokens}
         popupIcon={null}
+        onChange={(event, newValue) => {
+          handleSelect(newValue)
+        }}
+        onInputChange={(event, newInputValue) => {
+          setQuery(newInputValue)
+        }}
       />
     </div>
   )
