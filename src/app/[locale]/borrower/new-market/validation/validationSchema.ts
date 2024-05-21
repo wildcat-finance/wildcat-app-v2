@@ -8,10 +8,9 @@ export const marketValidationSchema = z.object({
   mla: z.string().min(1),
   kyc: z.string().min(1),
   marketType: z.string().min(1),
-  // asset: z.string().refine((value) => utils.isAddress(value), {
-  //   message: "Invalid address: please ensure you have the correct token.",
-  // }),
-  asset: z.string(),
+  asset: z.string().refine((value) => utils.isAddress(value), {
+    message: "Invalid address: please ensure you have the correct token.",
+  }),
   namePrefix: z
     .string()
     .min(3)

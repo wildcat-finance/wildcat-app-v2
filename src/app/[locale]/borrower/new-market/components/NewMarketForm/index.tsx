@@ -96,11 +96,13 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
     })
   }
 
-  const assetRegister = register("asset")
+  // const handleTokenSelect = async (value: string) => {
+  //   setValue("asset", value)
+  //   await trigger("asset")
+  // }
 
-  const handleTokenSelect = async (value: string) => {
+  const handleTokenSelect = (value: string) => {
     setValue("asset", value)
-    await trigger("asset")
   }
 
   const getNumberFieldDefaultValue = (
@@ -184,7 +186,11 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
         </InputLabel>
 
         <InputLabel label="Underlying asset" tooltipText="TBD">
-          <TokenSelector />
+          <TokenSelector
+            handleTokenSelect={handleTokenSelect}
+            error={Boolean(errors.asset)}
+            errorText={errors.asset?.message}
+          />
         </InputLabel>
       </Box>
 

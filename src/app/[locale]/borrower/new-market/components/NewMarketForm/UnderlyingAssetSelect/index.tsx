@@ -1,5 +1,3 @@
-"use client"
-
 import { JSX } from "react"
 
 import {
@@ -45,9 +43,29 @@ const filterOptions = createFilterOptions({
   stringify: (option: TokenInfo) => `${option.address}${option.name}`,
 })
 
-export const TokenSelector = () => {
+export type TokenSelectorProps = {
+  error?: boolean
+  errorText?: string
+  handleTokenSelect: (value: string) => void
+}
+
+export const TokenSelector = ({
+  error,
+  errorText,
+  handleTokenSelect,
+}: TokenSelectorProps) => {
   const { handleChange, handleSelect, query, setQuery, isLoading, tokens } =
     useTokensList()
+
+  const handleSetToken = (
+    event: React.SyntheticEvent,
+    newValue: TokenInfo | null,
+  ) => {
+    handleSelect(newValue)
+    if (newValue) {
+      handleTokenSelect(newValue?.address)
+    }
+  }
 
   return (
     <div>
@@ -61,6 +79,8 @@ export const TokenSelector = () => {
             value={query}
             onChange={handleChange}
             label="Search name or paste address"
+            error={error}
+            helperText={errorText}
           />
         )}
         renderOption={(props, option) => (
@@ -83,9 +103,7 @@ export const TokenSelector = () => {
         getOptionLabel={(option) => option.name}
         options={tokens}
         popupIcon={null}
-        onChange={(event, newValue) => {
-          handleSelect(newValue)
-        }}
+        onChange={handleSetToken}
         onInputChange={(event, newInputValue) => {
           setQuery(newInputValue)
         }}

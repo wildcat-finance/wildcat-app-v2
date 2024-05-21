@@ -36,7 +36,8 @@ export default function NewMarket() {
 
   const isLoading = isControllerLoading || isDeploying
 
-  // const assetWatch = newMarketForm.watch("asset")
+  const assetFromForm = newMarketForm.watch("asset")
+  console.log("Token address:", assetFromForm)
   const assetWatch = "0x3a4c4d83f5eb141febf8a94f1104f9215195c409" // USDT token address, temporary hardcoded value
 
   const { data: assetData } = useTokenMetadata({

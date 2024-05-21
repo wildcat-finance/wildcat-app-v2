@@ -24,9 +24,7 @@ export default async function Header({
       resources={resources}
     >
       <Box sx={ContentContainer}>
-        <Box width="156px" height="44px">
-          <Logo />
-        </Box>
+        <Logo />
         <Box sx={NavContainer}>
           <Typography variant="text2Highlighted" sx={{ color: COLORS.white }}>
             {t("header:borrower")}
