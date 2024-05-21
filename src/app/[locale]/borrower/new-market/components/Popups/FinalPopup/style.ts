@@ -20,11 +20,11 @@ export const FinalTitleContainer = {
 }
 
 export const FinalContentContainer = {
-  marginTop: "24px",
   height: "100%",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
+  justifyContent: "center",
   rowGap: "24px",
 }
 

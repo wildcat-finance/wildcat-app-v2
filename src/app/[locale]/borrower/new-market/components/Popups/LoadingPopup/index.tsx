@@ -1,7 +1,7 @@
 import { Box, Dialog, IconButton, SvgIcon, Typography } from "@mui/material"
 
 import Cross from "@/assets/icons/cross_icon.svg"
-import { COLORS } from "@/theme/colors"
+import { Loader } from "@/components/Loader"
 
 import {
   CloseButtonIcon,
@@ -25,7 +25,7 @@ export const LoadingPopup = ({ open, handleClose }: LoadingPopupProps) => (
     </Box>
 
     <Box sx={LoadingContentContainer}>
-      <Box width="40px" height="40px" bgcolor={COLORS.santasGrey} />
+      <Loader />
 
       <Box sx={LoadingTypoBox}>
         <Typography variant="text1">Just wait a bit...</Typography>

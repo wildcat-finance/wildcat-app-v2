@@ -7,6 +7,10 @@ import {
   Typography,
 } from "@mui/material"
 
+import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
+import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
+import Cross from "@/assets/icons/cross_icon.svg"
+
 import {
   FinalButtonContainer,
   FinalCloseButtonIcon,
@@ -15,10 +19,7 @@ import {
   FinalSubtitle,
   FinalTitleContainer,
   FinalTypoBox,
-} from "@/app/[locale]/borrower/new-market/components/Popups/FinalPopup/style"
-import Cross from "@/assets/icons/cross_icon.svg"
-import { COLORS } from "@/theme/colors"
-
+} from "./style"
 import { FinalPopupProps } from "./type"
 
 export const FinalPopup = ({ variant, open, handleClose }: FinalPopupProps) => (
@@ -33,7 +34,9 @@ export const FinalPopup = ({ variant, open, handleClose }: FinalPopupProps) => (
     </Box>
 
     <Box sx={FinalContentContainer}>
-      <Box width="40px" height="40px" bgcolor={COLORS.santasGrey} />
+      <SvgIcon fontSize="colossal">
+        {variant === "success" ? <CircledCheckBlue /> : <CircledCrossRed />}
+      </SvgIcon>
 
       <Box sx={FinalTypoBox}>
         <Typography variant="title3">
@@ -47,17 +50,16 @@ export const FinalPopup = ({ variant, open, handleClose }: FinalPopupProps) => (
             : "Explanatory message about the problem."}
         </Typography>
       </Box>
-
-      <Box sx={FinalButtonContainer}>
-        <Button variant="contained" color="secondary" size="large" fullWidth>
-          {variant === "success"
-            ? "View and download MLA"
-            : "Back to review step"}
-        </Button>
-        <Button variant="contained" size="large" fullWidth>
-          {variant === "error" ? "Go to the Market" : "Try Again"}
-        </Button>
-      </Box>
+    </Box>
+    <Box sx={FinalButtonContainer}>
+      <Button variant="contained" color="secondary" size="large" fullWidth>
+        {variant === "success"
+          ? "View and download MLA"
+          : "Back to review step"}
+      </Button>
+      <Button variant="contained" size="large" fullWidth>
+        {variant === "error" ? "Go to the Market" : "Try Again"}
+      </Button>
     </Box>
   </Dialog>
 )

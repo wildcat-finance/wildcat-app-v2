@@ -55,6 +55,7 @@ declare module "@mui/material/SvgIcon" {
     medium: true
     big: true
     huge: true
+    colossal: true
   }
 }
 
@@ -115,6 +116,12 @@ export const theme = createTheme({
   components: {
     MuiSvgIcon: {
       variants: [
+        {
+          props: { fontSize: "colossal" },
+          style: {
+            fontSize: "40px",
+          },
+        },
         {
           props: { fontSize: "huge" },
           style: {
