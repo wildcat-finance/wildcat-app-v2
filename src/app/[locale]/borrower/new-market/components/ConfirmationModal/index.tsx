@@ -281,6 +281,10 @@ export const ConfirmationModal = ({
             label="Reserve Ratio"
             value={`${getMarketValues("reserveRatioBips")}%`}
           />
+          <ConfirmationFormItem
+            label="Minimum Deposit"
+            value={`${getMarketValues("minimumDeposit")} ${tokenAsset?.symbol}`}
+          />
         </Box>
 
         <Divider sx={DividerStyle} />

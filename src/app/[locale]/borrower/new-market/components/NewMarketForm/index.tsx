@@ -296,6 +296,22 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
             {...register("reserveRatioBips")}
           />
         </InputLabel>
+        <InputLabel
+          label="Minimum Deposit"
+          subtitle="This is non mandatory, the default is 0"
+          tooltipText="TBD"
+        >
+          <NumberTextField
+            label="0"
+            value={getValues("minimumDeposit")}
+            error={Boolean(errors.minimumDeposit)}
+            helperText={errors.minimumDeposit?.message}
+            endAdornment={
+              <TextfieldChip text={tokenAsset?.symbol || "Token Symbol"} />
+            }
+            {...register("minimumDeposit")}
+          />
+        </InputLabel>
       </Box>
 
       <Divider sx={DividerStyle} />

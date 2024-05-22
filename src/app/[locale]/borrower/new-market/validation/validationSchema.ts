@@ -23,6 +23,7 @@ export const marketValidationSchema = z.object({
   annualInterestBips: z.coerce.number().gt(0),
   delinquencyFeeBips: z.coerce.number().gt(0),
   reserveRatioBips: z.coerce.number().gt(0),
+  minimumDeposit: z.coerce.number(),
   delinquencyGracePeriod: z.coerce.number().gt(0),
   withdrawalBatchDuration: z.coerce.number().gt(0),
 })

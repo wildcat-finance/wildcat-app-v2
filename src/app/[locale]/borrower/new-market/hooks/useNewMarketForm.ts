@@ -19,6 +19,7 @@ export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   annualInterestBips: undefined,
   delinquencyFeeBips: undefined,
   reserveRatioBips: undefined,
+  minimumDeposit: 0,
   delinquencyGracePeriod: undefined,
   withdrawalBatchDuration: undefined,
 }
