@@ -17,18 +17,18 @@ const DEPLOY_DATE_FORMAT = "DD.MM.YYYY HH:mm"
 const getCommitInfo = () => {
   if (
     process.env.NODE_ENV !== "production" ||
-    !process.env.VERCEL_GIT_COMMIT_SHA
+    !process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
   )
     return null
 
   return (
     <div style={DeployInfoSx}>
       <Link
-        href={`${process.env.NEXT_PUBLIC_GIT_WILDCAT_URL}/${process.env.VERCEL_GIT_COMMIT_SHA}`}
+        href={`${process.env.NEXT_PUBLIC_GIT_WILDCAT_URL}/${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA}`}
         target="_blank"
         style={CommitHashLinkSx}
       >
-        {process.env.VERCEL_GIT_COMMIT_SHA}
+        {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA}
       </Link>
       {dayjs(process.env.BUILD_TIME).format(DEPLOY_DATE_FORMAT)}
     </div>
