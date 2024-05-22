@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 
 import { Box } from "@mui/material"
 import { Token } from "@wildcatfi/wildcat-sdk"
+import { useRouter } from "next/navigation"
+import { useAccount } from "wagmi"
 
 import { useDeployMarket } from "@/app/[locale]/borrower/new-market/hooks/useDeployMarket"
 import { useTokenMetadata } from "@/app/[locale]/borrower/new-market/hooks/useTokenMetadata"
@@ -83,6 +85,15 @@ export default function NewMarket() {
     dispatch(setCurrentFlow("newMarketFlow"))
     dispatch(setCurrentStep(STEPS_NAME.marketDescription))
   }, [])
+
+  const { address, isConnected } = useAccount()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isConnected) {
+      router.push("/")
+    }
+  }, [isConnected])
 
   switch (newMarketStep) {
     case newMarketSteps.marketDescription.name: {
