@@ -15,11 +15,6 @@ import {
 const DEPLOY_DATE_FORMAT = "DD.MM.YYYY HH:mm"
 
 const getCommitInfo = () => {
-  console.log(
-    "DEBUG",
-    process.env.NODE_ENV,
-    process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA,
-  )
   if (
     process.env.NODE_ENV !== "production" ||
     !process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
@@ -33,7 +28,7 @@ const getCommitInfo = () => {
         target="_blank"
         style={CommitHashLinkSx}
       >
-        {process.env.VERCEL_GIT_COMMIT_SHA}
+        {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA}
       </Link>
       {dayjs(process.env.BUILD_TIME).format(DEPLOY_DATE_FORMAT)}
     </div>
