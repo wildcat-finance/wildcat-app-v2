@@ -15,17 +15,21 @@ import {
 const DEPLOY_DATE_FORMAT = "DD.MM.YYYY HH:mm"
 
 const getCommitInfo = () => {
-  console.log("DEBUG", process.env.NODE_ENV, process.env.VERCEL_GIT_COMMIT_SHA)
+  console.log(
+    "DEBUG",
+    process.env.NODE_ENV,
+    process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA,
+  )
   if (
     process.env.NODE_ENV !== "production" ||
-    !process.env.VERCEL_GIT_COMMIT_SHA
+    !process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
   )
     return null
 
   return (
     <div style={DeployInfoSx}>
       <Link
-        href={`${process.env.NEXT_PUBLIC_GIT_WILDCAT_URL}/${process.env.VERCEL_GIT_COMMIT_SHA}`}
+        href={`${process.env.NEXT_PUBLIC_GIT_WILDCAT_URL}/${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA}`}
         target="_blank"
         style={CommitHashLinkSx}
       >
