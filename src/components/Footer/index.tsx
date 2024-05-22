@@ -15,6 +15,7 @@ import {
 const DEPLOY_DATE_FORMAT = "DD.MM.YYYY HH:mm"
 
 const getCommitInfo = () => {
+  console.log("DEBUG", process.env.NODE_ENV, process.env.VERCEL_GIT_COMMIT_SHA)
   if (
     process.env.NODE_ENV !== "production" ||
     !process.env.VERCEL_GIT_COMMIT_SHA
