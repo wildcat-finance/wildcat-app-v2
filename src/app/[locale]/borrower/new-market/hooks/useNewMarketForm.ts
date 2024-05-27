@@ -61,6 +61,6 @@ export const useNewMarketForm = () => {
   return useForm<MarketValidationSchemaType>({
     defaultValues: defaultMarketForm,
     resolver: zodResolver(validationSchemaAsync),
-    mode: "onChange",
+    mode: "onBlur",
   })
 }
