@@ -1,5 +1,8 @@
-import { TokenInfo } from "@/app/api/tokens-list/interface"
+import { UseFormRegisterReturn } from "react-hook-form"
 
 export type TokenSelectorProps = {
-  onSearch: (value: string) => Promise<TokenInfo[]>
+  error?: boolean
+  errorText?: string
+  onBlur?: UseFormRegisterReturn["onBlur"]
+  handleTokenSelect: (value: string) => void
 }

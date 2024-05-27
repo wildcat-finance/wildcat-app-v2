@@ -46,7 +46,6 @@ import {
   NextButton,
 } from "./style"
 import { TokenSelector } from "./UnderlyingAssetSelect"
-import { defaultMarketForm } from "../../hooks/useNewMarketForm"
 import { MarketValidationSchemaType } from "../../validation/validationSchema"
 
 type NewMarketFormProps = {
@@ -64,50 +63,13 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
   const {
     getValues,
     setValue,
-    watch,
     register,
     formState: { errors, isValid },
-    trigger,
-    setFocus,
-    setError,
   } = form
-
-  const handleMLASelect = (event: SelectChangeEvent<string | null>) => {
-    setValue("mla", event.target.value?.toString() || "")
-    if (event.target.value === "noMLA") {
-      dispatch(setHideInfoStep(true))
-    } else {
-      dispatch(setHideInfoStep(false))
-    }
-  }
-
-  const handleKYCSelect = (event: SelectChangeEvent<string | null>) => {
-    setValue("kyc", event.target.value?.toString() || "")
-  }
-
-  const handleMarketTypeSelect = (event: SelectChangeEvent<string | null>) => {
-    setValue("marketType", event.target.value?.toString() || "")
-  }
-
-  // const setTokenSelectError = (message: string) => {
-  //   setError("asset", {
-  //     type: "manual",
-  //     message,
-  //   })
-  // }
-
-  // const handleTokenSelect = async (value: string) => {
-  //   setValue("asset", value)
-  //   await trigger("asset")
-  // }
 
   const handleTokenSelect = (value: string) => {
     setValue("asset", value)
   }
-
-  // const getNumberFieldDefaultValue = (
-  //   field: keyof MarketValidationSchemaType,
-  // ) => defaultMarketForm[field]
 
   const handleClickNext = () => {
     dispatch(
@@ -124,6 +86,8 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
       dispatch(setDisableInfoStepSidebar(!isValid))
     }
   }, [isValid, hideLegalInfoStep])
+
+  const tokenSelectorFormProps = register("asset")
 
   return (
     <Box maxWidth="766px" width="100%">
@@ -145,6 +109,7 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
       <Box sx={InputGroupContainer} marginTop="36px">
         <InputLabel label="Master Loan Agreement" tooltipText="TBD">
           <ExtendedSelect
+            {...register("mla")}
             label="Please Select"
             value={
               mockedMLATemplatesOptions.find(
@@ -153,12 +118,12 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
             }
             options={mockedMLATemplatesOptions}
             optionSX={DropdownOption}
-            onChange={handleMLASelect}
           />
         </InputLabel>
 
         <InputLabel label="KYC Preferences" tooltipText="TBD">
           <ExtendedSelect
+            {...register("mla")}
             label="Please Select"
             value={
               mockedKYCPreferencesOptions.find(
@@ -167,12 +132,12 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
             }
             options={mockedKYCPreferencesOptions}
             optionSX={DropdownOption}
-            onChange={handleKYCSelect}
           />
         </InputLabel>
 
         <InputLabel label="Select market type" tooltipText="TBD">
           <ExtendedSelect
+            {...register("kyc")}
             label="Please Select"
             value={
               mockedMarketTypesOptions.find(
@@ -181,13 +146,13 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
             }
             options={mockedMarketTypesOptions}
             optionSX={DropdownOption}
-            onChange={handleMarketTypeSelect}
           />
         </InputLabel>
 
         <InputLabel label="Underlying asset" tooltipText="TBD">
           <TokenSelector
             handleTokenSelect={handleTokenSelect}
+            onBlur={tokenSelectorFormProps.onBlur}
             error={Boolean(errors.asset)}
             errorText={errors.asset?.message}
           />
