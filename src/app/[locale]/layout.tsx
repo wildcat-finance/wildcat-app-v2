@@ -16,7 +16,7 @@ import Header from "@/components/Header"
 import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
 import { config } from "@/lib/config"
-import { AuthProvider } from "@/providers/AuthProvider"
+import { RedirectsProvider } from "@/providers/RedirectsProvider"
 import { WagmiQueryProviders } from "@/providers/WagmiQueryProviders"
 
 import i18nConfig from "../../../i18nConfig"
@@ -47,7 +47,7 @@ export default async function RootLayout({
     <html lang={locale} dir={dir(locale)}>
       <body className={inter.className}>
         <WagmiQueryProviders initialState={initialState}>
-          <AuthProvider>
+          <RedirectsProvider>
             <StoreProvider>
               <ThemeRegistry>
                 <Box
@@ -66,7 +66,7 @@ export default async function RootLayout({
                 </Box>
               </ThemeRegistry>
             </StoreProvider>
-          </AuthProvider>
+          </RedirectsProvider>
         </WagmiQueryProviders>
       </body>
     </html>

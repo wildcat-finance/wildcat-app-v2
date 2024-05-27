@@ -6,10 +6,10 @@ import { useRouter, usePathname } from "next/navigation"
 import { usePrevious } from "react-use"
 import { useAccount } from "wagmi"
 
-import { shouldRedirectSA } from "@/providers/AuthProvider/utils/shouldRedirectSA"
 import { GenericProviderProps } from "@/providers/interface"
 
 import { useHasSignedSla } from "./hooks/useHasSignedSla"
+import { getRedirectPath } from "./utils/getRedirectPath"
 
 async function handleSLAStatus(
   address: `0x${string}` | undefined,
@@ -18,10 +18,10 @@ async function handleSLAStatus(
 ) {
   const { data } = await refetch()
 
-  return shouldRedirectSA(address, pathname, Boolean(data?.isSigned))
+  return getRedirectPath(address, pathname, Boolean(data?.isSigned))
 }
 
-export const AuthProvider = ({ children }: GenericProviderProps) => {
+export const RedirectsProvider = ({ children }: GenericProviderProps) => {
   const { replace } = useRouter()
   const pathname = usePathname()
   const { address, isConnected } = useAccount()
@@ -29,19 +29,16 @@ export const AuthProvider = ({ children }: GenericProviderProps) => {
   const { refetch } = useHasSignedSla(address)
 
   useEffect(() => {
-    const checkSARedirection = async () => {
-      const redirectionSAResult = await handleSLAStatus(
-        address,
-        pathname,
-        refetch,
-      )
-      if (redirectionSAResult) {
-        replace(redirectionSAResult)
+    const checkShouldRedirect = async () => {
+      const redirectPath = await handleSLAStatus(address, pathname, refetch)
+
+      if (redirectPath) {
+        replace(redirectPath)
       }
     }
 
     if (address !== previousAddress) {
-      checkSARedirection()
+      checkShouldRedirect()
     }
   }, [address, isConnected, previousAddress, refetch])
 

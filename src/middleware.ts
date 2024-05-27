@@ -3,7 +3,7 @@ import { i18nRouter } from "next-i18n-router"
 import { State, deserialize } from "wagmi"
 
 import { getSignedServiceAgreement } from "@/app/api/sla/[address]/services"
-import { shouldRedirectSA } from "@/providers/AuthProvider/utils/shouldRedirectSA"
+import { getRedirectPath } from "@/providers/RedirectsProvider/utils/getRedirectPath"
 
 import i18nConfig from "../i18nConfig"
 
@@ -28,15 +28,15 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  const redirectionSAResult = shouldRedirectSA(
+  const redirectPath = getRedirectPath(
     connectedAddress,
     request.nextUrl.pathname,
     isSigned,
   )
 
-  if (redirectionSAResult) {
+  if (redirectPath) {
     const url = request.nextUrl.clone()
-    url.pathname = redirectionSAResult
+    url.pathname = redirectPath
     return NextResponse.redirect(url)
   }
 
