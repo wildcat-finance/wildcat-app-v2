@@ -28,19 +28,18 @@ import { useNewMarketForm } from "./hooks/useNewMarketForm"
 
 export default function NewMarket() {
   const dispatch = useAppDispatch()
+  const { isConnected } = useAccount()
+  const router = useRouter()
 
   const newMarketForm = useNewMarketForm()
   const legalInfoForm = useLegalInfoForm()
 
-  const { data: controller, isLoading: isControllerLoading } =
-    useGetController()
+  const { isLoading: isControllerLoading } = useGetController()
   const { deployNewMarket, isDeploying, isSuccess, isError } = useDeployMarket()
 
   const isLoading = isControllerLoading || isDeploying
 
-  const assetFromForm = newMarketForm.watch("asset")
-  console.log("Token address:", assetFromForm)
-  const assetWatch = "0x3a4c4d83f5eb141febf8a94f1104f9215195c409" // USDT token address, temporary hardcoded value
+  const assetWatch = newMarketForm.watch("asset")
 
   const { data: assetData } = useTokenMetadata({
     address: assetWatch?.toLowerCase(),
@@ -50,7 +49,6 @@ export default function NewMarket() {
 
   useEffect(() => {
     setTokenAsset(assetData)
-    newMarketForm.setValue("asset", String(assetData?.name))
   }, [assetData])
 
   const handleDeployMarket = newMarketForm.handleSubmit(() => {
@@ -85,9 +83,6 @@ export default function NewMarket() {
     dispatch(setCurrentFlow("newMarketFlow"))
     dispatch(setCurrentStep(STEPS_NAME.marketDescription))
   }, [])
-
-  const { address, isConnected } = useAccount()
-  const router = useRouter()
 
   useEffect(() => {
     if (!isConnected) {

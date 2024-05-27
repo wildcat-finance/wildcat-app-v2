@@ -89,12 +89,12 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
     setValue("marketType", event.target.value?.toString() || "")
   }
 
-  const setTokenSelectError = (message: string) => {
-    setError("asset", {
-      type: "manual",
-      message,
-    })
-  }
+  // const setTokenSelectError = (message: string) => {
+  //   setError("asset", {
+  //     type: "manual",
+  //     message,
+  //   })
+  // }
 
   // const handleTokenSelect = async (value: string) => {
   //   setValue("asset", value)
@@ -105,9 +105,9 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
     setValue("asset", value)
   }
 
-  const getNumberFieldDefaultValue = (
-    field: keyof MarketValidationSchemaType,
-  ) => defaultMarketForm[field]
+  // const getNumberFieldDefaultValue = (
+  //   field: keyof MarketValidationSchemaType,
+  // ) => defaultMarketForm[field]
 
   const handleClickNext = () => {
     dispatch(
