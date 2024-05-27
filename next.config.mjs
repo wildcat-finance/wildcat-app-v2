@@ -57,6 +57,13 @@ const nextConfig = {
         hostname: process.env.NEXT_PUBLIC_TOKENS_IMG_HOSTNAME,
         port: '',
       },
+      // Sepolia tokens
+      {
+        protocol: 'https',
+        pathname: '/**',
+        hostname: 'raw.githubusercontent.com',
+        port: '',
+      },
     ],
   },
 

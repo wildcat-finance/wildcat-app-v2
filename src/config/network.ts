@@ -5,12 +5,6 @@ import {
   SupportedChainIds,
 } from "@wildcatfi/wildcat-sdk"
 
-export enum EtherscanEntity {
-  Address = "address",
-  Transaction = "tx",
-  Block = "block",
-}
-
 export const NETWORKS = {
   Sepolia: {
     chainId: 11155111,
@@ -26,18 +20,18 @@ export const NETWORKS = {
   },
 }
 
-const targetNetwork = process.env.NEXT_PUBLIC_TARGET_NETWORK
+const TARGET_NETWORK = process.env.NEXT_PUBLIC_TARGET_NETWORK
 const isValidNetwork = (network: string): network is keyof typeof NETWORKS =>
   network in NETWORKS
 
 assert(
-  typeof targetNetwork === "string" && isValidNetwork(targetNetwork),
+  typeof TARGET_NETWORK === "string" && isValidNetwork(TARGET_NETWORK),
   `REACT_APP_TARGET_NETWORK is not set or is invalid. Must be one of ${Object.keys(
     NETWORKS,
   ).join(", ")}`,
 )
 export const TargetNetwork: (typeof NETWORKS)[keyof typeof NETWORKS] =
-  NETWORKS[targetNetwork]
+  NETWORKS[TARGET_NETWORK]
 
 const targetChainId = TargetNetwork.chainId
 
