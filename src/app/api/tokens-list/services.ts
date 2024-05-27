@@ -6,7 +6,8 @@ import { NETWORKS } from "@/config/network"
 import { TokenInfo, TokenList } from "./interface"
 import { SEPOLIA_TOKENS } from "./tokens-list/sepolia"
 
-const TARGET_NETWORK = process.env.NEXT_PUBLIC_TARGET_NETWORK as keyof typeof NETWORKS
+const TARGET_NETWORK = process.env
+  .NEXT_PUBLIC_TARGET_NETWORK as keyof typeof NETWORKS
 
 const REVALIDATE_TOKENS_LIST_TIMEOUT = 60 * 60 * 24 * 3
 export const TOKENS_LIST_KEY = "tokens_list"
@@ -21,8 +22,10 @@ const filterByQueryType = (searchQuery: string, tokensList: TokenInfo[]) => {
     )
   }
 
-  return tokensList.filter(({ name }) =>
-    name.toLowerCase().includes(lowCaseSearchQuery),
+  return tokensList.filter(
+    ({ name, symbol }) =>
+      name.toLowerCase().includes(lowCaseSearchQuery) ||
+      symbol.toLowerCase().includes(lowCaseSearchQuery),
   )
 }
 

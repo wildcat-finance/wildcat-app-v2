@@ -40,7 +40,8 @@ const MyPopper = (props: JSX.IntrinsicAttributes & PopperProps) => (
 )
 
 const filterOptions = createFilterOptions({
-  stringify: (option: TokenInfo) => `${option.address}${option.name}`,
+  stringify: (option: TokenInfo) =>
+    `${option.address}${option.name}${option.symbol}`,
 })
 
 export type TokenSelectorProps = {
