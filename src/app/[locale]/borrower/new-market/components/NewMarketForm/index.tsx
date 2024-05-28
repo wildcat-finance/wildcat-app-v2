@@ -7,7 +7,6 @@ import {
   Button,
   Divider,
   InputAdornment,
-  SelectChangeEvent,
   TextField,
   Typography,
 } from "@mui/material"
@@ -31,7 +30,6 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   setDisableConfirmationStepSidebar,
   setDisableInfoStepSidebar,
-  setHideInfoStep,
   setNextStep,
 } from "@/store/slices/routingSlice/routingSlice"
 
@@ -65,6 +63,7 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
     setValue,
     register,
     formState: { errors, isValid },
+    control,
   } = form
 
   const handleTokenSelect = (value: string) => {
@@ -109,13 +108,9 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
       <Box sx={InputGroupContainer} marginTop="36px">
         <InputLabel label="Master Loan Agreement" tooltipText="TBD">
           <ExtendedSelect
-            {...register("mla")}
+            control={control}
+            name="mla"
             label="Please Select"
-            value={
-              mockedMLATemplatesOptions.find(
-                (el) => el.value === getValues("mla"),
-              )?.value
-            }
             options={mockedMLATemplatesOptions}
             optionSX={DropdownOption}
           />
@@ -123,13 +118,9 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
 
         <InputLabel label="KYC Preferences" tooltipText="TBD">
           <ExtendedSelect
-            {...register("mla")}
+            control={control}
+            name="kyc"
             label="Please Select"
-            value={
-              mockedKYCPreferencesOptions.find(
-                (el) => el.value === getValues("kyc"),
-              )?.value
-            }
             options={mockedKYCPreferencesOptions}
             optionSX={DropdownOption}
           />
@@ -137,13 +128,9 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
 
         <InputLabel label="Select market type" tooltipText="TBD">
           <ExtendedSelect
-            {...register("kyc")}
+            control={control}
+            name="marketType"
             label="Please Select"
-            value={
-              mockedMarketTypesOptions.find(
-                (el) => el.value === getValues("marketType"),
-              )?.value
-            }
             options={mockedMarketTypesOptions}
             optionSX={DropdownOption}
           />

@@ -17,8 +17,10 @@ export const ThemedSelect = () => (
       rowGap: "30px",
     }}
   >
+    {/* @ts-expect-error to change */}
     <ExtendedSelect label="Please Select" options={mockedStories} />
 
+    {/* @ts-expect-error to change */}
     <ExtendedSelect small label="Please Select" options={mockedStories} />
   </Box>
 )

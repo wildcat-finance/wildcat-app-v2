@@ -22,6 +22,12 @@ export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   minimumDeposit: 0,
   delinquencyGracePeriod: undefined,
   withdrawalBatchDuration: undefined,
+  kyc: "",
+  mla: "",
+  marketName: "",
+  asset: "",
+  namePrefix: "",
+  symbolPrefix: "",
 }
 
 function getValidationSchema(constraints: MarketParameterConstraints) {

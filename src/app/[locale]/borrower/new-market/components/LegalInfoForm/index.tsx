@@ -43,6 +43,7 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
     setValue,
     getValues,
     formState: { errors, isValid },
+    control,
   } = form
 
   const handleNatureSelect = (event: SelectChangeEvent<string | null>) => {
@@ -94,11 +95,8 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
         <InputLabel label="Legal Nature" tooltipText="TBD">
           <ExtendedSelect
             label="Please Select"
-            value={
-              mockedNaturesOptions.find(
-                (el) => el.value === getValues("legalNature"),
-              )?.value
-            }
+            control={control}
+            name="legalNature"
             options={mockedNaturesOptions}
             optionSX={DropdownOption}
             onChange={handleNatureSelect}
