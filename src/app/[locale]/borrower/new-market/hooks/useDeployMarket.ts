@@ -168,9 +168,7 @@ export const useDeployMarket = () => {
       await waitForSubgraphSync(receipt.blockNumber)
     },
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: [GET_CONTROLLER_KEY] }).then(() => {
-        router.push(`${ROUTES.borrower.root}`)
-      })
+      client.invalidateQueries({ queryKey: [GET_CONTROLLER_KEY] })
     },
     onError(error) {
       console.log(error)

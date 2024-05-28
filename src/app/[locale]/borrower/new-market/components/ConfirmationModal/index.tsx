@@ -9,12 +9,14 @@ import {
   Typography,
 } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
+import { useRouter } from "next/navigation"
 
 import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { Loader } from "@/components/Loader"
 import { mockedMarketTypesOptions } from "@/mocks/mocks"
+import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { STEPS_NAME } from "@/store/slices/routingSlice/flowsSteps"
 import { setPreviousStep } from "@/store/slices/routingSlice/routingSlice"
@@ -56,6 +58,7 @@ export const ConfirmationModal = ({
   isError,
   isSuccess,
 }: ConfirmationModalProps) => {
+  const router = useRouter()
   const [showErrorPopup, setShowErrorPopup] = useState(false)
 
   useEffect(() => {
@@ -82,6 +85,10 @@ export const ConfirmationModal = ({
           : STEPS_NAME.legalInformation,
       ),
     )
+  }
+
+  const handleGoToMarkets = () => {
+    router.push(`${ROUTES.borrower.root}`)
   }
 
   const marketTypeValue = mockedMarketTypesOptions.find(
@@ -177,8 +184,13 @@ export const ConfirmationModal = ({
             >
               View and download MLA
             </Button>
-            <Button variant="contained" size="large" fullWidth>
-              Go to the Market
+            <Button
+              onClick={handleGoToMarkets}
+              variant="contained"
+              size="large"
+              fullWidth
+            >
+              Go to the Markets
             </Button>
           </Box>
         </Box>
