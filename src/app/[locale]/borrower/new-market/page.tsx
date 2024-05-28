@@ -123,33 +123,19 @@ export default function NewMarket() {
           justifyContent="space-around"
         >
           {hideLegalInfoStep ? (
-            <>
-              <ConfirmationModal
-                open={newMarketStep === newMarketSteps.confirmation.name}
-                tokenAsset={tokenAsset}
-                getMarketValues={newMarketForm.getValues}
-                handleDeployMarket={handleDeployMarket}
-                isLoading={isLoading}
-                isError={isError}
-                isSuccess={isSuccess}
-              />
-              <NewMarketForm form={newMarketForm} tokenAsset={tokenAsset} />
-            </>
+            <NewMarketForm form={newMarketForm} tokenAsset={tokenAsset} />
           ) : (
-            <>
-              <ConfirmationModal
-                open={newMarketStep === newMarketSteps.confirmation.name}
-                tokenAsset={tokenAsset}
-                getMarketValues={newMarketForm.getValues}
-                getInfoValues={legalInfoForm.getValues}
-                handleDeployMarket={handleDeployMarket}
-                isLoading={isLoading}
-                isError={isError}
-                isSuccess={isSuccess}
-              />
-              <LegalInfoForm form={legalInfoForm} />
-            </>
+            <LegalInfoForm form={legalInfoForm} />
           )}
+          <ConfirmationModal
+            open={newMarketStep === newMarketSteps.confirmation.name}
+            tokenAsset={tokenAsset}
+            getMarketValues={newMarketForm.getValues}
+            handleDeployMarket={handleDeployMarket}
+            isLoading={isLoading}
+            isError={isError}
+            isSuccess={isSuccess}
+          />
         </Box>
       )
     }

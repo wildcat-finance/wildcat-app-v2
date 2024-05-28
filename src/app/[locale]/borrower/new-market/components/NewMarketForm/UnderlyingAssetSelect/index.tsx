@@ -45,9 +45,9 @@ const filterOptions = createFilterOptions({
     `${option.address}${option.name}${option.symbol}`,
 })
 
-export const TokenSelector = forwardRef(
+export const UnderlyingAssetSelect = forwardRef(
   (
-    { error, errorText, handleTokenSelect }: TokenSelectorProps,
+    { error, errorText, handleTokenSelect, onBlur }: TokenSelectorProps,
     ref: ForwardedRef<HTMLInputElement>,
   ) => {
     const { handleChange, handleSelect, query, setQuery, isLoading, tokens } =
@@ -55,12 +55,10 @@ export const TokenSelector = forwardRef(
 
     const handleSetToken = (
       event: React.SyntheticEvent,
-      newValue: TokenInfo | null,
+      selectedToken: TokenInfo | null,
     ) => {
-      handleSelect(newValue)
-      if (newValue) {
-        handleTokenSelect(newValue?.address)
-      }
+      handleSelect(selectedToken)
+      handleTokenSelect(selectedToken)
     }
 
     return (
@@ -70,6 +68,7 @@ export const TokenSelector = forwardRef(
           filterOptions={filterOptions}
           noOptionsText={isLoading ? "Loading..." : "Enter token name"}
           ref={ref}
+          onBlur={onBlur}
           renderInput={(params) => (
             <TextField
               {...params}
@@ -94,9 +93,7 @@ export const TokenSelector = forwardRef(
               {option.name}
             </MenuItem>
           )}
-          isOptionEqualToValue={(option, value) =>
-            option.address === value.address
-          }
+          isOptionEqualToValue={(option, val) => option.address === val.address}
           getOptionLabel={(option) => option.name}
           options={tokens}
           popupIcon={null}

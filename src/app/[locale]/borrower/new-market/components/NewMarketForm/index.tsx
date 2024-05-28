@@ -15,6 +15,7 @@ import { Token } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { UseFormReturn } from "react-hook-form"
 
+import { TokenInfo } from "@/app/api/tokens-list/interface"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { InputLabel } from "@/components/InputLabel"
@@ -43,7 +44,7 @@ import {
   InputGroupContainer,
   NextButton,
 } from "./style"
-import { TokenSelector } from "./UnderlyingAssetSelect"
+import { UnderlyingAssetSelect } from "./UnderlyingAssetSelect"
 import { MarketValidationSchemaType } from "../../validation/validationSchema"
 
 type NewMarketFormProps = {
@@ -54,10 +55,6 @@ type NewMarketFormProps = {
 export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
   const dispatch = useAppDispatch()
 
-  const hideLegalInfoStep = useAppSelector(
-    (state) => state.routing.hideInfoStep,
-  )
-
   const {
     getValues,
     setValue,
@@ -66,8 +63,12 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
     control,
   } = form
 
-  const handleTokenSelect = (value: string) => {
-    setValue("asset", value)
+  const hideLegalInfoStep = useAppSelector(
+    (state) => state.routing.hideInfoStep,
+  )
+
+  const handleTokenSelect = (asset: TokenInfo | null) => {
+    setValue("asset", asset ? asset.address : "")
   }
 
   const handleClickNext = () => {
@@ -137,9 +138,10 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
         </InputLabel>
 
         <InputLabel label="Underlying asset" tooltipText="TBD">
-          <TokenSelector
+          <UnderlyingAssetSelect
             handleTokenSelect={handleTokenSelect}
             onBlur={tokenSelectorFormProps.onBlur}
+            ref={tokenSelectorFormProps.ref}
             error={Boolean(errors.asset)}
             errorText={errors.asset?.message}
           />
