@@ -1,5 +1,7 @@
 import { createTheme } from "@mui/material"
 
+import type {} from "@mui/x-data-grid/themeAugmentation"
+
 import {
   largeContainedButton,
   largeOutlinedButton,
@@ -943,6 +945,71 @@ export const theme = createTheme({
         root: {
           color: COLORS.bunker,
           letterSpacing: 0,
+        },
+      },
+    },
+    MuiDataGrid: {
+      defaultProps: {
+        rowSelection: false,
+        disableColumnMenu: true,
+        disableColumnResize: true,
+        disableRowSelectionOnClick: true,
+        disableColumnSelector: true,
+        hideFooter: true,
+      },
+      styleOverrides: {
+        root: {
+          fontFamily: "inherit",
+          border: "none",
+
+          "& .MuiDataGrid-columnHeader:focus": {
+            outline: "transparent",
+          },
+          "& .MuiDataGrid-cell:focus": {
+            outline: "transparent",
+          },
+
+          "& .MuiDataGrid-row:hover": {
+            backgroundColor: COLORS.alabaster05,
+          },
+
+          "& .MuiDataGrid-sortIcon": {
+            opacity: "inherit !important",
+          },
+
+          "& .MuiDataGrid-topContainer:after": {
+            display: "none",
+          },
+
+          "& .MuiDataGrid-columnHeader": {
+            padding: 0,
+
+            fontSize: "10px",
+            lineHeight: "12px",
+            fontWeight: 500,
+            color: COLORS.santasGrey,
+
+            "& .MuiDataGrid-columnHeaderTitleContainer": {
+              gap: "8px",
+            },
+
+            "& .MuiDataGrid-columnSeparator": {
+              display: "none",
+            },
+          },
+
+          "& .MuiDataGrid-cell": {
+            display: "flex",
+            alignItems: "center",
+            height: "52px",
+            padding: 0,
+            borderColor: COLORS.athensGrey,
+
+            fontSize: "10px",
+            lineHeight: "20px",
+            fontWeight: 500,
+            color: COLORS.blackRock,
+          },
         },
       },
     },

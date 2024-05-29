@@ -4,7 +4,11 @@ import { Box, Button, Typography } from "@mui/material"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import { ContentContainer } from "@/app/[locale]/borrower/page-style"
+import {
+  ContentContainer,
+  PageTitleContainer,
+} from "@/app/[locale]/borrower/page-style"
+import ExtendedDataGrid from "@/components/@extended/ExtendedDataGrid"
 import { LeadBanner } from "@/components/LeadBanner"
 import { ROUTES } from "@/routes"
 
@@ -15,7 +19,7 @@ export default function Borrower() {
   const bannerDisplayConfig = useBorrowerInvitationRedirect()
 
   return (
-    <Box padding="0 16px">
+    <Box>
       <Box sx={ContentContainer}>
         <Typography variant="title2">{t("header")}</Typography>
 
@@ -36,6 +40,10 @@ export default function Borrower() {
           buttonLink={bannerDisplayConfig.link}
         />
       )}
+
+      <Box padding="0 16px">
+        <ExtendedDataGrid />
+      </Box>
     </Box>
   )
 }

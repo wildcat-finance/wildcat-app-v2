@@ -15,6 +15,7 @@ export const COLORS = {
   whiteSmoke: "#F4F4F8",
   hintOfRed: "#F9F9FA",
   alabaster: "#FAFAFA",
+  alabaster05: "#FAFAFA80",
   white: "#FFFFFF",
   white01: "#FFFFFF1A",
   white03: "#FFFFFF4D",

@@ -7,3 +7,10 @@ export const ContentContainer = {
 
   marginBottom: "32px",
 }
+
+export const PageTitleContainer = {
+  width: "100%",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+}
