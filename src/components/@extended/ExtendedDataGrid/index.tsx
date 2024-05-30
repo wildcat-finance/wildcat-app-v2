@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import { Accordion, AccordionSummary, SvgIcon } from "@mui/material"
-import { DataGrid, GridRowsProp, GridColDef } from "@mui/x-data-grid"
+import { DataGrid, GridColDef } from "@mui/x-data-grid"
 
 import AscIcon from "@/assets/icons/tableSort-ascSort_icon.svg"
 import DescIcon from "@/assets/icons/tableSort-descSort_icon.svg"
@@ -87,7 +87,7 @@ const columns: GridColDef[] = [
     headerAlign: "left",
     align: "left",
     renderCell: (params) => (
-      <MarketStatusChip status={params.value} timeHealthy="32 more days" />
+      <MarketStatusChip status={params.value} />
     ),
   },
   {
@@ -141,17 +141,15 @@ const columns: GridColDef[] = [
   },
 ]
 
-const AccordionIcon = (
-  <SvgIcon fontSize="medium">
-    <UpArrow />
-  </SvgIcon>
-)
-
 export default function ExtendedDataGrid() {
   return (
     <Accordion>
       <AccordionSummary
-        expandIcon={AccordionIcon}
+        expandIcon={
+          <SvgIcon fontSize="medium">
+            <UpArrow />
+          </SvgIcon>
+        }
         aria-controls="active-markets"
         id="active-markets-header"
       >
