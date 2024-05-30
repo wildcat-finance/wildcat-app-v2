@@ -979,6 +979,11 @@ export const theme = createTheme({
             backgroundColor: COLORS.alabaster05,
           },
 
+          "& .MuiDataGrid-iconButtonContainer": {
+            width: "8px",
+            visibility: "visible",
+          },
+
           "& .MuiDataGrid-sortIcon": {
             opacity: "inherit !important",
           },
@@ -988,15 +993,22 @@ export const theme = createTheme({
           },
 
           "& .MuiDataGrid-columnHeaders": {
-            padding: "0 16px",
-
             "& .MuiDataGrid-filler": {
               display: "none",
             },
           },
 
+          "& .MuiDataGrid-columnHeader--alignRight": {
+            justifyContent: "flex-end",
+
+            "& .MuiDataGrid-columnHeaderTitleContainer": {
+              flexDirection: "row",
+              justifyContent: "flex-end",
+            },
+          },
+
           "& .MuiDataGrid-columnHeader": {
-            padding: 0,
+            padding: "0 16px",
 
             fontSize: "10px",
             lineHeight: "12px",
@@ -1005,6 +1017,7 @@ export const theme = createTheme({
 
             "& .MuiDataGrid-columnHeaderTitleContainer": {
               gap: "8px",
+              margin: "16px 0 8px",
             },
 
             "& .MuiDataGrid-columnSeparator": {
@@ -1013,10 +1026,15 @@ export const theme = createTheme({
           },
 
           "& .MuiDataGrid-row": {
-            padding: "0 16px",
-
             "& .MuiDataGrid-cellEmpty": {
               display: "none",
+            },
+
+            "&:last-child": {
+              "& .MuiDataGrid-cell": {
+                borderBottom: "1px solid",
+                borderColor: COLORS.athensGrey,
+              },
             },
           },
 
@@ -1024,7 +1042,7 @@ export const theme = createTheme({
             display: "flex",
             alignItems: "center",
             height: "52px",
-            padding: 0,
+            padding: "0 16px",
             borderColor: COLORS.athensGrey,
 
             fontSize: "10px",

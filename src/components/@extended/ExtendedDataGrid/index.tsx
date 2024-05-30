@@ -86,14 +86,12 @@ const columns: GridColDef[] = [
     minWidth: 146,
     headerAlign: "left",
     align: "left",
-    renderCell: (params) => (
-      <MarketStatusChip status={params.value} />
-    ),
+    renderCell: (params) => <MarketStatusChip status={params.value} />,
   },
   {
     field: "name",
     headerName: "Market Name",
-    minWidth: 290,
+    flex: 1,
     headerAlign: "left",
     align: "left",
   },
@@ -159,8 +157,6 @@ export default function ExtendedDataGrid() {
         rows={tableData}
         columns={columns}
         columnHeaderHeight={40}
-        disableAutosize
-        showColumnVerticalBorder
         slots={{
           columnSortedDescendingIcon: DescIcon,
           columnSortedAscendingIcon: AscIcon,
