@@ -159,21 +159,23 @@ export const theme = createTheme({
     MuiChip: {
       styleOverrides: {
         root: ({ ownerState }) => ({
+          fontFamily: "inherit",
           width: "fit-content",
           height: "fit-content",
           display: "flex",
           alignItems: "center",
           columnGap: "2px",
           borderRadius: "4px",
-          padding: "0 8px",
+          padding: "0 6px",
           ...(ownerState.variant === "filled" && {
             "& .MuiChip-label": {
               position: "relative",
               top: "0.7px",
               fontSize: "10px",
+              lineHeight: "16px",
               fontWeight: 500,
 
-              padding: "2px 0",
+              padding: 0,
             },
             "& .MuiChip-icon": {
               margin: 0,
@@ -962,6 +964,10 @@ export const theme = createTheme({
           fontFamily: "inherit",
           border: "none",
 
+          "& .MuiDataGrid-columnHeader--sorted": {
+            color: `${COLORS.blackRock} !important`,
+          },
+
           "& .MuiDataGrid-columnHeader:focus": {
             outline: "transparent",
           },
@@ -981,6 +987,14 @@ export const theme = createTheme({
             display: "none",
           },
 
+          "& .MuiDataGrid-columnHeaders": {
+            padding: "0 16px",
+
+            "& .MuiDataGrid-filler": {
+              display: "none",
+            },
+          },
+
           "& .MuiDataGrid-columnHeader": {
             padding: 0,
 
@@ -998,6 +1012,14 @@ export const theme = createTheme({
             },
           },
 
+          "& .MuiDataGrid-row": {
+            padding: "0 16px",
+
+            "& .MuiDataGrid-cellEmpty": {
+              display: "none",
+            },
+          },
+
           "& .MuiDataGrid-cell": {
             display: "flex",
             alignItems: "center",
@@ -1009,6 +1031,51 @@ export const theme = createTheme({
             lineHeight: "20px",
             fontWeight: 500,
             color: COLORS.blackRock,
+          },
+        },
+      },
+    },
+    MuiAccordion: {
+      styleOverrides: {
+        root: {
+          fontFamily: "inherit",
+          border: "none",
+          boxShadow: "none",
+          padding: 0,
+        },
+      },
+    },
+    MuiAccordionSummary: {
+      styleOverrides: {
+        root: {
+          height: "32px",
+          minHeight: "0 !important",
+          fontFamily: "inherit",
+          backgroundColor: COLORS.hintOfRed,
+
+          "& .MuiAccordionSummary-expandIconWrapper": {
+            height: "16px",
+            alignItems: "center",
+          },
+
+          "& .MuiAccordionSummary-content": {
+            fontFamily: "inherit",
+            fontSize: "12px",
+            lineHeight: "20px",
+            fontWeight: 500,
+            alignItems: "center",
+
+            margin: 0,
+
+            "& .Mui-expanded": {
+              margin: 0,
+            },
+          },
+
+          "& .Mui-expanded": {
+            height: "32px",
+            minHeight: "0 !important",
+            margin: 0,
           },
         },
       },

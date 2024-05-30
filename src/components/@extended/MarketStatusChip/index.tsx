@@ -5,9 +5,7 @@ import Image from "next/image"
 import { MarketStatusChipProps } from "@/components/@extended/MarketStatusChip/type"
 import { COLORS } from "@/theme/colors"
 
-import Checked from "../../../assets/icons/check_icon.svg"
 import Clock from "../../../assets/icons/clock_icon.svg"
-import Cross from "../../../assets/icons/cross_icon.svg"
 import Fire from "../../../assets/icons/fire_icon.png"
 import Arrow from "../../../assets/icons/textChipArrow_icon.svg"
 
@@ -21,9 +19,9 @@ export const MarketStatusChip = ({
     case "healthy": {
       chipConfig = {
         label: "Healthy",
-        icon: <Checked />,
+        icon: undefined,
         backgroundColor: COLORS.glitter,
-        fontColor: COLORS.blueRibbon,
+        fontColor: COLORS.ultramarineBlue,
       }
       break
     }
@@ -48,7 +46,7 @@ export const MarketStatusChip = ({
     case "terminated": {
       chipConfig = {
         label: "Terminated",
-        icon: <Cross />,
+        icon: undefined,
         backgroundColor: COLORS.whiteSmoke,
         fontColor: COLORS.santasGrey,
       }
@@ -57,29 +55,31 @@ export const MarketStatusChip = ({
     default: {
       chipConfig = {
         label: "Healthy",
-        icon: <Checked />,
+        icon: undefined,
         backgroundColor: COLORS.glitter,
-        fontColor: COLORS.blueRibbon,
+        fontColor: COLORS.ultramarineBlue,
       }
     }
   }
+
+  const chipIcon =
+    // eslint-disable-next-line no-nested-ternary
+    status === "penalty" ? (
+      <Image src={Fire} alt="Fire icon" height={12} width={12} />
+    ) : chipConfig.icon === undefined ? undefined : (
+      <SvgIcon
+        fontSize="tiny"
+        sx={{ "& path": { fill: `${chipConfig.fontColor}` } }}
+      >
+        {chipConfig.icon}
+      </SvgIcon>
+    )
 
   switch (variant) {
     case "filled": {
       return (
         <Chip
-          icon={
-            status === "penalty" ? (
-              <Image src={Fire} alt="Fire icon" height={12} width={12} />
-            ) : (
-              <SvgIcon
-                fontSize="tiny"
-                sx={{ "& path": { fill: `${chipConfig.fontColor}` } }}
-              >
-                {chipConfig.icon}
-              </SvgIcon>
-            )
-          }
+          icon={chipIcon}
           label={chipConfig.label}
           sx={{
             backgroundColor: chipConfig.backgroundColor,

@@ -1,12 +1,15 @@
 import * as React from "react"
 
+import { Accordion, AccordionSummary, SvgIcon } from "@mui/material"
 import { DataGrid, GridRowsProp, GridColDef } from "@mui/x-data-grid"
 
 import AscIcon from "@/assets/icons/tableSort-ascSort_icon.svg"
 import DescIcon from "@/assets/icons/tableSort-descSort_icon.svg"
 import UnsortedIcon from "@/assets/icons/tableSort-unsorted_icon.svg"
+import UpArrow from "@/assets/icons/upArrow_icon.svg"
+import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 
-const rows: GridRowsProp = [
+const rows = [
   {
     id: 1,
     status: "healthy",
@@ -64,6 +67,18 @@ const rows: GridRowsProp = [
   },
 ]
 
+const tableData = rows.map((market) => ({
+  id: market.id,
+  status: market.status,
+  name: market.name,
+  asset: market.asset,
+  lenderAPR: market.lenderAPR,
+  crr: market.crr,
+  maxCapacity: market.maxCapacity,
+  borrowable: market.borrowable,
+  deploy: market.deploy,
+}))
+
 const columns: GridColDef[] = [
   {
     field: "status",
@@ -71,6 +86,9 @@ const columns: GridColDef[] = [
     minWidth: 146,
     headerAlign: "left",
     align: "left",
+    renderCell: (params) => (
+      <MarketStatusChip status={params.value} timeHealthy="32 more days" />
+    ),
   },
   {
     field: "name",
@@ -123,24 +141,39 @@ const columns: GridColDef[] = [
   },
 ]
 
+const AccordionIcon = (
+  <SvgIcon fontSize="medium">
+    <UpArrow />
+  </SvgIcon>
+)
+
 export default function ExtendedDataGrid() {
   return (
-    <DataGrid
-      rows={rows}
-      columns={columns}
-      columnHeaderHeight={40}
-      disableAutosize
-      showColumnVerticalBorder
-      slots={{
-        columnSortedDescendingIcon: DescIcon,
-        columnSortedAscendingIcon: AscIcon,
-        columnUnsortedIcon: UnsortedIcon,
-      }}
-      slotProps={{
-        cell: {
-          title: "",
-        },
-      }}
-    />
+    <Accordion>
+      <AccordionSummary
+        expandIcon={AccordionIcon}
+        aria-controls="active-markets"
+        id="active-markets-header"
+      >
+        Your Active Markets
+      </AccordionSummary>
+      <DataGrid
+        rows={tableData}
+        columns={columns}
+        columnHeaderHeight={40}
+        disableAutosize
+        showColumnVerticalBorder
+        slots={{
+          columnSortedDescendingIcon: DescIcon,
+          columnSortedAscendingIcon: AscIcon,
+          columnUnsortedIcon: UnsortedIcon,
+        }}
+        slotProps={{
+          cell: {
+            title: "",
+          },
+        }}
+      />
+    </Accordion>
   )
 }

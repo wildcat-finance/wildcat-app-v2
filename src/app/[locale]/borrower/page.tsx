@@ -41,7 +41,7 @@ export default function Borrower() {
         />
       )}
 
-      <Box padding="0 16px">
+      <Box>
         <ExtendedDataGrid />
       </Box>
     </Box>
