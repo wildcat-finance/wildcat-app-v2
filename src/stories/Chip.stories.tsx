@@ -2,6 +2,7 @@ import { Box } from "@mui/material"
 import type { Meta } from "@storybook/react"
 
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { MarketStatus } from "@/utils/marketStatus"
 
 export default {
   title: "Components/Wildcat Chip",
@@ -24,10 +25,10 @@ export const Chip = () => (
         gap: "10px",
       }}
     >
-      <MarketStatusChip status="healthy" />
-      <MarketStatusChip status="penalty" />
-      <MarketStatusChip status="delinquent" />
-      <MarketStatusChip status="terminated" />
+      <MarketStatusChip status={MarketStatus.HEALTHY} />
+      <MarketStatusChip status={MarketStatus.PENALTY} />
+      <MarketStatusChip status={MarketStatus.DELINQUENT} />
+      <MarketStatusChip status={MarketStatus.TERMINATED} />
     </Box>
     <Box
       sx={{
@@ -37,10 +38,10 @@ export const Chip = () => (
         gap: "10px",
       }}
     >
-      <MarketStatusChip variant="text" status="healthy" />
-      <MarketStatusChip variant="text" status="penalty" />
-      <MarketStatusChip variant="text" status="delinquent" />
-      <MarketStatusChip variant="text" status="terminated" />
+      <MarketStatusChip variant="text" status={MarketStatus.HEALTHY} />
+      <MarketStatusChip variant="text" status={MarketStatus.PENALTY} />
+      <MarketStatusChip variant="text" status={MarketStatus.DELINQUENT} />
+      <MarketStatusChip variant="text" status={MarketStatus.TERMINATED} />
     </Box>
   </Box>
 )

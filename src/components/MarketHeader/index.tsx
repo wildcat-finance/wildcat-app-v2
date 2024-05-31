@@ -9,6 +9,7 @@ import {
   ElseButtonContainer,
   ElseButtonText,
 } from "@/components/MarketHeader/style"
+import { MarketStatus } from "@/utils/marketStatus"
 
 export const MarketHeader = () => {
   const { t } = useTranslation()
@@ -21,7 +22,7 @@ export const MarketHeader = () => {
           <Typography variant="text4">WBTC</Typography>
         </Box>
         <Box display="flex" columnGap="12px">
-          <MarketStatusChip status="healthy" variant="filled" />
+          <MarketStatusChip status={MarketStatus.HEALTHY} variant="filled" />
           <MarketCycleChip color="blue" time="3m 45s" />
         </Box>
       </Box>

@@ -9,69 +9,20 @@ import {
 } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import { DataGrid, GridColDef, GridColumnHeaderParams } from "@mui/x-data-grid"
+import { Market } from "@wildcatfi/wildcat-sdk"
 
 import Question from "@/assets/icons/circledQuestion_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { TooltipIcon } from "@/components/InputLabel/style"
 import { COLORS } from "@/theme/colors"
+import {
+  formatBps,
+  formatTokenWithCommas,
+  timestampToDateFormatted,
+} from "@/utils/formatters"
+import { getMarketStatus } from "@/utils/marketStatus"
 
-const rows = [
-  {
-    id: 1,
-    status: "healthy",
-    name: "Asset 1",
-    asset: "WETH",
-    lenderAPR: 5.3,
-    crr: "65%",
-    maxCapacity: 1000000,
-    borrowable: 650000,
-    deploy: "2024-05-29 10:30",
-  },
-  {
-    id: 2,
-    status: "penalty",
-    name: "Asset 2",
-    asset: "USDC",
-    lenderAPR: 4.7,
-    crr: "70%",
-    maxCapacity: 500000,
-    borrowable: 350000,
-    deploy: "2024-05-28 14:45",
-  },
-  {
-    id: 3,
-    status: "healthy",
-    name: "Asset 3",
-    asset: "USDT",
-    lenderAPR: 6.1,
-    crr: "80%",
-    maxCapacity: 2000000,
-    borrowable: 1600000,
-    deploy: "2024-05-27 08:20",
-  },
-  {
-    id: 4,
-    status: "penalty",
-    name: "Asset 4",
-    asset: "WETH",
-    lenderAPR: 3.9,
-    crr: "60%",
-    maxCapacity: 750000,
-    borrowable: 450000,
-    deploy: "2024-05-26 16:10",
-  },
-  {
-    id: 5,
-    status: "healthy",
-    name: "Asset 5",
-    asset: "USDC",
-    lenderAPR: 5.0,
-    crr: "75%",
-    maxCapacity: 1250000,
-    borrowable: 937500,
-    deploy: "2024-05-25 12:55",
-  },
-]
+import { BorrowerActiveMarketsTableProps } from "./interface"
 
 const columns: GridColDef[] = [
   {
@@ -148,23 +99,41 @@ const columns: GridColDef[] = [
   },
 ]
 
-export const BorrowerActiveMarketsTable = () => {
-  const tableData = rows.map((market) => ({
-    id: market.id,
-    status: market.status,
-    name: market.name,
-    asset: market.asset,
-    lenderAPR: market.lenderAPR,
-    crr: market.crr,
-    maxCapacity: market.maxCapacity,
-    borrowable: market.borrowable,
-    deploy: market.deploy,
-  }))
+export const BorrowerActiveMarketsTable = ({
+  tableData,
+  isLoading,
+}: BorrowerActiveMarketsTableProps) => {
+  const rows = tableData
+    ? tableData.map((market) => ({
+        id: market.address,
+        status: getMarketStatus(
+          market.isClosed,
+          market.isDelinquent,
+          market.isIncurringPenalties,
+        ),
+        name: market.name,
+        asset: market.underlyingToken.symbol,
+        lenderAPR: `${formatBps(market.annualInterestBips)}%`,
+        crr: `${formatBps(market.reserveRatioBips)}%`,
+        maxCapacity: `${formatTokenWithCommas(market.maxTotalSupply)} ${
+          market.underlyingToken.symbol
+        }`,
+        borrowable: formatTokenWithCommas(market.borrowableAssets, {
+          withSymbol: true,
+        }),
+        deploy: market.deployedEvent
+          ? timestampToDateFormatted(market.deployedEvent.blockTimestamp)
+          : "",
+      }))
+    : undefined
 
   return (
     <Accordion>
       <AccordionSummary>Your Active Markets</AccordionSummary>
-      <DataGrid rows={tableData} columns={columns} columnHeaderHeight={40} />
+      {isLoading && <Typography variant="text2">Is Loading</Typography>}
+      {tableData && !isLoading && (
+        <DataGrid rows={rows} columns={columns} columnHeaderHeight={40} />
+      )}
     </Accordion>
   )
 }

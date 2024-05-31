@@ -3,17 +3,22 @@
 import { Box, Button, Typography } from "@mui/material"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
-import { PageTitleContainer } from "@/app/[locale]/borrower/page-style"
 import { LeadBanner } from "@/components/LeadBanner"
 import { ROUTES } from "@/routes"
 
 import { BorrowerActiveMarketsTable } from "./components/BorrowerActiveMarketsTable"
 import { useBorrowerInvitationRedirect } from "./hooks/useBorrowerInvitationRedirect"
+import { useMarketsForBorrower } from "./hooks/useMarketsForBorrower"
+import { PageTitleContainer } from "./page-style"
 
 export default function Borrower() {
   const { t } = useTranslation()
   const bannerDisplayConfig = useBorrowerInvitationRedirect()
+
+  const { address } = useAccount()
+  const { data, isLoading } = useMarketsForBorrower(address)
 
   return (
     <Box>
@@ -39,7 +44,7 @@ export default function Borrower() {
       )}
 
       <Box>
-        <BorrowerActiveMarketsTable />
+        <BorrowerActiveMarketsTable tableData={data} isLoading={isLoading} />
       </Box>
     </Box>
   )

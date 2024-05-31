@@ -1,4 +1,6 @@
+import { MarketStatus } from "@/utils/marketStatus"
+
 export type MarketStatusChipProps = {
   variant?: "filled" | "text"
-  status: "healthy" | "penalty" | "delinquent" | "terminated"
+  status: MarketStatus
 }

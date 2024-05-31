@@ -16,7 +16,7 @@ export const MarketStatusChip = ({
   let chipConfig
 
   switch (status) {
-    case "healthy": {
+    case "Healthy": {
       chipConfig = {
         label: "Healthy",
         icon: undefined,
@@ -25,7 +25,7 @@ export const MarketStatusChip = ({
       }
       break
     }
-    case "penalty": {
+    case "Penalty": {
       chipConfig = {
         label: "Penalty",
         icon: "",
@@ -34,7 +34,7 @@ export const MarketStatusChip = ({
       }
       break
     }
-    case "delinquent": {
+    case "Delinquent": {
       chipConfig = {
         label: "Delinquent",
         icon: <Clock />,
@@ -43,7 +43,7 @@ export const MarketStatusChip = ({
       }
       break
     }
-    case "terminated": {
+    case "Terminated": {
       chipConfig = {
         label: "Terminated",
         icon: undefined,
@@ -64,7 +64,7 @@ export const MarketStatusChip = ({
 
   const chipIcon =
     // eslint-disable-next-line no-nested-ternary
-    status === "penalty" ? (
+    status === "Penalty" ? (
       <Image src={Fire} alt="Fire icon" height={12} width={12} />
     ) : chipConfig.icon === undefined ? undefined : (
       <SvgIcon
@@ -104,7 +104,7 @@ export const MarketStatusChip = ({
               color: chipConfig.fontColor,
             }}
           />
-          {(status === "penalty" || status === "delinquent") && (
+          {(status === "Penalty" || status === "Delinquent") && (
             <Arrow
               fill={chipConfig.fontColor}
               style={{ position: "relative", top: "-2px" }}
