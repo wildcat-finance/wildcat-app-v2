@@ -17,8 +17,24 @@ export default function Borrower() {
   const { t } = useTranslation()
   const bannerDisplayConfig = useBorrowerInvitationRedirect()
 
+  const { data: allMarkets, isLoading } = useMarketsForBorrower()
   const { address } = useAccount()
-  const { data, isLoading } = useMarketsForBorrower(address)
+
+  const activeBorrowerMarkets = allMarkets?.filter(
+    (market) =>
+      market.borrower.toLowerCase() === address?.toLowerCase() &&
+      !market.isClosed,
+  )
+
+  const terminatedBorrowerMarkets = allMarkets?.filter(
+    (market) =>
+      market.borrower.toLowerCase() === address?.toLowerCase() &&
+      market.isClosed,
+  )
+
+  const othersMarkets = allMarkets?.filter(
+    (market) => market.borrower.toLowerCase() !== address?.toLowerCase(),
+  )
 
   return (
     <Box>
@@ -44,7 +60,10 @@ export default function Borrower() {
       )}
 
       <Box>
-        <BorrowerActiveMarketsTable tableData={data} isLoading={isLoading} />
+        <BorrowerActiveMarketsTable
+          tableData={activeBorrowerMarkets}
+          isLoading={isLoading}
+        />
       </Box>
     </Box>
   )
