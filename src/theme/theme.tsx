@@ -1,7 +1,15 @@
-import { createTheme } from "@mui/material"
+import * as React from "react"
+
+import { createTheme, SvgIcon } from "@mui/material"
 
 import type {} from "@mui/x-data-grid/themeAugmentation"
 
+import DownArrow from "@/assets/icons/downArrow20_icon.svg"
+import AscIcon from "@/assets/icons/tableSort-ascSort_icon.svg"
+import DescIcon from "@/assets/icons/tableSort-descSort_icon.svg"
+import UnsortedIcon from "@/assets/icons/tableSort-unsorted_icon.svg"
+import UpArrow from "@/assets/icons/upArrow_icon.svg"
+import { COLORS } from "@/theme/colors"
 import {
   largeContainedButton,
   largeOutlinedButton,
@@ -21,9 +29,6 @@ import {
 } from "@/theme/overrides/Buttons"
 import { PALETTE } from "@/theme/palette"
 import { TYPOGRAPHY } from "@/theme/typography"
-
-import { COLORS } from "./colors"
-import DownArrow from "../assets/icons/downArrow20_icon.svg"
 
 declare module "@mui/material/styles" {
   interface Palette {
@@ -958,6 +963,16 @@ export const theme = createTheme({
         disableRowSelectionOnClick: true,
         disableColumnSelector: true,
         hideFooter: true,
+        slots: {
+          columnSortedDescendingIcon: DescIcon,
+          columnSortedAscendingIcon: AscIcon,
+          columnUnsortedIcon: UnsortedIcon,
+        },
+        slotProps: {
+          cell: {
+            title: "",
+          },
+        },
       },
       styleOverrides: {
         root: {
@@ -1064,6 +1079,13 @@ export const theme = createTheme({
       },
     },
     MuiAccordionSummary: {
+      defaultProps: {
+        expandIcon: (
+          <SvgIcon fontSize="medium">
+            <UpArrow />
+          </SvgIcon>
+        ),
+      },
       styleOverrides: {
         root: {
           height: "32px",

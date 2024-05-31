@@ -1,13 +1,19 @@
 import * as React from "react"
 
-import { Accordion, AccordionSummary, SvgIcon } from "@mui/material"
-import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import {
+  Accordion,
+  AccordionSummary,
+  Box,
+  Tooltip,
+  Typography,
+} from "@mui/material"
+import SvgIcon from "@mui/material/SvgIcon"
+import { DataGrid, GridColDef, GridColumnHeaderParams } from "@mui/x-data-grid"
 
-import AscIcon from "@/assets/icons/tableSort-ascSort_icon.svg"
-import DescIcon from "@/assets/icons/tableSort-descSort_icon.svg"
-import UnsortedIcon from "@/assets/icons/tableSort-unsorted_icon.svg"
-import UpArrow from "@/assets/icons/upArrow_icon.svg"
+import Question from "@/assets/icons/circledQuestion_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { TooltipIcon } from "@/components/InputLabel/style"
+import { COLORS } from "@/theme/colors"
 
 const rows = [
   {
@@ -67,18 +73,6 @@ const rows = [
   },
 ]
 
-const tableData = rows.map((market) => ({
-  id: market.id,
-  status: market.status,
-  name: market.name,
-  asset: market.asset,
-  lenderAPR: market.lenderAPR,
-  crr: market.crr,
-  maxCapacity: market.maxCapacity,
-  borrowable: market.borrowable,
-  deploy: market.deploy,
-}))
-
 const columns: GridColDef[] = [
   {
     field: "status",
@@ -105,7 +99,7 @@ const columns: GridColDef[] = [
   {
     field: "lenderAPR",
     headerName: "Lender APR",
-    minWidth: 104,
+    minWidth: 106,
     headerAlign: "right",
     align: "right",
   },
@@ -115,6 +109,21 @@ const columns: GridColDef[] = [
     minWidth: 85,
     headerAlign: "right",
     align: "right",
+    renderHeader: (params: GridColumnHeaderParams) => (
+      <Box display="flex" columnGap="4px" alignItems="center">
+        <Typography
+          variant="text4"
+          sx={{ lineHeight: "10px", color: COLORS.santasGrey }}
+        >
+          CRR
+        </Typography>
+        <Tooltip title="TBD" placement="right">
+          <SvgIcon fontSize="small" sx={TooltipIcon}>
+            <Question />
+          </SvgIcon>
+        </Tooltip>
+      </Box>
+    ),
   },
   {
     field: "maxCapacity",
@@ -126,7 +135,7 @@ const columns: GridColDef[] = [
   {
     field: "borrowable",
     headerName: "Borrowable",
-    minWidth: 103,
+    minWidth: 104,
     headerAlign: "right",
     align: "right",
   },
@@ -139,35 +148,23 @@ const columns: GridColDef[] = [
   },
 ]
 
-export default function ExtendedDataGrid() {
+export const BorrowerActiveMarketsTable = () => {
+  const tableData = rows.map((market) => ({
+    id: market.id,
+    status: market.status,
+    name: market.name,
+    asset: market.asset,
+    lenderAPR: market.lenderAPR,
+    crr: market.crr,
+    maxCapacity: market.maxCapacity,
+    borrowable: market.borrowable,
+    deploy: market.deploy,
+  }))
+
   return (
     <Accordion>
-      <AccordionSummary
-        expandIcon={
-          <SvgIcon fontSize="medium">
-            <UpArrow />
-          </SvgIcon>
-        }
-        aria-controls="active-markets"
-        id="active-markets-header"
-      >
-        Your Active Markets
-      </AccordionSummary>
-      <DataGrid
-        rows={tableData}
-        columns={columns}
-        columnHeaderHeight={40}
-        slots={{
-          columnSortedDescendingIcon: DescIcon,
-          columnSortedAscendingIcon: AscIcon,
-          columnUnsortedIcon: UnsortedIcon,
-        }}
-        slotProps={{
-          cell: {
-            title: "",
-          },
-        }}
-      />
+      <AccordionSummary>Your Active Markets</AccordionSummary>
+      <DataGrid rows={tableData} columns={columns} columnHeaderHeight={40} />
     </Accordion>
   )
 }

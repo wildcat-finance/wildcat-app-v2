@@ -1,16 +1,9 @@
-export const ContentContainer = {
+export const PageTitleContainer = {
   width: "100%",
-  paddingTop: "42px",
+  padding: "42px 16px 0",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
 
   marginBottom: "32px",
-}
-
-export const PageTitleContainer = {
-  width: "100%",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
 }

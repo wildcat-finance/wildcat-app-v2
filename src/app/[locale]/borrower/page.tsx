@@ -4,14 +4,11 @@ import { Box, Button, Typography } from "@mui/material"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import {
-  ContentContainer,
-  PageTitleContainer,
-} from "@/app/[locale]/borrower/page-style"
-import ExtendedDataGrid from "@/components/@extended/ExtendedDataGrid"
+import { PageTitleContainer } from "@/app/[locale]/borrower/page-style"
 import { LeadBanner } from "@/components/LeadBanner"
 import { ROUTES } from "@/routes"
 
+import { BorrowerActiveMarketsTable } from "./components/BorrowerActiveMarketsTable"
 import { useBorrowerInvitationRedirect } from "./hooks/useBorrowerInvitationRedirect"
 
 export default function Borrower() {
@@ -20,7 +17,7 @@ export default function Borrower() {
 
   return (
     <Box>
-      <Box sx={ContentContainer}>
+      <Box sx={PageTitleContainer}>
         <Typography variant="title2">{t("header")}</Typography>
 
         {!bannerDisplayConfig.hideNewMarketButton && (
@@ -42,7 +39,7 @@ export default function Borrower() {
       )}
 
       <Box>
-        <ExtendedDataGrid />
+        <BorrowerActiveMarketsTable />
       </Box>
     </Box>
   )
