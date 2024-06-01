@@ -5,6 +5,7 @@ import {
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
+import { formatUnits } from "viem"
 
 // <---- TIMESTAMP TO DATE FORMATTERS ---->
 
@@ -68,4 +69,23 @@ export const formatBps = (bps: number, fixed?: number) => {
   const fixedNum = (bps / 100).toFixed(fixed || 2)
 
   return stripTrailingZeroes(fixedNum)
+}
+
+// <---- TOKEN PARAMETERS FORMATTERS ---->
+export const trimAddress = (
+  address: string,
+  maxLength: number | undefined = 6,
+) =>
+  `${address.slice(0, 6)}..${address.slice(-(maxLength - 2), address.length)}`
+
+export const formatTokenAmount = (
+  amount: bigint,
+  tokenDecimals: number,
+  formatDecimalsLimit: number | undefined = 2,
+) => {
+  const formattedAmount = formatUnits(amount, tokenDecimals)
+
+  return formatDecimalsLimit
+    ? Number(formattedAmount).toFixed(formatDecimalsLimit)
+    : formattedAmount
 }

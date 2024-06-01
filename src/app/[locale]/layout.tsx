@@ -9,8 +9,11 @@ import { Inter } from "next/font/google"
 import { headers } from "next/headers"
 import { cookieToInitialState } from "wagmi"
 
-import { ContentContainer, PageContainer } from "@/app/[locale]/layout-style"
-import Image from "@/assets/pictures/background.webp"
+import {
+  BackgroundContainer,
+  ContentContainer,
+  PageContainer,
+} from "@/app/[locale]/layout-style"
 import { Footer } from "@/components/Footer"
 import Header from "@/components/Header"
 import StoreProvider from "@/components/StoreProvider"
@@ -50,14 +53,8 @@ export default async function RootLayout({
           <RedirectsProvider>
             <StoreProvider>
               <ThemeRegistry>
-                <Box
-                  sx={{
-                    backgroundImage: `url(${Image.src})`,
-                    backgroundPosition: "center",
-                    backgroundRepeat: "no-repeat",
-                    backgroundSize: "100% 100%",
-                  }}
-                >
+                <Box sx={BackgroundContainer} />
+                <Box position="relative" zIndex="1">
                   <Header params={{ locale }} />
                   <Box sx={PageContainer}>
                     <Box sx={ContentContainer}>{children}</Box>

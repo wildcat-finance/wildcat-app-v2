@@ -8,7 +8,8 @@ import { useAccount } from "wagmi"
 import { LeadBanner } from "@/components/LeadBanner"
 import { ROUTES } from "@/routes"
 
-import { BorrowerActiveMarketsTable } from "./components/BorrowerActiveMarketsTable"
+import { BorrowerMarketsTable } from "./components/BorrowerMarketsTable"
+import { OthersMarketsTable } from "./components/OthersMarketsTable"
 import { useBorrowerInvitationRedirect } from "./hooks/useBorrowerInvitationRedirect"
 import { useMarketsForBorrower } from "./hooks/useMarketsForBorrower"
 import { PageTitleContainer } from "./page-style"
@@ -60,10 +61,27 @@ export default function Borrower() {
       )}
 
       <Box>
-        <BorrowerActiveMarketsTable
+        <BorrowerMarketsTable
+          label="Your Active Markets"
+          noMarketsTitle="You don’t have active markets"
+          noMarketsSubtitle="You have only Terminated Markets. You can create a new one or check Terminated"
           tableData={activeBorrowerMarkets}
           isLoading={isLoading}
         />
+      </Box>
+
+      <Box marginTop="16px">
+        <BorrowerMarketsTable
+          label="Your Terminated Markets"
+          noMarketsTitle="You don’t have terminated markets"
+          noMarketsSubtitle="You have only active Markets."
+          tableData={terminatedBorrowerMarkets}
+          isLoading={isLoading}
+        />
+      </Box>
+
+      <Box marginTop="16px">
+        <OthersMarketsTable tableData={othersMarkets} isLoading={isLoading} />
       </Box>
     </Box>
   )

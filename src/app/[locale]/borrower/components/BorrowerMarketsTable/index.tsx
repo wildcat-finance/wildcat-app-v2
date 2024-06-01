@@ -8,12 +8,20 @@ import {
   Typography,
 } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
-import { DataGrid, GridColDef, GridColumnHeaderParams } from "@mui/x-data-grid"
-import { Market } from "@wildcatfi/wildcat-sdk"
+import {
+  DataGrid,
+  GridCallbackDetails,
+  GridColDef,
+  GridColumnHeaderParams,
+  GridRowParams,
+  MuiEvent,
+} from "@mui/x-data-grid"
+import { useRouter } from "next/navigation"
 
 import Question from "@/assets/icons/circledQuestion_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { TooltipIcon } from "@/components/InputLabel/style"
+import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
   formatBps,
@@ -22,7 +30,7 @@ import {
 } from "@/utils/formatters"
 import { getMarketStatus } from "@/utils/marketStatus"
 
-import { BorrowerActiveMarketsTableProps } from "./interface"
+import { BorrowerMarketsTableProps } from "./interface"
 
 const columns: GridColDef[] = [
   {
@@ -99,10 +107,15 @@ const columns: GridColDef[] = [
   },
 ]
 
-export const BorrowerActiveMarketsTable = ({
+export const BorrowerMarketsTable = ({
+  label,
+  noMarketsTitle,
+  noMarketsSubtitle,
   tableData,
   isLoading,
-}: BorrowerActiveMarketsTableProps) => {
+}: BorrowerMarketsTableProps) => {
+  const router = useRouter()
+
   const rows = tableData
     ? tableData.map((market) => ({
         id: market.address,
@@ -127,12 +140,47 @@ export const BorrowerActiveMarketsTable = ({
       }))
     : undefined
 
+  const handleRowClick = (
+    params: GridRowParams,
+    event: MuiEvent,
+    details: GridCallbackDetails,
+  ) => {
+    router.push(`${ROUTES.borrower.market}/${params.row.id}`)
+  }
+
   return (
-    <Accordion>
-      <AccordionSummary>Your Active Markets</AccordionSummary>
-      {isLoading && <Typography variant="text2">Is Loading</Typography>}
+    <Accordion defaultExpanded>
+      <AccordionSummary>
+        <Box display="flex" columnGap="4px">
+          <Typography variant="text3">{label}</Typography>
+          <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
+            {rows?.length}
+          </Typography>
+        </Box>
+      </AccordionSummary>
+      {isLoading && (
+        <Box display="flex" flexDirection="column" padding="32px 16px">
+          <Typography variant="title3">Markets are loading</Typography>
+          <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
+            Just wait a little bit.
+          </Typography>
+        </Box>
+      )}
+      {tableData?.length === 0 && (
+        <Box display="flex" flexDirection="column" padding="32px 16px">
+          <Typography variant="title3">{noMarketsTitle}</Typography>
+          <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
+            {noMarketsSubtitle}
+          </Typography>
+        </Box>
+      )}
       {tableData && !isLoading && (
-        <DataGrid rows={rows} columns={columns} columnHeaderHeight={40} />
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          columnHeaderHeight={40}
+          onRowClick={handleRowClick}
+        />
       )}
     </Accordion>
   )

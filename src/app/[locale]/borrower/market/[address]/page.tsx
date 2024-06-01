@@ -1,5 +1,7 @@
 import { Box } from "@mui/material"
+import { useParams } from "next/navigation"
 
+import { useGetMarket } from "@/app/[locale]/borrower/market/hooks/useGetMarket"
 import initTranslations from "@/app/i18n"
 import { MarketHeader } from "@/components/MarketHeader"
 import TranslationsProvider from "@/components/TranslationsProvider"
@@ -7,11 +9,19 @@ import TranslationsProvider from "@/components/TranslationsProvider"
 const i18nNamespaces = ["borrowerMarketDetails"]
 
 export default async function NewMarket({
-  params: { locale },
+  params: { locale, address },
 }: {
-  params: { locale: string }
+  params: { locale: string; address: string }
 }) {
   const { resources } = await initTranslations(locale, i18nNamespaces)
+
+  // const { marketAddress } = useParams<{
+  //   locale: string
+  //   marketAddress: string
+  // }>()
+  // const { data: market, isInitialLoading: isMarketLoading } = useGetMarket({
+  //   marketAddress,
+  // })
 
   return (
     <TranslationsProvider

@@ -1041,6 +1041,8 @@ export const theme = createTheme({
           },
 
           "& .MuiDataGrid-row": {
+            cursor: "pointer",
+
             "& .MuiDataGrid-cellEmpty": {
               display: "none",
             },

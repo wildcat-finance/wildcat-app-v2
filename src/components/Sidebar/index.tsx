@@ -14,7 +14,7 @@ export const Sidebar = () => {
   return (
     <Box>
       {pathname === ROUTES.borrower.root && <AllMarketsSidebar />}
-      {pathname === ROUTES.borrower.market && <MarketSidebar />}
+      {pathname.includes(ROUTES.borrower.market) && <MarketSidebar />}
       {pathname === ROUTES.borrower.newMarket && <NewMarketSidebar />}
     </Box>
   )
