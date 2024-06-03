@@ -84,7 +84,7 @@ export default function NewMarket() {
     case newMarketSteps.marketDescription.name: {
       return (
         <Box
-          padding="40px 367px 52px 100px"
+          padding="40px 367px 0 100px"
           display="flex"
           justifyContent="space-around"
         >
@@ -96,7 +96,7 @@ export default function NewMarket() {
     case newMarketSteps.legalInformation.name: {
       return (
         <Box
-          padding="40px 367px 52px 100px"
+          padding="40px 367px 0 100px"
           display="flex"
           justifyContent="space-around"
         >
@@ -108,7 +108,7 @@ export default function NewMarket() {
     case newMarketSteps.confirmation.name: {
       return (
         <Box
-          padding="40px 367px 52px 100px"
+          padding="40px 367px 0 100px"
           display="flex"
           justifyContent="space-around"
         >
@@ -133,7 +133,7 @@ export default function NewMarket() {
     default: {
       return (
         <Box
-          padding="40px 367px 52px 100px"
+          padding="40px 367px 0 100px"
           display="flex"
           justifyContent="space-around"
         >

@@ -20,6 +20,7 @@ export const COLORS = {
   white01: "#FFFFFF1A",
   white03: "#FFFFFF4D",
   white04: "#FFFFFF66",
+  white06: "FFFFFF99",
 
   dullRed: "#C24647",
   carminePink: "#F1464B",

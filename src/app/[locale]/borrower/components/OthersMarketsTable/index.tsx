@@ -18,7 +18,6 @@ import {
 } from "@mui/x-data-grid"
 import { useRouter } from "next/navigation"
 
-import { useBorrowerNameOrAddress } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import Question from "@/assets/icons/circledQuestion_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { TooltipIcon } from "@/components/InputLabel/style"
@@ -28,6 +27,7 @@ import {
   formatBps,
   formatTokenWithCommas,
   timestampToDateFormatted,
+  trimAddress,
 } from "@/utils/formatters"
 import { getMarketStatus } from "@/utils/marketStatus"
 
@@ -118,6 +118,7 @@ const columns: GridColDef[] = [
 export const OthersMarketsTable = ({
   tableData,
   isLoading,
+  isOpen,
 }: OthersMarketsTableProps) => {
   const router = useRouter()
 
@@ -130,8 +131,7 @@ export const OthersMarketsTable = ({
           market.isIncurringPenalties,
         ),
         name: market.name,
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        borrowerName: useBorrowerNameOrAddress(market.borrower),
+        borrowerName: trimAddress(market.borrower),
         asset: market.underlyingToken.symbol,
         lenderAPR: `${formatBps(market.annualInterestBips)}%`,
         crr: `${formatBps(market.reserveRatioBips)}%`,
@@ -156,12 +156,12 @@ export const OthersMarketsTable = ({
   }
 
   return (
-    <Accordion>
+    <Accordion defaultExpanded={isOpen}>
       <AccordionSummary>
         <Box display="flex" columnGap="4px">
           <Typography variant="text3">Other markets</Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            {rows?.length}
+            {isLoading ? "are loading" : rows?.length}
           </Typography>
         </Box>
       </AccordionSummary>

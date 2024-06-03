@@ -6,4 +6,5 @@ export type BorrowerMarketsTableProps = {
   noMarketsSubtitle: string
   tableData: Market[] | undefined
   isLoading: boolean
+  isOpen?: boolean
 }

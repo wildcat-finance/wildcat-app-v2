@@ -7,6 +7,7 @@ export const ContentContainer = {
   justifyContent: "space-between",
   alignItems: "center",
   padding: "0 14px 15px 16px",
+  marginTop: "52px",
 }
 
 export const DeployInfoSx = {

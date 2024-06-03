@@ -113,6 +113,7 @@ export const BorrowerMarketsTable = ({
   noMarketsSubtitle,
   tableData,
   isLoading,
+  isOpen,
 }: BorrowerMarketsTableProps) => {
   const router = useRouter()
 
@@ -149,12 +150,12 @@ export const BorrowerMarketsTable = ({
   }
 
   return (
-    <Accordion defaultExpanded>
+    <Accordion defaultExpanded={isOpen}>
       <AccordionSummary>
         <Box display="flex" columnGap="4px">
           <Typography variant="text3">{label}</Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            {rows?.length}
+            {isLoading ? "are loading" : rows?.length}
           </Typography>
         </Box>
       </AccordionSummary>
@@ -174,7 +175,7 @@ export const BorrowerMarketsTable = ({
           </Typography>
         </Box>
       )}
-      {tableData && !isLoading && (
+      {tableData?.length !== 0 && !isLoading && (
         <DataGrid
           rows={rows}
           columns={columns}
