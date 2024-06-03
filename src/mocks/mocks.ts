@@ -1,4 +1,5 @@
 import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
+import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
 
 const MOCK = [
   {
@@ -12,6 +13,29 @@ const MOCK = [
   {
     label: "Item 3",
     value: "3",
+  },
+]
+
+export const underlyingAssetsMock = [
+  {
+    id: 1,
+    underlyingAsset: SidebarMarketAssets.WBTC,
+  },
+  {
+    id: 2,
+    underlyingAsset: SidebarMarketAssets.WETH,
+  },
+  {
+    id: 3,
+    underlyingAsset: SidebarMarketAssets.USDT,
+  },
+  {
+    id: 4,
+    underlyingAsset: SidebarMarketAssets.USDC,
+  },
+  {
+    id: 5,
+    underlyingAsset: SidebarMarketAssets.DAI,
   },
 ]
 

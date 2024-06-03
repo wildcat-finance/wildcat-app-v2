@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next"
 import Icon from "@/assets/icons/search_icon.svg"
 import ExtendedRadio from "@/components/@extended/ExtendedRadio"
 import { ContentContainer } from "@/components/Sidebar/AllMarketsSidebar/style"
+import { underlyingAssetsMock } from "@/mocks/mocks"
 import { useAppDispatch } from "@/store/hooks"
 import {
   setBorrowerMarketAsset,
@@ -21,29 +22,6 @@ import {
 } from "@/store/slices/borrowerSidebarSlice/borrowerSidebarSlice"
 import { COLORS } from "@/theme/colors"
 import { MarketStatus } from "@/utils/marketStatus"
-
-const underlyingAssetsMock = [
-  {
-    id: 1,
-    underlyingAsset: "WBTC",
-  },
-  {
-    id: 2,
-    underlyingAsset: "WETH",
-  },
-  {
-    id: 3,
-    underlyingAsset: "USDT",
-  },
-  {
-    id: 4,
-    underlyingAsset: "USDC",
-  },
-  {
-    id: 5,
-    underlyingAsset: "DAI",
-  },
-]
 
 export const AllMarketsSidebar = () => {
   const { t } = useTranslation()

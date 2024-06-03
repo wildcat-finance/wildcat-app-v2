@@ -1,8 +1,13 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
-const initialState = {
+import {
+  SidebarMarketAssets,
+  TBorrowerSidebarType,
+} from "@/store/slices/borrowerSidebarSlice/interface"
+
+const initialState: TBorrowerSidebarType = {
   status: "All",
-  underlyingAsset: "All",
+  underlyingAsset: SidebarMarketAssets.ALL,
 }
 
 const borrowerSidebarSlice = createSlice({
