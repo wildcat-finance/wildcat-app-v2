@@ -173,7 +173,7 @@ export const OthersMarketsTable = ({
           </Typography>
         </Box>
       )}
-      {tableData && !isLoading && (
+      {tableData && tableData.length !== 0 && !isLoading && (
         <DataGrid
           rows={rows}
           columns={columns}

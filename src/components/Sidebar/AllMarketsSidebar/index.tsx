@@ -14,25 +14,48 @@ import { useTranslation } from "react-i18next"
 import Icon from "@/assets/icons/search_icon.svg"
 import ExtendedRadio from "@/components/@extended/ExtendedRadio"
 import { ContentContainer } from "@/components/Sidebar/AllMarketsSidebar/style"
+import { useAppDispatch } from "@/store/hooks"
+import {
+  setBorrowerMarketAsset,
+  setBorrowerMarketStatus,
+} from "@/store/slices/borrowerSidebarSlice/borrowerSidebarSlice"
 import { COLORS } from "@/theme/colors"
+import { MarketStatus } from "@/utils/marketStatus"
 
-const MOCK = [
+const underlyingAssetsMock = [
   {
     id: 1,
-    underlyingAsset: "EUG",
+    underlyingAsset: "WBTC",
   },
   {
     id: 2,
-    underlyingAsset: "UNI",
+    underlyingAsset: "WETH",
   },
   {
     id: 3,
-    underlyingAsset: "WETH",
+    underlyingAsset: "USDT",
+  },
+  {
+    id: 4,
+    underlyingAsset: "USDC",
+  },
+  {
+    id: 5,
+    underlyingAsset: "DAI",
   },
 ]
 
 export const AllMarketsSidebar = () => {
   const { t } = useTranslation()
+  const dispatch = useAppDispatch()
+
+  function handleChangeStatus(event: React.ChangeEvent, value: string) {
+    dispatch(setBorrowerMarketStatus(value))
+  }
+
+  function handleChangeAsset(event: React.ChangeEvent, value: string) {
+    dispatch(setBorrowerMarketAsset(value))
+  }
 
   return (
     <Box sx={ContentContainer}>
@@ -61,24 +84,28 @@ export const AllMarketsSidebar = () => {
           <Typography variant="text2" mb="12px">
             {t("borrowerMarketList:statusRadioTitle")}
           </Typography>
-          <RadioGroup defaultValue="all" name="radio-buttons-group">
+          <RadioGroup
+            defaultValue="All"
+            name="radio-status"
+            onChange={handleChangeStatus}
+          >
             <FormControlLabel
-              value="all"
+              value="All"
               control={<ExtendedRadio />}
               label={t("borrowerMarketList:allRadio")}
             />
             <FormControlLabel
-              value="healty"
+              value={MarketStatus.HEALTHY}
               control={<ExtendedRadio />}
               label={t("borrowerMarketList:healthyRadio")}
             />
             <FormControlLabel
-              value="delinquent"
+              value={MarketStatus.DELINQUENT}
               control={<ExtendedRadio />}
               label={t("borrowerMarketList:delinquentRadio")}
             />
             <FormControlLabel
-              value="penalty"
+              value={MarketStatus.PENALTY}
               control={<ExtendedRadio />}
               label={t("borrowerMarketList:penaltyRadio")}
             />
@@ -93,13 +120,17 @@ export const AllMarketsSidebar = () => {
           <Typography variant="text2" mb="12px">
             {t("borrowerMarketList:assetRadioTitle")}
           </Typography>
-          <RadioGroup defaultValue="all" name="radio-buttons-group">
+          <RadioGroup
+            defaultValue="All"
+            name="radio-asset"
+            onChange={handleChangeAsset}
+          >
             <FormControlLabel
-              value="all"
+              value="All"
               control={<ExtendedRadio />}
               label={t("borrowerMarketList:allRadio")}
             />
-            {MOCK.map((asset) => (
+            {underlyingAssetsMock.map((asset) => (
               <FormControlLabel
                 key={asset.id}
                 value={asset.underlyingAsset}

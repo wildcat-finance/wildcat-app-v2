@@ -1,11 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit"
 
+import borrowerSidebarSlice from "./slices/borrowerSidebarSlice/borrowerSidebarSlice"
 import routingSlice from "./slices/routingSlice/routingSlice"
 
 export const makeStore = () =>
   configureStore({
     reducer: {
       routing: routingSlice,
+      borrowerSidebar: borrowerSidebarSlice,
     },
   })
 

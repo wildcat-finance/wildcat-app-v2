@@ -979,6 +979,10 @@ export const theme = createTheme({
           fontFamily: "inherit",
           border: "none",
 
+          "& .MuiDataGrid-filler": {
+            display: "none",
+          },
+
           "& .MuiDataGrid-columnHeader--sorted": {
             color: `${COLORS.blackRock} !important`,
           },

@@ -8,6 +8,8 @@ import { useAccount } from "wagmi"
 import { LeadBanner } from "@/components/LeadBanner"
 import { useGetController } from "@/hooks/useGetController"
 import { ROUTES } from "@/routes"
+import { useAppSelector } from "@/store/hooks"
+import { getMarketStatus } from "@/utils/marketStatus"
 
 import { BorrowerMarketsTable } from "./components/BorrowerMarketsTable"
 import { OthersMarketsTable } from "./components/OthersMarketsTable"
@@ -25,19 +27,43 @@ export default function Borrower() {
   const isRegisteredBorrower = controller?.isRegisteredBorrower
   const controllerMarkets = controller?.markets || []
 
-  const activeBorrowerMarkets = allMarkets?.filter(
+  const filterByStatus = useAppSelector((state) => state.borrowerSidebar.status)
+  const filterByAsset = useAppSelector(
+    (state) => state.borrowerSidebar.underlyingAsset,
+  )
+
+  let filteredMarkets = allMarkets
+
+  if (filteredMarkets && filterByStatus !== "All") {
+    filteredMarkets = filteredMarkets.filter(
+      (market) =>
+        getMarketStatus(
+          market.isClosed,
+          market.isDelinquent,
+          market.isIncurringPenalties,
+        ) === filterByStatus,
+    )
+  }
+
+  if (filteredMarkets && filterByAsset !== "All") {
+    filteredMarkets = filteredMarkets.filter(
+      (market) => market.underlyingToken.symbol === filterByAsset,
+    )
+  }
+
+  const activeBorrowerMarkets = filteredMarkets?.filter(
     (market) =>
       market.borrower.toLowerCase() === address?.toLowerCase() &&
       !market.isClosed,
   )
 
-  const terminatedBorrowerMarkets = allMarkets?.filter(
+  const terminatedBorrowerMarkets = filteredMarkets?.filter(
     (market) =>
       market.borrower.toLowerCase() === address?.toLowerCase() &&
       market.isClosed,
   )
 
-  const othersMarkets = allMarkets?.filter(
+  const othersMarkets = filteredMarkets?.filter(
     (market) => market.borrower.toLowerCase() !== address?.toLowerCase(),
   )
 
@@ -94,7 +120,7 @@ export default function Borrower() {
 
       <Box marginTop="16px">
         <OthersMarketsTable
-          tableData={showBorrowerTables ? othersMarkets : allMarkets}
+          tableData={showBorrowerTables ? othersMarkets : filteredMarkets}
           isLoading={isLoading}
           isOpen
         />
