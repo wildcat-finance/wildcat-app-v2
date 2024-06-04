@@ -17,6 +17,11 @@ import { TooltipIcon } from "@/components/InputLabel/style"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
+  capacityComparator,
+  dateComparator,
+  percentComparator,
+} from "@/utils/comparators"
+import {
   formatBps,
   formatTokenWithCommas,
   timestampToDateFormatted,
@@ -59,6 +64,7 @@ const columns: GridColDef[] = [
     minWidth: 106,
     headerAlign: "right",
     align: "right",
+    sortComparator: percentComparator,
   },
   {
     field: "crr",
@@ -66,6 +72,7 @@ const columns: GridColDef[] = [
     minWidth: 85,
     headerAlign: "right",
     align: "right",
+    sortComparator: percentComparator,
     renderHeader: () => (
       <Box display="flex" columnGap="4px" alignItems="center">
         <Typography
@@ -88,6 +95,7 @@ const columns: GridColDef[] = [
     minWidth: 136,
     headerAlign: "right",
     align: "right",
+    sortComparator: capacityComparator,
   },
   {
     field: "borrowable",
@@ -102,6 +110,7 @@ const columns: GridColDef[] = [
     minWidth: 114,
     headerAlign: "right",
     align: "right",
+    sortComparator: dateComparator,
     renderCell: (params) => (
       <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
         {params.value}
