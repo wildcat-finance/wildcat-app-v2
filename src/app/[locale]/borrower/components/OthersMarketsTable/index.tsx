@@ -129,6 +129,7 @@ const columns: GridColDef[] = [
 
 export const OthersMarketsTable = ({
   tableData,
+  borrowersData,
   isLoading,
   isOpen,
   assetFilter,
@@ -137,26 +138,33 @@ export const OthersMarketsTable = ({
 }: OthersMarketsTableProps) => {
   const router = useRouter()
 
-  const rows = tableData.map((market) => ({
-    id: market.address,
-    status: getMarketStatus(
-      market.isClosed,
-      market.isDelinquent,
-      market.isIncurringPenalties,
-    ),
-    name: market.name,
-    borrowerName: trimAddress(market.borrower),
-    asset: market.underlyingToken.symbol,
-    lenderAPR: `${formatBps(market.annualInterestBips)}%`,
-    crr: `${formatBps(market.reserveRatioBips)}%`,
-    maxCapacity: `${formatTokenWithCommas(market.maxTotalSupply)}`,
-    borrowable: formatTokenWithCommas(market.borrowableAssets, {
-      withSymbol: false,
-    }),
-    deploy: market.deployedEvent
-      ? timestampToDateFormatted(market.deployedEvent.blockTimestamp)
-      : "",
-  }))
+  const rows = tableData.map((market) => {
+    const borrower = borrowersData?.find(
+      (b) => b.address.toLowerCase() === market.borrower.toLowerCase(),
+    )
+    const borrowerName = borrower ? borrower.name : trimAddress(market.borrower)
+
+    return {
+      id: market.address,
+      status: getMarketStatus(
+        market.isClosed,
+        market.isDelinquent,
+        market.isIncurringPenalties,
+      ),
+      name: market.name,
+      borrowerName,
+      asset: market.underlyingToken.symbol,
+      lenderAPR: `${formatBps(market.annualInterestBips)}%`,
+      crr: `${formatBps(market.reserveRatioBips)}%`,
+      maxCapacity: `${formatTokenWithCommas(market.maxTotalSupply)}`,
+      borrowable: formatTokenWithCommas(market.borrowableAssets, {
+        withSymbol: false,
+      }),
+      deploy: market.deployedEvent
+        ? timestampToDateFormatted(market.deployedEvent.blockTimestamp)
+        : "",
+    }
+  })
 
   const handleRowClick = (params: GridRowParams) => {
     router.push(`${ROUTES.borrower.market}/${params.row.id}`)

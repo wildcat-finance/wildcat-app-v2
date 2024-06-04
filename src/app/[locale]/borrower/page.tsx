@@ -8,6 +8,7 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
+import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { LeadBanner } from "@/components/LeadBanner"
 import { useGetController } from "@/hooks/useGetController"
 import { ROUTES } from "@/routes"
@@ -58,7 +59,7 @@ const filterMarketsByAssetAndStatus = (
 export default function Borrower() {
   const { t } = useTranslation()
   const bannerDisplayConfig = useBorrowerInvitationRedirect()
-
+  const { data: borrowers } = useGetBorrowers()
   const { data: allMarkets, isLoading, error } = useMarketsForBorrower()
   const { address, isConnected } = useAccount()
   const { data: controller } = useGetController()
@@ -182,6 +183,7 @@ export default function Borrower() {
           <Box marginTop="16px">
             <OthersMarketsTable
               tableData={othersTableData || []}
+              borrowersData={borrowers || []}
               isLoading={isLoading}
               assetFilter={filterByAsset}
               statusFilter={filterByStatus}
