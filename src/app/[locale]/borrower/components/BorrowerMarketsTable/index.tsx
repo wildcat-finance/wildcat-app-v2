@@ -4,6 +4,7 @@ import {
   Accordion,
   AccordionSummary,
   Box,
+  Skeleton,
   Tooltip,
   Typography,
 } from "@mui/material"
@@ -169,10 +170,26 @@ export const BorrowerMarketsTable = ({
       </AccordionSummary>
       {isLoading && (
         <Box display="flex" flexDirection="column" padding="32px 16px">
-          <Typography variant="title3">Markets are loading</Typography>
-          <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            Just wait a little bit.
-          </Typography>
+          <Skeleton
+            height="36px"
+            width="100%"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
+          <Skeleton
+            height="36px"
+            width="100%"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
+          <Skeleton
+            height="36px"
+            width="100%"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
+          <Skeleton
+            height="36px"
+            width="100%"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
         </Box>
       )}
       {tableData.length === 0 &&

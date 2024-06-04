@@ -115,7 +115,7 @@ export default function Borrower() {
   return (
     <Box>
       <Box sx={PageTitleContainer}>
-        {isConnected && isRegisteredBorrower ? (
+        {showBorrowerTables ? (
           <Tabs
             value={tab}
             onChange={handleTabsChange}
