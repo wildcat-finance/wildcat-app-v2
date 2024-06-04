@@ -14,7 +14,7 @@ import {
   SubgraphGetMarketsForBorrowerQueryVariables,
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 
-import { TargetChainId } from "@/config/network"
+import { NETWORKS, TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { SubgraphClient } from "@/config/subgraph"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
@@ -85,7 +85,8 @@ export function useMarketsForBorrowerQuery({
   async function updateMarkets(markets: Market[]) {
     const lens = getLensContract(TargetChainId, provider as SignerOrProvider)
     let chunks: Market[][]
-    if (TargetChainId === 1) {
+
+    if (TargetChainId === NETWORKS.Mainnet.chainId) {
       chunks = [
         ...markets
           .filter(
@@ -103,14 +104,19 @@ export function useMarketsForBorrowerQuery({
     } else {
       chunks = [markets]
     }
+
     await Promise.all(
       chunks.map(async (marketsChunk) => {
-        const updates = await lens.getMarketsData(
-          marketsChunk.map((m) => m.address),
-        )
-        marketsChunk.forEach((market, i) => {
-          market.updateWith(updates[i])
-        })
+        try {
+          const updates = await lens.getMarketsData(
+            marketsChunk.map((m) => m.address),
+          )
+          marketsChunk.forEach((market, i) => {
+            market.updateWith(updates[i])
+          })
+        } catch (err) {
+          console.log("Wrong underlying network detected", err)
+        }
       }),
     )
     logger.debug(`Got ${markets.length} market updates`)

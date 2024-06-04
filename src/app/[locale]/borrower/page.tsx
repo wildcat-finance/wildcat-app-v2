@@ -51,7 +51,7 @@ export default function Borrower() {
   const { t } = useTranslation()
   const bannerDisplayConfig = useBorrowerInvitationRedirect()
 
-  const { data: allMarkets, isLoading } = useMarketsForBorrower()
+  const { data: allMarkets, isLoading, error } = useMarketsForBorrower()
   const { address, isConnected } = useAccount()
   const { data: controller } = useGetController()
   const isRegisteredBorrower = controller?.isRegisteredBorrower

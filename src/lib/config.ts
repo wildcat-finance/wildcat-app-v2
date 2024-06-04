@@ -2,8 +2,13 @@ import { http, createConfig, createStorage, cookieStorage } from "wagmi"
 import { mainnet, sepolia } from "wagmi/chains"
 import { injected, coinbaseWallet, safe, walletConnect } from "wagmi/connectors"
 
+import { NETWORKS } from "@/config/network"
+
 export const config = createConfig({
-  chains: [mainnet, sepolia],
+  chains:
+    process.env.NEXT_PUBLIC_TARGET_NETWORK === NETWORKS.Sepolia.name
+      ? [sepolia, mainnet]
+      : [mainnet, sepolia],
   ssr: true,
   storage: createStorage({
     storage: cookieStorage,
