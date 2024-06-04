@@ -20,6 +20,7 @@ import {
   setBorrowerMarketAsset,
   setBorrowerMarketStatus,
 } from "@/store/slices/borrowerSidebarSlice/borrowerSidebarSlice"
+import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
 import { COLORS } from "@/theme/colors"
 import { MarketStatus } from "@/utils/marketStatus"
 
@@ -27,11 +28,13 @@ export const AllMarketsSidebar = () => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
-  function handleChangeStatus(event: React.ChangeEvent, value: string) {
+  function handleChangeStatus(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value as MarketStatus | "All"
     dispatch(setBorrowerMarketStatus(value))
   }
 
-  function handleChangeAsset(event: React.ChangeEvent, value: string) {
+  function handleChangeAsset(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value as SidebarMarketAssets
     dispatch(setBorrowerMarketAsset(value))
   }
 

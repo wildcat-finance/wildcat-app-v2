@@ -1,3 +1,5 @@
+import { MarketStatus } from "@/utils/marketStatus"
+
 export enum SidebarMarketAssets {
   ALL = "All",
   WBTC = "WBTC",
@@ -8,6 +10,6 @@ export enum SidebarMarketAssets {
 }
 
 export type TBorrowerSidebarType = {
-  status: string
-  underlyingAsset: string
+  status: MarketStatus | "All"
+  underlyingAsset: SidebarMarketAssets
 }

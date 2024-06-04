@@ -8,14 +8,7 @@ import {
   Typography,
 } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
-import {
-  DataGrid,
-  GridCallbackDetails,
-  GridColDef,
-  GridColumnHeaderParams,
-  GridRowParams,
-  MuiEvent,
-} from "@mui/x-data-grid"
+import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid"
 import { useRouter } from "next/navigation"
 
 import Question from "@/assets/icons/circledQuestion_icon.svg"
@@ -68,7 +61,7 @@ const columns: GridColDef[] = [
     minWidth: 85,
     headerAlign: "right",
     align: "right",
-    renderHeader: (params: GridColumnHeaderParams) => (
+    renderHeader: () => (
       <Box display="flex" columnGap="4px" alignItems="center">
         <Typography
           variant="text4"
@@ -114,38 +107,34 @@ export const BorrowerMarketsTable = ({
   tableData,
   isLoading,
   isOpen,
+  statusFilter,
+  assetFilter,
 }: BorrowerMarketsTableProps) => {
   const router = useRouter()
 
-  const rows = tableData
-    ? tableData.map((market) => ({
-        id: market.address,
-        status: getMarketStatus(
-          market.isClosed,
-          market.isDelinquent,
-          market.isIncurringPenalties,
-        ),
-        name: market.name,
-        asset: market.underlyingToken.symbol,
-        lenderAPR: `${formatBps(market.annualInterestBips)}%`,
-        crr: `${formatBps(market.reserveRatioBips)}%`,
-        maxCapacity: `${formatTokenWithCommas(market.maxTotalSupply)} ${
-          market.underlyingToken.symbol
-        }`,
-        borrowable: formatTokenWithCommas(market.borrowableAssets, {
-          withSymbol: true,
-        }),
-        deploy: market.deployedEvent
-          ? timestampToDateFormatted(market.deployedEvent.blockTimestamp)
-          : "",
-      }))
-    : undefined
+  const rows = tableData.map((market) => ({
+    id: market.address,
+    status: getMarketStatus(
+      market.isClosed,
+      market.isDelinquent,
+      market.isIncurringPenalties,
+    ),
+    name: market.name,
+    asset: market.underlyingToken.symbol,
+    lenderAPR: `${formatBps(market.annualInterestBips)}%`,
+    crr: `${formatBps(market.reserveRatioBips)}%`,
+    maxCapacity: `${formatTokenWithCommas(market.maxTotalSupply)} ${
+      market.underlyingToken.symbol
+    }`,
+    borrowable: formatTokenWithCommas(market.borrowableAssets, {
+      withSymbol: true,
+    }),
+    deploy: market.deployedEvent
+      ? timestampToDateFormatted(market.deployedEvent.blockTimestamp)
+      : "",
+  }))
 
-  const handleRowClick = (
-    params: GridRowParams,
-    event: MuiEvent,
-    details: GridCallbackDetails,
-  ) => {
+  const handleRowClick = (params: GridRowParams) => {
     router.push(`${ROUTES.borrower.market}/${params.row.id}`)
   }
 
@@ -155,7 +144,7 @@ export const BorrowerMarketsTable = ({
         <Box display="flex" columnGap="4px">
           <Typography variant="text3">{label}</Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            {isLoading ? "are loading" : rows?.length}
+            {isLoading ? "are loading" : rows.length}
           </Typography>
         </Box>
       </AccordionSummary>
@@ -167,15 +156,28 @@ export const BorrowerMarketsTable = ({
           </Typography>
         </Box>
       )}
-      {tableData?.length === 0 && (
-        <Box display="flex" flexDirection="column" padding="32px 16px">
-          <Typography variant="title3">{noMarketsTitle}</Typography>
-          <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            {noMarketsSubtitle}
-          </Typography>
-        </Box>
-      )}
-      {tableData?.length !== 0 && !isLoading && (
+      {tableData.length === 0 &&
+        !isLoading &&
+        !(assetFilter || statusFilter) && (
+          <Box display="flex" flexDirection="column" padding="32px 16px">
+            <Typography variant="title3">{noMarketsTitle}</Typography>
+            <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
+              {noMarketsSubtitle}
+            </Typography>
+          </Box>
+        )}
+      {tableData.length === 0 &&
+        !isLoading &&
+        (assetFilter || statusFilter) && (
+          <Box display="flex" flexDirection="column" padding="32px 16px">
+            <Typography variant="title3">
+              There are no active{" "}
+              {statusFilter === "All" ? "" : statusFilter?.toLowerCase()}{" "}
+              {assetFilter === "All" ? "" : assetFilter} markets
+            </Typography>
+          </Box>
+        )}
+      {tableData.length !== 0 && !isLoading && (
         <DataGrid
           rows={rows}
           columns={columns}
