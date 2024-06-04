@@ -16,6 +16,7 @@ import Question from "@/assets/icons/circledQuestion_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { TooltipIcon } from "@/components/InputLabel/style"
 import { ROUTES } from "@/routes"
+import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
 import { COLORS } from "@/theme/colors"
 import {
   capacityComparator,
@@ -171,6 +172,11 @@ export const OthersMarketsTable = ({
     router.push(`${ROUTES.borrower.market}/${params.row.id}`)
   }
 
+  const defaultFilters =
+    assetFilter === SidebarMarketAssets.ALL &&
+    statusFilter === "All" &&
+    nameFilter === ""
+
   return (
     <Accordion defaultExpanded={isOpen}>
       <AccordionSummary>
@@ -205,18 +211,16 @@ export const OthersMarketsTable = ({
           />
         </Box>
       )}
-      {tableData.length === 0 &&
-        !isLoading &&
-        (assetFilter || statusFilter || nameFilter) && (
-          <Box display="flex" flexDirection="column" padding="32px 16px">
-            <Typography variant="title3">
-              There are no other{" "}
-              {statusFilter === "All" ? "" : statusFilter?.toLowerCase()}{" "}
-              {nameFilter === "" ? "" : nameFilter}{" "}
-              {assetFilter === "All" ? "" : assetFilter} markets
-            </Typography>
-          </Box>
-        )}
+      {tableData.length === 0 && !isLoading && !defaultFilters && (
+        <Box display="flex" flexDirection="column" padding="32px 16px">
+          <Typography variant="title3">
+            There are no other{" "}
+            {statusFilter === "All" ? "" : statusFilter?.toLowerCase()}{" "}
+            {nameFilter === "" ? "" : nameFilter}{" "}
+            {assetFilter === "All" ? "" : assetFilter} markets
+          </Typography>
+        </Box>
+      )}
       {tableData.length !== 0 && !isLoading && (
         <DataGrid
           rows={rows}

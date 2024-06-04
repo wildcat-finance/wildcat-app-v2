@@ -16,6 +16,7 @@ import Question from "@/assets/icons/circledQuestion_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { TooltipIcon } from "@/components/InputLabel/style"
 import { ROUTES } from "@/routes"
+import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
 import { COLORS } from "@/theme/colors"
 import {
   capacityComparator,
@@ -27,7 +28,7 @@ import {
   formatTokenWithCommas,
   timestampToDateFormatted,
 } from "@/utils/formatters"
-import { getMarketStatus } from "@/utils/marketStatus"
+import { getMarketStatus, MarketStatus } from "@/utils/marketStatus"
 
 import { BorrowerMarketsTableProps } from "./interface"
 
@@ -158,6 +159,11 @@ export const BorrowerMarketsTable = ({
     router.push(`${ROUTES.borrower.market}/${params.row.id}`)
   }
 
+  const defaultFilters =
+    assetFilter === SidebarMarketAssets.ALL &&
+    statusFilter === "All" &&
+    nameFilter === ""
+
   return (
     <Accordion defaultExpanded={isOpen}>
       <AccordionSummary>
@@ -192,28 +198,24 @@ export const BorrowerMarketsTable = ({
           />
         </Box>
       )}
-      {tableData.length === 0 &&
-        !isLoading &&
-        !(assetFilter || statusFilter || nameFilter) && (
-          <Box display="flex" flexDirection="column" padding="32px 16px">
-            <Typography variant="title3">{noMarketsTitle}</Typography>
-            <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-              {noMarketsSubtitle}
-            </Typography>
-          </Box>
-        )}
-      {tableData.length === 0 &&
-        !isLoading &&
-        (assetFilter || statusFilter || nameFilter) && (
-          <Box display="flex" flexDirection="column" padding="32px 16px">
-            <Typography variant="title3">
-              There are no {type}{" "}
-              {statusFilter === "All" ? "" : statusFilter?.toLowerCase()}{" "}
-              {nameFilter === "" ? "" : nameFilter}{" "}
-              {assetFilter === "All" ? "" : assetFilter} markets
-            </Typography>
-          </Box>
-        )}
+      {tableData.length === 0 && !isLoading && defaultFilters && (
+        <Box display="flex" flexDirection="column" padding="32px 16px">
+          <Typography variant="title3">{noMarketsTitle}</Typography>
+          <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
+            {noMarketsSubtitle}
+          </Typography>
+        </Box>
+      )}
+      {tableData.length === 0 && !isLoading && !defaultFilters && (
+        <Box display="flex" flexDirection="column" padding="32px 16px">
+          <Typography variant="title3">
+            There are no {type}{" "}
+            {statusFilter === "All" ? "" : statusFilter?.toLowerCase()}{" "}
+            {nameFilter === "" ? "" : nameFilter}{" "}
+            {assetFilter === "All" ? "" : assetFilter} markets
+          </Typography>
+        </Box>
+      )}
       {tableData.length !== 0 && !isLoading && (
         <DataGrid
           rows={rows}
