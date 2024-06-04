@@ -114,6 +114,7 @@ export const OthersMarketsTable = ({
   isOpen,
   assetFilter,
   statusFilter,
+  nameFilter,
 }: OthersMarketsTableProps) => {
   const router = useRouter()
 
@@ -164,11 +165,12 @@ export const OthersMarketsTable = ({
       )}
       {tableData.length === 0 &&
         !isLoading &&
-        (assetFilter || statusFilter) && (
+        (assetFilter || statusFilter || nameFilter) && (
           <Box display="flex" flexDirection="column" padding="32px 16px">
             <Typography variant="title3">
               There are no other{" "}
               {statusFilter === "All" ? "" : statusFilter?.toLowerCase()}{" "}
+              {nameFilter === "" ? "" : nameFilter}{" "}
               {assetFilter === "All" ? "" : assetFilter} markets
             </Typography>
           </Box>

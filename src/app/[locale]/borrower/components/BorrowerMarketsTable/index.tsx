@@ -101,6 +101,7 @@ const columns: GridColDef[] = [
 ]
 
 export const BorrowerMarketsTable = ({
+  type,
   label,
   noMarketsTitle,
   noMarketsSubtitle,
@@ -109,6 +110,7 @@ export const BorrowerMarketsTable = ({
   isOpen,
   statusFilter,
   assetFilter,
+  nameFilter,
 }: BorrowerMarketsTableProps) => {
   const router = useRouter()
 
@@ -158,7 +160,7 @@ export const BorrowerMarketsTable = ({
       )}
       {tableData.length === 0 &&
         !isLoading &&
-        !(assetFilter || statusFilter) && (
+        !(assetFilter || statusFilter || nameFilter) && (
           <Box display="flex" flexDirection="column" padding="32px 16px">
             <Typography variant="title3">{noMarketsTitle}</Typography>
             <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
@@ -168,11 +170,12 @@ export const BorrowerMarketsTable = ({
         )}
       {tableData.length === 0 &&
         !isLoading &&
-        (assetFilter || statusFilter) && (
+        (assetFilter || statusFilter || nameFilter) && (
           <Box display="flex" flexDirection="column" padding="32px 16px">
             <Typography variant="title3">
-              There are no active{" "}
+              There are no {type}{" "}
               {statusFilter === "All" ? "" : statusFilter?.toLowerCase()}{" "}
+              {nameFilter === "" ? "" : nameFilter}{" "}
               {assetFilter === "All" ? "" : assetFilter} markets
             </Typography>
           </Box>

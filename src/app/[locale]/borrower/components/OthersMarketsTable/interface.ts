@@ -7,4 +7,5 @@ export type OthersMarketsTableProps = {
 
   statusFilter?: string
   assetFilter?: string
+  nameFilter?: string
 }

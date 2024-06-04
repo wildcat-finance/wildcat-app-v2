@@ -1,3 +1,5 @@
+import { ChangeEvent } from "react"
+
 import {
   Box,
   Divider,
@@ -15,9 +17,10 @@ import Icon from "@/assets/icons/search_icon.svg"
 import ExtendedRadio from "@/components/@extended/ExtendedRadio"
 import { ContentContainer } from "@/components/Sidebar/AllMarketsSidebar/style"
 import { underlyingAssetsMock } from "@/mocks/mocks"
-import { useAppDispatch } from "@/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   setBorrowerMarketAsset,
+  setBorrowerMarketName,
   setBorrowerMarketStatus,
 } from "@/store/slices/borrowerSidebarSlice/borrowerSidebarSlice"
 import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
@@ -27,6 +30,11 @@ import { MarketStatus } from "@/utils/marketStatus"
 export const AllMarketsSidebar = () => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const marketName = useAppSelector((state) => state.borrowerSidebar.marketName)
+
+  const handleChangeMarketName = (evt: ChangeEvent<HTMLInputElement>) => {
+    dispatch(setBorrowerMarketName(evt.target.value))
+  }
 
   function handleChangeStatus(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value as MarketStatus | "All"
@@ -42,8 +50,10 @@ export const AllMarketsSidebar = () => {
     <Box sx={ContentContainer}>
       <TextField
         fullWidth
+        placeholder="Search by Market Name"
+        value={marketName}
+        onChange={handleChangeMarketName}
         size="small"
-        label={t("borrowerMarketList:searchMarketName")}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">

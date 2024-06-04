@@ -10,6 +10,7 @@ export enum SidebarMarketAssets {
 }
 
 export type TBorrowerSidebarType = {
+  marketName: string
   status: MarketStatus | "All"
   underlyingAsset: SidebarMarketAssets
 }

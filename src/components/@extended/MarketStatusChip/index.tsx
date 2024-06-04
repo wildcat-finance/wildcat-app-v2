@@ -12,13 +12,14 @@ import Arrow from "../../../assets/icons/textChipArrow_icon.svg"
 export const MarketStatusChip = ({
   variant = "filled",
   status,
+  timeHealthy = "",
 }: MarketStatusChipProps) => {
   let chipConfig
 
   switch (status) {
     case "Healthy": {
       chipConfig = {
-        label: "Healthy",
+        label: `Healthy ${timeHealthy}`,
         icon: undefined,
         backgroundColor: COLORS.glitter,
         fontColor: COLORS.ultramarineBlue,

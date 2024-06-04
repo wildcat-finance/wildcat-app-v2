@@ -23,10 +23,17 @@ import { PageTitleContainer } from "./page-style"
 
 const filterMarketsByAssetAndStatus = (
   markets: Market[] | undefined,
+  name: string,
   status: MarketStatus | "All",
   asset: SidebarMarketAssets,
 ) => {
   let filteredMarkets = markets
+
+  if (filteredMarkets && name !== "") {
+    filteredMarkets = filteredMarkets.filter((market) =>
+      market.name.toLowerCase().includes(name.toLowerCase()),
+    )
+  }
 
   if (filteredMarkets && status !== "All") {
     filteredMarkets = filteredMarkets.filter(
@@ -38,6 +45,7 @@ const filterMarketsByAssetAndStatus = (
         ) === status,
     )
   }
+
   if (filteredMarkets && asset !== "All") {
     filteredMarkets = filteredMarkets.filter(
       (market) => market.underlyingToken.symbol === asset,
@@ -57,6 +65,9 @@ export default function Borrower() {
   const isRegisteredBorrower = controller?.isRegisteredBorrower
   const controllerMarkets = controller?.markets || []
 
+  const filterByMarketName = useAppSelector(
+    (state) => state.borrowerSidebar.marketName,
+  )
   const filterByStatus = useAppSelector((state) => state.borrowerSidebar.status)
   const filterByAsset = useAppSelector(
     (state) => state.borrowerSidebar.underlyingAsset,
@@ -64,6 +75,7 @@ export default function Borrower() {
 
   const filteredMarkets = filterMarketsByAssetAndStatus(
     allMarkets,
+    filterByMarketName,
     filterByStatus,
     filterByAsset,
   )
@@ -74,11 +86,15 @@ export default function Borrower() {
       !market.isClosed,
   )
 
-  const terminatedBorrowerMarkets = allMarkets?.filter(
-    (market) =>
-      market.borrower.toLowerCase() === address?.toLowerCase() &&
-      market.isClosed,
-  )
+  const terminatedBorrowerMarkets = allMarkets
+    ?.filter(
+      (market) =>
+        market.borrower.toLowerCase() === address?.toLowerCase() &&
+        market.isClosed,
+    )
+    .filter((market) =>
+      market.name.toLowerCase().includes(filterByMarketName.toLowerCase()),
+    )
 
   const othersMarkets = filteredMarkets?.filter(
     (market) => market.borrower.toLowerCase() !== address?.toLowerCase(),
@@ -136,6 +152,7 @@ export default function Borrower() {
             <Box>
               <Box>
                 <BorrowerMarketsTable
+                  type="active"
                   label="Your Active Markets"
                   noMarketsTitle="You don’t have active markets"
                   noMarketsSubtitle="You have only Terminated Markets. You can create a new one or check Terminated"
@@ -143,17 +160,20 @@ export default function Borrower() {
                   isLoading={isLoading}
                   assetFilter={filterByAsset}
                   statusFilter={filterByStatus}
+                  nameFilter={filterByMarketName}
                   isOpen
                 />
               </Box>
 
               <Box marginTop="16px">
                 <BorrowerMarketsTable
+                  type="terminated"
                   label="Your Terminated Markets"
                   noMarketsTitle="You don’t have terminated markets"
                   noMarketsSubtitle="You have only active Markets."
                   tableData={terminatedBorrowerMarkets || []}
                   isLoading={isLoading}
+                  nameFilter={filterByMarketName}
                 />
               </Box>
             </Box>
@@ -165,6 +185,7 @@ export default function Borrower() {
               isLoading={isLoading}
               assetFilter={filterByAsset}
               statusFilter={filterByStatus}
+              nameFilter={filterByMarketName}
               isOpen
             />
           </Box>
