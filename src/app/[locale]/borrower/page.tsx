@@ -1,6 +1,8 @@
 "use client"
 
-import { Box, Button, Typography } from "@mui/material"
+import React from "react"
+
+import { Box, Button, Tab, Tabs, Typography } from "@mui/material"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -70,10 +72,28 @@ export default function Borrower() {
   const showBorrowerTables =
     isConnected && isRegisteredBorrower && !!controllerMarkets.length
 
+  const [tab, setTab] = React.useState("markets")
+
+  const handleTabsChange = (event: React.SyntheticEvent, newTab: string) => {
+    setTab(newTab)
+  }
+
   return (
     <Box>
       <Box sx={PageTitleContainer}>
-        <Typography variant="title2">{t("header")}</Typography>
+        {isConnected && isRegisteredBorrower ? (
+          <Tabs
+            value={tab}
+            onChange={handleTabsChange}
+            aria-label="Borrower market list tabs"
+          >
+            <Tab value="markets" label="All markets" />
+            <Tab value="mla" label="MLA" />
+            <Tab value="lenders" label="Lenders" />
+          </Tabs>
+        ) : (
+          <Typography variant="title2">{t("header")}</Typography>
+        )}
 
         {!bannerDisplayConfig.hideNewMarketButton && (
           <Link href={ROUTES.borrower.newMarket}>

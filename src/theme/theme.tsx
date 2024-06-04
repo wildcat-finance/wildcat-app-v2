@@ -977,6 +977,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           fontFamily: "inherit",
+          letterSpacing: 0,
           border: "none",
 
           "& .MuiDataGrid-filler": {
@@ -1032,6 +1033,7 @@ export const theme = createTheme({
             fontSize: "10px",
             lineHeight: "12px",
             fontWeight: 500,
+            letterSpacing: 0,
             color: COLORS.santasGrey,
 
             "& .MuiDataGrid-columnHeaderTitleContainer": {
@@ -1069,6 +1071,7 @@ export const theme = createTheme({
             fontSize: "10px",
             lineHeight: "20px",
             fontWeight: 500,
+            letterSpacing: 0,
             color: COLORS.blackRock,
           },
         },
@@ -1078,6 +1081,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           fontFamily: "inherit",
+          letterSpacing: 0,
           border: "none",
           boxShadow: "none",
           padding: 0,
@@ -1097,6 +1101,7 @@ export const theme = createTheme({
           height: "32px",
           minHeight: "0 !important",
           fontFamily: "inherit",
+          letterSpacing: 0,
           backgroundColor: COLORS.hintOfRed,
 
           "& .MuiAccordionSummary-expandIconWrapper": {
@@ -1109,6 +1114,7 @@ export const theme = createTheme({
             fontSize: "12px",
             lineHeight: "20px",
             fontWeight: 500,
+            letterSpacing: 0,
             alignItems: "center",
 
             margin: 0,
@@ -1122,6 +1128,47 @@ export const theme = createTheme({
             height: "32px",
             minHeight: "0 !important",
             margin: 0,
+          },
+        },
+      },
+    },
+    MuiTab: {
+      defaultProps: {
+        disableRipple: true,
+      },
+      styleOverrides: {
+        root: {
+          height: "36px",
+          minHeight: "36px",
+
+          fontFamily: "inherit",
+          fontSize: "20px",
+          fontWeight: 500,
+          lineHeight: "32px",
+          textTransform: "none",
+          color: COLORS.santasGrey,
+          letterSpacing: 0,
+
+          borderBottom: "1px solid",
+          borderColor: COLORS.santasGrey,
+
+          padding: "0 12px 4px",
+
+          "&.Mui-selected": {
+            color: COLORS.blackRock,
+          },
+        },
+      },
+    },
+    MuiTabs: {
+      styleOverrides: {
+        root: {
+          height: "36px",
+          minHeight: "36px",
+
+          "& .MuiTabs-indicator": {
+            height: "1px",
+            backgroundColor: COLORS.blackRock,
           },
         },
       },
