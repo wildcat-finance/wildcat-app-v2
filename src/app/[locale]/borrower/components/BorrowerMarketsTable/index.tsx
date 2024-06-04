@@ -40,6 +40,11 @@ const columns: GridColDef[] = [
     flex: 1,
     headerAlign: "left",
     align: "left",
+    renderCell: ({ value }) => (
+      <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+        {value}
+      </span>
+    ),
   },
   {
     field: "asset",
@@ -97,6 +102,11 @@ const columns: GridColDef[] = [
     minWidth: 114,
     headerAlign: "right",
     align: "right",
+    renderCell: (params) => (
+      <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
+        {params.value}
+      </Typography>
+    ),
   },
 ]
 
@@ -125,11 +135,9 @@ export const BorrowerMarketsTable = ({
     asset: market.underlyingToken.symbol,
     lenderAPR: `${formatBps(market.annualInterestBips)}%`,
     crr: `${formatBps(market.reserveRatioBips)}%`,
-    maxCapacity: `${formatTokenWithCommas(market.maxTotalSupply)} ${
-      market.underlyingToken.symbol
-    }`,
+    maxCapacity: `${formatTokenWithCommas(market.maxTotalSupply)}`,
     borrowable: formatTokenWithCommas(market.borrowableAssets, {
-      withSymbol: true,
+      withSymbol: false,
     }),
     deploy: market.deployedEvent
       ? timestampToDateFormatted(market.deployedEvent.blockTimestamp)

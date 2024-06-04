@@ -1068,11 +1068,14 @@ export const theme = createTheme({
             padding: "0 16px",
             borderColor: COLORS.athensGrey,
 
-            fontSize: "10px",
+            fontSize: "12px",
             lineHeight: "20px",
             fontWeight: 500,
             letterSpacing: 0,
             color: COLORS.blackRock,
+
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
           },
         },
       },
@@ -1150,7 +1153,7 @@ export const theme = createTheme({
           letterSpacing: 0,
 
           borderBottom: "1px solid",
-          borderColor: COLORS.santasGrey,
+          borderColor: COLORS.iron,
 
           padding: "0 12px 4px",
 
