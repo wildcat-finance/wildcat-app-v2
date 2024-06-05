@@ -22,13 +22,15 @@ import {
   capacityComparator,
   dateComparator,
   percentComparator,
+  statusComparator,
 } from "@/utils/comparators"
 import {
   formatBps,
   formatTokenWithCommas,
+  secondsToDays,
   timestampToDateFormatted,
 } from "@/utils/formatters"
-import { getMarketStatus, MarketStatus } from "@/utils/marketStatus"
+import { getMarketStatus } from "@/utils/marketStatus"
 
 import { BorrowerMarketsTableProps } from "./interface"
 
@@ -36,9 +38,10 @@ const columns: GridColDef[] = [
   {
     field: "status",
     headerName: "Status",
-    minWidth: 146,
+    minWidth: 148,
     headerAlign: "left",
     align: "left",
+    sortComparator: statusComparator,
     renderCell: (params) => <MarketStatusChip status={params.value} />,
   },
   {
@@ -135,25 +138,46 @@ export const BorrowerMarketsTable = ({
 }: BorrowerMarketsTableProps) => {
   const router = useRouter()
 
-  const rows = tableData.map((market) => ({
-    id: market.address,
-    status: getMarketStatus(
-      market.isClosed,
-      market.isDelinquent,
-      market.isIncurringPenalties,
-    ),
-    name: market.name,
-    asset: market.underlyingToken.symbol,
-    lenderAPR: `${formatBps(market.annualInterestBips)}%`,
-    crr: `${formatBps(market.reserveRatioBips)}%`,
-    maxCapacity: `${formatTokenWithCommas(market.maxTotalSupply)}`,
-    borrowable: formatTokenWithCommas(market.borrowableAssets, {
-      withSymbol: false,
-    }),
-    deploy: market.deployedEvent
-      ? timestampToDateFormatted(market.deployedEvent.blockTimestamp)
-      : "",
-  }))
+  const rows = tableData.map((market) => {
+    const {
+      address,
+      name,
+      underlyingToken,
+      annualInterestBips,
+      reserveRatioBips,
+      maxTotalSupply,
+      borrowableAssets,
+      deployedEvent,
+      timeDelinquent,
+      delinquencyGracePeriod,
+      isClosed,
+      isIncurringPenalties,
+      isDelinquent,
+    } = market
+
+    const penaltyPeriod = timeDelinquent - delinquencyGracePeriod
+    const marketStatus = {
+      status: getMarketStatus(isClosed, isDelinquent, isIncurringPenalties),
+      healthyPeriod: secondsToDays(Math.abs(timeDelinquent)),
+      penaltyPeriod: secondsToDays(penaltyPeriod),
+    }
+
+    return {
+      id: address,
+      status: marketStatus,
+      name,
+      asset: underlyingToken.symbol,
+      lenderAPR: `${formatBps(annualInterestBips)}%`,
+      crr: `${formatBps(reserveRatioBips)}%`,
+      maxCapacity: `${formatTokenWithCommas(maxTotalSupply)}`,
+      borrowable: formatTokenWithCommas(borrowableAssets, {
+        withSymbol: false,
+      }),
+      deploy: deployedEvent
+        ? timestampToDateFormatted(deployedEvent.blockTimestamp)
+        : "",
+    }
+  })
 
   const handleRowClick = (params: GridRowParams) => {
     router.push(`${ROUTES.borrower.market}/${params.row.id}`)
@@ -177,22 +201,22 @@ export const BorrowerMarketsTable = ({
       {isLoading && (
         <Box display="flex" flexDirection="column" padding="32px 16px">
           <Skeleton
-            height="36px"
+            height="52px"
             width="100%"
             sx={{ bgcolor: COLORS.athensGrey }}
           />
           <Skeleton
-            height="36px"
+            height="52px"
             width="100%"
             sx={{ bgcolor: COLORS.athensGrey }}
           />
           <Skeleton
-            height="36px"
+            height="52px"
             width="100%"
             sx={{ bgcolor: COLORS.athensGrey }}
           />
           <Skeleton
-            height="36px"
+            height="52px"
             width="100%"
             sx={{ bgcolor: COLORS.athensGrey }}
           />

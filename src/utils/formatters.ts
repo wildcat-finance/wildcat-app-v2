@@ -5,6 +5,7 @@ import {
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
+import duration from "dayjs/plugin/duration"
 import { formatUnits } from "viem"
 
 // <---- TIMESTAMP TO DATE FORMATTERS ---->
@@ -12,6 +13,12 @@ import { formatUnits } from "viem"
 export const DATE_FORMAT = "DD-MMM-YYYY HH:mm"
 export const timestampToDateFormatted = (timestamp: number) =>
   dayjs(timestamp * 1000).format(DATE_FORMAT)
+
+dayjs.extend(duration)
+
+export function secondsToDays(seconds: number) {
+  return dayjs.duration(seconds, "seconds").asDays()
+}
 
 // <---- MARKET CONSTRAINTS ---->
 

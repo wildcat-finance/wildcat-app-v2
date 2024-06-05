@@ -52,6 +52,7 @@ export const useBorrowerInvitationRedirect = () => {
   if (isLoading || !isSuccess) {
     return {
       hideNewMarketButton: true,
+      hideBanner: true,
     }
   }
 

@@ -1094,7 +1094,7 @@ export const theme = createTheme({
     MuiAccordionSummary: {
       defaultProps: {
         expandIcon: (
-          <SvgIcon fontSize="medium">
+          <SvgIcon fontSize="small">
             <UpArrow />
           </SvgIcon>
         ),

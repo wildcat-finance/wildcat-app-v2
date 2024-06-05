@@ -22,7 +22,14 @@ export const MarketHeader = () => {
           <Typography variant="text4">WBTC</Typography>
         </Box>
         <Box display="flex" columnGap="12px">
-          <MarketStatusChip status={MarketStatus.HEALTHY} variant="filled" />
+          <MarketStatusChip
+            status={{
+              status: MarketStatus.HEALTHY,
+              healthyPeriod: 0,
+              penaltyPeriod: 0,
+            }}
+            variant="filled"
+          />
           <MarketCycleChip color="blue" time="3m 45s" />
         </Box>
       </Box>

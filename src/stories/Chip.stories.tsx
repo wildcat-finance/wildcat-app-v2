@@ -9,6 +9,13 @@ export default {
   component: MarketStatusChip,
 } as Meta<typeof MarketStatusChip>
 
+const mockData = [
+  { status: MarketStatus.HEALTHY, healthyPeriod: 0, penaltyPeriod: 0 },
+  { status: MarketStatus.PENALTY, healthyPeriod: 0, penaltyPeriod: 0 },
+  { status: MarketStatus.DELINQUENT, healthyPeriod: 0, penaltyPeriod: 0 },
+  { status: MarketStatus.TERMINATED, healthyPeriod: 0, penaltyPeriod: 0 },
+]
+
 export const Chip = () => (
   <Box
     sx={{
@@ -25,10 +32,9 @@ export const Chip = () => (
         gap: "10px",
       }}
     >
-      <MarketStatusChip status={MarketStatus.HEALTHY} />
-      <MarketStatusChip status={MarketStatus.PENALTY} />
-      <MarketStatusChip status={MarketStatus.DELINQUENT} />
-      <MarketStatusChip status={MarketStatus.TERMINATED} />
+      {mockData.map((status) => (
+        <MarketStatusChip status={status} />
+      ))}
     </Box>
     <Box
       sx={{
@@ -38,10 +44,9 @@ export const Chip = () => (
         gap: "10px",
       }}
     >
-      <MarketStatusChip variant="text" status={MarketStatus.HEALTHY} />
-      <MarketStatusChip variant="text" status={MarketStatus.PENALTY} />
-      <MarketStatusChip variant="text" status={MarketStatus.DELINQUENT} />
-      <MarketStatusChip variant="text" status={MarketStatus.TERMINATED} />
+      {mockData.map((status) => (
+        <MarketStatusChip variant="text" status={status} />
+      ))}
     </Box>
   </Box>
 )

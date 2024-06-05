@@ -12,14 +12,13 @@ import Arrow from "../../../assets/icons/textChipArrow_icon.svg"
 export const MarketStatusChip = ({
   variant = "filled",
   status,
-  timeHealthy = "",
 }: MarketStatusChipProps) => {
   let chipConfig
 
-  switch (status) {
+  switch (status.status) {
     case "Healthy": {
       chipConfig = {
-        label: `Healthy ${timeHealthy}`,
+        label: `Healthy ${Math.floor(status.healthyPeriod)} more days`,
         icon: undefined,
         backgroundColor: COLORS.glitter,
         fontColor: COLORS.ultramarineBlue,
@@ -65,7 +64,7 @@ export const MarketStatusChip = ({
 
   const chipIcon =
     // eslint-disable-next-line no-nested-ternary
-    status === "Penalty" ? (
+    status.status === "Penalty" ? (
       <Image src={Fire} alt="Fire icon" height={12} width={12} />
     ) : chipConfig.icon === undefined ? undefined : (
       <SvgIcon
@@ -105,7 +104,7 @@ export const MarketStatusChip = ({
               color: chipConfig.fontColor,
             }}
           />
-          {(status === "Penalty" || status === "Delinquent") && (
+          {(status.status === "Penalty" || status.status === "Delinquent") && (
             <Arrow
               fill={chipConfig.fontColor}
               style={{ position: "relative", top: "-2px" }}
