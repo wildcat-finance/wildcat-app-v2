@@ -5,21 +5,27 @@ export const statusComparator = (
     status: MarketStatus
     healthyPeriod: number
     penaltyPeriod: number
+    delinquencyPeriod: number
   },
   v2: {
     status: MarketStatus
     healthyPeriod: number
     penaltyPeriod: number
+    delinquencyPeriod: number
   },
 ) => {
   const statusOrder = (status: MarketStatus) => {
     switch (status) {
       case MarketStatus.HEALTHY:
         return 1
-      case MarketStatus.PENALTY:
+      case MarketStatus.DELINQUENT:
         return 2
-      default:
+      case MarketStatus.PENALTY:
         return 3
+      case MarketStatus.TERMINATED:
+        return 4
+      default:
+        return 5
     }
   }
 
@@ -34,7 +40,22 @@ export const statusComparator = (
   ) {
     return v2.healthyPeriod - v1.healthyPeriod
   }
-  return v1.penaltyPeriod - v2.penaltyPeriod
+
+  if (
+    v1.status === MarketStatus.DELINQUENT &&
+    v2.status === MarketStatus.DELINQUENT
+  ) {
+    return v1.delinquencyPeriod - v2.delinquencyPeriod
+  }
+
+  if (
+    v1.status === MarketStatus.PENALTY &&
+    v2.status === MarketStatus.PENALTY
+  ) {
+    return v1.penaltyPeriod - v2.penaltyPeriod
+  }
+
+  return 0
 }
 
 export const percentComparator = (v1: string, v2: string) => {

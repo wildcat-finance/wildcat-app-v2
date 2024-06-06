@@ -31,6 +31,10 @@ export const AllMarketsSidebar = () => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const marketName = useAppSelector((state) => state.borrowerSidebar.marketName)
+  const marketStatus = useAppSelector((state) => state.borrowerSidebar.status)
+  const marketAsset = useAppSelector(
+    (state) => state.borrowerSidebar.underlyingAsset,
+  )
 
   const handleChangeMarketName = (evt: ChangeEvent<HTMLInputElement>) => {
     dispatch(setBorrowerMarketName(evt.target.value))
@@ -76,7 +80,7 @@ export const AllMarketsSidebar = () => {
             {t("borrowerMarketList:statusRadioTitle")}
           </Typography>
           <RadioGroup
-            defaultValue="All"
+            defaultValue={marketStatus}
             name="radio-status"
             onChange={handleChangeStatus}
           >
@@ -112,7 +116,7 @@ export const AllMarketsSidebar = () => {
             {t("borrowerMarketList:assetRadioTitle")}
           </Typography>
           <RadioGroup
-            defaultValue="All"
+            defaultValue={marketAsset}
             name="radio-asset"
             onChange={handleChangeAsset}
           >

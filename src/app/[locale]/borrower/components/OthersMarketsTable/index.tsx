@@ -165,11 +165,16 @@ export const OthersMarketsTable = ({
       (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
     )
     const borrowerName = borrower ? borrower.name : trimAddress(borrowerAddress)
+    const delinquencyPeriod =
+      timeDelinquent > delinquencyGracePeriod
+        ? 0
+        : delinquencyGracePeriod - timeDelinquent
     const penaltyPeriod = timeDelinquent - delinquencyGracePeriod
     const marketStatus = {
       status: getMarketStatus(isClosed, isDelinquent, isIncurringPenalties),
       healthyPeriod: secondsToDays(Math.abs(timeDelinquent)),
       penaltyPeriod: secondsToDays(penaltyPeriod),
+      delinquencyPeriod: secondsToDays(delinquencyPeriod),
     }
 
     return {

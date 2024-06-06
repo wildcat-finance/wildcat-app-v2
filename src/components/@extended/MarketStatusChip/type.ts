@@ -6,5 +6,6 @@ export type MarketStatusChipProps = {
     status: MarketStatus
     healthyPeriod: number
     penaltyPeriod: number
+    delinquencyPeriod?: number
   }
 }

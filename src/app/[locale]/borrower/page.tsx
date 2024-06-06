@@ -10,6 +10,7 @@ import { useAccount } from "wagmi"
 
 import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { LeadBanner } from "@/components/LeadBanner"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetController } from "@/hooks/useGetController"
 import { ROUTES } from "@/routes"
 import { useAppSelector } from "@/store/hooks"
@@ -62,6 +63,7 @@ export default function Borrower() {
   const { data: borrowers } = useGetBorrowers()
   const { data: allMarkets, isLoading, error } = useMarketsForBorrower()
   const { address, isConnected } = useAccount()
+  const { isWrongNetwork } = useCurrentNetwork()
   const { data: controller } = useGetController()
   const isRegisteredBorrower = controller?.isRegisteredBorrower
   const controllerMarkets = controller?.markets || []
@@ -131,7 +133,7 @@ export default function Borrower() {
 
         {!bannerDisplayConfig.hideNewMarketButton && (
           <Link href={ROUTES.borrower.newMarket}>
-            <Button variant="contained" size="small">
+            <Button variant="contained" size="small" disabled={isWrongNetwork}>
               {t("newMarketButton")}
             </Button>
           </Link>

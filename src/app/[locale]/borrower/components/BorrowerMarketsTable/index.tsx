@@ -155,11 +155,16 @@ export const BorrowerMarketsTable = ({
       isDelinquent,
     } = market
 
+    const delinquencyPeriod =
+      timeDelinquent > delinquencyGracePeriod
+        ? 0
+        : delinquencyGracePeriod - timeDelinquent
     const penaltyPeriod = timeDelinquent - delinquencyGracePeriod
     const marketStatus = {
       status: getMarketStatus(isClosed, isDelinquent, isIncurringPenalties),
       healthyPeriod: secondsToDays(Math.abs(timeDelinquent)),
       penaltyPeriod: secondsToDays(penaltyPeriod),
+      delinquencyPeriod: secondsToDays(delinquencyPeriod),
     }
 
     return {
