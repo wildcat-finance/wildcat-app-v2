@@ -38,7 +38,7 @@ const columns: GridColDef[] = [
   {
     field: "status",
     headerName: "Status",
-    minWidth: 148,
+    minWidth: 150,
     headerAlign: "left",
     align: "left",
     sortComparator: statusComparator,
