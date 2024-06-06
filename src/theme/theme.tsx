@@ -1176,5 +1176,13 @@ export const theme = createTheme({
         },
       },
     },
+    MuiSkeleton: {
+      styleOverrides: {
+        root: {
+          transformOrigin: "0px",
+          transform: "none",
+        },
+      },
+    },
   },
 })

@@ -215,7 +215,12 @@ export const OthersMarketsTable = ({
         </Box>
       </AccordionSummary>
       {isLoading && (
-        <Box display="flex" flexDirection="column" padding="32px 16px">
+        <Box
+          display="flex"
+          flexDirection="column"
+          padding="32px 16px"
+          rowGap="8px"
+        >
           <Skeleton
             height="52px"
             width="100%"
