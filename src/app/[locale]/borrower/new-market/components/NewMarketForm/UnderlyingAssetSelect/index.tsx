@@ -9,6 +9,7 @@ import {
   createFilterOptions,
 } from "@mui/material"
 import Image from "next/image"
+import { useTranslation } from "react-i18next"
 
 import { TokenInfo } from "@/app/api/tokens-list/interface"
 
@@ -50,6 +51,7 @@ export const UnderlyingAssetSelect = forwardRef(
     { error, errorText, handleTokenSelect, onBlur }: TokenSelectorProps,
     ref: ForwardedRef<HTMLInputElement>,
   ) => {
+    const { t } = useTranslation()
     const { handleChange, handleSelect, query, setQuery, isLoading, tokens } =
       useTokensList()
 
@@ -66,7 +68,15 @@ export const UnderlyingAssetSelect = forwardRef(
         <Autocomplete
           PopperComponent={MyPopper}
           filterOptions={filterOptions}
-          noOptionsText={isLoading ? "Loading..." : "Enter token name"}
+          noOptionsText={
+            isLoading
+              ? t(
+                  "createMarket.forms.marketDescription.block.marketAsset.loading",
+                )
+              : t(
+                  "createMarket.forms.marketDescription.block.marketAsset.dropdownPlaceholder",
+                )
+          }
           ref={ref}
           onBlur={onBlur}
           renderInput={(params) => (
@@ -74,7 +84,9 @@ export const UnderlyingAssetSelect = forwardRef(
               {...params}
               value={query}
               onChange={handleChange}
-              label="Search name or paste address"
+              label={t(
+                "createMarket.forms.marketDescription.block.marketAsset.placeholder",
+              )}
               error={error}
               helperText={errorText}
             />

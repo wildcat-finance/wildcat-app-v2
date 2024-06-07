@@ -123,18 +123,26 @@ export default function Borrower() {
             onChange={handleTabsChange}
             aria-label="Borrower market list tabs"
           >
-            <Tab value="markets" label="All markets" />
-            <Tab value="mla" label="MLA" />
-            <Tab value="lenders" label="Lenders" />
+            <Tab
+              value="markets"
+              label={t("borrowerMarketList.title.allMarkets")}
+            />
+            <Tab value="mla" label={t("borrowerMarketList.title.mla")} />
+            <Tab
+              value="lenders"
+              label={t("borrowerMarketList.title.lenders")}
+            />
           </Tabs>
         ) : (
-          <Typography variant="title2">{t("header")}</Typography>
+          <Typography variant="title2">
+            {t("borrowerMarketList.title.allMarkets")}
+          </Typography>
         )}
 
         {!bannerDisplayConfig.hideNewMarketButton && (
           <Link href={ROUTES.borrower.newMarket}>
             <Button variant="contained" size="small" disabled={isWrongNetwork}>
-              {t("newMarketButton")}
+              {t("borrowerMarketList.button.newMarket")}
             </Button>
           </Link>
         )}
@@ -156,9 +164,13 @@ export default function Borrower() {
               <Box>
                 <BorrowerMarketsTable
                   type="active"
-                  label="Your Active Markets"
-                  noMarketsTitle="You don’t have active markets"
-                  noMarketsSubtitle="You have only Terminated Markets. You can create a new one or check Terminated"
+                  label={t("borrowerMarketList.table.title.active")}
+                  noMarketsTitle={t(
+                    "borrowerMarketList.table.noMarkets.active.title",
+                  )}
+                  noMarketsSubtitle={t(
+                    "borrowerMarketList.table.noMarkets.active.subtitle",
+                  )}
                   tableData={activeBorrowerMarkets || []}
                   isLoading={isLoading}
                   assetFilter={filterByAsset}
@@ -171,9 +183,13 @@ export default function Borrower() {
               <Box marginTop="16px">
                 <BorrowerMarketsTable
                   type="terminated"
-                  label="Your Terminated Markets"
-                  noMarketsTitle="You don’t have terminated markets"
-                  noMarketsSubtitle="You have only active Markets."
+                  label={t("borrowerMarketList.table.title.terminated")}
+                  noMarketsTitle={t(
+                    "borrowerMarketList.table.noMarkets.terminated.title",
+                  )}
+                  noMarketsSubtitle={t(
+                    "borrowerMarketList.table.noMarkets.terminated.subtitle",
+                  )}
                   tableData={terminatedBorrowerMarkets || []}
                   isLoading={isLoading}
                   nameFilter={filterByMarketName}

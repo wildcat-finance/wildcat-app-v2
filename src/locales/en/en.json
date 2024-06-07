@@ -1,0 +1,263 @@
+{
+  "header": {
+    "role": {
+      "borrower": "Borrower",
+      "lender": "Lender"
+    },
+    "button": {
+      "connectWallet": "Connect a wallet",
+      "wrongNetwork": "Wrong Network",
+      "switchNetwork": "Switch to",
+      "disconnect": "Disconnect"
+    },
+    "modal": {
+      "title": "Connect wallet",
+      "note": "By connecting a wallet, you agree to Wildcat Terms of Service and consent to its Privacy Policy"
+    }
+  },
+  "footer": {
+    "rights": "Wildcat © All Rights reserved. 2023",
+    "agreement": "Download Agreement"
+  },
+  "borrowerMarketList": {
+    "title": {
+      "allMarkets": "All markets",
+      "mla": "MLA",
+      "lenders": "Lenders"
+    },
+    "button": {
+      "newMarket": "Create New Market"
+    },
+    "sidebar": {
+      "searchPlaceholder": "Search by Market Name",
+      "title": {
+        "status": "Market Status",
+        "asset": "Underlying asset"
+      },
+      "radio": {
+        "all": "All"
+      }
+    },
+    "table": {
+      "title": {
+        "active": "Your Active Markets",
+        "terminated": "Your Terminated Markets",
+        "other": "Other markets",
+        "loading": "are loading"
+      },
+      "header": {
+        "status": "Status",
+        "marketName": "Market Name",
+        "borrowerName": "Borrower Name",
+        "asset": "Underlying asset",
+        "apr": "Lender APR",
+        "crr": "CRR",
+        "capacity": "Max. Capacity",
+        "borrowable": "Borrowable",
+        "deploy": "Deployed"
+      },
+      "noMarkets": {
+        "active": {
+          "title": "You don’t have active markets",
+          "subtitle": "You have only Terminated Markets. You can create a new one or check Terminated"
+        },
+        "terminated": {
+          "title": "You don’t have terminated markets",
+          "subtitle": "You have only active Markets."
+        },
+        "filter": {
+          "beginning": "There are no",
+          "type": {
+            "active": "active",
+            "terminated": "terminated",
+            "other": "other"
+          },
+          "ending": "markets."
+        }
+      }
+    }
+  },
+  "createMarket": {
+    "forms": {
+      "marketDescription": {
+        "title": "Create New market",
+        "block": {
+          "title": {
+            "definition": "Definition",
+            "amountDuties": "Amount and Duties",
+            "graceWithdrawals": "Grace and Withdrawals"
+          },
+          "marketName": {
+            "title": "Market Name",
+            "placeholder": "Use more than 1 character, e.g. blsm",
+            "tooltip": "TBD"
+          },
+          "mla": {
+            "title": "Master Loan Agreement",
+            "placeholder": "Please Select",
+            "tooltip": "TBD",
+            "options": {
+              "wildcat": "Wildcat MLA Template",
+              "noMLA": "No MLA"
+            }
+          },
+          "kyc": {
+            "title": "KYC Preferences",
+            "placeholder": "Please Select",
+            "tooltip": "TBD",
+            "options": {
+              "share": "Share contact info for direct KYC",
+              "notShare": "No MLA"
+            }
+          },
+          "marketType": {
+            "title": "Market Type",
+            "placeholder": "Please Select",
+            "tooltip": "TBD",
+            "options": {
+              "standard": "Standard Loan"
+            }
+          },
+          "marketAsset": {
+            "title": "Underlying asset",
+            "placeholder": "Search name or paste address",
+            "tooltip": "TBD",
+            "loading": "Loading...",
+            "dropdownPlaceholder": "Enter token name"
+          },
+          "marketTokenName": {
+            "title": "Market token name",
+            "placeholder": "Use more than 1 character, e.g. Blossom",
+            "tooltip": "TBD",
+            "chip": "Asset Name"
+          },
+          "marketTokenSymbol": {
+            "title": "Market token symbol",
+            "placeholder": "Use more than 1 character, e.g. blsm",
+            "tooltip": "TBD",
+            "chip": "Asset Symbol"
+          },
+          "capacity": {
+            "title": "Max. Borrowing Capacity",
+            "placeholder": "under 1000",
+            "tooltip": "TBD",
+            "chip": "Token Symbol"
+          },
+          "baseAPR": {
+            "title": "Base APR",
+            "placeholder": "10-20",
+            "tooltip": "TBD",
+            "chip": "%"
+          },
+          "penaltyAPR": {
+            "title": "Penalty APR",
+            "placeholder": "10-20",
+            "tooltip": "TBD",
+            "chip": "%"
+          },
+          "ratio": {
+            "title": "Reserve Ratio",
+            "placeholder": "10-20",
+            "tooltip": "TBD",
+            "chip": "%"
+          },
+          "deposit": {
+            "title": "Minimum Deposit",
+            "subtitle": "This is non mandatory, the default is 0",
+            "tooltip": "TBD",
+            "chip": "Token Symbol"
+          },
+          "gracePeriod": {
+            "title": "Grace period",
+            "placeholder": "10-20",
+            "tooltip": "TBD",
+            "chip": "hours"
+          },
+          "withdrawalCycle": {
+            "title": "Withdrawal cycle length",
+            "placeholder": "10-20",
+            "tooltip": "TBD",
+            "chip": "hours"
+          }
+        }
+      },
+      "legalInfo": {
+        "title": "Share your legal info with us",
+        "subtitle": "It’s necessary for creating markets with MLA",
+        "block": {
+          "legalName": {
+            "title": "Full legal name",
+            "placeholder": "Use more than 1 character",
+            "tooltip": "TBD"
+          },
+          "jurisdiction": {
+            "title": "Jurisdiction",
+            "placeholder": "Use code of country",
+            "tooltip": "TBD"
+          },
+          "nature": {
+            "title": "Legal Nature",
+            "placeholder": "Please Select",
+            "tooltip": "TBD",
+            "options": {
+              "pi": "Private Individual",
+              "llc": "Limited Liability Company",
+              "dao": "Decentralised Autonomous Organisation"
+            }
+          },
+          "address": {
+            "title": "Address",
+            "placeholder": "Enter a location",
+            "tooltip": "TBD"
+          },
+          "email": {
+            "title": "Email",
+            "placeholder": "example@domain.com",
+            "tooltip": "TBD"
+          }
+        }
+      }
+    },
+    "modal": {
+      "button": {
+        "signMLA": "Sign MLA",
+        "viewMLA": "View MLA",
+        "deploy": "Deploy Market",
+        "back": "Back to review step",
+        "tryAgain": "Try Again",
+        "downloadMla": "View and download MLA",
+        "toMarkets": "Go to the Markets"
+      },
+      "confirmation": {
+        "title": "Review your new market’s details",
+        "mlaTitle": "Market Master Loan Agreement",
+        "borrowerInfo": "BORROWER INFO",
+        "legalNameJurisdiction": "Legal Name and Jurisdiction",
+        "note": "Note that once your market is created, the only adjustable parameters will be base APR and maximum capacity."
+      },
+      "error": {
+        "title": "Oops! Something goes wrong",
+        "message": "Explanatory message about the problem."
+      },
+      "success": {
+        "title": "Market was created",
+        "message": "Market successfully created. You can onboard Lenders and borrow money now."
+      },
+      "loading": {
+        "title": "Just wait a bit...",
+        "message": "Transaction in process."
+      }
+    },
+    "sidebar": {
+      "back": "To markets",
+      "marketDescription": "Market Description",
+      "legalInfo": "Legal Info",
+      "confirm": "Confirmation"
+    },
+    "buttons": {
+      "back": "Back",
+      "next": "Next",
+      "confirm": "Confirm"
+    }
+  }
+}

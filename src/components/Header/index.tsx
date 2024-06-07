@@ -8,7 +8,7 @@ import { COLORS } from "@/theme/colors"
 import { HeaderButton } from "./HeaderButton"
 import Logo from "../../assets/icons/logo_white.svg"
 
-const i18nNamespaces = ["header"]
+const i18nNamespaces = ["en"]
 
 export default async function Header({
   params: { locale },
@@ -27,11 +27,11 @@ export default async function Header({
         <Logo />
         <Box sx={NavContainer}>
           <Typography variant="text2Highlighted" sx={{ color: COLORS.white }}>
-            {t("header:borrower")}
+            {t("header.role.borrower")}
           </Typography>
           <Switch />
           <Typography variant="text2Highlighted" sx={{ color: COLORS.white }}>
-            {t("header:lender")}
+            {t("header.role.lender")}
           </Typography>
         </Box>
         <HeaderButton />

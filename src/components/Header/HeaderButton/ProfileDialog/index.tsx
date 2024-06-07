@@ -56,14 +56,16 @@ export const ProfileDialog = ({
       <Box sx={ContentContainer}>
         {isConnected && isWrongNetwork && (
           <Box sx={WrongNetworkContainer}>
-            <Typography variant="text3">{t("modalWrongNetwork")}</Typography>
+            <Typography variant="text3">
+              {t("header.button.wrongNetwork")}
+            </Typography>
             <Button
               variant="outlined"
               size="small"
               sx={WrongNetworkButton}
               onClick={() => switchChain({ chainId: sepolia.id })}
             >
-              {t("modalSwitchButton")} {TargetNetwork.name}
+              {t("header.button.switchNetwork")} {TargetNetwork.name}
             </Button>
           </Box>
         )}
@@ -124,7 +126,9 @@ export const ProfileDialog = ({
           fullWidth
           onClick={handleClickDisconnect}
         >
-          <Typography variant="text2">{t("modalDisconnect")}</Typography>
+          <Typography variant="text2">
+            {t("header.button.disconnect")}
+          </Typography>
         </Button>
       </Box>
     </Dialog>

@@ -30,9 +30,7 @@ export default async function NewMarket({
       resources={resources}
     >
       <Box sx={{ padding: "52px 20px 0 44px" }}>
-        <Box sx={{ width: "806px" }}>
-          <MarketHeader />
-        </Box>
+        <Box sx={{ width: "806px" }}>{/* <MarketHeader /> */}</Box>
       </Box>
     </TranslationsProvider>
   )

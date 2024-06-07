@@ -14,6 +14,7 @@ import SvgIcon from "@mui/material/SvgIcon"
 import { Token } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { UseFormReturn } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 
 import { TokenInfo } from "@/app/api/tokens-list/interface"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
@@ -53,6 +54,7 @@ type NewMarketFormProps = {
 }
 
 export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
   const {
@@ -92,14 +94,26 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
   return (
     <Box maxWidth="766px" width="100%">
       <Box marginBottom="20px">
-        <Typography variant="title2">Create New market</Typography>
+        <Typography variant="title2">
+          {t("createMarket.forms.marketDescription.title")}
+        </Typography>
       </Box>
 
-      <Typography variant="text1">Definition</Typography>
+      <Typography variant="text1">
+        {t("createMarket.forms.marketDescription.block.title.definition")}
+      </Typography>
 
-      <InputLabel label="Market Name" margin="16px 0 0 0" tooltipText="TBD">
+      <InputLabel
+        label={t("createMarket.forms.marketDescription.block.marketName.title")}
+        margin="16px 0 0 0"
+        tooltipText={t(
+          "createMarket.forms.marketDescription.block.marketName.tooltip",
+        )}
+      >
         <TextField
-          label="Use more than 1 character, e.g. blsm"
+          label={t(
+            "createMarket.forms.marketDescription.block.marketName.placeholder",
+          )}
           error={Boolean(errors.marketName)}
           helperText={errors.marketName?.message}
           {...register("marketName")}
@@ -107,37 +121,67 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
       </InputLabel>
 
       <Box sx={InputGroupContainer} marginTop="36px">
-        <InputLabel label="Master Loan Agreement" tooltipText="TBD">
+        <InputLabel
+          label={t("createMarket.forms.marketDescription.block.mla.title")}
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.mla.tooltip",
+          )}
+        >
           <ExtendedSelect
             control={control}
             name="mla"
-            label="Please Select"
+            label={t(
+              "createMarket.forms.marketDescription.block.mla.placeholder",
+            )}
             options={mockedMLATemplatesOptions}
             optionSX={DropdownOption}
           />
         </InputLabel>
 
-        <InputLabel label="KYC Preferences" tooltipText="TBD">
+        <InputLabel
+          label={t("createMarket.forms.marketDescription.block.kyc.title")}
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.kyc.tooltip",
+          )}
+        >
           <ExtendedSelect
             control={control}
             name="kyc"
-            label="Please Select"
+            label={t(
+              "createMarket.forms.marketDescription.block.kyc.placeholder",
+            )}
             options={mockedKYCPreferencesOptions}
             optionSX={DropdownOption}
           />
         </InputLabel>
 
-        <InputLabel label="Select market type" tooltipText="TBD">
+        <InputLabel
+          label={t(
+            "createMarket.forms.marketDescription.block.marketType.title",
+          )}
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.marketType.tooltip",
+          )}
+        >
           <ExtendedSelect
             control={control}
             name="marketType"
-            label="Please Select"
+            label={t(
+              "createMarket.forms.marketDescription.block.marketType.placeholder",
+            )}
             options={mockedMarketTypesOptions}
             optionSX={DropdownOption}
           />
         </InputLabel>
 
-        <InputLabel label="Underlying asset" tooltipText="TBD">
+        <InputLabel
+          label={t(
+            "createMarket.forms.marketDescription.block.marketAsset.title",
+          )}
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.marketAsset.tooltip",
+          )}
+        >
           <UnderlyingAssetSelect
             handleTokenSelect={handleTokenSelect}
             onBlur={tokenSelectorFormProps.onBlur}
@@ -149,18 +193,31 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
       </Box>
 
       <InputLabel
-        label="Market token name"
+        label={t(
+          "createMarket.forms.marketDescription.block.marketTokenName.title",
+        )}
+        tooltipText={t(
+          "createMarket.forms.marketDescription.block.marketTokenName.tooltip",
+        )}
         margin="36px 0 0 0"
-        tooltipText="TBD"
       >
         <TextField
-          label="Use more than 1 character, e.g. Blossom"
+          label={t(
+            "createMarket.forms.marketDescription.block.marketTokenName.placeholder",
+          )}
           error={Boolean(errors.namePrefix)}
           helperText={errors.namePrefix?.message}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <TextfieldChip text={tokenAsset?.name || "Asset Name"} />
+                <TextfieldChip
+                  text={
+                    tokenAsset?.name ||
+                    `${t(
+                      "createMarket.forms.marketDescription.block.marketTokenName.chip",
+                    )}`
+                  }
+                />
               </InputAdornment>
             ),
           }}
@@ -169,18 +226,31 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
       </InputLabel>
 
       <InputLabel
-        label="Market token symbol"
+        label={t(
+          "createMarket.forms.marketDescription.block.marketTokenSymbol.title",
+        )}
+        tooltipText={t(
+          "createMarket.forms.marketDescription.block.marketTokenSymbol.tooltip",
+        )}
         margin="36px 0 0 0"
-        tooltipText="TBD"
       >
         <TextField
-          label="Use more than 1 character, e.g. blsm"
+          label={t(
+            "createMarket.forms.marketDescription.block.marketTokenSymbol.placeholder",
+          )}
           error={Boolean(errors.symbolPrefix)}
           helperText={errors.symbolPrefix?.message}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <TextfieldChip text={tokenAsset?.symbol || "Asset Symbol"} />
+                <TextfieldChip
+                  text={
+                    tokenAsset?.symbol ||
+                    `${t(
+                      "createMarket.forms.marketDescription.block.marketTokenSymbol.chip",
+                    )}`
+                  }
+                />
               </InputAdornment>
             ),
           }}
@@ -190,70 +260,115 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
 
       <Divider sx={DividerStyle} />
 
-      <Typography variant="text1">Amount and Duties</Typography>
+      <Typography variant="text1">
+        {t("createMarket.forms.marketDescription.block.title.amountDuties")}
+      </Typography>
 
       <Box sx={InputGroupContainer} marginTop="16px">
-        <InputLabel label="Max. Borrowing Capacity" tooltipText="TBD">
+        <InputLabel
+          label={t("createMarket.forms.marketDescription.block.capacity.title")}
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.capacity.tooltip",
+          )}
+        >
           <NumberTextField
-            label="under 1000"
+            label={t(
+              "createMarket.forms.marketDescription.block.capacity.placeholder",
+            )}
             value={getValues("maxTotalSupply")}
             error={Boolean(errors.maxTotalSupply)}
             helperText={errors.maxTotalSupply?.message}
             endAdornment={
-              <TextfieldChip text={tokenAsset?.symbol || "Token Symbol"} />
+              <TextfieldChip
+                text={
+                  tokenAsset?.symbol ||
+                  `${t(
+                    "createMarket.forms.marketDescription.block.capacity.chip",
+                  )}`
+                }
+              />
             }
             {...register("maxTotalSupply")}
           />
         </InputLabel>
 
-        <InputLabel label="Base APR" tooltipText="TBD">
+        <InputLabel
+          label={t("createMarket.forms.marketDescription.block.baseAPR.title")}
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.baseAPR.tooltip",
+          )}
+        >
           <NumberTextField
-            label="10-20"
+            label={t(
+              "createMarket.forms.marketDescription.block.baseAPR.placeholder",
+            )}
             value={getValues("annualInterestBips")}
             error={Boolean(errors.annualInterestBips)}
             helperText={errors.annualInterestBips?.message}
             endAdornment={
               <Typography variant="text2" sx={endDecorator}>
-                %
+                {t("createMarket.forms.marketDescription.block.baseAPR.chip")}
               </Typography>
             }
             {...register("annualInterestBips")}
           />
         </InputLabel>
 
-        <InputLabel label="Penalty APR" tooltipText="TBD">
+        <InputLabel
+          label={t(
+            "createMarket.forms.marketDescription.block.penaltyAPR.title",
+          )}
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.penaltyAPR.tooltip",
+          )}
+        >
           <NumberTextField
-            label="10-20"
+            label={t(
+              "createMarket.forms.marketDescription.block.penaltyAPR.placeholder",
+            )}
             value={getValues("delinquencyFeeBips")}
             error={Boolean(errors.delinquencyFeeBips)}
             helperText={errors.delinquencyFeeBips?.message}
             endAdornment={
               <Typography variant="text2" sx={endDecorator}>
-                %
+                {t(
+                  "createMarket.forms.marketDescription.block.penaltyAPR.chip",
+                )}
               </Typography>
             }
             {...register("delinquencyFeeBips")}
           />
         </InputLabel>
 
-        <InputLabel label="Reserve Ratio" tooltipText="TBD">
+        <InputLabel
+          label={t("createMarket.forms.marketDescription.block.ratio.title")}
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.ratio.tooltip",
+          )}
+        >
           <NumberTextField
-            label="10-20"
+            label={t(
+              "createMarket.forms.marketDescription.block.ratio.placeholder",
+            )}
             value={getValues("reserveRatioBips")}
             error={Boolean(errors.reserveRatioBips)}
             helperText={errors.reserveRatioBips?.message}
             endAdornment={
               <Typography variant="text2" sx={endDecorator}>
-                %
+                {t("createMarket.forms.marketDescription.block.ratio.chip")}
               </Typography>
             }
             {...register("reserveRatioBips")}
           />
         </InputLabel>
         <InputLabel
-          label="Minimum Deposit"
-          subtitle="This is non mandatory, the default is 0"
-          tooltipText="TBD"
+          label={t("createMarket.forms.marketDescription.block.deposit.title")}
+          subtitle={t(
+            "createMarket.forms.marketDescription.block.deposit.subtitle",
+          )}
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.deposit.tooltip",
+          )}
         >
           <NumberTextField
             label="0"
@@ -261,7 +376,14 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
             error={Boolean(errors.minimumDeposit)}
             helperText={errors.minimumDeposit?.message}
             endAdornment={
-              <TextfieldChip text={tokenAsset?.symbol || "Token Symbol"} />
+              <TextfieldChip
+                text={
+                  tokenAsset?.symbol ||
+                  `${t(
+                    "createMarket.forms.marketDescription.block.deposit.chip",
+                  )}`
+                }
+              />
             }
             {...register("minimumDeposit")}
           />
@@ -270,33 +392,57 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
 
       <Divider sx={DividerStyle} />
 
-      <Typography variant="text1">Grace and Withdrawals</Typography>
+      <Typography variant="text1">
+        {t("createMarket.forms.marketDescription.block.title.graceWithdrawals")}
+      </Typography>
 
       <Box sx={InputGroupContainer} marginTop="16px">
-        <InputLabel label="Grace period" tooltipText="TBD">
+        <InputLabel
+          label={t(
+            "createMarket.forms.marketDescription.block.gracePeriod.title",
+          )}
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.gracePeriod.tooltip",
+          )}
+        >
           <NumberTextField
-            label="10-20"
+            label={t(
+              "createMarket.forms.marketDescription.block.gracePeriod.placeholder",
+            )}
             value={getValues("delinquencyGracePeriod")}
             error={Boolean(errors.delinquencyGracePeriod)}
             helperText={errors.delinquencyGracePeriod?.message}
             endAdornment={
               <Typography variant="text2" sx={endDecorator}>
-                hours
+                {t(
+                  "createMarket.forms.marketDescription.block.gracePeriod.chip",
+                )}
               </Typography>
             }
             {...register("delinquencyGracePeriod")}
           />
         </InputLabel>
 
-        <InputLabel label="Withdrawal cycle length" tooltipText="TBD">
+        <InputLabel
+          label={t(
+            "createMarket.forms.marketDescription.block.withdrawalCycle.title",
+          )}
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.withdrawalCycle.tooltip",
+          )}
+        >
           <NumberTextField
-            label="10-20"
+            label={t(
+              "createMarket.forms.marketDescription.block.withdrawalCycle.placeholder",
+            )}
             value={getValues("withdrawalBatchDuration")}
             error={Boolean(errors.withdrawalBatchDuration)}
             helperText={errors.withdrawalBatchDuration?.message}
             endAdornment={
               <Typography variant="text2" sx={endDecorator}>
-                hours
+                {t(
+                  "createMarket.forms.marketDescription.block.withdrawalCycle.chip",
+                )}
               </Typography>
             }
             {...register("withdrawalBatchDuration")}
@@ -310,7 +456,7 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
             <SvgIcon fontSize="medium" sx={BackButtonArrow}>
               <BackArrow />
             </SvgIcon>
-            Back
+            {t("createMarket.buttons.back")}
           </Button>
         </Link>
 
@@ -321,7 +467,9 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
           onClick={handleClickNext}
           disabled={!isValid}
         >
-          {hideLegalInfoStep ? "Confirm" : "Next"}
+          {hideLegalInfoStep
+            ? t("createMarket.buttons.confirm")
+            : t("createMarket.buttons.next")}
         </Button>
       </Box>
     </Box>

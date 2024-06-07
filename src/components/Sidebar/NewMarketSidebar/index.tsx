@@ -3,6 +3,7 @@
 import { Box, Button } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import {
   BackButton,
@@ -19,6 +20,7 @@ import { setCurrentStep } from "@/store/slices/routingSlice/routingSlice"
 import BackArrow from "../../../assets/icons/backArrow_icon.svg"
 
 export const NewMarketSidebar = () => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
   const newMarketStep = useAppSelector(
@@ -59,7 +61,7 @@ export const NewMarketSidebar = () => {
           <SvgIcon fontSize="small" sx={BackButtonIcon}>
             <BackArrow />
           </SvgIcon>
-          To Markets
+          {t("createMarket.sidebar.back")}
         </Button>
       </Link>
 
@@ -70,7 +72,7 @@ export const NewMarketSidebar = () => {
           sx={checkButtonStyle(STEPS_NAME.marketDescription)}
           onClick={handleClickDescription}
         >
-          Market Description
+          {t("createMarket.sidebar.marketDescription")}
         </Button>
         {!hideLegalInfoStep && (
           <Button
@@ -80,7 +82,7 @@ export const NewMarketSidebar = () => {
             onClick={handleClickInformation}
             disabled={disableInfoStepButton}
           >
-            Legal Info
+            {t("createMarket.sidebar.legalInfo")}
           </Button>
         )}
         <Button
@@ -89,7 +91,7 @@ export const NewMarketSidebar = () => {
           sx={checkButtonStyle(STEPS_NAME.confirmation)}
           disabled={disableConfirmationStepButton}
         >
-          Confirmation
+          {t("createMarket.sidebar.confirm")}
         </Button>
       </Box>
     </Box>

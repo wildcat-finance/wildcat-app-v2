@@ -46,7 +46,7 @@ export const ConnectWalletDialog = ({
       <Box sx={TitleContainer}>
         <Box width="16px" height="16px" />
         <Typography variant="text1" textAlign="center">
-          {t("modalHeader")}
+          {t("header.modal.title")}
         </Typography>
         <IconButton disableRipple onClick={handleClose}>
           <SvgIcon fontSize="medium" sx={CloseButtonIcon}>
@@ -78,7 +78,7 @@ export const ConnectWalletDialog = ({
           ))}
       </Box>
       <Typography variant="text4" sx={Terms}>
-        {t("modalTerms")}
+        {t("header.modal.note")}
       </Typography>
     </Dialog>
   )

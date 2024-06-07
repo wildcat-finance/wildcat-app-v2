@@ -10,6 +10,7 @@ import {
 } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
@@ -58,6 +59,7 @@ export const ConfirmationModal = ({
   isError,
   isSuccess,
 }: ConfirmationModalProps) => {
+  const { t } = useTranslation()
   const router = useRouter()
   const [showErrorPopup, setShowErrorPopup] = useState(false)
 
@@ -114,10 +116,10 @@ export const ConfirmationModal = ({
 
             <Box sx={DeployTypoBox}>
               <Typography variant="title3">
-                Oops! Something goes wrong
+                {t("createMarket.modal.error.title")}
               </Typography>
               <Typography variant="text3" sx={DeploySubtitle}>
-                Explanatory message about the problem.
+                {t("createMarket.modal.error.message")}
               </Typography>
             </Box>
           </Box>
@@ -130,7 +132,7 @@ export const ConfirmationModal = ({
               fullWidth
               onClick={handleResetModal}
             >
-              Back to review step
+              {t("createMarket.modal.button.back")}
             </Button>
             <Button
               variant="contained"
@@ -141,7 +143,7 @@ export const ConfirmationModal = ({
                 handleDeployMarket()
               }}
             >
-              Try Again
+              {t("createMarket.modal.button.tryAgain")}
             </Button>
           </Box>
         </Box>
@@ -167,10 +169,11 @@ export const ConfirmationModal = ({
             </SvgIcon>
 
             <Box sx={DeployTypoBox}>
-              <Typography variant="title3">Market was created</Typography>
+              <Typography variant="title3">
+                {t("createMarket.modal.success.title")}
+              </Typography>
               <Typography variant="text3" sx={DeploySubtitle}>
-                Market successfully created. You can onboard Lenders and borrow
-                money now.
+                {t("createMarket.modal.success.message")}
               </Typography>
             </Box>
           </Box>
@@ -182,7 +185,7 @@ export const ConfirmationModal = ({
               size="large"
               fullWidth
             >
-              View and download MLA
+              {t("createMarket.modal.button.downloadMla")}
             </Button>
             <Button
               onClick={handleGoToMarkets}
@@ -190,7 +193,7 @@ export const ConfirmationModal = ({
               size="large"
               fullWidth
             >
-              Go to the Markets
+              {t("createMarket.modal.button.toMarkets")}
             </Button>
           </Box>
         </Box>
@@ -205,9 +208,11 @@ export const ConfirmationModal = ({
           <Loader />
 
           <Box sx={DeployTypoBox}>
-            <Typography variant="text1">Just wait a bit...</Typography>
+            <Typography variant="text1">
+              {t("createMarket.modal.loading.title")}
+            </Typography>
             <Typography variant="text3" sx={DeploySubtitle}>
-              Transaction in process.
+              {t("createMarket.modal.loading.message")}
             </Typography>
           </Box>
         </Box>
@@ -221,7 +226,7 @@ export const ConfirmationModal = ({
         <Box width="20px" height="20px" />
 
         <Typography variant="title3">
-          Review your new market’s details
+          {t("createMarket.modal.confirmation.title")}
         </Typography>
 
         <IconButton onClick={handleClickClose}>
@@ -232,33 +237,47 @@ export const ConfirmationModal = ({
       </Box>
 
       <Box sx={FormModalContainer}>
-        <Typography variant="text3">DEFINITION</Typography>
+        <Typography variant="text3">
+          {t(
+            "createMarket.forms.marketDescription.block.title.definition",
+          ).toUpperCase()}
+        </Typography>
 
         <Box sx={FormModalGroupContainer}>
           <ConfirmationFormItem
-            label="Market Name"
+            label={t(
+              "createMarket.forms.marketDescription.block.marketName.title",
+            )}
             value={getMarketValues("marketName")}
           />
           <ConfirmationFormItem
-            label="Market Type"
+            label={t(
+              "createMarket.forms.marketDescription.block.marketType.title",
+            )}
             value={marketTypeValue || ""}
           />
           <ConfirmationFormItem
-            label="Underlying asset"
+            label={t(
+              "createMarket.forms.marketDescription.block.marketAsset.title",
+            )}
             value={tokenAsset?.name || ""}
           />
           <ConfirmationFormItem
-            label="Market token name"
+            label={t(
+              "createMarket.forms.marketDescription.block.marketTokenName.title",
+            )}
             value={getMarketValues("namePrefix")}
           />
           <ConfirmationFormItem
-            label="Market token symbol"
+            label={t(
+              "createMarket.forms.marketDescription.block.marketTokenSymbol.title",
+            )}
             value={`${getMarketValues("symbolPrefix")}${tokenAsset?.symbol}`}
           />
           {getMarketValues("mla") === "wildcatMLA" && (
             <Box display="flex" flexDirection="column" rowGap="6px">
               <Typography variant="text3" sx={MLATitle}>
-                Market Master Loan Agreement
+                {t("createMarket.modal.confirmation.mlaTitle")}
               </Typography>
               <Button
                 variant="contained"
@@ -266,7 +285,7 @@ export const ConfirmationModal = ({
                 size="small"
                 sx={MLAButton}
               >
-                View MLA
+                {t("createMarket.modal.button.viewMLA")}
               </Button>
             </Box>
           )}
@@ -274,45 +293,65 @@ export const ConfirmationModal = ({
 
         <Divider sx={DividerStyle} />
 
-        <Typography variant="text3">AMOUNT AND DUTIES</Typography>
+        <Typography variant="text3">
+          {t(
+            "createMarket.forms.marketDescription.block.title.amountDuties",
+          ).toUpperCase()}
+        </Typography>
 
         <Box sx={FormModalGroupContainer}>
           <ConfirmationFormItem
-            label="Max. Borrowing Capacity"
+            label={t(
+              "createMarket.forms.marketDescription.block.capacity.title",
+            )}
             value={`${getMarketValues("maxTotalSupply")} ${tokenAsset?.symbol}`}
           />
           <ConfirmationFormItem
-            label="Base APR"
+            label={t(
+              "createMarket.forms.marketDescription.block.baseAPR.title",
+            )}
             value={`${getMarketValues("annualInterestBips")}%`}
           />
           <ConfirmationFormItem
-            label="Penalty APR"
+            label={t(
+              "createMarket.forms.marketDescription.block.penaltyAPR.title",
+            )}
             value={`${getMarketValues("delinquencyFeeBips")}%`}
           />
           <ConfirmationFormItem
-            label="Reserve Ratio"
+            label={t("createMarket.forms.marketDescription.block.ratio.title")}
             value={`${getMarketValues("reserveRatioBips")}%`}
           />
           <ConfirmationFormItem
-            label="Minimum Deposit"
+            label={t(
+              "createMarket.forms.marketDescription.block.deposit.title",
+            )}
             value={`${getMarketValues("minimumDeposit")} ${tokenAsset?.symbol}`}
           />
         </Box>
 
         <Divider sx={DividerStyle} />
 
-        <Typography variant="text3">GRACE AND WITHDRAWALS</Typography>
+        <Typography variant="text3">
+          {t(
+            "createMarket.forms.marketDescription.block.title.graceWithdrawals",
+          ).toUpperCase()}
+        </Typography>
 
         <Box
           sx={FormModalGroupContainer}
           marginBottom={hideLegalInfoStep ? "40px" : ""}
         >
           <ConfirmationFormItem
-            label="Grace period"
+            label={t(
+              "createMarket.forms.marketDescription.block.gracePeriod.title",
+            )}
             value={`${getMarketValues("delinquencyGracePeriod")} hours`}
           />
           <ConfirmationFormItem
-            label="Withdrawal cycle length"
+            label={t(
+              "createMarket.forms.marketDescription.block.withdrawalCycle.title",
+            )}
             value={`${getMarketValues("withdrawalBatchDuration")} hours`}
           />
         </Box>
@@ -321,21 +360,25 @@ export const ConfirmationModal = ({
           <>
             <Divider sx={DividerStyle} />
 
-            <Typography variant="text3">BORROWER INFO</Typography>
+            <Typography variant="text3">
+              {t("createMarket.modal.confirmation.borrowerInfo")}
+            </Typography>
 
             <Box sx={FormModalGroupContainer} marginBottom="40px">
               <ConfirmationFormItem
-                label="Legal Name and Jurisdiction"
+                label={t(
+                  "createMarket.modal.confirmation.legalNameJurisdiction",
+                )}
                 value={`${getInfoValues("legalName")} / ${getInfoValues(
                   "jurisdiction",
                 )}`}
               />
               <ConfirmationFormItem
-                label="Address"
+                label={t("createMarket.forms.legalInfo.block.address.title")}
                 value={getInfoValues("address")}
               />
               <ConfirmationFormItem
-                label="Email"
+                label={t("createMarket.forms.legalInfo.block.email.title")}
                 value={getInfoValues("email")}
               />
             </Box>
@@ -349,7 +392,7 @@ export const ConfirmationModal = ({
         <Box sx={ButtonContainer}>
           {!hideLegalInfoStep && (
             <Button size="large" variant="contained" sx={ButtonStyle}>
-              Sign MLA
+              {t("createMarket.modal.button.signMLA")}
             </Button>
           )}
           <Button
@@ -358,12 +401,11 @@ export const ConfirmationModal = ({
             sx={ButtonStyle}
             onClick={handleDeployMarket}
           >
-            Deploy Market
+            {t("createMarket.modal.button.deploy")}
           </Button>
         </Box>
         <Typography variant="text3" sx={Note}>
-          Note that once your market is created, the only adjustable parameters
-          will be base APR and maximum capacity.
+          {t("createMarket.modal.confirmation.note")}
         </Typography>
       </Box>
     </Dialog>

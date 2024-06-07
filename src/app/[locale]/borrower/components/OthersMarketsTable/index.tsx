@@ -11,6 +11,7 @@ import {
 import SvgIcon from "@mui/material/SvgIcon"
 import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid"
 import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import Question from "@/assets/icons/circledQuestion_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
@@ -35,103 +36,6 @@ import { getMarketStatus } from "@/utils/marketStatus"
 
 import { OthersMarketsTableProps } from "./interface"
 
-const columns: GridColDef[] = [
-  {
-    field: "status",
-    headerName: "Status",
-    minWidth: 150,
-    headerAlign: "left",
-    align: "left",
-    sortComparator: statusComparator,
-    renderCell: (params) => <MarketStatusChip status={params.value} />,
-  },
-  {
-    field: "name",
-    headerName: "Market Name",
-    flex: 1,
-    headerAlign: "left",
-    align: "left",
-    renderCell: ({ value }) => (
-      <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-        {value}
-      </span>
-    ),
-  },
-  {
-    field: "borrowerName",
-    headerName: "Borrower Name",
-    width: 155,
-    headerAlign: "left",
-    align: "left",
-  },
-  {
-    field: "asset",
-    headerName: "Underlying Asset",
-    minWidth: 151,
-    headerAlign: "right",
-    align: "right",
-  },
-  {
-    field: "lenderAPR",
-    headerName: "Lender APR",
-    minWidth: 106,
-    headerAlign: "right",
-    align: "right",
-    sortComparator: percentComparator,
-  },
-  {
-    field: "crr",
-    headerName: "CRR",
-    minWidth: 85,
-    headerAlign: "right",
-    align: "right",
-    sortComparator: percentComparator,
-    renderHeader: () => (
-      <Box display="flex" columnGap="4px" alignItems="center">
-        <Typography
-          variant="text4"
-          sx={{ lineHeight: "10px", color: COLORS.santasGrey }}
-        >
-          CRR
-        </Typography>
-        <Tooltip title="TBD" placement="right">
-          <SvgIcon fontSize="small" sx={TooltipIcon}>
-            <Question />
-          </SvgIcon>
-        </Tooltip>
-      </Box>
-    ),
-  },
-  {
-    field: "maxCapacity",
-    headerName: "Max. Capacity",
-    minWidth: 136,
-    headerAlign: "right",
-    align: "right",
-    sortComparator: capacityComparator,
-  },
-  {
-    field: "borrowable",
-    headerName: "Borrowable",
-    minWidth: 104,
-    headerAlign: "right",
-    align: "right",
-  },
-  {
-    field: "deploy",
-    headerName: "Deployed",
-    minWidth: 114,
-    headerAlign: "right",
-    align: "right",
-    sortComparator: dateComparator,
-    renderCell: (params) => (
-      <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-        {params.value}
-      </Typography>
-    ),
-  },
-]
-
 export const OthersMarketsTable = ({
   tableData,
   borrowersData,
@@ -141,7 +45,105 @@ export const OthersMarketsTable = ({
   statusFilter,
   nameFilter,
 }: OthersMarketsTableProps) => {
+  const { t } = useTranslation()
   const router = useRouter()
+
+  const columns: GridColDef[] = [
+    {
+      field: "status",
+      headerName: t("borrowerMarketList.table.header.status"),
+      minWidth: 150,
+      headerAlign: "left",
+      align: "left",
+      sortComparator: statusComparator,
+      renderCell: (params) => <MarketStatusChip status={params.value} />,
+    },
+    {
+      field: "name",
+      headerName: t("borrowerMarketList.table.header.marketName"),
+      flex: 1,
+      headerAlign: "left",
+      align: "left",
+      renderCell: ({ value }) => (
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+          {value}
+        </span>
+      ),
+    },
+    {
+      field: "borrowerName",
+      headerName: t("borrowerMarketList.table.header.borrowerName"),
+      width: 155,
+      headerAlign: "left",
+      align: "left",
+    },
+    {
+      field: "asset",
+      headerName: t("borrowerMarketList.table.header.asset"),
+      minWidth: 151,
+      headerAlign: "right",
+      align: "right",
+    },
+    {
+      field: "lenderAPR",
+      headerName: t("borrowerMarketList.table.header.apr"),
+      minWidth: 106,
+      headerAlign: "right",
+      align: "right",
+      sortComparator: percentComparator,
+    },
+    {
+      field: "crr",
+      headerName: t("borrowerMarketList.table.header.crr"),
+      minWidth: 85,
+      headerAlign: "right",
+      align: "right",
+      sortComparator: percentComparator,
+      renderHeader: () => (
+        <Box display="flex" columnGap="4px" alignItems="center">
+          <Typography
+            variant="text4"
+            sx={{ lineHeight: "10px", color: COLORS.santasGrey }}
+          >
+            CRR
+          </Typography>
+          <Tooltip title="TBD" placement="right">
+            <SvgIcon fontSize="small" sx={TooltipIcon}>
+              <Question />
+            </SvgIcon>
+          </Tooltip>
+        </Box>
+      ),
+    },
+    {
+      field: "maxCapacity",
+      headerName: t("borrowerMarketList.table.header.capacity"),
+      minWidth: 136,
+      headerAlign: "right",
+      align: "right",
+      sortComparator: capacityComparator,
+    },
+    {
+      field: "borrowable",
+      headerName: t("borrowerMarketList.table.header.borrowable"),
+      minWidth: 104,
+      headerAlign: "right",
+      align: "right",
+    },
+    {
+      field: "deploy",
+      headerName: t("borrowerMarketList.table.header.deploy"),
+      minWidth: 114,
+      headerAlign: "right",
+      align: "right",
+      sortComparator: dateComparator,
+      renderCell: (params) => (
+        <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
+          {params.value}
+        </Typography>
+      ),
+    },
+  ]
 
   const rows = tableData.map((market) => {
     const {
@@ -208,9 +210,13 @@ export const OthersMarketsTable = ({
     <Accordion defaultExpanded={isOpen}>
       <AccordionSummary>
         <Box display="flex" columnGap="4px">
-          <Typography variant="text3">Other markets</Typography>
+          <Typography variant="text3">
+            {t("borrowerMarketList.table.title.other")}
+          </Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            {isLoading ? "are loading" : rows?.length}
+            {isLoading
+              ? t("borrowerMarketList.table.title.loading")
+              : rows.length}
           </Typography>
         </Box>
       </AccordionSummary>
@@ -246,10 +252,11 @@ export const OthersMarketsTable = ({
       {tableData.length === 0 && !isLoading && !defaultFilters && (
         <Box display="flex" flexDirection="column" padding="32px 16px">
           <Typography variant="title3">
-            There are no other{" "}
+            {t("borrowerMarketList.table.noMarkets.filter.beginning")}{" "}
             {statusFilter === "All" ? "" : statusFilter?.toLowerCase()}{" "}
             {nameFilter === "" ? "" : nameFilter}{" "}
-            {assetFilter === "All" ? "" : assetFilter} markets
+            {assetFilter === "All" ? "" : assetFilter}{" "}
+            {t("borrowerMarketList.table.noMarkets.filter.ending")}
           </Typography>
         </Box>
       )}

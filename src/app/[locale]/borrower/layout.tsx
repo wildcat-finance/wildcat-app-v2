@@ -6,7 +6,7 @@ import initTranslations from "@/app/i18n"
 import { Sidebar } from "@/components/Sidebar"
 import TranslationsProvider from "@/components/TranslationsProvider"
 
-const i18nNamespaces = ["borrowerMarketList", "borrowerMarketDetails"]
+const i18nNamespaces = ["en"]
 
 export default async function BorrowerLayout({
   children,

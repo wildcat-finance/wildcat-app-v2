@@ -54,7 +54,7 @@ export const AllMarketsSidebar = () => {
     <Box sx={ContentContainer}>
       <TextField
         fullWidth
-        placeholder="Search by Market Name"
+        placeholder={t("borrowerMarketList.sidebar.searchPlaceholder")}
         value={marketName}
         onChange={handleChangeMarketName}
         size="small"
@@ -77,7 +77,7 @@ export const AllMarketsSidebar = () => {
       <Box>
         <FormControl>
           <Typography variant="text2" mb="12px">
-            {t("borrowerMarketList:statusRadioTitle")}
+            {t("borrowerMarketList.sidebar.title.status")}
           </Typography>
           <RadioGroup
             defaultValue={marketStatus}
@@ -87,22 +87,22 @@ export const AllMarketsSidebar = () => {
             <FormControlLabel
               value="All"
               control={<ExtendedRadio />}
-              label={t("borrowerMarketList:allRadio")}
+              label={t("borrowerMarketList.sidebar.radio.all")}
             />
             <FormControlLabel
               value={MarketStatus.HEALTHY}
               control={<ExtendedRadio />}
-              label={t("borrowerMarketList:healthyRadio")}
+              label={MarketStatus.HEALTHY}
             />
             <FormControlLabel
               value={MarketStatus.DELINQUENT}
               control={<ExtendedRadio />}
-              label={t("borrowerMarketList:delinquentRadio")}
+              label={MarketStatus.DELINQUENT}
             />
             <FormControlLabel
               value={MarketStatus.PENALTY}
               control={<ExtendedRadio />}
-              label={t("borrowerMarketList:penaltyRadio")}
+              label={MarketStatus.PENALTY}
             />
           </RadioGroup>
         </FormControl>
@@ -113,7 +113,7 @@ export const AllMarketsSidebar = () => {
       <Box>
         <FormControl>
           <Typography variant="text2" mb="12px">
-            {t("borrowerMarketList:assetRadioTitle")}
+            {t("borrowerMarketList.sidebar.title.asset")}
           </Typography>
           <RadioGroup
             defaultValue={marketAsset}
@@ -123,7 +123,7 @@ export const AllMarketsSidebar = () => {
             <FormControlLabel
               value="All"
               control={<ExtendedRadio />}
-              label={t("borrowerMarketList:allRadio")}
+              label={t("borrowerMarketList.sidebar.radio.all")}
             />
             {underlyingAssetsMock.map((asset) => (
               <FormControlLabel
