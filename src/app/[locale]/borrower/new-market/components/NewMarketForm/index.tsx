@@ -32,6 +32,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   setDisableConfirmationStepSidebar,
   setDisableInfoStepSidebar,
+  setHideInfoStep,
   setNextStep,
 } from "@/store/slices/routingSlice/routingSlice"
 
@@ -63,7 +64,10 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
     register,
     formState: { errors, isValid },
     control,
+    watch,
   } = form
+
+  const mlaWatch = watch("mla")
 
   const hideLegalInfoStep = useAppSelector(
     (state) => state.routing.hideInfoStep,
@@ -78,6 +82,14 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
       setNextStep(hideLegalInfoStep ? "confirmation" : "legalInformation"),
     )
   }
+
+  useEffect(() => {
+    if (mlaWatch === "wildcatMLA") {
+      dispatch(setHideInfoStep(false))
+    } else {
+      dispatch(setHideInfoStep(true))
+    }
+  }, [mlaWatch])
 
   useEffect(() => {
     if (hideLegalInfoStep) {
