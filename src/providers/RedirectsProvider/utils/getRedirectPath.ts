@@ -1,3 +1,6 @@
+import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
+
+import { checkIsWrongNetwork } from "@/hooks/useCurrentNetwork"
 import { ROUTES } from "@/routes"
 
 // Undefined is for cases where should be no redirects
@@ -6,14 +9,20 @@ export type RedirectToPath = typeof ROUTES.agreement | "/" | undefined
 const NO_WALLET_RESTRICTED_PATHS = [ROUTES.agreement, ROUTES.borrower.newMarket]
 
 // Returns undefined when no redirect needed
-export const getRedirectPath = (
-  connectedAddress: `0x${string}` | undefined,
-  pathname: string,
-  isSignedSA: boolean,
-): RedirectToPath => {
-  // If wallet is NOT CONNECTED
+export const getRedirectPath = (params: {
+  connectedAddress: `0x${string}` | undefined
+  pathname: string
+  isSignedSA: boolean
+  currentChainId: SupportedChainId | undefined
+}): RedirectToPath => {
+  const { connectedAddress, pathname, isSignedSA, currentChainId } = params
+  // If wallet is NOT CONNECTED or WRONG NETWORK
   // Redirect from restricted pages to root
-  if (!connectedAddress && NO_WALLET_RESTRICTED_PATHS.includes(pathname)) {
+  const isWrongNetwork = checkIsWrongNetwork(currentChainId)
+  if (
+    (!connectedAddress || isWrongNetwork) &&
+    NO_WALLET_RESTRICTED_PATHS.includes(pathname)
+  ) {
     return "/"
   }
 
