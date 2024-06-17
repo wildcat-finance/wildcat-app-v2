@@ -28,11 +28,12 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  const redirectPath = getRedirectPath(
+  const redirectPath = getRedirectPath({
     connectedAddress,
-    request.nextUrl.pathname,
-    isSigned,
-  )
+    pathname: request.nextUrl.pathname,
+    isSignedSA: isSigned,
+    currentChainId: wagmiState?.chainId,
+  })
 
   if (redirectPath) {
     const url = request.nextUrl.clone()

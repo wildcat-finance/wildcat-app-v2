@@ -4,6 +4,7 @@ import {
   logger,
   Market,
   SignerOrProvider,
+  SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
 import {
   GetMarketsForAllBorrowersDocument,
@@ -17,6 +18,7 @@ import {
 import { NETWORKS, TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { SubgraphClient } from "@/config/subgraph"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 
 export const GET_BORROWER_MARKETS_LIST_KEY = "get-borrower-markets-list"
@@ -24,6 +26,7 @@ export const GET_BORROWER_MARKETS_LIST_KEY = "get-borrower-markets-list"
 export type MarketsForBorrowerProps = {
   borrower: string | undefined
   provider: SignerOrProvider | undefined
+  chainId: SupportedChainId | undefined
   enabled: boolean
 } & Omit<SubgraphGetMarketsForBorrowerQueryVariables, "borrower">
 
@@ -31,6 +34,7 @@ export function useMarketsForBorrowerQuery({
   borrower: _borrower,
   provider,
   enabled,
+  chainId,
   ...filters
 }: MarketsForBorrowerProps) {
   const borrower = _borrower?.toLowerCase()
@@ -131,7 +135,7 @@ export function useMarketsForBorrowerQuery({
   }
 
   return useQuery({
-    queryKey: [GET_BORROWER_MARKETS_LIST_KEY, borrower],
+    queryKey: [GET_BORROWER_MARKETS_LIST_KEY, borrower, chainId],
     queryFn: getMarketsForBorrower,
     refetchInterval: POLLING_INTERVAL,
     enabled,
@@ -140,6 +144,7 @@ export function useMarketsForBorrowerQuery({
 }
 
 export const useMarketsForBorrower = (borrower?: string) => {
+  const { chainId } = useCurrentNetwork()
   const { isWrongNetwork, provider, signer } = useEthersProvider()
 
   const signerOrProvider = signer ?? provider
@@ -151,5 +156,6 @@ export const useMarketsForBorrower = (borrower?: string) => {
     borrower,
     provider: signerOrProvider,
     enabled: !!signerOrProvider && !isWrongNetwork,
+    chainId,
   })
 }
