@@ -65,8 +65,8 @@ export const percentComparator = (v1: string, v2: string) => {
 }
 
 export const capacityComparator = (v1: string, v2: string) => {
-  const num1 = parseFloat(v1.replace(",", ""))
-  const num2 = parseFloat(v2.replace(",", ""))
+  const num1 = parseFloat(v1.replace(/,/g, ""))
+  const num2 = parseFloat(v2.replace(/,/g, ""))
   return num1 - num2
 }
 
