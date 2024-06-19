@@ -1,20 +1,37 @@
-import { Box, Button, Typography } from "@mui/material"
+import * as React from "react"
+
+import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
-import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
-import { MarketCycleChip } from "@/components/MarketCycleChip"
-import { MarketHeaderProps } from "@/components/MarketHeader/interface"
+import { MarketHeaderProps } from "@/app/[locale]/borrower/market/[address]/components/MarketHeader/interface"
 import {
   ElseButtonContainer,
   ElseButtonText,
-} from "@/components/MarketHeader/style"
+  MarketHeaderButtonsContainer,
+  MarketHeaderContainer,
+  MarketHeaderStatusContainer,
+  MarketHeaderTitleContainer,
+  MarketHeaderUpperContainer,
+} from "@/app/[locale]/borrower/market/[address]/components/MarketHeader/style"
+import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { MarketCycleChip } from "@/components/MarketCycleChip"
+import { COLORS } from "@/theme/colors"
 import { secondsToDays } from "@/utils/formatters"
 import { getMarketStatus } from "@/utils/marketStatus"
 
 export const MarketHeader = ({ market, isLoading }: MarketHeaderProps) => {
   const { t } = useTranslation()
 
-  if (!market) return null
+  if (!market || isLoading)
+    return (
+      <Box width="100%" height="90px">
+        <Skeleton
+          height="20px"
+          width="132px"
+          sx={{ bgcolor: COLORS.athensGrey }}
+        />
+      </Box>
+    )
 
   const delinquencyPeriod =
     market.timeDelinquent > market.delinquencyGracePeriod
@@ -33,23 +50,21 @@ export const MarketHeader = ({ market, isLoading }: MarketHeaderProps) => {
   }
 
   return (
-    <Box display="flex" flexDirection="column" rowGap="20px">
-      <Box display="flex" alignItems="center" justifyContent="space-between">
-        <Box display="flex" columnGap="8px">
-          <Typography variant="title1">
-            {market ? market.name : "Loading"}
-          </Typography>
+    <Box sx={MarketHeaderContainer}>
+      <Box sx={MarketHeaderUpperContainer}>
+        <Box sx={MarketHeaderTitleContainer}>
+          <Typography variant="title1">{market.name}</Typography>
           <Typography variant="text4">
-            {market ? market.underlyingToken.symbol : "Loading"}
+            {market.underlyingToken.symbol}
           </Typography>
         </Box>
-        <Box display="flex" columnGap="12px">
+        <Box sx={MarketHeaderStatusContainer}>
           <MarketStatusChip status={marketStatus} variant="filled" />
           <MarketCycleChip color="blue" time="3m 45s" />
         </Box>
       </Box>
 
-      <Box display="flex" columnGap="6px">
+      <Box sx={MarketHeaderButtonsContainer}>
         <Button variant="outlined" color="secondary" size="small">
           {t("borrowerMarketDetails.buttons.kyc")}
         </Button>

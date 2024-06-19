@@ -82,7 +82,9 @@
       "kyc": "KYC Preferences",
       "mla": "View MLA",
       "capacity": "Adjust Capacity",
-      "apr": "Adjust Base APR"
+      "apr": "Adjust Base APR",
+      "repay": "Repay",
+      "borrow": "Borrow"
     },
     "sidebar": {
       "backToMarkets": "Back to My Markets",
@@ -91,6 +93,16 @@
       "withdrawalRequests": "Withdrawal Requests",
       "authorisedLenders": "Authorised Lenders",
       "terminateMarket": "Terminate Market"
+    },
+    "transactions": {
+      "toRepay": {
+        "title": "To be repayed",
+        "tooltip": "TBD"
+      },
+      "toBorrow": {
+        "title": "Available to borrow",
+        "tooltip": "TBD"
+      }
     }
   },
   "createMarket": {
