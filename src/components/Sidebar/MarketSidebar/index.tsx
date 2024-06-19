@@ -38,22 +38,22 @@ export const MarketSidebar = () => {
           >
             <BackArrow />
           </SvgIcon>
-          {t("borrowerMarketDetails:backButton")}
+          {t("borrowerMarketDetails.sidebar.backToMarkets")}
         </Button>
       </Link>
 
       <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
         <Button variant="text" size="medium" sx={MenuItemButton}>
-          {t("borrowerMarketDetails:borrowRepayLinkButton")}
+          {t("borrowerMarketDetails.sidebar.borrowRepay")}
         </Button>
         <Button variant="text" size="medium" sx={MenuItemButton}>
-          {t("borrowerMarketDetails:statusDetailsLinkButton")}
+          {t("borrowerMarketDetails.sidebar.statusDetails")}
         </Button>
         <Button variant="text" size="medium" sx={MenuItemButton}>
-          {t("borrowerMarketDetails:withdrawalRequestsLinkButton")}
+          {t("borrowerMarketDetails.sidebar.withdrawalRequests")}
         </Button>
         <Button variant="text" size="medium" sx={MenuItemButton}>
-          {t("borrowerMarketDetails:lendersLinkButton")}
+          {t("borrowerMarketDetails.sidebar.authorisedLenders")}
         </Button>
       </Box>
 
@@ -65,7 +65,7 @@ export const MarketSidebar = () => {
         <SvgIcon fontSize="small" sx={{ marginRight: "4px" }}>
           <Cross />
         </SvgIcon>
-        {t("borrowerMarketDetails:terminateButton")}
+        {t("borrowerMarketDetails.sidebar.terminateMarket")}
       </Button>
     </Box>
   )

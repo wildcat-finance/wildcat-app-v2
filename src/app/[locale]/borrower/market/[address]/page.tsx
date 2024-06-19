@@ -1,37 +1,27 @@
+"use client"
+
 import { Box } from "@mui/material"
-import { useParams } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import { useGetMarket } from "@/app/[locale]/borrower/market/hooks/useGetMarket"
-import initTranslations from "@/app/i18n"
 import { MarketHeader } from "@/components/MarketHeader"
-import TranslationsProvider from "@/components/TranslationsProvider"
 
-const i18nNamespaces = ["borrowerMarketDetails"]
-
-export default async function NewMarket({
-  params: { locale, address },
+export default function MarketDetails({
+  params: { address },
 }: {
-  params: { locale: string; address: string }
+  params: { address: string }
 }) {
-  const { resources } = await initTranslations(locale, i18nNamespaces)
+  const { t } = useTranslation()
 
-  // const { marketAddress } = useParams<{
-  //   locale: string
-  //   marketAddress: string
-  // }>()
-  // const { data: market, isInitialLoading: isMarketLoading } = useGetMarket({
-  //   marketAddress,
-  // })
+  const { data: market, isInitialLoading: isMarketLoading } = useGetMarket({
+    address,
+  })
 
   return (
-    <TranslationsProvider
-      namespaces={i18nNamespaces}
-      locale={locale}
-      resources={resources}
-    >
-      <Box sx={{ padding: "52px 20px 0 44px" }}>
-        <Box sx={{ width: "806px" }}>{/* <MarketHeader /> */}</Box>
+    <Box sx={{ padding: "52px 20px 0 44px" }}>
+      <Box sx={{ width: "806px" }}>
+        <MarketHeader market={market} isLoading={isMarketLoading} />
       </Box>
-    </TranslationsProvider>
+    </Box>
   )
 }

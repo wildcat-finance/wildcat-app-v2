@@ -14,12 +14,12 @@ import { useEthersProvider } from "@/hooks/useEthersSigner"
 export const GET_MARKET_KEY = "get-market"
 
 export type UseMarketProps = {
-  marketAddress: string | undefined
+  address: string | undefined
 } & Partial<Omit<SubgraphGetMarketQueryVariables, "market">>
 
-export function useGetMarket({ marketAddress, ...filters }: UseMarketProps) {
+export function useGetMarket({ address, ...filters }: UseMarketProps) {
   const { signer, provider, isWrongNetwork } = useEthersProvider()
-  const marketAddressFormatted = marketAddress?.toLowerCase()
+  const marketAddressFormatted = address?.toLowerCase()
   const signerOrProvider = signer ?? provider
 
   async function queryMarket() {
@@ -44,10 +44,10 @@ export function useGetMarket({ marketAddress, ...filters }: UseMarketProps) {
   }
 
   async function updateMarket(market: Market | undefined) {
-    if (!market || !marketAddress || !signerOrProvider) throw Error()
+    if (!market || !address || !signerOrProvider) throw Error()
 
     const lens = getLensContract(TargetChainId, signerOrProvider)
-    const update = await lens.getMarketData(marketAddress)
+    const update = await lens.getMarketData(address)
     market.updateWith(update)
 
     return market
@@ -59,10 +59,10 @@ export function useGetMarket({ marketAddress, ...filters }: UseMarketProps) {
   }
 
   return useQuery({
-    queryKey: [GET_MARKET_KEY, marketAddress],
+    queryKey: [GET_MARKET_KEY, address],
     queryFn,
     refetchInterval: POLLING_INTERVAL,
-    enabled: !!marketAddress || !signerOrProvider || isWrongNetwork,
+    enabled: !!address || !signerOrProvider || isWrongNetwork,
     refetchOnMount: false,
   })
 }

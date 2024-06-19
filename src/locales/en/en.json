@@ -77,6 +77,22 @@
       }
     }
   },
+  "borrowerMarketDetails": {
+    "buttons": {
+      "kyc": "KYC Preferences",
+      "mla": "View MLA",
+      "capacity": "Adjust Capacity",
+      "apr": "Adjust Base APR"
+    },
+    "sidebar": {
+      "backToMarkets": "Back to My Markets",
+      "borrowRepay": "Borrow and Repay",
+      "statusDetails": "Status and Details",
+      "withdrawalRequests": "Withdrawal Requests",
+      "authorisedLenders": "Authorised Lenders",
+      "terminateMarket": "Terminate Market"
+    }
+  },
   "createMarket": {
     "forms": {
       "marketDescription": {
