@@ -16,6 +16,7 @@ export const getRedirectPath = (params: {
   currentChainId: SupportedChainId | undefined
 }): RedirectToPath => {
   const { connectedAddress, pathname, isSignedSA, currentChainId } = params
+
   // If wallet is NOT CONNECTED or WRONG NETWORK
   // Redirect from restricted pages to root
   const isWrongNetwork = checkIsWrongNetwork(currentChainId)

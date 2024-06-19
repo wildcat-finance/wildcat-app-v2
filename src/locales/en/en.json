@@ -57,6 +57,7 @@
         "deploy": "Deployed"
       },
       "noMarkets": {
+        "wrongNetwork": "No wildcat markets on this network",
         "active": {
           "title": "You don’t have active markets",
           "subtitle": "You have only Terminated Markets. You can create a new one or check Terminated"

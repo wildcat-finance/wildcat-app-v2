@@ -104,7 +104,10 @@ export default function Borrower() {
   )
 
   const showBorrowerTables =
-    isConnected && isRegisteredBorrower && !!controllerMarkets.length
+    !isWrongNetwork &&
+    isConnected &&
+    isRegisteredBorrower &&
+    !!controllerMarkets.length
 
   const othersTableData = showBorrowerTables ? othersMarkets : filteredMarkets
 
@@ -199,15 +202,21 @@ export default function Borrower() {
           )}
 
           <Box marginTop="16px">
-            <OthersMarketsTable
-              tableData={othersTableData || []}
-              borrowersData={borrowers || []}
-              isLoading={isLoading}
-              assetFilter={filterByAsset}
-              statusFilter={filterByStatus}
-              nameFilter={filterByMarketName}
-              isOpen
-            />
+            {!isWrongNetwork ? (
+              <OthersMarketsTable
+                tableData={othersTableData || []}
+                borrowersData={borrowers || []}
+                isLoading={isLoading}
+                assetFilter={filterByAsset}
+                statusFilter={filterByStatus}
+                nameFilter={filterByMarketName}
+                isOpen
+              />
+            ) : (
+              <Typography variant="text3" marginLeft="16px">
+                {t("borrowerMarketList.table.noMarkets.wrongNetwork")}
+              </Typography>
+            )}
           </Box>
         </>
       )}
