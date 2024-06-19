@@ -111,9 +111,12 @@ export default function Borrower() {
 
   const othersTableData = showBorrowerTables ? othersMarkets : filteredMarkets
 
-  const [tab, setTab] = React.useState("markets")
+  const [tab, setTab] = React.useState<"markets" | "mla" | "lenders">("markets")
 
-  const handleTabsChange = (event: React.SyntheticEvent, newTab: string) => {
+  const handleTabsChange = (
+    event: React.SyntheticEvent,
+    newTab: "markets" | "mla" | "lenders",
+  ) => {
     setTab(newTab)
   }
 
