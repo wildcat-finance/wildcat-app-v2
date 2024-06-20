@@ -78,6 +78,9 @@
     }
   },
   "borrowerMarketDetails": {
+    "header": {
+      "parameters": "Parameters"
+    },
     "buttons": {
       "kyc": "KYC Preferences",
       "mla": "View MLA",
@@ -103,6 +106,20 @@
         "title": "Available to borrow",
         "tooltip": "TBD"
       }
+    },
+    "parameters": {
+      "marketAddress": "Market Address",
+      "underlyingAsset": "Underlying Asset",
+      "marketTokenName": "Market Token Name",
+      "marketTokenPrefix": "Market Token Prefix",
+      "maxBorrowingCapacity": "Max. Borrowing Capacity",
+      "totalInterestAccured": "Total Interest Accured",
+      "minimumReserveRatio": "Minimum Reserve Ratio",
+      "baseAPR": "Base APR",
+      "penaltyAPR": "Penalty APR",
+      "maximumGracePeriod": "Maximum Grace Period",
+      "availableGracePeriod": "Available Grace Period",
+      "withdrawalCycleDuration": "Withdrawal Cycle Duration"
     }
   },
   "createMarket": {

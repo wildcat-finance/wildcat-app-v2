@@ -6,6 +6,7 @@ import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/comp
 import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
 
 import { MarketHeader } from "./components/MarketHeader"
+import { MarketParameters } from "./components/MarketParameters"
 import { MarketTransactions } from "./components/MarketTransactions"
 
 export default function MarketDetails({
@@ -29,6 +30,10 @@ export default function MarketDetails({
         <Divider sx={{ margin: "32px 0 44px" }} />
 
         {market && <MarketStatusChart market={market} />}
+
+        <Divider sx={{ margin: "32px 0 44px" }} />
+
+        <MarketParameters market={market} isLoading={isMarketLoading} />
       </Box>
     </Box>
   )

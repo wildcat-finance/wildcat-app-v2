@@ -40,6 +40,26 @@ export function formatConstrainToNumber(
   return constraints[key] / 100
 }
 
+export const formatSecsToHours = (seconds: number) => {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = seconds % 60
+
+  let timeString = ""
+
+  if (hours > 0) {
+    timeString += `${hours} hour${hours > 1 ? "s" : ""} `
+  }
+  if (minutes > 0) {
+    timeString += `${minutes} minute${minutes > 1 ? "s" : ""} `
+  }
+  if (remainingSeconds > 0 || timeString === "") {
+    timeString += `${remainingSeconds} sec${remainingSeconds > 1 ? "s" : ""}`
+  }
+
+  return timeString.trim()
+}
+
 // <---- MARKET PARAMETERS FORMATTERS ---->
 export const TOKEN_FORMAT_DECIMALS = 5
 export const MARKET_PERCENTAGE_PARAM_DECIMALS = 2
@@ -54,6 +74,31 @@ export const MARKET_PARAMS_DECIMALS: Partial<{
   delinquencyGracePeriod: 1,
   withdrawalBatchDuration: 1,
 }
+
+export const localize = (
+  tokenAmount: TokenAmount,
+  decimals = TOKEN_FORMAT_DECIMALS,
+  withSymbol = false,
+) => {
+  const text = tokenAmount.format(decimals)
+  const [beforeDecimal, afterDecimal] = text.split(".")
+  const beforeDecimalWithCommas = Number(beforeDecimal).toLocaleString("en-US")
+  return [
+    beforeDecimalWithCommas,
+    ...(afterDecimal !== undefined ? [".", afterDecimal] : []),
+    ...(withSymbol ? [" ", tokenAmount.symbol] : []),
+  ].join("")
+}
+
+export const toTokenAmountProps = (
+  tokenAmount: TokenAmount | undefined,
+  defaultText = "-",
+) => ({
+  value: tokenAmount
+    ? localize(tokenAmount, TOKEN_FORMAT_DECIMALS, true)
+    : defaultText,
+  valueTooltip: tokenAmount?.format(tokenAmount.decimals, true),
+})
 
 export const formatTokenWithCommas = (
   tokenAmount: TokenAmount,
