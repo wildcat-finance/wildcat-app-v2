@@ -2,7 +2,8 @@
 
 import { Box, Divider } from "@mui/material"
 
-import { useGetMarket } from "@/app/[locale]/borrower/market/hooks/useGetMarket"
+import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart"
+import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
 
 import { MarketHeader } from "./components/MarketHeader"
 import { MarketTransactions } from "./components/MarketTransactions"
@@ -26,6 +27,8 @@ export default function MarketDetails({
         <MarketTransactions market={market} isLoading={isMarketLoading} />
 
         <Divider sx={{ margin: "32px 0 44px" }} />
+
+        {market && <MarketStatusChart market={market} />}
       </Box>
     </Box>
   )

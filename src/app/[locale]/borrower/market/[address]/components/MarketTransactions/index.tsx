@@ -35,6 +35,13 @@ export const MarketTransactions = ({
       </Box>
     )
 
+  const disableRepay = market.totalDebts.raw.isZero()
+  const disableBorrow =
+    market.totalDebts.raw.isZero() ||
+    market?.isDelinquent ||
+    market.isIncurringPenalties ||
+    marketAccount.market.borrowableAssets.raw.isZero()
+
   return (
     <Box sx={MarketTxContainer}>
       <Box sx={MarketTxBlockContainer}>
@@ -54,16 +61,38 @@ export const MarketTransactions = ({
           </Box>
 
           <Box sx={MarketTxBlockAmountContainer}>
-            <Typography variant="title3">
+            <Typography
+              variant="title3"
+              sx={{
+                color:
+                  market.isDelinquent || market.isIncurringPenalties
+                    ? COLORS.carminePink
+                    : "",
+              }}
+            >
               {formatTokenWithCommas(market.outstandingDebt)}
             </Typography>
-            <Typography variant="text4">
+            <Typography
+              variant="text4"
+              sx={{
+                marginTop: "4px",
+                color:
+                  market.isDelinquent || market.isIncurringPenalties
+                    ? COLORS.carminePink
+                    : "",
+              }}
+            >
               {market.underlyingToken.symbol}
             </Typography>
           </Box>
         </Box>
 
-        <Button variant="contained" size="large" sx={{ width: "152px" }}>
+        <Button
+          variant="contained"
+          size="large"
+          sx={{ width: "152px" }}
+          disabled={disableRepay}
+        >
           {t("borrowerMarketDetails.buttons.repay")}
         </Button>
       </Box>
@@ -88,13 +117,18 @@ export const MarketTransactions = ({
             <Typography variant="title3">
               {formatTokenWithCommas(marketAccount.market.borrowableAssets)}
             </Typography>
-            <Typography variant="text4">
+            <Typography variant="text4" sx={{ marginTop: "4px" }}>
               {market.underlyingToken.symbol}
             </Typography>
           </Box>
         </Box>
 
-        <Button variant="contained" size="large" sx={{ width: "152px" }}>
+        <Button
+          variant="contained"
+          size="large"
+          sx={{ width: "152px" }}
+          disabled={disableBorrow}
+        >
           {t("borrowerMarketDetails.buttons.borrow")}
         </Button>
       </Box>

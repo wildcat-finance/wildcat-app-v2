@@ -3,6 +3,7 @@ export const COLORS = {
   black01: "#0000001A",
   black07: "#000000B2",
   bunker: "#141414",
+  bunker03: "#1414144D",
   blackRock: "#30313E",
   blackRock006: "#30313E0F",
   blackRock03: "#30313E08",
@@ -20,7 +21,7 @@ export const COLORS = {
   white01: "#FFFFFF1A",
   white03: "#FFFFFF4D",
   white04: "#FFFFFF66",
-  white06: "FFFFFF99",
+  white06: "#FFFFFF99",
 
   dullRed: "#C24647",
   carminePink: "#F1464B",

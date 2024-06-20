@@ -9,7 +9,9 @@ export type MarketCycleChipProps = {
 
 export const MarketCycleChip = ({ color, time }: MarketCycleChipProps) => (
   <Box display="flex" columnGap="4px" alignItems="center">
-    <Typography variant="text4">Ongoing Cycle</Typography>
+    <Typography variant="text4" sx={{ margin: 0 }}>
+      Ongoing Cycle
+    </Typography>
     <Box
       sx={{
         width: "4px",

@@ -1,0 +1,18 @@
+.obligations__container {
+    display: flex;
+    flex-direction: column;
+    row-gap: 4px;
+
+    font-size: 10px;
+}
+
+.obligations__value {
+    display: flex;
+    justify-content: space-between;
+}
+
+.obligations__divider {
+    width: 100%;
+    border-bottom: 1px solid;
+    margin: 12px 0;
+}

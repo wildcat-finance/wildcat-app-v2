@@ -23,6 +23,7 @@
     "@safe-global/safe-apps-sdk": "^9.0.0",
     "@tanstack/react-query": "^5.28.9",
     "@wildcatfi/wildcat-sdk": "^2.0.68",
+    "classnames": "^2.5.1",
     "dayjs": "^1.11.10",
     "ethers": "^5.7.2",
     "i18next": "^23.10.1",
