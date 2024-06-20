@@ -1,6 +1,6 @@
 import { useMemo } from "react"
 
-import { useQuery } from "@tanstack/react-query"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   Market,
   getLensContract,
@@ -79,7 +79,7 @@ export function useGetWithdrawals(
     queryKey: [GET_WITHDRAWALS_KEY, "initial", address],
     queryFn: getAllPendingWithdrawalBatches,
     refetchInterval: POLLING_INTERVAL,
-    // keepPreviousData: true,
+    placeholderData: keepPreviousData,
     enabled: !!market,
     refetchOnMount: false,
   })
@@ -171,7 +171,7 @@ export function useGetWithdrawals(
   } = useQuery({
     queryKey: [GET_WITHDRAWALS_KEY, "update", updateQueryKeys],
     queryFn: getUpdatedBatches,
-    // keepPreviousData: true,
+    placeholderData: keepPreviousData,
     enabled: !!data,
     refetchOnMount: false,
   })

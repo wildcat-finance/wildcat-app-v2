@@ -1,32 +1,23 @@
 import * as React from "react"
 
-import { Box, Button, Skeleton, Tooltip, Typography } from "@mui/material"
-import SvgIcon from "@mui/material/SvgIcon"
+import { Box, Button, Skeleton } from "@mui/material"
+import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
-import { MarketTransactionsProps } from "@/app/[locale]/borrower/market/[address]/components/MarketTransactions/interface"
-import {
-  MarketTxBlockAmountContainer,
-  MarketTxBlockContainer,
-  MarketTxBlockTitleContainer,
-  MarketTxContainer,
-  MarketTxSkeleton,
-} from "@/app/[locale]/borrower/market/[address]/components/MarketTransactions/style"
-import Question from "@/assets/icons/circledQuestion_icon.svg"
-import { TooltipIcon } from "@/components/InputLabel/style"
+import { BorrowModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/BorrowModal"
+import { TransactionBlock } from "@/components/TransactionBlock"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
-import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
-export const MarketTransactions = ({
-  market,
-  isLoading,
-}: MarketTransactionsProps) => {
+import { MarketTransactionsProps } from "./interface"
+import { MarketTxContainer, MarketTxSkeleton } from "./style"
+
+export const MarketTransactions = ({ market }: MarketTransactionsProps) => {
   const { t } = useTranslation()
 
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
 
-  if (!market || !marketAccount || isLoading)
+  if (!market || !marketAccount)
     return (
       <Box sx={MarketTxContainer}>
         <Skeleton height="82px" width="395px" sx={MarketTxSkeleton} />
@@ -40,53 +31,23 @@ export const MarketTransactions = ({
     market.totalDebts.raw.isZero() ||
     market?.isDelinquent ||
     market.isIncurringPenalties ||
-    marketAccount.market.borrowableAssets.raw.isZero()
+    (marketAccount && marketAccount.market.borrowableAssets.raw.isZero())
+
+  const remainingInterest = market.totalBorrowed?.raw.isZero()
+    ? "0"
+    : humanizeDuration(market.secondsBeforeDelinquency * 1000, {
+        round: true,
+        units: ["d"],
+      })
 
   return (
     <Box sx={MarketTxContainer}>
-      <Box sx={MarketTxBlockContainer}>
-        <Box>
-          <Box sx={MarketTxBlockTitleContainer}>
-            <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-              {t("borrowerMarketDetails.transactions.toRepay.title")}
-            </Typography>
-            <Tooltip
-              title={t("borrowerMarketDetails.transactions.toRepay.tooltip")}
-              placement="right"
-            >
-              <SvgIcon fontSize="small" sx={TooltipIcon}>
-                <Question />
-              </SvgIcon>
-            </Tooltip>
-          </Box>
-
-          <Box sx={MarketTxBlockAmountContainer}>
-            <Typography
-              variant="title3"
-              sx={{
-                color:
-                  market.isDelinquent || market.isIncurringPenalties
-                    ? COLORS.carminePink
-                    : "",
-              }}
-            >
-              {formatTokenWithCommas(market.outstandingDebt)}
-            </Typography>
-            <Typography
-              variant="text4"
-              sx={{
-                marginTop: "4px",
-                color:
-                  market.isDelinquent || market.isIncurringPenalties
-                    ? COLORS.carminePink
-                    : "",
-              }}
-            >
-              {market.underlyingToken.symbol}
-            </Typography>
-          </Box>
-        </Box>
-
+      <TransactionBlock
+        title={t("borrowerMarketDetails.transactions.toRepay.title")}
+        tooltip={t("borrowerMarketDetails.transactions.toRepay.tooltip")}
+        amount={formatTokenWithCommas(market.outstandingDebt)}
+        asset={market.underlyingToken.symbol}
+      >
         <Button
           variant="contained"
           size="large"
@@ -95,43 +56,25 @@ export const MarketTransactions = ({
         >
           {t("borrowerMarketDetails.buttons.repay")}
         </Button>
-      </Box>
+      </TransactionBlock>
 
-      <Box sx={MarketTxBlockContainer}>
-        <Box>
-          <Box sx={MarketTxBlockTitleContainer}>
-            <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-              {t("borrowerMarketDetails.transactions.toBorrow.title")}
-            </Typography>
-            <Tooltip
-              title={t("borrowerMarketDetails.transactions.toBorrow.tooltip")}
-              placement="right"
-            >
-              <SvgIcon fontSize="small" sx={TooltipIcon}>
-                <Question />
-              </SvgIcon>
-            </Tooltip>
-          </Box>
-
-          <Box sx={MarketTxBlockAmountContainer}>
-            <Typography variant="title3">
-              {formatTokenWithCommas(marketAccount.market.borrowableAssets)}
-            </Typography>
-            <Typography variant="text4" sx={{ marginTop: "4px" }}>
-              {market.underlyingToken.symbol}
-            </Typography>
-          </Box>
-        </Box>
-
-        <Button
-          variant="contained"
-          size="large"
-          sx={{ width: "152px" }}
-          disabled={disableBorrow}
-        >
-          {t("borrowerMarketDetails.buttons.borrow")}
-        </Button>
-      </Box>
+      <TransactionBlock
+        title={t("borrowerMarketDetails.transactions.toBorrow.title")}
+        tooltip={t("borrowerMarketDetails.transactions.toBorrow.tooltip")}
+        amount={formatTokenWithCommas(marketAccount.market.borrowableAssets)}
+        asset={market.underlyingToken.symbol}
+      >
+        <BorrowModal
+          available={formatTokenWithCommas(
+            marketAccount.market.borrowableAssets,
+            {
+              withSymbol: true,
+            },
+          )}
+          remaining={remainingInterest}
+          disableOpenButton={disableBorrow}
+        />
+      </TransactionBlock>
     </Box>
   )
 }

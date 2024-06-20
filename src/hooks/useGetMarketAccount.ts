@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { getMarketAccount, Market, Signer } from "@wildcatfi/wildcat-sdk"
 import { constants } from "ethers"
 
@@ -28,5 +28,6 @@ export const useGetMarketAccountForBorrowerLegacy = (
     queryFn: getMarketAccountFn,
     enabled: !!market && !!signerOrProvider && !isWrongNetwork,
     refetchOnMount: false,
+    placeholderData: keepPreviousData,
   })
 }

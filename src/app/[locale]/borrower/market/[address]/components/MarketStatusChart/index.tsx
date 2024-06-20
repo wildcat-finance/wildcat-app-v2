@@ -1,10 +1,11 @@
 import { Box, Typography } from "@mui/material"
+import humanizeDuration from "humanize-duration"
 
 import { BarItem } from "@/components/BarChart/BarItem"
 import { MarketBarChartItem } from "@/components/BarChart/BarItem/interface"
 import { LegendItem } from "@/components/BarChart/LegendItem"
 import { COLORS } from "@/theme/colors"
-import { formatTokenWithCommas, secondsToDays } from "@/utils/formatters"
+import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { CollateralObligationsData } from "./CollateralObligations/CollateralObligationsData"
 import { DelinquentCollateralObligations } from "./CollateralObligations/DelinquentCollateralObligations"
@@ -50,16 +51,12 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
     return "default"
   }
 
-  const delinquencyPeriod =
-    market.timeDelinquent > market.delinquencyGracePeriod
-      ? 0
-      : market.delinquencyGracePeriod - market.timeDelinquent
-  const penaltyPeriod = market.timeDelinquent - market.delinquencyGracePeriod
-  const marketStatus = {
-    healthyPeriod: secondsToDays(Math.abs(market.timeDelinquent)),
-    penaltyPeriod: secondsToDays(penaltyPeriod),
-    delinquencyPeriod: secondsToDays(delinquencyPeriod),
-  }
+  const remainingInterest = market.totalBorrowed?.raw.isZero()
+    ? "0"
+    : humanizeDuration(market.secondsBeforeDelinquency * 1000, {
+        round: true,
+        units: ["d"],
+      })
 
   return (
     <Box>
@@ -91,7 +88,7 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
               Market has sufficient reserves to cover interest for
             </Typography>
             <Typography variant="text3" sx={{ color: COLORS.ultramarineBlue }}>
-              {Math.floor(marketStatus.healthyPeriod)} days
+              {remainingInterest}
             </Typography>
           </Box>
         )}

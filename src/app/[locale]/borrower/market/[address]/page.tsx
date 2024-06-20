@@ -25,7 +25,7 @@ export default function MarketDetails({
 
         <Divider sx={{ margin: "32px 0" }} />
 
-        <MarketTransactions market={market} isLoading={isMarketLoading} />
+        <MarketTransactions market={market} />
 
         <Divider sx={{ margin: "32px 0 44px" }} />
 
