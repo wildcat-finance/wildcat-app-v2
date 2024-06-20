@@ -50,7 +50,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Access-Control-Allow-Origin',
-            value: '*',
+            value: 'https://app.safe.global',
           },
           {
             key: 'Access-Control-Allow-Methods',
@@ -68,6 +68,7 @@ const nextConfig = {
       },
     ]
   },
+
   // Show HIT or MISS cache for GET requests
   logging: {
     fetches: {
