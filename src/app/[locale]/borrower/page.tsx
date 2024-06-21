@@ -61,10 +61,10 @@ export default function Borrower() {
   const { t } = useTranslation()
   const bannerDisplayConfig = useBorrowerInvitationRedirect()
   const { data: borrowers } = useGetBorrowers()
-  const { data: allMarkets, isLoading, error } = useMarketsForBorrower()
+  const { data: allMarkets, isLoading } = useMarketsForBorrower()
   const { address, isConnected } = useAccount()
-  const { isWrongNetwork } = useCurrentNetwork()
   const { data: controller } = useGetController()
+  const { isWrongNetwork } = useCurrentNetwork()
   const isRegisteredBorrower = controller?.isRegisteredBorrower
   const controllerMarkets = controller?.markets || []
 
@@ -104,13 +104,19 @@ export default function Borrower() {
   )
 
   const showBorrowerTables =
-    isConnected && isRegisteredBorrower && !!controllerMarkets.length
+    !isWrongNetwork &&
+    isConnected &&
+    isRegisteredBorrower &&
+    !!controllerMarkets.length
 
   const othersTableData = showBorrowerTables ? othersMarkets : filteredMarkets
 
-  const [tab, setTab] = React.useState("markets")
+  const [tab, setTab] = React.useState<"markets" | "mla" | "lenders">("markets")
 
-  const handleTabsChange = (event: React.SyntheticEvent, newTab: string) => {
+  const handleTabsChange = (
+    event: React.SyntheticEvent,
+    newTab: "markets" | "mla" | "lenders",
+  ) => {
     setTab(newTab)
   }
 
@@ -199,15 +205,21 @@ export default function Borrower() {
           )}
 
           <Box marginTop="16px">
-            <OthersMarketsTable
-              tableData={othersTableData || []}
-              borrowersData={borrowers || []}
-              isLoading={isLoading}
-              assetFilter={filterByAsset}
-              statusFilter={filterByStatus}
-              nameFilter={filterByMarketName}
-              isOpen
-            />
+            {!isWrongNetwork ? (
+              <OthersMarketsTable
+                tableData={othersTableData || []}
+                borrowersData={borrowers || []}
+                isLoading={isLoading}
+                assetFilter={filterByAsset}
+                statusFilter={filterByStatus}
+                nameFilter={filterByMarketName}
+                isOpen
+              />
+            ) : (
+              <Typography variant="text3" marginLeft="16px">
+                {t("borrowerMarketList.table.noMarkets.wrongNetwork")}
+              </Typography>
+            )}
           </Box>
         </>
       )}
