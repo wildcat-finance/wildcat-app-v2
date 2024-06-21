@@ -15,23 +15,11 @@ import {
 } from "@/app/[locale]/borrower/market/[address]/components/MarketHeader/style"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
-import { COLORS } from "@/theme/colors"
 import { secondsToDays } from "@/utils/formatters"
 import { getMarketStatus } from "@/utils/marketStatus"
 
-export const MarketHeader = ({ market, isLoading }: MarketHeaderProps) => {
+export const MarketHeader = ({ market }: MarketHeaderProps) => {
   const { t } = useTranslation()
-
-  if (!market || isLoading)
-    return (
-      <Box width="100%" height="90px">
-        <Skeleton
-          height="20px"
-          width="132px"
-          sx={{ bgcolor: COLORS.athensGrey }}
-        />
-      </Box>
-    )
 
   const delinquencyPeriod =
     market.timeDelinquent > market.delinquencyGracePeriod

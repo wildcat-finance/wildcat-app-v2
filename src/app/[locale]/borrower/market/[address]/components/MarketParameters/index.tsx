@@ -1,4 +1,4 @@
-import { Box, Divider, Skeleton, Typography } from "@mui/material"
+import { Box, Divider, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
@@ -15,13 +15,9 @@ import { MarketParametersProps } from "./interface"
 import {
   MarketParametersContainer,
   MarketParametersContainerColumn,
-  MarketParametersSkeleton,
 } from "./style"
 
-export const MarketParameters = ({
-  market,
-  isLoading,
-}: MarketParametersProps) => {
+export const MarketParameters = ({ market }: MarketParametersProps) => {
   const { t } = useTranslation()
   const [state, copyToClipboard] = useCopyToClipboard()
 
@@ -42,13 +38,6 @@ export const MarketParameters = ({
   const handleCopy = (text: string) => {
     copyToClipboard(text)
   }
-
-  if (!market || isLoading)
-    return (
-      <Box sx={MarketParametersContainer}>
-        <Skeleton height="82px" width="395px" sx={MarketParametersSkeleton} />
-      </Box>
-    )
 
   return (
     <Box
@@ -78,7 +67,7 @@ export const MarketParameters = ({
             value={`${market.underlyingToken.name} (${trimAddress(
               market.underlyingToken.address,
             )})`}
-            tooltipText="sample text"
+            tooltipText="TBD"
             handleCopy={() => {
               handleCopy(market.underlyingToken.address)
             }}
@@ -104,7 +93,7 @@ export const MarketParameters = ({
             value={`${market.maxTotalSupply.format(
               market.maxTotalSupply.token.decimals,
             )} ${market.underlyingToken.symbol}`}
-            tooltipText="sample text"
+            tooltipText="TBD"
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
@@ -119,7 +108,7 @@ export const MarketParameters = ({
               market.reserveRatioBips,
               MARKET_PARAMS_DECIMALS.reserveRatioBips,
             )}%`}
-            tooltipText="sample text"
+            tooltipText="TBD"
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
@@ -128,7 +117,7 @@ export const MarketParameters = ({
               market.annualInterestBips,
               MARKET_PARAMS_DECIMALS.annualInterestBips,
             )}%`}
-            tooltipText="sample text"
+            tooltipText="TBD"
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
@@ -137,19 +126,19 @@ export const MarketParameters = ({
               market.delinquencyFeeBips,
               MARKET_PARAMS_DECIMALS.delinquencyFeeBips,
             )}%`}
-            tooltipText="sample text"
+            tooltipText="TBD"
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.maximumGracePeriod")}
             value={`${formatSecsToHours(market.delinquencyGracePeriod)}`}
-            tooltipText="sample text"
+            tooltipText="TBD"
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.availableGracePeriod")}
             value={`${availableGracePeriod()} sec`}
-            tooltipText="sample text"
+            tooltipText="TBD"
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
@@ -157,7 +146,7 @@ export const MarketParameters = ({
               "borrowerMarketDetails.parameters.withdrawalCycleDuration",
             )}
             value={`${formatSecsToHours(market.withdrawalBatchDuration)}`}
-            tooltipText="sample text"
+            tooltipText="TBD"
           />
         </Box>
       </Box>

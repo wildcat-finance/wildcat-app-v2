@@ -1,15 +1,7 @@
-import {
-  Box,
-  IconButton,
-  Link,
-  SvgIcon,
-  Tooltip,
-  Typography,
-} from "@mui/material"
+import { Box, IconButton, Link, SvgIcon, Typography } from "@mui/material"
 
-import Question from "@/assets/icons/circledQuestion_icon.svg"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
-import { TooltipIcon } from "@/components/InputLabel/style"
+import { TooltipButton } from "@/components/TooltipButton"
 import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
 
@@ -31,19 +23,10 @@ export const MarketParametersItem = ({
 }: MarketParametersItemProps) => (
   <Box sx={MarketParametersItemContainer}>
     <Box sx={MarketParametersItemTitleContainer}>
-      <Typography
-        variant="text3"
-        sx={{ color: COLORS.santasGrey, fontWeight: "400" }}
-      >
+      <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
         {title}
-      </Typography>{" "}
-      {tooltipText && (
-        <Tooltip title={tooltipText} placement="right">
-          <SvgIcon fontSize="small" sx={TooltipIcon}>
-            <Question />
-          </SvgIcon>
-        </Tooltip>
-      )}
+      </Typography>
+      {tooltipText && <TooltipButton value={tooltipText} />}
     </Box>
 
     <Box sx={MarketParametersItemValueContainer}>

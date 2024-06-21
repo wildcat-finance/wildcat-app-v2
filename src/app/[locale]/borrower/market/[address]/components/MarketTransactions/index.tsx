@@ -1,30 +1,21 @@
 import * as React from "react"
 
-import { Box, Button, Skeleton } from "@mui/material"
+import { Box, Button } from "@mui/material"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
 import { BorrowModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/BorrowModal"
 import { TransactionBlock } from "@/components/TransactionBlock"
-import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { MarketTransactionsProps } from "./interface"
-import { MarketTxContainer, MarketTxSkeleton } from "./style"
+import { MarketTxContainer } from "./style"
 
-export const MarketTransactions = ({ market }: MarketTransactionsProps) => {
+export const MarketTransactions = ({
+  market,
+  marketAccount,
+}: MarketTransactionsProps) => {
   const { t } = useTranslation()
-
-  const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
-
-  if (!market || !marketAccount)
-    return (
-      <Box sx={MarketTxContainer}>
-        <Skeleton height="82px" width="395px" sx={MarketTxSkeleton} />
-
-        <Skeleton height="82px" width="395px" sx={MarketTxSkeleton} />
-      </Box>
-    )
 
   const disableRepay = market.totalDebts.raw.isZero()
   const disableBorrow =

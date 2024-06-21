@@ -5,17 +5,14 @@ import {
   AccordionSummary,
   Box,
   Skeleton,
-  Tooltip,
   Typography,
 } from "@mui/material"
-import SvgIcon from "@mui/material/SvgIcon"
 import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
-import Question from "@/assets/icons/circledQuestion_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
-import { TooltipIcon } from "@/components/InputLabel/style"
+import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
 import { COLORS } from "@/theme/colors"
@@ -107,11 +104,7 @@ export const OthersMarketsTable = ({
           >
             CRR
           </Typography>
-          <Tooltip title="TBD" placement="right">
-            <SvgIcon fontSize="small" sx={TooltipIcon}>
-              <Question />
-            </SvgIcon>
-          </Tooltip>
+          <TooltipButton value="TBD" />
         </Box>
       ),
     },

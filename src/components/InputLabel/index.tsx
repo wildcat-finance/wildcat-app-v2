@@ -1,16 +1,15 @@
-import { Box, Tooltip, Typography } from "@mui/material"
-import SvgIcon from "@mui/material/SvgIcon"
+import * as React from "react"
 
-import Question from "@/assets/icons/circledQuestion_icon.svg"
+import { Box, Typography } from "@mui/material"
+
 import {
   InputContainer,
   InputLabelContainer,
   InputLabelSubtitle,
   InputLabelTypo,
-  TooltipIcon,
 } from "@/components/InputLabel/style"
 import { InputLabelProps } from "@/components/InputLabel/type"
-import { COLORS } from "@/theme/colors"
+import { TooltipButton } from "@/components/TooltipButton"
 
 export const InputLabel = ({
   label,
@@ -24,11 +23,7 @@ export const InputLabel = ({
       <Box sx={InputLabelTypo}>
         <Typography variant="text3">{label}</Typography>
       </Box>
-      <Tooltip title={tooltipText} placement="right">
-        <SvgIcon fontSize="small" sx={TooltipIcon}>
-          <Question />
-        </SvgIcon>
-      </Tooltip>
+      <TooltipButton value={tooltipText} />
     </Box>
     {subtitle && (
       <Typography variant="text4" sx={InputLabelSubtitle}>
