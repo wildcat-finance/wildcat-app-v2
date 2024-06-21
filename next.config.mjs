@@ -2,6 +2,8 @@
 import { buildTime } from './scripts/build.js'
 
 const nextConfig = {
+  productionBrowserSourceMaps: !!process.env.SOURCE_MAPS,
+
   webpack(config) {
     // Fix pino-pretty and lokijs resolve
     config.externals.push('pino-pretty', 'lokijs', 'encoding')
@@ -42,6 +44,33 @@ const nextConfig = {
       },
     ]
   },
+
+  async headers() {
+    return [
+      {
+        source: '/manifest.json',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: 'https://app.safe.global',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'X-Requested-With, content-type, Authorization',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: 'frame-ancestors "self" https://app.safe.global;',
+          },
+        ],
+      },
+    ]
+  },
+
   // Show HIT or MISS cache for GET requests
   logging: {
     fetches: {
