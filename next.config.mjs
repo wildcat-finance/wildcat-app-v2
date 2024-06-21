@@ -2,6 +2,8 @@
 import { buildTime } from './scripts/build.js'
 
 const nextConfig = {
+  productionBrowserSourceMaps: !!process.env.SOURCE_MAPS,
+
   webpack(config) {
     // Fix pino-pretty and lokijs resolve
     config.externals.push('pino-pretty', 'lokijs', 'encoding')
