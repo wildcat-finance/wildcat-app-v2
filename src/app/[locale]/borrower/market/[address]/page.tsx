@@ -12,6 +12,7 @@ import { COLORS } from "@/theme/colors"
 import { MarketHeader } from "./components/MarketHeader"
 import { MarketParameters } from "./components/MarketParameters"
 import { MarketTransactions } from "./components/MarketTransactions"
+import { MarketWithdrawalRequests } from "./components/MarketWithdrawalRequests"
 import { SkeletonContainer, SkeletonStyle } from "./style"
 
 export default function MarketDetails({
@@ -72,6 +73,10 @@ export default function MarketDetails({
         <Divider sx={{ margin: "32px 0 44px" }} />
 
         <MarketParameters market={market} />
+
+        <Divider sx={{ margin: "32px 0 44px" }} />
+
+        <MarketWithdrawalRequests />
       </Box>
     </Box>
   )
