@@ -1,18 +1,32 @@
-import { Box, IconButton, Link, SvgIcon, Typography } from "@mui/material"
+import {
+  Box,
+  Divider,
+  IconButton,
+  Link,
+  SvgIcon,
+  Typography,
+} from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import { useTranslation } from "react-i18next"
 
+import { Accordion } from "@/components/Accordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { EtherscanBaseUrl } from "@/config/network"
 import { trimAddress } from "@/utils/formatters"
 
-import { MarketWithdrawalRequetstCell } from "./style"
+import {
+  AccordionSummaryTotalStyle,
+  MarketWithdrawalRequestsContainer,
+  MarketWithdrawalRequetstCell,
+} from "./style"
 import Copy from "../../../../../../../assets/icons/copy_icon.svg"
 import LinkIcon from "../../../../../../../assets/icons/link_icon.svg"
 
 export const MarketWithdrawalRequests = () => {
+  const { t } = useTranslation()
   const rows = [
     {
-      id: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
+      id: "1",
       lender: "Wildcat",
       transactionId: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
       dateSubmitted: "12-Jul-2023",
@@ -20,7 +34,7 @@ export const MarketWithdrawalRequests = () => {
       amount: "1 ETH",
     },
     {
-      id: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
+      id: "2",
       lender: "Wildcat",
       transactionId: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
       dateSubmitted: "12-Jul-2023",
@@ -28,7 +42,7 @@ export const MarketWithdrawalRequests = () => {
       amount: "1 ETH",
     },
     {
-      id: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
+      id: "3",
       lender: "Wildcat",
       transactionId: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
       dateSubmitted: "12-Jul-2023",
@@ -115,5 +129,18 @@ export const MarketWithdrawalRequests = () => {
       align: "right",
     },
   ]
-  return <DataGrid rows={rows} columns={columns} columnHeaderHeight={40} />
+  return (
+    <Box sx={MarketWithdrawalRequestsContainer}>
+      <Typography variant="title3">Open Withdrawals</Typography>
+      <Accordion sx={AccordionSummaryTotalStyle} arrowRight title="Total">
+        <Accordion title="Ongoing">
+          <DataGrid rows={rows} columns={columns} columnHeaderHeight={40} />
+        </Accordion>
+        <Divider />
+        <Accordion title="Outstanding from past cycles">
+          <DataGrid rows={rows} columns={columns} columnHeaderHeight={40} />
+        </Accordion>
+      </Accordion>
+    </Box>
+  )
 }
