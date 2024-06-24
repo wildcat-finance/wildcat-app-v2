@@ -132,12 +132,17 @@ export const MarketWithdrawalRequests = () => {
   return (
     <Box sx={MarketWithdrawalRequestsContainer}>
       <Typography variant="title3">Open Withdrawals</Typography>
-      <Accordion sx={AccordionSummaryTotalStyle} arrowRight title="Total">
-        <Accordion title="Ongoing">
+      <Accordion
+        sx={AccordionSummaryTotalStyle}
+        arrowRight
+        title="Total"
+        chipValue="6 ETH"
+      >
+        <Accordion title="Ongoing" chipValue="6 ETH">
           <DataGrid rows={rows} columns={columns} columnHeaderHeight={40} />
         </Accordion>
         <Divider />
-        <Accordion title="Outstanding from past cycles">
+        <Accordion title="Outstanding from past cycles" chipValue="6 ETH">
           <DataGrid rows={rows} columns={columns} columnHeaderHeight={40} />
         </Accordion>
       </Accordion>

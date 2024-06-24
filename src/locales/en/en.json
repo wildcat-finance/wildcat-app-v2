@@ -121,6 +121,22 @@
       "maximumGracePeriod": "Maximum Grace Period",
       "availableGracePeriod": "Available Grace Period",
       "withdrawalCycleDuration": "Withdrawal Cycle Duration"
+    },
+    "authorisedLenders": {
+      "header": "Lenders List",
+      "buttons": {
+        "view": "View",
+        "download": "Download",
+        "editList": "Edit List"
+      },
+      "tableHeaders": {
+        "name": "Name",
+        "walletAddress": "Wallet Address",
+        "dateAdded": "Date Added",
+        "signedMLA": "Signed MLA",
+        "signDate": "Sign Date",
+        "MLA": "MLA"
+      }
     }
   },
   "createMarket": {

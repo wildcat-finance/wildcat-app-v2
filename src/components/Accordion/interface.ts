@@ -5,4 +5,8 @@ export type AccordionProps = {
   children: ReactNode
   arrowRight?: boolean
   sx?: object
+  summarySx?: object
+  iconContainerSx?: object
+  iconColor?: string
+  chipValue?: string
 }

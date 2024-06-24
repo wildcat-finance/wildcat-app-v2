@@ -9,6 +9,7 @@ import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/use
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { COLORS } from "@/theme/colors"
 
+import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
 import { MarketHeader } from "./components/MarketHeader"
 import { MarketParameters } from "./components/MarketParameters"
 import { MarketTransactions } from "./components/MarketTransactions"
@@ -77,6 +78,10 @@ export default function MarketDetails({
         <Divider sx={{ margin: "32px 0 44px" }} />
 
         <MarketWithdrawalRequests />
+
+        <Divider sx={{ margin: "32px 0 44px" }} />
+
+        <MarketAuthorisedLenders />
       </Box>
     </Box>
   )

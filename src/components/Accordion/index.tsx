@@ -3,6 +3,7 @@ import { useState } from "react"
 import { Box, SvgIcon, Typography } from "@mui/material"
 
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
+import { COLORS } from "@/theme/colors"
 
 import { AccordionProps } from "./interface"
 import { AccordionContainer, ArrowContainer } from "./style"
@@ -12,6 +13,10 @@ export const Accordion = ({
   title,
   sx,
   arrowRight,
+  chipValue,
+  iconContainerSx,
+  summarySx,
+  iconColor,
   children,
 }: AccordionProps) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -24,14 +29,22 @@ export const Accordion = ({
         }}
         onClick={() => setIsOpen(!isOpen)}
       >
-        <Typography variant="text2">{title}</Typography>
+        <Typography variant="text2" sx={{ ...summarySx }}>
+          {title}
+        </Typography>
         <Box
           sx={{
             ...ArrowContainer,
             justifyContent: arrowRight ? "flex-end" : "flex-start",
+            ...iconContainerSx,
           }}
         >
           <SvgIcon
+            sx={{
+              "& path": {
+                fill: `${iconColor}`,
+              },
+            }}
             fontSize="medium"
             style={{
               transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
@@ -41,7 +54,7 @@ export const Accordion = ({
             <UpArrow />
           </SvgIcon>
         </Box>
-        <TextfieldChip text="6 ETH" />
+        {chipValue && <TextfieldChip text={chipValue} />}
       </Box>
 
       {isOpen && children}
