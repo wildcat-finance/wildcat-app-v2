@@ -162,6 +162,7 @@ export const MarketAuthorisedLenders = () => {
       sortable: false,
       field: "MLA",
       headerName: t("borrowerMarketDetails.authorisedLenders.tableHeaders.MLA"),
+      minWidth: 130,
       flex: 1,
       headerAlign: "right",
       align: "right",
@@ -171,7 +172,13 @@ export const MarketAuthorisedLenders = () => {
             <Button sx={MLATableButton}>
               {t("borrowerMarketDetails.authorisedLenders.buttons.view")}
             </Button>
-            |
+            <Box
+              sx={{
+                border: "1px solid",
+                height: "20px",
+                borderColor: COLORS.athensGrey,
+              }}
+            />
             <Button sx={MLATableButton}>
               {t("borrowerMarketDetails.authorisedLenders.buttons.download")}
             </Button>

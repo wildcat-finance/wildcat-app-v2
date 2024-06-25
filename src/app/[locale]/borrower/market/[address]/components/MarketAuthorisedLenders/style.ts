@@ -8,7 +8,7 @@ export const MarketWithdrawalRequetstCell = {
 export const MarketLendersMLA = {
   display: "flex",
   alignItems: "center",
-  gap: "4px",
+  gap: "8px",
 }
 
 export const MLATableButton = {
