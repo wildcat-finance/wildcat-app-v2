@@ -1,136 +1,175 @@
-import { useState } from "react"
+import { ChangeEvent, useEffect, useState } from "react"
 
-import {
-  Box,
-  Button,
-  Dialog,
-  IconButton,
-  SvgIcon,
-  TextField,
-  Typography,
-} from "@mui/material"
+import { Box, Button, Dialog, Typography } from "@mui/material"
+import humanizeDuration from "humanize-duration"
 
-import Cross from "@/assets/icons/cross_icon.svg"
-import { COLORS } from "@/theme/colors"
+import { NumberTextField } from "@/components/NumberTextfield"
+import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
+import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
+import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { formatTokenWithCommas } from "@/utils/formatters"
 
-export type BorrowModalProps = {
-  disableOpenButton?: boolean
-  available: string
-  remaining: string
-}
+import { BorrowModalProps } from "./interface"
+import { useBorrow } from "../../../hooks/useBorrow"
+import { ErrorModal } from "../FinalModals/ErrorModal"
+import { LoadingModal } from "../FinalModals/LoadingModal"
+import { SuccessModal } from "../FinalModals/SuccessModal"
+import { ModalSteps, useApprovalModal } from "../hooks/useApprovalModal"
+import { TxModalDialog, TxModalInfoItem, TxModalInfoTitle } from "../style"
 
 export const BorrowModal = ({
-  disableOpenButton,
-  available,
-  remaining,
+  market,
+  marketAccount,
+  disableBorrowBtn,
 }: BorrowModalProps) => {
-  const [open, setOpen] = useState(false)
+  const [amount, setAmount] = useState("")
 
-  const handleClickOpen = () => {
-    setOpen(true)
+  const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
+    const { value } = evt.target
+    setAmount(value)
   }
 
-  const handleClose = () => {
-    setOpen(false)
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false)
+  const [showErrorPopup, setShowErrorPopup] = useState(false)
+  const modal = useApprovalModal(
+    setShowSuccessPopup,
+    setShowErrorPopup,
+    setAmount,
+  )
+
+  const handleBorrow = () => {
+    modal.setFlowStep(ModalSteps.approved)
   }
+
+  const { mutate, isPending, isSuccess, isError } = useBorrow(marketAccount)
+
+  const handleConfirm = () => {
+    mutate(amount)
+  }
+
+  const handleTryAgain = () => {
+    handleConfirm()
+    setShowErrorPopup(false)
+  }
+
+  const showForm = !(isPending || showSuccessPopup || showErrorPopup)
+
+  const disableBorrow = amount === ""
+
+  const underlyingBorrowAmount = amount
+    ? marketAccount.market.underlyingToken.parseAmount(amount)
+    : marketAccount.market.underlyingToken.parseAmount(0)
+  const leftBorrowAmount = market.borrowableAssets.sub(underlyingBorrowAmount)
+  const remainingInterest = market.totalBorrowed?.raw.isZero()
+    ? "0"
+    : humanizeDuration(market.secondsBeforeDelinquency * 1000, {
+        round: true,
+        units: ["d"],
+      })
+
+  useEffect(() => {
+    if (isError) {
+      setShowErrorPopup(true)
+    }
+    if (isSuccess) {
+      setShowSuccessPopup(true)
+    }
+  }, [isError, isSuccess])
 
   return (
     <>
       <Button
-        onClick={handleClickOpen}
+        onClick={modal.handleOpenModal}
         variant="contained"
         size="large"
         sx={{ width: "152px" }}
-        disabled={disableOpenButton}
+        disabled={disableBorrowBtn}
       >
         Borrow
       </Button>
 
       <Dialog
-        open={open}
-        onClose={handleClose}
-        sx={{
-          "& .MuiDialog-paper": {
-            height: "404px",
-            width: "440px",
-            borderRadius: "20px",
-            margin: 0,
-            padding: "24px 0",
-          },
-        }}
+        open={modal.isModalOpen}
+        onClose={isPending ? undefined : modal.handleCloseModal}
+        sx={TxModalDialog}
       >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
+        {showForm && (
+          <TxModalHeader
+            title="Borrow"
+            arrowOnClick={
+              modal.hideArrowButton || !showForm ? null : modal.handleClickBack
+            }
+            crossOnClick={modal.hideCrossButton ? null : modal.handleCloseModal}
+          />
+        )}
 
-            padding: "0 24px 16px",
-            marginBottom: "28px",
-            borderBottom: `1px solid ${COLORS.athensGrey}`,
-          }}
-        >
-          <IconButton disableRipple onClick={handleClose}>
-            <SvgIcon
-              fontSize="medium"
-              sx={{ "& path": { fill: `${COLORS.greySuit}` } }}
-            >
-              <Cross />
-            </SvgIcon>
-          </IconButton>
+        {showForm && (
+          <Box width="100%" height="100%" padding="0 24px">
+            {modal.approvedStep && (
+              <Box sx={TxModalInfoItem} marginBottom="8px">
+                <Typography variant="text3" sx={TxModalInfoTitle}>
+                  Borrow Sum
+                </Typography>
+                <Typography variant="text3">
+                  {amount} {market.underlyingToken.symbol}
+                </Typography>
+              </Box>
+            )}
 
-          <Typography variant="title3" textAlign="center">
-            Borrow
-          </Typography>
+            <Box sx={TxModalInfoItem} marginBottom="8px">
+              <Typography variant="text3" sx={TxModalInfoTitle}>
+                Available to Borrow {modal.approvedStep && "after transaction"}
+              </Typography>
+              <Typography variant="text3">
+                {formatTokenWithCommas(
+                  modal.approvedStep
+                    ? leftBorrowAmount
+                    : marketAccount.market.borrowableAssets,
+                  {
+                    withSymbol: true,
+                  },
+                )}
+              </Typography>
+            </Box>
 
-          <Box width="16px" height="16px" />
-        </Box>
+            <Box sx={TxModalInfoItem} marginBottom="20px">
+              <Typography variant="text3" sx={TxModalInfoTitle}>
+                Interest Remaining
+              </Typography>
+              <Typography variant="text3">{remainingInterest}</Typography>
+            </Box>
 
-        <Box sx={{ padding: "0 24px" }}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: "8px",
-            }}
-          >
-            <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-              Available to Borrow
-            </Typography>
-            <Typography variant="text3">{available}</Typography>
+            {!modal.approvedStep && (
+              <NumberTextField
+                style={{ width: "100%" }}
+                value={amount}
+                onChange={handleAmountChange}
+                label={`Up to ${formatTokenWithCommas(
+                  marketAccount.market.borrowableAssets,
+                )}`}
+                endAdornment={
+                  <TextfieldChip text={market.underlyingToken.symbol} />
+                }
+              />
+            )}
           </Box>
+        )}
 
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: "20px",
-            }}
-          >
-            <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-              Interest Remaining
-            </Typography>
-            <Typography variant="text3">{remaining}</Typography>
-          </Box>
+        {isPending && <LoadingModal />}
+        {showErrorPopup && (
+          <ErrorModal
+            onTryAgain={handleTryAgain}
+            onClose={modal.handleCloseModal}
+          />
+        )}
+        {showSuccessPopup && <SuccessModal onClose={modal.handleCloseModal} />}
 
-          <TextField fullWidth placeholder={`Up to ${available}`} />
-        </Box>
-
-        <Box
-          sx={{
-            display: "flex",
-            gap: "8px",
-            padding: "0 24px",
-            marginTop: "auto",
-          }}
-        >
-          <Button variant="contained" size="large" sx={{ width: "100%" }}>
-            Approve
-          </Button>
-          <Button variant="contained" size="large" sx={{ width: "100%" }}>
-            Borrow
-          </Button>
-        </Box>
+        <TxModalFooter
+          mainBtnText={modal.approvedStep ? "Confirm" : "Borrow"}
+          mainBtnOnClick={modal.approvedStep ? handleConfirm : handleBorrow}
+          disableMainBtn={disableBorrow}
+          hideButtons={!showForm}
+        />
       </Dialog>
     </>
   )
