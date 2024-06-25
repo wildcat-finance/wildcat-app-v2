@@ -7,13 +7,20 @@ import {
   Typography,
 } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import { WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
+import dayjs from "dayjs"
 import { useTranslation } from "react-i18next"
 
 import { Accordion } from "@/components/Accordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { EtherscanBaseUrl } from "@/config/network"
-import { trimAddress } from "@/utils/formatters"
+import {
+  DATE_FORMAT,
+  formatTokenWithCommas,
+  trimAddress,
+} from "@/utils/formatters"
 
+import { MarketWithdrawalRequestsProps, WithdrawalTxRow } from "./interface"
 import {
   AccordionSummaryTotalStyle,
   MarketWithdrawalRequestsContainer,
@@ -21,35 +28,52 @@ import {
 } from "./style"
 import Copy from "../../../../../../../assets/icons/copy_icon.svg"
 import LinkIcon from "../../../../../../../assets/icons/link_icon.svg"
+import { useGetWithdrawals } from "../../hooks/useGetWithdrawals"
 
-export const MarketWithdrawalRequests = () => {
+export const MarketWithdrawalRequests = ({
+  market,
+}: MarketWithdrawalRequestsProps) => {
   const { t } = useTranslation()
-  const rows = [
-    {
-      id: "1",
-      lender: "Wildcat",
-      transactionId: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
-      dateSubmitted: "12-Jul-2023",
-      claimable: "Yes",
-      amount: "1 ETH",
-    },
-    {
-      id: "2",
-      lender: "Wildcat",
-      transactionId: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
-      dateSubmitted: "12-Jul-2023",
-      claimable: "Yes",
-      amount: "1 ETH",
-    },
-    {
-      id: "3",
-      lender: "Wildcat",
-      transactionId: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
-      dateSubmitted: "12-Jul-2023",
-      claimable: "Yes",
-      amount: "1 ETH",
-    },
-  ]
+  const { data } = useGetWithdrawals(market)
+
+  const expiredTotalAmount = data.expiredWithdrawalsTotalOwed
+  const activeTotalAmount = data.activeWithdrawalsTotalOwed
+  const totalAmount = expiredTotalAmount.add(activeTotalAmount)
+
+  const activeTxRows: Array<WithdrawalTxRow> = []
+  const expiredTxRows: Array<WithdrawalTxRow> = []
+
+  const formatTx = (
+    result: Array<WithdrawalTxRow>,
+    txs: WithdrawalBatch[] | undefined,
+  ) => {
+    if (txs && txs[0] !== undefined) {
+      txs.map((batch) =>
+        batch.requests.map((withdrawal) =>
+          result.push({
+            id: withdrawal.id,
+            lender: withdrawal.address,
+            transactionId: withdrawal.transactionHash,
+            dateSubmitted: dayjs(withdrawal.blockTimestamp * 1000).format(
+              DATE_FORMAT,
+            ),
+            claimable: "Yes",
+            amount: formatTokenWithCommas(
+              withdrawal.getNormalizedAmountOwed(batch),
+              { withSymbol: true },
+            ),
+          }),
+        ),
+      )
+    }
+  }
+
+  if (data?.activeWithdrawal)
+    formatTx(activeTxRows, [data?.activeWithdrawal] as WithdrawalBatch[])
+
+  if (data?.expiredPendingWithdrawals)
+    formatTx(expiredTxRows, data?.expiredPendingWithdrawals)
+
   const columns: GridColDef[] = [
     {
       sortable: false,
@@ -60,7 +84,7 @@ export const MarketWithdrawalRequests = () => {
       align: "left",
       renderCell: ({ value }) => (
         <Box sx={MarketWithdrawalRequetstCell}>
-          <Typography variant="text3">{value}</Typography>
+          <Typography variant="text3">{trimAddress(value)}</Typography>
           <Link
             href={`${EtherscanBaseUrl}/address/${value}`}
             target="_blank"
@@ -109,8 +133,8 @@ export const MarketWithdrawalRequests = () => {
       field: "dateSubmitted",
       headerName: "Date Submitted",
       minWidth: 150,
-      headerAlign: "center",
-      align: "center",
+      headerAlign: "left",
+      align: "left",
     },
     {
       sortable: false,
@@ -124,7 +148,7 @@ export const MarketWithdrawalRequests = () => {
       sortable: false,
       field: "amount",
       headerName: "Amount",
-      minWidth: 85,
+      minWidth: 150,
       headerAlign: "right",
       align: "right",
     },
@@ -136,14 +160,36 @@ export const MarketWithdrawalRequests = () => {
         sx={AccordionSummaryTotalStyle}
         arrowRight
         title="Total"
-        chipValue="6 ETH"
+        chipValue={formatTokenWithCommas(totalAmount, { withSymbol: true })}
       >
-        <Accordion title="Ongoing" chipValue="6 ETH">
-          <DataGrid rows={rows} columns={columns} columnHeaderHeight={40} />
+        <Accordion
+          title="Ongoing"
+          chipValue={formatTokenWithCommas(activeTotalAmount, {
+            withSymbol: true,
+          })}
+        >
+          {activeTxRows.length ? (
+            <DataGrid
+              rows={activeTxRows}
+              columns={columns}
+              columnHeaderHeight={40}
+            />
+          ) : null}
         </Accordion>
         <Divider />
-        <Accordion title="Outstanding from past cycles" chipValue="6 ETH">
-          <DataGrid rows={rows} columns={columns} columnHeaderHeight={40} />
+        <Accordion
+          title="Outstanding from past cycles"
+          chipValue={formatTokenWithCommas(expiredTotalAmount, {
+            withSymbol: true,
+          })}
+        >
+          {expiredTxRows.length ? (
+            <DataGrid
+              rows={expiredTxRows}
+              columns={columns}
+              columnHeaderHeight={40}
+            />
+          ) : null}
         </Accordion>
       </Accordion>
     </Box>
