@@ -81,7 +81,7 @@ export default function MarketDetails({
 
         <Divider sx={{ margin: "32px 0 44px" }} />
 
-        <MarketAuthorisedLenders />
+        <MarketAuthorisedLenders market={market} />
       </Box>
     </Box>
   )

@@ -15,7 +15,9 @@ import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
+import { MarketAuthorisedLendersProps } from "./interface"
 import {
+  DataGridCells,
   MarketLendersMLA,
   MarketWithdrawalRequestsContainer,
   MarketWithdrawalRequetstCell,
@@ -24,58 +26,26 @@ import {
 import Copy from "../../../../../../../assets/icons/copy_icon.svg"
 import EditIcon from "../../../../../../../assets/icons/edit_icon.svg"
 import LinkIcon from "../../../../../../../assets/icons/link_icon.svg"
+import { useGetAuthorisedLendersByMarket } from "../../hooks/useGetLenders"
 
-export const MarketAuthorisedLenders = () => {
+export const MarketAuthorisedLenders = ({
+  market,
+}: MarketAuthorisedLendersProps) => {
+  const { data } = useGetAuthorisedLendersByMarket(market)
   const { t } = useTranslation()
-  const rows = [
-    {
-      id: "1",
-      name: "Wildcat",
-      walletAddress: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
-      dateAdded: "12-Jul-2023",
-      signedMLA: "Yes",
-      signDate: "13-Jul-2023",
-      MLA: "View|Download",
-    },
-    {
-      id: "2",
-      name: "Wildcat",
-      walletAddress: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
-      dateAdded: "12-Jul-2023",
-      signedMLA: "Yes",
-      signDate: "13-Jul-2023",
-      MLA: "View|Download",
-    },
-    {
-      id: "3",
-      name: "Wildcat",
-      walletAddress: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
-      dateAdded: "12-Jul-2023",
-      signedMLA: "Yes",
-      signDate: "13-Jul-2023",
-      MLA: "View|Download",
-    },
-  ]
-  const rowsDeleted = [
-    {
-      id: "4",
-      name: "Wildcat",
-      walletAddress: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
-      dateAdded: "12-Jul-2023",
-      signedMLA: "No",
-      signDate: "",
-      MLA: "",
-    },
-    {
-      id: "5",
-      name: "Wildcat",
-      walletAddress: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
-      dateAdded: "12-Jul-2023",
-      signedMLA: "No",
-      signDate: "",
-      MLA: "",
-    },
-  ]
+  console.log(data)
+  const rows = data
+    ? data?.map((lender) => ({
+        id: lender,
+        name: "Wildcat",
+        walletAddress: lender,
+        dateAdded: "12-Jul-2023",
+        signedMLA: "Yes",
+        signDate: "13-Jul-2023",
+        MLA: "View|Download",
+      }))
+    : []
+
   const columns: GridColDef[] = [
     {
       sortable: false,
@@ -83,7 +53,7 @@ export const MarketAuthorisedLenders = () => {
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.name",
       ),
-      minWidth: 200,
+      minWidth: 176,
       headerAlign: "left",
       align: "left",
       renderCell: (params) => (
@@ -103,12 +73,14 @@ export const MarketAuthorisedLenders = () => {
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.walletAddress",
       ),
-      minWidth: 200,
+      minWidth: 176,
       headerAlign: "left",
       align: "left",
       renderCell: ({ value }) => (
         <Box sx={MarketWithdrawalRequetstCell}>
-          <Typography variant="text3">{trimAddress(value)}</Typography>
+          <Typography sx={{ minWidth: "80px" }} variant="text3">
+            {trimAddress(value)}
+          </Typography>
           <IconButton disableRipple sx={AddressButtons} onClick={() => {}}>
             <SvgIcon fontSize="medium">
               <Copy />
@@ -134,7 +106,7 @@ export const MarketAuthorisedLenders = () => {
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.dateAdded",
       ),
-      minWidth: 150,
+      minWidth: 124,
       headerAlign: "left",
       align: "left",
     },
@@ -144,7 +116,7 @@ export const MarketAuthorisedLenders = () => {
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.signedMLA",
       ),
-      minWidth: 85,
+      width: 96,
       headerAlign: "left",
       align: "left",
     },
@@ -154,7 +126,8 @@ export const MarketAuthorisedLenders = () => {
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.signDate",
       ),
-      minWidth: 85,
+      minWidth: 124,
+      flex: 1,
       headerAlign: "left",
       align: "left",
     },
@@ -163,7 +136,6 @@ export const MarketAuthorisedLenders = () => {
       field: "MLA",
       headerName: t("borrowerMarketDetails.authorisedLenders.tableHeaders.MLA"),
       minWidth: 130,
-      flex: 1,
       headerAlign: "right",
       align: "right",
       renderCell: ({ value }) =>
@@ -209,7 +181,12 @@ export const MarketAuthorisedLenders = () => {
         </Button>
       </Box>
 
-      <DataGrid rows={rows} columns={columns} columnHeaderHeight={40} />
+      <DataGrid
+        sx={DataGridCells}
+        rows={rows}
+        columns={columns}
+        columnHeaderHeight={40}
+      />
       <Accordion
         sx={{
           flexDirection: "row-reverse",
@@ -222,7 +199,12 @@ export const MarketAuthorisedLenders = () => {
         iconColor={COLORS.blueRibbon}
         title="Hide Deleted Lenders"
       >
-        <DataGrid rows={rowsDeleted} columns={columns} columnHeaderHeight={0} />
+        <DataGrid
+          sx={DataGridCells}
+          rows={rows}
+          columns={columns}
+          columnHeaderHeight={0}
+        />
       </Accordion>
     </Box>
   )

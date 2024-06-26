@@ -23,6 +23,7 @@ import {
 import { MarketWithdrawalRequestsProps, WithdrawalTxRow } from "./interface"
 import {
   AccordionSummaryTotalStyle,
+  DataGridCells,
   MarketWithdrawalRequestsContainer,
   MarketWithdrawalRequetstCell,
 } from "./style"
@@ -55,7 +56,7 @@ export const MarketWithdrawalRequests = ({
             lender: withdrawal.address,
             transactionId: withdrawal.transactionHash,
             dateSubmitted: dayjs(withdrawal.blockTimestamp * 1000).format(
-              DATE_FORMAT,
+              "DD-MMM-YYYY",
             ),
             claimable: "Yes",
             amount: formatTokenWithCommas(
@@ -79,7 +80,7 @@ export const MarketWithdrawalRequests = ({
       sortable: false,
       field: "lender",
       headerName: "Lender",
-      minWidth: 200,
+      minWidth: 176,
       headerAlign: "left",
       align: "left",
       renderCell: ({ value }) => (
@@ -103,7 +104,7 @@ export const MarketWithdrawalRequests = ({
       sortable: false,
       field: "transactionId",
       headerName: "Transaction ID",
-      minWidth: 200,
+      minWidth: 216,
       headerAlign: "left",
       align: "left",
       renderCell: ({ value }) => (
@@ -132,7 +133,7 @@ export const MarketWithdrawalRequests = ({
       sortable: false,
       field: "dateSubmitted",
       headerName: "Date Submitted",
-      minWidth: 150,
+      minWidth: 112,
       headerAlign: "left",
       align: "left",
     },
@@ -140,7 +141,7 @@ export const MarketWithdrawalRequests = ({
       sortable: false,
       field: "claimable",
       headerName: "Claimable",
-      flex: 1,
+      minWidth: 112,
       headerAlign: "left",
       align: "left",
     },
@@ -148,7 +149,8 @@ export const MarketWithdrawalRequests = ({
       sortable: false,
       field: "amount",
       headerName: "Amount",
-      minWidth: 150,
+      minWidth: 90,
+      flex: 1,
       headerAlign: "right",
       align: "right",
     },
@@ -170,6 +172,7 @@ export const MarketWithdrawalRequests = ({
         >
           {activeTxRows.length ? (
             <DataGrid
+              sx={DataGridCells}
               rows={activeTxRows}
               columns={columns}
               columnHeaderHeight={40}
@@ -185,6 +188,7 @@ export const MarketWithdrawalRequests = ({
         >
           {expiredTxRows.length ? (
             <DataGrid
+              sx={DataGridCells}
               rows={expiredTxRows}
               columns={columns}
               columnHeaderHeight={40}
