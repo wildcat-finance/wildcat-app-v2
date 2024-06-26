@@ -3,9 +3,9 @@ import SvgIcon from "@mui/material/SvgIcon"
 import humanizeDuration from "humanize-duration"
 import Image from "next/image"
 
-import { MarketStatusChipProps } from "@/components/@extended/MarketStatusChip/type"
 import { COLORS } from "@/theme/colors"
 
+import { MarketStatusChipProps } from "./type"
 import Clock from "../../../assets/icons/clock_icon.svg"
 import Fire from "../../../assets/icons/fire_icon.png"
 import Arrow from "../../../assets/icons/textChipArrow_icon.svg"

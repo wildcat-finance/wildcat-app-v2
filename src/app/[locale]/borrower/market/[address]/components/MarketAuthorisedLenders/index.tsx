@@ -33,7 +33,6 @@ export const MarketAuthorisedLenders = ({
 }: MarketAuthorisedLendersProps) => {
   const { data } = useGetAuthorisedLendersByMarket(market)
   const { t } = useTranslation()
-  console.log(data)
   const rows = data
     ? data?.map((lender) => ({
         id: lender,

@@ -1,5 +1,4 @@
 import { Market } from "@wildcatfi/wildcat-sdk"
-import humanizeDuration from "humanize-duration"
 
 import { secondsToDays } from "@/utils/formatters"
 

@@ -8,7 +8,6 @@ import {
   Typography,
 } from "@mui/material"
 import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid"
-import humanizeDuration from "humanize-duration"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
@@ -26,10 +25,9 @@ import {
 import {
   formatBps,
   formatTokenWithCommas,
-  secondsToDays,
   timestampToDateFormatted,
 } from "@/utils/formatters"
-import { getMarketStatus, getMarketStatusChip } from "@/utils/marketStatus"
+import { getMarketStatusChip } from "@/utils/marketStatus"
 
 import { BorrowerMarketsTableProps } from "./interface"
 
@@ -144,11 +142,6 @@ export const BorrowerMarketsTable = ({
       maxTotalSupply,
       borrowableAssets,
       deployedEvent,
-      timeDelinquent,
-      delinquencyGracePeriod,
-      isClosed,
-      isIncurringPenalties,
-      isDelinquent,
     } = market
 
     const marketStatus = getMarketStatusChip(market)
