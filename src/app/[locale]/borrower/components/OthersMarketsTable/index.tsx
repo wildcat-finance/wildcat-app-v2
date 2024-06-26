@@ -8,6 +8,7 @@ import {
   Typography,
 } from "@mui/material"
 import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid"
+import humanizeDuration from "humanize-duration"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
@@ -29,7 +30,7 @@ import {
   timestampToDateFormatted,
   trimAddress,
 } from "@/utils/formatters"
-import { getMarketStatus } from "@/utils/marketStatus"
+import { getMarketStatus, getMarketStatusChip } from "@/utils/marketStatus"
 
 import { OthersMarketsTableProps } from "./interface"
 
@@ -160,17 +161,7 @@ export const OthersMarketsTable = ({
       (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
     )
     const borrowerName = borrower ? borrower.name : trimAddress(borrowerAddress)
-    const delinquencyPeriod =
-      timeDelinquent > delinquencyGracePeriod
-        ? 0
-        : delinquencyGracePeriod - timeDelinquent
-    const penaltyPeriod = timeDelinquent - delinquencyGracePeriod
-    const marketStatus = {
-      status: getMarketStatus(isClosed, isDelinquent, isIncurringPenalties),
-      healthyPeriod: secondsToDays(Math.abs(timeDelinquent)),
-      penaltyPeriod: secondsToDays(penaltyPeriod),
-      delinquencyPeriod: secondsToDays(delinquencyPeriod),
-    }
+    const marketStatus = getMarketStatusChip(market)
 
     return {
       id: address,

@@ -4,7 +4,7 @@ export type MarketStatusChipProps = {
   variant?: "filled" | "text"
   status: {
     status: MarketStatus
-    healthyPeriod: number
+    healthyPeriod: number | null
     penaltyPeriod: number
     delinquencyPeriod?: number
   }

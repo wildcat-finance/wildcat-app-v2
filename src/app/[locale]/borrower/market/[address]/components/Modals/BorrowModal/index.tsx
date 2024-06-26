@@ -60,12 +60,12 @@ export const BorrowModal = ({
     ? marketAccount.market.underlyingToken.parseAmount(amount)
     : marketAccount.market.underlyingToken.parseAmount(0)
   const leftBorrowAmount = market.borrowableAssets.sub(underlyingBorrowAmount)
-  const remainingInterest = market.totalBorrowed?.raw.isZero()
-    ? "0"
-    : humanizeDuration(market.secondsBeforeDelinquency * 1000, {
+  const remainingInterest = market.totalDebts.gt(0)
+    ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
         round: true,
         units: ["d"],
       })
+    : ""
 
   useEffect(() => {
     if (isError) {

@@ -1,5 +1,6 @@
 import { Box, Chip } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
+import humanizeDuration from "humanize-duration"
 import Image from "next/image"
 
 import { MarketStatusChipProps } from "@/components/@extended/MarketStatusChip/type"
@@ -15,10 +16,19 @@ export const MarketStatusChip = ({
 }: MarketStatusChipProps) => {
   let chipConfig
 
+  const healthyPeriod =
+    status.healthyPeriod &&
+    humanizeDuration(status.healthyPeriod, {
+      round: true,
+      largest: 1,
+    })
+
   switch (status.status) {
     case "Healthy": {
       chipConfig = {
-        label: `Healthy ${Math.floor(status.healthyPeriod)} more days`,
+        label: status.healthyPeriod
+          ? `Healthy ${healthyPeriod} more`
+          : "Healthy",
         icon: undefined,
         backgroundColor: COLORS.glitter,
         fontColor: COLORS.ultramarineBlue,

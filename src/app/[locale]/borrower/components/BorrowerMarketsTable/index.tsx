@@ -8,6 +8,7 @@ import {
   Typography,
 } from "@mui/material"
 import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid"
+import humanizeDuration from "humanize-duration"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
@@ -28,7 +29,7 @@ import {
   secondsToDays,
   timestampToDateFormatted,
 } from "@/utils/formatters"
-import { getMarketStatus } from "@/utils/marketStatus"
+import { getMarketStatus, getMarketStatusChip } from "@/utils/marketStatus"
 
 import { BorrowerMarketsTableProps } from "./interface"
 
@@ -150,17 +151,7 @@ export const BorrowerMarketsTable = ({
       isDelinquent,
     } = market
 
-    const delinquencyPeriod =
-      timeDelinquent > delinquencyGracePeriod
-        ? 0
-        : delinquencyGracePeriod - timeDelinquent
-    const penaltyPeriod = timeDelinquent - delinquencyGracePeriod
-    const marketStatus = {
-      status: getMarketStatus(isClosed, isDelinquent, isIncurringPenalties),
-      healthyPeriod: secondsToDays(Math.abs(timeDelinquent)),
-      penaltyPeriod: secondsToDays(penaltyPeriod),
-      delinquencyPeriod: secondsToDays(delinquencyPeriod),
-    }
+    const marketStatus = getMarketStatusChip(market)
 
     return {
       id: address,

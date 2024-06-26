@@ -51,12 +51,12 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
     return "default"
   }
 
-  const remainingInterest = market.totalBorrowed?.raw.isZero()
-    ? "0"
-    : humanizeDuration(market.secondsBeforeDelinquency * 1000, {
+  const remainingInterest = market.totalDebts.gt(0)
+    ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
         round: true,
         units: ["d"],
       })
+    : ""
 
   return (
     <Box>
