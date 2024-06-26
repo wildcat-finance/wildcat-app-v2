@@ -1,5 +1,5 @@
-import { Market } from "@wildcatfi/wildcat-sdk"
+import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 export type MarketHeaderProps = {
-  market: Market
+  marketAccount: MarketAccount
 }

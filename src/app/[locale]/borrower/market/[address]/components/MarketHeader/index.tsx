@@ -4,6 +4,7 @@ import { Box, Button, Typography } from "@mui/material"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
+import { CapacityModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/CapacityModal"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
 import { getMarketStatusChip } from "@/utils/marketStatus"
@@ -20,8 +21,10 @@ import {
 } from "./style"
 import { useGetWithdrawals } from "../../hooks/useGetWithdrawals"
 
-export const MarketHeader = ({ market }: MarketHeaderProps) => {
+export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
   const { t } = useTranslation()
+
+  const { market } = marketAccount
 
   const { data } = useGetWithdrawals(market)
 
@@ -62,9 +65,7 @@ export const MarketHeader = ({ market }: MarketHeaderProps) => {
         {/* <Button variant="outlined" color="secondary" size="small"> */}
         {/*  {t("borrowerMarketDetails.buttons.mla")} */}
         {/* </Button> */}
-        <Button variant="outlined" color="secondary" size="small">
-          {t("borrowerMarketDetails.buttons.capacity")}
-        </Button>
+        <CapacityModal marketAccount={marketAccount} />
         <Button variant="outlined" color="secondary" size="small">
           {t("borrowerMarketDetails.buttons.apr")}
         </Button>

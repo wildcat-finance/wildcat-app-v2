@@ -61,7 +61,7 @@ export default function MarketDetails({
   return (
     <Box sx={{ padding: "52px 20px 0 44px" }}>
       <Box sx={{ width: "69%" }}>
-        <MarketHeader market={market} />
+        <MarketHeader marketAccount={marketAccount} />
 
         <Divider sx={{ margin: "32px 0" }} />
 
