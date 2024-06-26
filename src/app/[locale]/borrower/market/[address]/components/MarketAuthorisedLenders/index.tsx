@@ -126,8 +126,7 @@ export const MarketAuthorisedLenders = ({
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.signDate",
       ),
-      minWidth: 124,
-      flex: 1,
+      minWidth: 80,
       headerAlign: "left",
       align: "left",
     },
@@ -136,6 +135,7 @@ export const MarketAuthorisedLenders = ({
       field: "MLA",
       headerName: t("borrowerMarketDetails.authorisedLenders.tableHeaders.MLA"),
       minWidth: 130,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       renderCell: ({ value }) =>
