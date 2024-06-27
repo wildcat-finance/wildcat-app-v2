@@ -1140,7 +1140,7 @@ export const theme = createTheme({
         disableRipple: true,
       },
       styleOverrides: {
-        root: {
+        root: ({ ownerState }) => ({
           height: "36px",
           minHeight: "36px",
 
@@ -1160,20 +1160,57 @@ export const theme = createTheme({
           "&.Mui-selected": {
             color: COLORS.blackRock,
           },
-        },
+
+          ...(ownerState.className === "contained" && {
+            height: "32px",
+            minHeight: "32px",
+
+            fontFamily: "inherit",
+            fontSize: "12px",
+            fontWeight: 600,
+            lineHeight: "20px",
+            textTransform: "none",
+            color: COLORS.santasGrey,
+            letterSpacing: 0,
+
+            padding: "6px 54.5px",
+            borderBottom: "none",
+
+            "&.Mui-selected": {
+              color: COLORS.blackRock,
+              backgroundColor: COLORS.white,
+              borderRadius: "8px",
+            },
+          }),
+        }),
       },
     },
     MuiTabs: {
       styleOverrides: {
-        root: {
+        root: ({ ownerState }) => ({
           height: "36px",
           minHeight: "36px",
+
 
           "& .MuiTabs-indicator": {
             height: "1px",
             backgroundColor: COLORS.blackRock,
           },
-        },
+
+          ...(ownerState.className === "contained" && {
+            height: "32px",
+            minHeight: "32px",
+            width: "fit-content",
+            backgroundColor: COLORS.whiteSmoke,
+            borderRadius: "12px",
+            padding: "4px",
+
+            "& .MuiTabs-indicator": {
+              height: "0px",
+              backgroundColor: "transparent",
+            },
+          }),
+        }),
       },
     },
     MuiSkeleton: {
