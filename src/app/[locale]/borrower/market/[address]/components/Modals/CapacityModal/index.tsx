@@ -9,7 +9,7 @@ import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { useApprovalModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
-import { useSetMaxTotalSupply } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useCapacity"
+import { useSetMaxTotalSupply } from "@/app/[locale]/borrower/market/[address]/hooks/useCapacity"
 import {
   TxModalDialog,
   TxModalInfoItem,

@@ -4,6 +4,7 @@ import { Box, Button } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { BorrowModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/BorrowModal"
+import { RepayModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/RepayModal"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -31,14 +32,19 @@ export const MarketTransactions = ({
         amount={formatTokenWithCommas(market.outstandingDebt)}
         asset={market.underlyingToken.symbol}
       >
-        <Button
-          variant="contained"
-          size="large"
-          sx={{ width: "152px" }}
-          disabled={disableRepay}
-        >
-          {t("borrowerMarketDetails.buttons.repay")}
-        </Button>
+        {/* <Button */}
+        {/*  variant="contained" */}
+        {/*  size="large" */}
+        {/*  sx={{ width: "152px" }} */}
+        {/*  disabled={disableRepay} */}
+        {/* > */}
+        {/*  {t("borrowerMarketDetails.buttons.repay")} */}
+        {/* </Button> */}
+
+        <RepayModal
+          marketAccount={marketAccount}
+          disableRepayBtn={disableRepay}
+        />
       </TransactionBlock>
 
       <TransactionBlock

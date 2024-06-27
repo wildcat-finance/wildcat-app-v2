@@ -1198,8 +1198,8 @@ export const theme = createTheme({
           },
 
           ...(ownerState.className === "contained" && {
-            height: "32px",
-            minHeight: "32px",
+            height: "40px",
+            minHeight: "40px",
             width: "fit-content",
             backgroundColor: COLORS.whiteSmoke,
             borderRadius: "12px",

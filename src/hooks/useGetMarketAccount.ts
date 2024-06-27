@@ -8,6 +8,8 @@ import { useEthersProvider } from "@/hooks/useEthersSigner"
 export const GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY =
   "get-borrower-market-account-legacy"
 
+export const GET_MARKET_ACCOUNT_KEY = "get-market-account"
+
 export const useGetMarketAccountForBorrowerLegacy = (
   market: Market | undefined,
 ) => {
