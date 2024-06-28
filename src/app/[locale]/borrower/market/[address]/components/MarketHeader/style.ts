@@ -30,3 +30,10 @@ export const ElseButtonContainer = {
 }
 
 export const ElseButtonText = { position: "relative", bottom: "10%" }
+
+export const MenuItemButton = {
+  display: "flex",
+  gap: "8px",
+  alignItems: "center",
+  padding: "0",
+}

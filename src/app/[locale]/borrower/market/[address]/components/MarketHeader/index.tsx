@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Menu, MenuItem, SvgIcon, Typography } from "@mui/material"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
@@ -18,8 +18,11 @@ import {
   MarketHeaderStatusContainer,
   MarketHeaderTitleContainer,
   MarketHeaderUpperContainer,
+  MenuItemButton,
 } from "./style"
+import DocsIcon from "../../../../../../../assets/icons/docs_icon.svg"
 import { useGetWithdrawals } from "../../hooks/useGetWithdrawals"
+import { StatementModal } from "../Modals/StatementModal"
 
 export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
   const { t } = useTranslation()
@@ -27,6 +30,12 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
   const { market } = marketAccount
 
   const { data } = useGetWithdrawals(market)
+
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
+  const [isOpen, setIsOpen] = React.useState(false)
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
 
   const cycleStart = data.activeWithdrawal?.requests[0]?.blockTimestamp
   const cycleEnd =
@@ -73,12 +82,41 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
           variant="outlined"
           color="secondary"
           size="small"
+          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+            setAnchorEl(event.currentTarget)
+          }}
           sx={ElseButtonContainer}
         >
           <Typography variant="text4" sx={ElseButtonText}>
             ...
           </Typography>
         </Button>
+        <Menu
+          slotProps={{
+            paper: {
+              sx: { width: "220px", marginTop: "12px", marginLeft: "24px" },
+            },
+          }}
+          disableScrollLock
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+        >
+          <MenuItem
+            onClick={() => {
+              setIsOpen(!isOpen)
+              handleClose()
+            }}
+          >
+            <Button sx={MenuItemButton}>
+              <SvgIcon fontSize="medium">
+                <DocsIcon />
+              </SvgIcon>
+              <Typography variant="text2">Statement</Typography>
+            </Button>
+          </MenuItem>
+        </Menu>
+        <StatementModal isOpen={isOpen} setIsOpen={setIsOpen} />
       </Box>
     </Box>
   )
