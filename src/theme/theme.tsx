@@ -527,7 +527,7 @@ export const theme = createTheme({
                 backgroundColor: "transparent",
                 borderRadius: 12,
                 border: `1px solid ${COLORS.whiteLilac}`,
-                paddingRight: "10px",
+                paddingRight: "6px",
                 transition: "border 0.2s",
 
                 "&:hover": {

@@ -255,17 +255,17 @@ export const smallOutlinedSecondaryButton = {
 
   padding: "6px 12px",
   borderRadius: 8,
-  borderColor: COLORS.iron,
+  borderColor: COLORS.whiteLilac,
 
   "&:hover": {
-    borderColor: COLORS.iron,
+    borderColor: COLORS.whiteLilac,
     background: COLORS.blackRock03,
     boxShadow: "none",
   },
 
   "&.Mui-disabled": {
     color: COLORS.santasGrey,
-    borderColor: COLORS.iron,
+    borderColor: COLORS.whiteLilac,
     background: "transparent",
   },
 }
@@ -277,17 +277,17 @@ export const mediumOutlinedSecondaryButton = {
 
   padding: "12px",
   borderRadius: 10,
-  borderColor: COLORS.iron,
+  borderColor: COLORS.whiteLilac,
 
   "&:hover": {
-    borderColor: COLORS.iron,
+    borderColor: COLORS.whiteLilac,
     background: COLORS.blackRock03,
     boxShadow: "none",
   },
 
   "&.Mui-disabled": {
     color: COLORS.santasGrey,
-    borderColor: COLORS.iron,
+    borderColor: COLORS.whiteLilac,
     background: "transparent",
   },
 }
@@ -299,17 +299,17 @@ export const largeOutlinedSecondaryButton = {
 
   padding: "10px 20px",
   borderRadius: 12,
-  borderColor: COLORS.iron,
+  borderColor: COLORS.whiteLilac,
 
   "&:hover": {
-    borderColor: COLORS.iron,
+    borderColor: COLORS.whiteLilac,
     background: COLORS.blackRock03,
     boxShadow: "none",
   },
 
   "&.Mui-disabled": {
     color: COLORS.santasGrey,
-    borderColor: COLORS.iron,
+    borderColor: COLORS.whiteLilac,
     background: "transparent",
   },
 }

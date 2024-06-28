@@ -7,10 +7,12 @@ type NumberTextFieldProps = Omit<
   NumericFormatProps,
   "customInput" | "size" | "color"
 > & {
+  fieldSize?: string
   endAdornment?: ReactNode
   label?: ReactNode
   error?: boolean
   helperText?: string
+  size?: TextFieldProps["size"]
 }
 
 export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
@@ -23,7 +25,8 @@ export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
       label,
       error,
       helperText,
-      decimalScale = 2,
+      decimalScale = 5,
+      size,
       ...rest
     } = props
 
@@ -34,6 +37,7 @@ export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
           label,
           error,
           helperText,
+          size,
           InputProps: {
             ...{
               endAdornment: (
@@ -44,6 +48,7 @@ export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
         }}
         getInputRef={ref}
         onChange={onChange}
+        decimalScale={decimalScale}
         decimalSeparator="."
         allowNegative={false}
         isAllowed={(values) => {

@@ -5,21 +5,22 @@ import { Box, Button, Dialog, Typography } from "@mui/material"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
-import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
-import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
-import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
-import { useApprovalModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
-import { useSetMaxTotalSupply } from "@/app/[locale]/borrower/market/[address]/hooks/useCapacity"
 import {
   TxModalDialog,
   TxModalInfoItem,
   TxModalInfoTitle,
 } from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
+import { useSetMaxTotalSupply } from "@/app/[locale]/borrower/market/[address]/hooks/useCapacity"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { formatTokenWithCommas } from "@/utils/formatters"
+
+import { ErrorModal } from "../FinalModals/ErrorModal"
+import { LoadingModal } from "../FinalModals/LoadingModal"
+import { SuccessModal } from "../FinalModals/SuccessModal"
+import { useApprovalModal } from "../hooks/useApprovalModal"
 
 export const CapacityModal = ({
   marketAccount,

@@ -8,6 +8,7 @@ import {
 } from "@mui/material"
 
 import LinkIcon from "@/assets/icons/link_icon.svg"
+import { MiniLoader } from "@/components/Loader"
 import { EtherscanBaseUrl } from "@/config/network"
 
 import { TxModalFooterProps } from "./interface"
@@ -51,7 +52,7 @@ export const TxModalFooter = ({
             disabled={disableSecondBtn}
             fullWidth
           >
-            {secondBtnLoading ? "Loading..." : secondBtnText}
+            {secondBtnLoading ? <MiniLoader /> : secondBtnText}
           </Button>
         )}
 

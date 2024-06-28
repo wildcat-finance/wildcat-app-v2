@@ -1,23 +1,23 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
 
 import { Box, Button, Dialog, Tab, Tabs, Typography } from "@mui/material"
-import { MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import humanizeDuration from "humanize-duration"
 
-import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
-import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
-import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
-import { useApprovalModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
-import {
-  TxModalDialog,
-  TxModalInfoItem,
-  TxModalInfoTitle,
-} from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
-import { useApprove } from "@/app/[locale]/borrower/market/[address]/hooks/useGetApproval"
-import { useRepay } from "@/app/[locale]/borrower/market/[address]/hooks/useRepay"
 import { NumberTextField } from "@/components/NumberTextfield"
+import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
+
+import { useApprove } from "../../../hooks/useGetApproval"
+import { useRepay } from "../../../hooks/useRepay"
+import { ErrorModal } from "../FinalModals/ErrorModal"
+import { LoadingModal } from "../FinalModals/LoadingModal"
+import { SuccessModal } from "../FinalModals/SuccessModal"
+import { ModalSteps, useApprovalModal } from "../hooks/useApprovalModal"
+import { TxModalDialog, TxModalInfoItem, TxModalInfoTitle } from "../style"
 
 export type RepayModalProps = {
   marketAccount: MarketAccount
@@ -38,30 +38,39 @@ export const RepayModal = ({
   } = useRepay(marketAccount)
 
   const {
-    mutate: approve,
+    mutateAsync: approve,
     isPending: isApproving,
     isSuccess: isApproved,
     isError: isApproveError,
   } = useApprove(market.underlyingToken, market)
 
+  const [days, setDays] = useState("")
   const [amount, setAmount] = useState("")
+  const [maxRepayAmount, setMaxRepayAmount] = useState<TokenAmount>()
+
+  const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
+    const { value } = evt.target
+    setAmount(value)
+    setMaxRepayAmount(undefined)
+  }
+
+  const handleDaysChange = (evt: ChangeEvent<HTMLInputElement>) => {
+    const { value } = evt.target
+    setDays(value)
+  }
+
+  const handleClickMaxAmount = () => {
+    setAmount(formatTokenWithCommas(market.outstandingDebt))
+    setMaxRepayAmount(market.outstandingDebt)
+  }
 
   const repayTokenAmount = useMemo(
     () => market.underlyingToken.parseAmount(amount || "0"),
     [amount],
   )
 
-  const handleApprove = () => {
-    approve(repayTokenAmount)
-  }
-
   const handleRepay = () => {
-    repay(repayTokenAmount)
-  }
-
-  const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
-    const { value } = evt.target
-    setAmount(value)
+    repay(maxRepayAmount || repayTokenAmount)
   }
 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
@@ -72,12 +81,22 @@ export const RepayModal = ({
     setAmount,
   )
 
+  const handleApprove = () => {
+    approve(maxRepayAmount || repayTokenAmount).then(() =>
+      modal.setFlowStep(ModalSteps.approved),
+    )
+  }
+
   const showForm = !(isRepaying || showSuccessPopup || showErrorPopup)
 
   const disableApprove = amount === "" || isApproved || isApproving
 
   const disableRepay =
-    amount === "" || !isApproved || isApproveError || isApproving
+    market.isClosed ||
+    repayTokenAmount.raw.isZero() ||
+    !isApproved ||
+    isApproveError ||
+    isApproving
 
   useEffect(() => {
     if (isRepayError) {
@@ -90,6 +109,15 @@ export const RepayModal = ({
 
   const [type, setType] = React.useState<"sum" | "days">("sum")
 
+  const typeDays = type === "days"
+
+  const remainingInterest = market.totalDebts.gt(0)
+    ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
+        round: true,
+        units: ["d"],
+      })
+    : ""
+
   const handleChangeTabs = (
     event: React.SyntheticEvent,
     newType: "sum" | "days",
@@ -97,10 +125,37 @@ export const RepayModal = ({
     setType(newType)
   }
 
+  const handleOpenModal = () => {
+    setType("sum")
+    setDays("")
+    modal.handleOpenModal()
+  }
+
+  const amountInputLabel = typeDays
+    ? `Interest remaining for ${remainingInterest}`
+    : `Up to ${formatTokenWithCommas(market.outstandingDebt, {
+        withSymbol: true,
+      })}`
+
+  const amountInputValue = typeDays ? days : amount
+
+  const amountInputOnChange = typeDays ? handleDaysChange : handleAmountChange
+
+  const amountInputAdornment = typeDays ? (
+    <Box />
+  ) : (
+    <TextfieldButton buttonText="Max" onClick={handleClickMaxAmount} />
+  )
+
+  const handleTryAgain = () => {
+    handleRepay()
+    setShowErrorPopup(false)
+  }
+
   return (
     <>
       <Button
-        onClick={modal.handleOpenModal}
+        onClick={handleOpenModal}
         variant="contained"
         size="large"
         sx={{ width: "152px" }}
@@ -116,7 +171,7 @@ export const RepayModal = ({
       >
         {showForm && (
           <TxModalHeader
-            title="Borrow"
+            title="Repay"
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
@@ -126,29 +181,43 @@ export const RepayModal = ({
 
         {showForm && (
           <Box width="100%" height="100%" padding="0 24px">
-            <Tabs
-              value={type}
-              onChange={handleChangeTabs}
-              aria-label="repay type"
-              className="contained"
-              sx={{
-                width: "100%",
-                marginBottom: "24px",
-              }}
-            >
-              <Tab
-                value="sum"
-                label="Sum"
+            {modal.gettingValueStep && (
+              <Tabs
+                value={type}
+                onChange={handleChangeTabs}
+                aria-label="repay type"
                 className="contained"
-                sx={{ width: "196px" }}
-              />
-              <Tab
-                value="days"
-                label="Days*"
-                className="contained"
-                sx={{ width: "196px" }}
-              />
-            </Tabs>
+                sx={{
+                  width: "100%",
+                }}
+              >
+                <Tab
+                  value="sum"
+                  label="Sum"
+                  className="contained"
+                  sx={{ width: "196px" }}
+                />
+                <Tab
+                  value="days"
+                  label="Days*"
+                  className="contained"
+                  sx={{ width: "196px" }}
+                />
+              </Tabs>
+            )}
+
+            {typeDays && (
+              <Typography
+                variant="text4"
+                sx={{
+                  color: COLORS.santasGrey,
+                  marginTop: "12px",
+                  padding: "0 16px",
+                }}
+              >
+                *number of additional days for which you want to cover interest
+              </Typography>
+            )}
 
             {modal.approvedStep && (
               <Box sx={TxModalInfoItem} padding="0 16px" marginBottom="8px">
@@ -161,22 +230,34 @@ export const RepayModal = ({
               </Box>
             )}
 
-            <Box sx={TxModalInfoItem} padding="0 16px">
+            <Box
+              sx={TxModalInfoItem}
+              marginTop={modal.approvedStep ? "8px" : "24px"}
+              padding="0 16px"
+            >
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                Available to repay {modal.approvedStep && "after transaction"}
+                Need to repay {modal.approvedStep && "after transaction"}
               </Typography>
               <Typography variant="text3">
-                {formatTokenWithCommas(market.outstandingDebt, {
-                  withSymbol: true,
-                })}
+                {formatTokenWithCommas(
+                  market.outstandingDebt.sub(
+                    maxRepayAmount || repayTokenAmount,
+                  ),
+                  {
+                    withSymbol: true,
+                  },
+                )}
               </Typography>
             </Box>
 
-            {!modal.approvedStep && (
+            {modal.gettingValueStep && (
               <NumberTextField
+                label={amountInputLabel}
+                size="medium"
                 style={{ width: "100%", marginTop: "20px" }}
-                value={amount}
-                onChange={handleAmountChange}
+                value={amountInputValue}
+                onChange={amountInputOnChange}
+                endAdornment={amountInputAdornment}
               />
             )}
           </Box>
@@ -185,7 +266,7 @@ export const RepayModal = ({
         {isRepaying && <LoadingModal />}
         {showErrorPopup && (
           <ErrorModal
-            onTryAgain={() => console.log()}
+            onTryAgain={handleTryAgain}
             onClose={modal.handleCloseModal}
           />
         )}
@@ -193,7 +274,7 @@ export const RepayModal = ({
 
         <TxModalFooter
           mainBtnText="Repay"
-          secondBtnText="Approve"
+          secondBtnText={isApproved ? "Approved" : "Approve"}
           mainBtnOnClick={handleRepay}
           secondBtnOnClick={handleApprove}
           disableMainBtn={disableRepay}
