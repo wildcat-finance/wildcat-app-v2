@@ -1,4 +1,5 @@
 import { ChangeEvent, useEffect, useState } from "react"
+import * as React from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
 import humanizeDuration from "humanize-duration"
@@ -23,25 +24,25 @@ export const BorrowModal = ({
   disableBorrowBtn,
 }: BorrowModalProps) => {
   const [amount, setAmount] = useState("")
-
-  const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
-    const { value } = evt.target
-    setAmount(value)
-  }
-
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
+
   const modal = useApprovalModal(
     setShowSuccessPopup,
     setShowErrorPopup,
     setAmount,
   )
 
+  const { mutate, isPending, isSuccess, isError } = useBorrow(marketAccount)
+
+  const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
+    const { value } = evt.target
+    setAmount(value)
+  }
+
   const handleBorrow = () => {
     modal.setFlowStep(ModalSteps.approved)
   }
-
-  const { mutate, isPending, isSuccess, isError } = useBorrow(marketAccount)
 
   const handleConfirm = () => {
     mutate(amount)
@@ -52,20 +53,26 @@ export const BorrowModal = ({
     setShowErrorPopup(false)
   }
 
-  const showForm = !(isPending || showSuccessPopup || showErrorPopup)
-
-  const disableBorrow = amount === ""
-
   const underlyingBorrowAmount = amount
     ? marketAccount.market.underlyingToken.parseAmount(amount)
     : marketAccount.market.underlyingToken.parseAmount(0)
+
   const leftBorrowAmount = market.borrowableAssets.sub(underlyingBorrowAmount)
+
   const remainingInterest = market.totalDebts.gt(0)
     ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
         round: true,
         units: ["d"],
       })
     : ""
+
+  const showForm = !(isPending || showSuccessPopup || showErrorPopup)
+
+  const disableBorrow =
+    market.isClosed ||
+    market.borrowableAssets.eq(0) ||
+    underlyingBorrowAmount.gt(market.borrowableAssets) ||
+    underlyingBorrowAmount.eq(0)
 
   useEffect(() => {
     if (isError) {
@@ -141,14 +148,18 @@ export const BorrowModal = ({
 
             {!modal.approvedStep && (
               <NumberTextField
-                style={{ width: "100%" }}
-                value={amount}
-                onChange={handleAmountChange}
                 label={`Up to ${formatTokenWithCommas(
                   marketAccount.market.borrowableAssets,
                 )}`}
+                size="medium"
+                style={{ width: "100%" }}
+                value={amount}
+                onChange={handleAmountChange}
                 endAdornment={
-                  <TextfieldChip text={market.underlyingToken.symbol} />
+                  <TextfieldChip
+                    text={market.underlyingToken.symbol}
+                    size="small"
+                  />
                 }
               />
             )}

@@ -4,12 +4,13 @@ import { COLORS } from "@/theme/colors"
 
 export type TextfieldChipProps = {
   text: string
+  size?: "small" | "regular"
 }
 
-export const TextfieldChip = ({ text }: TextfieldChipProps) => (
+export const TextfieldChip = ({ text, size }: TextfieldChipProps) => (
   <Box
     sx={{
-      padding: "8px 12px",
+      padding: size === "regular" ? "8px 12px" : "6px 12px",
       borderRadius: "8px",
       backgroundColor: COLORS.hintOfRed,
     }}

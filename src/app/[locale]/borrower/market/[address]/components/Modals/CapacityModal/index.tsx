@@ -5,62 +5,58 @@ import { Box, Button, Dialog, Typography } from "@mui/material"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
-import {
-  TxModalDialog,
-  TxModalInfoItem,
-  TxModalInfoTitle,
-} from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
-import { useSetMaxTotalSupply } from "@/app/[locale]/borrower/market/[address]/hooks/useCapacity"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
+import { useSetMaxTotalSupply } from "../../../hooks/useCapacity"
 import { ErrorModal } from "../FinalModals/ErrorModal"
 import { LoadingModal } from "../FinalModals/LoadingModal"
 import { SuccessModal } from "../FinalModals/SuccessModal"
 import { useApprovalModal } from "../hooks/useApprovalModal"
+import { TxModalDialog, TxModalInfoItem, TxModalInfoTitle } from "../style"
 
 export const CapacityModal = ({
   marketAccount,
 }: {
   marketAccount: MarketAccount
 }) => {
-  const { t } = useTranslation()
-
-  const { mutate, isPending, isSuccess, isError } =
-    useSetMaxTotalSupply(marketAccount)
-
-  const { market } = marketAccount
-
   const [amount, setAmount] = useState("")
-
-  const handleConfirm = () => {
-    mutate(amount)
-  }
-
-  const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
-    const { value } = evt.target
-    setAmount(value)
-  }
-
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
+
   const modal = useApprovalModal(
     setShowSuccessPopup,
     setShowErrorPopup,
     setAmount,
   )
 
-  const showForm = !(isPending || showSuccessPopup || showErrorPopup)
+  const { t } = useTranslation()
 
-  const disableConfirm = amount === ""
+  const { market } = marketAccount
+
+  const { mutate, isPending, isSuccess, isError } =
+    useSetMaxTotalSupply(marketAccount)
+
+  const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
+    const { value } = evt.target
+    setAmount(value)
+  }
+
+  const handleConfirm = () => {
+    mutate(amount)
+  }
 
   const handleTryAgain = () => {
     handleConfirm()
     setShowErrorPopup(false)
   }
+
+  const showForm = !(isPending || showSuccessPopup || showErrorPopup)
+
+  const disableConfirm = amount === ""
 
   useEffect(() => {
     if (isError) {
@@ -90,6 +86,7 @@ export const CapacityModal = ({
         {showForm && (
           <TxModalHeader
             title="Adjust Capacity"
+            tooltip="TBD"
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
@@ -109,11 +106,15 @@ export const CapacityModal = ({
             </Box>
 
             <NumberTextField
+              size="medium"
               style={{ width: "100%" }}
               value={amount}
               onChange={handleAmountChange}
               endAdornment={
-                <TextfieldChip text={market.underlyingToken.symbol} />
+                <TextfieldChip
+                  text={market.underlyingToken.symbol}
+                  size="small"
+                />
               }
             />
           </Box>

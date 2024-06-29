@@ -28,6 +28,19 @@ export const RepayModal = ({
   marketAccount,
   disableRepayBtn,
 }: RepayModalProps) => {
+  const [type, setType] = React.useState<"sum" | "days">("sum")
+  const [amount, setAmount] = useState("")
+  const [days, setDays] = useState("")
+  const [maxRepayAmount, setMaxRepayAmount] = useState<TokenAmount>()
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false)
+  const [showErrorPopup, setShowErrorPopup] = useState(false)
+
+  const modal = useApprovalModal(
+    setShowSuccessPopup,
+    setShowErrorPopup,
+    setAmount,
+  )
+
   const { market } = marketAccount
 
   const {
@@ -36,87 +49,12 @@ export const RepayModal = ({
     isSuccess: isRepaid,
     isError: isRepayError,
   } = useRepay(marketAccount)
-
   const {
     mutateAsync: approve,
     isPending: isApproving,
     isSuccess: isApproved,
     isError: isApproveError,
   } = useApprove(market.underlyingToken, market)
-
-  const [days, setDays] = useState("")
-  const [amount, setAmount] = useState("")
-  const [maxRepayAmount, setMaxRepayAmount] = useState<TokenAmount>()
-
-  const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
-    const { value } = evt.target
-    setAmount(value)
-    setMaxRepayAmount(undefined)
-  }
-
-  const handleDaysChange = (evt: ChangeEvent<HTMLInputElement>) => {
-    const { value } = evt.target
-    setDays(value)
-  }
-
-  const handleClickMaxAmount = () => {
-    setAmount(formatTokenWithCommas(market.outstandingDebt))
-    setMaxRepayAmount(market.outstandingDebt)
-  }
-
-  const repayTokenAmount = useMemo(
-    () => market.underlyingToken.parseAmount(amount || "0"),
-    [amount],
-  )
-
-  const handleRepay = () => {
-    repay(maxRepayAmount || repayTokenAmount)
-  }
-
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false)
-  const [showErrorPopup, setShowErrorPopup] = useState(false)
-  const modal = useApprovalModal(
-    setShowSuccessPopup,
-    setShowErrorPopup,
-    setAmount,
-  )
-
-  const handleApprove = () => {
-    approve(maxRepayAmount || repayTokenAmount).then(() =>
-      modal.setFlowStep(ModalSteps.approved),
-    )
-  }
-
-  const showForm = !(isRepaying || showSuccessPopup || showErrorPopup)
-
-  const disableApprove = amount === "" || isApproved || isApproving
-
-  const disableRepay =
-    market.isClosed ||
-    repayTokenAmount.raw.isZero() ||
-    !isApproved ||
-    isApproveError ||
-    isApproving
-
-  useEffect(() => {
-    if (isRepayError) {
-      setShowErrorPopup(true)
-    }
-    if (isRepaid) {
-      setShowSuccessPopup(true)
-    }
-  }, [isRepayError, isRepaid])
-
-  const [type, setType] = React.useState<"sum" | "days">("sum")
-
-  const typeDays = type === "days"
-
-  const remainingInterest = market.totalDebts.gt(0)
-    ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
-        round: true,
-        units: ["d"],
-      })
-    : ""
 
   const handleChangeTabs = (
     event: React.SyntheticEvent,
@@ -130,6 +68,62 @@ export const RepayModal = ({
     setDays("")
     modal.handleOpenModal()
   }
+
+  const repayTokenAmount = useMemo(
+    () => market.underlyingToken.parseAmount(amount || "0"),
+    [amount],
+  )
+
+  const handleRepay = () => {
+    repay(maxRepayAmount || repayTokenAmount)
+  }
+
+  const handleApprove = () => {
+    approve(maxRepayAmount || repayTokenAmount).then(() =>
+      modal.setFlowStep(ModalSteps.approved),
+    )
+  }
+
+  const handleTryAgain = () => {
+    handleRepay()
+    setShowErrorPopup(false)
+  }
+
+  const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
+    const { value } = evt.target
+    setAmount(value)
+    setMaxRepayAmount(undefined)
+  }
+
+  const handleClickMaxAmount = () => {
+    setAmount(formatTokenWithCommas(market.outstandingDebt))
+    setMaxRepayAmount(market.outstandingDebt)
+  }
+
+  const handleDaysChange = (evt: ChangeEvent<HTMLInputElement>) => {
+    const { value } = evt.target
+    setDays(value)
+  }
+
+  const typeDays = type === "days"
+
+  const disableApprove = amount === "" || isApproved || isApproving
+
+  const disableRepay =
+    market.isClosed ||
+    repayTokenAmount.raw.isZero() ||
+    !isApproved ||
+    isApproveError ||
+    isApproving
+
+  const showForm = !(isRepaying || showSuccessPopup || showErrorPopup)
+
+  const remainingInterest = market.totalDebts.gt(0)
+    ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
+        round: true,
+        units: ["d"],
+      })
+    : ""
 
   const amountInputLabel = typeDays
     ? `Interest remaining for ${remainingInterest}`
@@ -147,10 +141,14 @@ export const RepayModal = ({
     <TextfieldButton buttonText="Max" onClick={handleClickMaxAmount} />
   )
 
-  const handleTryAgain = () => {
-    handleRepay()
-    setShowErrorPopup(false)
-  }
+  useEffect(() => {
+    if (isRepayError) {
+      setShowErrorPopup(true)
+    }
+    if (isRepaid) {
+      setShowSuccessPopup(true)
+    }
+  }, [isRepayError, isRepaid])
 
   return (
     <>
