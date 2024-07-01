@@ -1,28 +1,21 @@
-import {
-  Box,
-  Divider,
-  IconButton,
-  Link,
-  SvgIcon,
-  Typography,
-} from "@mui/material"
+import * as React from "react"
+import { useState } from "react"
+
+import { Box, IconButton, Link, SvgIcon, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
 import { useTranslation } from "react-i18next"
 
-import { Accordion } from "@/components/Accordion"
+import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { EtherscanBaseUrl } from "@/config/network"
-import {
-  DATE_FORMAT,
-  formatTokenWithCommas,
-  trimAddress,
-} from "@/utils/formatters"
+import { COLORS } from "@/theme/colors"
+import { formatTokenWithCommas, trimAddress } from "@/utils/formatters"
 
 import { MarketWithdrawalRequestsProps, WithdrawalTxRow } from "./interface"
 import {
-  AccordionSummaryTotalStyle,
+  TotalAccordionSummary,
   DataGridCells,
   MarketWithdrawalRequestsContainer,
   MarketWithdrawalRequetstCell,
@@ -34,6 +27,10 @@ import { useGetWithdrawals } from "../../hooks/useGetWithdrawals"
 export const MarketWithdrawalRequests = ({
   market,
 }: MarketWithdrawalRequestsProps) => {
+  const [isTotalOpen, setIsTotalOpen] = useState(true)
+  const [isOngoingOpen, setIsOngoingOpen] = useState(false)
+  const [isPastOpen, setIsPastOpen] = useState(false)
+
   const { t } = useTranslation()
   const { data } = useGetWithdrawals(market)
 
@@ -158,14 +155,27 @@ export const MarketWithdrawalRequests = ({
   return (
     <Box sx={MarketWithdrawalRequestsContainer}>
       <Typography variant="title3">Open Withdrawals</Typography>
-      <Accordion
-        sx={AccordionSummaryTotalStyle}
-        arrowRight
-        title="Total"
+      <DetailsAccordion
+        isOpen={isTotalOpen}
+        setIsOpen={setIsTotalOpen}
+        summaryText="Total"
         chipValue={formatTokenWithCommas(totalAmount, { withSymbol: true })}
+        arrowOnRight
+        summarySx={TotalAccordionSummary}
       >
-        <Accordion
-          title="Ongoing"
+        <DetailsAccordion
+          isOpen={isOngoingOpen}
+          setIsOpen={setIsOngoingOpen}
+          summaryText="Ongoing"
+          summarySx={{
+            borderRadius: "0px",
+            marginBottom: isOngoingOpen ? "0px" : "12px",
+            borderBottom: isOngoingOpen ? "none" : `1px solid`,
+            borderColor: COLORS.athensGrey,
+            transition: isOngoingOpen
+              ? "margin-bottom 500ms cubic-bezier(0.4, 0, 0.2, 1) 0ms"
+              : "margin-bottom 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
+          }}
           chipValue={formatTokenWithCommas(activeTotalAmount, {
             withSymbol: true,
           })}
@@ -177,12 +187,29 @@ export const MarketWithdrawalRequests = ({
               columns={columns}
               columnHeaderHeight={40}
             />
-          ) : null}
-        </Accordion>
-        <Divider />
-        <Accordion
-          title="Outstanding from past cycles"
-          chipValue={formatTokenWithCommas(expiredTotalAmount, {
+          ) : (
+            <Box display="flex" flexDirection="column" padding="0 16px">
+              <Typography variant="title3">
+                There are no ongoing withdrawals
+              </Typography>
+            </Box>
+          )}
+        </DetailsAccordion>
+
+        <DetailsAccordion
+          isOpen={isPastOpen}
+          setIsOpen={setIsPastOpen}
+          summaryText="Outstanding from past cycles"
+          summarySx={{
+            borderRadius: "0px",
+            marginBottom: isPastOpen ? "0px" : "12px",
+            borderBottom: isPastOpen ? "none" : `1px solid`,
+            borderColor: COLORS.athensGrey,
+            transition: isPastOpen
+              ? "margin-bottom 500ms cubic-bezier(0.4, 0, 0.2, 1) 0ms"
+              : "margin-bottom 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
+          }}
+          chipValue={formatTokenWithCommas(activeTotalAmount, {
             withSymbol: true,
           })}
         >
@@ -193,9 +220,15 @@ export const MarketWithdrawalRequests = ({
               columns={columns}
               columnHeaderHeight={40}
             />
-          ) : null}
-        </Accordion>
-      </Accordion>
+          ) : (
+            <Box display="flex" flexDirection="column" padding="0 16px">
+              <Typography variant="title3">
+                There are no outstanding withdrawals from past cycles
+              </Typography>
+            </Box>
+          )}
+        </DetailsAccordion>
+      </DetailsAccordion>
     </Box>
   )
 }

@@ -79,8 +79,6 @@ export default function MarketDetails({
 
         <MarketWithdrawalRequests market={market} />
 
-        <Divider sx={{ margin: "32px 0 44px" }} />
-
         <MarketAuthorisedLenders market={market} />
       </Box>
     </Box>

@@ -1191,7 +1191,6 @@ export const theme = createTheme({
           height: "36px",
           minHeight: "36px",
 
-
           "& .MuiTabs-indicator": {
             height: "1px",
             backgroundColor: COLORS.blackRock,
