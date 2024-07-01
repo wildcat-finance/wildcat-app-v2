@@ -9,6 +9,12 @@ export const DialogContainer = {
     padding: "24px 20px 20px",
     display: "flex",
     flexDirection: "column",
-    gap: "20px",
+    gap: "32px",
   },
+}
+
+export const HeaderTextContainer = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
 }

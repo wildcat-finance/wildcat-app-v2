@@ -10,15 +10,24 @@ import {
   Tabs,
   Typography,
 } from "@mui/material"
+import dayjs, { Dayjs } from "dayjs"
 
+import { DateRange } from "@/components/DateRange"
 import { COLORS } from "@/theme/colors"
 
 import { StatementModalProps } from "./interface"
-import { DialogContainer } from "./style"
+import { DialogContainer, HeaderTextContainer } from "./style"
 import Cross from "../../../../../../../../assets/icons/cross_icon.svg"
 
 export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
   const [value, setValue] = useState<"csv" | "pdf">("csv")
+  const [datePickerValues, setDatePickerValues] = useState<{
+    startDate: Dayjs
+    endDate: Dayjs
+  }>({
+    startDate: dayjs(),
+    endDate: dayjs(),
+  })
 
   const handleChange = (event: SyntheticEvent, newValue: "csv" | "pdf") => {
     setValue(newValue)
@@ -26,13 +35,7 @@ export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
   return (
     <Dialog open={isOpen} sx={DialogContainer}>
       <Box>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
+        <Box sx={HeaderTextContainer}>
           <Typography variant="title3">Statement of Transactions</Typography>
           <IconButton
             disableRipple
@@ -59,6 +62,9 @@ export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
         <Tab value="csv" label="CSV" className="contained" />
         <Tab value="pdf" label="PDF" className="contained" />
       </Tabs>
+      <Box sx={{ marginBottom: "32px" }}>
+        <DateRange dates={datePickerValues} setDates={setDatePickerValues} />
+      </Box>
       <Button
         variant="contained"
         size="large"
