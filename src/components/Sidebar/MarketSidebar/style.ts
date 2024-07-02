@@ -1,7 +1,7 @@
 import { COLORS } from "@/theme/colors"
 
 export const ContentContainer = {
-  minHeight: "calc(100vh - 82px - 43px)",
+  minHeight: "100%",
   minWidth: "267px",
   borderRight: `1px solid ${COLORS.blackRock006}`,
   padding: "32px 12px 0px",
@@ -10,6 +10,7 @@ export const ContentContainer = {
 }
 
 export const MenuItemButton = {
+  width: "100%",
   fontSize: "14px",
   lineHeight: "20px",
   fontWeight: "500",

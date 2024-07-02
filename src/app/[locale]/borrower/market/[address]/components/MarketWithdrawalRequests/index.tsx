@@ -156,7 +156,7 @@ export const MarketWithdrawalRequests = ({
     },
   ]
   return (
-    <Box sx={MarketWithdrawalRequestsContainer}>
+    <Box sx={MarketWithdrawalRequestsContainer} id="withdrawals">
       <Box
         sx={{
           display: "flex",

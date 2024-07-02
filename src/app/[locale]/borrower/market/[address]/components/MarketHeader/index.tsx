@@ -54,7 +54,7 @@ export const MarketHeader = ({
   const marketStatus = getMarketStatusChip(market)
 
   return (
-    <Box sx={MarketHeaderContainer}>
+    <Box sx={MarketHeaderContainer} id="borrowRepay">
       <Box sx={MarketHeaderUpperContainer}>
         <Box sx={MarketHeaderTitleContainer}>
           <Typography

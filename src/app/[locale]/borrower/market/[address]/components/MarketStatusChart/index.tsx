@@ -60,7 +60,7 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
       : ""
 
   return (
-    <Box>
+    <Box id="statusDetails">
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
         <Typography variant="title3">Total Debt:</Typography>
 
