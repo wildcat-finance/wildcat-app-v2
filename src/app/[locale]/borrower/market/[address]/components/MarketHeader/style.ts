@@ -10,7 +10,10 @@ export const MarketHeaderUpperContainer = {
   justifyContent: "space-between",
 }
 
-export const MarketHeaderTitleContainer = { display: "flex", columnGap: "8px" }
+export const MarketHeaderTitleContainer = {
+  display: "flex",
+  columnGap: "8px",
+}
 
 export const MarketHeaderStatusContainer = {
   display: "flex",

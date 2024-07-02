@@ -29,11 +29,15 @@ export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
     endDate: dayjs(),
   })
 
+  const handleClose = () => {
+    setIsOpen(!isOpen)
+  }
+
   const handleChange = (event: SyntheticEvent, newValue: "csv" | "pdf") => {
     setValue(newValue)
   }
   return (
-    <Dialog open={isOpen} sx={DialogContainer}>
+    <Dialog open={isOpen} onClose={handleClose} sx={DialogContainer}>
       <Box>
         <Box sx={HeaderTextContainer}>
           <Typography variant="title3">Statement of Transactions</Typography>

@@ -155,12 +155,14 @@ export default function Borrower() {
       </Box>
 
       {!bannerDisplayConfig.hideBanner && (
-        <LeadBanner
-          title={bannerDisplayConfig.title}
-          text={bannerDisplayConfig.text}
-          buttonText={bannerDisplayConfig.buttonText}
-          buttonLink={bannerDisplayConfig.link}
-        />
+        <Box padding="0 16px">
+          <LeadBanner
+            title={bannerDisplayConfig.title}
+            text={bannerDisplayConfig.text}
+            buttonText={bannerDisplayConfig.buttonText}
+            buttonLink={bannerDisplayConfig.link}
+          />
+        </Box>
       )}
 
       {tab === "markets" && (

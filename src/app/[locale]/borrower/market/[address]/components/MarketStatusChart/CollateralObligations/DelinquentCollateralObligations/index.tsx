@@ -19,7 +19,7 @@ export const DelinquentCollateralObligations = ({
   const breakdown = market.getTotalDebtBreakdown()
   const reserves = breakdown.status === "delinquent" && breakdown.reserves
 
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(true)
 
   const toggleExpanded = (value: boolean) => {
     setExpanded(!value)

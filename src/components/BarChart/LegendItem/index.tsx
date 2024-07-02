@@ -14,7 +14,7 @@ export const LegendItem = ({
   type = "default",
   children,
 }: LegendItemProps) => {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(true)
 
   const toggleExpanded = (value: boolean) => {
     setExpanded(!value)

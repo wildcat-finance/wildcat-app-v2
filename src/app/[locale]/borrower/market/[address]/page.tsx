@@ -3,9 +3,12 @@
 import * as React from "react"
 
 import { Box, Divider, Skeleton } from "@mui/material"
+import { useAccount } from "wagmi"
 
+import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
 import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart"
 import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
+import { LeadBanner } from "@/components/LeadBanner"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { COLORS } from "@/theme/colors"
 
@@ -25,6 +28,13 @@ export default function MarketDetails({
     address,
   })
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
+
+  const { address: walletAddress } = useAccount()
+
+  const bannerDisplayConfig = useBorrowerInvitationRedirect()
+
+  const holdTheMarket =
+    market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 
   if (!market || !marketAccount)
     return (
@@ -61,11 +71,25 @@ export default function MarketDetails({
   return (
     <Box sx={{ padding: "52px 20px 0 44px" }}>
       <Box sx={{ width: "69%" }}>
-        <MarketHeader marketAccount={marketAccount} />
+        {!bannerDisplayConfig.hideBanner && (
+          <LeadBanner
+            title={bannerDisplayConfig.title}
+            text={bannerDisplayConfig.text}
+            buttonText={bannerDisplayConfig.buttonText}
+            buttonLink={bannerDisplayConfig.link}
+          />
+        )}
 
-        <Divider sx={{ margin: "32px 0" }} />
+        <MarketHeader
+          marketAccount={marketAccount}
+          holdTheMarket={holdTheMarket}
+        />
 
-        <MarketTransactions market={market} marketAccount={marketAccount} />
+        {holdTheMarket && <Divider sx={{ margin: "32px 0" }} />}
+
+        {holdTheMarket && (
+          <MarketTransactions market={market} marketAccount={marketAccount} />
+        )}
 
         <Divider sx={{ margin: "32px 0 44px" }} />
 
@@ -77,9 +101,11 @@ export default function MarketDetails({
 
         <Divider sx={{ margin: "32px 0 44px" }} />
 
-        <MarketWithdrawalRequests marketAccount={marketAccount} />
+        {holdTheMarket && (
+          <MarketWithdrawalRequests marketAccount={marketAccount} />
+        )}
 
-        <MarketAuthorisedLenders market={market} />
+        {holdTheMarket && <MarketAuthorisedLenders market={market} />}
       </Box>
     </Box>
   )

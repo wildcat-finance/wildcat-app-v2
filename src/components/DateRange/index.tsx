@@ -37,7 +37,7 @@ export const DateRange = ({ dates, setDates }: DateRangeProps) => (
           }}
           label="Starting on"
         />
-        <Typography sx={TypographyStyle} variant="text3">
+        <Typography sx={TypographyStyle} variant="text4">
           Starting on
         </Typography>
       </Box>
@@ -57,7 +57,7 @@ export const DateRange = ({ dates, setDates }: DateRangeProps) => (
           }}
           label="Ending on"
         />
-        <Typography sx={TypographyStyle} variant="text3">
+        <Typography sx={TypographyStyle} variant="text4">
           Ending on
         </Typography>
       </Box>

@@ -12,24 +12,22 @@ export const LeadBanner = ({
   buttonText,
   buttonLink,
 }: BannerProps) => (
-  <Box padding="0 16px">
-    <Box className="test" sx={MarketListAlertContainer}>
-      <Box sx={TextContainer}>
-        <Typography variant="title2" sx={{ color: COLORS.white }}>
-          {title}
-        </Typography>
-        <Typography variant="text2" sx={{ color: COLORS.white04 }}>
-          {text}
-        </Typography>
-      </Box>
-      <Link
-        href={buttonLink?.url || ""}
-        target={buttonLink?.isExternal ? "_blank" : "_self"}
-      >
-        <Button size="large" sx={RequestButton}>
-          {buttonText}
-        </Button>
-      </Link>
+  <Box sx={MarketListAlertContainer}>
+    <Box sx={TextContainer}>
+      <Typography variant="title2" sx={{ color: COLORS.white }}>
+        {title}
+      </Typography>
+      <Typography variant="text2" sx={{ color: COLORS.white04 }}>
+        {text}
+      </Typography>
     </Box>
+    <Link
+      href={buttonLink?.url || ""}
+      target={buttonLink?.isExternal ? "_blank" : "_self"}
+    >
+      <Button size="large" sx={RequestButton}>
+        {buttonText}
+      </Button>
+    </Link>
   </Box>
 )

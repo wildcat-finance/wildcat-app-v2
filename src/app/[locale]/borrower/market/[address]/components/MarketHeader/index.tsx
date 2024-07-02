@@ -24,7 +24,10 @@ import DocsIcon from "../../../../../../../assets/icons/docs_icon.svg"
 import { useGetWithdrawals } from "../../hooks/useGetWithdrawals"
 import { StatementModal } from "../Modals/StatementModal"
 
-export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
+export const MarketHeader = ({
+  marketAccount,
+  holdTheMarket,
+}: MarketHeaderProps) => {
   const { t } = useTranslation()
 
   const { market } = marketAccount
@@ -54,7 +57,17 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
     <Box sx={MarketHeaderContainer}>
       <Box sx={MarketHeaderUpperContainer}>
         <Box sx={MarketHeaderTitleContainer}>
-          <Typography variant="title1">{market.name}</Typography>
+          <Typography
+            variant="title1"
+            sx={{
+              maxWidth: "550px",
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
+              overflow: "hidden",
+            }}
+          >
+            {market.name}
+          </Typography>
           <Typography variant="text4">
             {market.underlyingToken.symbol}
           </Typography>
@@ -67,57 +80,59 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
         </Box>
       </Box>
 
-      <Box sx={MarketHeaderButtonsContainer}>
-        {/* <Button variant="outlined" color="secondary" size="small"> */}
-        {/*  {t("borrowerMarketDetails.buttons.kyc")} */}
-        {/* </Button> */}
-        {/* <Button variant="outlined" color="secondary" size="small"> */}
-        {/*  {t("borrowerMarketDetails.buttons.mla")} */}
-        {/* </Button> */}
-        <CapacityModal marketAccount={marketAccount} />
-        <Button variant="outlined" color="secondary" size="small">
-          {t("borrowerMarketDetails.buttons.apr")}
-        </Button>
-        <Button
-          variant="outlined"
-          color="secondary"
-          size="small"
-          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-            setAnchorEl(event.currentTarget)
-          }}
-          sx={ElseButtonContainer}
-        >
-          <Typography variant="text4" sx={ElseButtonText}>
-            ...
-          </Typography>
-        </Button>
-        <Menu
-          slotProps={{
-            paper: {
-              sx: { width: "220px", marginTop: "12px", marginLeft: "24px" },
-            },
-          }}
-          disableScrollLock
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleClose}
-        >
-          <MenuItem
-            onClick={() => {
-              setIsOpen(!isOpen)
-              handleClose()
+      {holdTheMarket && (
+        <Box sx={MarketHeaderButtonsContainer}>
+          {/* <Button variant="outlined" color="secondary" size="small"> */}
+          {/*  {t("borrowerMarketDetails.buttons.kyc")} */}
+          {/* </Button> */}
+          {/* <Button variant="outlined" color="secondary" size="small"> */}
+          {/*  {t("borrowerMarketDetails.buttons.mla")} */}
+          {/* </Button> */}
+          <CapacityModal marketAccount={marketAccount} />
+          <Button variant="outlined" color="secondary" size="small">
+            {t("borrowerMarketDetails.buttons.apr")}
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            size="small"
+            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+              setAnchorEl(event.currentTarget)
             }}
+            sx={ElseButtonContainer}
           >
-            <Button sx={MenuItemButton}>
-              <SvgIcon fontSize="medium">
-                <DocsIcon />
-              </SvgIcon>
-              <Typography variant="text2">Statement</Typography>
-            </Button>
-          </MenuItem>
-        </Menu>
-        <StatementModal isOpen={isOpen} setIsOpen={setIsOpen} />
-      </Box>
+            <Typography variant="text4" sx={ElseButtonText}>
+              ...
+            </Typography>
+          </Button>
+          <Menu
+            slotProps={{
+              paper: {
+                sx: { width: "220px", marginTop: "12px", marginLeft: "24px" },
+              },
+            }}
+            disableScrollLock
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleClose}
+          >
+            <MenuItem
+              onClick={() => {
+                setIsOpen(!isOpen)
+                handleClose()
+              }}
+            >
+              <Button sx={MenuItemButton}>
+                <SvgIcon fontSize="medium">
+                  <DocsIcon />
+                </SvgIcon>
+                <Typography variant="text2">Statement</Typography>
+              </Button>
+            </MenuItem>
+          </Menu>
+          <StatementModal isOpen={isOpen} setIsOpen={setIsOpen} />
+        </Box>
+      )}
     </Box>
   )
 }

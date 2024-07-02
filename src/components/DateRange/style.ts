@@ -1,7 +1,12 @@
 import { COLORS } from "@/theme/colors"
 
 export const DatePickerStyle = {
-  "& .mui-1bl45wc-MuiInputBase-root-MuiFilledInput-root": {
+  "& .MuiInputBase-root.MuiFilledInput-root": {
+    fontFamily: "inherit",
+    fontSize: "14px",
+    lineHeight: "20px",
+    fontWeight: 500,
+
     width: "280px",
     height: "50px",
     backgroundColor: "white",
@@ -9,6 +14,15 @@ export const DatePickerStyle = {
     borderColor: COLORS.hintOfRed,
     borderRadius: "12px",
     textDecoration: "none",
+
+    "& .MuiTypography-root ": {
+      padding: "8px 0 0 16px",
+    },
+
+    "& .MuiInputBase-inputAdornedEnd": {
+      padding: "24px 0 8px 16px",
+    },
+
     "&:hover": {
       "&:not(.Mui-disabled, .Mui-error)": {
         "&::before": {
@@ -30,7 +44,7 @@ export const TypographyStyle = {
   position: "absolute",
   color: COLORS.santasGrey,
   top: "6px",
-  left: "12px",
+  left: "17px",
 }
 
 export const DatePickersContainer = {
