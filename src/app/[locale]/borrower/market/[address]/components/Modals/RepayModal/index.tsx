@@ -9,7 +9,7 @@ import {
   Tabs,
   Typography,
 } from "@mui/material"
-import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
@@ -17,9 +17,10 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
-import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
+import { RepayModalProps } from "./interface"
+import { DaysSubtitle, PenaltyRepayBtn, PenaltyRepayBtnIcon } from "./style"
 import { useApprove } from "../../../hooks/useGetApproval"
 import { useRepay } from "../../../hooks/useRepay"
 import { ErrorModal } from "../FinalModals/ErrorModal"
@@ -27,12 +28,6 @@ import { LoadingModal } from "../FinalModals/LoadingModal"
 import { SuccessModal } from "../FinalModals/SuccessModal"
 import { ModalSteps, useApprovalModal } from "../hooks/useApprovalModal"
 import { TxModalDialog, TxModalInfoItem, TxModalInfoTitle } from "../style"
-
-export type RepayModalProps = {
-  buttonType?: "marketHeader" | "withdrawalTable"
-  marketAccount: MarketAccount
-  disableRepayBtn?: boolean
-}
 
 export const RepayModal = ({
   buttonType = "marketHeader",
@@ -85,14 +80,18 @@ export const RepayModal = ({
     [amount],
   )
 
+  const repayStep = marketAccount.checkRepayStep(repayTokenAmount)
+
   const handleRepay = () => {
     repay(maxRepayAmount || repayTokenAmount)
   }
 
   const handleApprove = () => {
-    approve(maxRepayAmount || repayTokenAmount).then(() =>
-      modal.setFlowStep(ModalSteps.approved),
-    )
+    if (repayStep?.status === "InsufficientAllowance") {
+      approve(maxRepayAmount || repayTokenAmount).then(() =>
+        modal.setFlowStep(ModalSteps.approved),
+      )
+    }
   }
 
   const handleTryAgain = () => {
@@ -118,14 +117,20 @@ export const RepayModal = ({
 
   const typeDays = type === "days"
 
-  const disableApprove = amount === "" || isApproved || isApproving
+  const disableApprove =
+    repayTokenAmount.raw.isZero() ||
+    isApproved ||
+    isApproving ||
+    repayStep?.status === "Ready"
 
   const disableRepay =
     market.isClosed ||
     repayTokenAmount.raw.isZero() ||
-    !isApproved ||
+    repayStep?.status === "InsufficientAllowance" ||
     isApproveError ||
     isApproving
+
+  const IsTxApproved = isApproved || repayStep?.status === "Ready"
 
   const showForm = !(isRepaying || showSuccessPopup || showErrorPopup)
 
@@ -181,29 +186,11 @@ export const RepayModal = ({
           onClick={handleOpenModal}
           variant="contained"
           size="small"
-          sx={{
-            width: "66px",
-            backgroundColor: COLORS.carminePink,
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginRight: "8px",
-            "&:hover": {
-              background: COLORS.wildWatermelon,
-              boxShadow: "none",
-            },
-          }}
+          sx={PenaltyRepayBtn}
           disabled={disableRepayBtn}
         >
           Repay
-          <SvgIcon
-            fontSize="tiny"
-            sx={{
-              transform: "rotate(180deg)",
-              "& path": {
-                fill: COLORS.white,
-              },
-            }}
-          >
+          <SvgIcon fontSize="tiny" sx={PenaltyRepayBtnIcon}>
             <Arrow />
           </SvgIcon>
         </Button>
@@ -252,14 +239,7 @@ export const RepayModal = ({
             )}
 
             {typeDays && (
-              <Typography
-                variant="text4"
-                sx={{
-                  color: COLORS.santasGrey,
-                  marginTop: "12px",
-                  padding: "0 16px",
-                }}
-              >
+              <Typography variant="text4" sx={DaysSubtitle}>
                 *number of additional days for which you want to cover interest
               </Typography>
             )}
@@ -285,9 +265,11 @@ export const RepayModal = ({
               </Typography>
               <Typography variant="text3">
                 {formatTokenWithCommas(
-                  market.outstandingDebt.sub(
-                    maxRepayAmount || repayTokenAmount,
-                  ),
+                  modal.approvedStep
+                    ? market.outstandingDebt.sub(
+                        maxRepayAmount || repayTokenAmount,
+                      )
+                    : market.outstandingDebt,
                   {
                     withSymbol: true,
                   },
@@ -303,6 +285,7 @@ export const RepayModal = ({
                 value={amountInputValue}
                 onChange={amountInputOnChange}
                 endAdornment={amountInputAdornment}
+                disabled={isApproving}
               />
             )}
           </Box>
@@ -319,7 +302,7 @@ export const RepayModal = ({
 
         <TxModalFooter
           mainBtnText="Repay"
-          secondBtnText={isApproved ? "Approved" : "Approve"}
+          secondBtnText={IsTxApproved ? "Approved" : "Approve"}
           mainBtnOnClick={handleRepay}
           secondBtnOnClick={handleApprove}
           disableMainBtn={disableRepay}
