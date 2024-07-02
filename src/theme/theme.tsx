@@ -1076,6 +1076,10 @@ export const theme = createTheme({
 
             whiteSpace: "nowrap",
             textOverflow: "ellipsis",
+
+            "&:focus-within": {
+              outline: "none",
+            },
           },
         },
       },

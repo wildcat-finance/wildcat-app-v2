@@ -9,6 +9,7 @@ import {
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { useTranslation } from "react-i18next"
 
+import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import { Accordion } from "@/components/Accordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { EtherscanBaseUrl } from "@/config/network"
@@ -24,7 +25,6 @@ import {
   MLATableButton,
 } from "./style"
 import Copy from "../../../../../../../assets/icons/copy_icon.svg"
-import EditIcon from "../../../../../../../assets/icons/edit_icon.svg"
 import LinkIcon from "../../../../../../../assets/icons/link_icon.svg"
 import { useGetAuthorisedLendersByMarket } from "../../hooks/useGetLenders"
 
@@ -55,16 +55,7 @@ export const MarketAuthorisedLenders = ({
       minWidth: 176,
       headerAlign: "left",
       align: "left",
-      renderCell: (params) => (
-        <Box sx={MarketWithdrawalRequetstCell}>
-          <Typography variant="text3">{params.value}</Typography>
-          <IconButton onClick={() => {}} disableRipple sx={AddressButtons}>
-            <SvgIcon fontSize="medium">
-              <EditIcon />
-            </SvgIcon>
-          </IconButton>
-        </Box>
-      ),
+      renderCell: (params) => <LenderName address={params.value} />,
     },
     {
       sortable: false,
