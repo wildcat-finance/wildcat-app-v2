@@ -1,9 +1,18 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
 
-import { Box, Button, Dialog, Tab, Tabs, Typography } from "@mui/material"
+import {
+  Box,
+  Button,
+  Dialog,
+  SvgIcon,
+  Tab,
+  Tabs,
+  Typography,
+} from "@mui/material"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 
+import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
@@ -20,11 +29,13 @@ import { ModalSteps, useApprovalModal } from "../hooks/useApprovalModal"
 import { TxModalDialog, TxModalInfoItem, TxModalInfoTitle } from "../style"
 
 export type RepayModalProps = {
+  buttonType?: "marketHeader" | "withdrawalTable"
   marketAccount: MarketAccount
-  disableRepayBtn: boolean
+  disableRepayBtn?: boolean
 }
 
 export const RepayModal = ({
+  buttonType = "marketHeader",
   marketAccount,
   disableRepayBtn,
 }: RepayModalProps) => {
@@ -118,12 +129,13 @@ export const RepayModal = ({
 
   const showForm = !(isRepaying || showSuccessPopup || showErrorPopup)
 
-  const remainingInterest = market.totalDebts.gt(0)
-    ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
-        round: true,
-        units: ["d"],
-      })
-    : ""
+  const remainingInterest =
+    market.totalDebts.gt(0) && !market.isClosed
+      ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
+          round: true,
+          units: ["d"],
+        })
+      : ""
 
   const amountInputLabel = typeDays
     ? `Interest remaining for ${remainingInterest}`
@@ -152,15 +164,50 @@ export const RepayModal = ({
 
   return (
     <>
-      <Button
-        onClick={handleOpenModal}
-        variant="contained"
-        size="large"
-        sx={{ width: "152px" }}
-        disabled={disableRepayBtn}
-      >
-        Repay
-      </Button>
+      {buttonType === "marketHeader" && (
+        <Button
+          onClick={handleOpenModal}
+          variant="contained"
+          size="large"
+          sx={{ width: "152px" }}
+          disabled={disableRepayBtn}
+        >
+          Repay
+        </Button>
+      )}
+
+      {buttonType === "withdrawalTable" && (
+        <Button
+          onClick={handleOpenModal}
+          variant="contained"
+          size="small"
+          sx={{
+            width: "66px",
+            backgroundColor: COLORS.carminePink,
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginRight: "8px",
+            "&:hover": {
+              background: COLORS.wildWatermelon,
+              boxShadow: "none",
+            },
+          }}
+          disabled={disableRepayBtn}
+        >
+          Repay
+          <SvgIcon
+            fontSize="tiny"
+            sx={{
+              transform: "rotate(180deg)",
+              "& path": {
+                fill: COLORS.white,
+              },
+            }}
+          >
+            <Arrow />
+          </SvgIcon>
+        </Button>
+      )}
 
       <Dialog
         open={modal.isModalOpen}

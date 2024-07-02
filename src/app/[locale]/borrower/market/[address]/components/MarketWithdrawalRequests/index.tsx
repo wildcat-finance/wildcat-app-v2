@@ -7,6 +7,7 @@ import { WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
 import { useTranslation } from "react-i18next"
 
+import { RepayModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/RepayModal"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { EtherscanBaseUrl } from "@/config/network"
@@ -25,8 +26,10 @@ import LinkIcon from "../../../../../../../assets/icons/link_icon.svg"
 import { useGetWithdrawals } from "../../hooks/useGetWithdrawals"
 
 export const MarketWithdrawalRequests = ({
-  market,
+  marketAccount,
 }: MarketWithdrawalRequestsProps) => {
+  const { market } = marketAccount
+
   const [isTotalOpen, setIsTotalOpen] = useState(true)
   const [isOngoingOpen, setIsOngoingOpen] = useState(false)
   const [isPastOpen, setIsPastOpen] = useState(false)
@@ -154,7 +157,22 @@ export const MarketWithdrawalRequests = ({
   ]
   return (
     <Box sx={MarketWithdrawalRequestsContainer}>
-      <Typography variant="title3">Open Withdrawals</Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="title3">Open Withdrawals</Typography>
+        {(market.isDelinquent || market.isIncurringPenalties) && (
+          <RepayModal
+            marketAccount={marketAccount}
+            buttonType="withdrawalTable"
+          />
+        )}
+      </Box>
+
       <DetailsAccordion
         isOpen={isTotalOpen}
         setIsOpen={setIsTotalOpen}
@@ -209,9 +227,19 @@ export const MarketWithdrawalRequests = ({
               ? "margin-bottom 500ms cubic-bezier(0.4, 0, 0.2, 1) 0ms"
               : "margin-bottom 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
           }}
-          chipValue={formatTokenWithCommas(activeTotalAmount, {
+          chipValue={formatTokenWithCommas(expiredTotalAmount, {
             withSymbol: true,
           })}
+          chipColor={
+            market.isDelinquent || market.isIncurringPenalties
+              ? COLORS.remy
+              : undefined
+          }
+          chipValueColor={
+            market.isDelinquent || market.isIncurringPenalties
+              ? COLORS.dullRed
+              : undefined
+          }
         >
           {expiredTxRows.length ? (
             <DataGrid

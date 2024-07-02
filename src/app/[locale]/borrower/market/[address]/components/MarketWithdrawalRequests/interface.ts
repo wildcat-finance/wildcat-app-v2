@@ -1,7 +1,7 @@
-import { Market } from "@wildcatfi/wildcat-sdk"
+import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 export type MarketWithdrawalRequestsProps = {
-  market: Market | undefined
+  marketAccount: MarketAccount
 }
 
 export type WithdrawalTxRow = {

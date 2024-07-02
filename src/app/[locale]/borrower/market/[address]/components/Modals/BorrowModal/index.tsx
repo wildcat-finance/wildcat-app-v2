@@ -59,12 +59,13 @@ export const BorrowModal = ({
 
   const leftBorrowAmount = market.borrowableAssets.sub(underlyingBorrowAmount)
 
-  const remainingInterest = market.totalDebts.gt(0)
-    ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
-        round: true,
-        units: ["d"],
-      })
-    : ""
+  const remainingInterest =
+    market.totalDebts.gt(0) && !market.isClosed
+      ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
+          round: true,
+          units: ["d"],
+        })
+      : ""
 
   const showForm = !(isPending || showSuccessPopup || showErrorPopup)
 

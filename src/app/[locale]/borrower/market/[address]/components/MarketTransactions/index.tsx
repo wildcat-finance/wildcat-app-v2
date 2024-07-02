@@ -17,9 +17,9 @@ export const MarketTransactions = ({
 }: MarketTransactionsProps) => {
   const { t } = useTranslation()
 
-  const disableRepay = market.totalDebts.raw.isZero()
+  const disableRepay = market.isClosed || market.totalDebts.raw.isZero()
   const disableBorrow =
-    market.totalDebts.raw.isZero() ||
+    market.isClosed ||
     market?.isDelinquent ||
     market.isIncurringPenalties ||
     (marketAccount && marketAccount.market.borrowableAssets.raw.isZero())
@@ -32,15 +32,6 @@ export const MarketTransactions = ({
         amount={formatTokenWithCommas(market.outstandingDebt)}
         asset={market.underlyingToken.symbol}
       >
-        {/* <Button */}
-        {/*  variant="contained" */}
-        {/*  size="large" */}
-        {/*  sx={{ width: "152px" }} */}
-        {/*  disabled={disableRepay} */}
-        {/* > */}
-        {/*  {t("borrowerMarketDetails.buttons.repay")} */}
-        {/* </Button> */}
-
         <RepayModal
           marketAccount={marketAccount}
           disableRepayBtn={disableRepay}

@@ -7,7 +7,9 @@ export type DetailsAccordionProps = {
   arrowOnRight?: boolean
   iconColor?: string
   summarySx?: object
+  chipColor?: string
   chipValue?: string
+  chipValueColor?: string
   bodySx?: object
   children: ReactNode
 }

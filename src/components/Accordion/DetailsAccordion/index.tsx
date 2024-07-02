@@ -12,6 +12,8 @@ export const DetailsAccordion = ({
   arrowOnRight,
   iconColor,
   summarySx,
+  chipColor,
+  chipValueColor,
   chipValue,
   bodySx,
   children,
@@ -50,7 +52,13 @@ export const DetailsAccordion = ({
             <UpArrow />
           </SvgIcon>
         </Box>
-        {chipValue && <TextfieldChip text={chipValue} />}
+        {chipValue && (
+          <TextfieldChip
+            text={chipValue}
+            color={chipColor}
+            textColor={chipValueColor}
+          />
+        )}
       </Box>
       <Box
         sx={{

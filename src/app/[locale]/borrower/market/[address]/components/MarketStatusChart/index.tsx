@@ -51,12 +51,13 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
     return "default"
   }
 
-  const remainingInterest = market.totalDebts.gt(0)
-    ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
-        round: true,
-        units: ["d"],
-      })
-    : ""
+  const remainingInterest =
+    market.totalDebts.gt(0) && !market.isClosed
+      ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
+          round: true,
+          units: ["d"],
+        })
+      : ""
 
   return (
     <Box>
@@ -81,6 +82,7 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
       </Box>
 
       {!market.isDelinquent &&
+        !market.isClosed &&
         !market.isIncurringPenalties &&
         market.totalDebts.gt(0) && (
           <Box sx={{ display: "flex", columnGap: "3px", marginBottom: "24px" }}>
@@ -93,7 +95,7 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
           </Box>
         )}
 
-      {market.totalDebts.gt(0) && (
+      {market.totalDebts.gt(0) && !market.isClosed && (
         <Box className="barchart__container">
           {bars.map((chartItem) => (
             <BarItem key={chartItem.id} chartItem={chartItem} />
