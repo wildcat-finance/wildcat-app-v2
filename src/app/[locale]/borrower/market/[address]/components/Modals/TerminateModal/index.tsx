@@ -1,9 +1,13 @@
 import { Box, Dialog, Typography } from "@mui/material"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { BigNumber } from "ethers"
+import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { COLORS } from "@/theme/colors"
+import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { TerminateModalProps } from "./interface"
 import {
@@ -13,21 +17,61 @@ import {
   TerminateModalDialog,
   TerminateModalRepatTextContainer,
 } from "./style"
+import { useGetMarket } from "../../../hooks/useGetMarket"
+import { useGetWithdrawals } from "../../../hooks/useGetWithdrawals"
 
 export const TerminateModal = ({ isOpen, setIsOpen }: TerminateModalProps) => {
   const { t } = useTranslation()
 
-  const needToRepay = 0
+  const fullPath = usePathname()
+  const address = fullPath.slice(fullPath.lastIndexOf("/") + 1)
 
-  const rows = [
-    { name: "WithDrawal Request", value: "0.3 ETH" },
-    { name: "Remaining Loan", value: "0.3 ETH" },
-    { name: "Remaining Interest", value: "0.3 ETH" },
-    { name: "Protocol Fees", value: "0.3 ETH" },
-  ]
+  const { data: market } = useGetMarket({ address })
+  const { data: withdrawals } = useGetWithdrawals(market)
+
+  const getValues = () => {
+    const values = []
+    if (market) {
+      // withdrawals
+      const expiredTotalAmount = withdrawals.expiredWithdrawalsTotalOwed
+      const activeTotalAmount = withdrawals.activeWithdrawalsTotalOwed
+      const totalAmount = expiredTotalAmount.add(activeTotalAmount)
+      values.push({
+        name: "Withdrawal Request",
+        value: formatTokenWithCommas(totalAmount, { withSymbol: true }),
+      })
+
+      // TODO get remaining loan and interest
+      values.push(
+        { name: "Remaining Loan", value: "0.3 ETH" },
+        { name: "Remaining Interest", value: "0.3 ETH" },
+      )
+
+      // protocol fees
+      if (market?.totalProtocolFeesAccrued)
+        values.push({
+          name: "Protocol Fees",
+          value: formatTokenWithCommas(market?.totalProtocolFeesAccrued, {
+            withSymbol: true,
+          }),
+        })
+      else
+        values.push({
+          name: "Protocol Fees",
+          value: formatTokenWithCommas(
+            new TokenAmount(BigNumber.from(0), market.underlyingToken),
+            { withSymbol: true },
+          ),
+        })
+    }
+    return values
+  }
+
+  const rows = getValues()
+
   return (
     <Dialog fullWidth PaperProps={TerminateModalDialog} open={isOpen}>
-      {needToRepay ? (
+      {rows.length ? (
         <TxModalHeader
           title="Terminate Market"
           arrowOnClick={() => {
@@ -45,7 +89,7 @@ export const TerminateModal = ({ isOpen, setIsOpen }: TerminateModalProps) => {
         />
       )}
 
-      {needToRepay ? (
+      {rows.length ? (
         <Box sx={MiddleContentContainer}>
           <Box sx={TerminateModalRepatTextContainer}>
             <Typography color={COLORS.blueRibbon} variant="text3">
@@ -55,7 +99,7 @@ export const TerminateModal = ({ isOpen, setIsOpen }: TerminateModalProps) => {
           </Box>
           <Box sx={RepayContainer}>
             {rows.map((item) => (
-              <Box sx={{ display: "flex", gap: "4px" }}>
+              <Box key={item.name} sx={{ display: "flex", gap: "4px" }}>
                 <Typography color={COLORS.santasGrey} variant="text3">
                   {item.name}
                 </Typography>
@@ -104,7 +148,7 @@ export const TerminateModal = ({ isOpen, setIsOpen }: TerminateModalProps) => {
         </Box>
       )}
 
-      {needToRepay ? (
+      {rows.length ? (
         <TxModalFooter
           mainBtnText="Repay"
           mainBtnOnClick={() => {
