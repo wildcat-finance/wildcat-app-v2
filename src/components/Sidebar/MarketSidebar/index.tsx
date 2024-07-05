@@ -1,9 +1,12 @@
+import { useState } from "react"
+
 import { Box, Button } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { Link as ScrollLink } from "react-scroll"
 
+import { TerminateModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateModal"
 import {
   ContentContainer,
   MenuItemButton,
@@ -16,6 +19,8 @@ import Cross from "../../../assets/icons/cross_icon.svg"
 
 export const MarketSidebar = () => {
   const { t } = useTranslation()
+  const [isOpenTerminateModal, setIsOpenTerminateModal] =
+    useState<boolean>(false)
 
   return (
     <Box sx={ContentContainer}>
@@ -71,12 +76,19 @@ export const MarketSidebar = () => {
           variant="outlined"
           color="secondary"
           sx={{ fontWeight: 500, marginTop: "24px", width: "100%" }}
+          onClick={() => {
+            setIsOpenTerminateModal(!isOpenTerminateModal)
+          }}
         >
           <SvgIcon fontSize="small" sx={{ marginRight: "4px" }}>
             <Cross />
           </SvgIcon>
           {t("borrowerMarketDetails.sidebar.terminateMarket")}
         </Button>
+        <TerminateModal
+          isOpen={isOpenTerminateModal}
+          setIsOpen={setIsOpenTerminateModal}
+        />
       </Box>
     </Box>
   )
