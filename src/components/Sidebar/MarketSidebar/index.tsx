@@ -1,26 +1,33 @@
-import { useState } from "react"
-
 import { Box, Button } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import Link from "next/link"
+import { useParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { Link as ScrollLink } from "react-scroll"
 
-import { TerminateModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateModal"
+import { TerminateMarket } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateMarket"
+import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
 import {
   ContentContainer,
   MenuItemButton,
 } from "@/components/Sidebar/MarketSidebar/style"
+import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
 import BackArrow from "../../../assets/icons/backArrow_icon.svg"
-import Cross from "../../../assets/icons/cross_icon.svg"
 
 export const MarketSidebar = () => {
   const { t } = useTranslation()
-  const [isOpenTerminateModal, setIsOpenTerminateModal] =
-    useState<boolean>(false)
+
+  const params = useParams<{ locale: string; address: string }>()
+
+  const { address } = params
+
+  const { data: market } = useGetMarket({
+    address,
+  })
+  const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
 
   return (
     <Box sx={ContentContainer}>
@@ -72,23 +79,9 @@ export const MarketSidebar = () => {
           </ScrollLink>
         </Box>
 
-        <Button
-          variant="outlined"
-          color="secondary"
-          sx={{ fontWeight: 500, marginTop: "24px", width: "100%" }}
-          onClick={() => {
-            setIsOpenTerminateModal(!isOpenTerminateModal)
-          }}
-        >
-          <SvgIcon fontSize="small" sx={{ marginRight: "4px" }}>
-            <Cross />
-          </SvgIcon>
-          {t("borrowerMarketDetails.sidebar.terminateMarket")}
-        </Button>
-        <TerminateModal
-          isOpen={isOpenTerminateModal}
-          setIsOpen={setIsOpenTerminateModal}
-        />
+        {marketAccount && !market?.isClosed && (
+          <TerminateMarket marketAccount={marketAccount} />
+        )}
       </Box>
     </Box>
   )
