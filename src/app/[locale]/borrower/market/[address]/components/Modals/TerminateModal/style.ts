@@ -33,5 +33,23 @@ export const TerminateMarketTextContainer = {
   display: "flex",
   flexDirection: "column",
   justifyContent: "center",
-  gap: "8px",
+  gap: "12px",
+  alignItems: "center",
+}
+
+export const ContentContainer = {
+  height: "100%",
+  display: "flex",
+  flexDirection: "column",
+  gap: "12px",
+}
+
+export const CheckIconContainer = {
+  width: "20px",
+  height: "20px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  border: `1px solid ${COLORS.blueRibbon}`,
+  borderRadius: "50%",
 }
