@@ -44,6 +44,10 @@ export const MarketWithdrawalRequests = ({
   const activeTxRows: Array<WithdrawalTxRow> = []
   const expiredTxRows: Array<WithdrawalTxRow> = []
 
+  const lendersName: { [key: string]: string } = JSON.parse(
+    localStorage.getItem("lenders-name") || "{}",
+  )
+
   const formatTx = (
     result: Array<WithdrawalTxRow>,
     txs: WithdrawalBatch[] | undefined,
@@ -85,7 +89,9 @@ export const MarketWithdrawalRequests = ({
       align: "left",
       renderCell: ({ value }) => (
         <Box sx={MarketWithdrawalRequetstCell}>
-          <Typography variant="text3">{trimAddress(value)}</Typography>
+          <Typography variant="text3">
+            {lendersName[value] || trimAddress(value)}
+          </Typography>
           <Link
             href={`${EtherscanBaseUrl}/address/${value}`}
             target="_blank"

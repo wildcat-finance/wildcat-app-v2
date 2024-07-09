@@ -40,7 +40,8 @@ export const LenderName = ({
   const handleSave = (evt: React.KeyboardEvent) => {
     if (evt.key === "Enter") {
       setLendersName((prev) => {
-        prev[address] = name
+        if (name === "") delete prev[address]
+        else prev[address] = name
         localStorage.setItem("lenders-name", JSON.stringify(prev))
         return prev
       })
