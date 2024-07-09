@@ -8,6 +8,7 @@ import {
 } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { useTranslation } from "react-i18next"
+import { useCopyToClipboard } from "react-use"
 
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import { Accordion } from "@/components/Accordion"
@@ -31,6 +32,8 @@ import { useGetAuthorisedLendersByMarket } from "../../hooks/useGetLenders"
 export const MarketAuthorisedLenders = ({
   market,
 }: MarketAuthorisedLendersProps) => {
+  const [state, copyToClipboard] = useCopyToClipboard()
+
   const { data } = useGetAuthorisedLendersByMarket(market)
   const { t } = useTranslation()
   const rows = data
@@ -71,7 +74,13 @@ export const MarketAuthorisedLenders = ({
           <Typography sx={{ minWidth: "80px" }} variant="text3">
             {trimAddress(value)}
           </Typography>
-          <IconButton disableRipple sx={AddressButtons} onClick={() => {}}>
+          <IconButton
+            disableRipple
+            sx={AddressButtons}
+            onClick={() => {
+              copyToClipboard(value)
+            }}
+          >
             <SvgIcon fontSize="medium">
               <Copy />
             </SvgIcon>
