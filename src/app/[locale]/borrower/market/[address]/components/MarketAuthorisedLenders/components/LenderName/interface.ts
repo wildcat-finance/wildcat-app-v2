@@ -1,3 +1,7 @@
+import { Dispatch, SetStateAction } from "react"
+
 export type LenderNameProps = {
-  address?: string
+  lenderName?: string
+  address: string
+  setLendersName: Dispatch<SetStateAction<{ [key: string]: string }>>
 }

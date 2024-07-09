@@ -1,3 +1,5 @@
+import { useState } from "react"
+
 import {
   Box,
   Button,
@@ -33,13 +35,19 @@ export const MarketAuthorisedLenders = ({
   market,
 }: MarketAuthorisedLendersProps) => {
   const [state, copyToClipboard] = useCopyToClipboard()
+  const [lendersName, setLendersName] = useState<{ [key: string]: string }>(
+    JSON.parse(localStorage.getItem("lenders-name") || "{}"),
+  )
 
   const { data } = useGetAuthorisedLendersByMarket(market)
   const { t } = useTranslation()
   const rows = data
     ? data?.map((lender) => ({
         id: lender,
-        name: "Wildcat",
+        name: (() => {
+          const correctLender = lendersName[lender] || ""
+          return { name: correctLender, address: lender }
+        })(),
         walletAddress: lender,
         dateAdded: "12-Jul-2023",
         signedMLA: "Yes",
@@ -58,7 +66,13 @@ export const MarketAuthorisedLenders = ({
       minWidth: 176,
       headerAlign: "left",
       align: "left",
-      renderCell: (params) => <LenderName address={params.value} />,
+      renderCell: (params) => (
+        <LenderName
+          setLendersName={setLendersName}
+          lenderName={params.value.name}
+          address={params.value.address}
+        />
+      ),
     },
     {
       sortable: false,
@@ -196,7 +210,7 @@ export const MarketAuthorisedLenders = ({
         }}
         summarySx={{ color: COLORS.blueRibbon }}
         iconColor={COLORS.blueRibbon}
-        title="Hide Deleted Lenders"
+        title="Deleted Lenders"
       >
         <DataGrid
           sx={DataGridCells}

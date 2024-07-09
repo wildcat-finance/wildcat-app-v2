@@ -20,9 +20,14 @@ import {
   LenderNameTextfield,
 } from "./style"
 
-export const LenderName = ({ address }: LenderNameProps) => {
+export const LenderName = ({
+  lenderName,
+  address,
+  setLendersName,
+}: LenderNameProps) => {
   const [isEdit, setIsEdit] = useState(false)
-  const [name, setName] = useState("Add Name")
+
+  const [name, setName] = useState(lenderName || "Add Name")
   const [prevName, setPrevName] = useState(name)
   const containerRef = useRef<HTMLDivElement>(null)
   const isPlaceholder = name === "Add Name"
@@ -34,6 +39,12 @@ export const LenderName = ({ address }: LenderNameProps) => {
 
   const handleSave = (evt: React.KeyboardEvent) => {
     if (evt.key === "Enter") {
+      setLendersName((prev) => {
+        prev[address] = name
+        localStorage.setItem("lenders-name", JSON.stringify(prev))
+        return prev
+      })
+
       setName(name.trim())
       setPrevName(name)
       setIsEdit(false)
