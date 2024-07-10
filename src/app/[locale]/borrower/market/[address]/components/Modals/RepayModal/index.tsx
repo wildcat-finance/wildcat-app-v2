@@ -17,6 +17,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { RepayModalProps } from "./interface"
@@ -67,6 +68,8 @@ export const RepayModal = ({
     newType: "sum" | "days",
   ) => {
     setType(newType)
+    setAmount("")
+    setDays("")
   }
 
   const handleOpenModal = () => {
@@ -75,22 +78,28 @@ export const RepayModal = ({
     modal.handleOpenModal()
   }
 
+  const typeDays = type === "days"
+
   const repayTokenAmount = useMemo(
     () => market.underlyingToken.parseAmount(amount || "0"),
     [amount],
   )
 
-  const repayStep = marketAccount.checkRepayStep(repayTokenAmount)
+  const repayDaysAmount = market.repayRequiredForDuration(Number(days) * 86400)
+
+  const repayAmount = typeDays
+    ? repayDaysAmount
+    : maxRepayAmount || repayTokenAmount
+
+  const repayStep = marketAccount.checkRepayStep(repayAmount)
 
   const handleRepay = () => {
-    repay(maxRepayAmount || repayTokenAmount)
+    repay(repayAmount)
   }
 
   const handleApprove = () => {
     if (repayStep?.status === "InsufficientAllowance") {
-      approve(maxRepayAmount || repayTokenAmount).then(() =>
-        modal.setFlowStep(ModalSteps.approved),
-      )
+      approve(repayAmount).then(() => modal.setFlowStep(ModalSteps.approved))
     }
   }
 
@@ -115,20 +124,22 @@ export const RepayModal = ({
     setDays(value)
   }
 
-  const typeDays = type === "days"
-
   const disableApprove =
-    repayTokenAmount.raw.isZero() ||
+    repayAmount.raw.isZero() ||
     isApproved ||
     isApproving ||
-    repayStep?.status === "Ready"
+    repayStep?.status === "Ready" ||
+    repayStep?.status === "InsufficientBalance"
 
   const disableRepay =
     market.isClosed ||
-    repayTokenAmount.raw.isZero() ||
+    repayAmount.raw.isZero() ||
     repayStep?.status === "InsufficientAllowance" ||
+    repayStep?.status === "InsufficientBalance" ||
     isApproveError ||
     isApproving
+
+  console.log(repayStep, "repayStep")
 
   const IsTxApproved = isApproved || repayStep?.status === "Ready"
 
@@ -153,7 +164,13 @@ export const RepayModal = ({
   const amountInputOnChange = typeDays ? handleDaysChange : handleAmountChange
 
   const amountInputAdornment = typeDays ? (
-    <Box />
+    <Typography
+      variant="text3"
+      color={COLORS.santasGrey}
+      sx={{ padding: "0 12px" }}
+    >{`~ ${formatTokenWithCommas(repayDaysAmount)} ${
+      market.underlyingToken.symbol
+    }`}</Typography>
   ) : (
     <TextfieldButton buttonText="Max" onClick={handleClickMaxAmount} />
   )
