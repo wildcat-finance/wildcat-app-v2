@@ -22,6 +22,7 @@ import {
   WrongNetworkContainer,
 } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { ProfileDialogProps } from "@/components/Header/HeaderButton/ProfileDialog/type"
+import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl, TargetNetwork } from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { COLORS } from "@/theme/colors"
@@ -89,27 +90,10 @@ export const ProfileDialog = ({
                   {address.slice(0, 4)}..{address.slice(-4, address.length)}
                 </Typography>
 
-                <IconButton
-                  disableRipple
-                  sx={AddressButtons}
-                  onClick={() => handleCopyAddress(address?.toString())}
-                >
-                  <SvgIcon fontSize="medium">
-                    <Copy />
-                  </SvgIcon>
-                </IconButton>
-
-                <Link
-                  href={`${EtherscanBaseUrl}/address/${address}`}
-                  target="_blank"
-                  style={{ display: "flex", justifyContent: "center" }}
-                >
-                  <IconButton disableRipple sx={AddressButtons}>
-                    <SvgIcon fontSize="medium">
-                      <LinkIcon />
-                    </SvgIcon>
-                  </IconButton>
-                </Link>
+                <LinkGroup
+                  copyValue={address?.toString()}
+                  linkValue={`${EtherscanBaseUrl}/address/${address}`}
+                />
               </Box>
             )}
             {name && (
