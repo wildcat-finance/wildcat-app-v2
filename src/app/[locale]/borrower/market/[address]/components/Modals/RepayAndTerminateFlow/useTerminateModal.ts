@@ -11,11 +11,10 @@ export enum TerminateModalSteps {
 }
 
 export const useTerminateModal = (
-  isOpen: boolean,
-  setIsOpen: Dispatch<SetStateAction<boolean>>,
   setShowSuccessPopup: Dispatch<SetStateAction<boolean>>,
   setShowErrorPopup: Dispatch<SetStateAction<boolean>>,
 ) => {
+  const [isOpen, setIsOpen] = useState(false)
   const [flowStep, setFlowStep] = useState<TerminateModalSteps>(
     TerminateModalSteps.closedModal,
   )

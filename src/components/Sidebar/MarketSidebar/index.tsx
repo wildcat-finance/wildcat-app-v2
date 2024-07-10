@@ -1,3 +1,5 @@
+import React, { useState } from "react"
+
 import { Box, Button } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import Link from "next/link"
@@ -5,8 +7,10 @@ import { useParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { Link as ScrollLink } from "react-scroll"
 
-import { TerminateMarket } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateMarket"
+import { RepayAndTerminateFlow } from "@/app/[locale]/borrower/market/[address]/components/Modals/RepayAndTerminateFlow"
+import { useTerminateModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/RepayAndTerminateFlow/useTerminateModal"
 import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
+import Cross from "@/assets/icons/cross_icon.svg"
 import {
   ContentContainer,
   MenuItemButton,
@@ -79,8 +83,8 @@ export const MarketSidebar = () => {
           </ScrollLink>
         </Box>
 
-        {marketAccount && !market?.isClosed && (
-          <TerminateMarket marketAccount={marketAccount} />
+        {marketAccount && (
+          <RepayAndTerminateFlow marketAccount={marketAccount} />
         )}
       </Box>
     </Box>

@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
+import SvgIcon from "@mui/material/SvgIcon"
 import { minTokenAmount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
 
+import Cross from "@/assets/icons/cross_icon.svg"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
-import { TerminateModalV1FlowProps } from "./interface"
+import { RepayAndTerminateFlowProps } from "./interface"
 import {
   RepayedModalContainer,
   RepayedTypoContainer,
@@ -27,18 +29,17 @@ import { ErrorModal } from "../FinalModals/ErrorModal"
 import { LoadingModal } from "../FinalModals/LoadingModal"
 import { SuccessModal } from "../FinalModals/SuccessModal"
 
-export const TerminateModalV1Flow = ({
+export const RepayAndTerminateFlow = ({
   marketAccount,
-  isOpen,
-  setIsOpen,
-}: TerminateModalV1FlowProps) => {
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false)
-  const [showErrorPopup, setShowErrorPopup] = useState(false)
+}: RepayAndTerminateFlowProps) => {
+  const [showSuccessTerminationPopup, setShowSuccessTerminationPopup] =
+    useState(false)
+  const [showErrorTerminationPopup, setShowErrorTerminationPopup] =
+    useState(false)
+
   const modal = useTerminateModal(
-    isOpen,
-    setIsOpen,
-    setShowSuccessPopup,
-    setShowErrorPopup,
+    setShowSuccessTerminationPopup,
+    setShowErrorTerminationPopup,
   )
 
   const { market } = marketAccount
@@ -180,8 +181,8 @@ export const TerminateModalV1Flow = ({
     modal.repayedStep ||
     isProcessing ||
     isTerminating ||
-    showSuccessPopup ||
-    showErrorPopup
+    showSuccessTerminationPopup ||
+    showErrorTerminationPopup
   )
 
   const showRepayedPopup = !(
@@ -189,126 +190,140 @@ export const TerminateModalV1Flow = ({
     modal.approvedStep ||
     isProcessing ||
     isTerminating ||
-    showSuccessPopup ||
-    showErrorPopup
+    showSuccessTerminationPopup ||
+    showErrorTerminationPopup
   )
 
   useEffect(() => {
     if (isTerminatedError) {
-      setShowErrorPopup(true)
+      setShowErrorTerminationPopup(true)
     }
     if (isTerminated) {
-      setShowSuccessPopup(true)
+      setShowSuccessTerminationPopup(true)
     }
   }, [isTerminatedError, isTerminated])
 
   return (
-    <Dialog
-      open={modal.isModalOpen}
-      onClose={modal.handleCloseModal}
-      PaperProps={{
-        sx: TerminateDialogContainer,
-      }}
-    >
-      {(showTerminateForm || showRepayedPopup) && (
-        <TxModalHeader
-          title="Terminate Market"
-          arrowOnClick={modal.hideArrowButton ? null : modal.handleClickBack}
-          crossOnClick={modal.hideCrossButton ? null : modal.handleCloseModal}
-        />
-      )}
+    <>
+      <Button
+        variant="outlined"
+        color="secondary"
+        sx={{ fontWeight: 500, marginTop: "24px", width: "100%" }}
+        onClick={modal.handleOpenModal}
+      >
+        <SvgIcon fontSize="small" sx={{ marginRight: "4px" }}>
+          <Cross />
+        </SvgIcon>
+        Terminate Market
+      </Button>
 
-      {showTerminateForm && (
-        <Box width="100%" height="100%" padding="0 24px">
-          <Box sx={TerminateAlertContainer}>
-            <Typography color={COLORS.blueRibbon} variant="text3">
-              You should repay remaining debt before market termination.
-            </Typography>
-            <Typography color={COLORS.blueRibbon} variant="text3">
-              Learn more about this.
-            </Typography>
-          </Box>
+      <Dialog
+        open={modal.isModalOpen}
+        onClose={modal.handleCloseModal}
+        PaperProps={{
+          sx: TerminateDialogContainer,
+        }}
+      >
+        {(showTerminateForm || showRepayedPopup) && (
+          <TxModalHeader
+            title="Terminate Market"
+            arrowOnClick={modal.hideArrowButton ? null : modal.handleClickBack}
+            crossOnClick={modal.hideCrossButton ? null : modal.handleCloseModal}
+          />
+        )}
 
-          <Box sx={TerminateDetailsContainer}>
-            {marketValues.map((value) => (
-              <Box
-                key={value.name}
-                sx={{ display: "flex", justifyContent: "space-between" }}
-              >
-                <Typography color={COLORS.santasGrey} variant="text3">
-                  {value.name}
-                </Typography>
-                <Typography variant="text3" noWrap>
-                  {value.value}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-
-          <Box sx={TerminateTotalContainer}>
-            <Typography variant="text1">Total</Typography>
-            <Typography variant="text1" noWrap>
-              {total} {market.underlyingToken.symbol}
-            </Typography>
-          </Box>
-        </Box>
-      )}
-
-      {showRepayedPopup && (
-        <>
-          <Box width="100%" height="100%" sx={RepayedModalContainer}>
-            <Box sx={RepayedTypoContainer}>
-              <Typography variant="text1">
-                {repayedModalStepTypo.title}
+        {showTerminateForm && (
+          <Box width="100%" height="100%" padding="0 24px">
+            <Box sx={TerminateAlertContainer}>
+              <Typography color={COLORS.blueRibbon} variant="text3">
+                You should repay remaining debt before market termination.
               </Typography>
-              <Typography
-                variant="text3"
-                sx={{
-                  color: COLORS.santasGrey,
-                  width: "250px",
-                  textAlign: "center",
-                }}
-              >
-                {repayedModalStepTypo.subtitle}
+              <Typography color={COLORS.blueRibbon} variant="text3">
+                Learn more about this.
+              </Typography>
+            </Box>
+
+            <Box sx={TerminateDetailsContainer}>
+              {marketValues.map((value) => (
+                <Box
+                  key={value.name}
+                  sx={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <Typography color={COLORS.santasGrey} variant="text3">
+                    {value.name}
+                  </Typography>
+                  <Typography variant="text3" noWrap>
+                    {value.value}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+
+            <Box sx={TerminateTotalContainer}>
+              <Typography variant="text1">Total</Typography>
+              <Typography variant="text1" noWrap>
+                {total} {market.underlyingToken.symbol}
               </Typography>
             </Box>
           </Box>
+        )}
 
-          <Box padding="0 24px">
-            <Button
-              variant="contained"
-              size="large"
-              sx={{ marginTop: "auto" }}
-              onClick={isProcessed ? handleTerminateMarket : handleRepay}
-              fullWidth
-            >
-              {isProcessed ? "Terminate Market" : "Try Again"}
-            </Button>
-          </Box>
-        </>
-      )}
+        {showRepayedPopup && (
+          <>
+            <Box width="100%" height="100%" sx={RepayedModalContainer}>
+              <Box sx={RepayedTypoContainer}>
+                <Typography variant="text1">
+                  {repayedModalStepTypo.title}
+                </Typography>
+                <Typography
+                  variant="text3"
+                  sx={{
+                    color: COLORS.santasGrey,
+                    width: "250px",
+                    textAlign: "center",
+                  }}
+                >
+                  {repayedModalStepTypo.subtitle}
+                </Typography>
+              </Box>
+            </Box>
 
-      {isLoading && <LoadingModal />}
-      {showSuccessPopup && !isLoading && (
-        <SuccessModal onClose={modal.handleCloseModal} />
-      )}
-      {showErrorPopup && !isLoading && (
-        <ErrorModal
-          onTryAgain={handleTerminateMarket}
-          onClose={modal.handleCloseModal}
+            <Box padding="0 24px">
+              <Button
+                variant="contained"
+                size="large"
+                sx={{ marginTop: "auto" }}
+                onClick={isProcessed ? handleTerminateMarket : handleRepay}
+                fullWidth
+              >
+                {isProcessed ? "Terminate Market" : "Try Again"}
+              </Button>
+            </Box>
+          </>
+        )}
+
+        {isLoading && <LoadingModal />}
+        {showSuccessTerminationPopup && !isLoading && (
+          <SuccessModal onClose={modal.handleCloseModal} />
+        )}
+        {showErrorTerminationPopup && !isLoading && (
+          <ErrorModal
+            onTryAgain={handleTerminateMarket}
+            onClose={modal.handleCloseModal}
+          />
+        )}
+
+        <TxModalFooter
+          mainBtnText="Repay"
+          secondBtnText={IsTxApproved ? "Approved" : "Approve"}
+          mainBtnOnClick={handleRepay}
+          secondBtnOnClick={handleApprove}
+          disableMainBtn={disableRepay}
+          disableSecondBtn={disableApprove}
+          secondBtnLoading={isApproving}
+          hideButtons={!showTerminateForm}
         />
-      )}
-
-      <TxModalFooter
-        mainBtnText="Repay"
-        secondBtnText={IsTxApproved ? "Approved" : "Approve"}
-        mainBtnOnClick={handleRepay}
-        secondBtnOnClick={handleApprove}
-        disableMainBtn={disableRepay}
-        disableSecondBtn={disableApprove}
-        secondBtnLoading={isApproving}
-        hideButtons={!showTerminateForm}
-      />
-    </Dialog>
+      </Dialog>
+    </>
   )
 }
