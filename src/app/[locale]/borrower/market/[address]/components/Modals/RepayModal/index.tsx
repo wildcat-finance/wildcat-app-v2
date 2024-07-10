@@ -139,8 +139,6 @@ export const RepayModal = ({
     isApproveError ||
     isApproving
 
-  console.log(repayStep, "repayStep")
-
   const IsTxApproved = isApproved || repayStep?.status === "Ready"
 
   const showForm = !(isRepaying || showSuccessPopup || showErrorPopup)

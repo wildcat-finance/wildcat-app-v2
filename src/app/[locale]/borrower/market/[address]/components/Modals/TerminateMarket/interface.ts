@@ -1,5 +1,5 @@
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
-export type RepayAndTerminateFlowProps = {
+export type TerminateMarketProps = {
   marketAccount: MarketAccount
 }
