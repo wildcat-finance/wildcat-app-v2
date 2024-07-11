@@ -19,6 +19,14 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
   const [showErrorTerminationPopup, setShowErrorTerminationPopup] =
     useState(false)
 
+  const [flow, setFlow] = useState<
+    "terminate" | "repayAndTerminate" | "terminateWithRepay"
+  >()
+
+  const terminateFlow = flow === "terminate"
+  const repayAndTerminateFlow = flow === "repayAndTerminate"
+  // const terminateWithRepay = flow === "terminateWithRepay"
+
   const {
     mutateAsync: terminate,
     isPending: isTerminating,
@@ -38,6 +46,16 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
 
   const isReadyForTermination =
     marketAccount.checkCloseMarketStep().status === "Ready"
+
+  console.log(isTerminated, isTerminatedError, "status")
+
+  useEffect(() => {
+    if (isReadyForTermination) {
+      setFlow("terminate")
+    } else {
+      setFlow("repayAndTerminate")
+    }
+  }, [isModalOpen])
 
   useEffect(() => {
     if (isTerminatedError) {
@@ -64,7 +82,7 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
         </Button>
       )}
 
-      {isReadyForTermination ? (
+      {terminateFlow && (
         <TerminateFlow
           terminateFunc={terminate}
           isTerminating={isTerminating}
@@ -73,7 +91,9 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
           successPopup={showSuccessTerminationPopup}
           errorPopup={showErrorTerminationPopup}
         />
-      ) : (
+      )}
+
+      {repayAndTerminateFlow && (
         <RepayAndTerminateFlow
           marketAccount={marketAccount}
           terminateFunc={terminate}
