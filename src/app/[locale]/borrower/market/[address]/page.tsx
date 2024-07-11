@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-import { Box, Divider, Skeleton } from "@mui/material"
+import { Box, Divider, Fade, Skeleton } from "@mui/material"
 import { useAccount } from "wagmi"
 
 import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
@@ -35,6 +35,8 @@ export default function MarketDetails({
 
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
+
+  const [checked, setChecked] = React.useState<number>(1)
 
   if (!market || !marketAccount)
     return (
@@ -80,32 +82,67 @@ export default function MarketDetails({
           />
         )}
 
-        <MarketHeader
-          marketAccount={marketAccount}
-          holdTheMarket={holdTheMarket}
-        />
+        <Box sx={{ position: "relative" }}>
+          <Fade unmountOnExit in={checked === 1}>
+            <Box
+              sx={{
+                width: "100%",
+              }}
+            >
+              <MarketHeader
+                marketAccount={marketAccount}
+                holdTheMarket={holdTheMarket}
+              />
 
-        {holdTheMarket && <Divider sx={{ margin: "32px 0" }} />}
+              {holdTheMarket && <Divider sx={{ margin: "32px 0" }} />}
 
-        {holdTheMarket && (
-          <MarketTransactions market={market} marketAccount={marketAccount} />
-        )}
+              {holdTheMarket && (
+                <MarketTransactions
+                  market={market}
+                  marketAccount={marketAccount}
+                />
+              )}
 
-        <Divider sx={{ margin: "32px 0 44px" }} />
+              <Divider sx={{ margin: "32px 0 44px" }} />
 
-        <MarketStatusChart market={market} />
+              <MarketStatusChart market={market} />
+            </Box>
+          </Fade>
 
-        <Divider sx={{ margin: "32px 0 44px" }} />
+          <Fade unmountOnExit in={checked === 2}>
+            <Box
+              sx={{
+                width: "100%",
+              }}
+            >
+              <MarketStatusChart market={market} />
 
-        <MarketParameters market={market} />
+              <Divider sx={{ margin: "32px 0 44px" }} />
 
-        <Divider sx={{ margin: "32px 0 44px" }} />
-
-        {holdTheMarket && (
-          <MarketWithdrawalRequests marketAccount={marketAccount} />
-        )}
-
-        {holdTheMarket && <MarketAuthorisedLenders market={market} />}
+              <MarketParameters market={market} />
+            </Box>
+          </Fade>
+          <Fade unmountOnExit in={checked === 3}>
+            <Box
+              sx={{
+                width: "100%",
+              }}
+            >
+              {holdTheMarket && (
+                <MarketWithdrawalRequests marketAccount={marketAccount} />
+              )}
+            </Box>
+          </Fade>
+          <Fade unmountOnExit in={checked === 4}>
+            <Box
+              sx={{
+                width: "100%",
+              }}
+            >
+              {holdTheMarket && <MarketAuthorisedLenders market={market} />}
+            </Box>
+          </Fade>
+        </Box>
       </Box>
     </Box>
   )
