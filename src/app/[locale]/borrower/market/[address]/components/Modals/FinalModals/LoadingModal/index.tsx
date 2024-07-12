@@ -8,22 +8,19 @@ import { EtherscanBaseUrl } from "@/config/network"
 
 import {
   FinalModalContentContainer,
+  FinalModalMainContainer,
   FinalModalSubtitle,
   FinalModalTypoBox,
 } from "../style"
 
 export const LoadingModal = ({ txHash }: { txHash?: string }) => (
-  <Box height="100%" padding="24px">
-    <Box sx={FinalModalContentContainer} rowGap="24px">
-      <Loader />
+  <>
+    <Box width="20px" height="20px" />
 
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-        }}
-      >
+    <Box padding="0 24px" sx={FinalModalContentContainer}>
+      <Box margin="auto" sx={FinalModalMainContainer}>
+        <Loader />
+
         <Box sx={FinalModalTypoBox}>
           <Typography variant="text1">Just wait a bit ...</Typography>
           <Typography variant="text3" sx={FinalModalSubtitle}>
@@ -31,12 +28,16 @@ export const LoadingModal = ({ txHash }: { txHash?: string }) => (
           </Typography>
         </Box>
       </Box>
+
+      <Box height="36px" width="100%">
+        {txHash !== "" && (
+          <LinkGroup
+            type="etherscan"
+            linkValue={`${EtherscanBaseUrl}/tx/${txHash}`}
+            groupSX={{ padding: "8px" }}
+          />
+        )}
+      </Box>
     </Box>
-    {txHash !== "" && (
-      <LinkGroup
-        type="etherscan"
-        linkValue={`${EtherscanBaseUrl}/tx/${txHash}`}
-      />
-    )}
-  </Box>
+  </>
 )

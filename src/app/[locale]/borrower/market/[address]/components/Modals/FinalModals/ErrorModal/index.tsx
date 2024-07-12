@@ -1,8 +1,12 @@
+import * as React from "react"
+
 import { Box, Button, IconButton, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 
 import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
+import { LinkGroup } from "@/components/LinkComponent"
+import { EtherscanBaseUrl } from "@/config/network"
 
 import {
   FinalModalCloseButton,
@@ -16,9 +20,11 @@ import {
 export const ErrorModal = ({
   onTryAgain,
   onClose,
+  txHash,
 }: {
   onTryAgain: () => void
   onClose: () => void
+  txHash?: string
 }) => (
   <>
     <Box sx={FinalModalHeader}>
@@ -42,6 +48,14 @@ export const ErrorModal = ({
           </Typography>
         </Box>
       </Box>
+
+      {txHash !== "" && (
+        <LinkGroup
+          type="etherscan"
+          linkValue={`${EtherscanBaseUrl}/tx/${txHash}`}
+          groupSX={{ marginBottom: "16px" }}
+        />
+      )}
 
       <Button variant="contained" size="large" onClick={onTryAgain} fullWidth>
         Try Again

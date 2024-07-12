@@ -4,7 +4,6 @@ import * as React from "react"
 import { Box, Button, Dialog, Typography } from "@mui/material"
 import humanizeDuration from "humanize-duration"
 
-import { LinkGroup } from "@/components/LinkComponent"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
@@ -29,12 +28,11 @@ export const BorrowModal = ({
   const [showErrorPopup, setShowErrorPopup] = useState(false)
   const [txHash, setTxHash] = useState("")
 
-  console.log(txHash, "hash2")
-
   const modal = useApprovalModal(
     setShowSuccessPopup,
     setShowErrorPopup,
     setAmount,
+    setTxHash,
   )
 
   const { mutate, isSuccess, isError, isPending } = useBorrow(
@@ -179,9 +177,12 @@ export const BorrowModal = ({
           <ErrorModal
             onTryAgain={handleTryAgain}
             onClose={modal.handleCloseModal}
+            txHash={txHash}
           />
         )}
-        {showSuccessPopup && <SuccessModal onClose={modal.handleCloseModal} />}
+        {showSuccessPopup && (
+          <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
+        )}
 
         <TxModalFooter
           mainBtnText={modal.approvedStep ? "Confirm" : "Borrow"}

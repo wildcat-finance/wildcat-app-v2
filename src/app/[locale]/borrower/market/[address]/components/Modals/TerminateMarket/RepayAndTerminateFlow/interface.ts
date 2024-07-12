@@ -9,4 +9,5 @@ export type RepayAndTerminateFlowProps = {
   onClose: () => void
   errorPopup: boolean
   successPopup: boolean
+  terminateTxHash: string
 }

@@ -12,6 +12,7 @@ export const useApprovalModal = (
   setShowSuccessPopup: Dispatch<SetStateAction<boolean>>,
   setShowErrorPopup: Dispatch<SetStateAction<boolean>>,
   setValue: Dispatch<SetStateAction<string>>,
+  setTxHash: Dispatch<SetStateAction<string>>,
 ) => {
   const [open, setOpen] = useState(false)
   const [flowStep, setFlowStep] = useState<ModalSteps>(ModalSteps.closedModal)
@@ -31,6 +32,7 @@ export const useApprovalModal = (
     setShowSuccessPopup(false)
     setShowErrorPopup(false)
     setValue("")
+    setTxHash("")
     setFlowStep(ModalSteps.gettingValues)
     setOpen(true)
   }

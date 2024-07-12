@@ -13,6 +13,7 @@ import { RepayAndTerminateFlow } from "./RepayAndTerminateFlow"
 export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
   const { market } = marketAccount
 
+  const [terminateTxHash, setTerminateTxHash] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showSuccessTerminationPopup, setShowSuccessTerminationPopup] =
     useState(false)
@@ -32,7 +33,7 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
     isPending: isTerminating,
     isSuccess: isTerminated,
     isError: isTerminatedError,
-  } = useTerminateMarket(marketAccount)
+  } = useTerminateMarket(marketAccount, setTerminateTxHash)
 
   const handleOpenModal = () => {
     setShowSuccessTerminationPopup(false)
@@ -46,8 +47,6 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
 
   const isReadyForTermination =
     marketAccount.checkCloseMarketStep().status === "Ready"
-
-  console.log(isTerminated, isTerminatedError, "status")
 
   useEffect(() => {
     if (isReadyForTermination) {
@@ -90,6 +89,7 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
           onClose={handleCloseModal}
           successPopup={showSuccessTerminationPopup}
           errorPopup={showErrorTerminationPopup}
+          txHash={terminateTxHash}
         />
       )}
 
@@ -102,6 +102,7 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
           onClose={handleCloseModal}
           successPopup={showSuccessTerminationPopup}
           errorPopup={showErrorTerminationPopup}
+          terminateTxHash={terminateTxHash}
         />
       )}
     </>

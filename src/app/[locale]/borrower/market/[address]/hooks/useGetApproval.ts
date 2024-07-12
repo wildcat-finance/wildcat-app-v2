@@ -1,3 +1,5 @@
+import { Dispatch } from "react"
+
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Market, Token, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
@@ -8,7 +10,11 @@ import {
 } from "@/hooks/useGetMarketAccount"
 import { waitForSubgraphSync } from "@/utils/waitForSubgraphSync"
 
-export const useApprove = (token: Token, market: Market) => {
+export const useApprove = (
+  token: Token,
+  market: Market,
+  setTxHash: Dispatch<React.SetStateAction<string>>,
+) => {
   const client = useQueryClient()
 
   return useMutation({
@@ -22,6 +28,7 @@ export const useApprove = (token: Token, market: Market) => {
           market.address.toLowerCase(),
           tokenAmount.raw,
         )
+        setTxHash(tx.hash)
         return tx.wait()
       }
 

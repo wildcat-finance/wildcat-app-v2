@@ -23,6 +23,7 @@ export const TerminateFlow = ({
   onClose,
   errorPopup,
   successPopup,
+  txHash,
 }: TerminateFlowProps) => {
   const handleTerminateMarket = () => {
     terminateFunc().catch((err) => console.log(err))
@@ -62,10 +63,16 @@ export const TerminateFlow = ({
         </Box>
       )}
 
-      {isTerminating && <LoadingModal />}
-      {successPopup && !isTerminating && <SuccessModal onClose={onClose} />}
+      {isTerminating && <LoadingModal txHash={txHash} />}
+      {successPopup && !isTerminating && (
+        <SuccessModal onClose={onClose} txHash={txHash} />
+      )}
       {errorPopup && !isTerminating && (
-        <ErrorModal onTryAgain={handleTerminateMarket} onClose={onClose} />
+        <ErrorModal
+          onTryAgain={handleTerminateMarket}
+          onClose={onClose}
+          txHash={txHash}
+        />
       )}
 
       <TxModalFooter

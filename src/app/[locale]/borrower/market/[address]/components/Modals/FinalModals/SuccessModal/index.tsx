@@ -1,8 +1,12 @@
+import * as React from "react"
+
 import { Box, IconButton, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 
 import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
+import { LinkGroup } from "@/components/LinkComponent"
+import { EtherscanBaseUrl } from "@/config/network"
 
 import {
   FinalModalCloseButton,
@@ -13,7 +17,13 @@ import {
   FinalModalTypoBox,
 } from "../style"
 
-export const SuccessModal = ({ onClose }: { onClose: () => void }) => (
+export const SuccessModal = ({
+  onClose,
+  txHash,
+}: {
+  onClose: () => void
+  txHash?: string
+}) => (
   <>
     <Box sx={FinalModalHeader}>
       <Box width="20px" height="20px" />
@@ -37,6 +47,14 @@ export const SuccessModal = ({ onClose }: { onClose: () => void }) => (
           </Typography>
         </Box>
       </Box>
+
+      {txHash !== "" && (
+        <LinkGroup
+          type="etherscan"
+          linkValue={`${EtherscanBaseUrl}/tx/${txHash}`}
+          groupSX={{ padding: "8px" }}
+        />
+      )}
     </Box>
   </>
 )
