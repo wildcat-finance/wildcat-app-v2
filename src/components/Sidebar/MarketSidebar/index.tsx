@@ -5,7 +5,6 @@ import SvgIcon from "@mui/material/SvgIcon"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
-import { Link as ScrollLink } from "react-scroll"
 
 import { TerminateMarket } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateMarket"
 import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
@@ -72,106 +71,98 @@ export const MarketSidebar = () => {
         </Link>
 
         <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
-          <ScrollLink to="borrowRepay" smooth duration={500}>
-            <Button
-              variant="text"
-              size="medium"
-              sx={{
-                ...MenuItemButton,
-                backgroundColor: sidebarState.borrowRepay
-                  ? COLORS.blackRock03
-                  : "transparent",
-              }}
-              onClick={() => {
-                dispatch(setCheckBlock(1))
-                dispatch(
-                  setSidebarHighlightState({
-                    borrowRepay: true,
-                    statusDetails: false,
-                    withdrawals: false,
-                    lenders: false,
-                  }),
-                )
-              }}
-            >
-              {t("borrowerMarketDetails.sidebar.borrowRepay")}
-            </Button>
-          </ScrollLink>
-          <ScrollLink to="statusDetails" smooth duration={500}>
-            <Button
-              variant="text"
-              size="medium"
-              sx={{
-                ...MenuItemButton,
-                backgroundColor: sidebarState.statusDetails
-                  ? COLORS.blackRock03
-                  : "transparent",
-              }}
-              onClick={() => {
-                dispatch(setCheckBlock(2))
-                dispatch(
-                  setSidebarHighlightState({
-                    borrowRepay: false,
-                    statusDetails: true,
-                    withdrawals: false,
-                    lenders: false,
-                  }),
-                )
-              }}
-            >
-              {t("borrowerMarketDetails.sidebar.statusDetails")}
-            </Button>
-          </ScrollLink>
-          <ScrollLink to="withdrawals" smooth duration={500}>
-            <Button
-              variant="text"
-              size="medium"
-              sx={{
-                ...MenuItemButton,
-                backgroundColor: sidebarState.withdrawals
-                  ? COLORS.blackRock03
-                  : "transparent",
-              }}
-              onClick={() => {
-                dispatch(setCheckBlock(3))
-                dispatch(
-                  setSidebarHighlightState({
-                    borrowRepay: false,
-                    statusDetails: false,
-                    withdrawals: true,
-                    lenders: false,
-                  }),
-                )
-              }}
-            >
-              {t("borrowerMarketDetails.sidebar.withdrawalRequests")}
-            </Button>
-          </ScrollLink>
-          <ScrollLink to="lenders" smooth duration={500}>
-            <Button
-              variant="text"
-              size="medium"
-              sx={{
-                ...MenuItemButton,
-                backgroundColor: sidebarState.lenders
-                  ? COLORS.blackRock03
-                  : "transparent",
-              }}
-              onClick={() => {
-                dispatch(setCheckBlock(4))
-                dispatch(
-                  setSidebarHighlightState({
-                    borrowRepay: false,
-                    statusDetails: false,
-                    withdrawals: false,
-                    lenders: true,
-                  }),
-                )
-              }}
-            >
-              {t("borrowerMarketDetails.sidebar.authorisedLenders")}
-            </Button>
-          </ScrollLink>
+          <Button
+            variant="text"
+            size="medium"
+            sx={{
+              ...MenuItemButton,
+              backgroundColor: sidebarState.borrowRepay
+                ? COLORS.blackRock03
+                : "transparent",
+            }}
+            onClick={() => {
+              dispatch(setCheckBlock(1))
+              dispatch(
+                setSidebarHighlightState({
+                  borrowRepay: true,
+                  statusDetails: false,
+                  withdrawals: false,
+                  lenders: false,
+                }),
+              )
+            }}
+          >
+            {t("borrowerMarketDetails.sidebar.borrowRepay")}
+          </Button>
+          <Button
+            variant="text"
+            size="medium"
+            sx={{
+              ...MenuItemButton,
+              backgroundColor: sidebarState.statusDetails
+                ? COLORS.blackRock03
+                : "transparent",
+            }}
+            onClick={() => {
+              dispatch(setCheckBlock(2))
+              dispatch(
+                setSidebarHighlightState({
+                  borrowRepay: false,
+                  statusDetails: true,
+                  withdrawals: false,
+                  lenders: false,
+                }),
+              )
+            }}
+          >
+            {t("borrowerMarketDetails.sidebar.statusDetails")}
+          </Button>
+          <Button
+            variant="text"
+            size="medium"
+            sx={{
+              ...MenuItemButton,
+              backgroundColor: sidebarState.withdrawals
+                ? COLORS.blackRock03
+                : "transparent",
+            }}
+            onClick={() => {
+              dispatch(setCheckBlock(3))
+              dispatch(
+                setSidebarHighlightState({
+                  borrowRepay: false,
+                  statusDetails: false,
+                  withdrawals: true,
+                  lenders: false,
+                }),
+              )
+            }}
+          >
+            {t("borrowerMarketDetails.sidebar.withdrawalRequests")}
+          </Button>
+          <Button
+            variant="text"
+            size="medium"
+            sx={{
+              ...MenuItemButton,
+              backgroundColor: sidebarState.lenders
+                ? COLORS.blackRock03
+                : "transparent",
+            }}
+            onClick={() => {
+              dispatch(setCheckBlock(4))
+              dispatch(
+                setSidebarHighlightState({
+                  borrowRepay: false,
+                  statusDetails: false,
+                  withdrawals: false,
+                  lenders: true,
+                }),
+              )
+            }}
+          >
+            {t("borrowerMarketDetails.sidebar.authorisedLenders")}
+          </Button>
         </Box>
 
         {marketAccount && <TerminateMarket marketAccount={marketAccount} />}
