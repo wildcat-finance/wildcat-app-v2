@@ -32,6 +32,7 @@ export const BorrowModal = ({
     setShowSuccessPopup,
     setShowErrorPopup,
     setAmount,
+    setTxHash,
   )
 
   const { mutate, isSuccess, isError, isPending } = useBorrow(

@@ -1,3 +1,5 @@
+import { Dispatch } from "react"
+
 import { BaseTransaction } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
@@ -9,7 +11,10 @@ import { useGnosisSafeSDK } from "@/hooks/useGnosisSafeSDK"
 import { TOKEN_FORMAT_DECIMALS } from "@/utils/formatters"
 import { waitForSubgraphSync } from "@/utils/waitForSubgraphSync"
 
-export const useRepay = (marketAccount: MarketAccount) => {
+export const useRepay = (
+  marketAccount: MarketAccount,
+  setTxHash: Dispatch<React.SetStateAction<string>>,
+) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
   const { isConnectedToSafe, sendTransactions: sendGnosisTransactions } =
@@ -47,6 +52,7 @@ export const useRepay = (marketAccount: MarketAccount) => {
           return tx.wait()
         }
         const tx = await marketAccount.repay(amount.raw)
+        setTxHash(tx.hash)
         return tx.wait()
       }
 

@@ -13,10 +13,12 @@ import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
+import { LinkGroup } from "@/components/LinkComponent"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -35,6 +37,7 @@ export const RepayModal = ({
   marketAccount,
   disableRepayBtn,
 }: RepayModalProps) => {
+  const [txHash, setTxHash] = useState("")
   const [type, setType] = React.useState<"sum" | "days">("sum")
   const [amount, setAmount] = useState("")
   const [days, setDays] = useState("")
@@ -46,6 +49,7 @@ export const RepayModal = ({
     setShowSuccessPopup,
     setShowErrorPopup,
     setAmount,
+    setTxHash,
   )
 
   const { market } = marketAccount
@@ -55,13 +59,13 @@ export const RepayModal = ({
     isPending: isRepaying,
     isSuccess: isRepaid,
     isError: isRepayError,
-  } = useRepay(marketAccount)
+  } = useRepay(marketAccount, setTxHash)
   const {
     mutateAsync: approve,
     isPending: isApproving,
     isSuccess: isApproved,
     isError: isApproveError,
-  } = useApprove(market.underlyingToken, market)
+  } = useApprove(market.underlyingToken, market, setTxHash)
 
   const handleChangeTabs = (
     event: React.SyntheticEvent,
@@ -94,16 +98,19 @@ export const RepayModal = ({
   const repayStep = marketAccount.checkRepayStep(repayAmount)
 
   const handleRepay = () => {
+    setTxHash("")
     repay(repayAmount)
   }
 
   const handleApprove = () => {
+    setTxHash("")
     if (repayStep?.status === "InsufficientAllowance") {
       approve(repayAmount).then(() => modal.setFlowStep(ModalSteps.approved))
     }
   }
 
   const handleTryAgain = () => {
+    setTxHash("")
     handleRepay()
     setShowErrorPopup(false)
   }
@@ -306,14 +313,25 @@ export const RepayModal = ({
           </Box>
         )}
 
-        {isRepaying && <LoadingModal />}
+        {isRepaying && <LoadingModal txHash={txHash} />}
         {showErrorPopup && (
           <ErrorModal
             onTryAgain={handleTryAgain}
             onClose={modal.handleCloseModal}
+            txHash={txHash}
           />
         )}
-        {showSuccessPopup && <SuccessModal onClose={modal.handleCloseModal} />}
+        {showSuccessPopup && (
+          <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
+        )}
+
+        {txHash !== "" && showForm && (
+          <LinkGroup
+            type="etherscan"
+            linkValue={`${EtherscanBaseUrl}/tx/${txHash}`}
+            groupSX={{ padding: "8px", marginBottom: "8px" }}
+          />
+        )}
 
         <TxModalFooter
           mainBtnText="Repay"
