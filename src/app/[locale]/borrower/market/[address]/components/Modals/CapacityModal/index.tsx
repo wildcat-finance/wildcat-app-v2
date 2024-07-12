@@ -23,6 +23,7 @@ export const CapacityModal = ({
 }: {
   marketAccount: MarketAccount
 }) => {
+  const [txHash, setTxHash] = useState("")
   const [amount, setAmount] = useState("")
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
@@ -31,14 +32,17 @@ export const CapacityModal = ({
     setShowSuccessPopup,
     setShowErrorPopup,
     setAmount,
+    setTxHash,
   )
 
   const { t } = useTranslation()
 
   const { market } = marketAccount
 
-  const { mutate, isPending, isSuccess, isError } =
-    useSetMaxTotalSupply(marketAccount)
+  const { mutate, isPending, isSuccess, isError } = useSetMaxTotalSupply(
+    marketAccount,
+    setTxHash,
+  )
 
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
@@ -120,14 +124,17 @@ export const CapacityModal = ({
           </Box>
         )}
 
-        {isPending && <LoadingModal />}
+        {isPending && <LoadingModal txHash={txHash} />}
         {showErrorPopup && (
           <ErrorModal
             onTryAgain={handleTryAgain}
             onClose={modal.handleCloseModal}
+            txHash={txHash}
           />
         )}
-        {showSuccessPopup && <SuccessModal onClose={modal.handleCloseModal} />}
+        {showSuccessPopup && (
+          <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
+        )}
 
         <TxModalFooter
           mainBtnText="Confirm"
