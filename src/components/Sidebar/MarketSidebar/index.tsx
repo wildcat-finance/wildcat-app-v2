@@ -15,6 +15,7 @@ import {
 } from "@/components/Sidebar/MarketSidebar/style"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { ROUTES } from "@/routes"
+import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 
 import BackArrow from "../../../assets/icons/backArrow_icon.svg"
@@ -30,6 +31,10 @@ export const MarketSidebar = () => {
     address,
   })
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
+
+  const sidebarState = useAppSelector(
+    (state) => state.highlightSidebar.sidebarState,
+  )
 
   return (
     <Box sx={ContentContainer}>
@@ -60,22 +65,58 @@ export const MarketSidebar = () => {
 
         <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
           <ScrollLink to="borrowRepay" smooth duration={500}>
-            <Button variant="text" size="medium" sx={MenuItemButton}>
+            <Button
+              variant="text"
+              size="medium"
+              sx={{
+                ...MenuItemButton,
+                backgroundColor: sidebarState.borrowRepay
+                  ? COLORS.blackRock03
+                  : "transparent",
+              }}
+            >
               {t("borrowerMarketDetails.sidebar.borrowRepay")}
             </Button>
           </ScrollLink>
           <ScrollLink to="statusDetails" smooth duration={500}>
-            <Button variant="text" size="medium" sx={MenuItemButton}>
+            <Button
+              variant="text"
+              size="medium"
+              sx={{
+                ...MenuItemButton,
+                backgroundColor: sidebarState.statusDetails
+                  ? COLORS.blackRock03
+                  : "transparent",
+              }}
+            >
               {t("borrowerMarketDetails.sidebar.statusDetails")}
             </Button>
           </ScrollLink>
           <ScrollLink to="withdrawals" smooth duration={500}>
-            <Button variant="text" size="medium" sx={MenuItemButton}>
+            <Button
+              variant="text"
+              size="medium"
+              sx={{
+                ...MenuItemButton,
+                backgroundColor: sidebarState.withdrawals
+                  ? COLORS.blackRock03
+                  : "transparent",
+              }}
+            >
               {t("borrowerMarketDetails.sidebar.withdrawalRequests")}
             </Button>
           </ScrollLink>
           <ScrollLink to="lenders" smooth duration={500}>
-            <Button variant="text" size="medium" sx={MenuItemButton}>
+            <Button
+              variant="text"
+              size="medium"
+              sx={{
+                ...MenuItemButton,
+                backgroundColor: sidebarState.lenders
+                  ? COLORS.blackRock03
+                  : "transparent",
+              }}
+            >
               {t("borrowerMarketDetails.sidebar.authorisedLenders")}
             </Button>
           </ScrollLink>

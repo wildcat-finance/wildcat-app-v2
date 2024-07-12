@@ -1,5 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit"
 
+import highlightSidebarSlice from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
+
 import borrowerSidebarSlice from "./slices/borrowerSidebarSlice/borrowerSidebarSlice"
 import routingSlice from "./slices/routingSlice/routingSlice"
 
@@ -8,6 +10,7 @@ export const makeStore = () =>
     reducer: {
       routing: routingSlice,
       borrowerSidebar: borrowerSidebarSlice,
+      highlightSidebar: highlightSidebarSlice,
     },
   })
 

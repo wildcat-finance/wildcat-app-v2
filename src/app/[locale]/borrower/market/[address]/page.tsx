@@ -10,6 +10,8 @@ import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/comp
 import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
 import { LeadBanner } from "@/components/LeadBanner"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
+import { useAppDispatch } from "@/store/hooks"
+import { setSidebarHighlightState } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
 
 import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
@@ -59,6 +61,66 @@ export default function MarketDetails({
   React.useEffect(() => {
     document.onwheel = handleScroll
   }, [])
+
+  const dispatch = useAppDispatch()
+
+  switch (checked) {
+    case 1: {
+      dispatch(
+        setSidebarHighlightState({
+          borrowRepay: true,
+          statusDetails: false,
+          withdrawals: false,
+          lenders: false,
+        }),
+      )
+      break
+    }
+    case 2: {
+      dispatch(
+        setSidebarHighlightState({
+          borrowRepay: false,
+          statusDetails: true,
+          withdrawals: false,
+          lenders: false,
+        }),
+      )
+      break
+    }
+    case 3: {
+      dispatch(
+        setSidebarHighlightState({
+          borrowRepay: false,
+          statusDetails: false,
+          withdrawals: true,
+          lenders: false,
+        }),
+      )
+      break
+    }
+    case 4: {
+      dispatch(
+        setSidebarHighlightState({
+          borrowRepay: false,
+          statusDetails: false,
+          withdrawals: false,
+          lenders: true,
+        }),
+      )
+      break
+    }
+    default: {
+      dispatch(
+        setSidebarHighlightState({
+          borrowRepay: true,
+          statusDetails: false,
+          withdrawals: false,
+          lenders: false,
+        }),
+      )
+      break
+    }
+  }
 
   if (!market || !marketAccount)
     return (
