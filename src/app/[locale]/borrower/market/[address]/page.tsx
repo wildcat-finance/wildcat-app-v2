@@ -19,6 +19,10 @@ import { MarketTransactions } from "./components/MarketTransactions"
 import { MarketWithdrawalRequests } from "./components/MarketWithdrawalRequests"
 import { SkeletonContainer, SkeletonStyle } from "./style"
 
+const FadeContent = ({ children }: { children: React.ReactNode }) => (
+  <Box sx={{ width: "100%" }}>{children}</Box>
+)
+
 export default function MarketDetails({
   params: { address },
 }: {
@@ -37,6 +41,28 @@ export default function MarketDetails({
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 
   const [checked, setChecked] = React.useState<number>(1)
+  const checkedRef = React.useRef<number>(1)
+  checkedRef.current = checked
+
+  const slidesCount = 4
+
+  const handleScroll = (evt: WheelEvent) => {
+    if (window.innerHeight + window.scrollY >= document.body.scrollHeight) {
+      if (evt.deltaY > 0 && checkedRef.current !== slidesCount) {
+        setChecked(() => checkedRef.current + 1)
+      }
+    }
+
+    if (window.scrollY === 0) {
+      if (evt.deltaY < 0 && checkedRef.current !== 1) {
+        setChecked(() => checkedRef.current - 1)
+      }
+    }
+  }
+
+  React.useEffect(() => {
+    document.onwheel = handleScroll
+  }, [])
 
   if (!market || !marketAccount)
     return (
