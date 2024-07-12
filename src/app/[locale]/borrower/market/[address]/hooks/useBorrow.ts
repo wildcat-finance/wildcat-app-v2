@@ -1,3 +1,5 @@
+import { Dispatch } from "react"
+
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { parseUnits } from "ethers/lib/utils"
@@ -7,7 +9,10 @@ import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY } from "@/hooks/useGetMarketAccount"
 import { waitForSubgraphSync } from "@/utils/waitForSubgraphSync"
 
-export const useBorrow = (marketAccount: MarketAccount) => {
+export const useBorrow = (
+  marketAccount: MarketAccount,
+  setTxHash: Dispatch<React.SetStateAction<string>>,
+) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
 
@@ -24,6 +29,7 @@ export const useBorrow = (marketAccount: MarketAccount) => {
 
       const borrow = async () => {
         const tx = await marketAccount.borrow(tokenAmount)
+        setTxHash(tx.hash)
         return tx.wait()
       }
 

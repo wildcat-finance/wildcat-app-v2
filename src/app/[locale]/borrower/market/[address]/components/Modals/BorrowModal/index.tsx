@@ -4,6 +4,7 @@ import * as React from "react"
 import { Box, Button, Dialog, Typography } from "@mui/material"
 import humanizeDuration from "humanize-duration"
 
+import { LinkGroup } from "@/components/LinkComponent"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
@@ -26,6 +27,9 @@ export const BorrowModal = ({
   const [amount, setAmount] = useState("")
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
+  const [txHash, setTxHash] = useState("")
+
+  console.log(txHash, "hash2")
 
   const modal = useApprovalModal(
     setShowSuccessPopup,
@@ -33,7 +37,10 @@ export const BorrowModal = ({
     setAmount,
   )
 
-  const { mutate, isPending, isSuccess, isError } = useBorrow(marketAccount)
+  const { mutate, isSuccess, isError, isPending } = useBorrow(
+    marketAccount,
+    setTxHash,
+  )
 
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
@@ -167,7 +174,7 @@ export const BorrowModal = ({
           </Box>
         )}
 
-        {isPending && <LoadingModal />}
+        {isPending && <LoadingModal txHash={txHash} />}
         {showErrorPopup && (
           <ErrorModal
             onTryAgain={handleTryAgain}
