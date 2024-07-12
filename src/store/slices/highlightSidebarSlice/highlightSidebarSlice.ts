@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit"
 import { THighLightSidebar } from "@/store/slices/highlightSidebarSlice/interface"
 
 const initialState: THighLightSidebar = {
+  checked: 1,
   sidebarState: {
     borrowRepay: true,
     statusDetails: false,
@@ -18,9 +19,13 @@ const highlightSidebarSlice = createSlice({
     setSidebarHighlightState: (state, action) => {
       state.sidebarState = action.payload
     },
+    setCheckBlock: (state, action) => {
+      state.checked = action.payload
+    },
   },
 })
 
-export const { setSidebarHighlightState } = highlightSidebarSlice.actions
+export const { setSidebarHighlightState, setCheckBlock } =
+  highlightSidebarSlice.actions
 
 export default highlightSidebarSlice.reducer

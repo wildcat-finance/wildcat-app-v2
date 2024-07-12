@@ -15,13 +15,19 @@ import {
 } from "@/components/Sidebar/MarketSidebar/style"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { ROUTES } from "@/routes"
-import { useAppSelector } from "@/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import {
+  setCheckBlock,
+  setSidebarHighlightState,
+} from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
 
 import BackArrow from "../../../assets/icons/backArrow_icon.svg"
 
 export const MarketSidebar = () => {
   const { t } = useTranslation()
+
+  const dispatch = useAppDispatch()
 
   const params = useParams<{ locale: string; address: string }>()
 
@@ -31,6 +37,8 @@ export const MarketSidebar = () => {
     address,
   })
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
+
+  // const checked = useAppSelector((state) => state.highlightSidebar.checked)
 
   const sidebarState = useAppSelector(
     (state) => state.highlightSidebar.sidebarState,
@@ -74,6 +82,17 @@ export const MarketSidebar = () => {
                   ? COLORS.blackRock03
                   : "transparent",
               }}
+              onClick={() => {
+                dispatch(setCheckBlock(1))
+                dispatch(
+                  setSidebarHighlightState({
+                    borrowRepay: true,
+                    statusDetails: false,
+                    withdrawals: false,
+                    lenders: false,
+                  }),
+                )
+              }}
             >
               {t("borrowerMarketDetails.sidebar.borrowRepay")}
             </Button>
@@ -87,6 +106,17 @@ export const MarketSidebar = () => {
                 backgroundColor: sidebarState.statusDetails
                   ? COLORS.blackRock03
                   : "transparent",
+              }}
+              onClick={() => {
+                dispatch(setCheckBlock(2))
+                dispatch(
+                  setSidebarHighlightState({
+                    borrowRepay: false,
+                    statusDetails: true,
+                    withdrawals: false,
+                    lenders: false,
+                  }),
+                )
               }}
             >
               {t("borrowerMarketDetails.sidebar.statusDetails")}
@@ -102,6 +132,17 @@ export const MarketSidebar = () => {
                   ? COLORS.blackRock03
                   : "transparent",
               }}
+              onClick={() => {
+                dispatch(setCheckBlock(3))
+                dispatch(
+                  setSidebarHighlightState({
+                    borrowRepay: false,
+                    statusDetails: false,
+                    withdrawals: true,
+                    lenders: false,
+                  }),
+                )
+              }}
             >
               {t("borrowerMarketDetails.sidebar.withdrawalRequests")}
             </Button>
@@ -115,6 +156,17 @@ export const MarketSidebar = () => {
                 backgroundColor: sidebarState.lenders
                   ? COLORS.blackRock03
                   : "transparent",
+              }}
+              onClick={() => {
+                dispatch(setCheckBlock(4))
+                dispatch(
+                  setSidebarHighlightState({
+                    borrowRepay: false,
+                    statusDetails: false,
+                    withdrawals: false,
+                    lenders: true,
+                  }),
+                )
               }}
             >
               {t("borrowerMarketDetails.sidebar.authorisedLenders")}

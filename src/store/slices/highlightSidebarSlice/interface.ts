@@ -1,4 +1,5 @@
 export type THighLightSidebar = {
+  checked: number
   sidebarState: {
     borrowRepay: boolean
     statusDetails: boolean

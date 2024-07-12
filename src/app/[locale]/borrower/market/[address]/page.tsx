@@ -10,8 +10,11 @@ import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/comp
 import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
 import { LeadBanner } from "@/components/LeadBanner"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
-import { useAppDispatch } from "@/store/hooks"
-import { setSidebarHighlightState } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import {
+  setCheckBlock,
+  setSidebarHighlightState,
+} from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
 
 import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
@@ -26,6 +29,8 @@ export default function MarketDetails({
 }: {
   params: { address: string }
 }) {
+  const dispatch = useAppDispatch()
+
   const { data: market } = useGetMarket({
     address,
   })
@@ -38,7 +43,8 @@ export default function MarketDetails({
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 
-  const [checked, setChecked] = React.useState<number>(1)
+  const checked = useAppSelector((state) => state.highlightSidebar.checked)
+
   const checkedRef = React.useRef<number>(1)
   checkedRef.current = checked
 
@@ -47,13 +53,13 @@ export default function MarketDetails({
   const handleScroll = (evt: WheelEvent) => {
     if (window.innerHeight + window.scrollY >= document.body.scrollHeight) {
       if (evt.deltaY > 0 && checkedRef.current !== slidesCount) {
-        setChecked(() => checkedRef.current + 1)
+        dispatch(setCheckBlock(checkedRef.current + 1))
       }
     }
 
     if (window.scrollY === 0) {
       if (evt.deltaY < 0 && checkedRef.current !== 1) {
-        setChecked(() => checkedRef.current - 1)
+        dispatch(setCheckBlock(checkedRef.current - 1))
       }
     }
   }
@@ -61,8 +67,6 @@ export default function MarketDetails({
   React.useEffect(() => {
     document.onwheel = handleScroll
   }, [])
-
-  const dispatch = useAppDispatch()
 
   switch (checked) {
     case 1: {
