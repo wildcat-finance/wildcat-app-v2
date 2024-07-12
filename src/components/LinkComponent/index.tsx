@@ -12,6 +12,7 @@ export const LinkGroup = ({
   type = "withCopy",
   copyValue,
   linkValue,
+  groupSX,
 }: LinkGroupProps) => {
   const [state, copyToClipboard] = useCopyToClipboard()
 
@@ -22,7 +23,7 @@ export const LinkGroup = ({
   switch (type) {
     case "withCopy": {
       return (
-        <Box sx={ButtonsContainer}>
+        <Box sx={{ ...ButtonsContainer, ...groupSX }}>
           {copyValue && (
             <IconButton
               disableRipple
@@ -53,16 +54,17 @@ export const LinkGroup = ({
     }
     case "etherscan": {
       return (
-        // eslint-disable-next-line react/jsx-no-useless-fragment
-        <Box>
+        <Box sx={groupSX}>
           {linkValue && (
             <Link
               href={linkValue}
+              target="_blank"
               style={{
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
                 gap: "6px",
+                textDecoration: "none",
               }}
             >
               <SvgIcon>
