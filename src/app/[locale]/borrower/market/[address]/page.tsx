@@ -17,11 +17,7 @@ import { MarketHeader } from "./components/MarketHeader"
 import { MarketParameters } from "./components/MarketParameters"
 import { MarketTransactions } from "./components/MarketTransactions"
 import { MarketWithdrawalRequests } from "./components/MarketWithdrawalRequests"
-import { SkeletonContainer, SkeletonStyle } from "./style"
-
-const FadeContent = ({ children }: { children: React.ReactNode }) => (
-  <Box sx={{ width: "100%" }}>{children}</Box>
-)
+import { FadeContentContainer, SkeletonContainer, SkeletonStyle } from "./style"
 
 export default function MarketDetails({
   params: { address },
@@ -110,11 +106,7 @@ export default function MarketDetails({
 
         <Box sx={{ position: "relative" }}>
           <Fade unmountOnExit in={checked === 1}>
-            <Box
-              sx={{
-                width: "100%",
-              }}
-            >
+            <Box sx={FadeContentContainer}>
               <MarketHeader
                 marketAccount={marketAccount}
                 holdTheMarket={holdTheMarket}
@@ -136,11 +128,7 @@ export default function MarketDetails({
           </Fade>
 
           <Fade unmountOnExit in={checked === 2}>
-            <Box
-              sx={{
-                width: "100%",
-              }}
-            >
+            <Box sx={FadeContentContainer}>
               <MarketStatusChart market={market} />
 
               <Divider sx={{ margin: "32px 0 44px" }} />
@@ -149,22 +137,14 @@ export default function MarketDetails({
             </Box>
           </Fade>
           <Fade unmountOnExit in={checked === 3}>
-            <Box
-              sx={{
-                width: "100%",
-              }}
-            >
+            <Box sx={FadeContentContainer}>
               {holdTheMarket && (
                 <MarketWithdrawalRequests marketAccount={marketAccount} />
               )}
             </Box>
           </Fade>
           <Fade unmountOnExit in={checked === 4}>
-            <Box
-              sx={{
-                width: "100%",
-              }}
-            >
+            <Box sx={FadeContentContainer}>
               {holdTheMarket && <MarketAuthorisedLenders market={market} />}
             </Box>
           </Fade>

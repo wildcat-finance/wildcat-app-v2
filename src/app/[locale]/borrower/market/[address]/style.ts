@@ -11,3 +11,7 @@ export const SkeletonStyle = {
   bgcolor: COLORS.athensGrey,
   borderRadius: "12px",
 }
+
+export const FadeContentContainer = {
+  width: "100%",
+}
