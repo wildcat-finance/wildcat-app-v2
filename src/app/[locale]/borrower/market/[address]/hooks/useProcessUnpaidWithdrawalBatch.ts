@@ -1,3 +1,5 @@
+import { Dispatch } from "react"
+
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
@@ -11,6 +13,7 @@ import { useGnosisSafeSDK } from "@/hooks/useGnosisSafeSDK"
 
 export const useProcessUnpaidWithdrawalBatch = (
   marketAccount: MarketAccount,
+  setTxHash: Dispatch<React.SetStateAction<string>>,
 ) => {
   const client = useQueryClient()
   const { isConnectedToSafe, sendTransactions: sendGnosisTransactions } =
@@ -46,6 +49,7 @@ export const useProcessUnpaidWithdrawalBatch = (
               tokenAmount,
               maxBatches,
             )
+          setTxHash(tx.hash)
           await tx.wait()
         }
       }

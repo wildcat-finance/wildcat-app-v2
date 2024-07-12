@@ -1,11 +1,13 @@
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
 import { minTokenAmount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
 
+import { LinkGroup } from "@/components/LinkComponent"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -34,7 +36,10 @@ export const RepayAndTerminateFlow = ({
   onClose,
   successPopup,
   errorPopup,
+  terminateTxHash,
 }: RepayAndTerminateFlowProps) => {
+  const [approveTxHash, setApproveTxHash] = useState("")
+  const [repayTxHash, setRepayTxHash] = useState("")
   const modal = useTerminateModal()
 
   const isModalOpen = isOpen && !modal.closedModalStep
@@ -47,14 +52,14 @@ export const RepayAndTerminateFlow = ({
     isPending: isApproving,
     isSuccess: isApproved,
     isError: isApproveError,
-  } = useApprove(market.underlyingToken, market)
+  } = useApprove(market.underlyingToken, market, setApproveTxHash)
 
   const {
     mutateAsync: repayAndProcess,
     isPending: isProcessing,
     isSuccess: isProcessed,
     isError: IsProcessedError,
-  } = useProcessUnpaidWithdrawalBatch(marketAccount)
+  } = useProcessUnpaidWithdrawalBatch(marketAccount, setRepayTxHash)
 
   const getMarketValues = () => {
     const values = []
@@ -267,6 +272,14 @@ export const RepayAndTerminateFlow = ({
             </Box>
           </Box>
 
+          {repayTxHash !== "" && modal.repayedStep && (
+            <LinkGroup
+              type="etherscan"
+              linkValue={`${EtherscanBaseUrl}/tx/${repayTxHash}`}
+              groupSX={{ padding: "8px", marginBottom: "8px" }}
+            />
+          )}
+
           <Box padding="0 24px">
             <Button
               variant="contained"
@@ -281,10 +294,24 @@ export const RepayAndTerminateFlow = ({
         </>
       )}
 
-      {isLoading && <LoadingModal />}
-      {successPopup && !isLoading && <SuccessModal onClose={onClose} />}
+      {isLoading && <LoadingModal txHash={terminateTxHash} />}
+      {successPopup && !isLoading && (
+        <SuccessModal onClose={onClose} txHash={terminateTxHash} />
+      )}
       {errorPopup && !isLoading && (
-        <ErrorModal onTryAgain={handleTerminateMarket} onClose={onClose} />
+        <ErrorModal
+          onTryAgain={handleTerminateMarket}
+          onClose={onClose}
+          txHash={terminateTxHash}
+        />
+      )}
+
+      {approveTxHash !== "" && modal.approvedStep && (
+        <LinkGroup
+          type="etherscan"
+          linkValue={`${EtherscanBaseUrl}/tx/${approveTxHash}`}
+          groupSX={{ padding: "8px", marginBottom: "8px" }}
+        />
       )}
 
       <TxModalFooter
