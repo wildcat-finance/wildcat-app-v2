@@ -47,8 +47,6 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
   const isReadyForTermination =
     marketAccount.checkCloseMarketStep().status === "Ready"
 
-  console.log(isTerminated, isTerminatedError, "status")
-
   useEffect(() => {
     if (isReadyForTermination) {
       setFlow("terminate")
