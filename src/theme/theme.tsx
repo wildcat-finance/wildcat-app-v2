@@ -3,6 +3,7 @@ import * as React from "react"
 import { createTheme, SvgIcon } from "@mui/material"
 
 import type {} from "@mui/x-data-grid/themeAugmentation"
+import type {} from "@mui/x-date-pickers/themeAugmentation"
 
 import DownArrow from "@/assets/icons/downArrow20_icon.svg"
 import AscIcon from "@/assets/icons/tableSort-ascSort_icon.svg"
@@ -1221,6 +1222,26 @@ export const theme = createTheme({
         root: {
           transformOrigin: "0px",
           transform: "none",
+        },
+      },
+    },
+    MuiDateCalendar: {
+      styleOverrides: {
+        root: {
+          boxSizing: "border-box",
+          fontStyle: "inherit",
+          maxWidth: "274px",
+          "& .MuiPickersCalendarHeader-root": {
+            justifyContent: "space-between",
+            margin: "0px",
+            padding: "0px",
+          },
+          "& .MuiPickersCalendarHeader-labelContainer": {
+            margin: "0px",
+          },
+          "& .MuiPickersArrowSwitcher-spacer": {
+            display: "none",
+          },
         },
       },
     },
