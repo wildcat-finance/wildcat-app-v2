@@ -80,7 +80,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             handleCopy={() => {
               handleCopy(market.marketToken.name)
             }}
-            address={market.marketToken.name}
+            address={market.marketToken.address}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
@@ -131,7 +131,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.maximumGracePeriod")}
-            value={`${formatSecsToHours(market.delinquencyGracePeriod)}`}
+            value={`${market.delinquencyGracePeriod} sec`}
             tooltipText="TBD"
           />
           <Divider sx={{ margin: "12px 0 12px" }} />

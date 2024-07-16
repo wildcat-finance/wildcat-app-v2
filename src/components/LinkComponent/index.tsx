@@ -71,7 +71,7 @@ export const LinkGroup = ({
                 <LinkIcon />
               </SvgIcon>
 
-              <Typography variant="text3">View on Ethescan</Typography>
+              <Typography variant="text3">View on Etherscan</Typography>
             </Link>
           )}
         </Box>

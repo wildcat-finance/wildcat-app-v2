@@ -1,10 +1,12 @@
 import { useState } from "react"
+import * as React from "react"
 
 import {
   Box,
   Button,
   IconButton,
   Link,
+  Skeleton,
   SvgIcon,
   Typography,
 } from "@mui/material"
@@ -13,6 +15,10 @@ import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
+import {
+  SkeletonContainer,
+  SkeletonStyle,
+} from "@/app/[locale]/borrower/market/[address]/style"
 import { Accordion } from "@/components/Accordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { EtherscanBaseUrl } from "@/config/network"
@@ -194,31 +200,42 @@ export const MarketAuthorisedLenders = ({
         </Button>
       </Box>
 
-      <DataGrid
-        sx={DataGridCells}
-        rows={rows}
-        columns={columns}
-        columnHeaderHeight={40}
-      />
-      <Accordion
-        sx={{
-          flexDirection: "row-reverse",
-          justifyContent: "flex-end",
-        }}
-        iconContainerSx={{
-          width: "fit-content",
-        }}
-        summarySx={{ color: COLORS.blueRibbon }}
-        iconColor={COLORS.blueRibbon}
-        title="Deleted Lenders"
-      >
-        <DataGrid
-          sx={DataGridCells}
-          rows={rows}
-          columns={columns}
-          columnHeaderHeight={0}
-        />
-      </Accordion>
+      {rows?.length === 0 ? (
+        <Box sx={SkeletonContainer} flexDirection="column" gap="20px">
+          <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+          <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+          <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+          <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+        </Box>
+      ) : (
+        <>
+          <DataGrid
+            sx={DataGridCells}
+            rows={rows}
+            columns={columns}
+            columnHeaderHeight={40}
+          />
+          <Accordion
+            sx={{
+              flexDirection: "row-reverse",
+              justifyContent: "flex-end",
+            }}
+            iconContainerSx={{
+              width: "fit-content",
+            }}
+            summarySx={{ color: COLORS.blueRibbon }}
+            iconColor={COLORS.blueRibbon}
+            title="Deleted Lenders"
+          >
+            <DataGrid
+              sx={DataGridCells}
+              rows={rows}
+              columns={columns}
+              columnHeaderHeight={0}
+            />
+          </Accordion>
+        </>
+      )}
     </Box>
   )
 }
