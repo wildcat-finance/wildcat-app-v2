@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-import { Box, Divider, Fade, Skeleton } from "@mui/material"
+import { Box, Divider, Skeleton, Slide } from "@mui/material"
 import { useAccount } from "wagmi"
 
 import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
@@ -22,7 +22,11 @@ import { MarketHeader } from "./components/MarketHeader"
 import { MarketParameters } from "./components/MarketParameters"
 import { MarketTransactions } from "./components/MarketTransactions"
 import { MarketWithdrawalRequests } from "./components/MarketWithdrawalRequests"
-import { FadeContentContainer, SkeletonContainer, SkeletonStyle } from "./style"
+import {
+  SlideContentContainer,
+  SkeletonContainer,
+  SkeletonStyle,
+} from "./style"
 
 export default function MarketDetails({
   params: { address },
@@ -37,25 +41,38 @@ export default function MarketDetails({
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
   const checked = useAppSelector((state) => state.highlightSidebar.checked)
+  const scrollContainer = React.useRef<HTMLElement>(null)
   const checkedRef = React.useRef<number>(1)
   const [scrollEnabled, setScrollEnabled] = React.useState(true)
   checkedRef.current = checked
   const slidesCount = 4
 
+  const [direction, setDirection] = React.useState<"down" | "up">("down")
+
   const handleScroll = (evt: WheelEvent) => {
     if (!scrollEnabled) return
-
+    const tempChecked = checkedRef.current
     if (window.innerHeight + window.scrollY >= document.body.scrollHeight) {
       if (evt.deltaY > 0 && checkedRef.current !== slidesCount) {
+        setDirection("down")
         setScrollEnabled(false)
-        dispatch(setCheckBlock(checkedRef.current + 1))
+        dispatch(setCheckBlock(0))
+        setTimeout(() => {
+          setDirection("up")
+          dispatch(setCheckBlock(tempChecked + 1))
+        }, 600)
       }
     }
 
     if (window.scrollY === 0) {
       if (evt.deltaY < 0 && checkedRef.current !== 1) {
+        setDirection("up")
         setScrollEnabled(false)
-        dispatch(setCheckBlock(checkedRef.current - 1))
+        dispatch(setCheckBlock(0))
+        setTimeout(() => {
+          setDirection("down")
+          dispatch(setCheckBlock(tempChecked - 1))
+        }, 600)
       }
     }
   }
@@ -120,7 +137,7 @@ export default function MarketDetails({
       default:
         dispatch(
           setSidebarHighlightState({
-            borrowRepay: true,
+            borrowRepay: false,
             statusDetails: false,
             withdrawals: false,
             lenders: false,
@@ -160,7 +177,7 @@ export default function MarketDetails({
     )
 
   return (
-    <Box sx={{ padding: "52px 20px 0 44px" }}>
+    <Box sx={{ padding: "52px 20px 0 44px", overflowY: "scroll" }}>
       <Box sx={{ width: "69%" }}>
         {!bannerDisplayConfig.hideBanner && (
           <LeadBanner
@@ -170,9 +187,17 @@ export default function MarketDetails({
             buttonLink={bannerDisplayConfig.link}
           />
         )}
-        <Box sx={{ position: "relative" }}>
-          <Fade unmountOnExit in={checked === 1}>
-            <Box sx={FadeContentContainer}>
+        <Box
+          ref={scrollContainer}
+          sx={{ position: "relative", overflow: "hidden" }}
+        >
+          <Slide
+            direction={direction}
+            container={scrollContainer.current}
+            unmountOnExit
+            in={checked === 1}
+          >
+            <Box sx={SlideContentContainer}>
               <MarketHeader
                 marketAccount={marketAccount}
                 holdTheMarket={holdTheMarket}
@@ -187,26 +212,41 @@ export default function MarketDetails({
               <Divider sx={{ margin: "32px 0 44px" }} />
               <MarketStatusChart market={market} />
             </Box>
-          </Fade>
-          <Fade unmountOnExit in={checked === 2}>
-            <Box sx={FadeContentContainer}>
+          </Slide>
+          <Slide
+            direction={direction}
+            container={scrollContainer.current}
+            unmountOnExit
+            in={checked === 2}
+          >
+            <Box sx={SlideContentContainer}>
               <MarketStatusChart market={market} />
               <Divider sx={{ margin: "32px 0 44px" }} />
               <MarketParameters market={market} />
             </Box>
-          </Fade>
-          <Fade unmountOnExit in={checked === 3}>
-            <Box sx={FadeContentContainer}>
+          </Slide>
+          <Slide
+            direction={direction}
+            container={scrollContainer.current}
+            unmountOnExit
+            in={checked === 3}
+          >
+            <Box sx={SlideContentContainer}>
               {holdTheMarket && (
                 <MarketWithdrawalRequests marketAccount={marketAccount} />
               )}
             </Box>
-          </Fade>
-          <Fade unmountOnExit in={checked === 4}>
-            <Box sx={FadeContentContainer}>
+          </Slide>
+          <Slide
+            direction={direction}
+            container={scrollContainer.current}
+            unmountOnExit
+            in={checked === 4}
+          >
+            <Box sx={SlideContentContainer}>
               {holdTheMarket && <MarketAuthorisedLenders market={market} />}
             </Box>
-          </Fade>
+          </Slide>
         </Box>
       </Box>
     </Box>
