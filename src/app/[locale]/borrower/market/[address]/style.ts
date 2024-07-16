@@ -12,6 +12,6 @@ export const SkeletonStyle = {
   borderRadius: "12px",
 }
 
-export const FadeContentContainer = {
+export const SlideContentContainer = {
   width: "100%",
 }
