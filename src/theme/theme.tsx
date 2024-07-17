@@ -1236,17 +1236,49 @@ export const theme = createTheme({
             margin: "0px",
             padding: "0px",
           },
+          "& .MuiDayCalendar-root": {
+            display: "flex",
+            flexDirection: "column",
+            gap: "6px",
+          },
+          "& .MuiDayCalendar-monthContainer": {
+            display: "flex",
+            flexDirection: "column",
+            gap: "6px",
+          },
           "& .MuiDayCalendar-header": {
             justifyContent: "space-between",
           },
           "& .MuiPickersCalendarHeader-labelContainer": {
-            margin: "0px",
+            margin: "0px 4px",
+          },
+          "& .Mui-selected": {
+            backgroundColor: COLORS.cornflowerBlue,
+          },
+          "& .MuiPickersCalendarHeader-label": {
+            marginRight: "0px",
           },
           "& .MuiPickersArrowSwitcher-spacer": {
             display: "none",
           },
+          "& .MuiDayCalendar-weekContainer": {
+            margin: "0",
+            justifyContent: "space-between",
+          },
+          "& .MuiDayCalendar-weekDayLabel": {
+            width: "20px",
+            height: "20px",
+          },
           "& .MuiPickersDay-root": {
             fontSize: "small",
+            width: "20px",
+            height: "20px",
+          },
+          "& .MuiPickersCalendarHeader-switchViewIcon": {
+            "& path": { fill: `${COLORS.greySuit}` },
+          },
+          "& .MuiPickersDay-root:not(.Mui-selected)": {
+            border: "none",
           },
         },
       },

@@ -17,25 +17,36 @@ export default {
 } as Meta<typeof DateCalendar>
 
 const DateCalendarArrowLeft = () => (
-  <SvgIcon fontSize="small">
+  <SvgIcon
+    sx={{
+      "& path": { fill: `${COLORS.greySuit}` },
+    }}
+    fontSize="small"
+  >
     <ArrowLeftIcon />
   </SvgIcon>
 )
 
 const DateCalendarArrowКRight = () => (
-  <SvgIcon fontSize="small" style={{ rotate: "180deg" }}>
+  <SvgIcon
+    sx={{
+      "& path": { fill: `${COLORS.greySuit}` },
+    }}
+    fontSize="small"
+    style={{ rotate: "180deg" }}
+  >
     <ArrowLeftIcon />
   </SvgIcon>
 )
 
 export const BasicDatePicker = () => {
-  const [starting, setStarting] = useState<Dayjs | null>(dayjs())
-  const [ending, setEnding] = useState<Dayjs | null>(dayjs())
+  const [starting, setStarting] = useState<Dayjs | null>(null)
+  const [ending, setEnding] = useState<Dayjs | null>(null)
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Box sx={{ display: "flex", gap: "28px" }}>
-        <Box>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           <Box
             sx={{
               display: "flex",
@@ -43,26 +54,40 @@ export const BasicDatePicker = () => {
               gap: "4px",
             }}
           >
-            <Typography variant="text3" color={COLORS.santasGrey}>
+            <Typography
+              sx={{ padding: "0px 4px" }}
+              variant="text3"
+              color={COLORS.santasGrey}
+            >
               Start Date
             </Typography>
-            <TextField value={starting?.format("DD MMMM YYYY")} fullWidth />
-          </Box>
-          <Box sx={{ padding: "0px 4px" }}>
-            <DateCalendar
-              slots={{
-                leftArrowIcon: DateCalendarArrowLeft,
-                rightArrowIcon: DateCalendarArrowКRight,
+            <TextField
+              sx={{
+                height: "44px",
+                "& .MuiInputBase-root": {
+                  width: "274px",
+                  height: "44px",
+                },
               }}
-              value={starting}
-              onChange={(newVal) => {
-                setStarting(newVal)
-              }}
-              defaultValue={dayjs()}
+              placeholder="12/01/1980"
+              value={starting?.format("DD MMMM YYYY")}
+              fullWidth
             />
           </Box>
+
+          <DateCalendar
+            slots={{
+              leftArrowIcon: DateCalendarArrowLeft,
+              rightArrowIcon: DateCalendarArrowКRight,
+            }}
+            value={starting}
+            onChange={(newVal) => {
+              setStarting(newVal)
+            }}
+            defaultValue={dayjs()}
+          />
         </Box>
-        <Box>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           <Box
             sx={{
               display: "flex",
@@ -70,24 +95,38 @@ export const BasicDatePicker = () => {
               gap: "4px",
             }}
           >
-            <Typography variant="text3" color={COLORS.santasGrey}>
+            <Typography
+              sx={{ padding: "0px 4px" }}
+              variant="text3"
+              color={COLORS.santasGrey}
+            >
               Due Date
             </Typography>
-            <TextField value={ending?.format("DD MMMM YYYY")} fullWidth />
-          </Box>
-          <Box sx={{ padding: "0px 4px" }}>
-            <DateCalendar
-              slots={{
-                leftArrowIcon: DateCalendarArrowLeft,
-                rightArrowIcon: DateCalendarArrowКRight,
+            <TextField
+              sx={{
+                height: "44px",
+                "& .MuiInputBase-root": {
+                  width: "274px",
+                  height: "44px",
+                },
               }}
-              value={ending}
-              onChange={(newVal) => {
-                setEnding(newVal)
-              }}
-              defaultValue={dayjs()}
+              placeholder="12/01/1980"
+              value={ending?.format("DD MMMM YYYY")}
+              fullWidth
             />
           </Box>
+
+          <DateCalendar
+            slots={{
+              leftArrowIcon: DateCalendarArrowLeft,
+              rightArrowIcon: DateCalendarArrowКRight,
+            }}
+            value={ending}
+            onChange={(newVal) => {
+              setEnding(newVal)
+            }}
+            defaultValue={dayjs()}
+          />
         </Box>
       </Box>
     </LocalizationProvider>
