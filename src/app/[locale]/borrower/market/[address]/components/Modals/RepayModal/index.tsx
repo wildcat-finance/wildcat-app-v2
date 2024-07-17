@@ -133,6 +133,7 @@ export const RepayModal = ({
 
   const disableApprove =
     repayAmount.raw.isZero() ||
+    repayAmount.raw.gt(market.outstandingDebt.raw) ||
     isApproved ||
     isApproving ||
     repayStep?.status === "Ready" ||
@@ -260,7 +261,7 @@ export const RepayModal = ({
               </Tabs>
             )}
 
-            {typeDays && (
+            {typeDays && modal.gettingValueStep && (
               <Typography variant="text4" sx={DaysSubtitle}>
                 *number of additional days for which you want to cover interest
               </Typography>
@@ -272,7 +273,8 @@ export const RepayModal = ({
                   Repay Sum
                 </Typography>
                 <Typography variant="text3">
-                  {amount} {market.underlyingToken.symbol}
+                  {formatTokenWithCommas(repayAmount)}{" "}
+                  {market.underlyingToken.symbol}
                 </Typography>
               </Box>
             )}
