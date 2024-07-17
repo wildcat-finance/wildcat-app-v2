@@ -1236,11 +1236,17 @@ export const theme = createTheme({
             margin: "0px",
             padding: "0px",
           },
+          "& .MuiDayCalendar-header": {
+            justifyContent: "space-between",
+          },
           "& .MuiPickersCalendarHeader-labelContainer": {
             margin: "0px",
           },
           "& .MuiPickersArrowSwitcher-spacer": {
             display: "none",
+          },
+          "& .MuiPickersDay-root": {
+            fontSize: "small",
           },
         },
       },
