@@ -179,7 +179,7 @@ export default function MarketDetails({
   return (
     <Box sx={{ padding: "52px 20px 0 44px", overflowY: "scroll" }}>
       <Box sx={{ width: "69%" }}>
-        {!bannerDisplayConfig.hideBanner && (
+        {!bannerDisplayConfig.hideBanner && checked === 1 && (
           <LeadBanner
             title={bannerDisplayConfig.title}
             text={bannerDisplayConfig.text}
@@ -187,6 +187,7 @@ export default function MarketDetails({
             buttonLink={bannerDisplayConfig.link}
           />
         )}
+        <MarketHeader marketAccount={marketAccount} />
         <Box
           ref={scrollContainer}
           sx={{ position: "relative", overflow: "hidden" }}
@@ -198,15 +199,11 @@ export default function MarketDetails({
             in={checked === 1}
           >
             <Box sx={SlideContentContainer}>
-              <MarketHeader
-                marketAccount={marketAccount}
-                holdTheMarket={holdTheMarket}
-              />
-              {holdTheMarket && <Divider sx={{ margin: "32px 0" }} />}
               {holdTheMarket && (
                 <MarketTransactions
                   market={market}
                   marketAccount={marketAccount}
+                  holdTheMarket={holdTheMarket}
                 />
               )}
               <Divider sx={{ margin: "32px 0 44px" }} />
@@ -232,9 +229,7 @@ export default function MarketDetails({
             in={checked === 3}
           >
             <Box sx={SlideContentContainer}>
-              {holdTheMarket && (
-                <MarketWithdrawalRequests marketAccount={marketAccount} />
-              )}
+              <MarketWithdrawalRequests marketAccount={marketAccount} />
             </Box>
           </Slide>
           <Slide
@@ -244,7 +239,7 @@ export default function MarketDetails({
             in={checked === 4}
           >
             <Box sx={SlideContentContainer}>
-              {holdTheMarket && <MarketAuthorisedLenders market={market} />}
+              <MarketAuthorisedLenders market={market} />
             </Box>
           </Slide>
         </Box>

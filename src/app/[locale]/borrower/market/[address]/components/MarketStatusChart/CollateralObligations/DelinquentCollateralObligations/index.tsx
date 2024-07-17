@@ -111,9 +111,11 @@ export const DelinquentCollateralObligations = ({
               doubleDivider
             />
           </Box>
-          {formatTokenWithCommas(legendItem.value, {
-            withSymbol: true,
-          })}
+          <Typography variant="text3">
+            {formatTokenWithCommas(legendItem.value, {
+              withSymbol: true,
+            })}
+          </Typography>
         </>
       )}
     </Box>

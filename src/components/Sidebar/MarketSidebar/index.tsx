@@ -5,6 +5,7 @@ import SvgIcon from "@mui/material/SvgIcon"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { TerminateMarket } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateMarket"
 import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
@@ -35,13 +36,15 @@ export const MarketSidebar = () => {
   const { data: market } = useGetMarket({
     address,
   })
+  const { address: walletAddress } = useAccount()
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
-
-  // const checked = useAppSelector((state) => state.highlightSidebar.checked)
 
   const sidebarState = useAppSelector(
     (state) => state.highlightSidebar.sidebarState,
   )
+
+  const holdTheMarket =
+    market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 
   return (
     <Box sx={ContentContainer}>
@@ -165,7 +168,9 @@ export const MarketSidebar = () => {
           </Button>
         </Box>
 
-        {marketAccount && <TerminateMarket marketAccount={marketAccount} />}
+        {marketAccount && holdTheMarket && (
+          <TerminateMarket marketAccount={marketAccount} />
+        )}
       </Box>
     </Box>
   )
