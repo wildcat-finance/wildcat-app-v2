@@ -27,7 +27,7 @@ const DateCalendarArrowLeft = () => (
   </SvgIcon>
 )
 
-const DateCalendarArrowКRight = () => (
+const DateCalendarArrowRight = () => (
   <SvgIcon
     sx={{
       "& path": { fill: `${COLORS.greySuit}` },
@@ -78,7 +78,7 @@ export const BasicDatePicker = () => {
           <DateCalendar
             slots={{
               leftArrowIcon: DateCalendarArrowLeft,
-              rightArrowIcon: DateCalendarArrowКRight,
+              rightArrowIcon: DateCalendarArrowRight,
             }}
             value={starting}
             onChange={(newVal) => {
@@ -119,7 +119,7 @@ export const BasicDatePicker = () => {
           <DateCalendar
             slots={{
               leftArrowIcon: DateCalendarArrowLeft,
-              rightArrowIcon: DateCalendarArrowКRight,
+              rightArrowIcon: DateCalendarArrowRight,
             }}
             value={ending}
             onChange={(newVal) => {

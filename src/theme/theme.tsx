@@ -1229,8 +1229,9 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           boxSizing: "border-box",
-          fontStyle: "inherit",
+          fontFamily: "inherit",
           maxWidth: "274px",
+
           "& .MuiPickersCalendarHeader-root": {
             justifyContent: "space-between",
             margin: "0px",
@@ -1250,6 +1251,7 @@ export const theme = createTheme({
             justifyContent: "space-between",
           },
           "& .MuiPickersCalendarHeader-labelContainer": {
+            fontFamily: "inherit",
             margin: "0px 4px",
           },
           "& .Mui-selected": {
@@ -1266,6 +1268,12 @@ export const theme = createTheme({
             justifyContent: "space-between",
           },
           "& .MuiDayCalendar-weekDayLabel": {
+            fontFamily: "inherit",
+            fontSize: "10px",
+            fontWeight: 500,
+            lineHeight: "16px",
+            color: COLORS.greySuit,
+
             width: "20px",
             height: "20px",
           },
@@ -1279,6 +1287,9 @@ export const theme = createTheme({
           },
           "& .MuiPickersDay-root:not(.Mui-selected)": {
             border: "none",
+          },
+          "& .MuiButtonBase-root.MuiPickersDay-root": {
+            fontFamily: "inherit",
           },
         },
       },
