@@ -1307,6 +1307,7 @@ export const theme = createTheme({
             margin: "0",
           },
           "& .MuiYearCalendar-root": {
+            maxHeight: "145px",
             rowGap: "6px",
             columnGap: "20px",
           },

@@ -3,6 +3,11 @@ import { Dispatch, SetStateAction } from "react"
 import { Dayjs } from "dayjs"
 
 export type DateRangeProps = {
-  dates: { startDate: Dayjs; endDate: Dayjs }
-  setDates: Dispatch<SetStateAction<{ startDate: Dayjs; endDate: Dayjs }>>
+  dates: { starting: Dayjs | string | null; ending: Dayjs | string | null }
+  setDates: Dispatch<
+    SetStateAction<{
+      starting: Dayjs | string | null
+      ending: Dayjs | string | null
+    }>
+  >
 }
