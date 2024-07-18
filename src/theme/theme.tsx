@@ -1291,6 +1291,25 @@ export const theme = createTheme({
           "& .MuiButtonBase-root.MuiPickersDay-root": {
             fontFamily: "inherit",
           },
+          "& .MuiPickersYear-root": {
+            width: "40px",
+            height: "20px",
+            flex: "0 0 calc(24% - 20px);",
+          },
+          "& .MuiPickersYear-yearButton": {
+            ":focus": {
+              backgroundColor: COLORS.cornflowerBlue,
+            },
+            fontSize: "small",
+            width: "40px",
+            height: "20px",
+            padding: "0",
+            margin: "0",
+          },
+          "& .MuiYearCalendar-root": {
+            rowGap: "6px",
+            columnGap: "20px",
+          },
         },
       },
     },

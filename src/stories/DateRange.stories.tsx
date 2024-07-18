@@ -40,8 +40,8 @@ const DateCalendarArrowRight = () => (
 )
 
 export const BasicDatePicker = () => {
-  const [starting, setStarting] = useState<Dayjs | null>(null)
-  const [ending, setEnding] = useState<Dayjs | null>(null)
+  const [starting, setStarting] = useState<Dayjs | string | null>(null)
+  const [ending, setEnding] = useState<Dayjs | string | null>(null)
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -70,7 +70,16 @@ export const BasicDatePicker = () => {
                 },
               }}
               placeholder="12/01/1980"
-              value={starting?.format("DD MMMM YYYY")}
+              value={
+                dayjs(starting, "DD/MM/YYYY").isValid()
+                  ? dayjs(starting, "DD/MM/YYYY").format("DD/MM/YYYY")
+                  : starting
+              }
+              onChange={(evt) => {
+                if (dayjs(evt.target.value, "DD/MM/YYYY").isValid()) {
+                  setStarting(dayjs(evt.target.value, "DD/MM/YYYY"))
+                } else setStarting(evt.target.value)
+              }}
               fullWidth
             />
           </Box>
@@ -80,7 +89,11 @@ export const BasicDatePicker = () => {
               leftArrowIcon: DateCalendarArrowLeft,
               rightArrowIcon: DateCalendarArrowRight,
             }}
-            value={starting}
+            value={
+              dayjs(starting, "DD/MM/YYYY").isValid()
+                ? dayjs(starting, "DD/MM/YYYY")
+                : null
+            }
             onChange={(newVal) => {
               setStarting(newVal)
             }}
@@ -111,7 +124,16 @@ export const BasicDatePicker = () => {
                 },
               }}
               placeholder="12/01/1980"
-              value={ending?.format("DD MMMM YYYY")}
+              value={
+                dayjs(ending, "DD/MM/YYYY").isValid()
+                  ? dayjs(ending, "DD/MM/YYYY").format("DD/MM/YYYY")
+                  : ending
+              }
+              onChange={(evt) => {
+                if (dayjs(evt.target.value, "DD/MM/YYYY").isValid()) {
+                  setEnding(dayjs(evt.target.value, "DD/MM/YYYY"))
+                } else setEnding(evt.target.value)
+              }}
               fullWidth
             />
           </Box>
@@ -121,7 +143,11 @@ export const BasicDatePicker = () => {
               leftArrowIcon: DateCalendarArrowLeft,
               rightArrowIcon: DateCalendarArrowRight,
             }}
-            value={ending}
+            value={
+              dayjs(ending, "DD/MM/YYYY").isValid()
+                ? dayjs(ending, "DD/MM/YYYY")
+                : null
+            }
             onChange={(newVal) => {
               setEnding(newVal)
             }}
