@@ -227,12 +227,14 @@ export const MarketAuthorisedLenders = ({
             iconColor={COLORS.blueRibbon}
             title="Deleted Lenders"
           >
-            <DataGrid
-              sx={DataGridCells}
-              rows={rows}
-              columns={columns}
-              columnHeaderHeight={0}
-            />
+            {!(rows?.length === 0) && (
+              <DataGrid
+                sx={DataGridCells}
+                rows={rows}
+                columns={columns}
+                columnHeaderHeight={0}
+              />
+            )}
           </Accordion>
         </>
       )}
