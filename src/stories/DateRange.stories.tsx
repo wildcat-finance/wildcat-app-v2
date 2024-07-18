@@ -39,6 +39,25 @@ const DateCalendarArrowRight = () => (
   </SvgIcon>
 )
 
+const formatDateForDateRange = (input: string) => {
+  // Удаляем все символы, кроме цифр
+  const digits = input.replace(/\D/g, "")
+
+  // Форматируем значение по шаблону DD/MM/YYYY
+  let formattedValue = ""
+  if (digits.length > 0) {
+    formattedValue += digits.substring(0, 2) // День
+    if (digits.length >= 2) {
+      formattedValue += `/${digits.substring(2, 4)}` // Месяц
+    }
+    if (digits.length >= 4) {
+      formattedValue += `/${digits.substring(4, 8)}` // Год
+    }
+  }
+
+  return formattedValue
+}
+
 export const BasicDatePicker = () => {
   const [starting, setStarting] = useState<Dayjs | string | null>(null)
   const [ending, setEnding] = useState<Dayjs | string | null>(null)
@@ -76,9 +95,10 @@ export const BasicDatePicker = () => {
                   : starting
               }
               onChange={(evt) => {
-                if (dayjs(evt.target.value, "DD/MM/YYYY").isValid()) {
-                  setStarting(dayjs(evt.target.value, "DD/MM/YYYY"))
-                } else setStarting(evt.target.value)
+                const formatDate = formatDateForDateRange(evt.target.value)
+                if (dayjs(formatDate, "DD/MM/YYYY").isValid()) {
+                  setStarting(dayjs(formatDate, "DD/MM/YYYY"))
+                } else setStarting(formatDate)
               }}
               fullWidth
             />
@@ -130,9 +150,10 @@ export const BasicDatePicker = () => {
                   : ending
               }
               onChange={(evt) => {
-                if (dayjs(evt.target.value, "DD/MM/YYYY").isValid()) {
-                  setEnding(dayjs(evt.target.value, "DD/MM/YYYY"))
-                } else setEnding(evt.target.value)
+                const formatDate = formatDateForDateRange(evt.target.value)
+                if (dayjs(formatDate, "DD/MM/YYYY").isValid()) {
+                  setStarting(dayjs(formatDate, "DD/MM/YYYY"))
+                } else setStarting(formatDate)
               }}
               fullWidth
             />
