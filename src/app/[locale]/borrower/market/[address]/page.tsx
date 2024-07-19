@@ -10,11 +10,7 @@ import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/comp
 import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
 import { LeadBanner } from "@/components/LeadBanner"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import {
-  setCheckBlock,
-  setSidebarHighlightState,
-} from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
+import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 
 import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
@@ -22,6 +18,8 @@ import { MarketHeader } from "./components/MarketHeader"
 import { MarketParameters } from "./components/MarketParameters"
 import { MarketTransactions } from "./components/MarketTransactions"
 import { MarketWithdrawalRequests } from "./components/MarketWithdrawalRequests"
+import useScrollHandler from "./hooks/useScrollHandler"
+import useSidebarHighlight from "./hooks/useSidebarHighlight"
 import {
   SlideContentContainer,
   SkeletonContainer,
@@ -33,119 +31,20 @@ export default function MarketDetails({
 }: {
   params: { address: string }
 }) {
-  const dispatch = useAppDispatch()
   const { data: market } = useGetMarket({ address })
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
   const { address: walletAddress } = useAccount()
   const bannerDisplayConfig = useBorrowerInvitationRedirect()
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
-  const checked = useAppSelector((state) => state.highlightSidebar.checked)
+
   const scrollContainer = React.useRef<HTMLElement>(null)
-  const checkedRef = React.useRef<number>(1)
-  const [scrollEnabled, setScrollEnabled] = React.useState(true)
-  checkedRef.current = checked
+
+  const checked = useAppSelector((state) => state.highlightSidebar.checked)
   const slidesCount = 4
 
-  const [direction, setDirection] = React.useState<"down" | "up">("down")
-
-  const handleScroll = (evt: WheelEvent) => {
-    if (!scrollEnabled) return
-    const tempChecked = checkedRef.current
-    if (window.innerHeight + window.scrollY >= document.body.scrollHeight) {
-      if (evt.deltaY > 0 && checkedRef.current !== slidesCount) {
-        setDirection("down")
-        setScrollEnabled(false)
-        dispatch(setCheckBlock(0))
-        setTimeout(() => {
-          setDirection("up")
-          dispatch(setCheckBlock(tempChecked + 1))
-        }, 600)
-      }
-    }
-
-    if (window.scrollY === 0) {
-      if (evt.deltaY < 0 && checkedRef.current !== 1) {
-        setDirection("up")
-        setScrollEnabled(false)
-        dispatch(setCheckBlock(0))
-        setTimeout(() => {
-          setDirection("down")
-          dispatch(setCheckBlock(tempChecked - 1))
-        }, 600)
-      }
-    }
-  }
-
-  React.useEffect(() => {
-    document.onwheel = handleScroll
-    return () => {
-      document.onwheel = null
-    }
-  }, [scrollEnabled])
-
-  React.useEffect(() => {
-    if (!scrollEnabled) {
-      const timeout = setTimeout(() => setScrollEnabled(true), 1200)
-      return () => clearTimeout(timeout)
-    }
-    return undefined
-  }, [checked, scrollEnabled])
-
-  React.useEffect(() => {
-    switch (checked) {
-      case 1:
-        dispatch(
-          setSidebarHighlightState({
-            borrowRepay: true,
-            statusDetails: false,
-            withdrawals: false,
-            lenders: false,
-          }),
-        )
-        break
-      case 2:
-        dispatch(
-          setSidebarHighlightState({
-            borrowRepay: false,
-            statusDetails: true,
-            withdrawals: false,
-            lenders: false,
-          }),
-        )
-        break
-      case 3:
-        dispatch(
-          setSidebarHighlightState({
-            borrowRepay: false,
-            statusDetails: false,
-            withdrawals: true,
-            lenders: false,
-          }),
-        )
-        break
-      case 4:
-        dispatch(
-          setSidebarHighlightState({
-            borrowRepay: false,
-            statusDetails: false,
-            withdrawals: false,
-            lenders: true,
-          }),
-        )
-        break
-      default:
-        dispatch(
-          setSidebarHighlightState({
-            borrowRepay: false,
-            statusDetails: false,
-            withdrawals: false,
-            lenders: false,
-          }),
-        )
-        break
-    }
-  }, [checked, dispatch])
+  const { direction } = useScrollHandler(slidesCount, checked)
+  useSidebarHighlight(checked)
 
   if (!market || !marketAccount)
     return (
