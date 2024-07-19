@@ -4,7 +4,7 @@ import { checkIsWrongNetwork } from "@/hooks/useCurrentNetwork"
 import { ROUTES } from "@/routes"
 
 // Undefined is for cases where should be no redirects
-export type RedirectToPath = typeof ROUTES.agreement | "/" | undefined
+export type RedirectToPath = typeof ROUTES.agreement | "/" | null
 
 const NO_WALLET_RESTRICTED_PATHS = [ROUTES.agreement, ROUTES.borrower.newMarket]
 
@@ -41,5 +41,5 @@ export const getRedirectPath = (params: {
     return ROUTES.agreement
   }
 
-  return undefined
+  return null
 }

@@ -4,6 +4,7 @@ export async function getSignedServiceAgreement(address: `0x${string}`) {
   try {
     const { data: isSigned } = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/sla/${address.toLowerCase()}`,
+      { cache: "no-cache" },
     ).then((res) => res.json())
 
     signed = Boolean(isSigned)
