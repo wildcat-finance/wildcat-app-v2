@@ -6,7 +6,18 @@ import { ROUTES } from "@/routes"
 // Undefined is for cases where should be no redirects
 export type RedirectToPath = typeof ROUTES.agreement | "/" | null
 
-const NO_WALLET_RESTRICTED_PATHS = [ROUTES.agreement, ROUTES.borrower.newMarket]
+const NO_WALLET_RESTRICTED_PATHS = [
+  ROUTES.agreement,
+  ROUTES.borrower.newMarket,
+  ROUTES.borrower.market,
+]
+
+const isNotPublicPath = (pathname: string) => {
+  if (pathname.startsWith(ROUTES.borrower.market)) {
+    return true
+  }
+  return NO_WALLET_RESTRICTED_PATHS.includes(pathname)
+}
 
 // Returns undefined when no redirect needed
 export const getRedirectPath = (params: {
@@ -20,10 +31,7 @@ export const getRedirectPath = (params: {
   // If wallet is NOT CONNECTED or WRONG NETWORK
   // Redirect from restricted pages to root
   const isWrongNetwork = checkIsWrongNetwork(currentChainId)
-  if (
-    (!connectedAddress || isWrongNetwork) &&
-    NO_WALLET_RESTRICTED_PATHS.includes(pathname)
-  ) {
+  if ((!connectedAddress || isWrongNetwork) && isNotPublicPath(pathname)) {
     return "/"
   }
 
