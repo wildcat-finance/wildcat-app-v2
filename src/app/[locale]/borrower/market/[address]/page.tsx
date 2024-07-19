@@ -97,7 +97,7 @@ export default function MarketDetails({
                   holdTheMarket={holdTheMarket}
                 />
               )}
-              <Divider sx={{ margin: "32px 0 44px" }} />
+              {holdTheMarket && <Divider sx={{ margin: "32px 0 44px" }} />}
               <MarketStatusChart market={market} />
             </Box>
           </Slide>

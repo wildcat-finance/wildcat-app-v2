@@ -110,6 +110,7 @@ export const CapacityModal = ({
             </Box>
 
             <NumberTextField
+              label="Enter a new capacity"
               size="medium"
               style={{ width: "100%" }}
               value={amount}
