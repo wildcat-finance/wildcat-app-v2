@@ -17,14 +17,20 @@ const fetchSLARedirectStatus = async (
   pathname: string,
   chainId: SupportedChainId | undefined,
 ) => {
-  const { isSigned }: Response = await fetch(`/api/sla/${address}`).then(
-    (res) => res.json(),
-  )
+  let isSignedResult = false
+
+  if (address) {
+    const { isSigned }: Response = await fetch(`/api/sla/${address}`).then(
+      (res) => res.json(),
+    )
+
+    isSignedResult = isSigned
+  }
 
   return getRedirectPath({
     connectedAddress: address,
     pathname,
-    isSignedSA: Boolean(isSigned),
+    isSignedSA: isSignedResult,
     currentChainId: chainId,
   })
 }
