@@ -1,3 +1,5 @@
+import type { ChangeEvent } from "react"
+
 import { Box, SvgIcon, TextField, Typography } from "@mui/material"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar"
@@ -60,6 +62,44 @@ const formatDateForDateRange = (input: string) => {
 export const DateRange = ({ dates, setDates }: DateRangeProps) => {
   const { starting, ending } = dates
 
+  const onChange = (
+    evt: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    type: "starting" | "ending",
+  ) => {
+    const input = evt.target
+    const cursorPosition = input.selectionStart
+    const originalLength = input.value.length
+
+    const formattedDate = formatDateForDateRange(input.value)
+
+    setDates((prev) => {
+      if (type === "starting")
+        return {
+          ...prev,
+          starting: dayjs(formattedDate, "DD/MM/YYYY").isValid()
+            ? dayjs(formattedDate, "DD/MM/YYYY")
+            : formattedDate,
+        }
+      if (type === "ending")
+        return {
+          ...prev,
+          ending: dayjs(formattedDate, "DD/MM/YYYY").isValid()
+            ? dayjs(formattedDate, "DD/MM/YYYY")
+            : formattedDate,
+        }
+      return prev
+    })
+
+    setTimeout(() => {
+      const newLength = formattedDate.length
+
+      if (cursorPosition !== null) {
+        const newCursorPosition = cursorPosition + (newLength - originalLength)
+        input.setSelectionRange(newCursorPosition, newCursorPosition)
+      }
+    }, 0)
+  }
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Box sx={DateRangeContainer}>
@@ -81,31 +121,7 @@ export const DateRange = ({ dates, setDates }: DateRangeProps) => {
                   : starting
               }
               onChange={(evt) => {
-                const input = evt.target
-                const cursorPosition = input.selectionStart
-                const originalLength = input.value.length
-
-                const formattedDate = formatDateForDateRange(input.value)
-
-                setDates((prev) => ({
-                  ...prev,
-                  starting: dayjs(formattedDate, "DD/MM/YYYY").isValid()
-                    ? dayjs(formattedDate, "DD/MM/YYYY")
-                    : formattedDate,
-                }))
-
-                setTimeout(() => {
-                  const newLength = formattedDate.length
-
-                  if (cursorPosition !== null) {
-                    const newCursorPosition =
-                      cursorPosition + (newLength - originalLength)
-                    input.setSelectionRange(
-                      newCursorPosition,
-                      newCursorPosition,
-                    )
-                  }
-                }, 0)
+                onChange(evt, "starting")
               }}
               fullWidth
             />
@@ -145,31 +161,7 @@ export const DateRange = ({ dates, setDates }: DateRangeProps) => {
                   : ending
               }
               onChange={(evt) => {
-                const input = evt.target
-                const cursorPosition = input.selectionStart
-                const originalLength = input.value.length
-
-                const formattedDate = formatDateForDateRange(input.value)
-
-                setDates((prev) => ({
-                  ...prev,
-                  ending: dayjs(formattedDate, "DD/MM/YYYY").isValid()
-                    ? dayjs(formattedDate, "DD/MM/YYYY")
-                    : formattedDate,
-                }))
-
-                setTimeout(() => {
-                  const newLength = formattedDate.length
-
-                  if (cursorPosition !== null) {
-                    const newCursorPosition =
-                      cursorPosition + (newLength - originalLength)
-                    input.setSelectionRange(
-                      newCursorPosition,
-                      newCursorPosition,
-                    )
-                  }
-                }, 0)
+                onChange(evt, "ending")
               }}
               fullWidth
             />

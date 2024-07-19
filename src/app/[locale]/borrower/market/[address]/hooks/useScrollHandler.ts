@@ -1,63 +1,23 @@
-import { useState, useEffect, useRef } from "react"
+import { useRef } from "react"
 
-import { useDispatch } from "react-redux"
+import { useAppSelector } from "@/store/hooks"
 
-import { setCheckBlock } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
+import useScrollSlidesHandler from "./useScrollSlidesHandler"
+import useSidebarHighlight from "./useSidebarHighlight"
 
-const useScrollHandler = (slidesCount: number, checked: number) => {
-  const dispatch = useDispatch()
+const useScrollHandler = () => {
+  const scrollContainer = useRef<HTMLElement>(null)
+  const checked = useAppSelector((state) => state.highlightSidebar.checked)
+  const slidesCount = 4
 
-  const [scrollEnabled, setScrollEnabled] = useState(true)
-  const [direction, setDirection] = useState<"down" | "up">("down")
-  const checkedRef = useRef<number>(1)
-  checkedRef.current = checked
+  const { scrollEnabled, setScrollEnabled, direction, setDirection } =
+    useScrollSlidesHandler(slidesCount, checked)
 
-  const handleScroll = (evt: WheelEvent) => {
-    if (!scrollEnabled) return
-    const tempChecked = checkedRef.current
-    if (window.innerHeight + window.scrollY >= document.body.scrollHeight) {
-      if (evt.deltaY > 0 && checkedRef.current !== slidesCount) {
-        setDirection("down")
-        setScrollEnabled(false)
-        dispatch(setCheckBlock(0))
-        setTimeout(() => {
-          setDirection("up")
-          dispatch(setCheckBlock(tempChecked + 1))
-          setScrollEnabled(true)
-        }, 600)
-      }
-    }
-
-    if (window.scrollY === 0) {
-      if (evt.deltaY < 0 && checkedRef.current !== 1) {
-        setDirection("up")
-        setScrollEnabled(false)
-        dispatch(setCheckBlock(0))
-        setTimeout(() => {
-          setDirection("down")
-          dispatch(setCheckBlock(tempChecked - 1))
-          setScrollEnabled(true)
-        }, 600)
-      }
-    }
-  }
-
-  useEffect(() => {
-    document.onwheel = handleScroll
-    return () => {
-      document.onwheel = null
-    }
-  }, [scrollEnabled])
-
-  useEffect(() => {
-    if (!scrollEnabled) {
-      const timeout = setTimeout(() => setScrollEnabled(true), 1200)
-      return () => clearTimeout(timeout)
-    }
-    return undefined
-  }, [scrollEnabled])
+  useSidebarHighlight(checked)
 
   return {
+    scrollContainer,
+    checked,
     scrollEnabled,
     setScrollEnabled,
     direction,

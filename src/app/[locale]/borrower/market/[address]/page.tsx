@@ -10,7 +10,6 @@ import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/comp
 import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
 import { LeadBanner } from "@/components/LeadBanner"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
-import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 
 import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
@@ -19,7 +18,6 @@ import { MarketParameters } from "./components/MarketParameters"
 import { MarketTransactions } from "./components/MarketTransactions"
 import { MarketWithdrawalRequests } from "./components/MarketWithdrawalRequests"
 import useScrollHandler from "./hooks/useScrollHandler"
-import useSidebarHighlight from "./hooks/useSidebarHighlight"
 import {
   SlideContentContainer,
   SkeletonContainer,
@@ -38,13 +36,7 @@ export default function MarketDetails({
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 
-  const scrollContainer = React.useRef<HTMLElement>(null)
-
-  const checked = useAppSelector((state) => state.highlightSidebar.checked)
-  const slidesCount = 4
-
-  const { direction } = useScrollHandler(slidesCount, checked)
-  useSidebarHighlight(checked)
+  const { checked, scrollContainer, direction } = useScrollHandler()
 
   if (!market || !marketAccount)
     return (
