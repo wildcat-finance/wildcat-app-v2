@@ -20,6 +20,7 @@ import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
 import { config } from "@/lib/config"
 import { RedirectsProvider } from "@/providers/RedirectsProvider"
+import { SafeProvider } from "@/providers/SafeProvider"
 import { WagmiQueryProviders } from "@/providers/WagmiQueryProviders"
 
 import i18nConfig from "../../../i18nConfig"
@@ -50,20 +51,22 @@ export default async function RootLayout({
     <html lang={locale} dir={dir(locale)}>
       <body className={inter.className}>
         <WagmiQueryProviders initialState={initialState}>
-          <RedirectsProvider>
-            <StoreProvider>
-              <ThemeRegistry>
-                <Box sx={BackgroundContainer} />
-                <Box position="relative" zIndex="1">
-                  <Header params={{ locale }} />
-                  <Box sx={PageContainer}>
-                    <Box sx={ContentContainer}>{children}</Box>
-                    <Footer />
+          <SafeProvider>
+            <RedirectsProvider>
+              <StoreProvider>
+                <ThemeRegistry>
+                  <Box sx={BackgroundContainer} />
+                  <Box position="relative" zIndex="1">
+                    <Header params={{ locale }} />
+                    <Box sx={PageContainer}>
+                      <Box sx={ContentContainer}>{children}</Box>
+                      <Footer />
+                    </Box>
                   </Box>
-                </Box>
-              </ThemeRegistry>
-            </StoreProvider>
-          </RedirectsProvider>
+                </ThemeRegistry>
+              </StoreProvider>
+            </RedirectsProvider>
+          </SafeProvider>
         </WagmiQueryProviders>
       </body>
     </html>

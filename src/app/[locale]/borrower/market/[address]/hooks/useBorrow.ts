@@ -1,5 +1,6 @@
 import { Dispatch } from "react"
 
+import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { parseUnits } from "ethers/lib/utils"
@@ -15,6 +16,9 @@ export const useBorrow = (
 ) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
+  const { connected } = useSafeAppsSDK()
+
+  console.log("DEBUG isSafe", connected)
 
   return useMutation({
     mutationFn: async (amount: string) => {
