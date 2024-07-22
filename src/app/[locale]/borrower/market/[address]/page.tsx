@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useEffect } from "react"
 
 import { Box, Divider, Skeleton, Slide } from "@mui/material"
 import { useAccount } from "wagmi"
@@ -10,6 +11,8 @@ import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/comp
 import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
 import { LeadBanner } from "@/components/LeadBanner"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
+import { useAppDispatch } from "@/store/hooks"
+import { resetPageState } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
 
 import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
@@ -29,6 +32,7 @@ export default function MarketDetails({
 }: {
   params: { address: string }
 }) {
+  const dispatch = useAppDispatch()
   const { data: market } = useGetMarket({ address })
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
   const { address: walletAddress } = useAccount()

@@ -179,14 +179,16 @@ export const ConfirmationModal = ({
           </Box>
 
           <Box sx={DeployButtonContainer}>
-            <Button
-              variant="contained"
-              color="secondary"
-              size="large"
-              fullWidth
-            >
-              {t("createMarket.modal.button.downloadMla")}
-            </Button>
+            {getMarketValues("mla") === "wildcatMLA" && (
+              <Button
+                variant="contained"
+                color="secondary"
+                size="large"
+                fullWidth
+              >
+                {t("createMarket.modal.button.downloadMla")}
+              </Button>
+            )}
             <Button
               onClick={handleGoToMarkets}
               variant="contained"

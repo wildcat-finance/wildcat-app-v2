@@ -19,7 +19,7 @@ export const MarketParametersItem = ({
   value,
   tooltipText,
   handleCopy,
-  address,
+  link,
 }: MarketParametersItemProps) => (
   <Box sx={MarketParametersItemContainer}>
     <Box sx={MarketParametersItemTitleContainer}>
@@ -40,9 +40,9 @@ export const MarketParametersItem = ({
           </SvgIcon>
         </IconButton>
       )}
-      {address && (
+      {link && (
         <Link
-          href={`${EtherscanBaseUrl}/address/${address}`}
+          href={link}
           target="_blank"
           style={{ display: "flex", justifyContent: "center" }}
         >
