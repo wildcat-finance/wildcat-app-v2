@@ -79,7 +79,7 @@ export default function MarketDetails({
     )
 
   return (
-    <Box sx={{ padding: "52px 20px 0 44px", overflowY: "scroll" }}>
+    <Box sx={{ padding: "52px 20px 0 44px" }}>
       <Box sx={{ width: "69%" }}>
         {!bannerDisplayConfig.hideBanner && checked === 1 && (
           <LeadBanner
@@ -92,7 +92,12 @@ export default function MarketDetails({
         <MarketHeader marketAccount={marketAccount} />
         <Box
           ref={scrollContainer}
-          sx={{ position: "relative", overflow: "hidden" }}
+          sx={{
+            width: "100%",
+            overflow: "hidden",
+            overflowY: "visible",
+            maxHeight: "630px",
+          }}
         >
           <Slide
             direction={direction}

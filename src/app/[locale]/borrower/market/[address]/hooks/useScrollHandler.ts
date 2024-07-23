@@ -11,7 +11,7 @@ const useScrollHandler = () => {
   const slidesCount = 4
 
   const { scrollEnabled, setScrollEnabled, direction, setDirection } =
-    useScrollSlidesHandler(slidesCount, checked)
+    useScrollSlidesHandler(slidesCount, checked, scrollContainer)
 
   useSidebarHighlight(checked)
 
