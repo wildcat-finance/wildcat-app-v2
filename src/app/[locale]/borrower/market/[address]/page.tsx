@@ -42,6 +42,13 @@ export default function MarketDetails({
 
   const { checked, scrollContainer, direction } = useScrollHandler()
 
+  useEffect(
+    () => () => {
+      dispatch(resetPageState())
+    },
+    [],
+  )
+
   if (!market || !marketAccount)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
