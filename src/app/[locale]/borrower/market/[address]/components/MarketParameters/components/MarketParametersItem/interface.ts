@@ -3,5 +3,5 @@ export type MarketParametersItemProps = {
   value: string | number
   tooltipText?: string
   handleCopy?: () => void
-  address?: string
+  link?: string
 }

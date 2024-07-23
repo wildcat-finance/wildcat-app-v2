@@ -2,10 +2,12 @@ import { Box, Divider, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
+import { EtherscanBaseUrl } from "@/config/network"
 import {
   formatBps,
   formatSecsToHours,
   MARKET_PARAMS_DECIMALS,
+  secondsToDays,
   toTokenAmountProps,
   trimAddress,
 } from "@/utils/formatters"
@@ -59,7 +61,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             handleCopy={() => {
               handleCopy(market.address)
             }}
-            address={market.address}
+            link={`${EtherscanBaseUrl}/address/${market.address}`}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
@@ -71,7 +73,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             handleCopy={() => {
               handleCopy(market.underlyingToken.address)
             }}
-            address={market.underlyingToken.address}
+            link={`${EtherscanBaseUrl}/token/${market.underlyingToken.address}`}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
@@ -80,7 +82,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             handleCopy={() => {
               handleCopy(market.marketToken.name)
             }}
-            address={market.marketToken.address}
+            link={`${EtherscanBaseUrl}/token/${market.marketToken.address}`}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
@@ -131,13 +133,13 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.maximumGracePeriod")}
-            value={`${market.delinquencyGracePeriod} sec`}
+            value={`${formatSecsToHours(market.delinquencyGracePeriod)}`}
             tooltipText="TBD"
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.availableGracePeriod")}
-            value={`${availableGracePeriod()} sec`}
+            value={`${formatSecsToHours(availableGracePeriod())}`}
             tooltipText="TBD"
           />
           <Divider sx={{ margin: "12px 0 12px" }} />

@@ -22,10 +22,11 @@ const highlightSidebarSlice = createSlice({
     setCheckBlock: (state, action) => {
       state.checked = action.payload
     },
+    resetPageState: () => initialState,
   },
 })
 
-export const { setSidebarHighlightState, setCheckBlock } =
+export const { setSidebarHighlightState, setCheckBlock, resetPageState } =
   highlightSidebarSlice.actions
 
 export default highlightSidebarSlice.reducer

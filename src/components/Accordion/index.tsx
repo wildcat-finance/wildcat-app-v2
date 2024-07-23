@@ -29,7 +29,7 @@ export const Accordion = ({
         }}
         onClick={() => setIsOpen(!isOpen)}
       >
-        <Typography variant="text2" sx={{ ...summarySx }}>
+        <Typography variant="text4Highlighted" sx={{ ...summarySx }}>
           {title}
         </Typography>
         <Box
@@ -45,7 +45,7 @@ export const Accordion = ({
                 fill: `${iconColor}`,
               },
             }}
-            fontSize="medium"
+            fontSize="small"
             style={{
               transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
               transition: "transform 0.3s ease-in-out",

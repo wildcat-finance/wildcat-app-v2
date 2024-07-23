@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect } from "react"
 
 import { Box, Button } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
@@ -17,6 +17,7 @@ import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccoun
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
+  resetPageState,
   setCheckBlock,
   setSidebarHighlightState,
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
@@ -45,6 +46,10 @@ export const MarketSidebar = () => {
 
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
+
+  useEffect(() => {
+    dispatch(resetPageState())
+  }, [])
 
   return (
     <Box sx={ContentContainer}>

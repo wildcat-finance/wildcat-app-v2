@@ -1228,9 +1228,15 @@ export const theme = createTheme({
     MuiDateCalendar: {
       styleOverrides: {
         root: {
+          height: "190px",
+          maxHeight: "190px",
           boxSizing: "border-box",
           fontFamily: "inherit",
           maxWidth: "274px",
+
+          "& .MuiPickersSlideTransition-root.MuiDayCalendar-slideTransition": {
+            minHeight: "124px",
+          },
 
           "& .MuiPickersCalendarHeader-root": {
             justifyContent: "space-between",
@@ -1300,16 +1306,24 @@ export const theme = createTheme({
             ":focus": {
               backgroundColor: COLORS.cornflowerBlue,
             },
-            fontSize: "small",
+            fontFamily: "inherit",
+            fontSize: "13px",
+            fontWeight: 500,
+            lineHeight: "20px",
+
             width: "40px",
             height: "20px",
             padding: "0",
             margin: "0",
           },
           "& .MuiYearCalendar-root": {
-            maxHeight: "145px",
+            display: "grid",
+            gridTemplateColumns: "40px 40px 40px 40px",
+
+            maxHeight: "146px",
+            width: "274px",
             rowGap: "6px",
-            columnGap: "20px",
+            justifyContent: "space-between",
           },
         },
       },

@@ -45,7 +45,7 @@ export const MarketAuthorisedLenders = ({
     JSON.parse(localStorage.getItem("lenders-name") || "{}"),
   )
 
-  const { data } = useGetAuthorisedLendersByMarket(market)
+  const { data, isLoading } = useGetAuthorisedLendersByMarket(market)
   const { t } = useTranslation()
   const rows = data
     ? data?.map((lender) => ({
@@ -182,6 +182,23 @@ export const MarketAuthorisedLenders = ({
     },
   ]
 
+  if (isLoading) {
+    return (
+      <Box sx={MarketWithdrawalRequestsContainer} id="lenders">
+        <Typography variant="title3" sx={{ height: "38px" }}>
+          {t("borrowerMarketDetails.authorisedLenders.header")}
+        </Typography>
+
+        <Box sx={SkeletonContainer} flexDirection="column" gap="20px">
+          <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+          <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+          <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+          <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+        </Box>
+      </Box>
+    )
+  }
+
   return (
     <Box sx={MarketWithdrawalRequestsContainer} id="lenders">
       <Box
@@ -201,11 +218,13 @@ export const MarketAuthorisedLenders = ({
       </Box>
 
       {rows?.length === 0 ? (
-        <Box sx={SkeletonContainer} flexDirection="column" gap="20px">
-          <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
-          <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
-          <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
-          <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+        <Box display="flex" flexDirection="column">
+          <Typography variant="title3">
+            There are no authorised lenders
+          </Typography>
+          <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
+            You have not add any lenders yet.
+          </Typography>
         </Box>
       ) : (
         <>
