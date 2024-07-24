@@ -56,16 +56,18 @@ export const useRepay = (
         return tx.wait()
       }
 
-      const { symbol } = marketAccount.market.underlyingToken
+      // const { symbol } = marketAccount.market.underlyingToken
+      //
+      // const tokenAmountFormatted = amount.format(TOKEN_FORMAT_DECIMALS)
+      //
+      // const receipt = await toastifyRequest(repay(), {
+      //   pending: `${tokenAmountFormatted} ${symbol} Repayment In Progress...`,
+      //   success: `Successfully Repaid ${tokenAmountFormatted} ${symbol}!`,
+      //   error: `Error: Repayment Attempt Failed`,
+      // })
+      // await waitForSubgraphSync(receipt.blockNumber)
 
-      const tokenAmountFormatted = amount.format(TOKEN_FORMAT_DECIMALS)
-
-      const receipt = await toastifyRequest(repay(), {
-        pending: `${tokenAmountFormatted} ${symbol} Repayment In Progress...`,
-        success: `Successfully Repaid ${tokenAmountFormatted} ${symbol}!`,
-        error: `Error: Repayment Attempt Failed`,
-      })
-      await waitForSubgraphSync(receipt.blockNumber)
+      await repay()
     },
     onSuccess() {
       client.invalidateQueries({

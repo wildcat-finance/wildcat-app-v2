@@ -160,12 +160,14 @@ export const useDeployMarket = () => {
         return receipt
       }
       // 3. Deploy market
-      const receipt = await toastifyRequest(send(), {
-        pending: `${stepPrefix}Deploying Market...`,
-        success: `${stepPrefix}Market Deployed - Redirecting To Market List...`,
-        error: `${stepPrefix}Market Deployment Failed`,
-      })
-      await waitForSubgraphSync(receipt.blockNumber)
+      // const receipt = await toastifyRequest(send(), {
+      //   pending: `${stepPrefix}Deploying Market...`,
+      //   success: `${stepPrefix}Market Deployed - Redirecting To Market List...`,
+      //   error: `${stepPrefix}Market Deployment Failed`,
+      // })
+      // await waitForSubgraphSync(receipt.blockNumber)
+
+      await send()
     },
     onSuccess: () => {
       client.invalidateQueries({ queryKey: [GET_CONTROLLER_KEY] })

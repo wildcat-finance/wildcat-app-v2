@@ -32,18 +32,20 @@ export const useApprove = (
         return tx.wait()
       }
 
-      const receipt = await toastifyRequest(approve(), {
-        pending: `Approving ${tokenAmount.format(
-          tokenAmount.token.decimals,
-          true,
-        )}...`,
-        success: `Successfully Approved ${tokenAmount.format(
-          tokenAmount.token.decimals,
-          true,
-        )}!`,
-        error: `Error: ${token.symbol} Approval Failed`,
-      })
-      await waitForSubgraphSync(receipt.blockNumber)
+      // const receipt = await toastifyRequest(approve(), {
+      //   pending: `Approving ${tokenAmount.format(
+      //     tokenAmount.token.decimals,
+      //     true,
+      //   )}...`,
+      //   success: `Successfully Approved ${tokenAmount.format(
+      //     tokenAmount.token.decimals,
+      //     true,
+      //   )}!`,
+      //   error: `Error: ${token.symbol} Approval Failed`,
+      // })
+      // await waitForSubgraphSync(receipt.blockNumber)
+
+      await approve()
     },
     onSuccess() {
       client.invalidateQueries({ queryKey: [GET_MARKET_ACCOUNT_KEY] })

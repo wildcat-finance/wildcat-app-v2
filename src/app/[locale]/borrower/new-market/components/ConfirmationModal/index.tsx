@@ -38,6 +38,7 @@ import {
   CrossButton,
   DialogContainer,
   DividerStyle,
+  FinalDialogContainer,
   FooterModalContainer,
   FormModalContainer,
   FormModalGroupContainer,
@@ -99,7 +100,7 @@ export const ConfirmationModal = ({
 
   if (showErrorPopup) {
     return (
-      <Dialog open={open} onClose={handleClickClose} sx={DialogContainer}>
+      <Dialog open={open} onClose={handleClickClose} sx={FinalDialogContainer}>
         <Box sx={DeployHeaderContainer}>
           <Box width="20px" height="20px" />
           <IconButton disableRipple onClick={handleClickClose}>
@@ -153,7 +154,7 @@ export const ConfirmationModal = ({
 
   if (isSuccess) {
     return (
-      <Dialog open={open} sx={DialogContainer}>
+      <Dialog open={open} sx={FinalDialogContainer}>
         <Box padding="24px" sx={DeployContentContainer}>
           <Box
             margin="auto"
@@ -205,7 +206,7 @@ export const ConfirmationModal = ({
 
   if (isLoading) {
     return (
-      <Dialog open={open} sx={DialogContainer}>
+      <Dialog open={open} sx={FinalDialogContainer}>
         <Box sx={DeployContentContainer} rowGap="24px">
           <Loader />
 
