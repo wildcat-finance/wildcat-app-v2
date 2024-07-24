@@ -24,7 +24,7 @@ export const PageContainer = {
 }
 
 export const ContentContainer = {
-  minHeight: "calc(100vh - 82px - 43px)",
+  height: "calc(100vh - 82px - 43px - 52px)",
   width: "100%",
   display: "flex",
   flexDirection: "row",

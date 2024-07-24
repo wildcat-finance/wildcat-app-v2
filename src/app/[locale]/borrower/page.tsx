@@ -21,7 +21,7 @@ import { BorrowerMarketsTable } from "./components/BorrowerMarketsTable"
 import { OthersMarketsTable } from "./components/OthersMarketsTable"
 import { useBorrowerInvitationRedirect } from "./hooks/useBorrowerInvitationRedirect"
 import { useMarketsForBorrower } from "./hooks/useMarketsForBorrower"
-import { PageTitleContainer } from "./page-style"
+import { MarketsTablesContainer, PageTitleContainer } from "./page-style"
 
 const filterMarketsByAssetAndStatus = (
   markets: Market[] | undefined,
@@ -166,7 +166,7 @@ export default function Borrower() {
       )}
 
       {tab === "markets" && (
-        <>
+        <Box sx={MarketsTablesContainer}>
           {showBorrowerTables && (
             <Box>
               <Box>
@@ -223,7 +223,7 @@ export default function Borrower() {
               </Typography>
             )}
           </Box>
-        </>
+        </Box>
       )}
     </Box>
   )

@@ -1,4 +1,5 @@
 export const ContentContainer = {
+  height: "82px",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
