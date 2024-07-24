@@ -15,7 +15,7 @@ import {
   DateCalendarTextField,
   DateRangeContainer,
 } from "./style"
-import ArrowLeftIcon from "../../assets/icons/backArrow_icon.svg"
+import ArrowLeftIcon from "../../assets/icons/sharpArrow_icon.svg"
 
 const DateCalendarArrowLeft = () => (
   <SvgIcon
@@ -178,7 +178,7 @@ export const DateRange = ({ dates, setDates }: DateRangeProps) => {
                 : null
             }
             onChange={(newVal) => {
-              setDates((prev) => ({ ...prev, starting: newVal }))
+              setDates((prev) => ({ ...prev, ending: newVal }))
             }}
             defaultValue={dayjs()}
           />

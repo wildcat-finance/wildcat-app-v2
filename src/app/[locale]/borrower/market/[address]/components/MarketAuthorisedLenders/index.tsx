@@ -229,7 +229,16 @@ export const MarketAuthorisedLenders = ({
       ) : (
         <>
           <DataGrid
-            sx={DataGridCells}
+            sx={{
+              ...DataGridCells,
+              "& .MuiDataGrid-columnHeader": {
+                marginBottom: "6px",
+                padding: "0 8px",
+              },
+              "& .MuiDataGrid-columnHeaderTitle": {
+                fontSize: 11,
+              },
+            }}
             rows={rows}
             columns={columns}
             columnHeaderHeight={40}
@@ -248,7 +257,16 @@ export const MarketAuthorisedLenders = ({
           >
             {!(rows?.length === 0) && (
               <DataGrid
-                sx={DataGridCells}
+                sx={{
+                  ...DataGridCells,
+                  "& .MuiDataGrid-columnHeader": {
+                    marginBottom: "6px",
+                    padding: "0 8px",
+                  },
+                  "& .MuiDataGrid-columnHeaderTitle": {
+                    fontSize: 11,
+                  },
+                }}
                 rows={rows}
                 columns={columns}
                 columnHeaderHeight={0}

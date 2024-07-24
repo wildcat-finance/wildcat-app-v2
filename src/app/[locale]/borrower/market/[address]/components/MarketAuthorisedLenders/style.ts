@@ -12,6 +12,7 @@ export const MarketLendersMLA = {
 }
 
 export const MLATableButton = {
+  fontSize: 11,
   margin: "0",
   padding: "0",
   minWidth: "0px",

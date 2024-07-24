@@ -3,7 +3,7 @@ export const DateRangeContainer = { display: "flex", gap: "28px" }
 export const DateCalendarContainer = {
   display: "flex",
   flexDirection: "column",
-  gap: "8px",
+  gap: "12px",
 }
 
 export const DateCalendarTextField = {
