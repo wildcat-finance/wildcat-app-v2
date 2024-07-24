@@ -118,7 +118,7 @@ export default function MarketDetails({
             unmountOnExit
             in={checked === 2}
           >
-            <Box sx={SlideContentContainer}>
+            <Box sx={SlideContentContainer} marginTop="12px">
               <MarketStatusChart market={market} />
               <Divider sx={{ margin: "32px 0 44px" }} />
               <MarketParameters market={market} />
@@ -130,7 +130,7 @@ export default function MarketDetails({
             unmountOnExit
             in={checked === 3}
           >
-            <Box sx={SlideContentContainer}>
+            <Box sx={SlideContentContainer} marginTop="12px">
               <MarketWithdrawalRequests marketAccount={marketAccount} />
             </Box>
           </Slide>
@@ -140,7 +140,7 @@ export default function MarketDetails({
             unmountOnExit
             in={checked === 4}
           >
-            <Box sx={SlideContentContainer}>
+            <Box sx={SlideContentContainer} marginTop="12px">
               <MarketAuthorisedLenders market={market} />
             </Box>
           </Slide>

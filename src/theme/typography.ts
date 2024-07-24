@@ -35,17 +35,17 @@ export const TYPOGRAPHY = {
     lineHeight: "20px",
   },
   text3: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: 500,
     lineHeight: "20px",
   },
   text4Highlighted: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 600,
     lineHeight: "16px",
   },
   text4: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 500,
     lineHeight: "16px",
   },

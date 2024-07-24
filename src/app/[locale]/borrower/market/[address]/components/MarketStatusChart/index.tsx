@@ -55,12 +55,12 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
     market.totalDebts.gt(0) && !market.isClosed
       ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
           round: true,
-          units: ["d"],
+          largest: 1,
         })
       : ""
 
   return (
-    <Box id="statusDetails">
+    <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
         <Typography variant="title3">Total Debt</Typography>
 

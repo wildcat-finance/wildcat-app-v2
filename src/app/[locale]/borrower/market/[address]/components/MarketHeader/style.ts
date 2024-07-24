@@ -1,14 +1,8 @@
-export const MarketHeaderContainer = {
-  marginBottom: "20px",
-  display: "flex",
-  flexDirection: "column",
-  rowGap: "20px",
-}
-
 export const MarketHeaderUpperContainer = {
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
+  marginBottom: "20px",
 }
 
 export const MarketHeaderTitleContainer = {
