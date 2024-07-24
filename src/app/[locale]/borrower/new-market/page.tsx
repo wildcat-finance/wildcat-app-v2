@@ -23,6 +23,7 @@ import { LegalInfoForm } from "./components/LegalInfoForm"
 import { NewMarketForm } from "./components/NewMarketForm"
 import { useLegalInfoForm } from "./hooks/useLegalInfoForm"
 import { useNewMarketForm } from "./hooks/useNewMarketForm"
+import { ContentContainer } from "./style"
 
 export default function NewMarket() {
   const dispatch = useAppDispatch()
@@ -83,11 +84,7 @@ export default function NewMarket() {
   switch (newMarketStep) {
     case newMarketSteps.marketDescription.name: {
       return (
-        <Box
-          padding="40px 367px 0 100px"
-          display="flex"
-          justifyContent="space-around"
-        >
+        <Box sx={ContentContainer}>
           <NewMarketForm form={newMarketForm} tokenAsset={tokenAsset} />
         </Box>
       )
@@ -95,11 +92,7 @@ export default function NewMarket() {
 
     case newMarketSteps.legalInformation.name: {
       return (
-        <Box
-          padding="40px 367px 0 100px"
-          display="flex"
-          justifyContent="space-around"
-        >
+        <Box sx={ContentContainer}>
           <LegalInfoForm form={legalInfoForm} />
         </Box>
       )
@@ -107,11 +100,7 @@ export default function NewMarket() {
 
     case newMarketSteps.confirmation.name: {
       return (
-        <Box
-          padding="40px 367px 0 100px"
-          display="flex"
-          justifyContent="space-around"
-        >
+        <Box sx={ContentContainer}>
           {hideLegalInfoStep ? (
             <NewMarketForm form={newMarketForm} tokenAsset={tokenAsset} />
           ) : (
@@ -132,11 +121,7 @@ export default function NewMarket() {
 
     default: {
       return (
-        <Box
-          padding="40px 367px 0 100px"
-          display="flex"
-          justifyContent="space-around"
-        >
+        <Box sx={ContentContainer}>
           <NewMarketForm form={newMarketForm} tokenAsset={tokenAsset} />
         </Box>
       )
