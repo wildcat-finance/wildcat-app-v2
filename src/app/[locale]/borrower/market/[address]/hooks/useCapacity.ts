@@ -36,12 +36,14 @@ export const useSetMaxTotalSupply = (
         return tx.wait()
       }
 
-      const receipt = await toastifyRequest(setMaxTotalSupply(), {
-        pending: `Setting Maximum Capacity...`,
-        success: `Maximum Capacity successfully Adjusted`,
-        error: "Error setting Maximum Capacity",
-      })
-      await waitForSubgraphSync(receipt.blockNumber)
+      // const receipt = await toastifyRequest(setMaxTotalSupply(), {
+      //   pending: `Setting Maximum Capacity...`,
+      //   success: `Maximum Capacity successfully Adjusted`,
+      //   error: "Error setting Maximum Capacity",
+      // })
+      // await waitForSubgraphSync(receipt.blockNumber)
+
+      await setMaxTotalSupply()
     },
     onSuccess() {
       client.invalidateQueries({

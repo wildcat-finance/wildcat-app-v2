@@ -27,12 +27,14 @@ export const useTerminateMarket = (
         return tx.wait()
       }
 
-      const receipt = await toastifyRequest(closeMarket(), {
-        pending: `Terminating Market...`,
-        success: `Successfully Terminated Market!`,
-        error: "Error Terminating Market",
-      })
-      await waitForSubgraphSync(receipt.blockNumber)
+      // const receipt = await toastifyRequest(closeMarket(), {
+      //   pending: `Terminating Market...`,
+      //   success: `Successfully Terminated Market!`,
+      //   error: "Error Terminating Market",
+      // })
+      // await waitForSubgraphSync(receipt.blockNumber)
+
+      await closeMarket()
     },
     onSuccess() {
       client.invalidateQueries({

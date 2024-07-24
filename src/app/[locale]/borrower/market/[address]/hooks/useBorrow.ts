@@ -33,18 +33,20 @@ export const useBorrow = (
         return tx.wait()
       }
 
-      const receipt = await toastifyRequest(borrow(), {
-        pending: `Borrowing ${tokenAmount.format(
-          tokenAmount.token.decimals,
-          true,
-        )}...`,
-        success: `Borrowed ${tokenAmount.format(
-          tokenAmount.token.decimals,
-          true,
-        )}!`,
-        error: `Error: Borrow Failed`,
-      })
-      await waitForSubgraphSync(receipt.blockNumber)
+      // const receipt = await toastifyRequest(borrow(), {
+      //   pending: `Borrowing ${tokenAmount.format(
+      //     tokenAmount.token.decimals,
+      //     true,
+      //   )}...`,
+      //   success: `Borrowed ${tokenAmount.format(
+      //     tokenAmount.token.decimals,
+      //     true,
+      //   )}!`,
+      //   error: `Error: Borrow Failed`,
+      // })
+      // await waitForSubgraphSync(receipt.blockNumber)
+
+      await borrow()
     },
     onSuccess() {
       client.invalidateQueries({
