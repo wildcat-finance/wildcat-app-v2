@@ -121,7 +121,9 @@ export default function Borrower() {
   }
 
   return (
-    <Box>
+    <Box
+      sx={{ height: "calc(100vh - 43px - 43px - 52px)", overflow: "hidden" }}
+    >
       <Box sx={PageTitleContainer}>
         {showBorrowerTables ? (
           <Tabs

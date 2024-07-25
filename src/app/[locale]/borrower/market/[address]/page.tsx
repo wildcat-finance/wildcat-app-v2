@@ -96,7 +96,7 @@ export default function MarketDetails({
             width: "100%",
             overflow: "hidden",
             overflowY: "visible",
-            maxHeight: "630px",
+            height: "calc(100vh - 43px - 43px - 52px - 60px - 52px)",
           }}
         >
           {/* <Slide */}

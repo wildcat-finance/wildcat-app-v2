@@ -116,11 +116,12 @@ export const BorrowerMarketsTable = ({
       minWidth: 104,
       headerAlign: "right",
       align: "right",
+      sortComparator: capacityComparator,
     },
     {
       field: "deploy",
       headerName: t("borrowerMarketList.table.header.deploy"),
-      minWidth: 114,
+      minWidth: 126,
       headerAlign: "right",
       align: "right",
       sortComparator: dateComparator,
