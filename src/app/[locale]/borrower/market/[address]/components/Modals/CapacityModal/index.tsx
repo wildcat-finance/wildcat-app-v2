@@ -60,6 +60,8 @@ export const CapacityModal = ({
 
   const showForm = !(isPending || showSuccessPopup || showErrorPopup)
 
+  const disableCapacity = market.isClosed
+
   const disableConfirm = amount === ""
 
   useEffect(() => {
@@ -78,6 +80,7 @@ export const CapacityModal = ({
         color="secondary"
         size="small"
         onClick={modal.handleOpenModal}
+        disabled={disableCapacity}
       >
         {t("borrowerMarketDetails.buttons.capacity")}
       </Button>

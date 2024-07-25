@@ -553,6 +553,9 @@ export const theme = createTheme({
 
               "& .MuiFormHelperText-root": {
                 fontFamily: "inherit",
+                fontSize: "10px",
+                fontWeight: 500,
+                lineHeight: "16px",
                 letterSpacing: 0,
                 margin: "4px 0 0",
                 "&.Mui-error": {
