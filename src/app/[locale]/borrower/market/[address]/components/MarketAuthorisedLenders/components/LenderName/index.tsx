@@ -93,7 +93,7 @@ export const LenderName = ({
   }, [isEdit, prevName])
 
   return (
-    <Box sx={LenderNameContainer}>
+    <Box onClick={handleClickEdit} sx={LenderNameContainer}>
       {!isEdit && (
         <Typography
           variant="text3"
