@@ -91,7 +91,7 @@ export default function MarketDetails({
         )}
         <MarketHeader marketAccount={marketAccount} />
         <Box
-          ref={scrollContainer}
+          // ref={scrollContainer}
           sx={{
             width: "100%",
             overflow: "hidden",
@@ -99,12 +99,25 @@ export default function MarketDetails({
             maxHeight: "630px",
           }}
         >
-          <Slide
-            direction={direction}
-            container={scrollContainer.current}
-            unmountOnExit
-            in={checked === 1}
-          >
+          {/* <Slide */}
+          {/*  direction={direction} */}
+          {/*  container={scrollContainer.current} */}
+          {/*  unmountOnExit */}
+          {/*  in={checked === 1} */}
+          {/* > */}
+          {/*  <Box sx={SlideContentContainer}> */}
+          {/*    {holdTheMarket && ( */}
+          {/*      <MarketTransactions */}
+          {/*        market={market} */}
+          {/*        marketAccount={marketAccount} */}
+          {/*        holdTheMarket={holdTheMarket} */}
+          {/*      /> */}
+          {/*    )} */}
+          {/*    {holdTheMarket && <Divider sx={{ margin: "32px 0 44px" }} />} */}
+          {/*    <MarketStatusChart market={market} /> */}
+          {/*  </Box> */}
+          {/* </Slide> */}
+          {checked === 1 && (
             <Box sx={SlideContentContainer}>
               {holdTheMarket && (
                 <MarketTransactions
@@ -116,39 +129,56 @@ export default function MarketDetails({
               {holdTheMarket && <Divider sx={{ margin: "32px 0 44px" }} />}
               <MarketStatusChart market={market} />
             </Box>
-          </Slide>
-          <Slide
-            direction={direction}
-            container={scrollContainer.current}
-            unmountOnExit
-            in={checked === 2}
-          >
+          )}
+          {/* <Slide */}
+          {/*  direction={direction} */}
+          {/*  container={scrollContainer.current} */}
+          {/*  unmountOnExit */}
+          {/*  in={checked === 2} */}
+          {/* > */}
+          {/*  <Box sx={SlideContentContainer} marginTop="12px"> */}
+          {/*    <MarketStatusChart market={market} /> */}
+          {/*    <Divider sx={{ margin: "32px 0 44px" }} /> */}
+          {/*    <MarketParameters market={market} /> */}
+          {/*  </Box> */}
+          {/* </Slide> */}
+          {checked === 2 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketStatusChart market={market} />
               <Divider sx={{ margin: "32px 0 44px" }} />
               <MarketParameters market={market} />
             </Box>
-          </Slide>
-          <Slide
-            direction={direction}
-            container={scrollContainer.current}
-            unmountOnExit
-            in={checked === 3}
-          >
+          )}
+          {/* <Slide */}
+          {/*  direction={direction} */}
+          {/*  container={scrollContainer.current} */}
+          {/*  unmountOnExit */}
+          {/*  in={checked === 3} */}
+          {/* > */}
+          {/*  <Box sx={SlideContentContainer} marginTop="12px"> */}
+          {/*    <MarketWithdrawalRequests marketAccount={marketAccount} /> */}
+          {/*  </Box> */}
+          {/* </Slide> */}
+          {checked === 3 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketWithdrawalRequests marketAccount={marketAccount} />
             </Box>
-          </Slide>
-          <Slide
-            direction={direction}
-            container={scrollContainer.current}
-            unmountOnExit
-            in={checked === 4}
-          >
+          )}
+          {/* <Slide */}
+          {/*  direction={direction} */}
+          {/*  container={scrollContainer.current} */}
+          {/*  unmountOnExit */}
+          {/*  in={checked === 4} */}
+          {/* > */}
+          {/*  <Box sx={SlideContentContainer} marginTop="12px"> */}
+          {/*    <MarketAuthorisedLenders market={market} /> */}
+          {/*  </Box> */}
+          {/* </Slide> */}
+          {checked === 4 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketAuthorisedLenders market={market} />
             </Box>
-          </Slide>
+          )}
         </Box>
       </Box>
     </Box>
