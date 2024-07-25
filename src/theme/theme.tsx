@@ -1236,12 +1236,16 @@ export const theme = createTheme({
 
           "& .MuiPickersSlideTransition-root.MuiDayCalendar-slideTransition": {
             minHeight: "124px",
+            overflow: "hidden",
           },
 
           "& .MuiPickersCalendarHeader-root": {
             justifyContent: "space-between",
             margin: "0px",
             padding: "0px",
+            paddingRight: "4px",
+            minHeight: "36px",
+            maxHeight: "36px",
           },
           "& .MuiDayCalendar-root": {
             display: "flex",
@@ -1251,7 +1255,7 @@ export const theme = createTheme({
           "& .MuiDayCalendar-monthContainer": {
             display: "flex",
             flexDirection: "column",
-            gap: "6px",
+            gap: "4px",
           },
           "& .MuiDayCalendar-header": {
             justifyContent: "space-between",
@@ -1264,6 +1268,7 @@ export const theme = createTheme({
             backgroundColor: COLORS.cornflowerBlue,
           },
           "& .MuiPickersCalendarHeader-label": {
+            fontSize: 13,
             marginRight: "0px",
           },
           "& .MuiPickersArrowSwitcher-spacer": {
@@ -1285,8 +1290,8 @@ export const theme = createTheme({
           },
           "& .MuiPickersDay-root": {
             fontSize: "small",
-            width: "20px",
-            height: "20px",
+            width: "22px",
+            height: "22px",
           },
           "& .MuiPickersCalendarHeader-switchViewIcon": {
             "& path": { fill: `${COLORS.greySuit}` },
@@ -1298,7 +1303,7 @@ export const theme = createTheme({
             fontFamily: "inherit",
           },
           "& .MuiPickersYear-root": {
-            width: "40px",
+            width: "48px",
             height: "20px",
             flex: "0 0 calc(24% - 20px);",
           },
@@ -1311,18 +1316,20 @@ export const theme = createTheme({
             fontWeight: 500,
             lineHeight: "20px",
 
-            width: "40px",
+            width: "48px",
             height: "20px",
             padding: "0",
             margin: "0",
           },
           "& .MuiYearCalendar-root": {
             display: "grid",
-            gridTemplateColumns: "40px 40px 40px 40px",
-
-            maxHeight: "146px",
+            gridTemplateColumns: "48px 48px 48px 48px",
+            padding: "0 14px 0",
+            maxHeight: "150px",
             width: "274px",
             rowGap: "6px",
+            border: `1px solid ${COLORS.hintOfRed}`,
+            borderRadius: "8px",
             justifyContent: "space-between",
           },
         },

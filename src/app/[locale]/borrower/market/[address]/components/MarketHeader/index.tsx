@@ -10,7 +10,6 @@ import { getMarketStatusChip } from "@/utils/marketStatus"
 
 import { MarketHeaderProps } from "./interface"
 import {
-  MarketHeaderContainer,
   MarketHeaderStatusContainer,
   MarketHeaderTitleContainer,
   MarketHeaderUpperContainer,
@@ -38,30 +37,24 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
   const marketStatus = getMarketStatusChip(market)
 
   return (
-    <Box sx={MarketHeaderContainer} id="borrowRepay">
-      <Box sx={MarketHeaderUpperContainer}>
-        <Box sx={MarketHeaderTitleContainer}>
-          <Typography
-            variant="title1"
-            sx={{
-              maxWidth: "550px",
-              whiteSpace: "nowrap",
-              textOverflow: "ellipsis",
-              overflow: "hidden",
-            }}
-          >
-            {market.name}
-          </Typography>
-          <Typography variant="text4">
-            {market.underlyingToken.symbol}
-          </Typography>
-        </Box>
-        <Box sx={MarketHeaderStatusContainer}>
-          <MarketStatusChip status={marketStatus} variant="filled" />
-          {cycleDuration && (
-            <MarketCycleChip color="blue" time={cycleDuration} />
-          )}
-        </Box>
+    <Box sx={MarketHeaderUpperContainer}>
+      <Box sx={MarketHeaderTitleContainer}>
+        <Typography
+          variant="title1"
+          sx={{
+            maxWidth: "550px",
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
+            overflow: "hidden",
+          }}
+        >
+          {market.name}
+        </Typography>
+        <Typography variant="text4">{market.underlyingToken.symbol}</Typography>
+      </Box>
+      <Box sx={MarketHeaderStatusContainer}>
+        <MarketStatusChip status={marketStatus} variant="filled" />
+        {cycleDuration && <MarketCycleChip color="blue" time={cycleDuration} />}
       </Box>
     </Box>
   )

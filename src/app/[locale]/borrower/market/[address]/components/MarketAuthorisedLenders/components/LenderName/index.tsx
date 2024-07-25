@@ -33,6 +33,7 @@ export const LenderName = ({
   const isPlaceholder = name === "Add Name"
 
   const handleClickEdit = () => {
+    if (isPlaceholder) setName("")
     setPrevName(name)
     setIsEdit(true)
   }
@@ -40,13 +41,17 @@ export const LenderName = ({
   const handleSave = (evt: React.KeyboardEvent) => {
     if (evt.key === "Enter") {
       setLendersName((prev) => {
-        if (name === "") delete prev[address]
-        else prev[address] = name
-        localStorage.setItem("lenders-name", JSON.stringify(prev))
+        if (name === "") {
+          delete prev[address]
+          setName("Add Name")
+        } else {
+          prev[address] = name
+          localStorage.setItem("lenders-name", JSON.stringify(prev))
+          setName(name.trim())
+        }
         return prev
       })
 
-      setName(name.trim())
       setPrevName(name)
       setIsEdit(false)
     }

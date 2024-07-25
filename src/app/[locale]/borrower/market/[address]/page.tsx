@@ -42,6 +42,13 @@ export default function MarketDetails({
 
   const { checked, scrollContainer, direction } = useScrollHandler()
 
+  useEffect(
+    () => () => {
+      dispatch(resetPageState())
+    },
+    [],
+  )
+
   if (!market || !marketAccount)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
@@ -72,7 +79,7 @@ export default function MarketDetails({
     )
 
   return (
-    <Box sx={{ padding: "52px 20px 0 44px", overflowY: "scroll" }}>
+    <Box sx={{ padding: "52px 20px 0 44px" }}>
       <Box sx={{ width: "69%" }}>
         {!bannerDisplayConfig.hideBanner && checked === 1 && (
           <LeadBanner
@@ -85,7 +92,12 @@ export default function MarketDetails({
         <MarketHeader marketAccount={marketAccount} />
         <Box
           ref={scrollContainer}
-          sx={{ position: "relative", overflow: "hidden" }}
+          sx={{
+            width: "100%",
+            overflow: "hidden",
+            overflowY: "visible",
+            maxHeight: "630px",
+          }}
         >
           <Slide
             direction={direction}
@@ -111,7 +123,7 @@ export default function MarketDetails({
             unmountOnExit
             in={checked === 2}
           >
-            <Box sx={SlideContentContainer}>
+            <Box sx={SlideContentContainer} marginTop="12px">
               <MarketStatusChart market={market} />
               <Divider sx={{ margin: "32px 0 44px" }} />
               <MarketParameters market={market} />
@@ -123,7 +135,7 @@ export default function MarketDetails({
             unmountOnExit
             in={checked === 3}
           >
-            <Box sx={SlideContentContainer}>
+            <Box sx={SlideContentContainer} marginTop="12px">
               <MarketWithdrawalRequests marketAccount={marketAccount} />
             </Box>
           </Slide>
@@ -133,7 +145,7 @@ export default function MarketDetails({
             unmountOnExit
             in={checked === 4}
           >
-            <Box sx={SlideContentContainer}>
+            <Box sx={SlideContentContainer} marginTop="12px">
               <MarketAuthorisedLenders market={market} />
             </Box>
           </Slide>

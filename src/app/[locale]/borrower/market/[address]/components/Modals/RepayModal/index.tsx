@@ -155,7 +155,7 @@ export const RepayModal = ({
     market.totalDebts.gt(0) && !market.isClosed
       ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
           round: true,
-          units: ["d"],
+          largest: 1,
         })
       : ""
 
