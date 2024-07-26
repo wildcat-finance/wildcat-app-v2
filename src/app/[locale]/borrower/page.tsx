@@ -171,7 +171,7 @@ export default function Borrower() {
         <Box sx={MarketsTablesContainer}>
           {showBorrowerTables && (
             <Box>
-              <Box>
+              <Box sx={{ overflow: "auto" }}>
                 <BorrowerMarketsTable
                   type="active"
                   label={t("borrowerMarketList.table.title.active")}
@@ -190,7 +190,7 @@ export default function Borrower() {
                 />
               </Box>
 
-              <Box marginTop="16px">
+              <Box sx={{ overflow: "auto" }} marginTop="16px">
                 <BorrowerMarketsTable
                   type="terminated"
                   label={t("borrowerMarketList.table.title.terminated")}
@@ -210,15 +210,17 @@ export default function Borrower() {
 
           <Box marginTop="16px">
             {!isWrongNetwork ? (
-              <OthersMarketsTable
-                tableData={othersTableData || []}
-                borrowersData={borrowers || []}
-                isLoading={isLoading}
-                assetFilter={filterByAsset}
-                statusFilter={filterByStatus}
-                nameFilter={filterByMarketName}
-                isOpen
-              />
+              <Box sx={{ overflow: "auto" }}>
+                <OthersMarketsTable
+                  tableData={othersTableData || []}
+                  borrowersData={borrowers || []}
+                  isLoading={isLoading}
+                  assetFilter={filterByAsset}
+                  statusFilter={filterByStatus}
+                  nameFilter={filterByMarketName}
+                  isOpen
+                />
+              </Box>
             ) : (
               <Typography variant="text3" marginLeft="16px">
                 {t("borrowerMarketList.table.noMarkets.wrongNetwork")}

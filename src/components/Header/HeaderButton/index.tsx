@@ -10,6 +10,7 @@ import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWal
 import { ProfileDialog } from "@/components/Header/HeaderButton/ProfileDialog"
 import { ConnectButton } from "@/components/Header/HeaderButton/style"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { trimAddress } from "@/utils/formatters"
 
 export const HeaderButton = () => {
   const { t } = useTranslation()
@@ -32,9 +33,7 @@ export const HeaderButton = () => {
     if (isConnected && isWrongNetwork) {
       setButtonText(t("header.button.wrongNetwork"))
     } else if (isConnected && address) {
-      setButtonText(
-        `${address.slice(0, 4)}..${address.slice(-4, address.length)}`,
-      )
+      setButtonText(trimAddress(address))
     } else if (!isConnected) {
       setButtonText(t("header.button.connectWallet"))
     }

@@ -174,7 +174,7 @@ export const BorrowerMarketsTable = ({
     nameFilter === ""
 
   return (
-    <Accordion defaultExpanded={isOpen}>
+    <Accordion sx={{ width: "100%", minWidth: 0 }} defaultExpanded={isOpen}>
       <AccordionSummary>
         <Box display="flex" columnGap="4px">
           <Typography variant="text3">{label}</Typography>
@@ -234,12 +234,14 @@ export const BorrowerMarketsTable = ({
         </Box>
       )}
       {tableData.length !== 0 && !isLoading && (
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          columnHeaderHeight={40}
-          onRowClick={handleRowClick}
-        />
+        <Box sx={{ minWidth: 0 }}>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            columnHeaderHeight={40}
+            onRowClick={handleRowClick}
+          />
+        </Box>
       )}
     </Accordion>
   )
