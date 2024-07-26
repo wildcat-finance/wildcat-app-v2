@@ -234,14 +234,13 @@ export const BorrowerMarketsTable = ({
         </Box>
       )}
       {tableData.length !== 0 && !isLoading && (
-        <Box sx={{ minWidth: 0 }}>
-          <DataGrid
-            rows={rows}
-            columns={columns}
-            columnHeaderHeight={40}
-            onRowClick={handleRowClick}
-          />
-        </Box>
+        <DataGrid
+          sx={{ overflow: "auto", maxWidth: "calc(100vw - 267px)" }}
+          rows={rows}
+          columns={columns}
+          columnHeaderHeight={40}
+          onRowClick={handleRowClick}
+        />
       )}
     </Accordion>
   )
