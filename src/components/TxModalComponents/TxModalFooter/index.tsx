@@ -7,9 +7,11 @@ import {
   Typography,
 } from "@mui/material"
 
+import Check from "@/assets/icons/check_icon.svg"
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { MiniLoader } from "@/components/Loader"
 import { EtherscanBaseUrl } from "@/config/network"
+import { COLORS } from "@/theme/colors"
 
 import { TxModalFooterProps } from "./interface"
 import { TxModalFooterContainer, TxModalFooterLink } from "./style"
@@ -24,6 +26,7 @@ export const TxModalFooter = ({
   disableSecondBtn,
   link,
   hideButtons,
+  secondBtnIcon,
 }: TxModalFooterProps) => (
   <>
     {link && (
@@ -52,6 +55,20 @@ export const TxModalFooter = ({
             disabled={disableSecondBtn}
             fullWidth
           >
+            {secondBtnIcon && (
+              <SvgIcon
+                fontSize="medium"
+                sx={{
+                  marginRight: "3px",
+                  "& path": {
+                    fill: `${COLORS.santasGrey}`,
+                  },
+                }}
+              >
+                <Check />
+              </SvgIcon>
+            )}
+
             {secondBtnLoading ? <MiniLoader /> : secondBtnText}
           </Button>
         )}

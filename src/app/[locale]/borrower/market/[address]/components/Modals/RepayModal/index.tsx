@@ -132,22 +132,35 @@ export const RepayModal = ({
   }
 
   const disableApprove =
+    market.isClosed ||
     repayAmount.raw.isZero() ||
     repayAmount.raw.gt(market.outstandingDebt.raw) ||
-    isApproved ||
-    isApproving ||
     repayStep?.status === "Ready" ||
-    repayStep?.status === "InsufficientBalance"
+    repayStep?.status === "InsufficientBalance" ||
+    isApproving
 
   const disableRepay =
     market.isClosed ||
     repayAmount.raw.isZero() ||
+    repayAmount.raw.gt(market.outstandingDebt.raw) ||
     repayStep?.status === "InsufficientAllowance" ||
     repayStep?.status === "InsufficientBalance" ||
-    isApproveError ||
     isApproving
 
-  const IsTxApproved = isApproved || repayStep?.status === "Ready"
+  console.log(repayAmount.raw, "repayAmount.raw")
+
+  // console.log(
+  //   `disableApprove: repayAmount.raw.isZero() - ${repayAmount.raw.isZero()}, repayAmount.raw.gt(market.outstandingDebt.raw) - ${repayAmount.raw.gt(
+  //     market.outstandingDebt.raw,
+  //   )}, isApproved - ${isApproved}, isApproving - ${isApproving}, repayStep?.status === "Ready" - ${
+  //     repayStep?.status === "Ready"
+  //   }, repayStep?.status === "InsufficientBalance" - ${
+  //     repayStep?.status === "InsufficientBalance"
+  //   }`,
+  // )
+
+  const isApprovedButton =
+    repayStep?.status === "Ready" && !repayAmount.raw.isZero()
 
   const showForm = !(isRepaying || showSuccessPopup || showErrorPopup)
 
@@ -337,7 +350,8 @@ export const RepayModal = ({
 
         <TxModalFooter
           mainBtnText="Repay"
-          secondBtnText={IsTxApproved ? "Approved" : "Approve"}
+          secondBtnText={isApprovedButton ? "Approved" : "Approve"}
+          secondBtnIcon={isApprovedButton}
           mainBtnOnClick={handleRepay}
           secondBtnOnClick={handleApprove}
           disableMainBtn={disableRepay}

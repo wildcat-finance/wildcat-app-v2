@@ -10,4 +10,5 @@ export type TxModalFooterProps = {
 
   link?: string | null
   hideButtons?: boolean
+  secondBtnIcon?: boolean
 }
