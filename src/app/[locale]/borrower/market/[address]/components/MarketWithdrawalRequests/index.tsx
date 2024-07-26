@@ -184,7 +184,6 @@ export const MarketWithdrawalRequests = ({
         setIsOpen={setIsTotalOpen}
         summaryText="Total"
         chipValue={formatTokenWithCommas(totalAmount, { withSymbol: true })}
-        arrowOnRight
         summarySx={TotalAccordionSummary}
       >
         <DetailsAccordion
