@@ -37,13 +37,17 @@ export const RepayModal = ({
   marketAccount,
   disableRepayBtn,
 }: RepayModalProps) => {
-  const [txHash, setTxHash] = useState("")
   const [type, setType] = React.useState<"sum" | "days">("sum")
+
   const [amount, setAmount] = useState("")
   const [days, setDays] = useState("")
   const [maxRepayAmount, setMaxRepayAmount] = useState<TokenAmount>()
+  const [finalRepayAmount, setFinalRepayAmount] = useState<TokenAmount>()
+
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
+
+  const [txHash, setTxHash] = useState("")
 
   const modal = useApprovalModal(
     setShowSuccessPopup,
@@ -79,6 +83,7 @@ export const RepayModal = ({
   const handleOpenModal = () => {
     setType("sum")
     setDays("")
+    setFinalRepayAmount(undefined)
     modal.handleOpenModal()
   }
 
@@ -95,17 +100,22 @@ export const RepayModal = ({
     ? repayDaysAmount
     : maxRepayAmount || repayTokenAmount
 
-  const repayStep = marketAccount.checkRepayStep(repayAmount)
+  const repayStep = marketAccount.checkRepayStep(
+    finalRepayAmount || repayAmount,
+  )
 
   const handleRepay = () => {
     setTxHash("")
-    repay(repayAmount)
+    repay(finalRepayAmount || repayAmount)
   }
 
   const handleApprove = () => {
     setTxHash("")
     if (repayStep?.status === "InsufficientAllowance") {
-      approve(repayAmount).then(() => modal.setFlowStep(ModalSteps.approved))
+      approve(repayAmount).then(() => {
+        setFinalRepayAmount(repayAmount)
+        modal.setFlowStep(ModalSteps.approved)
+      })
     }
   }
 
@@ -146,18 +156,6 @@ export const RepayModal = ({
     repayStep?.status === "InsufficientAllowance" ||
     repayStep?.status === "InsufficientBalance" ||
     isApproving
-
-  console.log(repayAmount.raw, "repayAmount.raw")
-
-  // console.log(
-  //   `disableApprove: repayAmount.raw.isZero() - ${repayAmount.raw.isZero()}, repayAmount.raw.gt(market.outstandingDebt.raw) - ${repayAmount.raw.gt(
-  //     market.outstandingDebt.raw,
-  //   )}, isApproved - ${isApproved}, isApproving - ${isApproving}, repayStep?.status === "Ready" - ${
-  //     repayStep?.status === "Ready"
-  //   }, repayStep?.status === "InsufficientBalance" - ${
-  //     repayStep?.status === "InsufficientBalance"
-  //   }`,
-  // )
 
   const isApprovedButton =
     repayStep?.status === "Ready" && !repayAmount.raw.isZero()
