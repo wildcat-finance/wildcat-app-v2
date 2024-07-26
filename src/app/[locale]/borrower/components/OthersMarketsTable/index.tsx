@@ -240,6 +240,7 @@ export const OthersMarketsTable = ({
       )}
       {tableData.length !== 0 && !isLoading && (
         <DataGrid
+          sx={{ overflow: "auto", maxWidth: "calc(100vw - 267px)" }}
           rows={rows}
           columns={columns}
           columnHeaderHeight={40}
