@@ -155,7 +155,7 @@ export const MarketWithdrawalRequests = ({
       sortable: false,
       field: "amount",
       headerName: "Amount",
-      minWidth: 90,
+      minWidth: 120,
       flex: 1,
       headerAlign: "right",
       align: "right",
@@ -195,9 +195,6 @@ export const MarketWithdrawalRequests = ({
             marginBottom: isOngoingOpen ? "0px" : "12px",
             borderBottom: isOngoingOpen ? "none" : `1px solid`,
             borderColor: COLORS.athensGrey,
-            transition: isOngoingOpen
-              ? "margin-bottom 500ms cubic-bezier(0.4, 0, 0.2, 1) 0ms"
-              : "margin-bottom 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
           }}
           chipValue={formatTokenWithCommas(activeTotalAmount, {
             withSymbol: true,
@@ -228,9 +225,6 @@ export const MarketWithdrawalRequests = ({
             marginBottom: isPastOpen ? "0px" : "12px",
             borderBottom: isPastOpen ? "none" : `1px solid`,
             borderColor: COLORS.athensGrey,
-            transition: isPastOpen
-              ? "margin-bottom 500ms cubic-bezier(0.4, 0, 0.2, 1) 0ms"
-              : "margin-bottom 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
           }}
           chipValue={formatTokenWithCommas(expiredTotalAmount, {
             withSymbol: true,

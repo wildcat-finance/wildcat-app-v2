@@ -53,11 +53,13 @@ export const OthersMarketsTable = ({
       align: "left",
       sortComparator: statusComparator,
       renderCell: (params) => <MarketStatusChip status={params.value} />,
+      flex: 2,
     },
     {
       field: "name",
       headerName: t("borrowerMarketList.table.header.marketName"),
-      flex: 1,
+      flex: 4,
+      minWidth: 160,
       headerAlign: "left",
       align: "left",
       renderCell: ({ value }) => (
@@ -69,9 +71,10 @@ export const OthersMarketsTable = ({
     {
       field: "borrowerName",
       headerName: t("borrowerMarketList.table.header.borrowerName"),
-      width: 155,
+      minWidth: 130,
       headerAlign: "left",
       align: "left",
+      flex: 2,
     },
     {
       field: "asset",
@@ -79,6 +82,7 @@ export const OthersMarketsTable = ({
       minWidth: 151,
       headerAlign: "right",
       align: "right",
+      flex: 1,
     },
     {
       field: "lenderAPR",
@@ -87,11 +91,12 @@ export const OthersMarketsTable = ({
       headerAlign: "right",
       align: "right",
       sortComparator: percentComparator,
+      flex: 1,
     },
     {
       field: "crr",
       headerName: t("borrowerMarketList.table.header.crr"),
-      minWidth: 85,
+      minWidth: 90,
       headerAlign: "right",
       align: "right",
       sortComparator: percentComparator,
@@ -106,6 +111,7 @@ export const OthersMarketsTable = ({
           <TooltipButton value="TBD" />
         </Box>
       ),
+      flex: 1,
     },
     {
       field: "maxCapacity",
@@ -114,6 +120,7 @@ export const OthersMarketsTable = ({
       headerAlign: "right",
       align: "right",
       sortComparator: capacityComparator,
+      flex: 1.5,
     },
     {
       field: "borrowable",
@@ -122,6 +129,7 @@ export const OthersMarketsTable = ({
       headerAlign: "right",
       align: "right",
       sortComparator: capacityComparator,
+      flex: 1.5,
     },
     {
       field: "deploy",
@@ -135,6 +143,7 @@ export const OthersMarketsTable = ({
           {params.value}
         </Typography>
       ),
+      flex: 2,
     },
   ]
 

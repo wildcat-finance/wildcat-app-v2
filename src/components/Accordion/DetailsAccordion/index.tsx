@@ -46,7 +46,6 @@ export const DetailsAccordion = ({
                 fill: `${iconColor}`,
               },
               transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-              transition: "transform 500ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
             }}
           >
             <UpArrow />
@@ -65,9 +64,6 @@ export const DetailsAccordion = ({
           ...bodySx,
           maxHeight: isOpen ? "2000px" : "0px",
           overflow: isOpen ? "visible" : "hidden",
-          transition: isOpen
-            ? "max-height 800ms cubic-bezier(0.4, 0, 0.2, 1) 0ms"
-            : "max-height 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
         }}
       >
         {children}
