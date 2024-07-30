@@ -23,7 +23,11 @@ import { Accordion } from "@/components/Accordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
-import { trimAddress } from "@/utils/formatters"
+import {
+  DATE_FORMAT,
+  timestampToDateFormatted,
+  trimAddress,
+} from "@/utils/formatters"
 
 import { MarketAuthorisedLendersProps } from "./interface"
 import {
@@ -49,18 +53,28 @@ export const MarketAuthorisedLenders = ({
   const { t } = useTranslation()
   const rows = data
     ? data?.map((lender) => ({
-        id: lender,
+        id: lender.lender,
+        authorized: lender.authorized,
         name: (() => {
-          const correctLender = lendersName[lender] || ""
+          const correctLender = lendersName[lender.lender] || ""
           return { name: correctLender, address: lender }
         })(),
-        walletAddress: lender,
-        dateAdded: "12-Jul-2023",
+        walletAddress: lender.lender,
+        dateAdded: timestampToDateFormatted(
+          lender.changes[0].blockTimestamp,
+          DATE_FORMAT,
+        ),
         signedMLA: "Yes",
-        signDate: "13-Jul-2023",
+        signDate: timestampToDateFormatted(
+          lender.changes[0].blockTimestamp,
+          DATE_FORMAT,
+        ),
         MLA: "View|Download",
       }))
     : []
+
+  const authorizedRows = rows?.filter((row) => row.authorized)
+  const deauthorizedRows = rows?.filter((row) => !row.authorized)
 
   const columns: GridColDef[] = [
     {
@@ -217,7 +231,7 @@ export const MarketAuthorisedLenders = ({
         </Button>
       </Box>
 
-      {rows?.length === 0 ? (
+      {authorizedRows.length === 0 && (
         <Box display="flex" flexDirection="column">
           <Typography variant="title3">
             There are no authorised lenders
@@ -226,8 +240,39 @@ export const MarketAuthorisedLenders = ({
             You have not add any lenders yet.
           </Typography>
         </Box>
-      ) : (
-        <>
+      )}
+
+      {authorizedRows.length !== 0 && (
+        <DataGrid
+          sx={{
+            ...DataGridCells,
+            "& .MuiDataGrid-columnHeader": {
+              marginBottom: "6px",
+              padding: "0 8px",
+            },
+            "& .MuiDataGrid-columnHeaderTitle": {
+              fontSize: 11,
+            },
+          }}
+          rows={authorizedRows}
+          columns={columns}
+          columnHeaderHeight={40}
+        />
+      )}
+
+      {deauthorizedRows.length !== 0 && (
+        <Accordion
+          sx={{
+            flexDirection: "row-reverse",
+            justifyContent: "flex-end",
+          }}
+          iconContainerSx={{
+            width: "fit-content",
+          }}
+          summarySx={{ color: COLORS.blueRibbon }}
+          iconColor={COLORS.blueRibbon}
+          title="Deleted Lenders"
+        >
           <DataGrid
             sx={{
               ...DataGridCells,
@@ -239,41 +284,11 @@ export const MarketAuthorisedLenders = ({
                 fontSize: 11,
               },
             }}
-            rows={rows}
+            rows={deauthorizedRows}
             columns={columns}
-            columnHeaderHeight={40}
+            columnHeaderHeight={0}
           />
-          <Accordion
-            sx={{
-              flexDirection: "row-reverse",
-              justifyContent: "flex-end",
-            }}
-            iconContainerSx={{
-              width: "fit-content",
-            }}
-            summarySx={{ color: COLORS.blueRibbon }}
-            iconColor={COLORS.blueRibbon}
-            title="Deleted Lenders"
-          >
-            {!(rows?.length === 0) && (
-              <DataGrid
-                sx={{
-                  ...DataGridCells,
-                  "& .MuiDataGrid-columnHeader": {
-                    marginBottom: "6px",
-                    padding: "0 8px",
-                  },
-                  "& .MuiDataGrid-columnHeaderTitle": {
-                    fontSize: 11,
-                  },
-                }}
-                rows={rows}
-                columns={columns}
-                columnHeaderHeight={0}
-              />
-            )}
-          </Accordion>
-        </>
+        </Accordion>
       )}
     </Box>
   )

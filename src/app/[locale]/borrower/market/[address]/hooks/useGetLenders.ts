@@ -10,6 +10,7 @@ import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { SubgraphClient } from "@/config/subgraph"
 
 export const GET_LENDERS_BY_MARKET_KEY = "get-authorised-lenders-by-market"
+
 export const useGetAuthorisedLendersByMarket = (market: Market | undefined) => {
   const getAuthorisedLendersByMarket = async () => {
     if (!market) throw Error()
@@ -28,7 +29,7 @@ export const useGetAuthorisedLendersByMarket = (market: Market | undefined) => {
       `Got authorised lenders : ${res.data.market?.controller.authorizedLenders}`,
     )
     return res.data?.market?.controller.authorizedLenders.map(
-      (lender) => lender.lender,
+      (lender) => lender,
     )
   }
 
