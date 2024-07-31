@@ -6749,10 +6749,10 @@
     "@webassemblyjs/ast" "1.12.1"
     "@xtuc/long" "4.2.2"
 
-"@wildcatfi/wildcat-sdk@^2.0.72":
-  version "2.0.72"
-  resolved "https://registry.yarnpkg.com/@wildcatfi/wildcat-sdk/-/wildcat-sdk-2.0.72.tgz#2332504a28bd82831bcf3157e5560029192225d8"
-  integrity sha512-BkPA4o4bXH/BDgOFPZWb4zR495gvbKpmRVf0NAdrqrs6JoDABbJeQHied2wMeS/Ffov9QK9rct7vUsxjQHPWsg==
+"@wildcatfi/wildcat-sdk@^2.0.75":
+  version "2.0.75"
+  resolved "https://registry.yarnpkg.com/@wildcatfi/wildcat-sdk/-/wildcat-sdk-2.0.75.tgz#b3e2ee087f40de1298c8b817f9cb8887f2821d96"
+  integrity sha512-sM2yUypeRar+dTu59RfV1PtOhi1asJt5V8dSvu3Nn+zZ/na9hNIRj4F3TXoRNc/M7DJpq1mDOgMBcwwU+j/HiQ==
   dependencies:
     "@apollo/client" "^3.8.6"
     "@tanstack/react-query" "^4.29.14"
