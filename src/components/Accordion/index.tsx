@@ -3,11 +3,10 @@ import { useState } from "react"
 import { Box, SvgIcon, Typography } from "@mui/material"
 
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
-import { COLORS } from "@/theme/colors"
+import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 
 import { AccordionProps } from "./interface"
 import { AccordionContainer, ArrowContainer } from "./style"
-import { TextfieldChip } from "../TextfieldAdornments/TextfieldChip"
 
 export const Accordion = ({
   title,

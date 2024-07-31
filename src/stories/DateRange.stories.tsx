@@ -7,9 +7,8 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
 import type { Meta } from "@storybook/react"
 import dayjs, { Dayjs } from "dayjs"
 
+import ArrowLeftIcon from "@/assets/icons/backArrow_icon.svg"
 import { COLORS } from "@/theme/colors"
-
-import ArrowLeftIcon from "../assets/icons/backArrow_icon.svg"
 
 export default {
   title: "Components/DateRange",

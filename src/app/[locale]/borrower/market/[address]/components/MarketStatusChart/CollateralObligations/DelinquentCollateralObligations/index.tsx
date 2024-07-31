@@ -3,13 +3,13 @@ import { useState } from "react"
 import "./styles.css"
 import { Box, SvgIcon, Typography } from "@mui/material"
 
+import { CollateralObligationsData } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart/CollateralObligations/CollateralObligationsData"
+import { MARKET_BAR_DATA } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart/constants"
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { DelinquentCollateralObligationsProps } from "./interface"
-import { MARKET_BAR_DATA } from "../../constants"
-import { CollateralObligationsData } from "../CollateralObligationsData"
 
 export const DelinquentCollateralObligations = ({
   market,

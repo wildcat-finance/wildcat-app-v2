@@ -6,6 +6,7 @@ import { DateCalendar } from "@mui/x-date-pickers/DateCalendar"
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
 import dayjs from "dayjs"
 
+import ArrowLeftIcon from "@/assets/icons/sharpArrow_icon.svg"
 import { COLORS } from "@/theme/colors"
 
 import { DateRangeProps } from "./interface"
@@ -15,7 +16,6 @@ import {
   DateCalendarTextField,
   DateRangeContainer,
 } from "./style"
-import ArrowLeftIcon from "../../assets/icons/sharpArrow_icon.svg"
 
 const DateCalendarArrowLeft = () => (
   <SvgIcon

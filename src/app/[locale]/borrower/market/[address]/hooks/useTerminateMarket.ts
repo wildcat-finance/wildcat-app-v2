@@ -3,10 +3,8 @@ import { Dispatch, SetStateAction } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
-import { toastifyRequest } from "@/components/toasts"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY } from "@/hooks/useGetMarketAccount"
-import { waitForSubgraphSync } from "@/utils/waitForSubgraphSync"
 
 export const useTerminateMarket = (
   marketAccount: MarketAccount,

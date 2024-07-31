@@ -2,9 +2,8 @@ import { Box, InputAdornment, TextField, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import type { Meta } from "@storybook/react"
 
+import Icon from "@/assets/icons/search_icon.svg"
 import { COLORS } from "@/theme/colors"
-
-import Icon from "../assets/icons/search_icon.svg"
 
 export default {
   title: "Components/Textfield",

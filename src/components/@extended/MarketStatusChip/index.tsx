@@ -3,12 +3,12 @@ import SvgIcon from "@mui/material/SvgIcon"
 import humanizeDuration from "humanize-duration"
 import Image from "next/image"
 
+import Clock from "@/assets/icons/clock_icon.svg"
+import Fire from "@/assets/icons/fire_icon.png"
+import Arrow from "@/assets/icons/textChipArrow_icon.svg"
 import { COLORS } from "@/theme/colors"
 
 import { MarketStatusChipProps } from "./type"
-import Clock from "../../../assets/icons/clock_icon.svg"
-import Fire from "../../../assets/icons/fire_icon.png"
-import Arrow from "../../../assets/icons/textChipArrow_icon.svg"
 
 export const MarketStatusChip = ({
   variant = "filled",

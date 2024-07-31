@@ -3,12 +3,10 @@ import { Dispatch } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Market, Token, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
-import { toastifyRequest } from "@/components/toasts"
 import {
   GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY,
   GET_MARKET_ACCOUNT_KEY,
 } from "@/hooks/useGetMarketAccount"
-import { waitForSubgraphSync } from "@/utils/waitForSubgraphSync"
 
 export const useApprove = (
   token: Token,

@@ -2,16 +2,15 @@ import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
 
-import { LinkGroup } from "@/components/LinkComponent"
-import { Loader } from "@/components/Loader"
-import { EtherscanBaseUrl } from "@/config/network"
-
 import {
   FinalModalContentContainer,
   FinalModalMainContainer,
   FinalModalSubtitle,
   FinalModalTypoBox,
-} from "../style"
+} from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/style"
+import { LinkGroup } from "@/components/LinkComponent"
+import { Loader } from "@/components/Loader"
+import { EtherscanBaseUrl } from "@/config/network"
 
 export const LoadingModal = ({ txHash }: { txHash?: string }) => (
   <>

@@ -2,6 +2,9 @@ import React from "react"
 
 import { Box, Dialog, Typography } from "@mui/material"
 
+import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
+import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
+import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { COLORS } from "@/theme/colors"
@@ -12,9 +15,6 @@ import {
   TerminateDialogContainer,
   TerminateDialogTypo,
 } from "./style"
-import { ErrorModal } from "../../FinalModals/ErrorModal"
-import { LoadingModal } from "../../FinalModals/LoadingModal"
-import { SuccessModal } from "../../FinalModals/SuccessModal"
 
 export const TerminateFlow = ({
   terminateFunc,

@@ -7,6 +7,7 @@ import { useAccount } from "wagmi"
 
 import { TerminateMarket } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateMarket"
 import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
+import BackArrow from "@/assets/icons/backArrow_icon.svg"
 import {
   ContentContainer,
   MenuItemButton,
@@ -19,8 +20,6 @@ import {
   setSidebarHighlightState,
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
-
-import BackArrow from "../../../assets/icons/backArrow_icon.svg"
 
 export const MarketSidebar = () => {
   const { t } = useTranslation()

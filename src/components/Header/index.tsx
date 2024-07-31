@@ -1,12 +1,12 @@
 import { Box, Switch, Typography } from "@mui/material"
 
 import initTranslations from "@/app/i18n"
+import Logo from "@/assets/icons/logo_white.svg"
 import { ContentContainer, NavContainer } from "@/components/Header/style"
 import TranslationsProvider from "@/components/TranslationsProvider"
 import { COLORS } from "@/theme/colors"
 
 import { HeaderButton } from "./HeaderButton"
-import Logo from "../../assets/icons/logo_white.svg"
 
 const i18nNamespaces = ["en"]
 

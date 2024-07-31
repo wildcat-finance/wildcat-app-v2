@@ -4,6 +4,7 @@ import { Box, Typography } from "@mui/material"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
+import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
 import { getMarketStatusChip } from "@/utils/marketStatus"
@@ -14,7 +15,6 @@ import {
   MarketHeaderTitleContainer,
   MarketHeaderUpperContainer,
 } from "./style"
-import { useGetWithdrawals } from "../../hooks/useGetWithdrawals"
 
 export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
   const { t } = useTranslation()

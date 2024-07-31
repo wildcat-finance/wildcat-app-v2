@@ -1,4 +1,4 @@
-import { MarketBarChartItem } from "../BarItem/interface"
+import { MarketBarChartItem } from "@/components/BarChart/BarItem/interface"
 
 export type LegendItemProps = {
   type?: "default" | "expandable" | "extended"

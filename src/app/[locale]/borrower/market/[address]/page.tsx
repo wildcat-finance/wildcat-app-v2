@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useEffect } from "react"
 
-import { Box, Divider, Skeleton, Slide } from "@mui/material"
+import { Box, Divider, Skeleton } from "@mui/material"
 import { useAccount } from "wagmi"
 
 import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
@@ -40,7 +40,7 @@ export default function MarketDetails({
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 
-  const { checked, scrollContainer, direction } = useScrollHandler()
+  const { checked } = useScrollHandler()
 
   useEffect(
     () => () => {

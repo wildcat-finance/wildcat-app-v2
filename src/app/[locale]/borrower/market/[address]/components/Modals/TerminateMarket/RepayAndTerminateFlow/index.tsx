@@ -4,6 +4,12 @@ import { Box, Button, Dialog, Typography } from "@mui/material"
 import { minTokenAmount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
 
+import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
+import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
+import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
+import { useApprove } from "@/app/[locale]/borrower/market/[address]/hooks/useGetApproval"
+import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
+import { useProcessUnpaidWithdrawalBatch } from "@/app/[locale]/borrower/market/[address]/hooks/useProcessUnpaidWithdrawalBatch"
 import { LinkGroup } from "@/components/LinkComponent"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
@@ -21,12 +27,6 @@ import {
   TerminateTotalContainer,
 } from "./style"
 import { TerminateModalSteps, useTerminateModal } from "./useTerminateModal"
-import { useApprove } from "../../../../hooks/useGetApproval"
-import { useGetWithdrawals } from "../../../../hooks/useGetWithdrawals"
-import { useProcessUnpaidWithdrawalBatch } from "../../../../hooks/useProcessUnpaidWithdrawalBatch"
-import { ErrorModal } from "../../FinalModals/ErrorModal"
-import { LoadingModal } from "../../FinalModals/LoadingModal"
-import { SuccessModal } from "../../FinalModals/SuccessModal"
 
 export const RepayAndTerminateFlow = ({
   marketAccount,

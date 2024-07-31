@@ -1,19 +1,9 @@
-import {
-  Box,
-  Button,
-  Dialog,
-  IconButton,
-  Typography,
-  SvgIcon,
-} from "@mui/material"
-import Link from "next/link"
+import { Box, Button, Dialog, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
-import { useCopyToClipboard } from "react-use"
 import { useAccount, useDisconnect, useSwitchChain } from "wagmi"
 import { sepolia } from "wagmi/chains"
 
 import {
-  AddressButtons,
   AddressContainer,
   ContentContainer,
   DialogContainer,
@@ -27,25 +17,17 @@ import { EtherscanBaseUrl, TargetNetwork } from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { COLORS } from "@/theme/colors"
 
-import Copy from "../../../../assets/icons/copy_icon.svg"
-import LinkIcon from "../../../../assets/icons/link_icon.svg"
-
 export const ProfileDialog = ({
   open,
   handleClose,
   name,
 }: ProfileDialogProps) => {
   const { t } = useTranslation()
-  const [state, copyToClipboard] = useCopyToClipboard()
 
   const { address, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
   const { isWrongNetwork } = useCurrentNetwork()
   const { switchChain } = useSwitchChain()
-
-  const handleCopyAddress = (text: string) => {
-    copyToClipboard(text)
-  }
 
   const handleClickDisconnect = () => {
     disconnect()

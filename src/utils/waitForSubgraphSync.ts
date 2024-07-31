@@ -5,14 +5,13 @@ import {
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { toast } from "react-toastify"
 
-import { SubgraphClient } from "@/config/subgraph"
-
 import {
   ToastId,
   dismissToast,
   toastifyInfo,
   toastifySuccess,
-} from "../components/toasts"
+} from "@/components/toasts"
+import { SubgraphClient } from "@/config/subgraph"
 
 export async function getSubgraphSyncedBlock(): Promise<{
   hash: string

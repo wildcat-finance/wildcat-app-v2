@@ -4,12 +4,9 @@ import { BaseTransaction } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
-import { toastifyRequest } from "@/components/toasts"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY } from "@/hooks/useGetMarketAccount"
 import { useGnosisSafeSDK } from "@/hooks/useGnosisSafeSDK"
-import { TOKEN_FORMAT_DECIMALS } from "@/utils/formatters"
-import { waitForSubgraphSync } from "@/utils/waitForSubgraphSync"
 
 export const useRepay = (
   marketAccount: MarketAccount,

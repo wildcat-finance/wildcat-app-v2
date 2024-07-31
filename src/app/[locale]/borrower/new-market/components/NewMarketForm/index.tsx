@@ -16,6 +16,7 @@ import Link from "next/link"
 import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
+import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
 import { TokenInfo } from "@/app/api/tokens-list/interface"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
@@ -47,7 +48,6 @@ import {
   NextButton,
 } from "./style"
 import { UnderlyingAssetSelect } from "./UnderlyingAssetSelect"
-import { MarketValidationSchemaType } from "../../validation/validationSchema"
 
 type NewMarketFormProps = {
   form: UseFormReturn<MarketValidationSchemaType>

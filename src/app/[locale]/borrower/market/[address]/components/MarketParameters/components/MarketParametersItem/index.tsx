@@ -1,8 +1,9 @@
 import { Box, IconButton, Link, SvgIcon, Typography } from "@mui/material"
 
+import Copy from "@/assets/icons/copy_icon.svg"
+import LinkIcon from "@/assets/icons/link_icon.svg"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { TooltipButton } from "@/components/TooltipButton"
-import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
 
 import { MarketParametersItemProps } from "./interface"
@@ -11,8 +12,6 @@ import {
   MarketParametersItemTitleContainer,
   MarketParametersItemValueContainer,
 } from "./style"
-import Copy from "../../../../../../../../../assets/icons/copy_icon.svg"
-import LinkIcon from "../../../../../../../../../assets/icons/link_icon.svg"
 
 export const MarketParametersItem = ({
   title,

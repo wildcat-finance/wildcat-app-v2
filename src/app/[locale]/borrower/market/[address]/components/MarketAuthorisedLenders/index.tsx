@@ -15,10 +15,13 @@ import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
+import { useGetAuthorisedLendersByMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetLenders"
 import {
   SkeletonContainer,
   SkeletonStyle,
 } from "@/app/[locale]/borrower/market/[address]/style"
+import Copy from "@/assets/icons/copy_icon.svg"
+import LinkIcon from "@/assets/icons/link_icon.svg"
 import { Accordion } from "@/components/Accordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { EtherscanBaseUrl } from "@/config/network"
@@ -37,9 +40,6 @@ import {
   MarketWithdrawalRequetstCell,
   MLATableButton,
 } from "./style"
-import Copy from "../../../../../../../assets/icons/copy_icon.svg"
-import LinkIcon from "../../../../../../../assets/icons/link_icon.svg"
-import { useGetAuthorisedLendersByMarket } from "../../hooks/useGetLenders"
 
 export const MarketAuthorisedLenders = ({
   market,
