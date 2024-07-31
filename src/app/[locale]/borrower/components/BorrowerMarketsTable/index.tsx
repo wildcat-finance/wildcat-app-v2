@@ -55,11 +55,13 @@ export const BorrowerMarketsTable = ({
       align: "left",
       sortComparator: statusComparator,
       renderCell: (params) => <MarketStatusChip status={params.value} />,
+      flex: 2,
     },
     {
       field: "name",
       headerName: t("borrowerMarketList.table.header.marketName"),
-      flex: 1,
+      flex: 4,
+      minWidth: 160,
       headerAlign: "left",
       align: "left",
       renderCell: ({ value }) => (
@@ -74,6 +76,7 @@ export const BorrowerMarketsTable = ({
       minWidth: 151,
       headerAlign: "right",
       align: "right",
+      flex: 1,
     },
     {
       field: "lenderAPR",
@@ -82,11 +85,12 @@ export const BorrowerMarketsTable = ({
       headerAlign: "right",
       align: "right",
       sortComparator: percentComparator,
+      flex: 1,
     },
     {
       field: "crr",
       headerName: t("borrowerMarketList.table.header.crr"),
-      minWidth: 85,
+      minWidth: 90,
       headerAlign: "right",
       align: "right",
       sortComparator: percentComparator,
@@ -101,6 +105,7 @@ export const BorrowerMarketsTable = ({
           <TooltipButton value="TBD" />
         </Box>
       ),
+      flex: 1,
     },
     {
       field: "maxCapacity",
@@ -109,6 +114,7 @@ export const BorrowerMarketsTable = ({
       headerAlign: "right",
       align: "right",
       sortComparator: capacityComparator,
+      flex: 1.5,
     },
     {
       field: "borrowable",
@@ -116,11 +122,13 @@ export const BorrowerMarketsTable = ({
       minWidth: 104,
       headerAlign: "right",
       align: "right",
+      sortComparator: capacityComparator,
+      flex: 1.5,
     },
     {
       field: "deploy",
       headerName: t("borrowerMarketList.table.header.deploy"),
-      minWidth: 114,
+      minWidth: 126,
       headerAlign: "right",
       align: "right",
       sortComparator: dateComparator,
@@ -129,6 +137,7 @@ export const BorrowerMarketsTable = ({
           {params.value}
         </Typography>
       ),
+      flex: 2,
     },
   ]
 
@@ -173,7 +182,7 @@ export const BorrowerMarketsTable = ({
     nameFilter === ""
 
   return (
-    <Accordion defaultExpanded={isOpen}>
+    <Accordion sx={{ width: "100%", minWidth: 0 }} defaultExpanded={isOpen}>
       <AccordionSummary>
         <Box display="flex" columnGap="4px">
           <Typography variant="text3">{label}</Typography>
@@ -234,6 +243,7 @@ export const BorrowerMarketsTable = ({
       )}
       {tableData.length !== 0 && !isLoading && (
         <DataGrid
+          sx={{ overflow: "auto", maxWidth: "calc(100vw - 267px)" }}
           rows={rows}
           columns={columns}
           columnHeaderHeight={40}

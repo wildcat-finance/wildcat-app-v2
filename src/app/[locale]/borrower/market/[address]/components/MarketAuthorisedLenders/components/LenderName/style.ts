@@ -4,6 +4,7 @@ export const LenderNameContainer = {
   display: "flex",
   alignItems: "center",
   gap: "4px",
+  cursor: "pointer",
 }
 
 export const LenderNameTextfield = {

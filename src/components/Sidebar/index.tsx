@@ -12,7 +12,13 @@ export const Sidebar = () => {
   const pathname = usePathname()
 
   return (
-    <Box>
+    <Box
+      sx={{
+        height: "calc(100vh - 43px - 43px - 60px);",
+        overflow: "hidden",
+        overflowY: "auto",
+      }}
+    >
       {pathname === ROUTES.borrower.root && <AllMarketsSidebar />}
       {pathname.includes(ROUTES.borrower.market) && <MarketSidebar />}
       {pathname === ROUTES.borrower.newMarket && <NewMarketSidebar />}

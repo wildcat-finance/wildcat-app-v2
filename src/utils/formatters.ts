@@ -10,9 +10,13 @@ import { formatUnits } from "viem"
 
 // <---- TIMESTAMP TO DATE FORMATTERS ---->
 
-export const DATE_FORMAT = "DD-MMM-YYYY HH:mm"
-export const timestampToDateFormatted = (timestamp: number) =>
-  dayjs(timestamp * 1000).format(DATE_FORMAT)
+export const DATE_FORMAT_WITH_TIME = "DD-MMM-YYYY HH:mm"
+export const DATE_FORMAT = "DD-MMM-YYYY"
+
+export const timestampToDateFormatted = (
+  timestamp: number,
+  dateFormat = DATE_FORMAT_WITH_TIME,
+) => dayjs(timestamp * 1000).format(dateFormat)
 
 dayjs.extend(duration)
 
@@ -128,7 +132,7 @@ export const trimAddress = (
   address: string,
   maxLength: number | undefined = 6,
 ) =>
-  `${address.slice(0, 6)}..${address.slice(-(maxLength - 2), address.length)}`
+  `${address.slice(0, 6)}...${address.slice(-(maxLength - 2), address.length)}`
 
 export const formatTokenAmount = (
   amount: bigint,

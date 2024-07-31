@@ -157,6 +157,15 @@ export const BorrowModal = ({
                 label={`Up to ${formatTokenWithCommas(
                   marketAccount.market.borrowableAssets,
                 )}`}
+                helperText={
+                  underlyingBorrowAmount.gt(market.borrowableAssets)
+                    ? `Please, input amount under ${formatTokenWithCommas(
+                        market.borrowableAssets,
+                        { withSymbol: true },
+                      )}`
+                    : ""
+                }
+                error={underlyingBorrowAmount.gt(market.borrowableAssets)}
                 size="medium"
                 style={{ width: "100%" }}
                 value={amount}

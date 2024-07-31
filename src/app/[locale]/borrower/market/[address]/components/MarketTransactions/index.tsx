@@ -59,7 +59,12 @@ export const MarketTransactions = ({
           {/*  {t("borrowerMarketDetails.buttons.mla")} */}
           {/* </Button> */}
           <CapacityModal marketAccount={marketAccount} />
-          <Button variant="outlined" color="secondary" size="small">
+          <Button
+            variant="outlined"
+            color="secondary"
+            size="small"
+            disabled={market.isClosed}
+          >
             {t("borrowerMarketDetails.buttons.apr")}
           </Button>
           <Button
