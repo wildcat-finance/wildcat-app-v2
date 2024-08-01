@@ -32,16 +32,20 @@ export const useBorrow = (
 
         if (!safeConnected) setTxHash(tx.hash)
 
-        const receipt = await tx.wait()
-
         if (safeConnected) {
-          const transactionBySafeHash = await sdk.txs.getBySafeTxHash(
-            receipt.transactionHash,
-          )
-          setTxHash(transactionBySafeHash?.txHash)
+          const checkTransaction = async () => {
+            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(tx.hash)
+            if (transactionBySafeHash?.txHash) {
+              setTxHash(transactionBySafeHash.txHash)
+            } else {
+              setTimeout(checkTransaction, 1000)
+            }
+          }
+
+          await checkTransaction()
         }
 
-        return receipt.transactionHash
+        return tx.wait()
       }
 
       await borrow()

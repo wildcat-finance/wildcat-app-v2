@@ -13,7 +13,7 @@ import { RepayAndTerminateFlow } from "./RepayAndTerminateFlow"
 export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
   const { market } = marketAccount
 
-  const [terminateTxHash, setTerminateTxHash] = useState("")
+  const [terminateTxHash, setTerminateTxHash] = useState<string | undefined>("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showSuccessTerminationPopup, setShowSuccessTerminationPopup] =
     useState(false)

@@ -1,24 +1,20 @@
 import { Dispatch } from "react"
 
+import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { BaseTransaction } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
-import { toastifyRequest } from "@/components/toasts"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY } from "@/hooks/useGetMarketAccount"
-import { useGnosisSafeSDK } from "@/hooks/useGnosisSafeSDK"
-import { TOKEN_FORMAT_DECIMALS } from "@/utils/formatters"
-import { waitForSubgraphSync } from "@/utils/waitForSubgraphSync"
 
 export const useRepay = (
   marketAccount: MarketAccount,
-  setTxHash: Dispatch<React.SetStateAction<string>>,
+  setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
 ) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
-  const { isConnectedToSafe, sendTransactions: sendGnosisTransactions } =
-    useGnosisSafeSDK()
+  const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
   return useMutation({
     mutationFn: async (amount: TokenAmount) => {
@@ -29,7 +25,7 @@ export const useRepay = (
       const step = marketAccount.checkRepayStep(amount)
       const gnosisTransactions: BaseTransaction[] = []
       if (step.status !== "Ready") {
-        if (isConnectedToSafe && step.status === "InsufficientAllowance") {
+        if (safeConnected && step.status === "InsufficientAllowance") {
           gnosisTransactions.push(
             await marketAccount.populateApproveMarket(amount),
           )
@@ -41,31 +37,25 @@ export const useRepay = (
       }
 
       const repay = async () => {
-        if (gnosisTransactions.length) {
-          gnosisTransactions.push(await marketAccount.populateRepay(amount.raw))
-          console.log(`Sending gnosis transactions...`)
-          console.log(gnosisTransactions)
-          const tx = await sendGnosisTransactions(gnosisTransactions)
-          console.log(
-            `Got gnosis transaction:\n\tsafeTxHash: ${tx.safeTxHash}\n\ttxHash: ${tx.txHash}`,
-          )
-          return tx.wait()
-        }
         const tx = await marketAccount.repay(amount.raw)
-        setTxHash(tx.hash)
+
+        if (!safeConnected) setTxHash(tx.hash)
+
+        if (safeConnected) {
+          const checkTransaction = async () => {
+            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(tx.hash)
+            if (transactionBySafeHash?.txHash) {
+              setTxHash(transactionBySafeHash.txHash)
+            } else {
+              setTimeout(checkTransaction, 1000)
+            }
+          }
+
+          await checkTransaction()
+        }
+
         return tx.wait()
       }
-
-      // const { symbol } = marketAccount.market.underlyingToken
-      //
-      // const tokenAmountFormatted = amount.format(TOKEN_FORMAT_DECIMALS)
-      //
-      // const receipt = await toastifyRequest(repay(), {
-      //   pending: `${tokenAmountFormatted} ${symbol} Repayment In Progress...`,
-      //   success: `Successfully Repaid ${tokenAmountFormatted} ${symbol}!`,
-      //   error: `Error: Repayment Attempt Failed`,
-      // })
-      // await waitForSubgraphSync(receipt.blockNumber)
 
       await repay()
     },

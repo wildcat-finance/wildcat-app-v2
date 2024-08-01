@@ -1,20 +1,20 @@
 import { Dispatch } from "react"
 
+import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { parseUnits } from "ethers/lib/utils"
 
-import { toastifyRequest } from "@/components/toasts"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY } from "@/hooks/useGetMarketAccount"
-import { waitForSubgraphSync } from "@/utils/waitForSubgraphSync"
 
 export const useSetMaxTotalSupply = (
   marketAccount: MarketAccount,
-  setTxHash: Dispatch<React.SetStateAction<string>>,
+  setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
 ) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
+  const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
   return useMutation({
     mutationFn: async (newMaxTotalSupply: string) => {
@@ -32,16 +32,24 @@ export const useSetMaxTotalSupply = (
 
       const setMaxTotalSupply = async () => {
         const tx = await marketAccount.setMaxTotalSupply(supplyTokenAmount)
-        setTxHash(tx.hash)
+
+        if (!safeConnected) setTxHash(tx.hash)
+
+        if (safeConnected) {
+          const checkTransaction = async () => {
+            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(tx.hash)
+            if (transactionBySafeHash?.txHash) {
+              setTxHash(transactionBySafeHash.txHash)
+            } else {
+              setTimeout(checkTransaction, 1000)
+            }
+          }
+
+          await checkTransaction()
+        }
+
         return tx.wait()
       }
-
-      // const receipt = await toastifyRequest(setMaxTotalSupply(), {
-      //   pending: `Setting Maximum Capacity...`,
-      //   success: `Maximum Capacity successfully Adjusted`,
-      //   error: "Error setting Maximum Capacity",
-      // })
-      // await waitForSubgraphSync(receipt.blockNumber)
 
       await setMaxTotalSupply()
     },

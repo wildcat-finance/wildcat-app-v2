@@ -23,7 +23,7 @@ export const CapacityModal = ({
 }: {
   marketAccount: MarketAccount
 }) => {
-  const [txHash, setTxHash] = useState("")
+  const [txHash, setTxHash] = useState<string | undefined>("")
   const [amount, setAmount] = useState("")
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)

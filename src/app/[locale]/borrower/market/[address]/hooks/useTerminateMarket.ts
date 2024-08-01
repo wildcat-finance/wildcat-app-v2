@@ -1,19 +1,19 @@
 import { Dispatch, SetStateAction } from "react"
 
+import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
-import { toastifyRequest } from "@/components/toasts"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY } from "@/hooks/useGetMarketAccount"
-import { waitForSubgraphSync } from "@/utils/waitForSubgraphSync"
 
 export const useTerminateMarket = (
   marketAccount: MarketAccount,
-  setTxHash: Dispatch<SetStateAction<string>>,
+  setTxHash: Dispatch<SetStateAction<string | undefined>>,
 ) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
+  const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
   return useMutation({
     mutationFn: async () => {
@@ -23,16 +23,24 @@ export const useTerminateMarket = (
 
       const closeMarket = async () => {
         const tx = await marketAccount.closeMarket()
-        setTxHash(tx.hash)
+
+        if (!safeConnected) setTxHash(tx.hash)
+
+        if (safeConnected) {
+          const checkTransaction = async () => {
+            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(tx.hash)
+            if (transactionBySafeHash?.txHash) {
+              setTxHash(transactionBySafeHash.txHash)
+            } else {
+              setTimeout(checkTransaction, 1000)
+            }
+          }
+
+          await checkTransaction()
+        }
+
         return tx.wait()
       }
-
-      // const receipt = await toastifyRequest(closeMarket(), {
-      //   pending: `Terminating Market...`,
-      //   success: `Successfully Terminated Market!`,
-      //   error: "Error Terminating Market",
-      // })
-      // await waitForSubgraphSync(receipt.blockNumber)
 
       await closeMarket()
     },

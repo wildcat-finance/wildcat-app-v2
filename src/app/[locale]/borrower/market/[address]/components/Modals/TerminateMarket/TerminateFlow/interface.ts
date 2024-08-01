@@ -7,5 +7,5 @@ export type TerminateFlowProps = {
   onClose: () => void
   errorPopup: boolean
   successPopup: boolean
-  txHash: string
+  txHash: string | undefined
 }

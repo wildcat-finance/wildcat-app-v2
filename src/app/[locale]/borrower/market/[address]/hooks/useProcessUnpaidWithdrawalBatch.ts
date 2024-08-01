@@ -1,23 +1,21 @@
 import { Dispatch } from "react"
 
+import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
 import { GET_WITHDRAWALS_KEY } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
-import { toastifyRequest } from "@/components/toasts"
 import {
   GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY,
   GET_MARKET_ACCOUNT_KEY,
 } from "@/hooks/useGetMarketAccount"
-import { useGnosisSafeSDK } from "@/hooks/useGnosisSafeSDK"
 
 export const useProcessUnpaidWithdrawalBatch = (
   marketAccount: MarketAccount,
-  setTxHash: Dispatch<React.SetStateAction<string>>,
+  setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
 ) => {
   const client = useQueryClient()
-  const { isConnectedToSafe, sendTransactions: sendGnosisTransactions } =
-    useGnosisSafeSDK()
+  const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
   return useMutation({
     mutationFn: async ({
@@ -32,33 +30,29 @@ export const useProcessUnpaidWithdrawalBatch = (
       }
 
       const processWithdrawalBatch = async () => {
-        const { status } = marketAccount.checkRepayStep(tokenAmount)
-        if (isConnectedToSafe && status === "InsufficientAllowance") {
-          const gnosisTransactions = [
-            await marketAccount.populateApproveMarket(tokenAmount),
-            await marketAccount.market.populateRepayAndProcessUnpaidWithdrawalBatches(
-              tokenAmount,
-              maxBatches,
-            ),
-          ]
-          const tx = await sendGnosisTransactions(gnosisTransactions)
-          await tx.wait()
-        } else {
-          const tx =
-            await marketAccount.market.repayAndProcessUnpaidWithdrawalBatches(
-              tokenAmount,
-              maxBatches,
-            )
-          setTxHash(tx.hash)
-          await tx.wait()
+        const tx =
+          await marketAccount.market.repayAndProcessUnpaidWithdrawalBatches(
+            tokenAmount,
+            maxBatches,
+          )
+
+        if (safeConnected) {
+          const checkTransaction = async () => {
+            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(tx.hash)
+            if (transactionBySafeHash?.txHash) {
+              setTxHash(transactionBySafeHash.txHash)
+            } else {
+              setTimeout(checkTransaction, 1000)
+            }
+          }
+
+          await checkTransaction()
         }
+
+        return tx.wait()
       }
 
-      await toastifyRequest(processWithdrawalBatch(), {
-        pending: `Closing unpaid withdrawal batch...`,
-        success: `Successfully closed batch!`,
-        error: `Error: Closing withdrawal batch for ${marketAccount.market.name} failed`,
-      })
+      await processWithdrawalBatch()
     },
     onSuccess() {
       client.invalidateQueries({ queryKey: [GET_MARKET_ACCOUNT_KEY] })

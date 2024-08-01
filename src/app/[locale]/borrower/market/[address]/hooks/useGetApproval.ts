@@ -1,21 +1,21 @@
 import { Dispatch } from "react"
 
+import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Market, Token, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
-import { toastifyRequest } from "@/components/toasts"
 import {
   GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY,
   GET_MARKET_ACCOUNT_KEY,
 } from "@/hooks/useGetMarketAccount"
-import { waitForSubgraphSync } from "@/utils/waitForSubgraphSync"
 
 export const useApprove = (
   token: Token,
   market: Market,
-  setTxHash: Dispatch<React.SetStateAction<string>>,
+  setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
 ) => {
   const client = useQueryClient()
+  const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
   return useMutation({
     mutationFn: async (tokenAmount: TokenAmount) => {
@@ -28,22 +28,24 @@ export const useApprove = (
           market.address.toLowerCase(),
           tokenAmount.raw,
         )
-        setTxHash(tx.hash)
+
+        if (!safeConnected) setTxHash(tx.hash)
+
+        if (safeConnected) {
+          const checkTransaction = async () => {
+            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(tx.hash)
+            if (transactionBySafeHash?.txHash) {
+              setTxHash(transactionBySafeHash.txHash)
+            } else {
+              setTimeout(checkTransaction, 1000)
+            }
+          }
+
+          await checkTransaction()
+        }
+
         return tx.wait()
       }
-
-      // const receipt = await toastifyRequest(approve(), {
-      //   pending: `Approving ${tokenAmount.format(
-      //     tokenAmount.token.decimals,
-      //     true,
-      //   )}...`,
-      //   success: `Successfully Approved ${tokenAmount.format(
-      //     tokenAmount.token.decimals,
-      //     true,
-      //   )}!`,
-      //   error: `Error: ${token.symbol} Approval Failed`,
-      // })
-      // await waitForSubgraphSync(receipt.blockNumber)
 
       await approve()
     },

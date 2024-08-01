@@ -38,8 +38,8 @@ export const RepayAndTerminateFlow = ({
   errorPopup,
   terminateTxHash,
 }: RepayAndTerminateFlowProps) => {
-  const [approveTxHash, setApproveTxHash] = useState("")
-  const [repayTxHash, setRepayTxHash] = useState("")
+  const [approveTxHash, setApproveTxHash] = useState<string | undefined>("")
+  const [repayTxHash, setRepayTxHash] = useState<string | undefined>("")
   const modal = useTerminateModal()
 
   const isModalOpen = isOpen && !modal.closedModalStep
