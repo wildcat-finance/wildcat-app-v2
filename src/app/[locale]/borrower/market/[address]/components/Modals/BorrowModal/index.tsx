@@ -26,7 +26,7 @@ export const BorrowModal = ({
   const [amount, setAmount] = useState("")
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
-  const [txHash, setTxHash] = useState("")
+  const [txHash, setTxHash] = useState<string | undefined>()
 
   const modal = useApprovalModal(
     setShowSuccessPopup,
