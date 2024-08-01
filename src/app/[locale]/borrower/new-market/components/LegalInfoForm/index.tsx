@@ -11,6 +11,7 @@ import SvgIcon from "@mui/material/SvgIcon"
 import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
+import { InfoValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { InputLabel } from "@/components/InputLabel"
@@ -32,7 +33,6 @@ import {
   InputGroupContainer,
   TitleContainer,
 } from "./style"
-import { InfoValidationSchemaType } from "../../validation/validationSchema"
 
 export type LegalInfoFormProps = {
   form: UseFormReturn<InfoValidationSchemaType>
@@ -44,7 +44,6 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
   const {
     register,
     setValue,
-    getValues,
     formState: { errors, isValid },
     control,
   } = form

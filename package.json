@@ -26,7 +26,7 @@
     "@tanstack/react-query": "^5.28.9",
     "@types/humanize-duration": "^3.27.4",
     "@types/react-scroll": "^1.8.10",
-    "@wildcatfi/wildcat-sdk": "^2.0.72",
+    "@wildcatfi/wildcat-sdk": "^2.0.75",
     "classnames": "^2.5.1",
     "dayjs": "^1.11.10",
     "ethers": "^5.7.2",

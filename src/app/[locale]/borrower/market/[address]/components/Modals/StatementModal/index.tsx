@@ -12,12 +12,12 @@ import {
 } from "@mui/material"
 import { Dayjs } from "dayjs"
 
+import Cross from "@/assets/icons/cross_icon.svg"
 import { DateRange } from "@/components/DateRange"
 import { COLORS } from "@/theme/colors"
 
 import { StatementModalProps } from "./interface"
 import { DialogContainer, HeaderTextContainer } from "./style"
-import Cross from "../../../../../../../../assets/icons/cross_icon.svg"
 
 export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
   const [value, setValue] = useState<"csv" | "pdf">("csv")

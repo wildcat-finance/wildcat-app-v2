@@ -17,8 +17,6 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { GET_CONTROLLER_KEY, useGetController } from "@/hooks/useGetController"
 import { useGnosisSafeSDK } from "@/hooks/useGnosisSafeSDK"
-import { ROUTES } from "@/routes"
-import { waitForSubgraphSync } from "@/utils/waitForSubgraphSync"
 
 export type DeployNewMarketParams = Omit<
   MarketParameters,
@@ -140,7 +138,6 @@ export const useDeployMarket = () => {
         throw Error("Market Not Unique")
       }
 
-      const stepPrefix = isTestnet && !isConnectedToSafe ? "Step 2/2: " : ""
       const send = async () => {
         if (useGnosisMultiSend) {
           gnosisTransactions.push(

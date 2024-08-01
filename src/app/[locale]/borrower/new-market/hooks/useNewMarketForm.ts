@@ -4,14 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { MarketParameterConstraints } from "@wildcatfi/wildcat-sdk"
 import { useForm } from "react-hook-form"
 
-import { useGetController } from "@/hooks/useGetController"
-import { mockedMarketTypes } from "@/mocks/mocks"
-import { formatConstrainToNumber } from "@/utils/formatters"
-
 import {
   MarketValidationSchemaType,
   marketValidationSchema as vschema,
-} from "../validation/validationSchema"
+} from "@/app/[locale]/borrower/new-market/validation/validationSchema"
+import { useGetController } from "@/hooks/useGetController"
+import { mockedMarketTypes } from "@/mocks/mocks"
+import { formatConstrainToNumber } from "@/utils/formatters"
 
 export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   marketType: mockedMarketTypes[0].value,

@@ -12,6 +12,20 @@ import {
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 
+import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
+import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
+import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
+import {
+  ModalSteps,
+  useApprovalModal,
+} from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
+import {
+  TxModalDialog,
+  TxModalInfoItem,
+  TxModalInfoTitle,
+} from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
+import { useApprove } from "@/app/[locale]/borrower/market/[address]/hooks/useGetApproval"
+import { useRepay } from "@/app/[locale]/borrower/market/[address]/hooks/useRepay"
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { NumberTextField } from "@/components/NumberTextfield"
@@ -24,13 +38,6 @@ import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { RepayModalProps } from "./interface"
 import { DaysSubtitle, PenaltyRepayBtn, PenaltyRepayBtnIcon } from "./style"
-import { useApprove } from "../../../hooks/useGetApproval"
-import { useRepay } from "../../../hooks/useRepay"
-import { ErrorModal } from "../FinalModals/ErrorModal"
-import { LoadingModal } from "../FinalModals/LoadingModal"
-import { SuccessModal } from "../FinalModals/SuccessModal"
-import { ModalSteps, useApprovalModal } from "../hooks/useApprovalModal"
-import { TxModalDialog, TxModalInfoItem, TxModalInfoTitle } from "../style"
 
 export const RepayModal = ({
   buttonType = "marketHeader",
@@ -64,12 +71,11 @@ export const RepayModal = ({
     isSuccess: isRepaid,
     isError: isRepayError,
   } = useRepay(marketAccount, setTxHash)
-  const {
-    mutateAsync: approve,
-    isPending: isApproving,
-    isSuccess: isApproved,
-    isError: isApproveError,
-  } = useApprove(market.underlyingToken, market, setTxHash)
+  const { mutateAsync: approve, isPending: isApproving } = useApprove(
+    market.underlyingToken,
+    market,
+    setTxHash,
+  )
 
   const handleChangeTabs = (
     event: React.SyntheticEvent,

@@ -9,14 +9,13 @@ import {
 import SvgIcon from "@mui/material/SvgIcon"
 import { FieldValues, useController } from "react-hook-form"
 
+import Icon from "@/assets/icons/search_icon.svg"
 import {
   FormControlContainer,
   SearchIcon,
   SelectContainer,
 } from "@/components/@extended/ExtendedSelect/style"
 import { ExtendedSelectProps } from "@/components/@extended/ExtendedSelect/type"
-
-import Icon from "../../../assets/icons/search_icon.svg"
 
 export const ExtendedSelect = <TFieldValues extends FieldValues = FieldValues>({
   label,

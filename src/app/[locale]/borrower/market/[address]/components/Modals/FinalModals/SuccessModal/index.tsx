@@ -3,11 +3,6 @@ import * as React from "react"
 import { Box, IconButton, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 
-import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
-import Cross from "@/assets/icons/cross_icon.svg"
-import { LinkGroup } from "@/components/LinkComponent"
-import { EtherscanBaseUrl } from "@/config/network"
-
 import {
   FinalModalCloseButton,
   FinalModalContentContainer,
@@ -15,7 +10,11 @@ import {
   FinalModalMainContainer,
   FinalModalSubtitle,
   FinalModalTypoBox,
-} from "../style"
+} from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/style"
+import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
+import Cross from "@/assets/icons/cross_icon.svg"
+import { LinkGroup } from "@/components/LinkComponent"
+import { EtherscanBaseUrl } from "@/config/network"
 
 export const SuccessModal = ({
   onClose,

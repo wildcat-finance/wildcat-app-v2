@@ -5,6 +5,7 @@ import SvgIcon from "@mui/material/SvgIcon"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
+import BackArrow from "@/assets/icons/backArrow_icon.svg"
 import {
   BackButton,
   BackButtonIcon,
@@ -16,8 +17,6 @@ import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { STEPS_NAME } from "@/store/slices/routingSlice/flowsSteps"
 import { setCurrentStep } from "@/store/slices/routingSlice/routingSlice"
-
-import BackArrow from "../../../assets/icons/backArrow_icon.svg"
 
 export const NewMarketSidebar = () => {
   const { t } = useTranslation()

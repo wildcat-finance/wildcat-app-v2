@@ -8,6 +8,9 @@ import dayjs from "dayjs"
 import { useTranslation } from "react-i18next"
 
 import { RepayModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/RepayModal"
+import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
+import Copy from "@/assets/icons/copy_icon.svg"
+import LinkIcon from "@/assets/icons/link_icon.svg"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { EtherscanBaseUrl } from "@/config/network"
@@ -21,9 +24,6 @@ import {
   MarketWithdrawalRequestsContainer,
   MarketWithdrawalRequetstCell,
 } from "./style"
-import Copy from "../../../../../../../assets/icons/copy_icon.svg"
-import LinkIcon from "../../../../../../../assets/icons/link_icon.svg"
-import { useGetWithdrawals } from "../../hooks/useGetWithdrawals"
 
 export const MarketWithdrawalRequests = ({
   marketAccount,

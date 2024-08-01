@@ -7,7 +7,6 @@ import {
   formatBps,
   formatSecsToHours,
   MARKET_PARAMS_DECIMALS,
-  secondsToDays,
   toTokenAmountProps,
   trimAddress,
 } from "@/utils/formatters"

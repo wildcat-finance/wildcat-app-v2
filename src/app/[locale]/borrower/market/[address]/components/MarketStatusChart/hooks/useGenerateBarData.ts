@@ -2,9 +2,8 @@ import { Market, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
 import { formatEther } from "ethers/lib/utils"
 
+import { MARKET_BAR_DATA } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart/constants"
 import { MarketBarChartItem } from "@/components/BarChart/BarItem/interface"
-
-import { MARKET_BAR_DATA } from "../constants"
 
 const ONE_HUNDRED_E18 = BigNumber.from(10).pow(20)
 

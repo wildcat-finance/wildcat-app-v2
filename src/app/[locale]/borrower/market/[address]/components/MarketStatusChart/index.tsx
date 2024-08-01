@@ -1,6 +1,7 @@
 import { Box, Typography } from "@mui/material"
 import humanizeDuration from "humanize-duration"
 
+import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { BarItem } from "@/components/BarChart/BarItem"
 import { MarketBarChartItem } from "@/components/BarChart/BarItem/interface"
 import { LegendItem } from "@/components/BarChart/LegendItem"
@@ -13,7 +14,6 @@ import { MARKET_BAR_DATA, MARKET_BAR_ORDER } from "./constants"
 import { useGenerateBarData } from "./hooks/useGenerateBarData"
 import "./styles.css"
 import { MarketStatusChartProps } from "./interface"
-import { useGetWithdrawals } from "../../hooks/useGetWithdrawals"
 
 export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
   const { data: withdrawals } = useGetWithdrawals(market)
