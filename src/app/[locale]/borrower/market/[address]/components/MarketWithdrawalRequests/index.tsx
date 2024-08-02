@@ -27,6 +27,7 @@ import {
 
 export const MarketWithdrawalRequests = ({
   marketAccount,
+  isHoldingMarket,
 }: MarketWithdrawalRequestsProps) => {
   const { market } = marketAccount
 
@@ -171,12 +172,13 @@ export const MarketWithdrawalRequests = ({
         }}
       >
         <Typography variant="title3">Open Withdrawals</Typography>
-        {(market.isDelinquent || market.isIncurringPenalties) && (
-          <RepayModal
-            marketAccount={marketAccount}
-            buttonType="withdrawalTable"
-          />
-        )}
+        {(market.isDelinquent || market.isIncurringPenalties) &&
+          isHoldingMarket && (
+            <RepayModal
+              marketAccount={marketAccount}
+              buttonType="withdrawalTable"
+            />
+          )}
       </Box>
 
       <DetailsAccordion

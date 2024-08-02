@@ -44,6 +44,8 @@ import {
 export const MarketAuthorisedLenders = ({
   market,
 }: MarketAuthorisedLendersProps) => {
+  const hasMLA = 0 // test const for hoiding/showing MLA columns in table
+
   const [state, copyToClipboard] = useCopyToClipboard()
   const [lendersName, setLendersName] = useState<{ [key: string]: string }>(
     JSON.parse(localStorage.getItem("lenders-name") || "{}"),
@@ -76,7 +78,7 @@ export const MarketAuthorisedLenders = ({
   const authorizedRows = rows?.filter((row) => row.authorized)
   const deauthorizedRows = rows?.filter((row) => !row.authorized)
 
-  const columns: GridColDef[] = [
+  const commonColumns: GridColDef[] = [
     {
       sortable: false,
       field: "name",
@@ -142,10 +144,13 @@ export const MarketAuthorisedLenders = ({
         "borrowerMarketDetails.authorisedLenders.tableHeaders.dateAdded",
       ),
       minWidth: 124,
-      headerAlign: "left",
-      align: "left",
+      headerAlign: hasMLA ? "left" : "right",
+      align: hasMLA ? "left" : "right",
       flex: 1.5,
     },
+  ]
+
+  const mlaColumns: GridColDef[] = [
     {
       sortable: false,
       field: "signedMLA",
@@ -155,7 +160,7 @@ export const MarketAuthorisedLenders = ({
       width: 96,
       headerAlign: "left",
       align: "left",
-      flex: 1,
+      flex: 1.5,
     },
     {
       sortable: false,
@@ -200,6 +205,10 @@ export const MarketAuthorisedLenders = ({
         ),
     },
   ]
+
+  const columns: GridColDef[] = hasMLA
+    ? [...commonColumns, ...mlaColumns]
+    : commonColumns
 
   if (isLoading) {
     return (

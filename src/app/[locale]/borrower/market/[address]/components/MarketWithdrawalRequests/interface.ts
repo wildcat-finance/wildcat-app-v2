@@ -2,6 +2,7 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 export type MarketWithdrawalRequestsProps = {
   marketAccount: MarketAccount
+  isHoldingMarket: boolean
 }
 
 export type WithdrawalTxRow = {
