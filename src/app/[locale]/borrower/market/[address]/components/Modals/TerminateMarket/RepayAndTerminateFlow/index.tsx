@@ -50,7 +50,6 @@ export const RepayAndTerminateFlow = ({
   const {
     mutateAsync: approve,
     isPending: isApproving,
-    isSuccess: isApproved,
     isError: isApproveError,
   } = useApprove(market.underlyingToken, market, setApproveTxHash)
 
@@ -159,9 +158,9 @@ export const RepayAndTerminateFlow = ({
   }
 
   const disableApprove =
-    isApproved ||
     isApproving ||
-    terminateMarketStep?.status === "UnpaidWithdrawalBatches"
+    terminateMarketStep?.status === "UnpaidWithdrawalBatches" ||
+    terminateMarketStep?.status === "Ready"
 
   const disableRepay =
     terminateMarketStep?.status === "InsufficientAllowance" ||
@@ -169,7 +168,7 @@ export const RepayAndTerminateFlow = ({
     isApproving
 
   const IsTxApproved =
-    isApproved || terminateMarketStep?.status === "UnpaidWithdrawalBatches"
+    terminateMarketStep?.status === "Ready" || terminateMarketStep?.status === "UnpaidWithdrawalBatches"
 
   const isLoading = isProcessing || isTerminating
 

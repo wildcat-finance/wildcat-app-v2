@@ -17,22 +17,46 @@ import {
 } from "./style"
 
 export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
+  const [remainingTime, setRemainingTime] = React.useState<string | undefined>(
+    "",
+  )
   const { t } = useTranslation()
 
   const { market } = marketAccount
 
   const { data } = useGetWithdrawals(market)
 
-  const cycleStart = data.activeWithdrawal?.requests[0]?.blockTimestamp
-  const cycleEnd =
-    cycleStart !== undefined ? cycleStart + market.withdrawalBatchDuration : 0
-  const cycleDuration =
-    cycleStart &&
-    humanizeDuration((cycleEnd - cycleStart) * 1000, {
-      round: true,
-      largest: 2,
-      units: ["h", "m", "s"],
-    })
+  React.useEffect(() => {
+    const cycleStart = data.activeWithdrawal?.requests[0]?.blockTimestamp
+    const cycleEnd =
+      cycleStart !== undefined ? cycleStart + market.withdrawalBatchDuration : 0
+
+    if (cycleStart) {
+      const updateRemainingTime = () => {
+        const now = Math.floor(Date.now() / 1000)
+        const timeLeft = cycleEnd - now
+        if (timeLeft > 0) {
+          setRemainingTime(
+            humanizeDuration(timeLeft * 1000, {
+              round: true,
+              largest: 1,
+              units: ["h", "m", "s"],
+            }),
+          )
+        } else {
+          setRemainingTime(undefined)
+        }
+      }
+
+      updateRemainingTime()
+
+      const intervalId = setInterval(updateRemainingTime, 1000)
+
+      return () => clearInterval(intervalId)
+    }
+
+    return undefined
+  }, [data, market.withdrawalBatchDuration])
 
   const marketStatus = getMarketStatusChip(market)
 
@@ -54,7 +78,9 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
       </Box>
       <Box sx={MarketHeaderStatusContainer}>
         <MarketStatusChip status={marketStatus} variant="filled" />
-        {cycleDuration && <MarketCycleChip color="blue" time={cycleDuration} />}
+        {remainingTime && (
+          <MarketCycleChip status={marketStatus.status} time={remainingTime} />
+        )}
       </Box>
     </Box>
   )

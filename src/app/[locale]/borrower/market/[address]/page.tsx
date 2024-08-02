@@ -161,7 +161,10 @@ export default function MarketDetails({
           {/* </Slide> */}
           {checked === 3 && (
             <Box sx={SlideContentContainer} marginTop="12px">
-              <MarketWithdrawalRequests marketAccount={marketAccount} isHoldingMarket={holdTheMarket} />
+              <MarketWithdrawalRequests
+                marketAccount={marketAccount}
+                isHoldingMarket={holdTheMarket}
+              />
             </Box>
           )}
           {/* <Slide */}

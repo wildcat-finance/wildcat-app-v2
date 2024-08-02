@@ -1,13 +1,14 @@
 import { Box, Typography } from "@mui/material"
 
 import { COLORS } from "@/theme/colors"
+import { MarketStatus } from "@/utils/marketStatus"
 
 export type MarketCycleChipProps = {
-  color: "blue" | "red"
+  status: MarketStatus
   time: string
 }
 
-export const MarketCycleChip = ({ color, time }: MarketCycleChipProps) => (
+export const MarketCycleChip = ({ status, time }: MarketCycleChipProps) => (
   <Box display="flex" columnGap="4px" alignItems="center">
     <Typography variant="text4" sx={{ margin: 0 }}>
       Ongoing Cycle
@@ -18,13 +19,18 @@ export const MarketCycleChip = ({ color, time }: MarketCycleChipProps) => (
         height: "4px",
         borderRadius: "50%",
         backgroundColor:
-          color === "blue" ? COLORS.ultramarineBlue : COLORS.carminePink,
+          status === MarketStatus.HEALTHY
+            ? COLORS.ultramarineBlue
+            : COLORS.carminePink,
       }}
     />
     <Typography
       variant="text4"
       sx={{
-        color: color === "blue" ? COLORS.ultramarineBlue : COLORS.carminePink,
+        color:
+          status === MarketStatus.HEALTHY
+            ? COLORS.ultramarineBlue
+            : COLORS.carminePink,
       }}
     >
       {time} left
