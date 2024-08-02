@@ -168,7 +168,8 @@ export const RepayAndTerminateFlow = ({
     isApproving
 
   const IsTxApproved =
-    terminateMarketStep?.status === "Ready" || terminateMarketStep?.status === "UnpaidWithdrawalBatches"
+    terminateMarketStep?.status === "Ready" ||
+    terminateMarketStep?.status === "UnpaidWithdrawalBatches"
 
   const isLoading = isProcessing || isTerminating
 
