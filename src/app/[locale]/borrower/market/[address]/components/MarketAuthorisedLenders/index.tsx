@@ -93,6 +93,7 @@ export const MarketAuthorisedLenders = ({
           address={params.value.address}
         />
       ),
+      flex: 2,
     },
     {
       sortable: false,
@@ -132,6 +133,7 @@ export const MarketAuthorisedLenders = ({
           </Link>
         </Box>
       ),
+      flex: 2,
     },
     {
       sortable: false,
@@ -142,6 +144,7 @@ export const MarketAuthorisedLenders = ({
       minWidth: 124,
       headerAlign: "left",
       align: "left",
+      flex: 1.5,
     },
     {
       sortable: false,
@@ -152,6 +155,7 @@ export const MarketAuthorisedLenders = ({
       width: 96,
       headerAlign: "left",
       align: "left",
+      flex: 1,
     },
     {
       sortable: false,
@@ -162,13 +166,14 @@ export const MarketAuthorisedLenders = ({
       minWidth: 80,
       headerAlign: "left",
       align: "left",
+      flex: 1.5,
     },
     {
       sortable: false,
       field: "MLA",
       headerName: t("borrowerMarketDetails.authorisedLenders.tableHeaders.MLA"),
       minWidth: 130,
-      flex: 1,
+      flex: 2,
       headerAlign: "right",
       align: "right",
       renderCell: ({ value }) =>
