@@ -24,6 +24,16 @@ export function secondsToDays(seconds: number) {
   return dayjs.duration(seconds, "seconds").asDays()
 }
 
+export function remainingMillisecondsToDate(milliseconds: number): string {
+  const now = new Date()
+  const futureDate = new Date(now.getTime() + milliseconds)
+  const day = futureDate.getDate().toString().padStart(2, "0")
+  const month = (futureDate.getMonth() + 1).toString().padStart(2, "0") // Months are zero-based
+  const year = futureDate.getFullYear()
+
+  return `${day}/${month}/${year}`
+}
+
 // <---- MARKET CONSTRAINTS ---->
 
 const CONSTRAINTS_IN_SECONDS: Array<keyof MarketParameterConstraints> = [

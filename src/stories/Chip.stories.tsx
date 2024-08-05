@@ -2,6 +2,7 @@ import { Box } from "@mui/material"
 import type { Meta } from "@storybook/react"
 
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { HealthyStatusChip } from "@/components/@extended/MarketStatusChip/HealthyStatusChip"
 import { MarketStatus } from "@/utils/marketStatus"
 
 export default {
@@ -47,6 +48,17 @@ export const Chip = () => (
       {mockData.map((status) => (
         <MarketStatusChip variant="text" status={status} />
       ))}
+    </Box>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "flex-start",
+        gap: "10px",
+      }}
+    >
+      <HealthyStatusChip msLeft={21432919000} />
+      <HealthyStatusChip msLeft={166694000} />
     </Box>
   </Box>
 )
