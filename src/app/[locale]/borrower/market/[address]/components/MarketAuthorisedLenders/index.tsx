@@ -229,53 +229,63 @@ export const MarketAuthorisedLenders = ({
 
   return (
     <Box sx={MarketWithdrawalRequestsContainer} id="lenders">
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Typography variant="title3">
-          {" "}
-          {t("borrowerMarketDetails.authorisedLenders.header")}
-        </Typography>
-        <Button sx={{ border: "1px solid", borderColor: COLORS.whiteLilac }}>
-          {t("borrowerMarketDetails.authorisedLenders.buttons.editList")}
-        </Button>
-      </Box>
-
       {authorizedRows.length === 0 && (
         <Box display="flex" flexDirection="column">
-          <Typography variant="title3">
-            There are no authorised lenders
-          </Typography>
+          <Typography variant="title3">No lenders yet</Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            You have not add any lenders yet.
+            There is no any lenders yet – edit list to add them
           </Typography>
+          <Button
+            variant="contained"
+            sx={{ width: "100px", height: "28px", marginTop: "24px" }}
+          >
+            <Typography variant="text4" color="white">
+              Edit List
+            </Typography>
+          </Button>
         </Box>
       )}
 
       {authorizedRows.length !== 0 && (
-        <DataGrid
-          sx={{
-            ...DataGridCells,
-            "& .MuiDataGrid-columnHeader": {
-              marginBottom: "6px",
-              padding: "0 8px",
-            },
-            "& .MuiDataGrid-columnHeaderTitle": {
-              fontSize: 11,
-            },
-          }}
-          rows={authorizedRows}
-          columns={columns}
-          columnHeaderHeight={40}
-        />
+        <>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="title3">
+              {" "}
+              {t("borrowerMarketDetails.authorisedLenders.header")}
+            </Typography>
+            <Button
+              sx={{ border: "1px solid", borderColor: COLORS.whiteLilac }}
+            >
+              {t("borrowerMarketDetails.authorisedLenders.buttons.editList")}
+            </Button>
+          </Box>
+          <DataGrid
+            sx={{
+              ...DataGridCells,
+              "& .MuiDataGrid-columnHeader": {
+                marginBottom: "6px",
+                padding: "0 8px",
+              },
+              "& .MuiDataGrid-columnHeaderTitle": {
+                fontSize: 11,
+              },
+            }}
+            rows={authorizedRows}
+            columns={columns}
+            columnHeaderHeight={40}
+          />
+        </>
       )}
 
       {deauthorizedRows.length !== 0 && (
         <Accordion
+          open={authorizedRows.length === 0}
           sx={{
             flexDirection: "row-reverse",
             justifyContent: "flex-end",

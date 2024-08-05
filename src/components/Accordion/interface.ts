@@ -9,4 +9,5 @@ export type AccordionProps = {
   iconContainerSx?: object
   iconColor?: string
   chipValue?: string
+  open?: boolean
 }

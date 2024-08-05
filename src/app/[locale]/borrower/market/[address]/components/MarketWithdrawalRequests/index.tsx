@@ -211,7 +211,7 @@ export const MarketWithdrawalRequests = ({
             />
           ) : (
             <Box display="flex" flexDirection="column" padding="0 16px">
-              <Typography variant="title3">
+              <Typography variant="text3" color={COLORS.santasGrey}>
                 There are no ongoing withdrawals
               </Typography>
             </Box>
@@ -251,7 +251,7 @@ export const MarketWithdrawalRequests = ({
             />
           ) : (
             <Box display="flex" flexDirection="column" padding="0 16px">
-              <Typography variant="title3">
+              <Typography variant="text3" color={COLORS.santasGrey}>
                 There are no outstanding withdrawals from past cycles
               </Typography>
             </Box>

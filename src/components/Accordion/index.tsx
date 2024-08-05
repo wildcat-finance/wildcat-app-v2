@@ -17,8 +17,9 @@ export const Accordion = ({
   summarySx,
   iconColor,
   children,
+  open,
 }: AccordionProps) => {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(open || false)
   return (
     <>
       <Box

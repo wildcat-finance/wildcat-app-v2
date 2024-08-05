@@ -16,6 +16,8 @@ export const MarketWithdrawalRequestsContainer = {
   flexDirection: "column",
 }
 export const DataGridCells = {
-  "& .MuiDataGrid-cell": { padding: "0px 8px" },
-  "& .MuiDataGrid-columnHeader": { padding: "0px 8px" },
+  padding: "0px 16px 0px 16px",
+  "& .MuiDataGrid-topContainer": { marginBottom: "8px" },
+  "& .MuiDataGrid-cell": { padding: "0px" },
+  "& .MuiDataGrid-columnHeader": { padding: "0px" },
 }
