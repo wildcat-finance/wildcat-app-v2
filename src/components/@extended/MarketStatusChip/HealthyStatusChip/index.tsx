@@ -16,7 +16,7 @@ const ClockIcon = () => (
 
 export const HealthyStatusChip = ({ msLeft }: HealthyStatusChipProps) => {
   const daysLeft = Number(
-    humanizeDuration(msLeft, {
+    humanizeDuration(msLeft || 0, {
       round: false,
       units: ["d"],
     }).replace(/[^\d.]/g, ""),
@@ -26,13 +26,13 @@ export const HealthyStatusChip = ({ msLeft }: HealthyStatusChipProps) => {
 
   if (daysLeft > 7) {
     additionalChipConfig = {
-      label: `Till ${remainingMillisecondsToDate(msLeft)}`,
+      label: `Till ${remainingMillisecondsToDate(msLeft || 0)}`,
       backgroundColor: COLORS.whiteSmoke,
       color: COLORS.santasGrey,
     }
   } else {
     additionalChipConfig = {
-      label: `${humanizeDuration(msLeft, {
+      label: `${humanizeDuration(msLeft || 0, {
         round: true,
         largest: 1,
       })} left`,
@@ -43,7 +43,7 @@ export const HealthyStatusChip = ({ msLeft }: HealthyStatusChipProps) => {
   }
 
   return (
-    <Box sx={{ display: "flex", gap: "2px", flexWrap: "wrap" }}>
+    <Box sx={{ display: "flex", gap: "4px 2px", flexWrap: "wrap" }}>
       <Chip
         label="Healthy"
         sx={{
@@ -52,15 +52,17 @@ export const HealthyStatusChip = ({ msLeft }: HealthyStatusChipProps) => {
         }}
       />
 
-      <Chip
-        label={additionalChipConfig.label}
-        icon={additionalChipConfig.icon}
-        sx={{
-          backgroundColor: additionalChipConfig.backgroundColor,
-          color: additionalChipConfig.color,
-          columnGap: "4px",
-        }}
-      />
+      {msLeft && (
+        <Chip
+          label={additionalChipConfig.label}
+          icon={additionalChipConfig.icon}
+          sx={{
+            backgroundColor: additionalChipConfig.backgroundColor,
+            color: additionalChipConfig.color,
+            columnGap: "4px",
+          }}
+        />
+      )}
     </Box>
   )
 }

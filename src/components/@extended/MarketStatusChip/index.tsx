@@ -1,12 +1,13 @@
 import { Box, Chip } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
-import humanizeDuration from "humanize-duration"
 import Image from "next/image"
 
 import Clock from "@/assets/icons/clock_icon.svg"
 import Fire from "@/assets/icons/fire_icon.png"
 import Arrow from "@/assets/icons/textChipArrow_icon.svg"
+import { HealthyStatusChip } from "@/components/@extended/MarketStatusChip/HealthyStatusChip"
 import { COLORS } from "@/theme/colors"
+import { MarketStatus } from "@/utils/marketStatus"
 
 import { MarketStatusChipProps } from "./type"
 
@@ -16,25 +17,7 @@ export const MarketStatusChip = ({
 }: MarketStatusChipProps) => {
   let chipConfig
 
-  const healthyPeriod =
-    status.healthyPeriod &&
-    humanizeDuration(status.healthyPeriod, {
-      round: true,
-      largest: 1,
-    })
-
   switch (status.status) {
-    case "Healthy": {
-      chipConfig = {
-        label: status.healthyPeriod
-          ? `Healthy ${healthyPeriod} more`
-          : "Healthy",
-        icon: undefined,
-        backgroundColor: COLORS.glitter,
-        fontColor: COLORS.ultramarineBlue,
-      }
-      break
-    }
     case "Penalty": {
       chipConfig = {
         label: "Penalty",
@@ -64,10 +47,10 @@ export const MarketStatusChip = ({
     }
     default: {
       chipConfig = {
-        label: "Healthy",
-        icon: undefined,
-        backgroundColor: COLORS.glitter,
-        fontColor: COLORS.ultramarineBlue,
+        label: "Penalty",
+        icon: "",
+        backgroundColor: COLORS.cherub,
+        fontColor: COLORS.dullRed,
       }
     }
   }
@@ -84,6 +67,9 @@ export const MarketStatusChip = ({
         {chipConfig.icon}
       </SvgIcon>
     )
+
+  if (status.status === MarketStatus.HEALTHY)
+    return <HealthyStatusChip msLeft={status.healthyPeriod} />
 
   switch (variant) {
     case "filled": {

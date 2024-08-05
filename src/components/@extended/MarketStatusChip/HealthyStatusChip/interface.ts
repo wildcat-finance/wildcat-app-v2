@@ -1,3 +1,3 @@
 export type HealthyStatusChipProps = {
-  msLeft: number
+  msLeft: number | null
 }
