@@ -9,7 +9,6 @@ export const DialogContainer = {
     padding: "24px 20px 20px",
     display: "flex",
     flexDirection: "column",
-    gap: "32px",
   },
 }
 

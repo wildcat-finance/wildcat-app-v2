@@ -1231,8 +1231,8 @@ export const theme = createTheme({
     MuiDateCalendar: {
       styleOverrides: {
         root: {
-          height: "190px",
-          maxHeight: "190px",
+          height: "210px",
+          overflow: "visible",
           boxSizing: "border-box",
           fontFamily: "inherit",
           maxWidth: "274px",
@@ -1327,13 +1327,14 @@ export const theme = createTheme({
           "& .MuiYearCalendar-root": {
             display: "grid",
             gridTemplateColumns: "48px 48px 48px 48px",
-            padding: "0 14px 0",
+            padding: "0 12px 0",
             maxHeight: "150px",
             width: "274px",
-            rowGap: "6px",
+            gap: "6px 13px",
             border: `1px solid ${COLORS.hintOfRed}`,
             borderRadius: "8px",
             justifyContent: "space-between",
+            boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.05)",
           },
         },
       },

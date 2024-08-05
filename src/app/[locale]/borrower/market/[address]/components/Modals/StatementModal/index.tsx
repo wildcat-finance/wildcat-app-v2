@@ -35,7 +35,7 @@ export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
   }
   return (
     <Dialog open={isOpen} onClose={handleClose} sx={DialogContainer}>
-      <Box>
+      <Box marginBottom="32px">
         <Box sx={HeaderTextContainer}>
           <Typography variant="title3">Statement of Transactions</Typography>
           <IconButton
@@ -54,7 +54,7 @@ export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
         </Typography>
       </Box>
       <Tabs
-        sx={{ width: "100%", height: "40px" }}
+        sx={{ width: "100%", height: "40px", marginBottom: "20px" }}
         variant="fullWidth"
         value={value}
         onChange={handleChange}
@@ -63,10 +63,11 @@ export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
         <Tab value="csv" label="CSV" className="contained" />
         <Tab value="pdf" label="PDF" className="contained" />
       </Tabs>
-      <Box sx={{ marginBottom: "32px" }}>
+      <Box>
         <DateRange dates={dates} setDates={setDates} />
       </Box>
       <Button
+        sx={{ marginTop: "12px" }}
         variant="contained"
         size="large"
         onClick={() => {
