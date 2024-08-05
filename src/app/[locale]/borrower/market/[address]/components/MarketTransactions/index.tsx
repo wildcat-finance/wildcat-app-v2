@@ -119,10 +119,12 @@ export const MarketTransactions = ({
           asset={market.underlyingToken.symbol}
           warning={market.isIncurringPenalties || market.isDelinquent}
         >
-          <RepayModal
-            marketAccount={marketAccount}
-            disableRepayBtn={disableRepay}
-          />
+          {!disableRepay && (
+            <RepayModal
+              marketAccount={marketAccount}
+              disableRepayBtn={disableRepay}
+            />
+          )}
         </TransactionBlock>
 
         <TransactionBlock
@@ -131,11 +133,13 @@ export const MarketTransactions = ({
           amount={formatTokenWithCommas(marketAccount.market.borrowableAssets)}
           asset={market.underlyingToken.symbol}
         >
-          <BorrowModal
-            market={market}
-            marketAccount={marketAccount}
-            disableBorrowBtn={disableBorrow}
-          />
+          {!disableBorrow && (
+            <BorrowModal
+              market={market}
+              marketAccount={marketAccount}
+              disableBorrowBtn={disableBorrow}
+            />
+          )}
         </TransactionBlock>
       </Box>
     </>

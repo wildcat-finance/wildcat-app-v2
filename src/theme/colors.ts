@@ -14,6 +14,7 @@ export const COLORS = {
   whiteLilac: "#E6E7EB",
   athensGrey: "#EFF0F4",
   whiteSmoke: "#F4F4F8",
+  blackHaze: "#F6F6F7",
   hintOfRed: "#F9F9FA",
   alabaster: "#FAFAFA",
   alabaster05: "#FAFAFA80",

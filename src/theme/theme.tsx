@@ -177,7 +177,7 @@ export const theme = createTheme({
             "& .MuiChip-label": {
               position: "relative",
               top: "0.7px",
-              fontSize: "10px",
+              fontSize: "11px",
               lineHeight: "16px",
               fontWeight: 500,
 
@@ -191,7 +191,7 @@ export const theme = createTheme({
             border: "none",
             padding: 0,
             "& .MuiChip-label": {
-              fontSize: "10px",
+              fontSize: "11px",
               lineHeight: "16px",
               fontWeight: 500,
 
@@ -460,7 +460,7 @@ export const theme = createTheme({
 
               "& .MuiFormHelperText-root": {
                 fontFamily: "inherit",
-                fontSize: "10px",
+                fontSize: "11px",
                 lineHeight: "16px",
                 fontWeight: 500,
                 letterSpacing: 0,
@@ -553,7 +553,7 @@ export const theme = createTheme({
 
               "& .MuiFormHelperText-root": {
                 fontFamily: "inherit",
-                fontSize: "10px",
+                fontSize: "11px",
                 fontWeight: 500,
                 lineHeight: "16px",
                 letterSpacing: 0,
@@ -1034,7 +1034,7 @@ export const theme = createTheme({
           "& .MuiDataGrid-columnHeader": {
             padding: "0 16px",
 
-            fontSize: "10px",
+            fontSize: "11px",
             lineHeight: "12px",
             fontWeight: 500,
             letterSpacing: 0,
@@ -1072,7 +1072,7 @@ export const theme = createTheme({
             padding: "0 16px",
             borderColor: COLORS.athensGrey,
 
-            fontSize: "12px",
+            fontSize: "13px",
             lineHeight: "20px",
             fontWeight: 500,
             letterSpacing: 0,
@@ -1122,7 +1122,7 @@ export const theme = createTheme({
 
           "& .MuiAccordionSummary-content": {
             fontFamily: "inherit",
-            fontSize: "12px",
+            fontSize: "13px",
             lineHeight: "20px",
             fontWeight: 500,
             letterSpacing: 0,
@@ -1174,7 +1174,7 @@ export const theme = createTheme({
             minHeight: "32px",
 
             fontFamily: "inherit",
-            fontSize: "12px",
+            fontSize: "13px",
             fontWeight: 600,
             lineHeight: "20px",
             textTransform: "none",
@@ -1283,7 +1283,7 @@ export const theme = createTheme({
           },
           "& .MuiDayCalendar-weekDayLabel": {
             fontFamily: "inherit",
-            fontSize: "10px",
+            fontSize: "11px",
             fontWeight: 500,
             lineHeight: "16px",
             color: COLORS.greySuit,

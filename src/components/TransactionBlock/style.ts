@@ -13,7 +13,7 @@ export const BlockContainer = {
   justifyContent: "space-between",
   borderRadius: "12px",
 
-  backgroundColor: COLORS.hintOfRed,
+  backgroundColor: COLORS.blackHaze,
 }
 
 export const TitleContainer = {
