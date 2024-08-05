@@ -1,7 +1,7 @@
 import { COLORS } from "@/theme/colors"
 
 export const TotalAccordionSummary = {
-  backgroundColor: COLORS.hintOfRed,
+  backgroundColor: COLORS.whiteSmoke,
   margin: "24px 0 12px",
   marginBottom: "8px",
 }

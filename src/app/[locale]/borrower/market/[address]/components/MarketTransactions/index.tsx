@@ -117,6 +117,7 @@ export const MarketTransactions = ({
           tooltip={t("borrowerMarketDetails.transactions.toRepay.tooltip")}
           amount={formatTokenWithCommas(market.outstandingDebt)}
           asset={market.underlyingToken.symbol}
+          warning={market.isIncurringPenalties || market.isDelinquent}
         >
           <RepayModal
             marketAccount={marketAccount}

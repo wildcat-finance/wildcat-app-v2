@@ -39,5 +39,5 @@ export const MenuItemButtonSelected = {
   fontWeight: "500",
   justifyContent: "flex-start",
   boxShadow: "none",
-  backgroundColor: COLORS.blackRock03,
+  backgroundColor: COLORS.whiteSmoke,
 }

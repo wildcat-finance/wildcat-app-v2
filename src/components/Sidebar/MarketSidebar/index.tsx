@@ -77,7 +77,7 @@ export const MarketSidebar = () => {
             sx={{
               ...MenuItemButton,
               backgroundColor: sidebarState.borrowRepay
-                ? COLORS.blackRock03
+                ? COLORS.whiteSmoke
                 : "transparent",
             }}
             onClick={() => {
@@ -100,7 +100,7 @@ export const MarketSidebar = () => {
             sx={{
               ...MenuItemButton,
               backgroundColor: sidebarState.statusDetails
-                ? COLORS.blackRock03
+                ? COLORS.whiteSmoke
                 : "transparent",
             }}
             onClick={() => {
@@ -123,7 +123,7 @@ export const MarketSidebar = () => {
             sx={{
               ...MenuItemButton,
               backgroundColor: sidebarState.withdrawals
-                ? COLORS.blackRock03
+                ? COLORS.whiteSmoke
                 : "transparent",
             }}
             onClick={() => {
@@ -146,7 +146,7 @@ export const MarketSidebar = () => {
             sx={{
               ...MenuItemButton,
               backgroundColor: sidebarState.lenders
-                ? COLORS.blackRock03
+                ? COLORS.whiteSmoke
                 : "transparent",
             }}
             onClick={() => {

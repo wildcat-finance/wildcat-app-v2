@@ -186,6 +186,8 @@ export const MarketWithdrawalRequests = ({
         setIsOpen={setIsTotalOpen}
         summaryText="Total"
         chipValue={formatTokenWithCommas(totalAmount, { withSymbol: true })}
+        chipColor={COLORS.whiteSmoke}
+        chipValueColor={COLORS.blackRock}
         summarySx={TotalAccordionSummary}
       >
         <DetailsAccordion
@@ -201,6 +203,8 @@ export const MarketWithdrawalRequests = ({
           chipValue={formatTokenWithCommas(activeTotalAmount, {
             withSymbol: true,
           })}
+          chipColor={COLORS.whiteSmoke}
+          chipValueColor={COLORS.blackRock}
         >
           {activeTxRows.length ? (
             <DataGrid
@@ -234,12 +238,12 @@ export const MarketWithdrawalRequests = ({
           chipColor={
             market.isDelinquent || market.isIncurringPenalties
               ? COLORS.remy
-              : undefined
+              : COLORS.whiteSmoke
           }
           chipValueColor={
             market.isDelinquent || market.isIncurringPenalties
               ? COLORS.dullRed
-              : undefined
+              : COLORS.blackRock
           }
         >
           {expiredTxRows.length ? (
