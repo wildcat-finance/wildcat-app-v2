@@ -63,7 +63,6 @@ export const MarketWithdrawalRequests = ({
             dateSubmitted: dayjs(withdrawal.blockTimestamp * 1000).format(
               "DD-MMM-YYYY",
             ),
-            claimable: "Yes",
             amount: formatTokenWithCommas(
               withdrawal.getNormalizedAmountOwed(batch),
               { withSymbol: true },

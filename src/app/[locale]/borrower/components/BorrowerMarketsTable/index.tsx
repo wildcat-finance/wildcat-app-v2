@@ -223,16 +223,16 @@ export const BorrowerMarketsTable = ({
         </Box>
       )}
       {tableData.length === 0 && !isLoading && defaultFilters && (
-        <Box display="flex" flexDirection="column" padding="32px 16px">
+        <Box display="flex" flexDirection="column" padding="24px 16px 12px">
           <Typography variant="title3">{noMarketsTitle}</Typography>
-          <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
+          <Typography variant="text3" color={COLORS.santasGrey}>
             {noMarketsSubtitle}
           </Typography>
         </Box>
       )}
       {tableData.length === 0 && !isLoading && !defaultFilters && (
-        <Box display="flex" flexDirection="column" padding="32px 16px">
-          <Typography variant="title3">
+        <Box display="flex" flexDirection="column" padding="24px 16px 12px">
+          <Typography variant="text2" color={COLORS.santasGrey}>
             {t("borrowerMarketList.table.noMarkets.filter.beginning")} {type}{" "}
             {statusFilter === "All" ? "" : statusFilter?.toLowerCase()}{" "}
             {nameFilter === "" ? "" : nameFilter}{" "}

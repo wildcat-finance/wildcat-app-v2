@@ -10,9 +10,10 @@ export const ContentContainer = {
 }
 
 export const BackButton = {
-  color: COLORS.greySuit,
+  color: COLORS.santasGrey,
   justifyContent: "flex-start",
   marginBottom: "12px",
+  fontWeight: 500,
 }
 
 export const BackButtonIcon = {

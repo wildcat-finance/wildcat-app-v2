@@ -3,7 +3,7 @@ import { COLORS } from "@/theme/colors"
 export const FormControlContainer = { position: "relative", width: "260px" }
 
 export const SelectContainer = {
-  fontSize: "10px",
+  fontSize: "11px",
   transform: "translate(29.15px, 6px) scale(1)",
   "&.Mui-focused": {
     display: "none",

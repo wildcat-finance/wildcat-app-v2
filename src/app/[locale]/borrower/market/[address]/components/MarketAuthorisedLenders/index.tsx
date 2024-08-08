@@ -4,6 +4,7 @@ import * as React from "react"
 import {
   Box,
   Button,
+  Divider,
   IconButton,
   Link,
   Skeleton,
@@ -232,16 +233,15 @@ export const MarketAuthorisedLenders = ({
       {authorizedRows.length === 0 && (
         <Box display="flex" flexDirection="column">
           <Typography variant="title3">No lenders yet</Typography>
-          <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
+          <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
             There is no any lenders yet – edit list to add them
           </Typography>
           <Button
             variant="contained"
-            sx={{ width: "100px", height: "28px", marginTop: "24px" }}
+            size="small"
+            sx={{ width: "100px", marginTop: "24px", borderRadius: 2 }}
           >
-            <Typography variant="text4" color="white">
-              Edit List
-            </Typography>
+            Edit List
           </Button>
         </Box>
       )}
@@ -284,35 +284,39 @@ export const MarketAuthorisedLenders = ({
       )}
 
       {deauthorizedRows.length !== 0 && (
-        <Accordion
-          open={authorizedRows.length === 0}
-          sx={{
-            flexDirection: "row-reverse",
-            justifyContent: "flex-end",
-          }}
-          iconContainerSx={{
-            width: "fit-content",
-          }}
-          summarySx={{ color: COLORS.blueRibbon }}
-          iconColor={COLORS.blueRibbon}
-          title="Deleted Lenders"
-        >
-          <DataGrid
+        <>
+          {authorizedRows.length === 0 && <Divider sx={{ margin: "32px 0" }} />}
+
+          <Accordion
+            open={authorizedRows.length === 0}
             sx={{
-              ...DataGridCells,
-              "& .MuiDataGrid-columnHeader": {
-                marginBottom: "6px",
-                padding: "0 8px",
-              },
-              "& .MuiDataGrid-columnHeaderTitle": {
-                fontSize: 11,
-              },
+              flexDirection: "row-reverse",
+              justifyContent: "flex-end",
             }}
-            rows={deauthorizedRows}
-            columns={columns}
-            columnHeaderHeight={0}
-          />
-        </Accordion>
+            iconContainerSx={{
+              width: "fit-content",
+            }}
+            summarySx={{ color: COLORS.blueRibbon }}
+            iconColor={COLORS.blueRibbon}
+            title="Deleted Lenders"
+          >
+            <DataGrid
+              sx={{
+                ...DataGridCells,
+                "& .MuiDataGrid-columnHeader": {
+                  marginBottom: "6px",
+                  padding: "0 8px",
+                },
+                "& .MuiDataGrid-columnHeaderTitle": {
+                  fontSize: 11,
+                },
+              }}
+              rows={deauthorizedRows}
+              columns={columns}
+              columnHeaderHeight={authorizedRows.length === 0 ? 40 : 0}
+            />
+          </Accordion>
+        </>
       )}
     </Box>
   )

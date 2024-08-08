@@ -76,7 +76,7 @@ export const AllMarketsSidebar = () => {
 
       <Box>
         <FormControl>
-          <Typography variant="text2" mb="12px">
+          <Typography variant="text3" mb="12px" color={COLORS.santasGrey}>
             {t("borrowerMarketList.sidebar.title.status")}
           </Typography>
           <RadioGroup
@@ -112,7 +112,7 @@ export const AllMarketsSidebar = () => {
 
       <Box>
         <FormControl>
-          <Typography variant="text2" mb="12px">
+          <Typography variant="text3" mb="12px" color={COLORS.santasGrey}>
             {t("borrowerMarketList.sidebar.title.asset")}
           </Typography>
           <RadioGroup

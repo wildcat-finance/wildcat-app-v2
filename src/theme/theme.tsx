@@ -328,7 +328,7 @@ export const theme = createTheme({
           border: "none",
           borderRadius: "8px",
 
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: 500,
           lineHeight: "16px",
           letterSpacing: "0.2px",
@@ -584,7 +584,7 @@ export const theme = createTheme({
                 },
 
                 "&.MuiInputLabel-shrink": {
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: 500,
                   lineHeight: "16px",
 
@@ -614,7 +614,7 @@ export const theme = createTheme({
 
               "& .MuiInputBase-root": {
                 fontFamily: "inherit",
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 500,
                 lineHeight: "20px",
                 paddingLeft: "8px",
@@ -656,7 +656,7 @@ export const theme = createTheme({
 
               "& .MuiFormLabel-root": {
                 fontFamily: "inherit",
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 500,
                 lineHeight: "20px",
                 color: COLORS.santasGrey,
@@ -805,7 +805,7 @@ export const theme = createTheme({
               "&.MuiInputBase-root": {
                 height: "32px",
 
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 500,
                 lineHeight: "20px",
 
@@ -834,7 +834,7 @@ export const theme = createTheme({
               },
 
               "& .MuiSelect-select": {
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: 500,
                 lineHeight: "16px",
 
@@ -915,7 +915,7 @@ export const theme = createTheme({
 
           "& .MuiTypography-root": {
             fontFamily: "inherit",
-            fontSize: 12,
+            fontSize: 13,
             lineHeight: "20px",
             fontWeight: 500,
           },
@@ -1247,6 +1247,7 @@ export const theme = createTheme({
             margin: "0px",
             padding: "0px",
             paddingRight: "4px",
+            paddingBottom: "8px",
             minHeight: "36px",
             maxHeight: "36px",
           },
@@ -1267,9 +1268,11 @@ export const theme = createTheme({
             fontFamily: "inherit",
             margin: "0px 4px",
           },
-          "& .Mui-selected": {
+
+          "& .MuiButtonBase-root.MuiPickersDay-root.Mui-selected": {
             backgroundColor: COLORS.cornflowerBlue,
           },
+
           "& .MuiPickersCalendarHeader-label": {
             fontSize: 13,
             marginRight: "0px",
@@ -1311,9 +1314,6 @@ export const theme = createTheme({
             flex: "0 0 calc(24% - 20px);",
           },
           "& .MuiPickersYear-yearButton": {
-            ":focus": {
-              backgroundColor: COLORS.cornflowerBlue,
-            },
             fontFamily: "inherit",
             fontSize: "13px",
             fontWeight: 500,
@@ -1323,6 +1323,10 @@ export const theme = createTheme({
             height: "20px",
             padding: "0",
             margin: "0",
+
+            "&.Mui-selected": {
+              backgroundColor: COLORS.cornflowerBlue,
+            },
           },
           "& .MuiYearCalendar-root": {
             display: "grid",

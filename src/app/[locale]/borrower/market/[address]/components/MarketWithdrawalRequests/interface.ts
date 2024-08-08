@@ -10,6 +10,5 @@ export type WithdrawalTxRow = {
   lender: string
   transactionId: string
   dateSubmitted: string
-  claimable: string
   amount: string
 }

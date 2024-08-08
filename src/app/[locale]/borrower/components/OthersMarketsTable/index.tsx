@@ -237,8 +237,8 @@ export const OthersMarketsTable = ({
         </Box>
       )}
       {tableData.length === 0 && !isLoading && !defaultFilters && (
-        <Box display="flex" flexDirection="column" padding="32px 16px">
-          <Typography variant="title3">
+        <Box display="flex" flexDirection="column" padding="24px 16px 12px">
+          <Typography variant="text2" color={COLORS.santasGrey}>
             {t("borrowerMarketList.table.noMarkets.filter.beginning")}{" "}
             {statusFilter === "All" ? "" : statusFilter?.toLowerCase()}{" "}
             {nameFilter === "" ? "" : nameFilter}{" "}

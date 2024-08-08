@@ -1,7 +1,7 @@
 import { COLORS } from "@/theme/colors"
 
 export const smallContainedButton = {
-  fontSize: 10,
+  fontSize: 11,
   lineHeight: "16px",
   fontWeight: 600,
   color: COLORS.white,
@@ -21,7 +21,7 @@ export const smallContainedButton = {
   },
 }
 export const mediumContainedButton = {
-  fontSize: 12,
+  fontSize: 13,
   lineHeight: "12px",
   fontWeight: 600,
   color: COLORS.white,
@@ -62,7 +62,7 @@ export const largeContainedButton = {
 }
 
 export const smallContainedSecondaryButton = {
-  fontSize: 10,
+  fontSize: 11,
   lineHeight: "16px",
   fontWeight: 600,
   color: COLORS.bunker,
@@ -82,7 +82,7 @@ export const smallContainedSecondaryButton = {
   },
 }
 export const mediumSecondaryContainedButton = {
-  fontSize: 12,
+  fontSize: 13,
   lineHeight: "12px",
   fontWeight: 600,
   color: COLORS.bunker,
@@ -123,7 +123,7 @@ export const largeSecondaryContainedButton = {
 }
 
 export const smallTextButton = {
-  fontSize: 10,
+  fontSize: 11,
   lineHeight: "16px",
   fontWeight: 600,
   color: COLORS.bunker,
@@ -142,7 +142,7 @@ export const smallTextButton = {
   },
 }
 export const mediumTextButton = {
-  fontSize: 12,
+  fontSize: 13,
   lineHeight: "12px",
   fontWeight: 600,
   color: COLORS.bunker,
@@ -181,7 +181,7 @@ export const largeTextButton = {
 }
 
 export const smallOutlinedButton = {
-  fontSize: 10,
+  fontSize: 11,
   lineHeight: "16px",
   fontWeight: 600,
   color: COLORS.bunker,
@@ -203,7 +203,7 @@ export const smallOutlinedButton = {
   },
 }
 export const mediumOutlinedButton = {
-  fontSize: 12,
+  fontSize: 13,
   lineHeight: "12px",
   fontWeight: 600,
   color: COLORS.bunker,
@@ -248,7 +248,7 @@ export const largeOutlinedButton = {
 }
 
 export const smallOutlinedSecondaryButton = {
-  fontSize: 10,
+  fontSize: 11,
   lineHeight: "16px",
   fontWeight: 600,
   color: COLORS.bunker,
@@ -270,7 +270,7 @@ export const smallOutlinedSecondaryButton = {
   },
 }
 export const mediumOutlinedSecondaryButton = {
-  fontSize: 12,
+  fontSize: 13,
   lineHeight: "12px",
   fontWeight: 600,
   color: COLORS.bunker,

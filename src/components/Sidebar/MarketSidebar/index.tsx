@@ -52,7 +52,8 @@ export const MarketSidebar = () => {
             variant="text"
             size="medium"
             sx={{
-              color: COLORS.greySuit,
+              color: COLORS.santasGrey,
+              fontWeight: 500,
               justifyContent: "flex-start",
               marginBottom: "12px",
             }}
@@ -61,7 +62,7 @@ export const MarketSidebar = () => {
               fontSize="small"
               sx={{
                 marginRight: "4px",
-                "& path": { fill: `${COLORS.greySuit}` },
+                "& path": { fill: `${COLORS.santasGrey}` },
               }}
             >
               <BackArrow />
