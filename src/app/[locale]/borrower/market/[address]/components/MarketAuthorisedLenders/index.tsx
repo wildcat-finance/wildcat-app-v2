@@ -54,7 +54,7 @@ export const MarketAuthorisedLenders = ({
 
   const { data, isLoading } = useGetAuthorisedLendersByMarket(market)
   const { t } = useTranslation()
-  const rows = data
+  const lendersRows = data
     ? data?.map((lender) => ({
         id: lender.lender,
         authorized: lender.authorized,
@@ -76,8 +76,8 @@ export const MarketAuthorisedLenders = ({
       }))
     : []
 
-  const authorizedRows = rows?.filter((row) => row.authorized)
-  const deauthorizedRows = rows?.filter((row) => !row.authorized)
+  const authorizedRows = lendersRows?.filter((row) => row.authorized)
+  const deauthorizedRows = lendersRows?.filter((row) => !row.authorized)
 
   const commonColumns: GridColDef[] = [
     {
@@ -230,16 +230,46 @@ export const MarketAuthorisedLenders = ({
 
   return (
     <Box sx={MarketWithdrawalRequestsContainer} id="lenders">
-      {authorizedRows.length === 0 && (
+      {lendersRows.length === 0 && (
         <Box display="flex" flexDirection="column">
-          <Typography variant="title3">No lenders yet</Typography>
+          <Typography variant="title3" sx={{ marginBottom: "8px" }}>
+            No lenders yet
+          </Typography>
           <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
             There is no any lenders yet – edit list to add them
           </Typography>
           <Button
             variant="contained"
             size="small"
-            sx={{ width: "100px", marginTop: "24px", borderRadius: 2 }}
+            sx={{
+              width: "100px",
+              height: "32px",
+              marginTop: "24px",
+              borderRadius: 2,
+            }}
+          >
+            Edit List
+          </Button>
+        </Box>
+      )}
+
+      {authorizedRows.length === 0 && lendersRows.length !== 0 && (
+        <Box display="flex" flexDirection="column">
+          <Typography variant="title3" sx={{ marginBottom: "8px" }}>
+            {t("borrowerMarketDetails.authorisedLenders.header")}
+          </Typography>
+          <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
+            No active lenders yet – edit list to add them
+          </Typography>
+          <Button
+            variant="contained"
+            size="small"
+            sx={{
+              width: "100px",
+              height: "32px",
+              marginTop: "24px",
+              borderRadius: 2,
+            }}
           >
             Edit List
           </Button>
@@ -256,7 +286,6 @@ export const MarketAuthorisedLenders = ({
             }}
           >
             <Typography variant="title3">
-              {" "}
               {t("borrowerMarketDetails.authorisedLenders.header")}
             </Typography>
             <Button

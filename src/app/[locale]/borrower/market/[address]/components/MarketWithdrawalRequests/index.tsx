@@ -2,11 +2,11 @@ import * as React from "react"
 import { useState } from "react"
 
 import { Box, IconButton, Link, SvgIcon, Typography } from "@mui/material"
-import { DataGrid, GridColDef } from "@mui/x-data-grid"
-import { WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
-import dayjs from "dayjs"
+import { GridColDef } from "@mui/x-data-grid"
 import { useTranslation } from "react-i18next"
 
+import { OngoingTable } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/OngoingTable"
+import { OutstandingTable } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/OutstandingTable"
 import { RepayModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/RepayModal"
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import Copy from "@/assets/icons/copy_icon.svg"
@@ -17,10 +17,9 @@ import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas, trimAddress } from "@/utils/formatters"
 
-import { MarketWithdrawalRequestsProps, WithdrawalTxRow } from "./interface"
+import { MarketWithdrawalRequestsProps } from "./interface"
 import {
   TotalAccordionSummary,
-  DataGridCells,
   MarketWithdrawalRequestsContainer,
   MarketWithdrawalRequetstCell,
 } from "./style"
@@ -32,8 +31,6 @@ export const MarketWithdrawalRequests = ({
   const { market } = marketAccount
 
   const [isTotalOpen, setIsTotalOpen] = useState(true)
-  const [isOngoingOpen, setIsOngoingOpen] = useState(false)
-  const [isPastOpen, setIsPastOpen] = useState(false)
 
   const { t } = useTranslation()
   const { data } = useGetWithdrawals(market)
@@ -42,42 +39,9 @@ export const MarketWithdrawalRequests = ({
   const activeTotalAmount = data.activeWithdrawalsTotalOwed
   const totalAmount = expiredTotalAmount.add(activeTotalAmount)
 
-  const activeTxRows: Array<WithdrawalTxRow> = []
-  const expiredTxRows: Array<WithdrawalTxRow> = []
-
   const lendersName: { [key: string]: string } = JSON.parse(
     localStorage.getItem("lenders-name") || "{}",
   )
-
-  const formatTx = (
-    result: Array<WithdrawalTxRow>,
-    txs: WithdrawalBatch[] | undefined,
-  ) => {
-    if (txs && txs[0] !== undefined) {
-      txs.map((batch) =>
-        batch.requests.map((withdrawal) =>
-          result.push({
-            id: withdrawal.id,
-            lender: withdrawal.address,
-            transactionId: withdrawal.transactionHash,
-            dateSubmitted: dayjs(withdrawal.blockTimestamp * 1000).format(
-              "DD-MMM-YYYY",
-            ),
-            amount: formatTokenWithCommas(
-              withdrawal.getNormalizedAmountOwed(batch),
-              { withSymbol: true },
-            ),
-          }),
-        ),
-      )
-    }
-  }
-
-  if (data?.activeWithdrawal)
-    formatTx(activeTxRows, [data?.activeWithdrawal] as WithdrawalBatch[])
-
-  if (data?.expiredPendingWithdrawals)
-    formatTx(expiredTxRows, data?.expiredPendingWithdrawals)
 
   const columns: GridColDef[] = [
     {
@@ -145,14 +109,6 @@ export const MarketWithdrawalRequests = ({
     },
     {
       sortable: false,
-      field: "claimable",
-      headerName: "Claimable",
-      minWidth: 112,
-      headerAlign: "left",
-      align: "left",
-    },
-    {
-      sortable: false,
       field: "amount",
       headerName: "Amount",
       minWidth: 120,
@@ -189,77 +145,22 @@ export const MarketWithdrawalRequests = ({
         chipValueColor={COLORS.blackRock}
         summarySx={TotalAccordionSummary}
       >
-        <DetailsAccordion
-          isOpen={isOngoingOpen}
-          setIsOpen={setIsOngoingOpen}
-          summaryText="Ongoing"
-          summarySx={{
-            borderRadius: "0px",
-            marginBottom: isOngoingOpen ? "0px" : "12px",
-            borderBottom: isOngoingOpen ? "none" : `1px solid`,
-            borderColor: COLORS.athensGrey,
-          }}
-          chipValue={formatTokenWithCommas(activeTotalAmount, {
-            withSymbol: true,
-          })}
-          chipColor={COLORS.whiteSmoke}
-          chipValueColor={COLORS.blackRock}
-        >
-          {activeTxRows.length ? (
-            <DataGrid
-              sx={DataGridCells}
-              rows={activeTxRows}
-              columns={columns}
-              columnHeaderHeight={40}
-            />
-          ) : (
-            <Box display="flex" flexDirection="column" padding="0 16px">
-              <Typography variant="text3" color={COLORS.santasGrey}>
-                There are no ongoing withdrawals
-              </Typography>
-            </Box>
-          )}
-        </DetailsAccordion>
+        <OngoingTable
+          withdrawalBatches={
+            data?.activeWithdrawal ? [data.activeWithdrawal] : []
+          }
+          totalAmount={activeTotalAmount}
+          columns={columns}
+        />
 
-        <DetailsAccordion
-          isOpen={isPastOpen}
-          setIsOpen={setIsPastOpen}
-          summaryText="Outstanding from past cycles"
-          summarySx={{
-            borderRadius: "0px",
-            marginBottom: isPastOpen ? "0px" : "12px",
-            borderBottom: isPastOpen ? "none" : `1px solid`,
-            borderColor: COLORS.athensGrey,
-          }}
-          chipValue={formatTokenWithCommas(expiredTotalAmount, {
-            withSymbol: true,
-          })}
-          chipColor={
+        <OutstandingTable
+          columns={columns}
+          withdrawalBatches={data?.expiredPendingWithdrawals ?? []}
+          totalAmount={data.expiredWithdrawalsTotalOwed}
+          isIncurringPenalties={
             market.isDelinquent || market.isIncurringPenalties
-              ? COLORS.remy
-              : COLORS.whiteSmoke
           }
-          chipValueColor={
-            market.isDelinquent || market.isIncurringPenalties
-              ? COLORS.dullRed
-              : COLORS.blackRock
-          }
-        >
-          {expiredTxRows.length ? (
-            <DataGrid
-              sx={DataGridCells}
-              rows={expiredTxRows}
-              columns={columns}
-              columnHeaderHeight={40}
-            />
-          ) : (
-            <Box display="flex" flexDirection="column" padding="0 16px">
-              <Typography variant="text3" color={COLORS.santasGrey}>
-                There are no outstanding withdrawals from past cycles
-              </Typography>
-            </Box>
-          )}
-        </DetailsAccordion>
+        />
       </DetailsAccordion>
     </Box>
   )

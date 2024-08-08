@@ -1163,7 +1163,7 @@ export const theme = createTheme({
           borderBottom: "1px solid",
           borderColor: COLORS.iron,
 
-          padding: "0 12px 4px",
+          padding: "0 0 4px",
 
           "&.Mui-selected": {
             color: COLORS.blackRock,

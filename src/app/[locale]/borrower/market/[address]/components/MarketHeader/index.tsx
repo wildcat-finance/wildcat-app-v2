@@ -26,8 +26,9 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
 
   const { data } = useGetWithdrawals(market)
 
+  const cycleStart = data.activeWithdrawal?.requests[0]?.blockTimestamp
+
   React.useEffect(() => {
-    const cycleStart = data.activeWithdrawal?.requests[0]?.blockTimestamp
     const cycleEnd =
       cycleStart !== undefined ? cycleStart + market.withdrawalBatchDuration : 0
 
@@ -56,7 +57,7 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
     }
 
     return undefined
-  }, [data, market.withdrawalBatchDuration])
+  }, [data, market.withdrawalBatchDuration, cycleStart])
 
   const marketStatus = getMarketStatusChip(market)
 
