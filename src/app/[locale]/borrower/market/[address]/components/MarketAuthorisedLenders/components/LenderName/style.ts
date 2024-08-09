@@ -15,7 +15,7 @@ export const LenderNameTextfield = {
 }
 
 export const LenderNameIcon = {
-  padding: 0,
+  padding: "0 2px 0 0",
   "& path": {
     fill: `${COLORS.greySuit}`,
     transition: "fill 0.2s",

@@ -134,7 +134,8 @@ export const smallTextButton = {
 
   "&:hover": {
     boxShadow: "none",
-    backgroundColor: COLORS.blackRock03,
+    backgroundColor: COLORS.hintOfRed,
+    color: COLORS.blackRock08,
   },
 
   "&.Mui-disabled": {
@@ -153,7 +154,8 @@ export const mediumTextButton = {
 
   "&:hover": {
     boxShadow: "none",
-    backgroundColor: COLORS.blackRock03,
+    backgroundColor: COLORS.hintOfRed,
+    color: COLORS.blackRock08,
   },
 
   "&.Mui-disabled": {
@@ -172,7 +174,8 @@ export const largeTextButton = {
 
   "&:hover": {
     boxShadow: "none",
-    backgroundColor: COLORS.blackRock03,
+    backgroundColor: COLORS.hintOfRed,
+    color: COLORS.blackRock08,
   },
 
   "&.Mui-disabled": {

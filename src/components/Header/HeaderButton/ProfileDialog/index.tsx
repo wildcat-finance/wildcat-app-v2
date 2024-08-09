@@ -1,8 +1,9 @@
-import { Box, Button, Dialog, Typography } from "@mui/material"
+import { Box, Button, Dialog, SvgIcon, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useAccount, useDisconnect, useSwitchChain } from "wagmi"
 import { sepolia } from "wagmi/chains"
 
+import Avatar from "@/assets/icons/avatar_icon.svg"
 import {
   AddressContainer,
   ContentContainer,
@@ -54,12 +55,12 @@ export const ProfileDialog = ({
         )}
 
         <Box sx={ProfileContainer}>
-          <Box
-            width="32px"
-            height="32px"
-            bgcolor="#F4F4F8"
-            borderRadius="50%"
-          />
+          <Box>
+            <SvgIcon fontSize="huge" sx={{ margin: "auto" }}>
+              <Avatar />
+            </SvgIcon>
+          </Box>
+
           <Box
             display="flex"
             flexDirection="column"

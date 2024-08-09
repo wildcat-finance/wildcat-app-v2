@@ -133,7 +133,7 @@ export const theme = createTheme({
         {
           props: { fontSize: "huge" },
           style: {
-            fontSize: "30px",
+            fontSize: "32px",
           },
         },
         {
