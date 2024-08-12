@@ -1,19 +1,14 @@
 "use client"
 
 import { Box, Button } from "@mui/material"
-import SvgIcon from "@mui/material/SvgIcon"
-import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import BackArrow from "@/assets/icons/backArrow_icon.svg"
+import { BackButton } from "@/components/BackButton"
 import {
-  BackButton,
-  BackButtonIcon,
   ContentContainer,
   MenuItemButton,
   MenuItemButtonSelected,
 } from "@/components/Sidebar/NewMarketSidebar/style"
-import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { STEPS_NAME } from "@/store/slices/routingSlice/flowsSteps"
 import { setCurrentStep } from "@/store/slices/routingSlice/routingSlice"
@@ -55,14 +50,7 @@ export const NewMarketSidebar = () => {
 
   return (
     <Box sx={ContentContainer}>
-      <Link href={ROUTES.borrower.root} passHref>
-        <Button fullWidth variant="text" size="medium" sx={BackButton}>
-          <SvgIcon fontSize="small" sx={BackButtonIcon}>
-            <BackArrow />
-          </SvgIcon>
-          {t("createMarket.sidebar.back")}
-        </Button>
-      </Link>
+      <BackButton title={t("createMarket.sidebar.back")} />
 
       <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
         <Button

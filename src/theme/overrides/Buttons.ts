@@ -46,7 +46,7 @@ export const largeContainedButton = {
   fontWeight: 600,
   color: COLORS.white,
 
-  padding: "10px 20px",
+  padding: "12px 20px",
   borderRadius: 12,
   backgroundColor: COLORS.bunker,
 
@@ -107,7 +107,7 @@ export const largeSecondaryContainedButton = {
   fontWeight: 600,
   color: COLORS.bunker,
 
-  padding: "10px 20px",
+  padding: "12px 20px",
   borderRadius: 12,
   backgroundColor: COLORS.whiteSmoke,
 
@@ -168,7 +168,7 @@ export const largeTextButton = {
   fontWeight: 600,
   color: COLORS.bunker,
 
-  padding: "10px 20px",
+  padding: "12px 20px",
   borderRadius: 12,
   background: "transparent",
 
@@ -233,7 +233,7 @@ export const largeOutlinedButton = {
   fontWeight: 600,
   color: COLORS.bunker,
 
-  padding: "10px 20px",
+  padding: "12px 20px",
   borderRadius: 12,
   borderColor: COLORS.blackRock,
 
@@ -300,7 +300,7 @@ export const largeOutlinedSecondaryButton = {
   fontWeight: 600,
   color: COLORS.bunker,
 
-  padding: "10px 20px",
+  padding: "12px 20px",
   borderRadius: 12,
   borderColor: COLORS.whiteLilac,
 

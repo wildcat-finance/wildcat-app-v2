@@ -5,6 +5,8 @@ import dayjs from "dayjs"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
+import { COLORS } from "@/theme/colors"
+
 import {
   ContentContainer,
   DownloadIcon,
@@ -43,7 +45,7 @@ export const Footer = () => {
 
   return (
     <Box sx={ContentContainer}>
-      <Typography variant="text4">
+      <Typography variant="text4" color={COLORS.santasGrey}>
         Wildcat © All Rights reserved. 2023
       </Typography>
       <div>{COMMIT_INFO}</div>
@@ -53,7 +55,9 @@ export const Footer = () => {
           target="_blank"
         >
           <Button variant="text" size="small">
-            <Typography variant="text4">Download Agreement</Typography>
+            <Typography variant="text4" color={COLORS.santasGrey}>
+              Download Agreement
+            </Typography>
             <Box sx={DownloadIcon}>⇤</Box>
           </Button>
         </Link>

@@ -1,19 +1,16 @@
 import { Box, Button } from "@mui/material"
-import SvgIcon from "@mui/material/SvgIcon"
-import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { TerminateMarket } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateMarket"
 import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
-import BackArrow from "@/assets/icons/backArrow_icon.svg"
+import { BackButton } from "@/components/BackButton"
 import {
   ContentContainer,
   MenuItemButton,
 } from "@/components/Sidebar/MarketSidebar/style"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
-import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   setCheckBlock,
@@ -46,30 +43,7 @@ export const MarketSidebar = () => {
   return (
     <Box sx={ContentContainer}>
       <Box position="sticky" top="32px">
-        <Link href={ROUTES.borrower.root} passHref>
-          <Button
-            fullWidth
-            variant="text"
-            size="medium"
-            sx={{
-              color: COLORS.santasGrey,
-              fontWeight: 500,
-              justifyContent: "flex-start",
-              marginBottom: "12px",
-            }}
-          >
-            <SvgIcon
-              fontSize="small"
-              sx={{
-                marginRight: "4px",
-                "& path": { fill: `${COLORS.santasGrey}` },
-              }}
-            >
-              <BackArrow />
-            </SvgIcon>
-            {t("borrowerMarketDetails.sidebar.backToMarkets")}
-          </Button>
-        </Link>
+        <BackButton title={t("borrowerMarketDetails.sidebar.backToMarkets")} />
 
         <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
           <Button

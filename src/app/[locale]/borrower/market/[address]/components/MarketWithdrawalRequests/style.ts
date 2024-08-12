@@ -1,6 +1,15 @@
 import { COLORS } from "@/theme/colors"
 
 export const TotalAccordionSummary = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  padding: "8px 8px 8px 16px",
+
+  borderRadius: "12px",
+
+  textWrap: "nowrap",
+
   backgroundColor: COLORS.whiteSmoke,
   margin: "24px 0 12px",
   marginBottom: "8px",

@@ -1,5 +1,4 @@
 import * as React from "react"
-import { useState } from "react"
 
 import { Box, IconButton, Link, SvgIcon, Typography } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
@@ -11,8 +10,8 @@ import { RepayModal } from "@/app/[locale]/borrower/market/[address]/components/
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import Copy from "@/assets/icons/copy_icon.svg"
 import LinkIcon from "@/assets/icons/link_icon.svg"
-import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
+import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas, trimAddress } from "@/utils/formatters"
@@ -29,8 +28,6 @@ export const MarketWithdrawalRequests = ({
   isHoldingMarket,
 }: MarketWithdrawalRequestsProps) => {
   const { market } = marketAccount
-
-  const [isTotalOpen, setIsTotalOpen] = useState(true)
 
   const { t } = useTranslation()
   const { data } = useGetWithdrawals(market)
@@ -136,32 +133,32 @@ export const MarketWithdrawalRequests = ({
           )}
       </Box>
 
-      <DetailsAccordion
-        isOpen={isTotalOpen}
-        setIsOpen={setIsTotalOpen}
-        summaryText="Total"
-        chipValue={formatTokenWithCommas(totalAmount, { withSymbol: true })}
-        chipColor={COLORS.whiteSmoke}
-        chipValueColor={COLORS.blackRock}
-        summarySx={TotalAccordionSummary}
-      >
-        <OngoingTable
-          withdrawalBatches={
-            data?.activeWithdrawal ? [data.activeWithdrawal] : []
-          }
-          totalAmount={activeTotalAmount}
-          columns={columns}
-        />
+      <Box sx={TotalAccordionSummary}>
+        <Typography variant="text2">Total</Typography>
 
-        <OutstandingTable
-          columns={columns}
-          withdrawalBatches={data?.expiredPendingWithdrawals ?? []}
-          totalAmount={data.expiredWithdrawalsTotalOwed}
-          isIncurringPenalties={
-            market.isDelinquent || market.isIncurringPenalties
-          }
+        <TextfieldChip
+          text={formatTokenWithCommas(totalAmount, { withSymbol: true })}
+          color={COLORS.whiteSmoke}
+          textColor={COLORS.blackRock}
         />
-      </DetailsAccordion>
+      </Box>
+
+      <OngoingTable
+        withdrawalBatches={
+          data?.activeWithdrawal ? [data.activeWithdrawal] : []
+        }
+        totalAmount={activeTotalAmount}
+        columns={columns}
+      />
+
+      <OutstandingTable
+        columns={columns}
+        withdrawalBatches={data?.expiredPendingWithdrawals ?? []}
+        totalAmount={data.expiredWithdrawalsTotalOwed}
+        isIncurringPenalties={
+          market.isDelinquent || market.isIncurringPenalties
+        }
+      />
     </Box>
   )
 }

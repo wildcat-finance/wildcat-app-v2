@@ -17,7 +17,7 @@ export const MarketListAlertContainer = {
   backgroundImage: `url(${Image.src})`,
   backgroundPosition: "center",
   backgroundRepeat: "no-repeat",
-  backgroundSize: "100% 100%",
+  backgroundSize: "cover",
 }
 
 export const TextContainer = {

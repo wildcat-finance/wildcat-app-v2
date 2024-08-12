@@ -21,4 +21,8 @@ export const CommitHashLinkSx = {
   marginRight: "8px",
 }
 
-export const DownloadIcon = { rotate: "270deg", marginLeft: "2px" }
+export const DownloadIcon = {
+  rotate: "270deg",
+  marginLeft: "2px",
+  color: COLORS.santasGrey,
+}
