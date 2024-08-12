@@ -1,4 +1,4 @@
-import type { ChangeEvent } from "react"
+import { ChangeEvent } from "react"
 
 import { Box, SvgIcon, TextField, Typography } from "@mui/material"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
@@ -16,6 +16,29 @@ import {
   DateCalendarTextField,
   DateRangeContainer,
 } from "./style"
+
+// Utility function to format date string to 'DD/MM/YYYY'
+const formatDateForDateRange = (input: string | undefined) => {
+  // delete all except digits
+  if (input) {
+    const digits = input.replace(/\D/g, "")
+
+    // format to DD/MM/YYYY
+    let formattedValue = ""
+    if (digits.length > 0) {
+      formattedValue += digits.substring(0, 2) // day
+      if (digits.length >= 2) {
+        formattedValue += `/${digits.substring(2, 4)}` // month
+      }
+      if (digits.length >= 4) {
+        formattedValue += `/${digits.substring(4, 8)}` // year
+      }
+    }
+
+    return formattedValue
+  }
+  return undefined
+}
 
 const DateCalendarArrowLeft = () => (
   <SvgIcon
@@ -40,31 +63,18 @@ const DateCalendarArrowRight = () => (
   </SvgIcon>
 )
 
-const formatDateForDateRange = (input: string) => {
-  // delete all except digits
-  const digits = input.replace(/\D/g, "")
-
-  // fromat to DD/MM/YYYY
-  let formattedValue = ""
-  if (digits.length > 0) {
-    formattedValue += digits.substring(0, 2) // day
-    if (digits.length >= 2) {
-      formattedValue += `/${digits.substring(2, 4)}` // month
-    }
-    if (digits.length >= 4) {
-      formattedValue += `/${digits.substring(4, 8)}` // year
-    }
-  }
-
-  return formattedValue
-}
-
 export const DateRange = ({ dates, setDates }: DateRangeProps) => {
   const { starting, ending } = dates
 
-  const onChange = (
+  const shouldDisableStartDate = (date: dayjs.Dayjs): boolean =>
+    ending ? date.isAfter(dayjs(ending, "DD/MM/YYYY"), "day") : false
+
+  const shouldDisableEndDate = (date: dayjs.Dayjs): boolean =>
+    starting ? date.isBefore(dayjs(starting, "DD/MM/YYYY"), "day") : false
+
+  const onInputChange = (
     evt: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    type: "starting" | "ending",
+    field: "starting" | "ending",
   ) => {
     const input = evt.target
     const cursorPosition = input.selectionStart
@@ -72,32 +82,55 @@ export const DateRange = ({ dates, setDates }: DateRangeProps) => {
 
     const formattedDate = formatDateForDateRange(input.value)
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     setDates((prev) => {
-      if (type === "starting")
-        return {
-          ...prev,
-          starting: dayjs(formattedDate, "DD/MM/YYYY").isValid()
-            ? dayjs(formattedDate, "DD/MM/YYYY")
-            : formattedDate,
+      if (field === "starting") {
+        if (
+          prev.ending &&
+          dayjs(formattedDate, "DD/MM/YYYY").isAfter(
+            dayjs(prev.ending, "DD/MM/YYYY"),
+          )
+        ) {
+          return { ...prev, starting: prev.ending }
         }
-      if (type === "ending")
-        return {
-          ...prev,
-          ending: dayjs(formattedDate, "DD/MM/YYYY").isValid()
-            ? dayjs(formattedDate, "DD/MM/YYYY")
-            : formattedDate,
+        return { ...prev, starting: formattedDate }
+      }
+      if (field === "ending") {
+        if (
+          prev.starting &&
+          dayjs(formattedDate, "DD/MM/YYYY").isBefore(
+            dayjs(prev.starting, "DD/MM/YYYY"),
+          )
+        ) {
+          return { ...prev, ending: prev.starting }
         }
+        return { ...prev, ending: formattedDate }
+      }
       return prev
     })
 
     setTimeout(() => {
-      const newLength = formattedDate.length
+      if (formattedDate) {
+        const newLength = formattedDate.length
 
-      if (cursorPosition !== null) {
-        const newCursorPosition = cursorPosition + (newLength - originalLength)
-        input.setSelectionRange(newCursorPosition, newCursorPosition)
+        if (cursorPosition !== null) {
+          const newCursorPosition =
+            cursorPosition + (newLength - originalLength)
+          input.setSelectionRange(newCursorPosition, newCursorPosition)
+        }
       }
     }, 0)
+  }
+
+  const onCalendarChange = (
+    newDate: dayjs.Dayjs | null,
+    field: "starting" | "ending",
+  ) => {
+    if (newDate) {
+      const formattedDate = newDate.format("DD/MM/YYYY")
+      setDates((prev) => ({ ...prev, [field]: formattedDate }))
+    }
   }
 
   return (
@@ -115,13 +148,9 @@ export const DateRange = ({ dates, setDates }: DateRangeProps) => {
             <TextField
               sx={DateCalendarTextField}
               placeholder="01/02/1980"
-              value={
-                dayjs(starting, "DD/MM/YYYY").isValid()
-                  ? dayjs(starting, "DD/MM/YYYY").format("DD/MM/YYYY")
-                  : starting
-              }
+              value={starting}
               onChange={(evt) => {
-                onChange(evt, "starting")
+                onInputChange(evt, "starting")
               }}
               fullWidth
             />
@@ -137,10 +166,11 @@ export const DateRange = ({ dates, setDates }: DateRangeProps) => {
                 ? dayjs(starting, "DD/MM/YYYY")
                 : null
             }
-            onChange={(newVal) => {
-              setDates((prev) => ({ ...prev, starting: newVal }))
+            onChange={(newDate) => {
+              onCalendarChange(newDate, "starting")
             }}
-            defaultValue={dayjs()}
+            defaultValue={dates.starting}
+            shouldDisableDate={shouldDisableStartDate}
           />
         </Box>
         <Box sx={DateCalendarContainer}>
@@ -155,13 +185,9 @@ export const DateRange = ({ dates, setDates }: DateRangeProps) => {
             <TextField
               sx={DateCalendarTextField}
               placeholder="01/02/1980"
-              value={
-                dayjs(ending, "DD/MM/YYYY").isValid()
-                  ? dayjs(ending, "DD/MM/YYYY").format("DD/MM/YYYY")
-                  : ending
-              }
+              value={ending}
               onChange={(evt) => {
-                onChange(evt, "ending")
+                onInputChange(evt, "ending")
               }}
               fullWidth
             />
@@ -177,10 +203,11 @@ export const DateRange = ({ dates, setDates }: DateRangeProps) => {
                 ? dayjs(ending, "DD/MM/YYYY")
                 : null
             }
-            onChange={(newVal) => {
-              setDates((prev) => ({ ...prev, ending: newVal }))
+            onChange={(newDate) => {
+              onCalendarChange(newDate, "ending")
             }}
-            defaultValue={dayjs()}
+            defaultValue={dates.ending}
+            shouldDisableDate={shouldDisableEndDate}
           />
         </Box>
       </Box>

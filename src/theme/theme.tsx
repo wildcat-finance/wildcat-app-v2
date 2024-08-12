@@ -1238,7 +1238,7 @@ export const theme = createTheme({
           maxWidth: "274px",
 
           "& .MuiPickersSlideTransition-root.MuiDayCalendar-slideTransition": {
-            minHeight: "124px",
+            minHeight: "127px",
             overflow: "hidden",
           },
 
@@ -1298,6 +1298,10 @@ export const theme = createTheme({
             fontSize: "small",
             width: "22px",
             height: "22px",
+
+            ":focus": {
+              backgroundColor: "transparent",
+            },
           },
           "& .MuiPickersCalendarHeader-switchViewIcon": {
             "& path": { fill: `${COLORS.greySuit}` },

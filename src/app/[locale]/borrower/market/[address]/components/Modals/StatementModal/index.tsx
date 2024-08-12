@@ -22,12 +22,13 @@ import { DialogContainer, HeaderTextContainer } from "./style"
 export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
   const [value, setValue] = useState<"csv" | "pdf">("csv")
   const [dates, setDates] = useState<{
-    starting: Dayjs | string | null
-    ending: Dayjs | string | null
+    starting: Dayjs | null
+    ending: Dayjs | null
   }>({ starting: null, ending: null })
 
   const handleClose = () => {
     setIsOpen(!isOpen)
+    setDates({ starting: null, ending: null })
   }
 
   const handleChange = (event: SyntheticEvent, newValue: "csv" | "pdf") => {
