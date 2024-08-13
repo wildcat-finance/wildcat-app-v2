@@ -8,6 +8,7 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
+import { LendersTable } from "@/app/[locale]/borrower/components/AuthorizedLendersTable"
 import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { LeadBanner } from "@/components/LeadBanner"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -120,6 +121,32 @@ export default function Borrower() {
     setTab(newTab)
   }
 
+  const mockLendersData = [
+    {
+      isAuth: true,
+      address: "0x1717503EE3f56e644cf8b1058e3F83F03a71b2E1",
+      markets: [
+        {
+          marketName: "Test Market 1",
+          address: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
+        },
+      ],
+    },
+    {
+      isAuth: false,
+      address: "0x5F55005B15B9E00Ec52528fe672eb30f450151F5",
+      markets: [
+        {
+          marketName: "Test Market 2",
+          address: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
+        },
+      ],
+    },
+  ]
+
+  const authorizedLenders = mockLendersData.filter((lender) => lender.isAuth)
+  const deauthorizedLenders = mockLendersData.filter((lender) => !lender.isAuth)
+
   return (
     <Box
       sx={{ height: "calc(100vh - 43px - 43px - 52px)", overflow: "hidden" }}
@@ -148,9 +175,17 @@ export default function Borrower() {
         )}
 
         {!bannerDisplayConfig.hideNewMarketButton && (
-          <Link href={ROUTES.borrower.newMarket}>
+          <Link
+            href={
+              tab === "markets"
+                ? ROUTES.borrower.newMarket
+                : ROUTES.borrower.lendersList
+            }
+          >
             <Button variant="contained" size="small" disabled={isWrongNetwork}>
-              {t("borrowerMarketList.button.newMarket")}
+              {tab === "markets"
+                ? `${t("borrowerMarketList.button.newMarket")}`
+                : "Edit Lender list"}
             </Button>
           </Link>
         )}
@@ -224,6 +259,25 @@ export default function Borrower() {
                 {t("borrowerMarketList.table.noMarkets.wrongNetwork")}
               </Typography>
             )}
+          </Box>
+        </Box>
+      )}
+
+      {tab === "lenders" && (
+        <Box>
+          <LendersTable
+            tableData={authorizedLenders}
+            isLoading={false}
+            isOpen
+            label="Active Lenders"
+          />
+
+          <Box marginTop="16px">
+            <LendersTable
+              tableData={deauthorizedLenders}
+              isLoading={false}
+              label="Deleted Lenders"
+            />
           </Box>
         </Box>
       )}
