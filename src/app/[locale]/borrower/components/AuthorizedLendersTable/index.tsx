@@ -89,9 +89,12 @@ export const LendersTable = ({
       align: "left",
       flex: 4,
       renderCell: ({ value }) => (
-        <Box>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
           {value.map((market: { marketName: string; address: string }) => (
-            <LendersMarketChip marketName={market.marketName} />
+            <LendersMarketChip
+              marketName={market.marketName}
+              width="fit-content"
+            />
           ))}
         </Box>
       ),

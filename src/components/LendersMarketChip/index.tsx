@@ -1,6 +1,7 @@
 import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
 
 import Cross from "@/assets/icons/cross_icon.svg"
+import Return from "@/assets/icons/return_icon.svg"
 import { COLORS } from "@/theme/colors"
 
 import { LendersMarketChipProps } from "./interface"
@@ -9,6 +10,7 @@ export const LendersMarketChip = ({
   type,
   marketName,
   withButton,
+  width = "100%",
 }: LendersMarketChipProps) => {
   let chipConfig
 
@@ -17,7 +19,7 @@ export const LendersMarketChip = ({
       chipConfig = {
         backgroundColor: COLORS.whiteSmoke,
         color: COLORS.blackRock,
-        endIcon: undefined,
+        endIcon: <Cross />,
         iconColor: COLORS.santasGrey,
       }
       break
@@ -35,7 +37,7 @@ export const LendersMarketChip = ({
       chipConfig = {
         backgroundColor: COLORS.whiteSmoke,
         color: COLORS.greySuit,
-        endIcon: <Cross />,
+        endIcon: <Return />,
         iconColor: COLORS.santasGrey,
       }
       break
@@ -44,7 +46,8 @@ export const LendersMarketChip = ({
       chipConfig = {
         backgroundColor: COLORS.whiteSmoke,
         color: COLORS.blackRock,
-        endIcon: undefined,
+        endIcon: <Cross />,
+        iconColor: COLORS.santasGrey,
       }
       break
     }
@@ -53,6 +56,8 @@ export const LendersMarketChip = ({
   return (
     <Box
       sx={{
+        boxSizing: "border-box",
+        width,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -64,7 +69,11 @@ export const LendersMarketChip = ({
       <Typography
         variant="text3"
         color={chipConfig.color}
-        sx={{ textDecoration: type === "deleted" ? "line-through" : "none" }}
+        sx={{
+          textDecoration: type === "deleted" ? "line-through" : "none",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
       >
         {marketName}
       </Typography>
@@ -72,7 +81,9 @@ export const LendersMarketChip = ({
       {withButton && (
         <IconButton sx={{ marginLeft: "2px" }}>
           <SvgIcon
-            fontSize="tiny"
+            style={{
+              fontSize: "12px",
+            }}
             sx={{
               padding: 0,
               "& path": {
