@@ -45,6 +45,7 @@ export const LendersTable = ({
     {
       sortable: false,
       field: "name",
+      disableColumnMenu: true,
       headerName: "Name",
       minWidth: 160,
       headerAlign: "left",

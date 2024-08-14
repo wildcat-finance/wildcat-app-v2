@@ -9,18 +9,6 @@ export const ContentContainer = {
   flexDirection: "column",
 }
 
-export const BackButton = {
-  color: COLORS.santasGrey,
-  justifyContent: "flex-start",
-  marginBottom: "12px",
-  fontWeight: 500,
-}
-
-export const BackButtonIcon = {
-  marginRight: "4px",
-  "& path": { fill: `${COLORS.greySuit}` },
-}
-
 export const MenuItemButton = {
   letterSpacing: "0.01px",
   padding: "8px 12px",

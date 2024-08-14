@@ -725,6 +725,7 @@ export const theme = createTheme({
       },
       styleOverrides: {
         root: ({ ownerState }) => ({
+          fontFamily: "inherit",
           ...(ownerState.variant === "filled" &&
             ownerState.size === "medium" && {
               fontFamily: "inherit",
@@ -808,7 +809,7 @@ export const theme = createTheme({
                 fontSize: 13,
                 fontWeight: 500,
                 lineHeight: "20px",
-
+                paddingLeft: "8px",
                 backgroundColor: "transparent",
                 borderRadius: 8,
                 border: `1px solid ${COLORS.whiteLilac}`,
@@ -838,10 +839,15 @@ export const theme = createTheme({
                 fontWeight: 500,
                 lineHeight: "16px",
 
-                padding: "8px 6px 8px 28px",
+                padding: "6px 24px 6px 4px",
+                paddingRight: "24px",
 
                 backgroundColor: "transparent !important",
                 background: "transparent",
+
+                "&.MuiInputBase-input": {
+                  paddingRight: "24px",
+                },
               },
             }),
         }),
@@ -971,11 +977,6 @@ export const theme = createTheme({
           columnSortedDescendingIcon: DescIcon,
           columnSortedAscendingIcon: AscIcon,
           columnUnsortedIcon: UnsortedIcon,
-        },
-        slotProps: {
-          cell: {
-            title: "",
-          },
         },
       },
       styleOverrides: {

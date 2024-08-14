@@ -4,6 +4,7 @@ import { Box } from "@mui/material"
 import { usePathname } from "next/navigation"
 
 import { AllMarketsSidebar } from "@/components/Sidebar/AllMarketsSidebar"
+import { LenderListSidebar } from "@/components/Sidebar/LendersListSidebar"
 import { MarketSidebar } from "@/components/Sidebar/MarketSidebar"
 import { NewMarketSidebar } from "@/components/Sidebar/NewMarketSidebar"
 import { ROUTES } from "@/routes"
@@ -22,6 +23,7 @@ export const Sidebar = () => {
       {pathname === ROUTES.borrower.root && <AllMarketsSidebar />}
       {pathname.includes(ROUTES.borrower.market) && <MarketSidebar />}
       {pathname === ROUTES.borrower.newMarket && <NewMarketSidebar />}
+      {pathname === ROUTES.borrower.lendersList && <LenderListSidebar />}
     </Box>
   )
 }

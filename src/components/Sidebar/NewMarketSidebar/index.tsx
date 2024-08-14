@@ -8,7 +8,7 @@ import {
   ContentContainer,
   MenuItemButton,
   MenuItemButtonSelected,
-} from "@/components/Sidebar/NewMarketSidebar/style"
+} from "@/components/Sidebar/style"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { STEPS_NAME } from "@/store/slices/routingSlice/flowsSteps"
 import { setCurrentStep } from "@/store/slices/routingSlice/routingSlice"
