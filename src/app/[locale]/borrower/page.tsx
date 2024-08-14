@@ -13,6 +13,7 @@ import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { LeadBanner } from "@/components/LeadBanner"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetController } from "@/hooks/useGetController"
+import { mockLendersData } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
 import { useAppSelector } from "@/store/hooks"
 import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
@@ -120,29 +121,6 @@ export default function Borrower() {
   ) => {
     setTab(newTab)
   }
-
-  const mockLendersData = [
-    {
-      isAuth: true,
-      address: "0x1717503EE3f56e644cf8b1058e3F83F03a71b2E1",
-      markets: [
-        {
-          marketName: "Test Market 1",
-          address: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
-        },
-      ],
-    },
-    {
-      isAuth: false,
-      address: "0x5F55005B15B9E00Ec52528fe672eb30f450151F5",
-      markets: [
-        {
-          marketName: "Test Market 2",
-          address: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
-        },
-      ],
-    },
-  ]
 
   const authorizedLenders = mockLendersData.filter((lender) => lender.isAuth)
   const deauthorizedLenders = mockLendersData.filter((lender) => !lender.isAuth)

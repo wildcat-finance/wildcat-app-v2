@@ -27,6 +27,8 @@ import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { COLORS } from "@/theme/colors"
 
+import { EditLendersTable } from "./components/EditLendersTable"
+
 export default function LenderList() {
   const { data: allMarkets, isLoading } = useMarketsForBorrower()
   const { address, isConnected } = useAccount()
@@ -236,6 +238,9 @@ export default function LenderList() {
             </Typography>
             Add Lender
           </Button>
+        </Box>
+        <Box sx={{ marginTop: "10px" }}>
+          <EditLendersTable />
         </Box>
       </Box>
     </Box>

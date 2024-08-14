@@ -60,7 +60,7 @@ export const MarketAuthorisedLenders = ({
         authorized: lender.authorized,
         name: (() => {
           const correctLender = lendersName[lender.lender] || ""
-          return { name: correctLender, address: lender }
+          return { name: correctLender, address: lender.lender }
         })(),
         walletAddress: lender.lender,
         dateAdded: timestampToDateFormatted(
