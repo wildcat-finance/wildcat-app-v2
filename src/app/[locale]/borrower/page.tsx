@@ -149,7 +149,12 @@ export default function Borrower() {
 
         {!bannerDisplayConfig.hideNewMarketButton && (
           <Link href={ROUTES.borrower.newMarket}>
-            <Button variant="contained" size="small" disabled={isWrongNetwork}>
+            <Button
+              variant="contained"
+              size="small"
+              disabled={isWrongNetwork}
+              sx={{ paddingTop: "8px", paddingBottom: "8px" }}
+            >
               {t("borrowerMarketList.button.newMarket")}
             </Button>
           </Link>
