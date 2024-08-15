@@ -10,6 +10,7 @@ export const LendersMarketChip = ({
   type,
   marketName,
   withButton,
+  onClick,
   width = "100%",
 }: LendersMarketChipProps) => {
   let chipConfig
@@ -53,6 +54,13 @@ export const LendersMarketChip = ({
     }
   }
 
+  const onMouseDown = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.stopPropagation()
+    if (onClick) {
+      onClick()
+    }
+  }
+
   return (
     <Box
       sx={{
@@ -79,7 +87,7 @@ export const LendersMarketChip = ({
       </Typography>
 
       {withButton && (
-        <IconButton sx={{ marginLeft: "2px" }}>
+        <IconButton sx={{ marginLeft: "2px" }} onMouseDown={onMouseDown}>
           <SvgIcon
             style={{
               fontSize: "12px",
