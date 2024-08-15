@@ -1,9 +1,8 @@
-import { useState } from "react"
 import * as React from "react"
 
-import { SvgIcon, Typography } from "@mui/material"
+import { Button, SvgIcon, Typography } from "@mui/material"
 import { Box } from "@mui/system"
-import { DataGrid, GridColDef, GridRowHeightParams } from "@mui/x-data-grid"
+import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { useTranslation } from "react-i18next"
 
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
@@ -12,27 +11,18 @@ import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
-import { mockLendersData } from "@/mocks/mocks"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
-import { MarketWithdrawalRequetstCell } from "./style"
+import { EditLendersTableProps } from "./interface"
+import { MarketWithdrawalRequetstCell, NewLenderDot } from "./style"
 
-export const EditLendersTable = () => {
+export const EditLendersTable = ({
+  rows,
+  setRows,
+  setLendersName,
+}: EditLendersTableProps) => {
   const { t } = useTranslation()
-
-  const [lendersName, setLendersName] = useState<{ [key: string]: string }>(
-    JSON.parse(localStorage.getItem("lenders-name") || "{}"),
-  )
-
-  const idMocks = mockLendersData.map((item) => ({
-    ...item,
-    id: item.address,
-    name: (() => {
-      const correctLender = lendersName[item.address.toLowerCase()] || ""
-      return { name: correctLender, address: item.address }
-    })(),
-  }))
 
   const columns: GridColDef[] = [
     {
@@ -43,11 +33,34 @@ export const EditLendersTable = () => {
       headerAlign: "left",
       align: "left",
       renderCell: (params) => (
-        <LenderName
-          setLendersName={setLendersName}
-          lenderName={params.value.name}
-          address={params.value.address}
-        />
+        <>
+          {params.row.status === "remove" && (
+            <Typography
+              color={COLORS.santasGrey}
+              variant="text4"
+              sx={{ textDecoration: "line-through" }}
+            >
+              {params.value.name === "" ? "Add name" : params.value.name}
+            </Typography>
+          )}
+          {params.row.status === "new" && (
+            <>
+              <Box sx={NewLenderDot} />
+              <LenderName
+                setLendersName={setLendersName}
+                lenderName={params.value.name}
+                address={params.value.address}
+              />
+            </>
+          )}
+          {params.row.status === "old" && (
+            <LenderName
+              setLendersName={setLendersName}
+              lenderName={params.value.name}
+              address={params.value.address}
+            />
+          )}
+        </>
       ),
       flex: 1.5,
     },
@@ -57,15 +70,23 @@ export const EditLendersTable = () => {
       minWidth: 176,
       headerAlign: "left",
       align: "left",
-      renderCell: ({ value }) => (
+      renderCell: (params) => (
         <Box sx={MarketWithdrawalRequetstCell}>
-          <Typography sx={{ minWidth: "80px" }} variant="text3">
-            {trimAddress(value)}
+          <Typography
+            sx={{
+              minWidth: "80px",
+              textDecoration:
+                params.row.status === "remove" ? "line-through" : "",
+              color: params.row.status === "remove" ? COLORS.santasGrey : "",
+            }}
+            variant={params.row.status === "remove" ? "text4" : "text3"}
+          >
+            {trimAddress(params.value)}
           </Typography>
 
           <LinkGroup
-            linkValue={`${EtherscanBaseUrl}/address/${value}`}
-            copyValue={value}
+            linkValue={`${EtherscanBaseUrl}/address/${params.value}`}
+            copyValue={params.value}
           />
         </Box>
       ),
@@ -93,7 +114,8 @@ export const EditLendersTable = () => {
       sortable: true,
       field: "markets",
       headerName: "Assigned to Markets",
-      minWidth: 300,
+      minWidth: 250,
+      maxWidth: 300,
       headerAlign: "left",
       align: "left",
       flex: 4,
@@ -109,18 +131,70 @@ export const EditLendersTable = () => {
         </Box>
       ),
     },
-    // {
-    //   sortable: false,
-    //   field: "",
-    //   width: 24,
-    //   renderCell: () => (
-    //     <SvgIcon>
-    //       <Cross />
-    //     </SvgIcon>
-    //   ),
-    // },
+    {
+      sortable: false,
+      field: "",
+      align: "right",
+      // maxWidth: 24,
+      renderCell: (params) => (
+        <>
+          {(params.row.status === "old" || params.row.status === "new") && (
+            <Box
+              onClick={() => {
+                setRows((prev) =>
+                  prev.map((item) => {
+                    if (item.address === params.row.address)
+                      item.status = "remove"
+                    return item
+                  }),
+                )
+              }}
+            >
+              <SvgIcon
+                fontSize="small"
+                sx={{
+                  "& path": { fill: `${COLORS.greySuit}` },
+                }}
+              >
+                <Cross />
+              </SvgIcon>
+            </Box>
+          )}
+          {params.row.status === "remove" && (
+            <Button
+              sx={{
+                minWidth: "36px",
+                padding: 0,
+                color: COLORS.ultramarineBlue,
+              }}
+              variant="text"
+              onClick={() => {
+                setRows((prev) =>
+                  prev.map((item) => {
+                    if (item.address === params.row.address) item.status = "old"
+                    return item
+                  }),
+                )
+              }}
+            >
+              Undo
+            </Button>
+          )}
+        </>
+      ),
+    },
   ]
+
   return (
-    <DataGrid getRowHeight={() => "auto"} rows={idMocks} columns={columns} />
+    <DataGrid
+      sx={{
+        "& .MuiDataGrid-columnHeader": {
+          backgroundColor: "transparent",
+        },
+      }}
+      getRowHeight={() => "auto"}
+      rows={rows}
+      columns={columns}
+    />
   )
 }

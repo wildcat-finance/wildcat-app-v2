@@ -21,6 +21,7 @@ import Filter from "@/assets/icons/filter_icon.svg"
 import Icon from "@/assets/icons/search_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
+import { mockLendersData } from "@/mocks/mocks"
 import { COLORS } from "@/theme/colors"
 
 import { EditLendersTable } from "./components/EditLendersTable"
@@ -51,6 +52,22 @@ export default function LenderList() {
   const handleReset = () => {
     setChosenMarkets([])
   }
+
+  const [lendersName, setLendersName] = useState<{ [key: string]: string }>(
+    JSON.parse(localStorage.getItem("lenders-name") || "{}"),
+  )
+
+  const [rows, setRows] = useState(
+    mockLendersData.map((item) => ({
+      ...item,
+      status: "old",
+      id: item.address,
+      name: (() => {
+        const correctLender = lendersName[item.address.toLowerCase()] || ""
+        return { name: correctLender, address: item.address }
+      })(),
+    })),
+  )
 
   return (
     <Box sx={{ padding: "42px 0 0 8.6vw" }}>
@@ -291,6 +308,43 @@ export default function LenderList() {
             size="small"
             variant="contained"
             sx={{ width: "98px", justifyContent: "space-between" }}
+            onClick={() => {
+              setRows((prev) => [
+                ...prev,
+                {
+                  id: "0x5F55005B15B9E00Ec52528fe672eb30f450151F6",
+                  isAuth: false,
+                  name: {
+                    name: "",
+                    address: "0x5F55005B15B9E00Ec52528fe672eb30f450151F6",
+                  },
+                  address: "0x5F55005B15B9E00Ec52528fe672eb30f450151F6",
+                  markets: [
+                    {
+                      marketName: "Test Market 3",
+                      address: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
+                    },
+                  ],
+                  status: "new",
+                },
+                {
+                  id: "0x5F55005B15B9E00Ec52528fe672eb30f450151F7",
+                  isAuth: false,
+                  name: {
+                    name: "",
+                    address: "0x5F55005B15B9E00Ec52528fe672eb30f450151F7",
+                  },
+                  address: "0x5F55005B15B9E00Ec52528fe672eb30f450151F7",
+                  markets: [
+                    {
+                      marketName: "Test Market 4",
+                      address: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
+                    },
+                  ],
+                  status: "remove",
+                },
+              ])
+            }}
           >
             <Typography
               variant="text3"
@@ -304,7 +358,11 @@ export default function LenderList() {
         </Box>
 
         <Box sx={{ marginTop: "10px" }}>
-          <EditLendersTable />
+          <EditLendersTable
+            rows={rows}
+            setRows={setRows}
+            setLendersName={setLendersName}
+          />
         </Box>
       </Box>
     </Box>
