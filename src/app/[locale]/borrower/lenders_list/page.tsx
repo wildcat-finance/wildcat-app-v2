@@ -5,11 +5,7 @@ import { useState } from "react"
 import {
   Box,
   Button,
-  FormControl,
-  FormControlLabel,
   InputAdornment,
-  InputLabel,
-  Select,
   SvgIcon,
   TextField,
   Typography,
@@ -17,10 +13,8 @@ import {
 import { useAccount } from "wagmi"
 
 import { useMarketsForBorrower } from "@/app/[locale]/borrower/hooks/useMarketsForBorrower"
-import Filter from "@/assets/icons/filter_icon.svg"
+import { MarketSelect } from "@/app/[locale]/borrower/lenders_list/components/MarketSelect"
 import Icon from "@/assets/icons/search_icon.svg"
-import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
-import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { COLORS } from "@/theme/colors"
 
 import { EditLendersTable } from "./components/EditLendersTable"
@@ -46,6 +40,12 @@ export default function LenderList() {
         prevItems.filter((selectedItem) => selectedItem !== event.target.value),
       )
     }
+  }
+
+  const handleDeleteMarket = (marketToDelete: string) => {
+    setChosenMarkets((prevMarkets) =>
+      prevMarkets.filter((market) => market !== marketToDelete),
+    )
   }
 
   const handleReset = () => {
@@ -77,235 +77,68 @@ export default function LenderList() {
           </Typography>
         </Box>
 
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: "25px",
-          }}
-        >
-          <Box>
-            <TextField
-              size="small"
-              placeholder="Search by Name"
-              sx={{ width: "180px", marginRight: "6px" }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SvgIcon
-                      fontSize="small"
-                      sx={{
-                        width: "20px",
-                        "& path": { fill: `${COLORS.greySuit}` },
-                      }}
-                    >
-                      <Icon />
-                    </SvgIcon>
-                  </InputAdornment>
-                ),
+        {activeBorrowerMarketsNames && (
+          <>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginTop: "25px",
               }}
-            />
-
-            <FormControl>
-              <InputLabel
-                sx={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  lineHeight: "20px",
-                  color: COLORS.santasGrey,
-                  transform: "translate(33px, 6px) scale(1)",
-
-                  pointerEvents: "none",
-
-                  "&.MuiInputLabel-shrink": {
-                    display: "block",
-
-                    "&.Mui-focused": {
-                      display: "none",
-                    },
-                  },
-
-                  "&.MuiFormLabel-filled": {
-                    display: "none",
-                  },
-                }}
-              >
-                Filter by Markets
-              </InputLabel>
-              {activeBorrowerMarketsNames && (
-                <Select
-                  value={chosenMarkets}
-                  renderValue={(selected) => (
-                    <Box
-                      sx={{
-                        height: "20px",
-                        display: "flex",
-                        flexWrap: "wrap",
-                        overflow: "hidden",
-                        gap: 0.5,
-                      }}
-                    >
-                      {selected.map((value) => (
-                        <LendersMarketChip
-                          key={value}
-                          marketName={value}
-                          withButton
-                        />
-                      ))}
-                    </Box>
-                  )}
-                  size="small"
-                  startAdornment={
-                    <SvgIcon
-                      fontSize="big"
-                      sx={{
-                        "& path": { stroke: `${COLORS.greySuit}` },
-                      }}
-                    >
-                      <Filter />
-                    </SvgIcon>
-                  }
-                  sx={{
-                    width: "220px",
-                    "& .MuiSelect-icon": {
-                      display: "block",
-                      top: "5px",
-                      transform: "translate(3.5px, 0px) scale(0.7)",
-                      "&.MuiSelect-iconOpen": {
-                        transform:
-                          "translate(3.5px, 0px) scale(0.7) rotate(180deg)",
-                      },
-
-                      "& path": { fill: `${COLORS.santasGrey}` },
-                    },
-                  }}
-                  MenuProps={{
-                    sx: {
-                      "& .MuiPaper-root": {
-                        width: "312px",
-                        fontFamily: "inherit",
-                        padding: "16px 20px 20px",
-                        marginTop: "2px",
-                        marginLeft: "45px",
-                      },
-                    },
-                  }}
-                  multiple
-                >
-                  <Box
-                    sx={{
-                      width: "100%",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "20px",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    <Typography variant="text2">Filter by Markets</Typography>
-
-                    <TextField
-                      fullWidth
-                      size="small"
-                      placeholder="Search by Name"
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <SvgIcon
-                              fontSize="small"
-                              sx={{
-                                width: "20px",
-                                "& path": { fill: `${COLORS.greySuit}` },
-                              }}
-                            >
-                              <Icon />
-                            </SvgIcon>
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Box>
-
-                  <Box
-                    sx={{
-                      height: "132px",
-                      overflow: "auto",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "10px",
-                      padding: "0 10px",
-                    }}
-                  >
-                    {activeBorrowerMarketsNames.map((market) => (
-                      <FormControlLabel
-                        label={market}
-                        control={
-                          <ExtendedCheckbox
-                            value={market}
-                            onChange={handleChange}
-                            checked={chosenMarkets.some(
-                              (chosenMarket) => chosenMarket === market,
-                            )}
-                            sx={{
-                              "& ::before": {
-                                transform: "translate(-3px, -3px) scale(0.75)",
-                              },
-                            }}
-                          />
-                        }
-                      />
-                    ))}
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      gap: "6px",
-                      marginTop: "24px",
-                    }}
-                  >
-                    <Button
-                      onClick={handleReset}
-                      size="medium"
-                      variant="contained"
-                      color="secondary"
-                      sx={{ width: "100%" }}
-                    >
-                      Reset
-                    </Button>
-
-                    <Button
-                      size="medium"
-                      variant="contained"
-                      sx={{ width: "100%" }}
-                    >
-                      Show Results
-                    </Button>
-                  </Box>
-                </Select>
-              )}
-            </FormControl>
-          </Box>
-
-          <Button
-            size="small"
-            variant="contained"
-            sx={{ width: "98px", justifyContent: "space-between" }}
-          >
-            <Typography
-              variant="text3"
-              color="white"
-              sx={{ position: "relative", bottom: "1px" }}
             >
-              +
-            </Typography>
-            Add Lender
-          </Button>
-        </Box>
+              <Box>
+                <TextField
+                  size="small"
+                  placeholder="Search by Name"
+                  sx={{ width: "180px", marginRight: "6px" }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SvgIcon
+                          fontSize="small"
+                          sx={{
+                            width: "20px",
+                            "& path": { fill: `${COLORS.greySuit}` },
+                          }}
+                        >
+                          <Icon />
+                        </SvgIcon>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
 
-        <Box sx={{ marginTop: "10px" }}>
-          <EditLendersTable />
-        </Box>
+                <MarketSelect
+                  chosenMarkets={chosenMarkets}
+                  borrowerMarkets={activeBorrowerMarketsNames}
+                  handleChange={handleChange}
+                  handleDelete={handleDeleteMarket}
+                  handleReset={handleReset}
+                />
+              </Box>
+
+              <Button
+                size="small"
+                variant="contained"
+                sx={{ width: "98px", justifyContent: "space-between" }}
+              >
+                <Typography
+                  variant="text3"
+                  color="white"
+                  sx={{ position: "relative", bottom: "1px" }}
+                >
+                  +
+                </Typography>
+                Add Lender
+              </Button>
+            </Box>
+
+            <Box sx={{ marginTop: "10px" }}>
+              <EditLendersTable />
+            </Box>
+          </>
+        )}
       </Box>
     </Box>
   )
