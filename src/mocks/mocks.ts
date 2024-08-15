@@ -22,16 +22,16 @@ export const mockLendersData = [
     address: "0x1717503EE3f56e644cf8b1058e3F83F03a71b2E1",
     markets: [
       {
-        marketName: "Test Market 1",
+        marketName: "Test EUG25 USDC USDC",
+        address: "0xdaef38622b547907ca5966ec836e543e1ba65cb3",
+      },
+      {
+        marketName: "JUL20 USDC",
         address: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
       },
       {
-        marketName: "Test Market 2",
-        address: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
-      },
-      {
-        marketName: "Test Market 3",
-        address: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
+        marketName: "Test MRKT V3 USDC",
+        address: "0x9911419d445d8d05cdeca57873b3c5e8562cc41f",
       },
     ],
   },
@@ -40,7 +40,7 @@ export const mockLendersData = [
     address: "0x5F55005B15B9E00Ec52528fe672eb30f450151F5",
     markets: [
       {
-        marketName: "Test Market 2",
+        marketName: "JUL20 USDC",
         address: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
       },
     ],

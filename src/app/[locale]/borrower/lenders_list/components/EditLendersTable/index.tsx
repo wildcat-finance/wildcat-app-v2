@@ -188,6 +188,11 @@ export const EditLendersTable = ({
   return (
     <DataGrid
       sx={{
+        "& .MuiDataGrid-cell": {
+          minHeight: "52px",
+          height: "auto",
+          padding: "12px 16px",
+        },
         "& .MuiDataGrid-columnHeader": {
           backgroundColor: "transparent",
         },
