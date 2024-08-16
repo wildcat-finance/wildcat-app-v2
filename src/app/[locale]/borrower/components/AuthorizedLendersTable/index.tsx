@@ -34,7 +34,7 @@ export const LendersTable = ({
     id: lender.address,
     authorized: lender.isAuth,
     name: (() => {
-      const correctLender = lendersName[lender.address] || ""
+      const correctLender = lendersName[lender.address.toLowerCase()] || ""
       return { name: correctLender, address: lender }
     })(),
     walletAddress: lender.address,

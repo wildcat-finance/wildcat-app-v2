@@ -59,7 +59,7 @@ export const MarketAuthorisedLenders = ({
         id: lender.lender,
         authorized: lender.authorized,
         name: (() => {
-          const correctLender = lendersName[lender.lender] || ""
+          const correctLender = lendersName[lender.lender.toLowerCase()] || ""
           return { name: correctLender, address: lender.lender }
         })(),
         walletAddress: lender.lender,
