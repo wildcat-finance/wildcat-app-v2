@@ -18,6 +18,7 @@ import Icon from "@/assets/icons/search_icon.svg"
 import { mockLendersData } from "@/mocks/mocks"
 import { COLORS } from "@/theme/colors"
 
+import { AddLenderModal } from "./components/AddLenderModal"
 import { EditLendersTable } from "./components/EditLendersTable"
 
 export default function LenderList() {
@@ -134,57 +135,10 @@ export default function LenderList() {
                   handleReset={handleReset}
                 />
               </Box>
-              <Button
-                size="small"
-                variant="contained"
-                sx={{ width: "98px", justifyContent: "space-between" }}
-                onClick={() => {
-                  setRows((prev) => [
-                    ...prev,
-                    {
-                      id: "0x5F55005B15B9E00Ec52528fe672eb30f450151F6",
-                      isAuth: false,
-                      name: {
-                        name: "",
-                        address: "0x5F55005B15B9E00Ec52528fe672eb30f450151F6",
-                      },
-                      address: "0x5F55005B15B9E00Ec52528fe672eb30f450151F6",
-                      markets: [
-                        {
-                          marketName: "Test Market 3",
-                          address: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
-                        },
-                      ],
-                      status: "new",
-                    },
-                    {
-                      id: "0x5F55005B15B9E00Ec52528fe672eb30f450151F7",
-                      isAuth: false,
-                      name: {
-                        name: "",
-                        address: "0x5F55005B15B9E00Ec52528fe672eb30f450151F7",
-                      },
-                      address: "0x5F55005B15B9E00Ec52528fe672eb30f450151F7",
-                      markets: [
-                        {
-                          marketName: "Test Market 4",
-                          address: "0xaedfd7255f30b651c687831b47d73b179a8adc89",
-                        },
-                      ],
-                      status: "remove",
-                    },
-                  ])
-                }}
-              >
-                <Typography
-                  variant="text3"
-                  color="white"
-                  sx={{ position: "relative", bottom: "1px" }}
-                >
-                  +
-                </Typography>
-                Add Lender
-              </Button>
+              <AddLenderModal
+                setRows={setRows}
+                setLendersName={setLendersName}
+              />
             </Box>
 
             <Box sx={{ marginTop: "10px" }}>
