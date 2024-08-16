@@ -1,3 +1,5 @@
+import { Dispatch, SetStateAction } from "react"
+
 import {
   Box,
   Button,
@@ -10,7 +12,9 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
+import Cross from "@/assets/icons/cross_icon.svg"
 import Filter from "@/assets/icons/filter_icon.svg"
 import Icon from "@/assets/icons/search_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
@@ -20,19 +24,37 @@ import { COLORS } from "@/theme/colors"
 export type MarketSelectProps = {
   chosenMarkets: string[]
   borrowerMarkets: string[]
-  handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void
-  handleDelete: (marketToDelete: string) => void
-  handleReset: () => void
+  type: "filter" | "add"
+  setChosenMarkets: Dispatch<SetStateAction<string[]>>
 }
 
 export const MarketSelect = ({
   chosenMarkets,
   borrowerMarkets,
-  handleChange,
-  handleDelete,
-  handleReset,
+  type,
+  setChosenMarkets,
 }: MarketSelectProps) => {
-  const a = ""
+  const { t } = useTranslation()
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setChosenMarkets((prevItems) => [...prevItems, event.target.value])
+    } else {
+      setChosenMarkets((prevItems) =>
+        prevItems.filter((selectedItem) => selectedItem !== event.target.value),
+      )
+    }
+  }
+
+  const handleDeleteMarket = (marketToDelete: string) => {
+    setChosenMarkets((prevMarkets) =>
+      prevMarkets.filter((market) => market !== marketToDelete),
+    )
+  }
+
+  const handleReset = () => {
+    setChosenMarkets([])
+  }
 
   return (
     <FormControl>
@@ -59,14 +81,14 @@ export const MarketSelect = ({
           },
         }}
       >
-        Filter by Markets
+        {type === "filter" ? "Filter by Markets" : "Add market"}
       </InputLabel>
       <Select
         value={chosenMarkets}
         renderValue={(selected) => (
           <Box
             sx={{
-              height: "20px",
+              height: type === "filter" ? "20px" : "auto",
               display: "flex",
               flexWrap: "wrap",
               overflow: "hidden",
@@ -79,24 +101,39 @@ export const MarketSelect = ({
                 marketName={value}
                 withButton
                 width={value.length > 14 ? "100%" : "fit-content"}
-                onClick={() => handleDelete(value)}
+                onClick={() => handleDeleteMarket(value)}
               />
             ))}
           </Box>
         )}
         size="small"
         startAdornment={
-          <SvgIcon
-            fontSize="big"
-            sx={{
-              "& path": { stroke: `${COLORS.greySuit}` },
-            }}
-          >
-            <Filter />
-          </SvgIcon>
+          type === "filter" ? (
+            <SvgIcon
+              fontSize="big"
+              sx={{
+                "& path": { stroke: `${COLORS.greySuit}` },
+              }}
+            >
+              <Filter />
+            </SvgIcon>
+          ) : null
+        }
+        endAdornment={
+          type === "add" ? (
+            <SvgIcon
+              fontSize="small"
+              sx={{
+                "& path": { fill: `${COLORS.santasGrey}` },
+              }}
+            >
+              <Cross />
+            </SvgIcon>
+          ) : null
         }
         sx={{
           width: "220px",
+
           "& .MuiSelect-icon": {
             display: "block",
             top: "5px",

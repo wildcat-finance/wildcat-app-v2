@@ -1,14 +1,16 @@
 import * as React from "react"
+import { useState } from "react"
 
 import { Button, SvgIcon, Typography } from "@mui/material"
 import { Box } from "@mui/system"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
+import { useMarketsForBorrower } from "@/app/[locale]/borrower/hooks/useMarketsForBorrower"
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import Cross from "@/assets/icons/cross_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
-import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
@@ -16,6 +18,7 @@ import { trimAddress } from "@/utils/formatters"
 
 import { EditLendersTableProps } from "./interface"
 import { MarketWithdrawalRequetstCell, NewLenderDot } from "./style"
+import { LenderMarketSelect } from "../LenderMarketSelect"
 
 export const EditLendersTable = ({
   rows,
@@ -23,6 +26,17 @@ export const EditLendersTable = ({
   setLendersName,
 }: EditLendersTableProps) => {
   const { t } = useTranslation()
+
+  const { data: allMarkets, isLoading } = useMarketsForBorrower()
+  const { address, isConnected } = useAccount()
+
+  const activeBorrowerMarketsNames = allMarkets
+    ?.filter(
+      (market) =>
+        market.borrower.toLowerCase() === address?.toLowerCase() &&
+        !market.isClosed,
+    )
+    .map((market) => market.name)
 
   const columns: GridColDef[] = [
     {
@@ -120,15 +134,16 @@ export const EditLendersTable = ({
       align: "left",
       flex: 4,
       display: "flex",
-      renderCell: ({ value }) => (
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-          {value.map((market: { marketName: string; address: string }) => (
-            <LendersMarketChip
-              marketName={market.marketName}
-              width="fit-content"
-            />
-          ))}
-        </Box>
+      renderCell: (params) => (
+        <LenderMarketSelect
+          chosenMarkets={
+            rows
+              .find((item) => item.address === params.row.address)
+              ?.markets.map((market) => market.marketName) || []
+          }
+          borrowerMarkets={activeBorrowerMarketsNames || []}
+          type="add"
+        />
       ),
     },
     {

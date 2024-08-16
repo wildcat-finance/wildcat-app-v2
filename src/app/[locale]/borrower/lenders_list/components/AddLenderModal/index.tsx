@@ -41,25 +41,6 @@ export const AddLenderModal = ({
 
   const [chosenMarkets, setChosenMarkets] = useState<string[]>([])
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      setChosenMarkets((prevItems) => [...prevItems, event.target.value])
-    } else {
-      setChosenMarkets((prevItems) =>
-        prevItems.filter((selectedItem) => selectedItem !== event.target.value),
-      )
-    }
-  }
-
-  const handleDeleteMarket = (marketToDelete: string) => {
-    setChosenMarkets((prevMarkets) =>
-      prevMarkets.filter((market) => market !== marketToDelete),
-    )
-  }
-
-  const handleReset = () => {
-    setChosenMarkets([])
-  }
   return (
     <>
       <Button
@@ -109,11 +90,10 @@ export const AddLenderModal = ({
             }}
           />
           <MarketSelect
+            type="add"
             chosenMarkets={chosenMarkets}
             borrowerMarkets={activeBorrowerMarketsNames || []}
-            handleChange={handleChange}
-            handleDelete={handleDeleteMarket}
-            handleReset={handleReset}
+            setChosenMarkets={setChosenMarkets}
           />
         </Box>
 

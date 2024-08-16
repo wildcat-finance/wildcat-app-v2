@@ -805,7 +805,7 @@ export const theme = createTheme({
               },
 
               "&.MuiInputBase-root": {
-                height: "32px",
+                // height: "32px",
 
                 fontSize: 13,
                 fontWeight: 500,

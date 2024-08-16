@@ -34,26 +34,6 @@ export default function LenderList() {
 
   const [chosenMarkets, setChosenMarkets] = useState<string[]>([])
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      setChosenMarkets((prevItems) => [...prevItems, event.target.value])
-    } else {
-      setChosenMarkets((prevItems) =>
-        prevItems.filter((selectedItem) => selectedItem !== event.target.value),
-      )
-    }
-  }
-
-  const handleDeleteMarket = (marketToDelete: string) => {
-    setChosenMarkets((prevMarkets) =>
-      prevMarkets.filter((market) => market !== marketToDelete),
-    )
-  }
-
-  const handleReset = () => {
-    setChosenMarkets([])
-  }
-
   const [lendersName, setLendersName] = useState<{ [key: string]: string }>(
     JSON.parse(localStorage.getItem("lenders-name") || "{}"),
   )
@@ -128,11 +108,10 @@ export default function LenderList() {
                 />
 
                 <MarketSelect
+                  type="filter"
+                  setChosenMarkets={setChosenMarkets}
                   chosenMarkets={chosenMarkets}
                   borrowerMarkets={activeBorrowerMarketsNames}
-                  handleChange={handleChange}
-                  handleDelete={handleDeleteMarket}
-                  handleReset={handleReset}
                 />
               </Box>
               <AddLenderModal
