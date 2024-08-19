@@ -142,7 +142,7 @@ export const EditLendersTable = ({
               ?.markets.map((market) => market.marketName) || []
           }
           borrowerMarkets={activeBorrowerMarketsNames || []}
-          type="add"
+          type="table"
         />
       ),
     },

@@ -45,6 +45,11 @@ export const mockLendersData = [
       },
     ],
   },
+  {
+    isAuth: true,
+    address: "0x1717503EE3f56e644cf8b1058e3F83F03a71b2E2",
+    markets: [],
+  },
 ]
 
 export const underlyingAssetsMock = [

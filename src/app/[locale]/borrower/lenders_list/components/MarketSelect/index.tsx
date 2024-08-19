@@ -24,7 +24,7 @@ import { COLORS } from "@/theme/colors"
 export type MarketSelectProps = {
   chosenMarkets: string[]
   borrowerMarkets: string[]
-  type: "filter" | "add"
+  type: "filter" | "table" | "add"
   setChosenMarkets: Dispatch<SetStateAction<string[]>>
 }
 
@@ -56,16 +56,39 @@ export const MarketSelect = ({
     setChosenMarkets([])
   }
 
+  const inputHeight = (() => {
+    if (type === "add" || type === "table") return "auto"
+    if (type === "filter") return "32px"
+    return ""
+  })()
+
+  const inputWidth = (() => {
+    if (type === "table" || type === "add") return "100%"
+    if (type === "filter") return "220px"
+    return ""
+  })()
+
+  const inputMinHeight = (() => {
+    if (type === "filter" || type === "table") return "32px"
+    if (type === "add") return "44px"
+    return ""
+  })()
+
   return (
-    <FormControl>
+    <FormControl
+      sx={{
+        width: inputWidth,
+      }}
+    >
       <InputLabel
         sx={{
-          fontSize: 13,
+          fontSize: type === "add" ? 14 : 13,
           fontWeight: 500,
           lineHeight: "20px",
           color: COLORS.santasGrey,
-          transform: "translate(33px, 6px) scale(1)",
-
+          transform: `translate(${
+            type === "table" || type === "add" ? "17px" : "33px"
+          }, ${type === "add" ? "12px" : "6px"}) scale(1)`,
           pointerEvents: "none",
 
           "&.MuiInputLabel-shrink": {
@@ -120,10 +143,12 @@ export const MarketSelect = ({
           ) : null
         }
         endAdornment={
-          type === "add" ? (
+          type === "table" || type === "add" ? (
             <SvgIcon
               fontSize="small"
               sx={{
+                marginTop: type === "add" ? "14px" : "9px",
+                marginRight: "12px",
                 "& path": { fill: `${COLORS.santasGrey}` },
               }}
             >
@@ -132,18 +157,27 @@ export const MarketSelect = ({
           ) : null
         }
         sx={{
-          width: "220px",
-
+          height: inputHeight,
+          width: inputWidth,
+          minHeight: inputMinHeight,
+          minWidth: "220px",
+          maxWidth: "392px",
+          alignItems:
+            type === "table" || type === "add" ? "baseline" : "center",
           "& .MuiSelect-icon": {
             display: "block",
             top: "5px",
-            transform: "translate(3.5px, 0px) scale(0.7)",
+            transform: `translate(3.5px, ${
+              type === "add" ? "5px" : "0px"
+            }) scale(0.7)`,
             "&.MuiSelect-iconOpen": {
-              transform: "translate(3.5px, 0px) scale(0.7) rotate(180deg)",
+              transform: `translate(3.5px, ${
+                type === "add" ? "5px" : "0px"
+              }) scale(0.7) rotate(180deg)`,
             },
-
             "& path": { fill: `${COLORS.santasGrey}` },
           },
+          borderRadius: "12px",
         }}
         MenuProps={{
           sx: {

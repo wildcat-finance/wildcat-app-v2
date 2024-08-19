@@ -5,7 +5,7 @@ import { MarketSelect } from "../MarketSelect"
 export type LenderMarketSelectProps = {
   chosenMarkets: string[]
   borrowerMarkets: string[]
-  type: "filter" | "add"
+  type: "filter" | "add" | "table"
 }
 
 export const LenderMarketSelect = ({
