@@ -1,25 +1,20 @@
 import type { Dispatch, SetStateAction } from "react"
 
-export type EditLendersTableProps = {
-  rows: {
-    id: string
-    isAuth: boolean
+type LednerDataType = {
+  id: string
+  isAuth: boolean
+  address: string
+  name: { name: string; address: string }
+  markets: {
+    marketName: string
     address: string
-    name: { name: string; address: string }
-    markets: { marketName: string; address: string }[]
-    status: string
+    marketStatus: "added" | "regular" | "deleted"
   }[]
-  setRows: Dispatch<
-    SetStateAction<
-      {
-        id: string
-        isAuth: boolean
-        address: string
-        name: { name: string; address: string }
-        markets: { marketName: string; address: string }[]
-        status: string
-      }[]
-    >
-  >
+  status: string
+}
+
+export type EditLendersTableProps = {
+  rows: LednerDataType[]
+  setRows: Dispatch<SetStateAction<LednerDataType[]>>
   setLendersName: Dispatch<SetStateAction<{ [key: string]: string }>>
 }

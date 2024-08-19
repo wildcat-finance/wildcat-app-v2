@@ -9,9 +9,9 @@ import { TxModalDialog } from "@/app/[locale]/borrower/market/[address]/componen
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 
-import { AddLenderModalProps } from "./interface"
+import { AddLenderModalProps, ChosenMarketType } from "./interface"
 import { ContentContainer } from "./style"
-import { MarketSelect } from "../MarketSelect"
+import { LenderMarketSelect } from "../LenderMarketSelect"
 
 export const AddLenderModal = ({
   setRows,
@@ -39,7 +39,7 @@ export const AddLenderModal = ({
     )
     .map((market) => market.name)
 
-  const [chosenMarkets, setChosenMarkets] = useState<string[]>([])
+  const [chosenMarkets, setChosenMarkets] = useState<ChosenMarketType>([])
 
   return (
     <>
@@ -89,11 +89,13 @@ export const AddLenderModal = ({
               setNewLenderData((prev) => ({ ...prev, address: e.target.value }))
             }}
           />
-          <MarketSelect
+          <LenderMarketSelect
+            setNewLenderMarkets={setChosenMarkets}
+            setRows={setRows}
+            lenderAddress={newLenderData.address}
             type="add"
             chosenMarkets={chosenMarkets}
             borrowerMarkets={activeBorrowerMarketsNames || []}
-            setChosenMarkets={setChosenMarkets}
           />
         </Box>
 
@@ -116,8 +118,9 @@ export const AddLenderModal = ({
                 },
                 address: newLenderData.address,
                 markets: chosenMarkets.map((item) => ({
-                  marketName: item,
+                  marketName: item.marketName,
                   address: "",
+                  marketStatus: "added",
                 })),
                 status: "new",
               },

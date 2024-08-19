@@ -20,6 +20,7 @@ import { COLORS } from "@/theme/colors"
 
 import { AddLenderModal } from "./components/AddLenderModal"
 import { EditLendersTable } from "./components/EditLendersTable"
+import { ChosenMarketType } from "./interface"
 
 export default function LenderList() {
   const { data: allMarkets, isLoading } = useMarketsForBorrower()
@@ -32,7 +33,7 @@ export default function LenderList() {
     )
     .map((market) => market.name)
 
-  const [chosenMarkets, setChosenMarkets] = useState<string[]>([])
+  const [chosenMarkets, setChosenMarkets] = useState<ChosenMarketType>([])
 
   const [lendersName, setLendersName] = useState<{ [key: string]: string }>(
     JSON.parse(localStorage.getItem("lenders-name") || "{}"),

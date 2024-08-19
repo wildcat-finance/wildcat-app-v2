@@ -136,10 +136,12 @@ export const EditLendersTable = ({
       display: "flex",
       renderCell: (params) => (
         <LenderMarketSelect
+          lenderAddress={params.row.address}
+          setRows={setRows}
           chosenMarkets={
             rows
               .find((item) => item.address === params.row.address)
-              ?.markets.map((market) => market.marketName) || []
+              ?.markets.map((market) => market) || []
           }
           borrowerMarkets={activeBorrowerMarketsNames || []}
           type="table"

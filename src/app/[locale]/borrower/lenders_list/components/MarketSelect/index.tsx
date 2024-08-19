@@ -1,5 +1,3 @@
-import { Dispatch, SetStateAction } from "react"
-
 import {
   Box,
   Button,
@@ -21,12 +19,7 @@ import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { COLORS } from "@/theme/colors"
 
-export type MarketSelectProps = {
-  chosenMarkets: string[]
-  borrowerMarkets: string[]
-  type: "filter" | "table" | "add"
-  setChosenMarkets: Dispatch<SetStateAction<string[]>>
-}
+import { MarketSelectProps } from "./interface"
 
 export const MarketSelect = ({
   chosenMarkets,
@@ -38,17 +31,22 @@ export const MarketSelect = ({
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      setChosenMarkets((prevItems) => [...prevItems, event.target.value])
+      setChosenMarkets((prevItems) => [
+        ...prevItems,
+        { marketName: event.target.value, address: "", marketStatus: "added" },
+      ])
     } else {
       setChosenMarkets((prevItems) =>
-        prevItems.filter((selectedItem) => selectedItem !== event.target.value),
+        prevItems.filter(
+          (selectedItem) => selectedItem.marketName !== event.target.value,
+        ),
       )
     }
   }
 
   const handleDeleteMarket = (marketToDelete: string) => {
     setChosenMarkets((prevMarkets) =>
-      prevMarkets.filter((market) => market !== marketToDelete),
+      prevMarkets.filter((market) => market.marketName !== marketToDelete),
     )
   }
 
@@ -120,11 +118,12 @@ export const MarketSelect = ({
           >
             {selected.map((value) => (
               <LendersMarketChip
-                key={value}
-                marketName={value}
+                key={value.marketName}
+                marketName={value.marketName}
                 withButton
-                width={value.length > 14 ? "100%" : "fit-content"}
-                onClick={() => handleDeleteMarket(value)}
+                width={value.marketName.length > 14 ? "100%" : "fit-content"}
+                onClick={() => handleDeleteMarket(value.marketName)}
+                type={value.marketStatus}
               />
             ))}
           </Box>
@@ -144,16 +143,18 @@ export const MarketSelect = ({
         }
         endAdornment={
           type === "table" || type === "add" ? (
-            <SvgIcon
-              fontSize="small"
-              sx={{
-                marginTop: type === "add" ? "14px" : "9px",
-                marginRight: "12px",
-                "& path": { fill: `${COLORS.santasGrey}` },
-              }}
-            >
-              <Cross />
-            </SvgIcon>
+            <Box onClick={handleReset}>
+              <SvgIcon
+                fontSize="small"
+                sx={{
+                  marginTop: type === "add" ? "14px" : "9px",
+                  marginRight: "12px",
+                  "& path": { fill: `${COLORS.santasGrey}` },
+                }}
+              >
+                <Cross />
+              </SvgIcon>
+            </Box>
           ) : null
         }
         sx={{
@@ -243,7 +244,7 @@ export const MarketSelect = ({
                   value={market}
                   onChange={handleChange}
                   checked={chosenMarkets.some(
-                    (chosenMarket) => chosenMarket === market,
+                    (chosenMarket) => chosenMarket.marketName === market,
                   )}
                   sx={{
                     "& ::before": {
