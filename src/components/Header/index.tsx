@@ -6,6 +6,7 @@ import { ContentContainer, NavContainer } from "@/components/Header/style"
 import TranslationsProvider from "@/components/TranslationsProvider"
 import { COLORS } from "@/theme/colors"
 
+import { NotificationButton } from "./NotificationButton"
 import { HeaderButton } from "./HeaderButton"
 
 const i18nNamespaces = ["en"]
@@ -34,6 +35,7 @@ export default async function Header({
             {t("header.role.lender")}
           </Typography>
         </Box>
+        <NotificationButton />
         <HeaderButton />
       </Box>
     </TranslationsProvider>
