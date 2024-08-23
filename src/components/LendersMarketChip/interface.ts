@@ -1,5 +1,5 @@
 export type LendersMarketChipProps = {
-  type?: "regular" | "added" | "deleted"
+  type?: "old" | "new" | "deleted"
   marketName: string
   withButton?: boolean
   onClick?: () => void

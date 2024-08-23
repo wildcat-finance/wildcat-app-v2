@@ -16,7 +16,7 @@ export const LendersMarketChip = ({
   let chipConfig
 
   switch (type) {
-    case "regular": {
+    case "old": {
       chipConfig = {
         backgroundColor: COLORS.whiteSmoke,
         color: COLORS.blackRock,
@@ -25,7 +25,7 @@ export const LendersMarketChip = ({
       }
       break
     }
-    case "added": {
+    case "new": {
       chipConfig = {
         backgroundColor: COLORS.glitter,
         color: COLORS.ultramarineBlue,

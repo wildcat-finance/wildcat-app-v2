@@ -565,6 +565,7 @@ export const theme = createTheme({
 
               "& .MuiInputBase-input": {
                 padding: "11px 15px",
+                height: "20px",
               },
 
               "& .MuiFormLabel-root": {

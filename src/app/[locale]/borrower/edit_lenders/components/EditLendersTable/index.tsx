@@ -1,13 +1,8 @@
 import * as React from "react"
-import { useState } from "react"
 
-import { Button, SvgIcon, Typography } from "@mui/material"
-import { Box } from "@mui/system"
+import { Box, Button, IconButton, SvgIcon, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
-import { useTranslation } from "react-i18next"
-import { useAccount } from "wagmi"
 
-import { useMarketsForBorrower } from "@/app/[locale]/borrower/hooks/useMarketsForBorrower"
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import Cross from "@/assets/icons/cross_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
@@ -17,27 +12,15 @@ import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
 import { EditLendersTableProps } from "./interface"
-import { MarketWithdrawalRequetstCell, NewLenderDot } from "./style"
-import { LenderMarketSelect } from "../LenderMarketSelect"
+import { AddedDot, EditLendersTableStyles, UndoButton } from "./style"
+import { TableLenderSelect } from "../MarketSelect/TableLenderSelect"
 
 export const EditLendersTable = ({
-  rows,
-  setRows,
-  setLendersName,
+  lendersRows,
+  setLendersRows,
+  setLendersNames,
+  borrowerMarkets,
 }: EditLendersTableProps) => {
-  const { t } = useTranslation()
-
-  const { data: allMarkets, isLoading } = useMarketsForBorrower()
-  const { address, isConnected } = useAccount()
-
-  const activeBorrowerMarketsNames = allMarkets
-    ?.filter(
-      (market) =>
-        market.borrower.toLowerCase() === address?.toLowerCase() &&
-        !market.isClosed,
-    )
-    .map((market) => market.name)
-
   const columns: GridColDef[] = [
     {
       field: "name",
@@ -48,10 +31,10 @@ export const EditLendersTable = ({
       align: "left",
       renderCell: (params) => (
         <>
-          {params.row.status === "remove" && (
+          {params.row.status === "deleted" && (
             <Typography
               color={COLORS.santasGrey}
-              variant="text4"
+              variant="text3"
               sx={{ textDecoration: "line-through" }}
             >
               {params.value.name === "" ? "Add name" : params.value.name}
@@ -59,9 +42,9 @@ export const EditLendersTable = ({
           )}
           {params.row.status === "new" && (
             <>
-              <Box sx={NewLenderDot} />
+              <Box sx={AddedDot} />
               <LenderName
-                setLendersName={setLendersName}
+                setLendersName={setLendersNames}
                 lenderName={params.value.name}
                 address={params.value.address}
               />
@@ -69,7 +52,7 @@ export const EditLendersTable = ({
           )}
           {params.row.status === "old" && (
             <LenderName
-              setLendersName={setLendersName}
+              setLendersName={setLendersNames}
               lenderName={params.value.name}
               address={params.value.address}
             />
@@ -85,15 +68,15 @@ export const EditLendersTable = ({
       headerAlign: "left",
       align: "left",
       renderCell: (params) => (
-        <Box sx={MarketWithdrawalRequetstCell}>
+        <Box display="flex" gap="4px">
           <Typography
             sx={{
               minWidth: "80px",
               textDecoration:
-                params.row.status === "remove" ? "line-through" : "",
-              color: params.row.status === "remove" ? COLORS.santasGrey : "",
+                params.row.status === "deleted" ? "line-through" : "",
+              color: params.row.status === "deleted" ? COLORS.santasGrey : "",
             }}
-            variant={params.row.status === "remove" ? "text4" : "text3"}
+            variant="text3"
           >
             {trimAddress(params.value)}
           </Typography>
@@ -132,19 +115,14 @@ export const EditLendersTable = ({
       maxWidth: 300,
       headerAlign: "left",
       align: "left",
-      flex: 4,
-      display: "flex",
+      flex: 5,
       renderCell: (params) => (
-        <LenderMarketSelect
+        <TableLenderSelect
+          lenderMarkets={params.value}
           lenderAddress={params.row.address}
-          setRows={setRows}
-          chosenMarkets={
-            rows
-              .find((item) => item.address === params.row.address)
-              ?.markets.map((market) => market) || []
-          }
-          borrowerMarkets={activeBorrowerMarketsNames || []}
-          type="table"
+          borrowerMarkets={borrowerMarkets}
+          setLendersRows={setLendersRows}
+          disabled={params.row.status === "deleted"}
         />
       ),
     },
@@ -152,16 +130,21 @@ export const EditLendersTable = ({
       sortable: false,
       field: "",
       align: "right",
-      // maxWidth: 24,
+      flex: 0.0001,
       renderCell: (params) => (
         <>
           {(params.row.status === "old" || params.row.status === "new") && (
-            <Box
+            <IconButton
               onClick={() => {
-                setRows((prev) =>
+                setLendersRows((prev) =>
                   prev.map((item) => {
-                    if (item.address === params.row.address)
-                      item.status = "remove"
+                    if (item.address === params.row.address) {
+                      return {
+                        ...item,
+                        prevStatus: item.status,
+                        status: "deleted",
+                      }
+                    }
                     return item
                   }),
                 )
@@ -175,20 +158,18 @@ export const EditLendersTable = ({
               >
                 <Cross />
               </SvgIcon>
-            </Box>
+            </IconButton>
           )}
-          {params.row.status === "remove" && (
+          {params.row.status === "deleted" && (
             <Button
-              sx={{
-                minWidth: "36px",
-                padding: 0,
-                color: COLORS.ultramarineBlue,
-              }}
+              sx={UndoButton}
               variant="text"
               onClick={() => {
-                setRows((prev) =>
+                setLendersRows((prev) =>
                   prev.map((item) => {
-                    if (item.address === params.row.address) item.status = "old"
+                    if (item.address === params.row.address) {
+                      return { ...item, status: item.prevStatus || "old" }
+                    }
                     return item
                   }),
                 )
@@ -204,18 +185,9 @@ export const EditLendersTable = ({
 
   return (
     <DataGrid
-      sx={{
-        "& .MuiDataGrid-cell": {
-          minHeight: "52px",
-          height: "auto",
-          padding: "12px 16px",
-        },
-        "& .MuiDataGrid-columnHeader": {
-          backgroundColor: "transparent",
-        },
-      }}
+      sx={EditLendersTableStyles}
       getRowHeight={() => "auto"}
-      rows={rows}
+      rows={lendersRows}
       columns={columns}
     />
   )
