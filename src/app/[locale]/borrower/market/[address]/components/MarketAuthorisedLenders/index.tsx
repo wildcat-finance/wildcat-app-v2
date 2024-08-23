@@ -26,6 +26,7 @@ import LinkIcon from "@/assets/icons/link_icon.svg"
 import { Accordion } from "@/components/Accordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { EtherscanBaseUrl } from "@/config/network"
+import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
   DATE_FORMAT,
@@ -48,8 +49,19 @@ export const MarketAuthorisedLenders = ({
   const hasMLA = 0 // test const for hoiding/showing MLA columns in table
 
   const [state, copyToClipboard] = useCopyToClipboard()
-  const [lendersName, setLendersName] = useState<{ [key: string]: string }>(
-    JSON.parse(localStorage.getItem("lenders-name") || "{}"),
+  const [lendersNames, setLendersNames] = useState<{ [key: string]: string }>(
+    (() => {
+      const storedNames = JSON.parse(
+        localStorage.getItem("lenders-name") || "{}",
+      )
+      return Object.keys(storedNames).reduce(
+        (acc, key) => {
+          acc[key.toLowerCase()] = storedNames[key]
+          return acc
+        },
+        {} as { [key: string]: string },
+      )
+    })(),
   )
 
   const { data, isLoading } = useGetAuthorisedLendersByMarket(market)
@@ -59,7 +71,7 @@ export const MarketAuthorisedLenders = ({
         id: lender.lender,
         authorized: lender.authorized,
         name: (() => {
-          const correctLender = lendersName[lender.lender.toLowerCase()] || ""
+          const correctLender = lendersNames[lender.lender.toLowerCase()] || ""
           return { name: correctLender, address: lender.lender }
         })(),
         walletAddress: lender.lender,
@@ -91,7 +103,7 @@ export const MarketAuthorisedLenders = ({
       align: "left",
       renderCell: (params) => (
         <LenderName
-          setLendersName={setLendersName}
+          setLendersName={setLendersNames}
           lenderName={params.value.name}
           address={params.value.address}
         />
@@ -238,18 +250,20 @@ export const MarketAuthorisedLenders = ({
           <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
             There is no any lenders yet – edit list to add them
           </Typography>
-          <Button
-            variant="contained"
-            size="small"
-            sx={{
-              width: "100px",
-              height: "32px",
-              marginTop: "24px",
-              borderRadius: 2,
-            }}
-          >
-            Edit List
-          </Button>
+          <Link href={ROUTES.borrower.lendersList}>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{
+                width: "100px",
+                height: "32px",
+                marginTop: "24px",
+                borderRadius: 2,
+              }}
+            >
+              Edit List
+            </Button>
+          </Link>
         </Box>
       )}
 
@@ -261,18 +275,20 @@ export const MarketAuthorisedLenders = ({
           <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
             No active lenders yet – edit list to add them
           </Typography>
-          <Button
-            variant="contained"
-            size="small"
-            sx={{
-              width: "100px",
-              height: "32px",
-              marginTop: "24px",
-              borderRadius: 2,
-            }}
-          >
-            Edit List
-          </Button>
+          <Link href={ROUTES.borrower.lendersList}>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{
+                width: "100px",
+                height: "32px",
+                marginTop: "24px",
+                borderRadius: 2,
+              }}
+            >
+              Edit List
+            </Button>
+          </Link>
         </Box>
       )}
 
@@ -288,11 +304,13 @@ export const MarketAuthorisedLenders = ({
             <Typography variant="title3">
               {t("borrowerMarketDetails.authorisedLenders.header")}
             </Typography>
-            <Button
-              sx={{ border: "1px solid", borderColor: COLORS.whiteLilac }}
-            >
-              {t("borrowerMarketDetails.authorisedLenders.buttons.editList")}
-            </Button>
+            <Link href={ROUTES.borrower.lendersList}>
+              <Button
+                sx={{ border: "1px solid", borderColor: COLORS.whiteLilac }}
+              >
+                {t("borrowerMarketDetails.authorisedLenders.buttons.editList")}
+              </Button>
+            </Link>
           </Box>
           <DataGrid
             sx={{

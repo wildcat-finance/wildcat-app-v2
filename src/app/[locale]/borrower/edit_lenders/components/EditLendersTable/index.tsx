@@ -3,6 +3,7 @@ import * as React from "react"
 import { Box, Button, IconButton, SvgIcon, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 
+import { MarketTableT } from "@/app/[locale]/borrower/edit_lenders/interface"
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import Cross from "@/assets/icons/cross_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
@@ -21,6 +22,57 @@ export const EditLendersTable = ({
   setLendersNames,
   borrowerMarkets,
 }: EditLendersTableProps) => {
+  const handleAddAllMarkets = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    lenderAddress: string,
+    existingMarkets: MarketTableT[],
+  ) => {
+    const isChecked = event.target.checked
+
+    setLendersRows((prevLenders) =>
+      prevLenders.map((lender) => {
+        if (lender.address === lenderAddress) {
+          const oldMarkets = existingMarkets.filter(
+            (market) => market.status === "old",
+          )
+
+          if (isChecked) {
+            const newMarkets: MarketTableT[] = borrowerMarkets
+              .filter(
+                (market) =>
+                  !existingMarkets.some(
+                    (existing) => existing.address === market.address,
+                  ),
+              )
+              .map((market) => ({
+                name: market.name,
+                address: market.address,
+                status: "new",
+              }))
+
+            return {
+              ...lender,
+              markets: [...existingMarkets, ...newMarkets],
+            }
+          }
+
+          if (oldMarkets.length === borrowerMarkets.length) {
+            return {
+              ...lender,
+              markets: [],
+            }
+          }
+
+          return {
+            ...lender,
+            markets: [...oldMarkets],
+          }
+        }
+        return lender
+      }),
+    )
+  }
+
   const columns: GridColDef[] = [
     {
       field: "name",
@@ -98,6 +150,11 @@ export const EditLendersTable = ({
       align: "left",
       renderCell: (params) => (
         <ExtendedCheckbox
+          checked={params.row.markets.length === borrowerMarkets.length}
+          onChange={(event) =>
+            handleAddAllMarkets(event, params.row.address, params.row.markets)
+          }
+          disabled={params.row.status === "deleted"}
           sx={{
             "& ::before": {
               transform: "translate(-3px, -3px) scale(0.75)",
@@ -116,15 +173,16 @@ export const EditLendersTable = ({
       headerAlign: "left",
       align: "left",
       flex: 5,
-      renderCell: (params) => (
-        <TableLenderSelect
-          lenderMarkets={params.value}
-          lenderAddress={params.row.address}
-          borrowerMarkets={borrowerMarkets}
-          setLendersRows={setLendersRows}
-          disabled={params.row.status === "deleted"}
-        />
-      ),
+      renderCell: (params) =>
+        params.value.length !== borrowerMarkets.length ? (
+          <TableLenderSelect
+            lenderMarkets={params.value}
+            lenderAddress={params.row.address}
+            borrowerMarkets={borrowerMarkets}
+            setLendersRows={setLendersRows}
+            disabled={params.row.status === "deleted"}
+          />
+        ) : null,
     },
     {
       sortable: false,

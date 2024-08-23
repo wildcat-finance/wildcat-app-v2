@@ -147,22 +147,6 @@ export const FilterLenderSelect = ({
           />
         </Box>
 
-        <FormControlLabel
-          sx={{ padding: "0 10px", marginBottom: "10px" }}
-          control={
-            <ExtendedCheckbox
-              checked={allMarketsSelected}
-              onChange={handleToggleAllMarkets}
-              sx={{
-                "& ::before": {
-                  transform: "translate(-3px, -3px) scale(0.75)",
-                },
-              }}
-            />
-          }
-          label="All Markets"
-        />
-
         <Box
           sx={{
             height: "132px",
@@ -173,6 +157,20 @@ export const FilterLenderSelect = ({
             padding: "0 10px",
           }}
         >
+          <FormControlLabel
+            control={
+              <ExtendedCheckbox
+                checked={allMarketsSelected}
+                onChange={handleToggleAllMarkets}
+                sx={{
+                  "& ::before": {
+                    transform: "translate(-3px, -3px) scale(0.75)",
+                  },
+                }}
+              />
+            }
+            label="All Markets"
+          />
           {filteredMarketsByName.map((market) => (
             <FormControlLabel
               key={market.address}

@@ -1,35 +1,29 @@
 "use client"
 
-import { ChangeEvent, useState } from "react"
+import { useState } from "react"
 
-import {
-  Box,
-  Button,
-  InputAdornment,
-  SvgIcon,
-  TextField,
-  Typography,
-} from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 import { useAccount } from "wagmi"
 
+import { ConfirmTable } from "@/app/[locale]/borrower/edit_lenders/components/ConfirmTable"
 import { useMarketsForBorrower } from "@/app/[locale]/borrower/hooks/useMarketsForBorrower"
-import Search from "@/assets/icons/search_icon.svg"
 import { COLORS } from "@/theme/colors"
 
-import { EditLendersTable } from "./components/EditLendersTable"
-import { FilterLenderSelect } from "./components/MarketSelect/FilterLenderSelect"
-import { AddLenderModal } from "./components/Modals/AddLender"
+import { EditLendersForm } from "./components/EditForm"
 import { LenderTableT } from "./interface"
-import { MarketDataT, mockLendersData } from "./lendersMock"
-import {
-  AlertContainer,
-  FiltersContainer,
-  SearchStyles,
-  TitleContainer,
-} from "./style"
+import { mockLendersData } from "./lendersMock"
+import { AlertContainer, TitleContainer } from "./style"
 
 export default function EditLendersPage() {
-  const [selectedMarkets, setSelectedMarkets] = useState<MarketDataT[]>([])
+  const [step, setStep] = useState<"edit" | "confirm">("edit")
+
+  const handleClickSumbit = () => {
+    setStep("confirm")
+  }
+
+  const handleClickBack = () => {
+    setStep("edit")
+  }
 
   const { data: allMarkets } = useMarketsForBorrower()
   const { address } = useAccount()
@@ -41,15 +35,21 @@ export default function EditLendersPage() {
     )
     .map((market) => ({ name: market.name, address: market.address }))
 
-  const [lenderNameOrAddress, setLenderNameOrAddress] = useState("")
-
-  const handleChangeLender = (evt: ChangeEvent<HTMLInputElement>) => {
-    setLenderNameOrAddress(evt.target.value)
-  }
-
   const [lendersNames, setLendersNames] = useState<{ [key: string]: string }>(
-    JSON.parse(localStorage.getItem("lenders-name") || "{}"),
+    (() => {
+      const storedNames = JSON.parse(
+        localStorage.getItem("lenders-name") || "{}",
+      )
+      return Object.keys(storedNames).reduce(
+        (acc, key) => {
+          acc[key.toLowerCase()] = storedNames[key]
+          return acc
+        },
+        {} as { [key: string]: string },
+      )
+    })(),
   )
+
   const [lendersRows, setLendersRows] = useState<LenderTableT[]>(
     mockLendersData
       .filter((lender) => lender.isAuthorized)
@@ -67,27 +67,6 @@ export default function EditLendersPage() {
         })),
       })),
   )
-
-  console.log("Edited Lenders Data", lendersRows)
-
-  const filteredLenders = lendersRows.filter((lender) => {
-    const matchesAllMarkets =
-      selectedMarkets.length === 0 ||
-      selectedMarkets.every((selectedMarket) =>
-        lender.markets.some(
-          (lenderMarket) => lenderMarket.address === selectedMarket.address,
-        ),
-      )
-
-    const matchesSearchTerm =
-      lenderNameOrAddress === "" ||
-      lender.name.name
-        .toLowerCase()
-        .includes(lenderNameOrAddress.toLowerCase()) ||
-      lender.address.toLowerCase().includes(lenderNameOrAddress.toLowerCase())
-
-    return matchesAllMarkets && matchesSearchTerm
-  })
 
   return (
     <Box padding="42px 0 0 8.6vw" height="100%">
@@ -110,50 +89,21 @@ export default function EditLendersPage() {
           </Typography>
         </Box>
 
-        <Box sx={FiltersContainer}>
-          <Box display="flex" gap="4px">
-            <TextField
-              onChange={handleChangeLender}
-              size="small"
-              placeholder="Search"
-              sx={SearchStyles}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SvgIcon
-                      fontSize="small"
-                      sx={{
-                        width: "20px",
-                        "& path": { fill: `${COLORS.greySuit}` },
-                      }}
-                    >
-                      <Search />
-                    </SvgIcon>
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            <FilterLenderSelect
-              borrowerMarkets={activeBorrowerMarkets ?? []}
-              selectedMarkets={selectedMarkets}
-              setSelectedMarkets={setSelectedMarkets}
-            />
-          </Box>
-
-          <AddLenderModal
+        {step === "edit" && (
+          <EditLendersForm
+            lendersRows={lendersRows}
             setLendersRows={setLendersRows}
             setLendersNames={setLendersNames}
             borrowerMarkets={activeBorrowerMarkets ?? []}
           />
-        </Box>
+        )}
 
-        <EditLendersTable
-          lendersRows={filteredLenders}
-          setLendersRows={setLendersRows}
-          setLendersNames={setLendersNames}
-          borrowerMarkets={activeBorrowerMarkets ?? []}
-        />
+        {step === "confirm" && (
+          <ConfirmTable
+            lendersRows={lendersRows}
+            borrowerMarkets={activeBorrowerMarkets ?? []}
+          />
+        )}
 
         <Box
           sx={{
@@ -163,14 +113,26 @@ export default function EditLendersPage() {
             justifyContent: "space-between",
           }}
         >
-          {/* <Button variant="contained" size="large" sx={{ width: "140px" }}> */}
-          {/*  Sumbit */}
-          {/* </Button> */}
+          {step === "confirm" ? (
+            <Button
+              variant="text"
+              size="large"
+              sx={{ width: "140px" }}
+              onClick={handleClickBack}
+            >
+              Back
+            </Button>
+          ) : (
+            <Box />
+          )}
 
-          <Box />
-
-          <Button variant="contained" size="large" sx={{ width: "140px" }}>
-            Sumbit
+          <Button
+            variant="contained"
+            size="large"
+            sx={{ width: "140px" }}
+            onClick={handleClickSumbit}
+          >
+            {step === "confirm" ? "Confirm" : "Sumbit"}
           </Button>
         </Box>
       </Box>

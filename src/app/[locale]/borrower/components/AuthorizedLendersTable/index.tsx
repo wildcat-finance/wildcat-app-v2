@@ -26,15 +26,26 @@ export const LendersTable = ({
   isOpen,
   isLoading,
 }: LendersTableProps) => {
-  const [lendersName, setLendersName] = useState<{ [key: string]: string }>(
-    JSON.parse(localStorage.getItem("lenders-name") || "{}"),
+  const [lendersNames, setLendersNames] = useState<{ [key: string]: string }>(
+    (() => {
+      const storedNames = JSON.parse(
+        localStorage.getItem("lenders-name") || "{}",
+      )
+      return Object.keys(storedNames).reduce(
+        (acc, key) => {
+          acc[key.toLowerCase()] = storedNames[key]
+          return acc
+        },
+        {} as { [key: string]: string },
+      )
+    })(),
   )
 
   const rows = tableData.map((lender) => ({
     id: lender.address,
     authorized: lender.isAuth,
     name: (() => {
-      const correctLender = lendersName[lender.address.toLowerCase()] || ""
+      const correctLender = lendersNames[lender.address.toLowerCase()] || ""
       return { name: correctLender, address: lender }
     })(),
     walletAddress: lender.address,
@@ -52,7 +63,7 @@ export const LendersTable = ({
       align: "left",
       renderCell: (params) => (
         <LenderName
-          setLendersName={setLendersName}
+          setLendersName={setLendersNames}
           lenderName={params.value.name}
           address={params.value.address}
         />

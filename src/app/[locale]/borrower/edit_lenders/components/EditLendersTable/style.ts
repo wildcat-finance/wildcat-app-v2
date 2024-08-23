@@ -21,6 +21,7 @@ export const EditLendersTableStyles = {
     minHeight: "52px",
     height: "auto",
     padding: "12px 8px",
+    cursor: "default",
   },
 
   "& .MuiDataGrid-columnHeader": {
