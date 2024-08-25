@@ -13,6 +13,16 @@
     "modal": {
       "title": "Connect wallet",
       "note": "By connecting a wallet, you agree to Wildcat Terms of Service and consent to its Privacy Policy"
+    },
+    "notifications": {
+      "noNewNotifications": "No new notifications",
+      "anyOtherMessage": "Any other message. You can close the window.",
+      "viewEarlier": "View earlier",
+      "notifications": "Notifications",
+      "markAsRead": "Mark as Read",
+      "all": "All",
+      "marketActivity": "Market Activity",
+      "newLenders": "New Lenders"
     }
   },
   "footer": {

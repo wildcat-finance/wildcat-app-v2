@@ -68,9 +68,7 @@ export const toastifyInfo = (
   options: ToastOptions = {},
 ): ToastId =>
   toast.info(
-    message,
-
-    {
+    message, {
       ...DEFAULT_TOAST_OPTIONS,
       ...options,
     },
