@@ -63,6 +63,7 @@ export default function EditLendersPage() {
       .map((lender) => ({
         ...lender,
         status: "old",
+        prevStatus: "old",
         id: lender.address,
         name: (() => {
           const correctLender = lendersNames[lender.address.toLowerCase()] || ""
@@ -73,6 +74,10 @@ export default function EditLendersPage() {
           status: "old",
         })),
       })),
+  )
+
+  const confirmedRows = lendersRows.filter(
+    (lender) => !(lender.status === "deleted" && lender.prevStatus === "new"),
   )
 
   return (
@@ -159,7 +164,7 @@ export default function EditLendersPage() {
 
         {step === "confirm" && (
           <ConfirmTable
-            lendersRows={lendersRows}
+            lendersRows={confirmedRows}
             borrowerMarkets={activeBorrowerMarkets ?? []}
           />
         )}

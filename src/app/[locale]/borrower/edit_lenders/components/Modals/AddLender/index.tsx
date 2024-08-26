@@ -24,12 +24,12 @@ export const AddLenderModal = ({
   const [selectedMarkets, setSelectedMarkets] = useState<MarketTableT[]>([])
 
   const {
+    getValues,
     register,
-    handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
     reset,
   } = useForm({
-    mode: "onChange", // Режим валидации, проверка на потере фокуса
+    mode: "onChange",
     defaultValues: {
       name: "",
       address: "",
@@ -46,30 +46,31 @@ export const AddLenderModal = ({
     setIsOpen(false)
   }
 
-  const onSubmit = (data: { name: string; address: string }) => {
+  const onSubmit = () => {
     setLendersRows((prev) => [
       ...prev,
       {
-        id: data.address,
+        id: getValues("address"),
         isAuthorized: true,
         name: {
-          name: data.name,
-          address: data.address,
+          name: getValues("name"),
+          address: getValues("address"),
         },
-        address: data.address,
+        address: getValues("address"),
         markets: selectedMarkets.map((market) => ({
           name: market.name,
           address: market.address,
           status: "new",
         })),
         status: "new",
+        prevStatus: "new",
       },
     ])
     setLendersNames((prev) => {
-      if (data.name === "") {
-        delete prev[data.address.toLowerCase()]
+      if (getValues("name") === "") {
+        delete prev[getValues("address").toLowerCase()]
       } else {
-        prev[data.address.toLowerCase()] = data.name
+        prev[getValues("address").toLowerCase()] = getValues("name")
         localStorage.setItem("lenders-name", JSON.stringify(prev))
       }
       return prev
@@ -103,7 +104,7 @@ export const AddLenderModal = ({
           arrowOnClick={handleClose}
         />
 
-        <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={DialogBody}>
+        <Box sx={DialogBody}>
           <TextField
             fullWidth
             size="medium"
@@ -195,6 +196,8 @@ export const AddLenderModal = ({
         </Box>
 
         <Button
+          onClick={onSubmit}
+          disabled={!isValid}
           variant="contained"
           size="large"
           type="submit"
