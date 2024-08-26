@@ -27,8 +27,6 @@ import { Accordion } from "@/components/Accordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { EtherscanBaseUrl } from "@/config/network"
 import { ROUTES } from "@/routes"
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setMarketFilter } from "@/store/slices/editLendersSlice/editLendersSlice"
 import { COLORS } from "@/theme/colors"
 import {
   DATE_FORMAT,
@@ -48,15 +46,11 @@ import {
 export const MarketAuthorisedLenders = ({
   market,
 }: MarketAuthorisedLendersProps) => {
-  const dispatch = useAppDispatch()
-
-  const handleClickEditLenders = () => {
-    if (market) {
-      dispatch(
-        setMarketFilter([{ name: market.name, address: market.address }]),
-      )
-    }
-  }
+  const editLendersLink =
+    market &&
+    `${ROUTES.borrower.lendersList}?marketName=${encodeURIComponent(
+      market?.name,
+    )}&marketAddress=${encodeURIComponent(market?.address)}`
 
   const hasMLA = 0 // test const for hoiding/showing MLA columns in table
 
@@ -262,7 +256,7 @@ export const MarketAuthorisedLenders = ({
           <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
             There is no any lenders yet – edit list to add them
           </Typography>
-          <Link href={ROUTES.borrower.lendersList}>
+          <Link href={editLendersLink}>
             <Button
               variant="contained"
               size="small"
@@ -287,7 +281,7 @@ export const MarketAuthorisedLenders = ({
           <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
             No active lenders yet – edit list to add them
           </Typography>
-          <Link href={ROUTES.borrower.lendersList}>
+          <Link href={editLendersLink}>
             <Button
               variant="contained"
               size="small"
@@ -304,7 +298,7 @@ export const MarketAuthorisedLenders = ({
         </Box>
       )}
 
-      {authorizedRows.length !== 0 && (
+      {authorizedRows.length !== 0 && market && (
         <>
           <Box
             sx={{
@@ -316,9 +310,8 @@ export const MarketAuthorisedLenders = ({
             <Typography variant="title3">
               {t("borrowerMarketDetails.authorisedLenders.header")}
             </Typography>
-            <Link href={ROUTES.borrower.lendersList}>
+            <Link href={editLendersLink}>
               <Button
-                onClick={handleClickEditLenders}
                 sx={{ border: "1px solid", borderColor: COLORS.whiteLilac }}
               >
                 {t("borrowerMarketDetails.authorisedLenders.buttons.editList")}

@@ -1,10 +1,4 @@
-import {
-  ChangeEvent,
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react"
+import { ChangeEvent, Dispatch, SetStateAction } from "react"
 
 import {
   Box,
@@ -26,10 +20,7 @@ import {
 import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import {
-  resetEditLendersSlice,
-  setLenderFilter,
-} from "@/store/slices/editLendersSlice/editLendersSlice"
+import { setLenderFilter } from "@/store/slices/editLendersSlice/editLendersSlice"
 import { COLORS } from "@/theme/colors"
 
 export type EditLendersFormProps = {

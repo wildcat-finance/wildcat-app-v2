@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import * as React from "react"
 
 import { Box, Button, Skeleton, Typography } from "@mui/material"
+import { useSearchParams } from "next/navigation"
 import { useAccount } from "wagmi"
 
 import { ConfirmTable } from "@/app/[locale]/borrower/edit_lenders/components/ConfirmTable"
@@ -12,6 +13,8 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   resetEditLendersSlice,
   setEditStep,
+  setLenderFilter,
+  setMarketFilter,
 } from "@/store/slices/editLendersSlice/editLendersSlice"
 import { COLORS } from "@/theme/colors"
 
@@ -21,6 +24,12 @@ import { mockLendersData } from "./lendersMock"
 import { AlertContainer, FiltersContainer, TitleContainer } from "./style"
 
 export default function EditLendersPage() {
+  const urlParams = useSearchParams()
+
+  const marketName = urlParams.get("marketName")
+  const marketAddress = urlParams.get("marketAddress")
+  const lenderAddress = urlParams.get("lenderAddress")
+
   const dispatch = useAppDispatch()
   const step = useAppSelector((state) => state.editLenders.step)
 
@@ -75,6 +84,19 @@ export default function EditLendersPage() {
         })),
       })),
   )
+
+  useEffect(() => {
+    if (marketName && marketAddress) {
+      dispatch(setMarketFilter([{ name: marketName, address: marketAddress }]))
+    }
+    if (lenderAddress) {
+      dispatch(setLenderFilter(lenderAddress))
+    }
+
+    return () => {
+      dispatch(resetEditLendersSlice())
+    }
+  }, [])
 
   const confirmedRows = lendersRows.filter(
     (lender) => !(lender.status === "deleted" && lender.prevStatus === "new"),

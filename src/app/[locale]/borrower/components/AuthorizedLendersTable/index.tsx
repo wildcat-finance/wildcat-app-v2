@@ -19,8 +19,6 @@ import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
 import { ROUTES } from "@/routes"
-import { useAppDispatch } from "@/store/hooks"
-import { setLenderFilter } from "@/store/slices/editLendersSlice/editLendersSlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
@@ -32,11 +30,10 @@ export const LendersTable = ({
   isOpen,
   isLoading,
 }: LendersTableProps) => {
-  const dispatch = useAppDispatch()
-
-  const handleClickLender = (lenderAddress: string) => {
-    dispatch(setLenderFilter(lenderAddress))
-  }
+  const getEditLendersLink = (lenderAddress: string) =>
+    `${ROUTES.borrower.lendersList}?lenderAddress=${encodeURIComponent(
+      lenderAddress,
+    )}`
 
   const [lendersNames, setLendersNames] = useState<{ [key: string]: string }>(
     (() => {
@@ -125,9 +122,8 @@ export const LendersTable = ({
               No markets yet
             </Typography>
 
-            <Link href={ROUTES.borrower.lendersList}>
+            <Link href={getEditLendersLink(params.row.address)}>
               <Button
-                onClick={() => handleClickLender(params.row.address)}
                 variant="text"
                 size="small"
                 sx={{ color: COLORS.ultramarineBlue }}

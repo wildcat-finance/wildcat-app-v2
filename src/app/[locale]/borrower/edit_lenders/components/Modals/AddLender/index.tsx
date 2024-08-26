@@ -158,13 +158,7 @@ export const AddLenderModal = ({
                       borderRadius: "50%",
                     }}
                   />
-                  <Typography
-                    sx={{
-                      fontSize: "10px",
-                      lineHeight: "16px",
-                      color: COLORS.wildWatermelon,
-                    }}
-                  >
+                  <Typography variant="text4" color={COLORS.wildWatermelon}>
                     {errors.name?.message}
                   </Typography>
                 </Box>
@@ -180,13 +174,7 @@ export const AddLenderModal = ({
                       borderRadius: "50%",
                     }}
                   />
-                  <Typography
-                    sx={{
-                      fontSize: "10px",
-                      lineHeight: "16px",
-                      color: COLORS.wildWatermelon,
-                    }}
-                  >
+                  <Typography variant="text4" color={COLORS.wildWatermelon}>
                     {errors.address?.message}
                   </Typography>
                 </Box>
