@@ -83,13 +83,6 @@ export const EditLendersForm = ({
     return matchesAllMarkets && matchesSearchTerm
   })
 
-  // useEffect(
-  //   () => () => {
-  //     dispatch(resetEditLendersSlice())
-  //   },
-  //   [],
-  // )
-
   return (
     <>
       <Box sx={FiltersContainer}>
