@@ -24,6 +24,8 @@ import Filter from "@/assets/icons/filter_icon.svg"
 import Icon from "@/assets/icons/search_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
+import { useAppDispatch } from "@/store/hooks"
+import { setMarketFilter } from "@/store/slices/editLendersSlice/editLendersSlice"
 import { COLORS } from "@/theme/colors"
 
 import { FilterLenderSelectProps } from "./interface"
@@ -31,8 +33,9 @@ import { FilterLenderSelectProps } from "./interface"
 export const FilterLenderSelect = ({
   borrowerMarkets,
   selectedMarkets,
-  setSelectedMarkets,
 }: FilterLenderSelectProps) => {
+  const dispatch = useAppDispatch()
+
   const [marketName, setMarketName] = useState("")
   const allMarketsSelected = selectedMarkets.length === borrowerMarkets.length
 
@@ -49,11 +52,13 @@ export const FilterLenderSelect = ({
     market: MarketDataT,
   ) => {
     if (event.target.checked) {
-      setSelectedMarkets((prevItems) => [...prevItems, market])
+      dispatch(setMarketFilter([...selectedMarkets, market]))
     } else {
-      setSelectedMarkets((prevItems) =>
-        prevItems.filter(
-          (selectedItem) => selectedItem.address !== market.address,
+      dispatch(
+        setMarketFilter(
+          selectedMarkets.filter(
+            (selectedItem) => selectedItem.address !== market.address,
+          ),
         ),
       )
     }
@@ -63,20 +68,24 @@ export const FilterLenderSelect = ({
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     if (event.target.checked) {
-      setSelectedMarkets(borrowerMarkets)
+      dispatch(setMarketFilter(borrowerMarkets))
     } else {
-      setSelectedMarkets([])
+      dispatch(setMarketFilter([]))
     }
   }
 
   const handleDeleteMarket = (marketToDelete: string) => {
-    setSelectedMarkets((prevMarkets) =>
-      prevMarkets.filter((market) => market.address !== marketToDelete),
+    dispatch(
+      setMarketFilter(
+        selectedMarkets.filter(
+          (selectedItem) => selectedItem.address !== marketToDelete,
+        ),
+      ),
     )
   }
 
   const handleReset = () => {
-    setSelectedMarkets([])
+    dispatch(setMarketFilter([]))
   }
 
   return (

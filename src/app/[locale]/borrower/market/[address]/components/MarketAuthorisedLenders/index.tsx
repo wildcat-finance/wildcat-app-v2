@@ -27,6 +27,8 @@ import { Accordion } from "@/components/Accordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { EtherscanBaseUrl } from "@/config/network"
 import { ROUTES } from "@/routes"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { setMarketFilter } from "@/store/slices/editLendersSlice/editLendersSlice"
 import { COLORS } from "@/theme/colors"
 import {
   DATE_FORMAT,
@@ -46,6 +48,16 @@ import {
 export const MarketAuthorisedLenders = ({
   market,
 }: MarketAuthorisedLendersProps) => {
+  const dispatch = useAppDispatch()
+
+  const handleClickEditLenders = () => {
+    if (market) {
+      dispatch(
+        setMarketFilter([{ name: market.name, address: market.address }]),
+      )
+    }
+  }
+
   const hasMLA = 0 // test const for hoiding/showing MLA columns in table
 
   const [state, copyToClipboard] = useCopyToClipboard()
@@ -306,6 +318,7 @@ export const MarketAuthorisedLenders = ({
             </Typography>
             <Link href={ROUTES.borrower.lendersList}>
               <Button
+                onClick={handleClickEditLenders}
                 sx={{ border: "1px solid", borderColor: COLORS.whiteLilac }}
               >
                 {t("borrowerMarketDetails.authorisedLenders.buttons.editList")}

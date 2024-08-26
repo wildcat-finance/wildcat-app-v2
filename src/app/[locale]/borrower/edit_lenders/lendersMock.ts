@@ -43,6 +43,11 @@ export const mockLendersData: LendersDataT[] = [
     ],
   },
   {
+    isAuthorized: true,
+    address: "0xd69F2D0Cce7b7172793D66DA5fB3145dCd92F7F8",
+    markets: [],
+  },
+  {
     isAuthorized: false,
     address: "0x5F55005B15B9E00Ec52528fe672eb30f450151F5",
     markets: [

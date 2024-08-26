@@ -1,6 +1,18 @@
-import { ChangeEvent, Dispatch, SetStateAction, useState } from "react"
+import {
+  ChangeEvent,
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react"
 
-import { Box, InputAdornment, SvgIcon, TextField } from "@mui/material"
+import {
+  Box,
+  IconButton,
+  InputAdornment,
+  SvgIcon,
+  TextField,
+} from "@mui/material"
 
 import { EditLendersTable } from "@/app/[locale]/borrower/edit_lenders/components/EditLendersTable"
 import { FilterLenderSelect } from "@/app/[locale]/borrower/edit_lenders/components/MarketSelect/FilterLenderSelect"
@@ -11,7 +23,13 @@ import {
   FiltersContainer,
   SearchStyles,
 } from "@/app/[locale]/borrower/edit_lenders/style"
+import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import {
+  resetEditLendersSlice,
+  setLenderFilter,
+} from "@/store/slices/editLendersSlice/editLendersSlice"
 import { COLORS } from "@/theme/colors"
 
 export type EditLendersFormProps = {
@@ -27,12 +45,23 @@ export const EditLendersForm = ({
   setLendersNames,
   borrowerMarkets,
 }: EditLendersFormProps) => {
-  const [selectedMarkets, setSelectedMarkets] = useState<MarketDataT[]>([])
+  const dispatch = useAppDispatch()
 
-  const [lenderNameOrAddress, setLenderNameOrAddress] = useState("")
+  const selectedMarkets = useAppSelector(
+    (state) => state.editLenders.marketFilter,
+  )
+
+  const lenderNameOrAddress = useAppSelector(
+    (state) => state.editLenders.lenderFilter,
+  )
 
   const handleChangeLender = (evt: ChangeEvent<HTMLInputElement>) => {
-    setLenderNameOrAddress(evt.target.value)
+    dispatch(setLenderFilter(evt.target.value))
+  }
+
+  const handleClickEraseLender = (evt: React.MouseEvent) => {
+    evt.stopPropagation()
+    dispatch(setLenderFilter(""))
   }
 
   const filteredLenders = lendersRows.filter((lender) => {
@@ -54,11 +83,19 @@ export const EditLendersForm = ({
     return matchesAllMarkets && matchesSearchTerm
   })
 
+  // useEffect(
+  //   () => () => {
+  //     dispatch(resetEditLendersSlice())
+  //   },
+  //   [],
+  // )
+
   return (
     <>
       <Box sx={FiltersContainer}>
         <Box display="flex" gap="4px">
           <TextField
+            value={lenderNameOrAddress}
             onChange={handleChangeLender}
             size="small"
             placeholder="Search"
@@ -77,13 +114,34 @@ export const EditLendersForm = ({
                   </SvgIcon>
                 </InputAdornment>
               ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={handleClickEraseLender}
+                    disableRipple
+                    sx={{
+                      padding: "0 2px 0 0",
+                      "& path": {
+                        fill: `${COLORS.greySuit}`,
+                        transition: "fill 0.2s",
+                      },
+                      "& :hover": {
+                        "& path": { fill: `${COLORS.santasGrey}` },
+                      },
+                    }}
+                  >
+                    <SvgIcon fontSize="small">
+                      <Cross />
+                    </SvgIcon>
+                  </IconButton>
+                </InputAdornment>
+              ),
             }}
           />
 
           <FilterLenderSelect
             borrowerMarkets={borrowerMarkets ?? []}
             selectedMarkets={selectedMarkets}
-            setSelectedMarkets={setSelectedMarkets}
           />
         </Box>
 

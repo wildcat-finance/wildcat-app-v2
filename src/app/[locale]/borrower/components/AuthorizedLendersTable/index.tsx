@@ -5,16 +5,22 @@ import {
   Accordion,
   AccordionSummary,
   Box,
+  Button,
   Skeleton,
   Typography,
 } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import Link from "next/link"
 
+import { MarketDataT } from "@/app/[locale]/borrower/edit_lenders/lendersMock"
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import { MarketWithdrawalRequetstCell } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/style"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
+import { ROUTES } from "@/routes"
+import { useAppDispatch } from "@/store/hooks"
+import { setLenderFilter } from "@/store/slices/editLendersSlice/editLendersSlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
@@ -26,6 +32,12 @@ export const LendersTable = ({
   isOpen,
   isLoading,
 }: LendersTableProps) => {
+  const dispatch = useAppDispatch()
+
+  const handleClickLender = (lenderAddress: string) => {
+    dispatch(setLenderFilter(lenderAddress))
+  }
+
   const [lendersNames, setLendersNames] = useState<{ [key: string]: string }>(
     (() => {
       const storedNames = JSON.parse(
@@ -43,12 +55,12 @@ export const LendersTable = ({
 
   const rows = tableData.map((lender) => ({
     id: lender.address,
-    authorized: lender.isAuth,
+    authorized: lender.isAuthorized,
     name: (() => {
       const correctLender = lendersNames[lender.address.toLowerCase()] || ""
       return { name: correctLender, address: lender }
     })(),
-    walletAddress: lender.address,
+    address: lender.address,
     markets: lender.markets,
   }))
 
@@ -72,7 +84,7 @@ export const LendersTable = ({
     },
     {
       sortable: false,
-      field: "walletAddress",
+      field: "address",
       headerName: "Wallet Address",
       minWidth: 176,
       headerAlign: "left",
@@ -99,16 +111,38 @@ export const LendersTable = ({
       headerAlign: "left",
       align: "left",
       flex: 4,
-      renderCell: ({ value }) => (
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-          {value.map((market: { marketName: string; address: string }) => (
-            <LendersMarketChip
-              marketName={market.marketName}
-              width="fit-content"
-            />
-          ))}
-        </Box>
-      ),
+      renderCell: (params) =>
+        !params.value.length ? (
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="text3" color={COLORS.santasGrey}>
+              No markets yet
+            </Typography>
+
+            <Link href={ROUTES.borrower.lendersList}>
+              <Button
+                onClick={() => handleClickLender(params.row.address)}
+                variant="text"
+                size="small"
+                sx={{ color: COLORS.ultramarineBlue }}
+              >
+                Add markets
+              </Button>
+            </Link>
+          </Box>
+        ) : (
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+            {params.value.map((market: MarketDataT) => (
+              <LendersMarketChip marketName={market.name} width="fit-content" />
+            ))}
+          </Box>
+        ),
     },
   ]
 

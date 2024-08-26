@@ -1,10 +1,8 @@
+import { LendersDataT } from "@/app/[locale]/borrower/edit_lenders/lendersMock"
+
 export type LendersTableProps = {
   label: string
-  tableData: {
-    isAuth: boolean
-    address: string
-    markets: { marketName: string; address: string }[]
-  }[]
+  tableData: LendersDataT[]
   isOpen?: boolean
   isLoading: boolean
 }

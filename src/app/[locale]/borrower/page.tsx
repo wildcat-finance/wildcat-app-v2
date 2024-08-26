@@ -9,11 +9,11 @@ import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { LendersTable } from "@/app/[locale]/borrower/components/AuthorizedLendersTable"
+import { mockLendersData } from "@/app/[locale]/borrower/edit_lenders/lendersMock"
 import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { LeadBanner } from "@/components/LeadBanner"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetController } from "@/hooks/useGetController"
-import { mockLendersData } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
 import { useAppSelector } from "@/store/hooks"
 import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
@@ -122,8 +122,12 @@ export default function Borrower() {
     setTab(newTab)
   }
 
-  const authorizedLenders = mockLendersData.filter((lender) => lender.isAuth)
-  const deauthorizedLenders = mockLendersData.filter((lender) => !lender.isAuth)
+  const authorizedLenders = mockLendersData.filter(
+    (lender) => lender.isAuthorized,
+  )
+  const deauthorizedLenders = mockLendersData.filter(
+    (lender) => !lender.isAuthorized,
+  )
 
   return (
     <Box

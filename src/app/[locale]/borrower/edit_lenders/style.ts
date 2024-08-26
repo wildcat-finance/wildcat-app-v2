@@ -20,4 +20,11 @@ export const FiltersContainer = {
   marginTop: "25px",
 }
 
-export const SearchStyles = { width: "180px", marginRight: "6px" }
+export const SearchStyles = {
+  width: "180px",
+  marginRight: "6px",
+
+  "& .MuiInputBase-root": {
+    paddingRight: "8px",
+  },
+}

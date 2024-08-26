@@ -1,31 +1,38 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import * as React from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { useAccount } from "wagmi"
 
 import { ConfirmTable } from "@/app/[locale]/borrower/edit_lenders/components/ConfirmTable"
 import { useMarketsForBorrower } from "@/app/[locale]/borrower/hooks/useMarketsForBorrower"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import {
+  resetEditLendersSlice,
+  setEditStep,
+} from "@/store/slices/editLendersSlice/editLendersSlice"
 import { COLORS } from "@/theme/colors"
 
 import { EditLendersForm } from "./components/EditForm"
 import { LenderTableT } from "./interface"
 import { mockLendersData } from "./lendersMock"
-import { AlertContainer, TitleContainer } from "./style"
+import { AlertContainer, FiltersContainer, TitleContainer } from "./style"
 
 export default function EditLendersPage() {
-  const [step, setStep] = useState<"edit" | "confirm">("edit")
+  const dispatch = useAppDispatch()
+  const step = useAppSelector((state) => state.editLenders.step)
 
-  const handleClickSumbit = () => {
-    setStep("confirm")
+  const handleClickConfirm = () => {
+    dispatch(setEditStep("confirm"))
   }
 
-  const handleClickBack = () => {
-    setStep("edit")
+  const handleClickEdit = () => {
+    dispatch(setEditStep("edit"))
   }
 
-  const { data: allMarkets } = useMarketsForBorrower()
+  const { data: allMarkets, isLoading } = useMarketsForBorrower()
   const { address } = useAccount()
   const activeBorrowerMarkets = allMarkets
     ?.filter(
@@ -89,7 +96,59 @@ export default function EditLendersPage() {
           </Typography>
         </Box>
 
-        {step === "edit" && (
+        {isLoading && (
+          <>
+            <Box sx={FiltersContainer}>
+              <Box display="flex" gap="4px">
+                <Skeleton
+                  sx={{ bgcolor: COLORS.athensGrey }}
+                  width="180px"
+                  height="32px"
+                />
+                <Skeleton
+                  sx={{ bgcolor: COLORS.athensGrey }}
+                  width="220px"
+                  height="32px"
+                />
+              </Box>
+              <Skeleton
+                sx={{ bgcolor: COLORS.athensGrey, borderRadius: "8px" }}
+                width="98px"
+                height="32px"
+              />
+            </Box>
+
+            <Box
+              display="flex"
+              flexDirection="column"
+              rowGap="8px"
+              marginTop="20px"
+            >
+              <Skeleton
+                height="52px"
+                width="100%"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+              <Skeleton
+                height="52px"
+                width="100%"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+              <Skeleton
+                height="52px"
+                width="100%"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+              <Skeleton
+                height="52px"
+                width="100%"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+            </Box>
+          </>
+        )}
+
+        {step === "edit" && !isLoading && (
           <EditLendersForm
             lendersRows={lendersRows}
             setLendersRows={setLendersRows}
@@ -105,36 +164,38 @@ export default function EditLendersPage() {
           />
         )}
 
-        <Box
-          sx={{
-            margin: "auto 0 0 0",
-            paddingTop: "20px",
-            display: "flex",
-            justifyContent: "space-between",
-          }}
-        >
-          {step === "confirm" ? (
+        {!isLoading && (
+          <Box
+            sx={{
+              margin: "auto 0 0 0",
+              paddingTop: "20px",
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
+            {step === "confirm" ? (
+              <Button
+                variant="text"
+                size="large"
+                sx={{ width: "140px" }}
+                onClick={handleClickEdit}
+              >
+                Back
+              </Button>
+            ) : (
+              <Box />
+            )}
+
             <Button
-              variant="text"
+              variant="contained"
               size="large"
               sx={{ width: "140px" }}
-              onClick={handleClickBack}
+              onClick={handleClickConfirm}
             >
-              Back
+              {step === "confirm" ? "Confirm" : "Sumbit"}
             </Button>
-          ) : (
-            <Box />
-          )}
-
-          <Button
-            variant="contained"
-            size="large"
-            sx={{ width: "140px" }}
-            onClick={handleClickSumbit}
-          >
-            {step === "confirm" ? "Confirm" : "Sumbit"}
-          </Button>
-        </Box>
+          </Box>
+        )}
       </Box>
     </Box>
   )
