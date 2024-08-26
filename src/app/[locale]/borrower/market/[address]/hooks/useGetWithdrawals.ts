@@ -9,9 +9,9 @@ import {
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
 import {
-  GetAllPendingWithdrawalBatchesForMarketDocument,
-  SubgraphGetAllPendingWithdrawalBatchesForMarketQuery,
-  SubgraphGetAllPendingWithdrawalBatchesForMarketQueryVariables,
+  GetIncompleteWithdrawalsForMarketDocument,
+  SubgraphGetIncompleteWithdrawalsForMarketQuery,
+  SubgraphGetIncompleteWithdrawalsForMarketQueryVariables,
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 
@@ -22,52 +22,93 @@ import { SubgraphClient } from "@/config/subgraph"
 export type BorrowerWithdrawalsForMarketResult = {
   activeWithdrawal: WithdrawalBatch | undefined
   expiredPendingWithdrawals: WithdrawalBatch[]
+  batchesWithClaimableWithdrawals: WithdrawalBatch[]
   expiredWithdrawalsTotalOwed: TokenAmount
   activeWithdrawalsTotalOwed: TokenAmount
+  claimableWithdrawalsAmount: TokenAmount
+  incompleteBatches: WithdrawalBatch[]
 }
+
+function processIncompleteWithdrawals(
+  market: Market,
+  incompleteBatches: WithdrawalBatch[],
+) {
+  const pendingBatches = incompleteBatches.filter((batch) => !batch.isClosed)
+  const activeWithdrawal = pendingBatches.find(
+    (batch) => batch.expiry === market.pendingWithdrawalExpiry,
+  )
+  const expiredPendingWithdrawals = pendingBatches.filter(
+    (batch) => batch.expiry !== market.pendingWithdrawalExpiry,
+  )
+  const expiredWithdrawalsTotalOwed = expiredPendingWithdrawals.reduce(
+    (acc, batch) => acc.add(batch.normalizedAmountOwed),
+    market.underlyingToken.getAmount(0),
+  )
+  const activeWithdrawalsTotalOwed =
+    activeWithdrawal?.normalizedTotalAmount ??
+    market.underlyingToken.getAmount(0)
+  const batchesWithClaimableWithdrawals = incompleteBatches.filter(
+    (batch) =>
+      batch.status > 1 &&
+      batch.withdrawals.some((w) => w.availableWithdrawalAmount.gt(0)),
+  )
+  const claimableWithdrawalsAmount = batchesWithClaimableWithdrawals.reduce(
+    (acc, batch) =>
+      acc.add(
+        batch.withdrawals.reduce(
+          (sum, w) => sum.add(w.availableWithdrawalAmount),
+          market.underlyingToken.getAmount(0),
+        ),
+      ),
+    market.underlyingToken.getAmount(0),
+  )
+  return {
+    activeWithdrawal,
+    expiredPendingWithdrawals,
+    expiredWithdrawalsTotalOwed,
+    activeWithdrawalsTotalOwed,
+    batchesWithClaimableWithdrawals,
+    claimableWithdrawalsAmount,
+    incompleteBatches,
+  }
+}
+
 export const GET_WITHDRAWALS_KEY = "get_market_withdrawals"
 
 export function useGetWithdrawals(
   market: Market | undefined,
 ): TwoStepQueryHookResult<BorrowerWithdrawalsForMarketResult> {
   const address = market?.address.toLowerCase()
-  async function getAllPendingWithdrawalBatches() {
+  async function getAllPendingWithdrawalBatches(): Promise<BorrowerWithdrawalsForMarketResult> {
     if (!address || !market) throw Error()
     logger.debug(`Getting withdrawal batches...`)
     const result = await SubgraphClient.query<
-      SubgraphGetAllPendingWithdrawalBatchesForMarketQuery,
-      SubgraphGetAllPendingWithdrawalBatchesForMarketQueryVariables
+      SubgraphGetIncompleteWithdrawalsForMarketQuery,
+      SubgraphGetIncompleteWithdrawalsForMarketQueryVariables
     >({
-      query: GetAllPendingWithdrawalBatchesForMarketDocument,
+      query: GetIncompleteWithdrawalsForMarketDocument,
       variables: { market: address },
     })
     logger.debug(
       `Got withdrawal batches: ${result.data.market?.withdrawalBatches.length}`,
     )
-    const withdrawalBatches =
+    const incompleteBatches =
       result.data.market?.withdrawalBatches.map((batch) =>
         WithdrawalBatch.fromSubgraphWithdrawalBatch(market, batch),
       ) ?? []
-    const activeWithdrawal = withdrawalBatches.find(
-      (batch) => batch.expiry === market.pendingWithdrawalExpiry,
-    )
-    const expiredPendingWithdrawals = withdrawalBatches.filter(
-      (batch) => batch.expiry !== market.pendingWithdrawalExpiry,
-    )
-    const expiredWithdrawalsTotalOwed = expiredPendingWithdrawals.reduce(
-      (acc, batch) => acc.add(batch.normalizedAmountOwed),
-      market.underlyingToken.getAmount(0),
-    )
-    const activeWithdrawalsTotalOwed =
-      activeWithdrawal?.normalizedTotalAmount ??
-      market.underlyingToken.getAmount(0)
 
-    return {
-      activeWithdrawal,
-      expiredPendingWithdrawals,
-      expiredWithdrawalsTotalOwed,
-      activeWithdrawalsTotalOwed,
-    }
+    incompleteBatches.forEach((batch) => {
+      if (batch.requests.length)
+        batch.withdrawals.forEach((withdrawal) => {
+          if (!withdrawal.requests.length) {
+            withdrawal.requests = batch.requests.filter(
+              (request) => request.address === withdrawal.lender,
+            )
+          }
+        })
+    })
+
+    return processIncompleteWithdrawals(market, incompleteBatches)
   }
   const {
     data,
@@ -84,27 +125,28 @@ export function useGetWithdrawals(
     refetchOnMount: false,
   })
 
-  const withdrawals = data ?? {
-    activeWithdrawal: undefined,
-    expiredPendingWithdrawals: [],
-    expiredWithdrawalsTotalOwed: market?.underlyingToken.getAmount(0),
-    activeWithdrawalsTotalOwed: market?.underlyingToken.getAmount(0),
-  }
-  async function getUpdatedBatches() {
+  const withdrawals =
+    data ??
+    ({
+      activeWithdrawal: undefined,
+      expiredPendingWithdrawals: [],
+      expiredWithdrawalsTotalOwed: market?.underlyingToken.getAmount(0),
+      activeWithdrawalsTotalOwed: market?.underlyingToken.getAmount(0),
+      batchesWithClaimableWithdrawals: [],
+      incompleteBatches: [],
+      claimableWithdrawalsAmount: market?.underlyingToken.getAmount(0),
+    } as BorrowerWithdrawalsForMarketResult)
+  async function getUpdatedBatches(): Promise<BorrowerWithdrawalsForMarketResult> {
     if (!address || !market) throw Error()
     logger.debug(`Getting batch updates...`)
     const lens = getLensContract(TargetChainId, market.provider)
-    const pendingWithdrawals = [
-      ...(withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []),
-      ...(withdrawals.expiredPendingWithdrawals ?? []),
-    ]
     const batchUpdates = await lens.getWithdrawalBatchesData(
       address,
-      pendingWithdrawals.map((x) => x.expiry),
+      withdrawals.incompleteBatches.map((x) => x.expiry),
     )
     // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < pendingWithdrawals.length; i++) {
-      const batch = pendingWithdrawals[i]
+    for (let i = 0; i < withdrawals.incompleteBatches.length; i++) {
+      const batch = withdrawals.incompleteBatches[i]
       const update = batchUpdates[i]
       logger.debug(
         `Batch last update: ${batch.lastUpdatedTimestamp} | Market last update: ${market.lastInterestAccruedTimestamp}`,
@@ -132,7 +174,9 @@ export function useGetWithdrawals(
         `New batch interest: ${batch.totalInterestEarned?.format(18, true)}`,
       )
     }
-    logger.debug(`Got withdrawal batch updates: ${pendingWithdrawals.length}`)
+    logger.debug(
+      `Got withdrawal batch updates: ${withdrawals.incompleteBatches.length}`,
+    )
     const expiredWithdrawalsTotalOwed = (
       withdrawals.expiredPendingWithdrawals as WithdrawalBatch[]
     ).reduce(
@@ -143,11 +187,29 @@ export function useGetWithdrawals(
       withdrawals.activeWithdrawal?.normalizedTotalAmount ??
       market.underlyingToken.getAmount(0)
 
+    const batchesWithClaimableWithdrawals =
+      withdrawals.incompleteBatches.filter(
+        (batch) =>
+          batch.status > 1 &&
+          batch.withdrawals.some((w) => w.availableWithdrawalAmount.gt(0)),
+      )
+    const claimableWithdrawalsAmount = batchesWithClaimableWithdrawals.reduce(
+      (acc, batch) =>
+        acc.add(
+          batch.withdrawals.reduce(
+            (sum, w) => sum.add(w.availableWithdrawalAmount),
+            market.underlyingToken.getAmount(0),
+          ),
+        ),
+      market.underlyingToken.getAmount(0),
+    )
+
     return {
-      activeWithdrawal: withdrawals.activeWithdrawal,
-      expiredPendingWithdrawals: withdrawals.expiredPendingWithdrawals,
+      ...withdrawals,
       expiredWithdrawalsTotalOwed,
       activeWithdrawalsTotalOwed,
+      batchesWithClaimableWithdrawals,
+      claimableWithdrawalsAmount,
     }
   }
 

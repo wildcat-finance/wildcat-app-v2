@@ -164,7 +164,7 @@ export default function Borrower() {
                 : ROUTES.borrower.lendersList
             }
           >
-            <Button variant="contained" size="small" disabled={isWrongNetwork}>
+            <Button variant="contained" size="small" disabled={isWrongNetwork} sx={{ paddingTop: "8px", paddingBottom: "8px" }}>
               {tab === "markets"
                 ? `${t("borrowerMarketList.button.newMarket")}`
                 : "Edit Lender list"}

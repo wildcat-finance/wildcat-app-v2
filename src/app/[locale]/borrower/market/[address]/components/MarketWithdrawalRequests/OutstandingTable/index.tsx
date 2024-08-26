@@ -6,11 +6,12 @@ import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { TokenAmount, WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
 
-import { WithdrawalTxRow } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/interface"
-import { DataGridCells } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/style"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
+
+import { WithdrawalTxRow } from "../interface"
+import { DataGridCells } from "../style"
 
 export type OngoingTableProps = {
   withdrawalBatches: WithdrawalBatch[]

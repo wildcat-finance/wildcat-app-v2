@@ -4,6 +4,7 @@ import { Box, IconButton, Link, SvgIcon, Typography } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import { useTranslation } from "react-i18next"
 
+import { ClaimableTable } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/ClaimableTable"
 import { OngoingTable } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/OngoingTable"
 import { OutstandingTable } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/OutstandingTable"
 import { RepayModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/RepayModal"
@@ -151,9 +152,15 @@ export const MarketWithdrawalRequests = ({
         columns={columns}
       />
 
+      <ClaimableTable
+        withdrawalBatches={data.batchesWithClaimableWithdrawals ?? []}
+        totalAmount={data.claimableWithdrawalsAmount}
+        columns={columns}
+      />
+
       <OutstandingTable
         columns={columns}
-        withdrawalBatches={data?.expiredPendingWithdrawals ?? []}
+        withdrawalBatches={data?.batchesWithClaimableWithdrawals ?? []}
         totalAmount={data.expiredWithdrawalsTotalOwed}
         isIncurringPenalties={
           market.isDelinquent || market.isIncurringPenalties

@@ -7,10 +7,13 @@ export const DateCalendarContainer = {
 }
 
 export const DateCalendarTextField = {
-  height: "44px",
   "& .MuiInputBase-root": {
+    borderRadius: "10px",
     width: "274px",
-    height: "44px",
+  },
+
+  "& .MuiInputBase-input": {
+    padding: "16px",
   },
 }
 
