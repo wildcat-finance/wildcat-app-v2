@@ -11,14 +11,24 @@ import {
 
 export const TxModalHeader = ({
   title,
+  children,
   tooltip,
   arrowOnClick,
   crossOnClick,
 }: TxModalHeaderProps) => (
   <>
-    <Box sx={TxModalHeaderContainer}>
+    <Box
+      sx={{
+        ...TxModalHeaderContainer,
+        alignItems: children ? "flex-start" : "center",
+      }}
+    >
       {arrowOnClick ? (
-        <IconButton disableRipple onClick={arrowOnClick}>
+        <IconButton
+          disableRipple
+          onClick={arrowOnClick}
+          sx={{ height: children ? "32px" : "fit-content" }}
+        >
           <SvgIcon fontSize="big">
             <Arrow />
           </SvgIcon>
@@ -27,9 +37,20 @@ export const TxModalHeader = ({
         <Box height="20px" width="20px" />
       )}
 
-      <Box display="flex" alignItems="center" gap="8px">
-        <Typography variant="title3">{title}</Typography>
-        {tooltip && <TooltipButton value={tooltip} size="big" />}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Box display="flex" alignItems="center" gap="8px">
+          <Typography variant="title3">{title}</Typography>
+          {tooltip && <TooltipButton value={tooltip} size="big" />}
+        </Box>
+
+        {children}
       </Box>
 
       {crossOnClick ? (

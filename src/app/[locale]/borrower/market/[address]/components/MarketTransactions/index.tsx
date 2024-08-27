@@ -11,11 +11,6 @@ import {
 } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
-import {} from "@/app/[locale]/borrower/market/[address]/components/MarketHeader/style"
-import { BorrowModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/BorrowModal"
-import { CapacityModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/CapacityModal"
-import { RepayModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/RepayModal"
-import { StatementModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/StatementModal"
 import DocsIcon from "@/assets/icons/docs_icon.svg"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { formatTokenWithCommas } from "@/utils/formatters"
@@ -28,6 +23,11 @@ import {
   MarketTxUpperButtonsContainer,
   MenuItemButton,
 } from "./style"
+import { AprModal } from "../Modals/AprModal"
+import { BorrowModal } from "../Modals/BorrowModal"
+import { CapacityModal } from "../Modals/CapacityModal"
+import { RepayModal } from "../Modals/RepayModal"
+import { StatementModal } from "../Modals/StatementModal"
 
 export const MarketTransactions = ({
   market,
@@ -59,14 +59,7 @@ export const MarketTransactions = ({
           {/*  {t("borrowerMarketDetails.buttons.mla")} */}
           {/* </Button> */}
           <CapacityModal marketAccount={marketAccount} />
-          <Button
-            variant="outlined"
-            color="secondary"
-            size="small"
-            disabled={market.isClosed}
-          >
-            {t("borrowerMarketDetails.buttons.apr")}
-          </Button>
+          <AprModal marketAccount={marketAccount} />
           <Button
             variant="outlined"
             color="secondary"

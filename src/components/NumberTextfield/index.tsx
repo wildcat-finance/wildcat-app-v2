@@ -13,6 +13,7 @@ type NumberTextFieldProps = Omit<
   error?: boolean
   helperText?: string
   size?: TextFieldProps["size"]
+  sx?: TextFieldProps["sx"]
 }
 
 export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
@@ -27,6 +28,7 @@ export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
       helperText,
       decimalScale = 5,
       size,
+      sx,
       ...rest
     } = props
 
@@ -34,6 +36,7 @@ export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
       <NumericFormat
         customInput={TextField}
         {...{
+          sx,
           label,
           error,
           helperText,
