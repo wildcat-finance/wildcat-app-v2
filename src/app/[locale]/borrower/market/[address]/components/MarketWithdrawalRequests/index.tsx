@@ -155,12 +155,11 @@ export const MarketWithdrawalRequests = ({
       <ClaimableTable
         withdrawalBatches={data.batchesWithClaimableWithdrawals ?? []}
         totalAmount={data.claimableWithdrawalsAmount}
-        columns={columns}
       />
 
       <OutstandingTable
         columns={columns}
-        withdrawalBatches={data?.batchesWithClaimableWithdrawals ?? []}
+        withdrawalBatches={data?.expiredPendingWithdrawals ?? []}
         totalAmount={data.expiredWithdrawalsTotalOwed}
         isIncurringPenalties={
           market.isDelinquent || market.isIncurringPenalties
