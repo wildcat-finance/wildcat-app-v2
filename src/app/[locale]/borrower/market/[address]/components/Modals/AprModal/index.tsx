@@ -284,10 +284,10 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 <NumberTextField
                   min={0}
                   max={100}
-                  label={`${formatBps(
+                  label={formatBps(
                     market.annualInterestBips,
                     MARKET_PARAMS_DECIMALS.annualInterestBips,
-                  )}%`}
+                  )}
                   size="medium"
                   sx={{
                     width: "100%",
