@@ -10,7 +10,7 @@ import NotificationsRead from "@/assets/icons/notifications_read.svg"
 import { COLORS } from "@/theme/colors"
 
 export const NotificationButton = () => {
-  const { hasUnread } = { hasUnread: false }
+  const { hasUnread } = { hasUnread: true }
 
   const [open, setOpen] = useState(false)
 
@@ -29,15 +29,15 @@ export const NotificationButton = () => {
   return (
     <>
       <Button size="medium" sx={ButtonStyle} onClick={handleClickOpen}>
-        {!hasUnread ? (
+        {hasUnread ? (
           <NotificationsUnread />
         ) : (
           <NotificationsRead style={{ stroke: COLORS.white }} />
         )}
-        {!hasUnread && <div style={DotStyle} />}
+        {hasUnread && <div style={DotStyle} />}
       </Button>
 
-      {!hasUnread ? (
+      {hasUnread ? (
         <UnreadDialog open={open} handleClose={handleClose} />
       ) : (
         <NoUnreadDialog open={open} handleClose={handleClose} />

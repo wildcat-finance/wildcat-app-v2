@@ -25,6 +25,8 @@ import { WagmiQueryProviders } from "@/providers/WagmiQueryProviders"
 
 import i18nConfig from "../../../i18nConfig"
 
+import { Toaster } from 'react-hot-toast';
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -50,6 +52,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} dir={dir(locale)}>
       <body className={inter.className}>
+        <Toaster position="bottom-center" />
         <WagmiQueryProviders initialState={initialState}>
           <SafeProvider>
             <RedirectsProvider>

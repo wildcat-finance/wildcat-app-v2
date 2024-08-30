@@ -22,7 +22,8 @@
       "markAsRead": "Mark as Read",
       "all": "All",
       "marketActivity": "Market Activity",
-      "newLenders": "New Lenders"
+      "newLenders": "New Lenders",
+      "viewAll": "View All"
     }
   },
   "footer": {
@@ -330,6 +331,14 @@
       "back": "Back",
       "next": "Next",
       "confirm": "Confirm"
+    }
+  },
+  "notifications": {
+    "sidebar": {
+      "back": "Back",
+      "all": "All",
+      "marketActivity": "Market Activity",
+      "newLenders": "New Lenders"
     }
   }
 }

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { AllMarketsSidebar } from "@/components/Sidebar/AllMarketsSidebar"
 import { MarketSidebar } from "@/components/Sidebar/MarketSidebar"
 import { NewMarketSidebar } from "@/components/Sidebar/NewMarketSidebar"
+import { NotificationsSidebar } from "@/components/Sidebar/NotificationsSidebar"
 import { ROUTES } from "@/routes"
 
 export const Sidebar = () => {
@@ -22,6 +23,7 @@ export const Sidebar = () => {
       {pathname === ROUTES.borrower.root && <AllMarketsSidebar />}
       {pathname.includes(ROUTES.borrower.market) && <MarketSidebar />}
       {pathname === ROUTES.borrower.newMarket && <NewMarketSidebar />}
+      {pathname === ROUTES.borrower.notifications && <NotificationsSidebar />}
     </Box>
   )
 }

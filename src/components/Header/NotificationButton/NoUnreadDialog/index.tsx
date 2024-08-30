@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { ROUTES } from "@/routes"
+import Link from "next/link"
 
 import {
   Box,
@@ -12,7 +14,9 @@ import {
   
 import {
   DialogContainer,
-  IconContainer
+  IconContainer,
+  ButtonStyle,
+  MessageStyle
 } from "@/components/Header/NotificationButton/NoUnreadDialog/style"
 
 import { NoUnreadDialogProps } from "@/components/Header/NotificationButton/NoUnreadDialog/type"
@@ -33,12 +37,14 @@ export const NoUnreadDialog = ({
       <Typography variant="text1">
         {t("header.notifications.noNewNotifications")}
       </Typography>
-      <Typography variant="text3" sx={{ color: COLORS.greySuit, width:"178px", marginX:"auto" }}>
+      <Typography variant="text3" sx={MessageStyle}>
         {t("header.notifications.anyOtherMessage")}
       </Typography>
-      <Button variant="contained" color="secondary" sx={{ width: "140px", marginTop: "14px", marginX: "auto" }}>
-        {t("header.notifications.viewEarlier")}
-      </Button>
+      <Link href={ROUTES.borrower.notifications} passHref>
+        <Button variant="contained" color="secondary" sx={ButtonStyle} onClick={handleClose}>
+          {t("header.notifications.viewEarlier")}
+        </Button>
+      </Link>
     </Dialog>
   )
 }

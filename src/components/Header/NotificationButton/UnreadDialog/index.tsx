@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import Link from "next/link"
+import { ROUTES } from "@/routes"
+import { toastSuccess } from "@/components/Toasts/index"
 
 import {
   Box,
@@ -14,12 +17,18 @@ import {
 } from "@mui/material"
   
 import {
-  DialogContainer
+  DialogContainer,
+  TabStyle,
+  DividerStyle,
+  ButtonStyle,
+  LinkStyle
 } from "@/components/Header/NotificationButton/UnreadDialog/style"
 
 import { UnreadDialogProps } from "@/components/Header/NotificationButton/UnreadDialog/type"
 import { COLORS } from "@/theme/colors"
-import { toastifyRequest } from "@/components/toasts/index"
+
+// Placeholder for testing
+const notify = () => toastSuccess('Wildcat 1 is registered')
 
 export const UnreadDialog = ({
   open,
@@ -32,18 +41,8 @@ export const UnreadDialog = ({
     setValue(newValue);
   };
 
-  // Show a toast notification when the user clicks the "Mark as read" button
   const handleMarkAsRead = async () => {
-    await toastifyRequest(
-      new Promise((resolve) => { setTimeout(resolve, 1000) }).then((res) => {
-        console.log("Mark as read successful")
-      }),
-      {
-        pending: `Waiting for signature...`,
-        success: `Service agreement signed!`,
-        error: `Failed to sign service agreement!`,
-      },
-    )
+    notify()
   }
   
   return (
@@ -57,18 +56,32 @@ export const UnreadDialog = ({
         </Button>
       </Box>
       <Tabs value={value} onChange={handleChange} sx={{ marginTop: "16px" }}>
-        <Tab value={0} style={{ minWidth:"20px", marginRight: "12px", borderBottom: "none", color: COLORS.greySuit }} label={<Typography variant="text3" color={value == 0 ? COLORS.black : COLORS.greySuit}>{t("header.notifications.all")}</Typography>} />
-        <Tab value={1} style={{ minWidth:"20px", marginRight: "12px", borderBottom: "none", color: COLORS.greySuit }} label={<Typography variant="text3" color={value == 1 ? COLORS.black : COLORS.greySuit}>{t("header.notifications.marketActivity")}</Typography>} />
-        <Tab value={2} style={{ minWidth:"20px", marginRight: "12px", borderBottom: "none", color: COLORS.greySuit }} label={<Typography variant="text3" color={value == 2 ? COLORS.black : COLORS.greySuit}>{t("header.notifications.newLenders")}</Typography>} />
+        <Tab value={0} style={TabStyle} label={
+          <Typography variant="text3" color={value == 0 ? COLORS.black : COLORS.greySuit}>
+            {t("header.notifications.all")}
+          </Typography>} 
+        />
+        <Tab value={1} style={TabStyle} label={
+          <Typography variant="text3" color={value == 1 ? COLORS.black : COLORS.greySuit}>
+            {t("header.notifications.marketActivity")}
+          </Typography>} 
+        />
+        <Tab value={2} style={TabStyle} label={
+          <Typography variant="text3" color={value == 2 ? COLORS.black : COLORS.greySuit}>
+            {t("header.notifications.newLenders")}
+          </Typography>} 
+        />
       </Tabs>
       <Divider sx={{ marginX: "-20px", marginY: "-1px" }} />
       <div style={{ height: "128px" }}>
 
       </div>
       <Divider sx={{ marginX: "-20px", marginY: "-1px" }} />
-      <Button size="small" variant="text" color="secondary" sx={{ width: "140px", marginTop: "12px", marginBottom: "-10px", marginX: "auto" }}>
-        View All
-      </Button>
+      <Link href={ROUTES.borrower.notifications} passHref style={LinkStyle}>
+        <Button size="small" variant="text" color="secondary" sx={ButtonStyle} onClick={handleClose}>
+          {t("header.notifications.viewAll")}
+        </Button>
+      </Link>
     </Dialog>
   )
 }

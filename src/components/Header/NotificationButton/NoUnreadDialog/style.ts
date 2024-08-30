@@ -26,3 +26,15 @@ export const IconContainer = {
   marginX: "auto",
   marginBottom: "14px"
 }
+
+export const ButtonStyle = {
+  width: "140px",
+  marginTop: "14px",
+  marginX: "auto",
+}
+
+export const MessageStyle = {
+  color: COLORS.greySuit,
+  width: "178px",
+  marginX: "auto",
+}
