@@ -84,7 +84,8 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
       {!market.isDelinquent &&
         !market.isClosed &&
         !market.isIncurringPenalties &&
-        market.totalDebts.gt(0) && (
+        market.totalDebts.gt(0) &&
+        !market.temporaryReserveRatio && (
           <Box sx={{ display: "flex", columnGap: "3px", marginBottom: "24px" }}>
             <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
               Market has sufficient reserves to cover interest for

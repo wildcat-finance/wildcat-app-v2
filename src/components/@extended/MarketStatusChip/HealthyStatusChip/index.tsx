@@ -14,7 +14,10 @@ const ClockIcon = () => (
   </SvgIcon>
 )
 
-export const HealthyStatusChip = ({ msLeft }: HealthyStatusChipProps) => {
+export const HealthyStatusChip = ({
+  msLeft,
+  market,
+}: HealthyStatusChipProps) => {
   const daysLeft = Number(
     humanizeDuration(msLeft || 0, {
       round: false,
@@ -52,7 +55,7 @@ export const HealthyStatusChip = ({ msLeft }: HealthyStatusChipProps) => {
         }}
       />
 
-      {msLeft && (
+      {msLeft && market && !market.temporaryReserveRatio && (
         <Chip
           label={additionalChipConfig.label}
           icon={additionalChipConfig.icon}

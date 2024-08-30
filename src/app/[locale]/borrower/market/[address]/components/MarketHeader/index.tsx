@@ -1,12 +1,14 @@
 import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Chip, Typography } from "@mui/material"
+import dayjs from "dayjs"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
+import { COLORS } from "@/theme/colors"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 
 import { MarketHeaderProps } from "./interface"
@@ -61,6 +63,10 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
 
   const marketStatus = getMarketStatusChip(market)
 
+  const reserveRatioExpiry = dayjs(
+    market.temporaryReserveRatioExpiry * 1000,
+  ).format("DD/MM/YYYY")
+
   return (
     <Box sx={MarketHeaderUpperContainer}>
       <Box sx={MarketHeaderTitleContainer}>
@@ -78,7 +84,23 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
         <Typography variant="text4">{market.underlyingToken.symbol}</Typography>
       </Box>
       <Box sx={MarketHeaderStatusContainer}>
-        <MarketStatusChip status={marketStatus} variant="filled" />
+        <MarketStatusChip
+          status={marketStatus}
+          market={market}
+          variant="filled"
+        />
+
+        {market.temporaryReserveRatio && (
+          <Chip
+            label={`Temporary Reserve Ratio till ${reserveRatioExpiry}`}
+            sx={{
+              backgroundColor: COLORS.whiteSmoke,
+              color: COLORS.santasGrey,
+              marginLeft: "4px",
+            }}
+          />
+        )}
+
         {remainingTime && (
           <MarketCycleChip status={marketStatus.status} time={remainingTime} />
         )}

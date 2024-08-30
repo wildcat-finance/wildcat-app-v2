@@ -12,5 +12,4 @@ export const MarketHeaderTitleContainer = {
 
 export const MarketHeaderStatusContainer = {
   display: "flex",
-  columnGap: "12px",
 }
