@@ -19,6 +19,7 @@ export const AddLenderModal = ({
   setLendersRows,
   setLendersNames,
   borrowerMarkets,
+  existingLenders,
 }: AddLenderModalProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedMarkets, setSelectedMarkets] = useState<MarketTableT[]>([])
@@ -110,14 +111,9 @@ export const AddLenderModal = ({
             size="medium"
             label="Enter name"
             {...register("name", {
-              required: "Name is required",
               minLength: {
                 value: 2,
                 message: "Name must be longer than 1 character",
-              },
-              pattern: {
-                value: /^[A-Za-z]+$/,
-                message: "Use only letters for Entering Name",
               },
             })}
             error={!!errors.name}
@@ -135,6 +131,10 @@ export const AddLenderModal = ({
                 length42: (value) =>
                   value.length === 42 ||
                   "Address must be exactly 42 characters long",
+                isUnique: (value) =>
+                  !existingLenders.some(
+                    (address) => address.toLowerCase() === value.toLowerCase(),
+                  ) || "This lender already exists",
               },
             })}
             error={!!errors.address}

@@ -52,7 +52,7 @@ export const HealthyStatusChip = ({ msLeft }: HealthyStatusChipProps) => {
         }}
       />
 
-      {msLeft && (
+      {msLeft && msLeft > 0 && (
         <Chip
           label={additionalChipConfig.label}
           icon={additionalChipConfig.icon}

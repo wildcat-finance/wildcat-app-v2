@@ -7,4 +7,5 @@ export type AddLenderModalProps = {
   setLendersRows: Dispatch<SetStateAction<LenderTableT[]>>
   setLendersNames: Dispatch<SetStateAction<{ [key: string]: string }>>
   borrowerMarkets: MarketDataT[]
+  existingLenders: string[]
 }

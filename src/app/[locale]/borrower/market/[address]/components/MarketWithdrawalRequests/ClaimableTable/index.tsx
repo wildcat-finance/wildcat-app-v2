@@ -6,10 +6,10 @@ import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { TokenAmount, WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
 
-import Copy from "@/assets/icons/copy_icon.svg"
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
+import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas, trimAddress } from "@/utils/formatters"
@@ -72,22 +72,11 @@ const claimableColumns: GridColDef[] = [
         {value.map((txID: string) => (
           <Box sx={MarketWithdrawalRequetstCell}>
             <Typography variant="text3">{trimAddress(txID)}</Typography>
-            <IconButton disableRipple sx={AddressButtons} onClick={() => {}}>
-              <SvgIcon fontSize="medium">
-                <Copy />
-              </SvgIcon>
-            </IconButton>
-            <Link
-              href={`${EtherscanBaseUrl}/address/${txID}`}
-              target="_blank"
-              style={{ display: "flex", justifyContent: "center" }}
-            >
-              <IconButton disableRipple sx={AddressButtons}>
-                <SvgIcon fontSize="medium">
-                  <LinkIcon />
-                </SvgIcon>
-              </IconButton>
-            </Link>
+
+            <LinkGroup
+              linkValue={`${EtherscanBaseUrl}/tx/${txID}`}
+              copyValue={txID}
+            />
           </Box>
         ))}
       </Box>

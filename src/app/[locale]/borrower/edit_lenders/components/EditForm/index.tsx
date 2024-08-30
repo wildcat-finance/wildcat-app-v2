@@ -55,6 +55,8 @@ export const EditLendersForm = ({
     dispatch(setLenderFilter(""))
   }
 
+  const allLendersAddresses = lendersRows.map((lender) => lender.address)
+
   const filteredLenders = lendersRows.filter((lender) => {
     const matchesAllMarkets =
       selectedMarkets.length === 0 ||
@@ -132,6 +134,7 @@ export const EditLendersForm = ({
         <AddLenderModal
           setLendersRows={setLendersRows}
           setLendersNames={setLendersNames}
+          existingLenders={allLendersAddresses}
           borrowerMarkets={borrowerMarkets ?? []}
         />
       </Box>
