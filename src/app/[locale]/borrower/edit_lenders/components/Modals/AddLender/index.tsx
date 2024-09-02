@@ -1,18 +1,18 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 
 import { Box, Button, Dialog, TextField, Typography } from "@mui/material"
-import { useForm } from "react-hook-form"
 
+import { AddLenderModalProps } from "@/app/[locale]/borrower/edit_lenders/components/Modals/AddLender/interface"
 import {
   DialogBody,
   DialogContainer,
   OpenModalButton,
 } from "@/app/[locale]/borrower/edit_lenders/components/Modals/AddLender/style"
+import { useAddLenderForm } from "@/app/[locale]/borrower/edit_lenders/components/Modals/AddLender/useAddLenderForm"
 import { MarketTableT } from "@/app/[locale]/borrower/edit_lenders/interface"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { COLORS } from "@/theme/colors"
 
-import { AddLenderModalProps } from "./interface"
 import { AddLenderSelect } from "../../MarketSelect/AddLenderSelect"
 
 export const AddLenderModal = ({
@@ -23,19 +23,23 @@ export const AddLenderModal = ({
 }: AddLenderModalProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedMarkets, setSelectedMarkets] = useState<MarketTableT[]>([])
+  const [isNameDisabled, setIsNameDisabled] = useState(false)
+
+  const lendersName: { [key: string]: string } = JSON.parse(
+    localStorage.getItem("lenders-name") || "{}",
+  )
 
   const {
     getValues,
+    setValue,
     register,
+    watch,
     formState: { errors, isValid },
     reset,
-  } = useForm({
-    mode: "onChange",
-    defaultValues: {
-      name: "",
-      address: "",
-    },
-  })
+    handleSubmit,
+  } = useAddLenderForm()
+
+  const addressValue = watch("address")
 
   const handleOpen = () => {
     reset()
@@ -46,6 +50,24 @@ export const AddLenderModal = ({
   const handleClose = () => {
     setIsOpen(false)
   }
+
+  useEffect(() => {
+    const existingLender = existingLenders.find(
+      (lender) => lender.toLowerCase() === addressValue?.toLowerCase(),
+    )
+
+    if (existingLender) {
+      const storedName = lendersName[existingLender.toLowerCase()]
+
+      if (storedName) {
+        setValue("name", storedName)
+        setIsNameDisabled(true)
+      }
+    } else {
+      setIsNameDisabled(false)
+      setValue("name", "")
+    }
+  }, [addressValue, existingLenders, lendersName, setValue])
 
   const onSubmit = () => {
     setLendersRows((prev) => [
@@ -67,6 +89,7 @@ export const AddLenderModal = ({
         prevStatus: "new",
       },
     ])
+
     setLendersNames((prev) => {
       if (getValues("name") === "") {
         delete prev[getValues("address").toLowerCase()]
@@ -109,35 +132,18 @@ export const AddLenderModal = ({
           <TextField
             fullWidth
             size="medium"
-            label="Enter name"
-            {...register("name", {
-              minLength: {
-                value: 2,
-                message: "Name must be longer than 1 character",
-              },
-            })}
-            error={!!errors.name}
+            label="Wallet Address"
+            {...register("address")}
+            error={!!errors.address}
           />
 
           <TextField
             fullWidth
             size="medium"
-            label="Wallet Address"
-            {...register("address", {
-              required: "Address is required",
-              validate: {
-                startsWith0x: (value) =>
-                  value.startsWith("0x") || "Address must start with 0x",
-                length42: (value) =>
-                  value.length === 42 ||
-                  "Address must be exactly 42 characters long",
-                isUnique: (value) =>
-                  !existingLenders.some(
-                    (address) => address.toLowerCase() === value.toLowerCase(),
-                  ) || "This lender already exists",
-              },
-            })}
-            error={!!errors.address}
+            label={isNameDisabled ? "" : "Enter name"}
+            disabled={isNameDisabled}
+            {...register("name")}
+            error={!!errors.name}
           />
 
           <AddLenderSelect
@@ -184,7 +190,7 @@ export const AddLenderModal = ({
         </Box>
 
         <Button
-          onClick={onSubmit}
+          onClick={handleSubmit(onSubmit)}
           disabled={!isValid}
           variant="contained"
           size="large"

@@ -42,10 +42,10 @@ export const LenderName = ({
     if (evt.key === "Enter") {
       setLendersName((prev) => {
         if (name === "") {
-          delete prev[address]
+          delete prev[address.toLowerCase()]
           setName("Add Name")
         } else {
-          prev[address] = name
+          prev[address.toLowerCase()] = name
           localStorage.setItem("lenders-name", JSON.stringify(prev))
           setName(name.trim())
         }
