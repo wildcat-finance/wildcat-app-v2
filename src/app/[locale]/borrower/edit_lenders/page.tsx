@@ -8,6 +8,7 @@ import { useSearchParams } from "next/navigation"
 import { useAccount } from "wagmi"
 
 import { ConfirmTable } from "@/app/[locale]/borrower/edit_lenders/components/ConfirmTable"
+import useTrackLendersChanges from "@/app/[locale]/borrower/edit_lenders/hooks/useTrackLendersChanges"
 import { useMarketsForBorrower } from "@/app/[locale]/borrower/hooks/useMarketsForBorrower"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
@@ -66,6 +67,25 @@ export default function EditLendersPage() {
     })(),
   )
 
+  const [initialLendersRows] = useState<LenderTableT[]>(
+    mockLendersData
+      .filter((lender) => lender.isAuthorized)
+      .map((lender) => ({
+        ...lender,
+        status: "old",
+        prevStatus: "old",
+        id: lender.address,
+        name: (() => {
+          const correctLender = lendersNames[lender.address.toLowerCase()] || ""
+          return { name: correctLender, address: lender.address }
+        })(),
+        markets: lender.markets.map((market) => ({
+          ...market,
+          status: "old",
+        })),
+      })),
+  )
+
   const [lendersRows, setLendersRows] = useState<LenderTableT[]>(
     mockLendersData
       .filter((lender) => lender.isAuthorized)
@@ -85,6 +105,9 @@ export default function EditLendersPage() {
       })),
   )
 
+  const { isLendersHaveChanges, addedOrModifiedLenders } =
+    useTrackLendersChanges(initialLendersRows, lendersRows)
+
   useEffect(() => {
     if (marketName && marketAddress) {
       dispatch(setMarketFilter([{ name: marketName, address: marketAddress }]))
@@ -98,10 +121,6 @@ export default function EditLendersPage() {
     }
   }, [])
 
-  const confirmedRows = lendersRows.filter(
-    (lender) => !(lender.status === "deleted" && lender.prevStatus === "new"),
-  )
-
   return (
     <Box padding="42px 0 0 8.6vw" height="100%">
       <Box
@@ -109,7 +128,11 @@ export default function EditLendersPage() {
         sx={{ display: "flex", flexDirection: "column", height: "100%" }}
       >
         <Box sx={TitleContainer}>
-          <Typography variant="title2">Editing Lenders List</Typography>
+          <Typography variant="title2">
+            {step === "edit"
+              ? "Editing Lenders List"
+              : "Confirm Lenders List Edits"}
+          </Typography>
           <Typography variant="text2" color={COLORS.santasGrey}>
             You can edit in both ways by lenders and by filtering markets
           </Typography>
@@ -186,7 +209,7 @@ export default function EditLendersPage() {
 
         {step === "confirm" && (
           <ConfirmTable
-            lendersRows={confirmedRows}
+            lendersRows={addedOrModifiedLenders}
             borrowerMarkets={activeBorrowerMarkets ?? []}
           />
         )}
@@ -218,6 +241,7 @@ export default function EditLendersPage() {
               size="large"
               sx={{ width: "140px" }}
               onClick={handleClickConfirm}
+              disabled={!isLendersHaveChanges}
             >
               {step === "confirm" ? "Confirm" : "Sumbit"}
             </Button>
