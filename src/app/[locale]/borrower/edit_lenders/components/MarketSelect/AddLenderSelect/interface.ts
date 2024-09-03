@@ -7,4 +7,5 @@ export type AddLenderSelectProps = {
   borrowerMarkets: MarketDataT[]
   selectedMarkets: MarketTableT[]
   setSelectedMarkets: Dispatch<SetStateAction<MarketTableT[]>>
+  disabled?: boolean
 }

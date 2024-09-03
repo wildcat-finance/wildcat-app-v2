@@ -1,13 +1,13 @@
 import React, { useState } from "react"
 
 import { Box, Button, Dialog, TextField, Typography } from "@mui/material"
-import { useForm } from "react-hook-form"
 
 import {
   DialogBody,
   DialogContainer,
   OpenModalButton,
 } from "@/app/[locale]/borrower/edit_lenders/components/Modals/AddLender/style"
+import { useAddLenderForm } from "@/app/[locale]/borrower/edit_lenders/components/Modals/AddLender/useAddLenderForm"
 import { MarketTableT } from "@/app/[locale]/borrower/edit_lenders/interface"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { COLORS } from "@/theme/colors"
@@ -29,13 +29,10 @@ export const AddLenderModal = ({
     register,
     formState: { errors, isValid },
     reset,
-  } = useForm({
-    mode: "onChange",
-    defaultValues: {
-      name: "",
-      address: "",
-    },
-  })
+  } = useAddLenderForm(existingLenders)
+
+  const existingLenderDisable =
+    errors.address?.message === "This lender already exists"
 
   const handleOpen = () => {
     reset()
@@ -109,41 +106,25 @@ export const AddLenderModal = ({
           <TextField
             fullWidth
             size="medium"
-            label="Enter name"
-            {...register("name", {
-              minLength: {
-                value: 2,
-                message: "Name must be longer than 1 character",
-              },
-            })}
-            error={!!errors.name}
+            label="Wallet Address"
+            {...register("address")}
+            error={!!errors.address}
           />
 
           <TextField
             fullWidth
             size="medium"
-            label="Wallet Address"
-            {...register("address", {
-              required: "Address is required",
-              validate: {
-                startsWith0x: (value) =>
-                  value.startsWith("0x") || "Address must start with 0x",
-                length42: (value) =>
-                  value.length === 42 ||
-                  "Address must be exactly 42 characters long",
-                isUnique: (value) =>
-                  !existingLenders.some(
-                    (address) => address.toLowerCase() === value.toLowerCase(),
-                  ) || "This lender already exists",
-              },
-            })}
-            error={!!errors.address}
+            label="Enter name"
+            {...register("name")}
+            error={!!errors.name}
+            disabled={existingLenderDisable}
           />
 
           <AddLenderSelect
             borrowerMarkets={borrowerMarkets}
             selectedMarkets={selectedMarkets}
             setSelectedMarkets={setSelectedMarkets}
+            disabled={existingLenderDisable}
           />
 
           {errors && (

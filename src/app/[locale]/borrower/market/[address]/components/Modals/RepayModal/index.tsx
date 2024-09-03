@@ -96,7 +96,7 @@ export const RepayModal = ({
   const typeDays = type === "days"
 
   const repayTokenAmount = useMemo(
-    () => market.underlyingToken.parseAmount(amount || "0"),
+    () => market.underlyingToken.parseAmount(amount.replace(/,/g, "") || "0"), // delete commas
     [amount],
   )
 

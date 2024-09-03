@@ -35,6 +35,7 @@ export const AddLenderSelect = ({
   borrowerMarkets,
   selectedMarkets,
   setSelectedMarkets,
+  disabled,
 }: AddLenderSelectProps) => {
   const [marketName, setMarketName] = useState("")
   const allMarketsSelected = selectedMarkets.length === borrowerMarkets.length
@@ -92,6 +93,7 @@ export const AddLenderSelect = ({
         sx={SelectStyle}
         multiple
         value={selectedMarkets}
+        disabled={disabled}
         endAdornment={
           <IconButton onClick={handleReset} sx={DeleteButtonStyle}>
             <SvgIcon
