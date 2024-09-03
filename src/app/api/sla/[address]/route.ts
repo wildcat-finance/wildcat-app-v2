@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: { address: `0x${string}` } },
 ) {
   const { address } = params
-  const isSigned = true
+  const isSigned = getSignedServiceAgreement(address)
 
   return NextResponse.json({ isSigned })
 }
