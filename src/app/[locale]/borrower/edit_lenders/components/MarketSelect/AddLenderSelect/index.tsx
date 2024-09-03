@@ -87,7 +87,9 @@ export const AddLenderSelect = ({
 
   return (
     <FormControl fullWidth>
-      <InputLabel sx={InputLabelStyle}>Add Markets</InputLabel>
+      <InputLabel disabled={disabled} sx={InputLabelStyle}>
+        Add Markets
+      </InputLabel>
 
       <Select
         sx={SelectStyle}
@@ -99,7 +101,9 @@ export const AddLenderSelect = ({
             <SvgIcon
               fontSize="small"
               sx={{
-                "& path": { fill: `${COLORS.santasGrey}` },
+                "& path": {
+                  fill: disabled ? COLORS.whiteLilac : COLORS.santasGrey,
+                },
               }}
             >
               <Cross />

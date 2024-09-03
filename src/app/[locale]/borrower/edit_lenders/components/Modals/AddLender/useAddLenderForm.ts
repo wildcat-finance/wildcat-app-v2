@@ -16,7 +16,7 @@ export const useAddLenderForm = (existingLenders: string[]) => {
           !existingLenders.some(
             (address) => address.toLowerCase() === value.toLowerCase(),
           ),
-        "This lender already exists",
+        "The lender with this address is already added. Use Edit Lender List page to edit",
       )
       .refine(
         (address) => ethers.utils.isAddress(address),

@@ -31,6 +31,12 @@ export const SelectStyle = {
     display: "block",
     top: "10px",
     right: "8px",
+
+    "&.Mui-disabled": {
+      "& path": {
+        fill: COLORS.whiteLilac,
+      },
+    },
   },
 
   "& .MuiSelect-select": {
@@ -41,6 +47,13 @@ export const SelectStyle = {
     padding: "9px 16px !important",
     display: "flex",
     alignItems: "center",
+  },
+
+  "&.Mui-disabled": {
+    "&:hover": {
+      borderColor: COLORS.whiteLilac,
+      background: "transparent",
+    },
   },
 }
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 
 import { Box, Button, Dialog, TextField, Typography } from "@mui/material"
 
@@ -23,16 +23,20 @@ export const AddLenderModal = ({
 }: AddLenderModalProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedMarkets, setSelectedMarkets] = useState<MarketTableT[]>([])
+  const [isDisabled, setIsDisabled] = useState(false)
 
   const {
     getValues,
+    setValue,
+    watch,
     register,
     formState: { errors, isValid },
     reset,
   } = useAddLenderForm(existingLenders)
 
-  const existingLenderDisable =
-    errors.address?.message === "This lender already exists"
+  const isExistingLenderError =
+    errors.address?.message ===
+    "The lender with this address is already added. Use Edit Lender List page to edit"
 
   const handleOpen = () => {
     reset()
@@ -64,11 +68,12 @@ export const AddLenderModal = ({
         prevStatus: "new",
       },
     ])
+
     setLendersNames((prev) => {
       if (getValues("name") === "") {
-        delete prev[getValues("address").toLowerCase()]
+        delete prev[getValues("address")]
       } else {
-        prev[getValues("address").toLowerCase()] = getValues("name")
+        prev[getValues("address")] = getValues("name")
         localStorage.setItem("lenders-name", JSON.stringify(prev))
       }
       return prev
@@ -76,6 +81,30 @@ export const AddLenderModal = ({
 
     setIsOpen(false)
   }
+
+  const lendersName: { [key: string]: string } = JSON.parse(
+    localStorage.getItem("lenders-name") || "{}",
+  )
+
+  const addressValue = watch("address")
+
+  const existingLender = existingLenders.find(
+    (lender) => lender.toLowerCase() === addressValue?.toLowerCase(),
+  )
+
+  useEffect(() => {
+    if (existingLender) {
+      setIsDisabled(true)
+      const storedName = lendersName[existingLender.toLowerCase()]
+
+      if (storedName) {
+        setValue("name", storedName)
+      }
+    } else {
+      setIsDisabled(false)
+      reset({ name: "" })
+    }
+  }, [isExistingLenderError])
 
   return (
     <>
@@ -114,21 +143,27 @@ export const AddLenderModal = ({
           <TextField
             fullWidth
             size="medium"
-            label="Enter name"
+            label={isDisabled ? "" : "Enter name"}
             {...register("name")}
             error={!!errors.name}
-            disabled={existingLenderDisable}
+            disabled={isDisabled}
           />
 
           <AddLenderSelect
             borrowerMarkets={borrowerMarkets}
             selectedMarkets={selectedMarkets}
             setSelectedMarkets={setSelectedMarkets}
-            disabled={existingLenderDisable}
+            disabled={isDisabled}
           />
 
           {errors && (
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                maxWidth: "392px",
+              }}
+            >
               {errors.name && (
                 <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
                   <Box
@@ -146,11 +181,14 @@ export const AddLenderModal = ({
               )}
 
               {errors.address && (
-                <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <Box
+                  sx={{ display: "flex", alignItems: "flex-start", gap: "4px" }}
+                >
                   <Box
                     sx={{
                       width: "3px",
                       height: "3px",
+                      marginTop: "6.5px",
                       backgroundColor: COLORS.wildWatermelon,
                       borderRadius: "50%",
                     }}

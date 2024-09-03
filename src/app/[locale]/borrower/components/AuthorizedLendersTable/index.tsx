@@ -74,7 +74,7 @@ export const LendersTable = ({
         <LenderName
           setLendersName={setLendersNames}
           lenderName={params.value.name}
-          address={params.value.address}
+          address={params.row.address}
         />
       ),
       flex: 1,
