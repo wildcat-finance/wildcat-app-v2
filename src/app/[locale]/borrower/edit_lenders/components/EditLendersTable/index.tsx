@@ -33,7 +33,7 @@ export const EditLendersTable = ({
       prevLenders.map((lender) => {
         if (lender.address === lenderAddress) {
           const oldMarkets = existingMarkets.filter(
-            (market) => market.status === "old",
+            (market) => market.status === "old" || market.prevStatus === "old",
           )
 
           if (isChecked) {
@@ -48,6 +48,7 @@ export const EditLendersTable = ({
                 name: market.name,
                 address: market.address,
                 status: "new",
+                prevStatus: "new",
               }))
 
             return {

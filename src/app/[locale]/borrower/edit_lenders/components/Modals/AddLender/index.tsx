@@ -63,6 +63,7 @@ export const AddLenderModal = ({
           name: market.name,
           address: market.address,
           status: "new",
+          prevStatus: "new",
         })),
         status: "new",
         prevStatus: "new",

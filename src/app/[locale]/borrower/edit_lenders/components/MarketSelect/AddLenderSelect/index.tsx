@@ -68,7 +68,11 @@ export const AddLenderSelect = ({
   ) => {
     if (event.target.checked) {
       setSelectedMarkets(
-        borrowerMarkets.map((market) => ({ ...market, status: "old" })),
+        borrowerMarkets.map((market) => ({
+          ...market,
+          status: "new",
+          prevStatus: "new",
+        })),
       )
     } else {
       setSelectedMarkets([])
@@ -173,7 +177,11 @@ export const AddLenderSelect = ({
                 <ExtendedCheckbox
                   value={market}
                   onChange={(event) =>
-                    handleChangeMarkets(event, { ...market, status: "new" })
+                    handleChangeMarkets(event, {
+                      ...market,
+                      status: "new",
+                      prevStatus: "new",
+                    })
                   }
                   checked={selectedMarkets.some(
                     (chosenMarket) => chosenMarket.address === market.address,

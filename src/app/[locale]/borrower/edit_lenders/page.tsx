@@ -82,6 +82,7 @@ export default function EditLendersPage() {
         markets: lender.markets.map((market) => ({
           ...market,
           status: "old",
+          prevStatus: "old",
         })),
       })),
   )
@@ -101,6 +102,7 @@ export default function EditLendersPage() {
         markets: lender.markets.map((market) => ({
           ...market,
           status: "old",
+          prevStatus: "old",
         })),
       })),
   )
