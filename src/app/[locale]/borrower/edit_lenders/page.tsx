@@ -107,6 +107,8 @@ export default function EditLendersPage() {
       })),
   )
 
+  console.log(lendersRows[0].markets)
+
   const { isLendersHaveChanges, addedOrModifiedLenders } =
     useTrackLendersChanges(initialLendersRows, lendersRows)
 

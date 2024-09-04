@@ -32,8 +32,29 @@ export const EditLendersTable = ({
     setLendersRows((prevLenders) =>
       prevLenders.map((lender) => {
         if (lender.address === lenderAddress) {
-          const oldMarkets = existingMarkets.filter(
-            (market) => market.status === "old" || market.prevStatus === "old",
+          const oldMarkets = existingMarkets
+            .filter(
+              (market) =>
+                market.status === "old" || market.prevStatus === "old",
+            )
+            .map((market) =>
+              market.prevStatus === "deleted"
+                ? {
+                    ...market,
+                    status: "deleted" as const,
+                    prevStatus: "old" as const,
+                  }
+                : market,
+            )
+
+          const restoredMarkets = existingMarkets.map((market) =>
+            market.status === "deleted"
+              ? {
+                  ...market,
+                  status: "old" as const,
+                  prevStatus: "deleted" as const,
+                }
+              : market,
           )
 
           if (isChecked) {
@@ -53,7 +74,7 @@ export const EditLendersTable = ({
 
             return {
               ...lender,
-              markets: [...existingMarkets, ...newMarkets],
+              markets: [...restoredMarkets, ...newMarkets],
             }
           }
 
@@ -174,16 +195,16 @@ export const EditLendersTable = ({
       headerAlign: "left",
       align: "left",
       flex: 5,
-      renderCell: (params) =>
-        params.value.length !== borrowerMarkets.length ? (
-          <TableLenderSelect
-            lenderMarkets={params.value}
-            lenderAddress={params.row.address}
-            borrowerMarkets={borrowerMarkets}
-            setLendersRows={setLendersRows}
-            disabled={params.row.status === "deleted"}
-          />
-        ) : null,
+      renderCell: (params) => (
+        <TableLenderSelect
+          lenderMarkets={params.value}
+          lenderAddress={params.row.address}
+          borrowerMarkets={borrowerMarkets}
+          setLendersRows={setLendersRows}
+          handleAddAllMarkets={handleAddAllMarkets}
+          disabled={params.row.status === "deleted"}
+        />
+      ),
     },
     {
       sortable: false,
@@ -194,6 +215,7 @@ export const EditLendersTable = ({
         <>
           {(params.row.status === "old" || params.row.status === "new") && (
             <IconButton
+              sx={{ marginRight: "5px" }}
               onClick={() => {
                 setLendersRows((prev) =>
                   prev.map((item) => {

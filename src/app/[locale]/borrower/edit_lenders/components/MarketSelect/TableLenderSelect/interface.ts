@@ -9,5 +9,10 @@ export type TableLenderSelectProps = {
   lenderMarkets: MarketTableT[]
   lenderAddress: string
   setLendersRows: Dispatch<SetStateAction<LenderTableT[]>>
+  handleAddAllMarkets: (
+    event: React.ChangeEvent<HTMLInputElement>,
+    lenderAddress: string,
+    existingMarkets: MarketTableT[],
+  ) => void
   disabled: boolean
 }

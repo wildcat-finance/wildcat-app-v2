@@ -1,4 +1,5 @@
-import { ChangeEvent, useEffect, useState } from "react"
+import { ChangeEvent, useState } from "react"
+import * as React from "react"
 
 import {
   Box,
@@ -37,13 +38,9 @@ export const TableLenderSelect = ({
   lenderMarkets,
   lenderAddress,
   setLendersRows,
+  handleAddAllMarkets,
   disabled,
 }: TableLenderSelectProps) => {
-  const [selectedMarkets, setSelectedMarkets] =
-    useState<MarketTableT[]>(lenderMarkets)
-
-  const [initialMarkets] = useState<MarketTableT[]>(lenderMarkets)
-
   const [marketName, setMarketName] = useState("")
 
   const filteredMarketsByName = borrowerMarkets.filter((market) =>
@@ -54,119 +51,151 @@ export const TableLenderSelect = ({
     setMarketName(evt.target.value)
   }
 
-  const getInitialMarket = (market: MarketDataT) =>
-    initialMarkets.find((m) => m.address === market.address)
+  const updateLenderMarkets = (updatedMarkets: MarketTableT[]) => {
+    setLendersRows((prev) =>
+      prev.map((lender) =>
+        lender.address === lenderAddress
+          ? { ...lender, markets: updatedMarkets }
+          : lender,
+      ),
+    )
+  }
 
   const handleChangeMarkets = (
     event: React.ChangeEvent<HTMLInputElement>,
     market: MarketDataT,
   ) => {
-    const initialMarket = getInitialMarket(market)
-    const isMarketOld = initialMarket?.status === "old"
+    const initialMarket = lenderMarkets.find(
+      (m) => m.address === market.address,
+    )
+    const isMarketOld = initialMarket?.prevStatus === "old"
+
+    let updatedMarkets
 
     if (event.target.checked) {
-      setSelectedMarkets((prevItems) => [
-        ...prevItems.filter(
-          (prevMarket) => prevMarket.address !== market.address,
-        ),
+      updatedMarkets = [
+        ...lenderMarkets.filter((m) => m.address !== market.address),
         {
           ...market,
-          status: isMarketOld ? initialMarket.status : "new",
-          prevStatus: isMarketOld ? initialMarket.prevStatus : "new",
+          status: isMarketOld ? ("old" as const) : ("new" as const),
+          prevStatus: isMarketOld ? ("old" as const) : ("new" as const),
         },
-      ])
+      ]
     } else {
-      setSelectedMarkets((prevMarkets) =>
-        prevMarkets.reduce((acc, m) => {
-          if (m.address === market.address) {
-            if (isMarketOld) {
-              acc.push({
-                ...m,
-                prevStatus: "old",
-                status: "deleted",
-              })
-            }
-          } else {
-            acc.push(m)
-          }
-          return acc
-        }, [] as MarketTableT[]),
-      )
-    }
-  }
-
-  const handleDeleteMarket = (marketToDelete: MarketTableT) => {
-    const initialMarket = getInitialMarket(marketToDelete)
-    const isMarketOld = initialMarket?.status === "old"
-
-    setSelectedMarkets((prevMarkets) =>
-      prevMarkets.reduce((acc, market) => {
-        if (market.address === marketToDelete.address) {
+      updatedMarkets = lenderMarkets.reduce((acc, m) => {
+        if (m.address === market.address) {
           if (isMarketOld) {
             acc.push({
-              ...market,
-              prevStatus: "old",
-              status: "deleted",
+              ...m,
+              prevStatus: "old" as const,
+              status: "deleted" as const,
             })
           }
         } else {
-          acc.push(market)
+          acc.push(m)
         }
         return acc
-      }, [] as MarketTableT[]),
-    )
+      }, [] as MarketTableT[])
+    }
+
+    updateLenderMarkets(updatedMarkets)
   }
 
-  const restorePreviousStatus = (marketToRestore: MarketTableT) => {
-    setSelectedMarkets((prevMarkets) =>
-      prevMarkets.map((market) =>
-        market.address === marketToRestore.address
-          ? {
-              ...market,
-              status: market.prevStatus,
-            }
-          : market,
-      ),
+  const handleDeleteMarket = (marketToDelete: MarketTableT) => {
+    const initialMarket = lenderMarkets.find(
+      (m) => m.address === marketToDelete.address,
     )
-  }
+    const isMarketOld = initialMarket?.status === "old"
 
-  const handleReset = () => {
-    setSelectedMarkets((prevMarkets) =>
-      prevMarkets.reduce((acc, market) => {
-        if (market.status === "old") {
+    const updatedMarkets = lenderMarkets.reduce((acc, market) => {
+      if (market.address === marketToDelete.address) {
+        if (isMarketOld) {
           acc.push({
             ...market,
-            prevStatus: market.status,
+            prevStatus: "old",
             status: "deleted",
           })
         }
-        return acc
-      }, [] as MarketTableT[]),
-    )
+      } else {
+        acc.push(market)
+      }
+      return acc
+    }, [] as MarketTableT[])
+
+    updateLenderMarkets(updatedMarkets)
   }
 
-  useEffect(() => {
-    setLendersRows((prev) =>
-      prev.map((lender) => {
-        if (lender.address === lenderAddress)
-          lender.markets = selectedMarkets.map((market) => ({
-            name: market.name,
-            address: market.address,
-            status: market.status,
-            prevStatus: market.prevStatus,
-          }))
+  const restorePreviousStatus = (marketToRestore: MarketTableT) => {
+    const updatedMarkets = lenderMarkets.map((market) =>
+      market.address === marketToRestore.address
+        ? {
+            ...market,
+            status: market.prevStatus,
+          }
+        : market,
+    )
+
+    updateLenderMarkets(updatedMarkets)
+  }
+
+  const handleReset = () => {
+    const updatedMarkets = lenderMarkets.reduce((acc, market) => {
+      if (market.status !== "new") {
+        acc.push({
+          ...market,
+          prevStatus: "old" as const,
+          status: "deleted" as const,
+        })
+      }
+      return acc
+    }, [] as MarketTableT[])
+
+    updateLenderMarkets(updatedMarkets)
+  }
+
+  const handleResetAllMarkets = () => {
+    setLendersRows((prevLenders) =>
+      prevLenders.map((lender) => {
+        if (lender.address === lenderAddress) {
+          const oldMarkets = lenderMarkets
+            .filter(
+              (market) =>
+                market.status === "old" || market.prevStatus === "old",
+            )
+            .map((market) =>
+              market.prevStatus === "deleted"
+                ? {
+                    ...market,
+                    status: "deleted" as const,
+                    prevStatus: "old" as const,
+                  }
+                : market,
+            )
+
+          if (oldMarkets.length === borrowerMarkets.length) {
+            return {
+              ...lender,
+              markets: [],
+            }
+          }
+
+          return {
+            ...lender,
+            markets: [...oldMarkets],
+          }
+        }
         return lender
       }),
     )
-  }, [selectedMarkets])
+  }
 
   return (
     <FormControl fullWidth>
       <InputLabel sx={InputLabelStyle}>Add market</InputLabel>
 
       <Select
+        value={lenderMarkets}
         disabled={disabled}
-        value={selectedMarkets}
         size="small"
         multiple
         sx={SelectStyle}
@@ -182,22 +211,32 @@ export const TableLenderSelect = ({
             </SvgIcon>
           </IconButton>
         }
-        renderValue={(selected) => (
+        renderValue={() => (
           <Box sx={ChipContainer}>
-            {selected.map((market) => (
+            {lenderMarkets.length === borrowerMarkets.length ? (
               <LendersMarketChip
-                key={market.address}
-                marketName={market.name}
+                marketName="All markets"
                 withButton
                 width="fit-content"
-                onClick={() =>
-                  market.status === "deleted"
-                    ? restorePreviousStatus(market)
-                    : handleDeleteMarket(market)
-                }
-                type={market.status}
+                type="old"
+                onClick={handleResetAllMarkets}
               />
-            ))}
+            ) : (
+              lenderMarkets.map((market) => (
+                <LendersMarketChip
+                  key={market.address}
+                  marketName={market.name}
+                  withButton
+                  width="fit-content"
+                  onClick={() =>
+                    market.status === "deleted"
+                      ? restorePreviousStatus(market)
+                      : handleDeleteMarket(market)
+                  }
+                  type={market.status}
+                />
+              ))
+            )}
           </Box>
         )}
         MenuProps={MenuStyle}
@@ -227,15 +266,32 @@ export const TableLenderSelect = ({
         </Box>
 
         <Box sx={VariantsContainer}>
+          <FormControlLabel
+            label="All Markets"
+            control={
+              <ExtendedCheckbox
+                onChange={(event) =>
+                  handleAddAllMarkets(event, lenderAddress, lenderMarkets)
+                }
+                checked={lenderMarkets.length === borrowerMarkets.length}
+                sx={{
+                  "& ::before": {
+                    transform: "translate(-3px, -3px) scale(0.75)",
+                  },
+                }}
+              />
+            }
+          />
           {filteredMarketsByName.map((market) => (
             <FormControlLabel
               key={market.address}
               label={market.name}
+              sx={{ marginLeft: "14px" }}
               control={
                 <ExtendedCheckbox
                   value={market}
                   onChange={(event) => handleChangeMarkets(event, market)}
-                  checked={selectedMarkets.some(
+                  checked={lenderMarkets.some(
                     (chosenMarket) =>
                       chosenMarket.address === market.address &&
                       chosenMarket.status !== "deleted",
