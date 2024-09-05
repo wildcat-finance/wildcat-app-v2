@@ -6761,15 +6761,15 @@
     "@webassemblyjs/ast" "1.12.1"
     "@xtuc/long" "4.2.2"
 
-"@wildcatfi/wildcat-sdk@^2.0.77":
-  version "2.0.77"
-  resolved "https://registry.yarnpkg.com/@wildcatfi/wildcat-sdk/-/wildcat-sdk-2.0.77.tgz#b8ff7ed402d1756e5c09de696f9b4b18ef2ec382"
-  integrity sha512-FqPIvaQVAJorxl3OqBnGPEnyU946bEsHptKCQpeUtOC0UP/Bi2tTeN1clsv6Y1hEL/VTD+HKjjqs6VeX5d3NGw==
+"@wildcatfi/wildcat-sdk@^2.0.78":
+  version "2.0.78"
+  resolved "https://registry.yarnpkg.com/@wildcatfi/wildcat-sdk/-/wildcat-sdk-2.0.78.tgz#8479e7796a41e7961d5bbf0f99b56b3c8e9322ad"
+  integrity sha512-+M2tL3P+uKCbYZl/8hlSlT/m53hBcsHXKstH/f1YZ8kg24FI7BDTwKGebj5pPda34dx6P3Gl34kkwI4bsUAGCw==
   dependencies:
     "@apollo/client" "^3.8.6"
     "@tanstack/react-query" "^4.29.14"
     "@types/jest" "^29.5.8"
-    ethers "^5.5.3"
+    ethers "^5.7.2"
     graphql "^16.8.1"
     react "^18.1.0"
     react-dom "^18.1.0"
@@ -10163,7 +10163,7 @@ ethereum-cryptography@^2.0.0:
     "@scure/bip32" "1.4.0"
     "@scure/bip39" "1.3.0"
 
-ethers@^5.5.3, ethers@^5.7.2:
+ethers@^5.7.2:
   version "5.7.2"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.7.2.tgz#3a7deeabbb8c030d4126b24f84e525466145872e"
   integrity sha512-wswUsmWo1aOK8rR7DIKiWSw9DbLWe6x98Jrn8wcTflTVvaXhAMaB5zGAXy0GYQEQp9iO1iSHWVyARQm11zUtyg==

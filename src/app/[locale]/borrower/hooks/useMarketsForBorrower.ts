@@ -14,6 +14,7 @@ import {
   SubgraphGetMarketsForBorrowerQuery,
   SubgraphGetMarketsForBorrowerQueryVariables,
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
+import { useAccount } from "wagmi"
 
 import { NETWORKS, TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
@@ -109,14 +110,30 @@ export function useMarketsForBorrowerQuery({
       chunks = [markets]
     }
 
+    console.log("DEBUG MARKET CHUNKS", chunks)
+
     await Promise.all(
       chunks.map(async (marketsChunk) => {
         try {
+          console.log("DEBUG UPDATE REQUESTED")
           const updates = await lens.getMarketsData(
+            marketsChunk.map((m) => m.address),
+          )
+          console.log(
+            "DEBUG UPDATE ADRESSSED",
             marketsChunk.map((m) => m.address),
           )
           marketsChunk.forEach((market, i) => {
             market.updateWith(updates[i])
+            if (
+              market.address === "0xaedfd7255f30b651c687831b47d73b179a8adc89"
+            ) {
+              console.log("DEBUG UPDATED MARKET", {
+                market,
+                update: updates[i],
+                delinquent: market.timeDelinquent,
+              })
+            }
           })
         } catch (err) {
           console.log("Wrong underlying network detected", err)
@@ -124,13 +141,19 @@ export function useMarketsForBorrowerQuery({
       }),
     )
     logger.debug(`Got ${markets.length} market updates`)
-    return markets
+    return chunks.flat()
   }
 
   async function getMarketsForBorrower() {
     const subgraphMarkets = await (borrower
       ? queryMarketsForBorrower
       : queryMarketsForAllBorrowers)()
+
+    subgraphMarkets?.forEach((market) => {
+      if (market.address === "0xaedfd7255f30b651c687831b47d73b179a8adc89") {
+        console.log("DEBUG JUL MARKET SUBGRAPH", market)
+      }
+    })
     return updateMarkets(subgraphMarkets)
   }
 
@@ -146,6 +169,7 @@ export function useMarketsForBorrowerQuery({
 export const useMarketsForBorrower = (borrower?: string) => {
   const { chainId } = useCurrentNetwork()
   const { isWrongNetwork, provider, signer } = useEthersProvider()
+  const { isReconnecting } = useAccount()
 
   const signerOrProvider = signer ?? provider
   console.log(
@@ -155,7 +179,7 @@ export const useMarketsForBorrower = (borrower?: string) => {
   return useMarketsForBorrowerQuery({
     borrower,
     provider: signerOrProvider,
-    enabled: !!signerOrProvider && !isWrongNetwork,
+    enabled: !!signerOrProvider && !isWrongNetwork && !isReconnecting,
     chainId,
   })
 }
