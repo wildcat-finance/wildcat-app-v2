@@ -7,10 +7,11 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material"
-import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid"
-import { useRouter } from "next/navigation"
+import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
+import { LinkCell } from "@/app/[locale]/borrower/components/style"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
@@ -42,7 +43,6 @@ export const OthersMarketsTable = ({
   nameFilter,
 }: OthersMarketsTableProps) => {
   const { t } = useTranslation()
-  const router = useRouter()
 
   const columns: GridColDef[] = [
     {
@@ -52,7 +52,14 @@ export const OthersMarketsTable = ({
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
-      renderCell: (params) => <MarketStatusChip status={params.value} />,
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-start" }}
+        >
+          <MarketStatusChip status={params.value} />
+        </Link>
+      ),
       flex: 2,
     },
     {
@@ -62,10 +69,15 @@ export const OthersMarketsTable = ({
       minWidth: 160,
       headerAlign: "left",
       align: "left",
-      renderCell: ({ value }) => (
-        <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-          {value}
-        </span>
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-start" }}
+        >
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+            {params.value}
+          </span>
+        </Link>
       ),
     },
     {
@@ -75,6 +87,14 @@ export const OthersMarketsTable = ({
       headerAlign: "left",
       align: "left",
       flex: 2,
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-start" }}
+        >
+          {params.value}
+        </Link>
+      ),
     },
     {
       field: "asset",
@@ -83,6 +103,14 @@ export const OthersMarketsTable = ({
       headerAlign: "right",
       align: "right",
       flex: 1,
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          {params.value}
+        </Link>
+      ),
     },
     {
       field: "lenderAPR",
@@ -92,6 +120,14 @@ export const OthersMarketsTable = ({
       align: "right",
       sortComparator: percentComparator,
       flex: 1,
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          {params.value}
+        </Link>
+      ),
     },
     {
       field: "crr",
@@ -111,6 +147,14 @@ export const OthersMarketsTable = ({
           <TooltipButton value="TBD" />
         </Box>
       ),
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          {params.value}
+        </Link>
+      ),
       flex: 1,
     },
     {
@@ -121,6 +165,14 @@ export const OthersMarketsTable = ({
       align: "right",
       sortComparator: capacityComparator,
       flex: 1.5,
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          {params.value}
+        </Link>
+      ),
     },
     {
       field: "borrowable",
@@ -130,6 +182,14 @@ export const OthersMarketsTable = ({
       align: "right",
       sortComparator: capacityComparator,
       flex: 1.5,
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          {params.value}
+        </Link>
+      ),
     },
     {
       field: "deploy",
@@ -139,9 +199,14 @@ export const OthersMarketsTable = ({
       align: "right",
       sortComparator: dateComparator,
       renderCell: (params) => (
-        <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          {params.value}
-        </Typography>
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
+            {params.value}
+          </Typography>
+        </Link>
       ),
       flex: 2,
     },
@@ -183,10 +248,6 @@ export const OthersMarketsTable = ({
         : "",
     }
   })
-
-  const handleRowClick = (params: GridRowParams) => {
-    router.push(`${ROUTES.borrower.market}/${params.row.id}`)
-  }
 
   const defaultFilters =
     assetFilter === SidebarMarketAssets.ALL &&
@@ -249,11 +310,14 @@ export const OthersMarketsTable = ({
       )}
       {tableData.length !== 0 && !isLoading && (
         <DataGrid
-          sx={{ overflow: "auto", maxWidth: "calc(100vw - 267px)" }}
+          sx={{
+            overflow: "auto",
+            maxWidth: "calc(100vw - 267px)",
+            "& .MuiDataGrid-cell": { padding: "0px" },
+          }}
           rows={rows}
           columns={columns}
           columnHeaderHeight={40}
-          onRowClick={handleRowClick}
         />
       )}
     </Accordion>

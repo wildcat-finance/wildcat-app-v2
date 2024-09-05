@@ -96,7 +96,9 @@ export default function MarketDetails({
             width: "100%",
             overflow: "hidden",
             overflowY: "visible",
-            height: "calc(100vh - 43px - 43px - 52px - 60px - 52px)",
+            height: `calc(100vh - 43px - 43px - 52px - 60px - 52px ${
+              !bannerDisplayConfig.hideBanner && "- 220px"
+            })`,
           }}
         >
           {/* <Slide */}
