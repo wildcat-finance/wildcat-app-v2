@@ -32,6 +32,10 @@ export const SelectStyle = {
     top: "10px",
     right: "8px",
 
+    "&.MuiSelect-iconOpen": {
+      transform: "scale(0.8) rotate(180deg)",
+    },
+
     "&.Mui-disabled": {
       "& path": {
         fill: COLORS.whiteLilac,
@@ -40,7 +44,7 @@ export const SelectStyle = {
   },
 
   "& .MuiSelect-select": {
-    maxWidth: "350px",
+    maxWidth: "100%",
     minHeight: "42px !important",
     height: "auto",
     boxSizing: "border-box",
@@ -64,7 +68,7 @@ export const DeleteButtonStyle = {
 }
 
 export const ChipBoxStyle = {
-  maxWidth: "350px",
+  maxWidth: "330px",
   display: "flex",
   flexWrap: "wrap",
   overflow: "hidden",
