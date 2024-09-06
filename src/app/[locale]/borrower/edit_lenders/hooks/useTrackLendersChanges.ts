@@ -11,7 +11,6 @@ const areMarketsEqual = (
 ): boolean => {
   if (initialMarkets.length !== currentMarkets.length) return false
 
-  // Сортируем маркеты перед сравнением
   const sortedInitialMarkets = [...initialMarkets].sort((a, b) =>
     a.address.localeCompare(b.address),
   )
@@ -43,11 +42,11 @@ function useTrackLendersChanges(
       lendersRows.forEach((lender) => {
         const initialLender = initialLendersMap.get(lender.id)
 
-        // Если старого объекта нет, значит он был добавлен
         if (!initialLender) {
-          modifiedLenders.push(lender)
+          if (!(lender.status === "deleted" && lender.prevStatus === "new")) {
+            modifiedLenders.push(lender)
+          }
         } else {
-          // Сравниваем все свойства, кроме markets
           const lenderWithoutMarkets = { ...lender, markets: undefined }
           const initialLenderWithoutMarkets = {
             ...initialLender,
@@ -58,7 +57,6 @@ function useTrackLendersChanges(
             JSON.stringify(lenderWithoutMarkets) ===
             JSON.stringify(initialLenderWithoutMarkets)
 
-          // Сравниваем markets отдельно
           const areMarketsIdentical = areMarketsEqual(
             initialLender.markets,
             lender.markets,
@@ -79,16 +77,22 @@ function useTrackLendersChanges(
   const areLendersEqual = (
     lendersA: LenderTableT[],
     lendersB: LenderTableT[],
-  ) => {
-    if (lendersA.length !== lendersB.length) return false
+  ): boolean => {
+    const filteredLendersA = lendersA.filter(
+      (lender) => !(lender.status === "deleted" && lender.prevStatus === "new"),
+    )
+    const filteredLendersB = lendersB.filter(
+      (lender) => !(lender.status === "deleted" && lender.prevStatus === "new"),
+    )
 
-    return lendersA.every((lenderA) => {
-      const correspondingLenderB = lendersB.find(
+    if (filteredLendersA.length !== filteredLendersB.length) return false
+
+    return filteredLendersA.every((lenderA) => {
+      const correspondingLenderB = filteredLendersB.find(
         (lenderB) => lenderB.id === lenderA.id,
       )
       if (!correspondingLenderB) return false
 
-      // Сравниваем все свойства, кроме markets
       const lenderAWithoutMarkets = { ...lenderA, markets: undefined }
       const lenderBWithoutMarkets = {
         ...correspondingLenderB,
@@ -99,7 +103,6 @@ function useTrackLendersChanges(
         JSON.stringify(lenderAWithoutMarkets) ===
         JSON.stringify(lenderBWithoutMarkets)
 
-      // Сравниваем markets отдельно, игнорируя порядок
       const areMarketsIdentical = areMarketsEqual(
         lenderA.markets,
         correspondingLenderB.markets,

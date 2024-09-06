@@ -20,15 +20,15 @@ import {
   LenderNameTextfield,
 } from "./style"
 
-export const LenderName = ({
-  lenderName,
-  address,
-  setLendersName,
-}: LenderNameProps) => {
+export const LenderName = ({ address }: LenderNameProps) => {
   const lowerCaseAddress = address.toLowerCase()
   const [isEdit, setIsEdit] = useState(false)
 
-  const [name, setName] = useState(lenderName || "Add Name")
+  const lendersName: { [key: string]: string } = JSON.parse(
+    localStorage.getItem("lenders-name") || "{}",
+  )
+
+  const [name, setName] = useState(lendersName[lowerCaseAddress] || "Add Name")
   const [prevName, setPrevName] = useState(name)
   const containerRef = useRef<HTMLDivElement>(null)
   const isPlaceholder = name === "Add Name"
@@ -41,21 +41,21 @@ export const LenderName = ({
 
   const handleSave = (evt: React.KeyboardEvent) => {
     if (evt.key === "Enter") {
-      setLendersName((prev) => {
-        if (name === "") {
-          delete prev[lowerCaseAddress]
-          setName("Add Name")
-        } else {
-          prev[lowerCaseAddress] = name
-          localStorage.setItem("lenders-name", JSON.stringify(prev))
-          setName(name.trim())
-        }
-        return prev
-      })
+      if (name === "") {
+        delete lendersName[lowerCaseAddress]
+        setName("Add Name")
+      } else {
+        lendersName[lowerCaseAddress] = name
+        localStorage.setItem("lenders-name", JSON.stringify(lendersName))
+        setName(name.trim())
+      }
 
       setPrevName(name)
       setIsEdit(false)
+
+      return lendersName
     }
+    return undefined
   }
 
   const handleKeyDown = (evt: React.KeyboardEvent) => {

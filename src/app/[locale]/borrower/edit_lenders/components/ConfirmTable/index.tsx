@@ -22,6 +22,10 @@ export const ConfirmTable = ({
   lendersRows: LenderTableT[]
   borrowerMarkets: MarketDataT[]
 }) => {
+  const lendersName: { [key: string]: string } = JSON.parse(
+    localStorage.getItem("lenders-name") || "{}",
+  )
+
   const columns: GridColDef[] = [
     {
       field: "name",
@@ -33,7 +37,11 @@ export const ConfirmTable = ({
       align: "left",
       renderCell: (params) => (
         <>
-          {params.row.status === "new" && <Box sx={AddedDot} />}
+          {params.row.status === "new" && (
+            <Box
+              sx={{ ...AddedDot, backgroundColor: COLORS.ultramarineBlue }}
+            />
+          )}
           <Typography
             variant="text3"
             sx={{
@@ -45,7 +53,9 @@ export const ConfirmTable = ({
                 params.row.status === "deleted" ? "line-through" : "none",
             }}
           >
-            {params.value.name === "" ? "..." : params.value.name}
+            {lendersName[params.row.address.toLowerCase()] === ("" || undefined)
+              ? "Add name"
+              : lendersName[params.row.address.toLowerCase()]}
           </Typography>
         </>
       ),
@@ -86,8 +96,8 @@ export const ConfirmTable = ({
       headerAlign: "left",
       align: "left",
       flex: 7,
-      renderCell: ({ value }) =>
-        value.length !== borrowerMarkets.length ? (
+      renderCell: (params) =>
+        params.value.length !== borrowerMarkets.length ? (
           <Box
             sx={{
               display: "flex",
@@ -96,13 +106,14 @@ export const ConfirmTable = ({
               padding: "14px 0",
             }}
           >
-            {value.map((market: MarketTableT) => (
-              <LendersMarketChip
-                marketName={market.name}
-                type={market.status}
-                width="fit-content"
-              />
-            ))}
+            {!(params.row.status === "deleted") &&
+              params.value.map((market: MarketTableT) => (
+                <LendersMarketChip
+                  marketName={market.name}
+                  type={market.status}
+                  width="fit-content"
+                />
+              ))}
           </Box>
         ) : (
           <Typography variant="text3">All</Typography>

@@ -110,30 +110,14 @@ export function useMarketsForBorrowerQuery({
       chunks = [markets]
     }
 
-    console.log("DEBUG MARKET CHUNKS", chunks)
-
     await Promise.all(
       chunks.map(async (marketsChunk) => {
         try {
-          console.log("DEBUG UPDATE REQUESTED")
           const updates = await lens.getMarketsData(
-            marketsChunk.map((m) => m.address),
-          )
-          console.log(
-            "DEBUG UPDATE ADRESSSED",
             marketsChunk.map((m) => m.address),
           )
           marketsChunk.forEach((market, i) => {
             market.updateWith(updates[i])
-            if (
-              market.address === "0xaedfd7255f30b651c687831b47d73b179a8adc89"
-            ) {
-              console.log("DEBUG UPDATED MARKET", {
-                market,
-                update: updates[i],
-                delinquent: market.timeDelinquent,
-              })
-            }
           })
         } catch (err) {
           console.log("Wrong underlying network detected", err)
@@ -148,12 +132,6 @@ export function useMarketsForBorrowerQuery({
     const subgraphMarkets = await (borrower
       ? queryMarketsForBorrower
       : queryMarketsForAllBorrowers)()
-
-    subgraphMarkets?.forEach((market) => {
-      if (market.address === "0xaedfd7255f30b651c687831b47d73b179a8adc89") {
-        console.log("DEBUG JUL MARKET SUBGRAPH", market)
-      }
-    })
     return updateMarkets(subgraphMarkets)
   }
 

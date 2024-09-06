@@ -1,4 +1,3 @@
-import { useState } from "react"
 import * as React from "react"
 
 import {
@@ -54,21 +53,11 @@ export const MarketAuthorisedLenders = ({
 
   const hasMLA = 0 // test const for hoiding/showing MLA columns in table
 
-  const [state, copyToClipboard] = useCopyToClipboard()
-  const [lendersNames, setLendersNames] = useState<{ [key: string]: string }>(
-    (() => {
-      const storedNames = JSON.parse(
-        localStorage.getItem("lenders-name") || "{}",
-      )
-      return Object.keys(storedNames).reduce(
-        (acc, key) => {
-          acc[key.toLowerCase()] = storedNames[key]
-          return acc
-        },
-        {} as { [key: string]: string },
-      )
-    })(),
+  const lendersNames: { [key: string]: string } = JSON.parse(
+    localStorage.getItem("lenders-name") || "{}",
   )
+
+  const [state, copyToClipboard] = useCopyToClipboard()
 
   const { data, isLoading } = useGetAuthorisedLendersByMarket(market)
   const { t } = useTranslation()
@@ -107,13 +96,7 @@ export const MarketAuthorisedLenders = ({
       minWidth: 176,
       headerAlign: "left",
       align: "left",
-      renderCell: (params) => (
-        <LenderName
-          setLendersName={setLendersNames}
-          lenderName={params.value.name}
-          address={params.value.address}
-        />
-      ),
+      renderCell: (params) => <LenderName address={params.value.address} />,
       flex: 2,
     },
     {

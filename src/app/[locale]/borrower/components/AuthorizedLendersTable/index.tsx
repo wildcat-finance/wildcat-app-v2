@@ -1,5 +1,4 @@
 import * as React from "react"
-import { useState } from "react"
 
 import {
   Accordion,
@@ -35,19 +34,8 @@ export const LendersTable = ({
       lenderAddress,
     )}`
 
-  const [lendersNames, setLendersNames] = useState<{ [key: string]: string }>(
-    (() => {
-      const storedNames = JSON.parse(
-        localStorage.getItem("lenders-name") || "{}",
-      )
-      return Object.keys(storedNames).reduce(
-        (acc, key) => {
-          acc[key.toLowerCase()] = storedNames[key]
-          return acc
-        },
-        {} as { [key: string]: string },
-      )
-    })(),
+  const lendersNames: { [key: string]: string } = JSON.parse(
+    localStorage.getItem("lenders-name") || "{}",
   )
 
   const rows = tableData.map((lender) => ({
@@ -70,13 +58,7 @@ export const LendersTable = ({
       minWidth: 160,
       headerAlign: "left",
       align: "left",
-      renderCell: (params) => (
-        <LenderName
-          setLendersName={setLendersNames}
-          lenderName={params.value.name}
-          address={params.row.address}
-        />
-      ),
+      renderCell: (params) => <LenderName address={params.row.address} />,
       flex: 1,
     },
     {

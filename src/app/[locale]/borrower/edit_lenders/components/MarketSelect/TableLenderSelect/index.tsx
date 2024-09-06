@@ -200,7 +200,11 @@ export const TableLenderSelect = ({
         multiple
         sx={SelectStyle}
         endAdornment={
-          <IconButton onClick={handleReset} sx={DeleteButtonStyle}>
+          <IconButton
+            onClick={handleReset}
+            sx={DeleteButtonStyle}
+            disabled={disabled}
+          >
             <SvgIcon
               fontSize="small"
               sx={{
@@ -233,6 +237,7 @@ export const TableLenderSelect = ({
                       ? restorePreviousStatus(market)
                       : handleDeleteMarket(market)
                   }
+                  disabled={disabled}
                   type={market.status}
                 />
               ))
@@ -312,7 +317,7 @@ export const TableLenderSelect = ({
           size="medium"
           variant="contained"
           color="secondary"
-          sx={{ width: "100%" }}
+          sx={{ width: "100%", marginTop: "12px" }}
         >
           Reset
         </Button>

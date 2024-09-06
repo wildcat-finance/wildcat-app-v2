@@ -4,4 +4,5 @@ export type LendersMarketChipProps = {
   withButton?: boolean
   onClick?: () => void
   width?: string
+  disabled?: boolean
 }

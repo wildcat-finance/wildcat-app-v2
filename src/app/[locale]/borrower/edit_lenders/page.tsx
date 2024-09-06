@@ -52,21 +52,6 @@ export default function EditLendersPage() {
     )
     .map((market) => ({ name: market.name, address: market.address }))
 
-  const [lendersNames, setLendersNames] = useState<{ [key: string]: string }>(
-    (() => {
-      const storedNames = JSON.parse(
-        localStorage.getItem("lenders-name") || "{}",
-      )
-      return Object.keys(storedNames).reduce(
-        (acc, key) => {
-          acc[key.toLowerCase()] = storedNames[key]
-          return acc
-        },
-        {} as { [key: string]: string },
-      )
-    })(),
-  )
-
   const [initialLendersRows] = useState<LenderTableT[]>(
     mockLendersData
       .filter((lender) => lender.isAuthorized)
@@ -75,10 +60,6 @@ export default function EditLendersPage() {
         status: "old",
         prevStatus: "old",
         id: lender.address,
-        name: (() => {
-          const correctLender = lendersNames[lender.address.toLowerCase()] || ""
-          return { name: correctLender, address: lender.address }
-        })(),
         markets: lender.markets.map((market) => ({
           ...market,
           status: "old",
@@ -95,10 +76,6 @@ export default function EditLendersPage() {
         status: "old",
         prevStatus: "old",
         id: lender.address,
-        name: (() => {
-          const correctLender = lendersNames[lender.address.toLowerCase()] || ""
-          return { name: correctLender, address: lender.address }
-        })(),
         markets: lender.markets.map((market) => ({
           ...market,
           status: "old",
@@ -106,8 +83,6 @@ export default function EditLendersPage() {
         })),
       })),
   )
-
-  console.log(lendersRows[0].markets)
 
   const { isLendersHaveChanges, addedOrModifiedLenders } =
     useTrackLendersChanges(initialLendersRows, lendersRows)
@@ -206,7 +181,6 @@ export default function EditLendersPage() {
           <EditLendersForm
             lendersRows={lendersRows}
             setLendersRows={setLendersRows}
-            setLendersNames={setLendersNames}
             borrowerMarkets={activeBorrowerMarkets ?? []}
           />
         )}

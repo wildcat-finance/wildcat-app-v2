@@ -12,6 +12,7 @@ export const LendersMarketChip = ({
   withButton,
   onClick,
   width = "100%",
+  disabled,
 }: LendersMarketChipProps) => {
   let chipConfig
 
@@ -87,7 +88,11 @@ export const LendersMarketChip = ({
       </Typography>
 
       {withButton && (
-        <IconButton sx={{ marginLeft: "2px" }} onMouseDown={onMouseDown}>
+        <IconButton
+          sx={{ marginLeft: "2px" }}
+          onMouseDown={onMouseDown}
+          disabled={disabled}
+        >
           <SvgIcon
             style={{
               fontSize: "12px",

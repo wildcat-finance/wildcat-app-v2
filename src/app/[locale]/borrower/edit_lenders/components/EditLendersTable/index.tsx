@@ -19,9 +19,12 @@ import { TableLenderSelect } from "../MarketSelect/TableLenderSelect"
 export const EditLendersTable = ({
   lendersRows,
   setLendersRows,
-  setLendersNames,
   borrowerMarkets,
 }: EditLendersTableProps) => {
+  const lendersName: { [key: string]: string } = JSON.parse(
+    localStorage.getItem("lenders-name") || "{}",
+  )
+
   const handleAddAllMarkets = (
     event: React.ChangeEvent<HTMLInputElement>,
     lenderAddress: string,
@@ -106,30 +109,32 @@ export const EditLendersTable = ({
       renderCell: (params) => (
         <>
           {params.row.status === "deleted" && (
-            <Typography
-              color={COLORS.santasGrey}
-              variant="text3"
-              sx={{ textDecoration: "line-through" }}
-            >
-              {params.value.name === "" ? "Add name" : params.value.name}
-            </Typography>
+            <>
+              {params.row.prevStatus === "new" && (
+                <Box sx={{ ...AddedDot, backgroundColor: COLORS.santasGrey }} />
+              )}
+              <Typography
+                color={COLORS.santasGrey}
+                variant="text3"
+                sx={{ textDecoration: "line-through" }}
+              >
+                {lendersName[params.row.address.toLowerCase()] ===
+                ("" || undefined)
+                  ? "Add name"
+                  : lendersName[params.row.address.toLowerCase()]}
+              </Typography>
+            </>
           )}
           {params.row.status === "new" && (
             <>
-              <Box sx={AddedDot} />
-              <LenderName
-                setLendersName={setLendersNames}
-                lenderName={params.value.name}
-                address={params.value.address}
+              <Box
+                sx={{ ...AddedDot, backgroundColor: COLORS.ultramarineBlue }}
               />
+              <LenderName address={params.row.address} />
             </>
           )}
           {params.row.status === "old" && (
-            <LenderName
-              setLendersName={setLendersNames}
-              lenderName={params.value.name}
-              address={params.value.address}
-            />
+            <LenderName address={params.row.address} />
           )}
         </>
       ),
@@ -196,14 +201,19 @@ export const EditLendersTable = ({
       align: "left",
       flex: 5,
       renderCell: (params) => (
-        <TableLenderSelect
-          lenderMarkets={params.value}
-          lenderAddress={params.row.address}
-          borrowerMarkets={borrowerMarkets}
-          setLendersRows={setLendersRows}
-          handleAddAllMarkets={handleAddAllMarkets}
-          disabled={params.row.status === "deleted"}
-        />
+        // eslint-disable-next-line react/jsx-no-useless-fragment
+        <>
+          {!(params.row.status === "deleted") && (
+            <TableLenderSelect
+              lenderMarkets={params.value}
+              lenderAddress={params.row.address}
+              borrowerMarkets={borrowerMarkets}
+              setLendersRows={setLendersRows}
+              handleAddAllMarkets={handleAddAllMarkets}
+              disabled={params.row.status === "deleted"}
+            />
+          )}
+        </>
       ),
     },
     {

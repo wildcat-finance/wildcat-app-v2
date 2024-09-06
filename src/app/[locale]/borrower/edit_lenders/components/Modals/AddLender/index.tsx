@@ -17,13 +17,16 @@ import { AddLenderSelect } from "../../MarketSelect/AddLenderSelect"
 
 export const AddLenderModal = ({
   setLendersRows,
-  setLendersNames,
   borrowerMarkets,
   existingLenders,
 }: AddLenderModalProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedMarkets, setSelectedMarkets] = useState<MarketTableT[]>([])
   const [isDisabled, setIsDisabled] = useState(false)
+
+  const lendersName: { [key: string]: string } = JSON.parse(
+    localStorage.getItem("lenders-name") || "{}",
+  )
 
   const {
     getValues,
@@ -54,10 +57,6 @@ export const AddLenderModal = ({
       {
         id: getValues("address"),
         isAuthorized: true,
-        name: {
-          name: getValues("name"),
-          address: getValues("address"),
-        },
         address: getValues("address"),
         markets: selectedMarkets.map((market) => ({
           name: market.name,
@@ -70,22 +69,15 @@ export const AddLenderModal = ({
       },
     ])
 
-    setLendersNames((prev) => {
-      if (getValues("name") === "") {
-        delete prev[getValues("address")]
-      } else {
-        prev[getValues("address")] = getValues("name")
-        localStorage.setItem("lenders-name", JSON.stringify(prev))
-      }
-      return prev
-    })
+    if (getValues("name") === "") {
+      delete lendersName[getValues("address").toLowerCase()]
+    } else {
+      lendersName[getValues("address").toLowerCase()] = getValues("name")
+      localStorage.setItem("lenders-name", JSON.stringify(lendersName))
+    }
 
     setIsOpen(false)
   }
-
-  const lendersName: { [key: string]: string } = JSON.parse(
-    localStorage.getItem("lenders-name") || "{}",
-  )
 
   const addressValue = watch("address")
 

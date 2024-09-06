@@ -1,4 +1,4 @@
-import { ChangeEvent, Dispatch, SetStateAction } from "react"
+import { ChangeEvent } from "react"
 
 import {
   Box,
@@ -11,8 +11,6 @@ import {
 import { EditLendersTable } from "@/app/[locale]/borrower/edit_lenders/components/EditLendersTable"
 import { FilterLenderSelect } from "@/app/[locale]/borrower/edit_lenders/components/MarketSelect/FilterLenderSelect"
 import { AddLenderModal } from "@/app/[locale]/borrower/edit_lenders/components/Modals/AddLender"
-import { LenderTableT } from "@/app/[locale]/borrower/edit_lenders/interface"
-import { MarketDataT } from "@/app/[locale]/borrower/edit_lenders/lendersMock"
 import {
   FiltersContainer,
   SearchStyles,
@@ -23,17 +21,11 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setLenderFilter } from "@/store/slices/editLendersSlice/editLendersSlice"
 import { COLORS } from "@/theme/colors"
 
-export type EditLendersFormProps = {
-  lendersRows: LenderTableT[]
-  setLendersRows: Dispatch<SetStateAction<LenderTableT[]>>
-  setLendersNames: Dispatch<SetStateAction<{ [p: string]: string }>>
-  borrowerMarkets: MarketDataT[]
-}
+import { EditLendersFormProps } from "./interface"
 
 export const EditLendersForm = ({
   lendersRows,
   setLendersRows,
-  setLendersNames,
   borrowerMarkets,
 }: EditLendersFormProps) => {
   const dispatch = useAppDispatch()
@@ -57,6 +49,10 @@ export const EditLendersForm = ({
 
   const allLendersAddresses = lendersRows.map((lender) => lender.address)
 
+  const lendersName: { [key: string]: string } = JSON.parse(
+    localStorage.getItem("lenders-name") || "{}",
+  )
+
   const filteredLenders = lendersRows.filter((lender) => {
     const matchesAllMarkets =
       selectedMarkets.length === 0 ||
@@ -67,8 +63,7 @@ export const EditLendersForm = ({
       )
 
     const matchesSearchTerm =
-      lenderNameOrAddress === "" ||
-      lender.name.name
+      (lendersName[lender.address.toLowerCase()] || lender.address)
         .toLowerCase()
         .includes(lenderNameOrAddress.toLowerCase()) ||
       lender.address.toLowerCase().includes(lenderNameOrAddress.toLowerCase())
@@ -133,7 +128,6 @@ export const EditLendersForm = ({
 
         <AddLenderModal
           setLendersRows={setLendersRows}
-          setLendersNames={setLendersNames}
           existingLenders={allLendersAddresses}
           borrowerMarkets={borrowerMarkets ?? []}
         />
@@ -142,7 +136,6 @@ export const EditLendersForm = ({
       <EditLendersTable
         lendersRows={filteredLenders}
         setLendersRows={setLendersRows}
-        setLendersNames={setLendersNames}
         borrowerMarkets={borrowerMarkets ?? []}
       />
     </>

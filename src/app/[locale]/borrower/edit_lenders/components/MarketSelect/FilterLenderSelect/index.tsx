@@ -183,6 +183,7 @@ export const FilterLenderSelect = ({
           {filteredMarketsByName.map((market) => (
             <FormControlLabel
               key={market.address}
+              sx={{ marginLeft: "14px" }}
               label={market.name}
               control={
                 <ExtendedCheckbox
