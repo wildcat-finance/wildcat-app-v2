@@ -109,21 +109,16 @@ export const EditLendersTable = ({
       renderCell: (params) => (
         <>
           {params.row.status === "deleted" && (
-            <>
-              {params.row.prevStatus === "new" && (
-                <Box sx={{ ...AddedDot, backgroundColor: COLORS.santasGrey }} />
-              )}
-              <Typography
-                color={COLORS.santasGrey}
-                variant="text3"
-                sx={{ textDecoration: "line-through" }}
-              >
-                {lendersName[params.row.address.toLowerCase()] ===
-                ("" || undefined)
-                  ? "Add name"
-                  : lendersName[params.row.address.toLowerCase()]}
-              </Typography>
-            </>
+            <Typography
+              color={COLORS.santasGrey}
+              variant="text3"
+              sx={{ textDecoration: "line-through" }}
+            >
+              {lendersName[params.row.address.toLowerCase()] ===
+              ("" || undefined)
+                ? "Add name"
+                : lendersName[params.row.address.toLowerCase()]}
+            </Typography>
           )}
           {params.row.status === "new" && (
             <>

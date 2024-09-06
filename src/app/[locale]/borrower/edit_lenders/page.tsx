@@ -5,11 +5,10 @@ import * as React from "react"
 
 import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { useSearchParams } from "next/navigation"
-import { useAccount } from "wagmi"
 
 import { ConfirmTable } from "@/app/[locale]/borrower/edit_lenders/components/ConfirmTable"
 import useTrackLendersChanges from "@/app/[locale]/borrower/edit_lenders/hooks/useTrackLendersChanges"
-import { useMarketsForBorrower } from "@/app/[locale]/borrower/hooks/useMarketsForBorrower"
+import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   resetEditLendersSlice,
@@ -42,14 +41,9 @@ export default function EditLendersPage() {
     dispatch(setEditStep("edit"))
   }
 
-  const { data: allMarkets, isLoading } = useMarketsForBorrower()
-  const { address } = useAccount()
-  const activeBorrowerMarkets = allMarkets
-    ?.filter(
-      (market) =>
-        market.borrower.toLowerCase() === address?.toLowerCase() &&
-        !market.isClosed,
-    )
+  const { data, isLoading } = useGetBorrowerMarkets()
+  const activeMarkets = data
+    ?.filter((market) => !market.isClosed)
     .map((market) => ({ name: market.name, address: market.address }))
 
   const [initialLendersRows] = useState<LenderTableT[]>(
@@ -181,14 +175,14 @@ export default function EditLendersPage() {
           <EditLendersForm
             lendersRows={lendersRows}
             setLendersRows={setLendersRows}
-            borrowerMarkets={activeBorrowerMarkets ?? []}
+            borrowerMarkets={activeMarkets ?? []}
           />
         )}
 
         {step === "confirm" && (
           <ConfirmTable
             lendersRows={addedOrModifiedLenders}
-            borrowerMarkets={activeBorrowerMarkets ?? []}
+            borrowerMarkets={activeMarkets ?? []}
           />
         )}
 

@@ -10,6 +10,8 @@ import { useAccount } from "wagmi"
 
 import { LendersTable } from "@/app/[locale]/borrower/components/AuthorizedLendersTable"
 import { mockLendersData } from "@/app/[locale]/borrower/edit_lenders/lendersMock"
+import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
+import { useGetOthersMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetOthersMarkets"
 import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { LeadBanner } from "@/components/LeadBanner"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -22,7 +24,6 @@ import { getMarketStatus, MarketStatus } from "@/utils/marketStatus"
 import { BorrowerMarketsTable } from "./components/BorrowerMarketsTable"
 import { OthersMarketsTable } from "./components/OthersMarketsTable"
 import { useBorrowerInvitationRedirect } from "./hooks/useBorrowerInvitationRedirect"
-import { useMarketsForBorrower } from "./hooks/useMarketsForBorrower"
 import { MarketsTablesContainer, PageTitleContainer } from "./page-style"
 
 const filterMarketsByAssetAndStatus = (
@@ -62,13 +63,24 @@ const filterMarketsByAssetAndStatus = (
 export default function Borrower() {
   const { t } = useTranslation()
   const bannerDisplayConfig = useBorrowerInvitationRedirect()
-  const { data: borrowers } = useGetBorrowers()
-  const { data: allMarkets, isLoading } = useMarketsForBorrower()
+
   const { address, isConnected } = useAccount()
+  const { data: borrowers } = useGetBorrowers()
+
+  const { data: borrowerMarkets, isLoading: isBorrowerMarketsLoading } =
+    useGetBorrowerMarkets()
+  const { data: othersMarkets, isLoading: isOthersMarketsLoading } =
+    useGetOthersMarkets()
+
+  const isLoading =
+    isBorrowerMarketsLoading ||
+    isOthersMarketsLoading ||
+    borrowerMarkets === undefined ||
+    othersMarkets === undefined
+
   const { data: controller } = useGetController()
   const { isWrongNetwork } = useCurrentNetwork()
   const isRegisteredBorrower = controller?.isRegisteredBorrower
-  const controllerMarkets = controller?.markets || []
 
   const filterByMarketName = useAppSelector(
     (state) => state.borrowerSidebar.marketName,
@@ -79,7 +91,9 @@ export default function Borrower() {
   )
 
   const filteredMarkets = filterMarketsByAssetAndStatus(
-    allMarkets,
+    borrowerMarkets && othersMarkets
+      ? [...borrowerMarkets, ...othersMarkets]
+      : [],
     filterByMarketName,
     filterByStatus,
     filterByAsset,
@@ -91,7 +105,7 @@ export default function Borrower() {
       !market.isClosed,
   )
 
-  const terminatedBorrowerMarkets = allMarkets
+  const terminatedBorrowerMarkets = borrowerMarkets
     ?.filter(
       (market) =>
         market.borrower.toLowerCase() === address?.toLowerCase() &&
@@ -101,15 +115,12 @@ export default function Borrower() {
       market.name.toLowerCase().includes(filterByMarketName.toLowerCase()),
     )
 
-  const othersMarkets = filteredMarkets?.filter(
-    (market) => market.borrower.toLowerCase() !== address?.toLowerCase(),
-  )
-
   const showBorrowerTables =
     !isWrongNetwork &&
     isConnected &&
     isRegisteredBorrower &&
-    !!controllerMarkets.length
+    !!borrowerMarkets?.length &&
+    !!othersMarkets?.length
 
   const othersTableData = showBorrowerTables ? othersMarkets : filteredMarkets
 

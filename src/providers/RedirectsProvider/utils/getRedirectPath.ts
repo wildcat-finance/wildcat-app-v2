@@ -10,6 +10,7 @@ const NO_WALLET_RESTRICTED_PATHS = [
   ROUTES.agreement,
   ROUTES.borrower.newMarket,
   ROUTES.borrower.market,
+  ROUTES.borrower.lendersList,
 ]
 
 const isNotPublicPath = (pathname: string) => {
