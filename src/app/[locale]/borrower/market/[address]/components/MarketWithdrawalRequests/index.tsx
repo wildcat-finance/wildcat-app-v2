@@ -1,7 +1,8 @@
 import * as React from "react"
 
-import { Box, IconButton, Link, SvgIcon, Typography } from "@mui/material"
+import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
+import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { ClaimableTable } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/ClaimableTable"
@@ -9,7 +10,6 @@ import { OngoingTable } from "@/app/[locale]/borrower/market/[address]/component
 import { OutstandingTable } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/OutstandingTable"
 import { RepayModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/RepayModal"
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
-import Copy from "@/assets/icons/copy_icon.svg"
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { LinkGroup } from "@/components/LinkComponent"

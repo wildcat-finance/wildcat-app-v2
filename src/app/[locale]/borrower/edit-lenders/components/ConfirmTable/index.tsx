@@ -3,12 +3,12 @@ import * as React from "react"
 import { Box, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 
-import { AddedDot } from "@/app/[locale]/borrower/edit_lenders/components/EditLendersTable/style"
+import { AddedDot } from "@/app/[locale]/borrower/edit-lenders/components/EditLendersTable/style"
 import {
   LenderTableT,
   MarketTableT,
-} from "@/app/[locale]/borrower/edit_lenders/interface"
-import { MarketDataT } from "@/app/[locale]/borrower/edit_lenders/lendersMock"
+} from "@/app/[locale]/borrower/edit-lenders/interface"
+import { MarketDataT } from "@/app/[locale]/borrower/edit-lenders/lendersMock"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"

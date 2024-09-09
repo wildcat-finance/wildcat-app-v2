@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from "react"
 
-import { MarketDataT } from "@/app/[locale]/borrower/edit_lenders/lendersMock"
+import { MarketDataT } from "@/app/[locale]/borrower/edit-lenders/lendersMock"
 
 import { LenderTableT, MarketTableT } from "../../../interface"
 

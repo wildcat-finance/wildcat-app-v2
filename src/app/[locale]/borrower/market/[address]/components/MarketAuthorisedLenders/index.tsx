@@ -5,12 +5,12 @@ import {
   Button,
   Divider,
   IconButton,
-  Link,
   Skeleton,
   SvgIcon,
   Typography,
 } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
@@ -45,11 +45,11 @@ import {
 export const MarketAuthorisedLenders = ({
   market,
 }: MarketAuthorisedLendersProps) => {
-  const editLendersLink =
-    market &&
-    `${ROUTES.borrower.lendersList}?marketName=${encodeURIComponent(
-      market?.name,
-    )}&marketAddress=${encodeURIComponent(market?.address)}`
+  const editLendersLink = market
+    ? `${ROUTES.borrower.lendersList}?marketName=${encodeURIComponent(
+        market?.name,
+      )}&marketAddress=${encodeURIComponent(market?.address)}`
+    : ROUTES.borrower.lendersList
 
   const hasMLA = 0 // test const for hoiding/showing MLA columns in table
 

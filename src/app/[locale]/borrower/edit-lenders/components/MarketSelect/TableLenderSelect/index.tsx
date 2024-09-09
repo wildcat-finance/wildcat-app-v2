@@ -14,8 +14,8 @@ import {
   TextField,
 } from "@mui/material"
 
-import { MarketTableT } from "@/app/[locale]/borrower/edit_lenders/interface"
-import { MarketDataT } from "@/app/[locale]/borrower/edit_lenders/lendersMock"
+import { MarketTableT } from "@/app/[locale]/borrower/edit-lenders/interface"
+import { MarketDataT } from "@/app/[locale]/borrower/edit-lenders/lendersMock"
 import Cross from "@/assets/icons/cross_icon.svg"
 import Icon from "@/assets/icons/search_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"

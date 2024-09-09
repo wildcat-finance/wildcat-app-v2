@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { LendersTable } from "@/app/[locale]/borrower/components/AuthorizedLendersTable"
-import { mockLendersData } from "@/app/[locale]/borrower/edit_lenders/lendersMock"
+import { mockLendersData } from "@/app/[locale]/borrower/edit-lenders/lendersMock"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetOthersMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetOthersMarkets"
 import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
-import { MarketDataT } from "@/app/[locale]/borrower/edit_lenders/lendersMock"
+import { MarketDataT } from "@/app/[locale]/borrower/edit-lenders/lendersMock"
 import { TEditLenders } from "@/store/slices/editLendersSlice/interface"
 
 const initialState: TEditLenders = {

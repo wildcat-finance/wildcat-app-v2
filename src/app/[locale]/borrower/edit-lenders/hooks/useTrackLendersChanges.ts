@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import {
   LenderTableT,
   MarketTableT,
-} from "@/app/[locale]/borrower/edit_lenders/interface"
+} from "@/app/[locale]/borrower/edit-lenders/interface"
 
 const areMarketsEqual = (
   initialMarkets: MarketTableT[],

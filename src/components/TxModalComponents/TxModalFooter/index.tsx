@@ -1,11 +1,5 @@
-import {
-  Box,
-  Button,
-  IconButton,
-  Link,
-  SvgIcon,
-  Typography,
-} from "@mui/material"
+import { Box, Button, IconButton, SvgIcon, Typography } from "@mui/material"
+import Link from "next/link"
 
 import Check from "@/assets/icons/check_icon.svg"
 import LinkIcon from "@/assets/icons/link_icon.svg"

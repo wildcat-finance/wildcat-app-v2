@@ -6,9 +6,9 @@ import {
   DialogBody,
   DialogContainer,
   OpenModalButton,
-} from "@/app/[locale]/borrower/edit_lenders/components/Modals/AddLender/style"
-import { useAddLenderForm } from "@/app/[locale]/borrower/edit_lenders/components/Modals/AddLender/useAddLenderForm"
-import { MarketTableT } from "@/app/[locale]/borrower/edit_lenders/interface"
+} from "@/app/[locale]/borrower/edit-lenders/components/Modals/AddLender/style"
+import { useAddLenderForm } from "@/app/[locale]/borrower/edit-lenders/components/Modals/AddLender/useAddLenderForm"
+import { MarketTableT } from "@/app/[locale]/borrower/edit-lenders/interface"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { COLORS } from "@/theme/colors"
 

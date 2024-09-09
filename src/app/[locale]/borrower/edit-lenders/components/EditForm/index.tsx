@@ -8,13 +8,13 @@ import {
   TextField,
 } from "@mui/material"
 
-import { EditLendersTable } from "@/app/[locale]/borrower/edit_lenders/components/EditLendersTable"
-import { FilterLenderSelect } from "@/app/[locale]/borrower/edit_lenders/components/MarketSelect/FilterLenderSelect"
-import { AddLenderModal } from "@/app/[locale]/borrower/edit_lenders/components/Modals/AddLender"
+import { EditLendersTable } from "@/app/[locale]/borrower/edit-lenders/components/EditLendersTable"
+import { FilterLenderSelect } from "@/app/[locale]/borrower/edit-lenders/components/MarketSelect/FilterLenderSelect"
+import { AddLenderModal } from "@/app/[locale]/borrower/edit-lenders/components/Modals/AddLender"
 import {
   FiltersContainer,
   SearchStyles,
-} from "@/app/[locale]/borrower/edit_lenders/style"
+} from "@/app/[locale]/borrower/edit-lenders/style"
 import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"

@@ -18,8 +18,8 @@ import {
   InputLabelStyle,
   MenuStyle,
   SelectStyle,
-} from "@/app/[locale]/borrower/edit_lenders/components/MarketSelect/FilterLenderSelect/style"
-import { MarketDataT } from "@/app/[locale]/borrower/edit_lenders/lendersMock"
+} from "@/app/[locale]/borrower/edit-lenders/components/MarketSelect/FilterLenderSelect/style"
+import { MarketDataT } from "@/app/[locale]/borrower/edit-lenders/lendersMock"
 import Filter from "@/assets/icons/filter_icon.svg"
 import Icon from "@/assets/icons/search_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"

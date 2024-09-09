@@ -1,10 +1,11 @@
 import { useState } from "react"
 import * as React from "react"
 
-import { Box, IconButton, Link, SvgIcon, Typography } from "@mui/material"
+import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { TokenAmount, WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
+import Link from "next/link"
 
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"

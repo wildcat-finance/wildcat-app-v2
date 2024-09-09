@@ -6,8 +6,8 @@ import * as React from "react"
 import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { useSearchParams } from "next/navigation"
 
-import { ConfirmTable } from "@/app/[locale]/borrower/edit_lenders/components/ConfirmTable"
-import useTrackLendersChanges from "@/app/[locale]/borrower/edit_lenders/hooks/useTrackLendersChanges"
+import { ConfirmTable } from "@/app/[locale]/borrower/edit-lenders/components/ConfirmTable"
+import useTrackLendersChanges from "@/app/[locale]/borrower/edit-lenders/hooks/useTrackLendersChanges"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {

@@ -3,7 +3,7 @@ import * as React from "react"
 import { Box, Button, IconButton, SvgIcon, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 
-import { MarketTableT } from "@/app/[locale]/borrower/edit_lenders/interface"
+import { MarketTableT } from "@/app/[locale]/borrower/edit-lenders/interface"
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import Cross from "@/assets/icons/cross_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"

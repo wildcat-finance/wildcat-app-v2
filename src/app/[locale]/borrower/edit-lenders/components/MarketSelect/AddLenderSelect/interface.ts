@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from "react"
 
-import { MarketTableT } from "@/app/[locale]/borrower/edit_lenders/interface"
-import { MarketDataT } from "@/app/[locale]/borrower/edit_lenders/lendersMock"
+import { MarketTableT } from "@/app/[locale]/borrower/edit-lenders/interface"
+import { MarketDataT } from "@/app/[locale]/borrower/edit-lenders/lendersMock"
 
 export type AddLenderSelectProps = {
   borrowerMarkets: MarketDataT[]

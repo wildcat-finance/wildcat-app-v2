@@ -11,7 +11,7 @@ import {
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import Link from "next/link"
 
-import { MarketDataT } from "@/app/[locale]/borrower/edit_lenders/lendersMock"
+import { MarketDataT } from "@/app/[locale]/borrower/edit-lenders/lendersMock"
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import { MarketWithdrawalRequetstCell } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/style"
 import { LendersMarketChip } from "@/components/LendersMarketChip"

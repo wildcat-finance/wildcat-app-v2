@@ -1,4 +1,4 @@
-import { MarketDataT } from "@/app/[locale]/borrower/edit_lenders/lendersMock"
+import { MarketDataT } from "@/app/[locale]/borrower/edit-lenders/lendersMock"
 
 export type TEditLenders = {
   lenderFilter: string
