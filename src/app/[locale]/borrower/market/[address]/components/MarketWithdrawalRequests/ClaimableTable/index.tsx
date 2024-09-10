@@ -1,9 +1,13 @@
-import { useState } from "react"
 import * as React from "react"
+import { useState } from "react"
 
 import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
-import { TokenAmount, WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
+import {
+  LenderWithdrawalStatus,
+  TokenAmount,
+  WithdrawalBatch,
+} from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
 import Link from "next/link"
 
@@ -113,6 +117,23 @@ const claimableColumns: GridColDef[] = [
     flex: 1,
     headerAlign: "right",
     align: "right",
+    renderCell: ({ value }) => (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          flexWrap: "wrap",
+          gap: "20px",
+          padding: "16px 0",
+        }}
+      >
+        {value.map((amount: string) => (
+          <Box sx={MarketWithdrawalRequetstCell}>
+            <Typography variant="text3">{amount}</Typography>
+          </Box>
+        ))}
+      </Box>
+    ),
   },
 ]
 
@@ -121,6 +142,18 @@ export const ClaimableTable = ({
   totalAmount,
 }: ClaimableTableProps) => {
   const [isClaimableOpen, setIsClaimableOpen] = useState(false)
+
+  const getClaimableRequestAmounts = (status: LenderWithdrawalStatus) => {
+    const claimableAmount = status.availableWithdrawalAmount
+    return status.requests.flatMap((request) =>
+      formatTokenWithCommas(
+        claimableAmount.mulDiv(request.scaledAmount, status.scaledAmount),
+        {
+          withSymbol: true,
+        },
+      ),
+    )
+  }
 
   const claimableRows = withdrawalBatches.flatMap((batch) =>
     batch.withdrawals.map((withdrawal) => ({
@@ -132,9 +165,7 @@ export const ClaimableTable = ({
       dateSubmitted: withdrawal.requests.map((request) =>
         dayjs(request.blockTimestamp * 1000).format("DD-MMM-YYYY"),
       ),
-      amount: formatTokenWithCommas(withdrawal.availableWithdrawalAmount, {
-        withSymbol: true,
-      }),
+      amount: getClaimableRequestAmounts(withdrawal),
     })),
   )
 

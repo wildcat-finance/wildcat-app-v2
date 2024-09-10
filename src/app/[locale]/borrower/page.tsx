@@ -72,12 +72,6 @@ export default function Borrower() {
   const { data: othersMarkets, isLoading: isOthersMarketsLoading } =
     useGetOthersMarkets()
 
-  const isLoading =
-    isBorrowerMarketsLoading ||
-    isOthersMarketsLoading ||
-    borrowerMarkets === undefined ||
-    othersMarkets === undefined
-
   const { data: controller } = useGetController()
   const { isWrongNetwork } = useCurrentNetwork()
   const isRegisteredBorrower = controller?.isRegisteredBorrower
@@ -90,16 +84,21 @@ export default function Borrower() {
     (state) => state.borrowerSidebar.underlyingAsset,
   )
 
-  const filteredMarkets = filterMarketsByAssetAndStatus(
-    borrowerMarkets && othersMarkets
-      ? [...borrowerMarkets, ...othersMarkets]
-      : [],
+  const filteredBorrowerMarkets = filterMarketsByAssetAndStatus(
+    borrowerMarkets,
     filterByMarketName,
     filterByStatus,
     filterByAsset,
   )
 
-  const activeBorrowerMarkets = filteredMarkets?.filter(
+  const filteredOtherMarkets = filterMarketsByAssetAndStatus(
+    othersMarkets,
+    filterByMarketName,
+    filterByStatus,
+    filterByAsset,
+  )
+
+  const activeBorrowerMarkets = filteredBorrowerMarkets?.filter(
     (market) =>
       market.borrower.toLowerCase() === address?.toLowerCase() &&
       !market.isClosed,
@@ -116,13 +115,7 @@ export default function Borrower() {
     )
 
   const showBorrowerTables =
-    !isWrongNetwork &&
-    isConnected &&
-    isRegisteredBorrower &&
-    !!borrowerMarkets?.length &&
-    !!othersMarkets?.length
-
-  const othersTableData = showBorrowerTables ? othersMarkets : filteredMarkets
+    !isWrongNetwork && isConnected && isRegisteredBorrower
 
   const [tab, setTab] = React.useState<"markets" | "mla" | "lenders">("markets")
 
@@ -215,7 +208,7 @@ export default function Borrower() {
                     "borrowerMarketList.table.noMarkets.active.subtitle",
                   )}
                   tableData={activeBorrowerMarkets || []}
-                  isLoading={isLoading}
+                  isLoading={isBorrowerMarketsLoading}
                   assetFilter={filterByAsset}
                   statusFilter={filterByStatus}
                   nameFilter={filterByMarketName}
@@ -234,7 +227,7 @@ export default function Borrower() {
                     "borrowerMarketList.table.noMarkets.terminated.subtitle",
                   )}
                   tableData={terminatedBorrowerMarkets || []}
-                  isLoading={isLoading}
+                  isLoading={isBorrowerMarketsLoading}
                   nameFilter={filterByMarketName}
                 />
               </Box>
@@ -244,9 +237,9 @@ export default function Borrower() {
           <Box marginTop="16px">
             {!isWrongNetwork ? (
               <OthersMarketsTable
-                tableData={othersTableData || []}
+                tableData={filteredOtherMarkets || []}
                 borrowersData={borrowers || []}
-                isLoading={isLoading}
+                isLoading={isOthersMarketsLoading}
                 assetFilter={filterByAsset}
                 statusFilter={filterByStatus}
                 nameFilter={filterByMarketName}
