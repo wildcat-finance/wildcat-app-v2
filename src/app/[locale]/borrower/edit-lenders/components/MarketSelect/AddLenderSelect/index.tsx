@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from "react"
+import { ChangeEvent, useRef, useState } from "react"
 
 import {
   Box,
@@ -37,6 +37,28 @@ export const AddLenderSelect = ({
   setSelectedMarkets,
   disabled,
 }: AddLenderSelectProps) => {
+  const selectRef = useRef<HTMLElement>(null)
+
+  const onOpen = () => {
+    if (selectRef.current) {
+      selectRef.current.classList.add("Mui-focused")
+
+      const previousElement = selectRef.current
+        .previousSibling as Element | null
+      previousElement?.classList.add("Mui-focused")
+    }
+  }
+
+  const onClose = () => {
+    if (selectRef.current) {
+      selectRef.current.classList.remove("Mui-focused")
+
+      const previousElement = selectRef.current
+        .previousSibling as Element | null
+      previousElement?.classList.remove("Mui-focused")
+    }
+  }
+
   const [marketName, setMarketName] = useState("")
   const allMarketsSelected = selectedMarkets.length === borrowerMarkets.length
 
@@ -96,6 +118,9 @@ export const AddLenderSelect = ({
       </InputLabel>
 
       <Select
+        ref={selectRef}
+        onOpen={onOpen}
+        onClose={onClose}
         sx={SelectStyle}
         multiple
         value={selectedMarkets}

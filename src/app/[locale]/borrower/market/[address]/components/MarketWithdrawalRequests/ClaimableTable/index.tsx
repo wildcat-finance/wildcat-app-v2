@@ -39,21 +39,61 @@ const claimableColumns: GridColDef[] = [
     headerAlign: "left",
     align: "left",
     renderCell: ({ value }) => (
-      <Box sx={MarketWithdrawalRequetstCell}>
-        <Typography variant="text3">
-          {lendersName[value] || trimAddress(value)}
-        </Typography>
-        <Link
-          href={`${EtherscanBaseUrl}/address/${value}`}
-          target="_blank"
-          style={{ display: "flex", justifyContent: "center" }}
-        >
-          <IconButton disableRipple sx={AddressButtons}>
-            <SvgIcon fontSize="medium">
-              <LinkIcon />
-            </SvgIcon>
-          </IconButton>
-        </Link>
+      <Box
+        sx={{
+          height: "100%",
+          padding: "16px 0",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "flex-start",
+        }}
+      >
+        <Box sx={MarketWithdrawalRequetstCell}>
+          <Typography variant="text3">
+            {lendersName[value] || trimAddress(value)}
+          </Typography>
+          <Link
+            href={`${EtherscanBaseUrl}/address/${value}`}
+            target="_blank"
+            style={{ display: "flex", justifyContent: "center" }}
+          >
+            <IconButton disableRipple sx={AddressButtons}>
+              <SvgIcon fontSize="medium">
+                <LinkIcon />
+              </SvgIcon>
+            </IconButton>
+          </Link>
+        </Box>
+      </Box>
+    ),
+  },
+  {
+    sortable: false,
+    field: "dateSubmitted",
+    headerName: "Date Submitted",
+    minWidth: 216,
+    headerAlign: "left",
+    align: "left",
+    renderCell: ({ value }) => (
+      <Box
+        sx={{
+          height: "100%",
+          padding: "16px 0",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "flex-start",
+        }}
+      >
+        {value
+          .filter(
+            (date: string, index: number, self: string[]) =>
+              self.indexOf(date) === index,
+          )
+          .map((date: string) => (
+            <Typography variant="text3" key={date}>
+              {date}
+            </Typography>
+          ))}
       </Box>
     ),
   },
@@ -84,28 +124,6 @@ const claimableColumns: GridColDef[] = [
             />
           </Box>
         ))}
-      </Box>
-    ),
-  },
-  {
-    sortable: false,
-    field: "dateSubmitted",
-    headerName: "Date Submitted",
-    minWidth: 112,
-    headerAlign: "left",
-    align: "left",
-    renderCell: ({ value }) => (
-      <Box>
-        {value
-          .filter(
-            (date: string, index: number, self: string[]) =>
-              self.indexOf(date) === index,
-          )
-          .map((date: string) => (
-            <Typography variant="text3" key={date}>
-              {date}
-            </Typography>
-          ))}
       </Box>
     ),
   },

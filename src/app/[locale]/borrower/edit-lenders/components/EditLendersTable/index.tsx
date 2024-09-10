@@ -1,6 +1,13 @@
 import * as React from "react"
 
-import { Box, Button, IconButton, SvgIcon, Typography } from "@mui/material"
+import {
+  Box,
+  Button,
+  IconButton,
+  Stack,
+  SvgIcon,
+  Typography,
+} from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 
 import { MarketTableT } from "@/app/[locale]/borrower/edit-lenders/interface"
@@ -15,6 +22,14 @@ import { trimAddress } from "@/utils/formatters"
 import { EditLendersTableProps } from "./interface"
 import { AddedDot, EditLendersTableStyles, UndoButton } from "./style"
 import { TableLenderSelect } from "../MarketSelect/TableLenderSelect"
+
+export const NoRowsOverlay = () => (
+  <Stack height="100%" alignItems="center" justifyContent="center">
+    <Typography variant="text3" color={COLORS.santasGrey}>
+      No lenders
+    </Typography>
+  </Stack>
+)
 
 export const EditLendersTable = ({
   lendersRows,
@@ -275,6 +290,9 @@ export const EditLendersTable = ({
       getRowHeight={() => "auto"}
       rows={lendersRows}
       columns={columns}
+      slots={{
+        noRowsOverlay: NoRowsOverlay,
+      }}
     />
   )
 }

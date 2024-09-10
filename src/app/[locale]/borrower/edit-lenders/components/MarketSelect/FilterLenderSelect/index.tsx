@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from "react"
+import { ChangeEvent, useRef, useState } from "react"
 
 import {
   Box,
@@ -35,6 +35,27 @@ export const FilterLenderSelect = ({
   selectedMarkets,
 }: FilterLenderSelectProps) => {
   const dispatch = useAppDispatch()
+  const selectRef = useRef<HTMLElement>(null)
+
+  const onOpen = () => {
+    if (selectRef.current) {
+      selectRef.current.classList.add("Mui-focused")
+
+      const previousElement = selectRef.current
+        .previousSibling as Element | null
+      previousElement?.classList.add("Mui-focused")
+    }
+  }
+
+  const onClose = () => {
+    if (selectRef.current) {
+      selectRef.current.classList.remove("Mui-focused")
+
+      const previousElement = selectRef.current
+        .previousSibling as Element | null
+      previousElement?.classList.remove("Mui-focused")
+    }
+  }
 
   const [marketName, setMarketName] = useState("")
   const allMarketsSelected = selectedMarkets.length === borrowerMarkets.length
@@ -93,6 +114,7 @@ export const FilterLenderSelect = ({
       <InputLabel sx={InputLabelStyle}>Filter by Markets</InputLabel>
 
       <Select
+        ref={selectRef}
         value={selectedMarkets}
         size="small"
         multiple
@@ -106,6 +128,8 @@ export const FilterLenderSelect = ({
             <Filter />
           </SvgIcon>
         }
+        onClose={onClose}
+        onOpen={onOpen}
         renderValue={(selected) => (
           <Box sx={ChipContainer}>
             {selected.map((market) => (

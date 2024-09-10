@@ -74,6 +74,14 @@ export const MarketWithdrawalRequests = ({
     },
     {
       sortable: false,
+      field: "dateSubmitted",
+      headerName: "Date Submitted",
+      minWidth: 216,
+      headerAlign: "left",
+      align: "left",
+    },
+    {
+      sortable: false,
       field: "transactionId",
       headerName: "Transaction ID",
       minWidth: 216,
@@ -89,14 +97,6 @@ export const MarketWithdrawalRequests = ({
           />
         </Box>
       ),
-    },
-    {
-      sortable: false,
-      field: "dateSubmitted",
-      headerName: "Date Submitted",
-      minWidth: 112,
-      headerAlign: "left",
-      align: "left",
     },
     {
       sortable: false,

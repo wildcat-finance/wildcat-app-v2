@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from "react"
+import { ChangeEvent, useRef, useState } from "react"
 import * as React from "react"
 
 import {
@@ -41,6 +41,28 @@ export const TableLenderSelect = ({
   handleAddAllMarkets,
   disabled,
 }: TableLenderSelectProps) => {
+  const selectRef = useRef<HTMLElement>(null)
+
+  const onOpen = () => {
+    if (selectRef.current) {
+      selectRef.current.classList.add("Mui-focused")
+
+      const previousElement = selectRef.current
+        .previousSibling as Element | null
+      previousElement?.classList.add("Mui-focused")
+    }
+  }
+
+  const onClose = () => {
+    if (selectRef.current) {
+      selectRef.current.classList.remove("Mui-focused")
+
+      const previousElement = selectRef.current
+        .previousSibling as Element | null
+      previousElement?.classList.remove("Mui-focused")
+    }
+  }
+
   const [marketName, setMarketName] = useState("")
 
   const filteredMarketsByName = borrowerMarkets.filter((market) =>
@@ -194,6 +216,9 @@ export const TableLenderSelect = ({
       <InputLabel sx={InputLabelStyle}>Add market</InputLabel>
 
       <Select
+        ref={selectRef}
+        onOpen={onOpen}
+        onClose={onClose}
         value={lenderMarkets}
         disabled={disabled}
         size="small"
