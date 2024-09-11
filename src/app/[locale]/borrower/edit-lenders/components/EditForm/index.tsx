@@ -72,6 +72,9 @@ export const EditLendersForm = ({
     return matchesAllMarkets && matchesSearchTerm
   })
 
+  const hasFiltration =
+    !(selectedMarkets.length === 0) || !(lenderNameOrAddress === "")
+
   return (
     <>
       <Box sx={FiltersContainer}>
@@ -138,6 +141,7 @@ export const EditLendersForm = ({
         lendersRows={filteredLenders}
         setLendersRows={setLendersRows}
         borrowerMarkets={borrowerMarkets ?? []}
+        hasFiltration={hasFiltration}
       />
     </>
   )

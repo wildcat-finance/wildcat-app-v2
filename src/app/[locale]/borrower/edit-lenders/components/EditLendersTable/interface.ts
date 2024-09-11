@@ -7,4 +7,5 @@ export type EditLendersTableProps = {
   lendersRows: LenderTableT[]
   setLendersRows: Dispatch<SetStateAction<LenderTableT[]>>
   borrowerMarkets: MarketDataT[]
+  hasFiltration: boolean
 }

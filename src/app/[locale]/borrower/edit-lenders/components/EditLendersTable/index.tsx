@@ -1,13 +1,6 @@
 import * as React from "react"
 
-import {
-  Box,
-  Button,
-  IconButton,
-  Stack,
-  SvgIcon,
-  Typography,
-} from "@mui/material"
+import { Box, Button, IconButton, SvgIcon, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 
 import { MarketTableT } from "@/app/[locale]/borrower/edit-lenders/interface"
@@ -16,6 +9,8 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
+import { useAppDispatch } from "@/store/hooks"
+import { resetEditLendersSlice } from "@/store/slices/editLendersSlice/editLendersSlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
@@ -23,22 +18,21 @@ import { EditLendersTableProps } from "./interface"
 import { AddedDot, EditLendersTableStyles, UndoButton } from "./style"
 import { TableLenderSelect } from "../MarketSelect/TableLenderSelect"
 
-export const NoRowsOverlay = () => (
-  <Stack height="100%" alignItems="center" justifyContent="center">
-    <Typography variant="text3" color={COLORS.santasGrey}>
-      No lenders
-    </Typography>
-  </Stack>
-)
-
 export const EditLendersTable = ({
   lendersRows,
   setLendersRows,
   borrowerMarkets,
+  hasFiltration,
 }: EditLendersTableProps) => {
+  const dispatch = useAppDispatch()
+
   const lendersName: { [key: string]: string } = JSON.parse(
     localStorage.getItem("lenders-name") || "{}",
   )
+
+  const handleResetFilters = () => {
+    dispatch(resetEditLendersSlice())
+  }
 
   const handleAddAllMarkets = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -237,18 +231,24 @@ export const EditLendersTable = ({
             <IconButton
               sx={{ marginRight: "5px" }}
               onClick={() => {
-                setLendersRows((prev) =>
-                  prev.map((item) => {
-                    if (item.address === params.row.address) {
-                      return {
-                        ...item,
-                        prevStatus: item.status,
-                        status: "deleted",
+                if (params.row.status === "new") {
+                  setLendersRows((prev) =>
+                    prev.filter((item) => item.address !== params.row.address),
+                  )
+                } else if (params.row.status === "old") {
+                  setLendersRows((prev) =>
+                    prev.map((item) => {
+                      if (item.address === params.row.address) {
+                        return {
+                          ...item,
+                          prevStatus: item.status,
+                          status: "deleted",
+                        }
                       }
-                    }
-                    return item
-                  }),
-                )
+                      return item
+                    }),
+                  )
+                }
               }}
             >
               <SvgIcon
@@ -269,7 +269,10 @@ export const EditLendersTable = ({
                 setLendersRows((prev) =>
                   prev.map((item) => {
                     if (item.address === params.row.address) {
-                      return { ...item, status: item.prevStatus || "old" }
+                      return {
+                        ...item,
+                        status: item.prevStatus || "old",
+                      }
                     }
                     return item
                   }),
@@ -285,14 +288,50 @@ export const EditLendersTable = ({
   ]
 
   return (
-    <DataGrid
-      sx={EditLendersTableStyles}
-      getRowHeight={() => "auto"}
-      rows={lendersRows}
-      columns={columns}
-      slots={{
-        noRowsOverlay: NoRowsOverlay,
-      }}
-    />
+    <>
+      {lendersRows.length > 0 && (
+        <DataGrid
+          sx={EditLendersTableStyles}
+          getRowHeight={() => "auto"}
+          rows={lendersRows}
+          columns={columns}
+        />
+      )}
+
+      {lendersRows.length === 0 && (
+        <Box sx={{ height: "100%", display: "flex" }}>
+          <Box
+            sx={{
+              height: "100%",
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "4px",
+            }}
+          >
+            <Typography variant="text3" color={COLORS.santasGrey}>
+              {hasFiltration ? "No lenders for this filters" : "No lenders yet"}
+            </Typography>
+            {hasFiltration && (
+              <Button
+                onClick={handleResetFilters}
+                size="small"
+                variant="text"
+                sx={{
+                  color: COLORS.ultramarineBlue,
+                  "&:hover": {
+                    color: COLORS.ultramarineBlue,
+                  },
+                }}
+              >
+                Reset filters
+              </Button>
+            )}
+          </Box>
+        </Box>
+      )}
+    </>
   )
 }
