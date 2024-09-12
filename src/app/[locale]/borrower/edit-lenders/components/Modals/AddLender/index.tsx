@@ -149,55 +149,51 @@ export const AddLenderModal = ({
             disabled={isDisabled}
           />
 
-          {errors && (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                maxWidth: "392px",
-              }}
-            >
-              {errors.name && (
-                <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  <Box
-                    sx={{
-                      width: "3px",
-                      height: "3px",
-                      backgroundColor: COLORS.wildWatermelon,
-                      borderRadius: "50%",
-                    }}
-                  />
-                  <Typography variant="text4" color={COLORS.wildWatermelon}>
-                    {errors.name?.message}
-                  </Typography>
-                </Box>
-              )}
-
-              {errors.address && (
-                <Box
-                  sx={{ display: "flex", alignItems: "flex-start", gap: "4px" }}
-                >
-                  <Box
-                    sx={{
-                      width: "3px",
-                      height: "3px",
-                      marginTop: "6.5px",
-                      backgroundColor: COLORS.wildWatermelon,
-                      borderRadius: "50%",
-                    }}
-                  />
-                  <Typography variant="text4" color={COLORS.wildWatermelon}>
-                    {errors.address?.message}
-                  </Typography>
-                </Box>
-              )}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              maxWidth: "392px",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+              <Box
+                sx={{
+                  width: "3px",
+                  height: "3px",
+                  backgroundColor: COLORS.santasGrey,
+                  borderRadius: "50%",
+                }}
+              />
+              <Typography variant="text4" color={COLORS.santasGrey}>
+                You must assign at least one market
+              </Typography>
             </Box>
-          )}
+
+            {errors.address && (
+              <Box
+                sx={{ display: "flex", alignItems: "flex-start", gap: "4px" }}
+              >
+                <Box
+                  sx={{
+                    width: "3px",
+                    height: "3px",
+                    marginTop: "6.5px",
+                    backgroundColor: COLORS.wildWatermelon,
+                    borderRadius: "50%",
+                  }}
+                />
+                <Typography variant="text4" color={COLORS.wildWatermelon}>
+                  {errors.address?.message}
+                </Typography>
+              </Box>
+            )}
+          </Box>
         </Box>
 
         <Button
           onClick={onSubmit}
-          disabled={!isValid}
+          disabled={!isValid || selectedMarkets.length === 0}
           variant="contained"
           size="large"
           type="submit"

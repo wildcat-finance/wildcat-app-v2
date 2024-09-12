@@ -37,6 +37,7 @@ export const TableLenderSelect = ({
   borrowerMarkets,
   lenderMarkets,
   lenderAddress,
+  lenderStatus,
   setLendersRows,
   handleAddAllMarkets,
   disabled,
@@ -226,7 +227,27 @@ export const TableLenderSelect = ({
         sx={SelectStyle}
         endAdornment={
           <IconButton
-            onClick={handleReset}
+            // onClick={handleReset}
+            onClick={() => {
+              if (lenderStatus === "new") {
+                setLendersRows((prev) =>
+                  prev.filter((item) => item.address !== lenderAddress),
+                )
+              } else if (lenderStatus === "old") {
+                setLendersRows((prev) =>
+                  prev.map((item) => {
+                    if (item.address === lenderAddress) {
+                      return {
+                        ...item,
+                        prevStatus: item.status,
+                        status: "deleted",
+                      }
+                    }
+                    return item
+                  }),
+                )
+              }
+            }}
             sx={DeleteButtonStyle}
             disabled={disabled}
           >

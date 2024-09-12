@@ -8,6 +8,7 @@ export type TableLenderSelectProps = {
   borrowerMarkets: MarketDataT[]
   lenderMarkets: MarketTableT[]
   lenderAddress: string
+  lenderStatus: string
   setLendersRows: Dispatch<SetStateAction<LenderTableT[]>>
   handleAddAllMarkets: (
     event: React.ChangeEvent<HTMLInputElement>,

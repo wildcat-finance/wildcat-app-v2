@@ -211,6 +211,7 @@ export const EditLendersTable = ({
             <TableLenderSelect
               lenderMarkets={params.value}
               lenderAddress={params.row.address}
+              lenderStatus={params.row.status}
               borrowerMarkets={borrowerMarkets}
               setLendersRows={setLendersRows}
               handleAddAllMarkets={handleAddAllMarkets}
