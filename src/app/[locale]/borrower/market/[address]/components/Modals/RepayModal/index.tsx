@@ -25,6 +25,7 @@ import {
   TxModalInfoTitle,
 } from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
 import { useApprove } from "@/app/[locale]/borrower/market/[address]/hooks/useGetApproval"
+import { useProcessUnpaidWithdrawalBatch } from "@/app/[locale]/borrower/market/[address]/hooks/useProcessUnpaidWithdrawalBatch"
 import { useRepay } from "@/app/[locale]/borrower/market/[address]/hooks/useRepay"
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
@@ -70,7 +71,7 @@ export const RepayModal = ({
     isPending: isRepaying,
     isSuccess: isRepaid,
     isError: isRepayError,
-  } = useRepay(marketAccount, setTxHash)
+  } = useRepay(marketAccount, setTxHash, true)
   const { mutateAsync: approve, isPending: isApproving } = useApprove(
     market.underlyingToken,
     market,
