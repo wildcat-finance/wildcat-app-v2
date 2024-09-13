@@ -1,3 +1,5 @@
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
+
 import { MarketStatus } from "@/utils/marketStatus"
 
 export const statusComparator = (
@@ -90,3 +92,6 @@ export const dateComparator = (v1: string, v2: string): number => {
   const date2 = parseDateString(v2)
   return date1.getTime() - date2.getTime()
 }
+
+export const tokenAmountComparator = (v1: TokenAmount, v2: TokenAmount) =>
+  v1.gte(v2) ? 1 : -1

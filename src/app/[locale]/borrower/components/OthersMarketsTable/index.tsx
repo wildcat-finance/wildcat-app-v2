@@ -7,7 +7,13 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material"
-import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import {
+  DataGrid,
+  GridColDef,
+  GridRenderCellParams,
+  GridRowsProp,
+} from "@mui/x-data-grid"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -18,10 +24,10 @@ import { ROUTES } from "@/routes"
 import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
 import { COLORS } from "@/theme/colors"
 import {
-  capacityComparator,
   dateComparator,
   percentComparator,
   statusComparator,
+  tokenAmountComparator,
 } from "@/utils/comparators"
 import {
   formatBps,
@@ -32,6 +38,22 @@ import {
 import { getMarketStatusChip } from "@/utils/marketStatus"
 
 import { OthersMarketsTableProps } from "./interface"
+
+// TODO: Move to interface.ts file and make reusable
+type TypeSafeColDef<T> = GridColDef & { field: keyof T }
+
+type MarketsTableModel = {
+  id: string
+  status: ReturnType<typeof getMarketStatusChip>
+  name: string
+  borrowerName: string | undefined
+  asset: string
+  lenderAPR: string
+  crr: string
+  maxCapacity: TokenAmount
+  borrowable: TokenAmount
+  deploy: string
+}
 
 export const OthersMarketsTable = ({
   tableData,
@@ -44,7 +66,7 @@ export const OthersMarketsTable = ({
 }: OthersMarketsTableProps) => {
   const { t } = useTranslation()
 
-  const columns: GridColDef[] = [
+  const columns: TypeSafeColDef<MarketsTableModel>[] = [
     {
       field: "status",
       headerName: t("borrowerMarketList.table.header.status"),
@@ -163,14 +185,16 @@ export const OthersMarketsTable = ({
       minWidth: 136,
       headerAlign: "right",
       align: "right",
-      sortComparator: capacityComparator,
+      sortComparator: tokenAmountComparator,
       flex: 1.5,
-      renderCell: (params) => (
+      renderCell: (
+        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
+      ) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {params.value}
+          {params.value ? formatTokenWithCommas(params.value) : "0"}
         </Link>
       ),
     },
@@ -180,14 +204,21 @@ export const OthersMarketsTable = ({
       minWidth: 104,
       headerAlign: "right",
       align: "right",
-      sortComparator: capacityComparator,
+      sortComparator: tokenAmountComparator,
       flex: 1.5,
-      renderCell: (params) => (
+      renderCell: (
+        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
+      ) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {params.value}
+          {params.value
+            ? formatTokenWithCommas(params.value, {
+                withSymbol: false,
+                fractionDigits: 2,
+              })
+            : "0"}
         </Link>
       ),
     },
@@ -212,7 +243,7 @@ export const OthersMarketsTable = ({
     },
   ]
 
-  const rows = tableData.map((market) => {
+  const rows: GridRowsProp<MarketsTableModel> = tableData.map((market) => {
     const {
       address,
       borrower: borrowerAddress,
@@ -239,10 +270,8 @@ export const OthersMarketsTable = ({
       asset: underlyingToken.symbol,
       lenderAPR: `${formatBps(annualInterestBips)}%`,
       crr: `${formatBps(reserveRatioBips)}%`,
-      maxCapacity: `${formatTokenWithCommas(maxTotalSupply)}`,
-      borrowable: formatTokenWithCommas(borrowableAssets, {
-        withSymbol: false,
-      }),
+      maxCapacity: maxTotalSupply,
+      borrowable: borrowableAssets,
       deploy: deployedEvent
         ? timestampToDateFormatted(deployedEvent.blockTimestamp)
         : "",

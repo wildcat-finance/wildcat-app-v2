@@ -69,13 +69,12 @@ export function useGetBorrowerMarketsQuery({
 export const useGetBorrowerMarkets = () => {
   const { chainId } = useCurrentNetwork()
   const { isWrongNetwork, provider, signer } = useEthersProvider()
-  const { isReconnecting } = useAccount()
 
   const signerOrProvider = signer ?? provider
 
   return useGetBorrowerMarketsQuery({
     provider: signerOrProvider,
-    enabled: !!signerOrProvider && !isWrongNetwork && !isReconnecting,
+    enabled: !!signerOrProvider && !isWrongNetwork,
     chainId,
   })
 }

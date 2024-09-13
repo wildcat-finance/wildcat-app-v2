@@ -68,7 +68,6 @@ export function useGetOthersMarketsQuery({
 export const useGetOthersMarkets = () => {
   const { chainId } = useCurrentNetwork()
   const { isWrongNetwork, provider, signer } = useEthersProvider()
-  const { isReconnecting } = useAccount()
 
   const signerOrProvider = signer ?? provider
   console.log(
@@ -77,7 +76,7 @@ export const useGetOthersMarkets = () => {
 
   return useGetOthersMarketsQuery({
     provider: signerOrProvider,
-    enabled: !!signerOrProvider && !isWrongNetwork && !isReconnecting,
+    enabled: !!signerOrProvider && !isWrongNetwork,
     chainId,
   })
 }
