@@ -12,6 +12,7 @@ import { LendersTable } from "@/app/[locale]/borrower/components/AuthorizedLende
 import { mockLendersData } from "@/app/[locale]/borrower/edit-lenders/lendersMock"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetOthersMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetOthersMarkets"
+import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
 import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { LeadBanner } from "@/components/LeadBanner"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -71,6 +72,9 @@ export default function Borrower() {
     useGetBorrowerMarkets()
   const { data: othersMarkets, isLoading: isOthersMarketsLoading } =
     useGetOthersMarkets()
+  const { data } = useGetAllLenders()
+
+  console.log("DEBUG all lenders data", data)
 
   const { data: controller } = useGetController()
   const { isWrongNetwork } = useCurrentNetwork()
