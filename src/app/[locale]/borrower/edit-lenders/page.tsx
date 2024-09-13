@@ -9,6 +9,7 @@ import { useSearchParams } from "next/navigation"
 import { ConfirmTable } from "@/app/[locale]/borrower/edit-lenders/components/ConfirmTable"
 import useTrackLendersChanges from "@/app/[locale]/borrower/edit-lenders/hooks/useTrackLendersChanges"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
+import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   resetEditLendersSlice,
@@ -46,37 +47,49 @@ export default function EditLendersPage() {
     ?.filter((market) => !market.isClosed)
     .map((market) => ({ name: market.name, address: market.address }))
 
-  const [initialLendersRows] = useState<LenderTableT[]>(
-    mockLendersData
-      .filter((lender) => lender.isAuthorized)
-      .map((lender) => ({
-        ...lender,
-        status: "old",
-        prevStatus: "old",
-        id: lender.address,
-        markets: lender.markets.map((market) => ({
-          ...market,
-          status: "old",
-          prevStatus: "old",
-        })),
-      })),
-  )
+  const { data: lenders, isLoading: isLendersLoading } = useGetAllLenders()
 
-  const [lendersRows, setLendersRows] = useState<LenderTableT[]>(
-    mockLendersData
-      .filter((lender) => lender.isAuthorized)
-      .map((lender) => ({
+  const lendersData = lenders?.addresses
+    .map((address) => lenders?.lenders[address])
+    .map((lender) => ({
+      ...lender,
+      markets: lender?.markets.marketIds.map(
+        (market) => lender?.markets.markets[market],
+      ),
+    }))
+    .map((lender) => ({
+      address: lender.lender,
+      isAuthorized: lender.authorized,
+      markets: lender.markets.map((market) => ({
+        name: market.name,
+        address: market.id,
+      })),
+    }))
+    .filter((lender) => lender.isAuthorized)
+
+  const [initialLendersRows, setInitialLendersRows] = useState<LenderTableT[]>(
+    [],
+  )
+  const [lendersRows, setLendersRows] = useState<LenderTableT[]>([])
+
+  useEffect(() => {
+    if (lendersData) {
+      const formattedLendersData = lendersData.map((lender) => ({
         ...lender,
-        status: "old",
-        prevStatus: "old",
+        status: "old" as const,
+        prevStatus: "old" as const,
         id: lender.address,
         markets: lender.markets.map((market) => ({
           ...market,
-          status: "old",
-          prevStatus: "old",
+          status: "old" as const,
+          prevStatus: "old" as const,
         })),
-      })),
-  )
+      }))
+
+      setInitialLendersRows(formattedLendersData)
+      setLendersRows(formattedLendersData)
+    }
+  }, [isLendersLoading])
 
   const { isLendersHaveChanges, addedOrModifiedLenders } =
     useTrackLendersChanges(initialLendersRows, lendersRows)

@@ -9,9 +9,9 @@ import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { LendersTable } from "@/app/[locale]/borrower/components/AuthorizedLendersTable"
-import { mockLendersData } from "@/app/[locale]/borrower/edit-lenders/lendersMock"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetOthersMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetOthersMarkets"
+import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
 import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { LeadBanner } from "@/components/LeadBanner"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -126,10 +126,26 @@ export default function Borrower() {
     setTab(newTab)
   }
 
-  const authorizedLenders = mockLendersData.filter(
-    (lender) => lender.isAuthorized,
-  )
-  const deauthorizedLenders = mockLendersData.filter(
+  const { data: lenders } = useGetAllLenders()
+
+  const lendersData = lenders?.addresses
+    .map((a) => lenders?.lenders[a])
+    .map((l) => ({
+      ...l,
+      markets: l?.markets.marketIds.map((m) => l?.markets.markets[m]),
+    }))
+    .map((lender) => ({
+      address: lender.lender,
+      isAuthorized: lender.authorized,
+      markets: lender.markets.map((market) => ({
+        name: market.name,
+        address: market.id,
+      })),
+    }))
+
+  const authorizedLenders = lendersData?.filter((lender) => lender.isAuthorized)
+
+  const deauthorizedLenders = lendersData?.filter(
     (lender) => !lender.isAuthorized,
   )
 
@@ -257,7 +273,7 @@ export default function Borrower() {
       {tab === "lenders" && (
         <Box>
           <LendersTable
-            tableData={authorizedLenders}
+            tableData={authorizedLenders ?? []}
             isLoading={false}
             isOpen
             label="Active Lenders"
@@ -265,7 +281,7 @@ export default function Borrower() {
 
           <Box marginTop="16px">
             <LendersTable
-              tableData={deauthorizedLenders}
+              tableData={deauthorizedLenders ?? []}
               isLoading={false}
               label="Deleted Lenders"
             />

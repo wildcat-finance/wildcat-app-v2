@@ -116,7 +116,14 @@ export const LendersTable = ({
             </Link>
           </Box>
         ) : (
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "4px",
+              padding: "14px 0",
+            }}
+          >
             {params.value.map((market: MarketDataT) => (
               <LendersMarketChip marketName={market.name} width="fit-content" />
             ))}
@@ -171,11 +178,17 @@ export const LendersTable = ({
           sx={{
             overflow: "auto",
             maxWidth: "calc(100vw - 267px)",
-            "& .MuiDataGrid-cell": { cursor: "default" },
+
+            "& .MuiDataGrid-cell": {
+              minHeight: "52px",
+              height: "auto",
+              cursor: "default",
+            },
           }}
           rows={rows}
           columns={columns}
           columnHeaderHeight={40}
+          getRowHeight={() => "auto"}
         />
       )}
     </Accordion>
