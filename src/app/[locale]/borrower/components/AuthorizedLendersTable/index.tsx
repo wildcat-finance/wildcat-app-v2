@@ -8,7 +8,7 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material"
-import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
 import Link from "next/link"
 
 import { MarketDataT } from "@/app/[locale]/borrower/edit-lenders/lendersMock"
@@ -21,7 +21,11 @@ import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
-import { LendersTableProps } from "./interface"
+import {
+  LendersTableModal,
+  LendersTableProps,
+  TypeSafeColDef,
+} from "./interface"
 
 export const LendersTable = ({
   label,
@@ -38,18 +42,15 @@ export const LendersTable = ({
     localStorage.getItem("lenders-name") || "{}",
   )
 
-  const rows = tableData.map((lender) => ({
+  const rows: GridRowsProp<LendersTableModal> = tableData.map((lender) => ({
     id: lender.address,
     authorized: lender.isAuthorized,
-    name: (() => {
-      const correctLender = lendersNames[lender.address.toLowerCase()] || ""
-      return { name: correctLender, address: lender }
-    })(),
+    name: (() => lendersNames[lender.address.toLowerCase()] || "")(),
     address: lender.address,
     markets: lender.markets,
   }))
 
-  const columns: GridColDef[] = [
+  const columns: TypeSafeColDef<LendersTableModal>[] = [
     {
       sortable: false,
       field: "name",

@@ -7,28 +7,18 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material"
-import {
-  DataGrid,
-  GridColDef,
-  GridRenderCellParams,
-  GridRowsProp,
-} from "@mui/x-data-grid"
+import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import { LinkCell } from "@/app/[locale]/borrower/components/style"
+import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
 import { COLORS } from "@/theme/colors"
-import {
-  dateComparator,
-  percentComparator,
-  statusComparator,
-  tokenAmountComparator,
-} from "@/utils/comparators"
+import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import {
   formatBps,
   formatTokenWithCommas,
@@ -38,22 +28,7 @@ import {
 import { getMarketStatusChip } from "@/utils/marketStatus"
 
 import { OthersMarketsTableProps } from "./interface"
-
-// TODO: Move to interface.ts file and make reusable
-type TypeSafeColDef<T> = GridColDef & { field: keyof T }
-
-type MarketsTableModel = {
-  id: string
-  status: ReturnType<typeof getMarketStatusChip>
-  name: string
-  borrowerName: string | undefined
-  asset: string
-  lenderAPR: string
-  crr: string
-  maxCapacity: TokenAmount
-  borrowable: TokenAmount
-  deploy: string
-}
+import { MarketsTableModel, TypeSafeColDef } from "../interface"
 
 export const OthersMarketsTable = ({
   tableData,
@@ -140,14 +115,13 @@ export const OthersMarketsTable = ({
       minWidth: 106,
       headerAlign: "right",
       align: "right",
-      sortComparator: percentComparator,
       flex: 1,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {params.value}
+          {`${formatBps(params.value)}%`}
         </Link>
       ),
     },
@@ -157,7 +131,6 @@ export const OthersMarketsTable = ({
       minWidth: 90,
       headerAlign: "right",
       align: "right",
-      sortComparator: percentComparator,
       renderHeader: () => (
         <Box display="flex" columnGap="4px" alignItems="center">
           <Typography
@@ -174,7 +147,7 @@ export const OthersMarketsTable = ({
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {params.value}
+          {`${formatBps(params.value)}%`}
         </Link>
       ),
       flex: 1,
@@ -228,14 +201,13 @@ export const OthersMarketsTable = ({
       minWidth: 126,
       headerAlign: "right",
       align: "right",
-      sortComparator: dateComparator,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-            {params.value}
+            {timestampToDateFormatted(params.value)}
           </Typography>
         </Link>
       ),
@@ -268,13 +240,11 @@ export const OthersMarketsTable = ({
       name,
       borrowerName,
       asset: underlyingToken.symbol,
-      lenderAPR: `${formatBps(annualInterestBips)}%`,
-      crr: `${formatBps(reserveRatioBips)}%`,
+      lenderAPR: annualInterestBips,
+      crr: reserveRatioBips,
       maxCapacity: maxTotalSupply,
       borrowable: borrowableAssets,
-      deploy: deployedEvent
-        ? timestampToDateFormatted(deployedEvent.blockTimestamp)
-        : "",
+      deploy: deployedEvent ? deployedEvent.blockTimestamp : 0,
     }
   })
 

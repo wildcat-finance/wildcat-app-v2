@@ -7,22 +7,22 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material"
-import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import { LinkCell } from "@/app/[locale]/borrower/components/style"
+import {
+  MarketsTableModel,
+  TypeSafeColDef,
+} from "@/app/[locale]/borrower/components/MarketsTables/interface"
+import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
 import { COLORS } from "@/theme/colors"
-import {
-  capacityComparator,
-  dateComparator,
-  percentComparator,
-  statusComparator,
-} from "@/utils/comparators"
+import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import {
   formatBps,
   formatTokenWithCommas,
@@ -46,7 +46,7 @@ export const BorrowerMarketsTable = ({
 }: BorrowerMarketsTableProps) => {
   const { t } = useTranslation()
 
-  const columns: GridColDef[] = [
+  const columns: TypeSafeColDef<MarketsTableModel>[] = [
     {
       field: "status",
       headerName: t("borrowerMarketList.table.header.status"),
@@ -104,14 +104,13 @@ export const BorrowerMarketsTable = ({
       minWidth: 106,
       headerAlign: "right",
       align: "right",
-      sortComparator: percentComparator,
       flex: 1,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {params.value}
+          {`${formatBps(params.value)}%`}
         </Link>
       ),
     },
@@ -121,7 +120,6 @@ export const BorrowerMarketsTable = ({
       minWidth: 90,
       headerAlign: "right",
       align: "right",
-      sortComparator: percentComparator,
       renderHeader: () => (
         <Box display="flex" columnGap="4px" alignItems="center">
           <Typography
@@ -138,7 +136,7 @@ export const BorrowerMarketsTable = ({
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {params.value}
+          {`${formatBps(params.value)}%`}
         </Link>
       ),
       flex: 1,
@@ -149,14 +147,16 @@ export const BorrowerMarketsTable = ({
       minWidth: 136,
       headerAlign: "right",
       align: "right",
-      sortComparator: capacityComparator,
+      sortComparator: tokenAmountComparator,
       flex: 1.5,
-      renderCell: (params) => (
+      renderCell: (
+        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
+      ) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {params.value}
+          {params.value ? formatTokenWithCommas(params.value) : "0"}
         </Link>
       ),
     },
@@ -166,14 +166,21 @@ export const BorrowerMarketsTable = ({
       minWidth: 104,
       headerAlign: "right",
       align: "right",
-      sortComparator: capacityComparator,
+      sortComparator: tokenAmountComparator,
       flex: 1.5,
-      renderCell: (params) => (
+      renderCell: (
+        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
+      ) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {params.value}
+          {params.value
+            ? formatTokenWithCommas(params.value, {
+                withSymbol: false,
+                fractionDigits: 2,
+              })
+            : "0"}{" "}
         </Link>
       ),
     },
@@ -183,14 +190,13 @@ export const BorrowerMarketsTable = ({
       minWidth: 126,
       headerAlign: "right",
       align: "right",
-      sortComparator: dateComparator,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-            {params.value}
+            {timestampToDateFormatted(params.value)}
           </Typography>
         </Link>
       ),
@@ -198,7 +204,7 @@ export const BorrowerMarketsTable = ({
     },
   ]
 
-  const rows = tableData.map((market) => {
+  const rows: GridRowsProp<MarketsTableModel> = tableData.map((market) => {
     const {
       address,
       name,
@@ -217,15 +223,11 @@ export const BorrowerMarketsTable = ({
       status: marketStatus,
       name,
       asset: underlyingToken.symbol,
-      lenderAPR: `${formatBps(annualInterestBips)}%`,
-      crr: `${formatBps(reserveRatioBips)}%`,
-      maxCapacity: `${formatTokenWithCommas(maxTotalSupply)}`,
-      borrowable: formatTokenWithCommas(borrowableAssets, {
-        withSymbol: false,
-      }),
-      deploy: deployedEvent
-        ? timestampToDateFormatted(deployedEvent.blockTimestamp)
-        : "",
+      lenderAPR: annualInterestBips,
+      crr: reserveRatioBips,
+      maxCapacity: maxTotalSupply,
+      borrowable: borrowableAssets,
+      deploy: deployedEvent ? deployedEvent.blockTimestamp : 0,
     }
   })
 

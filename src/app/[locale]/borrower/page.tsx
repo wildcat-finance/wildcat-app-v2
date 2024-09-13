@@ -21,8 +21,8 @@ import { useAppSelector } from "@/store/hooks"
 import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
 import { getMarketStatus, MarketStatus } from "@/utils/marketStatus"
 
-import { BorrowerMarketsTable } from "./components/BorrowerMarketsTable"
-import { OthersMarketsTable } from "./components/OthersMarketsTable"
+import { BorrowerMarketsTable } from "./components/MarketsTables/BorrowerMarketsTable"
+import { OthersMarketsTable } from "./components/MarketsTables/OthersMarketsTable"
 import { useBorrowerInvitationRedirect } from "./hooks/useBorrowerInvitationRedirect"
 import { MarketsTablesContainer, PageTitleContainer } from "./page-style"
 
