@@ -6,6 +6,8 @@ import initTranslations from "@/app/i18n"
 import { Sidebar } from "@/components/Sidebar"
 import TranslationsProvider from "@/components/TranslationsProvider"
 
+import { WrapperAreaBoxSx, ContentAreaBoxSx } from "./page-style"
+
 const i18nNamespaces = ["en"]
 
 export default async function BorrowerLayout({
@@ -23,8 +25,10 @@ export default async function BorrowerLayout({
       locale={locale}
       resources={resources}
     >
-      <Sidebar />
-      <Box width="calc(100vw - 267px)">{children}</Box>
+      <Box sx={WrapperAreaBoxSx}>
+        <Sidebar />
+        <Box sx={ContentAreaBoxSx}>{children}</Box>
+      </Box>
     </TranslationsProvider>
   )
 }

@@ -974,7 +974,7 @@ export const theme = createTheme({
         disableColumnResize: true,
         disableRowSelectionOnClick: true,
         disableColumnSelector: true,
-        hideFooter: true,
+        // hideFooter: true,
         slots: {
           columnSortedDescendingIcon: DescIcon,
           columnSortedAscendingIcon: AscIcon,
