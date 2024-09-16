@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useEffect } from "react"
 
 import {
   Accordion,
@@ -40,6 +41,11 @@ export const OthersMarketsTable = ({
   nameFilter,
 }: OthersMarketsTableProps) => {
   const { t } = useTranslation()
+
+  const [paginationModel, setPaginationModel] = React.useState({
+    pageSize: 9,
+    page: 0,
+  })
 
   const columns: TypeSafeColDef<MarketsTableModel>[] = [
     {
@@ -253,6 +259,10 @@ export const OthersMarketsTable = ({
     statusFilter === "All" &&
     nameFilter === ""
 
+  useEffect(() => {
+    setPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+  }, [assetFilter, statusFilter, nameFilter])
+
   return (
     <Accordion defaultExpanded={isOpen}>
       <AccordionSummary>
@@ -317,6 +327,9 @@ export const OthersMarketsTable = ({
           rows={rows}
           columns={columns}
           columnHeaderHeight={40}
+          hideFooter={false}
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
         />
       )}
     </Accordion>

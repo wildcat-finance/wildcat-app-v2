@@ -987,6 +987,24 @@ export const theme = createTheme({
           letterSpacing: 0,
           border: "none",
 
+          "& .MuiDataGrid-footerContainer": {
+            border: "none",
+
+            "& .MuiToolbar-root": {
+              padding: "0 16px",
+            },
+
+            "& .MuiTablePagination-displayedRows": {
+              fontFamily: "inherit",
+              letterSpacing: 0,
+
+              fontSize: "13px",
+              lineHeight: "20px",
+              fontWeight: 500,
+              color: COLORS.blackRock,
+            },
+          },
+
           "& .MuiDataGrid-filler": {
             display: "none",
           },
