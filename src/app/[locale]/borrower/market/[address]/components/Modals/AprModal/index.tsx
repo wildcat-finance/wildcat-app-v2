@@ -333,7 +333,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                       color={COLORS.santasGrey}
                       sx={{ padding: "0 12px" }}
                     >
-                      {`min - ${minimumApr}%`}
+                      {`min - ${minimumApr/100}%`}
                     </Typography>
                   }
                 />
