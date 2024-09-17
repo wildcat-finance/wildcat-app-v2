@@ -989,19 +989,39 @@ export const theme = createTheme({
 
           "& .MuiDataGrid-footerContainer": {
             border: "none",
+            justifyContent: "center",
 
             "& .MuiToolbar-root": {
               padding: "0 16px",
             },
 
-            "& .MuiTablePagination-displayedRows": {
-              fontFamily: "inherit",
-              letterSpacing: 0,
+            "& .MuiPagination-root": {
+              margin: 0,
 
-              fontSize: "13px",
-              lineHeight: "20px",
-              fontWeight: 500,
-              color: COLORS.blackRock,
+              "& .MuiPagination-ul": {
+                gap: "8px",
+              },
+
+              "& .MuiPaginationItem-root": {
+                height: "24px",
+                width: "24px",
+                minWidth: "24px",
+                padding: 0,
+                margin: 0,
+
+                fontFamily: "inherit",
+                letterSpacing: 0,
+
+                fontSize: "13px",
+                lineHeight: "20px",
+                fontWeight: 500,
+                color: COLORS.blackRock,
+
+                "&.Mui-selected": {
+                  backgroundColor: COLORS.athensGrey,
+                  color: COLORS.santasGrey,
+                },
+              },
             },
           },
 

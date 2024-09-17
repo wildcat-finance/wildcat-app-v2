@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next"
 
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { TablePagination } from "@/components/TablePagination"
 import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
@@ -330,6 +331,12 @@ export const OthersMarketsTable = ({
           hideFooter={false}
           paginationModel={paginationModel}
           onPaginationModelChange={setPaginationModel}
+          slots={{
+            pagination: TablePagination,
+          }}
+          initialState={{
+            pagination: { paginationModel: { pageSize: 9 } },
+          }}
         />
       )}
     </Accordion>
