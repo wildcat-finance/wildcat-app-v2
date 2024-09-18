@@ -8,7 +8,7 @@ import {
   FormControlLabel,
   Typography,
 } from "@mui/material"
-import { SetAprStatus } from "@wildcatfi/wildcat-sdk"
+import { BIP, Market, SetAprStatus } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
 import Link from "next/link"
 
@@ -49,6 +49,32 @@ const dateInTwoWeeks = () => {
   const month = String(twoWeeksLater.getMonth() + 1).padStart(2, "0")
   const year = twoWeeksLater.getFullYear()
   return `${day}/${month}/${year}`
+}
+
+function getMinimumAPR(market: Market) {
+  const { liquidReserves, outstandingTotalSupply } = market
+  const currentCollateralizationBips = liquidReserves
+    .mul(BIP)
+    .div(outstandingTotalSupply)
+    .raw.toNumber()
+  const [, originalAnnualInterestBips] =
+    market.originalReserveRatioAndAnnualInterestBips
+
+  // reserve ratio set in APR reduction is 2 * relativeReduction
+  // so divide collateralization ratio by 2 to get max relative reduction in bips
+  if (currentCollateralizationBips < 5_000) {
+    // if the max reduction is <25% given the current collateralization ratio,
+    // the market still allows a reduction of <=25% with no penalty
+    return Math.floor(originalAnnualInterestBips * 0.75)
+  }
+  const maximumRelativeReduction = Math.min(
+    10_000,
+    Math.floor(currentCollateralizationBips / 2),
+  )
+  const maximumReduction = Math.floor(
+    (originalAnnualInterestBips * maximumRelativeReduction) / 10_000,
+  )
+  return originalAnnualInterestBips - maximumReduction
 }
 
 export const AprModal = ({ marketAccount }: AprModalProps) => {
@@ -133,6 +159,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     handleAdjust()
     setShowErrorPopup(false)
   }
+
+  const minimumApr = getMinimumAPR(market)
 
   const getNewCollateralObligations = () => {
     if (aprStatus) {
@@ -302,7 +330,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                       color={COLORS.santasGrey}
                       sx={{ padding: "0 12px" }}
                     >
-                      %
+                      {`min - ${formatBps(minimumApr)}%`}
                     </Typography>
                   }
                 />
