@@ -52,13 +52,10 @@ const dateInTwoWeeks = () => {
 }
 
 function getMinimumAPR(market: Market) {
-  const liquidReserves = market.totalAssets
-    .sub(market.lastAccruedProtocolFees)
-    .sub(market.normalizedUnclaimedWithdrawals)
-  const outstandingSupply = market.outstandingTotalSupply
+  const { liquidReserves, outstandingTotalSupply } = market
   const currentCollateralizationBips = liquidReserves
     .mul(BIP)
-    .div(outstandingSupply)
+    .div(outstandingTotalSupply)
     .raw.toNumber()
   const [, originalAnnualInterestBips] =
     market.originalReserveRatioAndAnnualInterestBips
@@ -333,7 +330,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                       color={COLORS.santasGrey}
                       sx={{ padding: "0 12px" }}
                     >
-                      {`min - ${minimumApr/100}%`}
+                      {`min - ${formatBps(minimumApr)}%`}
                     </Typography>
                   }
                 />
