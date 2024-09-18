@@ -321,5 +321,48 @@
       "next": "Next",
       "confirm": "Confirm"
     }
+  },
+  "editLendersList": {
+    "forms": {
+      "edit": {
+        "title": "Editing Lenders List for",
+        "table": {
+          "name": "Name",
+          "address": "Wallet Address",
+          "markets": "Assigned to Markets",
+          "noRows": "There is no lenders yet",
+          "noFilteredRows": "No lenders for this filtration"
+        },
+        "placeholders": {
+          "lenderSearch": "Search",
+          "marketSearch": "Search by Name"
+        }
+      }
+    },
+    "sidebar": {
+      "edit": "Editing Lenders List",
+      "confirm": "Confirmation"
+    }
+  },
+  "modals": {
+    "addLender": {
+      "title": "Add a new lender",
+      "addressPlaceholder": "Wallet Address",
+      "namePlaceholder": "Enter Name",
+      "marketsPlaceholder": "Add at least one market",
+      "addButton": "Add"
+    },
+    "deleteLender": {
+      "title": "Are you sure to remove",
+      "subtitle": "By removing all markets the lender is attached to you will remove the lender from the list",
+      "cancelButton": "Cancel",
+      "removeButton": "Remove"
+    }
+  },
+  "buttons": {
+    "add": "Add lender",
+    "undo": "Undo",
+    "submit": "Submit",
+    "confirm": "Confirm"
   }
 }

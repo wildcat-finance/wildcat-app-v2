@@ -6,6 +6,6 @@ export const ROUTES = {
     root: BORROWER_ROOT,
     market: `${BORROWER_ROOT}/market`,
     newMarket: `${BORROWER_ROOT}/new-market`,
-    lendersList: `${BORROWER_ROOT}/edit-lenders`,
+    lendersList: `${BORROWER_ROOT}/edit-lenders-list`,
   },
 }
