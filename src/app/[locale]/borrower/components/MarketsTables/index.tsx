@@ -38,7 +38,7 @@ const filterMarketsByAssetAndStatus = (
       (market) =>
         getMarketStatus(
           market.isClosed,
-          market.isDelinquent,
+          market.isDelinquent || market.willBeDelinquent,
           market.isIncurringPenalties,
         ) === status,
     )
