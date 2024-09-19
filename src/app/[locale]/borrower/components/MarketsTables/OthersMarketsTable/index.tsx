@@ -44,7 +44,7 @@ export const OthersMarketsTable = ({
   const { t } = useTranslation()
 
   const [paginationModel, setPaginationModel] = React.useState({
-    pageSize: 9,
+    pageSize: 10,
     page: 0,
   })
 
@@ -337,9 +337,6 @@ export const OthersMarketsTable = ({
           onPaginationModelChange={setPaginationModel}
           slots={{
             pagination: TablePagination,
-          }}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 9 } },
           }}
         />
       )}
