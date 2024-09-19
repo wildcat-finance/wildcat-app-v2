@@ -25,7 +25,6 @@ import {
   TxModalInfoTitle,
 } from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
 import { useApprove } from "@/app/[locale]/borrower/market/[address]/hooks/useGetApproval"
-import { useProcessUnpaidWithdrawalBatch } from "@/app/[locale]/borrower/market/[address]/hooks/useProcessUnpaidWithdrawalBatch"
 import { useRepay } from "@/app/[locale]/borrower/market/[address]/hooks/useRepay"
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
@@ -39,6 +38,8 @@ import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { RepayModalProps } from "./interface"
 import { DaysSubtitle, PenaltyRepayBtn, PenaltyRepayBtnIcon } from "./style"
+
+const SECONDS_IN_DAY = 24 * 60 * 60
 
 export const RepayModal = ({
   buttonType = "marketHeader",
@@ -94,16 +95,18 @@ export const RepayModal = ({
     modal.handleOpenModal()
   }
 
-  const typeDays = type === "days"
+  const isRepayByDays = type === "days"
 
   const repayTokenAmount = useMemo(
     () => market.underlyingToken.parseAmount(amount.replace(/,/g, "") || "0"), // delete commas
     [amount],
   )
 
-  const repayDaysAmount = market.repayRequiredForDuration(Number(days) * 86400)
+  const repayDaysAmount = market.repayRequiredForDuration(
+    Number(days) * SECONDS_IN_DAY,
+  )
 
-  const repayAmount = typeDays
+  const repayAmount = isRepayByDays
     ? repayDaysAmount
     : maxRepayAmount || repayTokenAmount
 
@@ -177,17 +180,19 @@ export const RepayModal = ({
         })
       : ""
 
-  const amountInputLabel = typeDays
+  const amountInputLabel = isRepayByDays
     ? `Interest remaining for ${remainingInterest}`
     : `Up to ${formatTokenWithCommas(market.outstandingDebt, {
         withSymbol: true,
       })}`
 
-  const amountInputValue = typeDays ? days : amount
+  const amountInputValue = isRepayByDays ? days : amount
 
-  const amountInputOnChange = typeDays ? handleDaysChange : handleAmountChange
+  const amountInputOnChange = isRepayByDays
+    ? handleDaysChange
+    : handleAmountChange
 
-  const amountInputAdornment = typeDays ? (
+  const amountInputAdornment = isRepayByDays ? (
     <Typography
       variant="text3"
       color={COLORS.santasGrey}
@@ -279,7 +284,7 @@ export const RepayModal = ({
               </Tabs>
             )}
 
-            {typeDays && modal.gettingValueStep && (
+            {isRepayByDays && modal.gettingValueStep && (
               <Typography variant="text4" sx={DaysSubtitle}>
                 *number of additional days for which you want to cover interest
               </Typography>
