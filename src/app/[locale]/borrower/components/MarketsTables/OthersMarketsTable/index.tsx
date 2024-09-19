@@ -324,6 +324,10 @@ export const OthersMarketsTable = ({
             overflow: "auto",
             maxWidth: "calc(100vw - 267px)",
             "& .MuiDataGrid-cell": { padding: "0px" },
+
+            "& .MuiDataGrid-footerContainer .MuiToolbar-root": {
+              padding: "32px 0 6px",
+            },
           }}
           rows={rows}
           columns={columns}
