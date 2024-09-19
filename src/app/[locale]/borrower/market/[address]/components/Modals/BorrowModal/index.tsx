@@ -71,14 +71,16 @@ export const BorrowModal = ({
 
   const leftBorrowAmount = market.borrowableAssets.sub(underlyingBorrowAmount)
 
-  const secondsBeforeDelinquency =
-    market.getSecondsBeforeDelinquencyForBorrowedAmount(underlyingBorrowAmount)
+  const milisecondsBeforeDelinquency =
+    market.getSecondsBeforeDelinquencyForBorrowedAmount(
+      underlyingBorrowAmount,
+    ) * 1_000
 
   const remainingInterest =
     market.totalDebts.gt(0) &&
     !market.isClosed &&
     underlyingBorrowAmount.lt(market.borrowableAssets)
-      ? humanizeDuration(secondsBeforeDelinquency, {
+      ? humanizeDuration(milisecondsBeforeDelinquency, {
           largest: 1,
         })
       : ""
