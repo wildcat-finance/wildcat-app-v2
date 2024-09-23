@@ -321,12 +321,16 @@ export const OthersMarketsTable = ({
       {tableData.length !== 0 && !isLoading && (
         <DataGrid
           sx={{
+            height: "626px",
+
             overflow: "auto",
             maxWidth: "calc(100vw - 267px)",
             "& .MuiDataGrid-cell": { padding: "0px" },
 
-            "& .MuiDataGrid-footerContainer .MuiToolbar-root": {
-              padding: "32px 0 6px",
+            "& .MuiDataGrid-footerContainer": {
+              "& .MuiToolbar-root": {
+                padding: "32px 0 6px",
+              },
             },
           }}
           rows={rows}
