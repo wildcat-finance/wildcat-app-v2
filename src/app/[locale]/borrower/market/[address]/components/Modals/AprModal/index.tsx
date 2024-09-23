@@ -55,7 +55,7 @@ function getMinimumAPR(market: Market) {
   const { liquidReserves, outstandingTotalSupply } = market
   const currentCollateralizationBips = liquidReserves
     .mul(BIP)
-    .div(outstandingTotalSupply)
+    .div(outstandingTotalSupply.gt(0) ? outstandingTotalSupply : 1)
     .raw.toNumber()
   const [, originalAnnualInterestBips] =
     market.originalReserveRatioAndAnnualInterestBips
@@ -160,7 +160,9 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     setShowErrorPopup(false)
   }
 
-  const minimumApr = getMinimumAPR(market)
+  const minimumApr = market.outstandingTotalSupply.eq(0)
+    ? ""
+    : `min - ${formatBps(getMinimumAPR(market))}%`
 
   const getNewCollateralObligations = () => {
     if (aprStatus) {
@@ -204,9 +206,13 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
   const showForm = !(isPending || showSuccessPopup || showErrorPopup)
 
+  const isAprLTZero = parseFloat(apr) <= 0
+
+  console.log(isAprLTZero, "isAprLTZero")
+
   const disableConfirm =
     apr === "" ||
-    apr === "0" ||
+    isAprLTZero ||
     apr === formatBps(market.annualInterestBips) ||
     !!aprError ||
     modal.approvedStep
@@ -310,6 +316,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 />
 
                 <NumberTextField
+                  decimalScale={2}
                   min={0}
                   max={100}
                   label={formatBps(
@@ -330,7 +337,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                       color={COLORS.santasGrey}
                       sx={{ padding: "0 12px" }}
                     >
-                      {`min - ${formatBps(minimumApr)}%`}
+                      {minimumApr}
                     </Typography>
                   }
                 />
