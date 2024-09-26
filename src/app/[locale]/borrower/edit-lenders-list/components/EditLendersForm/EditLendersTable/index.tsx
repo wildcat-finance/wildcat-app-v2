@@ -7,7 +7,6 @@ import { UndoButton } from "@/app/[locale]/borrower/edit-lenders/components/Edit
 import { TableSelect } from "@/app/[locale]/borrower/edit-lenders-list/components/EditLendersForm/EditLendersTable/TableSelect"
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import Cross from "@/assets/icons/cross_icon.svg"
-import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -49,6 +48,65 @@ export const EditLendersTable = () => {
         .includes(lenderNameOrAddress.toLowerCase()) ||
       lender.address.toLowerCase().includes(lenderNameOrAddress.toLowerCase()),
   )
+
+  const handleDeleteLender = (
+    lenderAddress: string,
+    lenderStatus: EditLenderFlowStatuses,
+  ) => {
+    if (lenderStatus === EditLenderFlowStatuses.NEW) {
+      dispatch(
+        setLendersTableData(
+          lendersTableData.filter((lender) => lender.address !== lenderAddress),
+        ),
+      )
+    } else {
+      dispatch(
+        setLendersTableData(
+          lendersTableData.map((lender) => {
+            if (lender.address === lenderAddress) {
+              return {
+                ...lender,
+                markets: lender.markets
+                  .filter(
+                    (market) => market.status !== EditLenderFlowStatuses.NEW,
+                  )
+                  .map((market) => ({
+                    ...market,
+                    status: EditLenderFlowStatuses.DELETED,
+                  })),
+                status: EditLenderFlowStatuses.DELETED,
+              }
+            }
+            return lender
+          }),
+        ),
+      )
+    }
+  }
+
+  const handleRestoreLender = (lenderAddress: string) => {
+    dispatch(
+      setLendersTableData(
+        lendersTableData.map((lender) => {
+          if (lender.address === lenderAddress) {
+            return {
+              ...lender,
+              markets: lender.markets
+                .filter(
+                  (market) => market.status !== EditLenderFlowStatuses.NEW,
+                )
+                .map((market) => ({
+                  ...market,
+                  status: EditLenderFlowStatuses.OLD,
+                })),
+              status: EditLenderFlowStatuses.OLD,
+            }
+          }
+          return lender
+        }),
+      ),
+    )
+  }
 
   const columns: TypeSafeColDef<EditLendersTableModel>[] = [
     {
@@ -138,6 +196,7 @@ export const EditLendersTable = () => {
       renderCell: (params) => (
         <TableSelect
           lenderAddress={params.row.address}
+          lenderStatus={params.row.status}
           lenderMarkets={params.value}
         />
       ),
@@ -154,32 +213,9 @@ export const EditLendersTable = () => {
             params.row.status === EditLenderFlowStatuses.NEW) && (
             <IconButton
               sx={{ marginRight: "5px" }}
-              onClick={() => {
-                if (params.row.status === EditLenderFlowStatuses.NEW) {
-                  dispatch(
-                    setLendersTableData(
-                      lendersTableData.filter(
-                        (lender) => lender.address !== params.row.address,
-                      ),
-                    ),
-                  )
-                } else if (params.row.status === EditLenderFlowStatuses.OLD) {
-                  dispatch(
-                    setLendersTableData(
-                      lendersTableData.map((lender) => {
-                        if (lender.address === params.row.address) {
-                          return {
-                            ...lender,
-                            prevStatus: lender.status,
-                            status: EditLenderFlowStatuses.DELETED,
-                          }
-                        }
-                        return lender
-                      }),
-                    ),
-                  )
-                }
-              }}
+              onClick={() =>
+                handleDeleteLender(params.row.address, params.row.status)
+              }
             >
               <SvgIcon
                 fontSize="small"
@@ -191,25 +227,11 @@ export const EditLendersTable = () => {
               </SvgIcon>
             </IconButton>
           )}
-          {params.row.status === "deleted" && (
+          {params.row.status === EditLenderFlowStatuses.DELETED && (
             <Button
               sx={UndoButton}
               variant="text"
-              onClick={() => {
-                dispatch(
-                  setLendersTableData(
-                    lendersTableData.map((lender) => {
-                      if (lender.address === params.row.address) {
-                        return {
-                          ...lender,
-                          status: lender.prevStatus || "old",
-                        }
-                      }
-                      return lender
-                    }),
-                  ),
-                )
-              }}
+              onClick={() => handleRestoreLender(params.row.address)}
             >
               Undo
             </Button>

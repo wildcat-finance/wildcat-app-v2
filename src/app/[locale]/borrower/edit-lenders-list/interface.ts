@@ -8,7 +8,6 @@ export type MarketTableDataType = {
   name: string
   address: string
   status: EditLenderFlowStatuses
-  prevStatus: EditLenderFlowStatuses
 }
 
 export type LenderTableDataType = {
@@ -16,5 +15,4 @@ export type LenderTableDataType = {
   address: string
   markets: MarketTableDataType[]
   status: EditLenderFlowStatuses
-  prevStatus: EditLenderFlowStatuses
 }

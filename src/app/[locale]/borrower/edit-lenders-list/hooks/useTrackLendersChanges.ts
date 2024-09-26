@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 
 import {
+  EditLenderFlowStatuses,
   LenderTableDataType,
   MarketTableDataType,
 } from "@/app/[locale]/borrower/edit-lenders-list/interface"
@@ -43,7 +44,7 @@ function useTrackLendersChanges(
         const initialLender = initialLendersMap.get(lender.id)
 
         if (!initialLender) {
-          if (!(lender.status === "deleted" && lender.prevStatus === "new")) {
+          if (!(lender.status === EditLenderFlowStatuses.DELETED)) {
             modifiedLenders.push(lender)
           }
         } else {
@@ -79,10 +80,10 @@ function useTrackLendersChanges(
     lendersB: LenderTableDataType[],
   ): boolean => {
     const filteredLendersA = lendersA.filter(
-      (lender) => !(lender.status === "deleted" && lender.prevStatus === "new"),
+      (lender) => !(lender.status === EditLenderFlowStatuses.DELETED),
     )
     const filteredLendersB = lendersB.filter(
-      (lender) => !(lender.status === "deleted" && lender.prevStatus === "new"),
+      (lender) => !(lender.status === EditLenderFlowStatuses.DELETED),
     )
 
     if (filteredLendersA.length !== filteredLendersB.length) return false

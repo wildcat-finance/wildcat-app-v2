@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ChangeEvent, useRef, useState } from "react"
+import { ChangeEvent, useEffect, useRef, useState } from "react"
 
 import {
   Box,
@@ -35,11 +35,13 @@ import { COLORS } from "@/theme/colors"
 export type TableSelectProps = {
   lenderAddress: `0x${string}`
   lenderMarkets: MarketTableDataType[]
+  lenderStatus: EditLenderFlowStatuses
 }
 
 export const TableSelect = ({
   lenderAddress,
   lenderMarkets,
+  lenderStatus,
 }: TableSelectProps) => {
   const dispatch = useAppDispatch()
 
@@ -115,8 +117,8 @@ export const TableSelect = ({
     )
 
     const isMarketExisted =
-      existingMarket?.prevStatus === EditLenderFlowStatuses.OLD ||
-      existingMarket?.status === EditLenderFlowStatuses.OLD
+      existingMarket?.status === EditLenderFlowStatuses.OLD ||
+      existingMarket?.status === EditLenderFlowStatuses.DELETED
 
     let updatedMarkets
 
@@ -128,9 +130,6 @@ export const TableSelect = ({
           status: isMarketExisted
             ? EditLenderFlowStatuses.OLD
             : EditLenderFlowStatuses.NEW,
-          prevStatus: isMarketExisted
-            ? EditLenderFlowStatuses.OLD
-            : EditLenderFlowStatuses.NEW,
         },
       ]
     } else {
@@ -140,7 +139,6 @@ export const TableSelect = ({
             acc.push({
               ...m,
               status: EditLenderFlowStatuses.DELETED,
-              prevStatus: EditLenderFlowStatuses.OLD,
             })
           }
         } else {
@@ -153,74 +151,60 @@ export const TableSelect = ({
     updateLenderMarkets(updatedMarkets)
   }
 
-  const handleChangeAllMarkets = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const isChecked = event.target.checked
+  const handleDeleteMarket = (market: MarketTableDataType) => {
+    const isMarketOld = market.status === EditLenderFlowStatuses.OLD
 
-    const existingMarkets = lenderMarkets.filter(
-      (market) => market.status !== EditLenderFlowStatuses.DELETED,
-    )
-
-    const restoredMarkets = lenderMarkets
-      .filter(
-        (market) =>
-          market.status === EditLenderFlowStatuses.DELETED ||
-          market.prevStatus === EditLenderFlowStatuses.DELETED,
-      )
-      .map((market) => ({
-        ...market,
-        status: EditLenderFlowStatuses.OLD,
-        prevStatus: EditLenderFlowStatuses.DELETED,
-      }))
-
-    const newMarkets = activeBorrowerMarkets
-      .filter(
-        (borrowerMarket) =>
-          !lenderMarkets.some(
-            (lenderMarket) => lenderMarket.address === borrowerMarket.address,
-          ),
-      )
-      .map((market) => ({
-        ...market,
-        status: EditLenderFlowStatuses.NEW,
-        prevStatus: EditLenderFlowStatuses.NEW,
-      }))
-
-    let updatedMarkets: MarketTableDataType[]
-
-    if (isChecked) {
-      updatedMarkets = [...existingMarkets, ...restoredMarkets, ...newMarkets]
-    } else if (
-      lenderMarkets.filter(
-        (market) => market.prevStatus === EditLenderFlowStatuses.OLD,
-      ).length === activeBorrowerMarkets.length
-    ) {
-      updatedMarkets = lenderMarkets.map((market) => ({
-        ...market,
-        status: EditLenderFlowStatuses.DELETED,
-        prevStatus: EditLenderFlowStatuses.OLD,
-      }))
-    } else {
-      updatedMarkets = [
-        ...lenderMarkets
-          .filter((market) => market.status !== EditLenderFlowStatuses.NEW)
-          .map((market) =>
-            market.prevStatus === EditLenderFlowStatuses.DELETED
-              ? {
-                  ...market,
-                  status: EditLenderFlowStatuses.DELETED,
-                  prevStatus: EditLenderFlowStatuses.OLD,
-                }
-              : market,
-          ),
-      ]
-    }
+    const updatedMarkets = lenderMarkets.reduce((acc, m) => {
+      if (m.address === market.address) {
+        if (isMarketOld) {
+          acc.push({
+            ...m,
+            status: EditLenderFlowStatuses.DELETED,
+          })
+        }
+      } else {
+        acc.push(m)
+      }
+      return acc
+    }, [] as MarketTableDataType[])
 
     updateLenderMarkets(updatedMarkets)
   }
 
-  const handleAddAllMarkets = () => {
+  const handleRestoreMarket = (market: MarketTableDataType) => {
+    const updatedMarkets = lenderMarkets.map((m) =>
+      m.address === market.address
+        ? {
+            ...m,
+            status: EditLenderFlowStatuses.OLD,
+          }
+        : m,
+    )
+
+    updateLenderMarkets(updatedMarkets)
+  }
+
+  const handleDeleteAllMarkets = () => {
+    const updatedMarkets = lenderMarkets.reduce((acc, market) => {
+      if (market.status !== EditLenderFlowStatuses.NEW) {
+        acc.push({
+          ...market,
+          status: EditLenderFlowStatuses.DELETED,
+        })
+      }
+      return acc
+    }, [] as MarketTableDataType[])
+
+    updateLenderMarkets(updatedMarkets)
+  }
+
+  const handleChangeAllMarkets = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    let updatedMarkets
+
+    const isChecked = event.target.checked
+
     const newMarkets = activeBorrowerMarkets
       .filter(
         (borrowerMarket) =>
@@ -239,69 +223,74 @@ export const TableSelect = ({
         ? {
             ...market,
             status: EditLenderFlowStatuses.OLD,
-            prevStatus: EditLenderFlowStatuses.DELETED,
           }
         : market,
     )
 
-    const updatedMarkets = [...oldMarkets, ...newMarkets]
+    if (isChecked) {
+      updatedMarkets = [...newMarkets, ...oldMarkets]
 
-    updateLenderMarkets(updatedMarkets)
+      updateLenderMarkets(updatedMarkets)
+    } else {
+      handleDeleteAllMarkets()
+    }
   }
 
-  const handleDeleteAllMarkets = () => {
-    const updatedMarkets = lenderMarkets.reduce((acc, market) => {
-      if (market.status !== EditLenderFlowStatuses.NEW) {
-        acc.push({
-          ...market,
-          prevStatus: EditLenderFlowStatuses.OLD,
-          status: EditLenderFlowStatuses.DELETED,
-        })
-      }
-      return acc
-    }, [] as MarketTableDataType[])
+  // Autodeleting lender
 
-    updateLenderMarkets(updatedMarkets)
-  }
+  const lenderMarketsAmount = lenderMarkets.filter(
+    (market) => market.status !== EditLenderFlowStatuses.DELETED,
+  ).length
 
-  const handleDeleteMarket = (market: MarketTableDataType) => {
-    const existingMarket = lenderMarkets.find(
-      (m) => m.address === market.address,
-    )
-
-    const isMarketExisted =
-      existingMarket?.prevStatus === EditLenderFlowStatuses.OLD
-
-    const updatedMarkets = lenderMarkets.reduce((acc, m) => {
-      if (m.address === market.address) {
-        if (isMarketExisted) {
-          acc.push({
-            ...m,
-            status: EditLenderFlowStatuses.DELETED,
-            prevStatus: EditLenderFlowStatuses.OLD,
-          })
-        }
+  useEffect(() => {
+    if (lenderMarketsAmount === 0) {
+      if (lenderStatus === EditLenderFlowStatuses.NEW) {
+        dispatch(
+          setLendersTableData(
+            lendersTableData.filter(
+              (lender) => lender.address !== lenderAddress,
+            ),
+          ),
+        )
       } else {
-        acc.push(m)
+        dispatch(
+          setLendersTableData(
+            lendersTableData.map((lender) => {
+              if (lender.address === lenderAddress) {
+                return {
+                  ...lender,
+                  markets: lender.markets
+                    .filter(
+                      (market) => market.status !== EditLenderFlowStatuses.NEW,
+                    )
+                    .map((market) => ({
+                      ...market,
+                      status: EditLenderFlowStatuses.DELETED,
+                    })),
+                  status: EditLenderFlowStatuses.DELETED,
+                }
+              }
+              return lender
+            }),
+          ),
+        )
       }
-      return acc
-    }, [] as MarketTableDataType[])
-
-    updateLenderMarkets(updatedMarkets)
-  }
-
-  const restorePreviousStatus = (market: MarketTableDataType) => {
-    const updatedMarkets = lenderMarkets.map((m) =>
-      m.address === market.address
-        ? {
-            ...m,
-            status: m.prevStatus,
-          }
-        : m,
-    )
-
-    updateLenderMarkets(updatedMarkets)
-  }
+    } else {
+      dispatch(
+        setLendersTableData(
+          lendersTableData.map((lender) => {
+            if (lender.address === lenderAddress) {
+              return {
+                ...lender,
+                status: EditLenderFlowStatuses.OLD,
+              }
+            }
+            return lender
+          }),
+        ),
+      )
+    }
+  }, [lenderMarketsAmount])
 
   return (
     <FormControl fullWidth>
@@ -334,7 +323,7 @@ export const TableSelect = ({
                   width="fit-content"
                   onClick={() =>
                     market.status === EditLenderFlowStatuses.DELETED
-                      ? restorePreviousStatus(market)
+                      ? handleRestoreMarket(market)
                       : handleDeleteMarket(market)
                   }
                   type={market.status}

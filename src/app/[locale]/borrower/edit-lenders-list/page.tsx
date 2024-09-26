@@ -52,11 +52,9 @@ export default function EditLendersListPage() {
           ...lender,
           id: lender.address,
           status: EditLenderFlowStatuses.OLD,
-          prevStatus: EditLenderFlowStatuses.OLD,
           markets: lender.markets?.map((market) => ({
             ...market,
             status: EditLenderFlowStatuses.OLD,
-            prevStatus: EditLenderFlowStatuses.OLD,
           })),
         }))
 
