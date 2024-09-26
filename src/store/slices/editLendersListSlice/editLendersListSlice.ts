@@ -5,8 +5,9 @@ import { EditLendersListType } from "@/store/slices/editLendersListSlice/interfa
 
 const initialState: EditLendersListType = {
   lenderFilter: "",
-  marketFilter: "",
+  marketFilter: { name: "All Markets", address: "" },
   step: "edit",
+  activeBorrowerMarkets: [],
   initialLendersTableData: [],
   lendersTableData: [],
 }
@@ -18,11 +19,20 @@ const editLendersListSlice = createSlice({
     setLenderFilter: (state, action: PayloadAction<string>) => {
       state.lenderFilter = action.payload
     },
-    setMarketFilter: (state, action: PayloadAction<string>) => {
-      state.lenderFilter = action.payload
+    setMarketFilter: (
+      state,
+      action: PayloadAction<{ name: string; address: string }>,
+    ) => {
+      state.marketFilter = action.payload
     },
     setEditStep: (state, action: PayloadAction<"edit" | "confirm">) => {
       state.step = action.payload
+    },
+    setActiveBorrowerMarkets: (
+      state,
+      action: PayloadAction<{ name: string; address: string }[]>,
+    ) => {
+      state.activeBorrowerMarkets = action.payload
     },
     setInitialLendersTableData: (
       state,
@@ -50,6 +60,7 @@ export const {
   setLenderFilter,
   setMarketFilter,
   setEditStep,
+  setActiveBorrowerMarkets,
   setInitialLendersTableData,
   setLendersTableData,
   resetFilters,

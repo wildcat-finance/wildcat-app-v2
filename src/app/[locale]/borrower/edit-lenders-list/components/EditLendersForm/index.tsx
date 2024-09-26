@@ -6,6 +6,7 @@ import {
   Button,
   IconButton,
   InputAdornment,
+  Skeleton,
   SvgIcon,
   TextField,
 } from "@mui/material"
@@ -20,7 +21,14 @@ import {
 } from "@/store/slices/editLendersListSlice/editLendersListSlice"
 import { COLORS } from "@/theme/colors"
 
-export const EditForm = () => {
+import { EditLendersByMarketTable } from "./EditLendersByMarketTable"
+import { EditLendersTable } from "./EditLendersTable"
+
+export type EditLendersFormProps = {
+  isLoading: boolean
+}
+
+export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
   // Constants
   const dispatch = useAppDispatch()
 
@@ -31,9 +39,7 @@ export const EditForm = () => {
     (state) => state.editLendersList.lendersTableData,
   )
 
-  const lendersNames: { [key: string]: string } = JSON.parse(
-    localStorage.getItem("lenders-name") || "{}",
-  )
+  console.log(lendersTableData[0]?.markets)
 
   // Functions
   const handleClickConfirm = () => {
@@ -45,16 +51,10 @@ export const EditForm = () => {
     (state) => state.editLendersList.marketFilter,
   )
 
+  const isFilteredByMarket = selectedMarket.address !== ""
+
   const lenderNameOrAddress = useAppSelector(
     (state) => state.editLendersList.lenderFilter,
-  )
-
-  const filteredLenders = lendersTableData.filter(
-    (lender) =>
-      (lendersNames[lender.address.toLowerCase()] || lender.address)
-        .toLowerCase()
-        .includes(lenderNameOrAddress.toLowerCase()) ||
-      lender.address.toLowerCase().includes(lenderNameOrAddress.toLowerCase()),
   )
 
   const handleChangeLender = (evt: ChangeEvent<HTMLInputElement>) => {
@@ -71,6 +71,66 @@ export const EditForm = () => {
     initialLendersTableData,
     lendersTableData,
   )
+
+  if (isLoading)
+    return (
+      <>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: "30px",
+          }}
+        >
+          <Skeleton
+            sx={{ bgcolor: COLORS.athensGrey, borderRadius: "8px" }}
+            width="320px"
+            height="32px"
+          />
+          <Box display="flex" gap="6px">
+            <Skeleton
+              sx={{ bgcolor: COLORS.athensGrey }}
+              width="109px"
+              height="32px"
+            />
+            <Skeleton
+              sx={{ bgcolor: COLORS.athensGrey }}
+              width="69px"
+              height="32px"
+            />
+          </Box>
+        </Box>
+
+        <Box
+          display="flex"
+          flexDirection="column"
+          rowGap="8px"
+          marginTop="20px"
+        >
+          <Skeleton
+            height="52px"
+            width="100%"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
+          <Skeleton
+            height="52px"
+            width="100%"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
+          <Skeleton
+            height="52px"
+            width="100%"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
+          <Skeleton
+            height="52px"
+            width="100%"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
+        </Box>
+      </>
+    )
 
   return (
     <Box>
@@ -165,6 +225,9 @@ export const EditForm = () => {
           </Button>
         </Box>
       </Box>
+
+      {!isFilteredByMarket && <EditLendersTable />}
+      {isFilteredByMarket && <EditLendersByMarketTable />}
     </Box>
   )
 }

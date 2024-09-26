@@ -1,22 +1,26 @@
 "use client"
 
 import { useEffect } from "react"
+import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Skeleton, Typography } from "@mui/material"
 import { useSearchParams } from "next/navigation"
 
+import { FiltersContainer } from "@/app/[locale]/borrower/edit-lenders/style"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   resetFilters,
+  setActiveBorrowerMarkets,
   setInitialLendersTableData,
   setLenderFilter,
   setLendersTableData,
   setMarketFilter,
 } from "@/store/slices/editLendersListSlice/editLendersListSlice"
+import { COLORS } from "@/theme/colors"
 
-import { EditForm } from "./components/EditForm"
+import { EditLendersForm } from "./components/EditLendersForm"
 import { EditLenderFlowStatuses, LenderTableDataType } from "./interface"
 
 export default function EditLendersListPage() {
@@ -42,8 +46,9 @@ export default function EditLendersListPage() {
 
   useEffect(() => {
     if (lendersData) {
-      const formattedLendersData: LenderTableDataType[] = lendersData.map(
-        (lender) => ({
+      const formattedLendersData: LenderTableDataType[] = lendersData
+        .filter((lender) => lender.isAuthorized)
+        .map((lender) => ({
           ...lender,
           id: lender.address,
           status: EditLenderFlowStatuses.OLD,
@@ -53,8 +58,7 @@ export default function EditLendersListPage() {
             status: EditLenderFlowStatuses.OLD,
             prevStatus: EditLenderFlowStatuses.OLD,
           })),
-        }),
-      )
+        }))
 
       dispatch(setInitialLendersTableData(formattedLendersData))
       dispatch(setLendersTableData(formattedLendersData))
@@ -68,6 +72,12 @@ export default function EditLendersListPage() {
     ?.filter((market) => !market.isClosed)
     .map((market) => ({ name: market.name, address: market.address }))
 
+  useEffect(() => {
+    if (activeBorrowerMarkets) {
+      dispatch(setActiveBorrowerMarkets(activeBorrowerMarkets))
+    }
+  }, [isMarketsLoading])
+
   // Filtration settings
   const marketName = urlParams.get("marketName")
   const marketAddress = urlParams.get("marketAddress")
@@ -79,7 +89,7 @@ export default function EditLendersListPage() {
 
   useEffect(() => {
     if (marketName && marketAddress) {
-      dispatch(setMarketFilter(marketAddress))
+      dispatch(setMarketFilter({ name: marketName, address: marketAddress }))
     }
     if (lenderAddress) {
       dispatch(setLenderFilter(lenderAddress))
@@ -92,6 +102,7 @@ export default function EditLendersListPage() {
 
   // Constants
   const isLoading = isLendersLoading && isMarketsLoading
+  // const isLoading = true
 
   const step = useAppSelector((state) => state.editLendersList.step)
 
@@ -104,7 +115,7 @@ export default function EditLendersListPage() {
         {/* TODO: Add Market Selector */}
       </Box>
 
-      <EditForm />
+      {step === "edit" && <EditLendersForm isLoading={isLoading} />}
     </Box>
   )
 }

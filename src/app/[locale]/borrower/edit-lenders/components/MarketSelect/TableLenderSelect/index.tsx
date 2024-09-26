@@ -225,42 +225,42 @@ export const TableLenderSelect = ({
         size="small"
         multiple
         sx={SelectStyle}
-        endAdornment={
-          <IconButton
-            // onClick={handleReset}
-            onClick={() => {
-              if (lenderStatus === "new") {
-                setLendersRows((prev) =>
-                  prev.filter((item) => item.address !== lenderAddress),
-                )
-              } else if (lenderStatus === "old") {
-                setLendersRows((prev) =>
-                  prev.map((item) => {
-                    if (item.address === lenderAddress) {
-                      return {
-                        ...item,
-                        prevStatus: item.status,
-                        status: "deleted",
-                      }
-                    }
-                    return item
-                  }),
-                )
-              }
-            }}
-            sx={DeleteButtonStyle}
-            disabled={disabled}
-          >
-            <SvgIcon
-              fontSize="small"
-              sx={{
-                "& path": { fill: `${COLORS.santasGrey}` },
-              }}
-            >
-              <Cross />
-            </SvgIcon>
-          </IconButton>
-        }
+        // endAdornment={
+        //   <IconButton
+        //     // onClick={handleReset}
+        //     onClick={() => {
+        //       if (lenderStatus === "new") {
+        //         setLendersRows((prev) =>
+        //           prev.filter((item) => item.address !== lenderAddress),
+        //         )
+        //       } else if (lenderStatus === "old") {
+        //         setLendersRows((prev) =>
+        //           prev.map((item) => {
+        //             if (item.address === lenderAddress) {
+        //               return {
+        //                 ...item,
+        //                 prevStatus: item.status,
+        //                 status: "deleted",
+        //               }
+        //             }
+        //             return item
+        //           }),
+        //         )
+        //       }
+        //     }}
+        //     sx={DeleteButtonStyle}
+        //     disabled={disabled}
+        //   >
+        //     <SvgIcon
+        //       fontSize="small"
+        //       sx={{
+        //         "& path": { fill: `${COLORS.santasGrey}` },
+        //       }}
+        //     >
+        //       <Cross />
+        //     </SvgIcon>
+        //   </IconButton>
+        // }
         renderValue={() => (
           <Box sx={ChipContainer}>
             {lenderMarkets.length === borrowerMarkets.length ? (
