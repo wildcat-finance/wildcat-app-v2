@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import Link from "next/link"
 import { ROUTES } from "@/routes"
 import { toastSuccess } from "@/components/Toasts/index"
+import { Notification } from "@/components/Notification"
 
 import {
   Box,
@@ -26,9 +27,8 @@ import {
 
 import { UnreadDialogProps } from "@/components/Header/NotificationButton/UnreadDialog/type"
 import { COLORS } from "@/theme/colors"
-
-// Placeholder for testing
-const notify = () => toastSuccess('Wildcat 1 is registered')
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { markAllAsRead } from "@/store/slices/notificationsSlice/notificationsSlice"
 
 export const UnreadDialog = ({
   open,
@@ -36,15 +36,24 @@ export const UnreadDialog = ({
 }: UnreadDialogProps) => {
   const { t } = useTranslation()
   const [value, setValue] = useState(0);
+  const dispatch = useAppDispatch()
+
+  const notifications = useAppSelector((state) => state.notifications)
+  const filtered = notifications.filter((notification) => {
+    if (value === 0) return true
+    else if (value === 1) return notification.category === 'marketActivity'
+    else return notification.category === 'newLenders'
+  })
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
-  };
+    setValue(newValue)
+  }
 
   const handleMarkAsRead = async () => {
-    notify()
+    dispatch(markAllAsRead())
+    toastSuccess('All notifications marked as read')
   }
-  
+
   return (
     <Dialog open={open} onClose={handleClose} sx={DialogContainer}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -73,9 +82,20 @@ export const UnreadDialog = ({
         />
       </Tabs>
       <Divider sx={{ marginX: "-20px", marginY: "-1px" }} />
-      <div style={{ height: "128px" }}>
-
-      </div>
+      <Box sx={{ display: "grid", gap: "16px", paddingY: "16px", width: "480px" }}>
+        {filtered.map((notification, index) => (
+          <>
+            <Notification
+              type={notification.type}
+              description={notification.description}
+              date={notification.date}
+              unread={notification.unread}
+              error={notification.error}
+            />
+            {index !== filtered.length - 1 && <Divider sx={DividerStyle} />}
+          </>
+        ))}
+      </Box>
       <Divider sx={{ marginX: "-20px", marginY: "-1px" }} />
       <Link href={ROUTES.borrower.notifications} passHref style={LinkStyle}>
         <Button size="small" variant="text" color="secondary" sx={ButtonStyle} onClick={handleClose}>

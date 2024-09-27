@@ -334,11 +334,18 @@
     }
   },
   "notifications": {
+    "history": {
+      "title": "Notifications",
+      "markAllAsRead": "Mark all as Read",
+      "searchPlaceholder": "Search",
+      "earlier": "EARLIER"
+    },
     "sidebar": {
       "back": "Back",
       "all": "All",
       "marketActivity": "Market Activity",
       "newLenders": "New Lenders"
-    }
+    },
+    "viewOnEtherscan": "View on Etherscan"
   }
 }
