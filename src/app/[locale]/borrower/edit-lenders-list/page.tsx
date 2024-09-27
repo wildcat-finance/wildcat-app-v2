@@ -7,6 +7,7 @@ import { Box, Skeleton, Typography } from "@mui/material"
 import { useSearchParams } from "next/navigation"
 
 import { FiltersContainer } from "@/app/[locale]/borrower/edit-lenders/style"
+import { MarketSelect } from "@/app/[locale]/borrower/edit-lenders-list/components/MarketSelect"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -106,11 +107,11 @@ export default function EditLendersListPage() {
 
   return (
     <Box padding="40px 44px 0 44px" height="100%">
-      <Box sx={{ display: "flex", gap: "8px", marginBottom: "25px" }}>
+      <Box sx={{ display: "flex", gap: "6px", marginBottom: "25px" }}>
         <Typography variant="title2">
           Editing Lenders List {!isLoading && "for"}
         </Typography>
-        {/* TODO: Add Market Selector */}
+        <MarketSelect />
       </Box>
 
       {step === "edit" && <EditLendersForm isLoading={isLoading} />}

@@ -62,9 +62,9 @@ export const ChipContainer = {
 export const MenuStyle = {
   sx: {
     "& .MuiPaper-root": {
-      width: "284px",
+      width: "295px",
       fontFamily: "inherit",
-      padding: "16px 20px 20px",
+      padding: "12px",
     },
   },
 }

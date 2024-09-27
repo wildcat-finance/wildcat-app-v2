@@ -5,7 +5,7 @@ import { EditLendersListType } from "@/store/slices/editLendersListSlice/interfa
 
 const initialState: EditLendersListType = {
   lenderFilter: "",
-  marketFilter: { name: "All Markets", address: "" },
+  marketFilter: { name: "All Markets", address: "0x00" },
   step: "edit",
   activeBorrowerMarkets: [],
   initialLendersTableData: [],

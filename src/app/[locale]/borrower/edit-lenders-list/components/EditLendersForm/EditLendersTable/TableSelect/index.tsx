@@ -304,7 +304,23 @@ export const TableSelect = ({
         onClose={onClose}
         size="small"
         sx={SelectStyle}
-        MenuProps={MenuStyle}
+        MenuProps={{
+          sx: {
+            "& .MuiPaper-root": {
+              width: "295px",
+              fontFamily: "inherit",
+              padding: "12px",
+            },
+          },
+          anchorOrigin: {
+            vertical: "bottom",
+            horizontal: "left",
+          },
+          transformOrigin: {
+            vertical: "top",
+            horizontal: "left",
+          },
+        }}
         renderValue={() => (
           <Box sx={ChipContainer}>
             {isAssignedToAll ? (
@@ -376,7 +392,17 @@ export const TableSelect = ({
             <FormControlLabel
               key={market.address}
               label={market.name}
-              sx={{ marginLeft: "14px" }}
+              sx={{
+                width: "235px",
+                marginLeft: "14px",
+
+                "& .MuiTypography-root": {
+                  maxWidth: "210px",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  overflowX: "hidden",
+                },
+              }}
               control={
                 <ExtendedCheckbox
                   value={market}

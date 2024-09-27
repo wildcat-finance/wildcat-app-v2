@@ -39,8 +39,6 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
     (state) => state.editLendersList.lendersTableData,
   )
 
-  console.log(lendersTableData[0]?.markets)
-
   // Functions
   const handleClickConfirm = () => {
     dispatch(setEditStep("confirm"))
@@ -51,7 +49,7 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
     (state) => state.editLendersList.marketFilter,
   )
 
-  const isFilteredByMarket = selectedMarket.address !== ""
+  const isFilteredByMarket = selectedMarket.address !== "0x00"
 
   const lenderNameOrAddress = useAppSelector(
     (state) => state.editLendersList.lenderFilter,
