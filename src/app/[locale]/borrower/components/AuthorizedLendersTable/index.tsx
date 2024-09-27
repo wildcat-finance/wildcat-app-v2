@@ -11,7 +11,6 @@ import {
 import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
 import Link from "next/link"
 
-import { MarketDataT } from "@/app/[locale]/borrower/edit-lenders/lendersMock"
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import { MarketWithdrawalRequetstCell } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/style"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
@@ -124,7 +123,7 @@ export const LendersTable = ({
               padding: "14px 0",
             }}
           >
-            {params.value.map((market: MarketDataT) => (
+            {params.value.map((market: { name: string; address: string }) => (
               <LendersMarketChip marketName={market.name} width="fit-content" />
             ))}
           </Box>
