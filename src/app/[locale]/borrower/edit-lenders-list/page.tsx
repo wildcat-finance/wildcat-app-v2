@@ -6,8 +6,6 @@ import * as React from "react"
 import { Box, Typography } from "@mui/material"
 import { useSearchParams } from "next/navigation"
 
-import { ConfirmLendersForm } from "@/app/[locale]/borrower/edit-lenders-list/components/ConfirmLendersForm"
-import { MarketSelect } from "@/app/[locale]/borrower/edit-lenders-list/components/MarketSelect"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -20,7 +18,9 @@ import {
   setMarketFilter,
 } from "@/store/slices/editLendersListSlice/editLendersListSlice"
 
+import { ConfirmLendersForm } from "./components/ConfirmLendersForm"
 import { EditLendersForm } from "./components/EditLendersForm"
+import { MarketSelect } from "./components/MarketSelect"
 import { EditLenderFlowStatuses, LenderTableDataType } from "./interface"
 
 export default function EditLendersListPage() {

@@ -17,6 +17,13 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setMarketFilter } from "@/store/slices/editLendersListSlice/editLendersListSlice"
 import { COLORS } from "@/theme/colors"
 
+import {
+  MarketSelectMenuItemStyles,
+  MarketSelectMenuStyles,
+  MarketSelectStyles,
+  SearchStyles,
+} from "./style"
+
 export const MarketSelect = () => {
   const dispatch = useAppDispatch()
 
@@ -89,37 +96,16 @@ export const MarketSelect = () => {
       onChange={handleChangeMarket}
       displayEmpty
       sx={{
-        width: "fit-content !important",
-        height: "32px !important",
-        minHeight: "32px !important",
-        paddingRight: "0px !important",
-        border: "none !important",
-
-        "& .MuiSelect-select": {
-          padding: "0 !important",
-          paddingRight: "35px !important",
-
-          "& .MuiTypography-root": {
-            fontSize: "24px",
-            lineHeight: "32px",
-            fontWeight: 500,
-
-            color:
-              marketFilter.name === "All Markets"
-                ? COLORS.santasGrey
-                : COLORS.ultramarineBlue,
-          },
+        ...MarketSelectStyles,
+        "& .MuiTypography-root": {
+          color:
+            marketFilter.name === "All Markets"
+              ? COLORS.santasGrey
+              : COLORS.ultramarineBlue,
         },
       }}
       MenuProps={{
-        sx: {
-          "& .MuiPaper-root": {
-            width: "360px",
-            fontFamily: "inherit",
-            padding: "8px",
-            backgroundColor: COLORS.cobaltBlack,
-          },
-        },
+        sx: MarketSelectMenuStyles,
         anchorOrigin: {
           vertical: "bottom",
           horizontal: "left",
@@ -137,20 +123,7 @@ export const MarketSelect = () => {
           fullWidth
           size="small"
           placeholder="Search by Name"
-          sx={{
-            marginBottom: "8px",
-
-            "& .MuiInputBase-root": {
-              color: COLORS.white,
-              border: "none",
-              borderBottom: `1px solid ${COLORS.white01}`,
-              borderRadius: 0,
-            },
-
-            "& .MuiFormLabel-root": {
-              color: COLORS.white03,
-            },
-          }}
+          sx={SearchStyles}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -168,28 +141,7 @@ export const MarketSelect = () => {
           }}
         />
       </Box>
-      <MenuItem
-        value="All Markets"
-        sx={{
-          "&:hover": {
-            background: COLORS.white01,
-          },
-          "&.Mui-focusVisible": {
-            background: COLORS.white01,
-          },
-          "&.Mui-selected": {
-            background: "transparent",
-            color: COLORS.santasGrey,
-            "&:hover": {
-              background: "transparent",
-              cursor: "pointer",
-            },
-            "&.Mui-focusVisible": {
-              background: "transparent",
-            },
-          },
-        }}
-      >
+      <MenuItem value="All Markets" sx={MarketSelectMenuItemStyles}>
         <Typography variant="text3" color={COLORS.white}>
           All Markets
         </Typography>
@@ -198,25 +150,7 @@ export const MarketSelect = () => {
         <MenuItem
           key={market.address}
           value={market.name}
-          sx={{
-            "&:hover": {
-              background: COLORS.white01,
-            },
-            "&.Mui-focusVisible": {
-              background: COLORS.white01,
-            },
-            "&.Mui-selected": {
-              background: "transparent",
-              color: COLORS.santasGrey,
-              "&:hover": {
-                background: "transparent",
-                cursor: "pointer",
-              },
-              "&.Mui-focusVisible": {
-                background: "transparent",
-              },
-            },
-          }}
+          sx={MarketSelectMenuItemStyles}
         >
           <Typography variant="text3" color={COLORS.white}>
             {market.name}

@@ -2,11 +2,8 @@ import * as React from "react"
 import { useState } from "react"
 
 import { Box, Button, IconButton, SvgIcon, Typography } from "@mui/material"
-import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import { DataGrid } from "@mui/x-data-grid"
 
-import { UndoButton } from "@/app/[locale]/borrower/edit-lenders/components/EditLendersTable/style"
-import { TableSelect } from "@/app/[locale]/borrower/edit-lenders-list/components/EditLendersForm/EditLendersTable/TableSelect"
-import { DeleteModal } from "@/app/[locale]/borrower/edit-lenders-list/components/EditLendersForm/Modals/DeleteModal"
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
@@ -19,17 +16,17 @@ import {
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
-import { EditLenderFlowStatuses, MarketTableDataType } from "../../../interface"
-
-export type TypeSafeColDef<T> = GridColDef & { field: keyof T }
-
-export type EditLendersTableModel = {
-  id: string
-  name: string
-  address: string
-  markets: MarketTableDataType[]
-  delete: string
-}
+import { TypeSafeColDef, EditLendersTableModel } from "./interface"
+import {
+  AddedDot,
+  EditLendersTableStyles,
+  NoLendersBox,
+  ResetButtonStyles,
+  UndoButton,
+} from "./style"
+import { TableSelect } from "./TableSelect"
+import { EditLenderFlowStatuses } from "../../../interface"
+import { DeleteModal } from "../Modals/DeleteModal"
 
 export const EditLendersTable = () => {
   const dispatch = useAppDispatch()
@@ -140,15 +137,7 @@ export const EditLendersTable = () => {
           )}
           {params.row.status === EditLenderFlowStatuses.NEW && (
             <>
-              <Box
-                sx={{
-                  width: "4px",
-                  height: "4px",
-                  borderRadius: "50%",
-                  marginRight: "4px",
-                  backgroundColor: COLORS.ultramarineBlue,
-                }}
-              />
+              <Box sx={AddedDot} />
               <LenderName address={params.row.address} />
             </>
           )}
@@ -254,19 +243,7 @@ export const EditLendersTable = () => {
         <DataGrid
           columns={columns}
           rows={filteredLenders}
-          sx={{
-            "& .MuiDataGrid-cell": {
-              minHeight: "52px",
-              height: "auto",
-              padding: "12px 8px",
-              cursor: "default",
-            },
-
-            "& .MuiDataGrid-columnHeader": {
-              backgroundColor: "transparent",
-              padding: "0 8px",
-            },
-          }}
+          sx={EditLendersTableStyles}
           getRowHeight={() => "auto"}
           disableColumnSorting
         />
@@ -274,17 +251,7 @@ export const EditLendersTable = () => {
 
       {noLenders && (
         <Box sx={{ height: "100%", display: "flex" }}>
-          <Box
-            sx={{
-              height: "100%",
-              width: "100%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "4px",
-            }}
-          >
+          <Box sx={NoLendersBox}>
             <Typography variant="text3" color={COLORS.santasGrey}>
               No lenders for this filters
             </Typography>
@@ -292,12 +259,7 @@ export const EditLendersTable = () => {
               onClick={() => dispatch(resetFilters())}
               size="small"
               variant="text"
-              sx={{
-                color: COLORS.ultramarineBlue,
-                "&:hover": {
-                  color: COLORS.ultramarineBlue,
-                },
-              }}
+              sx={ResetButtonStyles}
             >
               Reset filters
             </Button>

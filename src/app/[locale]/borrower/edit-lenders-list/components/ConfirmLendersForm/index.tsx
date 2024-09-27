@@ -1,10 +1,8 @@
 import * as React from "react"
 
 import { Box, Button, Typography } from "@mui/material"
-import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import { DataGrid } from "@mui/x-data-grid"
 
-import { AddedDot } from "@/app/[locale]/borrower/edit-lenders/components/EditLendersTable/style"
-import { MarketTableT } from "@/app/[locale]/borrower/edit-lenders/interface"
 import useTrackLendersChanges from "@/app/[locale]/borrower/edit-lenders-list/hooks/useTrackLendersChanges"
 import {
   EditLenderFlowStatuses,
@@ -19,14 +17,14 @@ import { setEditStep } from "@/store/slices/editLendersListSlice/editLendersList
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
-export type TypeSafeColDef<T> = GridColDef & { field: keyof T }
-
-export type ConfirmLendersTableModel = {
-  id: string
-  name: string
-  address: string
-  markets: MarketTableDataType[]
-}
+import { ConfirmLendersTableModel, TypeSafeColDef } from "./interface"
+import {
+  AddedDot,
+  AlertBox,
+  ButtonsBox,
+  MarketsBox,
+  TableStyles,
+} from "./style"
 
 export const ConfirmLendersForm = () => {
   const dispatch = useAppDispatch()
@@ -66,11 +64,7 @@ export const ConfirmLendersForm = () => {
       align: "left",
       renderCell: (params) => (
         <>
-          {params.row.status === "new" && (
-            <Box
-              sx={{ ...AddedDot, backgroundColor: COLORS.ultramarineBlue }}
-            />
-          )}
+          {params.row.status === "new" && <Box sx={AddedDot} />}
           <Typography
             variant="text3"
             sx={{
@@ -130,15 +124,8 @@ export const ConfirmLendersForm = () => {
           (market: MarketTableDataType) =>
             market.status !== EditLenderFlowStatuses.DELETED,
         ).length !== activeBorrowerMarkets.length ? (
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "4px",
-              padding: "14px 0",
-            }}
-          >
-            {params.value.map((market: MarketTableT) => (
+          <Box sx={MarketsBox}>
+            {params.value.map((market: MarketTableDataType) => (
               <LendersMarketChip
                 marketName={market.name}
                 type={market.status}
@@ -154,18 +141,7 @@ export const ConfirmLendersForm = () => {
 
   return (
     <Box height="calc(100% - 52px - 43px - 44px)">
-      <Box
-        sx={{
-          backgroundColor: COLORS.oasis,
-          padding: "12px 16px",
-          borderRadius: "12px",
-          margin: "25px 0",
-
-          display: "flex",
-          alignItems: "center",
-          gap: "16px",
-        }}
-      >
+      <Box sx={AlertBox}>
         <Coins />
         <Typography variant="text3" color={COLORS.butteredRum}>
           Please, keep in mind that once you submit this request you will be
@@ -175,32 +151,13 @@ export const ConfirmLendersForm = () => {
       </Box>
 
       <DataGrid
-        sx={{
-          "& .MuiDataGrid-cell": {
-            minHeight: "52px",
-            height: "auto",
-            padding: "12px 8px",
-            cursor: "default",
-          },
-
-          "& .MuiDataGrid-columnHeader": {
-            backgroundColor: "transparent",
-            padding: "0 8px",
-          },
-        }}
+        sx={TableStyles}
         getRowHeight={() => "auto"}
         rows={addedOrModifiedLenders}
         columns={columns}
       />
 
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-          paddingTop: "10px",
-        }}
-      >
+      <Box sx={ButtonsBox}>
         <Button
           size="large"
           variant="text"

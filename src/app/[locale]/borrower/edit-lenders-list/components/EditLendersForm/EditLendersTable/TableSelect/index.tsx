@@ -13,13 +13,6 @@ import {
   TextField,
 } from "@mui/material"
 
-import {
-  ChipContainer,
-  InputLabelStyle,
-  MenuBox,
-  SelectStyle,
-  VariantsContainer,
-} from "@/app/[locale]/borrower/edit-lenders/components/MarketSelect/TableLenderSelect/style"
 import { DeleteModal } from "@/app/[locale]/borrower/edit-lenders-list/components/EditLendersForm/Modals/DeleteModal"
 import {
   EditLenderFlowStatuses,
@@ -32,11 +25,16 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setLendersTableData } from "@/store/slices/editLendersListSlice/editLendersListSlice"
 import { COLORS } from "@/theme/colors"
 
-export type TableSelectProps = {
-  lenderAddress: `0x${string}`
-  lenderMarkets: MarketTableDataType[]
-  lenderStatus: EditLenderFlowStatuses
-}
+import { TableSelectProps } from "./interface"
+import {
+  ChipContainer,
+  InputLabelStyle,
+  MenuBox,
+  MenuStyle,
+  SelectStyle,
+  VariantsContainer,
+  VariantStyles,
+} from "./style"
 
 export const TableSelect = ({
   lenderAddress,
@@ -321,13 +319,7 @@ export const TableSelect = ({
           size="small"
           sx={SelectStyle}
           MenuProps={{
-            sx: {
-              "& .MuiPaper-root": {
-                width: "295px",
-                fontFamily: "inherit",
-                padding: "12px",
-              },
-            },
+            sx: MenuStyle,
             anchorOrigin: {
               vertical: "bottom",
               horizontal: "left",
@@ -408,17 +400,7 @@ export const TableSelect = ({
               <FormControlLabel
                 key={market.address}
                 label={market.name}
-                sx={{
-                  width: "235px",
-                  marginLeft: "14px",
-
-                  "& .MuiTypography-root": {
-                    maxWidth: "210px",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    overflowX: "hidden",
-                  },
-                }}
+                sx={VariantStyles}
                 control={
                   <ExtendedCheckbox
                     value={market}
