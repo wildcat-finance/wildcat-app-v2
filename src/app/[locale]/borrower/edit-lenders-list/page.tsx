@@ -3,10 +3,9 @@
 import { useEffect } from "react"
 import * as React from "react"
 
-import { Box, Skeleton, Typography } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { useSearchParams } from "next/navigation"
 
-import { FiltersContainer } from "@/app/[locale]/borrower/edit-lenders/style"
 import { MarketSelect } from "@/app/[locale]/borrower/edit-lenders-list/components/MarketSelect"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
@@ -19,7 +18,6 @@ import {
   setLendersTableData,
   setMarketFilter,
 } from "@/store/slices/editLendersListSlice/editLendersListSlice"
-import { COLORS } from "@/theme/colors"
 
 import { EditLendersForm } from "./components/EditLendersForm"
 import { EditLenderFlowStatuses, LenderTableDataType } from "./interface"
@@ -82,10 +80,6 @@ export default function EditLendersListPage() {
   const marketAddress = urlParams.get("marketAddress")
   const lenderAddress = urlParams.get("lenderAddress")
 
-  const selectedMarket = useAppSelector(
-    (state) => state.editLendersList.marketFilter,
-  )
-
   useEffect(() => {
     if (marketName && marketAddress) {
       dispatch(setMarketFilter({ name: marketName, address: marketAddress }))
@@ -100,7 +94,7 @@ export default function EditLendersListPage() {
   }, [])
 
   // Constants
-  const isLoading = isLendersLoading && isMarketsLoading
+  const isLoading = isMarketsLoading || isLendersLoading
   // const isLoading = true
 
   const step = useAppSelector((state) => state.editLendersList.step)
@@ -111,7 +105,8 @@ export default function EditLendersListPage() {
         <Typography variant="title2">
           Editing Lenders List {!isLoading && "for"}
         </Typography>
-        <MarketSelect />
+
+        {!isLoading && <MarketSelect />}
       </Box>
 
       {step === "edit" && <EditLendersForm isLoading={isLoading} />}

@@ -17,7 +17,6 @@ import {
   ChipContainer,
   InputLabelStyle,
   MenuBox,
-  MenuStyle,
   SelectStyle,
   VariantsContainer,
 } from "@/app/[locale]/borrower/edit-lenders/components/MarketSelect/TableLenderSelect/style"
@@ -243,16 +242,19 @@ export const TableSelect = ({
   ).length
 
   useEffect(() => {
-    if (lenderMarketsAmount === 0) {
-      if (lenderStatus === EditLenderFlowStatuses.NEW) {
-        dispatch(
-          setLendersTableData(
-            lendersTableData.filter(
-              (lender) => lender.address !== lenderAddress,
-            ),
-          ),
-        )
-      } else {
+    if (
+      lenderStatus === EditLenderFlowStatuses.NEW &&
+      lenderMarketsAmount === 0
+    ) {
+      dispatch(
+        setLendersTableData(
+          lendersTableData.filter((lender) => lender.address !== lenderAddress),
+        ),
+      )
+    }
+
+    if (lenderStatus === EditLenderFlowStatuses.OLD) {
+      if (lenderMarketsAmount === 0) {
         dispatch(
           setLendersTableData(
             lendersTableData.map((lender) => {
@@ -274,21 +276,21 @@ export const TableSelect = ({
             }),
           ),
         )
-      }
-    } else {
-      dispatch(
-        setLendersTableData(
-          lendersTableData.map((lender) => {
-            if (lender.address === lenderAddress) {
-              return {
-                ...lender,
-                status: EditLenderFlowStatuses.OLD,
+      } else {
+        dispatch(
+          setLendersTableData(
+            lendersTableData.map((lender) => {
+              if (lender.address === lenderAddress) {
+                return {
+                  ...lender,
+                  status: EditLenderFlowStatuses.OLD,
+                }
               }
-            }
-            return lender
-          }),
-        ),
-      )
+              return lender
+            }),
+          ),
+        )
+      }
     }
   }, [lenderMarketsAmount])
 

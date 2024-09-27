@@ -8,7 +8,8 @@ import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/
 import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
-import { useAppSelector } from "@/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { setLendersTableData } from "@/store/slices/editLendersListSlice/editLendersListSlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
@@ -22,6 +23,8 @@ export type EditLendersByMarketTableModel = {
 }
 
 export const EditLendersByMarketTable = () => {
+  const dispatch = useAppDispatch()
+
   const lendersTableData = useAppSelector(
     (state) => state.editLendersList.lendersTableData,
   )
@@ -53,6 +56,83 @@ export const EditLendersByMarketTable = () => {
         (market) => market.address === selectedMarket.address,
       ),
     )
+    .map((lender) => {
+      const chosenMarket = lender.markets.find(
+        (market) => market.address === selectedMarket.address,
+      )
+
+      return {
+        id: lender.address,
+        address: lender.address,
+        status: chosenMarket ? chosenMarket.status : "",
+      }
+    })
+
+  const handleClickDelete = (
+    lenderAddress: string,
+    marketStatus: EditLenderFlowStatuses,
+  ) => {
+    if (marketStatus === EditLenderFlowStatuses.NEW) {
+      dispatch(
+        setLendersTableData(
+          lendersTableData.map((lender) =>
+            lender.address === lenderAddress
+              ? {
+                  ...lender,
+                  markets: lender.markets.filter(
+                    (market) => market.address !== selectedMarket.address,
+                  ),
+                }
+              : lender,
+          ),
+        ),
+      )
+    } else {
+      dispatch(
+        setLendersTableData(
+          lendersTableData.map((lender) =>
+            lender.address === lenderAddress
+              ? {
+                  ...lender,
+                  markets: [
+                    ...lender.markets.filter(
+                      (m) => m.address !== selectedMarket.address,
+                    ),
+                    {
+                      ...selectedMarket,
+                      status: EditLenderFlowStatuses.DELETED,
+                    },
+                  ],
+                }
+              : lender,
+          ),
+        ),
+      )
+    }
+  }
+
+  const handleClickUndo = (lenderAddress: string) => {
+    dispatch(
+      setLendersTableData(
+        lendersTableData.map((lender) =>
+          lender.address === lenderAddress
+            ? {
+                ...lender,
+                markets: [
+                  ...lender.markets.filter(
+                    (m) => m.address !== selectedMarket.address,
+                  ),
+                  {
+                    ...selectedMarket,
+                    status: EditLenderFlowStatuses.OLD,
+                  },
+                ],
+              }
+            : lender,
+        ),
+      ),
+    )
+  }
 
   const columns: TypeSafeColDef<EditLendersByMarketTableModel>[] = [
     {
@@ -143,7 +223,12 @@ export const EditLendersByMarketTable = () => {
         <>
           {(params.row.status === EditLenderFlowStatuses.OLD ||
             params.row.status === EditLenderFlowStatuses.NEW) && (
-            <IconButton sx={{ marginRight: "5px" }}>
+            <IconButton
+              sx={{ marginRight: "5px" }}
+              onClick={() =>
+                handleClickDelete(params.row.address, params.row.status)
+              }
+            >
               <SvgIcon
                 fontSize="small"
                 sx={{
@@ -156,6 +241,7 @@ export const EditLendersByMarketTable = () => {
           )}
           {params.row.status === EditLenderFlowStatuses.DELETED && (
             <Button
+              onClick={() => handleClickUndo(params.row.address)}
               sx={{
                 minWidth: "36px",
                 padding: 0,

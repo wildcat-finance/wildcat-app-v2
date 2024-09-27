@@ -11,6 +11,7 @@ import {
   TextField,
 } from "@mui/material"
 
+import { AddModal } from "@/app/[locale]/borrower/edit-lenders-list/components/EditLendersForm/Modals/AddModal"
 import useTrackLendersChanges from "@/app/[locale]/borrower/edit-lenders-list/hooks/useTrackLendersChanges"
 import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
@@ -193,19 +194,8 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
         />
 
         <Box sx={{ display: "flex", gap: "6px" }}>
-          <Button
-            variant="contained"
-            color="secondary"
-            size="small"
-            sx={{
-              height: "32px",
-              fontSize: "13px",
-              lineHeight: "16px",
-              fontWeight: 600,
-            }}
-          >
-            + Add Lender
-          </Button>
+          <AddModal />
+
           <Button
             onClick={handleClickConfirm}
             disabled={!isLendersHaveChanges}
