@@ -1,8 +1,10 @@
 import * as React from "react"
+import { useState } from "react"
 
 import { Box, Button, IconButton, SvgIcon, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 
+import { DeleteModal } from "@/app/[locale]/borrower/edit-lenders-list/components/EditLendersForm/Modals/DeleteModal"
 import { EditLenderFlowStatuses } from "@/app/[locale]/borrower/edit-lenders-list/interface"
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import Cross from "@/assets/icons/cross_icon.svg"
@@ -23,6 +25,9 @@ export type EditLendersByMarketTableModel = {
 }
 
 export const EditLendersByMarketTable = () => {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
+  const [lenderToDelete, setLenderToDelete] = useState<string>("")
+
   const dispatch = useAppDispatch()
 
   const lendersTableData = useAppSelector(
@@ -62,31 +67,43 @@ export const EditLendersByMarketTable = () => {
       )
 
       return {
+        status: chosenMarket ? chosenMarket.status : "",
         id: lender.address,
         address: lender.address,
-        status: chosenMarket ? chosenMarket.status : "",
+        lenderStatus: lender.status,
+        lenderMarketsAmount: lender.markets.length,
       }
     })
 
   const handleClickDelete = (
     lenderAddress: string,
+    lenderStatus: EditLenderFlowStatuses,
+    lenderMarketsAmount: number,
     marketStatus: EditLenderFlowStatuses,
   ) => {
     if (marketStatus === EditLenderFlowStatuses.NEW) {
-      dispatch(
-        setLendersTableData(
-          lendersTableData.map((lender) =>
-            lender.address === lenderAddress
-              ? {
-                  ...lender,
-                  markets: lender.markets.filter(
-                    (market) => market.address !== selectedMarket.address,
-                  ),
-                }
-              : lender,
+      if (
+        lenderStatus === EditLenderFlowStatuses.NEW &&
+        lenderMarketsAmount === 1
+      ) {
+        setLenderToDelete(lenderAddress)
+        setIsDeleteModalOpen(true)
+      } else {
+        dispatch(
+          setLendersTableData(
+            lendersTableData.map((lender) =>
+              lender.address === lenderAddress
+                ? {
+                    ...lender,
+                    markets: lender.markets.filter(
+                      (market) => market.address !== selectedMarket.address,
+                    ),
+                  }
+                : lender,
+            ),
           ),
-        ),
-      )
+        )
+      }
     } else {
       dispatch(
         setLendersTableData(
@@ -226,7 +243,12 @@ export const EditLendersByMarketTable = () => {
             <IconButton
               sx={{ marginRight: "5px" }}
               onClick={() =>
-                handleClickDelete(params.row.address, params.row.status)
+                handleClickDelete(
+                  params.row.address,
+                  params.row.lenderStatus,
+                  params.row.lenderMarketsAmount,
+                  params.row.status,
+                )
               }
             >
               <SvgIcon
@@ -277,7 +299,12 @@ export const EditLendersByMarketTable = () => {
         }}
         disableColumnSorting
       />
-      <Box />
+
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        setIsOpen={setIsDeleteModalOpen}
+        lenderAddress={lenderToDelete}
+      />
     </>
   )
 }

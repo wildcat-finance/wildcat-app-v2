@@ -20,6 +20,7 @@ import {
   SelectStyle,
   VariantsContainer,
 } from "@/app/[locale]/borrower/edit-lenders/components/MarketSelect/TableLenderSelect/style"
+import { DeleteModal } from "@/app/[locale]/borrower/edit-lenders-list/components/EditLendersForm/Modals/DeleteModal"
 import {
   EditLenderFlowStatuses,
   MarketTableDataType,
@@ -43,6 +44,8 @@ export const TableSelect = ({
   lenderStatus,
 }: TableSelectProps) => {
   const dispatch = useAppDispatch()
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
 
   // Select settings
   const selectRef = useRef<HTMLElement>(null)
@@ -89,6 +92,10 @@ export const TableSelect = ({
   }
 
   // Editing functions
+  const lenderMarketsAmount = lenderMarkets.filter(
+    (market) => market.status !== EditLenderFlowStatuses.DELETED,
+  ).length
+
   const lendersTableData = useAppSelector(
     (state) => state.editLendersList.lendersTableData,
   )
@@ -118,6 +125,15 @@ export const TableSelect = ({
     const isMarketExisted =
       existingMarket?.status === EditLenderFlowStatuses.OLD ||
       existingMarket?.status === EditLenderFlowStatuses.DELETED
+
+    if (
+      lenderStatus === EditLenderFlowStatuses.NEW &&
+      lenderMarketsAmount === 1 &&
+      !isChecked
+    ) {
+      setIsDeleteModalOpen(true)
+      return
+    }
 
     let updatedMarkets
 
@@ -167,7 +183,14 @@ export const TableSelect = ({
       return acc
     }, [] as MarketTableDataType[])
 
-    updateLenderMarkets(updatedMarkets)
+    if (
+      lenderStatus === EditLenderFlowStatuses.NEW &&
+      lenderMarketsAmount === 1
+    ) {
+      setIsDeleteModalOpen(true)
+    } else {
+      updateLenderMarkets(updatedMarkets)
+    }
   }
 
   const handleRestoreMarket = (market: MarketTableDataType) => {
@@ -194,7 +217,11 @@ export const TableSelect = ({
       return acc
     }, [] as MarketTableDataType[])
 
-    updateLenderMarkets(updatedMarkets)
+    if (lenderStatus === EditLenderFlowStatuses.NEW) {
+      setIsDeleteModalOpen(true)
+    } else {
+      updateLenderMarkets(updatedMarkets)
+    }
   }
 
   const handleChangeAllMarkets = (
@@ -237,22 +264,7 @@ export const TableSelect = ({
 
   // Autodeleting lender
 
-  const lenderMarketsAmount = lenderMarkets.filter(
-    (market) => market.status !== EditLenderFlowStatuses.DELETED,
-  ).length
-
   useEffect(() => {
-    if (
-      lenderStatus === EditLenderFlowStatuses.NEW &&
-      lenderMarketsAmount === 0
-    ) {
-      dispatch(
-        setLendersTableData(
-          lendersTableData.filter((lender) => lender.address !== lenderAddress),
-        ),
-      )
-    }
-
     if (lenderStatus === EditLenderFlowStatuses.OLD) {
       if (lenderMarketsAmount === 0) {
         dispatch(
@@ -295,125 +307,94 @@ export const TableSelect = ({
   }, [lenderMarketsAmount])
 
   return (
-    <FormControl fullWidth>
-      <InputLabel sx={InputLabelStyle}>Add market</InputLabel>
+    <>
+      <FormControl fullWidth>
+        <InputLabel sx={InputLabelStyle}>Add market</InputLabel>
 
-      <Select
-        value={lenderMarkets}
-        multiple
-        ref={selectRef}
-        onOpen={onOpen}
-        onClose={onClose}
-        size="small"
-        sx={SelectStyle}
-        MenuProps={{
-          sx: {
-            "& .MuiPaper-root": {
-              width: "295px",
-              fontFamily: "inherit",
-              padding: "12px",
+        <Select
+          value={lenderMarkets}
+          multiple
+          ref={selectRef}
+          onOpen={onOpen}
+          onClose={onClose}
+          size="small"
+          sx={SelectStyle}
+          MenuProps={{
+            sx: {
+              "& .MuiPaper-root": {
+                width: "295px",
+                fontFamily: "inherit",
+                padding: "12px",
+              },
             },
-          },
-          anchorOrigin: {
-            vertical: "bottom",
-            horizontal: "left",
-          },
-          transformOrigin: {
-            vertical: "top",
-            horizontal: "left",
-          },
-        }}
-        renderValue={() => (
-          <Box sx={ChipContainer}>
-            {isAssignedToAll ? (
-              <LendersMarketChip
-                marketName="All markets"
-                withButton
-                width="fit-content"
-                onClick={() => handleDeleteAllMarkets()}
-              />
-            ) : (
-              lenderMarkets.map((market) => (
+            anchorOrigin: {
+              vertical: "bottom",
+              horizontal: "left",
+            },
+            transformOrigin: {
+              vertical: "top",
+              horizontal: "left",
+            },
+          }}
+          renderValue={() => (
+            <Box sx={ChipContainer}>
+              {isAssignedToAll ? (
                 <LendersMarketChip
-                  key={market.address}
-                  marketName={market.name}
+                  marketName="All markets"
                   withButton
                   width="fit-content"
-                  onClick={() =>
-                    market.status === EditLenderFlowStatuses.DELETED
-                      ? handleRestoreMarket(market)
-                      : handleDeleteMarket(market)
-                  }
-                  type={market.status}
+                  onClick={() => handleDeleteAllMarkets()}
                 />
-              ))
-            )}
-          </Box>
-        )}
-      >
-        <Box sx={MenuBox}>
-          <TextField
-            onChange={handleChangeMarketName}
-            fullWidth
-            size="small"
-            placeholder="Search by Name"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SvgIcon
-                    fontSize="small"
-                    sx={{
-                      width: "20px",
-                      "& path": { fill: `${COLORS.greySuit}` },
-                    }}
-                  >
-                    <Icon />
-                  </SvgIcon>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
-
-        <Box sx={VariantsContainer}>
-          <FormControlLabel
-            label="All Markets"
-            control={
-              <ExtendedCheckbox
-                onChange={(event) => handleChangeAllMarkets(event)}
-                checked={isAssignedToAll}
-                sx={{
-                  "& ::before": {
-                    transform: "translate(-3px, -3px) scale(0.75)",
-                  },
-                }}
-              />
-            }
-          />
-          {filteredMarketsByName.map((market) => (
-            <FormControlLabel
-              key={market.address}
-              label={market.name}
-              sx={{
-                width: "235px",
-                marginLeft: "14px",
-
-                "& .MuiTypography-root": {
-                  maxWidth: "210px",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  overflowX: "hidden",
-                },
+              ) : (
+                lenderMarkets.map((market) => (
+                  <LendersMarketChip
+                    key={market.address}
+                    marketName={market.name}
+                    withButton
+                    width="fit-content"
+                    onClick={() =>
+                      market.status === EditLenderFlowStatuses.DELETED
+                        ? handleRestoreMarket(market)
+                        : handleDeleteMarket(market)
+                    }
+                    type={market.status}
+                  />
+                ))
+              )}
+            </Box>
+          )}
+        >
+          <Box sx={MenuBox}>
+            <TextField
+              onChange={handleChangeMarketName}
+              fullWidth
+              size="small"
+              placeholder="Search by Name"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SvgIcon
+                      fontSize="small"
+                      sx={{
+                        width: "20px",
+                        "& path": { fill: `${COLORS.greySuit}` },
+                      }}
+                    >
+                      <Icon />
+                    </SvgIcon>
+                  </InputAdornment>
+                ),
               }}
+            />
+          </Box>
+
+          <Box sx={VariantsContainer}>
+            <FormControlLabel
+              label="All Markets"
               control={
                 <ExtendedCheckbox
-                  value={market}
-                  onChange={(event) => handleChangeMarkets(event, market)}
-                  checked={lenderMarkets.some(
-                    (chosenMarket) =>
-                      chosenMarket.address === market.address &&
-                      chosenMarket.status !== EditLenderFlowStatuses.DELETED,
-                  )}
+                  onChange={(event) => handleChangeAllMarkets(event)}
+                  checked={isAssignedToAll}
                   sx={{
                     "& ::before": {
                       transform: "translate(-3px, -3px) scale(0.75)",
@@ -422,19 +403,58 @@ export const TableSelect = ({
                 />
               }
             />
-          ))}
-        </Box>
+            {filteredMarketsByName.map((market) => (
+              <FormControlLabel
+                key={market.address}
+                label={market.name}
+                sx={{
+                  width: "235px",
+                  marginLeft: "14px",
 
-        <Button
-          onClick={handleDeleteAllMarkets}
-          size="medium"
-          variant="contained"
-          color="secondary"
-          sx={{ width: "100%", marginTop: "12px" }}
-        >
-          Reset
-        </Button>
-      </Select>
-    </FormControl>
+                  "& .MuiTypography-root": {
+                    maxWidth: "210px",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    overflowX: "hidden",
+                  },
+                }}
+                control={
+                  <ExtendedCheckbox
+                    value={market}
+                    onChange={(event) => handleChangeMarkets(event, market)}
+                    checked={lenderMarkets.some(
+                      (chosenMarket) =>
+                        chosenMarket.address === market.address &&
+                        chosenMarket.status !== EditLenderFlowStatuses.DELETED,
+                    )}
+                    sx={{
+                      "& ::before": {
+                        transform: "translate(-3px, -3px) scale(0.75)",
+                      },
+                    }}
+                  />
+                }
+              />
+            ))}
+          </Box>
+
+          <Button
+            onClick={handleDeleteAllMarkets}
+            size="medium"
+            variant="contained"
+            color="secondary"
+            sx={{ width: "100%", marginTop: "12px" }}
+          >
+            Reset
+          </Button>
+        </Select>
+      </FormControl>
+
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        setIsOpen={setIsDeleteModalOpen}
+        lenderAddress={lenderAddress}
+      />
+    </>
   )
 }

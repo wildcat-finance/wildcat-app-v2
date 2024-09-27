@@ -1,10 +1,12 @@
 import * as React from "react"
+import { useState } from "react"
 
 import { Box, Button, IconButton, SvgIcon, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 
 import { UndoButton } from "@/app/[locale]/borrower/edit-lenders/components/EditLendersTable/style"
 import { TableSelect } from "@/app/[locale]/borrower/edit-lenders-list/components/EditLendersForm/EditLendersTable/TableSelect"
+import { DeleteModal } from "@/app/[locale]/borrower/edit-lenders-list/components/EditLendersForm/Modals/DeleteModal"
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
@@ -28,6 +30,9 @@ export type EditLendersTableModel = {
 
 export const EditLendersTable = () => {
   const dispatch = useAppDispatch()
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
+  const [lenderToDelete, setLenderToDelete] = useState<string>("")
 
   const lendersTableData = useAppSelector(
     (state) => state.editLendersList.lendersTableData,
@@ -54,11 +59,8 @@ export const EditLendersTable = () => {
     lenderStatus: EditLenderFlowStatuses,
   ) => {
     if (lenderStatus === EditLenderFlowStatuses.NEW) {
-      dispatch(
-        setLendersTableData(
-          lendersTableData.filter((lender) => lender.address !== lenderAddress),
-        ),
-      )
+      setLenderToDelete(lenderAddress)
+      setIsDeleteModalOpen(true)
     } else {
       dispatch(
         setLendersTableData(
@@ -262,7 +264,12 @@ export const EditLendersTable = () => {
         getRowHeight={() => "auto"}
         disableColumnSorting
       />
-      <Box />
+
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        setIsOpen={setIsDeleteModalOpen}
+        lenderAddress={lenderToDelete}
+      />
     </>
   )
 }
