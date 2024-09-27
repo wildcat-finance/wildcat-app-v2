@@ -6,6 +6,7 @@ import * as React from "react"
 import { Box, Typography } from "@mui/material"
 import { useSearchParams } from "next/navigation"
 
+import { ConfirmLendersForm } from "@/app/[locale]/borrower/edit-lenders-list/components/ConfirmLendersForm"
 import { MarketSelect } from "@/app/[locale]/borrower/edit-lenders-list/components/MarketSelect"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
@@ -101,14 +102,19 @@ export default function EditLendersListPage() {
   return (
     <Box padding="40px 44px 0 44px" height="100%">
       <Box sx={{ display: "flex", gap: "6px", marginBottom: "25px" }}>
-        <Typography variant="title2">
-          Editing Lenders List {!isLoading && "for"}
-        </Typography>
+        {step === "edit" ? (
+          <Typography variant="title2">
+            Editing Lenders List {!isLoading && "for"}
+          </Typography>
+        ) : (
+          <Typography variant="title2">Confirm Lenders List Edits</Typography>
+        )}
 
-        {!isLoading && <MarketSelect />}
+        {!isLoading && step === "edit" && <MarketSelect />}
       </Box>
 
       {step === "edit" && <EditLendersForm isLoading={isLoading} />}
+      {step === "confirm" && <ConfirmLendersForm />}
     </Box>
   )
 }

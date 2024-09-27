@@ -9,14 +9,14 @@ import {
   MenuItemButtonSelected,
 } from "@/components/Sidebar/style"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setEditStep } from "@/store/slices/editLendersSlice/editLendersSlice"
+import { setEditStep } from "@/store/slices/editLendersListSlice/editLendersListSlice"
 import { COLORS } from "@/theme/colors"
 
 export const LenderListSidebar = () => {
   const router = useRouter()
 
   const dispatch = useAppDispatch()
-  const step = useAppSelector((state) => state.editLenders.step)
+  const step = useAppSelector((state) => state.editLendersList.step)
 
   const handleBackClick = () => {
     router.back()
@@ -71,7 +71,7 @@ export const LenderListSidebar = () => {
           variant="text"
           size="medium"
           sx={step === "edit" ? MenuItemButtonSelected : MenuItemButton}
-          onClick={handleClickEdit}
+          // onClick={handleClickEdit}
         >
           Editing Lenders List
         </Button>
@@ -80,7 +80,7 @@ export const LenderListSidebar = () => {
           variant="text"
           size="medium"
           sx={step === "confirm" ? MenuItemButtonSelected : MenuItemButton}
-          onClick={handleClickConfirm}
+          // onClick={handleClickConfirm}
         >
           Confirmation
         </Button>
