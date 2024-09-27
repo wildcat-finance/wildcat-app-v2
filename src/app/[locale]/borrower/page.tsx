@@ -123,7 +123,9 @@ export default function Borrower() {
         </Box>
       )}
 
-      {tab === "markets" && <MarketsTables />}
+      {tab === "markets" && (
+        <MarketsTables showBanner={!bannerDisplayConfig.hideBanner} />
+      )}
 
       {tab === "lenders" && (
         <Box>

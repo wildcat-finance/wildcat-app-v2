@@ -38,7 +38,7 @@ const filterMarketsByAssetAndStatus = (
       (market) =>
         getMarketStatus(
           market.isClosed,
-          market.isDelinquent,
+          market.isDelinquent || market.willBeDelinquent,
           market.isIncurringPenalties,
         ) === status,
     )
@@ -53,7 +53,7 @@ const filterMarketsByAssetAndStatus = (
   return filteredMarkets
 }
 
-export const MarketsTables = () => {
+export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
   const { t } = useTranslation()
 
   const { address, isConnected } = useAccount()
@@ -110,7 +110,12 @@ export const MarketsTables = () => {
     !isWrongNetwork && isConnected && isRegisteredBorrower
 
   return (
-    <Box sx={MarketsTablesContainer}>
+    <Box
+      sx={MarketsTablesContainer}
+      height={`calc(100vh - 43px - 52px - 52px - 110px ${
+        showBanner ? `- 208px - 32px` : ""
+      })`}
+    >
       {showBorrowerTables && (
         <Box>
           <Box>

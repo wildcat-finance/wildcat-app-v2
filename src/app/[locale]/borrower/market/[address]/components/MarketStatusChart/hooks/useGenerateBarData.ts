@@ -1,4 +1,4 @@
-import { Market, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { Market, TokenAmount, TotalDebtBreakdown } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
 import { formatEther } from "ethers/lib/utils"
 
@@ -20,7 +20,10 @@ const getTokenAmountPercentageWidth = (
 export const useGenerateBarData = (
   market: Market,
 ): {
-  [key: string]: MarketBarChartItem & { hide?: boolean }
+  breakdown: TotalDebtBreakdown
+  barData: {
+    [key: string]: MarketBarChartItem & { hide?: boolean }
+  }
 } => {
   const breakdown = market.getTotalDebtBreakdown()
   const barData: {
@@ -68,5 +71,5 @@ export const useGenerateBarData = (
     setBarData("borrowed", breakdown.borrowed)
   }
 
-  return barData
+  return { barData, breakdown }
 }

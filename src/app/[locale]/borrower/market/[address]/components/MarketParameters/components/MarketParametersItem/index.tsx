@@ -1,6 +1,9 @@
-import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
+import * as React from "react"
+
+import { Box, IconButton, SvgIcon, Tooltip, Typography } from "@mui/material"
 import Link from "next/link"
 
+import Question from "@/assets/icons/circledQuestion_icon.svg"
 import Copy from "@/assets/icons/copy_icon.svg"
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
@@ -18,6 +21,8 @@ export const MarketParametersItem = ({
   title,
   value,
   tooltipText,
+  valueTooltipText,
+  alarmState,
   handleCopy,
   link,
 }: MarketParametersItemProps) => (
@@ -30,9 +35,27 @@ export const MarketParametersItem = ({
     </Box>
 
     <Box sx={MarketParametersItemValueContainer}>
-      <Typography variant="text3" align="right">
+      <Typography
+        variant="text3"
+        align="right"
+        color={alarmState ? COLORS.dullRed : COLORS.blackRock}
+      >
         {value}
       </Typography>
+
+      {valueTooltipText && (
+        <Tooltip title={valueTooltipText} placement="right">
+          <SvgIcon
+            fontSize="small"
+            sx={{
+              "& path": { fill: `${COLORS.galliano}` },
+            }}
+          >
+            <Question />
+          </SvgIcon>
+        </Tooltip>
+      )}
+
       {handleCopy && (
         <IconButton disableRipple sx={AddressButtons} onClick={handleCopy}>
           <SvgIcon fontSize="medium">

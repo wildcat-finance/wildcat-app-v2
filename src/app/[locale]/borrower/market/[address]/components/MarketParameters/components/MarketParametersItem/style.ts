@@ -12,4 +12,5 @@ export const MarketParametersItemTitleContainer = {
 export const MarketParametersItemValueContainer = {
   display: "flex",
   gap: "4px",
+  alignItems: "center",
 }

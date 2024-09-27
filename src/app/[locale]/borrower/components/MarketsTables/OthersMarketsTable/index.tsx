@@ -44,7 +44,7 @@ export const OthersMarketsTable = ({
   const { t } = useTranslation()
 
   const [paginationModel, setPaginationModel] = React.useState({
-    pageSize: 9,
+    pageSize: 10,
     page: 0,
   })
 
@@ -321,9 +321,17 @@ export const OthersMarketsTable = ({
       {tableData.length !== 0 && !isLoading && (
         <DataGrid
           sx={{
+            height: "626px",
+
             overflow: "auto",
             maxWidth: "calc(100vw - 267px)",
             "& .MuiDataGrid-cell": { padding: "0px" },
+
+            "& .MuiDataGrid-footerContainer": {
+              "& .MuiToolbar-root": {
+                padding: "32px 0 6px",
+              },
+            },
           }}
           rows={rows}
           columns={columns}
@@ -333,9 +341,6 @@ export const OthersMarketsTable = ({
           onPaginationModelChange={setPaginationModel}
           slots={{
             pagination: TablePagination,
-          }}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 9 } },
           }}
         />
       )}

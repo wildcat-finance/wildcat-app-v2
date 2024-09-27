@@ -30,7 +30,7 @@ export const getMarketStatusChip = (market: Market) => {
   return {
     status: getMarketStatus(
       market.isClosed,
-      market.isDelinquent,
+      market.isDelinquent || market.willBeDelinquent,
       market.isIncurringPenalties,
     ),
     healthyPeriod:
