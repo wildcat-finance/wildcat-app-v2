@@ -1,12 +1,6 @@
 import { Dispatch, SetStateAction } from "react"
 
-import {
-  Box,
-  Button,
-  Dialog,
-  SvgIcon,
-  Typography,
-} from "@mui/material"
+import { Box, Button, Dialog, SvgIcon, Typography } from "@mui/material"
 
 import CircledAlert from "@/assets/icons/circledAlert_icon.svg"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"

@@ -263,10 +263,25 @@ export const TableSelect = ({
   }
 
   // Autodeleting lender
-
   useEffect(() => {
-    if (lenderStatus === EditLenderFlowStatuses.OLD) {
-      if (lenderMarketsAmount === 0) {
+    if (lenderStatus !== EditLenderFlowStatuses.NEW) {
+      const hasNonDeletedMarkets = lenderMarkets.some(
+        (market) =>
+          market.status === EditLenderFlowStatuses.OLD ||
+          market.status === EditLenderFlowStatuses.NEW,
+      )
+
+      if (hasNonDeletedMarkets) {
+        dispatch(
+          setLendersTableData(
+            lendersTableData.map((lender) =>
+              lender.address === lenderAddress
+                ? { ...lender, status: EditLenderFlowStatuses.OLD }
+                : lender,
+            ),
+          ),
+        )
+      } else if (lenderMarketsAmount === 0) {
         dispatch(
           setLendersTableData(
             lendersTableData.map((lender) => {
@@ -282,20 +297,6 @@ export const TableSelect = ({
                       status: EditLenderFlowStatuses.DELETED,
                     })),
                   status: EditLenderFlowStatuses.DELETED,
-                }
-              }
-              return lender
-            }),
-          ),
-        )
-      } else {
-        dispatch(
-          setLendersTableData(
-            lendersTableData.map((lender) => {
-              if (lender.address === lenderAddress) {
-                return {
-                  ...lender,
-                  status: EditLenderFlowStatuses.OLD,
                 }
               }
               return lender

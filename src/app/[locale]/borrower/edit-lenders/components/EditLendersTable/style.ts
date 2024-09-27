@@ -9,6 +9,7 @@ export const AddedDot = {
 
 export const UndoButton = {
   minWidth: "36px",
+  marginRight: "5px",
   padding: 0,
   color: COLORS.ultramarineBlue,
 }

@@ -95,7 +95,6 @@ export default function EditLendersListPage() {
 
   // Constants
   const isLoading = isMarketsLoading || isLendersLoading
-  // const isLoading = true
 
   const step = useAppSelector((state) => state.editLendersList.step)
 

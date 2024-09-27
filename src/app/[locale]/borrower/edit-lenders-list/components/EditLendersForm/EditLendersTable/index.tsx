@@ -12,7 +12,10 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setLendersTableData } from "@/store/slices/editLendersListSlice/editLendersListSlice"
+import {
+  resetFilters,
+  setLendersTableData,
+} from "@/store/slices/editLendersListSlice/editLendersListSlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
@@ -53,6 +56,8 @@ export const EditLendersTable = () => {
         .includes(lenderNameOrAddress.toLowerCase()) ||
       lender.address.toLowerCase().includes(lenderNameOrAddress.toLowerCase()),
   )
+
+  const noLenders = filteredLenders.length === 0
 
   const handleDeleteLender = (
     lenderAddress: string,
@@ -245,25 +250,60 @@ export const EditLendersTable = () => {
 
   return (
     <>
-      <DataGrid
-        columns={columns}
-        rows={filteredLenders}
-        sx={{
-          "& .MuiDataGrid-cell": {
-            minHeight: "52px",
-            height: "auto",
-            padding: "12px 8px",
-            cursor: "default",
-          },
+      {!noLenders && (
+        <DataGrid
+          columns={columns}
+          rows={filteredLenders}
+          sx={{
+            "& .MuiDataGrid-cell": {
+              minHeight: "52px",
+              height: "auto",
+              padding: "12px 8px",
+              cursor: "default",
+            },
 
-          "& .MuiDataGrid-columnHeader": {
-            backgroundColor: "transparent",
-            padding: "0 8px",
-          },
-        }}
-        getRowHeight={() => "auto"}
-        disableColumnSorting
-      />
+            "& .MuiDataGrid-columnHeader": {
+              backgroundColor: "transparent",
+              padding: "0 8px",
+            },
+          }}
+          getRowHeight={() => "auto"}
+          disableColumnSorting
+        />
+      )}
+
+      {noLenders && (
+        <Box sx={{ height: "100%", display: "flex" }}>
+          <Box
+            sx={{
+              height: "100%",
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "4px",
+            }}
+          >
+            <Typography variant="text3" color={COLORS.santasGrey}>
+              No lenders for this filters
+            </Typography>
+            <Button
+              onClick={() => dispatch(resetFilters())}
+              size="small"
+              variant="text"
+              sx={{
+                color: COLORS.ultramarineBlue,
+                "&:hover": {
+                  color: COLORS.ultramarineBlue,
+                },
+              }}
+            >
+              Reset filters
+            </Button>
+          </Box>
+        </Box>
+      )}
 
       <DeleteModal
         isOpen={isDeleteModalOpen}

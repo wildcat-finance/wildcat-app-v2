@@ -9,6 +9,7 @@ import {
   Skeleton,
   SvgIcon,
   TextField,
+  Typography,
 } from "@mui/material"
 
 import { AddModal } from "@/app/[locale]/borrower/edit-lenders-list/components/EditLendersForm/Modals/AddModal"
@@ -39,6 +40,8 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
   const lendersTableData = useAppSelector(
     (state) => state.editLendersList.lendersTableData,
   )
+
+  const noLenders = lendersTableData.length === 0
 
   // Functions
   const handleClickConfirm = () => {
@@ -132,7 +135,7 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
     )
 
   return (
-    <Box>
+    <Box height="calc(100% - 52px - 43px)">
       <Box
         sx={{
           display: "flex",
@@ -214,8 +217,28 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
         </Box>
       </Box>
 
-      {!isFilteredByMarket && <EditLendersTable />}
-      {isFilteredByMarket && <EditLendersByMarketTable />}
+      {!isFilteredByMarket && !noLenders && <EditLendersTable />}
+      {isFilteredByMarket && !noLenders && <EditLendersByMarketTable />}
+
+      {noLenders && (
+        <Box sx={{ height: "100%", display: "flex" }}>
+          <Box
+            sx={{
+              height: "100%",
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "4px",
+            }}
+          >
+            <Typography variant="text3" color={COLORS.santasGrey}>
+              No lenders yet
+            </Typography>
+          </Box>
+        </Box>
+      )}
     </Box>
   )
 }
