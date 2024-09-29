@@ -57,17 +57,11 @@ export const AddModal = () => {
     reset,
   } = useAddLenderForm(isFilteredByMarket ? lendersWithMarket : existingLenders)
 
-  const isExistingLenderError =
-    errors.address?.message ===
-    "The lender with this address is already added. Use Edit Lender List page to edit"
-
   const addressValue = watch("address")
 
   const existingLender = existingLenders.find(
     (lender) => lender.toLowerCase() === addressValue?.toLowerCase(),
   )
-
-  console.log(existingLender, "existingLender")
 
   useEffect(() => {
     if (existingLender) {
@@ -185,7 +179,7 @@ export const AddModal = () => {
         onClose={handleClose}
         sx={{
           "& .MuiDialog-paper": {
-            height: "404px",
+            minHeight: "404px",
             width: "440px",
             border: "none",
             borderRadius: "20px",
@@ -287,7 +281,7 @@ export const AddModal = () => {
           variant="contained"
           size="large"
           type="submit"
-          sx={{ margin: "0 24px" }}
+          sx={{ margin: "24px 24px 0" }}
         >
           Add
         </Button>

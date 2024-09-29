@@ -74,7 +74,9 @@ export const EditLendersByMarketTable = () => {
         id: lender.address,
         address: lender.address,
         lenderStatus: lender.status,
-        lenderMarketsAmount: lender.markets.length,
+        lenderMarketsAmount: lender.markets.filter(
+          (m) => m.status !== EditLenderFlowStatuses.DELETED,
+        ).length,
       }
     })
 
@@ -116,6 +118,10 @@ export const EditLendersByMarketTable = () => {
             lender.address === lenderAddress
               ? {
                   ...lender,
+                  status:
+                    lenderMarketsAmount === 1
+                      ? EditLenderFlowStatuses.DELETED
+                      : EditLenderFlowStatuses.OLD,
                   markets: [
                     ...lender.markets.filter(
                       (m) => m.address !== selectedMarket.address,
@@ -140,6 +146,7 @@ export const EditLendersByMarketTable = () => {
           lender.address === lenderAddress
             ? {
                 ...lender,
+                status: EditLenderFlowStatuses.OLD,
                 markets: [
                   ...lender.markets.filter(
                     (m) => m.address !== selectedMarket.address,
