@@ -39,13 +39,15 @@ export function useGetBorrowerMarketsQuery({
     const controller = result.data.controllers[0]
     if (controller) {
       return (
-        controller.markets.map((market) =>
-          Market.fromSubgraphMarketData(
-            TargetChainId,
-            provider as SignerOrProvider,
-            market,
-          ),
-        ) ?? []
+        controller.markets
+          .filter((m) => !!m.controller)
+          .map((market) =>
+            Market.fromSubgraphMarketData(
+              TargetChainId,
+              provider as SignerOrProvider,
+              market,
+            ),
+          ) ?? []
       )
     }
 

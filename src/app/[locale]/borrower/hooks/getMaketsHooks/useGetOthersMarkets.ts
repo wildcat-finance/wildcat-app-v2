@@ -38,6 +38,7 @@ export function useGetOthersMarketsQuery({
 
     return (
       result.data.markets
+        .filter((m) => !!m.controller)
         .map((market) =>
           Market.fromSubgraphMarketData(
             TargetChainId,
