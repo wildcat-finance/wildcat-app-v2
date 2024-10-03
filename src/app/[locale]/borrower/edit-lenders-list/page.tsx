@@ -10,6 +10,7 @@ import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHo
 import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
+  resetEditLendersListState,
   resetFilters,
   setActiveBorrowerMarkets,
   setInitialLendersTableData,
@@ -98,6 +99,13 @@ export default function EditLendersListPage() {
   const isLoading = isMarketsLoading || isLendersLoading
 
   const step = useAppSelector((state) => state.editLendersList.step)
+
+  useEffect(
+    () => () => {
+      dispatch(resetEditLendersListState())
+    },
+    [],
+  )
 
   return (
     <Box padding="40px 44px 0 44px" height="100%">

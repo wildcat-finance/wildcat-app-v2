@@ -14,11 +14,17 @@ import { LeadBanner } from "@/components/LeadBanner"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetController } from "@/hooks/useGetController"
 import { ROUTES } from "@/routes"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { setTab } from "@/store/slices/borrowerOverviewSlice/borrowerOverviewSlice"
+import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
 
 import { useBorrowerInvitationRedirect } from "./hooks/useBorrowerInvitationRedirect"
 import { PageTitleContainer } from "./page-style"
 
 export default function Borrower() {
+  const dispatch = useAppDispatch()
+  const tab = useAppSelector((state) => state.borrowerOverview.tab)
+
   const { t } = useTranslation()
   const bannerDisplayConfig = useBorrowerInvitationRedirect()
 
@@ -31,13 +37,13 @@ export default function Borrower() {
   const showBorrowerTables =
     !isWrongNetwork && isConnected && isRegisteredBorrower
 
-  const [tab, setTab] = React.useState<"markets" | "mla" | "lenders">("markets")
+  // const [tab, setTab] = React.useState<"markets" | "mla" | "lenders">("markets")
 
   const handleTabsChange = (
     event: React.SyntheticEvent,
-    newTab: "markets" | "mla" | "lenders",
+    newTab: BorrowerOverviewTabs,
   ) => {
-    setTab(newTab)
+    dispatch(setTab(newTab))
   }
 
   const { data: lenders } = useGetAllLenders()

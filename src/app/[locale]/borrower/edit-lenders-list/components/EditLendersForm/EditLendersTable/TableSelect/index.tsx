@@ -333,6 +333,9 @@ export const TableSelect = ({
             <Box sx={ChipContainer}>
               {isAssignedToAll ? (
                 <LendersMarketChip
+                  type={
+                    lenderStatus === EditLenderFlowStatuses.NEW ? "new" : "old"
+                  }
                   marketName="All markets"
                   withButton
                   width="fit-content"

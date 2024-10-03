@@ -53,6 +53,7 @@ const editLendersListSlice = createSlice({
     resetRows: (state) => {
       state.lendersTableData = initialState.lendersTableData
     },
+    resetEditLendersListState: () => initialState,
   },
 })
 
@@ -65,6 +66,7 @@ export const {
   setLendersTableData,
   resetFilters,
   resetRows,
+  resetEditLendersListState,
 } = editLendersListSlice.actions
 
 export default editLendersListSlice.reducer

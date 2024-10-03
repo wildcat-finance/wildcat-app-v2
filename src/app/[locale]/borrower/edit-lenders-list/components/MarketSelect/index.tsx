@@ -56,10 +56,11 @@ export const MarketSelect = () => {
   )
 
   // Filtration settings
-
   const marketFilter = useAppSelector(
     (state) => state.editLendersList.marketFilter,
   )
+
+  const [marketName, setMarketName] = useState("")
 
   const handleChangeMarket = (event: SelectChangeEvent) => {
     const selectedValue = event.target.value
@@ -74,16 +75,24 @@ export const MarketSelect = () => {
         dispatch(setMarketFilter(selectedMarket))
       }
     }
+
+    setMarketName("")
   }
 
-  const [marketName, setMarketName] = useState("")
-
+  // Filter markets by name
   const filteredMarketsByName = activeBorrowerMarkets.filter((market) =>
     market.name.toLowerCase().includes(marketName.toLowerCase()),
   )
 
+  // Add "All Markets" to the list of options, filtering it as well
+  const filteredOptions = [
+    ...(marketName.toLowerCase().includes("all markets") || marketName === ""
+      ? [{ name: "All Markets", address: "0x00" }]
+      : []),
+    ...filteredMarketsByName,
+  ]
+
   const handleChangeMarketName = (evt: ChangeEvent<HTMLInputElement>) => {
-    // evt.stopPropagation()
     setMarketName(evt.target.value)
   }
 
@@ -95,11 +104,16 @@ export const MarketSelect = () => {
       onClose={onClose}
       onChange={handleChangeMarket}
       displayEmpty
+      renderValue={() => (
+        <Typography variant="text3" color={COLORS.white}>
+          {marketFilter?.name || "All Markets"}
+        </Typography>
+      )}
       sx={{
         ...MarketSelectStyles,
         "& .MuiTypography-root": {
           color:
-            marketFilter.name === "All Markets"
+            marketFilter?.name === "All Markets"
               ? COLORS.santasGrey
               : COLORS.ultramarineBlue,
         },
@@ -141,12 +155,8 @@ export const MarketSelect = () => {
           }}
         />
       </Box>
-      <MenuItem value="All Markets" sx={MarketSelectMenuItemStyles}>
-        <Typography variant="text3" color={COLORS.white}>
-          All Markets
-        </Typography>
-      </MenuItem>
-      {filteredMarketsByName.map((market) => (
+
+      {filteredOptions.map((market) => (
         <MenuItem
           key={market.address}
           value={market.name}
