@@ -22,7 +22,7 @@ export const TextfieldChip = ({
       backgroundColor: color || COLORS.hintOfRed,
     }}
   >
-    <Typography variant="text2" sx={{ color: textColor || COLORS.santasGrey }}>
+    <Typography variant="text3" sx={{ color: textColor || COLORS.santasGrey }}>
       {text}
     </Typography>
   </Box>
