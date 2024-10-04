@@ -50,7 +50,7 @@ const FilterSelect = ({
 }) => {
   const selectRef = useRef<HTMLElement>(null)
 
-  const [name, setName] = useState("")
+  const [search, setSearch] = useState("")
 
   const onOpen = () => {
     if (selectRef.current) {
@@ -61,7 +61,7 @@ const FilterSelect = ({
       previousElement?.classList.add("Mui-focused")
     }
 
-    setName("")
+    setSearch("")
   }
 
   const onClose = () => {
@@ -100,11 +100,13 @@ const FilterSelect = ({
   }
 
   const handleChangeName = (evt: ChangeEvent<HTMLInputElement>) => {
-    setName(evt.target.value)
+    setSearch(evt.target.value)
   }
 
-  const filteredOptions = options.filter((option) =>
-    option.name.toLowerCase().includes(name.toLowerCase()),
+  const filteredOptions = options.filter(
+    (option) =>
+      option.name.toLowerCase().includes(search.toLowerCase()) ||
+      option.address.toLowerCase().includes(search.toLowerCase()),
   )
 
   return (
@@ -187,9 +189,10 @@ const FilterSelect = ({
           MenuProps={{
             sx: {
               "& .MuiPaper-root": {
+                width: "234px",
                 height: "fit-content",
                 fontFamily: "inherit",
-                padding: "16px 20px 20px",
+                padding: "12px",
                 marginTop: "2px",
               },
             },
@@ -210,11 +213,11 @@ const FilterSelect = ({
           }}
         >
           <TextField
-            value={name}
+            value={search}
             onChange={handleChangeName}
             fullWidth
             size="small"
-            placeholder="Search by Name"
+            placeholder="Search"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
