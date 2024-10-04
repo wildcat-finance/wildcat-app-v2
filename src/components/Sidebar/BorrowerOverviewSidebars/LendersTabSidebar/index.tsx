@@ -50,6 +50,8 @@ const FilterSelect = ({
 }) => {
   const selectRef = useRef<HTMLElement>(null)
 
+  const [name, setName] = useState("")
+
   const onOpen = () => {
     if (selectRef.current) {
       selectRef.current.classList.add("Mui-focused")
@@ -58,6 +60,8 @@ const FilterSelect = ({
         .previousSibling as Element | null
       previousElement?.classList.add("Mui-focused")
     }
+
+    setName("")
   }
 
   const onClose = () => {
@@ -95,13 +99,13 @@ const FilterSelect = ({
     setSelected([])
   }
 
-  const [name, setName] = useState("")
-
   const handleChangeName = (evt: ChangeEvent<HTMLInputElement>) => {
     setName(evt.target.value)
   }
 
-  const filteredOptions = options.filter((option) => option.name.includes(name))
+  const filteredOptions = options.filter((option) =>
+    option.name.toLowerCase().includes(name.toLowerCase()),
+  )
 
   return (
     <Box
@@ -183,6 +187,7 @@ const FilterSelect = ({
           MenuProps={{
             sx: {
               "& .MuiPaper-root": {
+                height: "fit-content",
                 fontFamily: "inherit",
                 padding: "16px 20px 20px",
                 marginTop: "2px",
@@ -229,7 +234,7 @@ const FilterSelect = ({
 
           <Box
             sx={{
-              height: "132px",
+              maxHeight: "150px",
               overflow: "auto",
               display: "flex",
               flexDirection: "column",

@@ -44,28 +44,6 @@ export const AddSelect = ({
     (state) => state.editLendersList.activeBorrowerMarkets,
   )
 
-  const selectRef = useRef<HTMLElement>(null)
-
-  const onOpen = () => {
-    if (selectRef.current) {
-      selectRef.current.classList.add("Mui-focused")
-
-      const previousElement = selectRef.current
-        .previousSibling as Element | null
-      previousElement?.classList.add("Mui-focused")
-    }
-  }
-
-  const onClose = () => {
-    if (selectRef.current) {
-      selectRef.current.classList.remove("Mui-focused")
-
-      const previousElement = selectRef.current
-        .previousSibling as Element | null
-      previousElement?.classList.remove("Mui-focused")
-    }
-  }
-
   const [marketName, setMarketName] = useState("")
   const allMarketsSelected =
     selectedMarkets.length === activeBorrowerMarkets.length
@@ -116,6 +94,30 @@ export const AddSelect = ({
 
   const handleReset = () => {
     setSelectedMarkets([])
+  }
+
+  const selectRef = useRef<HTMLElement>(null)
+
+  const onOpen = () => {
+    if (selectRef.current) {
+      selectRef.current.classList.add("Mui-focused")
+
+      const previousElement = selectRef.current
+        .previousSibling as Element | null
+      previousElement?.classList.add("Mui-focused")
+    }
+
+    setMarketName("")
+  }
+
+  const onClose = () => {
+    if (selectRef.current) {
+      selectRef.current.classList.remove("Mui-focused")
+
+      const previousElement = selectRef.current
+        .previousSibling as Element | null
+      previousElement?.classList.remove("Mui-focused")
+    }
   }
 
   return (
