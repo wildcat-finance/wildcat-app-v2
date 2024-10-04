@@ -48,6 +48,21 @@ export default function Borrower() {
 
   const { data: lenders } = useGetAllLenders()
 
+  const selectedLendersStore = useAppSelector(
+    (state) => state.borrowerLendersTabSidebar.lenderFilter,
+  )
+  const selectedMarketsStore = useAppSelector(
+    (state) => state.borrowerLendersTabSidebar.marketFilter,
+  )
+  const searchStore = useAppSelector(
+    (state) => state.borrowerLendersTabSidebar.searchFilter,
+  )
+  const lendersNames: { [key: string]: string } = JSON.parse(
+    localStorage.getItem("lenders-name") || "{}",
+  )
+
+  console.log(searchStore, "searchStore")
+
   const lendersData = lenders?.addresses
     .map((a) => lenders?.lenders[a])
     .map((l) => ({
@@ -63,9 +78,56 @@ export default function Borrower() {
       })),
     }))
 
-  const authorizedLenders = lendersData?.filter((lender) => lender.isAuthorized)
+  const filteredLendersData = (lendersData ?? []).filter((lender) => {
+    const searchFilterLower = searchStore.toLowerCase()
 
-  const deauthorizedLenders = lendersData?.filter(
+    const isLenderMatchedBySearch =
+      (lendersNames[lender.address] ?? "")
+        .toLowerCase()
+        .includes(searchFilterLower) ||
+      lender.address.toLowerCase().includes(searchFilterLower)
+
+    const isMarketMatchedBySearch = lender.markets.some(
+      (market) =>
+        market.name.toLowerCase().includes(searchFilterLower) ||
+        market.address.toLowerCase().includes(searchFilterLower),
+    )
+
+    const matchesSearch =
+      searchStore === "" || isLenderMatchedBySearch || isMarketMatchedBySearch
+
+    const isLenderSelected =
+      selectedLendersStore.length === 0 ||
+      selectedLendersStore.some(
+        (selectedLender) => selectedLender.address === lender.address,
+      )
+
+    const hasSelectedMarkets =
+      selectedMarketsStore.length === 0 ||
+      lender.markets.some((market) =>
+        selectedMarketsStore.some(
+          (selectedMarket) => selectedMarket.address === market.address,
+        ),
+      )
+
+    if (selectedLendersStore.length > 0 && selectedMarketsStore.length > 0) {
+      return isLenderSelected && hasSelectedMarkets && matchesSearch
+    }
+    if (selectedLendersStore.length > 0) {
+      return isLenderSelected && matchesSearch
+    }
+    if (selectedMarketsStore.length > 0) {
+      return hasSelectedMarkets && matchesSearch
+    }
+
+    return matchesSearch
+  })
+
+  const authorizedLenders = filteredLendersData?.filter(
+    (lender) => lender.isAuthorized,
+  )
+
+  const deauthorizedLenders = filteredLendersData?.filter(
     (lender) => !lender.isAuthorized,
   )
 
@@ -136,7 +198,7 @@ export default function Borrower() {
       {tab === "lenders" && (
         <Box>
           <LendersTable
-            tableData={authorizedLenders ?? []}
+            tableData={authorizedLenders}
             isLoading={false}
             isOpen
             label="Active Lenders"
@@ -144,7 +206,7 @@ export default function Borrower() {
 
           <Box marginTop="16px">
             <LendersTable
-              tableData={deauthorizedLenders ?? []}
+              tableData={deauthorizedLenders}
               isLoading={false}
               label="Deleted Lenders"
             />
