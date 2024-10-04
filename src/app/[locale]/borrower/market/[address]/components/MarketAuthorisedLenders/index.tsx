@@ -1,4 +1,3 @@
-import { useState } from "react"
 import * as React from "react"
 
 import {
@@ -6,12 +5,12 @@ import {
   Button,
   Divider,
   IconButton,
-  Link,
   Skeleton,
   SvgIcon,
   Typography,
 } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
@@ -26,6 +25,7 @@ import LinkIcon from "@/assets/icons/link_icon.svg"
 import { Accordion } from "@/components/Accordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { EtherscanBaseUrl } from "@/config/network"
+import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
   DATE_FORMAT,
@@ -45,12 +45,19 @@ import {
 export const MarketAuthorisedLenders = ({
   market,
 }: MarketAuthorisedLendersProps) => {
+  const editLendersLink = market
+    ? `${ROUTES.borrower.lendersList}?marketName=${encodeURIComponent(
+        market?.name,
+      )}&marketAddress=${encodeURIComponent(market?.address)}`
+    : ROUTES.borrower.lendersList
+
   const hasMLA = 0 // test const for hoiding/showing MLA columns in table
 
-  const [state, copyToClipboard] = useCopyToClipboard()
-  const [lendersName, setLendersName] = useState<{ [key: string]: string }>(
-    JSON.parse(localStorage.getItem("lenders-name") || "{}"),
+  const lendersNames: { [key: string]: string } = JSON.parse(
+    localStorage.getItem("lenders-name") || "{}",
   )
+
+  const [state, copyToClipboard] = useCopyToClipboard()
 
   const { data, isLoading } = useGetAuthorisedLendersByMarket(market)
   const { t } = useTranslation()
@@ -59,8 +66,8 @@ export const MarketAuthorisedLenders = ({
         id: lender.lender,
         authorized: lender.authorized,
         name: (() => {
-          const correctLender = lendersName[lender.lender] || ""
-          return { name: correctLender, address: lender }
+          const correctLender = lendersNames[lender.lender.toLowerCase()] || ""
+          return { name: correctLender, address: lender.lender }
         })(),
         walletAddress: lender.lender,
         dateAdded: timestampToDateFormatted(
@@ -89,13 +96,7 @@ export const MarketAuthorisedLenders = ({
       minWidth: 176,
       headerAlign: "left",
       align: "left",
-      renderCell: (params) => (
-        <LenderName
-          setLendersName={setLendersName}
-          lenderName={params.value.name}
-          address={params.value.address}
-        />
-      ),
+      renderCell: (params) => <LenderName address={params.value.address} />,
       flex: 2,
     },
     {
@@ -238,18 +239,20 @@ export const MarketAuthorisedLenders = ({
           <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
             There is no any lenders yet – edit list to add them
           </Typography>
-          <Button
-            variant="contained"
-            size="small"
-            sx={{
-              width: "100px",
-              height: "32px",
-              marginTop: "24px",
-              borderRadius: 2,
-            }}
-          >
-            Edit List
-          </Button>
+          <Link href={editLendersLink}>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{
+                width: "100px",
+                height: "32px",
+                marginTop: "24px",
+                borderRadius: 2,
+              }}
+            >
+              Edit List
+            </Button>
+          </Link>
         </Box>
       )}
 
@@ -261,22 +264,24 @@ export const MarketAuthorisedLenders = ({
           <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
             No active lenders yet – edit list to add them
           </Typography>
-          <Button
-            variant="contained"
-            size="small"
-            sx={{
-              width: "100px",
-              height: "32px",
-              marginTop: "24px",
-              borderRadius: 2,
-            }}
-          >
-            Edit List
-          </Button>
+          <Link href={editLendersLink}>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{
+                width: "100px",
+                height: "32px",
+                marginTop: "24px",
+                borderRadius: 2,
+              }}
+            >
+              Edit List
+            </Button>
+          </Link>
         </Box>
       )}
 
-      {authorizedRows.length !== 0 && (
+      {authorizedRows.length !== 0 && market && (
         <>
           <Box
             sx={{
@@ -288,11 +293,13 @@ export const MarketAuthorisedLenders = ({
             <Typography variant="title3">
               {t("borrowerMarketDetails.authorisedLenders.header")}
             </Typography>
-            <Button
-              sx={{ border: "1px solid", borderColor: COLORS.whiteLilac }}
-            >
-              {t("borrowerMarketDetails.authorisedLenders.buttons.editList")}
-            </Button>
+            <Link href={editLendersLink}>
+              <Button
+                sx={{ border: "1px solid", borderColor: COLORS.whiteLilac }}
+              >
+                {t("borrowerMarketDetails.authorisedLenders.buttons.editList")}
+              </Button>
+            </Link>
           </Box>
           <DataGrid
             sx={{

@@ -565,6 +565,7 @@ export const theme = createTheme({
 
               "& .MuiInputBase-input": {
                 padding: "11px 15px",
+                height: "20px",
               },
 
               "& .MuiFormLabel-root": {
@@ -651,6 +652,7 @@ export const theme = createTheme({
               },
 
               "& .MuiInputBase-input": {
+                height: "18px",
                 padding: "6px 6px 6px 4px",
               },
 
@@ -725,6 +727,7 @@ export const theme = createTheme({
       },
       styleOverrides: {
         root: ({ ownerState }) => ({
+          fontFamily: "inherit",
           ...(ownerState.variant === "filled" &&
             ownerState.size === "medium" && {
               fontFamily: "inherit",
@@ -803,12 +806,12 @@ export const theme = createTheme({
               },
 
               "&.MuiInputBase-root": {
-                height: "32px",
+                // height: "32px",
 
                 fontSize: 13,
                 fontWeight: 500,
                 lineHeight: "20px",
-
+                paddingLeft: "8px",
                 backgroundColor: "transparent",
                 borderRadius: 8,
                 border: `1px solid ${COLORS.whiteLilac}`,
@@ -838,10 +841,15 @@ export const theme = createTheme({
                 fontWeight: 500,
                 lineHeight: "16px",
 
-                padding: "8px 6px 8px 28px",
+                padding: "6px 24px 6px 4px",
+                paddingRight: "24px",
 
                 backgroundColor: "transparent !important",
                 background: "transparent",
+
+                "&.MuiInputBase-input": {
+                  paddingRight: "24px",
+                },
               },
             }),
         }),
@@ -972,17 +980,50 @@ export const theme = createTheme({
           columnSortedAscendingIcon: AscIcon,
           columnUnsortedIcon: UnsortedIcon,
         },
-        slotProps: {
-          cell: {
-            title: "",
-          },
-        },
       },
       styleOverrides: {
         root: {
           fontFamily: "inherit",
           letterSpacing: 0,
           border: "none",
+
+          "& .MuiDataGrid-footerContainer": {
+            border: "none",
+            justifyContent: "center",
+
+            "& .MuiToolbar-root": {
+              padding: "0 16px",
+            },
+
+            "& .MuiPagination-root": {
+              margin: 0,
+
+              "& .MuiPagination-ul": {
+                gap: "8px",
+              },
+
+              "& .MuiPaginationItem-root": {
+                height: "24px",
+                width: "24px",
+                minWidth: "24px",
+                padding: 0,
+                margin: 0,
+
+                fontFamily: "inherit",
+                letterSpacing: 0,
+
+                fontSize: "13px",
+                lineHeight: "20px",
+                fontWeight: 500,
+                color: COLORS.blackRock,
+
+                "&.Mui-selected": {
+                  backgroundColor: COLORS.athensGrey,
+                  color: COLORS.santasGrey,
+                },
+              },
+            },
+          },
 
           "& .MuiDataGrid-filler": {
             display: "none",

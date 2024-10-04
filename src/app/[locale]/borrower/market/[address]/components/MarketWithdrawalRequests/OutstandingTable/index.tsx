@@ -60,8 +60,8 @@ export const OutstandingTable = ({
       chipValue={formatTokenWithCommas(totalAmount, {
         withSymbol: true,
       })}
-      chipColor={isIncurringPenalties ? COLORS.remy : COLORS.whiteSmoke}
-      chipValueColor={isIncurringPenalties ? COLORS.dullRed : COLORS.blackRock}
+      chipColor={COLORS.whiteSmoke}
+      chipValueColor={COLORS.blackRock}
     >
       {outstandingRows.length ? (
         <DataGrid

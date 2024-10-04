@@ -10,17 +10,21 @@ import { GenericProviderProps } from "@/providers/interface"
 
 const queryClient = new QueryClient()
 
-const AUTOCONNECTED_CONNECTOR_IDS = ["safe"]
+const AUTO_CONNECTED_CONNECTOR_IDS = ["safe"]
 
 export function useAutoConnect() {
   const { connect, connectors } = useConnect()
 
   useEffect(() => {
-    AUTOCONNECTED_CONNECTOR_IDS.forEach((connector) => {
+    AUTO_CONNECTED_CONNECTOR_IDS.forEach(async (connector) => {
       const connectorInstance = connectors.find((c) => c.id === connector)
+      const isAuthorized = await connectorInstance?.isAuthorized()
 
-      if (connectorInstance) {
+      if (connectorInstance && isAuthorized) {
         connect({ connector: connectorInstance })
+        connectors
+          .filter((c) => !AUTO_CONNECTED_CONNECTOR_IDS.includes(c.id))
+          .forEach((c) => c.disconnect())
       }
     })
   }, [connect, connectors])

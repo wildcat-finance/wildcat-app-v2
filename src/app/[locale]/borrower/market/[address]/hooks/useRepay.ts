@@ -5,12 +5,17 @@ import { BaseTransaction } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
+import { GET_WITHDRAWALS_KEY } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY } from "@/hooks/useGetMarketAccount"
+import {
+  GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY,
+  GET_MARKET_ACCOUNT_KEY,
+} from "@/hooks/useGetMarketAccount"
 
 export const useRepay = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
+  processUnpaidWithdrawalsIfAny?: boolean,
 ) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
@@ -37,7 +42,14 @@ export const useRepay = (
       }
 
       const repay = async () => {
-        const tx = await marketAccount.repay(amount.raw)
+        const maxBatches =
+          marketAccount.market.unpaidWithdrawalBatchExpiries.length
+        const tx = await (processUnpaidWithdrawalsIfAny && maxBatches > 0
+          ? marketAccount.market.repayAndProcessUnpaidWithdrawalBatches(
+              amount,
+              maxBatches,
+            )
+          : marketAccount.repay(amount.raw))
 
         if (!safeConnected) setTxHash(tx.hash)
 
@@ -63,6 +75,13 @@ export const useRepay = (
       client.invalidateQueries({
         queryKey: [GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY],
       })
+      if (processUnpaidWithdrawalsIfAny) {
+        client.invalidateQueries({ queryKey: [GET_MARKET_ACCOUNT_KEY] })
+
+        client.invalidateQueries({
+          queryKey: [GET_WITHDRAWALS_KEY],
+        })
+      }
     },
     onError(error) {
       console.log(error)

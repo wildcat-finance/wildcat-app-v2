@@ -1,9 +1,11 @@
 import { Box, Switch, Typography } from "@mui/material"
+import Link from "next/link"
 
 import initTranslations from "@/app/i18n"
 import Logo from "@/assets/icons/logo_white.svg"
 import { ContentContainer, NavContainer } from "@/components/Header/style"
 import TranslationsProvider from "@/components/TranslationsProvider"
+import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
 import { NotificationButton } from "./NotificationButton"
@@ -25,7 +27,9 @@ export default async function Header({
       resources={resources}
     >
       <Box sx={ContentContainer}>
-        <Logo />
+        <Link href={ROUTES.borrower.root} style={{ height: "50px" }}>
+          <Logo />
+        </Link>
         <Box sx={NavContainer}>
           <Typography variant="text2Highlighted" sx={{ color: COLORS.white }}>
             {t("header.role.borrower")}

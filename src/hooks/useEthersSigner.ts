@@ -60,6 +60,7 @@ export function clientToWalletInfo(
     isTestnet: chain?.id === NETWORKS.Sepolia.chainId,
     isWrongNetwork: chain?.id !== TargetChainId,
     address: account?.address,
+    chain,
   }
 }
 
@@ -69,6 +70,7 @@ type UseEthersProviderResult = {
   address?: string
   isTestnet?: boolean
   isWrongNetwork?: boolean
+  chain?: Chain
 }
 
 export function useEthersProvider({

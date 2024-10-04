@@ -6,7 +6,8 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
 import duration from "dayjs/plugin/duration"
-import { formatUnits } from "viem"
+import { BigNumber } from "ethers"
+import { formatUnits } from "ethers/lib/utils"
 
 // <---- TIMESTAMP TO DATE FORMATTERS ---->
 
@@ -135,6 +136,12 @@ export const formatBps = (bps: number, fixed?: number) => {
   const fixedNum = (bps / 100).toFixed(fixed || 2)
 
   return stripTrailingZeroes(fixedNum)
+}
+
+export const formatRayAsPercentage = (ray: BigNumber, fixed?: number) => {
+  const percentage = parseFloat(formatUnits(ray, 27)) * 100
+
+  return stripTrailingZeroes(percentage.toFixed(fixed || 2))
 }
 
 // <---- TOKEN PARAMETERS FORMATTERS ---->

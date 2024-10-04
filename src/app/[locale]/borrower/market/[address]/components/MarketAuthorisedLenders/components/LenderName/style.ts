@@ -8,7 +8,7 @@ export const LenderNameContainer = {
 }
 
 export const LenderNameTextfield = {
-  width: "168px",
+  width: "100%",
   height: "fit-content",
   "& .MuiInputBase-root": { padding: "0 4px 0 8px" },
   "& .MuiInputBase-input.MuiFilledInput-input": { padding: "4px 0" },

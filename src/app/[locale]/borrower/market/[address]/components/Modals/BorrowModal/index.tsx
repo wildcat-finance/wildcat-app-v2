@@ -73,8 +73,21 @@ export const BorrowModal = ({
 
   const remainingInterest =
     market.totalDebts.gt(0) && !market.isClosed
-      ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
-          round: true,
+      ? humanizeDuration(market.secondsBeforeDelinquency * 1_000, {
+          largest: 1,
+        })
+      : ""
+
+  const millisecondsBeforeDelinquency =
+    market.getSecondsBeforeDelinquencyForBorrowedAmount(
+      underlyingBorrowAmount,
+    ) * 1_000
+
+  const remainingInterestAfterTx =
+    market.totalDebts.gt(0) &&
+    !market.isClosed &&
+    underlyingBorrowAmount.lt(market.borrowableAssets)
+      ? humanizeDuration(millisecondsBeforeDelinquency, {
           largest: 1,
         })
       : ""
@@ -154,9 +167,13 @@ export const BorrowModal = ({
 
             <Box sx={TxModalInfoItem} marginBottom="20px">
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                Interest Remaining
+                Interest Remaining {modal.approvedStep && "after transaction"}
               </Typography>
-              <Typography variant="text3">{remainingInterest}</Typography>
+              <Typography variant="text3">
+                {modal.approvedStep
+                  ? remainingInterestAfterTx
+                  : remainingInterest}
+              </Typography>
             </Box>
 
             {!modal.approvedStep && (

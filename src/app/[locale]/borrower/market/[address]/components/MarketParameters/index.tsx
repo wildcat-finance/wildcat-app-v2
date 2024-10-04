@@ -1,10 +1,14 @@
+import { useMemo } from "react"
+
 import { Box, Divider, Typography } from "@mui/material"
+import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
 import { EtherscanBaseUrl } from "@/config/network"
 import {
   formatBps,
+  formatRayAsPercentage,
   formatSecsToHours,
   MARKET_PARAMS_DECIMALS,
   toTokenAmountProps,
@@ -21,13 +25,43 @@ import {
 export const MarketParameters = ({ market }: MarketParametersProps) => {
   const { t } = useTranslation()
   const [state, copyToClipboard] = useCopyToClipboard()
+  const { timeDelinquent, delinquencyGracePeriod } = market
 
-  const availableGracePeriod = () => {
-    if (market)
-      if (market.timeDelinquent > market.delinquencyGracePeriod) return 0
-      else return market.delinquencyGracePeriod - market.timeDelinquent
-    return 0
-  }
+  const [gracePeriodLabel, gracePeriodTimer] =
+    timeDelinquent > delinquencyGracePeriod
+      ? [
+          "Remaining Time With Delinquency Fees",
+          humanizeDuration((timeDelinquent - delinquencyGracePeriod) * 1000, {
+            round: true,
+            largest: 1,
+          }),
+        ]
+      : [
+          "Available Grace Period",
+          formatSecsToHours(delinquencyGracePeriod - timeDelinquent),
+        ]
+
+  const gracePeriodTooltip = useMemo(() => {
+    const breakdown = market.getTotalDebtBreakdown()
+    const willBeDelinquent = breakdown.status === "delinquent"
+    if (!market.isDelinquent) {
+      if (willBeDelinquent) {
+        // If the market is not currently delinquent but will be after the next update:
+        return "This market has become delinquent since its last update and its delinquency timer will begin to increase once it is updated."
+      }
+      if (timeDelinquent > delinquencyGracePeriod) {
+        // If the market is not currently delinquent (on-chain) but is incurring penalties:
+        return "This market is not currently delinquent, but delinquency fees will apply until the timer is below the grace period."
+      }
+      return undefined
+    }
+    if (!willBeDelinquent) {
+      // If the market will stop being delinquent after the next update:
+      return "This market has become healthy since its last update and its delinquency timer will begin to decrease once it is updated."
+    }
+    // If the market will continue to be delinquent after the next update:
+    return "The delinquency timer will continue to increase until this market is returned to a healthy state."
+  }, [market])
 
   const totalInterestAccrued = market
     ? (
@@ -128,6 +162,15 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               MARKET_PARAMS_DECIMALS.delinquencyFeeBips,
             )}%`}
             tooltipText="TBD"
+            alarmState={market.isIncurringPenalties}
+            valueTooltipText={
+              market.isIncurringPenalties
+                ? `This market is incurring delinquency fees, leading to a total APR of ${formatRayAsPercentage(
+                    market.effectiveLenderAPR,
+                    MARKET_PARAMS_DECIMALS.annualInterestBips,
+                  )}%. Penalties will continue to apply until the delinquency timer is below the grace period.`
+                : undefined
+            }
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
@@ -137,9 +180,11 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
-            title={t("borrowerMarketDetails.parameters.availableGracePeriod")}
-            value={`${formatSecsToHours(availableGracePeriod())}`}
+            title={gracePeriodLabel}
+            value={gracePeriodTimer}
             tooltipText="TBD"
+            alarmState={timeDelinquent > delinquencyGracePeriod}
+            valueTooltipText={gracePeriodTooltip}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem

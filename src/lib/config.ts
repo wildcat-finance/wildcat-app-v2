@@ -13,16 +13,17 @@ export const config = createConfig({
   storage: createStorage({
     storage: cookieStorage,
   }),
+  multiInjectedProviderDiscovery: false,
   transports: {
-    [mainnet.id]: http(
+    [sepolia.id]: http(
       `https://eth-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
     ),
-    [sepolia.id]: http(
+    [mainnet.id]: http(
       `https://eth-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
     ),
   },
   connectors: [
-    injected(),
+    injected({ target: "metaMask" }),
     safe({
       allowedDomains: [/gnosis-safe.io$/, /app.safe.global$/],
       debug: false,

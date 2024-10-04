@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useEffect } from "react"
 
 import {
   Accordion,
@@ -7,21 +8,19 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material"
-import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid"
-import { useRouter } from "next/navigation"
+import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
+import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
+import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { TablePagination } from "@/components/TablePagination"
 import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
 import { COLORS } from "@/theme/colors"
-import {
-  capacityComparator,
-  dateComparator,
-  percentComparator,
-  statusComparator,
-} from "@/utils/comparators"
+import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import {
   formatBps,
   formatTokenWithCommas,
@@ -31,6 +30,7 @@ import {
 import { getMarketStatusChip } from "@/utils/marketStatus"
 
 import { OthersMarketsTableProps } from "./interface"
+import { MarketsTableModel, TypeSafeColDef } from "../interface"
 
 export const OthersMarketsTable = ({
   tableData,
@@ -42,9 +42,13 @@ export const OthersMarketsTable = ({
   nameFilter,
 }: OthersMarketsTableProps) => {
   const { t } = useTranslation()
-  const router = useRouter()
 
-  const columns: GridColDef[] = [
+  const [paginationModel, setPaginationModel] = React.useState({
+    pageSize: 10,
+    page: 0,
+  })
+
+  const columns: TypeSafeColDef<MarketsTableModel>[] = [
     {
       field: "status",
       headerName: t("borrowerMarketList.table.header.status"),
@@ -52,7 +56,14 @@ export const OthersMarketsTable = ({
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
-      renderCell: (params) => <MarketStatusChip status={params.value} />,
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-start" }}
+        >
+          <MarketStatusChip status={params.value} />
+        </Link>
+      ),
       flex: 2,
     },
     {
@@ -62,10 +73,15 @@ export const OthersMarketsTable = ({
       minWidth: 160,
       headerAlign: "left",
       align: "left",
-      renderCell: ({ value }) => (
-        <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-          {value}
-        </span>
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-start" }}
+        >
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+            {params.value}
+          </span>
+        </Link>
       ),
     },
     {
@@ -75,6 +91,14 @@ export const OthersMarketsTable = ({
       headerAlign: "left",
       align: "left",
       flex: 2,
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-start" }}
+        >
+          {params.value}
+        </Link>
+      ),
     },
     {
       field: "asset",
@@ -83,6 +107,14 @@ export const OthersMarketsTable = ({
       headerAlign: "right",
       align: "right",
       flex: 1,
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          {params.value}
+        </Link>
+      ),
     },
     {
       field: "lenderAPR",
@@ -90,8 +122,15 @@ export const OthersMarketsTable = ({
       minWidth: 106,
       headerAlign: "right",
       align: "right",
-      sortComparator: percentComparator,
       flex: 1,
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          {`${formatBps(params.value)}%`}
+        </Link>
+      ),
     },
     {
       field: "crr",
@@ -99,7 +138,6 @@ export const OthersMarketsTable = ({
       minWidth: 90,
       headerAlign: "right",
       align: "right",
-      sortComparator: percentComparator,
       renderHeader: () => (
         <Box display="flex" columnGap="4px" alignItems="center">
           <Typography
@@ -111,6 +149,14 @@ export const OthersMarketsTable = ({
           <TooltipButton value="TBD" />
         </Box>
       ),
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          {`${formatBps(params.value)}%`}
+        </Link>
+      ),
       flex: 1,
     },
     {
@@ -119,8 +165,18 @@ export const OthersMarketsTable = ({
       minWidth: 136,
       headerAlign: "right",
       align: "right",
-      sortComparator: capacityComparator,
+      sortComparator: tokenAmountComparator,
       flex: 1.5,
+      renderCell: (
+        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
+      ) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          {params.value ? formatTokenWithCommas(params.value) : "0"}
+        </Link>
+      ),
     },
     {
       field: "borrowable",
@@ -128,8 +184,23 @@ export const OthersMarketsTable = ({
       minWidth: 104,
       headerAlign: "right",
       align: "right",
-      sortComparator: capacityComparator,
+      sortComparator: tokenAmountComparator,
       flex: 1.5,
+      renderCell: (
+        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
+      ) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          {params.value
+            ? formatTokenWithCommas(params.value, {
+                withSymbol: false,
+                fractionDigits: 2,
+              })
+            : "0"}
+        </Link>
+      ),
     },
     {
       field: "deploy",
@@ -137,17 +208,21 @@ export const OthersMarketsTable = ({
       minWidth: 126,
       headerAlign: "right",
       align: "right",
-      sortComparator: dateComparator,
       renderCell: (params) => (
-        <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          {params.value}
-        </Typography>
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
+            {timestampToDateFormatted(params.value)}
+          </Typography>
+        </Link>
       ),
       flex: 2,
     },
   ]
 
-  const rows = tableData.map((market) => {
+  const rows: GridRowsProp<MarketsTableModel> = tableData.map((market) => {
     const {
       address,
       borrower: borrowerAddress,
@@ -172,26 +247,22 @@ export const OthersMarketsTable = ({
       name,
       borrowerName,
       asset: underlyingToken.symbol,
-      lenderAPR: `${formatBps(annualInterestBips)}%`,
-      crr: `${formatBps(reserveRatioBips)}%`,
-      maxCapacity: `${formatTokenWithCommas(maxTotalSupply)}`,
-      borrowable: formatTokenWithCommas(borrowableAssets, {
-        withSymbol: false,
-      }),
-      deploy: deployedEvent
-        ? timestampToDateFormatted(deployedEvent.blockTimestamp)
-        : "",
+      lenderAPR: annualInterestBips,
+      crr: reserveRatioBips,
+      maxCapacity: maxTotalSupply,
+      borrowable: borrowableAssets,
+      deploy: deployedEvent ? deployedEvent.blockTimestamp : 0,
     }
   })
-
-  const handleRowClick = (params: GridRowParams) => {
-    router.push(`${ROUTES.borrower.market}/${params.row.id}`)
-  }
 
   const defaultFilters =
     assetFilter === SidebarMarketAssets.ALL &&
     statusFilter === "All" &&
     nameFilter === ""
+
+  useEffect(() => {
+    setPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+  }, [assetFilter, statusFilter, nameFilter])
 
   return (
     <Accordion defaultExpanded={isOpen}>
@@ -249,11 +320,28 @@ export const OthersMarketsTable = ({
       )}
       {tableData.length !== 0 && !isLoading && (
         <DataGrid
-          sx={{ overflow: "auto", maxWidth: "calc(100vw - 267px)" }}
+          sx={{
+            height: "626px",
+
+            overflow: "auto",
+            maxWidth: "calc(100vw - 267px)",
+            "& .MuiDataGrid-cell": { padding: "0px" },
+
+            "& .MuiDataGrid-footerContainer": {
+              "& .MuiToolbar-root": {
+                padding: "32px 0 6px",
+              },
+            },
+          }}
           rows={rows}
           columns={columns}
           columnHeaderHeight={40}
-          onRowClick={handleRowClick}
+          hideFooter={false}
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
+          slots={{
+            pagination: TablePagination,
+          }}
         />
       )}
     </Accordion>
