@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit"
 
+import borrowerLendersTabSidebarSlice from "./slices/borrowerLendersTabSidebarSlice/borrowerLendersTabSidebarSlice"
 import borrowerOverviewSlice from "./slices/borrowerOverviewSlice/borrowerOverviewSlice"
 import borrowerSidebarSlice from "./slices/borrowerSidebarSlice/borrowerSidebarSlice"
 import editLendersListSlice from "./slices/editLendersListSlice/editLendersListSlice"
@@ -18,6 +19,7 @@ export const makeStore = () =>
       borrowerOverview: borrowerOverviewSlice,
       notifications: notificationsSlice,
       notificationsSidebar: notificationsSidebarSlice,
+      borrowerLendersTabSidebar: borrowerLendersTabSidebarSlice,
     },
   })
 

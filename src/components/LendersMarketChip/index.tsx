@@ -65,6 +65,7 @@ export const LendersMarketChip = ({
   return (
     <Box
       sx={{
+        height: "20px",
         boxSizing: "border-box",
         width,
         display: "flex",
@@ -73,6 +74,9 @@ export const LendersMarketChip = ({
         padding: "0 8px",
         borderRadius: "20px",
         backgroundColor: chipConfig.backgroundColor,
+
+        overflow: "hidden",
+        textOverflow: "ellipsis",
       }}
     >
       <Typography
@@ -80,6 +84,7 @@ export const LendersMarketChip = ({
         color={chipConfig.color}
         sx={{
           textDecoration: type === "deleted" ? "line-through" : "none",
+          whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis",
         }}

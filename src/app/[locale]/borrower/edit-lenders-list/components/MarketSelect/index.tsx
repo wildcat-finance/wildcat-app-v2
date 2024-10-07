@@ -27,29 +27,6 @@ import {
 export const MarketSelect = () => {
   const dispatch = useAppDispatch()
 
-  // Select settings
-  const selectRef = useRef<HTMLElement>(null)
-
-  const onOpen = () => {
-    if (selectRef.current) {
-      selectRef.current.classList.add("Mui-focused")
-
-      const previousElement = selectRef.current
-        .previousSibling as Element | null
-      previousElement?.classList.add("Mui-focused")
-    }
-  }
-
-  const onClose = () => {
-    if (selectRef.current) {
-      selectRef.current.classList.remove("Mui-focused")
-
-      const previousElement = selectRef.current
-        .previousSibling as Element | null
-      previousElement?.classList.remove("Mui-focused")
-    }
-  }
-
   // Getting active borrower markets from the store
   const activeBorrowerMarkets = useAppSelector(
     (state) => state.editLendersList.activeBorrowerMarkets,
@@ -94,6 +71,31 @@ export const MarketSelect = () => {
 
   const handleChangeMarketName = (evt: ChangeEvent<HTMLInputElement>) => {
     setMarketName(evt.target.value)
+  }
+
+  // Select settings
+  const selectRef = useRef<HTMLElement>(null)
+
+  const onOpen = () => {
+    if (selectRef.current) {
+      selectRef.current.classList.add("Mui-focused")
+
+      const previousElement = selectRef.current
+        .previousSibling as Element | null
+      previousElement?.classList.add("Mui-focused")
+    }
+
+    setMarketName("")
+  }
+
+  const onClose = () => {
+    if (selectRef.current) {
+      selectRef.current.classList.remove("Mui-focused")
+
+      const previousElement = selectRef.current
+        .previousSibling as Element | null
+      previousElement?.classList.remove("Mui-focused")
+    }
   }
 
   return (
