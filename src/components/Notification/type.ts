@@ -1,5 +1,5 @@
 export type NotificationProps = {
-  type: "onboardSuccesful" | "onboardFailed",
+  type: "borrowerRegistrationChange",
   description: string,
   date: string,
   unread: boolean,

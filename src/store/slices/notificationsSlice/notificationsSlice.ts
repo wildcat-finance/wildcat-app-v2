@@ -10,24 +10,7 @@ const formatter = new Intl.DateTimeFormat('en-GB', {
   hour12: false,
 })
 
-const initialState: TNotifications = [
-  {
-    description: "Succesfully onboarded!",
-    category: "marketActivity",
-    type: "onboardSuccesful",
-    date: formatter.format(Date.now()),
-    unread: true,
-    error: false,
-  },
-  {
-    description: "Failed to onboard",
-    category: "newLenders",
-    type: "onboardFailed",
-    date: formatter.format(Date.now()),
-    unread: true,
-    error: true,
-  },
-]
+const initialState: TNotifications = []
 
 const notificationsSlice = createSlice({
   name: "notifications",
