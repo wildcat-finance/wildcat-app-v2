@@ -11,6 +11,8 @@ import { ProfileDialog } from "@/components/Header/HeaderButton/ProfileDialog"
 import { ConnectButton } from "@/components/Header/HeaderButton/style"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { trimAddress } from "@/utils/formatters"
+import BorrowerRegistrationListener from "@/utils/listeners"
+import PollingBorrowerRegistration from "@/utils/polling"
 
 export const HeaderButton = () => {
   const { t } = useTranslation()
@@ -46,7 +48,11 @@ export const HeaderButton = () => {
       </Button>
 
       {isConnected ? (
-        <ProfileDialog open={open} handleClose={handleClose} />
+        <>
+          {/* <BorrowerRegistrationListener /> */}
+          <PollingBorrowerRegistration address={address} />
+          <ProfileDialog open={open} handleClose={handleClose} />
+        </>
       ) : (
         <ConnectWalletDialog open={open} handleClose={handleClose} />
       )}

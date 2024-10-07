@@ -13,6 +13,17 @@
     "modal": {
       "title": "Connect wallet",
       "note": "By connecting a wallet, you agree to Wildcat Terms of Service and consent to its Privacy Policy"
+    },
+    "notifications": {
+      "noNewNotifications": "No new notifications",
+      "anyOtherMessage": "Any other message. You can close the window.",
+      "viewEarlier": "View earlier",
+      "notifications": "Notifications",
+      "markAsRead": "Mark as Read",
+      "all": "All",
+      "marketActivity": "Market Activity",
+      "newLenders": "New Lenders",
+      "viewAll": "View All"
     }
   },
   "footer": {
@@ -364,5 +375,20 @@
     "undo": "Undo",
     "submit": "Submit",
     "confirm": "Confirm"
+  },
+  "notifications": {
+    "history": {
+      "title": "Notifications",
+      "markAllAsRead": "Mark all as Read",
+      "searchPlaceholder": "Search",
+      "earlier": "EARLIER"
+    },
+    "sidebar": {
+      "back": "Back",
+      "all": "All",
+      "marketActivity": "Market Activity",
+      "newLenders": "New Lenders"
+    },
+    "viewOnEtherscan": "View on Etherscan"
   }
 }

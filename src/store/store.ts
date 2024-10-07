@@ -5,6 +5,8 @@ import borrowerOverviewSlice from "./slices/borrowerOverviewSlice/borrowerOvervi
 import borrowerSidebarSlice from "./slices/borrowerSidebarSlice/borrowerSidebarSlice"
 import editLendersListSlice from "./slices/editLendersListSlice/editLendersListSlice"
 import highlightSidebarSlice from "./slices/highlightSidebarSlice/highlightSidebarSlice"
+import notificationsSidebarSlice from "./slices/notificationsSidebarSlice/notificationsSidebarSlice"
+import notificationsSlice from "./slices/notificationsSlice/notificationsSlice"
 import routingSlice from "./slices/routingSlice/routingSlice"
 
 export const makeStore = () =>
@@ -15,6 +17,8 @@ export const makeStore = () =>
       highlightSidebar: highlightSidebarSlice,
       editLendersList: editLendersListSlice,
       borrowerOverview: borrowerOverviewSlice,
+      notifications: notificationsSlice,
+      notificationsSidebar: notificationsSidebarSlice,
       borrowerLendersTabSidebar: borrowerLendersTabSidebarSlice,
     },
   })

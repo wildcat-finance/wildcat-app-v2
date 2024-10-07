@@ -1,0 +1,42 @@
+import { Box, Typography, SvgIcon, Button, Link } from "@mui/material"
+import { BaseProps } from "@/components/Notification/Base/type"
+import { DotStyle, ErrorStyle } from "@/components/Notification/Base/style"
+import LinkIcon from "@/assets/icons/link_icon.svg"
+import { COLORS } from "@/theme/colors"
+import { useTranslation } from "react-i18next"
+
+export const Base = ({ description, unread, error, action, date }: BaseProps) => {
+  const { t } = useTranslation()
+
+  return (
+    <Box>
+      <Box sx={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
+        <Box sx={{ marginTop: "2px", display: "flex", gap: "8px" }}>
+          {unread && <div style={DotStyle} />}
+          {error && <div style={ErrorStyle}>
+            <Box sx={{ marginTop: "-8px !important", marginBottom: "8px" }}>
+             <Typography variant="text4" color={COLORS.white} fontWeight={600} sx={{ marginLeft: "4px" }}>!</Typography>
+            </Box>
+          </div>}
+          <Typography variant="text3">
+            {description}
+          </Typography>
+        </Box>
+        <Box sx={{ display: "flex", gap: "4px", height: "24px" }}>
+          {action && <Button size="small" variant="contained" color="secondary">
+            {action.label}
+          </Button>}
+          <Button size="small" variant="text" sx={{ gap: "4px", width: "fit-content", whiteSpace: "nowrap" }}>
+            <SvgIcon fontSize="small" sx={{ margin: "auto" }}>
+              <LinkIcon />
+            </SvgIcon>
+            {t("notifications.viewOnEtherscan")}
+          </Button>
+        </Box>
+      </Box>
+      <Typography variant="text4" color={COLORS.greySuit}>
+        {date}
+      </Typography>
+    </Box>
+  )
+}

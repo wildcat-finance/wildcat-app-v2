@@ -16,7 +16,6 @@ import { NotificationsProps } from "@/components/Notifications/type"
 import { COLORS } from "@/theme/colors"
 
 export const Notifications = ({
-  type = "normal",
   description,
   timeAgo,
   title,

@@ -26,6 +26,7 @@
     "@tanstack/react-query": "^5.28.9",
     "@types/humanize-duration": "^3.27.4",
     "@types/react-scroll": "^1.8.10",
+    "@types/redux-mock-store": "^1.0.6",
     "@wildcatfi/wildcat-sdk": "^2.0.83",
     "classnames": "^2.5.1",
     "dayjs": "^1.11.10",
@@ -38,6 +39,7 @@
     "react": "^18",
     "react-dom": "^18",
     "react-hook-form": "^7.51.3",
+    "react-hot-toast": "^2.4.1",
     "react-i18next": "^14.1.0",
     "react-number-format": "^5.3.4",
     "react-redux": "^9.1.2",
@@ -75,6 +77,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-storybook": "^0.6.15",
     "prettier": "3.1.1",
+    "redux-mock-store": "^1.5.4",
     "storybook": "^7.6.6",
     "typescript": "^5"
   },

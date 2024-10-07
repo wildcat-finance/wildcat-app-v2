@@ -8,6 +8,7 @@ import { LendersTabSidebar } from "@/components/Sidebar/BorrowerOverviewSidebars
 import { LenderListSidebar } from "@/components/Sidebar/LendersListSidebar"
 import { MarketSidebar } from "@/components/Sidebar/MarketSidebar"
 import { NewMarketSidebar } from "@/components/Sidebar/NewMarketSidebar"
+import { NotificationsSidebar } from "@/components/Sidebar/NotificationsSidebar"
 import { ROUTES } from "@/routes"
 import { useAppSelector } from "@/store/hooks"
 import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
@@ -31,6 +32,7 @@ export const Sidebar = () => {
       {pathname.includes(ROUTES.borrower.market) && <MarketSidebar />}
       {pathname === ROUTES.borrower.newMarket && <NewMarketSidebar />}
       {pathname === ROUTES.borrower.lendersList && <LenderListSidebar />}
+      {pathname === ROUTES.borrower.notifications && <NotificationsSidebar />}
     </Box>
   )
 }
