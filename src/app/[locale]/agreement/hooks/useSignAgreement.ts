@@ -1,9 +1,9 @@
+import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation } from "@tanstack/react-query"
 
 import { toastifyRequest } from "@/components/toasts"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { useGnosisSafeSDK } from "@/hooks/useGnosisSafeSDK"
 
 export type SignAgreementProps = {
   address: string | undefined
@@ -12,7 +12,7 @@ export type SignAgreementProps = {
 }
 
 export const useSignAgreement = () => {
-  const { sdk } = useGnosisSafeSDK()
+  const { sdk } = useSafeAppsSDK()
   const signer = useEthersSigner()
 
   return useMutation({
