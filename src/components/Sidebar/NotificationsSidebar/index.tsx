@@ -1,6 +1,7 @@
 import { Box, Button } from "@mui/material"
-import { BackButton } from "@/components/BackButton"
 import { useTranslation } from "react-i18next"
+
+import { BackButton } from "@/components/BackButton"
 import {
   ContentContainer,
   MenuItemButton,
@@ -20,7 +21,7 @@ export const NotificationsSidebar = () => {
   const sidebarState = useAppSelector(
     (state) => state.notificationsSidebar.sidebarState,
   )
-  
+
   return (
     <Box sx={ContentContainer}>
       <Box position="sticky" top="32px">

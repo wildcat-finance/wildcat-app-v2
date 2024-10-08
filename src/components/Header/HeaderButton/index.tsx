@@ -47,7 +47,7 @@ export const HeaderButton = () => {
         {buttonText}
       </Button>
 
-      {isConnected ? (
+      {isConnected && address ? (
         <>
           {/* <BorrowerRegistrationListener /> */}
           <PollingBorrowerRegistration address={address} />
