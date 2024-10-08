@@ -11,7 +11,8 @@ import {
 import { parseUnits } from "ethers/lib/utils"
 import { useRouter } from "next/navigation"
 
-import { toastifyError, toastifyRequest } from "@/components/toasts"
+//import { toastifyError, toastifyRequest } from "@/components/toasts"
+import { toastError, toastRequest } from "@/components/Toasts"
 import { TargetChainId } from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
@@ -78,7 +79,7 @@ export const useDeployMarket = () => {
             ),
           )
         } else {
-          asset = await toastifyRequest(
+          asset = await toastRequest(
             deployToken(
               TargetChainId,
               signer,
@@ -120,21 +121,21 @@ export const useDeployMarket = () => {
           if (gnosisSafeSDK) {
             gnosisTransactions.push(await controller.populateRegisterBorrower())
           } else {
-            await toastifyRequest(controller.registerBorrower(), {
+            await toastRequest(controller.registerBorrower(), {
               pending: "Adjusting: Registering Borrower...",
               success: "Adjusting: Borrower Registered Successfully",
               error: "Adjusting: Borrower Registration Failed",
             })
           }
         } else {
-          toastifyError("Must Be Registered Borrower")
+          toastError("Must Be Registered Borrower")
           throw Error("Not Registered Borrower")
         }
       }
 
       // 2. Ensure the `asset, namePrefix, symbolPrefix` are unique.
       if (controller.getExistingMarketForParameters(marketParameters)) {
-        toastifyError("Market Not Unique: Modify Either Prefix")
+        toastError("Market Not Unique: Modify Either Prefix")
         throw Error("Market Not Unique")
       }
 

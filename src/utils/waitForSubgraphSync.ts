@@ -6,11 +6,10 @@ import {
 import { toast } from "react-toastify"
 
 import {
-  ToastId,
   dismissToast,
-  toastifyInfo,
-  toastifySuccess,
-} from "@/components/toasts"
+  toastInfo,
+  toastSuccess,
+} from "@/components/Toasts"
 import { SubgraphClient } from "@/config/subgraph"
 
 export async function getSubgraphSyncedBlock(): Promise<{
@@ -37,7 +36,7 @@ export async function getSubgraphSyncedBlock(): Promise<{
 export async function waitForSubgraphSync(
   targetBlock: number,
 ): Promise<number> {
-  let toastId: ToastId | undefined
+  let toastId: string | undefined
   let initialBlock: number | undefined
   const check = async (): Promise<number> => {
     const latestBlock = (await getSubgraphSyncedBlock()).number
@@ -59,7 +58,7 @@ export async function waitForSubgraphSync(
       const progress = blocksProcessed / totalBlocks
       // if (toastId !== undefined) dismissToast(toastId)
       if (toastId === undefined) {
-        toastId = toastifyInfo(
+        toastId = toastInfo(
           `Waiting for subgraph to sync to block: ${targetBlock}.`,
           { progress, autoClose: false },
         )
@@ -74,7 +73,7 @@ export async function waitForSubgraphSync(
       return check()
     }
     if (toastId !== undefined) dismissToast(toastId)
-    toastifySuccess(`Subgraph synced to block ${targetBlock}`)
+    toastSuccess(`Subgraph synced to block ${targetBlock}`)
     return latestBlock
   }
   return check()

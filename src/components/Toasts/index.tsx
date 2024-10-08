@@ -64,3 +64,5 @@ export const toastSuccess = (message: string, style: Object = {}) => toast(messa
     ...style
   }
 })
+
+export const dismissToast = (id: string) => toast.dismiss(id)
