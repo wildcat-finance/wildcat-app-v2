@@ -196,7 +196,16 @@ export default function Borrower() {
       )}
 
       {tab === "lenders" && (
-        <Box>
+        <Box
+          sx={{
+            height: `calc(100vh - 43px - 52px - 52px - 110px)`,
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            overflow: "hidden",
+            overflowY: "visible",
+          }}
+        >
           <LendersTable
             tableData={authorizedLenders}
             isLoading={false}
