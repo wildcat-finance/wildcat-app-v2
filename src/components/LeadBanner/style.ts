@@ -1,3 +1,4 @@
+// import Image from "@/assets/pictures/banner_bg.png"
 import Image from "@/assets/pictures/banner_bg.png"
 import { COLORS } from "@/theme/colors"
 

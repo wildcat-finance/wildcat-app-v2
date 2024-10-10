@@ -1,18 +1,24 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@mui/material"
-import { UnreadDialog } from "@/components/Header/NotificationButton/UnreadDialog"
-import { NoUnreadDialog } from "@/components/Header/NotificationButton/NoUnreadDialog"
-import { ButtonStyle, DotStyle } from "@/components/Header/NotificationButton/style"
-import NotificationsUnread from "@/assets/icons/notifications_unread.svg"
+
+import { Box, Button } from "@mui/material"
+
 import NotificationsRead from "@/assets/icons/notifications_read.svg"
-import { COLORS } from "@/theme/colors"
+import NotificationsUnread from "@/assets/icons/notifications_unread.svg"
+import { NoUnreadDialog } from "@/components/Header/NotificationButton/NoUnreadDialog"
+import {
+  ButtonStyle,
+  DotStyle,
+} from "@/components/Header/NotificationButton/style"
+import { UnreadDialog } from "@/components/Header/NotificationButton/UnreadDialog"
 import { useAppSelector } from "@/store/hooks"
+import { COLORS } from "@/theme/colors"
 
 export const NotificationButton = () => {
-
-  const unreadNotifications = useAppSelector((state) => state.notifications.filter((notification) => notification.unread))
+  const unreadNotifications = useAppSelector((state) =>
+    state.notifications.filter((notification) => notification.unread),
+  )
   const hasUnread = unreadNotifications.length > 0
   const [open, setOpen] = useState(false)
 
@@ -32,7 +38,7 @@ export const NotificationButton = () => {
         ) : (
           <NotificationsRead style={{ stroke: COLORS.white }} />
         )}
-        {hasUnread && <div style={DotStyle} />}
+        {hasUnread && <Box sx={DotStyle} />}
       </Button>
 
       {hasUnread ? (

@@ -11,7 +11,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { parseUnits } from "ethers/lib/utils"
 
-import { toastifyError, toastifyRequest } from "@/components/toasts"
+import { toastifyError, toastifyRequest } from "@/components/Toasts"
 import { TargetChainId } from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"

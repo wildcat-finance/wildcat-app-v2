@@ -67,11 +67,9 @@ export const toastifyInfo = (
   message: string,
   options: ToastOptions = {},
 ): ToastId =>
-  toast.info(
-    message, {
-      ...DEFAULT_TOAST_OPTIONS,
-      ...options,
-    },
-  )
+  toast.info(message, {
+    ...DEFAULT_TOAST_OPTIONS,
+    ...options,
+  })
 
 export const dismissToast = (id: ToastId) => toast.dismiss(id)
