@@ -24,7 +24,7 @@ export const IconContainer = {
   width: "40px",
   height: "40px",
   marginX: "auto",
-  marginBottom: "14px"
+  marginBottom: "14px",
 }
 
 export const ButtonStyle = {

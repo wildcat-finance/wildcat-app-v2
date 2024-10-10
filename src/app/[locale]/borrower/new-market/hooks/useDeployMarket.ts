@@ -11,7 +11,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { parseUnits } from "ethers/lib/utils"
 
-import { toastifyError, toastifyRequest } from "@/components/toasts"
+import { toastError, toastRequest } from "@/components/toasts"
 import { TargetChainId } from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
@@ -82,7 +82,7 @@ export const useDeployMarket = () => {
             ),
           )
         } else {
-          asset = await toastifyRequest(
+          asset = await toastRequest(
             deployToken(
               TargetChainId,
               signer,
@@ -124,21 +124,21 @@ export const useDeployMarket = () => {
           if (isConnectedToSafe) {
             gnosisTransactions.push(await controller.populateRegisterBorrower())
           } else {
-            await toastifyRequest(controller.registerBorrower(), {
+            await toastRequest(controller.registerBorrower(), {
               pending: "Adjusting: Registering Borrower...",
               success: "Adjusting: Borrower Registered Successfully",
               error: "Adjusting: Borrower Registration Failed",
             })
           }
         } else {
-          toastifyError("Must Be Registered Borrower")
+          toastError("Must Be Registered Borrower")
           throw Error("Not Registered Borrower")
         }
       }
 
       // 2. Ensure the `asset, namePrefix, symbolPrefix` are unique.
       if (controller.getExistingMarketForParameters(marketParameters)) {
-        toastifyError("Market Not Unique: Modify Either Prefix")
+        toastError("Market Not Unique: Modify Either Prefix")
         throw Error("Market Not Unique")
       }
 
@@ -161,7 +161,7 @@ export const useDeployMarket = () => {
               console.log(
                 `Transaction confirmed. txHash: ${transactionBySafeHash.txHash}`,
               )
-              return transactionBySafeHash.txHash // Возвращаем хэш транзакции
+              return transactionBySafeHash.txHash
             }
             console.log("Transaction pending, rechecking in 1 second...")
             return new Promise<string>((res) => {

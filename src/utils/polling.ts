@@ -1,18 +1,24 @@
 "use client"
 
-import { useEffect } from "react";
-import { useLazyQuery } from "@apollo/client";
-import { useDispatch } from "react-redux";
-import { gql } from "@apollo/client";
-import { SubgraphClient } from "@/config/subgraph";
-import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
-import { TNotification } from "@/store/slices/notificationsSlice/interface"
+import { useEffect } from "react"
 
-const formatter = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'short',
-  hour: '2-digit',
-  minute: '2-digit',
+import { useLazyQuery, gql } from "@apollo/client"
+import { useDispatch } from "react-redux"
+
+import { SubgraphClient } from "@/config/subgraph"
+import { TNotification } from "@/store/slices/notificationsSlice/interface"
+import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
+
+type BorrowerRegistrationChange = {
+  blockTimestamp: string
+  isRegistered: boolean
+}
+
+const formatter = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
   hour12: false,
 })
 
@@ -27,13 +33,20 @@ const BORROWER_REGISTRATION_CHANGE_QUERY = gql`
 
 const POLLING_INTERVAL = 10000
 
-const PollingBorrowerRegistration = ({ address }) => {
-  //address = "0x6c0a11edca6ccb1b26473c715e3a6d0ba9a0efd9" // Testing
-  const dispatch = useDispatch();
-  const [fetchChanges, { data, error }] = useLazyQuery(BORROWER_REGISTRATION_CHANGE_QUERY, {
-    client: SubgraphClient,
-    nextFetchPolicy: "network-only",
-  })
+const PollingBorrowerRegistration = ({
+  address,
+}: {
+  address: string | undefined
+}) => {
+  // address = "0x6c0a11edca6ccb1b26473c715e3a6d0ba9a0efd9" // Testing
+  const dispatch = useDispatch()
+  const [fetchChanges, { data, error }] = useLazyQuery(
+    BORROWER_REGISTRATION_CHANGE_QUERY,
+    {
+      client: SubgraphClient,
+      nextFetchPolicy: "network-only",
+    },
+  )
 
   const fetch = () => {
     fetchChanges({
@@ -61,25 +74,28 @@ const PollingBorrowerRegistration = ({ address }) => {
     startPolling()
 
     return () => {
-      if (pollingTimer) clearInterval(pollingTimer);
+      if (pollingTimer) clearInterval(pollingTimer)
     }
   }, [fetchChanges, address])
 
   useEffect(() => {
     if (data) {
       console.dir(data)
-      data.borrowerRegistrationChanges.forEach((change: any) => {
-        const notification: TNotification = {
-          description: change.isRegistered === true ?
-            "You have been successfully onboarded as a borrower." :
-            "You have been removed as a borrower.",
-          type: "borrowerRegistrationChange",
-          category: "marketActivity",
-          date: formatter.format(Date.now()),
-          unread: true,
-        };
-        dispatch(addNotification(notification))
-      })
+      data.borrowerRegistrationChanges.forEach(
+        (change: BorrowerRegistrationChange) => {
+          const notification: TNotification = {
+            description:
+              change.isRegistered === true
+                ? "You have been successfully onboarded as a borrower."
+                : "You have been removed as a borrower.",
+            type: "borrowerRegistrationChange",
+            category: "marketActivity",
+            date: formatter.format(Date.now()),
+            unread: true,
+          }
+          dispatch(addNotification(notification))
+        },
+      )
     }
 
     if (error) {
@@ -88,6 +104,6 @@ const PollingBorrowerRegistration = ({ address }) => {
   }, [data, error, dispatch, address])
 
   return null
-};
+}
 
 export default PollingBorrowerRegistration
