@@ -110,7 +110,6 @@ export default function Notifications() {
           .map((notification, index) => (
             <>
               <Notification
-                key={index}
                 type={notification.type}
                 description={notification.description}
                 unread={notification.unread}
@@ -153,7 +152,6 @@ export default function Notifications() {
           .map((notification, index) => (
             <>
               <Notification
-                key={index}
                 type={notification.type}
                 description={notification.description}
                 unread={notification.unread}

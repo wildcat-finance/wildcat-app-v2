@@ -8,8 +8,8 @@ import TranslationsProvider from "@/components/TranslationsProvider"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
-import { NotificationButton } from "./NotificationButton"
 import { HeaderButton } from "./HeaderButton"
+import { NotificationButton } from "./NotificationButton"
 
 const i18nNamespaces = ["en"]
 

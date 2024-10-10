@@ -33,7 +33,7 @@ const BorrowerRegistrationListener = () => {
       const { borrowerRegistrationChange } = data
       const notification: TNotification = {
         description:
-        borrowerRegistrationChange.isRegistered === true
+          borrowerRegistrationChange.isRegistered === true
             ? "You have been successfully onboarded as a borrower."
             : "You have been removed as a borrower.",
         type: "borrowerRegistrationChange",

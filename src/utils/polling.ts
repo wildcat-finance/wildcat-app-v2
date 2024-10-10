@@ -81,19 +81,21 @@ const PollingBorrowerRegistration = ({
   useEffect(() => {
     if (data) {
       console.dir(data)
-      data.borrowerRegistrationChanges.forEach((change: BorrowerRegistrationChange) => {
-        const notification: TNotification = {
-          description:
-            change.isRegistered === true
-              ? "You have been successfully onboarded as a borrower."
-              : "You have been removed as a borrower.",
-          type: "borrowerRegistrationChange",
-          category: "marketActivity",
-          date: formatter.format(Date.now()),
-          unread: true,
-        }
-        dispatch(addNotification(notification))
-      })
+      data.borrowerRegistrationChanges.forEach(
+        (change: BorrowerRegistrationChange) => {
+          const notification: TNotification = {
+            description:
+              change.isRegistered === true
+                ? "You have been successfully onboarded as a borrower."
+                : "You have been removed as a borrower.",
+            type: "borrowerRegistrationChange",
+            category: "marketActivity",
+            date: formatter.format(Date.now()),
+            unread: true,
+          }
+          dispatch(addNotification(notification))
+        },
+      )
     }
 
     if (error) {

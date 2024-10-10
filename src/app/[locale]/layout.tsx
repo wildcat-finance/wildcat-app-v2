@@ -7,6 +7,7 @@ import { dir } from "i18next"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { headers } from "next/headers"
+import { Toaster } from "react-hot-toast"
 import { cookieToInitialState } from "wagmi"
 
 import {
@@ -24,8 +25,6 @@ import { SafeProvider } from "@/providers/SafeProvider"
 import { WagmiQueryProviders } from "@/providers/WagmiQueryProviders"
 
 import i18nConfig from "../../../i18nConfig"
-
-import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({
   subsets: ["latin"],

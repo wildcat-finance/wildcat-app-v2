@@ -22,7 +22,7 @@ type ToastRequestConfig = {
 export const toastRequest = async <T,>(
   promiseFn: Promise<T>,
   config?: ToastRequestConfig,
-  style: Object = {},
+  style: object = {},
 ) => {
   toast.promise(
     promiseFn,
@@ -42,7 +42,7 @@ export const toastRequest = async <T,>(
   return promiseFn
 }
 
-export const toastInfo = (message: string, style: Object = {}) =>
+export const toastInfo = (message: string, style: object = {}) =>
   toast(message, {
     icon: (
       <SvgIcon fontSize="small" sx={Icon}>
@@ -55,7 +55,7 @@ export const toastInfo = (message: string, style: Object = {}) =>
     },
   })
 
-export const toastError = (message: string, style: Object = {}) =>
+export const toastError = (message: string, style: object = {}) =>
   toast(message, {
     icon: (
       <SvgIcon fontSize="small" sx={Icon}>
@@ -68,7 +68,7 @@ export const toastError = (message: string, style: Object = {}) =>
     },
   })
 
-export const toastSuccess = (message: string, style: Object = {}) =>
+export const toastSuccess = (message: string, style: object = {}) =>
   toast(message, {
     icon: (
       <SvgIcon fontSize="small" sx={Icon}>

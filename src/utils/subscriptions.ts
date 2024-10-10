@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from "@apollo/client"
 
 export const BORROWER_REGISTRATION_CHANGE_SUBSCRIPTION = gql`
   subscription {
@@ -6,4 +6,4 @@ export const BORROWER_REGISTRATION_CHANGE_SUBSCRIPTION = gql`
       blockNumber
     }
   }
-`;
+`

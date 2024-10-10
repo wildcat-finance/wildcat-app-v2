@@ -1,7 +1,4 @@
 import { useEffect, useState } from "react"
-import { useTranslation } from "react-i18next"
-import { ROUTES } from "@/routes"
-import Link from "next/link"
 
 import {
   Box,
@@ -11,22 +8,21 @@ import {
   Typography,
   SvgIcon,
 } from "@mui/material"
-  
+import Link from "next/link"
+import { useTranslation } from "react-i18next"
+
+import NotificationsReadIcon from "@/assets/icons/notifications_read.svg"
 import {
   DialogContainer,
   IconContainer,
   ButtonStyle,
-  MessageStyle
+  MessageStyle,
 } from "@/components/Header/NotificationButton/NoUnreadDialog/style"
-
 import { NoUnreadDialogProps } from "@/components/Header/NotificationButton/NoUnreadDialog/type"
+import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import NotificationsReadIcon from "@/assets/icons/notifications_read.svg"
 
-export const NoUnreadDialog = ({
-  open,
-  handleClose,
-}: NoUnreadDialogProps) => {
+export const NoUnreadDialog = ({ open, handleClose }: NoUnreadDialogProps) => {
   const { t } = useTranslation()
 
   return (
@@ -41,7 +37,12 @@ export const NoUnreadDialog = ({
         {t("header.notifications.anyOtherMessage")}
       </Typography>
       <Link href={ROUTES.borrower.notifications} passHref>
-        <Button variant="contained" color="secondary" sx={ButtonStyle} onClick={handleClose}>
+        <Button
+          variant="contained"
+          color="secondary"
+          sx={ButtonStyle}
+          onClick={handleClose}
+        >
           {t("header.notifications.viewEarlier")}
         </Button>
       </Link>
