@@ -9,6 +9,11 @@ import { SubgraphClient } from "@/config/subgraph"
 import { TNotification } from "@/store/slices/notificationsSlice/interface"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 
+type BorrowerRegistrationChange = {
+  blockTimestamp: string
+  isRegistered: boolean
+}
+
 const formatter = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
   month: "short",
@@ -76,7 +81,7 @@ const PollingBorrowerRegistration = ({
   useEffect(() => {
     if (data) {
       console.dir(data)
-      data.borrowerRegistrationChanges.forEach((change: any) => {
+      data.borrowerRegistrationChanges.forEach((change: BorrowerRegistrationChange) => {
         const notification: TNotification = {
           description:
             change.isRegistered === true

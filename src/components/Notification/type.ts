@@ -4,7 +4,7 @@ export type NotificationProps = {
   date: string
   unread: boolean
   error?: boolean
-  data?: any
+  data?: object
   action?: {
     label: string
     onClick: () => void
