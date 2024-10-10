@@ -11,7 +11,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { parseUnits } from "ethers/lib/utils"
 
-import { toastError, toastRequest } from "../../../../../components/toasts"
+import { toastError, toastRequest } from "@/components/toasts"
 import { TargetChainId } from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
@@ -161,7 +161,7 @@ export const useDeployMarket = () => {
               console.log(
                 `Transaction confirmed. txHash: ${transactionBySafeHash.txHash}`,
               )
-              return transactionBySafeHash.txHash // Возвращаем хэш транзакции
+              return transactionBySafeHash.txHash
             }
             console.log("Transaction pending, rechecking in 1 second...")
             return new Promise<string>((res) => {
