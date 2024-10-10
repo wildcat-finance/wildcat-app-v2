@@ -23,7 +23,7 @@ import {
 } from "@/components/Header/NotificationButton/UnreadDialog/style"
 import { UnreadDialogProps } from "@/components/Header/NotificationButton/UnreadDialog/type"
 import { Notification } from "@/components/Notification"
-import { toastifySuccess } from "@/components/Toasts"
+import { toastSuccess } from "../../../toasts"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { markAllAsRead } from "@/store/slices/notificationsSlice/notificationsSlice"
@@ -47,7 +47,7 @@ export const UnreadDialog = ({ open, handleClose }: UnreadDialogProps) => {
 
   const handleMarkAsRead = async () => {
     dispatch(markAllAsRead())
-    toastifySuccess("All notifications marked as read")
+    toastSuccess("All notifications marked as read")
   }
 
   return (

@@ -1,7 +1,7 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation } from "@tanstack/react-query"
 
-import { toastifyRequest } from "@/components/Toasts"
+import { toastRequest } from "../../../../components/toasts"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 
@@ -65,7 +65,7 @@ export const useSignAgreement = () => {
       //     error: `Failed to sign service agreement!`,
       //   },
       // )
-      await toastifyRequest(
+      await toastRequest(
         sign().then((res) => {
           result = res
         }),

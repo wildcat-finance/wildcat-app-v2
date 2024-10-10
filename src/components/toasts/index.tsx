@@ -1,75 +1,82 @@
-import {
-  toast,
-  UpdateOptions,
-  ToastOptions,
-  Id as ToastId,
-} from "react-toastify"
+import { SvgIcon } from "@mui/material"
+import toast from "react-hot-toast"
 
-export type { ToastId }
+import Check from "@/assets/icons/check_icon.svg"
+import Cross from "@/assets/icons/cross_icon.svg"
+import { Icon } from "@/components/toasts/style"
+import { COLORS } from "@/theme/colors"
 
-type ToastifyRequestConfig = {
+const defaultStyle = {
+  borderRadius: "24px",
+  background: COLORS.blackRock,
+  color: COLORS.white,
+  fontFamily: "Roboto, sans-serif",
+}
+
+type ToastRequestConfig = {
   pending?: string
   success?: string
   error?: string
 }
 
-const DEFAULT_TOAST_OPTIONS: ToastOptions = {
-  theme: "dark",
-  pauseOnHover: false,
-  autoClose: 3000,
-}
-
-const DEFAULT_TOAST_CONFIG: UpdateOptions = {
-  ...DEFAULT_TOAST_OPTIONS,
-}
-
-export const toastifyRequest = async <T,>(
+export const toastRequest = async <T,>(
   promiseFn: Promise<T>,
-  config?: ToastifyRequestConfig,
+  config?: ToastRequestConfig,
+  style: Object = {},
 ) => {
-  toast.promise(promiseFn, {
-    pending: {
-      ...DEFAULT_TOAST_CONFIG,
-      render: () => config?.pending || "Request is pending",
+  toast.promise(
+    promiseFn,
+    {
+      loading: config?.pending || "Request is pending",
+      success: config?.success || "Request is successful 🎉",
+      error: config?.error || "Request failed 😢",
     },
-    success: {
-      ...DEFAULT_TOAST_CONFIG,
-      render: () => config?.success || "Request is successful 🎉",
+    {
+      style: {
+        ...defaultStyle,
+        ...style,
+      },
     },
-    error: {
-      ...DEFAULT_TOAST_CONFIG,
-      render: () => config?.error || "Request failed 😢",
-    },
-  })
+  )
 
   return promiseFn
 }
 
-export const toastifySuccess = (
-  message: string,
-  options: ToastOptions = {},
-): ToastId =>
-  toast.success(message, {
-    ...DEFAULT_TOAST_OPTIONS,
-    ...options,
+export const toastInfo = (message: string, style: Object = {}) =>
+  toast(message, {
+    icon: (
+      <SvgIcon fontSize="small" sx={Icon}>
+        <Check />
+      </SvgIcon>
+    ),
+    style: {
+      ...defaultStyle,
+      ...style,
+    },
   })
 
-export const toastifyError = (
-  message: string,
-  options: ToastOptions = {},
-): ToastId =>
-  toast.error(message, {
-    ...DEFAULT_TOAST_OPTIONS,
-    ...options,
+export const toastError = (message: string, style: Object = {}) =>
+  toast(message, {
+    icon: (
+      <SvgIcon fontSize="small" sx={Icon}>
+        <Check />
+      </SvgIcon>
+    ),
+    style: {
+      ...defaultStyle,
+      ...style,
+    },
   })
 
-export const toastifyInfo = (
-  message: string,
-  options: ToastOptions = {},
-): ToastId =>
-  toast.info(message, {
-    ...DEFAULT_TOAST_OPTIONS,
-    ...options,
+export const toastSuccess = (message: string, style: Object = {}) =>
+  toast(message, {
+    icon: (
+      <SvgIcon fontSize="small" sx={Icon}>
+        <Check />
+      </SvgIcon>
+    ),
+    style: {
+      ...defaultStyle,
+      ...style,
+    },
   })
-
-export const dismissToast = (id: ToastId) => toast.dismiss(id)
