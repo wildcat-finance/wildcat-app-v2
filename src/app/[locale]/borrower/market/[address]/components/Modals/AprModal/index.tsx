@@ -208,8 +208,6 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
   const isAprLTZero = parseFloat(apr) <= 0
 
-  console.log(isAprLTZero, "isAprLTZero")
-
   const disableConfirm =
     apr === "" ||
     isAprLTZero ||

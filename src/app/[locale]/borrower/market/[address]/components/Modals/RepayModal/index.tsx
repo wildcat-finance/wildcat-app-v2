@@ -168,7 +168,7 @@ export const RepayModal = ({
     isApproving
 
   const isApprovedButton =
-    repayStep?.status === "Ready" && !repayAmount.raw.isZero()
+    repayStep?.status === "Ready" && !repayAmount.raw.isZero() && !isApproving
 
   const showForm = !(isRepaying || showSuccessPopup || showErrorPopup)
 

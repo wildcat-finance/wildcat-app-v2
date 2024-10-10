@@ -36,20 +36,15 @@ export function useGetOthersMarketsQuery({
       fetchPolicy: "network-only",
     })
 
-    return (
-      result.data.markets
-        .filter((m) => !!m.controller)
-        .map((market) =>
-          Market.fromSubgraphMarketData(
-            TargetChainId,
-            provider as SignerOrProvider,
-            market,
-          ),
-        )
-        .filter(
-          (market) => market.borrower.toLowerCase() !== address?.toLowerCase(),
-        ) ?? []
-    )
+    return result.data.markets
+      .filter((m) => !!m.controller)
+      .map((market) =>
+        Market.fromSubgraphMarketData(
+          TargetChainId,
+          provider as SignerOrProvider,
+          market,
+        ),
+      )
   }
 
   async function getAllMarkets() {

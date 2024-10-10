@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useEffect } from "react"
 
 import { Box, Button, Tab, Tabs, Typography } from "@mui/material"
 import Link from "next/link"
@@ -37,8 +37,6 @@ export default function Borrower() {
   const showBorrowerTables =
     !isWrongNetwork && isConnected && isRegisteredBorrower
 
-  // const [tab, setTab] = React.useState<"markets" | "mla" | "lenders">("markets")
-
   const handleTabsChange = (
     event: React.SyntheticEvent,
     newTab: BorrowerOverviewTabs,
@@ -60,8 +58,6 @@ export default function Borrower() {
   const lendersNames: { [key: string]: string } = JSON.parse(
     localStorage.getItem("lenders-name") || "{}",
   )
-
-  console.log(searchStore, "searchStore")
 
   const lendersData = lenders?.addresses
     .map((a) => lenders?.lenders[a])
@@ -130,6 +126,10 @@ export default function Borrower() {
   const deauthorizedLenders = filteredLendersData?.filter(
     (lender) => !lender.isAuthorized,
   )
+
+  useEffect(() => {
+    sessionStorage.setItem("previousPageUrl", window.location.href)
+  }, [])
 
   return (
     <Box

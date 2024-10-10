@@ -61,7 +61,7 @@ export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
 
   const { data: borrowerMarkets, isLoading: isBorrowerMarketsLoading } =
     useGetBorrowerMarkets()
-  const { data: othersMarkets, isLoading: isOthersMarketsLoading } =
+  const { data: allMarkets, isLoading: isOthersMarketsLoading } =
     useGetOthersMarkets()
 
   const { data: borrowers } = useGetBorrowers()
@@ -83,11 +83,15 @@ export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
     filterByAsset,
   )
 
-  const filteredOtherMarkets = filterMarketsByAssetAndStatus(
-    othersMarkets,
+  const filteredAllMarkets = filterMarketsByAssetAndStatus(
+    allMarkets,
     filterByMarketName,
     filterByStatus,
     filterByAsset,
+  )
+
+  const filteredOtherMarkets = (filteredAllMarkets ?? []).filter(
+    (market) => market.borrower.toLowerCase() !== address?.toLowerCase(),
   )
 
   const activeBorrowerMarkets = filteredBorrowerMarkets?.filter(

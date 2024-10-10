@@ -12,6 +12,7 @@ import { NotificationsSidebar } from "@/components/Sidebar/NotificationsSidebar"
 import { ROUTES } from "@/routes"
 import { useAppSelector } from "@/store/hooks"
 import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
+import { COLORS } from "@/theme/colors"
 
 export const Sidebar = () => {
   const pathname = usePathname()
@@ -27,6 +28,16 @@ export const Sidebar = () => {
     >
       {pathname === ROUTES.borrower.root &&
         step === BorrowerOverviewTabs.MARKETS && <AllMarketsSidebar />}
+      {pathname === ROUTES.borrower.root &&
+        step === BorrowerOverviewTabs.MLA && (
+          <Box
+            sx={{
+              height: "100%",
+              width: "267px",
+              borderRight: `1px solid ${COLORS.blackRock006}`,
+            }}
+          />
+        )}
       {pathname === ROUTES.borrower.root &&
         step === BorrowerOverviewTabs.LENDERS && <LendersTabSidebar />}
       {pathname.includes(ROUTES.borrower.market) && <MarketSidebar />}

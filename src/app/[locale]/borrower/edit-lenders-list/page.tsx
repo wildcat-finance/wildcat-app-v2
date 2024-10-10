@@ -107,6 +107,10 @@ export default function EditLendersListPage() {
     [],
   )
 
+  useEffect(() => {
+    sessionStorage.setItem("previousPageUrl", window.location.href)
+  }, [])
+
   return (
     <Box padding="40px 44px 0 44px" height="100%">
       <Box sx={{ display: "flex", gap: "6px", marginBottom: "25px" }}>
