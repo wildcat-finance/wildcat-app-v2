@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-import { Button } from "@mui/material"
+import { Box, Button } from "@mui/material"
 
 import NotificationsRead from "@/assets/icons/notifications_read.svg"
 import NotificationsUnread from "@/assets/icons/notifications_unread.svg"
@@ -38,7 +38,7 @@ export const NotificationButton = () => {
         ) : (
           <NotificationsRead style={{ stroke: COLORS.white }} />
         )}
-        {hasUnread && <div style={DotStyle} />}
+        {hasUnread && <Box sx={DotStyle} />}
       </Button>
 
       {hasUnread ? (

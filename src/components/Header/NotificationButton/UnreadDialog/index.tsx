@@ -23,11 +23,12 @@ import {
 } from "@/components/Header/NotificationButton/UnreadDialog/style"
 import { UnreadDialogProps } from "@/components/Header/NotificationButton/UnreadDialog/type"
 import { Notification } from "@/components/Notification"
-import { toastSuccess } from "@/components/Toasts/index"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { markAllAsRead } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { COLORS } from "@/theme/colors"
+
+import { toastSuccess } from "@/components/toasts"
 
 export const UnreadDialog = ({ open, handleClose }: UnreadDialogProps) => {
   const { t } = useTranslation()

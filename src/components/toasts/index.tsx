@@ -3,7 +3,7 @@ import toast from "react-hot-toast"
 
 import Check from "@/assets/icons/check_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
-import { Icon } from "@/components/Toasts/style"
+import { Icon } from "@/components/toasts/style"
 import { COLORS } from "@/theme/colors"
 
 const defaultStyle = {
@@ -80,5 +80,3 @@ export const toastSuccess = (message: string, style: object = {}) =>
       ...style,
     },
   })
-
-export const dismissToast = (id: string) => toast.dismiss(id)

@@ -32,15 +32,14 @@ const BorrowerRegistrationListener = () => {
     if (data) {
       const { borrowerRegistrationChange } = data
       const notification: TNotification = {
-        description: `Borrower registration change for ID: ${borrowerRegistrationChange.id}`,
-        type:
-          borrowerRegistrationChange.status === "SUCCESS"
-            ? "onboardSuccesful"
-            : "onboardFailed",
+        description:
+          borrowerRegistrationChange.isRegistered === true
+            ? "You have been successfully onboarded as a borrower."
+            : "You have been removed as a borrower.",
+        type: "borrowerRegistrationChange",
         category: "marketActivity",
         date: formatter.format(Date.now()),
         unread: true,
-        error: borrowerRegistrationChange.status !== "SUCCESS",
       }
       dispatch(addNotification(notification))
     }

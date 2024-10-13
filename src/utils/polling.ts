@@ -9,6 +9,11 @@ import { SubgraphClient } from "@/config/subgraph"
 import { TNotification } from "@/store/slices/notificationsSlice/interface"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 
+type BorrowerRegistrationChange = {
+  blockTimestamp: string
+  isRegistered: boolean
+}
+
 const formatter = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
   month: "short",
@@ -26,14 +31,13 @@ const BORROWER_REGISTRATION_CHANGE_QUERY = gql`
   }
 `
 
-type TChange = {
-  blockTimestamp: number
-  isRegistered: boolean
-}
-
 const POLLING_INTERVAL = 10000
 
-const PollingBorrowerRegistration = ({ address }: { address: `0x${string}` }) => {
+const PollingBorrowerRegistration = ({
+  address,
+}: {
+  address: string | undefined
+}) => {
   // address = "0x6c0a11edca6ccb1b26473c715e3a6d0ba9a0efd9" // Testing
   const dispatch = useDispatch()
   const [fetchChanges, { data, error }] = useLazyQuery(
@@ -77,19 +81,21 @@ const PollingBorrowerRegistration = ({ address }: { address: `0x${string}` }) =>
   useEffect(() => {
     if (data) {
       console.dir(data)
-      data.borrowerRegistrationChanges.forEach((change: TChange) => {
-        const notification: TNotification = {
-          description:
-            change.isRegistered === true
-              ? "You have been successfully onboarded as a borrower."
-              : "You have been removed as a borrower.",
-          type: "borrowerRegistrationChange",
-          category: "marketActivity",
-          date: formatter.format(Date.now()),
-          unread: true,
-        }
-        dispatch(addNotification(notification))
-      })
+      data.borrowerRegistrationChanges.forEach(
+        (change: BorrowerRegistrationChange) => {
+          const notification: TNotification = {
+            description:
+              change.isRegistered === true
+                ? "You have been successfully onboarded as a borrower."
+                : "You have been removed as a borrower.",
+            type: "borrowerRegistrationChange",
+            category: "marketActivity",
+            date: formatter.format(Date.now()),
+            unread: true,
+          }
+          dispatch(addNotification(notification))
+        },
+      )
     }
 
     if (error) {
