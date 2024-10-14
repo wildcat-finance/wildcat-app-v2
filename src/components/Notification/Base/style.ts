@@ -1,5 +1,5 @@
 export const DotStyle = {
-  marginTop: "8px",
+  marginTop: "9px",
   minWidth: "4px",
   height: "4px",
   borderRadius: "50%",
