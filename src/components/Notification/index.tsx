@@ -1,6 +1,7 @@
 import { Chip, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import { Box } from "@mui/system"
+import { useTranslation } from "react-i18next"
 
 import Clock from "@/assets/icons/clock_icon.svg"
 import { Base } from "@/components/Notification/Base"
@@ -16,6 +17,8 @@ export const Notification = ({
   data,
   action,
 }: TNotification) => {
+  const { t } = useTranslation()
+
   switch (type) {
     case "borrowerRegistrationChange": {
       return (
@@ -47,7 +50,6 @@ export const Notification = ({
                 color: COLORS.dullRed,
                 marginTop: "2px",
               }}
-              // label={"↑" + data.percentageIncrease + "%"}
               label={
                 data.percentageIncrease > 0
                   ? `+${Math.round(data.percentageIncrease * 100) / 100}% ↑`
@@ -110,7 +112,7 @@ export const Notification = ({
               color: COLORS.santasGrey,
               marginTop: "2px",
             }}
-            label="- 0.358 WETH"
+            label={`- ${data.amount} ${data.token}`}
           />
         </Base>
       )
@@ -132,7 +134,16 @@ export const Notification = ({
           error={error}
           description={description}
           date={date}
-        />
+        >
+          <Chip
+            sx={{
+              backgroundColor: COLORS.cherub,
+              color: COLORS.dullRed,
+              marginTop: "2px",
+            }}
+            label={`${t("notifications.missing")} ${data.amount} ${data.token}`}
+          />
+        </Base>
       )
     }
     case "loanTaken": {

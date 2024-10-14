@@ -50,6 +50,7 @@ export const Base = ({
               variant="contained"
               color="secondary"
               sx={{ gap: "4px", width: "fit-content", whiteSpace: "nowrap" }}
+              onClick={action.onClick}
             >
               {action.label}
             </Button>

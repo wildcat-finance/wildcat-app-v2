@@ -4,6 +4,7 @@ import * as React from "react"
 import { useEffect } from "react"
 
 import { Box, Divider, Skeleton } from "@mui/material"
+import { usePathname } from "next/navigation"
 import { useAccount } from "wagmi"
 
 import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
@@ -11,6 +12,7 @@ import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/comp
 import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
 import { LeadBanner } from "@/components/LeadBanner"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
+import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { resetPageState } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"

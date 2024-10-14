@@ -3,9 +3,15 @@
 import { useEffect, createElement } from "react"
 
 import { useLazyQuery, gql, LazyQueryHookOptions } from "@apollo/client"
+import { useRouter } from "next/navigation"
 import { useDispatch } from "react-redux"
 
 import { SubgraphClient } from "@/config/subgraph"
+import { ROUTES } from "@/routes"
+import {
+  setSidebarHighlightState,
+  setCheckBlock,
+} from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { TNotification } from "@/store/slices/notificationsSlice/interface"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import {
@@ -32,8 +38,9 @@ const options: LazyQueryHookOptions = {
 }
 
 const PollingRegistration = ({ address }: { address: string | undefined }) => {
-  address = "0x6c0a11edca6ccb1b26473c715e3a6d0ba9a0efd9" // Testing
+  // address = "0x6c0a11edca6ccb1b26473c715e3a6d0ba9a0efd9" // Testing
   const dispatch = useDispatch()
+  const router = useRouter()
 
   const [fetchBorrowerRegistrationChanges, { data: borrowerData, error }] =
     useLazyQuery(
@@ -76,6 +83,30 @@ const PollingRegistration = ({ address }: { address: string | undefined }) => {
     options,
   )
 
+  const [fetchLenderAdded, { data: lenderAddedData }] = useLazyQuery(
+    gql`
+      query LenderAuthorizationChanges(
+        $where: LenderAuthorizationChange_filter
+        $marketAccountsWhere: LenderAccount_filter
+      ) {
+        lenderAuthorizationChanges(where: $where) {
+          blockTimestamp
+          authorization {
+            marketAccounts(where: $marketAccountsWhere) {
+              market {
+                name
+                id
+              }
+            }
+          }
+          lender
+          transactionHash
+        }
+      }
+    `,
+    options,
+  )
+
   const fetch = () => {
     if (address) {
       fetchBorrowerRegistrationChanges({
@@ -91,7 +122,7 @@ const PollingRegistration = ({ address }: { address: string | undefined }) => {
       fetchAprDecreaseEnded({
         variables: {
           where: {
-            borrower: "0x1717503ee3f56e644cf8b1058e3f83f03a71b2e1",
+            borrower: address,
           },
         },
       })
@@ -144,7 +175,21 @@ const PollingRegistration = ({ address }: { address: string | undefined }) => {
 
   useEffect(() => {
     if (aprDecreaseEndedData) {
-      console.dir(aprDecreaseEndedData.markets)
+      fetchLenderAdded({
+        variables: {
+          where: {
+            authorized: true,
+          },
+          marketAccountsWhere: {
+            market_: {
+              id_in: aprDecreaseEndedData.markets.map(
+                (market: { id: string }) => market.id,
+              ),
+            },
+          },
+        },
+      })
+
       aprDecreaseEndedData.markets.forEach(
         (market: {
           reserveRatioBipsUpdatedRecords: {
@@ -174,7 +219,6 @@ const PollingRegistration = ({ address }: { address: string | undefined }) => {
                 ),
                 unread: true,
                 data: {
-                  // oldReserveRatioBips, newReserveRatioBips formatted as apr, newApr
                   apr: `${formatBps(
                     change.oldReserveRatioBips,
                     MARKET_PARAMS_DECIMALS.reserveRatioBips,
@@ -201,6 +245,107 @@ const PollingRegistration = ({ address }: { address: string | undefined }) => {
       console.error("Error fetching APR changes:", aprError)
     }
   }, [aprDecreaseEndedData, aprError, dispatch])
+
+  useEffect(() => {
+    if (lenderAddedData) {
+      const markets: {
+        [lender: string]: {
+          name: string
+          id: string
+        }[]
+      } = {}
+
+      lenderAddedData.lenderAuthorizationChanges.forEach(
+        (change: {
+          lender: string
+          authorization: {
+            marketAccounts: {
+              market: { name: string; id: string }
+            }[]
+          }
+        }) => {
+          if (markets[change.lender]) {
+            markets[change.lender].push(
+              ...change.authorization.marketAccounts.map(
+                (account: { market: { name: string; id: string } }) =>
+                  account.market,
+              ),
+            )
+          } else {
+            markets[change.lender] = change.authorization.marketAccounts.map(
+              (account: { market: { name: string; id: string } }) =>
+                account.market,
+            )
+          }
+        },
+      )
+
+      Object.entries(markets).forEach(([lender, lenderMarkets]) => {
+        if (lenderMarkets.length > 2) {
+          const notification: TNotification = {
+            description: createElement("fragment", null, [
+              "You have onboarded ",
+              trimAddress(lender),
+              " to multiple markets.",
+            ]),
+            type: "lenderAdded",
+            category: "newLenders",
+            date: formatter.format(
+              new Date(
+                parseInt(
+                  lenderAddedData.lenderAuthorizationChanges[0].blockTimestamp,
+                  10,
+                ),
+              ),
+            ),
+            unread: true,
+          }
+          dispatch(addNotification(notification))
+        } else if (lenderMarkets.length === 1) {
+          const notification: TNotification = {
+            description: createElement("fragment", null, [
+              "You have onboarded ",
+              trimAddress(lender),
+              " to ",
+              createElement("strong", null, lenderMarkets[0].name),
+              ".",
+            ]),
+            type: "lenderAdded",
+            category: "newLenders",
+            date: formatter.format(
+              new Date(
+                parseInt(
+                  lenderAddedData.lenderAuthorizationChanges[0].blockTimestamp,
+                  10,
+                ),
+              ),
+            ),
+            unread: true,
+            action: {
+              label: "Lenders List",
+              onClick: () => {
+                router.push(
+                  `${ROUTES.borrower.market}/${encodeURIComponent(
+                    lenderMarkets[0].id,
+                  )}`,
+                )
+                dispatch(setCheckBlock(4))
+                dispatch(
+                  setSidebarHighlightState({
+                    borrowRepay: false,
+                    statusDetails: false,
+                    withdrawals: false,
+                    lenders: true,
+                  }),
+                )
+              },
+            },
+          }
+          dispatch(addNotification(notification))
+        }
+      })
+    }
+  }, [lenderAddedData, dispatch])
 
   return null
 }
