@@ -1,5 +1,5 @@
 export type BaseProps = {
-  description: string
+  description: React.ReactNode
   unread: boolean
   error: boolean
   action?: {
@@ -7,4 +7,5 @@ export type BaseProps = {
     onClick: () => void
   }
   date: string
+  children?: React.ReactNode
 }

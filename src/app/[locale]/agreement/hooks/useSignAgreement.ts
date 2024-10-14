@@ -1,10 +1,9 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation } from "@tanstack/react-query"
 
+import { toastRequest } from "@/components/toasts"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-
-import { toastRequest } from "../../../../components/toasts"
 
 export type SignAgreementProps = {
   address: string | undefined
