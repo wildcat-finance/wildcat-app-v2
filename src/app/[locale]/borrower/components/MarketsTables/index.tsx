@@ -16,16 +16,21 @@ import { MarketsTablesContainer } from "@/app/[locale]/borrower/page-style"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetController } from "@/hooks/useGetController"
 import { useAppSelector } from "@/store/hooks"
-import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
-import { getMarketStatus, MarketStatus } from "@/utils/marketStatus"
+import {
+  getMarketStatus,
+  MarketAssets,
+  MarketStatus,
+} from "@/utils/marketStatus"
 
 const filterMarketsByAssetAndStatus = (
   markets: Market[] | undefined,
   name: string,
-  status: MarketStatus | "All",
-  asset: SidebarMarketAssets,
+  statuses: MarketStatus[],
+  assets: { name: string; address: string }[],
 ) => {
   let filteredMarkets = markets
+
+  const assetsNames = assets.map((asset) => asset.name)
 
   if (filteredMarkets && name !== "") {
     filteredMarkets = filteredMarkets.filter((market) =>
@@ -33,20 +38,21 @@ const filterMarketsByAssetAndStatus = (
     )
   }
 
-  if (filteredMarkets && status !== "All") {
-    filteredMarkets = filteredMarkets.filter(
-      (market) =>
+  if (filteredMarkets && statuses.length > 0) {
+    filteredMarkets = filteredMarkets.filter((market) =>
+      statuses.includes(
         getMarketStatus(
           market.isClosed,
           market.isDelinquent || market.willBeDelinquent,
           market.isIncurringPenalties,
-        ) === status,
+        ),
+      ),
     )
   }
 
-  if (filteredMarkets && asset !== "All") {
-    filteredMarkets = filteredMarkets.filter(
-      (market) => market.underlyingToken.symbol === asset,
+  if (filteredMarkets && assets.length > 0) {
+    filteredMarkets = filteredMarkets.filter((market) =>
+      assetsNames.includes(market.underlyingToken.symbol as MarketAssets),
     )
   }
 
@@ -69,11 +75,13 @@ export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
   const isRegisteredBorrower = controller?.isRegisteredBorrower
 
   const filterByMarketName = useAppSelector(
-    (state) => state.borrowerSidebar.marketName,
+    (state) => state.marketsOverviewSidebar.marketName,
   )
-  const filterByStatus = useAppSelector((state) => state.borrowerSidebar.status)
+  const filterByStatus = useAppSelector(
+    (state) => state.marketsOverviewSidebar.marketsStatuses,
+  )
   const filterByAsset = useAppSelector(
-    (state) => state.borrowerSidebar.underlyingAsset,
+    (state) => state.marketsOverviewSidebar.marketsAssets,
   )
 
   const filteredBorrowerMarkets = filterMarketsByAssetAndStatus(

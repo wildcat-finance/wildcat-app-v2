@@ -1,6 +1,7 @@
 import { Market } from "@wildcatfi/wildcat-sdk"
 
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import { MarketStatus } from "@/utils/marketStatus"
 
 export type OthersMarketsTableProps = {
   tableData: Market[] | []
@@ -8,7 +9,7 @@ export type OthersMarketsTableProps = {
   isLoading: boolean
   isOpen: boolean
 
-  statusFilter?: string
-  assetFilter?: string
+  statusFilter?: MarketStatus[]
+  assetFilter?: { name: string; address: string }[]
   nameFilter?: string
 }

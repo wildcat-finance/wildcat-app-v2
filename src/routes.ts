@@ -1,4 +1,5 @@
 const BORROWER_ROOT = "/borrower"
+const LENDER_ROOT = "/lender"
 
 export const ROUTES = {
   agreement: "/agreement",
@@ -8,5 +9,9 @@ export const ROUTES = {
     newMarket: `${BORROWER_ROOT}/new-market`,
     lendersList: `${BORROWER_ROOT}/edit-lenders-list`,
     notifications: `${BORROWER_ROOT}/notifications`,
+  },
+  lender: {
+    root: LENDER_ROOT,
+    market: `${LENDER_ROOT}/market`,
   },
 }

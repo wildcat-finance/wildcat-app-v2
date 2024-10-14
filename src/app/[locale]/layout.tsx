@@ -15,10 +15,13 @@ import {
   ContentContainer,
   PageContainer,
 } from "@/app/[locale]/layout-style"
+import initTranslations from "@/app/i18n"
 import { Footer } from "@/components/Footer"
 import Header from "@/components/Header"
+import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
+import TranslationsProvider from "@/components/TranslationsProvider"
 import { config } from "@/lib/config"
 import { RedirectsProvider } from "@/providers/RedirectsProvider"
 import { SafeProvider } from "@/providers/SafeProvider"
@@ -39,6 +42,8 @@ export function generateStaticParams() {
   return i18nConfig.locales.map((locale) => ({ locale }))
 }
 
+const i18nNamespaces = ["en"]
+
 export default async function RootLayout({
   children,
   params: { locale },
@@ -47,6 +52,7 @@ export default async function RootLayout({
   params: { locale: string }
 }) {
   const initialState = cookieToInitialState(config, headers().get("cookie"))
+  const { resources } = await initTranslations(locale, i18nNamespaces)
 
   return (
     <html lang={locale} dir={dir(locale)}>
@@ -57,14 +63,23 @@ export default async function RootLayout({
             <RedirectsProvider>
               <StoreProvider>
                 <ThemeRegistry>
-                  <Box sx={BackgroundContainer} />
-                  <Box position="relative" zIndex="1">
-                    <Header params={{ locale }} />
-                    <Box sx={PageContainer}>
-                      <Box sx={ContentContainer}>{children}</Box>
-                      <Footer />
+                  <TranslationsProvider
+                    namespaces={i18nNamespaces}
+                    locale={locale}
+                    resources={resources}
+                  >
+                    <Box sx={BackgroundContainer} />
+                    <Box position="relative" zIndex="1">
+                      <Header />
+                      <Box sx={PageContainer}>
+                        <Box sx={ContentContainer}>
+                          <Sidebar />
+                          <Box width="calc(100vw - 267px)">{children}</Box>
+                        </Box>
+                        <Footer />
+                      </Box>
                     </Box>
-                  </Box>
+                  </TranslationsProvider>
                 </ThemeRegistry>
               </StoreProvider>
             </RedirectsProvider>

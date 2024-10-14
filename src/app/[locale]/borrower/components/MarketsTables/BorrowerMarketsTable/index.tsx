@@ -20,7 +20,6 @@ import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
-import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
 import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import {
@@ -232,9 +231,7 @@ export const BorrowerMarketsTable = ({
   })
 
   const defaultFilters =
-    assetFilter === SidebarMarketAssets.ALL &&
-    statusFilter === "All" &&
-    nameFilter === ""
+    assetFilter?.length === 0 && statusFilter?.length === 0 && nameFilter === ""
 
   return (
     <Accordion sx={{ width: "100%", minWidth: 0 }} defaultExpanded={isOpen}>
@@ -289,9 +286,11 @@ export const BorrowerMarketsTable = ({
         <Box display="flex" flexDirection="column" padding="24px 16px 12px">
           <Typography variant="text2" color={COLORS.santasGrey}>
             {t("borrowerMarketList.table.noMarkets.filter.beginning")} {type}{" "}
-            {statusFilter === "All" ? "" : statusFilter?.toLowerCase()}{" "}
+            {statusFilter?.length !== 0 &&
+              statusFilter?.map((status) => ` ${status.toLowerCase()}`)}{" "}
             {nameFilter === "" ? "" : nameFilter}{" "}
-            {assetFilter === "All" ? "" : assetFilter}{" "}
+            {assetFilter?.length !== 0 &&
+              `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
             {t("borrowerMarketList.table.noMarkets.filter.ending")}
           </Typography>
         </Box>

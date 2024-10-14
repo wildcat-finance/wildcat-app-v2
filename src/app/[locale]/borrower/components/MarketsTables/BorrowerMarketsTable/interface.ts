@@ -1,5 +1,7 @@
 import { Market } from "@wildcatfi/wildcat-sdk"
 
+import { MarketStatus } from "@/utils/marketStatus"
+
 export type BorrowerMarketsTableProps = {
   type?: "active" | "terminated"
   label: string
@@ -9,7 +11,7 @@ export type BorrowerMarketsTableProps = {
   isLoading: boolean
   isOpen?: boolean
 
-  statusFilter?: string
-  assetFilter?: string
+  statusFilter?: MarketStatus[]
+  assetFilter?: { name: string; address: string }[]
   nameFilter?: string
 }
