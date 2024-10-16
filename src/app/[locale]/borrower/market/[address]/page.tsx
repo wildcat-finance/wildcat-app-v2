@@ -4,6 +4,7 @@ import * as React from "react"
 import { useEffect } from "react"
 
 import { Box, Divider, Skeleton } from "@mui/material"
+import { usePathname } from "next/navigation"
 import { useAccount } from "wagmi"
 
 import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"

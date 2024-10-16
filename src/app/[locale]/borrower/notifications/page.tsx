@@ -11,6 +11,7 @@ import {
   Typography,
   SvgIcon,
 } from "@mui/material"
+import ReactDOMServer from "react-dom/server"
 import { useTranslation } from "react-i18next"
 
 import Icon from "@/assets/icons/search_icon.svg"
@@ -47,7 +48,7 @@ export default function Notifications() {
       return notification.category === "newLenders"
     })
     .filter((notification) =>
-      notification.description
+      ReactDOMServer.renderToString(notification.description)
         .toLowerCase()
         .includes(searchValue.toLowerCase()),
     )
@@ -60,7 +61,7 @@ export default function Notifications() {
 
   return (
     <Box
-      sx={{ height: "calc(100vh - 43px - 43px - 52px)", overflow: "hidden" }}
+      sx={{ height: "calc(100vh - 43px - 43px - 52px)", overflow: "scroll" }}
     >
       <Box sx={PageTitleContainer}>
         <Box sx={HeaderTitleContainer}>
@@ -109,13 +110,7 @@ export default function Notifications() {
           .filter((notification) => notification.unread)
           .map((notification, index) => (
             <>
-              <Notification
-                type={notification.type}
-                description={notification.description}
-                unread={notification.unread}
-                error={notification.error}
-                date={notification.date}
-              />
+              <Notification {...notification} />
               {index < filtered.length - 1 && <Divider />}
             </>
           ))}
@@ -151,13 +146,7 @@ export default function Notifications() {
           .filter((notification) => !notification.unread)
           .map((notification, index) => (
             <>
-              <Notification
-                type={notification.type}
-                description={notification.description}
-                unread={notification.unread}
-                error={notification.error}
-                date={notification.date}
-              />
+              <Notification {...notification} />
               {index < filtered.length - 1 && <Divider />}
             </>
           ))}

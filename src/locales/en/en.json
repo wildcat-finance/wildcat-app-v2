@@ -389,6 +389,7 @@
       "marketActivity": "Market Activity",
       "newLenders": "New Lenders"
     },
-    "viewOnEtherscan": "View on Etherscan"
+    "viewOnEtherscan": "View on Etherscan",
+    "missing": "Missing"
   }
 }

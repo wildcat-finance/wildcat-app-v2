@@ -23,12 +23,11 @@ import {
 } from "@/components/Header/NotificationButton/UnreadDialog/style"
 import { UnreadDialogProps } from "@/components/Header/NotificationButton/UnreadDialog/type"
 import { Notification } from "@/components/Notification"
+import { toastSuccess } from "@/components/toasts"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { markAllAsRead } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { COLORS } from "@/theme/colors"
-
-import { toastSuccess } from "../../../toasts"
 
 export const UnreadDialog = ({ open, handleClose }: UnreadDialogProps) => {
   const { t } = useTranslation()
@@ -117,13 +116,7 @@ export const UnreadDialog = ({ open, handleClose }: UnreadDialogProps) => {
       >
         {filtered.map((notification, index) => (
           <>
-            <Notification
-              type={notification.type}
-              description={notification.description}
-              date={notification.date}
-              unread={notification.unread}
-              error={notification.error}
-            />
+            <Notification {...notification} />
             {index !== filtered.length - 1 && <Divider sx={DividerStyle} />}
           </>
         ))}
