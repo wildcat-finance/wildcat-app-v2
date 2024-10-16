@@ -131,7 +131,9 @@ export const OtherMarketsTable = ({
           padding="24px 16px 12px"
           height="270px"
         >
-          <Typography variant="title3">No self-onboard markets</Typography>
+          <Typography variant="title3" color={COLORS.blackRock}>
+            No self-onboard markets
+          </Typography>
           <Typography variant="text3" color={COLORS.santasGrey}>
             There are no self-onboard markets yet.
           </Typography>

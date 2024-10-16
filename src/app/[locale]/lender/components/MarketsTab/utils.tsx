@@ -75,6 +75,8 @@ export const getColumns = (
       field: "status",
       headerName: "Status",
       maxWidth: 146,
+      minWidth: 130,
+      flex: 2,
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
@@ -96,7 +98,6 @@ export const getColumns = (
           </Box>
         </Link>
       ),
-      flex: 2,
     },
     {
       field: "name",
@@ -120,7 +121,8 @@ export const getColumns = (
         >
           <span
             style={{
-              maxWidth: "118px",
+              width: "100%",
+              paddingRight: "20px",
               overflow: "hidden",
               textOverflow: "ellipsis",
             }}
@@ -134,9 +136,9 @@ export const getColumns = (
       field: "borrowerName",
       headerName: "Borrower Name",
       minWidth: 134,
+      flex: 1.7,
       headerAlign: "left",
       align: "left",
-      flex: 1.7,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -152,7 +154,8 @@ export const getColumns = (
         >
           <span
             style={{
-              maxWidth: "118px",
+              width: "100%",
+              paddingRight: "20px",
               overflow: "hidden",
               textOverflow: "ellipsis",
             }}
@@ -166,9 +169,9 @@ export const getColumns = (
       field: "asset",
       headerName: "Underlying Asset",
       minWidth: 131,
+      flex: 1,
       headerAlign: "right",
       align: "right",
-      flex: 1,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -190,9 +193,9 @@ export const getColumns = (
       field: "lenderAPR",
       headerName: "APR",
       minWidth: 102,
+      flex: 1,
       headerAlign: "right",
       align: "right",
-      flex: 1,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -214,6 +217,7 @@ export const getColumns = (
       field: "crr",
       headerName: "CRR",
       minWidth: 79,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       renderHeader: () => (
@@ -243,16 +247,15 @@ export const getColumns = (
           {`${formatBps(params.value)}%`}
         </Link>
       ),
-      flex: 1,
     },
     {
       field: "maxCapacity",
       headerName: "Max. Capacity",
       minWidth: 106,
+      flex: 1.6,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
-      flex: 1.6,
       renderCell: (
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
@@ -394,7 +397,9 @@ export const getColumns = (
           justifyContent: "flex-end",
         }}
       >
-        <Typography variant="text3">{params.value ? "Yes" : "No"}</Typography>
+        <Typography variant="text3" color={COLORS.blackRock}>
+          {params.value ? "Yes" : "No"}
+        </Typography>
       </Link>
     ),
     flex: 1,

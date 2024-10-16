@@ -78,7 +78,9 @@ export const MarketsTableAccordion = ({
         defaultFilters &&
         noMarketsTitle && (
           <Box display="flex" flexDirection="column" padding="24px 16px 12px">
-            <Typography variant="title3">{noMarketsTitle}</Typography>
+            <Typography variant="title3" color={COLORS.blackRock}>
+              {noMarketsTitle}
+            </Typography>
             <Typography variant="text3" color={COLORS.santasGrey}>
               {noMarketsSubtitle}
             </Typography>
