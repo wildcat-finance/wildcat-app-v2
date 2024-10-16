@@ -141,7 +141,7 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
         <Box>
           <Box id="active-lender-markets" ref={activeMarketsRef}>
             <MarketsTableAccordion
-              label="Your active markets"
+              label="Your Active Markets"
               noMarketsTitle="No active markets"
               noMarketsSubtitle="Choose a market below or use a direct link to a particular one to leave a request for joining"
               type="active"

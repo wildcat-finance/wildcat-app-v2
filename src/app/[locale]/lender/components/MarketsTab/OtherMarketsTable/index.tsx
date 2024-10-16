@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 
 import { Box, Tab, Tabs, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
@@ -35,6 +35,10 @@ export const OtherMarketsTable = ({
 
   const defaultFilters =
     assetFilter?.length === 0 && statusFilter?.length === 0 && nameFilter === ""
+
+  useEffect(() => {
+    setPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+  }, [assetFilter, statusFilter, nameFilter])
 
   return (
     <MarketsTableAccordion
