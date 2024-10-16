@@ -45,11 +45,19 @@ export default function Header() {
         <Logo />
       </Link>
       <Box sx={NavContainer}>
-        <Typography variant="text2Highlighted" sx={{ color: COLORS.white }}>
+        <Typography
+          variant="text2Highlighted"
+          sx={{ color: COLORS.white, cursor: "pointer" }}
+          onClick={handleToggleSide}
+        >
           {t("header.role.borrower")}
         </Typography>
         <Switch onClick={handleToggleSide} checked={side === "lender"} />
-        <Typography variant="text2Highlighted" sx={{ color: COLORS.white }}>
+        <Typography
+          variant="text2Highlighted"
+          sx={{ color: COLORS.white, cursor: "pointer" }}
+          onClick={handleToggleSide}
+        >
           {t("header.role.lender")}
         </Typography>
       </Box>

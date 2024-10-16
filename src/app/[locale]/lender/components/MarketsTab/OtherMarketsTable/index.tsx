@@ -47,31 +47,33 @@ export const OtherMarketsTable = ({
       statusFilter={statusFilter}
       nameFilter={nameFilter}
     >
-      <Tabs
-        value={tab}
-        onChange={handleTabsChange}
-        aria-label="Other markets table tabs"
-        sx={TabsStyles}
-      >
-        <Box
-          sx={{
-            width: "16px",
-            height: "1px",
-            backgroundColor: COLORS.athensGrey,
-          }}
-        />
-        <Tab value="all" label="All" sx={TabStyle} />
-        <Tab value="selfOnboard" label="Self-Onboard" sx={TabStyle} />
-        <Box
-          sx={{
-            width: "100%",
-            height: "1px",
-            backgroundColor: COLORS.athensGrey,
-          }}
-        />
-      </Tabs>
+      {!isLoading && (
+        <Tabs
+          value={tab}
+          onChange={handleTabsChange}
+          aria-label="Other markets table tabs"
+          sx={TabsStyles}
+        >
+          <Box
+            sx={{
+              width: "16px",
+              height: "1px",
+              backgroundColor: COLORS.athensGrey,
+            }}
+          />
+          <Tab value="all" label="All" sx={TabStyle} />
+          <Tab value="selfOnboard" label="Self-Onboard" sx={TabStyle} />
+          <Box
+            sx={{
+              width: "100%",
+              height: "1px",
+              backgroundColor: COLORS.athensGrey,
+            }}
+          />
+        </Tabs>
+      )}
 
-      {tab === "all" && tableRows.length !== 0 && (
+      {tab === "all" && tableRows.length !== 0 && !isLoading && (
         <DataGrid
           sx={MarketsTableStyles}
           rows={tableRows}
@@ -103,7 +105,7 @@ export const OtherMarketsTable = ({
           </Box>
         )}
 
-      {tab === "selfOnboard" && selfOnboardRows.length !== 0 && (
+      {tab === "selfOnboard" && selfOnboardRows.length !== 0 && !isLoading && (
         <DataGrid
           sx={MarketsTableStyles}
           rows={selfOnboardRows}
@@ -118,7 +120,7 @@ export const OtherMarketsTable = ({
         />
       )}
 
-      {tab === "selfOnboard" && selfOnboardRows.length === 0 && (
+      {tab === "selfOnboard" && selfOnboardRows.length === 0 && !isLoading && (
         <Box
           display="flex"
           flexDirection="column"
