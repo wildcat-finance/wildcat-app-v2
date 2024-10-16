@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { Box, Switch, Typography } from "@mui/material"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import Logo from "@/assets/icons/logo_white.svg"
@@ -19,8 +19,9 @@ export default function Header() {
   const { t } = useTranslation()
 
   const router = useRouter()
+  const pathname = usePathname()
 
-  const [side, setSide] = useState<"borrower" | "lender">("borrower")
+  const [side, setSide] = useState<"borrower" | "lender">()
 
   const handleToggleSide = () => {
     if (side === "borrower") {
@@ -32,6 +33,12 @@ export default function Header() {
     }
   }
 
+  useEffect(() => {
+    if (pathname.includes(ROUTES.borrower.root)) {
+      setSide("borrower")
+    } else setSide("lender")
+  }, [])
+
   return (
     <Box sx={ContentContainer}>
       <Link href={ROUTES.borrower.root} style={{ height: "50px" }}>
@@ -41,7 +48,7 @@ export default function Header() {
         <Typography variant="text2Highlighted" sx={{ color: COLORS.white }}>
           {t("header.role.borrower")}
         </Typography>
-        <Switch onClick={handleToggleSide} />
+        <Switch onClick={handleToggleSide} checked={side === "lender"} />
         <Typography variant="text2Highlighted" sx={{ color: COLORS.white }}>
           {t("header.role.lender")}
         </Typography>

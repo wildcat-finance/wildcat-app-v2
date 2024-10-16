@@ -9,6 +9,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
+import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import Icon from "@/assets/icons/search_icon.svg"
@@ -77,6 +78,7 @@ export const SidebarButton = ({
 export const MarketsTabSidebar = () => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const pathname = usePathname()
 
   const [selectedAssets, setSelectedAssets] = useState<
     { name: string; address: string }[]
@@ -120,6 +122,12 @@ export const MarketsTabSidebar = () => {
   useEffect(() => {
     dispatch(setMarketsAssets(selectedAssets))
   }, [selectedAssets])
+
+  useEffect(() => {
+    setSelectedAssets([])
+    dispatch(resetSidebarSlice())
+  }, [pathname])
+
   return (
     <Box
       sx={{

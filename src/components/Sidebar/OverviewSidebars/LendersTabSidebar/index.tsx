@@ -36,13 +36,12 @@ export const LendersTabSidebar = () => {
     localStorage.getItem("lenders-name") || "{}",
   )
 
-  const { data: borrowerMarkets, isLoading: isMarketsLoading } =
-    useGetBorrowerMarkets()
+  const { data: borrowerMarkets } = useGetBorrowerMarkets()
   const activeBorrowerMarkets = borrowerMarkets
     ?.filter((market) => !market.isClosed)
     .map((market) => ({ name: market.name, address: market.address }))
 
-  const { data: lenders, isLoading: isLendersLoading } = useGetAllLenders()
+  const { data: lenders } = useGetAllLenders()
   const lendersData = lenders?.addresses.map((address) => {
     const lender = lenders?.lenders[address]
     return {

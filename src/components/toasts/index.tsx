@@ -2,7 +2,6 @@ import { SvgIcon } from "@mui/material"
 import toast from "react-hot-toast"
 
 import Check from "@/assets/icons/check_icon.svg"
-import Cross from "@/assets/icons/cross_icon.svg"
 import { Icon } from "@/components/toasts/style"
 import { COLORS } from "@/theme/colors"
 
