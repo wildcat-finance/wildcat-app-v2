@@ -155,11 +155,27 @@ export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
   }, [scrollTargetId])
 
   useEffect(() => {
-    dispatch(setActiveAmount((activeBorrowerMarkets ?? []).length.toString()))
     dispatch(
-      setTerminatedAmount((terminatedBorrowerMarkets ?? []).length.toString()),
+      setActiveAmount(
+        isBorrowerMarketsLoading
+          ? ""
+          : (activeBorrowerMarkets ?? []).length.toString(),
+      ),
     )
-    dispatch(setOtherAmount((filteredOtherMarkets ?? []).length.toString()))
+    dispatch(
+      setTerminatedAmount(
+        isBorrowerMarketsLoading
+          ? ""
+          : (terminatedBorrowerMarkets ?? []).length.toString(),
+      ),
+    )
+    dispatch(
+      setOtherAmount(
+        isOthersMarketsLoading
+          ? ""
+          : (filteredOtherMarkets ?? []).length.toString(),
+      ),
+    )
   }, [activeBorrowerMarkets, terminatedBorrowerMarkets, filteredOtherMarkets])
 
   return (

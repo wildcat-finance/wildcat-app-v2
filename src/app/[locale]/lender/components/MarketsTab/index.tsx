@@ -116,10 +116,20 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
 
   useEffect(() => {
     dispatch(
-      setActiveAmount(filteredActiveLenderMarketAccounts.length.toString()),
+      setActiveAmount(
+        isLoading ? "" : filteredActiveLenderMarketAccounts.length.toString(),
+      ),
     )
-    dispatch(setTerminatedAmount(terminatedMarketAccounts.length.toString()))
-    dispatch(setOtherAmount(filteredOtherMarketAccounts.length.toString()))
+    dispatch(
+      setTerminatedAmount(
+        isLoading ? "" : terminatedMarketAccounts.length.toString(),
+      ),
+    )
+    dispatch(
+      setOtherAmount(
+        isLoading ? "" : filteredOtherMarketAccounts.length.toString(),
+      ),
+    )
   }, [
     filteredActiveLenderMarketAccounts,
     filteredOtherMarketAccounts,

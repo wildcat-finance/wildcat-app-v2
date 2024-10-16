@@ -72,11 +72,9 @@ export const SidebarButton = ({
     }}
   >
     <Typography variant="text3">{label}</Typography>
-    {amount !== "0" && (
-      <Typography variant="text3" color={COLORS.santasGrey}>
-        {amount}
-      </Typography>
-    )}
+    <Typography variant="text3" color={COLORS.santasGrey}>
+      {amount}
+    </Typography>
   </Box>
 )
 
