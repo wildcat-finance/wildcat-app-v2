@@ -35,13 +35,37 @@ export const MarketParametersItem = ({
     </Box>
 
     <Box sx={MarketParametersItemValueContainer}>
-      <Typography
-        variant="text3"
-        align="right"
-        color={alarmState ? COLORS.dullRed : COLORS.blackRock}
-      >
-        {value}
-      </Typography>
+      {value.toString().length > 25 ? (
+        <Tooltip title={value} placement="right">
+          <Typography
+            variant="text3"
+            align="right"
+            color={alarmState ? COLORS.dullRed : COLORS.blackRock}
+            sx={{
+              maxWidth: "185px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {value}
+          </Typography>
+        </Tooltip>
+      ) : (
+        <Typography
+          variant="text3"
+          align="right"
+          color={alarmState ? COLORS.dullRed : COLORS.blackRock}
+          sx={{
+            maxWidth: "185px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {value}
+        </Typography>
+      )}
 
       {valueTooltipText && (
         <Tooltip title={valueTooltipText} placement="right">

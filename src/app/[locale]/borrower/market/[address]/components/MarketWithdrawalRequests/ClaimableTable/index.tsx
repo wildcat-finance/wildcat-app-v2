@@ -194,7 +194,6 @@ export const ClaimableTable = ({
       summaryText="Claimable"
       summarySx={{
         borderRadius: "0px",
-        marginBottom: isClaimableOpen ? "0px" : "12px",
         borderBottom: isClaimableOpen ? "none" : `1px solid`,
         borderColor: COLORS.athensGrey,
       }}
@@ -213,7 +212,12 @@ export const ClaimableTable = ({
           getRowHeight={() => "auto"}
         />
       ) : (
-        <Box display="flex" flexDirection="column" padding="0 16px">
+        <Box
+          display="flex"
+          flexDirection="column"
+          padding="0 16px"
+          marginBottom="10px"
+        >
           <Typography variant="text3" color={COLORS.santasGrey}>
             There are no claimable withdrawals
           </Typography>

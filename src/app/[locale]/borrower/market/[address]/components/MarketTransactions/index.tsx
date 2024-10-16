@@ -89,13 +89,17 @@ export const MarketTransactions = ({
                 setIsOpen(!isOpen)
                 handleClose()
               }}
+              sx={{
+                display: "flex",
+                gap: "8px",
+                alignItems: "center",
+                padding: "9px 12px",
+              }}
             >
-              <Button sx={MenuItemButton}>
-                <SvgIcon fontSize="medium">
-                  <DocsIcon />
-                </SvgIcon>
-                <Typography variant="text2">Statement</Typography>
-              </Button>
+              <SvgIcon fontSize="medium">
+                <DocsIcon />
+              </SvgIcon>
+              <Typography variant="text2">Statement</Typography>
             </MenuItem>
           </Menu>
           <StatementModal isOpen={isOpen} setIsOpen={setIsOpen} />

@@ -49,7 +49,6 @@ export const OngoingTable = ({
       summaryText="Ongoing"
       summarySx={{
         borderRadius: "0px",
-        marginBottom: isOngoingOpen ? "0px" : "12px",
         borderBottom: isOngoingOpen ? "none" : `1px solid`,
         borderColor: COLORS.athensGrey,
       }}
@@ -67,7 +66,12 @@ export const OngoingTable = ({
           columnHeaderHeight={40}
         />
       ) : (
-        <Box display="flex" flexDirection="column" padding="0 16px">
+        <Box
+          display="flex"
+          flexDirection="column"
+          padding="0 16px"
+          marginBottom="10px"
+        >
           <Typography variant="text3" color={COLORS.santasGrey}>
             There are no ongoing withdrawals
           </Typography>

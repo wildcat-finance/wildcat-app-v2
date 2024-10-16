@@ -294,9 +294,7 @@ export const MarketAuthorisedLenders = ({
               {t("borrowerMarketDetails.authorisedLenders.header")}
             </Typography>
             <Link href={editLendersLink}>
-              <Button
-                sx={{ border: "1px solid", borderColor: COLORS.whiteLilac }}
-              >
+              <Button size="small" variant="outlined" color="secondary">
                 {t("borrowerMarketDetails.authorisedLenders.buttons.editList")}
               </Button>
             </Link>
