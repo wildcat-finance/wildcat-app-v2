@@ -21,7 +21,7 @@ export default function Lender() {
     setTab(newTab)
   }
 
-  const showConnectedData = !isConnected || !isWrongNetwork
+  const showConnectedData = isConnected && !isWrongNetwork
 
   return (
     <Box sx={{ height: "calc(100vh - 43px - 43px - 52px)", overflow: "auto" }}>
@@ -42,11 +42,11 @@ export default function Lender() {
             onChange={handleTabsChange}
             aria-label="Lender overview tabs"
           >
-            <Tab value="markets" label="All Markets" />
+            <Tab value="markets" label="All markets" />
             <Tab value="mla" label="MLA" />
           </Tabs>
         ) : (
-          <Typography variant="title2">All Markets</Typography>
+          <Typography variant="title2">All markets</Typography>
         )}
       </Box>
 

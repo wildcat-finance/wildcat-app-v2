@@ -1,21 +1,55 @@
 import * as React from "react"
+import { useEffect, useRef } from "react"
 
 import { Box } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { LenderRole } from "@wildcatfi/wildcat-sdk"
-import { Element as ScrollElement } from "react-scroll"
 
 import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { MarketsTableAccordion } from "@/app/[locale]/lender/components/MarketsTab/MarketsTableAccordion"
 import { OtherMarketsTable } from "@/app/[locale]/lender/components/MarketsTab/OtherMarketsTable"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
-import { useAppSelector } from "@/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import {
+  setActiveAmount,
+  setOtherAmount,
+  setScrollTarget,
+  setTerminatedAmount,
+} from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 
 import { MarketsTabProps } from "./interface"
 import { filterMarketAccounts, getColumns, getRows } from "./utils"
 
 export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
+  const dispatch = useAppDispatch()
+
+  const scrollTargetId = useAppSelector(
+    (state) => state.marketsOverviewSidebar.scrollTarget,
+  )
+
+  const activeMarketsRef = useRef<HTMLDivElement>(null)
+  const terminatedMarketsRef = useRef<HTMLDivElement>(null)
+  const otherMarketsRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (scrollTargetId === "active-markets" && activeMarketsRef.current) {
+      activeMarketsRef.current.scrollIntoView({ behavior: "smooth" })
+      dispatch(setScrollTarget(null))
+    }
+    if (
+      scrollTargetId === "terminated-markets" &&
+      terminatedMarketsRef.current
+    ) {
+      terminatedMarketsRef.current.scrollIntoView({ behavior: "smooth" })
+      dispatch(setScrollTarget(null))
+    }
+    if (scrollTargetId === "other-markets" && otherMarketsRef.current) {
+      otherMarketsRef.current.scrollIntoView({ behavior: "smooth" })
+      dispatch(setScrollTarget(null))
+    }
+  }, [scrollTargetId])
+
   const filterByMarketName = useAppSelector(
     (state) => state.marketsOverviewSidebar.marketName,
   )
@@ -80,6 +114,18 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
     filterByAsset,
   )
 
+  useEffect(() => {
+    dispatch(
+      setActiveAmount(filteredActiveLenderMarketAccounts.length.toString()),
+    )
+    dispatch(setTerminatedAmount(terminatedMarketAccounts.length.toString()))
+    dispatch(setOtherAmount(filteredOtherMarketAccounts.length.toString()))
+  }, [
+    filteredActiveLenderMarketAccounts,
+    filteredOtherMarketAccounts,
+    terminatedMarketAccounts,
+  ])
+
   return (
     <Box
       sx={{
@@ -93,7 +139,7 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
     >
       {showConnectedData && (
         <Box>
-          <Box id="active-lender-markets">
+          <Box id="active-lender-markets" ref={activeMarketsRef}>
             <MarketsTableAccordion
               label="Your active markets"
               noMarketsTitle="No active markets"
@@ -129,7 +175,11 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
           </Box>
 
           {!!terminatedMarketAccounts.length && (
-            <Box marginTop="16px" id="terminated-lender-markets">
+            <Box
+              marginTop="16px"
+              id="terminated-lender-markets"
+              ref={terminatedMarketsRef}
+            >
               <MarketsTableAccordion
                 type="terminated"
                 label="Your terminated markets"
@@ -157,17 +207,15 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
         </Box>
       )}
 
-      <Box marginTop="16px" id="scroll-container-id">
-        <ScrollElement name="other-markets">
-          <OtherMarketsTable
-            isLoading={isLoading}
-            tableColumns={getColumns(true)}
-            tableRows={getRows(filteredOtherMarketAccounts, borrowers ?? [])}
-            assetFilter={filterByAsset}
-            statusFilter={filterByStatus}
-            nameFilter={filterByMarketName}
-          />
-        </ScrollElement>
+      <Box marginTop="16px" id="scroll-container-id" ref={otherMarketsRef}>
+        <OtherMarketsTable
+          isLoading={isLoading}
+          tableColumns={getColumns(true)}
+          tableRows={getRows(filteredOtherMarketAccounts, borrowers ?? [])}
+          assetFilter={filterByAsset}
+          statusFilter={filterByStatus}
+          nameFilter={filterByMarketName}
+        />
       </Box>
     </Box>
   )

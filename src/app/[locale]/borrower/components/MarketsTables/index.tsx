@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useEffect, useRef } from "react"
 
 import { Box, Typography } from "@mui/material"
 import { Market } from "@wildcatfi/wildcat-sdk"
@@ -15,7 +15,13 @@ import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { MarketsTablesContainer } from "@/app/[locale]/borrower/page-style"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetController } from "@/hooks/useGetController"
-import { useAppSelector } from "@/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import {
+  setActiveAmount,
+  setOtherAmount,
+  setScrollTarget,
+  setTerminatedAmount,
+} from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import {
   getMarketStatus,
   MarketAssets,
@@ -61,6 +67,7 @@ const filterMarketsByAssetAndStatus = (
 
 export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
   const { t } = useTranslation()
+  const dispatch = useAppDispatch()
 
   const { address, isConnected } = useAccount()
   const { isWrongNetwork } = useCurrentNetwork()
@@ -121,6 +128,40 @@ export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
   const showBorrowerTables =
     !isWrongNetwork && isConnected && isRegisteredBorrower
 
+  const scrollTargetId = useAppSelector(
+    (state) => state.marketsOverviewSidebar.scrollTarget,
+  )
+
+  const activeMarketsRef = useRef<HTMLDivElement>(null)
+  const terminatedMarketsRef = useRef<HTMLDivElement>(null)
+  const otherMarketsRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (scrollTargetId === "active-markets" && activeMarketsRef.current) {
+      activeMarketsRef.current.scrollIntoView({ behavior: "smooth" })
+      dispatch(setScrollTarget(null))
+    }
+    if (
+      scrollTargetId === "terminated-markets" &&
+      terminatedMarketsRef.current
+    ) {
+      terminatedMarketsRef.current.scrollIntoView({ behavior: "smooth" })
+      dispatch(setScrollTarget(null))
+    }
+    if (scrollTargetId === "other-markets" && otherMarketsRef.current) {
+      otherMarketsRef.current.scrollIntoView({ behavior: "smooth" })
+      dispatch(setScrollTarget(null))
+    }
+  }, [scrollTargetId])
+
+  useEffect(() => {
+    dispatch(setActiveAmount((activeBorrowerMarkets ?? []).length.toString()))
+    dispatch(
+      setTerminatedAmount((terminatedBorrowerMarkets ?? []).length.toString()),
+    )
+    dispatch(setOtherAmount((filteredOtherMarkets ?? []).length.toString()))
+  }, [activeBorrowerMarkets, terminatedBorrowerMarkets, filteredOtherMarkets])
+
   return (
     <Box
       sx={MarketsTablesContainer}
@@ -130,7 +171,7 @@ export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
     >
       {showBorrowerTables && (
         <Box>
-          <Box>
+          <Box ref={activeMarketsRef}>
             <BorrowerMarketsTable
               type="active"
               label={t("borrowerMarketList.table.title.active")}
@@ -149,7 +190,7 @@ export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
             />
           </Box>
 
-          <Box marginTop="16px">
+          <Box marginTop="16px" ref={terminatedMarketsRef}>
             <BorrowerMarketsTable
               type="terminated"
               label={t("borrowerMarketList.table.title.terminated")}
@@ -167,7 +208,7 @@ export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
         </Box>
       )}
 
-      <Box marginTop="16px">
+      <Box marginTop="16px" ref={otherMarketsRef}>
         {!isWrongNetwork ? (
           <OthersMarketsTable
             tableData={filteredOtherMarkets || []}

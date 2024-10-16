@@ -2,22 +2,28 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
 import { MarketStatus } from "@/utils/marketStatus"
 
-export type MarketsOverviewSidebarSliceType = {
-  marketName: string
-  marketsStatuses: MarketStatus[]
-  marketsAssets: { name: string; address: string }[]
-}
+import { MarketsOverviewSidebarSliceType } from "./interface"
 
 const initialState: MarketsOverviewSidebarSliceType = {
   marketName: "",
   marketsStatuses: [],
   marketsAssets: [],
+  scrollTarget: null,
 }
 
 const marketsOverviewSidebarSlice = createSlice({
   name: "marketsOverviewSidebar",
   initialState,
   reducers: {
+    setActiveAmount: (state, action: PayloadAction<string>) => {
+      state.activeMarketsAmount = action.payload
+    },
+    setTerminatedAmount: (state, action: PayloadAction<string>) => {
+      state.terminatedMarketsAmount = action.payload
+    },
+    setOtherAmount: (state, action: PayloadAction<string>) => {
+      state.otherMarketsAmount = action.payload
+    },
     setMarketName: (state, action: PayloadAction<string>) => {
       state.marketName = action.payload
     },
@@ -30,14 +36,21 @@ const marketsOverviewSidebarSlice = createSlice({
     ) => {
       state.marketsAssets = action.payload
     },
+    setScrollTarget: (state, action: PayloadAction<string | null>) => {
+      state.scrollTarget = action.payload
+    },
     resetSidebarSlice: () => initialState,
   },
 })
 
 export const {
+  setActiveAmount,
+  setTerminatedAmount,
+  setOtherAmount,
   setMarketName,
   setMarketsStatuses,
   setMarketsAssets,
   resetSidebarSlice,
+  setScrollTarget,
 } = marketsOverviewSidebarSlice.actions
 export default marketsOverviewSidebarSlice.reducer

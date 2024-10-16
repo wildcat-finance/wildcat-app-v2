@@ -11,16 +11,19 @@ import {
 } from "@mui/material"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import Icon from "@/assets/icons/search_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { FilterSelect } from "@/components/FilterSelect"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   resetSidebarSlice,
   setMarketName,
   setMarketsAssets,
   setMarketsStatuses,
+  setScrollTarget,
 } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { COLORS } from "@/theme/colors"
 import { MarketAssets, MarketStatus } from "@/utils/marketStatus"
@@ -69,9 +72,11 @@ export const SidebarButton = ({
     }}
   >
     <Typography variant="text3">{label}</Typography>
-    <Typography variant="text3" color={COLORS.santasGrey}>
-      {amount}
-    </Typography>
+    {amount !== "0" && (
+      <Typography variant="text3" color={COLORS.santasGrey}>
+        {amount}
+      </Typography>
+    )}
   </Box>
 )
 
@@ -79,6 +84,10 @@ export const MarketsTabSidebar = () => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const pathname = usePathname()
+
+  const { isConnected } = useAccount()
+  const { isWrongNetwork } = useCurrentNetwork()
+  const showConnectedData = isConnected && !isWrongNetwork
 
   const [selectedAssets, setSelectedAssets] = useState<
     { name: string; address: string }[]
@@ -89,6 +98,16 @@ export const MarketsTabSidebar = () => {
   )
   const marketsStatuses = useAppSelector(
     (state) => state.marketsOverviewSidebar.marketsStatuses,
+  )
+
+  const activeAmount = useAppSelector(
+    (state) => state.marketsOverviewSidebar.activeMarketsAmount,
+  )
+  const terminatedAmount = useAppSelector(
+    (state) => state.marketsOverviewSidebar.terminatedMarketsAmount,
+  )
+  const otherAmount = useAppSelector(
+    (state) => state.marketsOverviewSidebar.otherMarketsAmount,
   )
 
   const handleChangeMarketStatus = (
@@ -117,6 +136,12 @@ export const MarketsTabSidebar = () => {
   const handleClickReset = () => {
     setSelectedAssets([])
     dispatch(resetSidebarSlice())
+  }
+
+  const scrollToMarkets = (
+    target: "active-markets" | "terminated-markets" | "other-markets",
+  ) => {
+    dispatch(setScrollTarget(target))
   }
 
   useEffect(() => {
@@ -177,9 +202,25 @@ export const MarketsTabSidebar = () => {
             marginTop: "10px",
           }}
         >
-          <SidebarButton label="Your Active Markets" />
-          <SidebarButton label="Your Terminated Markets" />
-          <SidebarButton label="Other Markets" />
+          {showConnectedData && (
+            <SidebarButton
+              label="Your Active Markets"
+              amount={activeAmount}
+              onClick={() => scrollToMarkets("active-markets")}
+            />
+          )}
+          {showConnectedData && (
+            <SidebarButton
+              label="Your Terminated Markets"
+              amount={terminatedAmount}
+              onClick={() => scrollToMarkets("terminated-markets")}
+            />
+          )}
+          <SidebarButton
+            label="Other Markets"
+            amount={otherAmount}
+            onClick={() => scrollToMarkets("other-markets")}
+          />
         </Box>
       </Box>
 
