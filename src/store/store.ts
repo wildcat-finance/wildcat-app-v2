@@ -4,6 +4,7 @@ import borrowerLendersTabSidebarSlice from "./slices/borrowerLendersTabSidebarSl
 import borrowerOverviewSlice from "./slices/borrowerOverviewSlice/borrowerOverviewSlice"
 import editLendersListSlice from "./slices/editLendersListSlice/editLendersListSlice"
 import highlightSidebarSlice from "./slices/highlightSidebarSlice/highlightSidebarSlice"
+import lenderMarketRoutingSlice from "./slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import marketsOverviewSidebarSlice from "./slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import notificationsSidebarSlice from "./slices/notificationsSidebarSlice/notificationsSidebarSlice"
 import notificationsSlice from "./slices/notificationsSlice/notificationsSlice"
@@ -15,6 +16,7 @@ export const makeStore = () =>
       routing: routingSlice,
       marketsOverviewSidebar: marketsOverviewSidebarSlice,
       highlightSidebar: highlightSidebarSlice,
+      lenderMarketRouting: lenderMarketRoutingSlice,
       editLendersList: editLendersListSlice,
       borrowerOverview: borrowerOverviewSlice,
       notifications: notificationsSlice,
