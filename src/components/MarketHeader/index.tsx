@@ -67,7 +67,7 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
         <Typography
           variant="title1"
           sx={{
-            maxWidth: "550px",
+            maxWidth: remainingTime ? "430px" : "550px",
             whiteSpace: "nowrap",
             textOverflow: "ellipsis",
             overflow: "hidden",

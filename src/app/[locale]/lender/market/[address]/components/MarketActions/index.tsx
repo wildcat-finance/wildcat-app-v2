@@ -5,6 +5,7 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { StatementModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/StatementModal"
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
+import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { formatTokenWithCommas } from "@/utils/formatters"
@@ -85,11 +86,7 @@ export const MarketActions = ({ marketAccount }: MarketActionsProps) => {
           amount={formatTokenWithCommas(marketAccount.marketBalance)}
           asset={market.underlyingToken.symbol}
         >
-          {!hideWithdraw && (
-            <Button variant="contained" size="large" sx={{ width: "152px" }}>
-              Withdraw
-            </Button>
-          )}
+          {!hideWithdraw && <WithdrawModal marketAccount={marketAccount} />}
         </TransactionBlock>
       </Box>
     </>

@@ -92,6 +92,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
   }
 
   const disableApprove =
+    !!depositError ||
     market.isClosed ||
     depositTokenAmount.raw.isZero() ||
     depositTokenAmount.raw.gt(market.maximumDeposit.raw) ||
@@ -100,6 +101,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     isApproving
 
   const disableDeposit =
+    !!depositError ||
     market.isClosed ||
     depositTokenAmount.raw.isZero() ||
     depositTokenAmount.raw.gt(market.maximumDeposit.raw) ||
@@ -122,14 +124,12 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
   }, [isDepositError, isDeposed])
 
   useEffect(() => {
-    if (amount === "" || amount === "0") {
+    if (amount === "" || amount === "0" || depositStep === "Ready") {
       setDepositError(undefined)
       return
     }
 
-    if (depositStep !== "Ready") {
-      setDepositError(SDK_ERRORS_MAPPING.deposit[depositStep])
-    }
+    setDepositError(SDK_ERRORS_MAPPING.deposit[depositStep])
   }, [depositStep, amount])
 
   return (
@@ -158,22 +158,56 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
         }}
       >
         {showForm && (
-          <TxModalHeader
-            title="Deposit"
-            arrowOnClick={
-              modal.hideArrowButton || !showForm ? null : modal.handleClickBack
-            }
-            crossOnClick={modal.hideCrossButton ? null : modal.handleCloseModal}
-          />
-        )}
+          <>
+            <TxModalHeader
+              title="Deposit"
+              arrowOnClick={
+                modal.hideArrowButton || !showForm
+                  ? null
+                  : modal.handleClickBack
+              }
+              crossOnClick={
+                modal.hideCrossButton ? null : modal.handleCloseModal
+              }
+            />
 
-        {showForm && (
-          <Box width="100%" height="100%" padding="0 24px">
-            {modal.gettingValueStep && (
-              <>
+            <Box width="100%" height="100%" padding="0 24px">
+              {modal.gettingValueStep && (
+                <>
+                  <ModalDataItem
+                    title="Available to deposit"
+                    value={formatTokenWithCommas(marketAccount.maximumDeposit, {
+                      withSymbol: true,
+                    })}
+                    containerSx={{
+                      padding: "0 12px",
+                      margin: "16px 0 20px",
+                    }}
+                  />
+
+                  <NumberTextField
+                    label={formatTokenWithCommas(marketAccount.maximumDeposit)}
+                    size="medium"
+                    style={{ width: "100%" }}
+                    value={amount}
+                    onChange={handleAmountChange}
+                    endAdornment={
+                      <TextfieldChip
+                        text={market.underlyingToken.symbol}
+                        size="small"
+                      />
+                    }
+                    disabled={isApproving}
+                    error={!!depositError}
+                    helperText={depositError}
+                  />
+                </>
+              )}
+
+              {modal.approvedStep && (
                 <ModalDataItem
-                  title="Available to deposit"
-                  value={formatTokenWithCommas(marketAccount.maximumDeposit, {
+                  title="Deposit Sum"
+                  value={formatTokenWithCommas(depositTokenAmount, {
                     withSymbol: true,
                   })}
                   containerSx={{
@@ -181,39 +215,9 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
                     margin: "16px 0 20px",
                   }}
                 />
-
-                <NumberTextField
-                  label={formatTokenWithCommas(marketAccount.maximumDeposit)}
-                  size="medium"
-                  style={{ width: "100%" }}
-                  value={amount}
-                  onChange={handleAmountChange}
-                  endAdornment={
-                    <TextfieldChip
-                      text={market.underlyingToken.symbol}
-                      size="small"
-                    />
-                  }
-                  disabled={isApproving}
-                  error={!!depositError}
-                  helperText={depositError}
-                />
-              </>
-            )}
-
-            {modal.approvedStep && (
-              <ModalDataItem
-                title="Deposit Sum"
-                value={formatTokenWithCommas(depositTokenAmount, {
-                  withSymbol: true,
-                })}
-                containerSx={{
-                  padding: "0 12px",
-                  margin: "16px 0 20px",
-                }}
-              />
-            )}
-          </Box>
+              )}
+            </Box>
+          </>
         )}
 
         {isDepositing && <LoadingModal txHash={txHash} />}
