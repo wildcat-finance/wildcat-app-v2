@@ -48,7 +48,7 @@ export const ErrorModal = ({
         </Box>
       </Box>
 
-      {txHash !== "" && (
+      {txHash !== "" && txHash !== undefined && (
         <LinkGroup
           type="etherscan"
           linkValue={`${EtherscanBaseUrl}/tx/${txHash}`}

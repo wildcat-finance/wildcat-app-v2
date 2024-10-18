@@ -48,6 +48,8 @@ export const useWithdraw = (
 
           await checkTransaction()
         }
+
+        return tx.transaction.wait()
       }
 
       await withdraw()

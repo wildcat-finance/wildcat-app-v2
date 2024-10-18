@@ -13,6 +13,7 @@ import {
   SkeletonStyle,
 } from "@/app/[locale]/borrower/market/[address]/style"
 import { MarketActions } from "@/app/[locale]/lender/market/[address]/components/MarketActions"
+import { useGetLenderWithdrawals } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
 import { LenderStatus } from "@/app/[locale]/lender/market/interface"
 import { MarketHeader } from "@/components/MarketHeader"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -53,8 +54,11 @@ export default function LenderMarketDetails({
   const { data: market, isLoading: isMarketLoading } = useGetMarket({ address })
   const { data: marketAccount, isLoadingInitial: isMarketAccountLoading } =
     useLenderMarketAccount(market)
+  const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
+    useGetLenderWithdrawals(market)
 
-  const isLoading = isMarketLoading || isMarketAccountLoading
+  const isLoading =
+    isMarketLoading || isMarketAccountLoading || isWithdrawalsLoading
 
   const authorizedInMarket =
     marketAccount &&
@@ -125,7 +129,10 @@ export default function LenderMarketDetails({
         >
           {authorizedInMarket &&
             currentSection === LenderMarketSections.TRANSACTIONS && (
-              <MarketActions marketAccount={marketAccount} />
+              <MarketActions
+                marketAccount={marketAccount}
+                withdrawals={withdrawals}
+              />
             )}
         </Box>
       </Box>
