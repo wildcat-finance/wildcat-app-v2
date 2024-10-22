@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { LenderWithdrawalStatus, Market } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
-import { GET_MARKET_KEY } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
+import { GET_MARKET_KEY } from "@/hooks/useGetMarket"
 import { GET_MARKET_ACCOUNT_KEY } from "@/hooks/useGetMarketAccount"
 
 export const useClaim = (

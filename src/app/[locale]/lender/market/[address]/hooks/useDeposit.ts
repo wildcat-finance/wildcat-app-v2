@@ -5,8 +5,8 @@ import { BaseTransaction } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
-import { GET_MARKET_KEY } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { GET_MARKET_KEY } from "@/hooks/useGetMarket"
 import { GET_MARKET_ACCOUNT_KEY } from "@/hooks/useGetMarketAccount"
 
 export const useDeposit = (

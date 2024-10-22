@@ -3,6 +3,7 @@ import * as React from "react"
 
 import { Box, Button, Dialog } from "@mui/material"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
@@ -23,6 +24,7 @@ export type WithdrawModalProps = {
 }
 
 export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
+  const { t } = useTranslation()
   const { market } = marketAccount
 
   const [amount, setAmount] = useState("")
@@ -113,7 +115,7 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
         sx={{ width: "152px" }}
         onClick={handleOpenModal}
       >
-        Withdraw
+        {t("lenderMarketDetails.transactions.withdraw.button")}
       </Button>
 
       <Dialog
@@ -124,7 +126,7 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
         {showForm && (
           <>
             <TxModalHeader
-              title="Withdraw"
+              title={t("lenderMarketDetails.transactions.withdraw.modal.title")}
               arrowOnClick={
                 modal.hideArrowButton || !showForm
                   ? null
@@ -137,7 +139,9 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
 
             <Box width="100%" height="100%" padding="0 24px">
               <ModalDataItem
-                title="Available to withdraw"
+                title={t(
+                  "lenderMarketDetails.transactions.withdraw.modal.available",
+                )}
                 value={`${formatTokenWithCommas(marketAccount.marketBalance)} ${
                   market.underlyingToken.symbol
                 }`}
@@ -181,7 +185,9 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
         )}
 
         <TxModalFooter
-          mainBtnText="Confirm"
+          mainBtnText={t(
+            "lenderMarketDetails.transactions.withdraw.modal.buttons.confirm",
+          )}
           mainBtnOnClick={handleWithdraw}
           disableMainBtn={disableWithdraw}
           hideButtons={!showForm}

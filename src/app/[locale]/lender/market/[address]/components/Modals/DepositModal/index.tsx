@@ -2,6 +2,7 @@ import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
 
 import { Box, Button, Dialog } from "@mui/material"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
@@ -28,6 +29,8 @@ export type DepositModalProps = {
 }
 
 export const DepositModal = ({ marketAccount }: DepositModalProps) => {
+  const { t } = useTranslation()
+
   const { market } = marketAccount
 
   const [amount, setAmount] = useState("")
@@ -98,6 +101,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     depositTokenAmount.raw.gt(market.maximumDeposit.raw) ||
     depositStep === "Ready" ||
     depositStep === "InsufficientBalance" ||
+    modal.approvedStep ||
     isApproving
 
   const disableDeposit =
@@ -140,7 +144,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
         size="large"
         sx={{ width: "152px" }}
       >
-        Deposit
+        {t("lenderMarketDetails.transactions.deposit.button")}
       </Button>
 
       <Dialog
@@ -160,7 +164,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
         {showForm && (
           <>
             <TxModalHeader
-              title="Deposit"
+              title={t("lenderMarketDetails.transactions.deposit.modal.title")}
               arrowOnClick={
                 modal.hideArrowButton || !showForm
                   ? null
@@ -175,7 +179,9 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
               {modal.gettingValueStep && (
                 <>
                   <ModalDataItem
-                    title="Available to deposit"
+                    title={t(
+                      "lenderMarketDetails.transactions.deposit.modal.available",
+                    )}
                     value={formatTokenWithCommas(marketAccount.maximumDeposit, {
                       withSymbol: true,
                     })}
@@ -206,7 +212,9 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
 
               {modal.approvedStep && (
                 <ModalDataItem
-                  title="Deposit Sum"
+                  title={t(
+                    "lenderMarketDetails.transactions.deposit.modal.confirm",
+                  )}
                   value={formatTokenWithCommas(depositTokenAmount, {
                     withSymbol: true,
                   })}
@@ -241,7 +249,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
         )}
 
         <TxModalFooter
-          mainBtnText="Deposit"
+          mainBtnText={t("lenderMarketDetails.transactions.deposit.button")}
           secondBtnText={isApprovedButton ? "Approved" : "Approve"}
           secondBtnIcon={isApprovedButton}
           mainBtnOnClick={handleDeposit}

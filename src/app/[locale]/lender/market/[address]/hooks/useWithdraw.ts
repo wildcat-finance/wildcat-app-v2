@@ -6,8 +6,8 @@ import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { parseUnits } from "ethers/lib/utils"
 import { useAccount } from "wagmi"
 
-import { GET_MARKET_KEY } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
 import { GET_WITHDRAWALS_KEY } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
+import { GET_MARKET_KEY } from "@/hooks/useGetMarket"
 
 export const useWithdraw = (
   marketAccount: MarketAccount,

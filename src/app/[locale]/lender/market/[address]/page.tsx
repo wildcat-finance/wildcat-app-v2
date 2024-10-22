@@ -4,20 +4,11 @@ import { useEffect } from "react"
 import * as React from "react"
 
 import { Box, Skeleton, Typography } from "@mui/material"
-import { LenderRole, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
-import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
-import {
-  SkeletonContainer,
-  SkeletonStyle,
-} from "@/app/[locale]/borrower/market/[address]/style"
-import { CapacityBarChart } from "@/app/[locale]/lender/market/[address]/components/CapacityBarChart"
-import { MarketActions } from "@/app/[locale]/lender/market/[address]/components/MarketActions"
-import { useGetLenderWithdrawals } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
-import { LenderStatus } from "@/app/[locale]/lender/market/interface"
 import { MarketHeader } from "@/components/MarketHeader"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useGetMarket } from "@/hooks/useGetMarket"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   LenderMarketSections,
@@ -25,24 +16,13 @@ import {
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import { COLORS } from "@/theme/colors"
 
+import { CapacityBarChart } from "./components/CapacityBarChart"
+import { MarketActions } from "./components/MarketActions"
+import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
-
-// TODO: move to utils
-const getEffectiveLenderRole = (account: MarketAccount): LenderStatus => {
-  if (account.role === LenderRole.Null && account.isAuthorizedOnController)
-    return LenderStatus.DepositAndWithdraw
-  switch (account.role) {
-    case LenderRole.DepositAndWithdraw:
-      return LenderStatus.DepositAndWithdraw
-    case LenderRole.WithdrawOnly:
-      return LenderStatus.WithdrawOnly
-    case LenderRole.Blocked:
-      return LenderStatus.Blocked
-    case LenderRole.Null:
-    default:
-      return LenderStatus.Null
-  }
-}
+import { LenderStatus } from "./interface"
+import { SkeletonContainer, SkeletonStyle } from "./style"
+import { getEffectiveLenderRole } from "./utils"
 
 export default function LenderMarketDetails({
   params: { address },

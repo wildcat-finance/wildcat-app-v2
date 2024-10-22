@@ -30,8 +30,6 @@ export const CapacityBarChart = ({ marketAccount }: CapacityBarChartProps) => {
 
   const marketCapacity = marketAccount.market.maxTotalSupply
 
-  console.log(bars.length === 1, "bars.length === 1")
-
   return (
     <Box marginTop="12px">
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>

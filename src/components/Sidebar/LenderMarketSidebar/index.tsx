@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { Box, Button, Skeleton } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { BackButton } from "@/components/BackButton"
 import { MenuItemButton } from "@/components/Sidebar/MarketSidebar/style"
@@ -13,6 +14,8 @@ import {
 import { COLORS } from "@/theme/colors"
 
 export const LenderMarketSidebar = () => {
+  const { t } = useTranslation()
+
   const dispatch = useAppDispatch()
 
   const currentSection = useAppSelector(
@@ -79,7 +82,7 @@ export const LenderMarketSidebar = () => {
                     : "transparent",
               }}
             >
-              Deposit and Withdraw
+              {t("lenderMarketDetails.sidebar.actions")}
             </Button>
 
             <Button
@@ -94,7 +97,7 @@ export const LenderMarketSidebar = () => {
                     : "transparent",
               }}
             >
-              Status
+              {t("lenderMarketDetails.sidebar.status")}
             </Button>
 
             <Button
@@ -109,7 +112,7 @@ export const LenderMarketSidebar = () => {
                     : "transparent",
               }}
             >
-              Withdrawal Requests
+              {t("lenderMarketDetails.sidebar.requests")}
             </Button>
           </Box>
         )}

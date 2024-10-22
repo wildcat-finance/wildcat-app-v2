@@ -3,6 +3,7 @@ import * as React from "react"
 
 import { Button, Dialog } from "@mui/material"
 import { Market } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
@@ -17,6 +18,8 @@ export type ClaimModalProps = {
 }
 
 export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
+  const { t } = useTranslation()
+
   const [isOpen, setIsOpen] = useState(false)
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
@@ -65,7 +68,7 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
         onClick={handleClaim}
         disabled={!signer}
       >
-        Claim money
+        {t("lenderMarketDetails.transactions.claim.button")}
       </Button>
 
       <Dialog

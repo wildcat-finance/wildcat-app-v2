@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { Box, Button, Divider, Typography } from "@mui/material"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import { StatementModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/StatementModal"
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
@@ -22,6 +23,7 @@ export const MarketActions = ({
   marketAccount,
   withdrawals,
 }: MarketActionsProps) => {
+  const { t } = useTranslation()
   const { market } = marketAccount
 
   const [isStatementOpen, setIsStatementOpen] = React.useState(false)
@@ -57,7 +59,7 @@ export const MarketActions = ({
           onClick={() => handleAddToken()}
           disabled={isAddingToken && canAddToken}
         >
-          Add Token to Wallet
+          {t("lenderMarketDetails.buttons.addToken")}
         </Button>
 
         <Button
@@ -66,7 +68,7 @@ export const MarketActions = ({
           size="small"
           onClick={handleOpenStatement}
         >
-          Download Statement
+          {t("lenderMarketDetails.buttons.statement")}
         </Button>
 
         <StatementModal
@@ -86,8 +88,8 @@ export const MarketActions = ({
         }}
       >
         <TransactionBlock
-          title="Available to deposit"
-          tooltip="TBD"
+          title={t("lenderMarketDetails.transactions.deposit.title")}
+          tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
           amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
           asset={market.underlyingToken.symbol}
         >
@@ -95,8 +97,8 @@ export const MarketActions = ({
         </TransactionBlock>
 
         <TransactionBlock
-          title="Available to withdraw"
-          tooltip="TBD"
+          title={t("lenderMarketDetails.transactions.withdraw.title")}
+          tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
           amount={formatTokenWithCommas(marketAccount.marketBalance)}
           asset={market.underlyingToken.symbol}
         >
@@ -110,15 +112,16 @@ export const MarketActions = ({
         <>
           <Box width="100%" display="flex" flexDirection="column">
             <Typography variant="title3" sx={{ marginBottom: "8px" }}>
-              You have {claimAmountString} to claim
+              {t("lenderMarketDetails.transactions.claim.title.beginning")}{" "}
+              {claimAmountString}{" "}
+              {t("lenderMarketDetails.transactions.claim.title.ending")}
             </Typography>
             <Typography
               variant="text3"
               sx={{ marginBottom: hideClaim ? "0" : "24px" }}
               color={COLORS.santasGrey}
             >
-              You have only Terminated Markets. You can create a new one or
-              check Terminated
+              {t("lenderMarketDetails.transactions.claim.subtitle")}
             </Typography>
 
             {!hideClaim && (

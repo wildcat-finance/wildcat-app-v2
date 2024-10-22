@@ -391,5 +391,54 @@
     },
     "viewOnEtherscan": "View on Etherscan",
     "missing": "Missing"
+  },
+
+  "lenderMarketDetails": {
+    "sidebar": {
+      "actions": "Deposit and Withdraw",
+      "status": "Status",
+      "requests": "Withdrawal Requests"
+    },
+    "buttons": {
+      "addToken": "Add Token to Wallet",
+      "statement": "Download Statement"
+    },
+    "transactions": {
+      "deposit": {
+        "button": "Deposit",
+        "title": "Available to deposit",
+        "tooltip": "TBD",
+        "modal": {
+          "title": "Deposit",
+          "available": "Available to deposit",
+          "confirm": "Deposit Sum"
+        }
+      },
+      "withdraw": {
+        "button": "Withdraw",
+        "title": "Available to withdraw",
+        "tooltip": "TBD",
+        "modal": {
+          "title": "Withdraw",
+          "available": "Available to withdraw",
+          "buttons": {
+            "confirm": "Confirm"
+          }
+        }
+      },
+      "claim": {
+        "title": {
+          "beginning": "You have",
+          "ending": "to claim"
+        },
+        "subtitle": "You have only Terminated Markets. You can create a new one or check Terminated",
+        "button": "Claim money"
+      }
+    },
+    "barchart": {
+      "capacity": {
+        "title": "Capacity"
+      }
+    }
   }
 }
