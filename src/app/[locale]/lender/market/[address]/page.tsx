@@ -21,7 +21,7 @@ import { MarketActions } from "./components/MarketActions"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
-import { SkeletonContainer, SkeletonStyle } from "./style"
+import { SectionContainer, SkeletonContainer, SkeletonStyle } from "./style"
 import { getEffectiveLenderRole } from "./utils"
 
 export default function LenderMarketDetails({
@@ -100,14 +100,7 @@ export default function LenderMarketDetails({
       <Box width="69%">
         <MarketHeader marketAccount={marketAccount} />
 
-        <Box
-          sx={{
-            width: "100%",
-            overflow: "hidden",
-            overflowY: "visible",
-            height: "calc(100vh - 43px - 43px - 52px - 60px - 52px)",
-          }}
-        >
+        <Box sx={SectionContainer}>
           {authorizedInMarket &&
             currentSection === LenderMarketSections.TRANSACTIONS && (
               <MarketActions

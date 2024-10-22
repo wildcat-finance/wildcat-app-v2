@@ -22,11 +22,8 @@ import { EtherscanBaseUrl } from "@/config/network"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
+import { DepositModalProps } from "./interface"
 import { useDeposit } from "../../../hooks/useDeposit"
-
-export type DepositModalProps = {
-  marketAccount: MarketAccount
-}
 
 export const DepositModal = ({ marketAccount }: DepositModalProps) => {
   const { t } = useTranslation()

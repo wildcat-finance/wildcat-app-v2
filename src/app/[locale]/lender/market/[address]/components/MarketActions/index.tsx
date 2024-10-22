@@ -1,23 +1,19 @@
 import * as React from "react"
 
 import { Box, Button, Divider, Typography } from "@mui/material"
-import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { StatementModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/StatementModal"
+import { TransactionsContainer } from "@/app/[locale]/lender/market/[address]/components/MarketActions/styles"
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
-import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
-export type MarketActionsProps = {
-  marketAccount: MarketAccount
-  withdrawals: LenderWithdrawalsForMarketResult
-}
+import { MarketActionsProps } from "./interface"
 
 export const MarketActions = ({
   marketAccount,
@@ -79,14 +75,7 @@ export const MarketActions = ({
 
       <Divider sx={{ margin: "32px 0" }} />
 
-      <Box
-        sx={{
-          width: "100%",
-          maxWidth: "807px",
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
+      <Box sx={TransactionsContainer}>
         <TransactionBlock
           title={t("lenderMarketDetails.transactions.deposit.title")}
           tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}

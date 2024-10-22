@@ -2,7 +2,7 @@ import { ChangeEvent, useEffect, useMemo, useState } from "react"
 import * as React from "react"
 
 import { Box, Button, Dialog } from "@mui/material"
-import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
@@ -19,9 +19,7 @@ import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
-export type WithdrawModalProps = {
-  marketAccount: MarketAccount
-}
+import { WithdrawModalProps } from "./interface"
 
 export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
   const { t } = useTranslation()

@@ -2,20 +2,15 @@ import { useEffect, useState } from "react"
 import * as React from "react"
 
 import { Button, Dialog } from "@mui/material"
-import { Market } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { useClaim } from "@/app/[locale]/lender/market/[address]/hooks/useClaim"
-import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 
-export type ClaimModalProps = {
-  market: Market
-  withdrawals: LenderWithdrawalsForMarketResult
-}
+import { ClaimModalProps } from "./interface"
 
 export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
   const { t } = useTranslation()

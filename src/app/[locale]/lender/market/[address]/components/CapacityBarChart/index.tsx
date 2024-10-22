@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material"
-import { MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import { MARKET_BAR_ORDER } from "@/app/[locale]/lender/market/[address]/constants"
 import { useGenerateLenderBarData } from "@/app/[locale]/lender/market/[address]/hooks/useGenerateLenderBarData"
@@ -8,12 +8,11 @@ import { LegendItem } from "@/components/BarChart/LegendItem"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import "./styles.css"
-
-export type CapacityBarChartProps = {
-  marketAccount: MarketAccount
-}
+import { CapacityBarChartProps } from "./interface"
 
 export const CapacityBarChart = ({ marketAccount }: CapacityBarChartProps) => {
+  const { t } = useTranslation()
+
   const barRawData = useGenerateLenderBarData(marketAccount)
 
   const barOrders = MARKET_BAR_ORDER.healthyBarchartOrder
@@ -33,7 +32,9 @@ export const CapacityBarChart = ({ marketAccount }: CapacityBarChartProps) => {
   return (
     <Box marginTop="12px">
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="title3">Market Capacity</Typography>
+        <Typography variant="title3">
+          {t("lenderMarketDetails.barchart.capacity.title")}
+        </Typography>
 
         <Box
           sx={{
