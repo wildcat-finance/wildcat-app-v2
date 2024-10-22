@@ -104,7 +104,7 @@ export const MarketActions = ({
         </TransactionBlock>
       </Box>
 
-      <Divider sx={{ margin: "32px 0" }} />
+      <Divider sx={{ margin: "32px 0 40px" }} />
 
       {!market.isClosed && (
         <>
@@ -126,7 +126,7 @@ export const MarketActions = ({
             )}
           </Box>
 
-          <Divider sx={{ margin: "32px 0" }} />
+          <Divider sx={{ margin: "40px 0 32px" }} />
         </>
       )}
     </>

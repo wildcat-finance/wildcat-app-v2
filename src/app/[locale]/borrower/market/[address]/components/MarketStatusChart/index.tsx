@@ -99,7 +99,11 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
       {market.totalDebts.gt(0) && !market.isClosed && (
         <Box className="barchart__container">
           {bars.map((chartItem) => (
-            <BarItem key={chartItem.id} chartItem={chartItem} />
+            <BarItem
+              key={chartItem.id}
+              chartItem={chartItem}
+              isOnlyBarItem={bars.length === 1}
+            />
           ))}
         </Box>
       )}

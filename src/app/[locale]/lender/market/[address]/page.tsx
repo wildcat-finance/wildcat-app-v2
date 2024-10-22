@@ -12,6 +12,7 @@ import {
   SkeletonContainer,
   SkeletonStyle,
 } from "@/app/[locale]/borrower/market/[address]/style"
+import { CapacityBarChart } from "@/app/[locale]/lender/market/[address]/components/CapacityBarChart"
 import { MarketActions } from "@/app/[locale]/lender/market/[address]/components/MarketActions"
 import { useGetLenderWithdrawals } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
 import { LenderStatus } from "@/app/[locale]/lender/market/interface"
@@ -134,6 +135,8 @@ export default function LenderMarketDetails({
                 withdrawals={withdrawals}
               />
             )}
+
+          <CapacityBarChart marketAccount={marketAccount} />
         </Box>
       </Box>
     </Box>
