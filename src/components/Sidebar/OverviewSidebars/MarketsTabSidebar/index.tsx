@@ -151,6 +151,11 @@ export const MarketsTabSidebar = () => {
     dispatch(resetSidebarSlice())
   }, [pathname])
 
+  const defaultFilters =
+    selectedAssets?.length === 0 &&
+    marketsStatuses?.length === 0 &&
+    marketName === ""
+
   return (
     <Box
       sx={{
@@ -333,15 +338,17 @@ export const MarketsTabSidebar = () => {
         options={underlyingAssetsMock}
       />
 
-      <Button
-        onClick={handleClickReset}
-        variant="contained"
-        color="secondary"
-        size="medium"
-        sx={{ height: "32px", padding: "11px" }}
-      >
-        Reset all filters
-      </Button>
+      {!defaultFilters && (
+        <Button
+          onClick={handleClickReset}
+          variant="contained"
+          color="secondary"
+          size="medium"
+          sx={{ height: "32px", padding: "11px" }}
+        >
+          Reset all filters
+        </Button>
+      )}
     </Box>
   )
 }

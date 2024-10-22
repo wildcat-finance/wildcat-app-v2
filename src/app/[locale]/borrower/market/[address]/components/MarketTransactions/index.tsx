@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next"
 
 import DocsIcon from "@/assets/icons/docs_icon.svg"
 import { TransactionBlock } from "@/components/TransactionBlock"
+import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { MarketTransactionsProps } from "./interface"
@@ -96,7 +97,10 @@ export const MarketTransactions = ({
                 padding: "9px 12px",
               }}
             >
-              <SvgIcon fontSize="medium">
+              <SvgIcon
+                fontSize="medium"
+                sx={{ "& path": { stroke: `${COLORS.greySuit}` } }}
+              >
                 <DocsIcon />
               </SvgIcon>
               <Typography variant="text2">Statement</Typography>

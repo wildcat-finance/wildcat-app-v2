@@ -35,7 +35,7 @@ export const MarketParametersItem = ({
     </Box>
 
     <Box sx={MarketParametersItemValueContainer}>
-      {value.toString().length > 25 ? (
+      {value.toString().length > 26 ? (
         <Tooltip title={value} placement="right">
           <Typography
             variant="text3"
