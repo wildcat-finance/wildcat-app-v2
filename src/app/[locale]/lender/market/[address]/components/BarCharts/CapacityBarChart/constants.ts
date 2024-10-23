@@ -15,6 +15,14 @@ export const MARKET_BAR_DATA = {
     healthyTextColor: "#1414144D",
     delinquentTextColor: "#1414144D",
   },
+  loaned: {
+    id: "loaned",
+    label: "Loaned",
+    healthyBgColor: "#EFF0F4",
+    delinquentBgColor: "#EFF0F4",
+    healthyTextColor: "#1414144D",
+    delinquentTextColor: "#1414144D",
+  },
   availableToLend: {
     id: "availableToLend",
     label: "Available to Lend",
@@ -35,5 +43,13 @@ export const MARKET_BAR_ORDER = {
     MARKET_BAR_DATA.myLoan.id,
     MARKET_BAR_DATA.availableToLend.id,
     MARKET_BAR_DATA.otherLoans.id,
+  ],
+  otherBarchartOrder: [
+    MARKET_BAR_DATA.availableToLend.id,
+    MARKET_BAR_DATA.loaned.id,
+  ],
+  otherLegendOrder: [
+    MARKET_BAR_DATA.availableToLend.id,
+    MARKET_BAR_DATA.loaned.id,
   ],
 }

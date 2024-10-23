@@ -14,13 +14,18 @@ import { BarChartProps } from "../interface"
 export const CapacityBarChart = ({
   marketAccount,
   legendType,
-}: BarChartProps & { legendType?: "big" | "small" }) => {
+  isLender,
+}: BarChartProps & { legendType?: "big" | "small"; isLender?: boolean }) => {
   const { t } = useTranslation()
 
   const barRawData = useGenerateCapacityBarData(marketAccount)
 
-  const barOrders = MARKET_BAR_ORDER.healthyBarchartOrder
-  const legendItemsOrder = MARKET_BAR_ORDER.healthyLegendOrder
+  const barOrders = isLender
+    ? MARKET_BAR_ORDER.healthyBarchartOrder
+    : MARKET_BAR_ORDER.otherBarchartOrder
+  const legendItemsOrder = isLender
+    ? MARKET_BAR_ORDER.healthyLegendOrder
+    : MARKET_BAR_ORDER.otherLegendOrder
 
   const bars = barOrders
     .filter((barId) => barRawData[barId] !== undefined)

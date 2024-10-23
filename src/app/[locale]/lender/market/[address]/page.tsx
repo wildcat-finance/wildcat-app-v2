@@ -137,6 +137,7 @@ export default function LenderMarketDetails({
               <CapacityBarChart
                 marketAccount={marketAccount}
                 legendType="big"
+                isLender={authorizedInMarket}
               />
             </Box>
           )}

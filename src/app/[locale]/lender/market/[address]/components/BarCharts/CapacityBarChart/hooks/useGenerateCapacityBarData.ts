@@ -68,6 +68,11 @@ export const useGenerateCapacityBarData = (
     market.totalSupply.gt(0),
   )
   setBarData("availableToLend", market.maximumDeposit, true)
+  setBarData(
+    "loaned",
+    market.totalSupply.sub(account.marketBalance),
+    market.totalSupply.gt(0),
+  )
 
   return barData
 }

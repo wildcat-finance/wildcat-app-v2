@@ -21,6 +21,7 @@ export const BarCharts = ({
     <CapacityBarChart
       marketAccount={marketAccount}
       legendType={isLender ? "small" : "big"}
+      isLender={isLender}
     />
     {isLender && <DebtBarChart marketAccount={marketAccount} />}
     {isLender && (
