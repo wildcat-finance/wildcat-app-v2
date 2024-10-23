@@ -9,11 +9,13 @@ export enum LenderMarketSections {
 export type LenderMarketRoutingSliceType = {
   currentSection: LenderMarketSections
   isLoading: boolean
+  isLender: boolean
 }
 
 const initialState: LenderMarketRoutingSliceType = {
   currentSection: LenderMarketSections.TRANSACTIONS,
   isLoading: true,
+  isLender: false,
 }
 
 const lenderMarketRoutingSlice = createSlice({
@@ -26,10 +28,14 @@ const lenderMarketRoutingSlice = createSlice({
     setIsLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload
     },
+    setIsLender: (state, action: PayloadAction<boolean>) => {
+      state.isLender = action.payload
+    },
     resetPageState: () => initialState,
   },
 })
 
-export const { setSection, setIsLoading } = lenderMarketRoutingSlice.actions
+export const { setSection, setIsLoading, setIsLender, resetPageState } =
+  lenderMarketRoutingSlice.actions
 
 export default lenderMarketRoutingSlice.reducer

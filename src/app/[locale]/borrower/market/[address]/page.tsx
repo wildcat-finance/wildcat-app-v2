@@ -10,6 +10,7 @@ import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/use
 import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart"
 import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
+import { MarketParameters } from "@/components/MarketParameters"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { ROUTES } from "@/routes"
@@ -29,7 +30,6 @@ import {
   SkeletonContainer,
   SkeletonStyle,
 } from "./style"
-import { MarketParameters } from "../../../../../components/MarketParameters"
 
 export default function MarketDetails({
   params: { address },

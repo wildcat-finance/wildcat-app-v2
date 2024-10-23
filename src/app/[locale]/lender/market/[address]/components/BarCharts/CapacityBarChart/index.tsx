@@ -6,7 +6,6 @@ import { useGenerateCapacityBarData } from "@/app/[locale]/lender/market/[addres
 import { LenderLegendItem } from "@/app/[locale]/lender/market/[address]/components/BarCharts/components/LenderLegendItem"
 import { BarItem } from "@/components/BarChart/BarItem"
 import { LegendItem } from "@/components/BarChart/LegendItem"
-import { LenderMarketSections } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import "../styles.css"
@@ -14,8 +13,8 @@ import { BarChartProps } from "../interface"
 
 export const CapacityBarChart = ({
   marketAccount,
-  section,
-}: BarChartProps & { section: LenderMarketSections }) => {
+  legendType,
+}: BarChartProps & { legendType?: "big" | "small" }) => {
   const { t } = useTranslation()
 
   const barRawData = useGenerateCapacityBarData(marketAccount)
@@ -69,7 +68,7 @@ export const CapacityBarChart = ({
         </Box>
       )}
 
-      {section === LenderMarketSections.TRANSACTIONS && (
+      {legendType === "big" && (
         <Box className="barchart__legend">
           {legendItems.map((chartItem) => (
             <LegendItem
@@ -81,7 +80,7 @@ export const CapacityBarChart = ({
         </Box>
       )}
 
-      {section === LenderMarketSections.STATUS && (
+      {legendType === "small" && (
         <Box sx={{ display: "flex", gap: "28px", marginTop: "24px" }}>
           {legendItems.map((chartItem) => (
             <LenderLegendItem
