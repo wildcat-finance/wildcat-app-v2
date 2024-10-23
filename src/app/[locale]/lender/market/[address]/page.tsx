@@ -1,22 +1,27 @@
 "use client"
 
-import { useEffect } from "react"
 import * as React from "react"
+import { useEffect } from "react"
 
-import { Box, Skeleton, Typography } from "@mui/material"
+import { Box, Divider, Skeleton, Typography } from "@mui/material"
 import { useAccount } from "wagmi"
 
+import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
 import { MarketHeader } from "@/components/MarketHeader"
+import { MarketParameters } from "@/components/MarketParameters"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   LenderMarketSections,
+  setIsLender,
   setIsLoading,
+  setSection,
+  resetPageState,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import { COLORS } from "@/theme/colors"
 
-import { CapacityBarChart } from "./components/CapacityBarChart"
+import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
 import { MarketActions } from "./components/MarketActions"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
@@ -38,9 +43,6 @@ export default function LenderMarketDetails({
   const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
     useGetLenderWithdrawals(market)
 
-  const isLoading =
-    isMarketLoading || isMarketAccountLoading || isWithdrawalsLoading
-
   const authorizedInMarket =
     marketAccount &&
     isConnected &&
@@ -49,6 +51,12 @@ export default function LenderMarketDetails({
       getEffectiveLenderRole(marketAccount),
     )
 
+  const isLoading =
+    isMarketLoading ||
+    isMarketAccountLoading ||
+    isWithdrawalsLoading ||
+    authorizedInMarket === undefined
+
   const currentSection = useAppSelector(
     (state) => state.lenderMarketRouting.currentSection,
   )
@@ -56,6 +64,23 @@ export default function LenderMarketDetails({
   useEffect(() => {
     dispatch(setIsLoading(isLoading))
   }, [isLoading])
+
+  useEffect(() => {
+    if (!authorizedInMarket) {
+      dispatch(setIsLender(!!authorizedInMarket))
+      dispatch(setSection(LenderMarketSections.STATUS))
+    } else {
+      dispatch(setIsLender(authorizedInMarket))
+      dispatch(setSection(LenderMarketSections.TRANSACTIONS))
+    }
+  }, [authorizedInMarket])
+
+  useEffect(
+    () => () => {
+      dispatch(resetPageState())
+    },
+    [],
+  )
 
   if (isLoading)
     return (
@@ -101,15 +126,33 @@ export default function LenderMarketDetails({
         <MarketHeader marketAccount={marketAccount} />
 
         <Box sx={SectionContainer}>
-          {authorizedInMarket &&
-            currentSection === LenderMarketSections.TRANSACTIONS && (
-              <MarketActions
+          {currentSection === LenderMarketSections.TRANSACTIONS && (
+            <Box>
+              {authorizedInMarket && (
+                <MarketActions
+                  marketAccount={marketAccount}
+                  withdrawals={withdrawals}
+                />
+              )}
+              <CapacityBarChart
+                marketAccount={marketAccount}
+                legendType="big"
+                isLender={authorizedInMarket}
+              />
+            </Box>
+          )}
+
+          {currentSection === LenderMarketSections.STATUS && (
+            <Box marginTop="12px">
+              <BarCharts
                 marketAccount={marketAccount}
                 withdrawals={withdrawals}
+                isLender={authorizedInMarket}
               />
-            )}
-
-          <CapacityBarChart marketAccount={marketAccount} />
+              <Divider sx={{ margin: "40px 0 44px" }} />
+              <MarketParameters market={market} />
+            </Box>
+          )}
         </Box>
       </Box>
     </Box>

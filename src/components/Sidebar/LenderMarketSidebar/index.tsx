@@ -26,6 +26,8 @@ export const LenderMarketSidebar = () => {
     (state) => state.lenderMarketRouting.isLoading,
   )
 
+  const isLender = useAppSelector((state) => state.lenderMarketRouting.isLender)
+
   const handleChangeSection = (newSection: LenderMarketSections) => {
     dispatch(setSection(newSection))
   }
@@ -68,22 +70,24 @@ export const LenderMarketSidebar = () => {
 
         {!isLoading && (
           <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
-            <Button
-              variant="text"
-              size="medium"
-              onClick={() =>
-                handleChangeSection(LenderMarketSections.TRANSACTIONS)
-              }
-              sx={{
-                ...MenuItemButton,
-                backgroundColor:
-                  currentSection === LenderMarketSections.TRANSACTIONS
-                    ? COLORS.whiteSmoke
-                    : "transparent",
-              }}
-            >
-              {t("lenderMarketDetails.sidebar.actions")}
-            </Button>
+            {isLender && (
+              <Button
+                variant="text"
+                size="medium"
+                onClick={() =>
+                  handleChangeSection(LenderMarketSections.TRANSACTIONS)
+                }
+                sx={{
+                  ...MenuItemButton,
+                  backgroundColor:
+                    currentSection === LenderMarketSections.TRANSACTIONS
+                      ? COLORS.whiteSmoke
+                      : "transparent",
+                }}
+              >
+                {t("lenderMarketDetails.sidebar.actions")}
+              </Button>
+            )}
 
             <Button
               variant="text"
@@ -100,20 +104,24 @@ export const LenderMarketSidebar = () => {
               {t("lenderMarketDetails.sidebar.status")}
             </Button>
 
-            <Button
-              variant="text"
-              size="medium"
-              onClick={() => handleChangeSection(LenderMarketSections.REQUESTS)}
-              sx={{
-                ...MenuItemButton,
-                backgroundColor:
-                  currentSection === LenderMarketSections.REQUESTS
-                    ? COLORS.whiteSmoke
-                    : "transparent",
-              }}
-            >
-              {t("lenderMarketDetails.sidebar.requests")}
-            </Button>
+            {isLender && (
+              <Button
+                variant="text"
+                size="medium"
+                onClick={() =>
+                  handleChangeSection(LenderMarketSections.REQUESTS)
+                }
+                sx={{
+                  ...MenuItemButton,
+                  backgroundColor:
+                    currentSection === LenderMarketSections.REQUESTS
+                      ? COLORS.whiteSmoke
+                      : "transparent",
+                }}
+              >
+                {t("lenderMarketDetails.sidebar.requests")}
+              </Button>
+            )}
           </Box>
         )}
       </Box>

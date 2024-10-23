@@ -10,6 +10,7 @@ import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/use
 import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart"
 import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
+import { MarketParameters } from "@/components/MarketParameters"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { ROUTES } from "@/routes"
@@ -21,7 +22,6 @@ import {
 import { COLORS } from "@/theme/colors"
 
 import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
-import { MarketParameters } from "./components/MarketParameters"
 import { MarketTransactions } from "./components/MarketTransactions"
 import { MarketWithdrawalRequests } from "./components/MarketWithdrawalRequests"
 import useScrollHandler from "./hooks/useScrollHandler"

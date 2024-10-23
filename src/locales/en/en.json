@@ -438,6 +438,12 @@
     "barchart": {
       "capacity": {
         "title": "Capacity"
+      },
+      "debts": {
+        "title": "Total debt"
+      },
+      "withdrawals": {
+        "title": "Your Withdrawals"
       }
     }
   }

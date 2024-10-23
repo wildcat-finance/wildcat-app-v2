@@ -1,5 +1,5 @@
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
-export type CapacityBarChartProps = {
+export type BarChartProps = {
   marketAccount: MarketAccount
 }
