@@ -441,6 +441,9 @@
       },
       "debts": {
         "title": "Total debt"
+      },
+      "withdrawals": {
+        "title": "Your Withdrawals"
       }
     }
   }

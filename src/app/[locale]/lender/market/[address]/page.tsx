@@ -117,7 +117,10 @@ export default function LenderMarketDetails({
             )}
 
           {currentSection === LenderMarketSections.STATUS && (
-            <BarCharts marketAccount={marketAccount} />
+            <BarCharts
+              marketAccount={marketAccount}
+              withdrawals={withdrawals}
+            />
           )}
         </Box>
       </Box>

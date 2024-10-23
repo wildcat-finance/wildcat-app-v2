@@ -1,27 +1,35 @@
 import { Box, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
-import { MARKET_BAR_ORDER } from "@/app/[locale]/lender/market/[address]/components/BarCharts/CapacityBarChart/constants"
-import { useGenerateCapacityBarData } from "@/app/[locale]/lender/market/[address]/components/BarCharts/CapacityBarChart/hooks/useGenerateCapacityBarData"
-import { LenderLegendItem } from "@/app/[locale]/lender/market/[address]/components/BarCharts/components/LenderLegendItem"
+import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
 import { BarItem } from "@/components/BarChart/BarItem"
-import { LegendItem } from "@/components/BarChart/LegendItem"
-import { LenderMarketSections } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
+import { MARKET_BAR_ORDER } from "./constants"
+import { useGenerateWithdrawalsBarData } from "./hooks/useGenerateWithdrawalsBarData"
+import { LenderLegendItem } from "../components/LenderLegendItem"
 import "../styles.css"
 import { BarChartProps } from "../interface"
 
-export const CapacityBarChart = ({
+export const WithdrawalsBarChart = ({
   marketAccount,
-  section,
-}: BarChartProps & { section: LenderMarketSections }) => {
+  withdrawals,
+}: BarChartProps & { withdrawals: LenderWithdrawalsForMarketResult }) => {
   const { t } = useTranslation()
 
-  const barRawData = useGenerateCapacityBarData(marketAccount)
+  const { barData: barRawData, total } = useGenerateWithdrawalsBarData({
+    market: marketAccount.market,
+    lenderWithdrawals: withdrawals,
+  })
 
-  const barOrders = MARKET_BAR_ORDER.healthyBarchartOrder
-  const legendItemsOrder = MARKET_BAR_ORDER.healthyLegendOrder
+  const { isDelinquent } = marketAccount.market
+
+  const barOrders = !isDelinquent
+    ? MARKET_BAR_ORDER.healthyBarchartOrder
+    : MARKET_BAR_ORDER.delinquentBarchartOrder
+  const legendItemsOrder = !isDelinquent
+    ? MARKET_BAR_ORDER.healthyLegendOrder
+    : MARKET_BAR_ORDER.delinquentLegendOrder
 
   const bars = barOrders
     .filter((barId) => barRawData[barId] !== undefined)
@@ -32,13 +40,11 @@ export const CapacityBarChart = ({
     .filter((barId) => barRawData[barId] !== undefined)
     .map((barId) => barRawData[barId])
 
-  const marketCapacity = marketAccount.market.maxTotalSupply
-
   return (
     <Box marginTop="12px">
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
         <Typography variant="title3">
-          {t("lenderMarketDetails.barchart.capacity.title")}
+          {t("lenderMarketDetails.barchart.withdrawals.title")}
         </Typography>
 
         <Box
@@ -49,7 +55,7 @@ export const CapacityBarChart = ({
           }}
         >
           <Typography variant="title3">
-            {formatTokenWithCommas(marketCapacity)}
+            {formatTokenWithCommas(total)}
           </Typography>
           <Typography variant="text4" sx={{ marginTop: "4px" }}>
             {marketAccount.market.underlyingToken.symbol}
@@ -57,7 +63,7 @@ export const CapacityBarChart = ({
         </Box>
       </Box>
 
-      {marketCapacity.gt(0) && !marketAccount.market.isClosed && (
+      {total.gt(0) && !marketAccount.market.isClosed && (
         <Box className="barchart__container">
           {bars.map((chartItem) => (
             <BarItem
@@ -69,19 +75,7 @@ export const CapacityBarChart = ({
         </Box>
       )}
 
-      {section === LenderMarketSections.TRANSACTIONS && (
-        <Box className="barchart__legend">
-          {legendItems.map((chartItem) => (
-            <LegendItem
-              key={chartItem.label}
-              chartItem={chartItem}
-              type="default"
-            />
-          ))}
-        </Box>
-      )}
-
-      {section === LenderMarketSections.STATUS && (
+      {total.gt(0) && (
         <Box sx={{ display: "flex", gap: "28px", marginTop: "24px" }}>
           {legendItems.map((chartItem) => (
             <LenderLegendItem
