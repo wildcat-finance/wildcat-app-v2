@@ -1,7 +1,7 @@
 export const MARKET_BAR_DATA = {
   myLoan: {
     id: "myLoan",
-    label: "My Loan",
+    label: "Your Loan",
     healthyBgColor: "#4971FF",
     delinquentBgColor: "#4971FF",
     healthyTextColor: "#FFFFFF",
@@ -9,7 +9,7 @@ export const MARKET_BAR_DATA = {
   },
   otherLoans: {
     id: "otherLoans",
-    label: "Other Loans",
+    label: "Others",
     healthyBgColor: "#EFF0F4",
     delinquentBgColor: "#EFF0F4",
     healthyTextColor: "#1414144D",

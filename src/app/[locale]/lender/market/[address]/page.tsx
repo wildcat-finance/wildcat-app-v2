@@ -6,6 +6,7 @@ import * as React from "react"
 import { Box, Skeleton, Typography } from "@mui/material"
 import { useAccount } from "wagmi"
 
+import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
 import { MarketHeader } from "@/components/MarketHeader"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetMarket } from "@/hooks/useGetMarket"
@@ -16,7 +17,7 @@ import {
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import { COLORS } from "@/theme/colors"
 
-import { CapacityBarChart } from "./components/CapacityBarChart"
+import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
 import { MarketActions } from "./components/MarketActions"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
@@ -103,13 +104,21 @@ export default function LenderMarketDetails({
         <Box sx={SectionContainer}>
           {authorizedInMarket &&
             currentSection === LenderMarketSections.TRANSACTIONS && (
-              <MarketActions
-                marketAccount={marketAccount}
-                withdrawals={withdrawals}
-              />
+              <>
+                <MarketActions
+                  marketAccount={marketAccount}
+                  withdrawals={withdrawals}
+                />
+                <CapacityBarChart
+                  marketAccount={marketAccount}
+                  section={LenderMarketSections.TRANSACTIONS}
+                />
+              </>
             )}
 
-          <CapacityBarChart marketAccount={marketAccount} />
+          {currentSection === LenderMarketSections.STATUS && (
+            <BarCharts marketAccount={marketAccount} />
+          )}
         </Box>
       </Box>
     </Box>

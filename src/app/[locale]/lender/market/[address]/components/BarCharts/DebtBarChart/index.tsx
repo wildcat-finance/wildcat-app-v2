@@ -1,20 +1,19 @@
 import { Box, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
-import { MARKET_BAR_ORDER } from "@/app/[locale]/lender/market/[address]/constants"
-import { useGenerateLenderBarData } from "@/app/[locale]/lender/market/[address]/hooks/useGenerateLenderBarData"
 import { BarItem } from "@/components/BarChart/BarItem"
-import { LegendItem } from "@/components/BarChart/LegendItem"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
-import "./styles.css"
-import { CapacityBarChartProps } from "./interface"
+import { MARKET_BAR_ORDER } from "./constants"
+import { useGenerateDebtsBarData } from "./hooks/useGenerateDebtsBarData"
+import { LenderLegendItem } from "../components/LenderLegendItem"
+import "../styles.css"
+import { BarChartProps } from "../interface"
 
-export const CapacityBarChart = ({ marketAccount }: CapacityBarChartProps) => {
+export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
   const { t } = useTranslation()
 
-  const barRawData = useGenerateLenderBarData(marketAccount)
-
+  const barRawData = useGenerateDebtsBarData(marketAccount)
   const barOrders = MARKET_BAR_ORDER.healthyBarchartOrder
   const legendItemsOrder = MARKET_BAR_ORDER.healthyLegendOrder
 
@@ -27,13 +26,13 @@ export const CapacityBarChart = ({ marketAccount }: CapacityBarChartProps) => {
     .filter((barId) => barRawData[barId] !== undefined)
     .map((barId) => barRawData[barId])
 
-  const marketCapacity = marketAccount.market.maxTotalSupply
+  const { totalDebts } = marketAccount.market
 
   return (
     <Box marginTop="12px">
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
         <Typography variant="title3">
-          {t("lenderMarketDetails.barchart.capacity.title")}
+          {t("lenderMarketDetails.barchart.debts.title")}
         </Typography>
 
         <Box
@@ -44,7 +43,7 @@ export const CapacityBarChart = ({ marketAccount }: CapacityBarChartProps) => {
           }}
         >
           <Typography variant="title3">
-            {formatTokenWithCommas(marketCapacity)}
+            {formatTokenWithCommas(totalDebts)}
           </Typography>
           <Typography variant="text4" sx={{ marginTop: "4px" }}>
             {marketAccount.market.underlyingToken.symbol}
@@ -52,7 +51,7 @@ export const CapacityBarChart = ({ marketAccount }: CapacityBarChartProps) => {
         </Box>
       </Box>
 
-      {marketCapacity.gt(0) && !marketAccount.market.isClosed && (
+      {totalDebts.gt(0) && !marketAccount.market.isClosed && (
         <Box className="barchart__container">
           {bars.map((chartItem) => (
             <BarItem
@@ -64,15 +63,19 @@ export const CapacityBarChart = ({ marketAccount }: CapacityBarChartProps) => {
         </Box>
       )}
 
-      <Box className="barchart__legend">
-        {legendItems.map((chartItem) => (
-          <LegendItem
-            key={chartItem.label}
-            chartItem={chartItem}
-            type="default"
-          />
-        ))}
-      </Box>
+      {totalDebts.gt(0) && totalDebts.gt(0) && (
+        <Box sx={{ display: "flex", gap: "28px", marginTop: "24px" }}>
+          {legendItems.map((chartItem) => (
+            <LenderLegendItem
+              key={chartItem.label}
+              color={chartItem.color}
+              label={chartItem.label}
+              value={chartItem.value}
+              asset={chartItem.asset}
+            />
+          ))}
+        </Box>
+      )}
     </Box>
   )
 }
