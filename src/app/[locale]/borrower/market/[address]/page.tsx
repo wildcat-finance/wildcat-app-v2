@@ -21,7 +21,6 @@ import {
 import { COLORS } from "@/theme/colors"
 
 import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
-import { MarketParameters } from "./components/MarketParameters"
 import { MarketTransactions } from "./components/MarketTransactions"
 import { MarketWithdrawalRequests } from "./components/MarketWithdrawalRequests"
 import useScrollHandler from "./hooks/useScrollHandler"
@@ -30,6 +29,7 @@ import {
   SkeletonContainer,
   SkeletonStyle,
 } from "./style"
+import { MarketParameters } from "../../../../../components/MarketParameters"
 
 export default function MarketDetails({
   params: { address },

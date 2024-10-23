@@ -51,7 +51,7 @@ export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
         </Box>
       </Box>
 
-      {totalDebts.gt(0) && !marketAccount.market.isClosed && (
+      {totalDebts.gt(0) && (
         <Box className="barchart__container">
           {bars.map((chartItem) => (
             <BarItem
@@ -63,7 +63,7 @@ export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
         </Box>
       )}
 
-      {totalDebts.gt(0) && totalDebts.gt(0) && (
+      {totalDebts.gt(0) && (
         <Box sx={{ display: "flex", gap: "28px", marginTop: "24px" }}>
           {legendItems.map((chartItem) => (
             <LenderLegendItem

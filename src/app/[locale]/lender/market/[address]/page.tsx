@@ -3,11 +3,12 @@
 import { useEffect } from "react"
 import * as React from "react"
 
-import { Box, Skeleton, Typography } from "@mui/material"
+import { Box, Divider, Skeleton, Typography } from "@mui/material"
 import { useAccount } from "wagmi"
 
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
 import { MarketHeader } from "@/components/MarketHeader"
+import { MarketParameters } from "@/components/MarketParameters"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -102,25 +103,30 @@ export default function LenderMarketDetails({
         <MarketHeader marketAccount={marketAccount} />
 
         <Box sx={SectionContainer}>
-          {authorizedInMarket &&
-            currentSection === LenderMarketSections.TRANSACTIONS && (
-              <>
+          {currentSection === LenderMarketSections.TRANSACTIONS && (
+            <Box>
+              {authorizedInMarket && (
                 <MarketActions
                   marketAccount={marketAccount}
                   withdrawals={withdrawals}
                 />
-                <CapacityBarChart
-                  marketAccount={marketAccount}
-                  section={LenderMarketSections.TRANSACTIONS}
-                />
-              </>
-            )}
+              )}
+              <CapacityBarChart
+                marketAccount={marketAccount}
+                section={LenderMarketSections.TRANSACTIONS}
+              />
+            </Box>
+          )}
 
           {currentSection === LenderMarketSections.STATUS && (
-            <BarCharts
-              marketAccount={marketAccount}
-              withdrawals={withdrawals}
-            />
+            <Box marginTop="12px">
+              <BarCharts
+                marketAccount={marketAccount}
+                withdrawals={withdrawals}
+              />
+              <Divider sx={{ margin: "40px 0 44px" }} />
+              <MarketParameters market={market} />
+            </Box>
           )}
         </Box>
       </Box>

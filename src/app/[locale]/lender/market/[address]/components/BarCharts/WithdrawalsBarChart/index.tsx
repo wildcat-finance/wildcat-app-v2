@@ -63,7 +63,7 @@ export const WithdrawalsBarChart = ({
         </Box>
       </Box>
 
-      {total.gt(0) && !marketAccount.market.isClosed && (
+      {total.gt(0) && (
         <Box className="barchart__container">
           {bars.map((chartItem) => (
             <BarItem

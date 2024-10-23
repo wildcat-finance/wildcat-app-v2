@@ -57,7 +57,7 @@ export const CapacityBarChart = ({
         </Box>
       </Box>
 
-      {marketCapacity.gt(0) && !marketAccount.market.isClosed && (
+      {marketCapacity.gt(0) && (
         <Box className="barchart__container">
           {bars.map((chartItem) => (
             <BarItem
