@@ -1,7 +1,7 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation } from "@tanstack/react-query"
 
-import { toastRequest } from "@/components/toasts"
+import { toastRequest } from "@/components/Toasts"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 

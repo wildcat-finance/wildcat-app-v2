@@ -5,6 +5,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar"
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
 import dayjs from "dayjs"
+import { useTranslation } from "react-i18next"
 
 import ArrowLeftIcon from "@/assets/icons/sharpArrow_icon.svg"
 import { COLORS } from "@/theme/colors"
@@ -64,6 +65,7 @@ const DateCalendarArrowRight = () => (
 )
 
 export const DateRange = ({ dates, setDates }: DateRangeProps) => {
+  const { t } = useTranslation()
   const { starting, ending } = dates
 
   const shouldDisableStartDate = (date: dayjs.Dayjs): boolean =>
@@ -143,7 +145,7 @@ export const DateRange = ({ dates, setDates }: DateRangeProps) => {
               variant="text3"
               color={COLORS.santasGrey}
             >
-              Start Date
+              {t("dateRange.startDate")}
             </Typography>
             <TextField
               sx={DateCalendarTextField}
@@ -180,7 +182,7 @@ export const DateRange = ({ dates, setDates }: DateRangeProps) => {
               variant="text3"
               color={COLORS.santasGrey}
             >
-              Due Date
+              {t("dateRange.dueDate")}
             </Typography>
             <TextField
               sx={DateCalendarTextField}

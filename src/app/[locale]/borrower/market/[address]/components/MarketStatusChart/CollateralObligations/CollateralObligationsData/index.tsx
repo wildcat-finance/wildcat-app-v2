@@ -1,6 +1,7 @@
 import { Box, Typography } from "@mui/material"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
+import { useTranslation } from "react-i18next"
 
 import "./style.css"
 
@@ -14,6 +15,7 @@ export const CollateralObligationsData = ({
   withdrawals,
   doubleDivider,
 }: CollateralObligationsDataProps) => {
+  const { t } = useTranslation()
   const {
     normalizedUnclaimedWithdrawals,
     normalizedPendingWithdrawals,
@@ -47,7 +49,7 @@ export const CollateralObligationsData = ({
           {formatTokenWithCommas(minimumReserves, { withSymbol: true })}
         </Typography>
         <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          Min Reserves
+          {t("borrowerMarketDetails.statusChart.minReserves")}
         </Typography>
       </Box>
       <Box className="obligations__value">
@@ -57,7 +59,7 @@ export const CollateralObligationsData = ({
           })}
         </Typography>
         <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          Ongoing WDs
+          {t("borrowerMarketDetails.statusChart.ongoingWds")}
         </Typography>
       </Box>
       <Box className="obligations__value">
@@ -66,7 +68,7 @@ export const CollateralObligationsData = ({
         </Typography>
 
         <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          Claimable WDs
+          {t("borrowerMarketDetails.statusChart.claimableWds")}
         </Typography>
       </Box>
       <Box className="obligations__value">
@@ -75,7 +77,7 @@ export const CollateralObligationsData = ({
         </Typography>
 
         <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          Outstanding WDs
+          {t("borrowerMarketDetails.statusChart.outstandingWds")}
         </Typography>
       </Box>
       <Box className="obligations__value">
@@ -85,7 +87,7 @@ export const CollateralObligationsData = ({
           })}
         </Typography>
         <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          Protocol Fees
+          {t("borrowerMarketDetails.statusChart.protocolFees")}
         </Typography>
       </Box>
       <Box

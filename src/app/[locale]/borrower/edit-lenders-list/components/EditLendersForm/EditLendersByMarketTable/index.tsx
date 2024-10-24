@@ -3,6 +3,7 @@ import { useState } from "react"
 
 import { Box, Button, IconButton, SvgIcon, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import { useTranslation } from "react-i18next"
 
 import { DeleteModal } from "@/app/[locale]/borrower/edit-lenders-list/components/EditLendersForm/Modals/DeleteModal"
 import { EditLenderFlowStatuses } from "@/app/[locale]/borrower/edit-lenders-list/interface"
@@ -28,6 +29,7 @@ export type EditLendersByMarketTableModel = {
 }
 
 export const EditLendersByMarketTable = () => {
+  const { t } = useTranslation()
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
   const [lenderToDelete, setLenderToDelete] = useState<string>("")
 
@@ -284,7 +286,7 @@ export const EditLendersByMarketTable = () => {
               }}
               variant="text"
             >
-              Undo
+              {t("editLendersList.forms.edit.undo")}
             </Button>
           )}
         </>
@@ -329,7 +331,7 @@ export const EditLendersByMarketTable = () => {
             }}
           >
             <Typography variant="text3" color={COLORS.santasGrey}>
-              No lenders for this filters
+              {t("editLendersList.forms.edit.noLendersFilter")}
             </Typography>
             <Button
               onClick={() => dispatch(resetFilters())}
@@ -342,7 +344,7 @@ export const EditLendersByMarketTable = () => {
                 },
               }}
             >
-              Reset filters
+              {t("editLendersList.forms.edit.resetFilters")}
             </Button>
           </Box>
         </Box>

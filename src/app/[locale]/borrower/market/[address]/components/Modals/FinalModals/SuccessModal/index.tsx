@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { Box, IconButton, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
+import { Trans } from "react-i18next"
 
 import {
   FinalModalCloseButton,
@@ -40,9 +41,11 @@ export const SuccessModal = ({
         </SvgIcon>
 
         <Box sx={FinalModalTypoBox}>
-          <Typography variant="title3">Success!</Typography>
+          <Typography variant="title3">
+            <Trans i18nKey="borrowMarketDetails.modals.success.title" />
+          </Typography>
           <Typography variant="text3" sx={FinalModalSubtitle}>
-            You can close the window.
+            <Trans i18nKey="borrowMarketDetails.modals.success.subtitle" />
           </Typography>
         </Box>
       </Box>

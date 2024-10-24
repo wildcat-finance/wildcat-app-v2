@@ -2,6 +2,7 @@ import { useState } from "react"
 
 import "./styles.css"
 import { Box, SvgIcon, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { CollateralObligationsData } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart/CollateralObligations/CollateralObligationsData"
 import { MARKET_BAR_DATA } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart/constants"
@@ -16,6 +17,7 @@ export const DelinquentCollateralObligations = ({
   legendItem,
   withdrawals,
 }: DelinquentCollateralObligationsProps) => {
+  const { t } = useTranslation()
   const breakdown = market.getTotalDebtBreakdown()
   const reserves = breakdown.status === "delinquent" && breakdown.reserves
 
@@ -42,7 +44,7 @@ export const DelinquentCollateralObligations = ({
           variant="text3"
           className="barchart__legend-title-expandable"
         >
-          Collateral Obligations
+          {t("borrowerMarketDetails.statusChart.collateralObligations")}
         </Typography>
         {expanded ? (
           <SvgIcon
@@ -62,7 +64,9 @@ export const DelinquentCollateralObligations = ({
       <Box className="double-item__container-inner">
         <Box sx={{ width: "100%" }}>
           <Box className="double-item__header">
-            <Typography variant="text4">Delinquent Debt</Typography>
+            <Typography variant="text4">
+              {t("borrowerMarketDetails.statusChart.delinquentDebt")}
+            </Typography>
             <Box
               className="double-item__dot"
               sx={{
@@ -83,7 +87,9 @@ export const DelinquentCollateralObligations = ({
         />
         <Box sx={{ width: "100%" }}>
           <Box className="double-item__header">
-            <Typography variant="text4">Current Reserves</Typography>
+            <Typography variant="text4">
+              {t("borrowerMarketDetails.statusChart.currentReserves")}
+            </Typography>
             <Box
               className="double-item__dot"
               sx={{

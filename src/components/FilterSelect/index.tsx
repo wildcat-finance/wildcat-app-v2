@@ -12,6 +12,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import Filter from "@/assets/icons/filter_icon.svg"
 import Icon from "@/assets/icons/search_icon.svg"
@@ -32,6 +33,7 @@ export const FilterSelect = ({
   setSelected: Dispatch<SetStateAction<{ name: string; address: string }[]>>
   options: { name: string; address: string }[]
 }) => {
+  const { t } = useTranslation()
   const selectRef = useRef<HTMLElement>(null)
 
   const [search, setSearch] = useState("")
@@ -124,7 +126,7 @@ export const FilterSelect = ({
               },
             }}
           >
-            Clear
+            {t("filter.clear")}
           </Button>
         )}
       </Box>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react"
 
 import { Button } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
+import { useTranslation } from "react-i18next"
 
 import { TerminateMarketProps } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateMarket/interface"
 import { TerminateFlow } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateMarket/TerminateFlow"
@@ -11,6 +12,7 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import { RepayAndTerminateFlow } from "./RepayAndTerminateFlow"
 
 export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
+  const { t } = useTranslation()
   const { market } = marketAccount
 
   const [terminateTxHash, setTerminateTxHash] = useState<string | undefined>("")
@@ -77,7 +79,7 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
           <SvgIcon fontSize="small" sx={{ marginRight: "4px" }}>
             <Cross />
           </SvgIcon>
-          Terminate Market
+          {t("borrowMarketDetails.modals.terminate.terminateMarket")}
         </Button>
       )}
 

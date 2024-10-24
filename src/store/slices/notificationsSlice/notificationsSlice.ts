@@ -104,10 +104,7 @@ const notificationsSlice = createSlice({
   },
 })
 
-export const {
-  addNotification,
-  markAsRead,
-  markAllAsRead,
-} = notificationsSlice.actions
+export const { addNotification, markAsRead, markAllAsRead } =
+  notificationsSlice.actions
 
 export default notificationsSlice.reducer

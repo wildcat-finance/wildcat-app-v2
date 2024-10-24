@@ -108,7 +108,7 @@ export const CapacityModal = ({
           <Box width="100%" height="100%" padding="12px 24px">
             <Box sx={TxModalInfoItem} marginBottom="20px">
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                Current capacity
+                {t("borrowMarketDetails.modals.capacity.current")}
               </Typography>
               <Typography variant="text3">{`${formatTokenWithCommas(
                 market.maxTotalSupply,

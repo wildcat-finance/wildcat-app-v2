@@ -52,7 +52,7 @@ export const useBorrowerRegistrationChanges = (address?: string) => {
 
   return () => {
     if (address) {
-      //address = "0x1717503ee3f56e644cf8b1058e3f83f03a71b2e1" // Testing
+      // address = "0x1717503ee3f56e644cf8b1058e3f83f03a71b2e1" // Testing
       fetchBorrowerRegistrationChanges({
         variables: {
           where: {

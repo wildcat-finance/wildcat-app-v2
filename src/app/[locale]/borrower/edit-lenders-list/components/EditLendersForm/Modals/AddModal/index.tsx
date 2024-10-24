@@ -2,6 +2,7 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 
 import { Box, Button, Dialog, TextField, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { AddSelect } from "@/app/[locale]/borrower/edit-lenders-list/components/EditLendersForm/Modals/AddModal/AddSelect"
 import {
@@ -16,6 +17,7 @@ import { COLORS } from "@/theme/colors"
 import { useAddLenderForm } from "./useAddLenderForm"
 
 export const AddModal = () => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
   const lendersTableData = useAppSelector(
@@ -171,7 +173,7 @@ export const AddModal = () => {
           fontWeight: 600,
         }}
       >
-        + Add Lender
+        {t("editLendersList.modals.add.addLender")}
       </Button>
 
       <Dialog
@@ -283,7 +285,7 @@ export const AddModal = () => {
           type="submit"
           sx={{ margin: "24px 24px 0" }}
         >
-          Add
+          {t("editLendersList.modals.add.add")}
         </Button>
       </Dialog>
     </>

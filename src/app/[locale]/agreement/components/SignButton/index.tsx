@@ -5,11 +5,11 @@ import { useEffect, useState } from "react"
 import { Button } from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import dayjs from "dayjs"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { useSignAgreement } from "@/app/[locale]/agreement/hooks/useSignAgreement"
 import { useSubmitSignature } from "@/app/[locale]/agreement/hooks/useSubmitSignature"
-import { useTranslation } from "react-i18next" 
 
 const DATE_FORMAT = "MMMM DD, YYYY"
 
@@ -67,7 +67,9 @@ export const SignButton = () => {
       onClick={handleSign}
       disabled={isSigning}
     >
-      {isSigning ? t("agreement.signButton.signing") : t("agreement.signButton.sign")}
+      {isSigning
+        ? t("agreement.signButton.signing")
+        : t("agreement.signButton.sign")}
     </Button>
   )
 }

@@ -5,6 +5,7 @@ import { Box, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { TokenAmount, WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
+import { useTranslation } from "react-i18next"
 
 import { WithdrawalTxRow } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/interface"
 import { DataGridCells } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/style"
@@ -23,6 +24,7 @@ export const OngoingTable = ({
   totalAmount,
   columns,
 }: OngoingTableProps) => {
+  const { t } = useTranslation()
   const [isOngoingOpen, setIsOngoingOpen] = useState(false)
 
   const ongoingRows: WithdrawalTxRow[] = withdrawalBatches.flatMap((batch) =>
@@ -73,7 +75,7 @@ export const OngoingTable = ({
           marginBottom="10px"
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            There are no ongoing withdrawals
+            {t("marketWithdrawalRequests.nooOngoing")}
           </Typography>
         </Box>
       )}

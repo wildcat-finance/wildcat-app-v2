@@ -1,5 +1,6 @@
 import { Box, Typography } from "@mui/material"
 import humanizeDuration from "humanize-duration"
+import { useTranslation } from "react-i18next"
 
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { BarItem } from "@/components/BarChart/BarItem"
@@ -16,6 +17,7 @@ import "./styles.css"
 import { MarketStatusChartProps } from "./interface"
 
 export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
+  const { t } = useTranslation()
   const { data: withdrawals } = useGetWithdrawals(market)
   const { barData: barRawData, breakdown } = useGenerateBarData(market)
   const isDelinquent = breakdown.status === "delinquent"
@@ -63,7 +65,9 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
   return (
     <Box marginTop="12px">
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="title3">Total Debt</Typography>
+        <Typography variant="title3">
+          {t("borrowerMarketDetails.statusChart.totalDebt")}
+        </Typography>
 
         <Box
           sx={{
@@ -88,7 +92,7 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
         market.totalDebts.gt(0) && (
           <Box sx={{ display: "flex", columnGap: "3px", marginBottom: "24px" }}>
             <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-              Market has sufficient reserves to cover interest for
+              {t("borrowerMarketDetails.statusChart.sufficientReserves")}
             </Typography>
             <Typography variant="text3" sx={{ color: COLORS.ultramarineBlue }}>
               {remainingInterest}

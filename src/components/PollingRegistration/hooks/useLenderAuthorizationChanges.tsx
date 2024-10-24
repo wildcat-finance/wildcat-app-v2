@@ -108,7 +108,7 @@ export const useLenderAuthorizationChanges = (marketIds: string[]) => {
   }, [error])
 
   return () => {
-    //marketIds = ["0xa23ce7c1a04520efb6968b711331ce33e4efad9a"] // Testing
+    // marketIds = ["0xa23ce7c1a04520efb6968b711331ce33e4efad9a"] // Testing
     fetchLenderAuthorizationChanges({
       variables: {
         where: {

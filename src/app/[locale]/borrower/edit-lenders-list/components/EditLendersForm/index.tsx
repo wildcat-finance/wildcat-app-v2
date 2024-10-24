@@ -11,6 +11,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { AddModal } from "@/app/[locale]/borrower/edit-lenders-list/components/EditLendersForm/Modals/AddModal"
 import useTrackLendersChanges from "@/app/[locale]/borrower/edit-lenders-list/hooks/useTrackLendersChanges"
@@ -31,6 +32,7 @@ export type EditLendersFormProps = {
 }
 
 export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
+  const { t } = useTranslation()
   // Constants
   const dispatch = useAppDispatch()
 
@@ -212,7 +214,7 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
               fontWeight: 600,
             }}
           >
-            Submit
+            {t("editLendersList.forms.edit.submit")}
           </Button>
         </Box>
       </Box>
@@ -234,7 +236,7 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
             }}
           >
             <Typography variant="text3" color={COLORS.santasGrey}>
-              No lenders yet
+              {t("editLendersList.forms.edit.noLenders")}
             </Typography>
           </Box>
         </Box>

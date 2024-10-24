@@ -30,14 +30,14 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
   const [gracePeriodLabel, gracePeriodTimer] =
     timeDelinquent > delinquencyGracePeriod
       ? [
-          "Remaining Time With Delinquency Fees",
+          t("borrowerMarketDetails.labal.remainingTime"),
           humanizeDuration((timeDelinquent - delinquencyGracePeriod) * 1000, {
             round: true,
             largest: 1,
           }),
         ]
       : [
-          "Available Grace Period",
+          t("borrowerMarketDetails.labal.availableGracePeriod"),
           formatSecsToHours(delinquencyGracePeriod - timeDelinquent),
         ]
 
@@ -47,20 +47,20 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
     if (!market.isDelinquent) {
       if (willBeDelinquent) {
         // If the market is not currently delinquent but will be after the next update:
-        return "This market has become delinquent since its last update and its delinquency timer will begin to increase once it is updated."
+        return t("borrowerMarketDetails.tooltip.willBeDelinquent")
       }
       if (timeDelinquent > delinquencyGracePeriod) {
         // If the market is not currently delinquent (on-chain) but is incurring penalties:
-        return "This market is not currently delinquent, but delinquency fees will apply until the timer is below the grace period."
+        return t("borrowerMarketDetails.tooltip.delinquencyFeesApply")
       }
       return undefined
     }
     if (!willBeDelinquent) {
       // If the market will stop being delinquent after the next update:
-      return "This market has become healthy since its last update and its delinquency timer will begin to decrease once it is updated."
+      return t("borrowerMarketDetails.tooltip.hasBecomeHealthy")
     }
     // If the market will continue to be delinquent after the next update:
-    return "The delinquency timer will continue to increase until this market is returned to a healthy state."
+    return t("borrowerMarketDetails.tooltip.delinquencyContinues")
   }, [market])
 
   const totalInterestAccrued = market

@@ -11,6 +11,7 @@ import {
 import { BIP, Market, SetAprStatus } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { NumberTextField } from "@/components/NumberTextfield"
@@ -78,6 +79,7 @@ function getMinimumAPR(market: Market) {
 }
 
 export const AprModal = ({ marketAccount }: AprModalProps) => {
+  const { t } = useTranslation()
   const { market } = marketAccount
 
   const [apr, setApr] = useState("")
@@ -264,7 +266,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
         size="small"
         onClick={modal.handleOpenModal}
       >
-        Adjust Base APR
+        {t("borrowMarketDetails.modals.apr.adjustBase")}
       </Button>
 
       <Dialog
@@ -274,7 +276,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
       >
         {showForm && (
           <TxModalHeader
-            title="Adjust Base APR"
+            title={t("borrowMarketDetails.modals.apr.adjustBase")}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
@@ -282,7 +284,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
           >
             <Box sx={AprModalMessageBox}>
               <Typography variant="text3" color={COLORS.santasGrey}>
-                It’s been already update lately.
+                {t("borrowMarketDetails.modals.apr.alreadyUpdated")}
               </Typography>
               <Link
                 href="https://docs.wildcat.finance/using-wildcat/terminology#base-apr"
@@ -290,7 +292,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 style={{ textDecoration: "none" }}
               >
                 <Typography variant="text3" color={COLORS.blueRibbon}>
-                  Learn more
+                  {t("borrowMarketDetails.modals.apr.learnMore")}
                 </Typography>
               </Link>
             </Box>
@@ -302,7 +304,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
             {modal.gettingValueStep && (
               <>
                 <ModalDataItem
-                  title="Current Base APR"
+                  title={t("borrowMarketDetails.modals.apr.currentBaseApr")}
                   value={`${formatBps(
                     market.annualInterestBips,
                     MARKET_PARAMS_DECIMALS.annualInterestBips,
@@ -342,11 +344,13 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
                 <Box marginTop={aprError ? "44px" : "28px"} sx={AprAffectsBox}>
                   <Typography variant="text4" textTransform="uppercase">
-                    Apr affects
+                    {t("borrowMarketDetails.modals.apr.aprAffects")}
                   </Typography>
 
                   <ModalDataItem
-                    title="Collateral Obligation"
+                    title={t(
+                      "borrowMarketDetails.modals.apr.collateralObligation",
+                    )}
                     value={
                       newCollateralObligations ?? currentCollateralObligations
                     }
@@ -370,7 +374,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                   </ModalDataItem>
 
                   <ModalDataItem
-                    title="Reserved Ratio"
+                    title={t("borrowMarketDetails.modals.apr.reservedRatio")}
                     value={`${newReserveRatio ?? currentReserveRatio}%`}
                     valueColor={
                       !aprError &&
@@ -396,7 +400,9 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                       color={COLORS.santasGrey}
                       sx={{ marginLeft: "auto", marginTop: "4px" }}
                     >
-                      {`will be set temporarily till ${twoWeeksTime}`}
+                      {`${t(
+                        "borrowMarketDetails.modals.apr.willSetTemporarily",
+                      )} ${twoWeeksTime}`}
                     </Typography>
                   )}
 
@@ -406,7 +412,9 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                       color={COLORS.santasGrey}
                       sx={{ marginLeft: "auto", marginTop: "4px" }}
                     >
-                      {`set temporarily till ${reserveRatioExpiry}`}
+                      {`${t(
+                        "borrowMarketDetails.modals.apr.setTemporarily",
+                      )} ${reserveRatioExpiry}`}
                     </Typography>
                   )}
                 </Box>
@@ -416,7 +424,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
             {modal.approvedStep && (
               <Box sx={AprModalConfirmedBox}>
                 <ModalDataItem
-                  title="New Base APR"
+                  title={t("borrowMarketDetails.modals.apr.newBaseApr")}
                   value={`${apr}%`}
                   containerSx={{ marginBottom: "16px" }}
                 >
@@ -434,7 +442,9 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 </ModalDataItem>
 
                 <ModalDataItem
-                  title="New Collateral Obligation"
+                  title={t(
+                    "borrowMarketDetails.modals.apr.newCollateralObligation",
+                  )}
                   value={
                     newCollateralObligations ?? currentCollateralObligations
                   }
@@ -458,7 +468,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 </ModalDataItem>
 
                 <ModalDataItem
-                  title="New Reserved Ratio"
+                  title={t("borrowMarketDetails.modals.apr.newReservedRatio")}
                   value={`${newReserveRatio ?? currentReserveRatio}%`}
                   valueColor={
                     !aprError &&
@@ -488,7 +498,9 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                       padding: "0 12px",
                     }}
                   >
-                    {`will be set temporarily till ${twoWeeksTime}`}
+                    {`${t(
+                      "borrowMarketDetails.modals.apr.willSetTemporarily",
+                    )} ${twoWeeksTime}`}
                   </Typography>
                 )}
 
@@ -502,12 +514,14 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                       padding: "0 12px",
                     }}
                   >
-                    {`set temporarily till ${reserveRatioExpiry}`}
+                    {`${t(
+                      "borrowMarketDetails.modals.apr.setTemporarily",
+                    )} ${reserveRatioExpiry}`}
                   </Typography>
                 )}
 
                 <FormControlLabel
-                  label="I approve that I notified active lenders about changing APR"
+                  label={t("borrowMarketDetails.modals.apr.approveNotified")}
                   sx={AprModalFormLabel}
                   control={
                     <ExtendedCheckbox
@@ -537,8 +551,12 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
         {showForm && (
           <TxModalFooter
-            mainBtnText="Adjust"
-            secondBtnText={modal.approvedStep ? "Confirmed" : "Confirm"}
+            mainBtnText={t("borrowMarketDetails.modals.apr.adjust")}
+            secondBtnText={
+              modal.approvedStep
+                ? t("borrowMarketDetails.modals.apr.confirmed")
+                : t("borrowMarketDetails.modals.apr.confirm")
+            }
             mainBtnOnClick={handleAdjust}
             secondBtnOnClick={handleConfirm}
             disableMainBtn={disableAdjust}

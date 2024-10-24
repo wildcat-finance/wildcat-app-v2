@@ -1,6 +1,7 @@
 import { ChangeEvent, useEffect, useState } from "react"
 
 import { Box, Button, InputAdornment, SvgIcon, TextField } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
@@ -16,6 +17,7 @@ import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
 export const LendersTabSidebar = () => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
   const selectedLendersStore = useAppSelector(
@@ -124,7 +126,7 @@ export const LendersTabSidebar = () => {
         size="medium"
         sx={{ height: "32px", padding: "11px" }}
       >
-        Reset all filters
+        {t("borrowerMarketList.sidebar.resetAll")}
       </Button>
     </Box>
   )

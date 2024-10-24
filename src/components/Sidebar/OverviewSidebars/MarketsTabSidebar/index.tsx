@@ -194,7 +194,7 @@ export const MarketsTabSidebar = () => {
           color={COLORS.santasGrey}
           sx={{ height: "20px" }}
         >
-          Markets Types
+          {t("borrowerMarketList.sidebar.marketTypes")}
         </Typography>
 
         <Box
@@ -236,7 +236,7 @@ export const MarketsTabSidebar = () => {
           }}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            Active Market Status
+            {t("borrowerMarketList.sidebar.activeMarketStatus")}
           </Typography>
 
           {marketsStatuses.length !== 0 && (
@@ -254,7 +254,7 @@ export const MarketsTabSidebar = () => {
                 },
               }}
             >
-              Clear
+              {t("borrowerMarketList.sidebar.clear")}
             </Button>
           )}
         </Box>
@@ -346,7 +346,7 @@ export const MarketsTabSidebar = () => {
           size="medium"
           sx={{ height: "32px", padding: "11px" }}
         >
-          Reset all filters
+          {t("borrowerMarketList.sidebar.resetAll")}
         </Button>
       )}
     </Box>

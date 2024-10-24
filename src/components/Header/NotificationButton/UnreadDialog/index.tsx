@@ -23,7 +23,7 @@ import {
 } from "@/components/Header/NotificationButton/UnreadDialog/style"
 import { UnreadDialogProps } from "@/components/Header/NotificationButton/UnreadDialog/type"
 import { Notification } from "@/components/Notification"
-import { toastSuccess } from "@/components/toasts"
+import { toastSuccess } from "@/components/Toasts"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { markAllAsRead } from "@/store/slices/notificationsSlice/notificationsSlice"

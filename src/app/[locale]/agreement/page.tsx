@@ -2,10 +2,10 @@
 
 import { Box, Button, Typography } from "@mui/material"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import { AgreementText } from "./components/AgreementText"
 import { SignButton } from "./components/SignButton"
-import { useTranslation } from "react-i18next"
 
 export default async function Agreement() {
   const { t } = useTranslation()
