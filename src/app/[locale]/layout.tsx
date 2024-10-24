@@ -71,7 +71,7 @@ export default async function RootLayout({
                   <ThemeRegistry>
                     <Box sx={BackgroundContainer} />
                     <Box position="relative" zIndex="1">
-                      <Header params={{ locale }} />
+                      <Header />
                       <Box sx={PageContainer}>
                         <Box sx={ContentContainer}>{children}</Box>
                         <Footer />
