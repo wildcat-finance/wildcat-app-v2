@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import dayjs from "dayjs"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { useSignAgreement } from "@/app/[locale]/agreement/hooks/useSignAgreement"
@@ -15,6 +16,7 @@ const DATE_FORMAT = "MMMM DD, YYYY"
 export const SignButton = () => {
   const address = useAccount().address?.toLowerCase()
   const { sdk } = useSafeAppsSDK()
+  const { t } = useTranslation()
 
   const { mutateAsync: signAgreement, isPending: isSignPending } =
     useSignAgreement()
@@ -65,7 +67,9 @@ export const SignButton = () => {
       onClick={handleSign}
       disabled={isSigning}
     >
-      {isSigning ? "Signing..." : "Sign and continue"}
+      {isSigning
+        ? t("agreement.signButton.signing")
+        : t("agreement.signButton.sign")}
     </Button>
   )
 }

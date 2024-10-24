@@ -1,6 +1,7 @@
 import { Box, Button } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import BackArrow from "@/assets/icons/backArrow_icon.svg"
 import {
@@ -13,6 +14,7 @@ import { setEditStep } from "@/store/slices/editLendersListSlice/editLendersList
 import { COLORS } from "@/theme/colors"
 
 export const LenderListSidebar = () => {
+  const { t } = useTranslation()
   const router = useRouter()
 
   const dispatch = useAppDispatch()
@@ -64,7 +66,7 @@ export const LenderListSidebar = () => {
         >
           <BackArrow />
         </SvgIcon>
-        Back
+        {t("lenderMarketList.sidebar.back")}
       </Button>
       <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
         <Button
@@ -73,7 +75,7 @@ export const LenderListSidebar = () => {
           sx={step === "edit" ? MenuItemButtonSelected : MenuItemButton}
           // onClick={handleClickEdit}
         >
-          Editing Lenders List
+          {t("lenderMarketList.sidebar.editingLenders")}
         </Button>
 
         <Button
@@ -82,7 +84,7 @@ export const LenderListSidebar = () => {
           sx={step === "confirm" ? MenuItemButtonSelected : MenuItemButton}
           // onClick={handleClickConfirm}
         >
-          Confirmation
+          {t("lenderMarketList.sidebar.confirm")}
         </Button>
       </Box>
     </Box>

@@ -1,5 +1,6 @@
 import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
 import Copy from "@/assets/icons/copy_icon.svg"
@@ -14,6 +15,7 @@ export const LinkGroup = ({
   linkValue,
   groupSX,
 }: LinkGroupProps) => {
+  const { t } = useTranslation()
   const [state, copyToClipboard] = useCopyToClipboard()
 
   const handleCopy = (value: string) => {
@@ -71,7 +73,9 @@ export const LinkGroup = ({
                 <LinkIcon />
               </SvgIcon>
 
-              <Typography variant="text3">View on Etherscan</Typography>
+              <Typography variant="text3">
+                {t("link.viewOnEtherscan")}
+              </Typography>
             </Link>
           )}
         </Box>

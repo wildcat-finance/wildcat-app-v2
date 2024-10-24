@@ -12,6 +12,7 @@ import {
   SvgIcon,
   TextField,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { DeleteModal } from "@/app/[locale]/borrower/edit-lenders-list/components/EditLendersForm/Modals/DeleteModal"
 import {
@@ -41,6 +42,7 @@ export const TableSelect = ({
   lenderMarkets,
   lenderStatus,
 }: TableSelectProps) => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
@@ -433,7 +435,7 @@ export const TableSelect = ({
             color="secondary"
             sx={{ width: "100%", marginTop: "12px" }}
           >
-            Reset
+            {t("editLendersList.forms.edit.table.reset")}
           </Button>
         </Select>
       </FormControl>

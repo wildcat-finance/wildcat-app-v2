@@ -18,7 +18,7 @@ import {
 import initTranslations from "@/app/i18n"
 import { Footer } from "@/components/Footer"
 import Header from "@/components/Header"
-import { Sidebar } from "@/components/Sidebar"
+import PollingRegistration from "@/components/PollingRegistration"
 import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
 import TranslationsProvider from "@/components/TranslationsProvider"
@@ -28,6 +28,8 @@ import { SafeProvider } from "@/providers/SafeProvider"
 import { WagmiQueryProviders } from "@/providers/WagmiQueryProviders"
 
 import i18nConfig from "../../../i18nConfig"
+
+const i18nNamespaces = ["en"]
 
 const inter = Inter({
   subsets: ["latin"],
@@ -41,8 +43,6 @@ export const metadata: Metadata = {
 export function generateStaticParams() {
   return i18nConfig.locales.map((locale) => ({ locale }))
 }
-
-const i18nNamespaces = ["en"]
 
 export default async function RootLayout({
   children,
@@ -62,25 +62,23 @@ export default async function RootLayout({
           <SafeProvider>
             <RedirectsProvider>
               <StoreProvider>
-                <ThemeRegistry>
-                  <TranslationsProvider
-                    namespaces={i18nNamespaces}
-                    locale={locale}
-                    resources={resources}
-                  >
+                <TranslationsProvider
+                  namespaces={i18nNamespaces}
+                  locale={locale}
+                  resources={resources}
+                >
+                  <PollingRegistration />
+                  <ThemeRegistry>
                     <Box sx={BackgroundContainer} />
                     <Box position="relative" zIndex="1">
                       <Header />
                       <Box sx={PageContainer}>
-                        <Box sx={ContentContainer}>
-                          <Sidebar />
-                          <Box width="calc(100vw - 267px)">{children}</Box>
-                        </Box>
+                        <Box sx={ContentContainer}>{children}</Box>
                         <Footer />
                       </Box>
                     </Box>
-                  </TranslationsProvider>
-                </ThemeRegistry>
+                  </ThemeRegistry>
+                </TranslationsProvider>
               </StoreProvider>
             </RedirectsProvider>
           </SafeProvider>

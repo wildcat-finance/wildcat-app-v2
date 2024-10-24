@@ -202,7 +202,7 @@ export const MarketAuthorisedLenders = ({
           </Box>
         ) : (
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            Not signed yet
+            {t("borrowerMarketDetails.authorisedLenders.notSigned")}
           </Typography>
         ),
     },
@@ -234,10 +234,10 @@ export const MarketAuthorisedLenders = ({
       {lendersRows.length === 0 && (
         <Box display="flex" flexDirection="column">
           <Typography variant="title3" sx={{ marginBottom: "8px" }}>
-            No lenders yet
+            {t("borrowerMarketDetails.authorisedLenders.noLendersTitle")}
           </Typography>
           <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-            There is no any lenders yet – edit list to add them
+            {t("borrowerMarketDetails.authorisedLenders.noLendersSubtitle")}
           </Typography>
           <Link href={editLendersLink}>
             <Button
@@ -250,7 +250,7 @@ export const MarketAuthorisedLenders = ({
                 borderRadius: 2,
               }}
             >
-              Edit List
+              {t("borrowerMarketDetails.authorisedLenders.editList")}
             </Button>
           </Link>
         </Box>
@@ -262,7 +262,7 @@ export const MarketAuthorisedLenders = ({
             {t("borrowerMarketDetails.authorisedLenders.header")}
           </Typography>
           <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-            No active lenders yet – edit list to add them
+            {t("borrowerMarketDetails.authorisedLenders.noActiveLenders")}
           </Typography>
           <Link href={editLendersLink}>
             <Button

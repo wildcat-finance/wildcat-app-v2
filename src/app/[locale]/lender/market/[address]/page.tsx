@@ -4,6 +4,7 @@ import * as React from "react"
 import { useEffect } from "react"
 
 import { Box, Divider, Skeleton, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
@@ -34,6 +35,7 @@ export default function LenderMarketDetails({
 }: {
   params: { address: string }
 }) {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const { isConnected } = useAccount()
   const { isWrongNetwork } = useCurrentNetwork()
@@ -115,7 +117,9 @@ export default function LenderMarketDetails({
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>
-          <Typography variant="text2">No data available</Typography>
+          <Typography variant="text2">
+            {t("borrowerMarketDetails.noDataAvailable")}
+          </Typography>
         </Box>
       </Box>
     )

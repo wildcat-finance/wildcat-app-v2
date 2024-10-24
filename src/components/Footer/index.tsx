@@ -4,6 +4,7 @@ import { Box, Button, Typography } from "@mui/material"
 import dayjs from "dayjs"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import { COLORS } from "@/theme/colors"
 
@@ -40,13 +41,14 @@ const getCommitInfo = () => {
 const COMMIT_INFO = getCommitInfo()
 
 export const Footer = () => {
+  const { t } = useTranslation()
   const pathname = usePathname()
   const showFooter = pathname !== "/agreement"
 
   return (
     <Box sx={ContentContainer}>
       <Typography variant="text4" color={COLORS.santasGrey}>
-        Wildcat © All Rights reserved. 2023
+        {t("footer.rights")}
       </Typography>
       <div>{COMMIT_INFO}</div>
       {showFooter && (
@@ -56,7 +58,7 @@ export const Footer = () => {
         >
           <Button variant="text" size="small">
             <Typography variant="text4" color={COLORS.santasGrey}>
-              Download Agreement
+              {t("footer.agreement")}
             </Typography>
             <Box sx={DownloadIcon}>⇤</Box>
           </Button>

@@ -1,173 +1,85 @@
-import { Chip, Typography } from "@mui/material"
-import SvgIcon from "@mui/material/SvgIcon"
-import { Box } from "@mui/system"
+import React from "react"
+
+import { Box, Typography, SvgIcon, Button, Link } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
-import Clock from "@/assets/icons/clock_icon.svg"
-import { Base } from "@/components/Notification/Base"
+import LinkIcon from "@/assets/icons/link_icon.svg"
 import { TNotification } from "@/store/slices/notificationsSlice/interface"
 import { COLORS } from "@/theme/colors"
+import { formatBlockTimestamp } from "@/utils/formatters"
+
+import {
+  DotStyle,
+  ErrorStyle,
+  baseContainerStyle,
+  contentContainerStyle,
+  lineHeightStyle,
+  actionButtonStyle,
+  linkButtonStyle,
+} from "./style"
 
 export const Notification = ({
-  type,
   description,
-  date,
-  unread = false,
-  error = false,
-  data,
+  children,
+  unread,
+  error,
+  blockTimestamp,
+  etherscanUrl,
   action,
 }: TNotification) => {
   const { t } = useTranslation()
 
-  switch (type) {
-    case "borrowerRegistrationChange": {
-      return (
-        <Base
-          unread={unread}
-          error={error}
-          description={description}
-          date={date}
-        />
-      )
-    }
-    case "aprDecreaseEnded": {
-      return (
-        <Base
-          unread={unread}
-          error={error}
-          description={description}
-          date={date}
-        >
-          <Box sx={{ display: "flex", gap: "4px" }}>
-            <Typography variant="text3" color={COLORS.greySuit}>
-              <s>{data.apr}</s>
-              &nbsp;
-              <Typography variant="text3">{`→ ${data.newApr}`}</Typography>
-            </Typography>
-            <Chip
-              sx={{
-                backgroundColor: COLORS.cherub,
-                color: COLORS.dullRed,
-                marginTop: "2px",
-              }}
-              label={
-                data.percentageIncrease > 0
-                  ? `+${Math.round(data.percentageIncrease * 100) / 100}% ↑`
-                  : `${Math.round(data.percentageIncrease * 100) / 100}% ↓`
-              }
-            />
+  return (
+    <Box>
+      <Box sx={baseContainerStyle}>
+        <Box sx={contentContainerStyle}>
+          {unread && <div style={DotStyle} />}
+          {error && (
+            <div style={ErrorStyle}>
+              <Box sx={{ marginTop: "-8px !important", marginBottom: "8px" }}>
+                <Typography
+                  variant="text4"
+                  color={COLORS.white}
+                  fontWeight={600}
+                  sx={{ marginLeft: "4px" }}
+                >
+                  !
+                </Typography>
+              </Box>
+            </div>
+          )}
+          <Box sx={lineHeightStyle}>
+            <Typography variant="text3">{description}</Typography>
+            {children && <Box sx={{ marginTop: "4px" }}>{children}</Box>}
           </Box>
-        </Base>
-      )
-    }
-    case "lenderAdded":
-    case "lenderRemoved": {
-      return (
-        <Base
-          unread={unread}
-          error={error}
-          description={description}
-          date={date}
-          action={action}
-        />
-      )
-    }
-    case "withdrawalStarted": {
-      return (
-        <Base
-          unread={unread}
-          error={error}
-          description={description}
-          date={date}
-        >
-          <Chip
-            sx={{
-              backgroundColor: COLORS.oasis,
-              color: COLORS.galliano,
-              marginTop: "2px",
-            }}
-            label="2:10:05"
-            icon={
-              <SvgIcon
-                fontSize="tiny"
-                sx={{ "& path": { fill: `${COLORS.galliano}` } }}
-                component={Clock}
-              />
-            }
-          />
-        </Base>
-      )
-    }
-    case "lenderClaimed": {
-      return (
-        <Base
-          unread={unread}
-          error={error}
-          description={description}
-          date={date}
-        >
-          <Chip
-            sx={{
-              backgroundColor: COLORS.whiteSmoke,
-              color: COLORS.santasGrey,
-              marginTop: "2px",
-            }}
-            label={`- ${data.amount} ${data.token}`}
-          />
-        </Base>
-      )
-    }
-    case "withdrawalSuccess": {
-      return (
-        <Base
-          unread={unread}
-          error={error}
-          description={description}
-          date={date}
-        />
-      )
-    }
-    case "withdrawalFailed": {
-      return (
-        <Base
-          unread={unread}
-          error={error}
-          description={description}
-          date={date}
-        >
-          <Chip
-            sx={{
-              backgroundColor: COLORS.cherub,
-              color: COLORS.dullRed,
-              marginTop: "2px",
-            }}
-            label={`${t("notifications.missing")} ${data.amount} ${data.token}`}
-          />
-        </Base>
-      )
-    }
-    case "loanTaken": {
-      return (
-        <Base
-          unread={unread}
-          error={error}
-          description={description}
-          date={date}
-        />
-      )
-    }
-    case "loanRepaid": {
-      return (
-        <Base
-          unread={unread}
-          error={error}
-          description={description}
-          date={date}
-        />
-      )
-    }
-    default: {
-      return null
-    }
-  }
+        </Box>
+        <Box sx={{ display: "flex", gap: "4px", height: "24px" }}>
+          {action && (
+            <Button
+              size="small"
+              variant="contained"
+              color="secondary"
+              sx={actionButtonStyle}
+              onClick={action.onClick}
+            >
+              {action.label}
+            </Button>
+          )}
+          {etherscanUrl && (
+            <Link target="_blank" href={etherscanUrl}>
+              <Button size="small" variant="text" sx={linkButtonStyle}>
+                <SvgIcon fontSize="small" sx={{ margin: "auto" }}>
+                  <LinkIcon />
+                </SvgIcon>
+                {t("notifications.viewOnEtherscan")}
+              </Button>
+            </Link>
+          )}
+        </Box>
+      </Box>
+      <Typography variant="text4" color={COLORS.greySuit}>
+        {formatBlockTimestamp(blockTimestamp)}
+      </Typography>
+    </Box>
+  )
 }

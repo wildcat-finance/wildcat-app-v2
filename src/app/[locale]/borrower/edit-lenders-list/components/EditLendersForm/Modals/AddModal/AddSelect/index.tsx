@@ -12,6 +12,7 @@ import {
   SvgIcon,
   TextField,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import {
   EditLenderFlowStatuses,
@@ -40,6 +41,7 @@ export const AddSelect = ({
   setSelectedMarkets,
   disabled,
 }: AddSelectProps) => {
+  const { t } = useTranslation()
   const activeBorrowerMarkets = useAppSelector(
     (state) => state.editLendersList.activeBorrowerMarkets,
   )
@@ -123,7 +125,7 @@ export const AddSelect = ({
   return (
     <FormControl fullWidth>
       <InputLabel disabled={disabled} sx={InputLabelStyle}>
-        Add at least one market
+        {t("editLendersList.modals.add.atLeastOne")}
       </InputLabel>
 
       <Select
@@ -171,7 +173,7 @@ export const AddSelect = ({
             onChange={handleChangeMarketName}
             fullWidth
             size="small"
-            placeholder="Search by Name"
+            placeholder={t("editLendersList.modals.add.searchByName")}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -192,7 +194,7 @@ export const AddSelect = ({
 
         <Box sx={VariantsContainer}>
           <FormControlLabel
-            label="All Markets"
+            label={t("editLendersList.modals.add.allMarkets")}
             control={
               <ExtendedCheckbox
                 onChange={handleSelectAllMarkets}
@@ -240,7 +242,7 @@ export const AddSelect = ({
           color="secondary"
           sx={{ width: "100%", marginTop: "24px" }}
         >
-          Reset
+          {t("editLendersList.modals.add.reset")}
         </Button>
       </Select>
     </FormControl>

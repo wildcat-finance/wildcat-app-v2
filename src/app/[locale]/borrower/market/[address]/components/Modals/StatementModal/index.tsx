@@ -11,6 +11,7 @@ import {
   Typography,
 } from "@mui/material"
 import { Dayjs } from "dayjs"
+import { useTranslation } from "react-i18next"
 
 import Cross from "@/assets/icons/cross_icon.svg"
 import { DateRange } from "@/components/DateRange"
@@ -20,6 +21,7 @@ import { StatementModalProps } from "./interface"
 import { DialogContainer, HeaderTextContainer } from "./style"
 
 export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
+  const { t } = useTranslation()
   const [value, setValue] = useState<"csv" | "pdf">("csv")
   const [dates, setDates] = useState<{
     starting: Dayjs | null
@@ -38,7 +40,9 @@ export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
     <Dialog open={isOpen} onClose={handleClose} sx={DialogContainer}>
       <Box marginBottom="32px">
         <Box sx={HeaderTextContainer}>
-          <Typography variant="title3">Statement of Transactions</Typography>
+          <Typography variant="title3">
+            {t("borrowMarketDetails.modals.statement.title")}
+          </Typography>
           <IconButton
             disableRipple
             onClick={() => {
@@ -51,7 +55,7 @@ export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
           </IconButton>
         </Box>
         <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-          Generate and download a summary of all past transactions
+          {t("borrowMarketDetails.modals.statement.generate")}
         </Typography>
       </Box>
       <Tabs
@@ -76,7 +80,7 @@ export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
         }}
         fullWidth
       >
-        Download
+        {t("borrowMarketDetails.modals.statement.download")}
       </Button>
     </Dialog>
   )

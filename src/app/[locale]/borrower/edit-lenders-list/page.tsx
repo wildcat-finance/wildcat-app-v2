@@ -5,6 +5,7 @@ import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
 import { useSearchParams } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
@@ -25,6 +26,7 @@ import { MarketSelect } from "./components/MarketSelect"
 import { EditLenderFlowStatuses, LenderTableDataType } from "./interface"
 
 export default function EditLendersListPage() {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const urlParams = useSearchParams()
 
@@ -116,10 +118,13 @@ export default function EditLendersListPage() {
       <Box sx={{ display: "flex", gap: "6px", marginBottom: "25px" }}>
         {step === "edit" ? (
           <Typography variant="title2">
-            Editing Lenders List {!isLoading && "for"}
+            {t("editLendersList.editing")}
+            {!isLoading && t("editLendersList.for")}
           </Typography>
         ) : (
-          <Typography variant="title2">Confirm Lenders List Edits</Typography>
+          <Typography variant="title2">
+            {t("editLendersList.confirm")}
+          </Typography>
         )}
 
         {!isLoading && step === "edit" && <MarketSelect />}

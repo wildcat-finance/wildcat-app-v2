@@ -19,6 +19,7 @@ import { Notification } from "@/components/Notification"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { markAllAsRead } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { COLORS } from "@/theme/colors"
+import { setLastFetchedTimestamp } from "@/utils/timestamp"
 
 import {
   PageTitleContainer,
@@ -57,6 +58,7 @@ export default function Notifications() {
 
   const handleMarkAsRead = () => {
     dispatch(markAllAsRead())
+    setLastFetchedTimestamp(notifications[0]?.blockTimestamp)
   }
 
   return (

@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { Box, Button, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
+import { useTranslation } from "react-i18next"
 
 import useTrackLendersChanges from "@/app/[locale]/borrower/edit-lenders-list/hooks/useTrackLendersChanges"
 import {
@@ -27,6 +28,7 @@ import {
 } from "./style"
 
 export const ConfirmLendersForm = () => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
   const initialLendersTableData = useAppSelector(
@@ -77,7 +79,7 @@ export const ConfirmLendersForm = () => {
             }}
           >
             {lendersName[params.row.address.toLowerCase()] === ("" || undefined)
-              ? "Add name"
+              ? t("editLendersList.forms.confirm.addName")
               : lendersName[params.row.address.toLowerCase()]}
           </Typography>
         </>
@@ -134,7 +136,9 @@ export const ConfirmLendersForm = () => {
             ))}
           </Box>
         ) : (
-          <Typography variant="text3">All</Typography>
+          <Typography variant="text3">
+            {t("editLendersList.forms.confirm.all")}
+          </Typography>
         ),
     },
   ]
@@ -144,9 +148,10 @@ export const ConfirmLendersForm = () => {
       <Box sx={AlertBox}>
         <Coins />
         <Typography variant="text3" color={COLORS.butteredRum}>
-          Please, keep in mind that once you submit this request you will be
-          required to{" "}
-          <span style={{ fontWeight: 700 }}>pay gas to confirm.</span>
+          {t("editLendersList.forms.confirm.keepInMind")}{" "}
+          <span style={{ fontWeight: 700 }}>
+            {t("editLendersList.forms.confirm.payGas")}
+          </span>
         </Typography>
       </Box>
 
@@ -164,11 +169,11 @@ export const ConfirmLendersForm = () => {
           onClick={handleClickEdit}
           sx={{ width: "140px" }}
         >
-          Back
+          {t("editLendersList.forms.confirm.back")}
         </Button>
 
         <Button size="large" variant="contained" sx={{ width: "140px" }}>
-          Confirm
+          {t("editLendersList.forms.confirm.confirm")}
         </Button>
       </Box>
     </Box>

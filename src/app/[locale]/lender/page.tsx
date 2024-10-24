@@ -3,12 +3,14 @@
 import React, { useState } from "react"
 
 import { Box, Tab, Tabs, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { MarketsTab } from "@/app/[locale]/lender/components/MarketsTab"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 
 export default function Lender() {
+  const { t } = useTranslation()
   const { isConnected } = useAccount()
   const { isWrongNetwork } = useCurrentNetwork()
 
@@ -42,11 +44,13 @@ export default function Lender() {
             onChange={handleTabsChange}
             aria-label="Lender overview tabs"
           >
-            <Tab value="markets" label="All markets" />
-            <Tab value="mla" label="MLA" />
+            <Tab value="markets" label={t("lenderMarketList.allMarkets")} />
+            <Tab value="mla" label={t("lenderMarketList.mla")} />
           </Tabs>
         ) : (
-          <Typography variant="title2">All markets</Typography>
+          <Typography variant="title2">
+            {t("lenderMarketList.allMarkets")}
+          </Typography>
         )}
       </Box>
 
