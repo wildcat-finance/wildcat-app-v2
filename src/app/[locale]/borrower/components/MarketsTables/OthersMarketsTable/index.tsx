@@ -18,7 +18,6 @@ import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { TablePagination } from "@/components/TablePagination"
 import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
-import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
 import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import {
@@ -52,7 +51,9 @@ export const OthersMarketsTable = ({
     {
       field: "status",
       headerName: t("borrowerMarketList.table.header.status"),
-      minWidth: 150,
+      maxWidth: 146,
+      minWidth: 130,
+      flex: 2,
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
@@ -61,16 +62,17 @@ export const OthersMarketsTable = ({
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-start" }}
         >
-          <MarketStatusChip status={params.value} />
+          <Box width="130px">
+            <MarketStatusChip status={params.value} />
+          </Box>
         </Link>
       ),
-      flex: 2,
     },
     {
       field: "name",
       headerName: t("borrowerMarketList.table.header.marketName"),
-      flex: 4,
-      minWidth: 160,
+      flex: 1.7,
+      minWidth: 134,
       headerAlign: "left",
       align: "left",
       renderCell: (params) => (
@@ -78,7 +80,14 @@ export const OthersMarketsTable = ({
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-start" }}
         >
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+          <span
+            style={{
+              width: "100%",
+              paddingRight: "20px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
             {params.value}
           </span>
         </Link>
@@ -87,26 +96,35 @@ export const OthersMarketsTable = ({
     {
       field: "borrowerName",
       headerName: t("borrowerMarketList.table.header.borrowerName"),
-      minWidth: 130,
+      minWidth: 134,
+      flex: 1.7,
       headerAlign: "left",
       align: "left",
-      flex: 2,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-start" }}
         >
-          {params.value}
+          <span
+            style={{
+              width: "100%",
+              paddingRight: "20px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {params.value}
+          </span>
         </Link>
       ),
     },
     {
       field: "asset",
       headerName: t("borrowerMarketList.table.header.asset"),
-      minWidth: 151,
+      minWidth: 131,
+      flex: 1,
       headerAlign: "right",
       align: "right",
-      flex: 1,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
@@ -119,10 +137,10 @@ export const OthersMarketsTable = ({
     {
       field: "lenderAPR",
       headerName: t("borrowerMarketList.table.header.apr"),
-      minWidth: 106,
+      minWidth: 102,
+      flex: 1,
       headerAlign: "right",
       align: "right",
-      flex: 1,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
@@ -135,7 +153,8 @@ export const OthersMarketsTable = ({
     {
       field: "crr",
       headerName: t("borrowerMarketList.table.header.crr"),
-      minWidth: 90,
+      minWidth: 79,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       renderHeader: () => (
@@ -157,7 +176,6 @@ export const OthersMarketsTable = ({
           {`${formatBps(params.value)}%`}
         </Link>
       ),
-      flex: 1,
     },
     {
       field: "maxCapacity",
@@ -181,11 +199,11 @@ export const OthersMarketsTable = ({
     {
       field: "borrowable",
       headerName: t("borrowerMarketList.table.header.borrowable"),
-      minWidth: 104,
+      minWidth: 106,
+      flex: 1.6,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
-      flex: 1.5,
       renderCell: (
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
@@ -206,6 +224,7 @@ export const OthersMarketsTable = ({
       field: "deploy",
       headerName: t("borrowerMarketList.table.header.deploy"),
       minWidth: 126,
+      flex: 1.2,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
@@ -218,7 +237,6 @@ export const OthersMarketsTable = ({
           </Typography>
         </Link>
       ),
-      flex: 2,
     },
   ]
 
@@ -256,9 +274,7 @@ export const OthersMarketsTable = ({
   })
 
   const defaultFilters =
-    assetFilter === SidebarMarketAssets.ALL &&
-    statusFilter === "All" &&
-    nameFilter === ""
+    assetFilter?.length === 0 && statusFilter?.length === 0 && nameFilter === ""
 
   useEffect(() => {
     setPaginationModel((prevState) => ({ ...prevState, page: 0 }))
@@ -311,9 +327,11 @@ export const OthersMarketsTable = ({
         <Box display="flex" flexDirection="column" padding="24px 16px 12px">
           <Typography variant="text2" color={COLORS.santasGrey}>
             {t("borrowerMarketList.table.noMarkets.filter.beginning")}{" "}
-            {statusFilter === "All" ? "" : statusFilter?.toLowerCase()}{" "}
+            {statusFilter?.length !== 0 &&
+              statusFilter?.map((status) => ` ${status.toLowerCase()}`)}{" "}
             {nameFilter === "" ? "" : nameFilter}{" "}
-            {assetFilter === "All" ? "" : assetFilter}{" "}
+            {assetFilter?.length !== 0 &&
+              `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
             {t("borrowerMarketList.table.noMarkets.filter.ending")}
           </Typography>
         </Box>
@@ -325,6 +343,8 @@ export const OthersMarketsTable = ({
 
             overflow: "auto",
             maxWidth: "calc(100vw - 267px)",
+            padding: "0 16px",
+            "& .MuiDataGrid-columnHeader": { padding: 0 },
             "& .MuiDataGrid-cell": { padding: "0px" },
 
             "& .MuiDataGrid-footerContainer": {

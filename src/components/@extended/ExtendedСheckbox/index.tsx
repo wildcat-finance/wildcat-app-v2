@@ -9,8 +9,8 @@ import { COLORS } from "@/theme/colors"
 const Icon = styled("span")({
   border: `1px solid ${COLORS.iron}`,
   borderRadius: "4px",
-  width: 14,
-  height: 14,
+  width: 16,
+  height: 16,
   padding: "2px",
   transition: "border 0.2s",
   "input:hover ~ &": {
@@ -23,8 +23,8 @@ const CheckedIcon = styled(Icon)({
   backgroundColor: COLORS.blueRibbon,
   "&::before": {
     display: "block",
-    width: 14,
-    height: 14,
+    width: 16,
+    height: 16,
     backgroundRepeat: "no-repeat",
     backgroundPosition: "center",
     backgroundImage:

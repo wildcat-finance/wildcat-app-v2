@@ -3,15 +3,17 @@
 import { Box } from "@mui/material"
 import { usePathname } from "next/navigation"
 
-import { AllMarketsSidebar } from "@/components/Sidebar/AllMarketsSidebar"
-import { LendersTabSidebar } from "@/components/Sidebar/BorrowerOverviewSidebars/LendersTabSidebar"
+import { LenderMarketSidebar } from "@/components/Sidebar/LenderMarketSidebar"
 import { LenderListSidebar } from "@/components/Sidebar/LendersListSidebar"
 import { MarketSidebar } from "@/components/Sidebar/MarketSidebar"
 import { NewMarketSidebar } from "@/components/Sidebar/NewMarketSidebar"
 import { NotificationsSidebar } from "@/components/Sidebar/NotificationsSidebar"
+import { LendersTabSidebar } from "@/components/Sidebar/OverviewSidebars/LendersTabSidebar"
+import { MarketsTabSidebar } from "@/components/Sidebar/OverviewSidebars/MarketsTabSidebar"
 import { ROUTES } from "@/routes"
 import { useAppSelector } from "@/store/hooks"
 import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
+import { COLORS } from "@/theme/colors"
 
 export const Sidebar = () => {
   const pathname = usePathname()
@@ -25,11 +27,22 @@ export const Sidebar = () => {
         overflowY: "auto",
       }}
     >
+      {(pathname === ROUTES.borrower.root || pathname === ROUTES.lender.root) &&
+        step === BorrowerOverviewTabs.MARKETS && <MarketsTabSidebar />}
       {pathname === ROUTES.borrower.root &&
-        step === BorrowerOverviewTabs.MARKETS && <AllMarketsSidebar />}
+        step === BorrowerOverviewTabs.MLA && (
+          <Box
+            sx={{
+              height: "100%",
+              width: "267px",
+              borderRight: `1px solid ${COLORS.blackRock006}`,
+            }}
+          />
+        )}
       {pathname === ROUTES.borrower.root &&
         step === BorrowerOverviewTabs.LENDERS && <LendersTabSidebar />}
       {pathname.includes(ROUTES.borrower.market) && <MarketSidebar />}
+      {pathname.includes(ROUTES.lender.market) && <LenderMarketSidebar />}
       {pathname === ROUTES.borrower.newMarket && <NewMarketSidebar />}
       {pathname === ROUTES.borrower.lendersList && <LenderListSidebar />}
       {pathname === ROUTES.borrower.notifications && <NotificationsSidebar />}

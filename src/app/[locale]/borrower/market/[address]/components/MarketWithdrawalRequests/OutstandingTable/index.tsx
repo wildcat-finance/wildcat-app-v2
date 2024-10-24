@@ -53,7 +53,6 @@ export const OutstandingTable = ({
       summaryText="Outstanding from past cycles"
       summarySx={{
         borderRadius: "0px",
-        marginBottom: isOutstandingOpen ? "0px" : "12px",
         borderBottom: isOutstandingOpen ? "none" : `1px solid`,
         borderColor: COLORS.athensGrey,
       }}
@@ -71,7 +70,12 @@ export const OutstandingTable = ({
           columnHeaderHeight={40}
         />
       ) : (
-        <Box display="flex" flexDirection="column" padding="0 16px">
+        <Box
+          display="flex"
+          flexDirection="column"
+          padding="0 16px"
+          marginBottom="10px"
+        >
           <Typography variant="text3" color={COLORS.santasGrey}>
             There are no outstanding withdrawals from past cycles
           </Typography>

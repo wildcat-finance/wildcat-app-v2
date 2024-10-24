@@ -4,12 +4,12 @@ import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { TerminateMarket } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateMarket"
-import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
 import { BackButton } from "@/components/BackButton"
 import {
   ContentContainer,
   MenuItemButton,
 } from "@/components/Sidebar/MarketSidebar/style"
+import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {

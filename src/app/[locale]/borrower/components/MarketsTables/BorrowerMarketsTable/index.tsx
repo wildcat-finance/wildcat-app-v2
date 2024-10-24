@@ -20,7 +20,6 @@ import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
-import { SidebarMarketAssets } from "@/store/slices/borrowerSidebarSlice/interface"
 import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import {
@@ -50,7 +49,9 @@ export const BorrowerMarketsTable = ({
     {
       field: "status",
       headerName: t("borrowerMarketList.table.header.status"),
-      minWidth: 150,
+      maxWidth: 146,
+      minWidth: 130,
+      flex: 2,
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
@@ -59,15 +60,16 @@ export const BorrowerMarketsTable = ({
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-start" }}
         >
-          <MarketStatusChip status={params.value} />
+          <Box width="130px">
+            <MarketStatusChip status={params.value} />
+          </Box>
         </Link>
       ),
-      flex: 2,
     },
     {
       field: "name",
       headerName: t("borrowerMarketList.table.header.marketName"),
-      flex: 4,
+      flex: 3.35,
       minWidth: 160,
       headerAlign: "left",
       align: "left",
@@ -85,10 +87,10 @@ export const BorrowerMarketsTable = ({
     {
       field: "asset",
       headerName: t("borrowerMarketList.table.header.asset"),
-      minWidth: 151,
+      minWidth: 131,
+      flex: 1,
       headerAlign: "right",
       align: "right",
-      flex: 1,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
@@ -101,10 +103,10 @@ export const BorrowerMarketsTable = ({
     {
       field: "lenderAPR",
       headerName: t("borrowerMarketList.table.header.apr"),
-      minWidth: 106,
+      minWidth: 102,
+      flex: 1,
       headerAlign: "right",
       align: "right",
-      flex: 1,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
@@ -117,7 +119,8 @@ export const BorrowerMarketsTable = ({
     {
       field: "crr",
       headerName: t("borrowerMarketList.table.header.crr"),
-      minWidth: 90,
+      minWidth: 79,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       renderHeader: () => (
@@ -139,7 +142,6 @@ export const BorrowerMarketsTable = ({
           {`${formatBps(params.value)}%`}
         </Link>
       ),
-      flex: 1,
     },
     {
       field: "maxCapacity",
@@ -163,11 +165,11 @@ export const BorrowerMarketsTable = ({
     {
       field: "borrowable",
       headerName: t("borrowerMarketList.table.header.borrowable"),
-      minWidth: 104,
+      minWidth: 106,
+      flex: 1.6,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
-      flex: 1.5,
       renderCell: (
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
@@ -180,7 +182,7 @@ export const BorrowerMarketsTable = ({
                 withSymbol: false,
                 fractionDigits: 2,
               })
-            : "0"}{" "}
+            : "0"}
         </Link>
       ),
     },
@@ -188,6 +190,7 @@ export const BorrowerMarketsTable = ({
       field: "deploy",
       headerName: t("borrowerMarketList.table.header.deploy"),
       minWidth: 126,
+      flex: 1.2,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
@@ -200,7 +203,6 @@ export const BorrowerMarketsTable = ({
           </Typography>
         </Link>
       ),
-      flex: 2,
     },
   ]
 
@@ -232,15 +234,15 @@ export const BorrowerMarketsTable = ({
   })
 
   const defaultFilters =
-    assetFilter === SidebarMarketAssets.ALL &&
-    statusFilter === "All" &&
-    nameFilter === ""
+    assetFilter?.length === 0 && statusFilter?.length === 0 && nameFilter === ""
 
   return (
     <Accordion sx={{ width: "100%", minWidth: 0 }} defaultExpanded={isOpen}>
       <AccordionSummary>
         <Box display="flex" columnGap="4px">
-          <Typography variant="text3">{label}</Typography>
+          <Typography variant="text3" color={COLORS.blackRock}>
+            {label}
+          </Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
             {isLoading
               ? t("borrowerMarketList.table.title.loading")
@@ -289,9 +291,11 @@ export const BorrowerMarketsTable = ({
         <Box display="flex" flexDirection="column" padding="24px 16px 12px">
           <Typography variant="text2" color={COLORS.santasGrey}>
             {t("borrowerMarketList.table.noMarkets.filter.beginning")} {type}{" "}
-            {statusFilter === "All" ? "" : statusFilter?.toLowerCase()}{" "}
+            {statusFilter?.length !== 0 &&
+              statusFilter?.map((status) => ` ${status.toLowerCase()}`)}{" "}
             {nameFilter === "" ? "" : nameFilter}{" "}
-            {assetFilter === "All" ? "" : assetFilter}{" "}
+            {assetFilter?.length !== 0 &&
+              `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
             {t("borrowerMarketList.table.noMarkets.filter.ending")}
           </Typography>
         </Box>
@@ -301,6 +305,8 @@ export const BorrowerMarketsTable = ({
           sx={{
             overflow: "auto",
             maxWidth: "calc(100vw - 267px)",
+            padding: "0 16px",
+            "& .MuiDataGrid-columnHeader": { padding: 0 },
             "& .MuiDataGrid-cell": { padding: "0px" },
           }}
           rows={rows}

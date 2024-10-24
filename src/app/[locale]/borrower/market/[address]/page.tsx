@@ -4,22 +4,24 @@ import * as React from "react"
 import { useEffect } from "react"
 
 import { Box, Divider, Skeleton } from "@mui/material"
-import { usePathname } from "next/navigation"
 import { useAccount } from "wagmi"
 
 import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
 import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart"
-import { useGetMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetMarket"
 import { LeadBanner } from "@/components/LeadBanner"
+import { MarketHeader } from "@/components/MarketHeader"
+import { MarketParameters } from "@/components/MarketParameters"
+import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
-import { resetPageState } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
+import {
+  resetPageState,
+  setCheckBlock,
+} from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
 
 import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
-import { MarketHeader } from "./components/MarketHeader"
-import { MarketParameters } from "./components/MarketParameters"
 import { MarketTransactions } from "./components/MarketTransactions"
 import { MarketWithdrawalRequests } from "./components/MarketWithdrawalRequests"
 import useScrollHandler from "./hooks/useScrollHandler"
@@ -43,6 +45,14 @@ export default function MarketDetails({
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 
   const { checked } = useScrollHandler()
+
+  const prevURL = sessionStorage.getItem("previousPageUrl")
+
+  useEffect(() => {
+    if (prevURL && prevURL.includes(ROUTES.borrower.lendersList)) {
+      dispatch(setCheckBlock(4))
+    }
+  }, [])
 
   useEffect(
     () => () => {

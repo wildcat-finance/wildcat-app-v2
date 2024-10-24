@@ -13,7 +13,7 @@ export const DateCalendarTextField = {
   },
 
   "& .MuiInputBase-input": {
-    padding: "16px",
+    padding: "12px 16px",
   },
 }
 

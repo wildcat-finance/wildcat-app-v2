@@ -29,7 +29,7 @@ export const LoadingModal = ({ txHash }: { txHash?: string }) => (
       </Box>
 
       <Box height="36px" width="100%">
-        {txHash !== "" && (
+        {txHash !== "" && txHash !== undefined && (
           <LinkGroup
             type="etherscan"
             linkValue={`${EtherscanBaseUrl}/tx/${txHash}`}

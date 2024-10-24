@@ -31,7 +31,7 @@ export const BarItem = ({ chartItem, isOnlyBarItem }: BarItemProps) => {
     <Box
       className="barchart__item"
       ref={outerContainerRef}
-      sx={
+      style={
         isOnlyBarItem
           ? {
               width: "100%",
