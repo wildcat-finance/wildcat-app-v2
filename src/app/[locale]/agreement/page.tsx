@@ -1,10 +1,14 @@
+"use client"
+
 import { Box, Button, Typography } from "@mui/material"
 import Link from "next/link"
 
 import { AgreementText } from "./components/AgreementText"
 import { SignButton } from "./components/SignButton"
+import { useTranslation } from "react-i18next"
 
 export default async function Agreement() {
+  const { t } = useTranslation()
   return (
     <Box
       className="text"
@@ -25,7 +29,7 @@ export default async function Agreement() {
         }}
       >
         <Typography variant="title2" fontWeight={600} marginBottom="24px">
-          Wildcat Service Agreement
+          {t("agreement.page.title")}
         </Typography>
 
         <AgreementText />
@@ -67,7 +71,7 @@ export default async function Agreement() {
             size="large"
             sx={{ width: "168.63px", height: "44px" }}
           >
-            Download
+            {t("agreement.page.download")}
           </Button>
         </Link>
       </Box>

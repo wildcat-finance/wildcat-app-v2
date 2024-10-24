@@ -28,6 +28,7 @@ import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { markAllAsRead } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { COLORS } from "@/theme/colors"
+import { setLastFetchedTimestamp } from "@/utils/timestamp"
 
 export const UnreadDialog = ({ open, handleClose }: UnreadDialogProps) => {
   const { t } = useTranslation()
@@ -46,6 +47,7 @@ export const UnreadDialog = ({ open, handleClose }: UnreadDialogProps) => {
   }
 
   const handleMarkAsRead = async () => {
+    setLastFetchedTimestamp(notifications[0]?.blockTimestamp)
     dispatch(markAllAsRead())
     toastSuccess("All notifications marked as read")
   }

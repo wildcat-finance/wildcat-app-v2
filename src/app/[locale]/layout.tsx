@@ -15,16 +15,21 @@ import {
   ContentContainer,
   PageContainer,
 } from "@/app/[locale]/layout-style"
+import initTranslations from "@/app/i18n"
 import { Footer } from "@/components/Footer"
 import Header from "@/components/Header"
+import PollingRegistration from "@/components/PollingRegistration"
 import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
+import TranslationsProvider from "@/components/TranslationsProvider"
 import { config } from "@/lib/config"
 import { RedirectsProvider } from "@/providers/RedirectsProvider"
 import { SafeProvider } from "@/providers/SafeProvider"
 import { WagmiQueryProviders } from "@/providers/WagmiQueryProviders"
 
 import i18nConfig from "../../../i18nConfig"
+
+const i18nNamespaces = ["en"]
 
 const inter = Inter({
   subsets: ["latin"],
@@ -47,6 +52,7 @@ export default async function RootLayout({
   params: { locale: string }
 }) {
   const initialState = cookieToInitialState(config, headers().get("cookie"))
+  const { resources } = await initTranslations(locale, i18nNamespaces)
 
   return (
     <html lang={locale} dir={dir(locale)}>
@@ -56,16 +62,23 @@ export default async function RootLayout({
           <SafeProvider>
             <RedirectsProvider>
               <StoreProvider>
-                <ThemeRegistry>
-                  <Box sx={BackgroundContainer} />
-                  <Box position="relative" zIndex="1">
-                    <Header params={{ locale }} />
-                    <Box sx={PageContainer}>
-                      <Box sx={ContentContainer}>{children}</Box>
-                      <Footer />
+                <TranslationsProvider
+                  namespaces={i18nNamespaces}
+                  locale={locale}
+                  resources={resources}
+                >
+                  <PollingRegistration />
+                  <ThemeRegistry>
+                    <Box sx={BackgroundContainer} />
+                    <Box position="relative" zIndex="1">
+                      <Header params={{ locale }} />
+                      <Box sx={PageContainer}>
+                        <Box sx={ContentContainer}>{children}</Box>
+                        <Footer />
+                      </Box>
                     </Box>
-                  </Box>
-                </ThemeRegistry>
+                  </ThemeRegistry>
+                </TranslationsProvider>
               </StoreProvider>
             </RedirectsProvider>
           </SafeProvider>

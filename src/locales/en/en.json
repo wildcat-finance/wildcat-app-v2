@@ -377,6 +377,8 @@
     "confirm": "Confirm"
   },
   "notifications": {
+    "viewOnEtherscan": "View on Etherscan",
+    "missing": "Missing",
     "history": {
       "title": "Notifications",
       "markAllAsRead": "Mark all as Read",
@@ -389,7 +391,31 @@
       "marketActivity": "Market Activity",
       "newLenders": "New Lenders"
     },
-    "viewOnEtherscan": "View on Etherscan",
-    "missing": "Missing"
+    "borrowerRegistrationChange": {
+      "onboarded": "You have been successfully onboarded as a borrower.",
+      "removed": "You have been removed as a borrower."
+    },
+    "aprDecreaseEnded": {
+      "description": "The APR decrease related min reserve change has ended for <strong>{{marketName}}</strong>."
+    },
+    "borrowerAddedLender": {
+      "description": "You have onboarded {{lender}} to <strong>{{marketName}}</strong>."
+    },
+    "borrowerAddedLenderMultiple": {
+      "description": "You have onboarded {{lender}} to multiple markets."
+    },
+    "borrowerRemovedLender": {
+      "description": "You have removed {{lender}} from <strong>{{marketName}}</strong>."
+    }
+  },
+  "agreement": {
+    "signButton": {
+      "signing": "Signing...",
+      "sign": "Sign and continue"
+    },
+    "page": {
+      "title": "Wildcat Service Agreement",
+      "download": "Download"
+    }
   }
 }
