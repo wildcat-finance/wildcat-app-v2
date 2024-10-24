@@ -36,9 +36,8 @@ const BorrowerRegistrationListener = () => {
           borrowerRegistrationChange.isRegistered === true
             ? "You have been successfully onboarded as a borrower."
             : "You have been removed as a borrower.",
-        type: "borrowerRegistrationChange",
         category: "marketActivity",
-        date: formatter.format(Date.now()),
+        blockTimestamp: 0,
         unread: true,
       }
       dispatch(addNotification(notification))
