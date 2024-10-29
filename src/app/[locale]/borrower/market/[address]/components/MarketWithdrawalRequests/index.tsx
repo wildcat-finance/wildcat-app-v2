@@ -108,6 +108,7 @@ export const MarketWithdrawalRequests = ({
       align: "right",
     },
   ]
+
   return (
     <Box sx={MarketWithdrawalRequestsContainer} id="withdrawals">
       <Box
@@ -154,9 +155,6 @@ export const MarketWithdrawalRequests = ({
         columns={columns}
         withdrawalBatches={data?.expiredPendingWithdrawals ?? []}
         totalAmount={data.expiredWithdrawalsTotalOwed}
-        isIncurringPenalties={
-          market.isDelinquent || market.isIncurringPenalties
-        }
       />
     </Box>
   )

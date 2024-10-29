@@ -70,7 +70,10 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
   }
 
   const underlyingWithdrawAmount = useMemo(
-    () => marketAccount.market.underlyingToken.parseAmount(amount || "0"),
+    () =>
+      marketAccount.market.underlyingToken.parseAmount(
+        amount.replace(/,/g, "") || "0",
+      ),
     [amount],
   )
 

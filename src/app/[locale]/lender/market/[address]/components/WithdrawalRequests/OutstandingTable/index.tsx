@@ -2,53 +2,49 @@ import { useState } from "react"
 import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
-import { DataGrid, GridColDef } from "@mui/x-data-grid"
-import { TokenAmount, WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
+import { DataGrid } from "@mui/x-data-grid"
 import dayjs from "dayjs"
+import { useTranslation } from "react-i18next"
 
+import { WithdrawalTxRow } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/interface"
+import { DataGridCells } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/style"
+import { TableProps } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests/interface"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
-import { WithdrawalTxRow } from "../interface"
-import { DataGridCells } from "../style"
-
-export type OngoingTableProps = {
-  withdrawalBatches: WithdrawalBatch[]
-  totalAmount: TokenAmount
-  columns: GridColDef[]
-}
-
 export const OutstandingTable = ({
-  withdrawalBatches,
+  withdrawals,
   totalAmount,
   columns,
-}: OngoingTableProps) => {
+}: TableProps) => {
+  const { t } = useTranslation()
   const [isOutstandingOpen, setIsOutstandingOpen] = useState(false)
 
-  const outstandingRows: WithdrawalTxRow[] = withdrawalBatches.flatMap(
-    (batch) =>
-      batch.requests
-        .filter((withdrawal) => withdrawal.getNormalizedAmountOwed(batch).gt(0))
-        .map((withdrawal) => ({
-          id: withdrawal.id,
-          lender: withdrawal.address,
-          transactionId: withdrawal.transactionHash,
-          dateSubmitted: dayjs(withdrawal.blockTimestamp * 1000).format(
-            "DD-MMM-YYYY",
-          ),
-          amount: formatTokenWithCommas(
-            withdrawal.getNormalizedAmountOwed(batch),
-            { withSymbol: true },
-          ),
-        })),
+  const outstandingRows: WithdrawalTxRow[] = withdrawals.flatMap((batch) =>
+    batch.requests
+      .filter((withdrawal) =>
+        withdrawal.getNormalizedAmountOwed(batch.batch).gt(0),
+      )
+      .map((withdrawal) => ({
+        id: withdrawal.id,
+        lender: withdrawal.address,
+        transactionId: withdrawal.transactionHash,
+        dateSubmitted: dayjs(withdrawal.blockTimestamp * 1000).format(
+          "DD-MMM-YYYY",
+        ),
+        amount: formatTokenWithCommas(
+          withdrawal.getNormalizedAmountOwed(batch),
+          { withSymbol: true },
+        ),
+      })),
   )
 
   return (
     <DetailsAccordion
       isOpen={isOutstandingOpen}
       setIsOpen={setIsOutstandingOpen}
-      summaryText="Outstanding from past cycles"
+      summaryText={t("lenderMarketDetails.requests.outstanding")}
       summarySx={{
         borderRadius: "0px",
         borderBottom: isOutstandingOpen ? "none" : `1px solid`,
@@ -60,7 +56,7 @@ export const OutstandingTable = ({
       chipColor={COLORS.whiteSmoke}
       chipValueColor={COLORS.blackRock}
     >
-      {outstandingRows.length ? (
+      {outstandingRows.length && columns ? (
         <DataGrid
           sx={DataGridCells}
           rows={outstandingRows}
@@ -75,7 +71,7 @@ export const OutstandingTable = ({
           marginBottom="10px"
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            There are no outstanding withdrawals from past cycles
+            There are no ongoing withdrawals
           </Typography>
         </Box>
       )}

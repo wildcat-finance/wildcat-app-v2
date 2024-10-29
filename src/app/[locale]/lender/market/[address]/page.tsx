@@ -7,6 +7,7 @@ import { Box, Divider, Skeleton, Typography } from "@mui/material"
 import { useAccount } from "wagmi"
 
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
+import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -151,6 +152,12 @@ export default function LenderMarketDetails({
               />
               <Divider sx={{ margin: "40px 0 44px" }} />
               <MarketParameters market={market} />
+            </Box>
+          )}
+
+          {currentSection === LenderMarketSections.REQUESTS && (
+            <Box marginTop="12px">
+              <WithdrawalRequests withdrawals={withdrawals} />
             </Box>
           )}
         </Box>
