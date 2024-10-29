@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction } from "react"
 
 import { Box, Button, Dialog, SvgIcon, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import CircledAlert from "@/assets/icons/circledAlert_icon.svg"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -19,6 +20,7 @@ export const DeleteModal = ({
   setIsOpen,
   lenderAddress,
 }: DeleteModalProps) => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
   const lendersTableData = useAppSelector(
@@ -80,7 +82,7 @@ export const DeleteModal = ({
         </SvgIcon>
 
         <Typography variant="title3" sx={{ margin: "20px 0 8px" }}>
-          Are you sure to remove {lenderName}?
+          {t("editLendersList.modals.delete.title")} {lenderName}?
         </Typography>
 
         <Typography
@@ -88,8 +90,7 @@ export const DeleteModal = ({
           color={COLORS.santasGrey}
           sx={{ width: "352px" }}
         >
-          By removing all markets the lender is attached to you will remove the
-          lender from the list
+          {t("editLendersList.modals.delete.subtitle")}
         </Typography>
       </Box>
 
@@ -101,7 +102,7 @@ export const DeleteModal = ({
           color="secondary"
           onClick={handleClose}
         >
-          Cancel
+          {t("editLendersList.modals.delete.cancel")}
         </Button>
 
         <Button
@@ -110,7 +111,7 @@ export const DeleteModal = ({
           variant="contained"
           onClick={handleDelete}
         >
-          Delete
+          {t("editLendersList.modals.delete.delete")}
         </Button>
       </Box>
     </Dialog>

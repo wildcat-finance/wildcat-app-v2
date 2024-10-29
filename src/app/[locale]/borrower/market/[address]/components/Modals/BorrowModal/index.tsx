@@ -3,6 +3,7 @@ import * as React from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
 import humanizeDuration from "humanize-duration"
+import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
@@ -30,6 +31,7 @@ export const BorrowModal = ({
   marketAccount,
   disableBorrowBtn,
 }: BorrowModalProps) => {
+  const { t } = useTranslation()
   const [amount, setAmount] = useState("")
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
@@ -118,7 +120,7 @@ export const BorrowModal = ({
         sx={{ width: "152px" }}
         disabled={disableBorrowBtn}
       >
-        Borrow
+        {t("borrowerMarketDetails.modals.borrow.borrow")}
       </Button>
 
       <Dialog
@@ -141,7 +143,7 @@ export const BorrowModal = ({
             {modal.approvedStep && (
               <Box sx={TxModalInfoItem} marginBottom="8px">
                 <Typography variant="text3" sx={TxModalInfoTitle}>
-                  Borrow Sum
+                  {t("borrowerMarketDetails.modals.borrow.borrowSum")}
                 </Typography>
                 <Typography variant="text3">
                   {amount} {market.underlyingToken.symbol}
@@ -151,7 +153,9 @@ export const BorrowModal = ({
 
             <Box sx={TxModalInfoItem} marginBottom="8px">
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                Available to Borrow {modal.approvedStep && "after transaction"}
+                {t("borrowerMarketDetails.modals.borrow.availableToBorrow")}
+                {modal.approvedStep &&
+                  t("borrowerMarketDetails.modals.borrow.afterTransaction")}
               </Typography>
               <Typography variant="text3">
                 {formatTokenWithCommas(
@@ -167,7 +171,9 @@ export const BorrowModal = ({
 
             <Box sx={TxModalInfoItem} marginBottom="20px">
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                Interest Remaining {modal.approvedStep && "after transaction"}
+                {t("borrowerMarketDetails.modals.borrow.interestRemaining")}
+                {modal.approvedStep &&
+                  t("borrowerMarketDetails.modals.borrow.afterTransaction")}
               </Typography>
               <Typography variant="text3">
                 {modal.approvedStep

@@ -1,6 +1,7 @@
 import React from "react"
 
 import { Box, Dialog, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
@@ -25,6 +26,7 @@ export const TerminateFlow = ({
   successPopup,
   txHash,
 }: TerminateFlowProps) => {
+  const { t } = useTranslation()
   const handleTerminateMarket = () => {
     terminateFunc().catch((err) => console.log(err))
   }
@@ -49,15 +51,14 @@ export const TerminateFlow = ({
         <Box sx={TerminateDialogBody}>
           <Box sx={TerminateDialogTypo}>
             <Typography variant="text1" textAlign="center" marginBottom="8px">
-              Are you sure to terminate market?
+              {t("borrowerMarketDetails.modals.terminate.areYouSure")}
             </Typography>
             <Typography
               variant="text2"
               color={COLORS.santasGrey}
               textAlign="center"
             >
-              Describing of termination consequences e.g. this change is
-              irreversible.
+              {t("borrowerMarketDetails.modals.terminate.consequences")}
             </Typography>
           </Box>
         </Box>

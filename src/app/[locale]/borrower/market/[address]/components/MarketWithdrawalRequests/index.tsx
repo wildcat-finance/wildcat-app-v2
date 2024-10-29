@@ -118,7 +118,9 @@ export const MarketWithdrawalRequests = ({
           alignItems: "center",
         }}
       >
-        <Typography variant="title3">Open Withdrawals</Typography>
+        <Typography variant="title3">
+          {t("marketWithdrawalRequests.openWithdrawals")}
+        </Typography>
         {(market.isDelinquent || market.isIncurringPenalties) &&
           isHoldingMarket && (
             <RepayModal
@@ -129,7 +131,9 @@ export const MarketWithdrawalRequests = ({
       </Box>
 
       <Box sx={TotalAccordionSummary}>
-        <Typography variant="text2">Total</Typography>
+        <Typography variant="text2">
+          {t("marketWithdrawalRequests.total")}
+        </Typography>
 
         <TextfieldChip
           text={formatTokenWithCommas(totalAmount, { withSymbol: true })}

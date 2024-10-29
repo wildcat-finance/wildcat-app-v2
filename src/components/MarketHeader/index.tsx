@@ -1,12 +1,13 @@
 import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Tooltip, Typography } from "@mui/material"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
+import { COLORS } from "@/theme/colors"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 
 import { MarketHeaderProps } from "./interface"
@@ -63,20 +64,43 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
 
   return (
     <Box sx={MarketHeaderUpperContainer}>
-      <Box sx={MarketHeaderTitleContainer}>
-        <Typography
-          variant="title1"
-          sx={{
-            maxWidth: remainingTime ? "430px" : "550px",
-            whiteSpace: "nowrap",
-            textOverflow: "ellipsis",
-            overflow: "hidden",
-          }}
-        >
-          {market.name}
-        </Typography>
-        <Typography variant="text4">{market.underlyingToken.symbol}</Typography>
-      </Box>
+      {market.name.length > 32 ? (
+        <Tooltip title={market.name} placement="right">
+          <Box sx={MarketHeaderTitleContainer}>
+            <Typography
+              variant="title1"
+              sx={{
+                maxWidth: remainingTime ? "430px" : "550px",
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
+                overflow: "hidden",
+              }}
+            >
+              {market.name}
+            </Typography>
+            <Typography variant="text4">
+              {market.underlyingToken.symbol}
+            </Typography>
+          </Box>
+        </Tooltip>
+      ) : (
+        <Box sx={MarketHeaderTitleContainer}>
+          <Typography
+            variant="title1"
+            sx={{
+              maxWidth: remainingTime ? "430px" : "550px",
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
+              overflow: "hidden",
+            }}
+          >
+            {market.name}
+          </Typography>
+          <Typography variant="text4">
+            {market.underlyingToken.symbol}
+          </Typography>
+        </Box>
+      )}
       <Box sx={MarketHeaderStatusContainer}>
         <MarketStatusChip status={marketStatus} variant="filled" />
         {remainingTime && (

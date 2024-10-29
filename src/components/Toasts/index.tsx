@@ -2,7 +2,7 @@ import { SvgIcon } from "@mui/material"
 import toast from "react-hot-toast"
 
 import Check from "@/assets/icons/check_icon.svg"
-import { Icon } from "@/components/toasts/style"
+import { Icon } from "@/components/Toasts/style"
 import { COLORS } from "@/theme/colors"
 
 const defaultStyle = {

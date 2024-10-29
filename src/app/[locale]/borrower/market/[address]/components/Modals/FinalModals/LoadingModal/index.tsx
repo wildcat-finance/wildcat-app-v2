@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
+import { Trans } from "react-i18next"
 
 import {
   FinalModalContentContainer,
@@ -21,9 +22,11 @@ export const LoadingModal = ({ txHash }: { txHash?: string }) => (
         <Loader />
 
         <Box sx={FinalModalTypoBox}>
-          <Typography variant="text1">Just wait a bit ...</Typography>
+          <Typography variant="text1">
+            <Trans i18nKey="borrowerMarketDetails.modals.loading.title" />
+          </Typography>
           <Typography variant="text3" sx={FinalModalSubtitle}>
-            Transaction is in process.
+            <Trans i18nKey="borrowerMarketDetails.modals.loading.subtitle" />
           </Typography>
         </Box>
       </Box>

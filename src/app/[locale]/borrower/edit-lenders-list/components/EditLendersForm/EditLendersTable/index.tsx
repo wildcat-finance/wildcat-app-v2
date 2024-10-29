@@ -3,6 +3,7 @@ import { useState } from "react"
 
 import { Box, Button, IconButton, SvgIcon, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
+import { useTranslation } from "react-i18next"
 
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import Cross from "@/assets/icons/cross_icon.svg"
@@ -29,6 +30,7 @@ import { EditLenderFlowStatuses } from "../../../interface"
 import { DeleteModal } from "../Modals/DeleteModal"
 
 export const EditLendersTable = () => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
@@ -131,7 +133,7 @@ export const EditLendersTable = () => {
             >
               {lendersNames[params.row.address.toLowerCase()] ===
               ("" || undefined)
-                ? "Add name"
+                ? t("editLendersList.forms.edit.table.addName")
                 : lendersNames[params.row.address.toLowerCase()]}
             </Typography>
           )}
@@ -229,7 +231,7 @@ export const EditLendersTable = () => {
               variant="text"
               onClick={() => handleRestoreLender(params.row.address)}
             >
-              Undo
+              {t("editLendersList.forms.edit.table.undo")}
             </Button>
           )}
         </>
@@ -253,7 +255,7 @@ export const EditLendersTable = () => {
         <Box sx={{ height: "100%", display: "flex" }}>
           <Box sx={NoLendersBox}>
             <Typography variant="text3" color={COLORS.santasGrey}>
-              No lenders for this filters
+              {t("editLendersList.forms.edit.table.noLenders")}
             </Typography>
             <Button
               onClick={() => dispatch(resetFilters())}
@@ -261,7 +263,7 @@ export const EditLendersTable = () => {
               variant="text"
               sx={ResetButtonStyles}
             >
-              Reset filters
+              {t("editLendersList.forms.edit.table.resetFilters")}
             </Button>
           </Box>
         </Box>

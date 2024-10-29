@@ -5,6 +5,7 @@ import { Box, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { TokenAmount, WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
+import { useTranslation } from "react-i18next"
 
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
 import { COLORS } from "@/theme/colors"
@@ -24,6 +25,7 @@ export const OutstandingTable = ({
   totalAmount,
   columns,
 }: OngoingTableProps) => {
+  const { t } = useTranslation()
   const [isOutstandingOpen, setIsOutstandingOpen] = useState(false)
 
   const outstandingRows: WithdrawalTxRow[] = withdrawalBatches.flatMap(
@@ -75,7 +77,7 @@ export const OutstandingTable = ({
           marginBottom="10px"
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            There are no outstanding withdrawals from past cycles
+            {t("marketWithdrawalRequests.noOutstanding")}
           </Typography>
         </Box>
       )}

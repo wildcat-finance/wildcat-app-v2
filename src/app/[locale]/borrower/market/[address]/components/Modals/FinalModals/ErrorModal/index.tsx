@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { Box, Button, IconButton, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
+import { Trans } from "react-i18next"
 
 import {
   FinalModalCloseButton,
@@ -41,9 +42,11 @@ export const ErrorModal = ({
         </SvgIcon>
 
         <Box sx={FinalModalTypoBox}>
-          <Typography variant="title3">Oops! Something goes wrong</Typography>
+          <Typography variant="title3">
+            <Trans i18nKey="borrowerMarketDetails.modals.error.title" />
+          </Typography>
           <Typography variant="text3" sx={FinalModalSubtitle}>
-            Explanatory message about the problem.
+            <Trans i18nKey="borrowerMarketDetails.modals.error.subtitle" />
           </Typography>
         </Box>
       </Box>
@@ -57,7 +60,7 @@ export const ErrorModal = ({
       )}
 
       <Button variant="contained" size="large" onClick={onTryAgain} fullWidth>
-        Try Again
+        <Trans i18nKey="borrowerMarketDetails.modals.error.tryAgain" />
       </Button>
     </Box>
   </>

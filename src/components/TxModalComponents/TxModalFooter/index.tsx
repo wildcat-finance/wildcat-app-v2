@@ -1,5 +1,6 @@
 import { Box, Button, IconButton, SvgIcon, Typography } from "@mui/material"
 import Link from "next/link"
+import { Trans } from "react-i18next"
 
 import Check from "@/assets/icons/check_icon.svg"
 import LinkIcon from "@/assets/icons/link_icon.svg"
@@ -35,7 +36,9 @@ export const TxModalFooter = ({
           </SvgIcon>
         </IconButton>
 
-        <Typography variant="text3">View on Ethescan</Typography>
+        <Typography variant="text3">
+          <Trans i18nKey="txModal.viewOnEtherscan" />
+        </Typography>
       </Link>
     )}
 

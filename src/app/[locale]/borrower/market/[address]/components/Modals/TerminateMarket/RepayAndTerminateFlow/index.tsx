@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react"
 import { Box, Button, Dialog, Typography } from "@mui/material"
 import { minTokenAmount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
+import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
@@ -38,6 +39,7 @@ export const RepayAndTerminateFlow = ({
   errorPopup,
   terminateTxHash,
 }: RepayAndTerminateFlowProps) => {
+  const { t } = useTranslation()
   const [approveTxHash, setApproveTxHash] = useState<string | undefined>("")
   const [repayTxHash, setRepayTxHash] = useState<string | undefined>("")
   const modal = useTerminateModal()
@@ -220,10 +222,10 @@ export const RepayAndTerminateFlow = ({
         <Box width="100%" height="100%" padding="0 24px">
           <Box sx={TerminateAlertContainer}>
             <Typography color={COLORS.blueRibbon} variant="text3">
-              You should repay remaining debt before market termination.
+              {t("borrowerMarketDetails.modals.terminate.repayRemaining")}
             </Typography>
             <Typography color={COLORS.blueRibbon} variant="text3">
-              Learn more about this.
+              {t("borrowerMarketDetails.modals.terminate.learnMore")}
             </Typography>
           </Box>
 
@@ -244,7 +246,9 @@ export const RepayAndTerminateFlow = ({
           </Box>
 
           <Box sx={TerminateTotalContainer}>
-            <Typography variant="text1">Total</Typography>
+            <Typography variant="text1">
+              {t("borrowerMarketDetails.modals.terminate.total")}
+            </Typography>
             <Typography variant="text1" noWrap>
               {total} {market.underlyingToken.symbol}
             </Typography>

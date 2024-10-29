@@ -11,6 +11,7 @@ import {
 } from "@mui/material"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
+import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
@@ -46,6 +47,7 @@ export const RepayModal = ({
   marketAccount,
   disableRepayBtn,
 }: RepayModalProps) => {
+  const { t } = useTranslation()
   const [type, setType] = React.useState<"sum" | "days">("sum")
 
   const [amount, setAmount] = useState("")
@@ -181,10 +183,15 @@ export const RepayModal = ({
       : ""
 
   const amountInputLabel = isRepayByDays
-    ? `Interest remaining for ${remainingInterest}`
-    : `Up to ${formatTokenWithCommas(market.outstandingDebt, {
-        withSymbol: true,
-      })}`
+    ? `${t(
+        "borrowerMarketDetails.modals.repay.interestRemaining",
+      )} ${remainingInterest}`
+    : `${t("borrowerMarketDetails.modals.repay.upTo")} ${formatTokenWithCommas(
+        market.outstandingDebt,
+        {
+          withSymbol: true,
+        },
+      )}`
 
   const amountInputValue = isRepayByDays ? days : amount
 
@@ -223,7 +230,7 @@ export const RepayModal = ({
           sx={{ width: "152px" }}
           disabled={disableRepayBtn}
         >
-          Repay
+          {t("borrowerMarketDetails.modals.repay.repay")}
         </Button>
       )}
 
@@ -235,7 +242,7 @@ export const RepayModal = ({
           sx={PenaltyRepayBtn}
           disabled={disableRepayBtn}
         >
-          Repay
+          {t("borrowerMarketDetails.modals.repay.repay")}
           <SvgIcon fontSize="tiny" sx={PenaltyRepayBtnIcon}>
             <Arrow />
           </SvgIcon>
@@ -286,14 +293,14 @@ export const RepayModal = ({
 
             {isRepayByDays && modal.gettingValueStep && (
               <Typography variant="text4" sx={DaysSubtitle}>
-                *number of additional days for which you want to cover interest
+                {t("borrowerMarketDetails.modals.repay.daysSubtitle")}
               </Typography>
             )}
 
             {modal.approvedStep && (
               <Box sx={TxModalInfoItem} padding="0 16px" marginBottom="8px">
                 <Typography variant="text3" sx={TxModalInfoTitle}>
-                  Repay Sum
+                  {t("borrowerMarketDetails.modals.repay.repaySum")}
                 </Typography>
                 <Typography variant="text3">
                   {formatTokenWithCommas(repayAmount)}{" "}
@@ -308,7 +315,9 @@ export const RepayModal = ({
               padding="0 16px"
             >
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                Need to repay {modal.approvedStep && "after transaction"}
+                {t("borrowerMarketDetails.modals.repay.repaySum")}{" "}
+                {modal.approvedStep &&
+                  t("borrowerMarketDetails.modals.repay.afterTransaction")}
               </Typography>
               <Typography variant="text3">
                 {formatTokenWithCommas(
@@ -360,7 +369,11 @@ export const RepayModal = ({
 
         <TxModalFooter
           mainBtnText="Repay"
-          secondBtnText={isApprovedButton ? "Approved" : "Approve"}
+          secondBtnText={
+            isApprovedButton
+              ? t("borrowerMarketDetails.modals.repay.approved")
+              : t("borrowerMarketDetails.modals.repay.approve")
+          }
           secondBtnIcon={isApprovedButton}
           mainBtnOnClick={handleRepay}
           secondBtnOnClick={handleApprove}
