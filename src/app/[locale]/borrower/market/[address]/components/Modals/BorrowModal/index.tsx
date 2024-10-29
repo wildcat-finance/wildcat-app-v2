@@ -120,7 +120,7 @@ export const BorrowModal = ({
         sx={{ width: "152px" }}
         disabled={disableBorrowBtn}
       >
-        {t("borrowMarketDetails.modals.borrow.borrow")}
+        {t("borrowerMarketDetails.modals.borrow.borrow")}
       </Button>
 
       <Dialog
@@ -143,7 +143,7 @@ export const BorrowModal = ({
             {modal.approvedStep && (
               <Box sx={TxModalInfoItem} marginBottom="8px">
                 <Typography variant="text3" sx={TxModalInfoTitle}>
-                  {t("borrowMarketDetails.modals.borrow.borrowSum")}
+                  {t("borrowerMarketDetails.modals.borrow.borrowSum")}
                 </Typography>
                 <Typography variant="text3">
                   {amount} {market.underlyingToken.symbol}
@@ -153,9 +153,9 @@ export const BorrowModal = ({
 
             <Box sx={TxModalInfoItem} marginBottom="8px">
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                {t("borrowMarketDetails.modals.borrow.availableToBorrow")}
+                {t("borrowerMarketDetails.modals.borrow.availableToBorrow")}
                 {modal.approvedStep &&
-                  t("borrowMarketDetails.modals.borrow.afterTransaction")}
+                  t("borrowerMarketDetails.modals.borrow.afterTransaction")}
               </Typography>
               <Typography variant="text3">
                 {formatTokenWithCommas(
@@ -171,9 +171,9 @@ export const BorrowModal = ({
 
             <Box sx={TxModalInfoItem} marginBottom="20px">
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                {t("borrowMarketDetails.modals.borrow.interestRemaining")}
+                {t("borrowerMarketDetails.modals.borrow.interestRemaining")}
                 {modal.approvedStep &&
-                  t("borrowMarketDetails.modals.borrow.afterTransaction")}
+                  t("borrowerMarketDetails.modals.borrow.afterTransaction")}
               </Typography>
               <Typography variant="text3">
                 {modal.approvedStep

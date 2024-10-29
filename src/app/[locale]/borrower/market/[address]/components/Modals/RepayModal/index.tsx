@@ -184,9 +184,9 @@ export const RepayModal = ({
 
   const amountInputLabel = isRepayByDays
     ? `${t(
-        "borrowMarketDetails.modals.repay.interestRemaining",
+        "borrowerMarketDetails.modals.repay.interestRemaining",
       )} ${remainingInterest}`
-    : `${t("borrowMarketDetails.modals.repay.upTo")} ${formatTokenWithCommas(
+    : `${t("borrowerMarketDetails.modals.repay.upTo")} ${formatTokenWithCommas(
         market.outstandingDebt,
         {
           withSymbol: true,
@@ -230,7 +230,7 @@ export const RepayModal = ({
           sx={{ width: "152px" }}
           disabled={disableRepayBtn}
         >
-          {t("borrowMarketDetails.modals.repay.repay")}
+          {t("borrowerMarketDetails.modals.repay.repay")}
         </Button>
       )}
 
@@ -242,7 +242,7 @@ export const RepayModal = ({
           sx={PenaltyRepayBtn}
           disabled={disableRepayBtn}
         >
-          {t("borrowMarketDetails.modals.repay.repay")}
+          {t("borrowerMarketDetails.modals.repay.repay")}
           <SvgIcon fontSize="tiny" sx={PenaltyRepayBtnIcon}>
             <Arrow />
           </SvgIcon>
@@ -293,14 +293,14 @@ export const RepayModal = ({
 
             {isRepayByDays && modal.gettingValueStep && (
               <Typography variant="text4" sx={DaysSubtitle}>
-                {t("borrowMarketDetails.modals.repay.daysSubtitle")}
+                {t("borrowerMarketDetails.modals.repay.daysSubtitle")}
               </Typography>
             )}
 
             {modal.approvedStep && (
               <Box sx={TxModalInfoItem} padding="0 16px" marginBottom="8px">
                 <Typography variant="text3" sx={TxModalInfoTitle}>
-                  {t("borrowMarketDetails.modals.repay.repaySum")}
+                  {t("borrowerMarketDetails.modals.repay.repaySum")}
                 </Typography>
                 <Typography variant="text3">
                   {formatTokenWithCommas(repayAmount)}{" "}
@@ -315,9 +315,9 @@ export const RepayModal = ({
               padding="0 16px"
             >
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                {t("borrowMarketDetails.modals.repay.repaySum")}{" "}
+                {t("borrowerMarketDetails.modals.repay.repaySum")}{" "}
                 {modal.approvedStep &&
-                  t("borrowMarketDetails.modals.repay.afterTransaction")}
+                  t("borrowerMarketDetails.modals.repay.afterTransaction")}
               </Typography>
               <Typography variant="text3">
                 {formatTokenWithCommas(
@@ -371,8 +371,8 @@ export const RepayModal = ({
           mainBtnText="Repay"
           secondBtnText={
             isApprovedButton
-              ? t("borrowMarketDetails.modals.repay.approved")
-              : t("borrowMarketDetails.modals.repay.approve")
+              ? t("borrowerMarketDetails.modals.repay.approved")
+              : t("borrowerMarketDetails.modals.repay.approve")
           }
           secondBtnIcon={isApprovedButton}
           mainBtnOnClick={handleRepay}

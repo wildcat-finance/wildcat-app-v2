@@ -51,14 +51,14 @@ export const TerminateFlow = ({
         <Box sx={TerminateDialogBody}>
           <Box sx={TerminateDialogTypo}>
             <Typography variant="text1" textAlign="center" marginBottom="8px">
-              {t("borrowMarketDetails.modals.terminate.areYouSure")}
+              {t("borrowerMarketDetails.modals.terminate.areYouSure")}
             </Typography>
             <Typography
               variant="text2"
               color={COLORS.santasGrey}
               textAlign="center"
             >
-              {t("borrowMarketDetails.modals.terminate.consequences")}
+              {t("borrowerMarketDetails.modals.terminate.consequences")}
             </Typography>
           </Box>
         </Box>

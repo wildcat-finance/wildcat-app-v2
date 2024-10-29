@@ -222,10 +222,10 @@ export const RepayAndTerminateFlow = ({
         <Box width="100%" height="100%" padding="0 24px">
           <Box sx={TerminateAlertContainer}>
             <Typography color={COLORS.blueRibbon} variant="text3">
-              {t("borrowMarketDetails.modals.terminate.repayRemaining")}
+              {t("borrowerMarketDetails.modals.terminate.repayRemaining")}
             </Typography>
             <Typography color={COLORS.blueRibbon} variant="text3">
-              {t("borrowMarketDetails.modals.terminate.learnMore")}
+              {t("borrowerMarketDetails.modals.terminate.learnMore")}
             </Typography>
           </Box>
 
@@ -247,7 +247,7 @@ export const RepayAndTerminateFlow = ({
 
           <Box sx={TerminateTotalContainer}>
             <Typography variant="text1">
-              {t("borrowMarketDetails.modals.terminate.total")}
+              {t("borrowerMarketDetails.modals.terminate.total")}
             </Typography>
             <Typography variant="text1" noWrap>
               {total} {market.underlyingToken.symbol}

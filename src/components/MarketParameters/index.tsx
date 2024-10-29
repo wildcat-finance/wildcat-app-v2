@@ -30,14 +30,14 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
   const [gracePeriodLabel, gracePeriodTimer] =
     timeDelinquent > delinquencyGracePeriod
       ? [
-          t("borrowerMarketDetails.labal.remainingTime"),
+          t("borrowerMarketDetails.label.remainingTime"),
           humanizeDuration((timeDelinquent - delinquencyGracePeriod) * 1000, {
             round: true,
             largest: 1,
           }),
         ]
       : [
-          t("borrowerMarketDetails.labal.availableGracePeriod"),
+          t("borrowerMarketDetails.label.availableGracePeriod"),
           formatSecsToHours(delinquencyGracePeriod - timeDelinquent),
         ]
 

@@ -43,10 +43,10 @@ export const ErrorModal = ({
 
         <Box sx={FinalModalTypoBox}>
           <Typography variant="title3">
-            <Trans i18nKey="borrowMarketDetails.modals.error.title" />
+            <Trans i18nKey="borrowerMarketDetails.modals.error.title" />
           </Typography>
           <Typography variant="text3" sx={FinalModalSubtitle}>
-            <Trans i18nKey="borrowMarketDetails.modals.error.subtitle" />
+            <Trans i18nKey="borrowerMarketDetails.modals.error.subtitle" />
           </Typography>
         </Box>
       </Box>
@@ -60,7 +60,7 @@ export const ErrorModal = ({
       )}
 
       <Button variant="contained" size="large" onClick={onTryAgain} fullWidth>
-        <Trans i18nKey="borrowMarketDetails.modals.error.tryAgain" />
+        <Trans i18nKey="borrowerMarketDetails.modals.error.tryAgain" />
       </Button>
     </Box>
   </>
