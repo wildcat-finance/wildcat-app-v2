@@ -26,6 +26,13 @@
       "viewAll": "View All"
     }
   },
+  "dateRange": {
+    "startDate": "Start Date",
+    "dueDate": "Due Date"
+  },
+  "filter": {
+    "clear": "Clear"
+  },
   "footer": {
     "rights": "Wildcat © All Rights reserved. 2023",
     "agreement": "Download Agreement"
@@ -41,6 +48,10 @@
     },
     "sidebar": {
       "searchPlaceholder": "Search by Market Name",
+      "marketTypes": "Markets Types",
+      "activeMarketStatus": "Active Market Status",
+      "clear": "Clear",
+      "resetAll": "Reset all filters",
       "title": {
         "status": "Market Status",
         "asset": "Underlying asset"
@@ -90,8 +101,31 @@
     }
   },
   "borrowerMarketDetails": {
+    "statusChart": {
+      "totalDebt": "Total Debt",
+      "sufficientReserves": "Market has sufficient reserves to cover interest for",
+      "collateralObligations": "Collateral Obligations",
+      "delinquentDebt": "Delinquent Debt",
+      "currentReserves": "Current Reserves",
+      "minReserves": "Min Reserves",
+      "ongoingWds": "Ongoing WDs",
+      "claimableWds": "Claimable WDs",
+      "outstandingWds": "Outstanding WDs",
+      "protocolFees": "Protocol Fees"
+    },
+    "label": {
+      "remainingTime": "Remaining Time With Delinquency Fees",
+      "availableGracePeriod": "Available Grace Period"
+    },
+    "tooltip": {
+      "willBeDelinquent": "This market has become delinquent since its last update and its delinquency timer will begin to increase once it is updated.",
+      "delinquencyFeesApply": "This market is not currently delinquent, but delinquency fees will apply until the timer is below the grace period.",
+      "hasBecomeHealthy": "This market has become healthy since its last update and its delinquency timer will begin to decrease once it is updated.",
+      "delinquencyContinues": "The delinquency timer will continue to increase until this market is returned to a healthy state."
+    },
     "header": {
-      "parameters": "Parameters"
+      "parameters": "Parameters",
+      "ongoingCycle": "Ongoing Cycle"
     },
     "buttons": {
       "kyc": "KYC Preferences",
@@ -134,6 +168,11 @@
       "withdrawalCycleDuration": "Withdrawal Cycle Duration"
     },
     "authorisedLenders": {
+      "notSigned": "Not signed yet",
+      "noLendersTitle": "No lenders yet",
+      "noLendersSubtitle": "There is no any lenders yet – edit list to add them",
+      "editList": "Edit List",
+      "noActiveLenders": "No active lenders yet – edit list to add them",
       "header": "Lenders List",
       "buttons": {
         "view": "View",
@@ -147,6 +186,73 @@
         "signedMLA": "Signed MLA",
         "signDate": "Sign Date",
         "MLA": "MLA"
+      }
+    },
+    "modals": {
+      "apr": {
+        "adjustBase": "Adjust Base APR",
+        "alreadyUpdated": "It’s been already update lately.",
+        "learnMore": "Learn more",
+        "aprAffects": "Apr affects",
+        "collateralObligation": "Collateral Obligation",
+        "currentBaseApr": "Current Base APR",
+        "reservedRatio": "Reserved Ratio",
+        "willSetTemporarily": "will be set temporarily till",
+        "setTemporarily": "set temporarily till",
+        "newBaseApr": "New Base APR",
+        "newCollateralObligation": "New Collateral Obligation",
+        "newReservedRatio": "New Reserved Ratio",
+        "approveNotified": "I approve that I notified active lenders about changing APR",
+        "adjust": "Adjust",
+        "confirmed": "Confirmed",
+        "confirm": "Confirm"
+      },
+      "borrow": {
+        "borrow" : "Borrow",
+        "borrowSum": "Borrow Sum",
+        "availableToBorrow": "Available to borrow",
+        "afterTransaction": " after transaction",
+        "interestRemaining": "Interest Remaining"
+      },
+      "capacity": {
+        "current": "Current capacity"
+      },
+      "error": {
+        "wait": "Oops! Something goes wrong",
+        "subtitle": "Explanatory message about the problem.",
+        "tryAgain": "Try Again"
+      },
+      "loading": {
+        "title": "Just wait a bit ...",
+        "subtitle": "Transaction is in process."
+      },
+      "success": {
+        "title": "Success!",
+        "subtitle": "You can close the window."
+      },
+      "repay": {
+        "interestRemaining": "Interest Remaining for",
+        "upTo": "Up to",
+        "daysSubtitle": "*number of additional days for which you want to cover interest",
+        "repay": "Repay",
+        "repaySum": "Repay Sum",
+        "needToRepay": "Need to repay",
+        "afterTransaction": " after transaction",
+        "approve": "Approve",
+        "approved": "Approved"
+      },
+      "statement": {
+        "title": "Statement of Transactions",
+        "generate": "Generate and download a summary of all past transactions",
+        "download": "Download"
+      },
+      "terminate": {
+        "terminateMarket": "Terminate Market",
+        "areYouSure": "Are you sure to terminate market?",
+        "consequences": "Describing of termination consequences e.g. this change is irreversible.",
+        "repayRemaining": "You should repay remaining debt before market termination.",
+        "learnMore": "Learn more about this.",
+        "total": "Total"
       }
     }
   },
@@ -334,20 +440,57 @@
     }
   },
   "editLendersList": {
+    "editing": "Editing Lenders List",
+    "for": " for",
+    "confirm": "Confirm Lenders List Edits",
     "forms": {
+      "confirm": {
+        "addName": "Add name",
+        "keepInMind": "Please, keep in mind that once you submit this request you will be required to ",
+        "payGas": "pay gas to confirm.",
+        "all": "All",
+        "back": "Back",
+        "confirm": "Confirm"
+      },
       "edit": {
+        "submit": "Submit",
+        "noLenders": "No lenders yet",
         "title": "Editing Lenders List for",
         "table": {
+          "addName": "Add name",
+          "undo": "Undo",
+          "noLenders": "No lenders for this filters",
+          "resetFilters": "Reset filters",
           "name": "Name",
           "address": "Wallet Address",
           "markets": "Assigned to Markets",
           "noRows": "There is no lenders yet",
-          "noFilteredRows": "No lenders for this filtration"
+          "noFilteredRows": "No lenders for this filtration",
+          "reset": "Reset"
         },
+        "undo": "Undo",
+        "noLendersFilter": "No lenders for this filters",
+        "resetFilters": "Reset filters",
         "placeholders": {
           "lenderSearch": "Search",
           "marketSearch": "Search by Name"
         }
+      }
+    },
+    "modals": {
+      "add": {
+        "addLender": "+ Add Lender",
+        "add": "Add",
+        "atLeastOne": "Add at least one market",
+        "reset": "Reset",
+        "allMarkets": "All Markets",
+        "searchByName": "Search by Name"
+      },
+      "delete": {
+        "title": "Are you sure to remove",
+        "subtitle": "By removing all markets the lender is attached to you will remove the lender from the list",
+        "cancel": "Cancel",
+        "delete": "delete"
       }
     },
     "sidebar": {
@@ -377,6 +520,8 @@
     "confirm": "Confirm"
   },
   "notifications": {
+    "viewOnEtherscan": "View on Etherscan",
+    "missing": "Missing",
     "history": {
       "title": "Notifications",
       "markAllAsRead": "Mark all as Read",
@@ -389,11 +534,34 @@
       "marketActivity": "Market Activity",
       "newLenders": "New Lenders"
     },
-    "viewOnEtherscan": "View on Etherscan",
-    "missing": "Missing"
+    "borrowerRegistrationChange": {
+      "onboarded": "You have been successfully onboarded as a borrower.",
+      "removed": "You have been removed as a borrower."
+    },
+    "aprDecreaseEnded": {
+      "description": "The APR decrease related min reserve change has ended for <strong>{{marketName}}</strong>."
+    },
+    "borrowerAddedLender": {
+      "description": "You have onboarded {{lender}} to <strong>{{marketName}}</strong>."
+    },
+    "borrowerAddedLenderMultiple": {
+      "description": "You have onboarded {{lender}} to multiple markets."
+    },
+    "borrowerRemovedLender": {
+      "description": "You have removed {{lender}} from <strong>{{marketName}}</strong>."
+    }
   },
-
+  "lenderMarketList": {
+    "allMarkets": "All markets",
+    "mla": "MLA",
+    "sidebar": {
+      "back": "Back",
+      "editingLenders": "Editing Lenders List",
+      "confirm": "Confirmation"
+    }
+  },
   "lenderMarketDetails": {
+    "noDataAvailable": "No data available",
     "sidebar": {
       "actions": "Deposit and Withdraw",
       "status": "Status",
@@ -459,5 +627,28 @@
         "amount": "Amount"
       }
     }
+  },
+  "agreement": {
+    "signButton": {
+      "signing": "Signing...",
+      "sign": "Sign and continue"
+    },
+    "page": {
+      "title": "Wildcat Service Agreement",
+      "download": "Download"
+    }
+  },
+  "txModal": {
+    "viewOnEtherscan":"View on Etherscan"
+  },
+  "link": {
+    "viewOnEtherscan": "View on Etherscan"
+  },
+  "marketWithdrawalRequests": {
+    "openWithdrawals": "Open Withdrawals",
+    "total": "Total",
+    "noOutstanding": "There are no outstanding withdrawals from past cycles",
+    "noOngoing": "There are no ongoing withdrawals",
+    "noClaimable": "There are no claimable withdrawals"
   }
 }
