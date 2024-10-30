@@ -19,6 +19,7 @@ import initTranslations from "@/app/i18n"
 import { Footer } from "@/components/Footer"
 import Header from "@/components/Header"
 import PollingRegistration from "@/components/PollingRegistration"
+import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
 import TranslationsProvider from "@/components/TranslationsProvider"
@@ -73,7 +74,10 @@ export default async function RootLayout({
                     <Box position="relative" zIndex="1">
                       <Header />
                       <Box sx={PageContainer}>
-                        <Box sx={ContentContainer}>{children}</Box>
+                        <Box sx={ContentContainer}>
+                          <Sidebar />
+                          <Box width="calc(100vw - 267px)">{children}</Box>
+                        </Box>
                         <Footer />
                       </Box>
                     </Box>

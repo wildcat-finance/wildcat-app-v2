@@ -79,7 +79,7 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
           <SvgIcon fontSize="small" sx={{ marginRight: "4px" }}>
             <Cross />
           </SvgIcon>
-          {t("borrowMarketDetails.modals.terminate.terminateMarket")}
+          {t("borrowerMarketDetails.modals.terminate.terminateMarket")}
         </Button>
       )}
 

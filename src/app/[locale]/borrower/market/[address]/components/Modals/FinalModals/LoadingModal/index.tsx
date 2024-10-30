@@ -23,10 +23,10 @@ export const LoadingModal = ({ txHash }: { txHash?: string }) => (
 
         <Box sx={FinalModalTypoBox}>
           <Typography variant="text1">
-            <Trans i18nKey="borrowMarketDetails.modals.loading.title" />
+            <Trans i18nKey="borrowerMarketDetails.modals.loading.title" />
           </Typography>
           <Typography variant="text3" sx={FinalModalSubtitle}>
-            <Trans i18nKey="borrowMarketDetails.modals.loading.subtitle" />
+            <Trans i18nKey="borrowerMarketDetails.modals.loading.subtitle" />
           </Typography>
         </Box>
       </Box>

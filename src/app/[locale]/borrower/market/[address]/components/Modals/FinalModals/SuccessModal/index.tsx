@@ -42,10 +42,10 @@ export const SuccessModal = ({
 
         <Box sx={FinalModalTypoBox}>
           <Typography variant="title3">
-            <Trans i18nKey="borrowMarketDetails.modals.success.title" />
+            <Trans i18nKey="borrowerMarketDetails.modals.success.title" />
           </Typography>
           <Typography variant="text3" sx={FinalModalSubtitle}>
-            <Trans i18nKey="borrowMarketDetails.modals.success.subtitle" />
+            <Trans i18nKey="borrowerMarketDetails.modals.success.subtitle" />
           </Typography>
         </Box>
       </Box>

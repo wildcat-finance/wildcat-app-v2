@@ -41,7 +41,7 @@ export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
       <Box marginBottom="32px">
         <Box sx={HeaderTextContainer}>
           <Typography variant="title3">
-            {t("borrowMarketDetails.modals.statement.title")}
+            {t("borrowerMarketDetails.modals.statement.title")}
           </Typography>
           <IconButton
             disableRipple
@@ -55,7 +55,7 @@ export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
           </IconButton>
         </Box>
         <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-          {t("borrowMarketDetails.modals.statement.generate")}
+          {t("borrowerMarketDetails.modals.statement.generate")}
         </Typography>
       </Box>
       <Tabs
@@ -80,7 +80,7 @@ export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
         }}
         fullWidth
       >
-        {t("borrowMarketDetails.modals.statement.download")}
+        {t("borrowerMarketDetails.modals.statement.download")}
       </Button>
     </Dialog>
   )
