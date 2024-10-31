@@ -56,7 +56,7 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
   }
 
   const handleClickMaxAmount = () => {
-    setAmount(formatTokenWithCommas(marketAccount.marketBalance))
+    setAmount(parseFloat(marketAccount.marketBalance.format(5)).toString())
     setMaxAmount(marketAccount.marketBalance)
   }
 
