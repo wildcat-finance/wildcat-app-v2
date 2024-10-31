@@ -1,46 +1,197 @@
 import { useState } from "react"
 import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
-import { DataGrid } from "@mui/x-data-grid"
+import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
+import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import { LenderWithdrawalStatus } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
+import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import { WithdrawalTxRow } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/interface"
-import { DataGridCells } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/style"
+import {
+  DataGridCells,
+  MarketWithdrawalRequetstCell,
+} from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/style"
 import { TableProps } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests/interface"
+import LinkIcon from "@/assets/icons/link_icon.svg"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
+import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
+import { LinkGroup } from "@/components/LinkComponent"
+import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
-import { formatTokenWithCommas } from "@/utils/formatters"
+import { formatTokenWithCommas, trimAddress } from "@/utils/formatters"
 
-export const ClaimableTable = ({
-  withdrawals,
-  totalAmount,
-  columns,
-}: TableProps) => {
+const claimableColumns: GridColDef[] = [
+  {
+    sortable: false,
+    field: "lender",
+    headerName: "Lender",
+    minWidth: 176,
+    headerAlign: "left",
+    align: "left",
+    renderCell: ({ value }) => (
+      <Box
+        sx={{
+          height: "100%",
+          padding: "16px 0",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "flex-start",
+        }}
+      >
+        <Box sx={MarketWithdrawalRequetstCell}>
+          <Typography variant="text3">{trimAddress(value)}</Typography>
+          <Link
+            href={`${EtherscanBaseUrl}/address/${value}`}
+            target="_blank"
+            style={{ display: "flex", justifyContent: "center" }}
+          >
+            <IconButton disableRipple sx={AddressButtons}>
+              <SvgIcon fontSize="medium">
+                <LinkIcon />
+              </SvgIcon>
+            </IconButton>
+          </Link>
+        </Box>
+      </Box>
+    ),
+  },
+  {
+    sortable: false,
+    field: "dateSubmitted",
+    headerName: "Date Submitted",
+    minWidth: 216,
+    headerAlign: "left",
+    align: "left",
+    renderCell: ({ value }) => (
+      <Box
+        sx={{
+          height: "100%",
+          padding: "16px 0",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "flex-start",
+        }}
+      >
+        {value
+          .filter(
+            (date: string, index: number, self: string[]) =>
+              self.indexOf(date) === index,
+          )
+          .map((date: string) => (
+            <Typography variant="text3" key={date}>
+              {date}
+            </Typography>
+          ))}
+      </Box>
+    ),
+  },
+  {
+    sortable: false,
+    field: "transactionId",
+    headerName: "Transaction ID",
+    minWidth: 216,
+    headerAlign: "left",
+    align: "left",
+    renderCell: ({ value }) => (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          flexWrap: "wrap",
+          gap: "20px",
+          padding: "16px 0",
+        }}
+      >
+        {value.map((txID: string) => (
+          <Box sx={MarketWithdrawalRequetstCell}>
+            <Typography variant="text3">{trimAddress(txID)}</Typography>
+
+            <LinkGroup
+              linkValue={`${EtherscanBaseUrl}/tx/${txID}`}
+              copyValue={txID}
+            />
+          </Box>
+        ))}
+      </Box>
+    ),
+  },
+  {
+    sortable: false,
+    field: "amount",
+    headerName: "Amount",
+    minWidth: 120,
+    flex: 1,
+    headerAlign: "right",
+    align: "right",
+    renderCell: ({ value }) => (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          flexWrap: "wrap",
+          gap: "20px",
+          padding: "16px 0",
+        }}
+      >
+        {value.map((amount: string) => (
+          <Box sx={MarketWithdrawalRequetstCell}>
+            <Typography variant="text3">{amount}</Typography>
+          </Box>
+        ))}
+      </Box>
+    ),
+  },
+]
+
+export const ClaimableTable = ({ withdrawals, totalAmount }: TableProps) => {
   const { t } = useTranslation()
   const [isClaimableOpen, setIsClaimableOpen] = useState(false)
 
-  const claimableRows: WithdrawalTxRow[] = withdrawals.flatMap((batch) =>
-    batch.requests
-      .filter(
-        (withdrawal) => !withdrawal.getNormalizedAmountOwed(batch.batch).gt(0),
-      )
-      .map((withdrawal) => ({
-        id: withdrawal.id,
-        lender: withdrawal.address,
-        transactionId: withdrawal.transactionHash,
-        dateSubmitted: dayjs(withdrawal.blockTimestamp * 1000).format(
-          "DD-MMM-YYYY",
+  const expiredPendingWithdrawals: {
+    [key: string]: LenderWithdrawalStatus[]
+  } = {}
+
+  withdrawals.forEach((batch) => {
+    if (batch.availableWithdrawalAmount.raw.isZero()) {
+      return
+    }
+
+    if (!expiredPendingWithdrawals[batch.lender]) {
+      expiredPendingWithdrawals[batch.lender] = []
+    }
+
+    expiredPendingWithdrawals[batch.lender].push(batch)
+  })
+
+  const getClaimableRequestAmounts = (status: LenderWithdrawalStatus) => {
+    const claimableAmount = status.availableWithdrawalAmount
+    return status.requests.flatMap((request) =>
+      formatTokenWithCommas(
+        claimableAmount.mulDiv(request.scaledAmount, status.scaledAmount),
+        {
+          withSymbol: true,
+        },
+      ),
+    )
+  }
+
+  const claimableRows = Object.keys(expiredPendingWithdrawals).flatMap(
+    (lender) =>
+      expiredPendingWithdrawals[lender].map((withdrawal, index) => ({
+        id: `${withdrawal.lender}-${withdrawal.scaledAmount}-${index}`, // Уникальный id
+        lender: withdrawal.lender,
+        transactionId: withdrawal.requests.map(
+          (request) => request.transactionHash,
         ),
-        amount: formatTokenWithCommas(
-          withdrawal.getNormalizedAmountOwed(batch),
-          {
-            withSymbol: true,
-          },
+        dateSubmitted: withdrawal.requests.map((request) =>
+          dayjs(request.blockTimestamp * 1000).format("DD-MMM-YYYY"),
         ),
+        amount: getClaimableRequestAmounts(withdrawal),
       })),
   )
+
+  console.log(claimableRows, "claimableRows")
 
   return (
     <DetailsAccordion
@@ -58,11 +209,11 @@ export const ClaimableTable = ({
       chipColor={COLORS.whiteSmoke}
       chipValueColor={COLORS.blackRock}
     >
-      {claimableRows.length && columns ? (
+      {claimableRows.length ? (
         <DataGrid
           sx={DataGridCells}
           rows={claimableRows}
-          columns={columns}
+          columns={claimableColumns}
           columnHeaderHeight={40}
           getRowHeight={() => "auto"}
         />

@@ -112,7 +112,6 @@ export const WithdrawalRequests = ({
       <ClaimableTable
         withdrawals={withdrawals.expiredPendingWithdrawals}
         totalAmount={claimableTotalAmount}
-        columns={columns}
       />
 
       <OutstandingTable
