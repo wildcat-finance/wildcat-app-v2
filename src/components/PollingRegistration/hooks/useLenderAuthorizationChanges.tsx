@@ -17,7 +17,7 @@ import {
 } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
-import { TReserveRatioBipsUpdated } from "../interface"
+import { TLenderAuthorizationChange } from "../interface"
 
 export const useLenderAuthorizationChanges = (marketIds: string[]) => {
   const dispatch = useDispatch()
@@ -31,16 +31,7 @@ export const useLenderAuthorizationChanges = (marketIds: string[]) => {
   useEffect(() => {
     if (data) {
       data.lenderAuthorizationChanges.forEach(
-        (change: {
-          lender: string
-          authorized: boolean
-          blockTimestamp: number
-          authorization: {
-            marketAccounts: {
-              market: { name: string; id: string }
-            }[]
-          }
-        }) => {
+        (change: TLenderAuthorizationChange) => {
           if (!change.authorized) {
             change.authorization.marketAccounts.forEach((marketAccount) => {
               dispatch(

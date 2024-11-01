@@ -2,13 +2,12 @@
 
 import { Box, Button, Typography } from "@mui/material"
 import Link from "next/link"
-import { useTranslation } from "react-i18next"
+import { Trans } from "react-i18next"
 
 import { AgreementText } from "./components/AgreementText"
 import { SignButton } from "./components/SignButton"
 
 export default async function Agreement() {
-  const { t } = useTranslation()
   return (
     <Box
       className="text"
@@ -29,7 +28,7 @@ export default async function Agreement() {
         }}
       >
         <Typography variant="title2" fontWeight={600} marginBottom="24px">
-          {t("agreement.page.title")}
+          <Trans i18nKey="agreement.page.title" />
         </Typography>
 
         <AgreementText />
@@ -71,7 +70,7 @@ export default async function Agreement() {
             size="large"
             sx={{ width: "168.63px", height: "44px" }}
           >
-            {t("agreement.page.download")}
+            <Trans i18nKey="agreement.page.download" />
           </Button>
         </Link>
       </Box>
