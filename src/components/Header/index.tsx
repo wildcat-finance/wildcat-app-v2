@@ -37,7 +37,7 @@ export default function Header() {
     if (pathname.includes(ROUTES.borrower.root)) {
       setSide("borrower")
     } else setSide("lender")
-  }, [])
+  }, [pathname])
 
   return (
     <Box sx={ContentContainer}>
@@ -45,21 +45,23 @@ export default function Header() {
         <Logo />
       </Link>
       <Box sx={NavContainer}>
-        <Typography
-          variant="text2Highlighted"
-          sx={{ color: COLORS.white, cursor: "pointer" }}
-          onClick={handleToggleSide}
-        >
-          {t("header.role.borrower")}
-        </Typography>
+        <Link href={ROUTES.borrower.root} style={{ textDecoration: "none" }}>
+          <Typography
+            variant="text2Highlighted"
+            sx={{ color: COLORS.white, cursor: "pointer" }}
+          >
+            {t("header.role.borrower")}
+          </Typography>
+        </Link>
         <Switch onClick={handleToggleSide} checked={side === "lender"} />
-        <Typography
-          variant="text2Highlighted"
-          sx={{ color: COLORS.white, cursor: "pointer" }}
-          onClick={handleToggleSide}
-        >
-          {t("header.role.lender")}
-        </Typography>
+        <Link href={ROUTES.lender.root} style={{ textDecoration: "none" }}>
+          <Typography
+            variant="text2Highlighted"
+            sx={{ color: COLORS.white, cursor: "pointer" }}
+          >
+            {t("header.role.lender")}
+          </Typography>
+        </Link>
       </Box>
       <NotificationButton />
       <HeaderButton />

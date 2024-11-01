@@ -631,6 +631,19 @@
       "withdrawals": {
         "title": "Your Withdrawals"
       }
+    },
+    "requests": {
+      "title": "Open Withdrawals",
+      "total": "Total",
+      "ongoing": "Ongoing",
+      "claimable": "Claimable",
+      "outstanding": "Outstanding from past cycles",
+      "tableColumns": {
+        "lender": "Lender",
+        "txID": "Transaction ID",
+        "date": "Date Submitted",
+        "amount": "Amount"
+      }
     }
   },
   "agreement": {
