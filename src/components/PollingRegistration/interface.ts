@@ -18,3 +18,80 @@ export type TReserveRatioBipsUpdated = {
     symbol: string
   }
 }
+
+export type TLenderAuthorizationChange = {
+  lender: string
+  authorized: boolean
+  blockTimestamp: number
+  authorization: {
+    marketAccounts: {
+      market: { name: string; id: string }
+    }[]
+  }
+}
+
+export type TBorrow = {
+  assetAmount: bigint
+  blockTimestamp: number
+  market: {
+    name: string
+    symbol: string
+    decimals: number
+  }
+  transactionHash: string
+}
+
+export type TDebtRepaid = {
+  assetAmount: bigint
+  blockTimestamp: number
+  market: {
+    name: string
+    symbol: string
+    decimals: number
+  }
+  transactionHash: string
+}
+
+export type TWithdrawalBatchCreated = {
+  batch: {
+    expiry: number
+    market: {
+      id: string
+      name: string
+      symbol: string
+      decimals: number
+    }
+  }
+  blockTimestamp: number
+  transactionHash: string
+}
+
+export type TWithdrawalExecution = {
+  batch: {
+    market: {
+      id: string
+      name: string
+      symbol: string
+      decimals: number
+    }
+  }
+  blockTimestamp: number
+  normalizedAmount: bigint
+  transactionHash: string
+}
+
+export type TWithdrawalBatchExpired = {
+  batch: {
+    market: {
+      id: string
+      name: string
+      symbol: string
+      decimals: number
+    }
+  }
+  blockTimestamp: number
+  scaledAmountBurned: bigint
+  scaledTotalAmount: bigint
+  normalizedAmountOwed: bigint
+  transactionHash: string
+}

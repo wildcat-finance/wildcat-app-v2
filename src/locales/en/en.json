@@ -549,6 +549,24 @@
     },
     "borrowerRemovedLender": {
       "description": "You have removed {{lender}} from <strong>{{marketName}}</strong>."
+    },
+    "borrow": {
+      "description": "You have borrowed {{amount}} {{asset}} from <strong>{{marketName}}</strong>."
+    },
+    "debtRepaid": {
+      "description": "You have repaid {{amount}} {{asset}} to <strong>{{marketName}}</strong>."
+    },
+    "withdrawalBatchCreated": {
+      "description": "A lender has started a withdrawal cycle for <strong>{{marketName}}</strong>."
+    },
+    "withdrawalExecution": {
+      "description": "A lender has claimed their tokens from <strong>{{marketName}}</strong>."
+    },
+    "withdrawalSuccess": {
+      "description": "Withdrawal cycle for <strong>{{marketName}}</strong> completed successfully."
+    },
+    "withdrawalFailed": {
+      "description": "Withdrawal cycle for <strong>{{marketName}}</strong> failed to complete."
     }
   },
   "lenderMarketList": {

@@ -66,3 +66,87 @@ export const LENDER_AUTHORIZATION_CHANGES = gql`
     }
   }
 `
+
+export const WITHDRAWAL_BATCH_CREATEDS = gql`
+  query ($where: WithdrawalBatchCreated_filter) {
+    withdrawalBatchCreateds(where: $where) {
+      transactionHash
+      blockTimestamp
+      batch {
+        expiry
+        market {
+          id
+          name
+        }
+      }
+    }
+  }
+`
+
+export const WITHDRAWAL_EXECUTIONS = gql`
+  query {
+    withdrawalExecutions {
+      transactionHash
+      blockTimestamp
+      normalizedAmount
+      batch {
+        market {
+          id
+          name
+          symbol
+          decimals
+        }
+      }
+    }
+  }
+`
+
+export const WITHDRAWAL_BATCH_EXPIREDS = gql`
+  query ($where: WithdrawalBatchExpired_filter) {
+    withdrawalBatchExpireds(where: $where) {
+      transactionHash
+      blockTimestamp
+      scaledTotalAmount
+      scaledAmountBurned
+      normalizedAmountOwed
+      batch {
+        market {
+          name
+          id
+          symbol
+          decimals
+        }
+      }
+    }
+  }
+`
+
+export const BORROWS = gql`
+  query ($where: Borrow_filter) {
+    borrows(where: $where) {
+      transactionHash
+      blockTimestamp
+      assetAmount
+      market {
+        symbol
+        name
+        decimals
+      }
+    }
+  }
+`
+
+export const DEBT_REPAIDS = gql`
+  query ($where: DebtRepaid_filter) {
+    debtRepaids(where: $where) {
+      transactionHash
+      blockTimestamp
+      assetAmount
+      market {
+        symbol
+        name
+        decimals
+      }
+    }
+  }
+`

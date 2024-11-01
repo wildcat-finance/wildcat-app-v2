@@ -12,78 +12,7 @@ const formatter = new Intl.DateTimeFormat("en-GB", {
   hour12: false,
 })
 
-const initialState: TNotifications = [
-  // {
-  //   description: createElement(Fragment, null, [
-  //     "A lender has started a withdrawal cycle for ",
-  //     createElement("strong", null, "Ethereum Market"),
-  //     ".",
-  //   ]),
-  //   type: "withdrawalStarted",
-  //   category: "marketActivity",
-  //   blockTimestamp: formatter.format(Date.now()),
-  //   unread: true,
-  //   data: {
-  //     timeRemaining: 60,
-  //   },
-  // },
-  // {
-  //   description: createElement(Fragment, null, [
-  //     "A lender has claimed their tokens from ",
-  //     createElement("strong", null, "Ethereum Market"),
-  //     ".",
-  //   ]),
-  //   type: "lenderClaimed",
-  //   category: "marketActivity",
-  //   blockTimestamp: formatter.format(Date.now()),
-  //   unread: true,
-  //   data: {
-  //     amount: 5.1234,
-  //     token: "WETH",
-  //   },
-  // },
-  // {
-  //   description: createElement(Fragment, null, [
-  //     "Withdrawal cycle for ",
-  //     createElement("strong", null, "Ethereum Market"),
-  //     " completed successfully.",
-  //   ]),
-  //   type: "withdrawalSuccess",
-  //   category: "marketActivity",
-  //   blockTimestamp: formatter.format(Date.now()),
-  //   unread: true,
-  // },
-  // {
-  //   description: createElement(Fragment, null, [
-  //     "Withdrawal cycle for ",
-  //     createElement("strong", null, "Ethereum Market"),
-  //     " failed to complete.",
-  //   ]),
-  //   type: "withdrawalFailed",
-  //   category: "marketActivity",
-  //   blockTimestamp: formatter.format(Date.now()),
-  //   unread: true,
-  //   error: true,
-  //   data: {
-  //     amount: 5.1234,
-  //     token: "WETH",
-  //   },
-  // },
-  // {
-  //   description: "You have borrowed 5.1234 WETH from Ethereum Market.",
-  //   type: "loanTaken",
-  //   category: "marketActivity",
-  //   blockTimestamp: formatter.format(Date.now()),
-  //   unread: true,
-  // },
-  // {
-  //   description: "You have repaid 5.1234 WETH to Ethereum Market.",
-  //   type: "loanRepaid",
-  //   category: "marketActivity",
-  //   blockTimestamp: formatter.format(Date.now()),
-  //   unread: true,
-  // },
-]
+const initialState: TNotifications = []
 
 const notificationsSlice = createSlice({
   name: "notifications",
