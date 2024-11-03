@@ -259,16 +259,89 @@
   "createMarket": {
     "forms": {
       "marketDescription": {
-        "title": "Create New market",
+        "title": "Create New Market",
         "block": {
           "title": {
             "definition": "Definition",
+            "policy": "Policy",
             "amountDuties": "Amount and Duties",
+            "restrictions": "Lender Restrictions",
+            "borrowerRestrictions": "Borrower Restrictions",
             "graceWithdrawals": "Grace and Withdrawals"
+          },
+          "borrowerRestrictions": {
+            "title": "Borrower Restrictions",
+            "subtitle": "This is your opportunity to encourage confidence from your lenders"
+          },
+          "fixedTermEndTime": {
+            "title": "Loan Maturity Date",
+            "subtitle": "The time at which lenders will be able to request withdrawals",
+            "tooltip": "TBD"
+          },
+          "allowForceBuyBack": {
+            "title": "Allow Force Buy Backs",
+            "subtitle": "Defines whether you can forcibly eject lenders by buying back their debt tokens",
+            "tooltip": "TBD"
+          },
+          "allowClosureBeforeTerm": {
+            "title": "Allow Early Closure",
+            "subtitle": "Allows you to close the market before it reaches maturity",
+            "tooltip": "TBD"
+          },
+          "allowTermReduction": {
+            "title": "Allow Term Reduction",
+            "subtitle": "Allows you to reduce the market's maturity date",
+            "tooltip": "TBD"
+          },
+          "depositAccess": {
+            "title": "Deposit Restrictions",
+            "subtitle": "Defines access level required for deposits",
+            "placeholder": "Select a deposit access level",
+            "tooltip": "TBD"
+          },
+          "withdrawalAccess": {
+            "title": "Withdrawal Restrictions",
+            "subtitle": "Defines access level required for withdrawals",
+            "placeholder": "Select a withdrawal access level",
+            "tooltip": "TBD"
+          },
+          "disableTransfers": {
+            "title": "Disable Transfers",
+            "subtitle": "Disables transfers of the market token",
+            "tooltip": "TBD"
+          },
+          "transferRequiresAccess": {
+            "title": "Restrict Transfers",
+            "subtitle": "Require transfer recipients to meet your KYC requirements"
+          },
+          "depositRequiresAccess": {
+            "title": "Restrict Deposits",
+            "subtitle": "Require depositors to meet your KYC requirements"
+          },
+          "withdrawalRequiresAccess": {
+            "title": "Restrict Withdrawals",
+            "subtitle": "Require lenders meet your KYC requirements to request withdrawals"
+          },
+          "transferAccess": {
+            "title": "Transfer Restrictions",
+            "subtitle": "Defines access level required for transfers",
+            "placeholder": "Select a transfer access level",
+            "tooltip": "TBD"
+          },
+          "policy": {
+            "title": "Market Policy",
+            "subtitle": "The market policy determines the type of loan and KYC requirements.",
+            "placeholder": "Select a policy",
+            "tooltip": "TBD"
           },
           "marketName": {
             "title": "Market Name",
             "placeholder": "Use more than 1 character, e.g. blsm",
+            "tooltip": "TBD"
+          },
+          "policyName": {
+            "title": "Policy Name",
+            "placeholder": "Wildcat Standard Policy",
             "tooltip": "TBD"
           },
           "mla": {
@@ -292,9 +365,10 @@
           "marketType": {
             "title": "Market Type",
             "placeholder": "Please Select",
-            "tooltip": "TBD",
+            "tooltip": "TBD", 
             "options": {
-              "standard": "Standard Loan"
+              "standard": "Standard Loan",
+              "fixedTerm": "Fixed Term Loan"
             }
           },
           "marketAsset": {
@@ -306,19 +380,21 @@
           },
           "marketTokenName": {
             "title": "Market token name",
-            "placeholder": "Use more than 1 character, e.g. Blossom",
+            "placeholder": "\"Wildcat Market \"",
             "tooltip": "TBD",
             "chip": "Asset Name"
           },
           "marketTokenSymbol": {
             "title": "Market token symbol",
-            "placeholder": "Use more than 1 character, e.g. blsm",
+            "subtitle": "The ERC20 symbol for the market token will be this prefix + the underlying symbol",
+            "placeholder": "wild",
             "tooltip": "TBD",
             "chip": "Asset Symbol"
           },
           "capacity": {
             "title": "Max. Borrowing Capacity",
-            "placeholder": "under 1000",
+            "subtitle": "The maximum credit line you want to be extended",
+            "placeholder": "1000",
             "tooltip": "TBD",
             "chip": "Token Symbol"
           },
@@ -331,7 +407,7 @@
           "penaltyAPR": {
             "title": "Penalty APR",
             "placeholder": "10-20",
-            "tooltip": "TBD",
+            "subtitle": "Additional APR charged when delinquent past the grace period",
             "chip": "%"
           },
           "ratio": {

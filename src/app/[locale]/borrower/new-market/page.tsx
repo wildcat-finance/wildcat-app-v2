@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 
 import { Box } from "@mui/material"
-import { Token } from "@wildcatfi/wildcat-sdk"
+import { HooksKind, Token } from "@wildcatfi/wildcat-sdk"
 
 import { useDeployMarket } from "@/app/[locale]/borrower/new-market/hooks/useDeployMarket"
 import { useTokenMetadata } from "@/app/[locale]/borrower/new-market/hooks/useTokenMetadata"
@@ -24,12 +24,36 @@ import { NewMarketForm } from "./components/NewMarketForm"
 import { useLegalInfoForm } from "./hooks/useLegalInfoForm"
 import { useNewMarketForm } from "./hooks/useNewMarketForm"
 import { ContentContainer } from "./style"
+import { useGetBorrowerHooksData } from "../hooks/useGetBorrowerHooksData"
+
+const defaultPolicyOption = {
+  id: "createNewPolicy",
+  label: "Create New Policy",
+  value: "createNewPolicy",
+} as const
 
 export default function NewMarket() {
   const dispatch = useAppDispatch()
 
   const newMarketForm = useNewMarketForm()
   const legalInfoForm = useLegalInfoForm()
+
+  const { isLoading: isHooksLoading, data: hooksData } =
+    useGetBorrowerHooksData()
+
+  const policyOptions = useMemo(
+    () => [
+      defaultPolicyOption,
+      ...(hooksData?.hooksInstances?.map((instance) => ({
+        id: instance.address,
+        label: instance.name || "Unnamed Policy",
+        badge:
+          instance.kind === HooksKind.OpenTerm ? "Open Term" : "Fixed Term",
+        value: instance.address,
+      })) ?? []),
+    ],
+    [hooksData?.hooksInstances],
+  )
 
   const { isLoading: isControllerLoading } = useGetController()
   const { deployNewMarket, isDeploying, isSuccess, isError } = useDeployMarket()
@@ -85,7 +109,11 @@ export default function NewMarket() {
     case newMarketSteps.marketDescription.name: {
       return (
         <Box sx={ContentContainer}>
-          <NewMarketForm form={newMarketForm} tokenAsset={tokenAsset} />
+          <NewMarketForm
+            form={newMarketForm}
+            tokenAsset={tokenAsset}
+            policyOptions={policyOptions}
+          />
         </Box>
       )
     }
@@ -102,7 +130,11 @@ export default function NewMarket() {
       return (
         <Box sx={ContentContainer}>
           {hideLegalInfoStep ? (
-            <NewMarketForm form={newMarketForm} tokenAsset={tokenAsset} />
+            <NewMarketForm
+              form={newMarketForm}
+              tokenAsset={tokenAsset}
+              policyOptions={policyOptions}
+            />
           ) : (
             <LegalInfoForm form={legalInfoForm} />
           )}
@@ -122,7 +154,11 @@ export default function NewMarket() {
     default: {
       return (
         <Box sx={ContentContainer}>
-          <NewMarketForm form={newMarketForm} tokenAsset={tokenAsset} />
+          <NewMarketForm
+            form={newMarketForm}
+            tokenAsset={tokenAsset}
+            policyOptions={policyOptions}
+          />
         </Box>
       )
     }
