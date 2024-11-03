@@ -6,6 +6,9 @@ import {
   TwoStepQueryHookResult,
   getLensContract,
   LenderRole,
+  getLenderAccountForMarket,
+  MarketVersion,
+  getLensV2Contract,
 } from "@wildcatfi/wildcat-sdk"
 import {
   GetLenderAccountForMarketDocument,
@@ -40,33 +43,14 @@ export function useLenderMarketAccountQuery({
   const lenderAddress = lender?.toLowerCase()
 
   async function queryMarketAccount() {
-    const result = await SubgraphClient.query<
-      SubgraphGetLenderAccountForMarketQuery,
-      SubgraphGetLenderAccountForMarketQueryVariables
-    >({
-      query: GetLenderAccountForMarketDocument,
-      variables: {
-        market: marketAddress as string,
-        lender: lenderAddress as string,
-        ...filters,
-      },
+    const result = await getLenderAccountForMarket(SubgraphClient, {
+      market: market as Market,
+      lender: lenderAddress as string,
+      fetchPolicy: "network-only",
+      ...filters,
     })
-    if (!result.data.market!.lenders.length) {
-      return new MarketAccount(
-        lenderAddress as string,
-        false,
-        LenderRole.Null,
-        BigNumber.from(0),
-        market!.marketToken.getAmount(0),
-        market!.underlyingToken.getAmount(0),
-        BigNumber.from(0),
-        market!,
-      )
-    }
-    return MarketAccount.fromSubgraphAccountData(
-      market as Market,
-      result.data.market!.lenders[0]!,
-    )
+
+    return result
   }
 
   const {
@@ -89,13 +73,23 @@ export function useLenderMarketAccountQuery({
   })
   async function updateMarketAccount() {
     if (!data || !provider) throw Error()
-    const lens = getLensContract(TargetChainId, provider)
-    const update = await lens.getMarketDataWithLenderStatus(
-      lenderAddress as string,
-      marketAddress as string,
-    )
-    data.updateWith(update.lenderStatus)
-    data.market.updateWith(update.market)
+    if (data.market.version === MarketVersion.V1) {
+      const lens = getLensContract(TargetChainId, provider)
+      const update = await lens.getMarketDataWithLenderStatus(
+        lenderAddress as string,
+        marketAddress as string,
+      )
+      data.updateWith(update.lenderStatus)
+      data.market.updateWith(update.market)
+    } else {
+      const lens = getLensV2Contract(TargetChainId, provider)
+      const update = await lens.getMarketDataWithLenderStatus(
+        lenderAddress as string,
+        marketAddress as string,
+      )
+      data.updateWith(update.lenderStatus)
+      data.market.updateWith(update.market)
+    }
     return data
   }
 
