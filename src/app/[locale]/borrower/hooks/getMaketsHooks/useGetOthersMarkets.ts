@@ -43,6 +43,7 @@ export function useGetOthersMarketsQuery({
           TargetChainId,
           provider as SignerOrProvider,
           market,
+          address,
         ),
       )
   }
