@@ -20,16 +20,20 @@ export const mockedMarketTypes = [
     label: "Standard Loan",
     value: "standard",
   },
+  {
+    label: "Fixed Term Loan",
+    value: "fixedTerm",
+  },
 ]
 
 const mockedKYCPreferences = [
   {
-    label: "Share contact info for direct KYC",
-    value: "share",
+    label: "Approve non-sanctioned lenders",
+    value: "notShare",
   },
   {
-    label: "Not share",
-    value: "notShare",
+    label: "Manually approve lenders",
+    value: "manual-approval",
   },
 ]
 
