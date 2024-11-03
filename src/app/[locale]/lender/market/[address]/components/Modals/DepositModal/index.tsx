@@ -64,7 +64,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     [amount],
   )
 
-  const depositStep = marketAccount.checkDepositStep(depositTokenAmount).status
+  const depositStep = marketAccount.previewDeposit(depositTokenAmount).status
 
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target

@@ -8,7 +8,7 @@ import {
   FormControlLabel,
   Typography,
 } from "@mui/material"
-import { BIP, Market, SetAprStatus } from "@wildcatfi/wildcat-sdk"
+import { BIP, Market, SetAprPreview } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
@@ -83,7 +83,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const { market } = marketAccount
 
   const [apr, setApr] = useState("")
-  const [aprStatus, setAprStatus] = useState<SetAprStatus>()
+  const [aprPreview, setAprPreview] = useState<SetAprPreview>()
   const [aprError, setAprError] = useState<string | undefined>()
 
   const [notified, setNotified] = useState<boolean>(false)
@@ -107,7 +107,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
   const handleClose = () => {
     modal.handleCloseModal()
-    setAprStatus(undefined)
+    setAprPreview(undefined)
   }
 
   const handleAprChange = (evt: ChangeEvent<HTMLInputElement>) => {
@@ -116,17 +116,17 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
     // If status is not `Ready`, show error message
     const parsedNewApr = parseFloat(value) * 100
-    const checkAPRStep = marketAccount.checkSetAPRStep(parsedNewApr)
-    setAprStatus(checkAPRStep)
+    const preview = marketAccount.previewSetAPR(parsedNewApr)
+    setAprPreview(preview)
 
     if (value === "" || value === "0") {
       setAprError(undefined)
       return
     }
 
-    if (checkAPRStep.status === "InsufficientReserves") {
+    if (preview.status === "InsufficientReserves") {
       setAprError(
-        `Missing Reserves – ${checkAPRStep.missingReserves.format(
+        `Missing Reserves – ${preview.missingReserves.format(
           TOKEN_FORMAT_DECIMALS,
           true,
         )} for collateral obligation. Increase percent.`,
@@ -134,8 +134,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
       return
     }
 
-    if (checkAPRStep.status !== "Ready") {
-      setAprError(SDK_ERRORS_MAPPING.setApr[checkAPRStep.status])
+    if (preview.status !== "Ready") {
+      setAprError(SDK_ERRORS_MAPPING.setApr[preview.status])
     }
 
     setAprError(undefined)
@@ -167,14 +167,14 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     : `min - ${formatBps(getMinimumAPR(market))}%`
 
   const getNewCollateralObligations = () => {
-    if (aprStatus) {
+    if (aprPreview) {
       if (
-        aprStatus.status !== "InsufficientReserves" &&
-        !(aprStatus.status === "Ready" && aprStatus.willChangeReserveRatio)
+        aprPreview.status !== "InsufficientReserves" &&
+        !(aprPreview.status === "Ready" && aprPreview.willChangeReserveRatio)
       ) {
         return undefined
       }
-      return aprStatus.newCoverageLiquidity.format(TOKEN_FORMAT_DECIMALS, true)
+      return aprPreview.newCoverageLiquidity.format(TOKEN_FORMAT_DECIMALS, true)
     }
     return undefined
   }
@@ -193,10 +193,10 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   )
 
   const newReserveRatio =
-    aprStatus &&
+    aprPreview &&
     formatBps(
-      "newReserveRatio" in aprStatus
-        ? aprStatus.newReserveRatio
+      "newReserveRatio" in aprPreview
+        ? aprPreview.newReserveRatio
         : market.reserveRatioBips,
     )
 
@@ -225,10 +225,10 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     !notified
 
   const isResetToOriginalRatio =
-    aprStatus &&
-    aprStatus.status === "Ready" &&
-    aprStatus.willChangeReserveRatio &&
-    aprStatus.changeCausedByReset
+    aprPreview &&
+    aprPreview.status === "Ready" &&
+    aprPreview.willChangeReserveRatio &&
+    aprPreview.changeCausedByReset
 
   const showRatioTimer =
     !!apr &&

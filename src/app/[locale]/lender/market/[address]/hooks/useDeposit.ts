@@ -21,7 +21,7 @@ export const useDeposit = (
     mutationFn: async (tokenAmount: TokenAmount) => {
       if (!marketAccount || !signer) throw Error()
 
-      const step = marketAccount.checkDepositStep(tokenAmount)
+      const step = marketAccount.previewDeposit(tokenAmount)
 
       const gnosisTransactions: BaseTransaction[] = []
 
