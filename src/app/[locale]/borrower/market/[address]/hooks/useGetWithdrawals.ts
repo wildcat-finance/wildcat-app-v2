@@ -5,7 +5,6 @@ import {
   Market,
   getLensContract,
   WithdrawalBatch,
-  TwoStepQueryHookResult,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
 import {
@@ -18,6 +17,7 @@ import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { SubgraphClient } from "@/config/subgraph"
+import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type BorrowerWithdrawalsForMarketResult = {
   activeWithdrawal: WithdrawalBatch | undefined

@@ -7,7 +7,6 @@ import {
   Market,
   MarketAccount,
   getLensContract,
-  TwoStepQueryHookResult,
   MarketVersion,
   SupportedChainId,
   getLensV2Contract,
@@ -29,6 +28,7 @@ import { POLLING_INTERVAL } from "@/config/polling"
 import { SubgraphClient } from "@/config/subgraph"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { TOKENS_ADDRESSES } from "@/utils/constants"
+import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type LenderMarketsQueryProps = {
   lenderAddress?: string

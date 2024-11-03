@@ -8,7 +8,6 @@ import {
   getLensContract,
   WithdrawalBatch,
   LenderWithdrawalStatus,
-  TwoStepQueryHookResult,
   TokenAmount,
   BatchStatus,
 } from "@wildcatfi/wildcat-sdk"
@@ -23,6 +22,7 @@ import { useAccount } from "wagmi"
 import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { SubgraphClient } from "@/config/subgraph"
+import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type LenderWithdrawalsForMarketResult = {
   completeWithdrawals: LenderWithdrawalStatus[]
