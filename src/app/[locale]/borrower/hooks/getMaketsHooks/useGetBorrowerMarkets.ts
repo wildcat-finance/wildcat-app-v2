@@ -1,6 +1,9 @@
 import { useQuery } from "@tanstack/react-query"
 import {
   SignerOrProvider,
+  SubgraphGetMarketsWithEventsQueryVariables,
+  // eslint-disable-next-line camelcase
+  SubgraphMarket_Filter,
   SupportedChainId,
   getMarketsForBorrower,
 } from "@wildcatfi/wildcat-sdk"
@@ -20,17 +23,29 @@ export function useGetBorrowerMarketsQuery({
   provider,
   enabled,
   chainId,
-  ...filters
+  marketFilter,
+  shouldSkipRecords = true,
+  ...variables
 }: GetMarketsProps) {
   const { address } = useAccount()
 
   async function queryBorrowerMarkets() {
+    console.log(`Running getMarketsForBorrower!`)
+    if (!address) return []
+    // eslint-disable-next-line camelcase
+    const filter: SubgraphMarket_Filter = { ...marketFilter }
+    if (address) {
+      filter.borrower = address.toLowerCase()
+    }
+
     return getMarketsForBorrower(SubgraphClient, {
       borrower: address as string,
       chainId: chainId as SupportedChainId,
       signerOrProvider: provider as SignerOrProvider,
       fetchPolicy: "network-only",
-      ...filters,
+      marketFilter: filter,
+      ...variables,
+      shouldSkipRecords,
     })
   }
 
@@ -40,7 +55,14 @@ export function useGetBorrowerMarketsQuery({
   }
 
   return useQuery({
-    queryKey: [GET_BORROWER_MARKETS, address, chainId],
+    queryKey: [
+      GET_BORROWER_MARKETS,
+      address,
+      chainId,
+      JSON.stringify(marketFilter),
+      shouldSkipRecords,
+      variables,
+    ],
     queryFn: getBorrowerMarkets,
     refetchInterval: POLLING_INTERVAL,
     enabled,
@@ -48,7 +70,9 @@ export function useGetBorrowerMarketsQuery({
   })
 }
 
-export const useGetBorrowerMarkets = () => {
+export const useGetBorrowerMarkets = (
+  args: SubgraphGetMarketsWithEventsQueryVariables | undefined,
+) => {
   const { chainId } = useCurrentNetwork()
   const { isWrongNetwork, provider, signer } = useEthersProvider()
 
@@ -58,5 +82,6 @@ export const useGetBorrowerMarkets = () => {
     provider: signerOrProvider,
     enabled: !!signerOrProvider && !isWrongNetwork,
     chainId,
+    ...args,
   })
 }
