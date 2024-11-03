@@ -171,5 +171,5 @@ export const formatBlockTimestamp = (blockTimestamp: number) => {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-  }).format(new Date(blockTimestamp))
+  }).format(new Date(blockTimestamp * 1000))
 }
