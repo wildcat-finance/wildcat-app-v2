@@ -8,6 +8,9 @@ import {
   MarketAccount,
   getLensContract,
   TwoStepQueryHookResult,
+  MarketVersion,
+  SupportedChainId,
+  getLensV2Contract,
 } from "@wildcatfi/wildcat-sdk"
 import {
   GetAllMarketsForLenderViewDocument,
@@ -25,6 +28,7 @@ import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { SubgraphClient } from "@/config/subgraph"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { TOKENS_ADDRESSES } from "@/utils/constants"
 
 export type LenderMarketsQueryProps = {
   lenderAddress?: string
@@ -45,6 +49,40 @@ export type LenderMarketsQueryProps = {
 }
 
 export const GET_LENDERS_ACCOUNTS_KEY = "lenders_accounts_list"
+
+function getChunks<T extends Market | MarketAccount>(
+  chainId: SupportedChainId,
+  values: T[],
+): { v1Chunks: T[][]; v2Chunks: T[][] } {
+  const v1Values = values.filter(
+    (v) =>
+      (v instanceof Market ? v.version : v.market.version) === MarketVersion.V1,
+  )
+  const v2Values = values.filter(
+    (v) =>
+      (v instanceof Market ? v.version : v.market.version) === MarketVersion.V2,
+  )
+  const isWeth = (v: T): boolean =>
+    (v instanceof Market
+      ? v.underlyingToken
+      : v.market.underlyingToken
+    ).address.toLowerCase() === TOKENS_ADDRESSES.WETH
+  if (chainId === SupportedChainId.Mainnet) {
+    const v1Chunks = [
+      ...v1Values.filter(isWeth).map((m) => [m]),
+      v1Values.filter((v) => !isWeth(v)),
+    ]
+    const v2Chunks = [
+      ...v2Values.filter(isWeth).map((m) => [m]),
+      v2Values.filter((v) => !isWeth(v)),
+    ]
+    return { v1Chunks, v2Chunks }
+  }
+  return {
+    v1Chunks: [v1Values],
+    v2Chunks: [v2Values],
+  }
+}
 
 export function useLendersMarkets({
   ...filters
@@ -139,28 +177,15 @@ export function useLendersMarkets({
       TargetChainId,
       signerOrProvider as SignerOrProvider,
     )
-    let chunks: MarketAccount[][]
-    if (TargetChainId === 1) {
-      chunks = [
-        ...accounts
-          .filter(
-            (m) =>
-              m.market.underlyingToken.address.toLowerCase() ===
-              "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-          )
-          .map((m) => [m]),
-        accounts.filter(
-          (m) =>
-            m.market.underlyingToken.address.toLowerCase() !==
-            "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-        ),
-      ]
-    } else {
-      chunks = [accounts]
-    }
+    const lensV2 = getLensV2Contract(
+      TargetChainId,
+      signerOrProvider as SignerOrProvider,
+    )
+
+    const { v1Chunks, v2Chunks } = getChunks(TargetChainId, accounts)
     if (lender) {
-      await Promise.all(
-        chunks.map(async (accountsChunk) => {
+      await Promise.all([
+        ...v1Chunks.map(async (accountsChunk) => {
           const updates = await lens.getMarketsDataWithLenderStatus(
             lender,
             accountsChunk.map((m) => m.market.address),
@@ -171,19 +196,40 @@ export function useLendersMarkets({
             account.updateWith(update.lenderStatus)
           })
         }),
-      )
+        ...v2Chunks.map(async (accountsChunk) => {
+          const updates = await lensV2.getMarketsDataWithLenderStatus(
+            lender,
+            accountsChunk.map((m) => m.market.address),
+          )
+          accountsChunk.forEach((account, i) => {
+            const update = updates[i]
+            account.market.updateWith(update.market)
+            account.updateWith(update.lenderStatus)
+          })
+        }),
+      ])
       logger.debug(`getLenderUpdates:: Got lender updates: ${accounts.length}`)
     } else {
-      await Promise.all(
-        chunks.map(async (accountsChunk) => {
+      await Promise.all([
+        ...v1Chunks.map(async (accountsChunk) => {
           const updates = await lens.getMarketsData(
             accountsChunk.map((m) => m.market.address),
           )
           accountsChunk.forEach((account, i) => {
-            account.market.updateWith(updates[i])
+            const update = updates[i]
+            account.market.updateWith(update)
           })
         }),
-      )
+        ...v2Chunks.map(async (accountsChunk) => {
+          const updates = await lensV2.getMarketsData(
+            accountsChunk.map((m) => m.market.address),
+          )
+          accountsChunk.forEach((account, i) => {
+            const update = updates[i]
+            account.market.updateWith(update)
+          })
+        }),
+      ])
       logger.debug(`getLenderUpdates:: Got market updates: ${accounts.length}`)
     }
     return accounts

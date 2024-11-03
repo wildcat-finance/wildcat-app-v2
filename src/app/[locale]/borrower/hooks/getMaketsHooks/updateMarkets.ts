@@ -1,7 +1,9 @@
 import {
   getLensContract,
+  getLensV2Contract,
   logger,
   Market,
+  MarketVersion,
   SignerOrProvider,
 } from "@wildcatfi/wildcat-sdk"
 
@@ -13,27 +15,36 @@ export async function updateMarkets(
   provider: SignerOrProvider | undefined,
 ) {
   const lens = getLensContract(TargetChainId, provider as SignerOrProvider)
-  let chunks: Market[][]
+  const lensV2 = getLensV2Contract(TargetChainId, provider as SignerOrProvider)
+  let v1Chunks: Market[][]
+  let v2Chunks: Market[][]
 
   if (TargetChainId === NETWORKS.Mainnet.chainId) {
-    chunks = [
-      ...markets
-        .filter(
-          (m) =>
-            m.underlyingToken.address.toLowerCase() === TOKENS_ADDRESSES.WETH,
-        )
+    const wethMarkets = markets.filter(
+      (m) => m.underlyingToken.address.toLowerCase() === TOKENS_ADDRESSES.WETH,
+    )
+    const nonWethMarkets = markets.filter(
+      (m) => m.underlyingToken.address.toLowerCase() !== TOKENS_ADDRESSES.WETH,
+    )
+    v1Chunks = [
+      ...wethMarkets
+        .filter((m) => m.version === MarketVersion.V1)
         .map((m) => [m]),
-      markets.filter(
-        (m) =>
-          m.underlyingToken.address.toLowerCase() !== TOKENS_ADDRESSES.WETH,
-      ),
+      nonWethMarkets.filter((m) => m.version === MarketVersion.V1),
+    ]
+    v2Chunks = [
+      ...wethMarkets
+        .filter((m) => m.version === MarketVersion.V2)
+        .map((m) => [m]),
+      nonWethMarkets.filter((m) => m.version === MarketVersion.V2),
     ]
   } else {
-    chunks = [markets]
+    v1Chunks = [markets.filter((m) => m.version === MarketVersion.V1)]
+    v2Chunks = [markets.filter((m) => m.version === MarketVersion.V2)]
   }
 
-  await Promise.all(
-    chunks.map(async (marketsChunk) => {
+  await Promise.all([
+    ...v1Chunks.map(async (marketsChunk) => {
       try {
         const updates = await lens.getMarketsData(
           marketsChunk.map((m) => m.address),
@@ -45,7 +56,19 @@ export async function updateMarkets(
         console.log("Wrong underlying network detected", err)
       }
     }),
-  )
+    ...v2Chunks.map(async (marketsChunk) => {
+      try {
+        const updates = await lensV2.getMarketsData(
+          marketsChunk.map((m) => m.address),
+        )
+        marketsChunk.forEach((market, i) => {
+          market.updateWith(updates[i])
+        })
+      } catch (err) {
+        console.log("Wrong underlying network detected", err)
+      }
+    }),
+  ])
   logger.debug(`Got ${markets.length} market updates`)
-  return chunks.flat()
+  return [...v1Chunks.flat(), ...v2Chunks.flat()]
 }

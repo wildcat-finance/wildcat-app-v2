@@ -1,5 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
-import { Market, getLensContract } from "@wildcatfi/wildcat-sdk"
+import {
+  Market,
+  MarketVersion,
+  getLensContract,
+  getLensV2Contract,
+} from "@wildcatfi/wildcat-sdk"
 import {
   GetMarketDocument,
   SubgraphGetMarketQuery,
@@ -45,10 +50,15 @@ export function useGetMarket({ address, ...filters }: UseMarketProps) {
 
   async function updateMarket(market: Market | undefined) {
     if (!market || !address || !signerOrProvider) throw Error()
-
-    const lens = getLensContract(TargetChainId, signerOrProvider)
-    const update = await lens.getMarketData(address)
-    market.updateWith(update)
+    if (market.version === MarketVersion.V1) {
+      const lens = getLensContract(TargetChainId, signerOrProvider)
+      const update = await lens.getMarketData(address)
+      market.updateWith(update)
+    } else {
+      const lens = getLensV2Contract(TargetChainId, signerOrProvider)
+      const update = await lens.getMarketData(address)
+      market.updateWith(update)
+    }
 
     return market
   }
