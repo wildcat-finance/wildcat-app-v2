@@ -1,14 +1,12 @@
 import { useQuery } from "@tanstack/react-query"
-import { Market, SignerOrProvider } from "@wildcatfi/wildcat-sdk"
 import {
-  GetMarketsForBorrowerDocument,
-  SubgraphGetMarketsForBorrowerQuery,
-  SubgraphGetMarketsForBorrowerQueryVariables,
-} from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
+  SignerOrProvider,
+  SupportedChainId,
+  getMarketsForBorrower,
+} from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { updateMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/updateMarkets"
-import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { SubgraphClient } from "@/config/subgraph"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -27,31 +25,13 @@ export function useGetBorrowerMarketsQuery({
   const { address } = useAccount()
 
   async function queryBorrowerMarkets() {
-    const result = await SubgraphClient.query<
-      SubgraphGetMarketsForBorrowerQuery,
-      SubgraphGetMarketsForBorrowerQueryVariables
-    >({
-      query: GetMarketsForBorrowerDocument,
-      variables: { borrower: address as string, ...filters },
+    return getMarketsForBorrower(SubgraphClient, {
+      borrower: address as string,
+      chainId: chainId as SupportedChainId,
+      signerOrProvider: provider as SignerOrProvider,
       fetchPolicy: "network-only",
+      ...filters,
     })
-
-    const controller = result.data.controllers[0]
-    if (controller) {
-      return (
-        controller.markets
-          .filter((m) => !!m.controller)
-          .map((market) =>
-            Market.fromSubgraphMarketData(
-              TargetChainId,
-              provider as SignerOrProvider,
-              market,
-            ),
-          ) ?? []
-      )
-    }
-
-    return []
   }
 
   async function getBorrowerMarkets() {
