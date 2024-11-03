@@ -3,25 +3,19 @@ import {
   Market,
   MarketAccount,
   SignerOrProvider,
-  TwoStepQueryHookResult,
   getLensContract,
-  LenderRole,
   getLenderAccountForMarket,
   MarketVersion,
   getLensV2Contract,
 } from "@wildcatfi/wildcat-sdk"
-import {
-  GetLenderAccountForMarketDocument,
-  SubgraphGetLenderAccountForMarketQuery,
-  SubgraphGetLenderAccountForMarketQueryVariables,
-  SubgraphGetMarketQueryVariables,
-} from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
-import { BigNumber, constants } from "ethers"
+import { SubgraphGetMarketQueryVariables } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
+import { constants } from "ethers"
 
 import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { SubgraphClient } from "@/config/subgraph"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { TwoStepQueryHookResult } from "@/utils/types"
 
 export const GET_LENDER_MARKET_ACCOUNT_KEY = "get-lender-market-account"
 
