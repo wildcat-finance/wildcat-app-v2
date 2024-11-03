@@ -112,9 +112,7 @@ export const RepayModal = ({
     ? repayDaysAmount
     : maxRepayAmount || repayTokenAmount
 
-  const repayStep = marketAccount.checkRepayStep(
-    finalRepayAmount || repayAmount,
-  )
+  const repayStep = marketAccount.previewRepay(finalRepayAmount || repayAmount)
 
   const handleRepay = () => {
     setTxHash("")
