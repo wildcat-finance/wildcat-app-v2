@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react"
 
 import {
   Alert,
@@ -11,44 +11,42 @@ import {
   InputAdornment,
   TextField,
   Typography,
-} from "@mui/material";
-import SvgIcon from "@mui/material/SvgIcon";
-import { Token } from "@wildcatfi/wildcat-sdk";
-import Link from "next/link";
-import { UseFormReturn } from "react-hook-form";
-import { useTranslation } from "react-i18next";
+} from "@mui/material"
+import SvgIcon from "@mui/material/SvgIcon"
+import { Token } from "@wildcatfi/wildcat-sdk"
+import Link from "next/link"
+import { UseFormReturn } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 
-import {
-  MarketValidationSchemaType,
-} from "@/app/[locale]/borrower/new-market/validation/validationSchema";
-import { TokenInfo } from "@/app/api/tokens-list/interface";
-import BackArrow from "@/assets/icons/arrowLeft_icon.svg";
-import { ExtendedSelect } from "@/components/@extended/ExtendedSelect";
-import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type";
-import { Accordion } from "@/components/Accordion";
-import { InputLabel } from "@/components/InputLabel";
+import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
+import { TokenInfo } from "@/app/api/tokens-list/interface"
+import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
+import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
+import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
+import { Accordion } from "@/components/Accordion"
+import { InputLabel } from "@/components/InputLabel"
 import {
   InputLabelContainer,
   InputLabelSubtitle,
   InputLabelTypo,
-} from "@/components/InputLabel/style";
-import { NumberTextField } from "@/components/NumberTextfield";
-import { StyledSwitch } from "@/components/StyledSwitch/input";
-import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip";
-import { TooltipButton } from "@/components/TooltipButton";
+} from "@/components/InputLabel/style"
+import { NumberTextField } from "@/components/NumberTextfield"
+import { StyledSwitch } from "@/components/StyledSwitch/input"
+import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
+import { TooltipButton } from "@/components/TooltipButton"
 import {
   mockedKYCPreferencesOptions,
   mockedMarketTypesOptions,
   mockedMLATemplatesOptions,
-} from "@/mocks/mocks";
-import { ROUTES } from "@/routes";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
+} from "@/mocks/mocks"
+import { ROUTES } from "@/routes"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   setDisableConfirmationStepSidebar,
   setDisableInfoStepSidebar,
   setHideInfoStep,
   setNextStep,
-} from "@/store/slices/routingSlice/routingSlice";
+} from "@/store/slices/routingSlice/routingSlice"
 
 import {
   BackButton,
@@ -59,22 +57,22 @@ import {
   endDecorator,
   InputGroupContainer,
   NextButton,
-} from "./style";
-import { UnderlyingAssetSelect } from "./UnderlyingAssetSelect";
+} from "./style"
+import { UnderlyingAssetSelect } from "./UnderlyingAssetSelect"
 
 type NewMarketFormProps = {
-  form: UseFormReturn<MarketValidationSchemaType>;
-  tokenAsset: Token | undefined;
-  policyOptions: ExtendedSelectOptionItem[];
-};
+  form: UseFormReturn<MarketValidationSchemaType>
+  tokenAsset: Token | undefined
+  policyOptions: ExtendedSelectOptionItem[]
+}
 
 export const NewMarketForm = ({
   form,
   tokenAsset,
   policyOptions,
 }: NewMarketFormProps) => {
-  const { t } = useTranslation();
-  const dispatch = useAppDispatch();
+  const { t } = useTranslation()
+  const dispatch = useAppDispatch()
 
   const {
     getValues,
@@ -83,60 +81,60 @@ export const NewMarketForm = ({
     formState: { errors, isValid },
     control,
     watch,
-  } = form;
+  } = form
 
-  const mlaWatch = watch("mla");
+  const mlaWatch = watch("mla")
 
-  const policyWatch = watch("policy");
-  const policyNameWatch = watch("policyName");
-  const namePrefixWatch = watch("namePrefix");
-  const symbolPrefixWatch = watch("symbolPrefix");
-  const marketTypeWatch = watch("marketType");
-  const forceBuyBackWatch = watch("allowForceBuyBack");
-  const allowClosureBeforeTermWatch = watch("allowClosureBeforeTerm");
-  const allowTermReductionWatch = watch("allowTermReduction");
-  const transferRequiresAccessWatch = watch("transferRequiresAccess");
-  const withdrawalRequiresAccessWatch = watch("withdrawalRequiresAccess");
-  const depositRequiresAccessWatch = watch("depositRequiresAccess");
-  const disableTransfersWatch = watch("disableTransfers");
+  const policyWatch = watch("policy")
+  const policyNameWatch = watch("policyName")
+  const namePrefixWatch = watch("namePrefix")
+  const symbolPrefixWatch = watch("symbolPrefix")
+  const marketTypeWatch = watch("marketType")
+  const forceBuyBackWatch = watch("allowForceBuyBack")
+  const allowClosureBeforeTermWatch = watch("allowClosureBeforeTerm")
+  const allowTermReductionWatch = watch("allowTermReduction")
+  const transferRequiresAccessWatch = watch("transferRequiresAccess")
+  const withdrawalRequiresAccessWatch = watch("withdrawalRequiresAccess")
+  const depositRequiresAccessWatch = watch("depositRequiresAccess")
+  const disableTransfersWatch = watch("disableTransfers")
   const hideLegalInfoStep = useAppSelector(
-    (state) => state.routing.hideInfoStep
-  );
+    (state) => state.routing.hideInfoStep,
+  )
 
   const isFixedTerm = useMemo(
     () => marketTypeWatch === "fixedTerm",
-    [marketTypeWatch]
-  );
+    [marketTypeWatch],
+  )
 
   const handleTokenSelect = (asset: TokenInfo | null) => {
-    setValue("asset", (asset ? asset.address : "0x") as `0x${string}`);
-  };
+    setValue("asset", (asset ? asset.address : "0x") as `0x${string}`)
+  }
 
   const handleClickNext = () => {
     dispatch(
-      setNextStep(hideLegalInfoStep ? "confirmation" : "legalInformation")
-    );
-  };
+      setNextStep(hideLegalInfoStep ? "confirmation" : "legalInformation"),
+    )
+  }
 
   useEffect(() => {
     if (mlaWatch === "wildcatMLA") {
-      dispatch(setHideInfoStep(false));
+      dispatch(setHideInfoStep(false))
     } else {
-      dispatch(setHideInfoStep(true));
+      dispatch(setHideInfoStep(true))
     }
-  }, [mlaWatch]);
+  }, [mlaWatch])
 
   useEffect(() => {
     if (hideLegalInfoStep) {
-      dispatch(setDisableConfirmationStepSidebar(!isValid));
-      dispatch(setDisableInfoStepSidebar(true));
+      dispatch(setDisableConfirmationStepSidebar(!isValid))
+      dispatch(setDisableInfoStepSidebar(true))
     } else {
-      dispatch(setDisableConfirmationStepSidebar(true));
-      dispatch(setDisableInfoStepSidebar(!isValid));
+      dispatch(setDisableConfirmationStepSidebar(true))
+      dispatch(setDisableInfoStepSidebar(!isValid))
     }
-  }, [isValid, hideLegalInfoStep]);
+  }, [isValid, hideLegalInfoStep])
 
-  const tokenSelectorFormProps = register("asset");
+  const tokenSelectorFormProps = register("asset")
 
   return (
     <Box maxWidth="766px" width="100%">
@@ -150,10 +148,10 @@ export const NewMarketForm = ({
         <InputLabel
           label={t("createMarket.forms.marketDescription.block.policy.title")}
           subtitle={t(
-            "createMarket.forms.marketDescription.block.policy.subtitle"
+            "createMarket.forms.marketDescription.block.policy.subtitle",
           )}
           tooltipText={t(
-            "createMarket.forms.marketDescription.block.policy.tooltip"
+            "createMarket.forms.marketDescription.block.policy.tooltip",
           )}
           key="x"
         >
@@ -161,7 +159,7 @@ export const NewMarketForm = ({
             control={control}
             name="policy"
             label={t(
-              "createMarket.forms.marketDescription.block.policy.placeholder"
+              "createMarket.forms.marketDescription.block.policy.placeholder",
             )}
             options={policyOptions}
             optionSX={DropdownOption}
@@ -190,21 +188,21 @@ export const NewMarketForm = ({
       {policyWatch === "createNewPolicy" ? (
         <InputLabel
           label={t(
-            "createMarket.forms.marketDescription.block.policyName.title"
+            "createMarket.forms.marketDescription.block.policyName.title",
           )}
           margin="16px 0 0 0"
           tooltipText={t(
-            "createMarket.forms.marketDescription.block.policyName.tooltip"
+            "createMarket.forms.marketDescription.block.policyName.tooltip",
           )}
         >
           <TextField
             label={t(
-              "createMarket.forms.marketDescription.block.policyName.placeholder"
+              "createMarket.forms.marketDescription.block.policyName.placeholder",
             )}
             error={Boolean(errors.policyName)}
             helperText={errors.policyName?.message}
             placeholder={t(
-              "createMarket.forms.marketDescription.block.policyName.placeholder"
+              "createMarket.forms.marketDescription.block.policyName.placeholder",
             )}
             {...register("policyName")}
           />
@@ -218,17 +216,17 @@ export const NewMarketForm = ({
       <Box sx={InputGroupContainer} marginTop="16px">
         <InputLabel
           label={t(
-            "createMarket.forms.marketDescription.block.marketType.title"
+            "createMarket.forms.marketDescription.block.marketType.title",
           )}
           tooltipText={t(
-            "createMarket.forms.marketDescription.block.marketType.tooltip"
+            "createMarket.forms.marketDescription.block.marketType.tooltip",
           )}
         >
           <ExtendedSelect
             control={control}
             name="marketType"
             label={t(
-              "createMarket.forms.marketDescription.block.marketType.placeholder"
+              "createMarket.forms.marketDescription.block.marketType.placeholder",
             )}
             options={mockedMarketTypesOptions}
             optionSX={DropdownOption}
@@ -239,14 +237,14 @@ export const NewMarketForm = ({
         <InputLabel
           label={t("createMarket.forms.marketDescription.block.kyc.title")}
           tooltipText={t(
-            "createMarket.forms.marketDescription.block.kyc.tooltip"
+            "createMarket.forms.marketDescription.block.kyc.tooltip",
           )}
         >
           <ExtendedSelect
             control={control}
             name="kyc"
             label={t(
-              "createMarket.forms.marketDescription.block.kyc.placeholder"
+              "createMarket.forms.marketDescription.block.kyc.placeholder",
             )}
             options={mockedKYCPreferencesOptions}
             optionSX={DropdownOption}
@@ -263,10 +261,10 @@ export const NewMarketForm = ({
       <Box sx={InputGroupContainer} marginTop="36px">
         <InputLabel
           label={t(
-            "createMarket.forms.marketDescription.block.marketAsset.title"
+            "createMarket.forms.marketDescription.block.marketAsset.title",
           )}
           tooltipText={t(
-            "createMarket.forms.marketDescription.block.marketAsset.tooltip"
+            "createMarket.forms.marketDescription.block.marketAsset.tooltip",
           )}
         >
           <UnderlyingAssetSelect
@@ -281,14 +279,14 @@ export const NewMarketForm = ({
         <InputLabel
           label={t("createMarket.forms.marketDescription.block.mla.title")}
           tooltipText={t(
-            "createMarket.forms.marketDescription.block.mla.tooltip"
+            "createMarket.forms.marketDescription.block.mla.tooltip",
           )}
         >
           <ExtendedSelect
             control={control}
             name="mla"
             label={t(
-              "createMarket.forms.marketDescription.block.mla.placeholder"
+              "createMarket.forms.marketDescription.block.mla.placeholder",
             )}
             options={mockedMLATemplatesOptions}
             optionSX={DropdownOption}
@@ -299,10 +297,10 @@ export const NewMarketForm = ({
       <Box sx={InputGroupContainer}>
         <InputLabel
           label={t(
-            "createMarket.forms.marketDescription.block.marketTokenName.title"
+            "createMarket.forms.marketDescription.block.marketTokenName.title",
           )}
           tooltipText={t(
-            "createMarket.forms.marketDescription.block.marketTokenName.tooltip"
+            "createMarket.forms.marketDescription.block.marketTokenName.tooltip",
           )}
           margin="36px 0 0 0"
           subtitle={
@@ -313,7 +311,7 @@ export const NewMarketForm = ({
         >
           <TextField
             label={t(
-              "createMarket.forms.marketDescription.block.marketTokenName.placeholder"
+              "createMarket.forms.marketDescription.block.marketTokenName.placeholder",
             )}
             error={Boolean(errors.namePrefix)}
             helperText={errors.namePrefix?.message}
@@ -324,7 +322,7 @@ export const NewMarketForm = ({
                     text={
                       tokenAsset?.name ||
                       `${t(
-                        "createMarket.forms.marketDescription.block.marketTokenName.chip"
+                        "createMarket.forms.marketDescription.block.marketTokenName.chip",
                       )}`
                     }
                   />
@@ -337,10 +335,10 @@ export const NewMarketForm = ({
 
         <InputLabel
           label={t(
-            "createMarket.forms.marketDescription.block.marketTokenSymbol.title"
+            "createMarket.forms.marketDescription.block.marketTokenSymbol.title",
           )}
           tooltipText={t(
-            "createMarket.forms.marketDescription.block.marketTokenSymbol.tooltip"
+            "createMarket.forms.marketDescription.block.marketTokenSymbol.tooltip",
           )}
           margin="36px 0 0 0"
           subtitle={
@@ -351,7 +349,7 @@ export const NewMarketForm = ({
         >
           <TextField
             label={t(
-              "createMarket.forms.marketDescription.block.marketTokenSymbol.placeholder"
+              "createMarket.forms.marketDescription.block.marketTokenSymbol.placeholder",
             )}
             error={Boolean(errors.symbolPrefix)}
             helperText={errors.symbolPrefix?.message}
@@ -362,7 +360,7 @@ export const NewMarketForm = ({
                     text={
                       tokenAsset?.symbol ||
                       `${t(
-                        "createMarket.forms.marketDescription.block.marketTokenSymbol.chip"
+                        "createMarket.forms.marketDescription.block.marketTokenSymbol.chip",
                       )}`
                     }
                   />
@@ -384,10 +382,10 @@ export const NewMarketForm = ({
         <InputLabel
           label={t("createMarket.forms.marketDescription.block.deposit.title")}
           subtitle={t(
-            "createMarket.forms.marketDescription.block.deposit.subtitle"
+            "createMarket.forms.marketDescription.block.deposit.subtitle",
           )}
           tooltipText={t(
-            "createMarket.forms.marketDescription.block.deposit.tooltip"
+            "createMarket.forms.marketDescription.block.deposit.tooltip",
           )}
         >
           <NumberTextField
@@ -402,7 +400,7 @@ export const NewMarketForm = ({
                 text={
                   tokenAsset?.symbol ||
                   `${t(
-                    "createMarket.forms.marketDescription.block.deposit.chip"
+                    "createMarket.forms.marketDescription.block.deposit.chip",
                   )}`
                 }
               />
@@ -420,13 +418,13 @@ export const NewMarketForm = ({
                 <Box sx={InputLabelTypo}>
                   <Typography variant="text3">
                     {t(
-                      "createMarket.forms.marketDescription.block.depositRequiresAccess.title"
+                      "createMarket.forms.marketDescription.block.depositRequiresAccess.title",
                     )}
                   </Typography>
                 </Box>
                 <TooltipButton
                   value={t(
-                    "createMarket.forms.marketDescription.block.depositRequiresAccess.tooltip"
+                    "createMarket.forms.marketDescription.block.depositRequiresAccess.tooltip",
                   )}
                 />
               </Box>
@@ -436,7 +434,7 @@ export const NewMarketForm = ({
                 sx={InputLabelSubtitle}
               >
                 {t(
-                  "createMarket.forms.marketDescription.block.depositRequiresAccess.subtitle"
+                  "createMarket.forms.marketDescription.block.depositRequiresAccess.subtitle",
                 )}
               </Typography>
             </Box>
@@ -447,7 +445,7 @@ export const NewMarketForm = ({
               size="medium"
               checked={depositRequiresAccessWatch}
               onChange={(e) => {
-                setValue("depositRequiresAccess", e.target.checked);
+                setValue("depositRequiresAccess", e.target.checked)
               }}
             />
           }
@@ -462,13 +460,13 @@ export const NewMarketForm = ({
                 <Box sx={InputLabelTypo}>
                   <Typography variant="text3">
                     {t(
-                      "createMarket.forms.marketDescription.block.withdrawalRequiresAccess.title"
+                      "createMarket.forms.marketDescription.block.withdrawalRequiresAccess.title",
                     )}
                   </Typography>
                 </Box>
                 <TooltipButton
                   value={t(
-                    "createMarket.forms.marketDescription.block.withdrawalRequiresAccess.tooltip"
+                    "createMarket.forms.marketDescription.block.withdrawalRequiresAccess.tooltip",
                   )}
                 />
               </Box>
@@ -478,7 +476,7 @@ export const NewMarketForm = ({
                 sx={InputLabelSubtitle}
               >
                 {t(
-                  "createMarket.forms.marketDescription.block.withdrawalRequiresAccess.subtitle"
+                  "createMarket.forms.marketDescription.block.withdrawalRequiresAccess.subtitle",
                 )}
               </Typography>
             </Box>
@@ -489,7 +487,7 @@ export const NewMarketForm = ({
               size="medium"
               checked={withdrawalRequiresAccessWatch}
               onChange={(e) => {
-                setValue("withdrawalRequiresAccess", e.target.checked);
+                setValue("withdrawalRequiresAccess", e.target.checked)
               }}
             />
           }
@@ -504,13 +502,13 @@ export const NewMarketForm = ({
                 <Box sx={InputLabelTypo}>
                   <Typography variant="text3">
                     {t(
-                      "createMarket.forms.marketDescription.block.disableTransfers.title"
+                      "createMarket.forms.marketDescription.block.disableTransfers.title",
                     )}
                   </Typography>
                 </Box>
                 <TooltipButton
                   value={t(
-                    "createMarket.forms.marketDescription.block.disableTransfers.tooltip"
+                    "createMarket.forms.marketDescription.block.disableTransfers.tooltip",
                   )}
                 />
               </Box>
@@ -520,7 +518,7 @@ export const NewMarketForm = ({
                 sx={InputLabelSubtitle}
               >
                 {t(
-                  "createMarket.forms.marketDescription.block.disableTransfers.subtitle"
+                  "createMarket.forms.marketDescription.block.disableTransfers.subtitle",
                 )}
               </Typography>
             </Box>
@@ -531,7 +529,7 @@ export const NewMarketForm = ({
               size="medium"
               checked={disableTransfersWatch}
               onChange={(e) => {
-                setValue("disableTransfers", e.target.checked);
+                setValue("disableTransfers", e.target.checked)
               }}
             />
           }
@@ -547,13 +545,13 @@ export const NewMarketForm = ({
                   <Box sx={InputLabelTypo}>
                     <Typography variant="text3">
                       {t(
-                        "createMarket.forms.marketDescription.block.transferRequiresAccess.title"
+                        "createMarket.forms.marketDescription.block.transferRequiresAccess.title",
                       )}
                     </Typography>
                   </Box>
                   <TooltipButton
                     value={t(
-                      "createMarket.forms.marketDescription.block.transferRequiresAccess.tooltip"
+                      "createMarket.forms.marketDescription.block.transferRequiresAccess.tooltip",
                     )}
                   />
                 </Box>
@@ -563,7 +561,7 @@ export const NewMarketForm = ({
                   sx={InputLabelSubtitle}
                 >
                   {t(
-                    "createMarket.forms.marketDescription.block.transferRequiresAccess.subtitle"
+                    "createMarket.forms.marketDescription.block.transferRequiresAccess.subtitle",
                   )}
                 </Typography>
               </Box>
@@ -574,7 +572,7 @@ export const NewMarketForm = ({
                 size="medium"
                 checked={transferRequiresAccessWatch}
                 onChange={(e) => {
-                  setValue("transferRequiresAccess", e.target.checked);
+                  setValue("transferRequiresAccess", e.target.checked)
                 }}
               />
             }
@@ -588,13 +586,13 @@ export const NewMarketForm = ({
         <Box>
           <Typography variant="text1">
             {t(
-              "createMarket.forms.marketDescription.block.borrowerRestrictions.title"
+              "createMarket.forms.marketDescription.block.borrowerRestrictions.title",
             )}
           </Typography>
         </Box>
         <Typography marginTop="0px" variant="text4" sx={InputLabelSubtitle}>
           {t(
-            "createMarket.forms.marketDescription.block.borrowerRestrictions.subtitle"
+            "createMarket.forms.marketDescription.block.borrowerRestrictions.subtitle",
           )}
         </Typography>
       </Box>
@@ -608,13 +606,13 @@ export const NewMarketForm = ({
                 <Box sx={InputLabelTypo}>
                   <Typography variant="text3">
                     {t(
-                      "createMarket.forms.marketDescription.block.allowForceBuyBack.title"
+                      "createMarket.forms.marketDescription.block.allowForceBuyBack.title",
                     )}
                   </Typography>
                 </Box>
                 <TooltipButton
                   value={t(
-                    "createMarket.forms.marketDescription.block.allowForceBuyBack.tooltip"
+                    "createMarket.forms.marketDescription.block.allowForceBuyBack.tooltip",
                   )}
                 />
               </Box>
@@ -624,7 +622,7 @@ export const NewMarketForm = ({
                 sx={InputLabelSubtitle}
               >
                 {t(
-                  "createMarket.forms.marketDescription.block.allowForceBuyBack.subtitle"
+                  "createMarket.forms.marketDescription.block.allowForceBuyBack.subtitle",
                 )}
               </Typography>
             </Box>
@@ -636,7 +634,7 @@ export const NewMarketForm = ({
               size="medium"
               checked={forceBuyBackWatch}
               onChange={(e) => {
-                setValue("allowForceBuyBack", e.target.checked);
+                setValue("allowForceBuyBack", e.target.checked)
               }}
             />
           }
@@ -661,13 +659,13 @@ export const NewMarketForm = ({
                   <Box sx={InputLabelTypo}>
                     <Typography variant="text3">
                       {t(
-                        "createMarket.forms.marketDescription.block.allowClosureBeforeTerm.title"
+                        "createMarket.forms.marketDescription.block.allowClosureBeforeTerm.title",
                       )}
                     </Typography>
                   </Box>
                   <TooltipButton
                     value={t(
-                      "createMarket.forms.marketDescription.block.allowClosureBeforeTerm.tooltip"
+                      "createMarket.forms.marketDescription.block.allowClosureBeforeTerm.tooltip",
                     )}
                   />
                 </Box>
@@ -677,7 +675,7 @@ export const NewMarketForm = ({
                   sx={InputLabelSubtitle}
                 >
                   {t(
-                    "createMarket.forms.marketDescription.block.allowClosureBeforeTerm.subtitle"
+                    "createMarket.forms.marketDescription.block.allowClosureBeforeTerm.subtitle",
                   )}
                 </Typography>
               </Box>
@@ -688,7 +686,7 @@ export const NewMarketForm = ({
                 size="medium"
                 checked={allowClosureBeforeTermWatch}
                 onChange={(e) => {
-                  setValue("allowClosureBeforeTerm", e.target.checked);
+                  setValue("allowClosureBeforeTerm", e.target.checked)
                 }}
               />
             }
@@ -706,13 +704,13 @@ export const NewMarketForm = ({
                   <Box sx={InputLabelTypo}>
                     <Typography variant="text3">
                       {t(
-                        "createMarket.forms.marketDescription.block.allowTermReduction.title"
+                        "createMarket.forms.marketDescription.block.allowTermReduction.title",
                       )}
                     </Typography>
                   </Box>
                   <TooltipButton
                     value={t(
-                      "createMarket.forms.marketDescription.block.allowTermReduction.tooltip"
+                      "createMarket.forms.marketDescription.block.allowTermReduction.tooltip",
                     )}
                   />
                 </Box>
@@ -722,7 +720,7 @@ export const NewMarketForm = ({
                   sx={InputLabelSubtitle}
                 >
                   {t(
-                    "createMarket.forms.marketDescription.block.allowTermReduction.subtitle"
+                    "createMarket.forms.marketDescription.block.allowTermReduction.subtitle",
                   )}
                 </Typography>
               </Box>
@@ -733,14 +731,14 @@ export const NewMarketForm = ({
                 size="medium"
                 checked={allowTermReductionWatch}
                 onChange={(e) => {
-                  setValue("allowTermReduction", e.target.checked);
+                  setValue("allowTermReduction", e.target.checked)
                 }}
               />
             }
           />
         </Box>
       )}
-      <Box marginTop="16px"></Box>
+      <Box marginTop="16px" />
 
       <Divider sx={DividerStyle} />
 
@@ -752,15 +750,15 @@ export const NewMarketForm = ({
         <InputLabel
           label={t("createMarket.forms.marketDescription.block.capacity.title")}
           tooltipText={t(
-            "createMarket.forms.marketDescription.block.capacity.tooltip"
+            "createMarket.forms.marketDescription.block.capacity.tooltip",
           )}
           subtitle={t(
-            "createMarket.forms.marketDescription.block.capacity.subtitle"
+            "createMarket.forms.marketDescription.block.capacity.subtitle",
           )}
         >
           <NumberTextField
             label={t(
-              "createMarket.forms.marketDescription.block.capacity.placeholder"
+              "createMarket.forms.marketDescription.block.capacity.placeholder",
             )}
             value={getValues("maxTotalSupply")}
             error={Boolean(errors.maxTotalSupply)}
@@ -773,13 +771,13 @@ export const NewMarketForm = ({
                 text={
                   tokenAsset?.symbol ||
                   `${t(
-                    "createMarket.forms.marketDescription.block.capacity.chip"
+                    "createMarket.forms.marketDescription.block.capacity.chip",
                   )}`
                 }
               />
             }
             onValueChange={(v) => {
-              setValue("maxTotalSupply", v.floatValue as number);
+              setValue("maxTotalSupply", v.floatValue as number)
             }}
           />
         </InputLabel>
@@ -788,12 +786,12 @@ export const NewMarketForm = ({
         <InputLabel
           label={t("createMarket.forms.marketDescription.block.baseAPR.title")}
           tooltipText={t(
-            "createMarket.forms.marketDescription.block.baseAPR.tooltip"
+            "createMarket.forms.marketDescription.block.baseAPR.tooltip",
           )}
         >
           <NumberTextField
             label={t(
-              "createMarket.forms.marketDescription.block.baseAPR.placeholder"
+              "createMarket.forms.marketDescription.block.baseAPR.placeholder",
             )}
             style={{ maxWidth: "300px" }}
             size="medium"
@@ -810,15 +808,15 @@ export const NewMarketForm = ({
         </InputLabel>
         <InputLabel
           label={t(
-            "createMarket.forms.marketDescription.block.penaltyAPR.title"
+            "createMarket.forms.marketDescription.block.penaltyAPR.title",
           )}
           tooltipText={t(
-            "createMarket.forms.marketDescription.block.penaltyAPR.tooltip"
+            "createMarket.forms.marketDescription.block.penaltyAPR.tooltip",
           )}
         >
           <NumberTextField
             label={t(
-              "createMarket.forms.marketDescription.block.penaltyAPR.placeholder"
+              "createMarket.forms.marketDescription.block.penaltyAPR.placeholder",
             )}
             style={{ maxWidth: "300px" }}
             size="medium"
@@ -828,7 +826,7 @@ export const NewMarketForm = ({
             endAdornment={
               <Typography variant="text2" sx={endDecorator}>
                 {t(
-                  "createMarket.forms.marketDescription.block.penaltyAPR.chip"
+                  "createMarket.forms.marketDescription.block.penaltyAPR.chip",
                 )}
               </Typography>
             }
@@ -839,12 +837,12 @@ export const NewMarketForm = ({
         <InputLabel
           label={t("createMarket.forms.marketDescription.block.ratio.title")}
           tooltipText={t(
-            "createMarket.forms.marketDescription.block.ratio.tooltip"
+            "createMarket.forms.marketDescription.block.ratio.tooltip",
           )}
         >
           <NumberTextField
             label={t(
-              "createMarket.forms.marketDescription.block.ratio.placeholder"
+              "createMarket.forms.marketDescription.block.ratio.placeholder",
             )}
             style={{ maxWidth: "300px" }}
             size="medium"
@@ -862,15 +860,15 @@ export const NewMarketForm = ({
 
         <InputLabel
           label={t(
-            "createMarket.forms.marketDescription.block.penaltyAPR.title"
+            "createMarket.forms.marketDescription.block.penaltyAPR.title",
           )}
           tooltipText={t(
-            "createMarket.forms.marketDescription.block.penaltyAPR.tooltip"
+            "createMarket.forms.marketDescription.block.penaltyAPR.tooltip",
           )}
         >
           <NumberTextField
             label={t(
-              "createMarket.forms.marketDescription.block.penaltyAPR.placeholder"
+              "createMarket.forms.marketDescription.block.penaltyAPR.placeholder",
             )}
             style={{ maxWidth: "300px" }}
             size="medium"
@@ -880,7 +878,7 @@ export const NewMarketForm = ({
             endAdornment={
               <Typography variant="text2" sx={endDecorator}>
                 {t(
-                  "createMarket.forms.marketDescription.block.penaltyAPR.chip"
+                  "createMarket.forms.marketDescription.block.penaltyAPR.chip",
                 )}
               </Typography>
             }
@@ -898,15 +896,15 @@ export const NewMarketForm = ({
       <Box sx={InputGroupContainer} marginTop="16px">
         <InputLabel
           label={t(
-            "createMarket.forms.marketDescription.block.gracePeriod.title"
+            "createMarket.forms.marketDescription.block.gracePeriod.title",
           )}
           tooltipText={t(
-            "createMarket.forms.marketDescription.block.gracePeriod.tooltip"
+            "createMarket.forms.marketDescription.block.gracePeriod.tooltip",
           )}
         >
           <NumberTextField
             label={t(
-              "createMarket.forms.marketDescription.block.gracePeriod.placeholder"
+              "createMarket.forms.marketDescription.block.gracePeriod.placeholder",
             )}
             style={{ maxWidth: "300px" }}
             size="medium"
@@ -916,7 +914,7 @@ export const NewMarketForm = ({
             endAdornment={
               <Typography variant="text2" sx={endDecorator}>
                 {t(
-                  "createMarket.forms.marketDescription.block.gracePeriod.chip"
+                  "createMarket.forms.marketDescription.block.gracePeriod.chip",
                 )}
               </Typography>
             }
@@ -926,15 +924,15 @@ export const NewMarketForm = ({
 
         <InputLabel
           label={t(
-            "createMarket.forms.marketDescription.block.withdrawalCycle.title"
+            "createMarket.forms.marketDescription.block.withdrawalCycle.title",
           )}
           tooltipText={t(
-            "createMarket.forms.marketDescription.block.withdrawalCycle.tooltip"
+            "createMarket.forms.marketDescription.block.withdrawalCycle.tooltip",
           )}
         >
           <NumberTextField
             label={t(
-              "createMarket.forms.marketDescription.block.withdrawalCycle.placeholder"
+              "createMarket.forms.marketDescription.block.withdrawalCycle.placeholder",
             )}
             style={{ maxWidth: "300px" }}
             size="medium"
@@ -944,7 +942,7 @@ export const NewMarketForm = ({
             endAdornment={
               <Typography variant="text2" sx={endDecorator}>
                 {t(
-                  "createMarket.forms.marketDescription.block.withdrawalCycle.chip"
+                  "createMarket.forms.marketDescription.block.withdrawalCycle.chip",
                 )}
               </Typography>
             }
@@ -976,5 +974,5 @@ export const NewMarketForm = ({
         </Button>
       </Box>
     </Box>
-  );
-};
+  )
+}
