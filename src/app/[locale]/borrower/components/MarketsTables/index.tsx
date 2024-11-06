@@ -55,8 +55,7 @@ function buildMarketFilter(
       case MarketStatus.TERMINATED:
         return { isClosed: true }
       case MarketStatus.PENALTY:
-        // @todo - update when isIncurringPenalties added to subgraph
-        return { isDelinquent: false }
+        return { isIncurringPenalties: true }
       default:
         throw Error(`what happened here?`)
     }
