@@ -10,43 +10,22 @@ import {
   MarketVersion,
   SupportedChainId,
   getLensV2Contract,
-} from "@wildcatfi/wildcat-sdk"
-import {
-  GetAllMarketsForLenderViewDocument,
-  SubgraphBorrow_OrderBy,
-  SubgraphDebtRepaid_OrderBy,
-  SubgraphDeposit_OrderBy,
-  SubgraphGetAllMarketsForLenderViewQuery,
   SubgraphGetAllMarketsForLenderViewQueryVariables,
-  SubgraphOrderDirection,
-} from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
+  getLenderAccountsForAllMarkets,
+} from "@wildcatfi/wildcat-sdk"
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { constants } from "ethers"
 
 import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { SubgraphClient } from "@/config/subgraph"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { TOKENS_ADDRESSES } from "@/utils/constants"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
-export type LenderMarketsQueryProps = {
-  lenderAddress?: string
-  numDeposits?: number
-  skipDeposits?: number
-  orderDeposits?: SubgraphDeposit_OrderBy
-  directionDeposits?: SubgraphOrderDirection
-  numWithdrawals?: number
-  skipWithdrawals?: number
-  numBorrows?: number
-  skipBorrows?: number
-  orderBorrows?: SubgraphBorrow_OrderBy
-  directionBorrows?: SubgraphOrderDirection
-  numRepayments?: number
-  skipRepayments?: number
-  orderRepayments?: SubgraphDebtRepaid_OrderBy
-  directionRepayments?: SubgraphOrderDirection
-}
+export type LenderMarketsQueryProps =
+  SubgraphGetAllMarketsForLenderViewQueryVariables
 
 export const GET_LENDERS_ACCOUNTS_KEY = "lenders_accounts_list"
 
@@ -84,67 +63,29 @@ function getChunks<T extends Market | MarketAccount>(
   }
 }
 
-export function useLendersMarkets({
-  ...filters
-}: LenderMarketsQueryProps = {}): TwoStepQueryHookResult<MarketAccount[]> {
+export function useLendersMarkets(
+  filters: LenderMarketsQueryProps = {},
+): TwoStepQueryHookResult<MarketAccount[]> {
   const { isWrongNetwork, provider, signer, address } = useEthersProvider()
+  const { chainId } = useCurrentNetwork()
   const signerOrProvider = signer ?? provider
 
   const lender = address?.toLowerCase()
 
   async function queryMarketsForLender() {
     logger.debug(`Getting all markets...`)
-    const {
-      data: {
-        markets: _markets,
-        controllerAuthorizations,
-        lenderAccounts: _lenderAccounts,
-      },
-    } = await SubgraphClient.query<
-      SubgraphGetAllMarketsForLenderViewQuery,
-      SubgraphGetAllMarketsForLenderViewQueryVariables
-    >({
-      query: GetAllMarketsForLenderViewDocument,
-      variables: {
+    if (!chainId) throw Error("No chainId")
+    if (!signerOrProvider) throw Error(`no provider`)
+    const lenderAccounts = await getLenderAccountsForAllMarkets(
+      SubgraphClient,
+      {
         ...filters,
-        lender,
+        lender: lender ?? constants.AddressZero,
+        fetchPolicy: "network-only",
+        chainId,
+        signerOrProvider,
       },
-      fetchPolicy: "network-only",
-    })
-    const authorizedMarkets = controllerAuthorizations
-      .filter((auth) => !!auth.controller)
-      .map((auth) => auth.controller.markets)
-      .flat()
-    const markets = _markets
-      .filter((market) => !!market.controller)
-      .map((market) =>
-        Market.fromSubgraphMarketData(
-          TargetChainId,
-          signerOrProvider as SignerOrProvider,
-          market,
-          address,
-        ),
-      )
-    const lenderAccounts = markets.map((market) => {
-      const lenderAccount = _lenderAccounts.find(
-        (account) =>
-          account.market.id.toLowerCase() === market.address.toLowerCase(),
-      )
-      if (lenderAccount) {
-        return MarketAccount.fromSubgraphAccountData(market, lenderAccount)
-      }
-      const authorization = authorizedMarkets.find(
-        (auth) => auth.id.toLowerCase() === market.address.toLowerCase(),
-      )
-      if (authorization) {
-        return MarketAccount.fromMarketDataOnly(market, lender as string, true)
-      }
-      return MarketAccount.fromMarketDataOnly(
-        market,
-        lender ?? constants.AddressZero,
-        false,
-      )
-    })
+    )
     lenderAccounts.sort(
       (a, b) =>
         (b.market.deployedEvent?.blockNumber ?? 0) -
@@ -160,7 +101,12 @@ export function useLendersMarkets({
     isError: isErrorInitial,
     failureReason: errorInitial,
   } = useQuery({
-    queryKey: [GET_LENDERS_ACCOUNTS_KEY, "initial", lender],
+    queryKey: [
+      GET_LENDERS_ACCOUNTS_KEY,
+      "initial",
+      JSON.stringify(filters),
+      lender,
+    ],
     queryFn: queryMarketsForLender,
     refetchInterval: POLLING_INTERVAL,
     enabled: !!signerOrProvider && !isWrongNetwork,
