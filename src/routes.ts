@@ -9,6 +9,7 @@ export const ROUTES = {
     newMarket: `${BORROWER_ROOT}/new-market`,
     lendersList: `${BORROWER_ROOT}/edit-lenders-list`,
     notifications: `${BORROWER_ROOT}/notifications`,
+    profile: `${BORROWER_ROOT}/profile`,
   },
   lender: {
     root: LENDER_ROOT,
