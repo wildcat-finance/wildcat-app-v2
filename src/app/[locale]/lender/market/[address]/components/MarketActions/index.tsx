@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { Box, Button, Divider, Typography } from "@mui/material"
+import { DepositStatus, QueueWithdrawalStatus } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { StatementModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/StatementModal"
@@ -33,10 +34,14 @@ export const MarketActions = ({
   }
 
   const hideDeposit =
-    market.isClosed || marketAccount.maximumDeposit.raw.isZero()
+    market.isClosed ||
+    marketAccount.maximumDeposit.raw.isZero() ||
+    marketAccount.depositAvailability !== DepositStatus.Ready
 
   const hideWithdraw =
-    market.isClosed || marketAccount.marketBalance.raw.isZero()
+    market.isClosed ||
+    marketAccount.marketBalance.raw.isZero() ||
+    marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
 
   const hideClaim = withdrawals.totalClaimableAmount.raw.isZero()
 
