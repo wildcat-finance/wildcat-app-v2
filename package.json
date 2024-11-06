@@ -16,6 +16,7 @@
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
     "@hookform/resolvers": "^3.3.4",
+    "@mdxeditor/editor": "^3.15.0",
     "@mui/material": "^5.15.1",
     "@mui/material-nextjs": "^5.15.0",
     "@mui/system": "^5.15.1",
