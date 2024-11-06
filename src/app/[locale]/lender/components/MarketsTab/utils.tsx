@@ -2,7 +2,7 @@ import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
 import { GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
-import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { LenderRole, MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
@@ -451,6 +451,8 @@ export const getRows = (
       loan: marketBalance,
       lend: maximumDeposit,
       deploy: deployedEvent ? deployedEvent.blockTimestamp : 0,
-      selfOnboard: false,
+      selfOnboard:
+        !marketAccount.hasEverInteracted &&
+        marketAccount.inferredRole !== LenderRole.Null,
     }
   })
