@@ -6,7 +6,6 @@ import { DataGrid } from "@mui/x-data-grid"
 import dayjs from "dayjs"
 import { useTranslation } from "react-i18next"
 
-import { WithdrawalTxRow } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/interface"
 import { DataGridCells } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/style"
 import { TableProps } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests/interface"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
@@ -21,11 +20,9 @@ export const OutstandingTable = ({
   const { t } = useTranslation()
   const [isOutstandingOpen, setIsOutstandingOpen] = useState(false)
 
-  const outstandingRows: WithdrawalTxRow[] = withdrawals.flatMap((batch) =>
-    batch.requests
-      .filter((withdrawal) =>
-        withdrawal.getNormalizedAmountOwed(batch.batch).gt(0),
-      )
+  const outstandingRows = withdrawals.flatMap((status) =>
+    status.requests
+      .filter((wd) => wd.getNormalizedAmountOwed(status.batch).gt(0))
       .map((withdrawal) => ({
         id: withdrawal.id,
         lender: withdrawal.address,
@@ -34,7 +31,7 @@ export const OutstandingTable = ({
           "DD-MMM-YYYY",
         ),
         amount: formatTokenWithCommas(
-          withdrawal.getNormalizedAmountOwed(batch),
+          withdrawal.getNormalizedAmountOwed(status.batch),
           { withSymbol: true },
         ),
       })),

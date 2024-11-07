@@ -342,6 +342,7 @@ export const RepayModal = ({
                 onChange={amountInputOnChange}
                 endAdornment={amountInputAdornment}
                 disabled={isApproving}
+                max={type === "days" ? 100000000 : undefined}
               />
             )}
           </Box>
