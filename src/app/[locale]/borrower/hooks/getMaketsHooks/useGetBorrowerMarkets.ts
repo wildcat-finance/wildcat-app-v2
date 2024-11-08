@@ -71,7 +71,7 @@ export function useGetBorrowerMarketsQuery({
 }
 
 export const useGetBorrowerMarkets = (
-  args: SubgraphGetMarketsWithEventsQueryVariables | undefined,
+  args?: SubgraphGetMarketsWithEventsQueryVariables | undefined,
 ) => {
   const { chainId } = useCurrentNetwork()
   const { isWrongNetwork, provider, signer } = useEthersProvider()
