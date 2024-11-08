@@ -10,7 +10,6 @@ import {
   hooksInstanceFromLens,
   hooksTemplateFromLens,
 } from "@wildcatfi/wildcat-sdk/dist/access"
-import { SubgraphGetMarketsForBorrowerQueryVariables } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
@@ -22,13 +21,12 @@ export type GetBorrowerHooksDataProps = {
   provider: SignerOrProvider | undefined
   chainId: SupportedChainId | undefined
   enabled: boolean
-} & Omit<SubgraphGetMarketsForBorrowerQueryVariables, "borrower">
+}
 
 export function useGetBorrowerHooksDataQuery({
   provider,
   enabled,
   chainId,
-  ...filters
 }: GetBorrowerHooksDataProps) {
   const { address } = useAccount()
 
