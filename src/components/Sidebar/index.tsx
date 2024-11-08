@@ -15,6 +15,8 @@ import { useAppSelector } from "@/store/hooks"
 import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
 import { COLORS } from "@/theme/colors"
 
+import { EditPolicySidebar } from "./EditPolicySidebar"
+
 export const Sidebar = () => {
   const pathname = usePathname()
   const step = useAppSelector((state) => state.borrowerOverview.tab)
@@ -45,6 +47,7 @@ export const Sidebar = () => {
       {pathname.includes(ROUTES.lender.market) && <LenderMarketSidebar />}
       {pathname === ROUTES.borrower.newMarket && <NewMarketSidebar />}
       {pathname === ROUTES.borrower.lendersList && <LenderListSidebar />}
+      {pathname === ROUTES.borrower.editPolicy && <EditPolicySidebar />}
       {pathname === ROUTES.borrower.notifications && <NotificationsSidebar />}
     </Box>
   )
