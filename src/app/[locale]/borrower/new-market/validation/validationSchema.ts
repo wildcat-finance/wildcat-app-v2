@@ -22,52 +22,52 @@ const TransferAccessOptions = [
 export const selectTransferAccessOptions: ExtendedSelectOptionItem<
   keyof typeof TransferAccess
 >[] = [
-    {
-      label: "Open Access",
-      value: "Open",
-      id: "open",
-    },
-    {
-      label: "Requires Credential",
-      value: "RequiresCredential",
-      id: "requiresCredential",
-    },
-    {
-      label: "Disabled",
-      value: "Disabled",
-      id: "disabled",
-    },
-  ]
+  {
+    label: "Open Access",
+    value: "Open",
+    id: "open",
+  },
+  {
+    label: "Requires Credential",
+    value: "RequiresCredential",
+    id: "requiresCredential",
+  },
+  {
+    label: "Disabled",
+    value: "Disabled",
+    id: "disabled",
+  },
+]
 
 export const selectWithdrawalAccessOptions: ExtendedSelectOptionItem<
   keyof typeof WithdrawalAccess
 >[] = [
-    {
-      label: "Open Access",
-      value: "Open",
-      id: "open",
-    },
-    {
-      label: "Requires Credential",
-      value: "RequiresCredential",
-      id: "requiresCredential",
-    },
-  ]
+  {
+    label: "Open Access",
+    value: "Open",
+    id: "open",
+  },
+  {
+    label: "Requires Credential",
+    value: "RequiresCredential",
+    id: "requiresCredential",
+  },
+]
 
 export const selectDepositAccessOptions: ExtendedSelectOptionItem<
   keyof typeof DepositAccess
 >[] = [
-    {
-      label: "Open Access",
-      value: "Open",
-      id: "open",
-    },
-    {
-      label: "Requires Credential",
-      value: "RequiresCredential",
-      id: "requiresCredential",
-    },
-  ]
+  {
+    label: "Open Access",
+    value: "Open",
+    id: "open",
+  },
+  {
+    label: "Requires Credential",
+    value: "RequiresCredential",
+    id: "requiresCredential",
+  },
+]
 
 export const marketValidationSchema = z
   .object({
