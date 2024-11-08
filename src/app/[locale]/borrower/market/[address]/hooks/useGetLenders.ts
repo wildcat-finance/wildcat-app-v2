@@ -26,9 +26,9 @@ export const useGetAuthorisedLendersByMarket = (market: Market | undefined) => {
     })
 
     logger.debug(
-      `Got authorised lenders : ${res.data.market?.controller.authorizedLenders}`,
+      `Got authorised lenders : ${res.data.market?.controller?.authorizedLenders}`,
     )
-    return res.data?.market?.controller.authorizedLenders.map(
+    return res.data?.market?.controller?.authorizedLenders.map(
       (lender) => lender,
     )
   }
