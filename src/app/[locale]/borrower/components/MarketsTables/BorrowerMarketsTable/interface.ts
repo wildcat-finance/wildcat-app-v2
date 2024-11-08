@@ -14,4 +14,6 @@ export type BorrowerMarketsTableProps = {
   statusFilter?: MarketStatus[]
   assetFilter?: { name: string; address: string }[]
   nameFilter?: string
+  usePagination?: boolean
+  pageSize?: number
 }

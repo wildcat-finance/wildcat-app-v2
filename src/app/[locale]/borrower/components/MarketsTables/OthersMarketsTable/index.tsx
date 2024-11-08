@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next"
 
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { TablePagination } from "@/components/TablePagination"
 import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
@@ -27,6 +28,7 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
+import { getMarketTypeChip } from "@/utils/marketType"
 
 import { OthersMarketsTableProps } from "./interface"
 import { MarketsTableModel, TypeSafeColDef } from "../interface"
@@ -90,6 +92,25 @@ export const OthersMarketsTable = ({
           >
             {params.value}
           </span>
+        </Link>
+      ),
+    },
+    {
+      field: "marketType",
+      headerName: t("borrowerMarketList.table.header.marketType"),
+      maxWidth: 146,
+      minWidth: 130,
+      flex: 2,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-start" }}
+        >
+          <Box width={130}>
+            <MarketTypeChip {...params.value} />
+          </Box>
         </Link>
       ),
     },
@@ -262,6 +283,7 @@ export const OthersMarketsTable = ({
     return {
       id: address,
       status: marketStatus,
+      marketType: getMarketTypeChip(market),
       name,
       borrowerName,
       asset: underlyingToken.symbol,
