@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import * as React from "react"
 
-import { Box, TextField, Typography } from "@mui/material"
+import { Box, FormControlLabel, TextField, Typography } from "@mui/material"
 import {
   HooksKind,
   MarketVersion,
@@ -17,6 +17,11 @@ import { useTranslation } from "react-i18next"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { InputLabel } from "@/components/InputLabel"
+import {
+  InputLabelContainer,
+  InputLabelSubtitle,
+  InputLabelTypo,
+} from "@/components/InputLabel/style"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   resetEditPolicyState,
@@ -213,27 +218,74 @@ export default function EditPolicyPage() {
           </Typography>
         )}
       </Box>
-      <Box marginBottom="20px">
-        {version === MarketVersion.V2 && (
-          <InputLabel
-            label={t("editPolicy.forms.policyName.title")}
-            subtitle={
-              originalPolicyName ? "" : t("editPolicy.unnamedPolicy.subtitle")
-            }
-            margin="16px 0 0 0"
-          >
-            <TextField
-              value={pendingPolicyName}
-              onChange={(e) => setPendingPolicyName(e.target.value)}
-              label={t("editPolicy.forms.policyName.placeholder")}
-              placeholder={t(
-                "createMarket.forms.marketDescription.block.policyName.placeholder",
-              )}
-            />
-          </InputLabel>
-        )}
-
-        <Typography variant="title3">Policy Type: Open Term</Typography>
+      <Typography variant="title2">{t("editPolicy.policyDetails")}</Typography>
+      <Box
+        marginBottom="20px"
+        width="600px"
+        gap="16px"
+        display="flex"
+        flexDirection="column"
+      >
+        <Box display="flex" flexDirection="row" marginTop="16px">
+          <Box sx={{ width: "300px" }}>
+            <Box sx={InputLabelContainer} marginBottom="2px">
+              <Box sx={InputLabelTypo}>
+                <Typography variant="text1">
+                  {t("editPolicy.forms.policyName.title")}
+                </Typography>
+              </Box>
+            </Box>
+            <Typography marginTop="0px" variant="text3" sx={InputLabelSubtitle}>
+              {originalPolicyName ? "" : t("editPolicy.unnamedPolicy.subtitle")}
+            </Typography>
+          </Box>
+          <Box>
+            {version === MarketVersion.V1 ? (
+              <Typography variant="text1">{originalPolicyName}</Typography>
+            ) : (
+              <TextField
+                value={pendingPolicyName}
+                onChange={(e) => setPendingPolicyName(e.target.value)}
+                label={t("editPolicy.forms.policyName.title")}
+                placeholder={t(
+                  "createMarket.forms.marketDescription.block.policyName.placeholder",
+                )}
+              />
+            )}
+          </Box>
+        </Box>
+        <Box display="flex" flexDirection="row">
+          <Box sx={{ width: "300px" }}>
+            <Box sx={InputLabelContainer} marginBottom="2px">
+              <Box sx={InputLabelTypo}>
+                <Typography variant="text1">
+                  {t("editPolicy.policyType")}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+          <Box>
+            <Typography variant="text1">
+              {hooksKind === HooksKind.OpenTerm
+                ? t("policyType.OpenTerm")
+                : t("policyType.FixedTerm")}
+            </Typography>
+          </Box>
+        </Box>
+        <Box display="flex" flexDirection="row">
+          <Box sx={{ width: "300px" }}>
+            <Box sx={InputLabelContainer} marginBottom="2px">
+              <Box sx={InputLabelTypo}>
+                <Typography variant="text1">
+                  {t("editPolicy.accessControl")}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+          <Box>
+            <Typography variant="text1">{accessControl}</Typography>
+          </Box>
+        </Box>
       </Box>
 
       <Typography variant="title2">{t("editPolicy.markets")}</Typography>

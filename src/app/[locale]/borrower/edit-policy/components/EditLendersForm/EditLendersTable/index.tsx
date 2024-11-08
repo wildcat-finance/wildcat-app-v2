@@ -173,7 +173,7 @@ export const EditLendersTable = () => {
     },
     {
       field: "credentialSource",
-      headerName: "Credential Source",
+      headerName: "Credential",
       disableColumnMenu: true,
       minWidth: 180,
       flex: 1,

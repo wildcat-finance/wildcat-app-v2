@@ -524,8 +524,12 @@
     }
   },
   "roleProviders": {
-    "defaultPullProviderName": "Non-Sanctioned Accounts",
+    "defaultPullProviderName": "Self-Onboard",
     "manualApprovalLabel": "Manual Approval"
+  },
+  "policyType": {
+    "OpenTerm": "Standard Loans (no expiry)",
+    "FixedTerm": "Fixed Term Loans"
   },
   "editPolicy": {
     "title": "Edit Policy",
@@ -534,11 +538,15 @@
     "editing": "Editing Policy",
     "lenders": "Policy Lenders",
     "markets": "Policy Markets",
+    "policyDetails": "Policy Details",
+    "policyType": "Policy Type",
+    "accessControl": "Access Requirements",
     "unnamedPolicy": {
       "label": "Unnamed Policy",
       "subtitle": "This policy is unnamed, set a name here."
     },
     "sidebar": {
+      "back": "To markets",
       "edit": "Editing Policy",
       "confirm": "Confirmation"
     },
