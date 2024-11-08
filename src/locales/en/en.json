@@ -76,7 +76,8 @@
         "crr": "CRR",
         "capacity": "Max. Capacity",
         "borrowable": "Borrowable",
-        "deploy": "Deployed"
+        "deploy": "Deployed",
+        "marketType": "Market Type"
       },
       "noMarkets": {
         "wrongNetwork": "No Wildcat markets on this network",
@@ -140,7 +141,7 @@
       "borrowRepay": "Borrow and Repay",
       "statusDetails": "Status and Details",
       "withdrawalRequests": "Withdrawal Requests",
-      "authorisedLenders": "Authorised Lenders",
+      "authorisedLenders": "Lenders",
       "terminateMarket": "Terminate Market"
     },
     "transactions": {
@@ -172,19 +173,26 @@
       "noLendersTitle": "No lenders yet",
       "noLendersSubtitle": "There is no any lenders yet – edit list to add them",
       "editList": "Edit List",
+      "editPolicy": "Edit Policy",
       "noActiveLenders": "No active lenders yet – edit list to add them",
       "header": "Lenders List",
       "buttons": {
         "view": "View",
         "download": "Download",
-        "editList": "Edit List"
+        "editList": "Edit List",
+        "editPolicy": "Edit Policy",
+        "forceBuyBack": "Force Buy Back"
       },
       "tableHeaders": {
         "name": "Name",
         "walletAddress": "Wallet Address",
+        "balance": "Balance",
+        "accessLevel": "Access Level",
+        "accessExpiry": "Credential Expiry",
         "dateAdded": "Date Added",
         "signedMLA": "Signed MLA",
         "signDate": "Sign Date",
+        "forceBuyBack": "Force Buy Back",
         "MLA": "MLA"
       }
     },
@@ -513,6 +521,41 @@
       "back": "Back",
       "next": "Next",
       "confirm": "Confirm"
+    }
+  },
+  "roleProviders": {
+    "defaultPullProviderName": "Non-Sanctioned Accounts",
+    "manualApprovalLabel": "Manual Approval"
+  },
+  "editPolicy": {
+    "title": "Edit Policy",
+    "confirm": "Confirm Policy Edits",
+    "deauthorized": "Deauthorized",
+    "editing": "Editing Policy",
+    "lenders": "Policy Lenders",
+    "markets": "Policy Markets",
+    "unnamedPolicy": {
+      "label": "Unnamed Policy",
+      "subtitle": "This policy is unnamed, set a name here."
+    },
+    "sidebar": {
+      "edit": "Editing Policy",
+      "confirm": "Confirmation"
+    },
+    "roleProviders": {
+      "manualApproval": "Manually Approved",
+      "defaulPullProvider": "Self-Onboard"
+    },
+    "for": " for",
+    "forms": {
+      "policyName": {
+        "title": "Policy Name",
+        "placeholder": "Wildcat Standard Policy",
+        "tooltip": "TBD"
+      },
+      "edit": {
+        "submit": "Submit"
+      }
     }
   },
   "editLendersList": {
