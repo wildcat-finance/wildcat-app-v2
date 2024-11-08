@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import { LenderRole, MarketVersion } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
@@ -30,6 +31,7 @@ import { COLORS } from "@/theme/colors"
 import {
   DATE_FORMAT,
   timestampToDateFormatted,
+  TOKEN_FORMAT_DECIMALS,
   trimAddress,
 } from "@/utils/formatters"
 
@@ -41,14 +43,15 @@ import {
   MarketWithdrawalRequetstCell,
   MLATableButton,
 } from "./style"
+import { useGetMarketLenders } from "../../hooks/useGetMarketLenders"
 
 export const MarketAuthorisedLenders = ({
   market,
 }: MarketAuthorisedLendersProps) => {
   const editLendersLink = market
-    ? `${ROUTES.borrower.lendersList}?marketName=${encodeURIComponent(
-        market?.name,
-      )}&marketAddress=${encodeURIComponent(market?.address)}`
+    ? `${ROUTES.borrower.editPolicy}?policy=${encodeURIComponent(
+        market?.hooksConfig?.hooksAddress ?? market?.controller ?? "",
+      )}`
     : ROUTES.borrower.lendersList
 
   const hasMLA = 0 // test const for hoiding/showing MLA columns in table
@@ -59,32 +62,69 @@ export const MarketAuthorisedLenders = ({
 
   const [state, copyToClipboard] = useCopyToClipboard()
 
-  const { data, isLoading } = useGetAuthorisedLendersByMarket(market)
+  const { data, isLoading } = useGetMarketLenders(market)
   const { t } = useTranslation()
   const lendersRows = data
-    ? data?.map((lender) => ({
-        id: lender.lender,
-        authorized: lender.authorized,
-        name: (() => {
-          const correctLender = lendersNames[lender.lender.toLowerCase()] || ""
-          return { name: correctLender, address: lender.lender }
-        })(),
-        walletAddress: lender.lender,
-        dateAdded: timestampToDateFormatted(
-          lender.changes[0].blockTimestamp,
-          DATE_FORMAT,
-        ),
-        signedMLA: "Yes",
-        signDate: timestampToDateFormatted(
-          lender.changes[0].blockTimestamp,
-          DATE_FORMAT,
-        ),
-        MLA: "View|Download",
-      }))
+    ? data?.map((lender) => {
+        const lenderData = {
+          id: lender.address,
+          balance:
+            market?.marketToken
+              .getAmount(market?.normalizeAmount(lender.scaledBalance))
+              .format(TOKEN_FORMAT_DECIMALS, true) ?? "0",
+          role: lender.inferredRole,
+          isDeauthorized:
+            market?.version === MarketVersion.V2
+              ? lender.credential !== undefined && !lender.hasValidCredential
+              : lender.isAuthorizedOnController !== undefined &&
+                (lender.role === LenderRole.Null ||
+                  lender.role === LenderRole.WithdrawOnly),
+          // lender.isAuthorizedOnController === false ||
+          // (lender.role !== undefined &&
+          //   lender.role !== LenderRole.DepositAndWithdraw) ||
+          // (lender.credentialExpiry !== undefined &&
+          //   !lender.hasValidCredential),
+          accessLevel: "Deposit & Withdraw", // @todo
+          accessExpiry: "Never", // @todo
+          name: (() => {
+            const correctLender =
+              lendersNames[lender.address.toLowerCase()] || ""
+            return { name: correctLender, address: lender.address }
+          })(),
+          walletAddress: lender.address,
+          dateAdded: timestampToDateFormatted(
+            lender.addedTimestamp,
+            DATE_FORMAT,
+          ),
+          signedMLA: "Yes",
+          signDate: timestampToDateFormatted(
+            lender.addedTimestamp,
+            DATE_FORMAT,
+          ),
+          MLA: "View|Download",
+        }
+        console.log(
+          `is deauthorized on controller: ${
+            lender.isAuthorizedOnController === false
+          }`,
+        )
+        console.log(
+          `role not undefined, not deposit and withdraw: ${
+            lender.role !== undefined &&
+            lender.role !== LenderRole.DepositAndWithdraw
+          }`,
+        )
+        console.log(
+          `expiry defined but expired: ${
+            lender.credentialExpiry !== undefined && !lender.hasValidCredential
+          }`,
+        )
+        return lenderData
+      })
     : []
 
-  const authorizedRows = lendersRows?.filter((row) => row.authorized)
-  const deauthorizedRows = lendersRows?.filter((row) => !row.authorized)
+  const authorizedRows = lendersRows?.filter((row) => !row.isDeauthorized)
+  const deauthorizedRows = lendersRows?.filter((row) => row.isDeauthorized)
 
   const commonColumns: GridColDef[] = [
     {
@@ -138,6 +178,57 @@ export const MarketAuthorisedLenders = ({
         </Box>
       ),
       flex: 2,
+    },
+    {
+      sortable: false,
+      field: "balance",
+      headerName: t(
+        "borrowerMarketDetails.authorisedLenders.tableHeaders.balance",
+      ),
+      minWidth: 124,
+      headerAlign: "left",
+      align: "left",
+      flex: 1.5,
+    },
+    {
+      sortable: false,
+      field: "accessLevel",
+      headerName: t(
+        "borrowerMarketDetails.authorisedLenders.tableHeaders.accessLevel",
+      ),
+      minWidth: 124,
+      headerAlign: "left",
+      align: "left",
+      flex: 1.5,
+    },
+    {
+      sortable: false,
+      field: "accessExpiry",
+      headerName: t(
+        "borrowerMarketDetails.authorisedLenders.tableHeaders.accessExpiry",
+      ),
+      minWidth: 124,
+      headerAlign: "left",
+      align: "left",
+      flex: 1.5,
+    },
+    {
+      sortable: false,
+      field: "id",
+      headerName: t(
+        "borrowerMarketDetails.authorisedLenders.tableHeaders.forceBuyBack",
+      ),
+      minWidth: 124,
+      headerAlign: "left",
+      align: "left",
+      flex: 1.5,
+      renderCell: () => (
+        <Box sx={MarketWithdrawalRequetstCell}>
+          <Button variant="contained" size="small" color="info">
+            {t("borrowerMarketDetails.authorisedLenders.buttons.forceBuyBack")}
+          </Button>
+        </Box>
+      ),
     },
     {
       sortable: false,
@@ -250,7 +341,7 @@ export const MarketAuthorisedLenders = ({
                 borderRadius: 2,
               }}
             >
-              {t("borrowerMarketDetails.authorisedLenders.editList")}
+              {t("borrowerMarketDetails.authorisedLenders.editPolicy")}
             </Button>
           </Link>
         </Box>
@@ -275,7 +366,7 @@ export const MarketAuthorisedLenders = ({
                 borderRadius: 2,
               }}
             >
-              Edit List
+              {t("borrowerMarketDetails.authorisedLenders.buttons.editPolicy")}
             </Button>
           </Link>
         </Box>
@@ -295,7 +386,9 @@ export const MarketAuthorisedLenders = ({
             </Typography>
             <Link href={editLendersLink}>
               <Button size="small" variant="outlined" color="secondary">
-                {t("borrowerMarketDetails.authorisedLenders.buttons.editList")}
+                {t(
+                  "borrowerMarketDetails.authorisedLenders.buttons.editPolicy",
+                )}
               </Button>
             </Link>
           </Box>
