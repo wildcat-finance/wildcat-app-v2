@@ -28,15 +28,24 @@ const PollingRegistration = () => {
   const fetchBorrowerMarketIds = useBorrowerMarketIds(setMarketIds, address)
   const fetchBorrowerRegistrationChanges =
     useBorrowerRegistrationChanges(address)
-  const fetchReserveRatioBipsUpdateds = useReserveRatioBipsUpdateds(marketIds, address)
+  const fetchReserveRatioBipsUpdateds = useReserveRatioBipsUpdateds(
+    marketIds,
+    address,
+  )
   const fetchLenderAuthorizationChanges = useLenderAuthorizationChanges(
     marketIds,
     address,
   )
   const fetchBorrows = useBorrows(marketIds, address)
   const fetchDebtRepaids = useDebtRepaids(marketIds, address)
-  const fetchWithdrawalBatchCreateds = useWithdrawalBatchCreateds(marketIds, address)
-  const fetchWithdrawalBatchExpireds = useWithdrawalBatchExpireds(marketIds, address)
+  const fetchWithdrawalBatchCreateds = useWithdrawalBatchCreateds(
+    marketIds,
+    address,
+  )
+  const fetchWithdrawalBatchExpireds = useWithdrawalBatchExpireds(
+    marketIds,
+    address,
+  )
   const fetchWithdrawalExecutions = useWithdrawalExecutions(marketIds, address)
 
   const fetch = () => {

@@ -13,6 +13,7 @@ import {
 } from "@mui/material"
 import ReactDOMServer from "react-dom/server"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import Icon from "@/assets/icons/search_icon.svg"
 import { Notification } from "@/components/Notification"
@@ -20,7 +21,6 @@ import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { markAllAsRead } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { COLORS } from "@/theme/colors"
 import { setLastFetchedTimestamp } from "@/utils/timestamp"
-import { useAccount } from "wagmi"
 
 import {
   PageTitleContainer,

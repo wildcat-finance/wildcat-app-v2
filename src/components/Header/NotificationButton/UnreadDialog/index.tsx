@@ -13,6 +13,7 @@ import {
 } from "@mui/material"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import {
   DialogContainer,
@@ -29,7 +30,6 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { markAllAsRead } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { COLORS } from "@/theme/colors"
 import { setLastFetchedTimestamp } from "@/utils/timestamp"
-import { useAccount } from "wagmi"
 
 export const UnreadDialog = ({ open, handleClose }: UnreadDialogProps) => {
   const { t } = useTranslation()

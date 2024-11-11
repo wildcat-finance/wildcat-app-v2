@@ -15,7 +15,10 @@ import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
 import { TReserveRatioBipsUpdated } from "../interface"
 
-export const useReserveRatioBipsUpdateds = (marketIds: string[], address?: `0x${string}`) => {
+export const useReserveRatioBipsUpdateds = (
+  marketIds: string[],
+  address?: `0x${string}`,
+) => {
   const dispatch = useDispatch()
 
   const [fetchReserveRatioBipsUpdateds, { data, error }] = useLazyQuery(
