@@ -20,6 +20,7 @@ import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { markAllAsRead } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { COLORS } from "@/theme/colors"
 import { setLastFetchedTimestamp } from "@/utils/timestamp"
+import { useAccount } from "wagmi"
 
 import {
   PageTitleContainer,
@@ -30,6 +31,7 @@ import {
 export default function Notifications() {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const { address } = useAccount()
 
   const [searchValue, setSearchValue] = React.useState("")
   const handleSearchChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,7 +60,8 @@ export default function Notifications() {
 
   const handleMarkAsRead = () => {
     dispatch(markAllAsRead())
-    setLastFetchedTimestamp(notifications[0]?.blockTimestamp)
+    if (!address) return
+    setLastFetchedTimestamp(notifications[0]?.blockTimestamp, address)
   }
 
   return (
