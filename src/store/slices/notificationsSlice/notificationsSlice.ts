@@ -30,10 +30,11 @@ const notificationsSlice = createSlice({
         notification.unread = false
       })
     },
+    clear: () => initialState,
   },
 })
 
-export const { addNotification, markAsRead, markAllAsRead } =
+export const { addNotification, markAsRead, markAllAsRead, clear } =
   notificationsSlice.actions
 
 export default notificationsSlice.reducer

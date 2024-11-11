@@ -13,7 +13,10 @@ import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
 import { TDebtRepaid } from "../interface"
 
-export const useDebtRepaids = (marketIds: string[]) => {
+export const useDebtRepaids = (
+  marketIds: string[],
+  address?: `0x${string}`,
+) => {
   const dispatch = useDispatch()
 
   const [fetchDebtRepaids, { data, error }] = useLazyQuery(
@@ -60,13 +63,14 @@ export const useDebtRepaids = (marketIds: string[]) => {
 
   return () => {
     // marketIds = ["0xa23ce7c1a04520efb6968b711331ce33e4efad9a"] // Testing
+    if (!address) return
     fetchDebtRepaids({
       variables: {
         where: {
           market_: {
             id_in: marketIds,
           },
-          blockTimestamp_gt: getLastFetchedTimestamp(),
+          blockTimestamp_gt: getLastFetchedTimestamp(address),
         },
       },
     })

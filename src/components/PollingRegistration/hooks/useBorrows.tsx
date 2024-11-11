@@ -14,7 +14,7 @@ import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
 import { TBorrow } from "../interface"
 
-export const useBorrows = (marketIds: string[]) => {
+export const useBorrows = (marketIds: string[], address?: `0x${string}`) => {
   const dispatch = useDispatch()
 
   const [fetchBorrows, { data, error }] = useLazyQuery(
@@ -61,13 +61,14 @@ export const useBorrows = (marketIds: string[]) => {
 
   return () => {
     // marketIds = ["0xa23ce7c1a04520efb6968b711331ce33e4efad9a"] // Testing
+    if (!address) return
     fetchBorrows({
       variables: {
         where: {
           market_: {
             id_in: marketIds,
           },
-          blockTimestamp_gt: getLastFetchedTimestamp(),
+          blockTimestamp_gt: getLastFetchedTimestamp(address),
         },
       },
     })

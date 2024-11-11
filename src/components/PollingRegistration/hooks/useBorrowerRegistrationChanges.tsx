@@ -12,7 +12,7 @@ import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
 import { TBorrowerRegistrationChange } from "../interface"
 
-export const useBorrowerRegistrationChanges = (address?: string) => {
+export const useBorrowerRegistrationChanges = (address?: `0x${string}`) => {
   const dispatch = useDispatch()
   const { t } = useTranslation()
 
@@ -57,7 +57,7 @@ export const useBorrowerRegistrationChanges = (address?: string) => {
         variables: {
           where: {
             registration_: { borrower: address },
-            blockTimestamp_gt: getLastFetchedTimestamp(),
+            blockTimestamp_gt: getLastFetchedTimestamp(address),
           },
         },
       })

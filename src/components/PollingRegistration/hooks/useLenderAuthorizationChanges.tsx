@@ -19,7 +19,10 @@ import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
 import { TLenderAuthorizationChange } from "../interface"
 
-export const useLenderAuthorizationChanges = (marketIds: string[]) => {
+export const useLenderAuthorizationChanges = (
+  marketIds: string[],
+  address?: `0x${string}`,
+) => {
   const dispatch = useDispatch()
   const { t } = useTranslation()
 
@@ -100,10 +103,11 @@ export const useLenderAuthorizationChanges = (marketIds: string[]) => {
 
   return () => {
     // marketIds = ["0xa23ce7c1a04520efb6968b711331ce33e4efad9a"] // Testing
+    if (!address) return
     fetchLenderAuthorizationChanges({
       variables: {
         where: {
-          blockTimestamp_gt: getLastFetchedTimestamp(),
+          blockTimestamp_gt: getLastFetchedTimestamp(address),
         },
         marketAccountsWhere: {
           market_: {
