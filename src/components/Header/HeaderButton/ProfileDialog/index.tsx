@@ -1,4 +1,12 @@
-import { Box, Button, Dialog, SvgIcon, Typography } from "@mui/material"
+import {
+  Box,
+  Button,
+  Dialog,
+  Divider,
+  SvgIcon,
+  Typography,
+} from "@mui/material"
+import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount, useDisconnect, useSwitchChain } from "wagmi"
 import { sepolia } from "wagmi/chains"
@@ -16,19 +24,27 @@ import { ProfileDialogProps } from "@/components/Header/HeaderButton/ProfileDial
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl, TargetNetwork } from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { trimAddress } from "@/utils/formatters"
 
 export const ProfileDialog = ({
   open,
   handleClose,
-  name,
+  name = "Wintermute Trading Ltd.",
 }: ProfileDialogProps) => {
   const { t } = useTranslation()
+  const router = useRouter()
 
   const { address, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
   const { isWrongNetwork } = useCurrentNetwork()
   const { switchChain } = useSwitchChain()
+
+  const handleClickProfile = () => {
+    router.push(ROUTES.borrower.profile)
+    handleClose()
+  }
 
   const handleClickDisconnect = () => {
     disconnect()
@@ -37,7 +53,7 @@ export const ProfileDialog = ({
 
   return (
     <Dialog open={open} onClose={handleClose} sx={DialogContainer}>
-      <Box sx={ContentContainer}>
+      <Box sx={ContentContainer} className="test">
         {isConnected && isWrongNetwork && (
           <Box sx={WrongNetworkContainer}>
             <Typography variant="text3">
@@ -54,26 +70,24 @@ export const ProfileDialog = ({
           </Box>
         )}
 
-        <Box sx={ProfileContainer}>
-          <Box>
-            <SvgIcon fontSize="huge" sx={{ margin: "auto" }}>
-              <Avatar />
-            </SvgIcon>
-          </Box>
+        <Box sx={ProfileContainer} marginTop={name ? "12px" : "32px"}>
+          <SvgIcon sx={{ fontSize: "44px" }}>
+            <Avatar />
+          </SvgIcon>
 
           <Box
             display="flex"
             flexDirection="column"
             alignItems="center"
-            rowGap="2px"
+            rowGap="1px"
+            marginTop="18px"
           >
             {address && (
               <Box sx={AddressContainer}>
-                <Typography variant="text1">
-                  {address.slice(0, 4)}..{address.slice(-4, address.length)}
-                </Typography>
+                <Typography variant="text1">{trimAddress(address)}</Typography>
 
                 <LinkGroup
+                  groupSX={{ columnGap: "8px" }}
                   copyValue={address?.toString()}
                   linkValue={`${EtherscanBaseUrl}/address/${address}`}
                 />
@@ -87,16 +101,37 @@ export const ProfileDialog = ({
           </Box>
         </Box>
 
-        <Button
-          variant="contained"
-          color="secondary"
-          fullWidth
-          onClick={handleClickDisconnect}
-        >
-          <Typography variant="text2">
-            {t("header.button.disconnect")}
-          </Typography>
-        </Button>
+        <Divider sx={{ height: "1px", width: "100%", margin: "28px 0 20px" }} />
+
+        <Box sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
+          <Button
+            variant="text"
+            fullWidth
+            sx={{ padding: "10px 12px 10px 8px !important" }}
+            onClick={handleClickProfile}
+          >
+            <Typography
+              variant="text2"
+              sx={{ width: "100%", fontWeight: 600, textAlign: "left" }}
+            >
+              View Profile
+            </Typography>
+          </Button>
+
+          <Button
+            variant="text"
+            fullWidth
+            sx={{ padding: "10px 12px 10px 8px !important" }}
+            onClick={handleClickDisconnect}
+          >
+            <Typography
+              variant="text2"
+              sx={{ width: "100%", fontWeight: 600, textAlign: "left" }}
+            >
+              {t("header.button.disconnect")}
+            </Typography>
+          </Button>
+        </Box>
       </Box>
     </Dialog>
   )

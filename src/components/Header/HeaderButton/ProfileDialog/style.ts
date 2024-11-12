@@ -2,17 +2,16 @@ import { COLORS } from "@/theme/colors"
 
 export const DialogContainer = {
   "& .MuiDialog-paper": {
-    height: "256px",
-    width: "320px",
     borderRadius: "12px",
     borderColor: COLORS.black01,
     margin: 0,
-    padding: "20px",
+    padding: "24px 16px 16px 16px",
   },
 }
 
 export const ContentContainer = {
-  height: "100%",
+  height: "248px",
+  width: "288px",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
@@ -47,14 +46,12 @@ export const ProfileContainer = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  justifyContent: "center",
-  rowGap: "12px",
 }
 
 export const AddressContainer = {
   display: "flex",
   alignItems: "center",
-  columnGap: "4px",
+  columnGap: "8px",
 }
 
 export const AddressButtons = {
