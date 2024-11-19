@@ -18,6 +18,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setTab } from "@/store/slices/borrowerOverviewSlice/borrowerOverviewSlice"
 import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
 
+import { PoliciesTable } from "./components/PoliciesTable"
 import { useBorrowerInvitationRedirect } from "./hooks/useBorrowerInvitationRedirect"
 import { PageTitleContainer } from "./page-style"
 
@@ -56,7 +57,9 @@ export default function Borrower() {
     (state) => state.borrowerLendersTabSidebar.searchFilter,
   )
   const lendersNames: { [key: string]: string } = JSON.parse(
-    localStorage.getItem("lenders-name") || "{}",
+    typeof window !== "undefined"
+      ? localStorage.getItem("lenders-name") || "{}"
+      : "{}",
   )
 
   const lendersData = lenders?.addresses
@@ -148,8 +151,8 @@ export default function Borrower() {
             />
             <Tab value="mla" label={t("borrowerMarketList.title.mla")} />
             <Tab
-              value="lenders"
-              label={t("borrowerMarketList.title.lenders")}
+              value="policies"
+              label={t("borrowerMarketList.title.policies")}
             />
           </Tabs>
         ) : (
@@ -195,7 +198,7 @@ export default function Borrower() {
         <MarketsTables showBanner={!bannerDisplayConfig.hideBanner} />
       )}
 
-      {tab === "lenders" && (
+      {tab === "policies" && (
         <Box
           sx={{
             height: `calc(100vh - 43px - 52px - 52px - 110px)`,
@@ -206,20 +209,22 @@ export default function Borrower() {
             overflowY: "visible",
           }}
         >
-          <LendersTable
+          {/* <LendersTable
             tableData={authorizedLenders}
             isLoading={false}
             isOpen
             label="Active Lenders"
-          />
+          /> */}
 
-          <Box marginTop="16px">
+          <PoliciesTable isOpen label="Policies" />
+
+          {/* <Box marginTop="16px">
             <LendersTable
               tableData={deauthorizedLenders}
               isLoading={false}
               label="Deleted Lenders"
             />
-          </Box>
+          </Box> */}
         </Box>
       )}
     </Box>
