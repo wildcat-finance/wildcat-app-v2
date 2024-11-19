@@ -115,6 +115,8 @@ function useTrackPolicyLendersChanges(
 
   const isLendersHaveChanges = !areLendersEqual(initialLenders, lendersRows)
 
+  console.log("isLendersHaveChanges", isLendersHaveChanges)
+
   return {
     isLendersHaveChanges,
     addedOrModifiedLenders,

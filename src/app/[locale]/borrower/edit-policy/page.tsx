@@ -32,6 +32,7 @@ import {
   setPolicyLendersTableData,
 } from "@/store/slices/editPolicySlice/editPolicySlice"
 
+import { ConfirmLendersForm } from "./components/ConfirmLendersForm"
 import { EditLendersForm } from "./components/EditLendersForm"
 import { PolicyLenderTableDataType, EditLenderFlowStatuses } from "./interface"
 import { BorrowerMarketsTable } from "../components/MarketsTables/BorrowerMarketsTable"
@@ -77,13 +78,13 @@ export default function EditPolicyPage() {
         )
         setAccessControl(
           hasPullProvider
-            ? t("roleProviders.defaultPullProviderName")
-            : t("roleProviders.manualApprovalLabel"),
+            ? t("roleProviders.defaultPullProvider")
+            : t("roleProviders.manualApproval"),
         )
         // @todo update when we have provider names
       } else {
         policyName = "V1 Markets"
-        setAccessControl(t("roleProviders.manualApprovalLabel"))
+        setAccessControl(t("roleProviders.manualApproval"))
       }
       const lendersData =
         data.lenders?.map((lender) => {
@@ -178,7 +179,7 @@ export default function EditPolicyPage() {
   // Constants
   const isLoading = isPolicyLoading
 
-  const step = useAppSelector((state) => state.editLendersList.step)
+  const step = useAppSelector((state) => state.editPolicy.step)
 
   useEffect(
     () => () => {
@@ -190,6 +191,8 @@ export default function EditPolicyPage() {
   useEffect(() => {
     sessionStorage.setItem("previousPageUrl", window.location.href)
   }, [])
+
+  console.log("step", step)
 
   return (
     <Box
@@ -304,6 +307,8 @@ export default function EditPolicyPage() {
       <Typography variant="title2">{t("editPolicy.lenders")}</Typography>
 
       {step === "edit" && <EditLendersForm isLoading={isLoading} />}
+
+      {step === "confirm" && <ConfirmLendersForm />}
     </Box>
   )
 }
