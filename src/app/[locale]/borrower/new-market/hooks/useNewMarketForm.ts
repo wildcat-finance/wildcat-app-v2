@@ -1,18 +1,16 @@
-import { useMemo, useEffect } from "react"
-
 import { zodResolver } from "@hookform/resolvers/zod"
-import { HooksKind, MarketParameterConstraints } from "@wildcatfi/wildcat-sdk"
-import { useForm } from "react-hook-form"
+import {
+  DefaultV2ParameterConstraints,
+  MarketParameterConstraints,
+} from "@wildcatfi/wildcat-sdk"
+import { useForm, UseFormReturn } from "react-hook-form"
 
 import {
   MarketValidationSchemaType,
   marketValidationSchema as vschema,
 } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
-import { useGetController } from "@/hooks/useGetController"
 import { mockedMarketTypes } from "@/mocks/mocks"
 import { formatConstrainToNumber } from "@/utils/formatters"
-
-import { useGetBorrowerHooksData } from "../../hooks/useGetBorrowerHooksData"
 
 export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   marketType: mockedMarketTypes[0].value,
@@ -24,11 +22,11 @@ export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   delinquencyGracePeriod: undefined,
   withdrawalBatchDuration: undefined,
   fixedTermEndTime: undefined,
-  allowClosureBeforeTerm: undefined,
-  allowTermReduction: undefined,
+  allowClosureBeforeTerm: false,
+  allowTermReduction: false,
   policy: "createNewPolicy",
   policyName: "",
-  kyc: "",
+  accessControl: "defaultPullProvider",
   mla: "",
   marketName: "aa",
   asset: "0x",
@@ -65,61 +63,18 @@ function getValidationSchema(constraints: MarketParameterConstraints) {
   })
 }
 
-export const useNewMarketForm = () => {
-  const { data: controller } = useGetController()
-  const { data: hooksData } = useGetBorrowerHooksData()
+export type NewMarketFormType = UseFormReturn<MarketValidationSchemaType>
 
-  const validationSchemaAsync = useMemo(() => {
-    if (controller?.constraints) {
-      return getValidationSchema(controller.constraints)
-    }
-
-    return vschema
-  }, [controller?.constraints])
+export const useNewMarketForm = (): NewMarketFormType => {
+  const validationSchemaAsync = getValidationSchema(
+    DefaultV2ParameterConstraints,
+  )
 
   const form = useForm<MarketValidationSchemaType>({
     defaultValues: defaultMarketForm,
     resolver: zodResolver(validationSchemaAsync),
     mode: "onBlur",
   })
-
-  const policyValue = form.watch("policy")
-  const marketType = form.watch("marketType")
-
-  useEffect(() => {
-    if (
-      policyValue &&
-      policyValue !== "createNewPolicy" &&
-      hooksData?.hooksInstances
-    ) {
-      const selectedHook = hooksData.hooksInstances.find(
-        (instance) => instance.address === policyValue,
-      )
-
-      if (selectedHook) {
-        form.setValue(
-          "marketType",
-          selectedHook.kind === HooksKind.OpenTerm ? "standard" : "fixedTerm",
-        )
-        form.setValue(
-          "kyc",
-          selectedHook.roleProviders.length === 1
-            ? "manual-approval"
-            : "notShare",
-        )
-        form.setValue("policyName", selectedHook.name)
-      } else {
-        form.setValue("policyName", "")
-      }
-    }
-  }, [policyValue, hooksData?.hooksInstances])
-
-  useEffect(() => {
-    if (marketType === "fixedTerm") {
-      form.setValue("allowClosureBeforeTerm", undefined)
-      form.setValue("allowTermReduction", undefined)
-    }
-  }, [marketType, form.setValue])
 
   return form
 }

@@ -73,7 +73,7 @@ export const marketValidationSchema = z
   .object({
     marketName: z.string().min(1),
     mla: z.string().min(1),
-    kyc: z.string().min(1),
+    accessControl: z.string().min(1),
     marketType: z.string().min(1),
     asset: z.string().refine((value) => isAddress(value), {
       message: "Invalid address: please ensure you have the correct token.",
@@ -90,24 +90,12 @@ export const marketValidationSchema = z
     annualInterestBips: z.coerce.number().gt(0),
     delinquencyFeeBips: z.coerce.number().gt(0),
     reserveRatioBips: z.coerce.number().gt(0),
-    minimumDeposit: z.coerce.number(),
+    minimumDeposit: z.coerce.number().optional(),
     delinquencyGracePeriod: z.coerce.number().gt(0),
     withdrawalBatchDuration: z.coerce.number().gt(0),
     policy: z.string().min(1),
     policyName: z.string(),
-    // depositAccess: z.enum<
-    //   keyof typeof DepositAccess,
-    //   typeof DepositAccessOptions
-    // >(DepositAccessOptions),
-    // withdrawalAccess: z.enum<
-    //   keyof typeof WithdrawalAccess,
-    //   typeof WithdrawalAccessOptions
-    // >(WithdrawalAccessOptions),
-    // transferAccess: z.enum<
-    //   keyof typeof TransferAccess,
-    //   typeof TransferAccessOptions
-    // >(TransferAccessOptions),
-    fixedTermEndTime: z.coerce.number(),
+    fixedTermEndTime: z.coerce.number().optional(),
     allowForceBuyBack: z.boolean(),
     allowClosureBeforeTerm: z.boolean().optional(),
     allowTermReduction: z.boolean().optional(),
@@ -121,7 +109,7 @@ export const marketValidationSchema = z
       if (data.marketType === "fixedTerm") {
         // Check if fixedTermEndTime is in the future
         const now = Math.floor(Date.now() / 1000) // Current time in seconds
-        return data.fixedTermEndTime > now
+        return data.fixedTermEndTime && data.fixedTermEndTime > now
       }
       return true
     },
