@@ -43,6 +43,16 @@ export const Sidebar = () => {
         )}
       {pathname === ROUTES.borrower.root &&
         step === BorrowerOverviewTabs.LENDERS && <LendersTabSidebar />}
+      {pathname === ROUTES.borrower.root &&
+        step === BorrowerOverviewTabs.POLICIES && (
+          <Box
+            sx={{
+              height: "100%",
+              width: "267px",
+              borderRight: `1px solid ${COLORS.blackRock006}`,
+            }}
+          />
+        )}
       {pathname.includes(ROUTES.borrower.market) && <MarketSidebar />}
       {pathname.includes(ROUTES.lender.market) && <LenderMarketSidebar />}
       {pathname === ROUTES.borrower.newMarket && <NewMarketSidebar />}
