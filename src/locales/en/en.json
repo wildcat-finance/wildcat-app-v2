@@ -41,7 +41,8 @@
     "title": {
       "allMarkets": "All markets",
       "mla": "MLA",
-      "lenders": "Lenders"
+      "lenders": "Lenders",
+      "policies": "Policies"
     },
     "button": {
       "newMarket": "Create Market"
@@ -284,7 +285,7 @@
           "fixedTermEndTime": {
             "title": "Loan Maturity Date",
             "subtitle": "The time at which lenders will be able to request withdrawals",
-            "tooltip": "TBD"
+            "tooltip": ""
           },
           "allowForceBuyBack": {
             "title": "Allow Force Buy Backs",
@@ -320,15 +321,15 @@
           },
           "transferRequiresAccess": {
             "title": "Restrict Transfers",
-            "subtitle": "Require transfer recipients to meet your KYC requirements"
+            "subtitle": "Transfer recipients will need to meet your policy's access requirements"
           },
           "depositRequiresAccess": {
             "title": "Restrict Deposits",
-            "subtitle": "Require depositors to meet your KYC requirements"
+            "subtitle": "Depositors will need to meet your policy's access requirements"
           },
           "withdrawalRequiresAccess": {
             "title": "Restrict Withdrawals",
-            "subtitle": "Require lenders meet your KYC requirements to request withdrawals"
+            "subtitle": "Lenders will need to meet your policy's access requirements to request withdrawals"
           },
           "transferAccess": {
             "title": "Transfer Restrictions",
@@ -338,7 +339,7 @@
           },
           "policy": {
             "title": "Market Policy",
-            "subtitle": "The market policy determines the type of loan and KYC requirements.",
+            "subtitle": "The market policy determines the type of loan and access controls.",
             "placeholder": "Select a policy",
             "tooltip": "TBD"
           },
@@ -361,8 +362,9 @@
               "noMLA": "No MLA"
             }
           },
-          "kyc": {
-            "title": "KYC Preferences",
+          "accessControl": {
+            "title": "Access Controls",
+            "subtitle": "How lenders get a credential for this policy",
             "placeholder": "Please Select",
             "tooltip": "TBD",
             "options": {
@@ -373,6 +375,7 @@
           "marketType": {
             "title": "Market Type",
             "placeholder": "Please Select",
+            "subtitle": "The type of loans you will create with this policy",
             "tooltip": "TBD", 
             "options": {
               "standard": "Standard Loan",
@@ -401,21 +404,21 @@
           },
           "capacity": {
             "title": "Max. Borrowing Capacity",
-            "subtitle": "The maximum credit line you want to be extended",
+            "subtitle": "The maximum credit line you want to be extended. This can be changed later.",
             "placeholder": "1000",
-            "tooltip": "TBD",
+            "tooltip": "",
             "chip": "Token Symbol"
           },
           "baseAPR": {
             "title": "Base APR",
             "placeholder": "10-20",
-            "tooltip": "TBD",
+            "tooltip": "",
             "chip": "%"
           },
           "penaltyAPR": {
             "title": "Penalty APR",
             "placeholder": "10-20",
-            "subtitle": "Additional APR charged when delinquent past the grace period",
+            "subtitle": "Additional APR charged when you allow the market to remain delinquent beyond the grace period.",
             "chip": "%"
           },
           "ratio": {
@@ -524,8 +527,8 @@
     }
   },
   "roleProviders": {
-    "defaultPullProviderName": "Self-Onboard",
-    "manualApprovalLabel": "Manual Approval"
+    "defaultPullProvider": "Self-Onboard",
+    "manualApproval": "Manual Approval"
   },
   "policyType": {
     "OpenTerm": "Standard Loans (no expiry)",
