@@ -11,7 +11,7 @@ import {
 } from "@/app/[locale]/borrower/edit-lenders-list/interface"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setLendersTableData } from "@/store/slices/editLendersListSlice/editLendersListSlice"
+import { setPolicyLendersTableData } from "@/store/slices/editPolicySlice/editPolicySlice"
 import { COLORS } from "@/theme/colors"
 
 import { useAddLenderForm } from "./useAddLenderForm"
@@ -21,15 +21,8 @@ export const AddModal = () => {
   const dispatch = useAppDispatch()
 
   const lendersTableData = useAppSelector(
-    (state) => state.editLendersList.lendersTableData,
+    (state) => state.editPolicy.lendersTableData,
   )
-
-  const selectedMarket = useAppSelector(
-    (state) => state.editLendersList.marketFilter,
-  )
-
-  const isFilteredByMarket = selectedMarket.address !== "0x00"
-
   const [isOpen, setIsOpen] = useState(false)
   const [selectedMarkets, setSelectedMarkets] = useState<MarketTableDataType[]>(
     [],
@@ -42,14 +35,6 @@ export const AddModal = () => {
 
   const existingLenders = lendersTableData.map((lender) => lender.address)
 
-  const lendersWithMarket = lendersTableData
-    .filter((lender) =>
-      lender.markets.some(
-        (market) => market.address === selectedMarket.address,
-      ),
-    )
-    .map((lender) => lender.address)
-
   const {
     getValues,
     setValue,
@@ -57,7 +42,7 @@ export const AddModal = () => {
     register,
     formState: { errors, isValid },
     reset,
-  } = useAddLenderForm(isFilteredByMarket ? lendersWithMarket : existingLenders)
+  } = useAddLenderForm(existingLenders)
 
   const addressValue = watch("address")
 
@@ -79,17 +64,6 @@ export const AddModal = () => {
     }
   }, [existingLender])
 
-  useEffect(() => {
-    if (isFilteredByMarket) {
-      setSelectedMarkets([
-        {
-          ...selectedMarket,
-          status: EditLenderFlowStatuses.NEW,
-        },
-      ])
-    }
-  }, [selectedMarket, isOpen])
-
   const handleOpen = () => {
     reset()
     setSelectedMarkets([])
@@ -102,17 +76,15 @@ export const AddModal = () => {
 
   const onSubmitLender = () => {
     dispatch(
-      setLendersTableData([
+      setPolicyLendersTableData([
         ...lendersTableData,
         {
           id: getValues("address"),
           address: getValues("address").toLowerCase(),
-          markets: selectedMarkets.map((market) => ({
-            name: market.name,
-            address: market.address,
-            status: EditLenderFlowStatuses.NEW,
-          })),
           status: EditLenderFlowStatuses.NEW,
+          credentialExpiry: 0,
+          credentialSource: "",
+          activeMarkets: selectedMarkets,
         },
       ]),
     )
@@ -129,20 +101,11 @@ export const AddModal = () => {
 
   const onSubmitMarket = () => {
     dispatch(
-      setLendersTableData(
+      setPolicyLendersTableData(
         lendersTableData.map((lender) =>
           lender.address.toLowerCase() === getValues("address").toLowerCase()
             ? {
                 ...lender,
-                markets: [
-                  ...lender.markets.filter(
-                    (m) => m.address !== selectedMarket.address,
-                  ),
-                  {
-                    ...selectedMarket,
-                    status: EditLenderFlowStatuses.NEW,
-                  },
-                ],
               }
             : lender,
         ),
@@ -223,28 +186,6 @@ export const AddModal = () => {
             disabled={isDisabled}
           />
 
-          {!isFilteredByMarket && (
-            <AddSelect
-              selectedMarkets={selectedMarkets}
-              setSelectedMarkets={setSelectedMarkets}
-              disabled={isDisabled}
-            />
-          )}
-
-          {isFilteredByMarket && (
-            <TextField
-              sx={{
-                "& .MuiFormLabel-root.Mui-disabled": {
-                  color: COLORS.santasGrey,
-                },
-              }}
-              fullWidth
-              size="medium"
-              label={selectedMarket.name}
-              disabled
-            />
-          )}
-
           <Box
             sx={{
               display: "flex",
@@ -274,12 +215,8 @@ export const AddModal = () => {
         </Box>
 
         <Button
-          onClick={
-            isFilteredByMarket && !!existingLender
-              ? onSubmitMarket
-              : onSubmitLender
-          }
-          disabled={!isValid || selectedMarkets.length === 0}
+          onClick={onSubmitLender}
+          disabled={!isValid}
           variant="contained"
           size="large"
           type="submit"

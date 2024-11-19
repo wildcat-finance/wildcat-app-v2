@@ -46,6 +46,7 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
 
   // Functions
   const handleClickConfirm = () => {
+    console.log("handleClickConfirm")
     dispatch(setEditStep("confirm"))
   }
 
