@@ -26,14 +26,14 @@ export const mockedMarketTypes = [
   },
 ]
 
-const mockedKYCPreferences = [
+const mockedAccessControls = [
   {
-    label: "Approve non-sanctioned lenders",
-    value: "notShare",
+    label: "Lender Self-Onboarding",
+    value: "defaultPullProvider",
   },
   {
-    label: "Manually approve lenders",
-    value: "manual-approval",
+    label: "Manually Add Lenders",
+    value: "manualApproval",
   },
 ]
 
@@ -78,11 +78,11 @@ export const mockedMarketTypesOptions: ExtendedSelectOptionItem[] =
     value: marketType.value,
   }))
 
-export const mockedKYCPreferencesOptions: ExtendedSelectOptionItem[] =
-  mockedKYCPreferences.map((kycOption) => ({
-    id: kycOption.value,
-    label: kycOption.label,
-    value: kycOption.value,
+export const mockedAccessControlOptions: ExtendedSelectOptionItem[] =
+  mockedAccessControls.map((option) => ({
+    id: option.value,
+    label: option.label,
+    value: option.value,
   }))
 
 export const mockedMLATemplatesOptions: ExtendedSelectOptionItem[] =
