@@ -39,26 +39,6 @@
     jsonpointer "^5.0.0"
     leven "^3.1.0"
 
-"@apollo/client@^3.11.8":
-  version "3.11.8"
-  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.11.8.tgz#f6bacdc7e1b243807c1387113e1d445a53471a9c"
-  integrity sha512-CgG1wbtMjsV2pRGe/eYITmV5B8lXUCYljB2gB/6jWTFQcrvirUVvKg7qtFdjYkQSFbIffU1IDyxgeaN81eTjbA==
-  dependencies:
-    "@graphql-typed-document-node/core" "^3.1.1"
-    "@wry/caches" "^1.0.0"
-    "@wry/equality" "^0.5.6"
-    "@wry/trie" "^0.5.0"
-    graphql-tag "^2.12.6"
-    hoist-non-react-statics "^3.3.2"
-    optimism "^0.18.0"
-    prop-types "^15.7.2"
-    rehackt "^0.1.0"
-    response-iterator "^0.2.6"
-    symbol-observable "^4.0.0"
-    ts-invariant "^0.10.3"
-    tslib "^2.3.0"
-    zen-observable-ts "^1.2.5"
-
 "@apollo/client@^3.8.6":
   version "3.9.9"
   resolved "https://registry.npmjs.org/@apollo/client/-/client-3.9.9.tgz"
@@ -6377,10 +6357,10 @@
     "@webassemblyjs/ast" "1.12.1"
     "@xtuc/long" "4.2.2"
 
-"@wildcatfi/wildcat-sdk@^2.0.83":
-  version "2.0.83"
-  resolved "https://registry.npmjs.org/@wildcatfi/wildcat-sdk/-/wildcat-sdk-2.0.83.tgz"
-  integrity sha512-U/k6QIB6h0yoAVbbKwavCeBlw2D6tqXyj8Y1/xwNZC3M7IZNXhxcpbdmgaf36T7sp9NJHLGzBEYqpb91mWK1tg==
+"@wildcatfi/wildcat-sdk@3.0.17":
+  version "3.0.17"
+  resolved "https://registry.yarnpkg.com/@wildcatfi/wildcat-sdk/-/wildcat-sdk-3.0.17.tgz#e81539ac169c0aa9e76c6223f0d1e9c6d118c670"
+  integrity sha512-jAnEUVoWMs2XTX52UCv87EPW08cMJae/+O9B3HQEF8ATg4fPuzFwNmnWC9EzofqztNPsbh9lsr76KbZs87f/8g==
   dependencies:
     "@apollo/client" "^3.8.6"
     "@tanstack/react-query" "^4.29.14"
@@ -15335,11 +15315,6 @@ rehackt@0.0.6:
   version "0.0.6"
   resolved "https://registry.npmjs.org/rehackt/-/rehackt-0.0.6.tgz"
   integrity sha512-l3WEzkt4ntlEc/IB3/mF6SRgNHA6zfQR7BlGOgBTOmx7IJJXojDASav+NsgXHFjHn+6RmwqsGPFgZpabWpeOdw==
-
-rehackt@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/rehackt/-/rehackt-0.1.0.tgz#a7c5e289c87345f70da8728a7eb878e5d03c696b"
-  integrity sha512-7kRDOuLHB87D/JESKxQoRwv4DzbIdwkAGQ7p6QKGdVlY1IZheUnVhlk/4UZlNUVxdAXpyxikE3URsG067ybVzw==
 
 relateurl@^0.2.7:
   version "0.2.7"
