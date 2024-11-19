@@ -20,6 +20,7 @@ const editPolicySlice = createSlice({
       state.lenderFilter = action.payload
     },
     setEditStep: (state, action: PayloadAction<"edit" | "confirm">) => {
+      console.log("setEditStep", action.payload)
       state.step = action.payload
     },
     setPolicyName: (state, action: PayloadAction<string>) => {
