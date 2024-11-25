@@ -5,6 +5,7 @@ import {
   getBorrowerProfileUpdates,
   putBorrowerProfileUpdate,
   putBorrowerProfileUpdateResponse,
+  removeBorrowerProfileUpdates,
 } from "@/lib/tmp-db"
 
 import { BorrowerProfileUpdateResponse } from "./interface"
@@ -33,5 +34,19 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   const data = (await request.json()) as BorrowerProfileUpdateResponse
   putBorrowerProfileUpdateResponse(data)
+  return NextResponse.json({ success: true })
+}
+
+// DELETE /api/profiles/updates?borrower=<borrower>
+// Test function only
+export async function DELETE(request: NextRequest) {
+  const borrower = request.nextUrl.searchParams.get("borrower")
+  if (!borrower) {
+    return NextResponse.json(
+      { success: false, message: "No borrower provided" },
+      { status: 400 },
+    )
+  }
+  removeBorrowerProfileUpdates(borrower)
   return NextResponse.json({ success: true })
 }

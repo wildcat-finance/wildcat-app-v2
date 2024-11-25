@@ -4,11 +4,11 @@ import path from "path"
 import {
   BorrowerProfile,
   BorrowerProfileInput,
-} from "@/app/api/borrower-profile/interface"
+} from "@/app/api/profiles/interface"
 import {
   BorrowerProfileUpdate,
   BorrowerProfileUpdateResponse,
-} from "@/app/api/borrower-profile/updates/interface"
+} from "@/app/api/profiles/updates/interface"
 
 type TmpDbData = {
   nextUpdateId: number
@@ -22,20 +22,38 @@ type TmpDbData = {
 
 export const TMP_BORROWER_DB_PATH = path.join(__dirname, `tmp-borrower-db.json`)
 
+const emptyDb = {
+  nextUpdateId: 1,
+  profiles: {},
+  updates: {},
+}
+
 const getDb = (): TmpDbData => {
   if (!existsSync(TMP_BORROWER_DB_PATH)) {
-    return {
-      nextUpdateId: 1,
-      profiles: {},
-      updates: {},
-    }
+    return emptyDb
   }
   return JSON.parse(readFileSync(TMP_BORROWER_DB_PATH, "utf8")) as TmpDbData
+}
+
+export const resetTmpDb = (): void => {
+  writeFileSync(TMP_BORROWER_DB_PATH, JSON.stringify(emptyDb, null, 2))
 }
 
 const writeDb = (db: TmpDbData): void => {
   const data = JSON.stringify(db, null, 2)
   writeFileSync(TMP_BORROWER_DB_PATH, data)
+}
+
+export const removeBorrowerProfile = (address: string): void => {
+  const db = getDb()
+  delete db.profiles[address.toLowerCase()]
+  writeDb(db)
+}
+
+export const removeBorrowerProfileUpdates = (address: string) => {
+  const db = getDb()
+  delete db.updates[address.toLowerCase()]
+  writeDb(db)
 }
 
 export function getBorrowerProfile(
