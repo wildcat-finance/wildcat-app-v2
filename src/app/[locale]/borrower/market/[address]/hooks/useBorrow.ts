@@ -2,7 +2,7 @@ import { Dispatch } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { MarketAccount, Signer, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { parseUnits } from "ethers/lib/utils"
 
 import { useEthersSigner } from "@/hooks/useEthersSigner"
@@ -18,7 +18,7 @@ export const useBorrow = (
 
   return useMutation({
     mutationFn: async (amount: string) => {
-      if (!marketAccount || !signer) {
+      if (!marketAccount || !signer || !Signer.isSigner(signer)) {
         return
       }
 
