@@ -33,7 +33,7 @@ export const useGetPolicy = ({ policy, ...variables }: GetPolicyArgs) => {
 
   async function getPolicy() {
     assert(policy !== undefined, `Policy undefined ${policy}`)
-    const { markets, lenders, hooksInstance } =
+    const { markets, lenders, hooksInstance, controller } =
       await getPolicyMarketsAndLenders(SubgraphClient, {
         fetchPolicy: "network-only",
         contractAddress: policy?.toLowerCase(),
@@ -43,7 +43,7 @@ export const useGetPolicy = ({ policy, ...variables }: GetPolicyArgs) => {
       })
 
     await updateMarkets(markets, provider)
-    return { markets, lenders, hooksInstance }
+    return { markets, lenders, hooksInstance, controller }
   }
 
   return useQuery({
