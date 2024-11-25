@@ -1,3 +1,5 @@
+import { useEffect } from "react"
+
 import { useQuery } from "@tanstack/react-query"
 import {
   Market,
@@ -59,6 +61,9 @@ export function useGetMarket({ address, ...filters }: UseMarketProps) {
       const update = await lens.getMarketData(address)
       market.updateWith(update)
     }
+    if (market.provider !== signerOrProvider) {
+      market.provider = signerOrProvider
+    }
 
     return market
   }
@@ -68,11 +73,19 @@ export function useGetMarket({ address, ...filters }: UseMarketProps) {
     return updateMarket(marketFromSubgraph)
   }
 
-  return useQuery({
+  const { data, ...result } = useQuery({
     queryKey: [GET_MARKET_KEY, address],
     queryFn,
     refetchInterval: POLLING_INTERVAL,
     enabled: !!address || !signerOrProvider || isWrongNetwork,
     refetchOnMount: false,
   })
+
+  useEffect(() => {
+    if (data && signerOrProvider && data.provider !== signerOrProvider) {
+      data.provider = signerOrProvider
+    }
+  }, [signerOrProvider])
+
+  return { ...result, data }
 }

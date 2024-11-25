@@ -51,6 +51,10 @@ export const useGetMarketAccountForBorrowerLegacy = (
       marketAccount.updateWith(update.lenderStatus)
     }
 
+    if (market && market.provider !== signerOrProvider) {
+      market.provider = signerOrProvider
+    }
+
     return marketAccount
   }
 
