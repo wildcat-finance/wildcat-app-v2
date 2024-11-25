@@ -84,6 +84,9 @@ export function useLenderMarketAccountQuery({
       data.updateWith(update.lenderStatus)
       data.market.updateWith(update.market)
     }
+    if (market && market.provider !== provider) {
+      market.provider = provider
+    }
     return data
   }
 
