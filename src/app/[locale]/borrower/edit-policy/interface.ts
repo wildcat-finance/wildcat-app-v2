@@ -1,4 +1,5 @@
 import { LenderRole } from "@wildcatfi/wildcat-sdk"
+import { PolicyLender } from "@wildcatfi/wildcat-sdk/dist/gql/utils"
 
 import {
   EditLenderFlowStatuses,
@@ -19,6 +20,11 @@ export type PolicyLenderTableDataType = {
   credentialSource: string
   activeMarkets: PolicyLenderMarketTableDataType[]
   status: EditLenderFlowStatuses
+}
+
+export type LenderInfo = PolicyLender & {
+  credentialExpiry: number | undefined
+  credentialSource: string
 }
 
 export type { MarketTableDataType }

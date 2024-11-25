@@ -56,31 +56,19 @@ export const EditLendersTable = () => {
       lender.address.toLowerCase().includes(lenderNameOrAddress.toLowerCase()),
   )
 
-  console.log(`-----------------------------------------------------------`)
-  console.log(`Filtered Lenders: ${filteredLenders.length}`)
-  console.log(`Lenders Table Data: ${lendersTableData.length}`)
-
   const noLenders = filteredLenders.length === 0
 
   const handleDeleteLender = (
     lenderAddress: string,
     lenderStatus: EditLenderFlowStatuses,
   ) => {
-    if (lenderStatus === EditLenderFlowStatuses.NEW) {
+    if (lenderStatus !== EditLenderFlowStatuses.NEW) {
       setLenderToDelete(lenderAddress)
       setIsDeleteModalOpen(true)
     } else {
       dispatch(
         setPolicyLendersTableData(
-          lendersTableData.map((lender) => {
-            if (lender.address === lenderAddress) {
-              return {
-                ...lender,
-                status: EditLenderFlowStatuses.DELETED,
-              }
-            }
-            return lender
-          }),
+          lendersTableData.filter((lender) => lender.address !== lenderAddress),
         ),
       )
     }
@@ -119,8 +107,8 @@ export const EditLendersTable = () => {
               variant="text3"
               sx={{ textDecoration: "line-through" }}
             >
-              {lendersNames[params.row.address.toLowerCase()] ===
-              ("" || undefined)
+              {lendersNames[params.row.address.toLowerCase()] === "" ||
+              undefined
                 ? t("editLendersList.forms.edit.table.addName")
                 : lendersNames[params.row.address.toLowerCase()]}
             </Typography>
@@ -195,7 +183,9 @@ export const EditLendersTable = () => {
             }}
             variant="text3"
           >
-            {params.value}
+            {params.row.status === EditLenderFlowStatuses.NEW
+              ? `Manually adding`
+              : params.value}
           </Typography>
         </Box>
       ),

@@ -34,14 +34,14 @@ import {
 
 import { ConfirmLendersForm } from "./components/ConfirmLendersForm"
 import { EditLendersForm } from "./components/EditLendersForm"
-import { PolicyLenderTableDataType, EditLenderFlowStatuses } from "./interface"
+import useTrackPolicyLendersChanges from "./hooks/useTrackLendersChanges"
+import {
+  PolicyLenderTableDataType,
+  EditLenderFlowStatuses,
+  LenderInfo,
+} from "./interface"
 import { BorrowerMarketsTable } from "../components/MarketsTables/BorrowerMarketsTable"
 import { useGetPolicy } from "../hooks/useGetPolicy"
-
-type LenderInfo = PolicyLender & {
-  credentialExpiry: number | undefined
-  credentialSource: string
-}
 
 export default function EditPolicyPage() {
   const { t } = useTranslation()
@@ -191,8 +191,16 @@ export default function EditPolicyPage() {
   useEffect(() => {
     sessionStorage.setItem("previousPageUrl", window.location.href)
   }, [])
-
-  console.log("step", step)
+  const initialLendersTableData = useAppSelector(
+    (state) => state.editPolicy.initialLendersTableData,
+  )
+  const lendersTableData = useAppSelector(
+    (state) => state.editPolicy.lendersTableData,
+  )
+  const { addedOrModifiedLenders } = useTrackPolicyLendersChanges(
+    initialLendersTableData,
+    lendersTableData,
+  )
 
   return (
     <Box
@@ -308,7 +316,14 @@ export default function EditPolicyPage() {
 
       {step === "edit" && <EditLendersForm isLoading={isLoading} />}
 
-      {step === "confirm" && <ConfirmLendersForm />}
+      {step === "confirm" && (
+        <ConfirmLendersForm
+          originalPolicyName={originalPolicyName}
+          pendingPolicyName={pendingPolicyName}
+          policy={data?.hooksInstance}
+          controller={data?.controller}
+        />
+      )}
     </Box>
   )
 }
