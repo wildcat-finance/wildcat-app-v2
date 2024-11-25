@@ -18,9 +18,10 @@ export type UseMarketProps = {
 } & Partial<Omit<SubgraphGetMarketQueryVariables, "market">>
 
 export function useGetMarket({ address, ...filters }: UseMarketProps) {
-  const { signer, provider, isWrongNetwork } = useEthersProvider()
+  const { signer, isWrongNetwork } = useEthersProvider()
   const marketAddressFormatted = address?.toLowerCase()
-  const signerOrProvider = signer ?? provider
+  // since we still need to have an address and have the correct network, it means we need to have a connected wallet, so we only need a signer
+  const signerOrProvider = signer
 
   async function queryMarket() {
     if (!marketAddressFormatted || !signerOrProvider) throw Error()
