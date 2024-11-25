@@ -7,7 +7,7 @@ import { SubgraphClient } from "@/config/subgraph"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 
-const GET_MARKET_LENDERS_KEY = `GET_MARKET_LENDERS_KEY`
+export const GET_MARKET_LENDERS_KEY = `GET_MARKET_LENDERS_KEY`
 
 export const useGetMarketLenders = (market?: Market) => {
   const { chainId } = useCurrentNetwork()

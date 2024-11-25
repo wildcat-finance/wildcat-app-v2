@@ -194,7 +194,10 @@ export default function MarketDetails({
           {/* </Slide> */}
           {checked === 4 && (
             <Box sx={SlideContentContainer} marginTop="12px">
-              <MarketAuthorisedLenders market={market} />
+              <MarketAuthorisedLenders
+                market={market}
+                marketAccount={marketAccount}
+              />
             </Box>
           )}
         </Box>

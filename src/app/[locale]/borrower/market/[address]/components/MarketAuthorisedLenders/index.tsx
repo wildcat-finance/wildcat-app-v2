@@ -1,3 +1,7 @@
+/* eslint-disable no-nested-ternary */
+
+"use client"
+
 import * as React from "react"
 
 import {
@@ -10,7 +14,11 @@ import {
   Typography,
 } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
-import { LenderRole, MarketVersion } from "@wildcatfi/wildcat-sdk"
+import {
+  BasicLenderData,
+  LenderRole,
+  MarketVersion,
+} from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
@@ -30,6 +38,7 @@ import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
   DATE_FORMAT,
+  formatBlockTimestamp,
   timestampToDateFormatted,
   TOKEN_FORMAT_DECIMALS,
   trimAddress,
@@ -44,9 +53,11 @@ import {
   MLATableButton,
 } from "./style"
 import { useGetMarketLenders } from "../../hooks/useGetMarketLenders"
+import { ForceBuyBackModal } from "../Modals/ForceBuyBackModal"
 
 export const MarketAuthorisedLenders = ({
   market,
+  marketAccount,
 }: MarketAuthorisedLendersProps) => {
   const editLendersLink = market
     ? `${ROUTES.borrower.editPolicy}?policy=${encodeURIComponent(
@@ -84,8 +95,18 @@ export const MarketAuthorisedLenders = ({
           //   lender.role !== LenderRole.DepositAndWithdraw) ||
           // (lender.credentialExpiry !== undefined &&
           //   !lender.hasValidCredential),
-          accessLevel: "Deposit & Withdraw", // @todo
-          accessExpiry: "Never", // @todo
+          accessLevel:
+            lender.inferredRole === LenderRole.DepositAndWithdraw
+              ? "Deposit & Withdraw"
+              : lender.inferredRole === LenderRole.WithdrawOnly
+                ? "Withdraw Only"
+                : lender.inferredRole === LenderRole.Blocked
+                  ? "Blocked From Deposits"
+                  : "Unknown", // @todo
+
+          accessExpiry: lender.credentialExpiry
+            ? formatBlockTimestamp(lender.credentialExpiry)
+            : "Never", // @todo
           name: (() => {
             const correctLender =
               lendersNames[lender.address.toLowerCase()] || ""
@@ -102,6 +123,7 @@ export const MarketAuthorisedLenders = ({
             DATE_FORMAT,
           ),
           MLA: "View|Download",
+          raw: lender,
         }
         console.log(
           `is deauthorized on controller: ${
@@ -212,24 +234,36 @@ export const MarketAuthorisedLenders = ({
       align: "left",
       flex: 1.5,
     },
-    {
-      sortable: false,
-      field: "id",
-      headerName: t(
-        "borrowerMarketDetails.authorisedLenders.tableHeaders.forceBuyBack",
-      ),
-      minWidth: 124,
-      headerAlign: "left",
-      align: "left",
-      flex: 1.5,
-      renderCell: () => (
-        <Box sx={MarketWithdrawalRequetstCell}>
-          <Button variant="contained" size="small" color="info">
-            {t("borrowerMarketDetails.authorisedLenders.buttons.forceBuyBack")}
-          </Button>
-        </Box>
-      ),
-    },
+    ...(market?.hooksConfig?.allowForceBuyBacks
+      ? ([
+          {
+            sortable: false,
+            field: "id",
+            headerName: t(
+              "borrowerMarketDetails.authorisedLenders.tableHeaders.forceBuyBack",
+            ),
+            minWidth: 124,
+            headerAlign: "left",
+            align: "left",
+            flex: 1.5,
+            renderCell: ({ row }) => (
+              <Box sx={MarketWithdrawalRequetstCell}>
+                <ForceBuyBackModal
+                  market={market}
+                  marketAccount={marketAccount}
+                  lender={row.raw as BasicLenderData}
+                  disableForceBuyBackButton={false}
+                  lenderName={
+                    lendersNames[
+                      (row.raw as BasicLenderData).address.toLowerCase()
+                    ]
+                  }
+                />
+              </Box>
+            ),
+          },
+        ] as GridColDef[])
+      : []),
     {
       sortable: false,
       field: "dateAdded",
