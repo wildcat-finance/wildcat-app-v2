@@ -13,7 +13,7 @@ import { BorrowerProfileInput } from "../interface"
 export async function POST(request: NextRequest) {
   const data = (await request.json()) as BorrowerProfileInput
 
-  console.log(`RECEIVE POST /api/borrower-profile/updates`)
+  console.log(`RECEIVE POST /api/profiles/updates`)
   console.log(data)
 
   const update = putBorrowerProfileUpdate({
