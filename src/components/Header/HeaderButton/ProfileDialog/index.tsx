@@ -6,6 +6,7 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount, useDisconnect, useSwitchChain } from "wagmi"
@@ -34,17 +35,11 @@ export const ProfileDialog = ({
   name = "Wintermute Trading Ltd.",
 }: ProfileDialogProps) => {
   const { t } = useTranslation()
-  const router = useRouter()
 
   const { address, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
   const { isWrongNetwork } = useCurrentNetwork()
   const { switchChain } = useSwitchChain()
-
-  const handleClickProfile = () => {
-    router.push(ROUTES.borrower.profile)
-    handleClose()
-  }
 
   const handleClickDisconnect = () => {
     disconnect()
@@ -104,19 +99,20 @@ export const ProfileDialog = ({
         <Divider sx={{ height: "1px", width: "100%", margin: "28px 0 20px" }} />
 
         <Box sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
-          <Button
-            variant="text"
-            fullWidth
-            sx={{ padding: "10px 12px 10px 8px !important" }}
-            onClick={handleClickProfile}
-          >
-            <Typography
-              variant="text2"
-              sx={{ width: "100%", fontWeight: 600, textAlign: "left" }}
+          <Link href={ROUTES.borrower.profile}>
+            <Button
+              variant="text"
+              fullWidth
+              sx={{ padding: "10px 12px 10px 8px !important" }}
             >
-              View Profile
-            </Typography>
-          </Button>
+              <Typography
+                variant="text2"
+                sx={{ width: "100%", fontWeight: 600, textAlign: "left" }}
+              >
+                View Profile
+              </Typography>
+            </Button>
+          </Link>
 
           <Button
             variant="text"

@@ -12,7 +12,7 @@ export const BorrowerSidebar = () => (
 
     <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
       <Button variant="text" size="medium" sx={MenuItemButton}>
-        Borrower
+        Company Profile
       </Button>
     </Box>
   </Box>

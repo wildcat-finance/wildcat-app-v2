@@ -1,10 +1,22 @@
 "use client"
 
-import { Box, Button, Divider, Typography } from "@mui/material"
-import { DataGrid, GridColDef } from "@mui/x-data-grid"
-import { useTranslation } from "react-i18next"
-import { useAccount } from "wagmi"
+import * as React from "react"
 
+import {
+  Box,
+  Button,
+  Divider,
+  Skeleton,
+  SvgIcon,
+  Typography,
+} from "@mui/material"
+import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid"
+import { Market, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
+
+import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
+import Avatar from "@/assets/icons/avatar_icon.svg"
+import Edit from "@/assets/icons/edit_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketParametersItem } from "@/components/MarketParameters/components/MarketParametersItem"
 import { TooltipButton } from "@/components/TooltipButton"
@@ -15,6 +27,11 @@ import {
   percentComparator,
   statusComparator,
 } from "@/utils/comparators"
+import {
+  formatTokenWithCommas,
+  timestampToDateFormatted,
+} from "@/utils/formatters"
+import { getMarketStatusChip } from "@/utils/marketStatus"
 
 import {
   ContentContainer,
@@ -22,96 +39,58 @@ import {
   MarketParametersRowContainer,
   MarketParametersRowsDivider,
   ProfileHeaderButton,
-  ProfileHeaderContainer,
 } from "./style"
 
 export default function BorrowerPage() {
   const { t } = useTranslation()
-  const { address, isConnected } = useAccount()
+  const { data: borrowerMarkets, isLoading } = useGetBorrowerMarkets()
 
-  const mocks = [
-    {
-      id: "Market1",
-      name: "Market name",
-      status: "Penalty",
-      asset: "ETH",
-      lenderAPR: "12",
-      crr: "12",
+  const rows: GridRowsProp = (borrowerMarkets ?? []).map((market) => {
+    const {
+      address,
+      name,
+      underlyingToken,
+      annualInterestBips,
+      reserveRatioBips,
+      deployedEvent,
+      maximumDeposit,
+      totalBorrowed,
+    } = market
+
+    const marketStatus = getMarketStatusChip(market)
+
+    return {
+      id: address,
+      name,
+      status: marketStatus,
+      asset: underlyingToken.symbol,
+      lenderAPR: annualInterestBips,
+      crr: reserveRatioBips,
       type: "Type",
-      lend: "10,000.00",
-      debt: "10,000.00",
+      lend: maximumDeposit,
+      debt: totalBorrowed,
       kyc: "10,000.00",
       keyring: "10,000.00",
-      deployed: "28-12-2023 21:36",
-    },
-    {
-      id: "Market1",
-      name: "Market name",
-      status: "Penalty",
-      asset: "ETH",
-      lenderAPR: "12",
-      crr: "12",
-      type: "Type",
-      lend: "10,000.00",
-      debt: "10,000.00",
-      kyc: "10,000.00",
-      keyring: "10,000.00",
-      deployed: "28-12-2023 21:36",
-    },
-    {
-      id: "Market1",
-      name: "Market name",
-      status: "Penalty",
-      asset: "ETH",
-      lenderAPR: "12",
-      crr: "12",
-      type: "Type",
-      lend: "10,000.00",
-      debt: "10,000.00",
-      kyc: "10,000.00",
-      keyring: "10,000.00",
-      deployed: "28-12-2023 21:36",
-    },
-    {
-      id: "Market1",
-      name: "Market name",
-      status: "Penalty",
-      asset: "ETH",
-      lenderAPR: "12",
-      crr: "12",
-      type: "Type",
-      lend: "10,000.00",
-      debt: "10,000.00",
-      kyc: "10,000.00",
-      keyring: "10,000.00",
-      deployed: "28-12-2023 21:36",
-    },
-    {
-      id: "Market1",
-      name: "Market name",
-      status: "Penalty",
-      asset: "ETH",
-      lenderAPR: "12",
-      crr: "12",
-      type: "Type",
-      lend: "10,000.00",
-      debt: "10,000.00",
-      kyc: "10,000.00",
-      keyring: "10,000.00",
-      deployed: "28-12-2023 21:36",
-    },
-  ]
+      deployed: deployedEvent ? deployedEvent.blockTimestamp : 0,
+    }
+  })
 
   const columns: GridColDef[] = [
     {
       field: "name",
       headerName: t("borrowerMarketList.table.header.marketName"),
-      flex: 4,
-      minWidth: 160,
+      flex: 3,
+      minWidth: 152,
       headerAlign: "left",
       align: "left",
       renderCell: ({ value }) => (
-        <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+        <span
+          style={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            maxWidth: "136px",
+          }}
+        >
           {value}
         </span>
       ),
@@ -119,7 +98,7 @@ export default function BorrowerPage() {
     {
       field: "status",
       headerName: t("borrowerMarketList.table.header.status"),
-      minWidth: 150,
+      minWidth: 120,
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
@@ -180,6 +159,13 @@ export default function BorrowerPage() {
       align: "right",
       sortComparator: capacityComparator,
       flex: 2,
+      renderCell: (params) =>
+        params.value
+          ? formatTokenWithCommas(params.value, {
+              withSymbol: false,
+              fractionDigits: 2,
+            })
+          : "0",
     },
     {
       field: "debt",
@@ -188,6 +174,13 @@ export default function BorrowerPage() {
       headerAlign: "right",
       align: "right",
       flex: 1.5,
+      renderCell: (params) =>
+        params.value
+          ? formatTokenWithCommas(params.value, {
+              withSymbol: false,
+              fractionDigits: 2,
+            })
+          : "0",
     },
     {
       field: "kyc",
@@ -214,7 +207,7 @@ export default function BorrowerPage() {
       sortComparator: dateComparator,
       renderCell: (params) => (
         <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          {params.value}
+          {timestampToDateFormatted(params.value)}
         </Typography>
       ),
       flex: 2,
@@ -223,15 +216,30 @@ export default function BorrowerPage() {
 
   return (
     <Box sx={ContentContainer}>
-      <Box sx={ProfileHeaderContainer}>
-        <Box
+      <Box sx={{ display: "flex", flexDirection: "column" }}>
+        <SvgIcon sx={{ fontSize: "48px", marginBottom: "24px" }}>
+          <Avatar />
+        </SvgIcon>
+
+        <Typography variant="title1" sx={{ marginBottom: "12px" }}>
+          Wintermute LLC
+        </Typography>
+
+        <Typography
+          variant="text2"
+          color={COLORS.santasGrey}
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            display: "inline-block",
+            maxWidth: "586px",
+            marginBottom: "22px",
           }}
         >
-          <Typography variant="title1">Wintermute LLC</Typography>
+          – leading global algorithmic trading firm and one of the largest
+          players in digital asset markets. With an average daily trading volume
+          of over $5bn.
+        </Typography>
+
+        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
           <Box display="flex" gap="6px">
             <Button
               size="small"
@@ -260,32 +268,73 @@ export default function BorrowerPage() {
               Linkedin
             </Button>
           </Box>
-        </Box>
 
-        <Typography
-          variant="text2"
-          color={COLORS.santasGrey}
-          sx={{ display: "inline-block", width: "586px" }}
-        >
-          – leading global algorithmic trading firm and one of the largest
-          players in digital asset markets. With an average daily trading volume
-          of over $5bn.
-        </Typography>
+          <Button
+            variant="text"
+            size="small"
+            sx={{ gap: "4px", alignItems: "center" }}
+          >
+            <SvgIcon
+              fontSize="medium"
+              sx={{
+                "& path": {
+                  fill: `${COLORS.greySuit}`,
+                  transition: "fill 0.2s",
+                },
+              }}
+            >
+              <Edit />
+            </SvgIcon>
+            Edit Profile
+          </Button>
+        </Box>
       </Box>
 
       <Divider sx={{ margin: "32px 0" }} />
 
       <Box marginBottom="44px">
         <Typography variant="title3">Active Markets</Typography>
-        <DataGrid
-          sx={{
-            maxHeight:
-              "calc(100vh - 43px - 43px - 52px - 92px - 64px - 314px);",
-            overflow: "auto",
-          }}
-          rows={mocks}
-          columns={columns}
-        />
+        {!isLoading && (
+          <DataGrid
+            sx={{
+              marginTop: "12px",
+              overflow: "auto",
+              "& .MuiDataGrid-columnHeader": { padding: 0 },
+              "& .MuiDataGrid-cell": { padding: "0px" },
+            }}
+            rows={rows}
+            columns={columns}
+          />
+        )}
+        {isLoading && (
+          <Box
+            marginTop="30px"
+            display="flex"
+            flexDirection="column"
+            rowGap="8px"
+          >
+            <Skeleton
+              height="52px"
+              width="100%"
+              sx={{ bgcolor: COLORS.athensGrey }}
+            />
+            <Skeleton
+              height="52px"
+              width="100%"
+              sx={{ bgcolor: COLORS.athensGrey }}
+            />
+            <Skeleton
+              height="52px"
+              width="100%"
+              sx={{ bgcolor: COLORS.athensGrey }}
+            />
+            <Skeleton
+              height="52px"
+              width="100%"
+              sx={{ bgcolor: COLORS.athensGrey }}
+            />
+          </Box>
+        )}
       </Box>
 
       <Box>
@@ -308,10 +357,13 @@ export default function BorrowerPage() {
           </Box>
 
           <Box sx={MarketParametersRowContainer}>
-            <MarketParametersItem title="Markets" value="7" />
+            <MarketParametersItem
+              title="Markets"
+              value={!isLoading ? (borrowerMarkets ?? []).length : "Loading..."}
+            />
             <Divider sx={MarketParametersRowsDivider} />
 
-            <MarketParametersItem title="Markets" value="12 ETH" />
+            <MarketParametersItem title="Total amount borrowed" value="12" />
             <Divider sx={MarketParametersRowsDivider} />
 
             <MarketParametersItem
