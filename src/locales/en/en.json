@@ -223,6 +223,13 @@
         "afterTransaction": " after transaction",
         "interestRemaining": "Interest Remaining"
       },
+      "forceBuyBack": {
+        "title": "Force Buy Back",
+        "from": "From lender",
+        "description": "This action will forcibly eject the lender by buying their debt tokens in exchange for the equivalent underlying assets. It does NOT burn the market tokens; you will be entered into a withdrawal batch as if you were a lender.",
+        "warning": "This action is dangerous and may adversely affect your lenders. Use it with caution and ensure you are not violating the terms of your loan.",
+        "repurchaseAmount": "Repurchase Amount"
+      },
       "capacity": {
         "current": "Current capacity"
       },
