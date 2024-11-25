@@ -18,7 +18,11 @@ import { setEditStep } from "@/store/slices/editPolicySlice/editPolicySlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
-import { ConfirmLendersTableModel, TypeSafeColDef } from "./interface"
+import {
+  ConfirmLendersFormProps,
+  ConfirmLendersTableModel,
+  TypeSafeColDef,
+} from "./interface"
 import {
   AddedDot,
   AlertBox,
@@ -26,11 +30,16 @@ import {
   MarketsBox,
   TableStyles,
 } from "./style"
+import { useSubmitUpdates } from "../../hooks/useSubmitUpdates"
 
-export const ConfirmLendersForm = () => {
+export const ConfirmLendersForm = ({
+  originalPolicyName,
+  pendingPolicyName,
+  policy,
+  controller,
+}: ConfirmLendersFormProps) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-  console.log("ConfirmLendersForm!!!!\n".repeat(10))
   const initialLendersTableData = useAppSelector(
     (state) => state.editPolicy.initialLendersTableData,
   )
@@ -50,11 +59,45 @@ export const ConfirmLendersForm = () => {
     dispatch(setEditStep("edit"))
   }
 
+  const { submitUpdates, isSubmitting } = useSubmitUpdates(policy ?? controller)
+
   const { addedOrModifiedLenders } = useTrackLendersChanges(
     initialLendersTableData,
     lendersTableData,
   )
 
+  const handleClickSubmit = () => {
+    const newLenders = addedOrModifiedLenders.filter(
+      (lender) => lender.status === EditLenderFlowStatuses.NEW,
+    )
+    const removedLenders = addedOrModifiedLenders.filter(
+      (lender) => lender.status === EditLenderFlowStatuses.DELETED,
+    )
+    const nameUpdated = originalPolicyName !== pendingPolicyName
+    let actionIndex = 1
+    if (nameUpdated) {
+      console.log(
+        // eslint-disable-next-line no-plusplus
+        `ACTION #${actionIndex++} - Update policy name to ${pendingPolicyName}`,
+      )
+    }
+    if (newLenders.length) {
+      console.log(
+        // eslint-disable-next-line no-plusplus
+        `ACTION #${actionIndex++} - Add ${newLenders.length} new lenders`,
+      )
+    }
+    if (removedLenders.length) {
+      console.log(
+        // eslint-disable-next-line no-plusplus
+        `ACTION #${actionIndex++} - Remove ${removedLenders.length} lenders`,
+      )
+    }
+    submitUpdates({
+      addLenders: newLenders.map((l) => l.address),
+      removeLenders: removedLenders.map((l) => l.address),
+    })
+  }
   const columns: TypeSafeColDef<ConfirmLendersTableModel>[] = [
     {
       field: "name",
@@ -78,7 +121,7 @@ export const ConfirmLendersForm = () => {
                 params.row.status === "deleted" ? "line-through" : "none",
             }}
           >
-            {lendersName[params.row.address.toLowerCase()] === ("" || undefined)
+            {!lendersName[params.row.address.toLowerCase()]
               ? t("editLendersList.forms.confirm.addName")
               : lendersName[params.row.address.toLowerCase()]}
           </Typography>
@@ -172,7 +215,13 @@ export const ConfirmLendersForm = () => {
           {t("editLendersList.forms.confirm.back")}
         </Button>
 
-        <Button size="large" variant="contained" sx={{ width: "140px" }}>
+        <Button
+          size="large"
+          variant="contained"
+          sx={{ width: "140px" }}
+          onClick={handleClickSubmit}
+          disabled={isSubmitting}
+        >
           {t("editLendersList.forms.confirm.confirm")}
         </Button>
       </Box>

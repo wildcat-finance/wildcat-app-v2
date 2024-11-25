@@ -5,9 +5,11 @@ import { useTranslation } from "react-i18next"
 
 import CircledAlert from "@/assets/icons/circledAlert_icon.svg"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setLendersTableData } from "@/store/slices/editLendersListSlice/editLendersListSlice"
+import { setPolicyLendersTableData } from "@/store/slices/editPolicySlice/editPolicySlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
+
+import { EditLenderFlowStatuses } from "../../../../interface"
 
 export type DeleteModalProps = {
   isOpen: boolean
@@ -24,7 +26,7 @@ export const DeleteModal = ({
   const dispatch = useAppDispatch()
 
   const lendersTableData = useAppSelector(
-    (state) => state.editLendersList.lendersTableData,
+    (state) => state.editPolicy.lendersTableData,
   )
 
   const lendersNames: { [key: string]: string } = JSON.parse(
@@ -40,8 +42,16 @@ export const DeleteModal = ({
 
   const handleDelete = () => {
     dispatch(
-      setLendersTableData(
-        lendersTableData.filter((lender) => lender.address !== lenderAddress),
+      setPolicyLendersTableData(
+        lendersTableData.map((lender) => {
+          if (lender.address === lenderAddress) {
+            return {
+              ...lender,
+              status: EditLenderFlowStatuses.DELETED,
+            }
+          }
+          return lender
+        }),
       ),
     )
     setIsOpen(false)
