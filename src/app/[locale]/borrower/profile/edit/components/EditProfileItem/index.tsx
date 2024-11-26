@@ -21,7 +21,11 @@ export type EditProfileItemProps = {
     | "website"
     | "twitter"
     | "linkedin"
-  oldValue: string
+    | "jurisdiction"
+    | "legalNature"
+    | "address"
+    | "email"
+  oldValue: string | undefined
   newValue?: string
   children: ReactNode
 }
@@ -36,6 +40,7 @@ export const EditProfileItem = ({
   children,
 }: EditProfileItemProps) => {
   const hasValueChanged = oldValue !== newValue
+  const valueWasntEmpty = oldValue && oldValue.length !== 0
 
   const handleRestoreValue = () => {
     form.setValue(field, oldValue)
@@ -66,7 +71,7 @@ export const EditProfileItem = ({
       >
         <Box sx={{ width: "60.8%" }}>{children}</Box>
 
-        {hasValueChanged && (
+        {hasValueChanged && valueWasntEmpty && (
           <Box
             sx={{ display: "flex", flexDirection: "column", maxWidth: "35%" }}
           >

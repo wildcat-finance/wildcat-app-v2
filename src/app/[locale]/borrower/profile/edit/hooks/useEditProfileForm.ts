@@ -10,6 +10,11 @@ export const profileValidationSchema = z.object({
   website: z.string().trim().min(1, "Website is required"),
   twitter: z.string().optional(),
   linkedin: z.string().optional(),
+
+  jurisdiction: z.string().min(1),
+  legalNature: z.string().min(1),
+  address: z.string().min(1),
+  email: z.string().email(),
 })
 
 export type ProfileValidationSchemaType = z.infer<
@@ -23,8 +28,11 @@ export const useEditProfileForm = () => {
     founded: "",
     headquarters: "",
     website: "",
-    twitter: "",
-    linkedin: "",
+
+    jurisdiction: "",
+    legalNature: "",
+    address: "",
+    email: "",
   }
 
   return useForm<ProfileValidationSchemaType>({

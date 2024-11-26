@@ -1,15 +1,28 @@
 "use client"
 
 import * as React from "react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
-import { Box, Button, SvgIcon, TextField, Typography } from "@mui/material"
+import {
+  Box,
+  Button,
+  Divider,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  TextField,
+  Typography,
+} from "@mui/material"
+import { useRouter } from "next/navigation"
 
+import { DropdownOption } from "@/app/[locale]/borrower/new-market/components/LegalInfoForm/style"
+import { AvatarProfileItem } from "@/app/[locale]/borrower/profile/edit/components/AvatarProfileItem"
 import { EditProfileItem } from "@/app/[locale]/borrower/profile/edit/components/EditProfileItem"
 import { useEditProfileForm } from "@/app/[locale]/borrower/profile/edit/hooks/useEditProfileForm"
-import Avatar from "@/assets/icons/avatar_icon.svg"
-import Edit from "@/assets/icons/edit_icon.svg"
-import { TooltipButton } from "@/components/TooltipButton"
+import { mockedNaturesOptions } from "@/mocks/mocks"
+import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
 const mockProfile = {
@@ -19,13 +32,19 @@ const mockProfile = {
   founded: "2017",
   headquarters: "London",
   website: "https://wintermute.com",
-  twitter: "https://x.com/wintermute_t",
+  twitter: undefined,
   linkedin: "https://uk.linkedin.com/company/wintermute-trading",
+
+  jurisdiction: "",
+  legalNature: "",
+  address: "",
+  email: "",
 }
 
 export default function EditProfile() {
   const form = useEditProfileForm()
   const profileData = mockProfile
+  const router = useRouter()
 
   const {
     getValues,
@@ -34,7 +53,19 @@ export default function EditProfile() {
     formState: { errors, isValid },
     control,
     watch,
+    reset,
   } = form
+
+  const [avatar, setAvatar] = useState<string | null>(null)
+
+  const handleNatureSelect = (event: SelectChangeEvent<string | null>) => {
+    setValue("legalNature", event.target.value?.toString() || "")
+  }
+
+  const handleCancel = () => {
+    router.push(ROUTES.borrower.profile)
+    reset()
+  }
 
   useEffect(() => {
     setValue("legalName", profileData.legalName)
@@ -70,67 +101,7 @@ export default function EditProfile() {
         </Typography>
       </Box>
 
-      <Box
-        sx={{
-          width: "60.8%",
-          display: "flex",
-          flexDirection: "column",
-          gap: "12px",
-        }}
-      >
-        <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
-          <Typography variant="text3">Avatar</Typography>
-          <TooltipButton value="TBD" />
-        </Box>
-
-        <Box
-          sx={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Box sx={{ display: "flex", gap: "12px", alignItems: "center" }}>
-            <SvgIcon sx={{ fontSize: "64px" }}>
-              <Avatar />
-            </SvgIcon>
-
-            <Typography variant="text4" color={COLORS.santasGrey}>
-              Automatically Generated
-            </Typography>
-          </Box>
-
-          <Button
-            variant="text"
-            size="small"
-            sx={{
-              gap: "4px",
-              alignItems: "center",
-              padding: 0,
-              minWidth: "fit-content",
-              width: "fit-content",
-              "&:hover": {
-                boxShadow: "none",
-                backgroundColor: "transparent",
-              },
-            }}
-          >
-            <SvgIcon
-              fontSize="medium"
-              sx={{
-                "& path": {
-                  fill: `${COLORS.greySuit}`,
-                  transition: "fill 0.2s",
-                },
-              }}
-            >
-              <Edit />
-            </SvgIcon>
-            Change Image
-          </Button>
-        </Box>
-      </Box>
+      <AvatarProfileItem avatar={avatar} setAvatar={setAvatar} />
 
       <Box
         sx={{
@@ -265,6 +236,120 @@ export default function EditProfile() {
             {...register("linkedin")}
           />
         </EditProfileItem>
+      </Box>
+
+      <Divider sx={{ width: "60.8%", margin: "40px 0" }} />
+
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+          marginBottom: "32px",
+        }}
+      >
+        <Typography variant="title1">Private Info</Typography>
+        <Typography variant="text2" color={COLORS.santasGrey}>
+          In case you want join to the Market with MLA you should share your
+          legal info
+        </Typography>
+      </Box>
+
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "36px",
+        }}
+      >
+        <EditProfileItem
+          title="Jurisdiction"
+          tooltip="TBD"
+          form={form}
+          field="jurisdiction"
+          oldValue={profileData.jurisdiction}
+          newValue={watch("jurisdiction")}
+        >
+          <TextField
+            fullWidth
+            error={Boolean(errors.jurisdiction)}
+            helperText={errors.jurisdiction?.message}
+            {...register("jurisdiction")}
+          />
+        </EditProfileItem>
+
+        <EditProfileItem
+          title="Legal Nature"
+          tooltip="TBD"
+          form={form}
+          field="legalNature"
+          oldValue={profileData.legalNature}
+          newValue={watch("legalNature")}
+        >
+          <FormControl fullWidth>
+            <InputLabel className="test">Legal Nature</InputLabel>
+            <Select onChange={handleNatureSelect}>
+              {mockedNaturesOptions.map((option) => (
+                <MenuItem
+                  key={option.id}
+                  value={option.value}
+                  sx={DropdownOption}
+                >
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </EditProfileItem>
+
+        <EditProfileItem
+          title="Address"
+          tooltip="TBD"
+          form={form}
+          field="address"
+          oldValue={profileData.address}
+          newValue={watch("address")}
+        >
+          <TextField
+            fullWidth
+            error={Boolean(errors.address)}
+            helperText={errors.address?.message}
+            {...register("address")}
+          />
+        </EditProfileItem>
+
+        <EditProfileItem
+          title="Email"
+          tooltip="TBD"
+          form={form}
+          field="email"
+          oldValue={profileData.email}
+          newValue={watch("email")}
+        >
+          <TextField
+            fullWidth
+            error={Boolean(errors.email)}
+            helperText={errors.email?.message}
+            {...register("email")}
+          />
+        </EditProfileItem>
+      </Box>
+
+      <Box
+        sx={{
+          marginTop: "40px",
+          width: "60.8%",
+          display: "flex",
+          justifyContent: "space-between",
+        }}
+      >
+        <Button variant="text" size="large" onClick={handleCancel}>
+          Cancel
+        </Button>
+
+        <Button variant="contained" size="large" sx={{ width: "156px" }}>
+          Confirm
+        </Button>
       </Box>
     </Box>
   )
