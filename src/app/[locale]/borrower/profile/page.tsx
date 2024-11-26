@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@mui/material"
 import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid"
-import { Market, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
@@ -20,6 +20,7 @@ import Edit from "@/assets/icons/edit_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketParametersItem } from "@/components/MarketParameters/components/MarketParametersItem"
 import { TooltipButton } from "@/components/TooltipButton"
+import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
   capacityComparator,
@@ -41,9 +42,22 @@ import {
   ProfileHeaderButton,
 } from "./style"
 
+const mockProfile = {
+  legalName: "Wintermute LLC",
+  description:
+    "– leading global algorithmic trading firm and one of the largest players in digital asset markets. With an average daily trading volume of over $5bn.",
+  founded: "2017",
+  headquarters: "London",
+  website: "https://wintermute.com",
+  twitter: "https://x.com/wintermute_t",
+  linkedin: "https://uk.linkedin.com/company/wintermute-trading",
+}
+
 export default function BorrowerPage() {
   const { t } = useTranslation()
   const { data: borrowerMarkets, isLoading } = useGetBorrowerMarkets()
+
+  const profileData = mockProfile
 
   const rows: GridRowsProp = (borrowerMarkets ?? []).map((market) => {
     const {
@@ -222,7 +236,7 @@ export default function BorrowerPage() {
         </SvgIcon>
 
         <Typography variant="title1" sx={{ marginBottom: "12px" }}>
-          Wintermute LLC
+          {profileData.legalName}
         </Typography>
 
         <Typography
@@ -234,59 +248,69 @@ export default function BorrowerPage() {
             marginBottom: "22px",
           }}
         >
-          – leading global algorithmic trading firm and one of the largest
-          players in digital asset markets. With an average daily trading volume
-          of over $5bn.
+          {profileData.description}
         </Typography>
 
         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
           <Box display="flex" gap="6px">
-            <Button
-              size="small"
-              variant="outlined"
-              color="secondary"
-              sx={ProfileHeaderButton}
-            >
-              Website
-            </Button>
+            <Link href={profileData.website} target="_blank">
+              <Button
+                size="small"
+                variant="outlined"
+                color="secondary"
+                sx={ProfileHeaderButton}
+              >
+                Website
+              </Button>
+            </Link>
 
-            <Button
-              size="small"
-              variant="outlined"
-              color="secondary"
-              sx={ProfileHeaderButton}
-            >
-              Twitter
-            </Button>
+            {profileData.twitter && (
+              <Link href={profileData.twitter} target="_blank">
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="secondary"
+                  sx={ProfileHeaderButton}
+                >
+                  Twitter
+                </Button>
+              </Link>
+            )}
 
-            <Button
-              size="small"
-              variant="outlined"
-              color="secondary"
-              sx={ProfileHeaderButton}
-            >
-              Linkedin
-            </Button>
+            {profileData.linkedin && (
+              <Link href={profileData.linkedin} target="_blank">
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="secondary"
+                  sx={ProfileHeaderButton}
+                >
+                  Linkedin
+                </Button>
+              </Link>
+            )}
           </Box>
 
-          <Button
-            variant="text"
-            size="small"
-            sx={{ gap: "4px", alignItems: "center" }}
-          >
-            <SvgIcon
-              fontSize="medium"
-              sx={{
-                "& path": {
-                  fill: `${COLORS.greySuit}`,
-                  transition: "fill 0.2s",
-                },
-              }}
+          <Link href={ROUTES.borrower.editProfile}>
+            <Button
+              variant="text"
+              size="small"
+              sx={{ gap: "4px", alignItems: "center" }}
             >
-              <Edit />
-            </SvgIcon>
-            Edit Profile
-          </Button>
+              <SvgIcon
+                fontSize="medium"
+                sx={{
+                  "& path": {
+                    fill: `${COLORS.greySuit}`,
+                    transition: "fill 0.2s",
+                  },
+                }}
+              >
+                <Edit />
+              </SvgIcon>
+              Edit Profile
+            </Button>
+          </Link>
         </Box>
       </Box>
 
@@ -344,15 +368,18 @@ export default function BorrowerPage() {
           <Box sx={MarketParametersRowContainer}>
             <MarketParametersItem
               title="Legal Name"
-              value="Wintermute"
-              link="Wintermute"
+              value={profileData.legalName}
+              link={profileData.website}
             />
             <Divider sx={MarketParametersRowsDivider} />
 
-            <MarketParametersItem title="Headquarters" value="London" />
+            <MarketParametersItem
+              title="Headquarters"
+              value={profileData.headquarters}
+            />
             <Divider sx={MarketParametersRowsDivider} />
 
-            <MarketParametersItem title="Founded" value="2017" />
+            <MarketParametersItem title="Founded" value={profileData.founded} />
             <Divider sx={MarketParametersRowsDivider} />
           </Box>
 

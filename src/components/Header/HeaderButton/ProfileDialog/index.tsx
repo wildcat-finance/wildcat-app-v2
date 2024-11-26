@@ -7,7 +7,6 @@ import {
   Typography,
 } from "@mui/material"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount, useDisconnect, useSwitchChain } from "wagmi"
 import { sepolia } from "wagmi/chains"
@@ -99,7 +98,7 @@ export const ProfileDialog = ({
         <Divider sx={{ height: "1px", width: "100%", margin: "28px 0 20px" }} />
 
         <Box sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
-          <Link href={ROUTES.borrower.profile}>
+          <Link href={ROUTES.borrower.profile} onClick={handleClose}>
             <Button
               variant="text"
               fullWidth
