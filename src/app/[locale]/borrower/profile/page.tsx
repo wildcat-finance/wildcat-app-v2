@@ -15,6 +15,7 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
+import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import Avatar from "@/assets/icons/avatar_icon.svg"
 import Edit from "@/assets/icons/edit_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
@@ -58,6 +59,10 @@ export default function BorrowerPage() {
   const { data: borrowerMarkets, isLoading } = useGetBorrowerMarkets()
 
   const profileData = mockProfile
+
+  const test = useGetBorrowerProfile()
+
+  console.log(test)
 
   const rows: GridRowsProp = (borrowerMarkets ?? []).map((market) => {
     const {

@@ -16,11 +16,13 @@ import {
   Typography,
 } from "@mui/material"
 import { useRouter } from "next/navigation"
+import { useAccount } from "wagmi"
 
 import { AvatarProfileItem } from "@/app/[locale]/borrower/profile/edit/components/AvatarProfileItem"
 import { EditProfileItem } from "@/app/[locale]/borrower/profile/edit/components/EditProfileItem"
 import { SelectProfileItem } from "@/app/[locale]/borrower/profile/edit/components/SelectProfileItem"
 import { useEditProfileForm } from "@/app/[locale]/borrower/profile/edit/hooks/useEditProfileForm"
+import { useUpdateBorrowerProfile } from "@/app/[locale]/borrower/profile/edit/hooks/useUpdateBorrowerProfile"
 import { mockedNaturesOptions } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -45,6 +47,10 @@ export default function EditProfile() {
   const profileData = mockProfile
   const router = useRouter()
 
+  const { address } = useAccount()
+
+  const { mutate } = useUpdateBorrowerProfile()
+
   const {
     getValues,
     setValue,
@@ -54,10 +60,27 @@ export default function EditProfile() {
     reset,
   } = form
 
+  const profileInfo = {
+    address: address as string,
+    name: getValues().legalName,
+    description: getValues().description,
+    founded: getValues().founded,
+    headquarters: getValues().headquarters,
+    website: getValues().website,
+    twitter: getValues().twitter,
+    linkedin: getValues().linkedin,
+  }
+
   const [avatar, setAvatar] = useState<string | null>(null)
 
   const handleNatureSelect = (event: SelectChangeEvent<string | null>) => {
     setValue("legalNature", event.target.value?.toString() || "")
+  }
+
+  const handleSendUpdate = () => {
+    mutate(profileInfo)
+    router.push(ROUTES.borrower.profile)
+    reset()
   }
 
   const handleCancel = () => {
@@ -409,7 +432,12 @@ export default function EditProfile() {
           Cancel
         </Button>
 
-        <Button variant="contained" size="large" sx={{ width: "156px" }}>
+        <Button
+          variant="contained"
+          size="large"
+          sx={{ width: "156px" }}
+          onClick={handleSendUpdate}
+        >
           Confirm
         </Button>
       </Box>
