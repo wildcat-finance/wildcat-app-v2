@@ -5,15 +5,17 @@ export type ExtendedSelectOptionItem<Value = string> = {
   value: Value
   id: string
   label: string
+  badge?: string
 }
 
 export type ExtendedSelectProps<
   TFieldValues extends FieldValues = FieldValues,
-> = Omit<SelectProps<string>, "variant"> & {
+> = SelectProps<string> & {
   options: ExtendedSelectOptionItem<FieldValue<TFieldValues>>[]
   small?: boolean
   selectSX?: SxProps<Theme>
   optionSX?: SxProps<Theme>
+  badgeSX?: SxProps<Theme>
   control: Control<TFieldValues>
   name: Path<TFieldValues>
 }

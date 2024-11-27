@@ -3,6 +3,7 @@ import { configureStore } from "@reduxjs/toolkit"
 import borrowerLendersTabSidebarSlice from "./slices/borrowerLendersTabSidebarSlice/borrowerLendersTabSidebarSlice"
 import borrowerOverviewSlice from "./slices/borrowerOverviewSlice/borrowerOverviewSlice"
 import editLendersListSlice from "./slices/editLendersListSlice/editLendersListSlice"
+import editPolicySlice from "./slices/editPolicySlice/editPolicySlice"
 import highlightSidebarSlice from "./slices/highlightSidebarSlice/highlightSidebarSlice"
 import lenderMarketRoutingSlice from "./slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import marketsOverviewSidebarSlice from "./slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
@@ -18,6 +19,7 @@ export const makeStore = () =>
       highlightSidebar: highlightSidebarSlice,
       lenderMarketRouting: lenderMarketRoutingSlice,
       editLendersList: editLendersListSlice,
+      editPolicy: editPolicySlice,
       borrowerOverview: borrowerOverviewSlice,
       notifications: notificationsSlice,
       notificationsSidebar: notificationsSidebarSlice,

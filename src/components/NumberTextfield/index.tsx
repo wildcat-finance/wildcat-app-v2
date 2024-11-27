@@ -14,6 +14,7 @@ type NumberTextFieldProps = Omit<
   helperText?: string
   size?: TextFieldProps["size"]
   sx?: TextFieldProps["sx"]
+  FormHelperTextProps?: TextFieldProps["FormHelperTextProps"]
 }
 
 export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
@@ -29,6 +30,7 @@ export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
       decimalScale = 5,
       size,
       sx,
+      FormHelperTextProps,
       ...rest
     } = props
 
@@ -40,6 +42,7 @@ export const NumberTextField = forwardRef<TextFieldProps, NumberTextFieldProps>(
           label,
           error,
           helperText,
+          FormHelperTextProps,
           size,
           InputProps: {
             ...{

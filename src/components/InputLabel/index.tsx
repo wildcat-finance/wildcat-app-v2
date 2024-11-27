@@ -23,7 +23,7 @@ export const InputLabel = ({
       <Box sx={InputLabelTypo}>
         <Typography variant="text3">{label}</Typography>
       </Box>
-      <TooltipButton value={tooltipText} />
+      {tooltipText && <TooltipButton value={tooltipText} />}
     </Box>
     {subtitle && (
       <Typography variant="text4" sx={InputLabelSubtitle}>

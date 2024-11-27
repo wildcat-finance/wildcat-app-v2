@@ -1,5 +1,12 @@
+import { useEffect } from "react"
+
 import { useQuery } from "@tanstack/react-query"
-import { Market, getLensContract } from "@wildcatfi/wildcat-sdk"
+import {
+  Market,
+  MarketVersion,
+  getLensContract,
+  getLensV2Contract,
+} from "@wildcatfi/wildcat-sdk"
 import {
   GetMarketDocument,
   SubgraphGetMarketQuery,
@@ -46,10 +53,18 @@ export function useGetMarket({ address, ...filters }: UseMarketProps) {
 
   async function updateMarket(market: Market | undefined) {
     if (!market || !address || !signerOrProvider) throw Error()
-
-    const lens = getLensContract(TargetChainId, signerOrProvider)
-    const update = await lens.getMarketData(address)
-    market.updateWith(update)
+    if (market.version === MarketVersion.V1) {
+      const lens = getLensContract(TargetChainId, signerOrProvider)
+      const update = await lens.getMarketData(address)
+      market.updateWith(update)
+    } else {
+      const lens = getLensV2Contract(TargetChainId, signerOrProvider)
+      const update = await lens.getMarketData(address)
+      market.updateWith(update)
+    }
+    if (market.provider !== signerOrProvider) {
+      market.provider = signerOrProvider
+    }
 
     return market
   }
@@ -59,11 +74,19 @@ export function useGetMarket({ address, ...filters }: UseMarketProps) {
     return updateMarket(marketFromSubgraph)
   }
 
-  return useQuery({
+  const { data, ...result } = useQuery({
     queryKey: [GET_MARKET_KEY, address],
     queryFn,
     refetchInterval: POLLING_INTERVAL,
     enabled: !!address || !signerOrProvider || isWrongNetwork,
     refetchOnMount: false,
   })
+
+  useEffect(() => {
+    if (data && signerOrProvider && data.provider !== signerOrProvider) {
+      data.provider = signerOrProvider
+    }
+  }, [signerOrProvider])
+
+  return { ...result, data }
 }

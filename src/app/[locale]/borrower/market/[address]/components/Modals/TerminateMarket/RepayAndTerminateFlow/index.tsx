@@ -127,11 +127,11 @@ export const RepayAndTerminateFlow = ({
     }
   }
 
-  const terminateMarketStep = marketAccount.checkCloseMarketStep()
+  const terminateMarketStep = marketAccount.previewCloseMarket()
 
   const handleApprove = () => {
     if (terminateMarketStep?.status === "InsufficientAllowance") {
-      approve(terminateMarketStep.remainder)
+      approve(terminateMarketStep.outstanding)
         .then(() => modal.setFlowStep(TerminateModalSteps.approved))
         .catch((err) => console.log(err))
     }
