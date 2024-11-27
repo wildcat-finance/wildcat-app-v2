@@ -18,7 +18,11 @@ export const useBorrow = (
 
   return useMutation({
     mutationFn: async (amount: string) => {
-      if (!marketAccount || !signer || !Signer.isSigner(signer)) {
+      if (
+        !marketAccount ||
+        !signer ||
+        !Signer.isSigner(marketAccount.market.provider)
+      ) {
         return
       }
 
