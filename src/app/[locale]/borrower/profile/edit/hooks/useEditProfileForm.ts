@@ -3,18 +3,18 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 export const profileValidationSchema = z.object({
-  legalName: z.string().trim().min(1, "Legal name is required"),
-  description: z.string().trim().min(1, "Description is required"),
-  founded: z.string().trim().min(1, "Founded date is required"),
-  headquarters: z.string().trim().min(1, "Headquarters is required"),
-  website: z.string().trim().min(1, "Website is required"),
+  legalName: z.string().optional(),
+  description: z.string().optional(),
+  founded: z.string().optional(),
+  headquarters: z.string().optional(),
+  website: z.string().optional(),
   twitter: z.string().optional(),
   linkedin: z.string().optional(),
 
-  jurisdiction: z.string().min(1),
-  legalNature: z.string().min(1),
-  address: z.string().min(1),
-  email: z.string().email(),
+  jurisdiction: z.string().optional(),
+  legalNature: z.string().optional(),
+  address: z.string().optional(),
+  email: z.string().email().optional(),
 })
 
 export type ProfileValidationSchemaType = z.infer<

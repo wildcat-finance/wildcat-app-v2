@@ -80,11 +80,10 @@ export default function BorrowerPage() {
       asset: underlyingToken.symbol,
       lenderAPR: annualInterestBips,
       crr: reserveRatioBips,
-      type: "Type",
+      type: "Type A",
       lend: maximumDeposit,
       debt: totalBorrowed,
-      kyc: "10,000.00",
-      keyring: "10,000.00",
+      kyc: "Added By Borrower",
       deployed: deployedEvent ? deployedEvent.blockTimestamp : 0,
     }
   })
@@ -122,10 +121,10 @@ export default function BorrowerPage() {
     {
       field: "asset",
       headerName: t("borrowerMarketList.table.header.asset"),
-      minWidth: 151,
+      minWidth: 110,
       headerAlign: "right",
       align: "right",
-      flex: 2,
+      flex: 1,
     },
     {
       field: "lenderAPR",
@@ -203,14 +202,18 @@ export default function BorrowerPage() {
       headerAlign: "right",
       align: "right",
       flex: 1.5,
-    },
-    {
-      field: "keyring",
-      headerName: "Keyring",
-      minWidth: 110,
-      headerAlign: "right",
-      align: "right",
-      flex: 1.5,
+      renderCell: (params) => (
+        <span
+          style={{
+            whiteSpace: "wrap",
+            width: "100%",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {params.value}
+        </span>
+      ),
     },
     {
       field: "deployed",
