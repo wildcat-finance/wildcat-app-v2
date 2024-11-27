@@ -1,17 +1,16 @@
-import { useMemo } from "react"
-
 import { zodResolver } from "@hookform/resolvers/zod"
-import { MarketParameterConstraints } from "@wildcatfi/wildcat-sdk"
-import { useForm } from "react-hook-form"
-
-import { useGetController } from "@/hooks/useGetController"
-import { mockedMarketTypes } from "@/mocks/mocks"
-import { formatConstrainToNumber } from "@/utils/formatters"
+import {
+  DefaultV2ParameterConstraints,
+  MarketParameterConstraints,
+} from "@wildcatfi/wildcat-sdk"
+import { useForm, UseFormReturn } from "react-hook-form"
 
 import {
   MarketValidationSchemaType,
   marketValidationSchema as vschema,
-} from "../validation/validationSchema"
+} from "@/app/[locale]/borrower/new-market/validation/validationSchema"
+import { mockedMarketTypes } from "@/mocks/mocks"
+import { formatConstrainToNumber } from "@/utils/formatters"
 
 export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   marketType: mockedMarketTypes[0].value,
@@ -22,45 +21,60 @@ export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   minimumDeposit: 0,
   delinquencyGracePeriod: undefined,
   withdrawalBatchDuration: undefined,
+  fixedTermEndTime: undefined,
+  allowClosureBeforeTerm: false,
+  allowTermReduction: false,
+  policy: "createNewPolicy",
+  policyName: "",
+  accessControl: "defaultPullProvider",
+  mla: "",
+  marketName: "aa",
+  asset: "0x",
+  namePrefix: "",
+  symbolPrefix: "",
+  disableTransfers: false,
+  transferRequiresAccess: false,
+  depositRequiresAccess: false,
+  withdrawalRequiresAccess: false,
 }
 
 function getValidationSchema(constraints: MarketParameterConstraints) {
   const getFormattedConstrain = (key: keyof MarketParameterConstraints) =>
     formatConstrainToNumber(constraints, key)
+  // eslint-disable-next-line no-underscore-dangle
+  const baseSchema = vschema._def.schema._def.schema
 
-  return vschema.extend({
-    delinquencyGracePeriod: vschema.shape.delinquencyGracePeriod
+  return baseSchema.extend({
+    delinquencyGracePeriod: baseSchema.shape.delinquencyGracePeriod
       .min(getFormattedConstrain("minimumDelinquencyGracePeriod"))
       .max(getFormattedConstrain("maximumDelinquencyGracePeriod")),
-    reserveRatioBips: vschema.shape.reserveRatioBips
+    reserveRatioBips: baseSchema.shape.reserveRatioBips
       .min(getFormattedConstrain("minimumReserveRatioBips"))
       .max(getFormattedConstrain("maximumReserveRatioBips")),
-    delinquencyFeeBips: vschema.shape.delinquencyFeeBips
+    delinquencyFeeBips: baseSchema.shape.delinquencyFeeBips
       .min(getFormattedConstrain("minimumDelinquencyFeeBips"))
       .max(getFormattedConstrain("maximumDelinquencyFeeBips")),
-    withdrawalBatchDuration: vschema.shape.withdrawalBatchDuration
+    withdrawalBatchDuration: baseSchema.shape.withdrawalBatchDuration
       .min(getFormattedConstrain("minimumWithdrawalBatchDuration"))
       .max(getFormattedConstrain("maximumWithdrawalBatchDuration")),
-    annualInterestBips: vschema.shape.annualInterestBips
+    annualInterestBips: baseSchema.shape.annualInterestBips
       .min(getFormattedConstrain("minimumAnnualInterestBips"))
       .max(getFormattedConstrain("maximumAnnualInterestBips")),
   })
 }
 
-export const useNewMarketForm = () => {
-  const { data: controller } = useGetController()
+export type NewMarketFormType = UseFormReturn<MarketValidationSchemaType>
 
-  const validationSchemaAsync = useMemo(() => {
-    if (controller?.constraints) {
-      return getValidationSchema(controller.constraints)
-    }
+export const useNewMarketForm = (): NewMarketFormType => {
+  const validationSchemaAsync = getValidationSchema(
+    DefaultV2ParameterConstraints,
+  )
 
-    return vschema
-  }, [controller?.constraints])
-
-  return useForm<MarketValidationSchemaType>({
+  const form = useForm<MarketValidationSchemaType>({
     defaultValues: defaultMarketForm,
     resolver: zodResolver(validationSchemaAsync),
-    mode: "onChange",
+    mode: "onBlur",
   })
+
+  return form
 }

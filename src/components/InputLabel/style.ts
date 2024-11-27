@@ -21,7 +21,3 @@ export const InputLabelSubtitle = {
   lineHeight: "12px",
   margin: "2px 0 12px",
 }
-
-export const TooltipIcon = {
-  "& path": { fill: `${COLORS.greySuit}` },
-}

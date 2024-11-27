@@ -1,72 +1,149 @@
 import { Box, Button } from "@mui/material"
-import SvgIcon from "@mui/material/SvgIcon"
-import Link from "next/link"
+import { useParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
+import { TerminateMarket } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateMarket"
+import { BackButton } from "@/components/BackButton"
 import {
   ContentContainer,
   MenuItemButton,
 } from "@/components/Sidebar/MarketSidebar/style"
-import { ROUTES } from "@/routes"
+import { useGetMarket } from "@/hooks/useGetMarket"
+import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import {
+  setCheckBlock,
+  setSidebarHighlightState,
+} from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
-
-import BackArrow from "../../../assets/icons/backArrow_icon.svg"
-import Cross from "../../../assets/icons/cross_icon.svg"
 
 export const MarketSidebar = () => {
   const { t } = useTranslation()
 
+  const dispatch = useAppDispatch()
+
+  const params = useParams<{ locale: string; address: string }>()
+
+  const { address } = params
+
+  const { data: market } = useGetMarket({
+    address,
+  })
+  const { address: walletAddress } = useAccount()
+  const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
+
+  const sidebarState = useAppSelector(
+    (state) => state.highlightSidebar.sidebarState,
+  )
+
+  const holdTheMarket =
+    market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
+
   return (
     <Box sx={ContentContainer}>
-      <Link href={ROUTES.borrower.root} passHref>
-        <Button
-          fullWidth
-          variant="text"
-          size="medium"
-          sx={{
-            color: COLORS.greySuit,
-            justifyContent: "flex-start",
-            marginBottom: "12px",
-          }}
-        >
-          <SvgIcon
-            fontSize="small"
+      <Box position="sticky" top="32px">
+        <BackButton title={t("borrowerMarketDetails.sidebar.backToMarkets")} />
+
+        <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
+          <Button
+            variant="text"
+            size="medium"
             sx={{
-              marginRight: "4px",
-              "& path": { fill: `${COLORS.greySuit}` },
+              ...MenuItemButton,
+              backgroundColor: sidebarState.borrowRepay
+                ? COLORS.whiteSmoke
+                : "transparent",
+            }}
+            onClick={() => {
+              dispatch(setCheckBlock(1))
+              dispatch(
+                setSidebarHighlightState({
+                  borrowRepay: true,
+                  statusDetails: false,
+                  withdrawals: false,
+                  lenders: false,
+                }),
+              )
             }}
           >
-            <BackArrow />
-          </SvgIcon>
-          {t("borrowerMarketDetails:backButton")}
-        </Button>
-      </Link>
+            {t("borrowerMarketDetails.sidebar.borrowRepay")}
+          </Button>
+          <Button
+            variant="text"
+            size="medium"
+            sx={{
+              ...MenuItemButton,
+              backgroundColor: sidebarState.statusDetails
+                ? COLORS.whiteSmoke
+                : "transparent",
+            }}
+            onClick={() => {
+              dispatch(setCheckBlock(2))
+              dispatch(
+                setSidebarHighlightState({
+                  borrowRepay: false,
+                  statusDetails: true,
+                  withdrawals: false,
+                  lenders: false,
+                }),
+              )
+            }}
+          >
+            {t("borrowerMarketDetails.sidebar.statusDetails")}
+          </Button>
+          <Button
+            variant="text"
+            size="medium"
+            sx={{
+              ...MenuItemButton,
+              backgroundColor: sidebarState.withdrawals
+                ? COLORS.whiteSmoke
+                : "transparent",
+            }}
+            onClick={() => {
+              dispatch(setCheckBlock(3))
+              dispatch(
+                setSidebarHighlightState({
+                  borrowRepay: false,
+                  statusDetails: false,
+                  withdrawals: true,
+                  lenders: false,
+                }),
+              )
+            }}
+          >
+            {t("borrowerMarketDetails.sidebar.withdrawalRequests")}
+          </Button>
+          <Button
+            variant="text"
+            size="medium"
+            sx={{
+              ...MenuItemButton,
+              backgroundColor: sidebarState.lenders
+                ? COLORS.whiteSmoke
+                : "transparent",
+            }}
+            onClick={() => {
+              dispatch(setCheckBlock(4))
+              dispatch(
+                setSidebarHighlightState({
+                  borrowRepay: false,
+                  statusDetails: false,
+                  withdrawals: false,
+                  lenders: true,
+                }),
+              )
+            }}
+          >
+            {t("borrowerMarketDetails.sidebar.authorisedLenders")}
+          </Button>
+        </Box>
 
-      <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
-        <Button variant="text" size="medium" sx={MenuItemButton}>
-          {t("borrowerMarketDetails:borrowRepayLinkButton")}
-        </Button>
-        <Button variant="text" size="medium" sx={MenuItemButton}>
-          {t("borrowerMarketDetails:statusDetailsLinkButton")}
-        </Button>
-        <Button variant="text" size="medium" sx={MenuItemButton}>
-          {t("borrowerMarketDetails:withdrawalRequestsLinkButton")}
-        </Button>
-        <Button variant="text" size="medium" sx={MenuItemButton}>
-          {t("borrowerMarketDetails:lendersLinkButton")}
-        </Button>
+        {marketAccount && holdTheMarket && (
+          <TerminateMarket marketAccount={marketAccount} />
+        )}
       </Box>
-
-      <Button
-        variant="outlined"
-        color="secondary"
-        sx={{ fontWeight: 500, marginTop: "24px" }}
-      >
-        <SvgIcon fontSize="small" sx={{ marginRight: "4px" }}>
-          <Cross />
-        </SvgIcon>
-        {t("borrowerMarketDetails:terminateButton")}
-      </Button>
     </Box>
   )
 }

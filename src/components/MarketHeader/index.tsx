@@ -1,51 +1,111 @@
-"use client"
+import * as React from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Tooltip, Typography } from "@mui/material"
+import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
+import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
-import {
-  ElseButtonContainer,
-  ElseButtonText,
-} from "@/components/MarketHeader/style"
+import { COLORS } from "@/theme/colors"
+import { getMarketStatusChip } from "@/utils/marketStatus"
 
-export const MarketHeader = () => {
+import { MarketHeaderProps } from "./interface"
+import {
+  MarketHeaderStatusContainer,
+  MarketHeaderTitleContainer,
+  MarketHeaderUpperContainer,
+} from "./style"
+
+export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
+  const [remainingTime, setRemainingTime] = React.useState<string | undefined>(
+    "",
+  )
   const { t } = useTranslation()
 
-  return (
-    <Box display="flex" flexDirection="column" rowGap="20px">
-      <Box display="flex" alignItems="center" justifyContent="space-between">
-        <Box display="flex" columnGap="8px">
-          <Typography variant="title1">Market Name</Typography>
-          <Typography variant="text4">WBTC</Typography>
-        </Box>
-        <Box display="flex" columnGap="12px">
-          <MarketStatusChip status="healthy" variant="filled" />
-          <MarketCycleChip color="blue" time="3m 45s" />
-        </Box>
-      </Box>
+  const { market } = marketAccount
 
-      <Box display="flex" columnGap="6px">
-        <Button variant="outlined" color="secondary" size="small">
-          {t("editLendersButton")}
-        </Button>
-        <Button variant="outlined" color="secondary" size="small">
-          {t("adjustCapacityButton")}
-        </Button>
-        <Button variant="outlined" color="secondary" size="small">
-          {t("adjustAPRButton")}
-        </Button>
-        <Button
-          variant="outlined"
-          color="secondary"
-          size="small"
-          sx={ElseButtonContainer}
-        >
-          <Typography variant="text4" sx={ElseButtonText}>
-            ...
+  const { data } = useGetWithdrawals(market)
+
+  const cycleStart = data.activeWithdrawal?.requests[0]?.blockTimestamp
+
+  React.useEffect(() => {
+    const cycleEnd =
+      cycleStart !== undefined ? cycleStart + market.withdrawalBatchDuration : 0
+
+    if (cycleStart) {
+      const updateRemainingTime = () => {
+        const now = Math.floor(Date.now() / 1000)
+        const timeLeft = cycleEnd - now
+        if (timeLeft > 0) {
+          setRemainingTime(
+            humanizeDuration(timeLeft * 1000, {
+              round: true,
+              largest: 1,
+              units: ["h", "m", "s"],
+            }),
+          )
+        } else {
+          setRemainingTime(undefined)
+        }
+      }
+
+      updateRemainingTime()
+
+      const intervalId = setInterval(updateRemainingTime, 1000)
+
+      return () => clearInterval(intervalId)
+    }
+
+    return undefined
+  }, [data, market.withdrawalBatchDuration, cycleStart])
+
+  const marketStatus = getMarketStatusChip(market)
+
+  return (
+    <Box sx={MarketHeaderUpperContainer}>
+      {market.name.length > 32 ? (
+        <Tooltip title={market.name} placement="right">
+          <Box sx={MarketHeaderTitleContainer}>
+            <Typography
+              variant="title1"
+              sx={{
+                maxWidth: remainingTime ? "430px" : "550px",
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
+                overflow: "hidden",
+              }}
+            >
+              {market.name}
+            </Typography>
+            <Typography variant="text4">
+              {market.underlyingToken.symbol}
+            </Typography>
+          </Box>
+        </Tooltip>
+      ) : (
+        <Box sx={MarketHeaderTitleContainer}>
+          <Typography
+            variant="title1"
+            sx={{
+              maxWidth: remainingTime ? "430px" : "550px",
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
+              overflow: "hidden",
+            }}
+          >
+            {market.name}
           </Typography>
-        </Button>
+          <Typography variant="text4">
+            {market.underlyingToken.symbol}
+          </Typography>
+        </Box>
+      )}
+      <Box sx={MarketHeaderStatusContainer}>
+        <MarketStatusChip status={marketStatus} variant="filled" />
+        {remainingTime && (
+          <MarketCycleChip status={marketStatus.status} time={remainingTime} />
+        )}
       </Box>
     </Box>
   )

@@ -1,0 +1,21 @@
+{
+  "short_name": "Wildcat Finance",
+  "name": "Wildcat Finance",
+  "description": "An undercollateralised credit facility protocol: banking, but worse",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "wildcat-logo.svg",
+      "sizes": "any"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "iconPath": "wildcat-logo.svg"
+}

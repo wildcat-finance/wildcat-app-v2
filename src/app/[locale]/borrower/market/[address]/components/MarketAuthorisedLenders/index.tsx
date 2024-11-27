@@ -1,0 +1,484 @@
+/* eslint-disable no-nested-ternary */
+
+"use client"
+
+import * as React from "react"
+
+import {
+  Box,
+  Button,
+  Divider,
+  IconButton,
+  Skeleton,
+  SvgIcon,
+  Typography,
+} from "@mui/material"
+import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import {
+  BasicLenderData,
+  LenderRole,
+  MarketVersion,
+} from "@wildcatfi/wildcat-sdk"
+import Link from "next/link"
+import { useTranslation } from "react-i18next"
+import { useCopyToClipboard } from "react-use"
+
+import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
+import { useGetAuthorisedLendersByMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetLenders"
+import {
+  SkeletonContainer,
+  SkeletonStyle,
+} from "@/app/[locale]/borrower/market/[address]/style"
+import Copy from "@/assets/icons/copy_icon.svg"
+import LinkIcon from "@/assets/icons/link_icon.svg"
+import { Accordion } from "@/components/Accordion"
+import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
+import { EtherscanBaseUrl } from "@/config/network"
+import { ROUTES } from "@/routes"
+import { COLORS } from "@/theme/colors"
+import {
+  DATE_FORMAT,
+  formatBlockTimestamp,
+  timestampToDateFormatted,
+  TOKEN_FORMAT_DECIMALS,
+  trimAddress,
+} from "@/utils/formatters"
+
+import { MarketAuthorisedLendersProps } from "./interface"
+import {
+  DataGridCells,
+  MarketLendersMLA,
+  MarketWithdrawalRequestsContainer,
+  MarketWithdrawalRequetstCell,
+  MLATableButton,
+} from "./style"
+import { useGetMarketLenders } from "../../hooks/useGetMarketLenders"
+import { ForceBuyBackModal } from "../Modals/ForceBuyBackModal"
+
+export const MarketAuthorisedLenders = ({
+  market,
+  marketAccount,
+}: MarketAuthorisedLendersProps) => {
+  const editLendersLink = market
+    ? `${ROUTES.borrower.editPolicy}?policy=${encodeURIComponent(
+        market?.hooksConfig?.hooksAddress ?? market?.controller ?? "",
+      )}`
+    : ROUTES.borrower.lendersList
+
+  const hasMLA = 0 // test const for hoiding/showing MLA columns in table
+
+  const lendersNames: { [key: string]: string } = JSON.parse(
+    localStorage.getItem("lenders-name") || "{}",
+  )
+
+  const [state, copyToClipboard] = useCopyToClipboard()
+
+  const { data, isLoading } = useGetMarketLenders(market)
+  const { t } = useTranslation()
+  const lendersRows = data
+    ? data?.map((lender) => {
+        const lenderData = {
+          id: lender.address,
+          balance:
+            market?.marketToken
+              .getAmount(market?.normalizeAmount(lender.scaledBalance))
+              .format(TOKEN_FORMAT_DECIMALS, true) ?? "0",
+          role: lender.inferredRole,
+          isDeauthorized:
+            market?.version === MarketVersion.V2
+              ? lender.credential !== undefined && !lender.hasValidCredential
+              : lender.isAuthorizedOnController !== undefined &&
+                (lender.role === LenderRole.Null ||
+                  lender.role === LenderRole.WithdrawOnly),
+          // lender.isAuthorizedOnController === false ||
+          // (lender.role !== undefined &&
+          //   lender.role !== LenderRole.DepositAndWithdraw) ||
+          // (lender.credentialExpiry !== undefined &&
+          //   !lender.hasValidCredential),
+          accessLevel:
+            lender.inferredRole === LenderRole.DepositAndWithdraw
+              ? "Deposit & Withdraw"
+              : lender.inferredRole === LenderRole.WithdrawOnly
+                ? "Withdraw Only"
+                : lender.inferredRole === LenderRole.Blocked
+                  ? "Blocked From Deposits"
+                  : "Unknown", // @todo
+
+          accessExpiry: lender.credentialExpiry
+            ? formatBlockTimestamp(lender.credentialExpiry)
+            : "Never", // @todo
+          name: (() => {
+            const correctLender =
+              lendersNames[lender.address.toLowerCase()] || ""
+            return { name: correctLender, address: lender.address }
+          })(),
+          walletAddress: lender.address,
+          dateAdded: timestampToDateFormatted(
+            lender.addedTimestamp,
+            DATE_FORMAT,
+          ),
+          signedMLA: "Yes",
+          signDate: timestampToDateFormatted(
+            lender.addedTimestamp,
+            DATE_FORMAT,
+          ),
+          MLA: "View|Download",
+          raw: lender,
+        }
+        console.log(
+          `is deauthorized on controller: ${
+            lender.isAuthorizedOnController === false
+          }`,
+        )
+        console.log(
+          `role not undefined, not deposit and withdraw: ${
+            lender.role !== undefined &&
+            lender.role !== LenderRole.DepositAndWithdraw
+          }`,
+        )
+        console.log(
+          `expiry defined but expired: ${
+            lender.credentialExpiry !== undefined && !lender.hasValidCredential
+          }`,
+        )
+        return lenderData
+      })
+    : []
+
+  const authorizedRows = lendersRows?.filter((row) => !row.isDeauthorized)
+  const deauthorizedRows = lendersRows?.filter((row) => row.isDeauthorized)
+
+  const commonColumns: GridColDef[] = [
+    {
+      sortable: false,
+      field: "name",
+      headerName: t(
+        "borrowerMarketDetails.authorisedLenders.tableHeaders.name",
+      ),
+      minWidth: 176,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => <LenderName address={params.value.address} />,
+      flex: 2,
+    },
+    {
+      sortable: false,
+      field: "walletAddress",
+      headerName: t(
+        "borrowerMarketDetails.authorisedLenders.tableHeaders.walletAddress",
+      ),
+      minWidth: 176,
+      headerAlign: "left",
+      align: "left",
+      renderCell: ({ value }) => (
+        <Box sx={MarketWithdrawalRequetstCell}>
+          <Typography sx={{ minWidth: "80px" }} variant="text3">
+            {trimAddress(value)}
+          </Typography>
+          <IconButton
+            disableRipple
+            sx={AddressButtons}
+            onClick={() => {
+              copyToClipboard(value)
+            }}
+          >
+            <SvgIcon fontSize="medium">
+              <Copy />
+            </SvgIcon>
+          </IconButton>
+          <Link
+            href={`${EtherscanBaseUrl}/address/${value}`}
+            target="_blank"
+            style={{ display: "flex", justifyContent: "center" }}
+          >
+            <IconButton disableRipple sx={AddressButtons}>
+              <SvgIcon fontSize="medium">
+                <LinkIcon />
+              </SvgIcon>
+            </IconButton>
+          </Link>
+        </Box>
+      ),
+      flex: 2,
+    },
+    {
+      sortable: false,
+      field: "balance",
+      headerName: t(
+        "borrowerMarketDetails.authorisedLenders.tableHeaders.balance",
+      ),
+      minWidth: 124,
+      headerAlign: "left",
+      align: "left",
+      flex: 1.5,
+    },
+    {
+      sortable: false,
+      field: "accessLevel",
+      headerName: t(
+        "borrowerMarketDetails.authorisedLenders.tableHeaders.accessLevel",
+      ),
+      minWidth: 124,
+      headerAlign: "left",
+      align: "left",
+      flex: 1.5,
+    },
+    {
+      sortable: false,
+      field: "accessExpiry",
+      headerName: t(
+        "borrowerMarketDetails.authorisedLenders.tableHeaders.accessExpiry",
+      ),
+      minWidth: 124,
+      headerAlign: "left",
+      align: "left",
+      flex: 1.5,
+    },
+    ...(market?.hooksConfig?.allowForceBuyBacks
+      ? ([
+          {
+            sortable: false,
+            field: "id",
+            headerName: t(
+              "borrowerMarketDetails.authorisedLenders.tableHeaders.forceBuyBack",
+            ),
+            minWidth: 124,
+            headerAlign: "left",
+            align: "left",
+            flex: 1.5,
+            renderCell: ({ row }) => (
+              <Box sx={MarketWithdrawalRequetstCell}>
+                <ForceBuyBackModal
+                  market={market}
+                  marketAccount={marketAccount}
+                  lender={row.raw as BasicLenderData}
+                  disableForceBuyBackButton={false}
+                  lenderName={
+                    lendersNames[
+                      (row.raw as BasicLenderData).address.toLowerCase()
+                    ]
+                  }
+                />
+              </Box>
+            ),
+          },
+        ] as GridColDef[])
+      : []),
+    {
+      sortable: false,
+      field: "dateAdded",
+      headerName: t(
+        "borrowerMarketDetails.authorisedLenders.tableHeaders.dateAdded",
+      ),
+      minWidth: 124,
+      headerAlign: hasMLA ? "left" : "right",
+      align: hasMLA ? "left" : "right",
+      flex: 1.5,
+    },
+  ]
+
+  const mlaColumns: GridColDef[] = [
+    {
+      sortable: false,
+      field: "signedMLA",
+      headerName: t(
+        "borrowerMarketDetails.authorisedLenders.tableHeaders.signedMLA",
+      ),
+      width: 96,
+      headerAlign: "left",
+      align: "left",
+      flex: 1.5,
+    },
+    {
+      sortable: false,
+      field: "signDate",
+      headerName: t(
+        "borrowerMarketDetails.authorisedLenders.tableHeaders.signDate",
+      ),
+      minWidth: 80,
+      headerAlign: "left",
+      align: "left",
+      flex: 1.5,
+    },
+    {
+      sortable: false,
+      field: "MLA",
+      headerName: t("borrowerMarketDetails.authorisedLenders.tableHeaders.MLA"),
+      minWidth: 130,
+      flex: 2,
+      headerAlign: "right",
+      align: "right",
+      renderCell: ({ value }) =>
+        value ? (
+          <Box sx={MarketLendersMLA}>
+            <Button sx={MLATableButton}>
+              {t("borrowerMarketDetails.authorisedLenders.buttons.view")}
+            </Button>
+            <Box
+              sx={{
+                border: "1px solid",
+                height: "20px",
+                borderColor: COLORS.athensGrey,
+              }}
+            />
+            <Button sx={MLATableButton}>
+              {t("borrowerMarketDetails.authorisedLenders.buttons.download")}
+            </Button>
+          </Box>
+        ) : (
+          <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
+            {t("borrowerMarketDetails.authorisedLenders.notSigned")}
+          </Typography>
+        ),
+    },
+  ]
+
+  const columns: GridColDef[] = hasMLA
+    ? [...commonColumns, ...mlaColumns]
+    : commonColumns
+
+  if (isLoading) {
+    return (
+      <Box sx={MarketWithdrawalRequestsContainer} id="lenders">
+        <Typography variant="title3" sx={{ height: "38px" }}>
+          {t("borrowerMarketDetails.authorisedLenders.header")}
+        </Typography>
+
+        <Box sx={SkeletonContainer} flexDirection="column" gap="20px">
+          <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+          <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+          <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+          <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+        </Box>
+      </Box>
+    )
+  }
+
+  return (
+    <Box sx={MarketWithdrawalRequestsContainer} id="lenders">
+      {lendersRows.length === 0 && (
+        <Box display="flex" flexDirection="column">
+          <Typography variant="title3" sx={{ marginBottom: "8px" }}>
+            {t("borrowerMarketDetails.authorisedLenders.noLendersTitle")}
+          </Typography>
+          <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
+            {t("borrowerMarketDetails.authorisedLenders.noLendersSubtitle")}
+          </Typography>
+          <Link href={editLendersLink}>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{
+                width: "100px",
+                height: "32px",
+                marginTop: "24px",
+                borderRadius: 2,
+              }}
+            >
+              {t("borrowerMarketDetails.authorisedLenders.editPolicy")}
+            </Button>
+          </Link>
+        </Box>
+      )}
+
+      {authorizedRows.length === 0 && lendersRows.length !== 0 && (
+        <Box display="flex" flexDirection="column">
+          <Typography variant="title3" sx={{ marginBottom: "8px" }}>
+            {t("borrowerMarketDetails.authorisedLenders.header")}
+          </Typography>
+          <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
+            {t("borrowerMarketDetails.authorisedLenders.noActiveLenders")}
+          </Typography>
+          <Link href={editLendersLink}>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{
+                width: "100px",
+                height: "32px",
+                marginTop: "24px",
+                borderRadius: 2,
+              }}
+            >
+              {t("borrowerMarketDetails.authorisedLenders.buttons.editPolicy")}
+            </Button>
+          </Link>
+        </Box>
+      )}
+
+      {authorizedRows.length !== 0 && market && (
+        <>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="title3">
+              {t("borrowerMarketDetails.authorisedLenders.header")}
+            </Typography>
+            <Link href={editLendersLink}>
+              <Button size="small" variant="outlined" color="secondary">
+                {t(
+                  "borrowerMarketDetails.authorisedLenders.buttons.editPolicy",
+                )}
+              </Button>
+            </Link>
+          </Box>
+          <DataGrid
+            sx={{
+              ...DataGridCells,
+              "& .MuiDataGrid-columnHeader": {
+                marginBottom: "6px",
+                padding: "0 8px",
+              },
+              "& .MuiDataGrid-columnHeaderTitle": {
+                fontSize: 11,
+              },
+            }}
+            rows={authorizedRows}
+            columns={columns}
+            columnHeaderHeight={40}
+          />
+        </>
+      )}
+
+      {deauthorizedRows.length !== 0 && (
+        <>
+          {authorizedRows.length === 0 && <Divider sx={{ margin: "32px 0" }} />}
+
+          <Accordion
+            open={authorizedRows.length === 0}
+            sx={{
+              flexDirection: "row-reverse",
+              justifyContent: "flex-end",
+            }}
+            iconContainerSx={{
+              width: "fit-content",
+            }}
+            summarySx={{ color: COLORS.blueRibbon }}
+            iconColor={COLORS.blueRibbon}
+            title="Deleted Lenders"
+          >
+            <DataGrid
+              sx={{
+                ...DataGridCells,
+                "& .MuiDataGrid-columnHeader": {
+                  marginBottom: "6px",
+                  padding: "0 8px",
+                },
+                "& .MuiDataGrid-columnHeaderTitle": {
+                  fontSize: 11,
+                },
+              }}
+              rows={deauthorizedRows}
+              columns={columns}
+              columnHeaderHeight={authorizedRows.length === 0 ? 40 : 0}
+            />
+          </Accordion>
+        </>
+      )}
+    </Box>
+  )
+}

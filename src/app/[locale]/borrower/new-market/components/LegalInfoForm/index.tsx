@@ -9,7 +9,9 @@ import {
 } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import { UseFormReturn } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 
+import { InfoValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { InputLabel } from "@/components/InputLabel"
@@ -31,18 +33,19 @@ import {
   InputGroupContainer,
   TitleContainer,
 } from "./style"
-import { InfoValidationSchemaType } from "../../validation/validationSchema"
 
 export type LegalInfoFormProps = {
   form: UseFormReturn<InfoValidationSchemaType>
 }
 
 export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
+  const { t } = useTranslation()
+
   const {
     register,
     setValue,
-    getValues,
     formState: { errors, isValid },
+    control,
   } = form
 
   const handleNatureSelect = (event: SelectChangeEvent<string | null>) => {
@@ -66,15 +69,21 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
   return (
     <Box maxWidth="766px" width="100%">
       <Box sx={TitleContainer}>
-        <Typography variant="title2">Share your legal info with us</Typography>
+        <Typography variant="title2">
+          {t("createMarket.forms.legalInfo.title")}
+        </Typography>
         <Typography variant="text2" sx={Description}>
-          It’s necessary for creating markets with MLA
+          {t("createMarket.forms.legalInfo.subtitle")}
         </Typography>
       </Box>
 
-      <InputLabel label="Full legal name" margin="16px 0 0 0" tooltipText="TBD">
+      <InputLabel
+        label={t("createMarket.forms.legalInfo.block.legalName.title")}
+        tooltipText={t("createMarket.forms.legalInfo.block.legalName.tooltip")}
+        margin="16px 0 0 0"
+      >
         <TextField
-          label="Use more than 1 character"
+          label={t("createMarket.forms.legalInfo.block.legalName.placeholder")}
           error={Boolean(errors.legalName)}
           helperText={errors.legalName?.message}
           {...register("legalName")}
@@ -82,41 +91,54 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
       </InputLabel>
 
       <Box sx={InputGroupContainer}>
-        <InputLabel label="Jurisdiction" tooltipText="TBD">
+        <InputLabel
+          label={t("createMarket.forms.legalInfo.block.jurisdiction.title")}
+          tooltipText={t(
+            "createMarket.forms.legalInfo.block.jurisdiction.tooltip",
+          )}
+        >
           <TextField
-            label="Use code of country"
+            label={t(
+              "createMarket.forms.legalInfo.block.jurisdiction.placeholder",
+            )}
             error={Boolean(errors.jurisdiction)}
             helperText={errors.jurisdiction?.message}
             {...register("jurisdiction")}
           />
         </InputLabel>
 
-        <InputLabel label="Legal Nature" tooltipText="TBD">
+        <InputLabel
+          label={t("createMarket.forms.legalInfo.block.nature.title")}
+          tooltipText={t("createMarket.forms.legalInfo.block.nature.tooltip")}
+        >
           <ExtendedSelect
-            label="Please Select"
-            value={
-              mockedNaturesOptions.find(
-                (el) => el.value === getValues("legalNature"),
-              )?.value
-            }
+            label={t("createMarket.forms.legalInfo.block.nature.placeholder")}
+            control={control}
+            name="legalNature"
             options={mockedNaturesOptions}
             optionSX={DropdownOption}
             onChange={handleNatureSelect}
           />
         </InputLabel>
 
-        <InputLabel label="Address" tooltipText="TBD">
+        <InputLabel
+          label={t("createMarket.forms.legalInfo.block.address.title")}
+          tooltipText={t("createMarket.forms.legalInfo.block.address.tooltip")}
+        >
           <TextField
-            label="Enter a location"
+            label={t("createMarket.forms.legalInfo.block.address.placeholder")}
             error={Boolean(errors.address)}
             helperText={errors.address?.message}
             {...register("address")}
           />
         </InputLabel>
 
-        <InputLabel label="Email" tooltipText="TBD">
+        <InputLabel
+          label={t("createMarket.forms.legalInfo.block.email.title")}
+          tooltipText={t("createMarket.forms.legalInfo.block.email.tooltip")}
+        >
           <TextField
-            label="example@domain.com"
+            label={t("createMarket.forms.legalInfo.block.email.placeholder")}
             error={Boolean(errors.email)}
             helperText={errors.email?.message}
             {...register("email")}
@@ -134,7 +156,7 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
           <SvgIcon fontSize="medium" sx={BackButtonArrow}>
             <BackArrow />
           </SvgIcon>
-          Back
+          {t("createMarket.buttons.back")}
         </Button>
 
         <Button
@@ -144,7 +166,7 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
           onClick={handleClickConfirm}
           disabled={!isValid}
         >
-          Confirm
+          {t("createMarket.buttons.confirm")}
         </Button>
       </Box>
     </Box>

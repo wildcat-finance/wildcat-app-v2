@@ -1,3 +1,4 @@
+// import Image from "@/assets/pictures/banner_bg.png"
 import Image from "@/assets/pictures/banner_bg.png"
 import { COLORS } from "@/theme/colors"
 
@@ -17,7 +18,7 @@ export const MarketListAlertContainer = {
   backgroundImage: `url(${Image.src})`,
   backgroundPosition: "center",
   backgroundRepeat: "no-repeat",
-  backgroundSize: "100% 100%",
+  backgroundSize: "cover",
 }
 
 export const TextContainer = {

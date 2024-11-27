@@ -1,5 +1,16 @@
-import { createTheme } from "@mui/material"
+import * as React from "react"
 
+import { createTheme, SvgIcon } from "@mui/material"
+
+import type {} from "@mui/x-data-grid/themeAugmentation"
+import type {} from "@mui/x-date-pickers/themeAugmentation"
+
+import DownArrow from "@/assets/icons/downArrow20_icon.svg"
+import AscIcon from "@/assets/icons/tableSort-ascSort_icon.svg"
+import DescIcon from "@/assets/icons/tableSort-descSort_icon.svg"
+import UnsortedIcon from "@/assets/icons/tableSort-unsorted_icon.svg"
+import UpArrow from "@/assets/icons/upArrow_icon.svg"
+import { COLORS } from "@/theme/colors"
 import {
   largeContainedButton,
   largeOutlinedButton,
@@ -19,9 +30,6 @@ import {
 } from "@/theme/overrides/Buttons"
 import { PALETTE } from "@/theme/palette"
 import { TYPOGRAPHY } from "@/theme/typography"
-
-import { COLORS } from "./colors"
-import DownArrow from "../assets/icons/downArrow20_icon.svg"
 
 declare module "@mui/material/styles" {
   interface Palette {
@@ -125,7 +133,7 @@ export const theme = createTheme({
         {
           props: { fontSize: "huge" },
           style: {
-            fontSize: "30px",
+            fontSize: "32px",
           },
         },
         {
@@ -157,21 +165,23 @@ export const theme = createTheme({
     MuiChip: {
       styleOverrides: {
         root: ({ ownerState }) => ({
+          fontFamily: "inherit",
           width: "fit-content",
           height: "fit-content",
           display: "flex",
           alignItems: "center",
           columnGap: "2px",
           borderRadius: "4px",
-          padding: "0 8px",
+          padding: "0 6px",
           ...(ownerState.variant === "filled" && {
             "& .MuiChip-label": {
               position: "relative",
               top: "0.7px",
-              fontSize: "10px",
+              fontSize: "11px",
+              lineHeight: "16px",
               fontWeight: 500,
 
-              padding: "2px 0",
+              padding: 0,
             },
             "& .MuiChip-icon": {
               margin: 0,
@@ -181,7 +191,7 @@ export const theme = createTheme({
             border: "none",
             padding: 0,
             "& .MuiChip-label": {
-              fontSize: "10px",
+              fontSize: "11px",
               lineHeight: "16px",
               fontWeight: 500,
 
@@ -318,7 +328,7 @@ export const theme = createTheme({
           border: "none",
           borderRadius: "8px",
 
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: 500,
           lineHeight: "16px",
           letterSpacing: "0.2px",
@@ -450,7 +460,7 @@ export const theme = createTheme({
 
               "& .MuiFormHelperText-root": {
                 fontFamily: "inherit",
-                fontSize: "10px",
+                fontSize: "11px",
                 lineHeight: "16px",
                 fontWeight: 500,
                 letterSpacing: 0,
@@ -518,7 +528,7 @@ export const theme = createTheme({
                 backgroundColor: "transparent",
                 borderRadius: 12,
                 border: `1px solid ${COLORS.whiteLilac}`,
-                paddingRight: "10px",
+                paddingRight: "6px",
                 transition: "border 0.2s",
 
                 "&:hover": {
@@ -543,6 +553,9 @@ export const theme = createTheme({
 
               "& .MuiFormHelperText-root": {
                 fontFamily: "inherit",
+                fontSize: "11px",
+                fontWeight: 500,
+                lineHeight: "16px",
                 letterSpacing: 0,
                 margin: "4px 0 0",
                 "&.Mui-error": {
@@ -552,6 +565,7 @@ export const theme = createTheme({
 
               "& .MuiInputBase-input": {
                 padding: "11px 15px",
+                height: "20px",
               },
 
               "& .MuiFormLabel-root": {
@@ -571,7 +585,7 @@ export const theme = createTheme({
                 },
 
                 "&.MuiInputLabel-shrink": {
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: 500,
                   lineHeight: "16px",
 
@@ -601,7 +615,7 @@ export const theme = createTheme({
 
               "& .MuiInputBase-root": {
                 fontFamily: "inherit",
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 500,
                 lineHeight: "20px",
                 paddingLeft: "8px",
@@ -638,12 +652,13 @@ export const theme = createTheme({
               },
 
               "& .MuiInputBase-input": {
+                height: "18px",
                 padding: "6px 6px 6px 4px",
               },
 
               "& .MuiFormLabel-root": {
                 fontFamily: "inherit",
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 500,
                 lineHeight: "20px",
                 color: COLORS.santasGrey,
@@ -712,6 +727,7 @@ export const theme = createTheme({
       },
       styleOverrides: {
         root: ({ ownerState }) => ({
+          fontFamily: "inherit",
           ...(ownerState.variant === "filled" &&
             ownerState.size === "medium" && {
               fontFamily: "inherit",
@@ -790,12 +806,12 @@ export const theme = createTheme({
               },
 
               "&.MuiInputBase-root": {
-                height: "32px",
+                // height: "32px",
 
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 500,
                 lineHeight: "20px",
-
+                paddingLeft: "8px",
                 backgroundColor: "transparent",
                 borderRadius: 8,
                 border: `1px solid ${COLORS.whiteLilac}`,
@@ -821,14 +837,19 @@ export const theme = createTheme({
               },
 
               "& .MuiSelect-select": {
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: 500,
                 lineHeight: "16px",
 
-                padding: "8px 6px 8px 28px",
+                padding: "6px 24px 6px 4px",
+                paddingRight: "24px",
 
                 backgroundColor: "transparent !important",
                 background: "transparent",
+
+                "&.MuiInputBase-input": {
+                  paddingRight: "24px",
+                },
               },
             }),
         }),
@@ -902,7 +923,7 @@ export const theme = createTheme({
 
           "& .MuiTypography-root": {
             fontFamily: "inherit",
-            fontSize: 12,
+            fontSize: 13,
             lineHeight: "20px",
             fontWeight: 500,
           },
@@ -943,6 +964,427 @@ export const theme = createTheme({
         root: {
           color: COLORS.bunker,
           letterSpacing: 0,
+        },
+      },
+    },
+    MuiDataGrid: {
+      defaultProps: {
+        rowSelection: false,
+        disableColumnMenu: true,
+        disableColumnResize: true,
+        disableRowSelectionOnClick: true,
+        disableColumnSelector: true,
+        hideFooter: true,
+        slots: {
+          columnSortedDescendingIcon: DescIcon,
+          columnSortedAscendingIcon: AscIcon,
+          columnUnsortedIcon: UnsortedIcon,
+        },
+      },
+      styleOverrides: {
+        root: {
+          fontFamily: "inherit",
+          letterSpacing: 0,
+          border: "none",
+
+          "& .MuiDataGrid-footerContainer": {
+            border: "none",
+            justifyContent: "center",
+
+            "& .MuiToolbar-root": {
+              padding: "0 16px",
+            },
+
+            "& .MuiPagination-root": {
+              margin: 0,
+
+              "& .MuiPagination-ul": {
+                gap: "8px",
+              },
+
+              "& .MuiPaginationItem-root": {
+                height: "24px",
+                width: "24px",
+                minWidth: "24px",
+                padding: 0,
+                margin: 0,
+
+                fontFamily: "inherit",
+                letterSpacing: 0,
+
+                fontSize: "13px",
+                lineHeight: "20px",
+                fontWeight: 500,
+                color: COLORS.blackRock,
+
+                "&.Mui-selected": {
+                  backgroundColor: COLORS.athensGrey,
+                  color: COLORS.santasGrey,
+                },
+              },
+            },
+          },
+
+          "& .MuiDataGrid-filler": {
+            display: "none",
+          },
+
+          "& .MuiDataGrid-columnHeader--sorted": {
+            color: `${COLORS.blackRock} !important`,
+          },
+
+          "& .MuiDataGrid-columnHeader:focus": {
+            outline: "transparent",
+          },
+          "& .MuiDataGrid-cell:focus": {
+            outline: "transparent",
+          },
+
+          "& .MuiDataGrid-row:hover": {
+            backgroundColor: COLORS.alabaster05,
+          },
+
+          "& .MuiDataGrid-iconButtonContainer": {
+            width: "8px",
+            visibility: "visible",
+          },
+
+          "& .MuiDataGrid-sortIcon": {
+            opacity: "inherit !important",
+          },
+
+          "& .MuiDataGrid-topContainer:after": {
+            display: "none",
+          },
+
+          "& .MuiDataGrid-columnHeaders": {
+            "& .MuiDataGrid-filler": {
+              display: "none",
+            },
+          },
+
+          "& .MuiDataGrid-columnHeader--alignRight": {
+            justifyContent: "flex-end",
+
+            "& .MuiDataGrid-columnHeaderTitleContainer": {
+              flexDirection: "row",
+              justifyContent: "flex-end",
+            },
+          },
+
+          "& .MuiDataGrid-columnHeader": {
+            padding: "0 16px",
+
+            fontSize: "11px",
+            lineHeight: "12px",
+            fontWeight: 500,
+            letterSpacing: 0,
+            color: COLORS.santasGrey,
+
+            "& .MuiDataGrid-columnHeaderTitleContainer": {
+              gap: "8px",
+              margin: "16px 0 8px",
+            },
+
+            "& .MuiDataGrid-columnSeparator": {
+              display: "none",
+            },
+          },
+
+          "& .MuiDataGrid-row": {
+            cursor: "pointer",
+
+            "& .MuiDataGrid-cellEmpty": {
+              display: "none",
+            },
+
+            "&:last-child": {
+              "& .MuiDataGrid-cell": {
+                borderBottom: "1px solid",
+                borderColor: COLORS.athensGrey,
+              },
+            },
+          },
+
+          "& .MuiDataGrid-cell": {
+            display: "flex",
+            alignItems: "center",
+            height: "52px",
+            padding: "0 16px",
+            borderColor: COLORS.athensGrey,
+
+            fontSize: "13px",
+            lineHeight: "20px",
+            fontWeight: 500,
+            letterSpacing: 0,
+            color: COLORS.blackRock,
+
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
+
+            "&:focus-within": {
+              outline: "none",
+            },
+          },
+        },
+      },
+    },
+    MuiAccordion: {
+      styleOverrides: {
+        root: {
+          fontFamily: "inherit",
+          letterSpacing: 0,
+          border: "none",
+          boxShadow: "none",
+          padding: 0,
+        },
+      },
+    },
+    MuiAccordionSummary: {
+      defaultProps: {
+        expandIcon: (
+          <SvgIcon fontSize="small">
+            <UpArrow />
+          </SvgIcon>
+        ),
+      },
+      styleOverrides: {
+        root: {
+          height: "32px",
+          minHeight: "0 !important",
+          fontFamily: "inherit",
+          letterSpacing: 0,
+          backgroundColor: COLORS.hintOfRed,
+
+          "& .MuiAccordionSummary-expandIconWrapper": {
+            height: "16px",
+            alignItems: "center",
+          },
+
+          "& .MuiAccordionSummary-content": {
+            fontFamily: "inherit",
+            fontSize: "13px",
+            lineHeight: "20px",
+            fontWeight: 500,
+            letterSpacing: 0,
+            alignItems: "center",
+
+            margin: 0,
+
+            "& .Mui-expanded": {
+              margin: 0,
+            },
+          },
+
+          "& .Mui-expanded": {
+            height: "32px",
+            minHeight: "0 !important",
+            margin: 0,
+          },
+        },
+      },
+    },
+    MuiTab: {
+      defaultProps: {
+        disableRipple: true,
+      },
+      styleOverrides: {
+        root: ({ ownerState }) => ({
+          height: "36px",
+          minHeight: "36px",
+
+          fontFamily: "inherit",
+          fontSize: "20px",
+          fontWeight: 500,
+          lineHeight: "32px",
+          textTransform: "none",
+          color: COLORS.santasGrey,
+          letterSpacing: 0,
+
+          borderBottom: "1px solid",
+          borderColor: COLORS.iron,
+
+          padding: "0 0 4px",
+
+          "&.Mui-selected": {
+            color: COLORS.blackRock,
+          },
+
+          ...(ownerState.className === "contained" && {
+            height: "32px",
+            minHeight: "32px",
+
+            fontFamily: "inherit",
+            fontSize: "13px",
+            fontWeight: 600,
+            lineHeight: "20px",
+            textTransform: "none",
+            color: COLORS.santasGrey,
+            letterSpacing: 0,
+
+            padding: "6px 54.5px",
+            borderBottom: "none",
+
+            "&.Mui-selected": {
+              color: COLORS.blackRock,
+              backgroundColor: COLORS.white,
+              borderRadius: "8px",
+            },
+          }),
+        }),
+      },
+    },
+    MuiTabs: {
+      styleOverrides: {
+        root: ({ ownerState }) => ({
+          height: "36px",
+          minHeight: "36px",
+
+          "& .MuiTabs-indicator": {
+            height: "1px",
+            backgroundColor: COLORS.blackRock,
+          },
+
+          ...(ownerState.className === "contained" && {
+            height: "40px",
+            minHeight: "40px",
+            width: "fit-content",
+            backgroundColor: COLORS.whiteSmoke,
+            borderRadius: "12px",
+            padding: "4px",
+
+            "& .MuiTabs-indicator": {
+              height: "0px",
+              backgroundColor: "transparent",
+            },
+          }),
+        }),
+      },
+    },
+    MuiSkeleton: {
+      styleOverrides: {
+        root: {
+          transformOrigin: "0px",
+          transform: "none",
+        },
+      },
+    },
+    MuiDateCalendar: {
+      styleOverrides: {
+        root: {
+          height: "210px",
+          overflow: "visible",
+          boxSizing: "border-box",
+          fontFamily: "inherit",
+          maxWidth: "274px",
+
+          "& .MuiPickersSlideTransition-root.MuiDayCalendar-slideTransition": {
+            minHeight: "127px",
+            overflow: "hidden",
+          },
+
+          "& .MuiPickersCalendarHeader-root": {
+            justifyContent: "space-between",
+            margin: "0px",
+            padding: "0px",
+            paddingRight: "4px",
+            paddingBottom: "8px",
+            minHeight: "36px",
+            maxHeight: "36px",
+          },
+          "& .MuiDayCalendar-root": {
+            display: "flex",
+            flexDirection: "column",
+            gap: "6px",
+          },
+          "& .MuiDayCalendar-monthContainer": {
+            display: "flex",
+            flexDirection: "column",
+            gap: "4px",
+          },
+          "& .MuiDayCalendar-header": {
+            justifyContent: "space-between",
+          },
+          "& .MuiPickersCalendarHeader-labelContainer": {
+            fontFamily: "inherit",
+            margin: "0px 4px",
+          },
+
+          "& .MuiButtonBase-root.MuiPickersDay-root.Mui-selected": {
+            backgroundColor: COLORS.cornflowerBlue,
+          },
+
+          "& .MuiPickersCalendarHeader-label": {
+            fontSize: 13,
+            marginRight: "0px",
+          },
+          "& .MuiPickersArrowSwitcher-spacer": {
+            display: "none",
+          },
+          "& .MuiDayCalendar-weekContainer": {
+            margin: "0",
+            justifyContent: "space-between",
+          },
+          "& .MuiDayCalendar-weekDayLabel": {
+            fontFamily: "inherit",
+            fontSize: "11px",
+            fontWeight: 500,
+            lineHeight: "16px",
+            color: COLORS.greySuit,
+
+            width: "20px",
+            height: "20px",
+          },
+          "& .MuiPickersDay-root": {
+            fontSize: "small",
+            width: "22px",
+            height: "22px",
+
+            ":focus": {
+              backgroundColor: "transparent",
+            },
+          },
+          "& .MuiPickersCalendarHeader-switchViewIcon": {
+            "& path": { fill: `${COLORS.greySuit}` },
+          },
+          "& .MuiPickersDay-root:not(.Mui-selected)": {
+            border: "none",
+          },
+          "& .MuiButtonBase-root.MuiPickersDay-root": {
+            fontFamily: "inherit",
+          },
+          "& .MuiPickersYear-root": {
+            width: "48px",
+            height: "20px",
+            flex: "0 0 calc(24% - 20px);",
+          },
+          "& .MuiPickersYear-yearButton": {
+            fontFamily: "inherit",
+            fontSize: "13px",
+            fontWeight: 500,
+            lineHeight: "20px",
+
+            width: "48px",
+            height: "20px",
+            padding: "0",
+            margin: "0",
+
+            "&.Mui-selected": {
+              backgroundColor: COLORS.cornflowerBlue,
+            },
+          },
+          "& .MuiYearCalendar-root": {
+            display: "grid",
+            gridTemplateColumns: "48px 48px 48px 48px",
+            padding: "0 12px 0",
+            maxHeight: "150px",
+            width: "274px",
+            gap: "6px 13px",
+            border: `1px solid ${COLORS.hintOfRed}`,
+            borderRadius: "8px",
+            justifyContent: "space-between",
+            boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.05)",
+          },
         },
       },
     },

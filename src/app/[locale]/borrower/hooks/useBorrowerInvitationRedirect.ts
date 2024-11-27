@@ -22,9 +22,11 @@ export const useBorrowerInvitationRedirect = () => {
   if (!address) {
     return {
       hideNewMarketButton: true,
-      hideBanner: true,
-      message: "Want to borrow on Wildcat?",
-      buttonText: "Apply here",
+      hideBanner: false,
+      title: "Apply to become a borrower",
+      message:
+        "Interested in borrowing through Wildcat? Click in the link below to apply!",
+      buttonText: "Leave a Request",
       url: `https://forms.gle/irca7KeC7ASmkRh16`,
     }
   }
@@ -52,6 +54,7 @@ export const useBorrowerInvitationRedirect = () => {
   if (isLoading || !isSuccess) {
     return {
       hideNewMarketButton: true,
+      hideBanner: true,
     }
   }
 

@@ -1,19 +1,10 @@
-import {
-  Box,
-  Button,
-  Dialog,
-  IconButton,
-  Typography,
-  SvgIcon,
-} from "@mui/material"
-import Link from "next/link"
+import { Box, Button, Dialog, SvgIcon, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
-import { useCopyToClipboard } from "react-use"
 import { useAccount, useDisconnect, useSwitchChain } from "wagmi"
 import { sepolia } from "wagmi/chains"
 
+import Avatar from "@/assets/icons/avatar_icon.svg"
 import {
-  AddressButtons,
   AddressContainer,
   ContentContainer,
   DialogContainer,
@@ -22,12 +13,10 @@ import {
   WrongNetworkContainer,
 } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { ProfileDialogProps } from "@/components/Header/HeaderButton/ProfileDialog/type"
+import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl, TargetNetwork } from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { COLORS } from "@/theme/colors"
-
-import Copy from "../../../../assets/icons/copy_icon.svg"
-import LinkIcon from "../../../../assets/icons/link_icon.svg"
 
 export const ProfileDialog = ({
   open,
@@ -35,16 +24,11 @@ export const ProfileDialog = ({
   name,
 }: ProfileDialogProps) => {
   const { t } = useTranslation()
-  const [state, copyToClipboard] = useCopyToClipboard()
 
   const { address, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
   const { isWrongNetwork } = useCurrentNetwork()
   const { switchChain } = useSwitchChain()
-
-  const handleCopyAddress = (text: string) => {
-    copyToClipboard(text)
-  }
 
   const handleClickDisconnect = () => {
     disconnect()
@@ -56,25 +40,27 @@ export const ProfileDialog = ({
       <Box sx={ContentContainer}>
         {isConnected && isWrongNetwork && (
           <Box sx={WrongNetworkContainer}>
-            <Typography variant="text3">{t("modalWrongNetwork")}</Typography>
+            <Typography variant="text3">
+              {t("header.button.wrongNetwork")}
+            </Typography>
             <Button
               variant="outlined"
               size="small"
               sx={WrongNetworkButton}
               onClick={() => switchChain({ chainId: sepolia.id })}
             >
-              {t("modalSwitchButton")} {TargetNetwork.name}
+              {t("header.button.switchNetwork")} {TargetNetwork.name}
             </Button>
           </Box>
         )}
 
         <Box sx={ProfileContainer}>
-          <Box
-            width="32px"
-            height="32px"
-            bgcolor="#F4F4F8"
-            borderRadius="50%"
-          />
+          <Box>
+            <SvgIcon fontSize="huge" sx={{ margin: "auto" }}>
+              <Avatar />
+            </SvgIcon>
+          </Box>
+
           <Box
             display="flex"
             flexDirection="column"
@@ -87,27 +73,10 @@ export const ProfileDialog = ({
                   {address.slice(0, 4)}..{address.slice(-4, address.length)}
                 </Typography>
 
-                <IconButton
-                  disableRipple
-                  sx={AddressButtons}
-                  onClick={() => handleCopyAddress(address?.toString())}
-                >
-                  <SvgIcon fontSize="medium">
-                    <Copy />
-                  </SvgIcon>
-                </IconButton>
-
-                <Link
-                  href={`${EtherscanBaseUrl}/address/${address}`}
-                  target="_blank"
-                  style={{ display: "flex", justifyContent: "center" }}
-                >
-                  <IconButton disableRipple sx={AddressButtons}>
-                    <SvgIcon fontSize="medium">
-                      <LinkIcon />
-                    </SvgIcon>
-                  </IconButton>
-                </Link>
+                <LinkGroup
+                  copyValue={address?.toString()}
+                  linkValue={`${EtherscanBaseUrl}/address/${address}`}
+                />
               </Box>
             )}
             {name && (
@@ -124,7 +93,9 @@ export const ProfileDialog = ({
           fullWidth
           onClick={handleClickDisconnect}
         >
-          <Typography variant="text2">{t("modalDisconnect")}</Typography>
+          <Typography variant="text2">
+            {t("header.button.disconnect")}
+          </Typography>
         </Button>
       </Box>
     </Dialog>

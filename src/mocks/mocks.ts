@@ -20,16 +20,20 @@ export const mockedMarketTypes = [
     label: "Standard Loan",
     value: "standard",
   },
+  {
+    label: "Fixed Term Loan",
+    value: "fixedTerm",
+  },
 ]
 
-const mockedKYCPreferences = [
+const mockedAccessControls = [
   {
-    label: "Share contact info for direct KYC",
-    value: "share",
+    label: "Lender Self-Onboarding",
+    value: "defaultPullProvider",
   },
   {
-    label: "Not share",
-    value: "notShare",
+    label: "Manually Add Lenders",
+    value: "manualApproval",
   },
 ]
 
@@ -74,11 +78,11 @@ export const mockedMarketTypesOptions: ExtendedSelectOptionItem[] =
     value: marketType.value,
   }))
 
-export const mockedKYCPreferencesOptions: ExtendedSelectOptionItem[] =
-  mockedKYCPreferences.map((kycOption) => ({
-    id: kycOption.value,
-    label: kycOption.label,
-    value: kycOption.value,
+export const mockedAccessControlOptions: ExtendedSelectOptionItem[] =
+  mockedAccessControls.map((option) => ({
+    id: option.value,
+    label: option.label,
+    value: option.value,
   }))
 
 export const mockedMLATemplatesOptions: ExtendedSelectOptionItem[] =

@@ -7,19 +7,30 @@ import { dir } from "i18next"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { headers } from "next/headers"
+import { Toaster } from "react-hot-toast"
 import { cookieToInitialState } from "wagmi"
 
-import { ContentContainer, PageContainer } from "@/app/[locale]/layout-style"
-import Image from "@/assets/pictures/background.webp"
+import {
+  BackgroundContainer,
+  ContentContainer,
+  PageContainer,
+} from "@/app/[locale]/layout-style"
+import initTranslations from "@/app/i18n"
 import { Footer } from "@/components/Footer"
 import Header from "@/components/Header"
+import PollingRegistration from "@/components/PollingRegistration"
+import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
+import TranslationsProvider from "@/components/TranslationsProvider"
 import { config } from "@/lib/config"
-import { AuthProvider } from "@/providers/AuthProvider"
+import { RedirectsProvider } from "@/providers/RedirectsProvider"
+import { SafeProvider } from "@/providers/SafeProvider"
 import { WagmiQueryProviders } from "@/providers/WagmiQueryProviders"
 
 import i18nConfig from "../../../i18nConfig"
+
+const i18nNamespaces = ["en"]
 
 const inter = Inter({
   subsets: ["latin"],
@@ -42,31 +53,39 @@ export default async function RootLayout({
   params: { locale: string }
 }) {
   const initialState = cookieToInitialState(config, headers().get("cookie"))
+  const { resources } = await initTranslations(locale, i18nNamespaces)
 
   return (
     <html lang={locale} dir={dir(locale)}>
       <body className={inter.className}>
+        <Toaster position="bottom-center" />
         <WagmiQueryProviders initialState={initialState}>
-          <AuthProvider>
-            <StoreProvider>
-              <ThemeRegistry>
-                <Box
-                  sx={{
-                    backgroundImage: `url(${Image.src})`,
-                    backgroundPosition: "center",
-                    backgroundRepeat: "no-repeat",
-                    backgroundSize: "100% 100%",
-                  }}
+          <SafeProvider>
+            <RedirectsProvider>
+              <StoreProvider>
+                <TranslationsProvider
+                  namespaces={i18nNamespaces}
+                  locale={locale}
+                  resources={resources}
                 >
-                  <Header params={{ locale }} />
-                  <Box sx={PageContainer}>
-                    <Box sx={ContentContainer}>{children}</Box>
-                    <Footer />
-                  </Box>
-                </Box>
-              </ThemeRegistry>
-            </StoreProvider>
-          </AuthProvider>
+                  <PollingRegistration />
+                  <ThemeRegistry>
+                    <Box sx={BackgroundContainer} />
+                    <Box position="relative" zIndex="1">
+                      <Header />
+                      <Box sx={PageContainer}>
+                        <Box sx={ContentContainer}>
+                          <Sidebar />
+                          <Box width="calc(100vw - 267px)">{children}</Box>
+                        </Box>
+                        <Footer />
+                      </Box>
+                    </Box>
+                  </ThemeRegistry>
+                </TranslationsProvider>
+              </StoreProvider>
+            </RedirectsProvider>
+          </SafeProvider>
         </WagmiQueryProviders>
       </body>
     </html>

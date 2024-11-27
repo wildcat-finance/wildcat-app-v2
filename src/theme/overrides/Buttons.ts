@@ -1,7 +1,7 @@
 import { COLORS } from "@/theme/colors"
 
 export const smallContainedButton = {
-  fontSize: 10,
+  fontSize: 11,
   lineHeight: "16px",
   fontWeight: 600,
   color: COLORS.white,
@@ -21,7 +21,7 @@ export const smallContainedButton = {
   },
 }
 export const mediumContainedButton = {
-  fontSize: 12,
+  fontSize: 13,
   lineHeight: "12px",
   fontWeight: 600,
   color: COLORS.white,
@@ -46,7 +46,7 @@ export const largeContainedButton = {
   fontWeight: 600,
   color: COLORS.white,
 
-  padding: "10px 20px",
+  padding: "12px 20px",
   borderRadius: 12,
   backgroundColor: COLORS.bunker,
 
@@ -62,7 +62,7 @@ export const largeContainedButton = {
 }
 
 export const smallContainedSecondaryButton = {
-  fontSize: 10,
+  fontSize: 11,
   lineHeight: "16px",
   fontWeight: 600,
   color: COLORS.bunker,
@@ -82,7 +82,7 @@ export const smallContainedSecondaryButton = {
   },
 }
 export const mediumSecondaryContainedButton = {
-  fontSize: 12,
+  fontSize: 13,
   lineHeight: "12px",
   fontWeight: 600,
   color: COLORS.bunker,
@@ -107,7 +107,7 @@ export const largeSecondaryContainedButton = {
   fontWeight: 600,
   color: COLORS.bunker,
 
-  padding: "10px 20px",
+  padding: "12px 20px",
   borderRadius: 12,
   backgroundColor: COLORS.whiteSmoke,
 
@@ -123,7 +123,7 @@ export const largeSecondaryContainedButton = {
 }
 
 export const smallTextButton = {
-  fontSize: 10,
+  fontSize: 11,
   lineHeight: "16px",
   fontWeight: 600,
   color: COLORS.bunker,
@@ -134,7 +134,8 @@ export const smallTextButton = {
 
   "&:hover": {
     boxShadow: "none",
-    backgroundColor: COLORS.blackRock03,
+    backgroundColor: COLORS.hintOfRed,
+    color: COLORS.blackRock08,
   },
 
   "&.Mui-disabled": {
@@ -142,7 +143,7 @@ export const smallTextButton = {
   },
 }
 export const mediumTextButton = {
-  fontSize: 12,
+  fontSize: 13,
   lineHeight: "12px",
   fontWeight: 600,
   color: COLORS.bunker,
@@ -153,7 +154,8 @@ export const mediumTextButton = {
 
   "&:hover": {
     boxShadow: "none",
-    backgroundColor: COLORS.blackRock03,
+    backgroundColor: COLORS.hintOfRed,
+    color: COLORS.blackRock08,
   },
 
   "&.Mui-disabled": {
@@ -166,13 +168,14 @@ export const largeTextButton = {
   fontWeight: 600,
   color: COLORS.bunker,
 
-  padding: "10px 20px",
+  padding: "12px 20px",
   borderRadius: 12,
   background: "transparent",
 
   "&:hover": {
     boxShadow: "none",
-    backgroundColor: COLORS.blackRock03,
+    backgroundColor: COLORS.hintOfRed,
+    color: COLORS.blackRock08,
   },
 
   "&.Mui-disabled": {
@@ -181,7 +184,7 @@ export const largeTextButton = {
 }
 
 export const smallOutlinedButton = {
-  fontSize: 10,
+  fontSize: 11,
   lineHeight: "16px",
   fontWeight: 600,
   color: COLORS.bunker,
@@ -203,7 +206,7 @@ export const smallOutlinedButton = {
   },
 }
 export const mediumOutlinedButton = {
-  fontSize: 12,
+  fontSize: 13,
   lineHeight: "12px",
   fontWeight: 600,
   color: COLORS.bunker,
@@ -230,7 +233,7 @@ export const largeOutlinedButton = {
   fontWeight: 600,
   color: COLORS.bunker,
 
-  padding: "10px 20px",
+  padding: "12px 20px",
   borderRadius: 12,
   borderColor: COLORS.blackRock,
 
@@ -248,46 +251,46 @@ export const largeOutlinedButton = {
 }
 
 export const smallOutlinedSecondaryButton = {
-  fontSize: 10,
+  fontSize: 11,
   lineHeight: "16px",
   fontWeight: 600,
   color: COLORS.bunker,
 
   padding: "6px 12px",
   borderRadius: 8,
-  borderColor: COLORS.iron,
+  borderColor: COLORS.whiteLilac,
 
   "&:hover": {
-    borderColor: COLORS.iron,
+    borderColor: COLORS.whiteLilac,
     background: COLORS.blackRock03,
     boxShadow: "none",
   },
 
   "&.Mui-disabled": {
     color: COLORS.santasGrey,
-    borderColor: COLORS.iron,
+    borderColor: COLORS.whiteLilac,
     background: "transparent",
   },
 }
 export const mediumOutlinedSecondaryButton = {
-  fontSize: 12,
+  fontSize: 13,
   lineHeight: "12px",
   fontWeight: 600,
   color: COLORS.bunker,
 
   padding: "12px",
   borderRadius: 10,
-  borderColor: COLORS.iron,
+  borderColor: COLORS.whiteLilac,
 
   "&:hover": {
-    borderColor: COLORS.iron,
+    borderColor: COLORS.whiteLilac,
     background: COLORS.blackRock03,
     boxShadow: "none",
   },
 
   "&.Mui-disabled": {
     color: COLORS.santasGrey,
-    borderColor: COLORS.iron,
+    borderColor: COLORS.whiteLilac,
     background: "transparent",
   },
 }
@@ -297,19 +300,19 @@ export const largeOutlinedSecondaryButton = {
   fontWeight: 600,
   color: COLORS.bunker,
 
-  padding: "10px 20px",
+  padding: "12px 20px",
   borderRadius: 12,
-  borderColor: COLORS.iron,
+  borderColor: COLORS.whiteLilac,
 
   "&:hover": {
-    borderColor: COLORS.iron,
+    borderColor: COLORS.whiteLilac,
     background: COLORS.blackRock03,
     boxShadow: "none",
   },
 
   "&.Mui-disabled": {
     color: COLORS.santasGrey,
-    borderColor: COLORS.iron,
+    borderColor: COLORS.whiteLilac,
     background: "transparent",
   },
 }

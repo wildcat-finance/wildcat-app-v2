@@ -4,7 +4,6 @@ import SafeAppsSDK, {
   BaseTransaction,
   Web3TransactionReceiptObject,
 } from "@safe-global/safe-apps-sdk"
-import { useQuery } from "@tanstack/react-query"
 import { useAccount, useConnectorClient } from "wagmi"
 
 export type GnosisSafeHook = {

@@ -1,4 +1,5 @@
 import {
+  Badge,
   Box,
   FormControl,
   InputLabel,
@@ -7,7 +8,9 @@ import {
   Typography,
 } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
+import { FieldValues, useController } from "react-hook-form"
 
+import Icon from "@/assets/icons/search_icon.svg"
 import {
   FormControlContainer,
   SearchIcon,
@@ -15,22 +18,25 @@ import {
 } from "@/components/@extended/ExtendedSelect/style"
 import { ExtendedSelectProps } from "@/components/@extended/ExtendedSelect/type"
 
-import Icon from "../../../assets/icons/search_icon.svg"
-
-export const ExtendedSelect = ({
+export const ExtendedSelect = <TFieldValues extends FieldValues = FieldValues>({
   label,
   options,
   small,
   selectSX,
   optionSX,
+  badgeSX,
+  name,
+  control,
   ...rest
-}: ExtendedSelectProps) => {
+}: ExtendedSelectProps<TFieldValues>) => {
+  const { field } = useController({ name, control })
+
   switch (small) {
     case false: {
       return (
         <FormControl>
           <InputLabel>{label}</InputLabel>
-          <Select sx={selectSX} {...rest}>
+          <Select sx={selectSX} {...rest} {...field}>
             {options.map((option) => (
               <MenuItem key={option.id} value={option.value} sx={optionSX}>
                 {option.label}
@@ -48,7 +54,7 @@ export const ExtendedSelect = ({
             <SvgIcon fontSize="small" sx={SearchIcon}>
               <Icon />
             </SvgIcon>
-            <Select size="small" sx={selectSX} {...rest}>
+            <Select size="small" sx={selectSX} {...rest} {...field}>
               {options.map((option) => (
                 <MenuItem key={option.id} value={option.value} sx={optionSX}>
                   <Typography variant="text4">{option.label}</Typography>
@@ -63,10 +69,35 @@ export const ExtendedSelect = ({
       return (
         <FormControl>
           <InputLabel>{label}</InputLabel>
-          <Select sx={selectSX} {...rest}>
+          <Select sx={selectSX} {...rest} {...field}>
             {options.map((option) => (
               <MenuItem key={option.id} value={option.value} sx={optionSX}>
-                {option.label}
+                {option.badge ? (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      width: "100%",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      paddingRight: "32px",
+                    }}
+                  >
+                    {option.label}
+                    <Badge
+                      badgeContent={option.badge}
+                      color="default"
+                      sx={{
+                        ...badgeSX,
+                        "& .MuiBadge-badge": {
+                          border: "1px solid",
+                          borderColor: "divider",
+                        },
+                      }}
+                    />
+                  </Box>
+                ) : (
+                  option.label
+                )}
               </MenuItem>
             ))}
           </Select>

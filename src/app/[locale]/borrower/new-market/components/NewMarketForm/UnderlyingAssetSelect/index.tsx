@@ -1,4 +1,4 @@
-import { JSX } from "react"
+import { JSX, forwardRef, ForwardedRef } from "react"
 
 import {
   Autocomplete,
@@ -9,10 +9,12 @@ import {
   createFilterOptions,
 } from "@mui/material"
 import Image from "next/image"
+import { useTranslation } from "react-i18next"
 
 import { TokenInfo } from "@/app/api/tokens-list/interface"
 
 import { useTokensList } from "./hooks/useTokensList"
+import { TokenSelectorProps } from "./interface"
 
 const MyPopper = (props: JSX.IntrinsicAttributes & PopperProps) => (
   <Popper
@@ -40,74 +42,79 @@ const MyPopper = (props: JSX.IntrinsicAttributes & PopperProps) => (
 )
 
 const filterOptions = createFilterOptions({
-  stringify: (option: TokenInfo) => `${option.address}${option.name}`,
+  stringify: (option: TokenInfo) =>
+    `${option.address}${option.name}${option.symbol}`,
 })
 
-export type TokenSelectorProps = {
-  error?: boolean
-  errorText?: string
-  handleTokenSelect: (value: string) => void
-}
-
-export const TokenSelector = ({
-  error,
-  errorText,
-  handleTokenSelect,
-}: TokenSelectorProps) => {
-  const { handleChange, handleSelect, query, setQuery, isLoading, tokens } =
-    useTokensList()
-
-  const handleSetToken = (
-    event: React.SyntheticEvent,
-    newValue: TokenInfo | null,
+export const UnderlyingAssetSelect = forwardRef(
+  (
+    { error, errorText, handleTokenSelect, onBlur }: TokenSelectorProps,
+    ref: ForwardedRef<HTMLInputElement>,
   ) => {
-    handleSelect(newValue)
-    if (newValue) {
-      handleTokenSelect(newValue?.address)
-    }
-  }
+    const { t } = useTranslation()
+    const { handleChange, handleSelect, query, setQuery, isLoading, tokens } =
+      useTokensList()
 
-  return (
-    <div>
-      <Autocomplete
-        PopperComponent={MyPopper}
-        filterOptions={filterOptions}
-        noOptionsText={isLoading ? "Loading..." : "Enter token name"}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            value={query}
-            onChange={handleChange}
-            label="Search name or paste address"
-            error={error}
-            helperText={errorText}
-          />
-        )}
-        renderOption={(props, option) => (
-          <MenuItem key={option.address} {...props}>
-            {option.logoURI && (
-              <Image
-                width={20}
-                height={20}
-                style={{ marginRight: 10 }}
-                src={option.logoURI}
-                alt={option.name}
-              />
-            )}
-            {option.name}
-          </MenuItem>
-        )}
-        isOptionEqualToValue={(option, value) =>
-          option.address === value.address
-        }
-        getOptionLabel={(option) => option.name}
-        options={tokens}
-        popupIcon={null}
-        onChange={handleSetToken}
-        onInputChange={(event, newInputValue) => {
-          setQuery(newInputValue)
-        }}
-      />
-    </div>
-  )
-}
+    const handleSetToken = (
+      event: React.SyntheticEvent,
+      selectedToken: TokenInfo | null,
+    ) => {
+      handleSelect(selectedToken)
+      handleTokenSelect(selectedToken)
+    }
+
+    return (
+      <div>
+        <Autocomplete
+          PopperComponent={MyPopper}
+          filterOptions={filterOptions}
+          noOptionsText={
+            isLoading
+              ? t(
+                  "createMarket.forms.marketDescription.block.marketAsset.loading",
+                )
+              : t(
+                  "createMarket.forms.marketDescription.block.marketAsset.dropdownPlaceholder",
+                )
+          }
+          ref={ref}
+          onBlur={onBlur}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              value={query}
+              onChange={handleChange}
+              label={t(
+                "createMarket.forms.marketDescription.block.marketAsset.placeholder",
+              )}
+              error={error}
+              helperText={errorText}
+            />
+          )}
+          renderOption={(props, option) => (
+            <MenuItem {...props}>
+              {option.logoURI && (
+                <Image
+                  width={20}
+                  height={20}
+                  style={{ marginRight: 10 }}
+                  src={option.logoURI}
+                  alt={option.name}
+                />
+              )}
+              {option.name}
+            </MenuItem>
+          )}
+          isOptionEqualToValue={(option, val) => option.address === val.address}
+          getOptionLabel={(option) => option.name}
+          options={tokens}
+          popupIcon={null}
+          onChange={handleSetToken}
+          onInputChange={(event, newInputValue) => {
+            setQuery(newInputValue)
+          }}
+        />
+      </div>
+    )
+  },
+)

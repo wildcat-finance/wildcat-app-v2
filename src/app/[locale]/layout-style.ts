@@ -1,5 +1,20 @@
+import Image from "@/assets/pictures/background.webp"
+
+export const BackgroundContainer = {
+  top: 0,
+  left: 0,
+  width: "100%",
+  height: "100%",
+  position: "fixed",
+  backgroundImage: `url(${Image.src})`,
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
+  backgroundSize: "cover",
+
+  zIndex: "-1",
+}
+
 export const PageContainer = {
-  margin: "0 6px",
   borderRadius: "12px 12px 0px 0px",
   backgroundColor: "white",
 
@@ -8,7 +23,7 @@ export const PageContainer = {
 }
 
 export const ContentContainer = {
-  minHeight: "calc(100vh - 82px - 43px)",
+  height: "calc(100vh - 82px - 43px - 52px)",
   width: "100%",
   display: "flex",
   flexDirection: "row",

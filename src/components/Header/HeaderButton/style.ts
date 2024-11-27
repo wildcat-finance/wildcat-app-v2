@@ -1,3 +1,5 @@
+import { COLORS } from "@/theme/colors"
+
 export const ConnectButton = {
   minHeight: "36px",
   width: "156px",
@@ -8,6 +10,7 @@ export const ConnectButton = {
   border: "none",
   "&:hover": {
     background: "#FFFFFF26",
+    color: COLORS.white,
     boxShadow: "none",
   },
 }

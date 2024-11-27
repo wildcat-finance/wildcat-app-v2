@@ -2,22 +2,28 @@ import { http, createConfig, createStorage, cookieStorage } from "wagmi"
 import { mainnet, sepolia } from "wagmi/chains"
 import { injected, coinbaseWallet, safe, walletConnect } from "wagmi/connectors"
 
+import { NETWORKS } from "@/config/network"
+
 export const config = createConfig({
-  chains: [mainnet, sepolia],
+  chains:
+    process.env.NEXT_PUBLIC_TARGET_NETWORK === NETWORKS.Sepolia.name
+      ? [sepolia, mainnet]
+      : [mainnet, sepolia],
   ssr: true,
   storage: createStorage({
     storage: cookieStorage,
   }),
+  multiInjectedProviderDiscovery: false,
   transports: {
-    [mainnet.id]: http(
+    [sepolia.id]: http(
       `https://eth-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
     ),
-    [sepolia.id]: http(
+    [mainnet.id]: http(
       `https://eth-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
     ),
   },
   connectors: [
-    injected(),
+    injected({ target: "metaMask" }),
     safe({
       allowedDomains: [/gnosis-safe.io$/, /app.safe.global$/],
       debug: false,

@@ -1,10 +1,9 @@
+import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation } from "@tanstack/react-query"
 
-import { toastifyRequest } from "@/components/toasts"
+import { toastRequest } from "@/components/Toasts"
+import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { useGnosisSafeSDK } from "@/hooks/useGnosisSafeSDK"
-
-import AgreementText from "../../../../config/wildcat-service-agreement.json"
 
 export type SignAgreementProps = {
   address: string | undefined
@@ -13,7 +12,7 @@ export type SignAgreementProps = {
 }
 
 export const useSignAgreement = () => {
-  const { sdk } = useGnosisSafeSDK()
+  const { sdk } = useSafeAppsSDK()
   const signer = useEthersSigner()
 
   return useMutation({
@@ -56,7 +55,17 @@ export const useSignAgreement = () => {
         return { signature: signatureResult }
       }
       let result: { signature?: string; safeTxHash?: string } = {}
-      await toastifyRequest(
+      // await toastifyRequest(
+      //   sign().then((res) => {
+      //     result = res
+      //   }),
+      //   {
+      //     pending: `Waiting for signature...`,
+      //     success: `Service agreement signed!`,
+      //     error: `Failed to sign service agreement!`,
+      //   },
+      // )
+      await toastRequest(
         sign().then((res) => {
           result = res
         }),

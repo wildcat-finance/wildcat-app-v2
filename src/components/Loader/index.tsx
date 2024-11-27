@@ -16,3 +16,20 @@ export const Loader = () => (
     <div />
   </div>
 )
+
+export const MiniLoader = () => (
+  <div className="lds-spinner-20">
+    <div />
+    <div />
+    <div />
+    <div />
+    <div />
+    <div />
+    <div />
+    <div />
+    <div />
+    <div />
+    <div />
+    <div />
+  </div>
+)

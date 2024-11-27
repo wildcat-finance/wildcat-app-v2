@@ -3,14 +3,17 @@
 import { useState, useEffect } from "react"
 
 import { Button } from "@mui/material"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWalletDialog"
 import { ProfileDialog } from "@/components/Header/HeaderButton/ProfileDialog"
 import { ConnectButton } from "@/components/Header/HeaderButton/style"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { trimAddress } from "@/utils/formatters"
 
 export const HeaderButton = () => {
+  const { t } = useTranslation()
   const { address, isConnected } = useAccount()
 
   const { isWrongNetwork } = useCurrentNetwork()
@@ -28,13 +31,11 @@ export const HeaderButton = () => {
 
   useEffect(() => {
     if (isConnected && isWrongNetwork) {
-      setButtonText("Wrong Network")
+      setButtonText(t("header.button.wrongNetwork"))
     } else if (isConnected && address) {
-      setButtonText(
-        `${address.slice(0, 4)}..${address.slice(-4, address.length)}`,
-      )
+      setButtonText(trimAddress(address))
     } else if (!isConnected) {
-      setButtonText("Connect a wallet")
+      setButtonText(t("header.button.connectWallet"))
     }
   }, [isConnected, address, isWrongNetwork])
 
@@ -44,7 +45,7 @@ export const HeaderButton = () => {
         {buttonText}
       </Button>
 
-      {isConnected ? (
+      {isConnected && address ? (
         <ProfileDialog open={open} handleClose={handleClose} />
       ) : (
         <ConnectWalletDialog open={open} handleClose={handleClose} />

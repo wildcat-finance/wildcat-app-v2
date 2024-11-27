@@ -1,8 +1,16 @@
-export const ElseButtonContainer = {
-  minWidth: "28px",
-  height: "28px",
-  padding: "0",
-  borderRadius: "50%",
+export const MarketHeaderUpperContainer = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  marginBottom: "20px",
 }
 
-export const ElseButtonText = { position: "relative", bottom: "10%" }
+export const MarketHeaderTitleContainer = {
+  display: "flex",
+  columnGap: "8px",
+}
+
+export const MarketHeaderStatusContainer = {
+  display: "flex",
+  columnGap: "12px",
+}
