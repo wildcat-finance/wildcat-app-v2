@@ -21,13 +21,14 @@ import { useAccount } from "wagmi"
 import { AvatarProfileItem } from "@/app/[locale]/borrower/profile/edit/components/AvatarProfileItem"
 import { EditProfileItem } from "@/app/[locale]/borrower/profile/edit/components/EditProfileItem"
 import { SelectProfileItem } from "@/app/[locale]/borrower/profile/edit/components/SelectProfileItem"
-import { useEditProfileForm } from "@/app/[locale]/borrower/profile/edit/hooks/useEditProfileForm"
+import { useEditPrivateForm } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPrivateForm"
+import { useEditPublicForm } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPublicForm"
 import { useUpdateBorrowerProfile } from "@/app/[locale]/borrower/profile/edit/hooks/useUpdateBorrowerProfile"
 import { mockedNaturesOptions } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
-const mockProfile = {
+const mockPublicInfo = {
   legalName: undefined,
   description: undefined,
   founded: undefined,
@@ -35,7 +36,9 @@ const mockProfile = {
   website: undefined,
   twitter: undefined,
   linkedin: undefined,
+}
 
+const mockPrivateInfo = {
   jurisdiction: undefined,
   legalNature: undefined,
   address: undefined,
@@ -43,8 +46,12 @@ const mockProfile = {
 }
 
 export default function EditProfile() {
-  const form = useEditProfileForm()
-  const profileData = mockProfile
+  const publicForm = useEditPublicForm()
+  const privateForm = useEditPrivateForm()
+
+  const publicData = mockPublicInfo
+  const privateData = mockPrivateInfo
+
   const router = useRouter()
 
   const { address } = useAccount()
@@ -52,55 +59,65 @@ export default function EditProfile() {
   const { mutate } = useUpdateBorrowerProfile()
 
   const {
-    getValues,
-    setValue,
-    register,
-    formState: { errors, isValid },
-    watch,
-    reset,
-  } = form
+    getValues: getPublicValues,
+    setValue: setPublicValue,
+    register: registerPublic,
+    formState: { errors: publicErrors },
+    watch: publicWatch,
+    reset: publicReset,
+  } = publicForm
 
-  const profileInfo = {
+  const {
+    getValues: getPrivateValues,
+    setValue: setPrivateValue,
+    register: registerPrivate,
+    formState: { errors: privateErrors },
+    watch: privateWatch,
+    reset: privateReset,
+  } = privateForm
+
+  const publicInfo = {
     address: address as string,
-    name: getValues().legalName,
-    description: getValues().description,
-    founded: getValues().founded,
-    headquarters: getValues().headquarters,
-    website: getValues().website,
-    twitter: getValues().twitter,
-    linkedin: getValues().linkedin,
+    name: getPublicValues().legalName,
+    description: getPublicValues().description,
+    founded: getPublicValues().founded,
+    headquarters: getPublicValues().headquarters,
+    website: getPublicValues().website,
+    twitter: getPublicValues().twitter,
+    linkedin: getPublicValues().linkedin,
   }
 
   const [avatar, setAvatar] = useState<string | null>(null)
 
   const handleNatureSelect = (event: SelectChangeEvent<string | null>) => {
-    setValue("legalNature", event.target.value?.toString() || "")
+    setPrivateValue("legalNature", event.target.value?.toString() || "")
   }
 
   const handleSendUpdate = () => {
-    mutate(profileInfo)
+    mutate(publicInfo)
     router.push(ROUTES.borrower.profile)
-    reset()
+    publicReset()
   }
 
   const handleCancel = () => {
     router.push(ROUTES.borrower.profile)
-    reset()
+    publicReset()
+    privateReset()
   }
 
   useEffect(() => {
-    setValue("legalName", profileData.legalName)
-    setValue("description", profileData.description)
-    setValue("founded", profileData.founded)
-    setValue("headquarters", profileData.headquarters)
-    setValue("website", profileData.website)
-    setValue("twitter", profileData.twitter)
-    setValue("linkedin", profileData.linkedin)
+    setPublicValue("legalName", publicData.legalName)
+    setPublicValue("description", publicData.description)
+    setPublicValue("founded", publicData.founded)
+    setPublicValue("headquarters", publicData.headquarters)
+    setPublicValue("website", publicData.website)
+    setPublicValue("twitter", publicData.twitter)
+    setPublicValue("linkedin", publicData.linkedin)
 
-    setValue("jurisdiction", profileData.jurisdiction)
-    setValue("legalNature", profileData.legalNature)
-    setValue("address", profileData.address)
-    setValue("email", profileData.email)
+    // setValue("jurisdiction", profileData.jurisdiction)
+    // setValue("legalNature", profileData.legalNature)
+    // setValue("address", profileData.address)
+    // setValue("email", profileData.email)
   }, [])
 
   const selectRef = useRef<HTMLElement>(null)
@@ -167,27 +184,27 @@ export default function EditProfile() {
         <EditProfileItem
           title="Legal Name"
           tooltip="TBD"
-          form={form}
+          form={publicForm}
           field="legalName"
-          oldValue={profileData.legalName}
-          newValue={watch("legalName")}
+          oldValue={publicData.legalName}
+          newValue={publicWatch("legalName")}
         >
           <TextField
             fullWidth
             placeholder="Legal Name"
-            error={Boolean(errors.legalName)}
-            helperText={errors.legalName?.message}
-            {...register("legalName")}
+            error={Boolean(publicErrors.legalName)}
+            helperText={publicErrors.legalName?.message}
+            {...registerPublic("legalName")}
           />
         </EditProfileItem>
 
         <EditProfileItem
           title="Description"
           tooltip="TBD"
-          form={form}
+          form={publicForm}
           field="description"
-          oldValue={profileData.description}
-          newValue={watch("description")}
+          oldValue={publicData.description}
+          newValue={publicWatch("description")}
         >
           <TextField
             placeholder="Description"
@@ -204,9 +221,9 @@ export default function EditProfile() {
                 padding: "0 !important",
               },
             }}
-            error={Boolean(errors.description)}
-            helperText={errors.description?.message}
-            {...register("description")}
+            error={Boolean(publicErrors.description)}
+            helperText={publicErrors.description?.message}
+            {...registerPublic("description")}
             fullWidth
             multiline
           />
@@ -215,85 +232,85 @@ export default function EditProfile() {
         <EditProfileItem
           title="Founded"
           tooltip="TBD"
-          form={form}
+          form={publicForm}
           field="founded"
-          oldValue={profileData.founded}
-          newValue={watch("founded")}
+          oldValue={publicData.founded}
+          newValue={publicWatch("founded")}
         >
           <TextField
             placeholder="Founded"
             fullWidth
-            error={Boolean(errors.founded)}
-            helperText={errors.founded?.message}
-            {...register("founded")}
+            error={Boolean(publicErrors.founded)}
+            helperText={publicErrors.founded?.message}
+            {...registerPublic("founded")}
           />
         </EditProfileItem>
 
         <EditProfileItem
           title="Headquarters"
           tooltip="TBD"
-          form={form}
+          form={publicForm}
           field="headquarters"
-          oldValue={profileData.headquarters}
-          newValue={watch("headquarters")}
+          oldValue={publicData.headquarters}
+          newValue={publicWatch("headquarters")}
         >
           <TextField
             placeholder="Headquarters"
             fullWidth
-            error={Boolean(errors.headquarters)}
-            helperText={errors.headquarters?.message}
-            {...register("headquarters")}
+            error={Boolean(publicErrors.headquarters)}
+            helperText={publicErrors.headquarters?.message}
+            {...registerPublic("headquarters")}
           />
         </EditProfileItem>
 
         <EditProfileItem
           title="Website"
           tooltip="TBD"
-          form={form}
+          form={publicForm}
           field="website"
-          oldValue={profileData.website}
-          newValue={watch("website")}
+          oldValue={publicData.website}
+          newValue={publicWatch("website")}
         >
           <TextField
             placeholder="Website"
             fullWidth
-            error={Boolean(errors.website)}
-            helperText={errors.website?.message}
-            {...register("website")}
+            error={Boolean(publicErrors.website)}
+            helperText={publicErrors.website?.message}
+            {...registerPublic("website")}
           />
         </EditProfileItem>
 
         <EditProfileItem
           title="Twitter"
           tooltip="TBD"
-          form={form}
+          form={publicForm}
           field="twitter"
-          oldValue={profileData.twitter}
-          newValue={watch("twitter")}
+          oldValue={publicData.twitter}
+          newValue={publicWatch("twitter")}
         >
           <TextField
             placeholder="Twitter"
             fullWidth
-            error={Boolean(errors.twitter)}
-            helperText={errors.twitter?.message}
-            {...register("twitter")}
+            error={Boolean(publicErrors.twitter)}
+            helperText={publicErrors.twitter?.message}
+            {...registerPublic("twitter")}
           />
         </EditProfileItem>
 
         <EditProfileItem
           title="Linkedin"
           tooltip="TBD"
-          form={form}
+          form={publicForm}
           field="linkedin"
-          oldValue={profileData.linkedin}
-          newValue={watch("linkedin")}
+          oldValue={publicData.linkedin}
+          newValue={publicWatch("linkedin")}
         >
           <TextField
             placeholder="Linkedin"
             fullWidth
-            error={Boolean(errors.linkedin)}
-            helperText={errors.linkedin?.message}
-            {...register("linkedin")}
+            error={Boolean(publicErrors.linkedin)}
+            helperText={publicErrors.linkedin?.message}
+            {...registerPublic("linkedin")}
           />
         </EditProfileItem>
       </Box>
@@ -325,28 +342,28 @@ export default function EditProfile() {
         <EditProfileItem
           title="Jurisdiction"
           tooltip="TBD"
-          form={form}
+          form={privateForm}
           field="jurisdiction"
-          oldValue={profileData.jurisdiction}
-          newValue={watch("jurisdiction")}
+          oldValue={privateData.jurisdiction}
+          newValue={privateWatch("jurisdiction")}
         >
           <TextField
             placeholder="Jurisdiction"
             fullWidth
-            error={Boolean(errors.jurisdiction)}
-            helperText={errors.jurisdiction?.message}
-            {...register("jurisdiction")}
+            error={Boolean(privateErrors.jurisdiction)}
+            helperText={privateErrors.jurisdiction?.message}
+            {...registerPrivate("jurisdiction")}
           />
         </EditProfileItem>
 
         <SelectProfileItem
           title="Legal Nature"
           tooltip="TBD"
-          form={form}
-          oldValue={profileData.legalNature}
-          oldLabel={getLabelByValue(profileData.legalNature)}
-          newValue={watch("legalNature")}
-          newLabel={getLabelByValue(watch("legalNature"))}
+          form={privateForm}
+          oldValue={privateData.legalNature}
+          oldLabel={getLabelByValue(privateData.legalNature)}
+          newValue={privateWatch("legalNature")}
+          newLabel={getLabelByValue(privateWatch("legalNature"))}
         >
           <FormControl fullWidth>
             <InputLabel className="test">Legal Nature</InputLabel>
@@ -355,7 +372,7 @@ export default function EditProfile() {
               onOpen={onOpen}
               onClose={onClose}
               onChange={handleNatureSelect}
-              value={getValues().legalNature}
+              value={getPrivateValues().legalNature}
               MenuProps={{
                 sx: {
                   "& .MuiPaper-root": {
@@ -388,34 +405,34 @@ export default function EditProfile() {
         <EditProfileItem
           title="Address"
           tooltip="TBD"
-          form={form}
+          form={privateForm}
           field="address"
-          oldValue={profileData.address}
-          newValue={watch("address")}
+          oldValue={privateData.address}
+          newValue={privateWatch("address")}
         >
           <TextField
             placeholder="Address"
             fullWidth
-            error={Boolean(errors.address)}
-            helperText={errors.address?.message}
-            {...register("address")}
+            error={Boolean(privateErrors.address)}
+            helperText={privateErrors.address?.message}
+            {...registerPrivate("address")}
           />
         </EditProfileItem>
 
         <EditProfileItem
           title="Email"
           tooltip="TBD"
-          form={form}
+          form={privateForm}
           field="email"
-          oldValue={profileData.email}
-          newValue={watch("email")}
+          oldValue={privateData.email}
+          newValue={privateWatch("email")}
         >
           <TextField
             placeholder="Email"
             fullWidth
-            error={Boolean(errors.email)}
-            helperText={errors.email?.message}
-            {...register("email")}
+            error={Boolean(privateErrors.email)}
+            helperText={privateErrors.email?.message}
+            {...registerPrivate("email")}
           />
         </EditProfileItem>
       </Box>

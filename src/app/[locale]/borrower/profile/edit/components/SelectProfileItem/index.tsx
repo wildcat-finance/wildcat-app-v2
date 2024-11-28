@@ -1,10 +1,10 @@
 import { ReactNode } from "react"
 import * as React from "react"
 
-import { Box, Button, SvgIcon, TextField, Typography } from "@mui/material"
+import { Box, Button, SvgIcon, Typography } from "@mui/material"
 import { UseFormReturn } from "react-hook-form"
 
-import { ProfileValidationSchemaType } from "@/app/[locale]/borrower/profile/edit/hooks/useEditProfileForm"
+import { PrivateValidationSchemaType } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPrivateForm"
 import Return from "@/assets/icons/return_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
 import { COLORS } from "@/theme/colors"
@@ -12,7 +12,7 @@ import { COLORS } from "@/theme/colors"
 export type EditProfileItemProps = {
   title: string
   tooltip: string
-  form: UseFormReturn<ProfileValidationSchemaType>
+  form: UseFormReturn<PrivateValidationSchemaType>
   oldValue: string | undefined
   oldLabel: string | undefined
   newValue?: string

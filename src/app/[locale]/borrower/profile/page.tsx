@@ -13,6 +13,7 @@ import {
 import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
@@ -43,26 +44,12 @@ import {
   ProfileHeaderButton,
 } from "./style"
 
-const mockProfile = {
-  legalName: "Wintermute LLC",
-  description:
-    "– leading global algorithmic trading firm and one of the largest players in digital asset markets. With an average daily trading volume of over $5bn.",
-  founded: "2017",
-  headquarters: "London",
-  website: "https://wintermute.com",
-  twitter: "https://x.com/wintermute_t",
-  linkedin: "https://uk.linkedin.com/company/wintermute-trading",
-}
-
 export default function BorrowerPage() {
   const { t } = useTranslation()
   const { data: borrowerMarkets, isLoading } = useGetBorrowerMarkets()
 
-  const profileData = mockProfile
-
-  const test = useGetBorrowerProfile()
-
-  console.log(test)
+  const { address: accountAddress } = useAccount()
+  const { data: profileData } = useGetBorrowerProfile(accountAddress)
 
   const rows: GridRowsProp = (borrowerMarkets ?? []).map((market) => {
     const {
@@ -236,6 +223,8 @@ export default function BorrowerPage() {
     },
   ]
 
+  if (!profileData) return <Box />
+
   return (
     <Box sx={ContentContainer}>
       <Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -244,7 +233,7 @@ export default function BorrowerPage() {
         </SvgIcon>
 
         <Typography variant="title1" sx={{ marginBottom: "12px" }}>
-          {profileData.legalName}
+          {profileData.name}
         </Typography>
 
         <Typography
@@ -261,16 +250,18 @@ export default function BorrowerPage() {
 
         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
           <Box display="flex" gap="6px">
-            <Link href={profileData.website} target="_blank">
-              <Button
-                size="small"
-                variant="outlined"
-                color="secondary"
-                sx={ProfileHeaderButton}
-              >
-                Website
-              </Button>
-            </Link>
+            {profileData.website && (
+              <Link href={profileData.website} target="_blank">
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="secondary"
+                  sx={ProfileHeaderButton}
+                >
+                  Website
+                </Button>
+              </Link>
+            )}
 
             {profileData.twitter && (
               <Link href={profileData.twitter} target="_blank">
@@ -376,18 +367,21 @@ export default function BorrowerPage() {
           <Box sx={MarketParametersRowContainer}>
             <MarketParametersItem
               title="Legal Name"
-              value={profileData.legalName}
-              link={profileData.website}
+              value={profileData.name ?? ""}
+              link={profileData.website ?? ""}
             />
             <Divider sx={MarketParametersRowsDivider} />
 
             <MarketParametersItem
               title="Headquarters"
-              value={profileData.headquarters}
+              value={profileData.headquarters ?? ""}
             />
             <Divider sx={MarketParametersRowsDivider} />
 
-            <MarketParametersItem title="Founded" value={profileData.founded} />
+            <MarketParametersItem
+              title="Founded"
+              value={profileData.founded ?? ""}
+            />
             <Divider sx={MarketParametersRowsDivider} />
           </Box>
 

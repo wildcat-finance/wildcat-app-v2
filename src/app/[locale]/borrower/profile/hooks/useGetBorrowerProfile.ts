@@ -1,9 +1,13 @@
 import { useQuery } from "@tanstack/react-query"
 
+import { BorrowerProfile } from "@/app/api/profiles/interface"
+
 export const BORROWER_PROFILE_KEY = "borrower-profile-key"
 
-const fetchBorrowerProfile = async () => {
-  const response = await fetch(`/api/profiles/`, {
+const fetchBorrowerProfile = async (
+  address: `0x${string}` | undefined,
+): Promise<BorrowerProfile> => {
+  const response = await fetch(`/api/profiles/${address}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -16,11 +20,11 @@ const fetchBorrowerProfile = async () => {
   }
 
   const data = await response.json()
-  return data.profile
+  return data.profile as BorrowerProfile
 }
 
-export const useGetBorrowerProfile = () =>
-  useQuery({
-    queryKey: [BORROWER_PROFILE_KEY],
-    queryFn: () => fetchBorrowerProfile(),
+export const useGetBorrowerProfile = (address: `0x${string}` | undefined) =>
+  useQuery<BorrowerProfile>({
+    queryKey: [BORROWER_PROFILE_KEY, address],
+    queryFn: () => fetchBorrowerProfile(address),
   })
