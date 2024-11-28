@@ -24,7 +24,10 @@ import { SelectProfileItem } from "@/app/[locale]/borrower/profile/edit/componen
 import { useEditPrivateForm } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPrivateForm"
 import { useEditPublicForm } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPublicForm"
 import { useUpdateBorrowerProfile } from "@/app/[locale]/borrower/profile/edit/hooks/useUpdateBorrowerProfile"
-import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
+import {
+  useGetBorrowerProfile,
+  useInvalidateBorrowerProfile,
+} from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { mockedNaturesOptions } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -45,6 +48,7 @@ export default function EditProfile() {
   const { address } = useAccount()
   const { data: publicData, isLoading: isPublicDataLoading } =
     useGetBorrowerProfile(address)
+  const invalidateBorrowerProfile = useInvalidateBorrowerProfile(address)
   const privateData = mockPrivateInfo
 
   const isLoading = isPublicDataLoading
@@ -78,6 +82,7 @@ export default function EditProfile() {
     website: getPublicValues().website,
     twitter: getPublicValues().twitter,
     linkedin: getPublicValues().linkedin,
+    // updatedAt: Date.now(),
   }
 
   const privateInfo = {
@@ -94,9 +99,21 @@ export default function EditProfile() {
   }
 
   const handleSendUpdate = () => {
-    mutate(publicInfo)
-    router.push(ROUTES.borrower.profile)
-    publicReset()
+    mutate(
+      {
+        ...publicData,
+        ...publicInfo,
+      },
+      {
+        onSuccess: () => {
+          invalidateBorrowerProfile()
+          router.push(ROUTES.borrower.profile)
+        },
+        onError: (error) => {
+          console.error(error)
+        },
+      },
+    )
   }
 
   const handleCancel = () => {

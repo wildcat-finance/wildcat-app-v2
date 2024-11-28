@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 
@@ -12,11 +12,10 @@ const fetchBorrowerProfile = async (
     headers: {
       "Content-Type": "application/json",
     },
-    cache: "no-cache",
   })
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch borrower profile: ${response.statusText}`)
+    throw new Error("Failed to fetch profile")
   }
 
   const data = await response.json()
@@ -27,4 +26,17 @@ export const useGetBorrowerProfile = (address: `0x${string}` | undefined) =>
   useQuery<BorrowerProfile>({
     queryKey: [BORROWER_PROFILE_KEY, address],
     queryFn: () => fetchBorrowerProfile(address),
+    enabled: !!address,
   })
+
+export const useInvalidateBorrowerProfile = (
+  address: `0x${string}` | undefined,
+) => {
+  const queryClient = useQueryClient()
+
+  return () => {
+    if (address) {
+      queryClient.invalidateQueries({ queryKey: [BORROWER_PROFILE_KEY] })
+    }
+  }
+}

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { getBorrowerProfile } from "@/lib/tmp-db"
+import { BorrowerProfile } from "@/app/api/profiles/interface"
 
-const mockProfile = {
+let mockProfile: BorrowerProfile = {
   address: "0x1717503EE3f56e644cf8b1058e3F83F03a71b2E1",
   name: "Wintermute LLC",
   description:
@@ -10,9 +10,9 @@ const mockProfile = {
   founded: "2017",
   headquarters: "London",
   website: "https://wintermute.com/",
-  twitter: "",
-  linkedin: "",
-  updatedAt: 10,
+  twitter: undefined,
+  linkedin: undefined,
+  updatedAt: 1679616000000,
 }
 
 export async function GET(
@@ -20,6 +20,21 @@ export async function GET(
   { params }: { params: { address: `0x${string}` } },
 ) {
   const { address } = params
-  const profile = getBorrowerProfile(address)
-  return NextResponse.json({ profile: profile ?? mockProfile })
+
+  if (address === mockProfile.address) {
+    return NextResponse.json({ profile: mockProfile })
+  }
+
+  return NextResponse.json({ error: "Profile not found" }, { status: 404 })
+}
+
+export async function PUT(request: NextRequest) {
+  const updatedProfile = await request.json()
+
+  if (updatedProfile.address === mockProfile.address) {
+    mockProfile = { ...mockProfile, ...updatedProfile }
+    return NextResponse.json({ success: true, profile: mockProfile })
+  }
+
+  return NextResponse.json({ error: "Profile not found" }, { status: 404 })
 }
