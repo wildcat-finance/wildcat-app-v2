@@ -24,19 +24,10 @@ import { SelectProfileItem } from "@/app/[locale]/borrower/profile/edit/componen
 import { useEditPrivateForm } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPrivateForm"
 import { useEditPublicForm } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPublicForm"
 import { useUpdateBorrowerProfile } from "@/app/[locale]/borrower/profile/edit/hooks/useUpdateBorrowerProfile"
+import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { mockedNaturesOptions } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-
-const mockPublicInfo = {
-  legalName: undefined,
-  description: undefined,
-  founded: undefined,
-  headquarters: undefined,
-  website: undefined,
-  twitter: undefined,
-  linkedin: undefined,
-}
 
 const mockPrivateInfo = {
   jurisdiction: undefined,
@@ -46,15 +37,17 @@ const mockPrivateInfo = {
 }
 
 export default function EditProfile() {
+  const router = useRouter()
+
   const publicForm = useEditPublicForm()
   const privateForm = useEditPrivateForm()
 
-  const publicData = mockPublicInfo
+  const { address } = useAccount()
+  const { data: publicData, isLoading: isPublicDataLoading } =
+    useGetBorrowerProfile(address)
   const privateData = mockPrivateInfo
 
-  const router = useRouter()
-
-  const { address } = useAccount()
+  const isLoading = isPublicDataLoading
 
   const { mutate } = useUpdateBorrowerProfile()
 
@@ -87,6 +80,13 @@ export default function EditProfile() {
     linkedin: getPublicValues().linkedin,
   }
 
+  const privateInfo = {
+    jurisdiction: getPrivateValues().jurisdiction,
+    legalNature: getPrivateValues().legalNature,
+    address: getPrivateValues().address,
+    email: getPrivateValues().email,
+  }
+
   const [avatar, setAvatar] = useState<string | null>(null)
 
   const handleNatureSelect = (event: SelectChangeEvent<string | null>) => {
@@ -101,24 +101,22 @@ export default function EditProfile() {
 
   const handleCancel = () => {
     router.push(ROUTES.borrower.profile)
-    publicReset()
-    privateReset()
   }
 
   useEffect(() => {
-    setPublicValue("legalName", publicData.legalName)
-    setPublicValue("description", publicData.description)
-    setPublicValue("founded", publicData.founded)
-    setPublicValue("headquarters", publicData.headquarters)
-    setPublicValue("website", publicData.website)
-    setPublicValue("twitter", publicData.twitter)
-    setPublicValue("linkedin", publicData.linkedin)
+    setPublicValue("legalName", publicData?.name || "")
+    setPublicValue("description", publicData?.description || "")
+    setPublicValue("founded", publicData?.founded || "")
+    setPublicValue("headquarters", publicData?.headquarters || "")
+    setPublicValue("website", publicData?.website || "")
+    setPublicValue("twitter", publicData?.twitter || "")
+    setPublicValue("linkedin", publicData?.linkedin || "")
 
-    // setValue("jurisdiction", profileData.jurisdiction)
-    // setValue("legalNature", profileData.legalNature)
-    // setValue("address", profileData.address)
-    // setValue("email", profileData.email)
-  }, [])
+    setPrivateValue("jurisdiction", privateData.jurisdiction)
+    setPrivateValue("legalNature", privateData.legalNature)
+    setPrivateValue("address", privateData.address)
+    setPrivateValue("email", privateData.email)
+  }, [publicData])
 
   const selectRef = useRef<HTMLElement>(null)
 
@@ -171,7 +169,11 @@ export default function EditProfile() {
         </Typography>
       </Box>
 
-      <AvatarProfileItem avatar={avatar} setAvatar={setAvatar} />
+      <AvatarProfileItem
+        avatar={avatar}
+        setAvatar={setAvatar}
+        isLoading={isLoading}
+      />
 
       <Box
         sx={{
@@ -186,8 +188,9 @@ export default function EditProfile() {
           tooltip="TBD"
           form={publicForm}
           field="legalName"
-          oldValue={publicData.legalName}
+          oldValue={publicData?.name}
           newValue={publicWatch("legalName")}
+          isLoading={isLoading}
         >
           <TextField
             fullWidth
@@ -203,8 +206,9 @@ export default function EditProfile() {
           tooltip="TBD"
           form={publicForm}
           field="description"
-          oldValue={publicData.description}
+          oldValue={publicData?.description}
           newValue={publicWatch("description")}
+          isLoading={isLoading}
         >
           <TextField
             placeholder="Description"
@@ -234,8 +238,9 @@ export default function EditProfile() {
           tooltip="TBD"
           form={publicForm}
           field="founded"
-          oldValue={publicData.founded}
+          oldValue={publicData?.founded}
           newValue={publicWatch("founded")}
+          isLoading={isLoading}
         >
           <TextField
             placeholder="Founded"
@@ -251,8 +256,9 @@ export default function EditProfile() {
           tooltip="TBD"
           form={publicForm}
           field="headquarters"
-          oldValue={publicData.headquarters}
+          oldValue={publicData?.headquarters}
           newValue={publicWatch("headquarters")}
+          isLoading={isLoading}
         >
           <TextField
             placeholder="Headquarters"
@@ -268,8 +274,9 @@ export default function EditProfile() {
           tooltip="TBD"
           form={publicForm}
           field="website"
-          oldValue={publicData.website}
+          oldValue={publicData?.website}
           newValue={publicWatch("website")}
+          isLoading={isLoading}
         >
           <TextField
             placeholder="Website"
@@ -285,8 +292,9 @@ export default function EditProfile() {
           tooltip="TBD"
           form={publicForm}
           field="twitter"
-          oldValue={publicData.twitter}
+          oldValue={publicData?.twitter}
           newValue={publicWatch("twitter")}
+          isLoading={isLoading}
         >
           <TextField
             placeholder="Twitter"
@@ -302,8 +310,9 @@ export default function EditProfile() {
           tooltip="TBD"
           form={publicForm}
           field="linkedin"
-          oldValue={publicData.linkedin}
+          oldValue={publicData?.linkedin}
           newValue={publicWatch("linkedin")}
+          isLoading={isLoading}
         >
           <TextField
             placeholder="Linkedin"
@@ -346,6 +355,7 @@ export default function EditProfile() {
           field="jurisdiction"
           oldValue={privateData.jurisdiction}
           newValue={privateWatch("jurisdiction")}
+          isLoading={isLoading}
         >
           <TextField
             placeholder="Jurisdiction"
@@ -363,7 +373,7 @@ export default function EditProfile() {
           oldValue={privateData.legalNature}
           oldLabel={getLabelByValue(privateData.legalNature)}
           newValue={privateWatch("legalNature")}
-          newLabel={getLabelByValue(privateWatch("legalNature"))}
+          isLoading={isLoading}
         >
           <FormControl fullWidth>
             <InputLabel className="test">Legal Nature</InputLabel>
@@ -409,6 +419,7 @@ export default function EditProfile() {
           field="address"
           oldValue={privateData.address}
           newValue={privateWatch("address")}
+          isLoading={isLoading}
         >
           <TextField
             placeholder="Address"
@@ -426,6 +437,7 @@ export default function EditProfile() {
           field="email"
           oldValue={privateData.email}
           newValue={privateWatch("email")}
+          isLoading={isLoading}
         >
           <TextField
             placeholder="Email"
@@ -449,14 +461,16 @@ export default function EditProfile() {
           Cancel
         </Button>
 
-        <Button
-          variant="contained"
-          size="large"
-          sx={{ width: "156px" }}
-          onClick={handleSendUpdate}
-        >
-          Confirm
-        </Button>
+        {!isLoading && (
+          <Button
+            variant="contained"
+            size="large"
+            sx={{ width: "156px" }}
+            onClick={handleSendUpdate}
+          >
+            Confirm
+          </Button>
+        )}
       </Box>
     </Box>
   )

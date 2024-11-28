@@ -1,7 +1,7 @@
 import { ReactNode } from "react"
 import * as React from "react"
 
-import { Box, Button, SvgIcon, Typography } from "@mui/material"
+import { Box, Button, Skeleton, SvgIcon, Typography } from "@mui/material"
 import { UseFormReturn } from "react-hook-form"
 
 import { PrivateValidationSchemaType } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPrivateForm"
@@ -16,8 +16,8 @@ export type EditProfileItemProps = {
   oldValue: string | undefined
   oldLabel: string | undefined
   newValue?: string
-  newLabel?: string
   children: ReactNode
+  isLoading: boolean
 }
 
 export const SelectProfileItem = ({
@@ -27,8 +27,8 @@ export const SelectProfileItem = ({
   oldValue,
   oldLabel,
   newValue,
-  newLabel,
   children,
+  isLoading,
 }: EditProfileItemProps) => {
   const hasValueChanged = oldValue !== newValue
   const valueWasntEmpty = oldValue && oldValue.length !== 0
@@ -60,9 +60,17 @@ export const SelectProfileItem = ({
           alignItems: "center",
         }}
       >
-        <Box sx={{ width: "60.8%" }}>{children}</Box>
+        {isLoading ? (
+          <Skeleton
+            height="52px"
+            width="60.8%"
+            sx={{ bgcolor: COLORS.athensGrey, borderRadius: "12px" }}
+          />
+        ) : (
+          <Box sx={{ width: "60.8%" }}>{children}</Box>
+        )}
 
-        {hasValueChanged && valueWasntEmpty && (
+        {hasValueChanged && valueWasntEmpty && !isLoading && (
           <Box
             sx={{ display: "flex", flexDirection: "column", maxWidth: "35%" }}
           >
