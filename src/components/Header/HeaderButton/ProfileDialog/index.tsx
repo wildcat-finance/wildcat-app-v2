@@ -31,7 +31,7 @@ import { trimAddress } from "@/utils/formatters"
 export const ProfileDialog = ({
   open,
   handleClose,
-  name = "Wintermute Trading Ltd.",
+  name,
 }: ProfileDialogProps) => {
   const { t } = useTranslation()
 

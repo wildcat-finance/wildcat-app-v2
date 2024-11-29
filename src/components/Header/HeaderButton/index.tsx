@@ -6,6 +6,7 @@ import { Button } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
+import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWalletDialog"
 import { ProfileDialog } from "@/components/Header/HeaderButton/ProfileDialog"
 import { ConnectButton } from "@/components/Header/HeaderButton/style"
@@ -15,6 +16,7 @@ import { trimAddress } from "@/utils/formatters"
 export const HeaderButton = () => {
   const { t } = useTranslation()
   const { address, isConnected } = useAccount()
+  const { data } = useGetBorrowerProfile(address)
 
   const { isWrongNetwork } = useCurrentNetwork()
 
@@ -46,7 +48,11 @@ export const HeaderButton = () => {
       </Button>
 
       {isConnected && address ? (
-        <ProfileDialog open={open} handleClose={handleClose} />
+        <ProfileDialog
+          open={open}
+          handleClose={handleClose}
+          name={data?.name}
+        />
       ) : (
         <ConnectWalletDialog open={open} handleClose={handleClose} />
       )}
