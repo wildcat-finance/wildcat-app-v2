@@ -11,6 +11,7 @@ export const ROUTES = {
     profile: `${BORROWER_ROOT}/profile`,
     editProfile: `${BORROWER_ROOT}/profile/edit`,
     notifications: `${BORROWER_ROOT}/notifications`,
+    editPolicy: `${BORROWER_ROOT}/edit-policy`,
   },
   lender: {
     root: LENDER_ROOT,

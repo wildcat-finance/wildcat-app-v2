@@ -1,9 +1,11 @@
+/* eslint-disable camelcase */
+
 "use client"
 
-import React, { useEffect, useRef } from "react"
+import React, { useEffect, useMemo, useRef } from "react"
 
 import { Box, Typography } from "@mui/material"
-import { Market } from "@wildcatfi/wildcat-sdk"
+import { Market, SubgraphMarket_Filter } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
@@ -28,41 +30,53 @@ import {
   MarketStatus,
 } from "@/utils/marketStatus"
 
-const filterMarketsByAssetAndStatus = (
-  markets: Market[] | undefined,
+const combineFilters = (
+  filters: SubgraphMarket_Filter[],
+  combine: "and" | "or" = "and",
+) => {
+  if (filters.length === 0) return {}
+  if (filters.length === 1) return filters[0]
+  return { [combine]: filters }
+}
+
+function buildMarketFilter(
   name: string,
   statuses: MarketStatus[],
   assets: { name: string; address: string }[],
-) => {
-  let filteredMarkets = markets
+): SubgraphMarket_Filter | undefined {
+  console.log(`Executing buildMarketsFilter!!!!`)
+  const filters: SubgraphMarket_Filter[] = []
+  const statusFilters = statuses.map((status) => {
+    switch (status) {
+      case MarketStatus.DELINQUENT:
+        return { isDelinquent: true }
+      case MarketStatus.HEALTHY:
+        return { isDelinquent: false }
+      case MarketStatus.TERMINATED:
+        return { isClosed: true }
+      case MarketStatus.PENALTY:
+        return { isIncurringPenalties: true }
+      default:
+        throw Error(`what happened here?`)
+    }
+  })
+  if (statusFilters.length) filters.push(combineFilters(statusFilters, "or"))
+  if (name) filters.push({ name_contains_nocase: name.toLowerCase() })
+  const assetFilters = assets.map((asset): SubgraphMarket_Filter => {
+    if (asset.name) {
+      return {
+        asset_: { name_contains_nocase: asset.name.toLowerCase() },
+      }
+    }
 
-  const assetsNames = assets.map((asset) => asset.name)
+    return {
+      asset_: { address: asset.address.toLowerCase() },
+    }
+  })
+  if (assetFilters.length) filters.push(combineFilters(assetFilters, "or"))
+  if (filters.length) return combineFilters(filters, "and")
 
-  if (filteredMarkets && name !== "") {
-    filteredMarkets = filteredMarkets.filter((market) =>
-      market.name.toLowerCase().includes(name.toLowerCase()),
-    )
-  }
-
-  if (filteredMarkets && statuses.length > 0) {
-    filteredMarkets = filteredMarkets.filter((market) =>
-      statuses.includes(
-        getMarketStatus(
-          market.isClosed,
-          market.isDelinquent || market.willBeDelinquent,
-          market.isIncurringPenalties,
-        ),
-      ),
-    )
-  }
-
-  if (filteredMarkets && assets.length > 0) {
-    filteredMarkets = filteredMarkets.filter((market) =>
-      assetsNames.includes(market.underlyingToken.symbol as MarketAssets),
-    )
-  }
-
-  return filteredMarkets
+  return undefined
 }
 
 export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
@@ -71,11 +85,6 @@ export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
 
   const { address, isConnected } = useAccount()
   const { isWrongNetwork } = useCurrentNetwork()
-
-  const { data: borrowerMarkets, isLoading: isBorrowerMarketsLoading } =
-    useGetBorrowerMarkets()
-  const { data: allMarkets, isLoading: isOthersMarketsLoading } =
-    useGetOthersMarkets()
 
   const { data: borrowers } = useGetBorrowers()
   const { data: controller } = useGetController()
@@ -86,45 +95,38 @@ export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
   )
   const filterByStatus = useAppSelector(
     (state) => state.marketsOverviewSidebar.marketsStatuses,
+    (a, b) => a.join(",") === b.join(","),
   )
   const filterByAsset = useAppSelector(
     (state) => state.marketsOverviewSidebar.marketsAssets,
+    (a, b) =>
+      a.map((x) => `${x.name}:${x.address}`).join(",") ===
+      b.map((x) => `${x.name}:${x.address}`).join(","),
   )
 
-  const filteredBorrowerMarkets = filterMarketsByAssetAndStatus(
-    borrowerMarkets,
-    filterByMarketName,
-    filterByStatus,
-    filterByAsset,
+  const filter = useMemo(
+    () => ({
+      marketFilter: buildMarketFilter(
+        filterByMarketName,
+        filterByStatus,
+        filterByAsset,
+      ),
+    }),
+    [filterByMarketName, filterByStatus, filterByAsset],
   )
 
-  const filteredAllMarkets = filterMarketsByAssetAndStatus(
-    allMarkets,
-    filterByMarketName,
-    filterByStatus,
-    filterByAsset,
+  const { data: filteredBorrowerMarkets, isLoading: isBorrowerMarketsLoading } =
+    useGetBorrowerMarkets(filter)
+  const { data: filteredOtherMarkets, isLoading: isOthersMarketsLoading } =
+    useGetOthersMarkets(filter)
+
+  const [activeBorrowerMarkets, terminatedBorrowerMarkets] = useMemo(
+    () => [
+      filteredBorrowerMarkets?.filter((m) => !m.isClosed),
+      filteredBorrowerMarkets?.filter((m) => m.isClosed),
+    ],
+    [filteredBorrowerMarkets],
   )
-
-  const filteredOtherMarkets = (filteredAllMarkets ?? []).filter(
-    (market) => market.borrower.toLowerCase() !== address?.toLowerCase(),
-  )
-
-  const activeBorrowerMarkets = filteredBorrowerMarkets?.filter(
-    (market) =>
-      market.borrower.toLowerCase() === address?.toLowerCase() &&
-      !market.isClosed,
-  )
-
-  const terminatedBorrowerMarkets = borrowerMarkets
-    ?.filter(
-      (market) =>
-        market.borrower.toLowerCase() === address?.toLowerCase() &&
-        market.isClosed,
-    )
-    .filter((market) =>
-      market.name.toLowerCase().includes(filterByMarketName.toLowerCase()),
-    )
-
   const showBorrowerTables =
     !isWrongNetwork && isConnected && isRegisteredBorrower
 

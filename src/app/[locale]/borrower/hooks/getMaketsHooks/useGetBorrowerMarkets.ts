@@ -1,14 +1,15 @@
 import { useQuery } from "@tanstack/react-query"
-import { Market, SignerOrProvider } from "@wildcatfi/wildcat-sdk"
 import {
-  GetMarketsForBorrowerDocument,
-  SubgraphGetMarketsForBorrowerQuery,
-  SubgraphGetMarketsForBorrowerQueryVariables,
-} from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
+  SignerOrProvider,
+  SubgraphGetMarketsWithEventsQueryVariables,
+  // eslint-disable-next-line camelcase
+  SubgraphMarket_Filter,
+  SupportedChainId,
+  getMarketsForBorrower,
+} from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { updateMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/updateMarkets"
-import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { SubgraphClient } from "@/config/subgraph"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -22,36 +23,30 @@ export function useGetBorrowerMarketsQuery({
   provider,
   enabled,
   chainId,
-  ...filters
+  marketFilter,
+  shouldSkipRecords = true,
+  ...variables
 }: GetMarketsProps) {
   const { address } = useAccount()
 
   async function queryBorrowerMarkets() {
-    const result = await SubgraphClient.query<
-      SubgraphGetMarketsForBorrowerQuery,
-      SubgraphGetMarketsForBorrowerQueryVariables
-    >({
-      query: GetMarketsForBorrowerDocument,
-      variables: { borrower: address as string, ...filters },
-      fetchPolicy: "network-only",
-    })
-
-    const controller = result.data.controllers[0]
-    if (controller) {
-      return (
-        controller.markets
-          .filter((m) => !!m.controller)
-          .map((market) =>
-            Market.fromSubgraphMarketData(
-              TargetChainId,
-              provider as SignerOrProvider,
-              market,
-            ),
-          ) ?? []
-      )
+    console.log(`Running getMarketsForBorrower!`)
+    if (!address) return []
+    // eslint-disable-next-line camelcase
+    const filter: SubgraphMarket_Filter = { ...marketFilter }
+    if (address) {
+      filter.borrower = address.toLowerCase()
     }
 
-    return []
+    return getMarketsForBorrower(SubgraphClient, {
+      borrower: address as string,
+      chainId: chainId as SupportedChainId,
+      signerOrProvider: provider as SignerOrProvider,
+      fetchPolicy: "network-only",
+      marketFilter: filter,
+      ...variables,
+      shouldSkipRecords,
+    })
   }
 
   async function getBorrowerMarkets() {
@@ -60,7 +55,14 @@ export function useGetBorrowerMarketsQuery({
   }
 
   return useQuery({
-    queryKey: [GET_BORROWER_MARKETS, address, chainId],
+    queryKey: [
+      GET_BORROWER_MARKETS,
+      address,
+      chainId,
+      JSON.stringify(marketFilter),
+      shouldSkipRecords,
+      variables,
+    ],
     queryFn: getBorrowerMarkets,
     refetchInterval: POLLING_INTERVAL,
     enabled,
@@ -68,7 +70,9 @@ export function useGetBorrowerMarketsQuery({
   })
 }
 
-export const useGetBorrowerMarkets = () => {
+export const useGetBorrowerMarkets = (
+  args?: SubgraphGetMarketsWithEventsQueryVariables | undefined,
+) => {
   const { chainId } = useCurrentNetwork()
   const { isWrongNetwork, provider, signer } = useEthersProvider()
 
@@ -78,5 +82,6 @@ export const useGetBorrowerMarkets = () => {
     provider: signerOrProvider,
     enabled: !!signerOrProvider && !isWrongNetwork,
     chainId,
+    ...args,
   })
 }

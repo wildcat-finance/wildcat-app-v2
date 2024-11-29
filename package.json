@@ -28,7 +28,7 @@
     "@types/humanize-duration": "^3.27.4",
     "@types/react-scroll": "^1.8.10",
     "@types/redux-mock-store": "^1.0.6",
-    "@wildcatfi/wildcat-sdk": "^2.0.83",
+    "@wildcatfi/wildcat-sdk": "^3.0.20",
     "classnames": "^2.5.1",
     "dayjs": "^1.11.10",
     "ethers": "^5.7.2",

@@ -18,6 +18,8 @@ import {
 } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { TablePagination } from "@/components/TablePagination"
 import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -28,6 +30,7 @@ import {
   timestampToDateFormatted,
 } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
+import { getMarketTypeChip } from "@/utils/marketType"
 
 import { BorrowerMarketsTableProps } from "./interface"
 
@@ -42,8 +45,35 @@ export const BorrowerMarketsTable = ({
   statusFilter,
   assetFilter,
   nameFilter,
+  usePagination,
+  pageSize,
 }: BorrowerMarketsTableProps) => {
   const { t } = useTranslation()
+
+  const [paginationModel, setPaginationModel] = React.useState({
+    pageSize: pageSize ?? 10,
+    page: 0,
+  })
+
+  React.useEffect(() => {
+    if (usePagination) {
+      setPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+    }
+  }, [assetFilter, statusFilter, nameFilter])
+
+  const paginationProps = React.useMemo(() => {
+    if (usePagination) {
+      return {
+        hideFooter: false,
+        paginationModel,
+        onPaginationModelChange: setPaginationModel,
+        slots: {
+          pagination: TablePagination,
+        },
+      }
+    }
+    return {}
+  }, [usePagination, paginationModel, setPaginationModel])
 
   const columns: TypeSafeColDef<MarketsTableModel>[] = [
     {
@@ -81,6 +111,25 @@ export const BorrowerMarketsTable = ({
           <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
             {params.value}
           </span>
+        </Link>
+      ),
+    },
+    {
+      field: "marketType",
+      headerName: t("borrowerMarketList.table.header.marketType"),
+      maxWidth: 146,
+      minWidth: 130,
+      flex: 2,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-start" }}
+        >
+          <Box width={130}>
+            <MarketTypeChip {...params.value} />
+          </Box>
         </Link>
       ),
     },
@@ -223,6 +272,7 @@ export const BorrowerMarketsTable = ({
     return {
       id: address,
       status: marketStatus,
+      marketType: getMarketTypeChip(market),
       name,
       asset: underlyingToken.symbol,
       lenderAPR: annualInterestBips,
@@ -308,10 +358,21 @@ export const BorrowerMarketsTable = ({
             padding: "0 16px",
             "& .MuiDataGrid-columnHeader": { padding: 0 },
             "& .MuiDataGrid-cell": { padding: "0px" },
+            ...(usePagination
+              ? {
+                  "& .MuiDataGrid-footerContainer": {
+                    "& .MuiToolbar-root": {
+                      padding: "32px 0 6px",
+                    },
+                  },
+                }
+              : {}),
           }}
           rows={rows}
           columns={columns}
           columnHeaderHeight={40}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          {...(paginationProps as any)}
         />
       )}
     </Accordion>

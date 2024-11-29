@@ -5,9 +5,7 @@ import { LenderStatus } from "./interface"
 export const getEffectiveLenderRole = (
   account: MarketAccount,
 ): LenderStatus => {
-  if (account.role === LenderRole.Null && account.isAuthorizedOnController)
-    return LenderStatus.DepositAndWithdraw
-  switch (account.role) {
+  switch (account.inferredRole) {
     case LenderRole.DepositAndWithdraw:
       return LenderStatus.DepositAndWithdraw
     case LenderRole.WithdrawOnly:

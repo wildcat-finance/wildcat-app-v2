@@ -12,7 +12,7 @@ const defaultStyle = {
   fontFamily: "Roboto, sans-serif",
 }
 
-type ToastRequestConfig = {
+export type ToastRequestConfig = {
   pending?: string
   success?: string
   error?: string

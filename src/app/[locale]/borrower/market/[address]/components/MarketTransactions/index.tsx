@@ -46,7 +46,6 @@ export const MarketTransactions = ({
   const disableBorrow =
     market.isClosed ||
     market?.isDelinquent ||
-    market.isIncurringPenalties ||
     (marketAccount && marketAccount.market.borrowableAssets.raw.isZero())
 
   return (

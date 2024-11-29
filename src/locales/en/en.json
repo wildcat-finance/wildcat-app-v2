@@ -41,7 +41,8 @@
     "title": {
       "allMarkets": "All markets",
       "mla": "MLA",
-      "lenders": "Lenders"
+      "lenders": "Lenders",
+      "policies": "Policies"
     },
     "button": {
       "newMarket": "Create Market"
@@ -76,7 +77,8 @@
         "crr": "CRR",
         "capacity": "Max. Capacity",
         "borrowable": "Borrowable",
-        "deploy": "Deployed"
+        "deploy": "Deployed",
+        "marketType": "Market Type"
       },
       "noMarkets": {
         "wrongNetwork": "No Wildcat markets on this network",
@@ -140,7 +142,7 @@
       "borrowRepay": "Borrow and Repay",
       "statusDetails": "Status and Details",
       "withdrawalRequests": "Withdrawal Requests",
-      "authorisedLenders": "Authorised Lenders",
+      "authorisedLenders": "Lenders",
       "terminateMarket": "Terminate Market"
     },
     "transactions": {
@@ -172,19 +174,26 @@
       "noLendersTitle": "No lenders yet",
       "noLendersSubtitle": "There is no any lenders yet – edit list to add them",
       "editList": "Edit List",
+      "editPolicy": "Edit Policy",
       "noActiveLenders": "No active lenders yet – edit list to add them",
       "header": "Lenders List",
       "buttons": {
         "view": "View",
         "download": "Download",
-        "editList": "Edit List"
+        "editList": "Edit List",
+        "editPolicy": "Edit Policy",
+        "forceBuyBack": "Force Buy Back"
       },
       "tableHeaders": {
         "name": "Name",
         "walletAddress": "Wallet Address",
+        "balance": "Balance",
+        "accessLevel": "Access Level",
+        "accessExpiry": "Credential Expiry",
         "dateAdded": "Date Added",
         "signedMLA": "Signed MLA",
         "signDate": "Sign Date",
+        "forceBuyBack": "Force Buy Back",
         "MLA": "MLA"
       }
     },
@@ -213,6 +222,13 @@
         "availableToBorrow": "Available to borrow",
         "afterTransaction": " after transaction",
         "interestRemaining": "Interest Remaining"
+      },
+      "forceBuyBack": {
+        "title": "Force Buy Back",
+        "from": "From lender",
+        "description": "This action will forcibly eject the lender by buying their debt tokens in exchange for the equivalent underlying assets. It does NOT burn the market tokens; you will be entered into a withdrawal batch as if you were a lender.",
+        "warning": "This action is dangerous and may adversely affect your lenders. Use it with caution and ensure you are not violating the terms of your loan.",
+        "repurchaseAmount": "Repurchase Amount"
       },
       "capacity": {
         "current": "Current capacity"
@@ -259,16 +275,89 @@
   "createMarket": {
     "forms": {
       "marketDescription": {
-        "title": "Create New market",
+        "title": "Create New Market",
         "block": {
           "title": {
             "definition": "Definition",
+            "policy": "Policy",
             "amountDuties": "Amount and Duties",
+            "restrictions": "Lender Restrictions",
+            "borrowerRestrictions": "Borrower Restrictions",
             "graceWithdrawals": "Grace and Withdrawals"
+          },
+          "borrowerRestrictions": {
+            "title": "Borrower Restrictions",
+            "subtitle": "This is your opportunity to encourage confidence from your lenders"
+          },
+          "fixedTermEndTime": {
+            "title": "Loan Maturity Date",
+            "subtitle": "The time at which lenders will be able to request withdrawals",
+            "tooltip": ""
+          },
+          "allowForceBuyBack": {
+            "title": "Allow Force Buy Backs",
+            "subtitle": "Defines whether you can forcibly eject lenders by buying back their debt tokens",
+            "tooltip": "TBD"
+          },
+          "allowClosureBeforeTerm": {
+            "title": "Allow Early Closure",
+            "subtitle": "Allows you to close the market before it reaches maturity",
+            "tooltip": "TBD"
+          },
+          "allowTermReduction": {
+            "title": "Allow Term Reduction",
+            "subtitle": "Allows you to reduce the market's maturity date",
+            "tooltip": "TBD"
+          },
+          "depositAccess": {
+            "title": "Deposit Restrictions",
+            "subtitle": "Defines access level required for deposits",
+            "placeholder": "Select a deposit access level",
+            "tooltip": "TBD"
+          },
+          "withdrawalAccess": {
+            "title": "Withdrawal Restrictions",
+            "subtitle": "Defines access level required for withdrawals",
+            "placeholder": "Select a withdrawal access level",
+            "tooltip": "TBD"
+          },
+          "disableTransfers": {
+            "title": "Disable Transfers",
+            "subtitle": "Disables transfers of the market token",
+            "tooltip": "TBD"
+          },
+          "transferRequiresAccess": {
+            "title": "Restrict Transfers",
+            "subtitle": "Transfer recipients will need to meet your policy's access requirements"
+          },
+          "depositRequiresAccess": {
+            "title": "Restrict Deposits",
+            "subtitle": "Depositors will need to meet your policy's access requirements"
+          },
+          "withdrawalRequiresAccess": {
+            "title": "Restrict Withdrawals",
+            "subtitle": "Lenders will need to meet your policy's access requirements to request withdrawals"
+          },
+          "transferAccess": {
+            "title": "Transfer Restrictions",
+            "subtitle": "Defines access level required for transfers",
+            "placeholder": "Select a transfer access level",
+            "tooltip": "TBD"
+          },
+          "policy": {
+            "title": "Market Policy",
+            "subtitle": "The market policy determines the type of loan and access controls.",
+            "placeholder": "Select a policy",
+            "tooltip": "TBD"
           },
           "marketName": {
             "title": "Market Name",
             "placeholder": "Use more than 1 character, e.g. blsm",
+            "tooltip": "TBD"
+          },
+          "policyName": {
+            "title": "Policy Name",
+            "placeholder": "Wildcat Standard Policy",
             "tooltip": "TBD"
           },
           "mla": {
@@ -280,8 +369,9 @@
               "noMLA": "No MLA"
             }
           },
-          "kyc": {
-            "title": "KYC Preferences",
+          "accessControl": {
+            "title": "Access Controls",
+            "subtitle": "How lenders get a credential for this policy",
             "placeholder": "Please Select",
             "tooltip": "TBD",
             "options": {
@@ -292,9 +382,11 @@
           "marketType": {
             "title": "Market Type",
             "placeholder": "Please Select",
-            "tooltip": "TBD",
+            "subtitle": "The type of loans you will create with this policy",
+            "tooltip": "TBD", 
             "options": {
-              "standard": "Standard Loan"
+              "standard": "Standard Loan",
+              "fixedTerm": "Fixed Term Loan"
             }
           },
           "marketAsset": {
@@ -306,32 +398,34 @@
           },
           "marketTokenName": {
             "title": "Market token name",
-            "placeholder": "Use more than 1 character, e.g. Blossom",
+            "placeholder": "\"Wildcat Market \"",
             "tooltip": "TBD",
             "chip": "Asset Name"
           },
           "marketTokenSymbol": {
             "title": "Market token symbol",
-            "placeholder": "Use more than 1 character, e.g. blsm",
+            "subtitle": "The ERC20 symbol for the market token will be this prefix + the underlying symbol",
+            "placeholder": "wild",
             "tooltip": "TBD",
             "chip": "Asset Symbol"
           },
           "capacity": {
             "title": "Max. Borrowing Capacity",
-            "placeholder": "under 1000",
-            "tooltip": "TBD",
+            "subtitle": "The maximum credit line you want to be extended. This can be changed later.",
+            "placeholder": "1000",
+            "tooltip": "",
             "chip": "Token Symbol"
           },
           "baseAPR": {
             "title": "Base APR",
             "placeholder": "10-20",
-            "tooltip": "TBD",
+            "tooltip": "",
             "chip": "%"
           },
           "penaltyAPR": {
             "title": "Penalty APR",
             "placeholder": "10-20",
-            "tooltip": "TBD",
+            "subtitle": "Additional APR charged when you allow the market to remain delinquent beyond the grace period.",
             "chip": "%"
           },
           "ratio": {
@@ -437,6 +531,49 @@
       "back": "Back",
       "next": "Next",
       "confirm": "Confirm"
+    }
+  },
+  "roleProviders": {
+    "defaultPullProvider": "Self-Onboard",
+    "manualApproval": "Manual Approval"
+  },
+  "policyType": {
+    "OpenTerm": "Standard Loans (no expiry)",
+    "FixedTerm": "Fixed Term Loans"
+  },
+  "editPolicy": {
+    "title": "Edit Policy",
+    "confirm": "Confirm Policy Edits",
+    "deauthorized": "Deauthorized",
+    "editing": "Editing Policy",
+    "lenders": "Policy Lenders",
+    "markets": "Policy Markets",
+    "policyDetails": "Policy Details",
+    "policyType": "Policy Type",
+    "accessControl": "Access Requirements",
+    "unnamedPolicy": {
+      "label": "Unnamed Policy",
+      "subtitle": "This policy is unnamed, set a name here."
+    },
+    "sidebar": {
+      "back": "To markets",
+      "edit": "Editing Policy",
+      "confirm": "Confirmation"
+    },
+    "roleProviders": {
+      "manualApproval": "Manually Approved",
+      "defaulPullProvider": "Self-Onboard"
+    },
+    "for": " for",
+    "forms": {
+      "policyName": {
+        "title": "Policy Name",
+        "placeholder": "Wildcat Standard Policy",
+        "tooltip": "TBD"
+      },
+      "edit": {
+        "submit": "Submit"
+      }
     }
   },
   "editLendersList": {
