@@ -65,6 +65,7 @@ export function useLenderMarketAccountQuery({
     enabled,
     refetchOnMount: false,
   })
+
   async function updateMarketAccount() {
     if (!data || !provider) throw Error()
     if (data.market.version === MarketVersion.V1) {
