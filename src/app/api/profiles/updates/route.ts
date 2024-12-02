@@ -10,7 +10,7 @@ let mockProfile = {
   website: "https://wintermute.com/",
   twitter: "",
   linkedin: "",
-  updatedAt: undefined,
+  updatedAt: 1679616000000,
 }
 
 export async function POST(request: NextRequest) {

@@ -82,7 +82,7 @@ export default function EditProfile() {
     website: getPublicValues().website,
     twitter: getPublicValues().twitter,
     linkedin: getPublicValues().linkedin,
-    // updatedAt: Date.now(),
+    updatedAt: Date.now(),
   }
 
   const privateInfo = {

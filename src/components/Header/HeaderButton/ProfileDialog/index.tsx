@@ -12,6 +12,8 @@ import { useAccount, useDisconnect, useSwitchChain } from "wagmi"
 import { sepolia } from "wagmi/chains"
 
 import Avatar from "@/assets/icons/avatar_icon.svg"
+import Cross from "@/assets/icons/cross_icon.svg"
+import Profile from "@/assets/icons/profile_icon.svg"
 import {
   AddressContainer,
   ContentContainer,
@@ -50,7 +52,7 @@ export const ProfileDialog = ({
       <Box sx={ContentContainer} className="test">
         {isConnected && isWrongNetwork && (
           <Box sx={WrongNetworkContainer}>
-            <Typography variant="text3">
+            <Typography variant="text3" color={COLORS.dullRed}>
               {t("header.button.wrongNetwork")}
             </Typography>
             <Button
@@ -64,7 +66,7 @@ export const ProfileDialog = ({
           </Box>
         )}
 
-        <Box sx={ProfileContainer} marginTop={name ? "12px" : "32px"}>
+        <Box sx={ProfileContainer} marginTop={isWrongNetwork ? "24px" : "40px"}>
           <SvgIcon sx={{ fontSize: "44px" }}>
             <Avatar />
           </SvgIcon>
@@ -73,7 +75,7 @@ export const ProfileDialog = ({
             display="flex"
             flexDirection="column"
             alignItems="center"
-            rowGap="1px"
+            rowGap="2px"
             marginTop="18px"
           >
             {address && (
@@ -95,15 +97,36 @@ export const ProfileDialog = ({
           </Box>
         </Box>
 
-        <Divider sx={{ height: "1px", width: "100%", margin: "28px 0 20px" }} />
+        <Divider
+          sx={{
+            height: "1px",
+            width: "100%",
+            marginTop: isWrongNetwork ? "28px" : "56px",
+            marginBottom: "20px",
+          }}
+        />
 
         <Box sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
           <Link href={ROUTES.borrower.profile} onClick={handleClose}>
             <Button
               variant="text"
               fullWidth
-              sx={{ padding: "10px 12px 10px 8px !important" }}
+              sx={{
+                padding: "10px 12px 10px 8px !important",
+                gap: "8px",
+                alignItems: "center",
+              }}
             >
+              <SvgIcon
+                sx={{
+                  "& path": {
+                    fill: `${COLORS.greySuit}`,
+                  },
+                }}
+              >
+                <Profile />
+              </SvgIcon>
+
               <Typography
                 variant="text2"
                 sx={{ width: "100%", fontWeight: 600, textAlign: "left" }}
@@ -116,9 +139,23 @@ export const ProfileDialog = ({
           <Button
             variant="text"
             fullWidth
-            sx={{ padding: "10px 12px 10px 8px !important" }}
+            sx={{
+              padding: "10px 12px 10px 8px !important",
+              gap: "8px",
+              alignItems: "center",
+            }}
             onClick={handleClickDisconnect}
           >
+            <SvgIcon
+              sx={{
+                "& path": {
+                  fill: `${COLORS.greySuit}`,
+                },
+              }}
+            >
+              <Cross />
+            </SvgIcon>
+
             <Typography
               variant="text2"
               sx={{ width: "100%", fontWeight: 600, textAlign: "left" }}

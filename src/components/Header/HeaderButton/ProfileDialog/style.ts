@@ -2,16 +2,15 @@ import { COLORS } from "@/theme/colors"
 
 export const DialogContainer = {
   "& .MuiDialog-paper": {
+    width: "320px",
     borderRadius: "12px",
-    borderColor: COLORS.black01,
+    border: "none",
     margin: 0,
-    padding: "24px 16px 16px 16px",
+    padding: "16px",
   },
 }
 
 export const ContentContainer = {
-  height: "248px",
-  width: "288px",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
@@ -32,6 +31,7 @@ export const WrongNetworkContainer = {
 export const WrongNetworkButton = {
   backgroundColor: "transparent",
   color: COLORS.dullRed,
+  lineHeight: "14px",
   borderColor: COLORS.azalea,
   transition: "border 0.2s",
 
