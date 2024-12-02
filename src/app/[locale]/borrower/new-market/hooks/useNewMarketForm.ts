@@ -42,6 +42,7 @@ export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
 function getValidationSchema(constraints: MarketParameterConstraints) {
   const getFormattedConstrain = (key: keyof MarketParameterConstraints) =>
     formatConstrainToNumber(constraints, key)
+  // eslint-disable-next-line no-underscore-dangle
   const baseSchema = vschema._def.schema
 
   return baseSchema.extend({
