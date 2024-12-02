@@ -1,20 +1,20 @@
-import * as React from "react"
-
-import FormControlLabel from "@mui/material/FormControlLabel"
-import FormGroup from "@mui/material/FormGroup"
-import Stack from "@mui/material/Stack"
 import { styled } from "@mui/material/styles"
 import Switch, { SwitchProps } from "@mui/material/Switch"
-import Typography from "@mui/material/Typography"
 
-export type StyledSwitchProps = SwitchProps & {
-  checkedColor?: string
-  uncheckedColor?: string
+export type StyledSwitchProps = Omit<SwitchProps, "value"> & {
+  checkedcolor?: string
+  uncheckedcolor?: string
+  value?: boolean
 }
 
-export const StyledSwitch = styled((props: StyledSwitchProps) => (
-  <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
-))(({ theme, checkedColor, uncheckedColor }) => ({
+export const StyledSwitch = styled(({ value, ...props }: StyledSwitchProps) => (
+  <Switch
+    focusVisibleClassName=".Mui-focusVisible"
+    disableRipple
+    {...props}
+    checked={value}
+  />
+))(({ theme, checkedcolor, uncheckedcolor }) => ({
   width: 42,
   height: 20,
   padding: 0,
@@ -26,11 +26,11 @@ export const StyledSwitch = styled((props: StyledSwitchProps) => (
       transform: "translateX(20px)",
       color: "#fff",
       "& + .MuiSwitch-track": {
-        backgroundColor: checkedColor || "#65C466",
+        backgroundColor: checkedcolor || "#65C466",
         opacity: 1,
         border: 0,
         ...theme.applyStyles("dark", {
-          backgroundColor: checkedColor || "#2ECA45",
+          backgroundColor: checkedcolor || "#2ECA45",
         }),
       },
       "&.Mui-disabled + .MuiSwitch-track": {
@@ -38,7 +38,7 @@ export const StyledSwitch = styled((props: StyledSwitchProps) => (
       },
     },
     "&.Mui-focusVisible .MuiSwitch-thumb": {
-      color: checkedColor || "#33cf4d",
+      color: checkedcolor || "#33cf4d",
       border: "6px solid #fff",
     },
     "&.Mui-disabled .MuiSwitch-thumb": {
@@ -61,7 +61,7 @@ export const StyledSwitch = styled((props: StyledSwitchProps) => (
   },
   "& .MuiSwitch-track": {
     borderRadius: 20 / 2,
-    backgroundColor: uncheckedColor || "#E9E9EA",
+    backgroundColor: uncheckedcolor || "#E9E9EA",
     opacity: 1,
     transition: theme.transitions.create(["background-color"], {
       duration: 500,

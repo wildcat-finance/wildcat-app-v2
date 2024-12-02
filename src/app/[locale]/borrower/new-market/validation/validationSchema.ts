@@ -104,44 +104,63 @@ export const marketValidationSchema = z
     depositRequiresAccess: z.boolean(),
     withdrawalRequiresAccess: z.boolean(),
   })
-  .refine(
-    (data) => {
-      if (data.marketType === "fixedTerm") {
-        // Check if fixedTermEndTime is in the future
-        const now = Math.floor(Date.now() / 1000) // Current time in seconds
-        return data.fixedTermEndTime && data.fixedTermEndTime > now
+  .superRefine((data, ctx) => {
+    if (data.marketType === "fixedTerm") {
+      const now = Math.floor(Date.now() / 1000) // Current time in seconds
+      if (data.fixedTermEndTime === undefined) {
+        ctx.addIssue({
+          message: "Loan maturity date must be set",
+          path: ["fixedTermEndTime"],
+          code: "custom",
+        })
+      } else if (data.fixedTermEndTime <= now) {
+        ctx.addIssue({
+          message: "Loan maturity date must be in the future",
+          path: ["fixedTermEndTime"],
+          code: "custom",
+        })
       }
-      return true
-    },
-    {
-      message: "Fixed term end time must be in the future",
-      path: ["fixedTermEndTime"],
-    },
-  )
-  .refine(
-    (data) => {
-      if (data.marketType === "openTerm") {
-        return (
-          data.allowClosureBeforeTerm === undefined &&
-          data.allowTermReduction === undefined
-        )
-      }
-      return true
-    },
-    {
-      message:
-        "Open term markets cannot have allowClosureBeforeTerm or allowTermReduction set",
-      path: ["marketType"],
-    },
-  )
+    }
+  })
+// .refine(
+//   (data) => {
+//     if (data.marketType === "fixedTerm") {
+//       // Check if fixedTermEndTime is in the future
+//       const now = Math.floor(Date.now() / 1000) // Current time in seconds
+//       return data.fixedTermEndTime && data.fixedTermEndTime > now
+//     }
+//     return true
+//   },
+//   {
+//     message: "Fixed term end time must be in the future",
+//     path: ["fixedTermEndTime"],
+//   },
+// )
+// .refine(
+//   (data) => {
+//     if (data.marketType === "openTerm") {
+//       return (
+//         data.allowClosureBeforeTerm === undefined &&
+//         data.allowTermReduction === undefined
+//       )
+//     }
+//     return true
+//   },
+//   {
+//     message:
+//       "Open term markets cannot have allowClosureBeforeTerm or allowTermReduction set",
+//     path: ["marketType"],
+//   },
+// )
 /* type m = keyof typeof DepositAccess */
-export const infoValidationSchema = z.object({
+const infoValidationSchema = z.object({
   legalName: z.string().min(1),
   jurisdiction: z.string().min(1),
   legalNature: z.string().min(1),
   address: z.string().min(1),
   email: z.string().email(),
 })
+export default infoValidationSchema
 
 export type MarketValidationSchemaType = z.infer<typeof marketValidationSchema>
 

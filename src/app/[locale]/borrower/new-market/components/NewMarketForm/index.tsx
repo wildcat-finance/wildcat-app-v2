@@ -16,7 +16,7 @@ import SvgIcon from "@mui/material/SvgIcon"
 import { Token } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
 import Link from "next/link"
-import { UseFormReturn } from "react-hook-form"
+import { FieldError, useController, UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
 import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
@@ -24,6 +24,7 @@ import { TokenInfo } from "@/app/api/tokens-list/interface"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
+import { ExtendedSwitch } from "@/components/@extended/ExtendedSwitch"
 import { Accordion } from "@/components/Accordion"
 import { DateTextField } from "@/components/DateTextField"
 import { InputLabel } from "@/components/InputLabel"
@@ -68,6 +69,62 @@ type NewMarketFormProps = {
   policyOptions: ExtendedSelectOptionItem[]
 }
 
+const ForceBuyBack = ({
+  control,
+}: {
+  control: UseFormReturn<MarketValidationSchemaType>["control"]
+}) => {
+  const { t } = useTranslation()
+  const { field } = useController({ name: "allowForceBuyBack", control })
+
+  return (
+    <Box marginTop="16px">
+      <FormControlLabel
+        name="allowForceBuyBack"
+        label={
+          <Box>
+            <Box sx={InputLabelContainer} marginBottom="2px">
+              <Box sx={InputLabelTypo}>
+                <Typography variant="text3">
+                  {t(
+                    "createMarket.forms.marketDescription.block.allowForceBuyBack.title",
+                  )}
+                </Typography>
+              </Box>
+              <TooltipButton
+                value={t(
+                  "createMarket.forms.marketDescription.block.allowForceBuyBack.tooltip",
+                )}
+              />
+            </Box>
+            <Typography marginTop="0px" variant="text4" sx={InputLabelSubtitle}>
+              {t(
+                "createMarket.forms.marketDescription.block.allowForceBuyBack.subtitle",
+              )}
+            </Typography>
+          </Box>
+        }
+        control={
+          <StyledSwitch
+            checkedcolor="red"
+            color="info"
+            size="medium"
+            {...field}
+          />
+        }
+      />
+      {field.value && (
+        <Alert variant="outlined" color="error" severity="error">
+          This will break integration with on-chain exchanges.
+          <br />
+          Lenders will see a warning about using this market with smart
+          contracts.
+        </Alert>
+      )}
+    </Box>
+  )
+}
+
 export const NewMarketForm = ({
   form,
   tokenAsset,
@@ -80,7 +137,7 @@ export const NewMarketForm = ({
     getValues,
     setValue,
     register,
-    formState: { errors, isValid, validatingFields },
+    formState: { errors, isValid },
     control,
     watch,
   } = form
@@ -95,7 +152,6 @@ export const NewMarketForm = ({
   const namePrefixWatch = watch("namePrefix")
   const symbolPrefixWatch = watch("symbolPrefix")
   const marketTypeWatch = watch("marketType")
-  const forceBuyBackWatch = watch("allowForceBuyBack")
   const allowClosureBeforeTermWatch = watch("allowClosureBeforeTerm")
   const allowTermReductionWatch = watch("allowTermReduction")
   const transferRequiresAccessWatch = watch("transferRequiresAccess")
@@ -107,13 +163,7 @@ export const NewMarketForm = ({
   const hideLegalInfoStep = useAppSelector(
     (state) => state.routing.hideInfoStep,
   )
-  console.log(`=============== errors ===========`)
-  console.log(Object.entries(validatingFields))
-  console.log(Object.entries(errors))
-  const isFixedTerm = useMemo(
-    () => marketTypeWatch === "fixedTerm",
-    [marketTypeWatch],
-  )
+  const isFixedTerm = marketTypeWatch === "fixedTerm"
 
   const handleTokenSelect = (asset: TokenInfo | null) => {
     setValue("asset", (asset ? asset.address : "0x") as `0x${string}`)
@@ -522,12 +572,13 @@ export const NewMarketForm = ({
           }
           control={
             <StyledSwitch
-              checkedColor="orange"
+              checkedcolor="orange"
               size="medium"
               checked={depositRequiresAccessWatch}
               onChange={(e) => {
                 setValue("depositRequiresAccess", e.target.checked)
               }}
+              // {...register("depositRequiresAccess")}
             />
           }
         />
@@ -564,9 +615,9 @@ export const NewMarketForm = ({
           }
           control={
             <StyledSwitch
-              checkedColor="orange"
+              checkedcolor="orange"
               size="medium"
-              checked={withdrawalRequiresAccessWatch}
+              value={withdrawalRequiresAccessWatch}
               onChange={(e) => {
                 setValue("withdrawalRequiresAccess", e.target.checked)
               }}
@@ -606,9 +657,9 @@ export const NewMarketForm = ({
           }
           control={
             <StyledSwitch
-              checkedColor="red"
+              checkedcolor="red"
               size="medium"
-              checked={disableTransfersWatch}
+              value={disableTransfersWatch}
               onChange={(e) => {
                 setValue("disableTransfers", e.target.checked)
               }}
@@ -619,44 +670,20 @@ export const NewMarketForm = ({
 
       {!disableTransfersWatch && (
         <Box marginTop="16px">
-          <FormControlLabel
-            label={
-              <Box>
-                <Box sx={InputLabelContainer} marginBottom="2px">
-                  <Box sx={InputLabelTypo}>
-                    <Typography variant="text3">
-                      {t(
-                        "createMarket.forms.marketDescription.block.transferRequiresAccess.title",
-                      )}
-                    </Typography>
-                  </Box>
-                  <TooltipButton
-                    value={t(
-                      "createMarket.forms.marketDescription.block.transferRequiresAccess.tooltip",
-                    )}
-                  />
-                </Box>
-                <Typography
-                  marginTop="0px"
-                  variant="text4"
-                  sx={InputLabelSubtitle}
-                >
-                  {t(
-                    "createMarket.forms.marketDescription.block.transferRequiresAccess.subtitle",
-                  )}
-                </Typography>
-              </Box>
-            }
-            control={
-              <StyledSwitch
-                checkedColor="orange"
-                size="medium"
-                checked={transferRequiresAccessWatch}
-                onChange={(e) => {
-                  setValue("transferRequiresAccess", e.target.checked)
-                }}
-              />
-            }
+          <ExtendedSwitch
+            checkedcolor="orange"
+            size="medium"
+            control={control}
+            name="transferRequiresAccess"
+            label={t(
+              "createMarket.forms.marketDescription.block.transferRequiresAccess.title",
+            )}
+            tooltip={t(
+              "createMarket.forms.marketDescription.block.transferRequiresAccess.tooltip",
+            )}
+            subtitle={t(
+              "createMarket.forms.marketDescription.block.transferRequiresAccess.subtitle",
+            )}
           />
         </Box>
       )}
@@ -686,57 +713,7 @@ export const NewMarketForm = ({
         </Typography>
       </Box>
 
-      <Box marginTop="16px">
-        <FormControlLabel
-          name="allowForceBuyBack"
-          label={
-            <Box>
-              <Box sx={InputLabelContainer} marginBottom="2px">
-                <Box sx={InputLabelTypo}>
-                  <Typography variant="text3">
-                    {t(
-                      "createMarket.forms.marketDescription.block.allowForceBuyBack.title",
-                    )}
-                  </Typography>
-                </Box>
-                <TooltipButton
-                  value={t(
-                    "createMarket.forms.marketDescription.block.allowForceBuyBack.tooltip",
-                  )}
-                />
-              </Box>
-              <Typography
-                marginTop="0px"
-                variant="text4"
-                sx={InputLabelSubtitle}
-              >
-                {t(
-                  "createMarket.forms.marketDescription.block.allowForceBuyBack.subtitle",
-                )}
-              </Typography>
-            </Box>
-          }
-          control={
-            <StyledSwitch
-              checkedColor="red"
-              color="info"
-              size="medium"
-              checked={forceBuyBackWatch}
-              onChange={(e) => {
-                setValue("allowForceBuyBack", e.target.checked)
-              }}
-            />
-          }
-        />
-        {forceBuyBackWatch && (
-          <Alert variant="outlined" color="error" severity="error">
-            This will break integration with on-chain exchanges.
-            <br />
-            Lenders will see a warning about using this market with smart
-            contracts.
-          </Alert>
-        )}
-      </Box>
+      <ForceBuyBack control={control} />
 
       {isFixedTerm && (
         <Box marginTop="16px">
@@ -773,7 +750,7 @@ export const NewMarketForm = ({
               <StyledSwitch
                 color="info"
                 size="medium"
-                checked={allowClosureBeforeTermWatch}
+                value={allowClosureBeforeTermWatch}
                 onChange={(e) => {
                   setValue("allowClosureBeforeTerm", e.target.checked)
                 }}
@@ -818,7 +795,7 @@ export const NewMarketForm = ({
               <StyledSwitch
                 color="info"
                 size="medium"
-                checked={allowTermReductionWatch}
+                value={allowTermReductionWatch}
                 onChange={(e) => {
                   setValue("allowTermReduction", e.target.checked)
                 }}
@@ -885,7 +862,6 @@ export const NewMarketForm = ({
             )}
             style={{ maxWidth: "300px" }}
             size="medium"
-            value={getValues("delinquencyFeeBips")}
             error={Boolean(errors.delinquencyFeeBips)}
             helperText={errors.delinquencyFeeBips?.message}
             endAdornment={
@@ -910,7 +886,6 @@ export const NewMarketForm = ({
             )}
             style={{ maxWidth: "300px" }}
             size="medium"
-            value={getValues("annualInterestBips")}
             error={Boolean(errors.annualInterestBips)}
             helperText={errors.annualInterestBips?.message}
             endAdornment={
@@ -961,7 +936,6 @@ export const NewMarketForm = ({
             )}
             style={{ maxWidth: "300px" }}
             size="medium"
-            value={getValues("reserveRatioBips")}
             error={Boolean(errors.reserveRatioBips)}
             helperText={errors.reserveRatioBips?.message}
             endAdornment={
@@ -995,7 +969,6 @@ export const NewMarketForm = ({
             )}
             style={{ maxWidth: "300px" }}
             size="medium"
-            value={getValues("delinquencyGracePeriod")}
             error={Boolean(errors.delinquencyGracePeriod)}
             helperText={errors.delinquencyGracePeriod?.message}
             endAdornment={
@@ -1023,7 +996,6 @@ export const NewMarketForm = ({
             )}
             style={{ maxWidth: "300px" }}
             size="medium"
-            value={getValues("withdrawalBatchDuration")}
             error={Boolean(errors.withdrawalBatchDuration)}
             helperText={errors.withdrawalBatchDuration?.message}
             endAdornment={

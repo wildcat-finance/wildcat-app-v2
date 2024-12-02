@@ -21,10 +21,9 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
   const policyValue = form.watch("policy")
   const marketType = form.watch("marketType")
 
-  const selectedHooksKind =
-    marketType === "standard" ? HooksKind.OpenTerm : HooksKind.FixedTerm
-
   useEffect(() => {
+    const selectedHooksKind =
+      marketType === "standard" ? HooksKind.OpenTerm : HooksKind.FixedTerm
     if (hooksData && policyValue) {
       const { hooksInstances, hooksTemplates } = hooksData
       if (policyValue === "createNewPolicy") {
@@ -47,6 +46,9 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
             hooksInstance.kind === HooksKind.OpenTerm
               ? "standard"
               : "fixedTerm",
+            {
+              shouldValidate: true,
+            },
           )
           form.setValue(
             "accessControl",
@@ -72,7 +74,8 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
   return {
     selectedHooksInstance,
     selectedHooksTemplate,
-    hooksKind: selectedHooksKind,
+    hooksKind:
+      marketType === "standard" ? HooksKind.OpenTerm : HooksKind.FixedTerm,
     hooksInstances: hooksData?.hooksInstances ?? [],
     hooksTemplates: hooksData?.hooksTemplates ?? [],
     ...queryData,
