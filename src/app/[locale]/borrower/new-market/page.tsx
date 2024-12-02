@@ -87,7 +87,12 @@ export default function NewMarket() {
 
   const handleDeployMarket = newMarketForm.handleSubmit(() => {
     const marketParams = newMarketForm.getValues()
+    // const deployedMarkets = selectedHooksTemplate?.totalMarkets
     if (assetData && tokenAsset && selectedHooksTemplate) {
+      const randomSaltNumber = (Math.random() * 1000000000000000000)
+        .toString(16)
+        .padStart(12, "0")
+        .slice(-12)
       deployNewMarket({
         namePrefix: `${marketParams.namePrefix.trimEnd()} `,
         symbolPrefix: marketParams.symbolPrefix,
@@ -114,7 +119,7 @@ export default function NewMarket() {
             : TransferAccess.Open,
         hooksTemplate: selectedHooksTemplate,
         hooksInstanceName: marketParams.policyName,
-        salt: `0x${"03".padStart(64, "0")}`, // @todo use # of deployed markets
+        salt: `0x${randomSaltNumber.padStart(64, "0")}`, // @todo use # of deployed markets
         hooksAddress: selectedHooksInstance?.address,
         // @todo proper solution
         existingProviders:
