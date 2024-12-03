@@ -14,7 +14,7 @@ export type OverallSectionProps = {
   website?: string
   headquarters?: string
   founded?: string
-  marketsAmount?: string
+  marketsAmount?: number
   totalBorrowedAmount?: string
   defaults?: string
 }
@@ -27,54 +27,60 @@ export const OverallSection = ({
   marketsAmount,
   totalBorrowedAmount,
   defaults,
-}: OverallSectionProps) => {
-  const a = ""
+}: OverallSectionProps) => (
+  <Box>
+    <Typography variant="title3">Overall Info</Typography>
 
-  return (
-    <Box>
-      <Typography variant="title3">Overall Info</Typography>
-
-      <Box sx={MarketParametersContainer}>
-        <Box sx={MarketParametersRowContainer}>
+    <Box sx={MarketParametersContainer}>
+      {name && (
+        <Box>
           <MarketParametersItem
             title="Legal Name"
             value={name ?? ""}
             link={website}
           />
           <Divider sx={MarketParametersRowsDivider} />
-
-          {headquarters && (
-            <MarketParametersItem
-              title="Headquarters"
-              value={headquarters ?? ""}
-            />
-          )}
-          <Divider sx={MarketParametersRowsDivider} />
-
-          {founded && (
-            <MarketParametersItem title="Founded" value={founded ?? ""} />
-          )}
-          <Divider sx={MarketParametersRowsDivider} />
         </Box>
+      )}
 
-        <Box sx={MarketParametersRowContainer}>
-          <MarketParametersItem title="Markets" value={marketsAmount || ""} />
-          <Divider sx={MarketParametersRowsDivider} />
+      <Box>
+        <MarketParametersItem title="Markets" value={marketsAmount || ""} />
+        <Divider sx={MarketParametersRowsDivider} />
+      </Box>
 
+      {headquarters && (
+        <Box>
           <MarketParametersItem
-            title="Total amount borrowed"
-            value={totalBorrowedAmount || ""}
-          />
-          <Divider sx={MarketParametersRowsDivider} />
-
-          <MarketParametersItem
-            title="Defaults"
-            value={defaults || ""}
-            tooltipText="TBD"
+            title="Headquarters"
+            value={headquarters ?? ""}
           />
           <Divider sx={MarketParametersRowsDivider} />
         </Box>
+      )}
+
+      <Box>
+        <MarketParametersItem
+          title="Total amount borrowed"
+          value={totalBorrowedAmount || ""}
+        />
+        <Divider sx={MarketParametersRowsDivider} />
+      </Box>
+
+      {founded && (
+        <Box>
+          <MarketParametersItem title="Founded" value={founded ?? ""} />
+          <Divider sx={MarketParametersRowsDivider} />
+        </Box>
+      )}
+
+      <Box>
+        <MarketParametersItem
+          title="Defaults"
+          value={defaults || ""}
+          tooltipText="TBD"
+        />
+        <Divider sx={MarketParametersRowsDivider} />
       </Box>
     </Box>
-  )
-}
+  </Box>
+)

@@ -22,11 +22,10 @@ import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 export type MarketsSectionProps = {
-  isLoading: boolean
   markets?: Market[]
 }
 
-export const MarketsSection = ({ isLoading, markets }: MarketsSectionProps) => {
+export const MarketsSection = ({ markets }: MarketsSectionProps) => {
   const { t } = useTranslation()
 
   const rows: GridRowsProp = (markets ?? [])
@@ -167,18 +166,16 @@ export const MarketsSection = ({ isLoading, markets }: MarketsSectionProps) => {
   return (
     <Box marginBottom="44px">
       <Typography variant="title3">Active Markets</Typography>
-      {!isLoading && (
-        <DataGrid
-          sx={{
-            marginTop: "12px",
-            overflow: "auto",
-            "& .MuiDataGrid-columnHeader": { padding: 0 },
-            "& .MuiDataGrid-cell": { padding: "0px" },
-          }}
-          rows={rows}
-          columns={columns}
-        />
-      )}
+      <DataGrid
+        sx={{
+          marginTop: "12px",
+          overflow: "auto",
+          "& .MuiDataGrid-columnHeader": { padding: 0 },
+          "& .MuiDataGrid-cell": { padding: "0px" },
+        }}
+        rows={rows}
+        columns={columns}
+      />
     </Box>
   )
 }

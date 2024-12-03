@@ -7,21 +7,34 @@ export const ContentContainer = {
 
 export const MarketParametersContainer = {
   width: "100%",
-  display: "flex",
-  flexDirection: "row",
-  gap: "24px",
+  display: "grid",
+  gridTemplateColumns: "repeat(2, 1fr)",
+  gridAutoRows: "auto",
+  rowGap: "12px",
+  columnGap: "24px",
   justifyContent: "space-between",
   marginTop: "24px",
 }
 
+// export const MarketParametersContainer = {
+//   maxHeight: "130px",
+//   width: "100%",
+//   display: "flex",
+//   flexDirection: "column",
+//   flexWrap: "wrap",
+//   rowGap: "12px",
+//   columnGap: "24px",
+//   justifyContent: "space-between",
+//   marginTop: "24px",
+// }
+
 export const MarketParametersRowContainer = {
-  width: "48%",
   display: "flex",
   flexDirection: "column",
   justifyContent: "space-between",
 }
 
-export const MarketParametersRowsDivider = { margin: "12px 0 12px" }
+export const MarketParametersRowsDivider = { margin: "12px 0 0" }
 
 export const ProfileHeaderButton = {
   height: "28px",

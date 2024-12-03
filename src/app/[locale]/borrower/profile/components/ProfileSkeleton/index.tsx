@@ -10,9 +10,15 @@ import {
 } from "@/app/[locale]/borrower/profile/style"
 import { COLORS } from "@/theme/colors"
 
-export const ProfileSkeleton = () => (
+export const ProfileSkeleton = ({ type }: { type: "user" | "external" }) => (
   <Box sx={ContentContainer}>
-    <Box sx={{ display: "flex", flexDirection: "column" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: type === "user" ? "flex-start" : "center",
+      }}
+    >
       <Skeleton
         height="48px"
         width="48px"
@@ -35,7 +41,12 @@ export const ProfileSkeleton = () => (
         sx={{ bgcolor: COLORS.athensGrey, marginBottom: "22px" }}
       />
 
-      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: type === "user" ? "space-between" : "center",
+        }}
+      >
         <Box display="flex" gap="6px">
           <Skeleton
             height="28px"
@@ -56,11 +67,13 @@ export const ProfileSkeleton = () => (
           />
         </Box>
 
-        <Skeleton
-          height="28px"
-          width="102px"
-          sx={{ bgcolor: COLORS.athensGrey, borderRadius: "8px" }}
-        />
+        {type === "user" && (
+          <Skeleton
+            height="28px"
+            width="102px"
+            sx={{ bgcolor: COLORS.athensGrey, borderRadius: "8px" }}
+          />
+        )}
       </Box>
     </Box>
 

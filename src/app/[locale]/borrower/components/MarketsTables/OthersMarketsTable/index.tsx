@@ -5,6 +5,7 @@ import {
   Accordion,
   AccordionSummary,
   Box,
+  Button,
   Skeleton,
   Typography,
 } from "@mui/material"
@@ -121,21 +122,48 @@ export const OthersMarketsTable = ({
       flex: 1.7,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <Typography
+          variant="text4"
+          sx={{
+            lineHeight: "10px",
+            color: COLORS.santasGrey,
+            padding: "0 12px",
+          }}
+        >
+          Borrower
+        </Typography>
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-start" }}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-start",
+          }}
         >
-          <span
+          <Link
+            href={`${ROUTES.borrower.profile}/${params.row.borrowerAddress}`}
             style={{
-              width: "100%",
-              paddingRight: "20px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
+              textDecoration: "none",
+              width: "fit-content",
+              height: "fit-content",
             }}
           >
-            {params.value}
-          </span>
+            <Button
+              size="small"
+              variant="text"
+              sx={{
+                fontSize: "13px",
+                lineHeight: "20px",
+                fontWeight: 500,
+                minWidth: "fit-content",
+                width: "fit-content",
+              }}
+            >
+              {params.value}
+            </Button>
+          </Link>
         </Link>
       ),
     },
@@ -286,6 +314,7 @@ export const OthersMarketsTable = ({
       marketType: getMarketTypeChip(market),
       name,
       borrowerName,
+      borrowerAddress,
       asset: underlyingToken.symbol,
       lenderAPR: annualInterestBips,
       crr: reserveRatioBips,
@@ -368,6 +397,12 @@ export const OthersMarketsTable = ({
             padding: "0 16px",
             "& .MuiDataGrid-columnHeader": { padding: 0 },
             "& .MuiDataGrid-cell": { padding: "0px" },
+
+            "& .MuiDataGrid-row": {
+              "& > a:hover": {
+                backgroundColor: "transparent",
+              },
+            },
 
             "& .MuiDataGrid-footerContainer": {
               "& .MuiToolbar-root": {

@@ -15,6 +15,18 @@ let mockProfile: BorrowerProfile = {
   updatedAt: 1679616000000,
 }
 
+const otherMockedProfile = {
+  address: "0xb1099527bd2af2cf8ee3abd7dc5fa95353f31c44",
+  name: "Some Company",
+  description: "Some Description",
+  founded: undefined,
+  headquarters: undefined,
+  website: undefined,
+  twitter: undefined,
+  linkedin: undefined,
+  updatedAt: 1679616000000,
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { address: `0x${string}` } },
@@ -25,7 +37,9 @@ export async function GET(
     return NextResponse.json({ profile: mockProfile })
   }
 
-  return NextResponse.json({ error: "Profile not found" }, { status: 404 })
+  // TODO: Change when real API will be ready
+  return NextResponse.json({ profile: otherMockedProfile })
+  // return NextResponse.json({ error: "Profile not found" }, { status: 404 })
 }
 
 export async function PUT(request: NextRequest) {

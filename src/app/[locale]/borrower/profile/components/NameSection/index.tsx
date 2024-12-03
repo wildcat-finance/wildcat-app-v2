@@ -29,27 +29,24 @@ export const NameSection = ({
   twitter,
   linkedin,
   type,
-}: NameSectionProps) => {
-  const a = ""
+}: NameSectionProps) => (
+  <Box
+    sx={{
+      height: "fit-content",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: type === "user" ? "flex-start" : "center",
+    }}
+  >
+    {avatar || (
+      <SvgIcon sx={{ fontSize: "48px", marginBottom: "24px" }}>
+        <Avatar />
+      </SvgIcon>
+    )}
 
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: type === "user" ? "flex-start" : "center",
-      }}
-    >
-      {avatar || (
-        <SvgIcon sx={{ fontSize: "48px", marginBottom: "24px" }}>
-          <Avatar />
-        </SvgIcon>
-      )}
+    <Typography variant="title1">{name}</Typography>
 
-      <Typography variant="title1" sx={{ marginBottom: "12px" }}>
-        {name}
-      </Typography>
-
+    {description && (
       <Typography
         variant="text2"
         textAlign={type === "user" ? "left" : "center"}
@@ -57,79 +54,81 @@ export const NameSection = ({
         sx={{
           display: "inline-block",
           maxWidth: "586px",
-          marginBottom: "22px",
+          marginTop: "12px",
         }}
       >
         {description}
       </Typography>
+    )}
 
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          justifyContent: type === "user" ? "space-between" : "center",
-        }}
-      >
-        <Box display="flex" gap="6px">
-          {website && (
-            <Link href={website} target="_blank">
-              <Button
-                size="small"
-                variant="outlined"
-                color="secondary"
-                sx={ProfileHeaderButton}
-              >
-                Website
-              </Button>
-            </Link>
-          )}
+    <Box
+      sx={{
+        width: "100%",
+        display: "flex",
+        justifyContent: type === "user" ? "space-between" : "center",
+        marginTop:
+          website || twitter || linkedin || type === "user" ? "22px" : "0",
+      }}
+    >
+      <Box display="flex" gap="6px">
+        {website && (
+          <Link href={website} target="_blank">
+            <Button
+              size="small"
+              variant="outlined"
+              color="secondary"
+              sx={ProfileHeaderButton}
+            >
+              Website
+            </Button>
+          </Link>
+        )}
 
-          {twitter && (
-            <Link href={twitter} target="_blank">
-              <Button
-                size="small"
-                variant="outlined"
-                color="secondary"
-                sx={ProfileHeaderButton}
-              >
-                Twitter
-              </Button>
-            </Link>
-          )}
+        {twitter && (
+          <Link href={twitter} target="_blank">
+            <Button
+              size="small"
+              variant="outlined"
+              color="secondary"
+              sx={ProfileHeaderButton}
+            >
+              Twitter
+            </Button>
+          </Link>
+        )}
 
-          {linkedin && (
-            <Link href={linkedin} target="_blank">
-              <Button
-                size="small"
-                variant="outlined"
-                color="secondary"
-                sx={ProfileHeaderButton}
-              >
-                Linkedin
-              </Button>
-            </Link>
-          )}
-        </Box>
-
-        {type === "user" && (
-          <Link href={ROUTES.borrower.editProfile}>
-            <Button variant="text" size="small" sx={{ gap: "4px" }}>
-              <SvgIcon
-                fontSize="medium"
-                sx={{
-                  "& path": {
-                    fill: `${COLORS.greySuit}`,
-                    transition: "fill 0.2s",
-                  },
-                }}
-              >
-                <Edit />
-              </SvgIcon>
-              Edit Profile
+        {linkedin && (
+          <Link href={linkedin} target="_blank">
+            <Button
+              size="small"
+              variant="outlined"
+              color="secondary"
+              sx={ProfileHeaderButton}
+            >
+              Linkedin
             </Button>
           </Link>
         )}
       </Box>
+
+      {type === "user" && (
+        <Link href={ROUTES.borrower.editProfile}>
+          <Button variant="text" size="small" sx={{ gap: "4px" }}>
+            <SvgIcon
+              fontSize="medium"
+              sx={{
+                "& path": {
+                  fill: `${COLORS.greySuit}`,
+                  transition: "fill 0.2s",
+                },
+              }}
+            >
+              <Edit />
+            </SvgIcon>
+            Edit Profile
+          </Button>
+        </Link>
+      )}
     </Box>
-  )
-}
+  </Box>
+)
