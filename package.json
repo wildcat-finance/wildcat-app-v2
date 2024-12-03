@@ -21,6 +21,7 @@
     "@mui/system": "^5.15.1",
     "@mui/x-data-grid": "^7.5.1",
     "@mui/x-date-pickers": "^7.7.1",
+    "@prisma/client": "^6.0.1",
     "@reduxjs/toolkit": "^2.2.3",
     "@safe-global/safe-apps-react-sdk": "^4.7.2",
     "@safe-global/safe-apps-sdk": "^9.1.0",
@@ -78,6 +79,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-storybook": "^0.6.15",
     "prettier": "3.1.1",
+    "prisma": "^6.0.1",
     "redux-mock-store": "^1.5.4",
     "storybook": "^7.6.6",
     "typescript": "^5"
