@@ -10,19 +10,20 @@ let mockProfile: BorrowerProfile = {
   founded: "2017",
   headquarters: "London",
   website: "https://wintermute.com/",
-  twitter: undefined,
-  linkedin: undefined,
+  twitter: "wintermute_t",
+  linkedin: "https://uk.linkedin.com/company/wintermute-trading",
   updatedAt: 1679616000000,
 }
 
-const otherMockedProfile = {
+const otherMockedProfile: BorrowerProfile = {
   address: "0xb1099527bd2af2cf8ee3abd7dc5fa95353f31c44",
-  name: "Some Company",
-  description: "Some Description",
+  name: "Wildcat Finance",
+  description:
+    "- an Ethereum protocol enabling undercollateralised on-chain credit facilities which a borrower can parameterise however they wish.",
   founded: undefined,
   headquarters: undefined,
-  website: undefined,
-  twitter: undefined,
+  website: "https://wildcat.finance/",
+  twitter: "WildcatFi",
   linkedin: undefined,
   updatedAt: 1679616000000,
 }

@@ -4,7 +4,6 @@ import { Box, Divider, Typography } from "@mui/material"
 
 import {
   MarketParametersContainer,
-  MarketParametersRowContainer,
   MarketParametersRowsDivider,
 } from "@/app/[locale]/borrower/profile/style"
 import { MarketParametersItem } from "@/components/MarketParameters/components/MarketParametersItem"
@@ -44,7 +43,7 @@ export const OverallSection = ({
       )}
 
       <Box>
-        <MarketParametersItem title="Markets" value={marketsAmount || ""} />
+        <MarketParametersItem title="Markets" value={marketsAmount || 0} />
         <Divider sx={MarketParametersRowsDivider} />
       </Box>
 

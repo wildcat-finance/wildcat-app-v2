@@ -40,19 +40,25 @@ export default function UserBorrowerProfile() {
         linkedin={profileData?.linkedin}
       />
 
-      <Divider sx={{ margin: "32px 0" }} />
+      {(marketsAmount !== 0 ||
+        profileData?.founded ||
+        profileData?.headquarters) && <Divider sx={{ margin: "32px 0" }} />}
 
-      <MarketsSection markets={borrowerMarkets} />
+      {marketsAmount !== 0 && <MarketsSection markets={borrowerMarkets} />}
 
-      <OverallSection
-        name={profileData?.name}
-        website={profileData?.website}
-        headquarters={profileData?.headquarters}
-        founded={profileData?.founded}
-        marketsAmount={marketsAmount}
-        totalBorrowedAmount="12"
-        defaults="0"
-      />
+      {(marketsAmount !== 0 ||
+        profileData?.founded ||
+        profileData?.headquarters) && (
+        <OverallSection
+          name={profileData?.name}
+          website={profileData?.website}
+          headquarters={profileData?.headquarters}
+          founded={profileData?.founded}
+          marketsAmount={marketsAmount}
+          totalBorrowedAmount="0"
+          defaults="0"
+        />
+      )}
     </Box>
   )
 }

@@ -43,6 +43,7 @@ export const ProfileSkeleton = ({ type }: { type: "user" | "external" }) => (
 
       <Box
         sx={{
+          width: "100%",
           display: "flex",
           justifyContent: type === "user" ? "space-between" : "center",
         }}
@@ -109,49 +110,7 @@ export const ProfileSkeleton = ({ type }: { type: "user" | "external" }) => (
       <Typography variant="title3">Overall Info</Typography>
 
       <Box sx={MarketParametersContainer}>
-        <Box sx={MarketParametersRowContainer}>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-            }}
-          >
-            <Skeleton
-              height="20px"
-              width="85px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
-
-            <Skeleton
-              height="20px"
-              width="85px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
-          </Box>
-          <Divider sx={MarketParametersRowsDivider} />
-
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-            }}
-          >
-            <Skeleton
-              height="20px"
-              width="85px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
-
-            <Skeleton
-              height="20px"
-              width="85px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
-          </Box>
-          <Divider sx={MarketParametersRowsDivider} />
-
+        <Box>
           <Box
             sx={{
               display: "flex",
@@ -174,7 +133,7 @@ export const ProfileSkeleton = ({ type }: { type: "user" | "external" }) => (
           <Divider sx={MarketParametersRowsDivider} />
         </Box>
 
-        <Box sx={MarketParametersRowContainer}>
+        <Box>
           <Box
             sx={{
               display: "flex",
@@ -195,7 +154,9 @@ export const ProfileSkeleton = ({ type }: { type: "user" | "external" }) => (
             />
           </Box>
           <Divider sx={MarketParametersRowsDivider} />
+        </Box>
 
+        <Box>
           <Box
             sx={{
               display: "flex",
@@ -216,7 +177,55 @@ export const ProfileSkeleton = ({ type }: { type: "user" | "external" }) => (
             />
           </Box>
           <Divider sx={MarketParametersRowsDivider} />
+        </Box>
 
+        <Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+            }}
+          >
+            <Skeleton
+              height="20px"
+              width="85px"
+              sx={{ bgcolor: COLORS.athensGrey }}
+            />
+
+            <Skeleton
+              height="20px"
+              width="85px"
+              sx={{ bgcolor: COLORS.athensGrey }}
+            />
+          </Box>
+          <Divider sx={MarketParametersRowsDivider} />
+        </Box>
+
+        <Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+            }}
+          >
+            <Skeleton
+              height="20px"
+              width="85px"
+              sx={{ bgcolor: COLORS.athensGrey }}
+            />
+
+            <Skeleton
+              height="20px"
+              width="85px"
+              sx={{ bgcolor: COLORS.athensGrey }}
+            />
+          </Box>
+          <Divider sx={MarketParametersRowsDivider} />
+        </Box>
+
+        <Box>
           <Box
             sx={{
               display: "flex",
