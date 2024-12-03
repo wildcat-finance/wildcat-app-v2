@@ -12,7 +12,6 @@ import {
   SubgraphGetMarketQuery,
   SubgraphGetMarketQueryVariables,
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
-import { constants } from "ethers"
 
 import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
@@ -56,11 +55,11 @@ export function useGetMarket({ address, ...filters }: UseMarketProps) {
     if (!market || !signerOrProvider) throw Error()
     if (market.version === MarketVersion.V1) {
       const lens = getLensContract(TargetChainId, signerOrProvider)
-      const update = await lens.getMarketData(address ?? constants.AddressZero)
+      const update = await lens.getMarketData(market.address)
       market.updateWith(update)
     } else {
       const lens = getLensV2Contract(TargetChainId, signerOrProvider)
-      const update = await lens.getMarketData(address ?? constants.AddressZero)
+      const update = await lens.getMarketData(market.address)
       market.updateWith(update)
     }
     if (market.provider !== signerOrProvider) {
@@ -79,7 +78,7 @@ export function useGetMarket({ address, ...filters }: UseMarketProps) {
     queryKey: [GET_MARKET_KEY, address],
     queryFn,
     refetchInterval: POLLING_INTERVAL,
-    enabled: /* !!address ||  */ !signerOrProvider || isWrongNetwork,
+    enabled: !(!marketAddressFormatted || !signerOrProvider || isWrongNetwork),
     refetchOnMount: false,
   })
 
