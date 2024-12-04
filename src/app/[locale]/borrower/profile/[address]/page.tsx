@@ -34,7 +34,7 @@ export default function OtherBorrowerProfile({
   const isLoading = isMarketsLoading || isProfileLoading
 
   useEffect(() => {
-    if (address === userAddress) {
+    if (address.toLowerCase() === userAddress?.toLowerCase()) {
       redirect(ROUTES.borrower.profile)
     }
   }, [address, userAddress])
