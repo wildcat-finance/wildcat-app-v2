@@ -28,7 +28,8 @@ export default function OtherBorrowerProfile({
     useGetBorrowerMarkets(address)
   const { address: userAddress } = useAccount()
 
-  const marketsAmount = 0
+  const marketsAmount = borrowerMarkets?.filter((market) => !market.isClosed)
+    .length
 
   const isLoading = isMarketsLoading || isProfileLoading
 

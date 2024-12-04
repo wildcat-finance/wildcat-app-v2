@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { Box, Button, Skeleton, SvgIcon, Typography } from "@mui/material"
 import Image from "next/image"
+import { useTranslation } from "react-i18next"
 
 import {
   AvatarContainer,
@@ -21,6 +22,8 @@ export const AvatarProfileItem = ({
   setAvatar,
   isLoading,
 }: AvatarProfileItemProps) => {
+  const { t } = useTranslation()
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -41,8 +44,12 @@ export const AvatarProfileItem = ({
   return (
     <Box sx={ContentContainer}>
       <Box sx={AvatarTitle}>
-        <Typography variant="text3">Avatar</Typography>
-        <TooltipButton value="TBD" />
+        <Typography variant="text3">
+          {t("borrowerProfile.edit.public.avatar.title")}
+        </Typography>
+        <TooltipButton
+          value={t("borrowerProfile.edit.public.avatar.tooltip")}
+        />
       </Box>
 
       <Box sx={AvatarContainer}>
@@ -61,7 +68,7 @@ export const AvatarProfileItem = ({
             {avatar ? (
               <Image
                 src={avatar}
-                alt="Avatar"
+                alt={t("borrowerProfile.edit.public.avatar.title")}
                 width={64}
                 height={64}
                 style={{
@@ -76,7 +83,7 @@ export const AvatarProfileItem = ({
 
             {!avatar && (
               <Typography variant="text4" color="#A0A0A0">
-                Automatically Generated
+                {t("borrowerProfile.edit.public.avatar.generated")}
               </Typography>
             )}
           </Box>
@@ -100,7 +107,7 @@ export const AvatarProfileItem = ({
             >
               <Edit />
             </SvgIcon>
-            Change Image
+            {t("borrowerProfile.edit.public.avatar.edit")}
           </Button>
         )}
 

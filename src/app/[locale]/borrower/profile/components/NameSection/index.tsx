@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import {
   ComponentContainer,
@@ -26,111 +27,118 @@ export const NameSection = ({
   linkedin,
   marketsAmount,
   type,
-}: NameSectionProps) => (
-  <Box
-    sx={{
-      ...ComponentContainer,
-      alignItems: type === "user" ? "flex-start" : "center",
-    }}
-  >
-    {avatar || (
-      <SvgIcon sx={{ fontSize: "48px", marginBottom: "24px" }}>
-        <Avatar />
-      </SvgIcon>
-    )}
+}: NameSectionProps) => {
+  const { t } = useTranslation()
 
-    <Typography variant="title1">{name}</Typography>
+  return (
+    <Box
+      sx={{
+        ...ComponentContainer,
+        alignItems: type === "user" ? "flex-start" : "center",
+      }}
+    >
+      {avatar || (
+        <SvgIcon sx={{ fontSize: "48px", marginBottom: "24px" }}>
+          <Avatar />
+        </SvgIcon>
+      )}
 
-    {type === "user" && !(description || website || twitter || linkedin) && (
-      <EmptyAlert type="user" marginTop="32px" />
-    )}
+      <Typography variant="title1">{name}</Typography>
 
-    {description && (
-      <Typography
-        variant="text2"
-        textAlign={type === "user" ? "left" : "center"}
-        color={COLORS.santasGrey}
-        sx={DescriptionContainer}
-      >
-        {description}
-      </Typography>
-    )}
+      {type === "user" && !(description || website || twitter || linkedin) && (
+        <EmptyAlert type="user" marginTop="32px" />
+      )}
 
-    {(website || twitter || linkedin) && (
-      <Box
-        sx={{
-          ...LinksContainer,
-          justifyContent: type === "user" ? "space-between" : "center",
-        }}
-      >
-        <Box display="flex" gap="6px">
-          {website && (
-            <Link href={website} target="_blank">
-              <Button
-                size="small"
-                variant="outlined"
-                color="secondary"
-                sx={ProfileHeaderButton}
-              >
-                Website
-              </Button>
-            </Link>
-          )}
+      {description && (
+        <Typography
+          variant="text2"
+          textAlign={type === "user" ? "left" : "center"}
+          color={COLORS.santasGrey}
+          sx={DescriptionContainer}
+        >
+          {description}
+        </Typography>
+      )}
 
-          {twitter && (
-            <Link href={`https://x.com/${twitter}`} target="_blank">
-              <Button
-                size="small"
-                variant="outlined"
-                color="secondary"
-                sx={ProfileHeaderButton}
-              >
-                Twitter
-              </Button>
-            </Link>
-          )}
+      {(website || twitter || linkedin) && (
+        <Box
+          sx={{
+            ...LinksContainer,
+            justifyContent: type === "user" ? "space-between" : "center",
+          }}
+        >
+          <Box display="flex" gap="6px">
+            {website && (
+              <Link href={website} target="_blank">
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="secondary"
+                  sx={ProfileHeaderButton}
+                >
+                  {t("borrowerProfile.profile.buttons.website")}
+                </Button>
+              </Link>
+            )}
 
-          {linkedin && (
-            <Link href={linkedin} target="_blank">
-              <Button
-                size="small"
-                variant="outlined"
-                color="secondary"
-                sx={ProfileHeaderButton}
-              >
-                Linkedin
-              </Button>
-            </Link>
-          )}
+            {twitter && (
+              <Link href={`https://x.com/${twitter}`} target="_blank">
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="secondary"
+                  sx={ProfileHeaderButton}
+                >
+                  {t("borrowerProfile.profile.buttons.twitter")}
+                </Button>
+              </Link>
+            )}
+
+            {linkedin && (
+              <Link href={linkedin} target="_blank">
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="secondary"
+                  sx={ProfileHeaderButton}
+                >
+                  {t("borrowerProfile.profile.buttons.linkedin")}
+                </Button>
+              </Link>
+            )}
+          </Box>
+
+          {type === "user" &&
+            (description || website || twitter || linkedin) && (
+              <Link href={ROUTES.borrower.editProfile}>
+                <Button variant="text" size="small" sx={{ gap: "4px" }}>
+                  <SvgIcon
+                    fontSize="medium"
+                    sx={{
+                      "& path": {
+                        fill: `${COLORS.greySuit}`,
+                        transition: "fill 0.2s",
+                      },
+                    }}
+                  >
+                    <Edit />
+                  </SvgIcon>
+                  {t("borrowerProfile.profile.buttons.edit")}
+                </Button>
+              </Link>
+            )}
         </Box>
+      )}
 
-        {type === "user" && (description || website || twitter || linkedin) && (
-          <Link href={ROUTES.borrower.editProfile}>
-            <Button variant="text" size="small" sx={{ gap: "4px" }}>
-              <SvgIcon
-                fontSize="medium"
-                sx={{
-                  "& path": {
-                    fill: `${COLORS.greySuit}`,
-                    transition: "fill 0.2s",
-                  },
-                }}
-              >
-                <Edit />
-              </SvgIcon>
-              Edit Profile
-            </Button>
-          </Link>
-        )}
-      </Box>
-    )}
-
-    {type === "external" && marketsAmount === 0 && (
-      <EmptyAlert
-        type="external"
-        alertText="This Borrower doesn’t have any markets."
-        marginTop="32px"
-      />
-    )}
-  </Box>
-)
+      {type === "external" && marketsAmount === 0 && (
+        <EmptyAlert
+          type="external"
+          alertText={t(
+            "borrowerProfile.profile.emptyStates.external.noMarkets",
+          )}
+          marginTop="32px"
+        />
+      )}
+    </Box>
+  )
+}

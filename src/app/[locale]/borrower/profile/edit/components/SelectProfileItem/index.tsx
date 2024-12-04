@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { Box, Button, Skeleton, SvgIcon, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { SelectProfileItemProps } from "@/app/[locale]/borrower/profile/edit/components/SelectProfileItem/interface"
 import {
@@ -23,6 +24,8 @@ export const SelectProfileItem = ({
   children,
   isLoading,
 }: SelectProfileItemProps) => {
+  const { t } = useTranslation()
+
   const hasValueChanged = oldValue !== newValue
   const valueWasntEmpty = oldValue && oldValue.length !== 0
 
@@ -66,7 +69,7 @@ export const SelectProfileItem = ({
               >
                 <Return />
               </SvgIcon>
-              Back to
+              {t("borrowerProfile.edit.buttons.back")}
             </Button>
             <Typography variant="text3" color={COLORS.santasGrey}>
               {oldLabel}

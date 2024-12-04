@@ -27,7 +27,6 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
         name,
         underlyingToken,
         annualInterestBips,
-        deployedEvent,
         totalBorrowed,
       } = market
 
@@ -41,15 +40,13 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
         lenderAPR: annualInterestBips,
         term: getMarketTypeChip(market),
         debt: totalBorrowed,
-        kyc: "Added By Borrower",
-        deployed: deployedEvent ? deployedEvent.blockTimestamp : 0,
       }
     })
 
   const columns: GridColDef[] = [
     {
       field: "name",
-      headerName: t("borrowerMarketList.table.header.marketName"),
+      headerName: t("borrowerProfile.profile.activeMarkets.table.name"),
       flex: 3,
       minWidth: 208,
       headerAlign: "left",
@@ -68,7 +65,7 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
     },
     {
       field: "status",
-      headerName: t("borrowerMarketList.table.header.status"),
+      headerName: t("borrowerProfile.profile.activeMarkets.table.status"),
       minWidth: 120,
       headerAlign: "left",
       align: "left",
@@ -78,7 +75,7 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
     },
     {
       field: "term",
-      headerName: "Term",
+      headerName: t("borrowerProfile.profile.activeMarkets.table.term"),
       minWidth: 170,
       headerAlign: "left",
       align: "left",
@@ -88,7 +85,7 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
     },
     {
       field: "asset",
-      headerName: "Asset",
+      headerName: t("borrowerProfile.profile.activeMarkets.table.asset"),
       minWidth: 95,
       headerAlign: "right",
       align: "right",
@@ -96,7 +93,7 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
     },
     {
       field: "lenderAPR",
-      headerName: t("borrowerMarketList.table.header.apr"),
+      headerName: t("borrowerProfile.profile.activeMarkets.table.apr"),
       minWidth: 95,
       headerAlign: "right",
       align: "right",
@@ -105,7 +102,7 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
     },
     {
       field: "debt",
-      headerName: "Total Debt",
+      headerName: t("borrowerProfile.profile.activeMarkets.table.debt"),
       minWidth: 110,
       headerAlign: "right",
       align: "right",
@@ -122,7 +119,9 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
 
   return (
     <Box marginBottom="44px">
-      <Typography variant="title3">Active Markets</Typography>
+      <Typography variant="title3">
+        {t("borrowerProfile.profile.activeMarkets.title")}
+      </Typography>
       <DataGrid
         sx={{
           marginTop: "12px",

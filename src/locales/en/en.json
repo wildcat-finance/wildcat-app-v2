@@ -837,7 +837,10 @@
         "founded": "Founded",
         "markets": "Markets",
         "borrowed": "Total Amount Borrowed",
-        "defaults": "Defaults"
+        "defaults": {
+          "title": "Defaults",
+          "tooltip": "TBD"
+        }
       },
       "emptyStates": {
         "external": {
@@ -903,7 +906,8 @@
         "subtitle": "In case you want join to the Market with MLA you should share your legal info",
         "jurisdiction": {
           "title": "Jurisdiction",
-          "placeholder": "Please enter"
+          "placeholder": "Please enter",
+          "tooltip": "TBD"
         },
         "nature": {
           "title": "Legal Nature",
@@ -922,6 +926,7 @@
         }
       },
       "buttons": {
+        "back": "Back to",
         "cancel": "Cancel",
         "confirm": "Confirm"
       }

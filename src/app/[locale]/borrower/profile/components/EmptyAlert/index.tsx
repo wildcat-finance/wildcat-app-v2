@@ -1,5 +1,6 @@
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import { EmptyAlertProps } from "@/app/[locale]/borrower/profile/components/EmptyAlert/interface"
 import {
@@ -12,6 +13,8 @@ import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
 export const EmptyAlert = ({ type, marginTop, alertText }: EmptyAlertProps) => {
+  const { t } = useTranslation()
+
   switch (type) {
     case "user": {
       return (
@@ -23,10 +26,10 @@ export const EmptyAlert = ({ type, marginTop, alertText }: EmptyAlertProps) => {
         >
           <Box sx={UserTitleContainer}>
             <Typography variant="text1">
-              Add a description to your profile
+              {t("borrowerProfile.profile.emptyStates.user.noInfo.title")}
             </Typography>
             <Typography variant="text3" color={COLORS.santasGrey}>
-              Fulfil it to be more transparent for lenders
+              {t("borrowerProfile.profile.emptyStates.user.noInfo.subtitle")}
             </Typography>
           </Box>
 
@@ -36,7 +39,7 @@ export const EmptyAlert = ({ type, marginTop, alertText }: EmptyAlertProps) => {
               size="medium"
               sx={{ padding: "10px 23.5px", lineHeight: "20px" }}
             >
-              Add Details
+              {t("borrowerProfile.profile.emptyStates.user.noInfo.button")}
             </Button>
           </Link>
         </Box>

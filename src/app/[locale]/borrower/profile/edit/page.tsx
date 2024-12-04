@@ -16,6 +16,7 @@ import {
   Typography,
 } from "@mui/material"
 import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { AvatarProfileItem } from "@/app/[locale]/borrower/profile/edit/components/AvatarProfileItem"
@@ -49,6 +50,7 @@ const mockPrivateInfo = {
 
 export default function EditProfile() {
   const router = useRouter()
+  const { t } = useTranslation()
 
   const publicForm = useEditPublicForm()
   const privateForm = useEditPrivateForm()
@@ -173,9 +175,11 @@ export default function EditProfile() {
   return (
     <Box sx={EditPageContainer}>
       <Box sx={TitleContainer}>
-        <Typography variant="title1">Public Info</Typography>
+        <Typography variant="title1">
+          {t("borrowerProfile.edit.public.title")}
+        </Typography>
         <Typography variant="text2" color={COLORS.santasGrey}>
-          This info can be viewed by other users including lenders
+          {t("borrowerProfile.edit.public.subtitle")}
         </Typography>
       </Box>
 
@@ -187,8 +191,8 @@ export default function EditProfile() {
 
       <Box sx={{ ...FieldsContainer, marginTop: "32px" }}>
         <EditProfileItem
-          title="Legal Name"
-          tooltip="TBD"
+          title={t("borrowerProfile.edit.public.name.title")}
+          tooltip={t("borrowerProfile.edit.public.name.tooltip")}
           form={publicForm}
           field="legalName"
           oldValue={publicData?.name}
@@ -197,7 +201,7 @@ export default function EditProfile() {
         >
           <TextField
             fullWidth
-            placeholder="Legal Name"
+            placeholder={t("borrowerProfile.edit.public.name.placeholder")}
             error={Boolean(publicErrors.legalName)}
             helperText={publicErrors.legalName?.message}
             {...registerPublic("legalName")}
@@ -205,8 +209,8 @@ export default function EditProfile() {
         </EditProfileItem>
 
         <EditProfileItem
-          title="Description"
-          tooltip="TBD"
+          title={t("borrowerProfile.edit.public.description.title")}
+          tooltip={t("borrowerProfile.edit.public.description.tooltip")}
           form={publicForm}
           field="description"
           oldValue={publicData?.description}
@@ -214,7 +218,9 @@ export default function EditProfile() {
           isLoading={isLoading}
         >
           <TextField
-            placeholder="Description"
+            placeholder={t(
+              "borrowerProfile.edit.public.description.placeholder",
+            )}
             sx={DescriptionField}
             error={Boolean(publicErrors.description)}
             helperText={publicErrors.description?.message}
@@ -225,8 +231,8 @@ export default function EditProfile() {
         </EditProfileItem>
 
         <EditProfileItem
-          title="Founded"
-          tooltip="TBD"
+          title={t("borrowerProfile.edit.public.founded.title")}
+          tooltip={t("borrowerProfile.edit.public.founded.tooltip")}
           form={publicForm}
           field="founded"
           oldValue={publicData?.founded}
@@ -234,7 +240,7 @@ export default function EditProfile() {
           isLoading={isLoading}
         >
           <TextField
-            placeholder="Founded"
+            placeholder={t("borrowerProfile.edit.public.founded.placeholder")}
             fullWidth
             error={Boolean(publicErrors.founded)}
             helperText={publicErrors.founded?.message}
@@ -243,8 +249,8 @@ export default function EditProfile() {
         </EditProfileItem>
 
         <EditProfileItem
-          title="Headquarters"
-          tooltip="TBD"
+          title={t("borrowerProfile.edit.public.headquarters.title")}
+          tooltip={t("borrowerProfile.edit.public.headquarters.tooltip")}
           form={publicForm}
           field="headquarters"
           oldValue={publicData?.headquarters}
@@ -252,7 +258,9 @@ export default function EditProfile() {
           isLoading={isLoading}
         >
           <TextField
-            placeholder="Headquarters"
+            placeholder={t(
+              "borrowerProfile.edit.public.headquarters.placeholder",
+            )}
             fullWidth
             error={Boolean(publicErrors.headquarters)}
             helperText={publicErrors.headquarters?.message}
@@ -261,8 +269,8 @@ export default function EditProfile() {
         </EditProfileItem>
 
         <EditProfileItem
-          title="Website"
-          tooltip="TBD"
+          title={t("borrowerProfile.edit.public.website.title")}
+          tooltip={t("borrowerProfile.edit.public.website.tooltip")}
           form={publicForm}
           field="website"
           oldValue={publicData?.website}
@@ -270,7 +278,7 @@ export default function EditProfile() {
           isLoading={isLoading}
         >
           <TextField
-            placeholder="Website"
+            placeholder={t("borrowerProfile.edit.public.website.placeholder")}
             fullWidth
             error={Boolean(publicErrors.website)}
             helperText={publicErrors.website?.message}
@@ -279,8 +287,8 @@ export default function EditProfile() {
         </EditProfileItem>
 
         <EditProfileItem
-          title="Twitter"
-          tooltip="TBD"
+          title={t("borrowerProfile.edit.public.twitter.title")}
+          tooltip={t("borrowerProfile.edit.public.twitter.tooltip")}
           form={publicForm}
           field="twitter"
           oldValue={publicData?.twitter}
@@ -288,7 +296,7 @@ export default function EditProfile() {
           isLoading={isLoading}
         >
           <TextField
-            placeholder="Twitter"
+            placeholder={t("borrowerProfile.edit.public.twitter.placeholder")}
             fullWidth
             error={Boolean(publicErrors.twitter)}
             helperText={publicErrors.twitter?.message}
@@ -297,8 +305,8 @@ export default function EditProfile() {
         </EditProfileItem>
 
         <EditProfileItem
-          title="Linkedin"
-          tooltip="TBD"
+          title={t("borrowerProfile.edit.public.linkedin.title")}
+          tooltip={t("borrowerProfile.edit.public.linkedin.tooltip")}
           form={publicForm}
           field="linkedin"
           oldValue={publicData?.linkedin}
@@ -306,7 +314,7 @@ export default function EditProfile() {
           isLoading={isLoading}
         >
           <TextField
-            placeholder="Linkedin"
+            placeholder={t("borrowerProfile.edit.public.linkedin.placeholder")}
             fullWidth
             error={Boolean(publicErrors.linkedin)}
             helperText={publicErrors.linkedin?.message}
@@ -318,17 +326,18 @@ export default function EditProfile() {
       <Divider sx={{ width: "60.8%", margin: "40px 0" }} />
 
       <Box sx={TitleContainer}>
-        <Typography variant="title1">Private Info</Typography>
+        <Typography variant="title1">
+          {t("borrowerProfile.edit.private.title")}
+        </Typography>
         <Typography variant="text2" color={COLORS.santasGrey}>
-          In case you want join to the Market with MLA you should share your
-          legal info
+          {t("borrowerProfile.edit.private.subtitle")}
         </Typography>
       </Box>
 
       <Box sx={FieldsContainer}>
         <EditProfileItem
-          title="Jurisdiction"
-          tooltip="TBD"
+          title={t("borrowerProfile.edit.private.jurisdiction.title")}
+          tooltip={t("borrowerProfile.edit.private.jurisdiction.tooltip")}
           form={privateForm}
           field="jurisdiction"
           oldValue={privateData.jurisdiction}
@@ -336,7 +345,9 @@ export default function EditProfile() {
           isLoading={isLoading}
         >
           <TextField
-            placeholder="Jurisdiction"
+            placeholder={t(
+              "borrowerProfile.edit.private.jurisdiction.placeholder",
+            )}
             fullWidth
             error={Boolean(privateErrors.jurisdiction)}
             helperText={privateErrors.jurisdiction?.message}
@@ -345,8 +356,8 @@ export default function EditProfile() {
         </EditProfileItem>
 
         <SelectProfileItem
-          title="Legal Nature"
-          tooltip="TBD"
+          title={t("borrowerProfile.edit.private.nature.title")}
+          tooltip={t("borrowerProfile.edit.private.nature.tooltip")}
           form={privateForm}
           oldValue={privateData.legalNature}
           oldLabel={getLabelByValue(privateData.legalNature)}
@@ -354,7 +365,9 @@ export default function EditProfile() {
           isLoading={isLoading}
         >
           <FormControl fullWidth>
-            <InputLabel className="test">Legal Nature</InputLabel>
+            <InputLabel className="test">
+              {t("borrowerProfile.edit.private.nature.placeholder")}
+            </InputLabel>
             <Select
               ref={selectRef}
               onOpen={onOpen}
@@ -387,8 +400,8 @@ export default function EditProfile() {
         </SelectProfileItem>
 
         <EditProfileItem
-          title="Address"
-          tooltip="TBD"
+          title={t("borrowerProfile.edit.private.address.title")}
+          tooltip={t("borrowerProfile.edit.private.address.tooltip")}
           form={privateForm}
           field="address"
           oldValue={privateData.address}
@@ -396,7 +409,7 @@ export default function EditProfile() {
           isLoading={isLoading}
         >
           <TextField
-            placeholder="Address"
+            placeholder={t("borrowerProfile.edit.private.address.placeholder")}
             fullWidth
             error={Boolean(privateErrors.address)}
             helperText={privateErrors.address?.message}
@@ -405,8 +418,8 @@ export default function EditProfile() {
         </EditProfileItem>
 
         <EditProfileItem
-          title="Email"
-          tooltip="TBD"
+          title={t("borrowerProfile.edit.private.email.title")}
+          tooltip={t("borrowerProfile.edit.private.email.tooltip")}
           form={privateForm}
           field="email"
           oldValue={privateData.email}
@@ -414,7 +427,7 @@ export default function EditProfile() {
           isLoading={isLoading}
         >
           <TextField
-            placeholder="Email"
+            placeholder={t("borrowerProfile.edit.private.email.placeholder")}
             fullWidth
             error={Boolean(privateErrors.email)}
             helperText={privateErrors.email?.message}
@@ -425,7 +438,7 @@ export default function EditProfile() {
 
       <Box sx={ButtonsContainer}>
         <Button variant="text" size="large" onClick={handleCancel}>
-          Cancel
+          {t("borrowerProfile.edit.buttons.cancel")}
         </Button>
 
         {!isLoading && (
@@ -435,7 +448,7 @@ export default function EditProfile() {
             sx={{ width: "156px" }}
             onClick={handleSendUpdate}
           >
-            Confirm
+            {t("borrowerProfile.edit.buttons.confirm")}
           </Button>
         )}
       </Box>

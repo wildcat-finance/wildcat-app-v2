@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { Box, Divider, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import {
   MarketParametersColumn,
@@ -19,73 +20,90 @@ export const OverallSection = ({
   marketsAmount,
   totalBorrowedAmount,
   defaults,
-}: OverallSectionProps) => (
-  <Box>
-    <Typography variant="title3">Overall Info</Typography>
+}: OverallSectionProps) => {
+  const { t } = useTranslation()
 
-    <Box sx={MarketParametersContainer}>
-      <Box sx={MarketParametersColumn}>
-        {name && (
-          <Box>
-            <MarketParametersItem
-              title="Legal Name"
-              value={name ?? ""}
-              link={website}
-            />
-            <Divider sx={MarketParametersRowsDivider} />
-          </Box>
-        )}
+  return (
+    <Box>
+      <Typography variant="title3">
+        {t("borrowerProfile.profile.overallInfo.title")}
+      </Typography>
 
-        {headquarters && (
-          <Box>
-            <MarketParametersItem
-              title="Headquarters"
-              value={headquarters ?? ""}
-            />
-            <Divider sx={MarketParametersRowsDivider} />
-          </Box>
-        )}
+      <Box sx={MarketParametersContainer}>
+        <Box sx={MarketParametersColumn}>
+          {name && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.name")}
+                value={name ?? ""}
+                link={website}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
 
-        {founded && (
-          <Box>
-            <MarketParametersItem title="Founded" value={founded ?? ""} />
-            <Divider sx={MarketParametersRowsDivider} />
-          </Box>
-        )}
+          {headquarters && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.headquarters")}
+                value={headquarters ?? ""}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
 
-        {!(headquarters || founded) && (
-          <Box>
-            <MarketParametersItem title="Markets" value={marketsAmount || 0} />
-            <Divider sx={MarketParametersRowsDivider} />
-          </Box>
-        )}
-      </Box>
+          {founded && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.founded")}
+                value={founded ?? ""}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
 
-      <Box sx={MarketParametersColumn}>
-        {(headquarters || founded) && (
-          <Box>
-            <MarketParametersItem title="Markets" value={marketsAmount || 0} />
-            <Divider sx={MarketParametersRowsDivider} />
-          </Box>
-        )}
-
-        <Box>
-          <MarketParametersItem
-            title="Total amount borrowed"
-            value={totalBorrowedAmount || ""}
-          />
-          <Divider sx={MarketParametersRowsDivider} />
+          {!(headquarters || founded) && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.markets")}
+                value={marketsAmount || 0}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
         </Box>
 
-        <Box>
-          <MarketParametersItem
-            title="Defaults"
-            value={defaults || ""}
-            tooltipText="TBD"
-          />
-          <Divider sx={MarketParametersRowsDivider} />
+        <Box sx={MarketParametersColumn}>
+          {(headquarters || founded) && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.markets")}
+                value={marketsAmount || 0}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
+
+          <Box>
+            <MarketParametersItem
+              title={t("borrowerProfile.profile.overallInfo.borrowed")}
+              value={totalBorrowedAmount || ""}
+            />
+            <Divider sx={MarketParametersRowsDivider} />
+          </Box>
+
+          <Box>
+            <MarketParametersItem
+              title={t("borrowerProfile.profile.overallInfo.defaults.title")}
+              value={defaults || ""}
+              tooltipText={t(
+                "borrowerProfile.profile.overallInfo.defaults.tooltip",
+              )}
+            />
+            <Divider sx={MarketParametersRowsDivider} />
+          </Box>
         </Box>
       </Box>
     </Box>
-  </Box>
-)
+  )
+}
