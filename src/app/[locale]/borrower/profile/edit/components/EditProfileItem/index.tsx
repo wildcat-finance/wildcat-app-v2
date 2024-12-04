@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { Box, Button, Skeleton, SvgIcon, Typography } from "@mui/material"
+import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
 import { EditProfileItemProps } from "@/app/[locale]/borrower/profile/edit/components/EditProfileItem/interface"
@@ -10,9 +11,12 @@ import {
   FieldContainer,
   PrevValueContainer,
 } from "@/app/[locale]/borrower/profile/edit/components/style"
+import { PublicValidationSchemaType } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPublicForm"
 import Return from "@/assets/icons/return_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
 import { COLORS } from "@/theme/colors"
+
+import { PrivateValidationSchemaType } from "../../hooks/useEditPrivateForm"
 
 export const EditProfileItem = ({
   title,
@@ -30,7 +34,11 @@ export const EditProfileItem = ({
   const valueWasntEmpty = oldValue && oldValue.length !== 0
 
   const handleRestoreValue = () => {
-    form.setValue(field, oldValue)
+    ;(
+      form as UseFormReturn<
+        PublicValidationSchemaType & PrivateValidationSchemaType
+      >
+    ).setValue(field, oldValue)
   }
 
   return (

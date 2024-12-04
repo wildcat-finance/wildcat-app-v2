@@ -37,6 +37,7 @@ import {
   useGetBorrowerProfile,
   useInvalidateBorrowerProfile,
 } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
+import { BorrowerProfile } from "@/app/api/profiles/interface"
 import { mockedNaturesOptions } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -69,7 +70,7 @@ export default function EditProfile() {
     getValues: getPublicValues,
     setValue: setPublicValue,
     register: registerPublic,
-    formState: { errors: publicErrors },
+    formState: { errors: publicErrors, isValid },
     watch: publicWatch,
     reset: publicReset,
   } = publicForm
@@ -101,6 +102,25 @@ export default function EditProfile() {
     address: getPrivateValues().address,
     email: getPrivateValues().email,
   }
+
+  function excludeKeys(
+    obj: BorrowerProfile | undefined,
+    keysToExclude: string[],
+  ) {
+    if (obj) {
+      return Object.fromEntries(
+        Object.entries(obj).filter(([key]) => !keysToExclude.includes(key)),
+      )
+    }
+
+    return true
+  }
+
+  const arePublicInfoEqual =
+    JSON.stringify(excludeKeys(publicInfo, ["updatedAt"])) ===
+    JSON.stringify(excludeKeys(publicData, ["updatedAt"]))
+
+  const disableConfirm = arePublicInfoEqual || !isValid
 
   const [avatar, setAvatar] = useState<string | null>(null)
 
@@ -447,6 +467,7 @@ export default function EditProfile() {
             size="large"
             sx={{ width: "156px" }}
             onClick={handleSendUpdate}
+            disabled={disableConfirm}
           >
             {t("borrowerProfile.edit.buttons.confirm")}
           </Button>

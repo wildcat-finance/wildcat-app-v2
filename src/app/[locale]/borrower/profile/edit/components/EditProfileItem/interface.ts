@@ -9,7 +9,9 @@ import { PrivateValidationSchemaType } from "../../hooks/useEditPrivateForm"
 export type EditProfileItemProps = {
   title: string
   tooltip: string
-  form: UseFormReturn<PublicValidationSchemaType & PrivateValidationSchemaType>
+  form:
+    | UseFormReturn<PublicValidationSchemaType & PrivateValidationSchemaType>
+    | UseFormReturn<PrivateValidationSchemaType>
   field:
     | "legalName"
     | "description"

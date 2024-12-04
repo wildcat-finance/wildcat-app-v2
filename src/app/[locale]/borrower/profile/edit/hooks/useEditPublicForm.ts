@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 export const publicValidationSchema = z.object({
-  legalName: z.string().optional(),
+  legalName: z.string().min(1),
   description: z.string().optional(),
   founded: z.string().optional(),
   headquarters: z.string().optional(),
@@ -26,6 +26,6 @@ export const useEditPublicForm = () => {
   return useForm<PublicValidationSchemaType>({
     defaultValues: defaultEditPublicForm,
     resolver: zodResolver(publicValidationSchema),
-    mode: "onChange",
+    mode: "onBlur",
   })
 }
