@@ -1,25 +1,29 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import dayjs from "dayjs"
 import { useRouter } from "next/navigation"
 
 import { toastRequest } from "@/components/Toasts"
-import { API_URL } from "@/config/api"
 import { TargetNetwork } from "@/config/network"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { HAS_SIGNED_SLA_KEY } from "@/providers/RedirectsProvider/hooks/useHasSignedSla"
+import { SHOULD_REDIRECT_KEY } from "@/providers/RedirectsProvider/hooks/useShouldRedirect"
 import { ROUTES } from "@/routes"
 
 import { SignatureSubmissionProps } from "./interface"
 
+const DATE_FORMAT = "MMMM DD, YYYY"
+
 export type SignAgreementProps = {
   address: string | undefined
   name: string | undefined
-  dateSigned: string | undefined
+  timeSigned: number | undefined
 }
 
 export async function submitSignature(input: SignatureSubmissionProps) {
   const network = TargetNetwork.stringID
-  const url = API_URL
+  const url = "http://localhost:3000/api"
   if (!url) throw Error(`API url not defined`)
 
   await fetch(`${url}/sla`, {
@@ -39,14 +43,16 @@ export const useSignAgreement = () => {
   const { sdk, connected: safeConnected } = useSafeAppsSDK()
   const signer = useEthersSigner()
   const { replace } = useRouter()
+  const client = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ address, name, dateSigned }: SignAgreementProps) => {
+    mutationFn: async ({ address, name, timeSigned }: SignAgreementProps) => {
       if (!signer) throw Error(`No signer`)
       if (!address) throw Error(`No address`)
       if (!name) throw Error(`No organization name`)
 
       const sign = async () => {
+        const dateSigned = dayjs(timeSigned).format(DATE_FORMAT)
         let agreementText = AgreementText
         if (dateSigned) {
           agreementText = `${agreementText}\n\nDate: ${dateSigned}`
@@ -97,7 +103,7 @@ export const useSignAgreement = () => {
         console.log({
           signature: result.signature,
           name,
-          dateSigned,
+          timeSigned,
           address,
         })
       } else if (result.safeTxHash) {
@@ -107,12 +113,13 @@ export const useSignAgreement = () => {
       await submitSignature({
         signature: result.signature ?? "0x",
         name,
-        dateSigned,
+        timeSigned,
         address,
       })
       return result
     },
     onSuccess: () => {
+      client.invalidateQueries({ queryKey: [SHOULD_REDIRECT_KEY] })
       replace(ROUTES.borrower.root)
     },
     onError(error) {
