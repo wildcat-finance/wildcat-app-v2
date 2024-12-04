@@ -4,12 +4,13 @@ import { ReactNode } from "react"
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
 import Link from "next/link"
 
-import { EmptyAlert } from "@/app/[locale]/borrower/profile/components/UserEmptyAlert"
 import { ProfileHeaderButton } from "@/app/[locale]/borrower/profile/style"
 import Avatar from "@/assets/icons/avatar_icon.svg"
 import Edit from "@/assets/icons/edit_icon.svg"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+
+import { EmptyAlert } from "../EmptyAlert"
 
 export type NameSectionProps = {
   avatar?: ReactNode
@@ -18,8 +19,6 @@ export type NameSectionProps = {
   website?: string
   twitter?: string
   linkedin?: string
-  headquarters?: string
-  founded?: string
   marketsAmount?: number
 
   type: "user" | "external"
@@ -32,8 +31,6 @@ export const NameSection = ({
   website,
   twitter,
   linkedin,
-  headquarters,
-  founded,
   marketsAmount,
   type,
 }: NameSectionProps) => (
@@ -56,41 +53,6 @@ export const NameSection = ({
     {type === "user" && !(description || website || twitter || linkedin) && (
       <EmptyAlert type="user" marginTop="32px" />
     )}
-
-    {type === "external" &&
-      !(
-        description ||
-        website ||
-        twitter ||
-        linkedin ||
-        headquarters ||
-        founded
-      ) && (
-        <EmptyAlert
-          type="external"
-          marginTop="32px"
-          alertText={
-            marketsAmount !== 0
-              ? "This Borrower doesn’t have any info yet."
-              : "This Borrower doesn’t have any markets or info yet."
-          }
-        />
-      )}
-
-    {type === "external" &&
-      !(marketsAmount !== 0) &&
-      (description ||
-        website ||
-        twitter ||
-        linkedin ||
-        headquarters ||
-        founded) && (
-        <EmptyAlert
-          type="external"
-          marginTop="32px"
-          alertText="This Borrower doesn’t have any markets yet."
-        />
-      )}
 
     {description && (
       <Typography
@@ -176,6 +138,14 @@ export const NameSection = ({
           </Link>
         )}
       </Box>
+    )}
+
+    {type === "external" && marketsAmount === 0 && (
+      <EmptyAlert
+        type="external"
+        alertText="This Borrower doesn’t have any markets."
+        marginTop="32px"
+      />
     )}
   </Box>
 )

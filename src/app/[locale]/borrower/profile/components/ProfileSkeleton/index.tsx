@@ -4,8 +4,8 @@ import { Box, Divider, Skeleton, Typography } from "@mui/material"
 
 import {
   ContentContainer,
+  MarketParametersColumn,
   MarketParametersContainer,
-  MarketParametersRowContainer,
   MarketParametersRowsDivider,
 } from "@/app/[locale]/borrower/profile/style"
 import { COLORS } from "@/theme/colors"
@@ -110,142 +110,146 @@ export const ProfileSkeleton = ({ type }: { type: "user" | "external" }) => (
       <Typography variant="title3">Overall Info</Typography>
 
       <Box sx={MarketParametersContainer}>
-        <Box>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-            }}
-          >
-            <Skeleton
-              height="20px"
-              width="85px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
+        <Box sx={MarketParametersColumn}>
+          <Box>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <Skeleton
+                height="20px"
+                width="85px"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
 
-            <Skeleton
-              height="20px"
-              width="85px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
+              <Skeleton
+                height="20px"
+                width="85px"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+            </Box>
+            <Divider sx={MarketParametersRowsDivider} />
           </Box>
-          <Divider sx={MarketParametersRowsDivider} />
+
+          <Box>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <Skeleton
+                height="20px"
+                width="85px"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+
+              <Skeleton
+                height="20px"
+                width="85px"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+            </Box>
+            <Divider sx={MarketParametersRowsDivider} />
+          </Box>
+
+          <Box>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <Skeleton
+                height="20px"
+                width="85px"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+
+              <Skeleton
+                height="20px"
+                width="85px"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+            </Box>
+            <Divider sx={MarketParametersRowsDivider} />
+          </Box>
         </Box>
 
-        <Box>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-            }}
-          >
-            <Skeleton
-              height="20px"
-              width="85px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
+        <Box sx={MarketParametersColumn}>
+          <Box>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <Skeleton
+                height="20px"
+                width="85px"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
 
-            <Skeleton
-              height="20px"
-              width="85px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
+              <Skeleton
+                height="20px"
+                width="85px"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+            </Box>
+            <Divider sx={MarketParametersRowsDivider} />
           </Box>
-          <Divider sx={MarketParametersRowsDivider} />
-        </Box>
 
-        <Box>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-            }}
-          >
-            <Skeleton
-              height="20px"
-              width="85px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
+          <Box>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <Skeleton
+                height="20px"
+                width="85px"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
 
-            <Skeleton
-              height="20px"
-              width="85px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
+              <Skeleton
+                height="20px"
+                width="85px"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+            </Box>
+            <Divider sx={MarketParametersRowsDivider} />
           </Box>
-          <Divider sx={MarketParametersRowsDivider} />
-        </Box>
 
-        <Box>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-            }}
-          >
-            <Skeleton
-              height="20px"
-              width="85px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
+          <Box>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <Skeleton
+                height="20px"
+                width="85px"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
 
-            <Skeleton
-              height="20px"
-              width="85px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
+              <Skeleton
+                height="20px"
+                width="85px"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+            </Box>
+            <Divider sx={MarketParametersRowsDivider} />
           </Box>
-          <Divider sx={MarketParametersRowsDivider} />
-        </Box>
-
-        <Box>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-            }}
-          >
-            <Skeleton
-              height="20px"
-              width="85px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
-
-            <Skeleton
-              height="20px"
-              width="85px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
-          </Box>
-          <Divider sx={MarketParametersRowsDivider} />
-        </Box>
-
-        <Box>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-            }}
-          >
-            <Skeleton
-              height="20px"
-              width="85px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
-
-            <Skeleton
-              height="20px"
-              width="85px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
-          </Box>
-          <Divider sx={MarketParametersRowsDivider} />
         </Box>
       </Box>
     </Box>

@@ -7,26 +7,17 @@ export const ContentContainer = {
 
 export const MarketParametersContainer = {
   width: "100%",
-  display: "grid",
-  gridTemplateColumns: "repeat(2, 1fr)",
-  gridAutoRows: "auto",
-  rowGap: "12px",
+  display: "flex",
   columnGap: "24px",
-  justifyContent: "space-between",
   marginTop: "24px",
 }
 
-// export const MarketParametersContainer = {
-//   maxHeight: "130px",
-//   width: "100%",
-//   display: "flex",
-//   flexDirection: "column",
-//   flexWrap: "wrap",
-//   rowGap: "12px",
-//   columnGap: "24px",
-//   justifyContent: "space-between",
-//   marginTop: "24px",
-// }
+export const MarketParametersColumn = {
+  width: "100%",
+  display: "flex",
+  flexDirection: "column",
+  rowGap: "12px",
+}
 
 export const MarketParametersRowContainer = {
   display: "flex",

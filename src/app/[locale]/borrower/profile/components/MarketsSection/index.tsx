@@ -60,7 +60,7 @@ export const MarketsSection = ({ markets }: MarketsSectionProps) => {
       field: "name",
       headerName: t("borrowerMarketList.table.header.marketName"),
       flex: 3,
-      minWidth: 152,
+      minWidth: 208,
       headerAlign: "left",
       align: "left",
       renderCell: ({ value }) => (
@@ -68,7 +68,7 @@ export const MarketsSection = ({ markets }: MarketsSectionProps) => {
           style={{
             overflow: "hidden",
             textOverflow: "ellipsis",
-            maxWidth: "136px",
+            maxWidth: "200px",
           }}
         >
           {value}
@@ -86,9 +86,19 @@ export const MarketsSection = ({ markets }: MarketsSectionProps) => {
       flex: 1,
     },
     {
+      field: "term",
+      headerName: "Term",
+      minWidth: 170,
+      headerAlign: "left",
+      align: "left",
+      sortComparator: capacityComparator,
+      flex: 2,
+      renderCell: (params) => <MarketTypeChip {...params.value} />,
+    },
+    {
       field: "asset",
       headerName: "Asset",
-      minWidth: 110,
+      minWidth: 95,
       headerAlign: "right",
       align: "right",
       flex: 1,
@@ -96,21 +106,11 @@ export const MarketsSection = ({ markets }: MarketsSectionProps) => {
     {
       field: "lenderAPR",
       headerName: t("borrowerMarketList.table.header.apr"),
-      minWidth: 106,
+      minWidth: 95,
       headerAlign: "right",
       align: "right",
       sortComparator: percentComparator,
       flex: 1,
-    },
-    {
-      field: "term",
-      headerName: "Term",
-      minWidth: 120,
-      headerAlign: "right",
-      align: "right",
-      sortComparator: capacityComparator,
-      flex: 1.5,
-      renderCell: (params) => <MarketTypeChip {...params.value} />,
     },
     {
       field: "debt",
@@ -126,40 +126,6 @@ export const MarketsSection = ({ markets }: MarketsSectionProps) => {
               fractionDigits: 2,
             })
           : "0",
-    },
-    {
-      field: "kyc",
-      headerName: "KYC Options",
-      minWidth: 110,
-      headerAlign: "right",
-      align: "right",
-      flex: 1.5,
-      renderCell: (params) => (
-        <span
-          style={{
-            whiteSpace: "wrap",
-            width: "100%",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {params.value}
-        </span>
-      ),
-    },
-    {
-      field: "deployed",
-      headerName: "Deployed",
-      minWidth: 126,
-      headerAlign: "right",
-      align: "right",
-      sortComparator: dateComparator,
-      renderCell: (params) => (
-        <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          {timestampToDateFormatted(params.value)}
-        </Typography>
-      ),
-      flex: 2,
     },
   ]
 

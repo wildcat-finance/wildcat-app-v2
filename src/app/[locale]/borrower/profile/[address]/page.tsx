@@ -28,16 +28,15 @@ export default function OtherBorrowerProfile({
     useGetBorrowerMarkets(address)
   const { address: userAddress } = useAccount()
 
-  const marketsAmount = borrowerMarkets?.filter((market) => !market.isClosed)
-    .length
+  const marketsAmount = 0
 
   const isLoading = isMarketsLoading || isProfileLoading
 
-  // useEffect(() => {
-  //   if (address === userAddress) {
-  //     redirect(ROUTES.borrower.profile)
-  //   }
-  // }, [address, userAddress])
+  useEffect(() => {
+    if (address === userAddress) {
+      redirect(ROUTES.borrower.profile)
+    }
+  }, [address, userAddress])
 
   if (isLoading) return <ProfileSkeleton type="external" />
 
@@ -50,30 +49,22 @@ export default function OtherBorrowerProfile({
         website={profileData?.website}
         twitter={profileData?.twitter}
         linkedin={profileData?.linkedin}
-        headquarters={profileData?.headquarters}
-        founded={profileData?.founded}
         marketsAmount={marketsAmount}
       />
 
-      {(marketsAmount !== 0 ||
-        profileData?.founded ||
-        profileData?.headquarters) && <Divider sx={{ margin: "32px 0" }} />}
+      <Divider sx={{ margin: "32px 0" }} />
 
       {marketsAmount !== 0 && <MarketsSection markets={borrowerMarkets} />}
 
-      {(marketsAmount !== 0 ||
-        profileData?.founded ||
-        profileData?.headquarters) && (
-        <OverallSection
-          name={profileData?.name}
-          website={profileData?.website}
-          headquarters={profileData?.headquarters}
-          founded={profileData?.founded}
-          marketsAmount={marketsAmount}
-          totalBorrowedAmount="0"
-          defaults="0"
-        />
-      )}
+      <OverallSection
+        name={profileData?.name}
+        website={profileData?.website}
+        headquarters={profileData?.headquarters}
+        founded={profileData?.founded}
+        marketsAmount={marketsAmount}
+        totalBorrowedAmount="0"
+        defaults="0"
+      />
     </Box>
   )
 }
