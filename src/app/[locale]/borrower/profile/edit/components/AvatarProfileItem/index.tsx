@@ -3,16 +3,18 @@ import * as React from "react"
 import { Box, Button, Skeleton, SvgIcon, Typography } from "@mui/material"
 import Image from "next/image"
 
+import {
+  AvatarContainer,
+  AvatarTitle,
+  ButtonStyle,
+  ContentContainer,
+} from "@/app/[locale]/borrower/profile/edit/components/AvatarProfileItem/style"
 import Avatar from "@/assets/icons/avatar_icon.svg"
 import Edit from "@/assets/icons/edit_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
 import { COLORS } from "@/theme/colors"
 
-export type AvatarProfileItemProps = {
-  avatar: string | null
-  setAvatar: React.Dispatch<React.SetStateAction<string | null>>
-  isLoading: boolean
-}
+import { AvatarProfileItemProps } from "./interface"
 
 export const AvatarProfileItem = ({
   avatar,
@@ -37,27 +39,13 @@ export const AvatarProfileItem = ({
   }
 
   return (
-    <Box
-      sx={{
-        width: "60.8%",
-        display: "flex",
-        flexDirection: "column",
-        gap: "12px",
-      }}
-    >
-      <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
+    <Box sx={ContentContainer}>
+      <Box sx={AvatarTitle}>
         <Typography variant="text3">Avatar</Typography>
         <TooltipButton value="TBD" />
       </Box>
 
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      <Box sx={AvatarContainer}>
         {isLoading && (
           <Skeleton
             height="64px"
@@ -98,17 +86,7 @@ export const AvatarProfileItem = ({
           <Button
             variant="text"
             size="small"
-            sx={{
-              gap: "4px",
-              alignItems: "center",
-              padding: 0,
-              minWidth: "fit-content",
-              width: "fit-content",
-              "&:hover": {
-                boxShadow: "none",
-                backgroundColor: "transparent",
-              },
-            }}
+            sx={ButtonStyle}
             onClick={triggerFileInput}
           >
             <SvgIcon

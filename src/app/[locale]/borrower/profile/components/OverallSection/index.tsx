@@ -9,15 +9,7 @@ import {
 } from "@/app/[locale]/borrower/profile/style"
 import { MarketParametersItem } from "@/components/MarketParameters/components/MarketParametersItem"
 
-export type OverallSectionProps = {
-  name?: string
-  website?: string
-  headquarters?: string
-  founded?: string
-  marketsAmount?: number
-  totalBorrowedAmount?: string
-  defaults?: string
-}
+import { OverallSectionProps } from "./interface"
 
 export const OverallSection = ({
   name,

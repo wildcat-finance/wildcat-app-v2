@@ -805,5 +805,126 @@
     "noOutstanding": "There are no outstanding withdrawals from past cycles",
     "noOngoing": "There are no ongoing withdrawals",
     "noClaimable": "There are no claimable withdrawals"
+  },
+  "borrowerProfile": {
+    "sidebar": {
+      "profile": "Company Profile",
+      "edit": "Edit Borrower Profile",
+      "events": "Market Events"
+    },
+    "profile": {
+      "buttons": {
+        "website": "Website",
+        "twitter": "Twitter",
+        "linkedin": "Linkedin",
+        "edit": "Edit Profile"
+      },
+      "activeMarkets": {
+        "title": "Active Markets",
+        "table": {
+          "name": "Market Name",
+          "status": "Status",
+          "term": "Term",
+          "asset": "Asset",
+          "apr": "Lender APR",
+          "debt": "Total Debt"
+        }
+      },
+      "overallInfo": {
+        "title": "Overall Info",
+        "name": "Legal Name",
+        "headquarters": "Headquarters",
+        "founded": "Founded",
+        "markets": "Markets",
+        "borrowed": "Total Amount Borrowed",
+        "defaults": "Defaults"
+      },
+      "emptyStates": {
+        "external": {
+          "noMarkets": "This Borrower doesn’t have any markets."
+        },
+        "user": {
+          "noInfo": {
+            "title": "Add a description to your profile",
+            "subtitle": "Fulfil it to be more transparent for lenders",
+            "button": "Add Details"
+          }
+        }
+      }
+    },
+    "edit": {
+      "public": {
+        "title": "Public Info",
+        "subtitle": "This info can be viewed by other users including lenders",
+        "avatar": {
+          "title": "Avatar",
+          "generated": "Automatically Generated",
+          "tooltip": "TBD",
+          "edit": "Change Image"
+        },
+        "name": {
+          "title": "Legal Name",
+          "placeholder": "Use more than 1 character",
+          "tooltip": "TBD"
+        },
+        "description": {
+          "title": "Description",
+          "placeholder": "Use more than 1 character",
+          "tooltip": "TBD"
+        },
+        "founded": {
+          "title": "Founded",
+          "placeholder": "Enter a year",
+          "tooltip": "TBD"
+        },
+        "headquarters": {
+          "title": "Headquarters",
+          "placeholder": "Enter a location",
+          "tooltip": "TBD"
+        },
+        "website": {
+          "title": "Website",
+          "placeholder": "Enter URL",
+          "tooltip": "TBD"
+        },
+        "twitter": {
+          "title": "Twitter",
+          "placeholder": "twitter.com/...",
+          "tooltip": "TBD"
+        },
+        "linkedin": {
+          "title": "Linkedin",
+          "placeholder": "linkedin.com/...",
+          "tooltip": "TBD"
+        }
+      },
+      "private": {
+        "title": "Private Info",
+        "subtitle": "In case you want join to the Market with MLA you should share your legal info",
+        "jurisdiction": {
+          "title": "Jurisdiction",
+          "placeholder": "Please enter"
+        },
+        "nature": {
+          "title": "Legal Nature",
+          "placeholder": "Please select",
+          "tooltip": "TBD"
+        },
+        "address": {
+          "title": "Address",
+          "placeholder": "Enter a location",
+          "tooltip": "TBD"
+        },
+        "email": {
+          "title": "Email",
+          "placeholder": "example@domain.com",
+          "tooltip": "TBD"
+        }
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+      }
+    }
   }
 }

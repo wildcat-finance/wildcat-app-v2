@@ -1,24 +1,17 @@
-import { ReactNode } from "react"
 import * as React from "react"
 
 import { Box, Button, Skeleton, SvgIcon, Typography } from "@mui/material"
-import { UseFormReturn } from "react-hook-form"
 
-import { PrivateValidationSchemaType } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPrivateForm"
+import { SelectProfileItemProps } from "@/app/[locale]/borrower/profile/edit/components/SelectProfileItem/interface"
+import {
+  BackButtonContainer,
+  ComponentContainer,
+  FieldContainer,
+  PrevValueContainer,
+} from "@/app/[locale]/borrower/profile/edit/components/style"
 import Return from "@/assets/icons/return_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
 import { COLORS } from "@/theme/colors"
-
-export type EditProfileItemProps = {
-  title: string
-  tooltip: string
-  form: UseFormReturn<PrivateValidationSchemaType>
-  oldValue: string | undefined
-  oldLabel: string | undefined
-  newValue?: string
-  children: ReactNode
-  isLoading: boolean
-}
 
 export const SelectProfileItem = ({
   title,
@@ -29,7 +22,7 @@ export const SelectProfileItem = ({
   newValue,
   children,
   isLoading,
-}: EditProfileItemProps) => {
+}: SelectProfileItemProps) => {
   const hasValueChanged = oldValue !== newValue
   const valueWasntEmpty = oldValue && oldValue.length !== 0
 
@@ -38,28 +31,13 @@ export const SelectProfileItem = ({
   }
 
   return (
-    <Box
-      sx={{
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        gap: "12px",
-      }}
-    >
+    <Box sx={ComponentContainer}>
       <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
         <Typography variant="text3">{title}</Typography>
         <TooltipButton value={tooltip} />
       </Box>
 
-      <Box
-        sx={{
-          height: "fit-content",
-          width: "100%",
-          display: "flex",
-          gap: "20px",
-          alignItems: "center",
-        }}
-      >
+      <Box sx={FieldContainer}>
         {isLoading ? (
           <Skeleton
             height="52px"
@@ -71,27 +49,12 @@ export const SelectProfileItem = ({
         )}
 
         {hasValueChanged && valueWasntEmpty && !isLoading && (
-          <Box
-            sx={{ display: "flex", flexDirection: "column", maxWidth: "35%" }}
-          >
+          <Box sx={PrevValueContainer}>
             <Button
               variant="text"
               size="small"
               onClick={handleRestoreValue}
-              sx={{
-                color: COLORS.ultramarineBlue,
-                width: "fit-content",
-                borderRadius: 0,
-                minWidth: "56px",
-                padding: 0,
-                gap: "4px",
-
-                "&:hover": {
-                  boxShadow: "none",
-                  backgroundColor: "transparent",
-                  color: COLORS.ultramarineBlue,
-                },
-              }}
+              sx={BackButtonContainer}
             >
               <SvgIcon
                 fontSize="small"

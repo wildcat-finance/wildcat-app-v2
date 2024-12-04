@@ -1,28 +1,21 @@
 import * as React from "react"
-import { ReactNode } from "react"
 
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
 import Link from "next/link"
 
+import {
+  ComponentContainer,
+  DescriptionContainer,
+  LinksContainer,
+} from "@/app/[locale]/borrower/profile/components/NameSection/style"
 import { ProfileHeaderButton } from "@/app/[locale]/borrower/profile/style"
 import Avatar from "@/assets/icons/avatar_icon.svg"
 import Edit from "@/assets/icons/edit_icon.svg"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
+import { NameSectionProps } from "./interface"
 import { EmptyAlert } from "../EmptyAlert"
-
-export type NameSectionProps = {
-  avatar?: ReactNode
-  name?: string
-  description?: string
-  website?: string
-  twitter?: string
-  linkedin?: string
-  marketsAmount?: number
-
-  type: "user" | "external"
-}
 
 export const NameSection = ({
   avatar,
@@ -36,9 +29,7 @@ export const NameSection = ({
 }: NameSectionProps) => (
   <Box
     sx={{
-      height: "fit-content",
-      display: "flex",
-      flexDirection: "column",
+      ...ComponentContainer,
       alignItems: type === "user" ? "flex-start" : "center",
     }}
   >
@@ -59,11 +50,7 @@ export const NameSection = ({
         variant="text2"
         textAlign={type === "user" ? "left" : "center"}
         color={COLORS.santasGrey}
-        sx={{
-          display: "inline-block",
-          maxWidth: "586px",
-          marginTop: "12px",
-        }}
+        sx={DescriptionContainer}
       >
         {description}
       </Typography>
@@ -72,10 +59,8 @@ export const NameSection = ({
     {(website || twitter || linkedin) && (
       <Box
         sx={{
-          width: "100%",
-          display: "flex",
+          ...LinksContainer,
           justifyContent: type === "user" ? "space-between" : "center",
-          marginTop: "22px",
         }}
       >
         <Box display="flex" gap="6px">

@@ -19,12 +19,6 @@ export const MarketParametersColumn = {
   rowGap: "12px",
 }
 
-export const MarketParametersRowContainer = {
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "space-between",
-}
-
 export const MarketParametersRowsDivider = { margin: "12px 0 0" }
 
 export const ProfileHeaderButton = {

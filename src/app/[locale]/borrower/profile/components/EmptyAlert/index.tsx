@@ -1,41 +1,27 @@
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
 import Link from "next/link"
 
+import { EmptyAlertProps } from "@/app/[locale]/borrower/profile/components/EmptyAlert/interface"
+import {
+  ExternalAlertContainer,
+  UserAlertContainer,
+  UserTitleContainer,
+} from "@/app/[locale]/borrower/profile/components/EmptyAlert/style"
 import User from "@/assets/icons/profile_icon.svg"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
-export type EmptyAlertProps = {
-  type: "user" | "external"
-  marginTop?: string
-  alertText?: string
-}
-
 export const EmptyAlert = ({ type, marginTop, alertText }: EmptyAlertProps) => {
-  const a = ""
-
   switch (type) {
     case "user": {
       return (
         <Box
           sx={{
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "20px 24px",
-            borderRadius: "12px",
-            backgroundColor: COLORS.hintOfRed,
+            ...UserAlertContainer,
             marginTop,
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "4px",
-            }}
-          >
+          <Box sx={UserTitleContainer}>
             <Typography variant="text1">
               Add a description to your profile
             </Typography>
@@ -60,12 +46,7 @@ export const EmptyAlert = ({ type, marginTop, alertText }: EmptyAlertProps) => {
       return (
         <Box
           sx={{
-            width: "100%",
-            display: "flex",
-            gap: "10px",
-            borderRadius: "12px",
-            padding: "12px 16px",
-            backgroundColor: COLORS.hintOfRed,
+            ...ExternalAlertContainer,
             marginTop,
           }}
         >
@@ -83,12 +64,8 @@ export const EmptyAlert = ({ type, marginTop, alertText }: EmptyAlertProps) => {
       return (
         <Box
           sx={{
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            borderRadius: "12px",
-            padding: "12px 16px",
+            ...ExternalAlertContainer,
+            marginTop,
           }}
         >
           <SvgIcon sx={{ "& path": { fill: COLORS.santasGrey } }}>

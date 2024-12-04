@@ -25,6 +25,14 @@ import { useEditPrivateForm } from "@/app/[locale]/borrower/profile/edit/hooks/u
 import { useEditPublicForm } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPublicForm"
 import { useUpdateBorrowerProfile } from "@/app/[locale]/borrower/profile/edit/hooks/useUpdateBorrowerProfile"
 import {
+  ButtonsContainer,
+  DescriptionField,
+  EditPageContainer,
+  FieldsContainer,
+  SelectStyles,
+  TitleContainer,
+} from "@/app/[locale]/borrower/profile/edit/style"
+import {
   useGetBorrowerProfile,
   useInvalidateBorrowerProfile,
 } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
@@ -163,23 +171,8 @@ export default function EditProfile() {
   }
 
   return (
-    <Box
-      sx={{
-        height: "calc(100vh - 43px - 43px - 52px)",
-        overflow: "scroll",
-        padding: "52px 20px 0 44px",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "8px",
-          marginBottom: "32px",
-        }}
-      >
+    <Box sx={EditPageContainer}>
+      <Box sx={TitleContainer}>
         <Typography variant="title1">Public Info</Typography>
         <Typography variant="text2" color={COLORS.santasGrey}>
           This info can be viewed by other users including lenders
@@ -192,14 +185,7 @@ export default function EditProfile() {
         isLoading={isLoading}
       />
 
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "36px",
-          marginTop: "32px",
-        }}
-      >
+      <Box sx={{ ...FieldsContainer, marginTop: "32px" }}>
         <EditProfileItem
           title="Legal Name"
           tooltip="TBD"
@@ -229,19 +215,7 @@ export default function EditProfile() {
         >
           <TextField
             placeholder="Description"
-            sx={{
-              "&.MuiFormControl-root.MuiTextField-root": {
-                height: "fit-content",
-              },
-
-              "& .MuiFilledInput-root": {
-                padding: "16px !important",
-              },
-
-              "& .MuiInputBase-input": {
-                padding: "0 !important",
-              },
-            }}
+            sx={DescriptionField}
             error={Boolean(publicErrors.description)}
             helperText={publicErrors.description?.message}
             {...registerPublic("description")}
@@ -343,14 +317,7 @@ export default function EditProfile() {
 
       <Divider sx={{ width: "60.8%", margin: "40px 0" }} />
 
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "8px",
-          marginBottom: "32px",
-        }}
-      >
+      <Box sx={TitleContainer}>
         <Typography variant="title1">Private Info</Typography>
         <Typography variant="text2" color={COLORS.santasGrey}>
           In case you want join to the Market with MLA you should share your
@@ -358,13 +325,7 @@ export default function EditProfile() {
         </Typography>
       </Box>
 
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "36px",
-        }}
-      >
+      <Box sx={FieldsContainer}>
         <EditProfileItem
           title="Jurisdiction"
           tooltip="TBD"
@@ -401,11 +362,7 @@ export default function EditProfile() {
               onChange={handleNatureSelect}
               value={getPrivateValues().legalNature}
               MenuProps={{
-                sx: {
-                  "& .MuiPaper-root": {
-                    width: "47.5%",
-                  },
-                },
+                sx: SelectStyles,
                 anchorOrigin: {
                   vertical: "bottom",
                   horizontal: "left",
@@ -466,14 +423,7 @@ export default function EditProfile() {
         </EditProfileItem>
       </Box>
 
-      <Box
-        sx={{
-          marginTop: "40px",
-          width: "60.8%",
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
+      <Box sx={ButtonsContainer}>
         <Button variant="text" size="large" onClick={handleCancel}>
           Cancel
         </Button>

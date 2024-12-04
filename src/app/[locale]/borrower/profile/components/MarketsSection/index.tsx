@@ -7,25 +7,16 @@ import { useTranslation } from "react-i18next"
 
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
-import { COLORS } from "@/theme/colors"
 import {
   capacityComparator,
-  dateComparator,
   percentComparator,
   statusComparator,
 } from "@/utils/comparators"
-import {
-  formatTokenWithCommas,
-  timestampToDateFormatted,
-} from "@/utils/formatters"
+import { formatTokenWithCommas } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
-export type MarketsSectionProps = {
-  markets?: Market[]
-}
-
-export const MarketsSection = ({ markets }: MarketsSectionProps) => {
+export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
   const { t } = useTranslation()
 
   const rows: GridRowsProp = (markets ?? [])
