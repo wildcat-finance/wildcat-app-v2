@@ -1,30 +1,44 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 
 import {
+  Alert,
   Box,
   Button,
   Divider,
+  FormControlLabel,
   InputAdornment,
   TextField,
   Typography,
 } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import { Token } from "@wildcatfi/wildcat-sdk"
+import dayjs from "dayjs"
 import Link from "next/link"
-import { UseFormReturn } from "react-hook-form"
+import { FieldError, useController, UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
 import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
 import { TokenInfo } from "@/app/api/tokens-list/interface"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
+import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
+import { ExtendedSwitch } from "@/components/@extended/ExtendedSwitch"
+import { Accordion } from "@/components/Accordion"
+import { DateTextField } from "@/components/DateTextField"
 import { InputLabel } from "@/components/InputLabel"
-import { NumberTextField } from "@/components/NumberTextfield"
-import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import {
-  mockedKYCPreferencesOptions,
+  InputLabelContainer,
+  InputLabelSubtitle,
+  InputLabelTypo,
+} from "@/components/InputLabel/style"
+import { NumberTextField } from "@/components/NumberTextfield"
+import { StyledSwitch } from "@/components/StyledSwitch/input"
+import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
+import { TooltipButton } from "@/components/TooltipButton"
+import {
+  mockedAccessControlOptions,
   mockedMarketTypesOptions,
   mockedMLATemplatesOptions,
 } from "@/mocks/mocks"
@@ -52,9 +66,70 @@ import { UnderlyingAssetSelect } from "./UnderlyingAssetSelect"
 type NewMarketFormProps = {
   form: UseFormReturn<MarketValidationSchemaType>
   tokenAsset: Token | undefined
+  policyOptions: ExtendedSelectOptionItem[]
 }
 
-export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
+const ForceBuyBack = ({
+  control,
+}: {
+  control: UseFormReturn<MarketValidationSchemaType>["control"]
+}) => {
+  const { t } = useTranslation()
+  const { field } = useController({ name: "allowForceBuyBack", control })
+
+  return (
+    <Box marginTop="16px">
+      <FormControlLabel
+        name="allowForceBuyBack"
+        label={
+          <Box>
+            <Box sx={InputLabelContainer} marginBottom="2px">
+              <Box sx={InputLabelTypo}>
+                <Typography variant="text3">
+                  {t(
+                    "createMarket.forms.marketDescription.block.allowForceBuyBack.title",
+                  )}
+                </Typography>
+              </Box>
+              <TooltipButton
+                value={t(
+                  "createMarket.forms.marketDescription.block.allowForceBuyBack.tooltip",
+                )}
+              />
+            </Box>
+            <Typography marginTop="0px" variant="text4" sx={InputLabelSubtitle}>
+              {t(
+                "createMarket.forms.marketDescription.block.allowForceBuyBack.subtitle",
+              )}
+            </Typography>
+          </Box>
+        }
+        control={
+          <StyledSwitch
+            checkedcolor="red"
+            color="info"
+            size="medium"
+            {...field}
+          />
+        }
+      />
+      {field.value && (
+        <Alert variant="outlined" color="error" severity="error">
+          This will break integration with on-chain exchanges.
+          <br />
+          Lenders will see a warning about using this market with smart
+          contracts.
+        </Alert>
+      )}
+    </Box>
+  )
+}
+
+export const NewMarketForm = ({
+  form,
+  tokenAsset,
+  policyOptions,
+}: NewMarketFormProps) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
@@ -66,15 +141,32 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
     control,
     watch,
   } = form
+  const today = dayjs.unix(Date.now() / 1_000).startOf("day")
+  const tomorrow = today.add(1, "day")
+  const oneYearFromNow = today.add(365, "days")
 
   const mlaWatch = watch("mla")
 
+  const policyWatch = watch("policy")
+  const policyNameWatch = watch("policyName")
+  const namePrefixWatch = watch("namePrefix")
+  const symbolPrefixWatch = watch("symbolPrefix")
+  const marketTypeWatch = watch("marketType")
+  const allowClosureBeforeTermWatch = watch("allowClosureBeforeTerm")
+  const allowTermReductionWatch = watch("allowTermReduction")
+  const transferRequiresAccessWatch = watch("transferRequiresAccess")
+  const withdrawalRequiresAccessWatch = watch("withdrawalRequiresAccess")
+  const depositRequiresAccessWatch = watch("depositRequiresAccess")
+  const disableTransfersWatch = watch("disableTransfers")
+  const fixedTermEndTimeWatch = watch("fixedTermEndTime")
+  const accessControlWatch = watch("accessControl")
   const hideLegalInfoStep = useAppSelector(
     (state) => state.routing.hideInfoStep,
   )
+  const isFixedTerm = marketTypeWatch === "fixedTerm"
 
   const handleTokenSelect = (asset: TokenInfo | null) => {
-    setValue("asset", asset ? asset.address : "")
+    setValue("asset", (asset ? asset.address : "0x") as `0x${string}`)
   }
 
   const handleClickNext = () => {
@@ -111,81 +203,137 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
         </Typography>
       </Box>
 
+      <Box sx={InputGroupContainer}>
+        <InputLabel
+          label={t("createMarket.forms.marketDescription.block.policy.title")}
+          subtitle={t(
+            "createMarket.forms.marketDescription.block.policy.subtitle",
+          )}
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.policy.tooltip",
+          )}
+          key="x"
+        >
+          <ExtendedSelect
+            control={control}
+            name="policy"
+            label={t(
+              "createMarket.forms.marketDescription.block.policy.placeholder",
+            )}
+            options={policyOptions}
+            optionSX={DropdownOption}
+          />
+        </InputLabel>
+
+        <Box marginTop="16px">
+          <Accordion title="What is a market policy?">
+            <Typography variant="text3">
+              A market policy dictates the kind of loan (open or fixed term) and
+              the requirements for approval to use the market.
+              <br />
+              <br />
+              Many markets can use the same policy if they are all of the same
+              type and should be accessible to the same group of lenders;
+              however, all other options are still unique to each market, such
+              as when the loan reaches maturity for fixed markets and which
+              transactions are restricted to approved lenders.
+            </Typography>
+          </Accordion>
+        </Box>
+      </Box>
+
+      <Divider sx={DividerStyle} />
+
+      {policyWatch === "createNewPolicy" ? (
+        <InputLabel
+          label={t(
+            "createMarket.forms.marketDescription.block.policyName.title",
+          )}
+          margin="16px 0 0 0"
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.policyName.tooltip",
+          )}
+        >
+          <TextField
+            label={t(
+              "createMarket.forms.marketDescription.block.policyName.placeholder",
+            )}
+            error={Boolean(errors.policyName)}
+            helperText={errors.policyName?.message}
+            placeholder={t(
+              "createMarket.forms.marketDescription.block.policyName.placeholder",
+            )}
+            {...register("policyName")}
+          />
+        </InputLabel>
+      ) : (
+        <Box margin="16px 0 0 0">
+          <Typography variant="text1">Policy: {policyNameWatch}</Typography>
+        </Box>
+      )}
+
+      <Box sx={InputGroupContainer} marginTop="16px">
+        <Box>
+          <InputLabel
+            label={t(
+              "createMarket.forms.marketDescription.block.marketType.title",
+            )}
+            subtitle={t(
+              "createMarket.forms.marketDescription.block.marketType.subtitle",
+            )}
+          >
+            <ExtendedSelect
+              control={control}
+              name="marketType"
+              label={t(
+                "createMarket.forms.marketDescription.block.marketType.placeholder",
+              )}
+              options={mockedMarketTypesOptions}
+              optionSX={DropdownOption}
+              disabled={policyWatch !== "createNewPolicy"}
+            />
+          </InputLabel>
+        </Box>
+
+        <Box>
+          <InputLabel
+            label={t(
+              "createMarket.forms.marketDescription.block.accessControl.title",
+            )}
+            subtitle={t(
+              "createMarket.forms.marketDescription.block.accessControl.subtitle",
+            )}
+          >
+            <ExtendedSelect
+              control={control}
+              name="accessControl"
+              label={t(
+                "createMarket.forms.marketDescription.block.accessControl.placeholder",
+              )}
+              options={mockedAccessControlOptions}
+              optionSX={DropdownOption}
+              disabled={policyWatch !== "createNewPolicy"}
+            />
+          </InputLabel>
+        </Box>
+      </Box>
+
+      {accessControlWatch === "manualApproval" && (
+        <Box marginTop="16px">
+          <Alert variant="outlined" color="info" severity="info">
+            The access controls for a policy only determine how lenders acquire
+            credentials, not which transactions require them.
+          </Alert>
+        </Box>
+      )}
+
+      <Divider sx={DividerStyle} />
+
       <Typography variant="text1">
         {t("createMarket.forms.marketDescription.block.title.definition")}
       </Typography>
 
-      <InputLabel
-        label={t("createMarket.forms.marketDescription.block.marketName.title")}
-        margin="16px 0 0 0"
-        tooltipText={t(
-          "createMarket.forms.marketDescription.block.marketName.tooltip",
-        )}
-      >
-        <TextField
-          label={t(
-            "createMarket.forms.marketDescription.block.marketName.placeholder",
-          )}
-          error={Boolean(errors.marketName)}
-          helperText={errors.marketName?.message}
-          {...register("marketName")}
-        />
-      </InputLabel>
-
       <Box sx={InputGroupContainer} marginTop="36px">
-        <InputLabel
-          label={t("createMarket.forms.marketDescription.block.mla.title")}
-          tooltipText={t(
-            "createMarket.forms.marketDescription.block.mla.tooltip",
-          )}
-        >
-          <ExtendedSelect
-            control={control}
-            name="mla"
-            label={t(
-              "createMarket.forms.marketDescription.block.mla.placeholder",
-            )}
-            options={mockedMLATemplatesOptions}
-            optionSX={DropdownOption}
-          />
-        </InputLabel>
-
-        <InputLabel
-          label={t("createMarket.forms.marketDescription.block.kyc.title")}
-          tooltipText={t(
-            "createMarket.forms.marketDescription.block.kyc.tooltip",
-          )}
-        >
-          <ExtendedSelect
-            control={control}
-            name="kyc"
-            label={t(
-              "createMarket.forms.marketDescription.block.kyc.placeholder",
-            )}
-            options={mockedKYCPreferencesOptions}
-            optionSX={DropdownOption}
-          />
-        </InputLabel>
-
-        <InputLabel
-          label={t(
-            "createMarket.forms.marketDescription.block.marketType.title",
-          )}
-          tooltipText={t(
-            "createMarket.forms.marketDescription.block.marketType.tooltip",
-          )}
-        >
-          <ExtendedSelect
-            control={control}
-            name="marketType"
-            label={t(
-              "createMarket.forms.marketDescription.block.marketType.placeholder",
-            )}
-            options={mockedMarketTypesOptions}
-            optionSX={DropdownOption}
-          />
-        </InputLabel>
-
         <InputLabel
           label={t(
             "createMarket.forms.marketDescription.block.marketAsset.title",
@@ -202,73 +350,461 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
             errorText={errors.asset?.message}
           />
         </InputLabel>
+
+        <InputLabel
+          label={t("createMarket.forms.marketDescription.block.mla.title")}
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.mla.tooltip",
+          )}
+        >
+          <ExtendedSelect
+            control={control}
+            name="mla"
+            label={t(
+              "createMarket.forms.marketDescription.block.mla.placeholder",
+            )}
+            options={mockedMLATemplatesOptions}
+            optionSX={DropdownOption}
+          />
+        </InputLabel>
       </Box>
 
-      <InputLabel
-        label={t(
-          "createMarket.forms.marketDescription.block.marketTokenName.title",
-        )}
-        tooltipText={t(
-          "createMarket.forms.marketDescription.block.marketTokenName.tooltip",
-        )}
-        margin="36px 0 0 0"
-      >
-        <TextField
+      <Box sx={InputGroupContainer}>
+        <InputLabel
           label={t(
-            "createMarket.forms.marketDescription.block.marketTokenName.placeholder",
+            "createMarket.forms.marketDescription.block.marketTokenName.title",
           )}
-          error={Boolean(errors.namePrefix)}
-          helperText={errors.namePrefix?.message}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <TextfieldChip
-                  text={
-                    tokenAsset?.name ||
-                    `${t(
-                      "createMarket.forms.marketDescription.block.marketTokenName.chip",
-                    )}`
-                  }
-                />
-              </InputAdornment>
-            ),
-          }}
-          {...register("namePrefix")}
-        />
-      </InputLabel>
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.marketTokenName.tooltip",
+          )}
+          margin="36px 0 0 0"
+          subtitle={
+            namePrefixWatch && tokenAsset
+              ? `Resulting Name: ${namePrefixWatch}${tokenAsset?.name}`
+              : ""
+          }
+        >
+          <TextField
+            label={t(
+              "createMarket.forms.marketDescription.block.marketTokenName.placeholder",
+            )}
+            error={Boolean(errors.namePrefix)}
+            helperText={errors.namePrefix?.message}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <TextfieldChip
+                    text={
+                      tokenAsset?.name ||
+                      `${t(
+                        "createMarket.forms.marketDescription.block.marketTokenName.chip",
+                      )}`
+                    }
+                  />
+                </InputAdornment>
+              ),
+            }}
+            {...register("namePrefix")}
+          />
+        </InputLabel>
 
-      <InputLabel
-        label={t(
-          "createMarket.forms.marketDescription.block.marketTokenSymbol.title",
-        )}
-        tooltipText={t(
-          "createMarket.forms.marketDescription.block.marketTokenSymbol.tooltip",
-        )}
-        margin="36px 0 0 0"
-      >
-        <TextField
+        <InputLabel
           label={t(
-            "createMarket.forms.marketDescription.block.marketTokenSymbol.placeholder",
+            "createMarket.forms.marketDescription.block.marketTokenSymbol.title",
           )}
-          error={Boolean(errors.symbolPrefix)}
-          helperText={errors.symbolPrefix?.message}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <TextfieldChip
-                  text={
-                    tokenAsset?.symbol ||
-                    `${t(
-                      "createMarket.forms.marketDescription.block.marketTokenSymbol.chip",
-                    )}`
-                  }
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.marketTokenSymbol.tooltip",
+          )}
+          margin="36px 0 0 0"
+          subtitle={
+            symbolPrefixWatch && tokenAsset
+              ? `Resulting Symbol: ${symbolPrefixWatch}${tokenAsset?.symbol}`
+              : ""
+          }
+        >
+          <TextField
+            label={t(
+              "createMarket.forms.marketDescription.block.marketTokenSymbol.placeholder",
+            )}
+            error={Boolean(errors.symbolPrefix)}
+            helperText={errors.symbolPrefix?.message}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <TextfieldChip
+                    text={
+                      tokenAsset?.symbol ||
+                      `${t(
+                        "createMarket.forms.marketDescription.block.marketTokenSymbol.chip",
+                      )}`
+                    }
+                  />
+                </InputAdornment>
+              ),
+            }}
+            {...register("symbolPrefix")}
+          />
+        </InputLabel>
+      </Box>
+
+      <Divider sx={DividerStyle} />
+
+      <Typography variant="text1">
+        {t("createMarket.forms.marketDescription.block.title.restrictions")}
+      </Typography>
+
+      {isFixedTerm && (
+        <Box marginTop="16px">
+          <FormControlLabel
+            name="allowClosureBeforeTerm"
+            labelPlacement="start"
+            label={
+              <Box>
+                <Box sx={InputLabelContainer} marginBottom="2px">
+                  <Box sx={InputLabelTypo}>
+                    <Typography variant="text3">
+                      {t(
+                        "createMarket.forms.marketDescription.block.fixedTermEndTime.title",
+                      )}
+                    </Typography>
+                  </Box>
+                  <TooltipButton
+                    value={t(
+                      "createMarket.forms.marketDescription.block.fixedTermEndTime.tooltip",
+                    )}
+                  />
+                </Box>
+                <Typography
+                  marginTop="0px"
+                  variant="text4"
+                  sx={InputLabelSubtitle}
+                >
+                  {t(
+                    "createMarket.forms.marketDescription.block.fixedTermEndTime.subtitle",
+                  )}
+                </Typography>
+              </Box>
+            }
+            control={
+              <DateTextField
+                value={
+                  fixedTermEndTimeWatch
+                    ? dayjs.unix(fixedTermEndTimeWatch)
+                    : null
+                }
+                onValueChange={(v) => {
+                  setValue(
+                    "fixedTermEndTime",
+                    (v ? v.unix() : undefined) as number,
+                  )
+                }}
+                min={tomorrow}
+                max={oneYearFromNow}
+              />
+            }
+          />
+        </Box>
+      )}
+
+      <Box sx={InputGroupContainer} marginTop="16px">
+        <InputLabel
+          label={t("createMarket.forms.marketDescription.block.deposit.title")}
+          subtitle={t(
+            "createMarket.forms.marketDescription.block.deposit.subtitle",
+          )}
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.deposit.tooltip",
+          )}
+        >
+          <NumberTextField
+            label="0"
+            size="medium"
+            style={{ maxWidth: "300px" }}
+            value={getValues("minimumDeposit")}
+            onValueChange={(v) => {
+              setValue("minimumDeposit", v.floatValue as number)
+            }}
+            error={Boolean(errors.minimumDeposit)}
+            helperText={errors.minimumDeposit?.message}
+            thousandSeparator
+            endAdornment={
+              <TextfieldChip
+                text={
+                  tokenAsset?.symbol ||
+                  `${t(
+                    "createMarket.forms.marketDescription.block.deposit.chip",
+                  )}`
+                }
+              />
+            }
+          />
+        </InputLabel>
+      </Box>
+
+      <Box marginTop="16px">
+        <FormControlLabel
+          label={
+            <Box>
+              <Box sx={InputLabelContainer} marginBottom="2px">
+                <Box sx={InputLabelTypo}>
+                  <Typography variant="text3">
+                    {t(
+                      "createMarket.forms.marketDescription.block.depositRequiresAccess.title",
+                    )}
+                  </Typography>
+                </Box>
+                <TooltipButton
+                  value={t(
+                    "createMarket.forms.marketDescription.block.depositRequiresAccess.tooltip",
+                  )}
                 />
-              </InputAdornment>
-            ),
-          }}
-          {...register("symbolPrefix")}
+              </Box>
+              <Typography
+                marginTop="0px"
+                variant="text4"
+                sx={InputLabelSubtitle}
+              >
+                {t(
+                  "createMarket.forms.marketDescription.block.depositRequiresAccess.subtitle",
+                )}
+              </Typography>
+            </Box>
+          }
+          control={
+            <StyledSwitch
+              checkedcolor="orange"
+              size="medium"
+              checked={depositRequiresAccessWatch}
+              onChange={(e) => {
+                setValue("depositRequiresAccess", e.target.checked)
+              }}
+              // {...register("depositRequiresAccess")}
+            />
+          }
         />
-      </InputLabel>
+      </Box>
+
+      <Box marginTop="16px">
+        <FormControlLabel
+          label={
+            <Box>
+              <Box sx={InputLabelContainer} marginBottom="2px">
+                <Box sx={InputLabelTypo}>
+                  <Typography variant="text3">
+                    {t(
+                      "createMarket.forms.marketDescription.block.withdrawalRequiresAccess.title",
+                    )}
+                  </Typography>
+                </Box>
+                <TooltipButton
+                  value={t(
+                    "createMarket.forms.marketDescription.block.withdrawalRequiresAccess.tooltip",
+                  )}
+                />
+              </Box>
+              <Typography
+                marginTop="0px"
+                variant="text4"
+                sx={InputLabelSubtitle}
+              >
+                {t(
+                  "createMarket.forms.marketDescription.block.withdrawalRequiresAccess.subtitle",
+                )}
+              </Typography>
+            </Box>
+          }
+          control={
+            <StyledSwitch
+              checkedcolor="orange"
+              size="medium"
+              value={withdrawalRequiresAccessWatch}
+              onChange={(e) => {
+                setValue("withdrawalRequiresAccess", e.target.checked)
+              }}
+            />
+          }
+        />
+      </Box>
+
+      <Box marginTop="16px">
+        <FormControlLabel
+          label={
+            <Box>
+              <Box sx={InputLabelContainer} marginBottom="2px">
+                <Box sx={InputLabelTypo}>
+                  <Typography variant="text3">
+                    {t(
+                      "createMarket.forms.marketDescription.block.disableTransfers.title",
+                    )}
+                  </Typography>
+                </Box>
+                <TooltipButton
+                  value={t(
+                    "createMarket.forms.marketDescription.block.disableTransfers.tooltip",
+                  )}
+                />
+              </Box>
+              <Typography
+                marginTop="0px"
+                variant="text4"
+                sx={InputLabelSubtitle}
+              >
+                {t(
+                  "createMarket.forms.marketDescription.block.disableTransfers.subtitle",
+                )}
+              </Typography>
+            </Box>
+          }
+          control={
+            <StyledSwitch
+              checkedcolor="red"
+              size="medium"
+              value={disableTransfersWatch}
+              onChange={(e) => {
+                setValue("disableTransfers", e.target.checked)
+              }}
+            />
+          }
+        />
+      </Box>
+
+      {!disableTransfersWatch && (
+        <Box marginTop="16px">
+          <ExtendedSwitch
+            checkedcolor="orange"
+            size="medium"
+            control={control}
+            name="transferRequiresAccess"
+            label={t(
+              "createMarket.forms.marketDescription.block.transferRequiresAccess.title",
+            )}
+            tooltip={t(
+              "createMarket.forms.marketDescription.block.transferRequiresAccess.tooltip",
+            )}
+            subtitle={t(
+              "createMarket.forms.marketDescription.block.transferRequiresAccess.subtitle",
+            )}
+          />
+        </Box>
+      )}
+
+      {(disableTransfersWatch || transferRequiresAccessWatch) && (
+        <Box marginTop="16px">
+          <Alert variant="outlined" color="warning" severity="warning">
+            Restricting transfers will prevent use with secondary markets.
+          </Alert>
+        </Box>
+      )}
+
+      <Divider sx={DividerStyle} />
+
+      <Box marginBottom="2px" flexDirection="column">
+        <Box>
+          <Typography variant="text1">
+            {t(
+              "createMarket.forms.marketDescription.block.borrowerRestrictions.title",
+            )}
+          </Typography>
+        </Box>
+        <Typography marginTop="0px" variant="text4" sx={InputLabelSubtitle}>
+          {t(
+            "createMarket.forms.marketDescription.block.borrowerRestrictions.subtitle",
+          )}
+        </Typography>
+      </Box>
+
+      <ForceBuyBack control={control} />
+
+      {isFixedTerm && (
+        <Box marginTop="16px">
+          <FormControlLabel
+            name="allowClosureBeforeTerm"
+            label={
+              <Box>
+                <Box sx={InputLabelContainer} marginBottom="2px">
+                  <Box sx={InputLabelTypo}>
+                    <Typography variant="text3">
+                      {t(
+                        "createMarket.forms.marketDescription.block.allowClosureBeforeTerm.title",
+                      )}
+                    </Typography>
+                  </Box>
+                  <TooltipButton
+                    value={t(
+                      "createMarket.forms.marketDescription.block.allowClosureBeforeTerm.tooltip",
+                    )}
+                  />
+                </Box>
+                <Typography
+                  marginTop="0px"
+                  variant="text4"
+                  sx={InputLabelSubtitle}
+                >
+                  {t(
+                    "createMarket.forms.marketDescription.block.allowClosureBeforeTerm.subtitle",
+                  )}
+                </Typography>
+              </Box>
+            }
+            control={
+              <StyledSwitch
+                color="info"
+                size="medium"
+                value={allowClosureBeforeTermWatch}
+                onChange={(e) => {
+                  setValue("allowClosureBeforeTerm", e.target.checked)
+                }}
+              />
+            }
+          />
+        </Box>
+      )}
+
+      {isFixedTerm && (
+        <Box marginTop="16px">
+          <FormControlLabel
+            name="allowTermReduction"
+            label={
+              <Box>
+                <Box sx={InputLabelContainer} marginBottom="2px">
+                  <Box sx={InputLabelTypo}>
+                    <Typography variant="text3">
+                      {t(
+                        "createMarket.forms.marketDescription.block.allowTermReduction.title",
+                      )}
+                    </Typography>
+                  </Box>
+                  <TooltipButton
+                    value={t(
+                      "createMarket.forms.marketDescription.block.allowTermReduction.tooltip",
+                    )}
+                  />
+                </Box>
+                <Typography
+                  marginTop="0px"
+                  variant="text4"
+                  sx={InputLabelSubtitle}
+                >
+                  {t(
+                    "createMarket.forms.marketDescription.block.allowTermReduction.subtitle",
+                  )}
+                </Typography>
+              </Box>
+            }
+            control={
+              <StyledSwitch
+                color="info"
+                size="medium"
+                value={allowTermReductionWatch}
+                onChange={(e) => {
+                  setValue("allowTermReduction", e.target.checked)
+                }}
+              />
+            }
+          />
+        </Box>
+      )}
+      <Box marginTop="16px" />
 
       <Divider sx={DividerStyle} />
 
@@ -282,14 +818,23 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
           tooltipText={t(
             "createMarket.forms.marketDescription.block.capacity.tooltip",
           )}
+          subtitle={t(
+            "createMarket.forms.marketDescription.block.capacity.subtitle",
+          )}
         >
           <NumberTextField
             label={t(
               "createMarket.forms.marketDescription.block.capacity.placeholder",
             )}
             value={getValues("maxTotalSupply")}
+            onValueChange={(v) => {
+              setValue("maxTotalSupply", v.floatValue as number)
+            }}
             error={Boolean(errors.maxTotalSupply)}
             helperText={errors.maxTotalSupply?.message}
+            size="medium"
+            style={{ maxWidth: "300px" }}
+            thousandSeparator
             endAdornment={
               <TextfieldChip
                 text={
@@ -300,29 +845,6 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
                 }
               />
             }
-            {...register("maxTotalSupply")}
-          />
-        </InputLabel>
-
-        <InputLabel
-          label={t("createMarket.forms.marketDescription.block.baseAPR.title")}
-          tooltipText={t(
-            "createMarket.forms.marketDescription.block.baseAPR.tooltip",
-          )}
-        >
-          <NumberTextField
-            label={t(
-              "createMarket.forms.marketDescription.block.baseAPR.placeholder",
-            )}
-            value={getValues("annualInterestBips")}
-            error={Boolean(errors.annualInterestBips)}
-            helperText={errors.annualInterestBips?.message}
-            endAdornment={
-              <Typography variant="text2" sx={endDecorator}>
-                {t("createMarket.forms.marketDescription.block.baseAPR.chip")}
-              </Typography>
-            }
-            {...register("annualInterestBips")}
           />
         </InputLabel>
 
@@ -330,15 +852,16 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
           label={t(
             "createMarket.forms.marketDescription.block.penaltyAPR.title",
           )}
-          tooltipText={t(
-            "createMarket.forms.marketDescription.block.penaltyAPR.tooltip",
+          subtitle={t(
+            "createMarket.forms.marketDescription.block.penaltyAPR.subtitle",
           )}
         >
           <NumberTextField
             label={t(
               "createMarket.forms.marketDescription.block.penaltyAPR.placeholder",
             )}
-            value={getValues("delinquencyFeeBips")}
+            style={{ maxWidth: "300px" }}
+            size="medium"
             error={Boolean(errors.delinquencyFeeBips)}
             helperText={errors.delinquencyFeeBips?.message}
             endAdornment={
@@ -351,6 +874,55 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
             {...register("delinquencyFeeBips")}
           />
         </InputLabel>
+        <InputLabel
+          label={t("createMarket.forms.marketDescription.block.baseAPR.title")}
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.baseAPR.tooltip",
+          )}
+        >
+          <NumberTextField
+            label={t(
+              "createMarket.forms.marketDescription.block.baseAPR.placeholder",
+            )}
+            style={{ maxWidth: "300px" }}
+            size="medium"
+            error={Boolean(errors.annualInterestBips)}
+            helperText={errors.annualInterestBips?.message}
+            endAdornment={
+              <Typography variant="text2" sx={endDecorator}>
+                {t("createMarket.forms.marketDescription.block.baseAPR.chip")}
+              </Typography>
+            }
+            {...register("annualInterestBips")}
+          />
+        </InputLabel>
+        {/*         <InputLabel
+          label={t(
+            "createMarket.forms.marketDescription.block.penaltyAPR.title",
+          )}
+          tooltipText={t(
+            "createMarket.forms.marketDescription.block.penaltyAPR.tooltip",
+          )}
+        >
+          <NumberTextField
+            label={t(
+              "createMarket.forms.marketDescription.block.penaltyAPR.placeholder",
+            )}
+            style={{ maxWidth: "300px" }}
+            size="medium"
+            value={getValues("delinquencyFeeBips")}
+            error={Boolean(errors.delinquencyFeeBips)}
+            helperText={errors.delinquencyFeeBips?.message}
+            endAdornment={
+              <Typography variant="text2" sx={endDecorator}>
+                {t(
+                  "createMarket.forms.marketDescription.block.penaltyAPR.chip",
+                )}
+              </Typography>
+            }
+            {...register("delinquencyFeeBips")}
+          />
+        </InputLabel> */}
 
         <InputLabel
           label={t("createMarket.forms.marketDescription.block.ratio.title")}
@@ -362,7 +934,8 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
             label={t(
               "createMarket.forms.marketDescription.block.ratio.placeholder",
             )}
-            value={getValues("reserveRatioBips")}
+            style={{ maxWidth: "300px" }}
+            size="medium"
             error={Boolean(errors.reserveRatioBips)}
             helperText={errors.reserveRatioBips?.message}
             endAdornment={
@@ -371,33 +944,6 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
               </Typography>
             }
             {...register("reserveRatioBips")}
-          />
-        </InputLabel>
-        <InputLabel
-          label={t("createMarket.forms.marketDescription.block.deposit.title")}
-          subtitle={t(
-            "createMarket.forms.marketDescription.block.deposit.subtitle",
-          )}
-          tooltipText={t(
-            "createMarket.forms.marketDescription.block.deposit.tooltip",
-          )}
-        >
-          <NumberTextField
-            label="0"
-            value={getValues("minimumDeposit")}
-            error={Boolean(errors.minimumDeposit)}
-            helperText={errors.minimumDeposit?.message}
-            endAdornment={
-              <TextfieldChip
-                text={
-                  tokenAsset?.symbol ||
-                  `${t(
-                    "createMarket.forms.marketDescription.block.deposit.chip",
-                  )}`
-                }
-              />
-            }
-            {...register("minimumDeposit")}
           />
         </InputLabel>
       </Box>
@@ -421,7 +967,8 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
             label={t(
               "createMarket.forms.marketDescription.block.gracePeriod.placeholder",
             )}
-            value={getValues("delinquencyGracePeriod")}
+            style={{ maxWidth: "300px" }}
+            size="medium"
             error={Boolean(errors.delinquencyGracePeriod)}
             helperText={errors.delinquencyGracePeriod?.message}
             endAdornment={
@@ -447,7 +994,8 @@ export const NewMarketForm = ({ form, tokenAsset }: NewMarketFormProps) => {
             label={t(
               "createMarket.forms.marketDescription.block.withdrawalCycle.placeholder",
             )}
-            value={getValues("withdrawalBatchDuration")}
+            style={{ maxWidth: "300px" }}
+            size="medium"
             error={Boolean(errors.withdrawalBatchDuration)}
             helperText={errors.withdrawalBatchDuration?.message}
             endAdornment={

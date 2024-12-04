@@ -27,7 +27,7 @@ export const useRepay = (
         return
       }
 
-      const step = marketAccount.checkRepayStep(amount)
+      const step = marketAccount.previewRepay(amount)
       const gnosisTransactions: BaseTransaction[] = []
       if (step.status !== "Ready") {
         if (safeConnected && step.status === "InsufficientAllowance") {

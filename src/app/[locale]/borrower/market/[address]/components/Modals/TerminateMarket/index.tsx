@@ -48,7 +48,7 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
   }
 
   const isReadyForTermination =
-    marketAccount.checkCloseMarketStep().status === "Ready"
+    marketAccount.previewCloseMarket().status === "Ready"
 
   useEffect(() => {
     if (isReadyForTermination) {

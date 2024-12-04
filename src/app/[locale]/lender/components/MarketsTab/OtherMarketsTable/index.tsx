@@ -18,7 +18,7 @@ export const OtherMarketsTable = ({
   assetFilter,
   nameFilter,
 }: OtherMarketsTableProps) => {
-  const [tab, setTab] = useState<"all" | "selfOnboard">("all")
+  const [tab, setTab] = useState<"all" | "selfOnboard">("selfOnboard")
   const [paginationModel, setPaginationModel] = React.useState({
     pageSize: 10,
     page: 0,
@@ -65,8 +65,8 @@ export const OtherMarketsTable = ({
               backgroundColor: COLORS.athensGrey,
             }}
           />
-          <Tab value="all" label="All" sx={TabStyle} />
           <Tab value="selfOnboard" label="Self-Onboard" sx={TabStyle} />
+          <Tab value="all" label="All" sx={TabStyle} />
           <Box
             sx={{
               width: "100%",
@@ -75,6 +75,37 @@ export const OtherMarketsTable = ({
             }}
           />
         </Tabs>
+      )}
+
+      {tab === "selfOnboard" && selfOnboardRows.length !== 0 && !isLoading && (
+        <DataGrid
+          sx={MarketsTableStyles}
+          rows={selfOnboardRows}
+          columns={tableColumns}
+          columnHeaderHeight={40}
+          hideFooter={false}
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
+          slots={{
+            pagination: TablePagination,
+          }}
+        />
+      )}
+
+      {tab === "selfOnboard" && selfOnboardRows.length === 0 && !isLoading && (
+        <Box
+          display="flex"
+          flexDirection="column"
+          padding="24px 16px 12px"
+          height="270px"
+        >
+          <Typography variant="title3" color={COLORS.blackRock}>
+            No self-onboard markets
+          </Typography>
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            There are no self-onboard markets yet.
+          </Typography>
+        </Box>
       )}
 
       {tab === "all" && tableRows.length !== 0 && !isLoading && (
@@ -108,37 +139,6 @@ export const OtherMarketsTable = ({
             </Typography>
           </Box>
         )}
-
-      {tab === "selfOnboard" && selfOnboardRows.length !== 0 && !isLoading && (
-        <DataGrid
-          sx={MarketsTableStyles}
-          rows={selfOnboardRows}
-          columns={tableColumns}
-          columnHeaderHeight={40}
-          hideFooter={false}
-          paginationModel={paginationModel}
-          onPaginationModelChange={setPaginationModel}
-          slots={{
-            pagination: TablePagination,
-          }}
-        />
-      )}
-
-      {tab === "selfOnboard" && selfOnboardRows.length === 0 && !isLoading && (
-        <Box
-          display="flex"
-          flexDirection="column"
-          padding="24px 16px 12px"
-          height="270px"
-        >
-          <Typography variant="title3" color={COLORS.blackRock}>
-            No self-onboard markets
-          </Typography>
-          <Typography variant="text3" color={COLORS.santasGrey}>
-            There are no self-onboard markets yet.
-          </Typography>
-        </Box>
-      )}
     </MarketsTableAccordion>
   )
 }

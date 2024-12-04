@@ -1,9 +1,15 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation } from "@tanstack/react-query"
+import { useRouter } from "next/navigation"
 
 import { toastRequest } from "@/components/Toasts"
+import { API_URL } from "@/config/api"
+import { TargetNetwork } from "@/config/network"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { ROUTES } from "@/routes"
+
+import { SignatureSubmissionProps } from "./interface"
 
 export type SignAgreementProps = {
   address: string | undefined
@@ -11,9 +17,28 @@ export type SignAgreementProps = {
   dateSigned: string | undefined
 }
 
+export async function submitSignature(input: SignatureSubmissionProps) {
+  const network = TargetNetwork.stringID
+  const url = API_URL
+  if (!url) throw Error(`API url not defined`)
+
+  await fetch(`${url}/sla`, {
+    method: "POST",
+    body: JSON.stringify({
+      ...input,
+      network,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  })
+}
+
 export const useSignAgreement = () => {
-  const { sdk } = useSafeAppsSDK()
+  const { sdk, connected: safeConnected } = useSafeAppsSDK()
   const signer = useEthersSigner()
+  const { replace } = useRouter()
 
   return useMutation({
     mutationFn: async ({ address, name, dateSigned }: SignAgreementProps) => {
@@ -27,7 +52,7 @@ export const useSignAgreement = () => {
           agreementText = `${agreementText}\n\nDate: ${dateSigned}`
         }
 
-        if (sdk) {
+        if (sdk && safeConnected) {
           const settings = {
             offChainSigning: true,
           }
@@ -51,20 +76,11 @@ export const useSignAgreement = () => {
             }
           }
         }
+        console.log(`Signing message with EOA`)
         const signatureResult = await signer.signMessage(agreementText)
         return { signature: signatureResult }
       }
       let result: { signature?: string; safeTxHash?: string } = {}
-      // await toastifyRequest(
-      //   sign().then((res) => {
-      //     result = res
-      //   }),
-      //   {
-      //     pending: `Waiting for signature...`,
-      //     success: `Service agreement signed!`,
-      //     error: `Failed to sign service agreement!`,
-      //   },
-      // )
       await toastRequest(
         sign().then((res) => {
           result = res
@@ -75,7 +91,29 @@ export const useSignAgreement = () => {
           error: `Failed to sign service agreement!`,
         },
       )
+
+      if (result.signature) {
+        console.log(`Got Signature`)
+        console.log({
+          signature: result.signature,
+          name,
+          dateSigned,
+          address,
+        })
+      } else if (result.safeTxHash) {
+        console.log(`Got result.safeTxHash`)
+        console.log(await sdk?.txs.getBySafeTxHash(result.safeTxHash))
+      }
+      await submitSignature({
+        signature: result.signature ?? "0x",
+        name,
+        dateSigned,
+        address,
+      })
       return result
+    },
+    onSuccess: () => {
+      replace(ROUTES.borrower.root)
     },
     onError(error) {
       console.log(error)

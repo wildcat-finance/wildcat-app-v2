@@ -16,7 +16,10 @@ import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { Loader } from "@/components/Loader"
-import { mockedMarketTypesOptions } from "@/mocks/mocks"
+import {
+  mockedAccessControlOptions,
+  mockedMarketTypesOptions,
+} from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { STEPS_NAME } from "@/store/slices/routingSlice/flowsSteps"
@@ -97,6 +100,29 @@ export const ConfirmationModal = ({
   const marketTypeValue = mockedMarketTypesOptions.find(
     (el) => el.value === getMarketValues("marketType"),
   )?.label
+
+  const accessControlValue = mockedAccessControlOptions.find(
+    (el) => el.value === getMarketValues("accessControl"),
+  )?.label
+
+  const isNewPolicy = getMarketValues("policy") === "createNewPolicy"
+  const policyNameValue = getMarketValues("policyName") || "Unnamed Policy"
+  const depositRequiresAccess = getMarketValues("depositRequiresAccess")
+  const withdrawalRequiresAccess = getMarketValues("withdrawalRequiresAccess")
+  const transferRequiresAccess = getMarketValues("transferRequiresAccess")
+  const disableTransfers = getMarketValues("disableTransfers")
+  // eslint-disable-next-line no-nested-ternary
+  const transferAccessMessage = disableTransfers
+    ? "Disabled"
+    : transferRequiresAccess
+      ? "Policy on-boarding required"
+      : "Unrestricted"
+  const depositAccessMessage = depositRequiresAccess
+    ? "Policy on-boarding required"
+    : "Unrestricted"
+  const withdrawalAccessMessage = withdrawalRequiresAccess
+    ? "Policy on-boarding required"
+    : "Unrestricted"
 
   if (showErrorPopup) {
     return (
@@ -241,6 +267,26 @@ export const ConfirmationModal = ({
 
       <Box sx={FormModalContainer}>
         <Typography variant="text3">
+          {isNewPolicy ? "NEW POLICY" : "EXISTING POLICY"}
+        </Typography>
+
+        <Box sx={FormModalGroupContainer}>
+          <ConfirmationFormItem
+            label={t(
+              "createMarket.forms.marketDescription.block.policyName.title",
+            )}
+            value={policyNameValue}
+          />
+          <ConfirmationFormItem
+            label={t(
+              "createMarket.forms.marketDescription.block.marketType.title",
+            )}
+            value={marketTypeValue || ""}
+          />
+        </Box>
+
+        <Divider sx={DividerStyle} />
+        <Typography variant="text3">
           {t(
             "createMarket.forms.marketDescription.block.title.definition",
           ).toUpperCase()}
@@ -249,27 +295,17 @@ export const ConfirmationModal = ({
         <Box sx={FormModalGroupContainer}>
           <ConfirmationFormItem
             label={t(
-              "createMarket.forms.marketDescription.block.marketName.title",
-            )}
-            value={getMarketValues("marketName")}
-          />
-          <ConfirmationFormItem
-            label={t(
-              "createMarket.forms.marketDescription.block.marketType.title",
-            )}
-            value={marketTypeValue || ""}
-          />
-          <ConfirmationFormItem
-            label={t(
               "createMarket.forms.marketDescription.block.marketAsset.title",
             )}
             value={tokenAsset?.name || ""}
           />
+        </Box>
+        <Box sx={FormModalGroupContainer}>
           <ConfirmationFormItem
             label={t(
               "createMarket.forms.marketDescription.block.marketTokenName.title",
             )}
-            value={getMarketValues("namePrefix")}
+            value={`${getMarketValues("namePrefix")}${tokenAsset?.name}`}
           />
           <ConfirmationFormItem
             label={t(
@@ -292,6 +328,46 @@ export const ConfirmationModal = ({
               </Button>
             </Box>
           )}
+        </Box>
+
+        <Divider sx={DividerStyle} />
+        <Typography variant="text3">
+          {t(
+            "createMarket.forms.marketDescription.block.title.restrictions",
+          ).toUpperCase()}
+        </Typography>
+
+        <Box sx={FormModalGroupContainer}>
+          <ConfirmationFormItem
+            label={t(
+              "createMarket.forms.marketDescription.block.accessControl.title",
+            )}
+            value={accessControlValue || ""}
+          />
+          <ConfirmationFormItem
+            label={t(
+              "createMarket.forms.marketDescription.block.transferAccess.title",
+            )}
+            value={transferAccessMessage}
+          />
+          <ConfirmationFormItem
+            label={t(
+              "createMarket.forms.marketDescription.block.depositAccess.title",
+            )}
+            value={depositAccessMessage}
+          />
+          <ConfirmationFormItem
+            label={t(
+              "createMarket.forms.marketDescription.block.withdrawalAccess.title",
+            )}
+            value={withdrawalAccessMessage}
+          />
+          <ConfirmationFormItem
+            label={t(
+              "createMarket.forms.marketDescription.block.deposit.title",
+            )}
+            value={`${getMarketValues("minimumDeposit")} ${tokenAsset?.symbol}`}
+          />
         </Box>
 
         <Divider sx={DividerStyle} />
@@ -324,12 +400,6 @@ export const ConfirmationModal = ({
           <ConfirmationFormItem
             label={t("createMarket.forms.marketDescription.block.ratio.title")}
             value={`${getMarketValues("reserveRatioBips")}%`}
-          />
-          <ConfirmationFormItem
-            label={t(
-              "createMarket.forms.marketDescription.block.deposit.title",
-            )}
-            value={`${getMarketValues("minimumDeposit")} ${tokenAsset?.symbol}`}
           />
         </Box>
 

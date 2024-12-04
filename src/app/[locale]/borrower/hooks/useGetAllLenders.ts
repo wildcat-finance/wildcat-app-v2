@@ -4,7 +4,7 @@ import {
   SubgraphGetAllAuthorizedLendersQuery,
   SubgraphGetAllAuthorizedLendersQueryVariables,
   SubgraphAllAuthorizedLendersViewFragment,
-  SubgraphAllAuthorizedLendersViewMarketInfoFragment,
+  SubgraphLenderHooksAccessDataFragment,
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { useAccount } from "wagmi"
 
@@ -21,7 +21,18 @@ export type AllLendersData = {
       markets: {
         marketIds: string[]
         markets: {
-          [address: string]: SubgraphAllAuthorizedLendersViewMarketInfoFragment
+          [address: string]: {
+            id: string
+            name: string
+            controller?: {
+              __typename: "Controller"
+              authorizedLenders: SubgraphAllAuthorizedLendersViewFragment[]
+            }
+            hooks?: {
+              __typename: "HooksInstance"
+              lenders: SubgraphLenderHooksAccessDataFragment[]
+            }
+          }
         }
       }
     }
@@ -44,7 +55,7 @@ export const getAllLenders = async (address: string) => {
   }
 
   data?.markets.forEach((market) => {
-    market.controller.authorizedLenders.forEach((lender) => {
+    market.controller?.authorizedLenders.forEach((lender) => {
       const lenderAddress = lender.lender.toLowerCase()
 
       if (!allLenders.lenders[lenderAddress]) {
@@ -55,7 +66,12 @@ export const getAllLenders = async (address: string) => {
           markets: {
             marketIds: [market.id],
             markets: {
-              [market.id]: market,
+              [market.id]: {
+                id: market.id,
+                name: market.name,
+                controller: market.controller || undefined,
+                hooks: market.hooks || undefined,
+              },
             },
           },
         }
@@ -65,7 +81,12 @@ export const getAllLenders = async (address: string) => {
 
       if (!lenderItem.markets.markets[market.id]) {
         lenderItem.markets.marketIds.push(market.id)
-        lenderItem.markets.markets[market.id] = market
+        lenderItem.markets.markets[market.id] = {
+          id: market.id,
+          name: market.name,
+          controller: market.controller || undefined,
+          hooks: market.hooks || undefined,
+        }
       }
     })
   })

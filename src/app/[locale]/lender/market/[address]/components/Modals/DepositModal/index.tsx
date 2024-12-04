@@ -1,7 +1,7 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
 
 import { Box, Button, Dialog } from "@mui/material"
-import { MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { MarketAccount, Signer } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
@@ -64,7 +64,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     [amount],
   )
 
-  const depositStep = marketAccount.checkDepositStep(depositTokenAmount).status
+  const depositStep = marketAccount.previewDeposit(depositTokenAmount).status
 
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
@@ -99,7 +99,8 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     depositStep === "Ready" ||
     depositStep === "InsufficientBalance" ||
     modal.approvedStep ||
-    isApproving
+    isApproving ||
+    !(market.provider instanceof Signer)
 
   const disableDeposit =
     !!depositError ||

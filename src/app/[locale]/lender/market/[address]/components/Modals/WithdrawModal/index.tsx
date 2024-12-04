@@ -88,7 +88,7 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
     withdrawAmount.eq(0)
 
   const { status: withdrawStep } =
-    marketAccount.checkQueueWithdrawalStep(withdrawAmount)
+    marketAccount.previewQueueWithdrawal(withdrawAmount)
 
   useEffect(() => {
     if (isError) {
