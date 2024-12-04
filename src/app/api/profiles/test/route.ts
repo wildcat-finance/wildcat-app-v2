@@ -3,13 +3,34 @@ import { randomBytes } from "crypto"
 
 import { NextResponse } from "next/server"
 
-import { BorrowerProfile, BorrowerProfileInput } from "../interface"
+import { TargetChainId } from "@/config/network"
+
+import {
+  BorrowerInvitation,
+  BorrowerInvitationInput,
+} from "../../invite/interface"
+import { BorrowerProfile } from "../interface"
 import { BorrowerProfileUpdate } from "../updates/interface"
+
+const postUrl = <T>(url: string, body: T) =>
+  fetch(url, {
+    method: "POST",
+    body: JSON.stringify(body),
+    cache: "no-cache",
+  }).then((r) => r.json())
+
+const getUrl = (url: string) =>
+  fetch(url, { cache: "no-cache" }).then((r) => r.json())
+
+/// Flow:
+/// 1. Borrower is invited by an admin, creating a borrower profile.
+/// 2. Borrower updates their profile.
 
 export async function GET() {
   const borrowerAddress = `0x${randomBytes(20).toString("hex")}`
-  const borrowerProfile: BorrowerProfileInput = {
+  const borrowerProfile: BorrowerProfile = {
     address: borrowerAddress,
+    chainId: TargetChainId,
     name: "Borrower Name",
     description: "Borrower Description",
     founded: "Borrower Founded",
@@ -18,46 +39,95 @@ export async function GET() {
     linkedin: "mylinkedin",
     website: "real-borrower-website.com",
     twitter: "mytwitter",
+    registeredOnChain: false,
   }
+  const expectedBorrowerProfile: BorrowerProfile = {
+    address: borrowerAddress,
+    chainId: TargetChainId,
+    registeredOnChain: false,
+    name: "Borrower 1",
+  }
+  const expectedInvite: BorrowerInvitationInput = {
+    address: borrowerAddress,
+    inviter: borrowerAddress,
+    name: "Borrower 1",
+  }
+  /* ========================================================================== */
+  /*                              POST /api/invite                              */
+  /* ========================================================================== */
+  console.log(`Creating a new invite for borrower`)
+  let postResponse = await postUrl(
+    `http://localhost:3000/api/invite`,
+    expectedInvite,
+  )
+  assert(postResponse.success === true, "Failed to create invite")
+
+  /* ========================================================================== */
+  /*                               GET /api/invite                              */
+  /* ========================================================================== */
+
+  console.log(`Querying for all invites`)
+  const allInvites = (await getUrl(
+    `http://localhost:3000/api/invite`,
+  )) as BorrowerInvitation[]
+  const { address, chainId, inviter, name } = allInvites[allInvites.length - 1]
+  assert.deepStrictEqual(
+    { address, chainId, inviter, name },
+    { ...expectedInvite, chainId: TargetChainId },
+    `Latest invite should match expected borrower profile`,
+  )
+
+  console.log(`Querying for invite by address`)
+  const invitesByAddress = (await getUrl(
+    `http://localhost:3000/api/invite?address=${borrowerAddress}`,
+  )) as BorrowerInvitation[]
+  const { id, timeInvited, ...mostOfInvite } = invitesByAddress[0]
+  assert.deepStrictEqual(
+    mostOfInvite,
+    { ...expectedInvite, chainId: TargetChainId },
+    `Invite by address should match expected borrower profile`,
+  )
+
+  const getProfile = async (addr: string) => {
+    const { profile } = (await getUrl(
+      `http://localhost:3000/api/profiles/${addr}`,
+    )) as { profile: BorrowerProfile }
+    return profile
+  }
+
+  console.log(`Invite should have created a borrower profile`)
+  console.log(await getProfile(borrowerAddress))
+  assert.deepStrictEqual(
+    await getProfile(borrowerAddress),
+    expectedBorrowerProfile,
+    `Profile should match expected borrower profile`,
+  )
+
   /* ========================================================================== */
   /*                         POST /api/profiles/updates                         */
   /* ========================================================================== */
-  console.log(
-    `Requesting an update to borrower profile that does not exist yet`,
+  console.log(`Requesting an update to borrower profile`)
+  postResponse = await postUrl(
+    `http://localhost:3000/api/profiles/updates`,
+    borrowerProfile,
   )
-  let postResponse = await fetch(`http://localhost:3000/api/profiles/updates`, {
-    method: "POST",
-    body: JSON.stringify(borrowerProfile),
-    cache: "no-cache",
-  }).then((r) => r.json())
   assert(postResponse.success === true, "Failed to create borrower profile")
   const updateId1 = postResponse.updateId
 
-  /* ========================================================================== */
-  /*                         GET /api/profiles/[address]                        */
-  /* ========================================================================== */
-  console.log(`Querying for borrower profile before changes are accepted`)
-  const { profile: returnedProfile } = await fetch(
-    `http://localhost:3000/api/profiles/${borrowerAddress}`,
-    {
-      cache: "no-cache",
-    },
-  ).then((r) => r.json())
-  if (returnedProfile) {
-    console.log(returnedProfile)
-  }
-  assert.equal(returnedProfile, null, `Profile should not exist yet`)
+  console.log(`Request does not immediately update borrower profile`)
+  assert.deepStrictEqual(
+    await getProfile(borrowerAddress),
+    expectedBorrowerProfile,
+    `Profile should not have changed yet`,
+  )
 
   /* ========================================================================== */
   /*            GET /api/profiles/updates?borrower=${borrowerAddress}           */
   /* ========================================================================== */
   console.log(`Querying for all updates to borrower profile`)
-  let pendingUpdates = (await fetch(
+  let pendingUpdates = (await getUrl(
     `http://localhost:3000/api/profiles/updates?borrower=${borrowerAddress}`,
-    {
-      cache: "no-cache",
-    },
-  ).then((r) => r.json())) as BorrowerProfileUpdate[]
+  )) as BorrowerProfileUpdate[]
   assert.equal(
     pendingUpdates.length,
     1,
@@ -88,11 +158,10 @@ export async function GET() {
     `Making changes to a pending update by requesting second update before it is accepted/rejected`,
   )
   borrowerProfile.name = "Updated Borrower Name"
-  postResponse = await fetch(`http://localhost:3000/api/profiles/updates`, {
-    method: "POST",
-    body: JSON.stringify(borrowerProfile),
-    cache: "no-cache",
-  }).then((r) => r.json())
+  postResponse = await postUrl(
+    `http://localhost:3000/api/profiles/updates`,
+    borrowerProfile,
+  )
   assert(postResponse.success === true, "Failed to update borrower profile")
   assert(
     postResponse.updateId === updateId1 + 1,
@@ -103,19 +172,22 @@ export async function GET() {
   /*                         GET /api/profiles/[address]                        */
   /* ========================================================================== */
   console.log(`Querying pending updates`)
-
-  pendingUpdates = (await fetch(
+  pendingUpdates = await getUrl(
     `http://localhost:3000/api/profiles/updates?borrower=${borrowerAddress}`,
-  ).then((r) => r.json())) as BorrowerProfileUpdate[]
+  )
   assert.equal(
     pendingUpdates.length,
     1,
     `Should still have one pending update for borrower`,
   )
   const [{ updateId, update: pendingUpdate }] = pendingUpdates
+  console.log(pendingUpdate)
   assert.equal(updateId, updateId1 + 1, `Update id should be ${updateId1 + 1}`)
   assert.deepStrictEqual(
-    pendingUpdate,
+    {
+      ...pendingUpdate,
+      registeredOnChain: false,
+    },
     borrowerProfile,
     `Pending update should match new borrower profile`,
   )
@@ -145,7 +217,7 @@ export async function GET() {
   console.log(`Querying for borrower profile after update is accepted`)
 
   const {
-    profile: { updatedAt, ...acceptedProfile },
+    profile: { ...acceptedProfile },
   } = (await fetch(
     `http://localhost:3000/api/profiles/${borrowerAddress}`,
   ).then((r) => r.json())) as { profile: BorrowerProfile }

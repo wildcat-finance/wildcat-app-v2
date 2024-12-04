@@ -1,5 +1,7 @@
 export interface BorrowerProfile {
+  chainId: number
   address: string
+
   name?: string
   description?: string
   founded?: string
@@ -8,7 +10,10 @@ export interface BorrowerProfile {
   twitter?: string
   linkedin?: string
   email?: string
-  updatedAt: number
+  registeredOnChain: boolean
 }
 
-export type BorrowerProfileInput = Omit<BorrowerProfile, "updatedAt">
+export type BorrowerProfileInput = Omit<
+  BorrowerProfile,
+  "registeredOnChain" | "chainId"
+>

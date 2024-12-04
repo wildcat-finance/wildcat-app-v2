@@ -1,31 +1,29 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import {
-  getAllBorrowerProfiles,
-  removeBorrowerProfile,
-  resetTmpDb,
-} from "@/lib/tmp-db"
+import { TargetChainId } from "@/config/network"
+import { prisma } from "@/lib/db"
 
 export async function GET() {
-  const allProfiles = getAllBorrowerProfiles()
+  const data = await prisma.borrower.findMany({
+    where: {
+      chainId: TargetChainId,
+    },
+  })
+  const allProfiles = data.map((borrower) => ({
+    address: borrower.address,
+    chainId: borrower.chainId,
+    name: borrower.name || undefined,
+    description: borrower.description || undefined,
+    founded: borrower.founded || undefined,
+    headquarters: borrower.headquarters || undefined,
+    website: borrower.website || undefined,
+    twitter: borrower.twitter || undefined,
+    linkedin: borrower.linkedin || undefined,
+    email: borrower.email || undefined,
+    registeredOnChain: borrower.registeredOnChain,
+  }))
 
   return NextResponse.json(allProfiles)
 }
 
-// DELETE /api/profiles?borrower=<borrower | all>
-// Test function only
-export async function DELETE(request: NextRequest) {
-  const borrower = request.nextUrl.searchParams.get("borrower")
-  if (!borrower) {
-    return NextResponse.json(
-      { success: false, message: "No borrower provided" },
-      { status: 400 },
-    )
-  }
-  if (borrower === "all") {
-    resetTmpDb()
-  } else {
-    removeBorrowerProfile(borrower)
-  }
-  return NextResponse.json({ success: true })
-}
+export const dynamic = "force-dynamic"
