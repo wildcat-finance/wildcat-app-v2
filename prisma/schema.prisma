@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model LenderServiceAgreementSignature {
+  chainId              Int
+  signer               String
+  signature            String
+  timeSigned           DateTime
+  serviceAgreementHash String
+
+  
+  @@id([chainId, signer, serviceAgreementHash])
+}
+
+model BorrowerServiceAgreementSignature {
+  chainId              Int
+  address              String
+  signature            String
+  timeSigned           DateTime
+  borrowerName         String
+  serviceAgreementHash String
+
+  borrower Borrower @relation("BorrowerToServiceAgreementSignature", fields: [chainId, address], references: [chainId, address], onDelete: Cascade)
+
+  @@id([chainId, address])
+}
+
+model BorrowerInvitation {
+  id          Int      @id @default(autoincrement())
+  chainId     Int
+  address     String
+  name        String
+  inviter     String
+  timeInvited DateTime
+
+  borrower Borrower @relation("BorrowerToInvitation", fields: [chainId, address], references: [chainId, address], onDelete: Cascade)
+
+  @@unique([chainId, address])
+}
+
+model Borrower {
+  chainId Int
+  address String
+
+  name              String?
+  description       String?
+  founded           String?
+  headquarters      String?
+  website           String?
+  twitter           String?
+  linkedin          String?
+  email             String?
+  registeredOnChain Boolean
+
+  invitation                BorrowerInvitation?                @relation("BorrowerToInvitation")
+  serviceAgreementSignature BorrowerServiceAgreementSignature? @relation("BorrowerToServiceAgreementSignature")
+  updates                   BorrowerProfileUpdateRequest[]     @relation("BorrowerToProfileUpdateRequest")
+
+  @@unique([chainId, address])
+}
+
+model BorrowerProfileUpdateRequest {
+  id        Int      @id @default(autoincrement())
+  chainId   Int
+  address   String
+  createdAt DateTime
+
+  name         String?
+  description  String?
+  founded      String?
+  headquarters String?
+  website      String?
+  twitter      String?
+  linkedin     String?
+  email        String?
+
+  acceptedAt     DateTime?
+  rejectedAt     DateTime?
+  rejectedReason String?
+
+  borrowerProfile Borrower @relation("BorrowerToProfileUpdateRequest", fields: [chainId, address], references: [chainId, address], onDelete: Cascade)
+
+  @@index([chainId, address])
+}
