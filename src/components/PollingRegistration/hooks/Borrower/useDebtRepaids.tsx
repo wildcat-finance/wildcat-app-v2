@@ -1,52 +1,54 @@
 import { useEffect } from "react"
 
 import { useLazyQuery } from "@apollo/client"
-import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
 import { EtherscanBaseUrl } from "@/config/network"
 import { lazyQueryOptions } from "@/config/subgraph"
-import { BORROWS } from "@/graphql/queries"
+import { DEBT_REPAIDS } from "@/graphql/queries"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
-import { formatTokenAmount, formatTokenWithCommas } from "@/utils/formatters"
+import { formatTokenAmount } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
-import { TBorrow } from "../interface"
+import { TDebtRepaid } from "../../interface"
 
-export const useBorrows = (marketIds: string[]) => {
+export const useDebtRepaids = (
+  marketIds: string[],
+  address?: `0x${string}`,
+) => {
   const dispatch = useDispatch()
 
-  const [fetchBorrows, { data, error }] = useLazyQuery(
-    BORROWS,
+  const [fetchDebtRepaids, { data, error }] = useLazyQuery(
+    DEBT_REPAIDS,
     lazyQueryOptions,
   )
 
   useEffect(() => {
     if (data) {
       console.dir(data)
-      data.borrows.forEach((borrow: TBorrow) => {
+      data.debtRepaids.forEach((debtRepaid: TDebtRepaid) => {
         dispatch(
           addNotification({
             description: (
               <Trans
-                i18nKey="notifications.borrow.description"
+                i18nKey="notifications.debtRepaid.description"
                 values={{
-                  marketName: borrow.market.name,
+                  marketName: debtRepaid.market.name,
                   amount: formatTokenAmount(
-                    borrow.assetAmount,
-                    borrow.market.decimals,
+                    debtRepaid.assetAmount,
+                    debtRepaid.market.decimals,
                     4,
                   ),
-                  asset: borrow.market.symbol,
+                  asset: debtRepaid.market.symbol,
                 }}
                 components={{ strong: <strong /> }}
               />
             ),
             category: "marketActivity",
-            blockTimestamp: borrow.blockTimestamp,
+            blockTimestamp: debtRepaid.blockTimestamp,
             unread: true,
-            etherscanUrl: `${EtherscanBaseUrl}/tx/${borrow.transactionHash}`,
+            etherscanUrl: `${EtherscanBaseUrl}/tx/${debtRepaid.transactionHash}`,
           }),
         )
       })
@@ -55,19 +57,20 @@ export const useBorrows = (marketIds: string[]) => {
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching borrows: ", error)
+      console.error("Error fetching dept repays: ", error)
     }
   }, [error])
 
   return () => {
     // marketIds = ["0xa23ce7c1a04520efb6968b711331ce33e4efad9a"] // Testing
-    fetchBorrows({
+    if (!address) return
+    fetchDebtRepaids({
       variables: {
         where: {
           market_: {
             id_in: marketIds,
           },
-          blockTimestamp_gt: getLastFetchedTimestamp(),
+          blockTimestamp_gt: getLastFetchedTimestamp(address),
         },
       },
     })

@@ -19,8 +19,19 @@ export type TReserveRatioBipsUpdated = {
   }
 }
 
-export type TLenderAuthorizationChange = {
+export type TAuthorizationChange = {
   lender: string
+  authorized: boolean
+  blockTimestamp: number
+  authorization: {
+    marketAccounts: {
+      market: { name: string; id: string }
+    }[]
+  }
+}
+
+export type TLenderAuthorizationChange = {
+  borrower: string
   authorized: boolean
   blockTimestamp: number
   authorization: {
@@ -94,4 +105,12 @@ export type TWithdrawalBatchExpired = {
   scaledTotalAmount: bigint
   normalizedAmountOwed: bigint
   transactionHash: string
+}
+
+export type TMarketTerminated = {
+  blockTimestamp: number
+  transactionHash: string
+  market: {
+    name: string
+  }
 }

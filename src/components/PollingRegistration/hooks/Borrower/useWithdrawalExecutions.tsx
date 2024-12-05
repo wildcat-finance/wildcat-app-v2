@@ -13,9 +13,12 @@ import { COLORS } from "@/theme/colors"
 import { formatTokenAmount } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
-import { TWithdrawalExecution } from "../interface"
+import { TWithdrawalExecution } from "../../interface"
 
-export const useWithdrawalExecutions = (marketIds: string[]) => {
+export const useWithdrawalExecutions = (
+  marketIds: string[],
+  address?: `0x${string}`,
+) => {
   const dispatch = useDispatch()
 
   const [fetchWithdrawalExecutions, { data, error }] = useLazyQuery(
@@ -77,10 +80,11 @@ export const useWithdrawalExecutions = (marketIds: string[]) => {
   }, [error])
 
   return () => {
+    if (!address) return
     fetchWithdrawalExecutions({
       variables: {
         where: {
-          blockTimestamp_gt: getLastFetchedTimestamp(),
+          blockTimestamp_gt: getLastFetchedTimestamp(address),
         },
       },
     })

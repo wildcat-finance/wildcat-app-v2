@@ -13,6 +13,7 @@ import {
 } from "@mui/material"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import {
   DialogContainer,
@@ -34,6 +35,7 @@ export const UnreadDialog = ({ open, handleClose }: UnreadDialogProps) => {
   const { t } = useTranslation()
   const [value, setValue] = useState(0)
   const dispatch = useAppDispatch()
+  const { address } = useAccount()
 
   const notifications = useAppSelector((state) => state.notifications)
   const filtered = notifications.filter((notification) => {
@@ -47,7 +49,8 @@ export const UnreadDialog = ({ open, handleClose }: UnreadDialogProps) => {
   }
 
   const handleMarkAsRead = async () => {
-    setLastFetchedTimestamp(notifications[0]?.blockTimestamp)
+    if (!address) return
+    setLastFetchedTimestamp(notifications[0]?.blockTimestamp, address)
     dispatch(markAllAsRead())
     toastSuccess("All notifications marked as read")
   }

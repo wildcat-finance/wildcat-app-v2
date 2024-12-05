@@ -18,9 +18,12 @@ import {
 } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
-import { TWithdrawalBatchCreated } from "../interface"
+import { TWithdrawalBatchCreated } from "../../interface"
 
-export const useWithdrawalBatchCreateds = (marketIds: string[]) => {
+export const useWithdrawalBatchCreateds = (
+  marketIds: string[],
+  address?: `0x${string}`,
+) => {
   const dispatch = useDispatch()
 
   const [fetchWithdrawalBatchCreateds, { data, error }] = useLazyQuery(
@@ -91,10 +94,11 @@ export const useWithdrawalBatchCreateds = (marketIds: string[]) => {
   }, [error])
 
   return () => {
+    if (!address) return
     fetchWithdrawalBatchCreateds({
       variables: {
         where: {
-          blockTimestamp_gt: getLastFetchedTimestamp(),
+          blockTimestamp_gt: getLastFetchedTimestamp(address),
         },
       },
     })

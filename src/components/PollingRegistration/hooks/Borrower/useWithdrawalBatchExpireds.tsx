@@ -13,9 +13,12 @@ import { COLORS } from "@/theme/colors"
 import { formatTokenAmount } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
-import { TWithdrawalBatchExpired } from "../interface"
+import { TWithdrawalBatchExpired } from "../../interface"
 
-export const useWithdrawalBatchExpireds = (marketIds: string[]) => {
+export const useWithdrawalBatchExpireds = (
+  marketIds: string[],
+  address?: `0x${string}`,
+) => {
   const dispatch = useDispatch()
   const { t } = useTranslation()
 
@@ -102,10 +105,11 @@ export const useWithdrawalBatchExpireds = (marketIds: string[]) => {
   }, [error])
 
   return () => {
+    if (!address) return
     fetchWithdrawalBatchExpireds({
       variables: {
         where: {
-          blockTimestamp_gt: getLastFetchedTimestamp(),
+          blockTimestamp_gt: getLastFetchedTimestamp(address),
         },
       },
     })
