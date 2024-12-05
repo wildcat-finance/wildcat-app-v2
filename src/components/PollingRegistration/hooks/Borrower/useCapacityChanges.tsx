@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import {
   getMarketRecords,
+  Market,
   MarketRecord,
   MaxTotalSupplyUpdatedRecord,
 } from "@wildcatfi/wildcat-sdk"
@@ -62,7 +63,7 @@ export const useCapacityChanges = (address?: `0x${string}`) => {
 
   return () => {
     if (!address || !markets || isLoading) return
-    markets.forEach((market) => {
+    markets.forEach((market: Market) => {
       getMarketRecords(SubgraphClient, {
         market,
         kinds: ["MaxTotalSupplyUpdated"],

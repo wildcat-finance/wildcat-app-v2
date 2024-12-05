@@ -25,7 +25,7 @@ export const useLenderAPRChanges = (address?: `0x${string}`) => {
 
   const dispatch = useDispatch()
 
-  const { data: markets, isLoadingInitial: isLoading } = useLendersMarkets()
+  const { data: marketAccounts, isLoadingInitial: isLoading } = useLendersMarkets()
 
   useEffect(() => {
     if (marketRecords) {
@@ -57,10 +57,10 @@ export const useLenderAPRChanges = (address?: `0x${string}`) => {
   }, [marketRecords])
 
   return () => {
-    if (!address || !markets || isLoading) return
-    markets.forEach((market) => {
+    if (!address || !marketAccounts || isLoading) return
+    marketAccounts.forEach((marketAccount) => {
       getMarketRecords(SubgraphClient, {
-        market,
+        market: marketAccount.market,
         kinds: ["AnnualInterestBipsUpdated"],
         additionalFilter: {
           blockTimestamp_gt: getLastFetchedTimestamp(address),
@@ -70,7 +70,7 @@ export const useLenderAPRChanges = (address?: `0x${string}`) => {
           setMarketRecords((prev) => [
             ...prev,
             {
-              marketName: market.name,
+              marketName: marketAccount.market.name,
               records: records as AnnualInterestBipsUpdatedRecord[],
             },
           ])

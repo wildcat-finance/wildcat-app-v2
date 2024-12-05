@@ -24,7 +24,7 @@ export const useLenderTokensAvailables = (address?: `0x${string}`) => {
 
   const dispatch = useDispatch()
 
-  const { data: markets, isLoadingInitial: isLoading } = useLendersMarkets()
+  const { data: marketAccounts, isLoadingInitial: isLoading } = useLendersMarkets()
 
   useEffect(() => {
     if (withdrawalBatches) {
@@ -57,9 +57,9 @@ export const useLenderTokensAvailables = (address?: `0x${string}`) => {
   }, [withdrawalBatches])
 
   return () => {
-    if (!address || !markets || isLoading) return
-    markets.forEach((market) => {
-      getWithdrawalBatch(market, 0)
+    if (!address || !marketAccounts || isLoading) return
+    marketAccounts.forEach((marketAccount) => {
+      getWithdrawalBatch(marketAccount.market, 0)
         .then((batch: WithdrawalBatch) => {
           setWithdrawalBatches((prev) => [...prev, batch])
         })

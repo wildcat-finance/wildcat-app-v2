@@ -4,6 +4,7 @@ import {
   getMarketRecords,
   MarketRecord,
   DelinquencyStatusChangedRecord,
+  Market,
 } from "@wildcatfi/wildcat-sdk"
 import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
@@ -60,7 +61,7 @@ export const useMarketStatusChanges = (address?: `0x${string}`) => {
 
   return () => {
     if (!address || !markets || isLoading) return
-    markets.forEach((market) => {
+    markets.forEach((market: Market) => {
       getMarketRecords(SubgraphClient, {
         market,
         kinds: ["DelinquencyStatusChanged"],

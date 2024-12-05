@@ -5,6 +5,7 @@ import {
   MarketRecord,
   AnnualInterestBipsUpdatedRecord,
   MarketClosedRecord,
+  Market,
 } from "@wildcatfi/wildcat-sdk"
 import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
@@ -57,7 +58,7 @@ export const useMarketTerminateds = (address?: `0x${string}`) => {
 
   return () => {
     if (!address || !markets || isLoading) return
-    markets.forEach((market) => {
+    markets.forEach((market: Market) => {
       getMarketRecords(SubgraphClient, {
         market,
         kinds: ["MarketClosed"],
