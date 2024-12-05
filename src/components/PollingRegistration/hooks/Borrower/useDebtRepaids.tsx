@@ -11,7 +11,7 @@ import { addNotification } from "@/store/slices/notificationsSlice/notifications
 import { formatTokenAmount } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
-import { TDebtRepaid } from "../interface"
+import { TDebtRepaid } from "../../interface"
 
 export const useDebtRepaids = (
   marketIds: string[],

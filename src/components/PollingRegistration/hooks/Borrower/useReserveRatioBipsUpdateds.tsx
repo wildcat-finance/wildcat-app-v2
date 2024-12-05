@@ -13,7 +13,7 @@ import { COLORS } from "@/theme/colors"
 import { formatBps, MARKET_PARAMS_DECIMALS } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
-import { TReserveRatioBipsUpdated } from "../interface"
+import { TReserveRatioBipsUpdated } from "../../interface"
 
 export const useReserveRatioBipsUpdateds = (
   marketIds: string[],

@@ -7,7 +7,7 @@ import { useDispatch } from "react-redux"
 
 import { EtherscanBaseUrl } from "@/config/network"
 import { lazyQueryOptions } from "@/config/subgraph"
-import { LENDER_AUTHORIZATION_CHANGES } from "@/graphql/queries"
+import { AUTHORIZATION_CHANGES } from "@/graphql/queries"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { COLORS } from "@/theme/colors"
 import {
@@ -17,7 +17,7 @@ import {
 } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
-import { TLenderAuthorizationChange } from "../interface"
+import { TAuthorizationChange } from "../../interface"
 
 export const useLenderAuthorizationChanges = (
   marketIds: string[],
@@ -27,14 +27,14 @@ export const useLenderAuthorizationChanges = (
   const { t } = useTranslation()
 
   const [fetchLenderAuthorizationChanges, { data, error }] = useLazyQuery(
-    LENDER_AUTHORIZATION_CHANGES,
+    AUTHORIZATION_CHANGES,
     lazyQueryOptions,
   )
 
   useEffect(() => {
     if (data) {
       data.lenderAuthorizationChanges.forEach(
-        (change: TLenderAuthorizationChange) => {
+        (change: TAuthorizationChange) => {
           if (!change.authorized) {
             change.authorization.marketAccounts.forEach((marketAccount) => {
               dispatch(

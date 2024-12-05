@@ -13,7 +13,7 @@ import { COLORS } from "@/theme/colors"
 import { formatTokenAmount } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
-import { TWithdrawalBatchExpired } from "../interface"
+import { TWithdrawalBatchExpired } from "../../interface"
 
 export const useWithdrawalBatchExpireds = (
   marketIds: string[],

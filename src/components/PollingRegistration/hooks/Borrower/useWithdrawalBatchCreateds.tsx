@@ -18,7 +18,7 @@ import {
 } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
-import { TWithdrawalBatchCreated } from "../interface"
+import { TWithdrawalBatchCreated } from "../../interface"
 
 export const useWithdrawalBatchCreateds = (
   marketIds: string[],

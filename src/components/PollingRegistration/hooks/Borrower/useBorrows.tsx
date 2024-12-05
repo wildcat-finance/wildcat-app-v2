@@ -1,7 +1,6 @@
 import { useEffect } from "react"
 
 import { useLazyQuery } from "@apollo/client"
-import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
@@ -9,10 +8,10 @@ import { EtherscanBaseUrl } from "@/config/network"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { BORROWS } from "@/graphql/queries"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
-import { formatTokenAmount, formatTokenWithCommas } from "@/utils/formatters"
+import { formatTokenAmount } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
-import { TBorrow } from "../interface"
+import { TBorrow } from "../../interface"
 
 export const useBorrows = (marketIds: string[], address?: `0x${string}`) => {
   const dispatch = useDispatch()
