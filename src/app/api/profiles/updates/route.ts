@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 
-let mockProfile = {
+import { BorrowerProfile } from "@/app/api/profiles/interface"
+
+let mockProfile: BorrowerProfile = {
   address: "0x1717503EE3f56e644cf8b1058e3F83F03a71b2E1",
   name: "Wintermute LLC",
   description:
@@ -8,8 +10,12 @@ let mockProfile = {
   founded: "2017",
   headquarters: "London",
   website: "https://wintermute.com/",
-  twitter: "",
-  linkedin: "",
+  twitter: "wintermute_t",
+  linkedin: "https://uk.linkedin.com/company/wintermute-trading",
+  jurisdiction: "UK",
+  legalNature: "llc",
+  companyAddress: "48 Station Road, London, N73 8QA",
+  email: "example@domain.com",
   updatedAt: 1679616000000,
 }
 

@@ -12,6 +12,10 @@ let mockProfile: BorrowerProfile = {
   website: "https://wintermute.com/",
   twitter: "wintermute_t",
   linkedin: "https://uk.linkedin.com/company/wintermute-trading",
+  jurisdiction: "UK",
+  legalNature: "llc",
+  companyAddress: "48 Station Road, London, N73 8QA",
+  email: "example@domain.com",
   updatedAt: 1679616000000,
 }
 
@@ -25,6 +29,10 @@ const otherMockedProfile: BorrowerProfile = {
   website: "https://wildcat.finance/",
   twitter: "WildcatFi",
   linkedin: undefined,
+  jurisdiction: undefined,
+  legalNature: undefined,
+  companyAddress: undefined,
+  email: undefined,
   updatedAt: 1679616000000,
 }
 

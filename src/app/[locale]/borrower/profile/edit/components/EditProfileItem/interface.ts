@@ -22,7 +22,7 @@ export type EditProfileItemProps = {
     | "linkedin"
     | "jurisdiction"
     | "legalNature"
-    | "address"
+    | "companyAddress"
     | "email"
   oldValue: string | undefined
   newValue?: string

@@ -37,17 +37,13 @@ import {
   useGetBorrowerProfile,
   useInvalidateBorrowerProfile,
 } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
-import { BorrowerProfile } from "@/app/api/profiles/interface"
+import {
+  BorrowerProfile,
+  BorrowerProfileInput,
+} from "@/app/api/profiles/interface"
 import { mockedNaturesOptions } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-
-const mockPrivateInfo = {
-  jurisdiction: undefined,
-  legalNature: undefined,
-  address: undefined,
-  email: undefined,
-}
 
 export default function EditProfile() {
   const router = useRouter()
@@ -60,19 +56,19 @@ export default function EditProfile() {
   const { data: publicData, isLoading: isPublicDataLoading } =
     useGetBorrowerProfile(address)
   const invalidateBorrowerProfile = useInvalidateBorrowerProfile(address)
-  const privateData = mockPrivateInfo
 
   const isLoading = isPublicDataLoading
 
   const { mutate } = useUpdateBorrowerProfile()
 
+  const [avatar, setAvatar] = useState<string | undefined>(undefined)
+
   const {
     getValues: getPublicValues,
     setValue: setPublicValue,
     register: registerPublic,
-    formState: { errors: publicErrors, isValid },
+    formState: { errors: publicErrors },
     watch: publicWatch,
-    reset: publicReset,
   } = publicForm
 
   const {
@@ -81,11 +77,11 @@ export default function EditProfile() {
     register: registerPrivate,
     formState: { errors: privateErrors },
     watch: privateWatch,
-    reset: privateReset,
   } = privateForm
 
-  const publicInfo = {
+  const publicInfo: BorrowerProfileInput = {
     address: address as string,
+    avatar,
     name: getPublicValues().legalName,
     description: getPublicValues().description,
     founded: getPublicValues().founded,
@@ -93,13 +89,9 @@ export default function EditProfile() {
     website: getPublicValues().website,
     twitter: getPublicValues().twitter,
     linkedin: getPublicValues().linkedin,
-    updatedAt: Date.now(),
-  }
-
-  const privateInfo = {
     jurisdiction: getPrivateValues().jurisdiction,
     legalNature: getPrivateValues().legalNature,
-    address: getPrivateValues().address,
+    companyAddress: getPrivateValues().companyAddress,
     email: getPrivateValues().email,
   }
 
@@ -117,12 +109,8 @@ export default function EditProfile() {
   }
 
   const arePublicInfoEqual =
-    JSON.stringify(excludeKeys(publicInfo, ["updatedAt"])) ===
+    JSON.stringify(publicInfo) ===
     JSON.stringify(excludeKeys(publicData, ["updatedAt"]))
-
-  const disableConfirm = arePublicInfoEqual || !isValid
-
-  const [avatar, setAvatar] = useState<string | null>(null)
 
   const handleNatureSelect = (event: SelectChangeEvent<string | null>) => {
     setPrivateValue("legalNature", event.target.value?.toString() || "")
@@ -152,17 +140,17 @@ export default function EditProfile() {
 
   useEffect(() => {
     setPublicValue("legalName", publicData?.name || "")
-    setPublicValue("description", publicData?.description || "")
-    setPublicValue("founded", publicData?.founded || "")
-    setPublicValue("headquarters", publicData?.headquarters || "")
-    setPublicValue("website", publicData?.website || "")
-    setPublicValue("twitter", publicData?.twitter || "")
-    setPublicValue("linkedin", publicData?.linkedin || "")
+    setPublicValue("description", publicData?.description)
+    setPublicValue("founded", publicData?.founded)
+    setPublicValue("headquarters", publicData?.headquarters)
+    setPublicValue("website", publicData?.website)
+    setPublicValue("twitter", publicData?.twitter)
+    setPublicValue("linkedin", publicData?.linkedin)
 
-    setPrivateValue("jurisdiction", privateData.jurisdiction)
-    setPrivateValue("legalNature", privateData.legalNature)
-    setPrivateValue("address", privateData.address)
-    setPrivateValue("email", privateData.email)
+    setPrivateValue("jurisdiction", publicData?.jurisdiction)
+    setPrivateValue("legalNature", publicData?.legalNature)
+    setPrivateValue("companyAddress", publicData?.companyAddress)
+    setPrivateValue("email", publicData?.email)
   }, [publicData])
 
   const selectRef = useRef<HTMLElement>(null)
@@ -360,7 +348,7 @@ export default function EditProfile() {
           tooltip={t("borrowerProfile.edit.private.jurisdiction.tooltip")}
           form={privateForm}
           field="jurisdiction"
-          oldValue={privateData.jurisdiction}
+          oldValue={publicData?.jurisdiction}
           newValue={privateWatch("jurisdiction")}
           isLoading={isLoading}
         >
@@ -379,8 +367,8 @@ export default function EditProfile() {
           title={t("borrowerProfile.edit.private.nature.title")}
           tooltip={t("borrowerProfile.edit.private.nature.tooltip")}
           form={privateForm}
-          oldValue={privateData.legalNature}
-          oldLabel={getLabelByValue(privateData.legalNature)}
+          oldValue={publicData?.legalNature}
+          oldLabel={getLabelByValue(publicData?.legalNature)}
           newValue={privateWatch("legalNature")}
           isLoading={isLoading}
         >
@@ -393,7 +381,7 @@ export default function EditProfile() {
               onOpen={onOpen}
               onClose={onClose}
               onChange={handleNatureSelect}
-              value={getPrivateValues().legalNature}
+              value={privateWatch("legalNature")}
               MenuProps={{
                 sx: SelectStyles,
                 anchorOrigin: {
@@ -423,17 +411,17 @@ export default function EditProfile() {
           title={t("borrowerProfile.edit.private.address.title")}
           tooltip={t("borrowerProfile.edit.private.address.tooltip")}
           form={privateForm}
-          field="address"
-          oldValue={privateData.address}
-          newValue={privateWatch("address")}
+          field="companyAddress"
+          oldValue={publicData?.companyAddress}
+          newValue={privateWatch("companyAddress")}
           isLoading={isLoading}
         >
           <TextField
             placeholder={t("borrowerProfile.edit.private.address.placeholder")}
             fullWidth
-            error={Boolean(privateErrors.address)}
-            helperText={privateErrors.address?.message}
-            {...registerPrivate("address")}
+            error={Boolean(privateErrors.companyAddress)}
+            helperText={privateErrors.companyAddress?.message}
+            {...registerPrivate("companyAddress")}
           />
         </EditProfileItem>
 
@@ -442,7 +430,7 @@ export default function EditProfile() {
           tooltip={t("borrowerProfile.edit.private.email.tooltip")}
           form={privateForm}
           field="email"
-          oldValue={privateData.email}
+          oldValue={publicData?.email}
           newValue={privateWatch("email")}
           isLoading={isLoading}
         >
@@ -467,7 +455,7 @@ export default function EditProfile() {
             size="large"
             sx={{ width: "156px" }}
             onClick={handleSendUpdate}
-            disabled={disableConfirm}
+            disabled={arePublicInfoEqual}
           >
             {t("borrowerProfile.edit.buttons.confirm")}
           </Button>

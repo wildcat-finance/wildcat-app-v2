@@ -28,13 +28,14 @@ export const useUpdateBorrowerProfile = () => {
   const updateBorrowerProfile = async (
     profile: BorrowerProfileInput,
     signature: string,
+    updatedAt: number,
   ) => {
     const response = await fetch(`/api/profiles/${profile.address}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ ...profile, signature }),
+      body: JSON.stringify({ ...profile, signature, updatedAt }),
     })
 
     if (!response.ok) {
@@ -64,7 +65,7 @@ export const useUpdateBorrowerProfile = () => {
         throw new Error("Failed to obtain blockchain signature")
       }
 
-      return updateBorrowerProfile(profile, signature)
+      return updateBorrowerProfile(profile, signature, Date.now())
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BORROWER_PROFILE_KEY] })
