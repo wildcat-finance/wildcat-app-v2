@@ -25,7 +25,7 @@ export const useDepositeds = (address?: `0x${string}`) => {
 
   const dispatch = useDispatch()
 
-  const { data: markets, isLoading: isLoading } = useGetBorrowerMarkets()
+  const { data: markets, isLoading } = useGetBorrowerMarkets()
 
   useEffect(() => {
     if (marketRecords) {

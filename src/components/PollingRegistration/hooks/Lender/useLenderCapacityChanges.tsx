@@ -25,7 +25,8 @@ export const useLenderCapacityChanges = (address?: `0x${string}`) => {
 
   const dispatch = useDispatch()
 
-  const { data: marketAccounts, isLoadingInitial: isLoading } = useLendersMarkets()
+  const { data: marketAccounts, isLoadingInitial: isLoading } =
+    useLendersMarkets()
 
   useEffect(() => {
     if (marketRecords) {
