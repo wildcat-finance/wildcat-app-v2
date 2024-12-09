@@ -16,5 +16,6 @@ export const ROUTES = {
   lender: {
     root: LENDER_ROOT,
     market: `${LENDER_ROOT}/market`,
+    profile: `${LENDER_ROOT}/profile`,
   },
 }
