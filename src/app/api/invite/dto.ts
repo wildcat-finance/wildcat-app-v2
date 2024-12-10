@@ -10,5 +10,4 @@ export const AcceptInvitationInputDTO = z.object({
 export const BorrowerInvitationInputDTO = z.object({
   address: z.string().min(2).max(42),
   name: z.string().min(1).max(64),
-  inviter: z.string().min(2).max(42),
 })

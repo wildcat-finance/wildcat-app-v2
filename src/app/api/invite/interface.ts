@@ -4,7 +4,6 @@ export interface BorrowerInvitation {
   chainId: number
   address: string
   name: string
-  inviter: string
   timeInvited: Date
 }
 
@@ -12,7 +11,6 @@ export interface BorrowerInvitation {
 export interface BorrowerInvitationInput {
   address: string
   name: string
-  inviter: string
 }
 
 /// Input for accepting an invitation.

@@ -11,11 +11,16 @@ import { getZodParseError } from "@/lib/zod-error"
 
 import { AcceptInvitationInputDTO, BorrowerInvitationInputDTO } from "./dto"
 import { AcceptInvitationInput, BorrowerInvitationInput } from "./interface"
+import { verifyApiToken } from "../auth/verify-header"
 
 /// GET /api/invite
 /// Route to get borrower invitations.
 /// Admin-only endpoint.
 export async function GET(request: NextRequest) {
+  const token = await verifyApiToken(request)
+  if (!token?.isAdmin) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
   const allInvitations = await prisma.borrowerInvitation.findMany({
     where: {
       chainId: TargetChainId,
@@ -28,6 +33,10 @@ export async function GET(request: NextRequest) {
 /// Route to create a new invitation for a borrower.
 /// Admin-only endpoint.
 export async function POST(request: NextRequest) {
+  const token = await verifyApiToken(request)
+  if (!token?.isAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
   let body: BorrowerInvitationInput
   try {
     const input = await request.json()
@@ -37,8 +46,8 @@ export async function POST(request: NextRequest) {
   }
   const address = body.address.toLowerCase()
   const chainId = TargetChainId
-  console.log(`CHAIN ID: ${chainId}`)
-  const { name, inviter } = body
+  const { name } = body
+  const inviter = token.address
   const existingBorrower = await prisma.borrower.findFirst({
     where: {
       chainId,
@@ -99,6 +108,10 @@ export async function POST(request: NextRequest) {
 /// Route to delete an invitation for a borrower.
 /// Admin-only endpoint.
 export async function DELETE(request: NextRequest) {
+  const token = await verifyApiToken(request)
+  if (!token?.isAdmin) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
   const address = request.nextUrl.searchParams.get("address")
   if (!address) {
     return NextResponse.json(
@@ -118,7 +131,7 @@ export async function DELETE(request: NextRequest) {
 
 /// PUT /api/invite
 /// Route for accepting a borrower invitation.
-/// Borrower-only endpoint.
+/// Borrower-only endpoint but does not require login.
 ///
 /// Borrower must provide:
 /// address
@@ -126,6 +139,10 @@ export async function DELETE(request: NextRequest) {
 /// signature
 /// dateSigned
 export async function PUT(request: NextRequest) {
+  const token = await verifyApiToken(request)
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
   let body: AcceptInvitationInput
   try {
     const input = await request.json()
@@ -133,7 +150,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     return getZodParseError(error)
   }
-  const address = body.address.toLowerCase()
+  const address = token.address.toLowerCase()
   const chainId = TargetChainId
   const { name, dateSigned, signature } = body
   const borrowerInvitation = await findBorrowerWithPendingInvitation(address)
