@@ -7,7 +7,14 @@ import {
   ISafe__factory,
 } from "@wildcatfi/wildcat-sdk/dist/typechain"
 import { providers, CallOverrides, constants, utils } from "ethers"
-import { defaultAbiCoder, hexlify, toUtf8Bytes } from "ethers/lib/utils"
+import {
+  defaultAbiCoder,
+  getAddress,
+  hexlify,
+  toUtf8Bytes,
+} from "ethers/lib/utils"
+
+import { VerifiedSignature, VerifySignatureOptions } from "./interface"
 
 type JsonRpcProvider = providers.JsonRpcProvider
 
@@ -19,6 +26,7 @@ export async function checkSafeSignature(
   address: string,
   message: string,
   signature: string,
+  { blockTag, ...otherOverrides }: CallOverrides = {},
 ): Promise<boolean[]> {
   if (!message.startsWith("0x")) {
     message = hexlify(toUtf8Bytes(message))
@@ -29,7 +37,10 @@ export async function checkSafeSignature(
       .encode(["address", "bytes", "bytes"], [address, message, signature])
       .slice(2),
   )
-  const result = await provider.call({ data: bytecode })
+  const result = await provider.call(
+    { data: bytecode, ...otherOverrides },
+    blockTag,
+  )
   return defaultAbiCoder.decode(["bool"], result)[0]
 }
 
@@ -76,29 +87,24 @@ async function check1271SignatureBytes(
   }
 }
 
-type VerifySignatureOptions = {
-  provider: JsonRpcProvider
-  address: string
-  /** Whether to allow the signature to be approved by a single owner of a safe */
-  allowSingleSafeOwner?: boolean
-  message: string
-  signature: string
-}
-
 async function verifyGnosisSignature(
   address: string,
   provider: JsonRpcProvider,
   message: string,
+  // eslint-disable-next-line default-param-last
   signature = "0x",
+  overrides?: CallOverrides,
 ): Promise<boolean> {
   const safe = getSafe(address, provider)
-  if (await checkSafeSignature(provider, address, message, signature)) {
+  if (
+    await checkSafeSignature(provider, address, message, signature, overrides)
+  ) {
     return true
   }
-  if (await check1271Signature(safe, message, signature)) {
+  if (await check1271Signature(safe, message, signature, overrides)) {
     return true
   }
-  if (await check1271SignatureBytes(safe, message, signature)) {
+  if (await check1271SignatureBytes(safe, message, signature, overrides)) {
     return true
   }
   return false
@@ -181,4 +187,105 @@ export async function verifySignature({
   }
   // throw new HttpException(405, `Only EOA and Gnosis Safe accounts are supported.`);
   return false
+}
+
+export async function verifyAndDescribeSignature({
+  provider,
+  address,
+  allowSingleSafeOwner,
+  message,
+  signature,
+}: VerifySignatureOptions): Promise<VerifiedSignature | undefined> {
+  const description = await describeAccount(provider, address)
+  if (description.kind === AccountKind.EOA) {
+    if (verifyUserSignature(address, message, signature)) {
+      return { kind: "ECDSA", address, signature }
+    }
+    return undefined
+  }
+  const blockNumber = await provider.getBlockNumber()
+  const overrides: CallOverrides = { blockTag: blockNumber }
+  if (description.kind === AccountKind.Safe) {
+    if (allowSingleSafeOwner) {
+      try {
+        const signer = getUserSignatureAddress(message, signature)
+        if (signer) {
+          const owners = (
+            await getSafe(address, provider).getOwners(overrides)
+          ).map((owner) => owner.toLowerCase())
+          if (owners.includes(signer.toLowerCase())) {
+            return {
+              kind: "GnosisOwnerECDSA",
+              address,
+              owner: signer,
+              blockNumber,
+              signature,
+            }
+          }
+        }
+      } catch (err) {
+        console.log(`Not single owner signature: ${signature}`)
+      }
+    }
+    if (
+      await verifyGnosisSignature(
+        address,
+        provider,
+        message,
+        signature,
+        overrides,
+      )
+    ) {
+      return { kind: "GnosisSignature", address, blockNumber, signature }
+    }
+  }
+  if (description.kind === AccountKind.UnknownContract) {
+    // The gnosis signature verification function also checks 1271 signatures
+    if (
+      await verifyGnosisSignature(
+        address,
+        provider,
+        message,
+        signature,
+        overrides,
+      )
+    ) {
+      return { kind: "EIP1271", address, blockNumber, signature }
+    }
+  }
+  // throw new HttpException(405, `Only EOA and Gnosis Safe accounts are supported.`);
+  return undefined
+}
+
+export function formatSignatureText(signature: VerifiedSignature) {
+  if (signature.kind === "ECDSA") {
+    return [
+      "Signature Kind: ECDSA Personal Sign",
+      `Address: ${getAddress(signature.address)}`,
+      `Signature: ${signature.signature}`,
+    ].join("\n")
+  }
+  if (signature.kind === "GnosisSignature") {
+    return [
+      "Signature Kind: Gnosis Safe Signature",
+      `Gnosis Safe: ${getAddress(signature.address)}`,
+      `Signature: ${signature.signature}`,
+      `Verified at Block Number: ${signature.blockNumber}`,
+    ].join("\n")
+  }
+  if (signature.kind === "GnosisOwnerECDSA") {
+    return [
+      "Signature Kind: ECDSA Personal Sign by Owner of Gnosis Safe",
+      `Gnosis Safe: ${getAddress(signature.address)}`,
+      `Owner: ${getAddress(signature.owner)}`,
+      `Signature: ${signature.signature}`,
+      `Verified at Block Number: ${signature.blockNumber}`,
+    ].join("\n")
+  }
+  return [
+    "Signature Kind: EIP1271 Signature",
+    `Address: ${getAddress(signature.address)}`,
+    `Signature: ${signature.signature}`,
+    `Verified at Block Number: ${signature.blockNumber}`,
+  ].join("\n")
 }
