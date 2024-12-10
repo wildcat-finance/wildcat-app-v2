@@ -5,6 +5,9 @@ import { prisma } from "@/lib/db"
 
 import { BorrowerProfile } from "../interface"
 
+// @todo hide borrower info if they only have a pending invite but
+// have not accepted it yet
+
 /// GET /api/profiles/[address]
 export async function GET(
   request: NextRequest,

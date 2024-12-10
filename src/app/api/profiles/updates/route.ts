@@ -10,6 +10,7 @@ import {
   BorrowerProfileUpdateResponseDTO,
 } from "./dto"
 import { BorrowerProfileUpdateResponse } from "./interface"
+import { verifyApiToken } from "../../auth/verify-header"
 import { BorrowerProfileInput } from "../interface"
 
 /// POST /api/profiles/updates
@@ -18,6 +19,10 @@ import { BorrowerProfileInput } from "../interface"
 ///
 /// Borrower-only endpoint.
 export async function POST(request: NextRequest) {
+  const token = await verifyApiToken(request)
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
   let data: BorrowerProfileInput
   try {
     const input = await request.json()
@@ -26,11 +31,7 @@ export async function POST(request: NextRequest) {
     return getZodParseError(error)
   }
 
-  console.log(`RECEIVE POST /api/profiles/updates`)
-  console.log(data)
-
   const {
-    address: rawAddress,
     name,
     description,
     founded,
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
     email,
   } = data
 
-  const address = rawAddress.toLowerCase()
+  const address = token.address.toLowerCase()
   const chainId = TargetChainId
   const existingBorrower = await prisma.borrower.findFirst({
     where: {
@@ -97,6 +98,13 @@ export async function GET(request: NextRequest) {
 /// PUT /api/profiles/updates
 /// Accept or reject a borrower profile update
 export async function PUT(request: NextRequest) {
+  const token = await verifyApiToken(request)
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  if (!token.isAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
   let data: BorrowerProfileUpdateResponse
   try {
     data = BorrowerProfileUpdateResponseDTO.parse(await request.json())

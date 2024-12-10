@@ -15,5 +15,5 @@ export interface BorrowerProfile {
 
 export type BorrowerProfileInput = Omit<
   BorrowerProfile,
-  "registeredOnChain" | "chainId"
+  "registeredOnChain" | "chainId" | "address"
 >
