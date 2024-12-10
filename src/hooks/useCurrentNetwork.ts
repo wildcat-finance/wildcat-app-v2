@@ -13,6 +13,7 @@ export const useCurrentNetwork = () => {
 
   return {
     chainId: chain?.id,
+    networkName: chain?.name,
     isWrongNetwork: checkIsWrongNetwork(chain?.id),
     isTestnet,
   }
