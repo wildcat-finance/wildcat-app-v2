@@ -1,5 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit"
+import { persistStore } from "redux-persist"
 
+import apiTokensSlice from "./slices/apiTokensSlice/apiTokensSlice"
 import borrowerLendersTabSidebarSlice from "./slices/borrowerLendersTabSidebarSlice/borrowerLendersTabSidebarSlice"
 import borrowerOverviewSlice from "./slices/borrowerOverviewSlice/borrowerOverviewSlice"
 import editLendersListSlice from "./slices/editLendersListSlice/editLendersListSlice"
@@ -11,9 +13,10 @@ import notificationsSidebarSlice from "./slices/notificationsSidebarSlice/notifi
 import notificationsSlice from "./slices/notificationsSlice/notificationsSlice"
 import routingSlice from "./slices/routingSlice/routingSlice"
 
-export const makeStore = () =>
-  configureStore({
+export const makeStore = () => {
+  const store = configureStore({
     reducer: {
+      apiTokens: apiTokensSlice,
       routing: routingSlice,
       marketsOverviewSidebar: marketsOverviewSidebarSlice,
       highlightSidebar: highlightSidebarSlice,
@@ -25,7 +28,18 @@ export const makeStore = () =>
       notificationsSidebar: notificationsSidebarSlice,
       borrowerLendersTabSidebar: borrowerLendersTabSidebarSlice,
     },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        serializableCheck: {
+          ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
+        },
+      }),
   })
+
+  persistStore(store)
+
+  return store
+}
 
 export type AppStore = ReturnType<typeof makeStore>
 export type RootState = ReturnType<AppStore["getState"]>
