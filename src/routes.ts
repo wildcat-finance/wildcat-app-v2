@@ -10,6 +10,7 @@ export const ROUTES = {
     lendersList: `${BORROWER_ROOT}/edit-lenders-list`,
     notifications: `${BORROWER_ROOT}/notifications`,
     editPolicy: `${BORROWER_ROOT}/edit-policy`,
+    invitation: `${BORROWER_ROOT}/invitation`,
   },
   lender: {
     root: LENDER_ROOT,
