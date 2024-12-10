@@ -18,7 +18,7 @@ export async function GET(
     },
   })
   if (!borrower) {
-    return NextResponse.json({ profile: null })
+    return NextResponse.json({ profile: null }, { status: 404 })
   }
   const profile: BorrowerProfile = {
     address: borrower.address,
