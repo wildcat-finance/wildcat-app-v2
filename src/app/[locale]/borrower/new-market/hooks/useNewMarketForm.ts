@@ -13,7 +13,7 @@ import { mockedMarketTypes } from "@/mocks/mocks"
 import { formatConstrainToNumber } from "@/utils/formatters"
 
 export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
-  marketType: mockedMarketTypes[0].value,
+  marketType: "",
   maxTotalSupply: undefined,
   annualInterestBips: undefined,
   delinquencyFeeBips: undefined,
@@ -25,9 +25,9 @@ export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   allowClosureBeforeTerm: false,
   allowTermReduction: false,
   allowForceBuyBack: false,
-  policy: "createNewPolicy",
+  policy: "",
   policyName: "",
-  accessControl: "defaultPullProvider",
+  accessControl: "",
   mla: "",
   marketName: "aa",
   asset: "0x",

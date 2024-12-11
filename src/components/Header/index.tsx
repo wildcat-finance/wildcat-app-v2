@@ -53,7 +53,24 @@ export default function Header() {
             {t("header.role.borrower")}
           </Typography>
         </Link>
-        <Switch onClick={handleToggleSide} checked={side === "lender"} />
+        <Switch
+          sx={{
+            "& .MuiSwitch-switchBase": {
+              "&.Mui-checked": {
+                "& + .MuiSwitch-track": {
+                  opacity: 0.3,
+                  backgroundColor: COLORS.white,
+                },
+              },
+            },
+            "& .MuiSwitch-track": {
+              opacity: 0.3,
+              backgroundColor: COLORS.white,
+            },
+          }}
+          onClick={handleToggleSide}
+          checked={side === "lender"}
+        />
         <Link href={ROUTES.lender.root} style={{ textDecoration: "none" }}>
           <Typography
             variant="text2Highlighted"

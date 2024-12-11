@@ -347,7 +347,7 @@
           "policy": {
             "title": "Market Policy",
             "subtitle": "The market policy determines the type of loan and access controls.",
-            "placeholder": "Select a policy",
+            "placeholder": "Please Select",
             "tooltip": "TBD"
           },
           "marketName": {
@@ -357,7 +357,7 @@
           },
           "policyName": {
             "title": "Policy Name",
-            "placeholder": "Wildcat Standard Policy",
+            "placeholder": "Enter Policy Name",
             "tooltip": "TBD"
           },
           "mla": {

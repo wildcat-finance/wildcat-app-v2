@@ -165,7 +165,7 @@ export default function Borrower() {
           <Link
             href={
               tab === "markets"
-                ? ROUTES.borrower.newMarket
+                ? ROUTES.borrower.createMarket
                 : ROUTES.borrower.lendersList
             }
           >

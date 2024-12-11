@@ -1,5 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit"
 
+import createMarketSidebarSlice from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
+
 import borrowerLendersTabSidebarSlice from "./slices/borrowerLendersTabSidebarSlice/borrowerLendersTabSidebarSlice"
 import borrowerOverviewSlice from "./slices/borrowerOverviewSlice/borrowerOverviewSlice"
 import editLendersListSlice from "./slices/editLendersListSlice/editLendersListSlice"
@@ -15,6 +17,7 @@ export const makeStore = () =>
   configureStore({
     reducer: {
       routing: routingSlice,
+      createMarketSidebar: createMarketSidebarSlice,
       marketsOverviewSidebar: marketsOverviewSidebarSlice,
       highlightSidebar: highlightSidebarSlice,
       lenderMarketRouting: lenderMarketRoutingSlice,

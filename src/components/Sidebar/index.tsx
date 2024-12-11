@@ -3,6 +3,7 @@
 import { Box } from "@mui/material"
 import { usePathname } from "next/navigation"
 
+import { CreateMarketSidebar } from "@/components/Sidebar/CreateMarketSidebar"
 import { LenderMarketSidebar } from "@/components/Sidebar/LenderMarketSidebar"
 import { LenderListSidebar } from "@/components/Sidebar/LendersListSidebar"
 import { MarketSidebar } from "@/components/Sidebar/MarketSidebar"
@@ -56,6 +57,7 @@ export const Sidebar = () => {
       {pathname.includes(ROUTES.borrower.market) && <MarketSidebar />}
       {pathname.includes(ROUTES.lender.market) && <LenderMarketSidebar />}
       {pathname === ROUTES.borrower.newMarket && <NewMarketSidebar />}
+      {pathname === ROUTES.borrower.createMarket && <CreateMarketSidebar />}
       {pathname === ROUTES.borrower.lendersList && <LenderListSidebar />}
       {pathname === ROUTES.borrower.editPolicy && <EditPolicySidebar />}
       {pathname === ROUTES.borrower.notifications && <NotificationsSidebar />}
