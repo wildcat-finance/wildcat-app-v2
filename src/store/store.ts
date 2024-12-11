@@ -8,6 +8,7 @@ import editLendersListSlice from "./slices/editLendersListSlice/editLendersListS
 import editPolicySlice from "./slices/editPolicySlice/editPolicySlice"
 import highlightSidebarSlice from "./slices/highlightSidebarSlice/highlightSidebarSlice"
 import lenderMarketRoutingSlice from "./slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
+import lenderMlaSignaturesSlice from "./slices/lenderMlaSignaturesSlice/mlaSignaturesSlice"
 import marketsOverviewSidebarSlice from "./slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import notificationsSidebarSlice from "./slices/notificationsSidebarSlice/notificationsSidebarSlice"
 import notificationsSlice from "./slices/notificationsSlice/notificationsSlice"
@@ -27,6 +28,7 @@ export const makeStore = () => {
       notifications: notificationsSlice,
       notificationsSidebar: notificationsSidebarSlice,
       borrowerLendersTabSidebar: borrowerLendersTabSidebarSlice,
+      lenderMlaSignatures: lenderMlaSignaturesSlice,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
