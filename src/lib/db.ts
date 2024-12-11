@@ -1,7 +1,14 @@
 import { PrismaClient } from "@prisma/client"
+import { MakeOptional } from "@wildcatfi/wildcat-sdk"
 
+import {
+  MasterLoanAgreementResponse,
+  MlaSignatureResponse,
+} from "@/app/api/mla/interface"
 import { BorrowerProfileUpdate } from "@/app/api/profiles/updates/interface"
 import { TargetChainId } from "@/config/network"
+
+import { MlaTemplateField } from "./mla"
 
 export const prisma = new PrismaClient()
 
@@ -78,4 +85,53 @@ export async function getBorrowerProfileUpdates(
       },
     }),
   )
+}
+
+export async function getSignedMasterLoanAgreement(
+  market: string,
+): Promise<
+  MakeOptional<MasterLoanAgreementResponse, "borrowerSignature"> | undefined
+> {
+  market = market.toLowerCase()
+  const mla:
+    | Omit<MasterLoanAgreementResponse, "borrowerSignature">
+    | undefined = await prisma.masterLoanAgreement
+    .findUnique({
+      where: {
+        chainId_market: {
+          chainId: TargetChainId,
+          market,
+        },
+      },
+    })
+    .then((obj) => {
+      if (!obj) return undefined
+      const { lenderFields, ...rest } = obj
+      return {
+        ...rest,
+        lenderFields: lenderFields as MlaTemplateField[],
+      }
+    })
+  if (!mla) return undefined
+  const borrowerSignature: MlaSignatureResponse | undefined =
+    await prisma.mlaSignature
+      .findFirst({
+        where: {
+          chainId: TargetChainId,
+          market,
+          address: mla.borrower,
+        },
+      })
+      .then((obj) => {
+        if (!obj) return undefined
+        const { blockNumber, ...rest } = obj
+        return {
+          ...rest,
+          blockNumber: blockNumber || undefined,
+        } as MlaSignatureResponse
+      })
+  return {
+    ...mla,
+    borrowerSignature,
+  }
 }

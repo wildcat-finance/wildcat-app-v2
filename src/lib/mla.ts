@@ -14,8 +14,6 @@ import { getAddress } from "viem"
 import { TargetChainId } from "@/config/network"
 import { formatBps } from "@/utils/formatters"
 
-import { VerifiedSignature } from "./signatures/interface"
-
 type NetworkData = {
   chainId?: number
   name?: string
