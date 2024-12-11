@@ -20,3 +20,9 @@ export interface AcceptInvitationInput {
   signature: string
   dateSigned: string
 }
+
+export type BorrowerInvitationForAdminView = BorrowerInvitation & {
+  hasSignedServiceAgreement: boolean
+  timeSigned: Date | null
+  registeredOnChain: boolean
+}

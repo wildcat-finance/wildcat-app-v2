@@ -10,7 +10,11 @@ import { verifySignature } from "@/lib/signatures"
 import { getZodParseError } from "@/lib/zod-error"
 
 import { AcceptInvitationInputDTO, BorrowerInvitationInputDTO } from "./dto"
-import { AcceptInvitationInput, BorrowerInvitationInput } from "./interface"
+import {
+  AcceptInvitationInput,
+  BorrowerInvitationForAdminView,
+  BorrowerInvitationInput,
+} from "./interface"
 import { verifyApiToken } from "../auth/verify-header"
 
 /// GET /api/invite
@@ -21,11 +25,42 @@ export async function GET(request: NextRequest) {
   if (!token?.isAdmin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  const allInvitations = await prisma.borrowerInvitation.findMany({
-    where: {
-      chainId: TargetChainId,
-    },
-  })
+  const onlyPendingInvitations = request.nextUrl.searchParams.get(
+    "onlyPendingInvitations",
+  )
+  const allInvitations = (
+    await prisma.borrowerInvitation.findMany({
+      where: {
+        chainId: TargetChainId,
+        ...(onlyPendingInvitations
+          ? {
+              borrower: {
+                serviceAgreementSignature: null,
+              },
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+        chainId: true,
+        address: true,
+        name: true,
+        inviter: true,
+        timeInvited: true,
+        borrower: {
+          select: {
+            serviceAgreementSignature: true,
+            registeredOnChain: true,
+          },
+        },
+      },
+    })
+  ).map(({ borrower, ...rest }) => ({
+    ...rest,
+    hasSignedServiceAgreement: !!borrower.serviceAgreementSignature,
+    timeSigned: borrower.serviceAgreementSignature?.timeSigned,
+    registeredOnChain: borrower.registeredOnChain,
+  })) as BorrowerInvitationForAdminView[]
   return NextResponse.json(allInvitations)
 }
 

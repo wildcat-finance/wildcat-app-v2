@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     return getZodParseError(error)
   }
-  const { signature, timeSigned,  } = body
+  const { signature, timeSigned } = body
   const address = body.address.toLowerCase()
   const dateSigned = dayjs(timeSigned).format(DATE_FORMAT)
   const agreementText = `${AgreementText}\n\nDate: ${dateSigned}`
