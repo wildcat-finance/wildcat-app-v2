@@ -44,7 +44,7 @@ const initialState: CreateMarketSidebarSliceType = {
       title: "Loan Agreement",
       disabled: true,
       valid: false,
-      step: CreateMarketSteps.FINANCIAL,
+      step: CreateMarketSteps.MLA,
     },
     {
       number: 4,

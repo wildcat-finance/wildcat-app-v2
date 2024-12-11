@@ -41,6 +41,7 @@ export const BasicSetupForm = ({ form, tokenAsset }: BasicSetupFormProps) => {
   }
 
   const {
+    getValues,
     setValue,
     register,
     formState: { errors },
@@ -75,8 +76,6 @@ export const BasicSetupForm = ({ form, tokenAsset }: BasicSetupFormProps) => {
         }),
       )
     } else {
-      console.log("TEST 1")
-
       const allStepsToDisable = [
         CreateMarketSteps.BRESTRICTIONS,
         CreateMarketSteps.CONFIRM,

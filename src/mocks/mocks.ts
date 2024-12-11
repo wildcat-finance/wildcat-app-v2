@@ -39,12 +39,12 @@ const mockedAccessControls = [
 
 const mockedMLATemplates = [
   {
-    label: "No MLA",
-    value: "noMLA",
+    label: "Wildcat MLA Template",
+    value: "wildcatMLA",
   },
   {
-    label: "Wildcat MLA template",
-    value: "wildcatMLA",
+    label: "Don’t Use",
+    value: "noMLA",
   },
 ]
 

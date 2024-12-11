@@ -49,11 +49,41 @@ export const GlossarySidebar = ({ stepNumber }: GlossarySidebarProps) => {
       break
     }
     case 3: {
-      glossaryArray = []
+      glossaryArray = [
+        {
+          title: "Master Loan Agreement",
+          description:
+            "A legally binding document that defines the terms, obligations, and penalties for borrowers and lenders in the market.",
+        },
+      ]
       break
     }
     case 4: {
-      glossaryArray = []
+      glossaryArray = [
+        {
+          title: "Max Borrowing Capacity",
+          description:
+            "The total amount borrowers can withdraw from the market.",
+        },
+        {
+          title: "Base APR",
+          description: "The standard interest rate for borrowing.",
+        },
+        {
+          title: "Penalty APR",
+          description:
+            "Additional interest applied when the market is delinquent and beyond the grace period.",
+        },
+        {
+          title: "Reserve Ratio",
+          description:
+            "The percentage of market funds kept unborrowed and locked as reserve.",
+        },
+        {
+          title: "Minimum Deposit",
+          description: "The smallest deposit allowed in the market.",
+        },
+      ]
       break
     }
     case 5: {

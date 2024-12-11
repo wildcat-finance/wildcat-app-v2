@@ -6,7 +6,9 @@ import { Box, Typography } from "@mui/material"
 import { HooksKind, Token } from "@wildcatfi/wildcat-sdk"
 
 import { BasicSetupForm } from "@/app/[locale]/borrower/create-market/components/Forms/BasicSetupForn"
+import { FinancialForm } from "@/app/[locale]/borrower/create-market/components/Forms/FinancialForm"
 import { MarketPolicyForm } from "@/app/[locale]/borrower/create-market/components/Forms/MarketPolicyForm"
+import { MlaForm } from "@/app/[locale]/borrower/create-market/components/Forms/MLAForm"
 import { GlossarySidebar } from "@/app/[locale]/borrower/create-market/components/GlossarySidebar"
 import { useNewMarketForm } from "@/app/[locale]/borrower/new-market/hooks/useNewMarketForm"
 import { useNewMarketHooksData } from "@/app/[locale]/borrower/new-market/hooks/useNewMarketHooksData"
@@ -49,18 +51,6 @@ const CreateMarketStepCounter = ({
     </Typography>
   </Box>
 )
-
-const policyGlossary = [
-  {
-    title: "Market Policy",
-    description:
-      "Rules defining loan type (open or fixed) and access requirements.",
-  },
-  {
-    title: "Policy Name",
-    description: "The name of the market’s rule set.",
-  },
-]
 
 export default function CreateMarketPage() {
   const currentStep = useAppSelector(
@@ -149,7 +139,13 @@ export default function CreateMarketPage() {
           <BasicSetupForm form={newMarketForm} tokenAsset={tokenAsset} />
         )}
 
-        {/* <BasicSetupForm form={newMarketForm} tokenAsset={tokenAsset} /> */}
+        {currentStep === CreateMarketSteps.MLA && (
+          <MlaForm form={newMarketForm} />
+        )}
+
+        {currentStep === CreateMarketSteps.FINANCIAL && (
+          <FinancialForm form={newMarketForm} tokenAsset={tokenAsset} />
+        )}
       </Box>
 
       {currentNumber && <GlossarySidebar stepNumber={currentNumber} />}

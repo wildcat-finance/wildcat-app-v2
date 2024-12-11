@@ -112,8 +112,6 @@ export const MarketPolicyForm = ({
         setIsDisabled({ steps: [CreateMarketSteps.BASIC], disabled: false }),
       )
     } else {
-      console.log("TEST 1")
-
       const allStepsToDisable = [
         CreateMarketSteps.BASIC,
         CreateMarketSteps.BRESTRICTIONS,
