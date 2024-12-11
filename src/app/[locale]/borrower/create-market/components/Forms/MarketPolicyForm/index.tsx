@@ -10,6 +10,10 @@ import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
 import { FormFooter } from "@/app/[locale]/borrower/create-market/components/FormFooter"
+import {
+  FormContainer,
+  SectionGrid,
+} from "@/app/[locale]/borrower/create-market/components/Forms/style"
 import { DropdownOption } from "@/app/[locale]/borrower/new-market/components/NewMarketForm/style"
 import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
@@ -30,7 +34,7 @@ import {
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import { COLORS } from "@/theme/colors"
 
-type NewMarketFormProps = {
+type MarketPolicyFormProps = {
   form: UseFormReturn<MarketValidationSchemaType>
   policyOptions: ExtendedSelectOptionItem[]
 }
@@ -38,7 +42,7 @@ type NewMarketFormProps = {
 export const MarketPolicyForm = ({
   form,
   policyOptions,
-}: NewMarketFormProps) => {
+}: MarketPolicyFormProps) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const router = useRouter()
@@ -106,9 +110,10 @@ export const MarketPolicyForm = ({
     if (isFormValid) {
       dispatch(
         setIsDisabled({ steps: [CreateMarketSteps.BASIC], disabled: false }),
-        setIsValid({ step: CreateMarketSteps.POLICY, valid: isFormValid }),
       )
     } else {
+      console.log("TEST 1")
+
       const allStepsToDisable = [
         CreateMarketSteps.BASIC,
         CreateMarketSteps.BRESTRICTIONS,
@@ -124,17 +129,14 @@ export const MarketPolicyForm = ({
   }, [isFormValid, isFixedTerm])
 
   return (
-    <Box sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
+    <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
         Market Policy
       </Typography>
 
       <Box
         sx={{
-          width: "100%",
-          display: "grid",
-          gridTemplateRows: "repeat(2, 1fr)",
-          gridTemplateColumns: "repeat(2, 1fr)",
+          ...SectionGrid,
           gap: "38px 10px",
         }}
       >
@@ -206,10 +208,7 @@ export const MarketPolicyForm = ({
           <Typography variant="text3">Expiration Date</Typography>
           <Box
             sx={{
-              width: "100%",
-              display: "grid",
-              gridTemplateRows: "repeat(2, 1fr)",
-              gridTemplateColumns: "repeat(2, 1fr)",
+              ...SectionGrid,
               alignItems: "center",
               gap: "20px",
               marginTop: "8px",

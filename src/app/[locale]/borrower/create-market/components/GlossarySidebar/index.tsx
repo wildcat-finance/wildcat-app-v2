@@ -29,7 +29,23 @@ export const GlossarySidebar = ({ stepNumber }: GlossarySidebarProps) => {
       break
     }
     case 2: {
-      glossaryArray = []
+      glossaryArray = [
+        {
+          title: "Underlying Asset",
+          description:
+            "The ERC-20 token used for all transactions in the market, such as Wrapped Ether (wETH) or USDC.",
+        },
+        {
+          title: "Market Token Name",
+          description:
+            "A descriptive name for the tokens lenders receive, representing their share in the market.",
+        },
+        {
+          title: "Market Token Symbol",
+          description:
+            'A short identifier, like "whcWETH," for the tokens lenders receive in the market.',
+        },
+      ]
       break
     }
     case 3: {

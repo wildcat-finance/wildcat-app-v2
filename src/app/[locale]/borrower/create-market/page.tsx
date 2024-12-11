@@ -1,14 +1,16 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { Box, Typography } from "@mui/material"
-import { HooksKind } from "@wildcatfi/wildcat-sdk"
+import { HooksKind, Token } from "@wildcatfi/wildcat-sdk"
 
+import { BasicSetupForm } from "@/app/[locale]/borrower/create-market/components/Forms/BasicSetupForn"
 import { MarketPolicyForm } from "@/app/[locale]/borrower/create-market/components/Forms/MarketPolicyForm"
 import { GlossarySidebar } from "@/app/[locale]/borrower/create-market/components/GlossarySidebar"
 import { useNewMarketForm } from "@/app/[locale]/borrower/new-market/hooks/useNewMarketForm"
 import { useNewMarketHooksData } from "@/app/[locale]/borrower/new-market/hooks/useNewMarketHooksData"
+import { useTokenMetadata } from "@/app/[locale]/borrower/new-market/hooks/useTokenMetadata"
 import { useAppSelector } from "@/store/hooks"
 import { CreateMarketSteps } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import { COLORS } from "@/theme/colors"
@@ -77,6 +79,18 @@ export default function CreateMarketPage() {
 
   const newMarketForm = useNewMarketForm()
 
+  const assetWatch = newMarketForm.watch("asset")
+
+  const { data: assetData } = useTokenMetadata({
+    address: assetWatch?.toLowerCase(),
+  })
+
+  const [tokenAsset, setTokenAsset] = useState<Token | undefined>()
+
+  useEffect(() => {
+    setTokenAsset(assetData)
+  }, [assetData])
+
   const {
     selectedHooksInstance,
     selectedHooksTemplate,
@@ -130,6 +144,12 @@ export default function CreateMarketPage() {
             policyOptions={policyOptions}
           />
         )}
+
+        {currentStep === CreateMarketSteps.BASIC && (
+          <BasicSetupForm form={newMarketForm} tokenAsset={tokenAsset} />
+        )}
+
+        {/* <BasicSetupForm form={newMarketForm} tokenAsset={tokenAsset} /> */}
       </Box>
 
       {currentNumber && <GlossarySidebar stepNumber={currentNumber} />}
