@@ -3,53 +3,34 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import dayjs from "dayjs"
 import { useRouter } from "next/navigation"
 
+import { SignAgreementProps } from "@/app/[locale]/agreement/hooks/useSignAgreement"
 import { toastRequest } from "@/components/Toasts"
-import { TargetNetwork } from "@/config/network"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
+import { useAuthToken } from "@/hooks/useApiAuth"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { HAS_SIGNED_SLA_KEY } from "@/providers/RedirectsProvider/hooks/useHasSignedSla"
-import { SHOULD_REDIRECT_KEY } from "@/providers/RedirectsProvider/hooks/useShouldRedirect"
 import { ROUTES } from "@/routes"
 
-import { SignatureSubmissionProps } from "./interface"
+import {
+  USE_BORROWER_INVITE_EXISTS_KEY,
+  USE_BORROWER_INVITE_KEY,
+} from "../../hooks/useBorrowerInvitation"
 
 const DATE_FORMAT = "MMMM DD, YYYY"
 
-export type SignAgreementProps = {
-  address: string | undefined
-  name: string | undefined
-  timeSigned: number | undefined
-}
-
-export async function submitSignature(input: SignatureSubmissionProps) {
-  const network = TargetNetwork.stringID
-  const url = "http://localhost:3000/api"
-  if (!url) throw Error(`API url not defined`)
-
-  await fetch(`${url}/sla`, {
-    method: "POST",
-    body: JSON.stringify({
-      ...input,
-      network,
-    }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-  })
-}
-
-export const useSignAgreement = () => {
+export const useSubmitAcceptInvitation = () => {
   const { sdk, connected: safeConnected } = useSafeAppsSDK()
   const signer = useEthersSigner()
-  const { replace } = useRouter()
   const client = useQueryClient()
+  const { replace } = useRouter()
+  const token = useAuthToken()
 
   return useMutation({
     mutationFn: async ({ address, name, timeSigned }: SignAgreementProps) => {
       if (!signer) throw Error(`No signer`)
       if (!address) throw Error(`No address`)
       if (!name) throw Error(`No organization name`)
+      if (!timeSigned) throw Error(`No time signed`)
+      if (!token) throw Error(`No token`)
 
       const sign = async () => {
         const dateSigned = dayjs(timeSigned).format(DATE_FORMAT)
@@ -59,15 +40,13 @@ export const useSignAgreement = () => {
         }
 
         if (sdk && safeConnected) {
-          const settings = {
-            offChainSigning: true,
-          }
-          console.log(
-            `Set safe settings: ${await sdk.eth.setSafeSettings([settings])}`,
-          )
+          await sdk.eth.setSafeSettings([
+            {
+              offChainSigning: true,
+            },
+          ])
 
           const result = await sdk.txs.signMessage(agreementText)
-          console.log(result)
 
           if ("safeTxHash" in result) {
             return {
@@ -82,7 +61,6 @@ export const useSignAgreement = () => {
             }
           }
         }
-        console.log(`Signing message with EOA`)
         const signatureResult = await signer.signMessage(agreementText)
         return { signature: signatureResult }
       }
@@ -110,17 +88,21 @@ export const useSignAgreement = () => {
         console.log(`Got result.safeTxHash`)
         console.log(await sdk?.txs.getBySafeTxHash(result.safeTxHash))
       }
-      await submitSignature({
-        signature: result.signature ?? "0x",
-        name,
-        timeSigned,
-        address,
+      await fetch("/api/invite", {
+        method: "PUT",
+        body: JSON.stringify({
+          signature: result.signature ?? "0x",
+          name,
+          timeSigned,
+          address,
+        }),
       })
       return result
     },
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: [SHOULD_REDIRECT_KEY] })
-      client.invalidateQueries({ queryKey: [HAS_SIGNED_SLA_KEY] })
+      console.log(`Invalidating queries`)
+      client.invalidateQueries({ queryKey: [USE_BORROWER_INVITE_KEY] })
+      client.invalidateQueries({ queryKey: [USE_BORROWER_INVITE_EXISTS_KEY] })
       replace(ROUTES.borrower.root)
     },
     onError(error) {
