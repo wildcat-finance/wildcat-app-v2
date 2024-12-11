@@ -105,6 +105,14 @@ export const MarketPolicyForm = ({
   }
 
   useEffect(() => {
+    if (policyWatch === "createNewPolicy") {
+      setValue("policyName", "")
+      setValue("marketType", "")
+      setValue("accessControl", "")
+    }
+  }, [policyWatch])
+
+  useEffect(() => {
     dispatch(setIsValid({ step: CreateMarketSteps.POLICY, valid: isFormValid }))
 
     if (isFormValid) {
@@ -154,7 +162,7 @@ export const MarketPolicyForm = ({
 
         <InputLabel label="Policy Name">
           <TextField
-            label={t(
+            placeholder={t(
               "createMarket.forms.marketDescription.block.policyName.placeholder",
             )}
             error={Boolean(errors.policyName)}
@@ -170,6 +178,15 @@ export const MarketPolicyForm = ({
           )}
         >
           <ExtendedSelect
+            selectSX={{
+              "& .MuiSelect-icon": {
+                "&.Mui-disabled": {
+                  "& path": {
+                    fill: COLORS.santasGrey,
+                  },
+                },
+              },
+            }}
             control={control}
             name="marketType"
             label={t(
@@ -187,6 +204,15 @@ export const MarketPolicyForm = ({
           )}
         >
           <ExtendedSelect
+            selectSX={{
+              "& .MuiSelect-icon": {
+                "&.Mui-disabled": {
+                  "& path": {
+                    fill: COLORS.santasGrey,
+                  },
+                },
+              },
+            }}
             control={control}
             name="accessControl"
             label={t(

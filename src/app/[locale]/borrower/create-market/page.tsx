@@ -6,9 +6,12 @@ import { Box, Typography } from "@mui/material"
 import { HooksKind, Token } from "@wildcatfi/wildcat-sdk"
 
 import { BasicSetupForm } from "@/app/[locale]/borrower/create-market/components/Forms/BasicSetupForn"
+import { BorrowerRestrictionsForm } from "@/app/[locale]/borrower/create-market/components/Forms/BorrowerRestrictionsForm"
 import { FinancialForm } from "@/app/[locale]/borrower/create-market/components/Forms/FinancialForm"
+import { LenderRestrictionsForm } from "@/app/[locale]/borrower/create-market/components/Forms/LenderRestrictionsForm"
 import { MarketPolicyForm } from "@/app/[locale]/borrower/create-market/components/Forms/MarketPolicyForm"
 import { MlaForm } from "@/app/[locale]/borrower/create-market/components/Forms/MLAForm"
+import { PeriodsForm } from "@/app/[locale]/borrower/create-market/components/Forms/PeriodsForm"
 import { GlossarySidebar } from "@/app/[locale]/borrower/create-market/components/GlossarySidebar"
 import { useNewMarketForm } from "@/app/[locale]/borrower/new-market/hooks/useNewMarketForm"
 import { useNewMarketHooksData } from "@/app/[locale]/borrower/new-market/hooks/useNewMarketHooksData"
@@ -145,6 +148,18 @@ export default function CreateMarketPage() {
 
         {currentStep === CreateMarketSteps.FINANCIAL && (
           <FinancialForm form={newMarketForm} tokenAsset={tokenAsset} />
+        )}
+
+        {currentStep === CreateMarketSteps.LRESTRICTIONS && (
+          <LenderRestrictionsForm form={newMarketForm} />
+        )}
+
+        {currentStep === CreateMarketSteps.BRESTRICTIONS && (
+          <BorrowerRestrictionsForm form={newMarketForm} />
+        )}
+
+        {currentStep === CreateMarketSteps.PERIODS && (
+          <PeriodsForm form={newMarketForm} />
         )}
       </Box>
 

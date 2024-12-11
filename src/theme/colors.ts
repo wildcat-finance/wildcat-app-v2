@@ -27,6 +27,7 @@ export const COLORS = {
   white06: "#FFFFFF99",
 
   dullRed: "#C24647",
+  dullRed08: "#C24647CC",
   carminePink: "#F1464B",
   wildWatermelon: "#FA6F77",
   azalea: "#F7BEC1",
