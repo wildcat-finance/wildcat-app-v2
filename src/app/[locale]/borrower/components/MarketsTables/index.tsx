@@ -24,6 +24,7 @@ import {
   setScrollTarget,
   setTerminatedAmount,
 } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
+import { EXCLUDED_MARKETS } from "@/utils/constants"
 import {
   getMarketStatus,
   MarketAssets,
@@ -46,21 +47,6 @@ function buildMarketFilter(
 ): SubgraphMarket_Filter | undefined {
   console.log(`Executing buildMarketsFilter!!!!`)
   const filters: SubgraphMarket_Filter[] = []
-  const statusFilters = statuses.map((status) => {
-    switch (status) {
-      case MarketStatus.DELINQUENT:
-        return { isDelinquent: true }
-      case MarketStatus.HEALTHY:
-        return { isDelinquent: false }
-      case MarketStatus.TERMINATED:
-        return { isClosed: true }
-      case MarketStatus.PENALTY:
-        return { isIncurringPenalties: true }
-      default:
-        throw Error(`what happened here?`)
-    }
-  })
-  if (statusFilters.length) filters.push(combineFilters(statusFilters, "or"))
   if (name) filters.push({ name_contains_nocase: name.toLowerCase() })
   const assetFilters = assets.map((asset): SubgraphMarket_Filter => {
     if (asset.name) {
@@ -115,10 +101,64 @@ export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
     [filterByMarketName, filterByStatus, filterByAsset],
   )
 
-  const { data: filteredBorrowerMarkets, isLoading: isBorrowerMarketsLoading } =
-    useGetBorrowerMarkets(filter)
-  const { data: filteredOtherMarkets, isLoading: isOthersMarketsLoading } =
+  const {
+    data: unfilteredBorrowerMarkets,
+    isLoading: isBorrowerMarketsLoading,
+  } = useGetBorrowerMarkets(filter)
+  const { data: unfilteredOtherMarkets, isLoading: isOthersMarketsLoading } =
     useGetOthersMarkets(filter)
+
+  const filteredBorrowerMarkets = useMemo(
+    () =>
+      unfilteredBorrowerMarkets
+        ? unfilteredBorrowerMarkets
+            .filter(
+              (market) =>
+                !EXCLUDED_MARKETS.includes(market.address.toLowerCase()),
+            )
+            .filter(
+              (market) =>
+                filterByStatus.length === 0 ||
+                // Separate filter because market can be both delinquent and incurring penalties
+                (filterByStatus.includes(MarketStatus.DELINQUENT) &&
+                  market.isDelinquent) ||
+                filterByStatus.includes(
+                  getMarketStatus(
+                    market.isClosed,
+                    market.isDelinquent || market.willBeDelinquent,
+                    market.isIncurringPenalties,
+                  ),
+                ),
+            )
+        : [],
+    [unfilteredBorrowerMarkets, filterByStatus],
+  )
+
+  const filteredOtherMarkets = useMemo(
+    () =>
+      unfilteredOtherMarkets
+        ? unfilteredOtherMarkets
+            .filter(
+              (market) =>
+                !EXCLUDED_MARKETS.includes(market.address.toLowerCase()),
+            )
+            .filter(
+              (market) =>
+                filterByStatus.length === 0 ||
+                // Separate filter because market can be both delinquent and incurring penalties
+                (filterByStatus.includes(MarketStatus.DELINQUENT) &&
+                  market.isDelinquent) ||
+                filterByStatus.includes(
+                  getMarketStatus(
+                    market.isClosed,
+                    market.isDelinquent || market.willBeDelinquent,
+                    market.isIncurringPenalties,
+                  ),
+                ),
+            )
+        : [],
+    [unfilteredOtherMarkets, filterByStatus],
+  )
 
   const [activeBorrowerMarkets, terminatedBorrowerMarkets] = useMemo(
     () => [

@@ -2,7 +2,12 @@ import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
 import { GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
-import { LenderRole, MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import {
+  HooksKind,
+  LenderRole,
+  MarketAccount,
+  TokenAmount,
+} from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"

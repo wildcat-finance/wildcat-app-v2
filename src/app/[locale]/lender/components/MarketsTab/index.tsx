@@ -22,7 +22,7 @@ import {
   setTerminatedAmount,
 } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
-import { MarketStatus } from "@/utils/marketStatus"
+import { getMarketStatus, MarketStatus } from "@/utils/marketStatus"
 
 import { MarketsTabProps } from "./interface"
 import { filterMarketAccounts, getColumns, getRows } from "./utils"
@@ -43,21 +43,6 @@ function buildMarketFilter(
 ): SubgraphMarket_Filter | undefined {
   console.log(`Executing buildMarketsFilter!!!!`)
   const filters: SubgraphMarket_Filter[] = []
-  const statusFilters = statuses.map((status) => {
-    switch (status) {
-      case MarketStatus.DELINQUENT:
-        return { isDelinquent: true }
-      case MarketStatus.HEALTHY:
-        return { isDelinquent: false }
-      case MarketStatus.TERMINATED:
-        return { isClosed: true }
-      case MarketStatus.PENALTY:
-        return { isIncurringPenalties: true }
-      default:
-        throw Error(`what happened here?`)
-    }
-  })
-  if (statusFilters.length) filters.push(combineFilters(statusFilters, "or"))
   if (name) filters.push({ name_contains_nocase: name.toLowerCase() })
   const assetFilters = assets.map((asset): SubgraphMarket_Filter => {
     if (asset.name) {
@@ -143,16 +128,32 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
   const filteredMarketAccounts = useMemo(
     () =>
       lenderMarketAccounts
-        ? lenderMarketAccounts.filter(
-            (account) =>
-              !EXCLUDED_MARKETS.includes(
-                account.market.address.toLowerCase(),
-              ) ||
-              account.isAuthorizedOnController ||
-              account.role !== LenderRole.Null,
-          )
+        ? lenderMarketAccounts
+            .filter(
+              (account) =>
+                !EXCLUDED_MARKETS.includes(
+                  account.market.address.toLowerCase(),
+                ) ||
+                account.isAuthorizedOnController ||
+                account.role !== LenderRole.Null,
+            )
+            .filter(
+              (account) =>
+                filterByStatus.length === 0 ||
+                // Separate filter because market can be both delinquent and incurring penalties
+                (filterByStatus.includes(MarketStatus.DELINQUENT) &&
+                  account.market.isDelinquent) ||
+                filterByStatus.includes(
+                  getMarketStatus(
+                    account.market.isClosed,
+                    account.market.isDelinquent ||
+                      account.market.willBeDelinquent,
+                    account.market.isIncurringPenalties,
+                  ),
+                ),
+            )
         : [],
-    [lenderMarketAccounts],
+    [lenderMarketAccounts, filterByStatus],
   )
   const {
     active: filteredActiveLenderMarketAccounts,
