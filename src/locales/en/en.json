@@ -37,6 +37,22 @@
     "rights": "Wildcat © All Rights reserved. 2023",
     "agreement": "Download Agreement"
   },
+  "admin": {
+    "inviteBorrower": {
+      "button": "Invite Borrower",
+      "title": "Invite New Borrower",
+      "description": "Enter the borrower's details to send them an invitation.",
+      "nameLabel": "Borrower Name",
+      "addressLabel": "Wallet Address",
+      "submit": "Send Invitation",
+       "cancel": "Cancel"
+    },
+    "cancelInvite": {
+      "title": "Cancel Invitation",
+      "description": "Are you sure you want to cancel the invitation for {{name}} ({{address}})? This action cannot be undone.",
+      "confirm": "Cancel Invitation"
+    }
+  },
   "borrowerMarketList": {
     "title": {
       "allMarkets": "All markets",
@@ -143,7 +159,8 @@
       "statusDetails": "Status and Details",
       "withdrawalRequests": "Withdrawal Requests",
       "authorisedLenders": "Lenders",
-      "terminateMarket": "Terminate Market"
+      "terminateMarket": "Terminate Market",
+      "mla": "MLA"
     },
     "transactions": {
       "toRepay": {
@@ -172,7 +189,7 @@
     "authorisedLenders": {
       "notSigned": "Not signed yet",
       "noLendersTitle": "No lenders yet",
-      "noLendersSubtitle": "There is no any lenders yet – edit list to add them",
+      "noLendersSubtitle": "Your market doesn't have any authorized lenders - you can invite them on the policy page",
       "editList": "Edit List",
       "editPolicy": "Edit Policy",
       "noActiveLenders": "No active lenders yet – edit list to add them",
@@ -268,6 +285,10 @@
         "consequences": "Describing of termination consequences e.g. this change is irreversible.",
         "repayRemaining": "You should repay remaining debt before market termination.",
         "learnMore": "Learn more about this.",
+        "totalAssets": "Total Assets in Market",
+        "totalDebt": "Total Debt",
+        "remainingDebt": "Remaining Debt",
+        "debts": "Debts",
         "total": "Total"
       }
     }
@@ -724,7 +745,9 @@
     },
     "buttons": {
       "addToken": "Add Token to Wallet",
-      "statement": "Download Statement"
+      "statement": "Download Statement",
+      "viewMla": "View MLA",
+      "noMla": "This market has no MLA"
     },
     "transactions": {
       "deposit": {
