@@ -43,7 +43,7 @@ export const useBorrowerInvitationRedirect = () => {
         buttonText: "Create a Market",
         link: {
           isExternal: false,
-          url: ROUTES.borrower.newMarket,
+          url: ROUTES.borrower.createMarket,
         },
       }
     }

@@ -368,7 +368,7 @@
           "policy": {
             "title": "Market Policy",
             "subtitle": "The market policy determines the type of loan and access controls.",
-            "placeholder": "Select a policy",
+            "placeholder": "Please Select",
             "tooltip": "TBD"
           },
           "marketName": {
@@ -378,7 +378,7 @@
           },
           "policyName": {
             "title": "Policy Name",
-            "placeholder": "Wildcat Standard Policy",
+            "placeholder": "Enter Policy Name",
             "tooltip": "TBD"
           },
           "mla": {
@@ -418,15 +418,15 @@
             "dropdownPlaceholder": "Enter token name"
           },
           "marketTokenName": {
-            "title": "Market token name",
-            "placeholder": "\"Wildcat Market \"",
+            "title": "Market Token Name",
+            "placeholder": "e.g. Blossom",
             "tooltip": "TBD",
             "chip": "Asset Name"
           },
           "marketTokenSymbol": {
-            "title": "Market token symbol",
+            "title": "Market Token Symbol",
             "subtitle": "The ERC20 symbol for the market token will be this prefix + the underlying symbol",
-            "placeholder": "wild",
+            "placeholder": "e.g. blsm",
             "tooltip": "TBD",
             "chip": "Asset Symbol"
           },
@@ -725,6 +725,39 @@
     },
     "withdrawalFailed": {
       "description": "Withdrawal cycle for <strong>{{marketName}}</strong> failed to complete."
+    },
+    "aprChange": {
+      "description": "The APR for <strong>{{marketName}}</strong> has been changed from <strong>{{oldValue}}</strong> to <strong>{{newValue}}</strong>"
+    },
+    "capacityChange": {
+      "description": "The capacity for <strong>{{marketName}}</strong> has been changed from <strong>{{oldValue}}</strong> to <strong>{{newValue}}</strong>"
+    },
+    "deposit": {
+      "description": "A lender has deposited tokens into <strong>{{marketName}}</strong>"
+    },
+    "withdrawalRequest": {
+      "description": "A lender has requested a withdrawal from <strong>{{marketName}}</strong>"
+    },
+    "statusChangeUnhealthy": {
+      "description": "Market status for <strong>{{marketName}}</strong> changed to unhealthy."
+    },
+    "statusChangeHealthy": {
+      "description": "Market status for <strong>{{marketName}}</strong> changed to healthy."
+    },
+    "marketTerminated": {
+      "description": "The market <strong>{{marketName}}</strong> has been terminated."
+    },
+    "lenderRemoved": {
+      "description": "You have been removed as Lender from <strong>{{marketName}}</strong>"
+    },
+    "lenderAdded": {
+      "description": "You have been added to <strong>{{marketName}}</strong> by <strong>{{borrower}}</strong>"
+    },
+    "lenderDeposit": {
+      "description": "You have deposited {{amount}} into <strong>{{marketName}}</strong>"
+    },
+    "tokensAvailable": {
+      "description": "Claimable tokens are now available for <strong>{{marketName}}</strong>"
     }
   },
   "lenderMarketList": {

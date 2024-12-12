@@ -292,8 +292,8 @@ export const theme = createTheme({
               transform: "translateX(16px)",
               color: COLORS.white,
               "& + .MuiSwitch-track": {
-                opacity: 0.3,
-                backgroundColor: COLORS.white,
+                opacity: 1,
+                backgroundColor: COLORS.blueRibbon,
               },
             },
           },
@@ -307,8 +307,8 @@ export const theme = createTheme({
           },
           "& .MuiSwitch-track": {
             borderRadius: 16 / 2,
-            opacity: 0.3,
-            backgroundColor: COLORS.white,
+            opacity: 1,
+            backgroundColor: COLORS.whiteLilac,
             boxSizing: "border-box",
           },
           "& .MuiButtonBase-root.MuiSwitch-switchBase:hover": {
