@@ -42,4 +42,5 @@ export const COLORS = {
   cornflowerBlue: "#6688FF",
   hawkesBlue: "#D2DDFF",
   glitter: "#E4EBFE",
+  lightGreen: "#E4F5E0",
 }

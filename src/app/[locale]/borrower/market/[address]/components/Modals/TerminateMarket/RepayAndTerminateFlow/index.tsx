@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
-import { minTokenAmount, TokenAmount } from "@wildcatfi/wildcat-sdk"
-import { BigNumber } from "ethers"
+import {
+  CloseMarketStatus,
+  minTokenAmount,
+  TokenAmount,
+} from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
@@ -65,50 +68,56 @@ export const RepayAndTerminateFlow = ({
   const getMarketValues = () => {
     const values = []
     if (market) {
-      // withdrawals
-      const expiredTotalAmount = withdrawals.expiredWithdrawalsTotalOwed
-      const activeTotalAmount = withdrawals.activeWithdrawalsTotalOwed
-      const totalAmount = expiredTotalAmount.add(activeTotalAmount)
-      values.push({
-        name: "Withdrawal Request",
-        value: formatTokenWithCommas(totalAmount, { withSymbol: true }),
-      })
-
-      // TODO get remaining loan and interest
-      values.push(
-        {
-          name: "Remaining Loan",
-          value: "0 ETH",
-        },
-        { name: "Remaining Interest", value: "0 ETH" },
-      )
-
-      // protocol fees
-      if (market?.totalProtocolFeesAccrued)
+      if (market.normalizedPendingWithdrawals.gt(0)) {
         values.push({
-          name: "Protocol Fees",
-          value: formatTokenWithCommas(market?.totalProtocolFeesAccrued, {
+          name: "Pending Withdrawals",
+          value: formatTokenWithCommas(market.normalizedPendingWithdrawals, {
             withSymbol: true,
           }),
         })
-      else
+      }
+
+      if (market.normalizedUnclaimedWithdrawals.gt(0)) {
         values.push({
-          name: "Protocol Fees",
+          name: "Unclaimed Withdrawals",
+          value: formatTokenWithCommas(market.normalizedUnclaimedWithdrawals, {
+            withSymbol: true,
+          }),
+        })
+      }
+
+      if (market.outstandingDebt.gt(0)) {
+        values.push({
+          name: "Remaining Loan",
           value: formatTokenWithCommas(
-            new TokenAmount(BigNumber.from(0), market.underlyingToken),
-            { withSymbol: true },
+            market.underlyingToken.getAmount(market.outstandingTotalSupply),
+            {
+              withSymbol: true,
+            },
           ),
         })
+      }
+
+      // protocol fees
+      if (market.lastAccruedProtocolFees.gt(0)) {
+        values.push({
+          name: "Protocol Fees",
+          value: formatTokenWithCommas(market.lastAccruedProtocolFees, {
+            withSymbol: true,
+          }),
+        })
+      }
     }
     return values
   }
 
   const marketValues = getMarketValues()
 
-  const total = marketValues.reduce(
-    (accumulator, current) => accumulator + parseFloat(current.value),
-    0,
-  )
+  // const breakdown = market.getTotalDebtBreakdown()
+
+  const total =
+    market?.outstandingDebt.gt(0) &&
+    formatTokenWithCommas(market?.outstandingDebt, { withSymbol: true })
 
   let repayedModalStepTypo = {
     title: "",
@@ -161,13 +170,14 @@ export const RepayAndTerminateFlow = ({
 
   const disableApprove =
     isApproving ||
-    terminateMarketStep?.status === "UnpaidWithdrawalBatches" ||
-    terminateMarketStep?.status === "Ready"
+    !(terminateMarketStep.status === CloseMarketStatus.InsufficientAllowance)
 
   const disableRepay =
     terminateMarketStep?.status === "InsufficientAllowance" ||
     isApproveError ||
     isApproving
+  const disableTerminate =
+    terminateMarketStep?.status !== CloseMarketStatus.Ready || isProcessing
 
   const IsTxApproved =
     terminateMarketStep?.status === "Ready" ||
@@ -229,6 +239,10 @@ export const RepayAndTerminateFlow = ({
             </Typography>
           </Box>
 
+          <Typography variant="text2">
+            {t("borrowerMarketDetails.modals.terminate.debts")}
+          </Typography>
+
           <Box sx={TerminateDetailsContainer}>
             {marketValues.map((value) => (
               <Box
@@ -238,21 +252,98 @@ export const RepayAndTerminateFlow = ({
                 <Typography color={COLORS.santasGrey} variant="text3">
                   {value.name}
                 </Typography>
-                <Typography variant="text3" noWrap>
+                <Typography variant="text3" color={COLORS.dullRed} noWrap>
                   {value.value}
                 </Typography>
               </Box>
             ))}
           </Box>
-
-          <Box sx={TerminateTotalContainer}>
-            <Typography variant="text1">
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "0 16px",
+              marginTop: "8px",
+            }}
+          >
+            <Typography variant="text3">
               {t("borrowerMarketDetails.modals.terminate.total")}
             </Typography>
-            <Typography variant="text1" noWrap>
-              {total} {market.underlyingToken.symbol}
+            <Typography variant="text3" noWrap color={COLORS.wildWatermelon}>
+              {formatTokenWithCommas(market.totalDebts, {
+                withSymbol: true,
+              })}
             </Typography>
           </Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              paddingRight: "16px",
+              marginTop: "8px",
+            }}
+          >
+            <Typography variant="text2">
+              {t("borrowerMarketDetails.modals.terminate.totalAssets")}
+            </Typography>
+
+            <Typography variant="text2" noWrap color={COLORS.lightGreen}>
+              {formatTokenWithCommas(market.totalAssets, {
+                withSymbol: true,
+              })}
+            </Typography>
+          </Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              paddingRight: "16px",
+              marginTop: "8px",
+            }}
+          >
+            <Typography variant="text2">
+              {t("borrowerMarketDetails.modals.terminate.remainingDebt")}
+            </Typography>
+            <Typography variant="text2" noWrap color={COLORS.wildWatermelon}>
+              {formatTokenWithCommas(market.outstandingDebt, {
+                withSymbol: true,
+              })}
+            </Typography>
+          </Box>
+
+          {terminateMarketStep.status ===
+            CloseMarketStatus.InsufficientBalance && (
+            <Box
+              sx={{
+                paddingY: "8px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                marginTop: "8px",
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  paddingRight: "16px",
+                }}
+              >
+                <Typography variant="text1">Balance</Typography>
+                <Typography variant="text1" noWrap color={COLORS.blueRibbon}>
+                  {formatTokenWithCommas(marketAccount.underlyingBalance, {
+                    withSymbol: true,
+                  })}
+                </Typography>
+              </Box>
+
+              <Typography variant="text1">
+                Insufficient balance to repay remaining debts.
+              </Typography>
+            </Box>
+          )}
         </Box>
       )}
 
@@ -319,11 +410,11 @@ export const RepayAndTerminateFlow = ({
       )}
 
       <TxModalFooter
-        mainBtnText="Repay"
+        mainBtnText="Repay and Terminate"
         secondBtnText={IsTxApproved ? "Approved" : "Approve"}
-        mainBtnOnClick={handleRepay}
+        mainBtnOnClick={handleTerminateMarket}
         secondBtnOnClick={handleApprove}
-        disableMainBtn={disableRepay}
+        disableMainBtn={disableTerminate}
         disableSecondBtn={disableApprove}
         secondBtnLoading={isApproving}
         hideButtons={!showTerminateForm}
