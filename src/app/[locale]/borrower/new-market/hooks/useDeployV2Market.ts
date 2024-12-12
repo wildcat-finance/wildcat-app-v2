@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react"
+
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
@@ -52,6 +54,12 @@ export const useDeployV2Market = () => {
   const client = useQueryClient()
   const { isTestnet } = useCurrentNetwork()
   const { connected: isConnectedToSafe, sdk: gnosisSafeSDK } = useSafeAppsSDK()
+
+  // const [timeSigned, setTimeSigned] = useState(0)
+
+  // useEffect(() => {
+  //   setTimeSigned(Date.now())
+  // }, [])
 
   const waitForTransaction = async (txHash: string) => {
     if (!gnosisSafeSDK) throw Error("No sdk found")
@@ -192,17 +200,22 @@ export const useDeployV2Market = () => {
           signer,
         )
         if (useGnosisMultiSend) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const encode = (...args: any[]) =>
-            hooksFactory.interface.encodeFunctionData(
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              preview.fn as any,
-              ...args,
-            )
+          const data =
+            preview.fn === "deployMarket"
+              ? hooksFactory.interface.encodeFunctionData(
+                  "deployMarket",
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  preview.args as any,
+                )
+              : hooksFactory.interface.encodeFunctionData(
+                  "deployMarketAndHooks",
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  preview.args as any,
+                )
 
           gnosisTransactions.push({
-            data: encode(...preview.args),
-            to: getDeploymentAddress(hooksTemplate.chainId, "HooksFactory"),
+            data,
+            to: hooksFactory.address,
             value: "0",
           })
 
