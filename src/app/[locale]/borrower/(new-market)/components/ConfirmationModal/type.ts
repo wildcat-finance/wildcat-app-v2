@@ -1,7 +1,7 @@
 import { Token } from "@wildcatfi/wildcat-sdk"
 
-import { useLegalInfoForm } from "@/app/[locale]/borrower/new-market/hooks/useLegalInfoForm"
-import { useNewMarketForm } from "@/app/[locale]/borrower/new-market/hooks/useNewMarketForm"
+import { useNewMarketForm } from "@/app/[locale]/borrower/create-market/hooks/useNewMarketForm"
+import { useLegalInfoForm } from "@/app/[locale]/borrower/(new-market)/hooks/useLegalInfoForm"
 
 export type ConfirmationModalProps = {
   open: boolean

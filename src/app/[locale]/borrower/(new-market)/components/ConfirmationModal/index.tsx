@@ -25,16 +25,6 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { STEPS_NAME } from "@/store/slices/routingSlice/flowsSteps"
 import { setPreviousStep } from "@/store/slices/routingSlice/routingSlice"
 
-import { ConfirmationFormItem } from "./ConfirmationFormItem"
-import {
-  DeployButtonContainer,
-  DeployCloseButtonIcon,
-  DeployContentContainer,
-  DeployMainContainer,
-  DeployHeaderContainer,
-  DeploySubtitle,
-  DeployTypoBox,
-} from "./deploy-style"
 import {
   ButtonContainer,
   ButtonStyle,
@@ -52,6 +42,16 @@ import {
   Note,
 } from "./review-style"
 import { ConfirmationModalProps } from "./type"
+import { ConfirmationFormItem } from "../../../create-market/components/ConfirmationFormItem"
+import {
+  DeployButtonContainer,
+  DeployCloseButtonIcon,
+  DeployContentContainer,
+  DeployMainContainer,
+  DeployHeaderContainer,
+  DeploySubtitle,
+  DeployTypoBox,
+} from "../../../create-market/deploy-style"
 
 export const ConfirmationModal = ({
   open,

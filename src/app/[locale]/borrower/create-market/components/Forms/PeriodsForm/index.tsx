@@ -9,8 +9,8 @@ import {
   FormContainer,
   SectionGrid,
 } from "@/app/[locale]/borrower/create-market/components/Forms/style"
-import { endDecorator } from "@/app/[locale]/borrower/new-market/components/NewMarketForm/style"
-import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
+import { MarketValidationSchemaType } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
+import { endDecorator } from "@/app/[locale]/borrower/(new-market)/components/NewMarketForm/style"
 import { InputLabel } from "@/components/InputLabel"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { useAppDispatch } from "@/store/hooks"

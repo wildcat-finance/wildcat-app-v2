@@ -8,7 +8,7 @@ import { useForm, UseFormReturn } from "react-hook-form"
 import {
   MarketValidationSchemaType,
   marketValidationSchema as vschema,
-} from "@/app/[locale]/borrower/new-market/validation/validationSchema"
+} from "@/app/[locale]/borrower/create-market/validation/validationSchema"
 import { mockedMarketTypes } from "@/mocks/mocks"
 import { formatConstrainToNumber } from "@/utils/formatters"
 

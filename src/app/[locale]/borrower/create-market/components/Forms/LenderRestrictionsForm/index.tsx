@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next"
 
 import { FormFooter } from "@/app/[locale]/borrower/create-market/components/FormFooter"
 import { FormContainer } from "@/app/[locale]/borrower/create-market/components/Forms/style"
-import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
+import { MarketValidationSchemaType } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
 import { HorizontalInputLabel } from "@/components/HorisontalInputLabel"
 import { useAppDispatch } from "@/store/hooks"
 import {

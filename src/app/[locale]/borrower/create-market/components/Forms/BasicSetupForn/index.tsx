@@ -1,17 +1,13 @@
 import { useEffect } from "react"
 
 import { Box, InputAdornment, TextField, Typography } from "@mui/material"
-import { Token } from "@wildcatfi/wildcat-sdk"
-import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
-import { FormFooter } from "@/app/[locale]/borrower/create-market/components/FormFooter"
 import {
   FormContainer,
   SectionGrid,
 } from "@/app/[locale]/borrower/create-market/components/Forms/style"
-import { UnderlyingAssetSelect } from "@/app/[locale]/borrower/new-market/components/NewMarketForm/UnderlyingAssetSelect"
-import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
+import { UnderlyingAssetSelect } from "@/app/[locale]/borrower/(new-market)/components/NewMarketForm/UnderlyingAssetSelect"
 import { TokenInfo } from "@/app/api/tokens-list/interface"
 import { InputLabel } from "@/components/InputLabel"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
@@ -23,10 +19,8 @@ import {
   setIsValid,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 
-type BasicSetupFormProps = {
-  form: UseFormReturn<MarketValidationSchemaType>
-  tokenAsset: Token | undefined
-}
+import { BasicSetupFormProps } from "./interface"
+import { FormFooter } from "../../FormFooter"
 
 export const BasicSetupForm = ({ form, tokenAsset }: BasicSetupFormProps) => {
   const { t } = useTranslation()

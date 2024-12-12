@@ -4,25 +4,15 @@ import SvgIcon from "@mui/material/SvgIcon"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { COLORS } from "@/theme/colors"
 
-export type FormFooterProps = {
-  backOnClick: () => void
-  nextOnClick: () => void
-  disableNext: boolean
-}
+import { FormFooterProps } from "./interface"
+import { FooterContainer } from "./style"
 
 export const FormFooter = ({
   backOnClick,
   nextOnClick,
   disableNext,
 }: FormFooterProps) => (
-  <Box
-    sx={{
-      width: "100%",
-      display: "flex",
-      justifyContent: "space-between",
-      marginTop: "38px",
-    }}
-  >
+  <Box sx={FooterContainer}>
     <Button
       size="large"
       variant="text"

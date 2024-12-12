@@ -1,5 +1,16 @@
 import { COLORS } from "@/theme/colors"
 
+export const FinalDialogContainer = {
+  "& .MuiDialog-paper": {
+    height: "404px",
+    width: "440px",
+    border: "none",
+    borderRadius: "20px",
+    margin: 0,
+    padding: 0,
+  },
+}
+
 export const DeployHeaderContainer = {
   display: "flex",
   alignItems: "center",

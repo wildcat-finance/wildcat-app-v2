@@ -3,10 +3,8 @@ import { Box, SvgIcon, Typography } from "@mui/material"
 import Info from "@/assets/icons/info_icon.svg"
 import { COLORS } from "@/theme/colors"
 
-export type GlossarySidebarProps = {
-  stepNumber: number
-  hideGlossary?: boolean
-}
+import { GlossarySidebarProps } from "./interface"
+import { GlossaryContainer, GlossaryItem } from "./style"
 
 export const GlossarySidebar = ({
   stepNumber,
@@ -158,17 +156,7 @@ export const GlossarySidebar = ({
     )
 
   return (
-    <Box
-      sx={{
-        width: "267px",
-        minWidth: "267px",
-        height: "100%",
-        padding: "44px 44px 0 24px",
-        display: "flex",
-        flexDirection: "column",
-        borderLeft: `1px solid ${COLORS.blackRock006}`,
-      }}
-    >
+    <Box sx={GlossaryContainer}>
       <SvgIcon sx={{ "& path": { fill: COLORS.greySuit } }}>
         <Info />
       </SvgIcon>
@@ -178,14 +166,7 @@ export const GlossarySidebar = ({
       </Typography>
 
       {glossaryArray.map((block) => (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "4px",
-            marginBottom: "16px",
-          }}
-        >
+        <Box sx={GlossaryItem}>
           <Typography variant="text3">{`‣ ${block.title}`}</Typography>
 
           <Typography variant="text3" color={COLORS.santasGrey}>

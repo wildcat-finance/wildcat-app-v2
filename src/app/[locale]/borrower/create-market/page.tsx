@@ -16,29 +16,7 @@ import { constants } from "ethers"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
-import { BasicSetupForm } from "@/app/[locale]/borrower/create-market/components/Forms/BasicSetupForn"
-import { BorrowerRestrictionsForm } from "@/app/[locale]/borrower/create-market/components/Forms/BorrowerRestrictionsForm"
-import { ConfirmationForm } from "@/app/[locale]/borrower/create-market/components/Forms/ConfirmationForm"
-import { FinancialForm } from "@/app/[locale]/borrower/create-market/components/Forms/FinancialForm"
-import { LenderRestrictionsForm } from "@/app/[locale]/borrower/create-market/components/Forms/LenderRestrictionsForm"
-import { MarketPolicyForm } from "@/app/[locale]/borrower/create-market/components/Forms/MarketPolicyForm"
-import { MlaForm } from "@/app/[locale]/borrower/create-market/components/Forms/MLAForm"
-import { PeriodsForm } from "@/app/[locale]/borrower/create-market/components/Forms/PeriodsForm"
-import { GlossarySidebar } from "@/app/[locale]/borrower/create-market/components/GlossarySidebar"
-import {
-  DeployButtonContainer,
-  DeployCloseButtonIcon,
-  DeployContentContainer,
-  DeployHeaderContainer,
-  DeployMainContainer,
-  DeploySubtitle,
-  DeployTypoBox,
-} from "@/app/[locale]/borrower/new-market/components/ConfirmationModal/deploy-style"
-import { FinalDialogContainer } from "@/app/[locale]/borrower/new-market/components/ConfirmationModal/review-style"
-import { useDeployV2Market } from "@/app/[locale]/borrower/new-market/hooks/useDeployV2Market"
-import { useNewMarketForm } from "@/app/[locale]/borrower/new-market/hooks/useNewMarketForm"
-import { useNewMarketHooksData } from "@/app/[locale]/borrower/new-market/hooks/useNewMarketHooksData"
-import { useTokenMetadata } from "@/app/[locale]/borrower/new-market/hooks/useTokenMetadata"
+import { PageContainer } from "@/app/[locale]/borrower/create-market/style"
 import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
@@ -49,46 +27,31 @@ import {
   CreateMarketSteps,
   setInitialCreateState,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
-import { COLORS } from "@/theme/colors"
 
-const CreateMarketStepCounter = ({
-  current,
-  total,
-}: {
-  current?: number
-  total: number
-}) => (
-  <Box
-    sx={{
-      height: "fit-content",
-      display: "flex",
-      gap: "6px",
-      alignItems: "center",
-      marginBottom: "12px",
-    }}
-  >
-    <Typography variant="text3" color={COLORS.santasGrey}>
-      Creating a New Market
-    </Typography>
-
-    {current && (
-      <>
-        <Box
-          sx={{
-            width: "3px",
-            height: "3px",
-            borderRadius: "50%",
-            backgroundColor: COLORS.santasGrey,
-          }}
-        />
-
-        <Typography variant="text3" color={COLORS.santasGrey}>
-          {`${current}/${total}`}
-        </Typography>
-      </>
-    )}
-  </Box>
-)
+import { BasicSetupForm } from "./components/Forms/BasicSetupForn"
+import { BorrowerRestrictionsForm } from "./components/Forms/BorrowerRestrictionsForm"
+import { ConfirmationForm } from "./components/Forms/ConfirmationForm"
+import { FinancialForm } from "./components/Forms/FinancialForm"
+import { LenderRestrictionsForm } from "./components/Forms/LenderRestrictionsForm"
+import { MarketPolicyForm } from "./components/Forms/MarketPolicyForm"
+import { MlaForm } from "./components/Forms/MLAForm"
+import { PeriodsForm } from "./components/Forms/PeriodsForm"
+import { GlossarySidebar } from "./components/GlossarySidebar"
+import { StepCounterTitle } from "./components/StepCounterTitle"
+import {
+  FinalDialogContainer,
+  DeployButtonContainer,
+  DeployCloseButtonIcon,
+  DeployContentContainer,
+  DeployHeaderContainer,
+  DeployMainContainer,
+  DeploySubtitle,
+  DeployTypoBox,
+} from "./deploy-style"
+import { useDeployV2Market } from "./hooks/useDeployV2Market"
+import { useNewMarketForm } from "./hooks/useNewMarketForm"
+import { useNewMarketHooksData } from "./hooks/useNewMarketHooksData"
+import { useTokenMetadata } from "./hooks/useTokenMetadata"
 
 export default function CreateMarketPage() {
   const { t } = useTranslation()
@@ -237,26 +200,14 @@ export default function CreateMarketPage() {
   }, [])
 
   return (
-    <Box
-      sx={{
-        width: "100%",
-        height: "calc(100vh - 43px - 43px - 52px)",
-        display: "flex",
-        justifyContent: "space-between",
-        overflow: "hidden",
-        overflowY: "visible",
-      }}
-    >
+    <Box sx={PageContainer}>
       <Box
         sx={{
           width: "100%",
           padding: "40px 100px 0",
         }}
       >
-        <CreateMarketStepCounter
-          current={currentNumber}
-          total={steps.length - 1}
-        />
+        <StepCounterTitle current={currentNumber} total={steps.length - 1} />
 
         {currentStep === CreateMarketSteps.POLICY && (
           <MarketPolicyForm

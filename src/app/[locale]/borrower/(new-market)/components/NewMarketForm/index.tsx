@@ -19,7 +19,7 @@ import Link from "next/link"
 import { FieldError, useController, UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
-import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
+import { MarketValidationSchemaType } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
 import { TokenInfo } from "@/app/api/tokens-list/interface"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"

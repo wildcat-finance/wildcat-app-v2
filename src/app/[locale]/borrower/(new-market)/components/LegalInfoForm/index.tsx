@@ -11,7 +11,7 @@ import SvgIcon from "@mui/material/SvgIcon"
 import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
-import { InfoValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
+import { InfoValidationSchemaType } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { InputLabel } from "@/components/InputLabel"

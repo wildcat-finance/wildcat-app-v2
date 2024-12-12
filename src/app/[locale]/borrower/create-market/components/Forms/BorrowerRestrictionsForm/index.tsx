@@ -1,12 +1,8 @@
 import { useEffect } from "react"
 
-import { Box, Switch, Typography } from "@mui/material"
-import { UseFormReturn } from "react-hook-form"
+import { Box, Button, Switch, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
-import { FormFooter } from "@/app/[locale]/borrower/create-market/components/FormFooter"
-import { FormContainer } from "@/app/[locale]/borrower/create-market/components/Forms/style"
-import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
 import { HorizontalInputLabel } from "@/components/HorisontalInputLabel"
 import { useAppDispatch } from "@/store/hooks"
 import {
@@ -17,13 +13,19 @@ import {
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import { COLORS } from "@/theme/colors"
 
-export type BorrowerRestrictionsForm = {
-  form: UseFormReturn<MarketValidationSchemaType>
-}
+import { BorrowerRestrictionsFormProps } from "./interface"
+import {
+  AlertContainer,
+  MoreInfoButton,
+  SwitchStyle,
+  TextContainer,
+} from "./style"
+import { FormFooter } from "../../FormFooter"
+import { FormContainer } from "../style"
 
 export const BorrowerRestrictionsForm = ({
   form,
-}: BorrowerRestrictionsForm) => {
+}: BorrowerRestrictionsFormProps) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
@@ -72,41 +74,25 @@ export const BorrowerRestrictionsForm = ({
           onChange={(e) => {
             setValue("allowForceBuyBack", e.target.checked)
           }}
-          sx={{
-            "& .MuiSwitch-switchBase": {
-              "&.Mui-checked": {
-                "& + .MuiSwitch-track": {
-                  opacity: 1,
-                  backgroundColor: COLORS.carminePink,
-                },
-              },
-            },
-            "& .MuiSwitch-track": {
-              opacity: 1,
-            },
-          }}
+          sx={SwitchStyle}
         />
       </HorizontalInputLabel>
 
       {allowForceBuyBackWatch && (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "4px",
-            padding: "16px",
-            borderRadius: "12px",
-            marginTop: "24px",
-            backgroundColor: COLORS.remy,
-          }}
-        >
-          <Typography variant="text2" color={COLORS.dullRed}>
-            This will break integration with on-chain exchanges.
-          </Typography>
-          <Typography variant="text4" color={COLORS.dullRed08}>
-            Lenders will see a warning about using this market with smart
-            contracts.
-          </Typography>
+        <Box sx={AlertContainer}>
+          <Box sx={TextContainer}>
+            <Typography variant="text2" color={COLORS.dullRed}>
+              This will break integration with on-chain exchanges.
+            </Typography>
+            <Typography variant="text4" color={COLORS.dullRed08}>
+              Lenders will see a warning about using this market with smart
+              contracts.
+            </Typography>
+          </Box>
+
+          <Button variant="outlined" size="small" sx={MoreInfoButton}>
+            More Info
+          </Button>
         </Box>
       )}
 

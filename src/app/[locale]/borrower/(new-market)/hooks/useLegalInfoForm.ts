@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form"
 
 import infoValidationSchema, {
   InfoValidationSchemaType,
-} from "@/app/[locale]/borrower/new-market/validation/validationSchema"
+} from "@/app/[locale]/borrower/create-market/validation/validationSchema"
 
 export const useLegalInfoForm = () =>
   useForm<InfoValidationSchemaType>({

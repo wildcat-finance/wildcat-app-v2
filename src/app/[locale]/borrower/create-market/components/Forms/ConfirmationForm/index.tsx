@@ -2,16 +2,8 @@ import { useState } from "react"
 
 import { Box, Button, Divider, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
-import { Token } from "@wildcatfi/wildcat-sdk"
-import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
-import {
-  FormContainer,
-  SectionGrid,
-} from "@/app/[locale]/borrower/create-market/components/Forms/style"
-import { ConfirmationFormItem } from "@/app/[locale]/borrower/new-market/components/ConfirmationModal/ConfirmationFormItem"
-import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import Info from "@/assets/icons/info_icon.svg"
 import {
@@ -26,11 +18,10 @@ import {
 import { COLORS } from "@/theme/colors"
 import { timestampToDateFormatted } from "@/utils/formatters"
 
-export type ConfirmationFormProps = {
-  form: UseFormReturn<MarketValidationSchemaType>
-  tokenAsset: Token | undefined
-  handleDeploy: () => void
-}
+import { ConfirmationFormProps } from "./interface"
+import { AlertContainer, DividerStyle, SubtitleStyle } from "./style"
+import { ConfirmationFormItem } from "../../ConfirmationFormItem"
+import { FormContainer, SectionGrid } from "../style"
 
 export const ConfirmationForm = ({
   form,
@@ -73,10 +64,7 @@ export const ConfirmationForm = ({
         Confirmation
       </Typography>
 
-      <Typography
-        variant="text4"
-        sx={{ textTransform: "uppercase", marginBottom: "18px" }}
-      >
+      <Typography variant="text4" sx={SubtitleStyle}>
         Market Policy
       </Typography>
 
@@ -112,12 +100,9 @@ export const ConfirmationForm = ({
         />
       </Box>
 
-      <Divider sx={{ margin: "24px 0" }} />
+      <Divider sx={DividerStyle} />
 
-      <Typography
-        variant="text4"
-        sx={{ textTransform: "uppercase", marginBottom: "18px" }}
-      >
+      <Typography variant="text4" sx={SubtitleStyle}>
         Basic Market Setup
       </Typography>
 
@@ -149,7 +134,7 @@ export const ConfirmationForm = ({
         />
       </Box>
 
-      <Divider sx={{ margin: "24px 0" }} />
+      <Divider sx={DividerStyle} />
 
       {isMLA && (
         <>
@@ -175,16 +160,13 @@ export const ConfirmationForm = ({
             </Button>
           </Box>
 
-          <Divider sx={{ margin: "24px 0" }} />
+          <Divider sx={DividerStyle} />
         </>
       )}
 
       {isFixedTerm && (
         <>
-          <Typography
-            variant="text4"
-            sx={{ textTransform: "uppercase", marginBottom: "18px" }}
-          >
+          <Typography variant="text4" sx={SubtitleStyle}>
             Market Type and Terms
           </Typography>
 
@@ -215,14 +197,11 @@ export const ConfirmationForm = ({
             />
           </Box>
 
-          <Divider sx={{ margin: "24px 0" }} />
+          <Divider sx={DividerStyle} />
         </>
       )}
 
-      <Typography
-        variant="text4"
-        sx={{ textTransform: "uppercase", marginBottom: "18px" }}
-      >
+      <Typography variant="text4" sx={SubtitleStyle}>
         Financial Terms
       </Typography>
 
@@ -261,12 +240,9 @@ export const ConfirmationForm = ({
         />
       </Box>
 
-      <Divider sx={{ margin: "24px 0" }} />
+      <Divider sx={DividerStyle} />
 
-      <Typography
-        variant="text4"
-        sx={{ textTransform: "uppercase", marginBottom: "18px" }}
-      >
+      <Typography variant="text4" sx={SubtitleStyle}>
         Lender Restrictions
       </Typography>
 
@@ -303,12 +279,9 @@ export const ConfirmationForm = ({
         />
       </Box>
 
-      <Divider sx={{ margin: "24px 0" }} />
+      <Divider sx={DividerStyle} />
 
-      <Typography
-        variant="text4"
-        sx={{ textTransform: "uppercase", marginBottom: "18px" }}
-      >
+      <Typography variant="text4" sx={SubtitleStyle}>
         Borrower Restrictions
       </Typography>
 
@@ -338,12 +311,9 @@ export const ConfirmationForm = ({
         )}
       </Box>
 
-      <Divider sx={{ margin: "24px 0" }} />
+      <Divider sx={DividerStyle} />
 
-      <Typography
-        variant="text4"
-        sx={{ textTransform: "uppercase", marginBottom: "18px" }}
-      >
+      <Typography variant="text4" sx={SubtitleStyle}>
         Grace and Withdrawals
       </Typography>
 
@@ -368,17 +338,7 @@ export const ConfirmationForm = ({
         />
       </Box>
 
-      <Box
-        sx={{
-          width: "100%",
-          padding: "20px",
-          borderRadius: "12px",
-          backgroundColor: COLORS.hintOfRed,
-          marginTop: "44px",
-          display: "flex",
-          gap: "8px",
-        }}
-      >
+      <Box sx={AlertContainer}>
         <SvgIcon sx={{ fontSize: "18px", "& path": { fill: COLORS.greySuit } }}>
           <Info />
         </SvgIcon>

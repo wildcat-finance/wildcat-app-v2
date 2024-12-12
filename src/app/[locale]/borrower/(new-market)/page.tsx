@@ -12,9 +12,8 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { constants } from "ethers"
 
-import { useDeployV2Market } from "@/app/[locale]/borrower/new-market/hooks/useDeployV2Market"
-import { useTokenMetadata } from "@/app/[locale]/borrower/new-market/hooks/useTokenMetadata"
-import { useGetController } from "@/hooks/useGetController"
+import { useDeployV2Market } from "@/app/[locale]/borrower/create-market/hooks/useDeployV2Market"
+import { useTokenMetadata } from "@/app/[locale]/borrower/create-market/hooks/useTokenMetadata"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   newMarketSteps,
@@ -29,9 +28,9 @@ import { ConfirmationModal } from "./components/ConfirmationModal"
 import { LegalInfoForm } from "./components/LegalInfoForm"
 import { NewMarketForm } from "./components/NewMarketForm"
 import { useLegalInfoForm } from "./hooks/useLegalInfoForm"
-import { useNewMarketForm } from "./hooks/useNewMarketForm"
-import { useNewMarketHooksData } from "./hooks/useNewMarketHooksData"
 import { ContentContainer } from "./style"
+import { useNewMarketForm } from "../create-market/hooks/useNewMarketForm"
+import { useNewMarketHooksData } from "../create-market/hooks/useNewMarketHooksData"
 
 const defaultPolicyOption = {
   id: "createNewPolicy",

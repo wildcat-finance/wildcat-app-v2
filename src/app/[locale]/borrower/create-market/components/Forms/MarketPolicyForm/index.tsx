@@ -21,8 +21,8 @@ import {
   FormContainer,
   SectionGrid,
 } from "@/app/[locale]/borrower/create-market/components/Forms/style"
-import { DropdownOption } from "@/app/[locale]/borrower/new-market/components/NewMarketForm/style"
-import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
+import { MarketValidationSchemaType } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
+import { DropdownOption } from "@/app/[locale]/borrower/(new-market)/components/NewMarketForm/style"
 import ArrowLeftIcon from "@/assets/icons/sharpArrow_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"

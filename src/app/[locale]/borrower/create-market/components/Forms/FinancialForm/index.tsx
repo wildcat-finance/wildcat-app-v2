@@ -1,17 +1,9 @@
 import { useEffect } from "react"
 
 import { Box, Typography } from "@mui/material"
-import { Token } from "@wildcatfi/wildcat-sdk"
-import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
-import { FormFooter } from "@/app/[locale]/borrower/create-market/components/FormFooter"
-import {
-  FormContainer,
-  SectionGrid,
-} from "@/app/[locale]/borrower/create-market/components/Forms/style"
-import { endDecorator } from "@/app/[locale]/borrower/new-market/components/NewMarketForm/style"
-import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
+import { endDecorator } from "@/app/[locale]/borrower/(new-market)/components/NewMarketForm/style"
 import { InputLabel } from "@/components/InputLabel"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
@@ -23,10 +15,9 @@ import {
   setIsValid,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 
-export type FinancialFormProps = {
-  form: UseFormReturn<MarketValidationSchemaType>
-  tokenAsset: Token | undefined
-}
+import { FinancialFormProps } from "./interface"
+import { FormFooter } from "../../FormFooter"
+import { FormContainer, SectionGrid } from "../style"
 
 export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
   const { t } = useTranslation()
