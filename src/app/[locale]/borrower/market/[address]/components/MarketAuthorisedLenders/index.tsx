@@ -356,7 +356,7 @@ export const MarketAuthorisedLenders = ({
 
   return (
     <Box sx={MarketWithdrawalRequestsContainer} id="lenders">
-      {lendersRows.length === 0 && (
+      {lendersRows.length === 0 && marketAccount?.isBorrower && (
         <Box display="flex" flexDirection="column">
           <Typography variant="title3" sx={{ marginBottom: "8px" }}>
             {t("borrowerMarketDetails.authorisedLenders.noLendersTitle")}
@@ -375,36 +375,40 @@ export const MarketAuthorisedLenders = ({
                 borderRadius: 2,
               }}
             >
-              {t("borrowerMarketDetails.authorisedLenders.editPolicy")}
-            </Button>
-          </Link>
-        </Box>
-      )}
-
-      {authorizedRows.length === 0 && lendersRows.length !== 0 && (
-        <Box display="flex" flexDirection="column">
-          <Typography variant="title3" sx={{ marginBottom: "8px" }}>
-            {t("borrowerMarketDetails.authorisedLenders.header")}
-          </Typography>
-          <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-            {t("borrowerMarketDetails.authorisedLenders.noActiveLenders")}
-          </Typography>
-          <Link href={editLendersLink}>
-            <Button
-              variant="contained"
-              size="small"
-              sx={{
-                width: "100px",
-                height: "32px",
-                marginTop: "24px",
-                borderRadius: 2,
-              }}
-            >
               {t("borrowerMarketDetails.authorisedLenders.buttons.editPolicy")}
             </Button>
           </Link>
         </Box>
       )}
+
+      {authorizedRows.length === 0 &&
+        lendersRows.length !== 0 &&
+        marketAccount?.isBorrower && (
+          <Box display="flex" flexDirection="column">
+            <Typography variant="title3" sx={{ marginBottom: "8px" }}>
+              {t("borrowerMarketDetails.authorisedLenders.header")}
+            </Typography>
+            <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
+              {t("borrowerMarketDetails.authorisedLenders.noActiveLenders")}
+            </Typography>
+            <Link href={editLendersLink}>
+              <Button
+                variant="contained"
+                size="small"
+                sx={{
+                  width: "100px",
+                  height: "32px",
+                  marginTop: "24px",
+                  borderRadius: 2,
+                }}
+              >
+                {t(
+                  "borrowerMarketDetails.authorisedLenders.buttons.editPolicy",
+                )}
+              </Button>
+            </Link>
+          </Box>
+        )}
 
       {authorizedRows.length !== 0 && market && (
         <>
@@ -418,13 +422,15 @@ export const MarketAuthorisedLenders = ({
             <Typography variant="title3">
               {t("borrowerMarketDetails.authorisedLenders.header")}
             </Typography>
-            <Link href={editLendersLink}>
-              <Button size="small" variant="outlined" color="secondary">
-                {t(
-                  "borrowerMarketDetails.authorisedLenders.buttons.editPolicy",
-                )}
-              </Button>
-            </Link>
+            {marketAccount?.isBorrower && (
+              <Link href={editLendersLink}>
+                <Button size="small" variant="outlined" color="secondary">
+                  {t(
+                    "borrowerMarketDetails.authorisedLenders.buttons.editPolicy",
+                  )}
+                </Button>
+              </Link>
+            )}
           </Box>
           <DataGrid
             sx={{
