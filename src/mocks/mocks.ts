@@ -17,7 +17,7 @@ const MOCK = [
 
 export const mockedMarketTypes = [
   {
-    label: "Standard Loan",
+    label: "Open Term Loan",
     value: "standard",
   },
   {

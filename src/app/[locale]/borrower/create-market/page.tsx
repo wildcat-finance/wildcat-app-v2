@@ -7,6 +7,7 @@ import { HooksKind, Token } from "@wildcatfi/wildcat-sdk"
 
 import { BasicSetupForm } from "@/app/[locale]/borrower/create-market/components/Forms/BasicSetupForn"
 import { BorrowerRestrictionsForm } from "@/app/[locale]/borrower/create-market/components/Forms/BorrowerRestrictionsForm"
+import { ConfirmationForm } from "@/app/[locale]/borrower/create-market/components/Forms/ConfirmationForm"
 import { FinancialForm } from "@/app/[locale]/borrower/create-market/components/Forms/FinancialForm"
 import { LenderRestrictionsForm } from "@/app/[locale]/borrower/create-market/components/Forms/LenderRestrictionsForm"
 import { MarketPolicyForm } from "@/app/[locale]/borrower/create-market/components/Forms/MarketPolicyForm"
@@ -24,7 +25,7 @@ const CreateMarketStepCounter = ({
   current,
   total,
 }: {
-  current: number
+  current?: number
   total: number
 }) => (
   <Box
@@ -40,18 +41,22 @@ const CreateMarketStepCounter = ({
       Creating a New Market
     </Typography>
 
-    <Box
-      sx={{
-        width: "3px",
-        height: "3px",
-        borderRadius: "50%",
-        backgroundColor: COLORS.santasGrey,
-      }}
-    />
+    {current && (
+      <>
+        <Box
+          sx={{
+            width: "3px",
+            height: "3px",
+            borderRadius: "50%",
+            backgroundColor: COLORS.santasGrey,
+          }}
+        />
 
-    <Typography variant="text3" color={COLORS.santasGrey}>
-      {`${current}/${total}`}
-    </Typography>
+        <Typography variant="text3" color={COLORS.santasGrey}>
+          {`${current}/${total}`}
+        </Typography>
+      </>
+    )}
   </Box>
 )
 
@@ -124,12 +129,10 @@ export default function CreateMarketPage() {
           padding: "40px 100px 0",
         }}
       >
-        {currentNumber && (
-          <CreateMarketStepCounter
-            current={currentNumber}
-            total={steps.length - 1}
-          />
-        )}
+        <CreateMarketStepCounter
+          current={currentNumber}
+          total={steps.length - 1}
+        />
 
         {currentStep === CreateMarketSteps.POLICY && (
           <MarketPolicyForm
@@ -160,6 +163,10 @@ export default function CreateMarketPage() {
 
         {currentStep === CreateMarketSteps.PERIODS && (
           <PeriodsForm form={newMarketForm} />
+        )}
+
+        {currentStep === CreateMarketSteps.CONFIRM && (
+          <ConfirmationForm form={newMarketForm} tokenAsset={tokenAsset} />
         )}
       </Box>
 

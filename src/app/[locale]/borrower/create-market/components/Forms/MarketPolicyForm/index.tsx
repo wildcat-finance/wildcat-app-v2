@@ -105,14 +105,6 @@ export const MarketPolicyForm = ({
   }
 
   useEffect(() => {
-    if (policyWatch === "createNewPolicy") {
-      setValue("policyName", "")
-      setValue("marketType", "")
-      setValue("accessControl", "")
-    }
-  }, [policyWatch])
-
-  useEffect(() => {
     dispatch(setIsValid({ step: CreateMarketSteps.POLICY, valid: isFormValid }))
 
     if (isFormValid) {
@@ -241,6 +233,7 @@ export const MarketPolicyForm = ({
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DesktopDatePicker
                 label="e.g. 12/12/25"
+                format="DD/MM/YYYY"
                 value={
                   fixedTermEndTimeWatch
                     ? dayjs.unix(fixedTermEndTimeWatch)
@@ -291,7 +284,7 @@ export const MarketPolicyForm = ({
               explainer="Allows you to close the market before it reaches maturity"
             >
               <Switch
-                value={allowClosureBeforeTermWatch}
+                checked={allowClosureBeforeTermWatch}
                 onChange={(e) => {
                   setValue("allowClosureBeforeTerm", e.target.checked)
                 }}
@@ -304,7 +297,7 @@ export const MarketPolicyForm = ({
                 explainer="Allows you to reduce the market's maturity date"
               >
                 <Switch
-                  value={allowTermReductionWatch}
+                  checked={allowTermReductionWatch}
                   onChange={(e) => {
                     setValue("allowTermReduction", e.target.checked)
                   }}

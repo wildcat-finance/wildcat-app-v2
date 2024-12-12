@@ -14,45 +14,41 @@ export const FormFooter = ({
   backOnClick,
   nextOnClick,
   disableNext,
-}: FormFooterProps) => {
-  const a = ""
-
-  return (
-    <Box
-      sx={{
-        width: "100%",
-        display: "flex",
-        justifyContent: "space-between",
-        marginTop: "38px",
-      }}
+}: FormFooterProps) => (
+  <Box
+    sx={{
+      width: "100%",
+      display: "flex",
+      justifyContent: "space-between",
+      marginTop: "38px",
+    }}
+  >
+    <Button
+      size="large"
+      variant="text"
+      sx={{ justifyContent: "flex-start" }}
+      onClick={backOnClick}
     >
-      <Button
-        size="large"
-        variant="text"
-        sx={{ justifyContent: "flex-start" }}
-        onClick={backOnClick}
+      <SvgIcon
+        fontSize="medium"
+        sx={{
+          marginRight: "4px",
+          "& path": { fill: `${COLORS.bunker}` },
+        }}
       >
-        <SvgIcon
-          fontSize="medium"
-          sx={{
-            marginRight: "4px",
-            "& path": { fill: `${COLORS.bunker}` },
-          }}
-        >
-          <BackArrow />
-        </SvgIcon>
-        Back
-      </Button>
+        <BackArrow />
+      </SvgIcon>
+      Back
+    </Button>
 
-      <Button
-        size="large"
-        variant="contained"
-        sx={{ width: "140px" }}
-        disabled={disableNext}
-        onClick={nextOnClick}
-      >
-        Next
-      </Button>
-    </Box>
-  )
-}
+    <Button
+      size="large"
+      variant="contained"
+      sx={{ width: "140px" }}
+      disabled={disableNext}
+      onClick={nextOnClick}
+    >
+      Next
+    </Button>
+  </Box>
+)
