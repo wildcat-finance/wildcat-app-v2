@@ -6,6 +6,7 @@
 import { randomBytes } from "crypto"
 import { before } from "node:test"
 
+import { getLensV2Contract, Market } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
 import { Wallet } from "ethers"
 import { NextApiRequest } from "next"
@@ -13,10 +14,15 @@ import { RequestInit } from "next/dist/server/web/spec-extension/request"
 import { NextRequest } from "next/server"
 // import { Body, createMocks, createRequest } from "node-mocks-http"
 
-import { TargetChainId } from "@/config/network"
+import { TargetChainId, TargetNetwork } from "@/config/network"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { prisma } from "@/lib/db"
-import { MlaTemplateField } from "@/lib/mla"
+import {
+  BasicBorrowerInfo,
+  fillInMlaTemplate,
+  getFieldValuesForBorrower,
+  MlaTemplateField,
+} from "@/lib/mla"
 import { getProviderForServer } from "@/lib/provider"
 
 import { GET as getProfile, DELETE as deleteProfile } from "./[address]/route"
@@ -43,11 +49,12 @@ import {
   DELETE as deleteBorrowerInvite,
   PUT as putBorrowerInvite,
 } from "../invite/route"
+import { POST as postMla } from "../mla/[market]/route"
 import {
   html as DefaultMlaHtml,
   plaintext as DefaultMlaPlaintext,
 } from "../mla/default-mla.json"
-import { MlaTemplate } from "../mla/interface"
+import { lastSlaUpdateTime, MlaTemplate } from "../mla/interface"
 import {
   POST as postMlaTemplate,
   GET as getMlaTemplates,
@@ -92,6 +99,122 @@ export const mockGet = (
     ...otherOptions,
   })
 
+const borrowerFields: MlaTemplateField[] = [
+  // number
+  { source: "network.chainId", placeholder: "Insert Network Chain ID" },
+  // string
+  { source: "network.name", placeholder: "Insert Network Name" },
+  { source: "asset.name", placeholder: "Insert Asset Name" },
+  { source: "asset.symbol", placeholder: "Insert Asset Symbol" },
+  { source: "market.marketType", placeholder: "Insert Market Type" },
+  { source: "market.name", placeholder: "Insert Market Name" },
+  { source: "market.symbol", placeholder: "Insert Market Symbol" },
+  { source: "borrower.name", placeholder: "Insert Borrower Name" },
+  { source: "borrower.jurisdiction", placeholder: "Insert Jurisdiction" },
+  {
+    source: "borrower.physicalAddress",
+    placeholder: "Insert Physical Address",
+  },
+  { source: "borrower.entityKind", placeholder: "Insert Entity Kind" },
+  // address (format as checksum address)
+  {
+    source: "market.depositAccess",
+    placeholder: "Insert Deposit Access",
+  },
+  {
+    source: "market.transferAccess",
+    placeholder: "Insert Transfer Access",
+  },
+  {
+    source: "market.withdrawalAccess",
+    placeholder: "Insert Withdrawal Access",
+  },
+  { source: "asset.address", placeholder: "Insert Asset Address" },
+  { source: "market.address", placeholder: "Insert Market Address" },
+  { source: "borrower.address", placeholder: "Insert Borrower Address" },
+  // { source: "lender.address", placeholder: "Insert Lender Address" },
+  {
+    source: "chainalysisOracle.address",
+    placeholder: "Insert Chainalysis Oracle Address",
+  },
+  {
+    source: "hooksFactory.address",
+    placeholder: "Insert Hooks Factory Address",
+  },
+  // token amount
+  { source: "market.capacity", placeholder: "Insert Market Capacity" },
+  {
+    source: "market.minimumDeposit",
+    placeholder: "Insert Minimum Deposit",
+  },
+  // duration
+  {
+    source: "market.delinquencyGracePeriod",
+    placeholder: "Insert Delinquency Grace Period",
+  },
+  {
+    source: "market.withdrawalBatchDuration",
+    placeholder: "Insert Withdrawal Batch Duration",
+  },
+  // Date
+  {
+    source: "market.fixedTermEndTime",
+    placeholder: "Insert Fixed Term End Time",
+  },
+  {
+    source: "borrower.timeSigned",
+    placeholder: "Insert Borrower Time Signed",
+  },
+  // {
+  //   source: "lender.timeSigned",
+  //   placeholder: "Insert Lender Time Signed",
+  // },
+  // {
+  //   source: "lender.timeSignedDayOrdinal",
+  //   placeholder: "Insert Lender Time Signed Day Ordinal",
+  // },
+  // {
+  //   source: "lender.timeSignedMonthYear",
+  //   placeholder: "Insert Lender Time Signed Month Year",
+  // },
+  { source: "sla.timeUpdated", placeholder: "Insert SLA Time Updated" },
+  // bips (format as %)
+  { source: "market.apr", placeholder: "Insert APR" },
+  {
+    source: "market.delinquencyFee",
+    placeholder: "Insert Delinquency Fee",
+  },
+  { source: "market.reserveRatio", placeholder: "Insert Reserve Ratio" },
+  // boolean (format as Yes, No, N/A)
+  {
+    source: "market.allowClosureBeforeTerm",
+    placeholder: "Insert Allow Closure Before Term",
+  },
+  {
+    source: "market.allowTermReduction",
+    placeholder: "Insert Allow Term Reduction",
+  },
+  {
+    source: "market.allowForceBuyBack",
+    placeholder: "Insert Allow Force Buy Back",
+  },
+]
+const lenderFields: MlaTemplateField[] = [
+  {
+    source: "lender.timeSigned",
+    placeholder: "Insert Lender Time Signed",
+  },
+  {
+    source: "lender.timeSignedDayOrdinal",
+    placeholder: "Insert Lender Time Signed Day Ordinal",
+  },
+  {
+    source: "lender.timeSignedMonthYear",
+    placeholder: "Insert Lender Time Signed Month Year",
+  },
+  { source: "lender.address", placeholder: "Insert Lender Address" },
+]
+
 describe("API", () => {
   const privateKey = randomBytes(32)
   const adminPrivateKey = randomBytes(32)
@@ -100,6 +223,10 @@ describe("API", () => {
   const wallet = new Wallet(privateKey, provider)
   const adminWallet = new Wallet(adminPrivateKey, provider)
   const otherWallet = Wallet.createRandom({ provider })
+  const realWallet = new Wallet(
+    process.env.TEST_BORROWER_PRIVATE_KEY as `0x${string}`,
+    provider,
+  )
   const borrowerAddress = wallet.address as `0x${string}`
   let adminToken: string = ""
   let borrowerToken: string = ""
@@ -141,11 +268,6 @@ describe("API", () => {
     name: "Borrower 1",
   }
   beforeAll(async () => {
-    await prisma.adminAccount.create({
-      data: {
-        address: "0xca732651410E915090d7A7D889A1E44eF4575fcE".toLowerCase(),
-      },
-    })
     await Promise.all([
       getToken(adminWallet, true),
       getToken(wallet, false),
@@ -365,13 +487,13 @@ describe("API", () => {
 
   describe("[PUT] /api/invite/[address]", () => {
     test("Fails if invitation does not exist", async () => {
-      const dateSigned = new Date().toISOString()
+      const timeSigned = Date.now()
       const wallet2 = Wallet.createRandom({ provider })
       const token = await getToken(wallet2, false)
       const body: AcceptInvitationInput = {
         address: wallet2.address as `0x${string}`,
         name: invite.name,
-        dateSigned,
+        timeSigned,
         signature: "0x",
       }
       const req = mockPut(`/api/invite/${wallet2.address}`, body, {
@@ -388,7 +510,8 @@ describe("API", () => {
 
     test("Fails if EOA signature is from other account", async () => {
       let agreementText = AgreementText
-      const dateSigned = new Date().toISOString()
+      const timeSigned = Date.now()
+      const dateSigned = dayjs(timeSigned).format("MMMM DD, YYYY")
       if (dateSigned) {
         agreementText = `${agreementText}\n\nDate: ${dateSigned}`
       }
@@ -397,7 +520,7 @@ describe("API", () => {
       const body: AcceptInvitationInput = {
         address: borrowerAddress,
         name: invite.name,
-        dateSigned,
+        timeSigned,
         signature: await wallet2.signMessage(agreementText),
       }
       const req = mockPut(`/api/invite/${wallet2.address}`, body, {
@@ -412,7 +535,8 @@ describe("API", () => {
 
     test("Accepts EOA signature", async () => {
       let agreementText = AgreementText
-      const dateSigned = new Date().toISOString()
+      const timeSigned = Date.now()
+      const dateSigned = dayjs(timeSigned).format("MMMM DD, YYYY")
       if (dateSigned) {
         agreementText = `${agreementText}\n\nDate: ${dateSigned}`
       }
@@ -420,7 +544,7 @@ describe("API", () => {
       const body: AcceptInvitationInput = {
         address: borrowerAddress,
         name: invite.name,
-        dateSigned,
+        timeSigned,
         signature: await wallet.signMessage(agreementText),
       }
       const req = mockPut(`/api/invite/${borrowerAddress}`, body, {
@@ -500,121 +624,7 @@ describe("API", () => {
         console.log("Skipping MLA template creation because it already exists")
         return
       }
-      const borrowerFields: MlaTemplateField[] = [
-        // number
-        { source: "network.chainId", placeholder: "Insert Network Chain ID" },
-        // string
-        { source: "network.name", placeholder: "Insert Network Name" },
-        { source: "asset.name", placeholder: "Insert Asset Name" },
-        { source: "asset.symbol", placeholder: "Insert Asset Symbol" },
-        { source: "market.marketType", placeholder: "Insert Market Type" },
-        { source: "market.name", placeholder: "Insert Market Name" },
-        { source: "market.symbol", placeholder: "Insert Market Symbol" },
-        { source: "borrower.name", placeholder: "Insert Borrower Name" },
-        { source: "borrower.jurisdiction", placeholder: "Insert Jurisdiction" },
-        {
-          source: "borrower.physicalAddress",
-          placeholder: "Insert Physical Address",
-        },
-        { source: "borrower.entityKind", placeholder: "Insert Entity Kind" },
-        // address (format as checksum address)
-        {
-          source: "market.depositAccess",
-          placeholder: "Insert Deposit Access",
-        },
-        {
-          source: "market.transferAccess",
-          placeholder: "Insert Transfer Access",
-        },
-        {
-          source: "market.withdrawalAccess",
-          placeholder: "Insert Withdrawal Access",
-        },
-        { source: "asset.address", placeholder: "Insert Asset Address" },
-        { source: "market.address", placeholder: "Insert Market Address" },
-        { source: "borrower.address", placeholder: "Insert Borrower Address" },
-        { source: "lender.address", placeholder: "Insert Lender Address" },
-        {
-          source: "chainalysisOracle.address",
-          placeholder: "Insert Chainalysis Oracle Address",
-        },
-        {
-          source: "hooksFactory.address",
-          placeholder: "Insert Hooks Factory Address",
-        },
-        // token amount
-        { source: "market.capacity", placeholder: "Insert Market Capacity" },
-        {
-          source: "market.minimumDeposit",
-          placeholder: "Insert Minimum Deposit",
-        },
-        // duration
-        {
-          source: "market.delinquencyGracePeriod",
-          placeholder: "Insert Delinquency Grace Period",
-        },
-        {
-          source: "market.withdrawalBatchDuration",
-          placeholder: "Insert Withdrawal Batch Duration",
-        },
-        // Date
-        {
-          source: "market.fixedTermEndTime",
-          placeholder: "Insert Fixed Term End Time",
-        },
-        {
-          source: "borrower.timeSigned",
-          placeholder: "Insert Borrower Time Signed",
-        },
-        {
-          source: "lender.timeSigned",
-          placeholder: "Insert Lender Time Signed",
-        },
-        {
-          source: "lender.timeSignedDayOrdinal",
-          placeholder: "Insert Lender Time Signed Day Ordinal",
-        },
-        {
-          source: "lender.timeSignedMonthYear",
-          placeholder: "Insert Lender Time Signed Month Year",
-        },
-        { source: "sla.timeUpdated", placeholder: "Insert SLA Time Updated" },
-        // bips (format as %)
-        { source: "market.apr", placeholder: "Insert APR" },
-        {
-          source: "market.delinquencyFee",
-          placeholder: "Insert Delinquency Fee",
-        },
-        { source: "market.reserveRatio", placeholder: "Insert Reserve Ratio" },
-        // boolean (format as Yes, No, N/A)
-        {
-          source: "market.allowClosureBeforeTerm",
-          placeholder: "Insert Allow Closure Before Term",
-        },
-        {
-          source: "market.allowTermReduction",
-          placeholder: "Insert Allow Term Reduction",
-        },
-        {
-          source: "market.allowForceBuyBack",
-          placeholder: "Insert Allow Force Buy Back",
-        },
-      ]
-      const lenderFields: MlaTemplateField[] = [
-        {
-          source: "lender.timeSigned",
-          placeholder: "Insert Lender Time Signed",
-        },
-        {
-          source: "lender.timeSignedDayOrdinal",
-          placeholder: "Insert Lender Time Signed Day Ordinal",
-        },
-        {
-          source: "lender.timeSignedMonthYear",
-          placeholder: "Insert Lender Time Signed Month Year",
-        },
-        { source: "lender.address", placeholder: "Insert Lender Address" },
-      ]
+
       const req = mockPost(
         "/api/mla/templates",
         {
@@ -635,6 +645,100 @@ describe("API", () => {
       expect(response.status).toBe(200)
       console.log("Created MLA template")
     })
+  })
+
+  describe("[POST] /api/mla/[market]", () => {
+    async function clearMla(marketAddress: string) {
+      marketAddress = marketAddress.toLowerCase()
+      if (
+        (await prisma.mlaSignature.count({
+          where: {
+            chainId: TargetChainId,
+            market: marketAddress,
+          },
+        })) > 0
+      ) {
+        await prisma.mlaSignature.deleteMany({
+          where: {
+            chainId: TargetChainId,
+            market: marketAddress,
+          },
+        })
+        await prisma.masterLoanAgreement.deleteMany({
+          where: {
+            chainId: TargetChainId,
+            market: marketAddress,
+          },
+        })
+      }
+    }
+
+    async function resetMlaTemplate() {
+      const mlaTemplate = await prisma.mlaTemplate.findFirst()
+      await prisma.mlaTemplate.update({
+        where: {
+          id: mlaTemplate?.id,
+        },
+        data: {
+          html: DefaultMlaHtml,
+          borrowerFields,
+          lenderFields,
+        },
+      })
+    }
+    test("Create a new MLA for a given market", async () => {
+      const marketAddress = "0xbab3e079d3f28a58a14e316dcb15a8b2cc25ca80"
+      await clearMla(marketAddress)
+      await resetMlaTemplate()
+      const mlaTemplate = await prisma.mlaTemplate.findFirst()
+      if (!mlaTemplate) {
+        throw new Error("No MLA template found")
+      }
+
+      const market = await Market.getMarket(
+        TargetChainId,
+        marketAddress,
+        provider,
+      ).catch(async () => {
+        const lens = getLensV2Contract(TargetChainId, provider)
+        return Market.fromMarketDataV2(
+          TargetChainId,
+          provider,
+          await lens.getMarketData(marketAddress),
+        )
+      })
+      const borrowerProfile = await prisma.borrower.findFirst({
+        where: {
+          address: realWallet.address.toLowerCase(),
+        },
+      })
+      const timeSigned = Date.now()
+
+      const values = getFieldValuesForBorrower(
+        market,
+        borrowerProfile as BasicBorrowerInfo,
+        TargetNetwork,
+        timeSigned,
+        +lastSlaUpdateTime,
+      )
+      const filledTemplate = fillInMlaTemplate(
+        mlaTemplate as unknown as MlaTemplate,
+        values,
+      )
+      const signature = await realWallet.signMessage(filledTemplate.plaintext)
+      const req = mockPost(`/api/mla/${market.address}`, {
+        mlaTemplate: mlaTemplate.id,
+        timeSigned,
+        signature,
+      })
+      const response = await postMla(req, {
+        params: { market: market.address },
+      })
+      expect(response.status).toBe(200)
+      expect(await response.json()).toEqual({
+        success: true,
+      })
+    }, 30_000)
   })
 
   describe("[GET] /api/mla/templates", () => {
