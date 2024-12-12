@@ -5,6 +5,7 @@ import { useAccount } from "wagmi"
 
 import { useLogin } from "@/hooks/useApiAuth"
 
+import { AcceptInvitationForm } from "./components/AcceptInvitationForm"
 import { useGetBorrowerInvitation } from "../hooks/useBorrowerInvitation"
 import { ContentContainer } from "../new-market/style"
 
@@ -24,7 +25,7 @@ export const BorrowerInvitationPage = () => {
   if (isLoadingInvite) {
     return <Box sx={ContentContainer}>Loading...</Box>
   }
-  if (!inviteExists) {
+  if (!inviteExists || !invitation) {
     return <Box sx={ContentContainer}>No invitation found</Box>
   }
   if (mustLogin) {
@@ -35,10 +36,18 @@ export const BorrowerInvitationPage = () => {
       </Box>
     )
   }
+
   return (
-    <Box sx={ContentContainer}>
-      <Typography variant="h6">Invitation exists</Typography>
-      <Typography variant="body1">Name: {invitation?.name}</Typography>
+    <Box
+      sx={{
+        height: "calc(100vh - 43px - 43px - 52px)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        width: "100vw",
+      }}
+    >
+      <AcceptInvitationForm invitation={invitation} address={address} />
     </Box>
   )
 }

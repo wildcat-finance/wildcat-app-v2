@@ -38,7 +38,7 @@ export const useSubmitAcceptInvitation = () => {
         if (dateSigned) {
           agreementText = `${agreementText}\n\nDate: ${dateSigned}`
         }
-
+        agreementText = `${agreementText}\n\nOrganization Name: ${name}`
         if (sdk && safeConnected) {
           await sdk.eth.setSafeSettings([
             {
@@ -88,7 +88,7 @@ export const useSubmitAcceptInvitation = () => {
         console.log(`Got result.safeTxHash`)
         console.log(await sdk?.txs.getBySafeTxHash(result.safeTxHash))
       }
-      await fetch("/api/invite", {
+      const response = await fetch("/api/invite", {
         method: "PUT",
         body: JSON.stringify({
           signature: result.signature ?? "0x",
@@ -96,7 +96,15 @@ export const useSubmitAcceptInvitation = () => {
           timeSigned,
           address,
         }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token.token}`,
+        },
       })
+      const data = await response.json()
+      if (!data.success) {
+        throw Error("Failed to accept invitation")
+      }
       return result
     },
     onSuccess: () => {
