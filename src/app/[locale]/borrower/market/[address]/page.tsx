@@ -22,6 +22,7 @@ import {
 import { COLORS } from "@/theme/colors"
 
 import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
+import { MarketMLA } from "./components/MarketMLA"
 import { MarketTransactions } from "./components/MarketTransactions"
 import { MarketWithdrawalRequests } from "./components/MarketWithdrawalRequests"
 import useScrollHandler from "./hooks/useScrollHandler"
@@ -198,6 +199,12 @@ export default function MarketDetails({
                 market={market}
                 marketAccount={marketAccount}
               />
+            </Box>
+          )}
+
+          {checked === 5 && (
+            <Box sx={SlideContentContainer} marginTop="12px">
+              <MarketMLA marketAccount={marketAccount} />
             </Box>
           )}
         </Box>

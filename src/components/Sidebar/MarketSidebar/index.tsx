@@ -86,6 +86,7 @@ export const MarketSidebar = () => {
                   statusDetails: true,
                   withdrawals: false,
                   lenders: false,
+                  mla: false,
                 }),
               )
             }}
@@ -109,6 +110,7 @@ export const MarketSidebar = () => {
                   statusDetails: false,
                   withdrawals: true,
                   lenders: false,
+                  mla: false,
                 }),
               )
             }}
@@ -132,11 +134,36 @@ export const MarketSidebar = () => {
                   statusDetails: false,
                   withdrawals: false,
                   lenders: true,
+                  mla: false,
                 }),
               )
             }}
           >
             {t("borrowerMarketDetails.sidebar.authorisedLenders")}
+          </Button>
+          <Button
+            variant="text"
+            size="medium"
+            sx={{
+              ...MenuItemButton,
+              backgroundColor: sidebarState.mla
+                ? COLORS.whiteSmoke
+                : "transparent",
+            }}
+            onClick={() => {
+              dispatch(setCheckBlock(5))
+              dispatch(
+                setSidebarHighlightState({
+                  borrowRepay: false,
+                  statusDetails: false,
+                  withdrawals: false,
+                  lenders: false,
+                  mla: true,
+                }),
+              )
+            }}
+          >
+            {t("borrowerMarketDetails.sidebar.mla")}
           </Button>
         </Box>
 
