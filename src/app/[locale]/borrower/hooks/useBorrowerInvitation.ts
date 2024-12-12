@@ -41,13 +41,14 @@ export const useGetBorrowerInvitation = (address: string | undefined) => {
     }).then((res) => res.status === 200)
     let invitation: BorrowerInvitation | undefined
     if (exists && token) {
-      invitation = await fetch(`/api/invite/${address.toLowerCase()}`, {
+      const result = await fetch(`/api/invite/${address.toLowerCase()}`, {
         headers: {
           Authorization: `Bearer ${token.token}`,
         },
       })
         .then((res) => res.json())
         .catch(() => undefined)
+      invitation = result?.invitation
     }
     return {
       inviteExists: exists,
