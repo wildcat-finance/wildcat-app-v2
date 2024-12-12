@@ -103,13 +103,21 @@ export async function getSignedMasterLoanAgreement(
           market,
         },
       },
+      include: {
+        template: {
+          select: {
+            name: true,
+          },
+        },
+      },
     })
     .then((obj) => {
       if (!obj) return undefined
-      const { lenderFields, ...rest } = obj
+      const { template, lenderFields, ...rest } = obj
       return {
         ...rest,
         lenderFields: lenderFields as MlaTemplateField[],
+        templateName: template.name,
       }
     })
   if (!mla) return undefined
