@@ -1,4 +1,5 @@
 import { getArchControllerContract } from "@wildcatfi/wildcat-sdk"
+import dayjs from "dayjs"
 import { keccak256, toUtf8Bytes } from "ethers/lib/utils"
 import { NextRequest, NextResponse } from "next/server"
 
@@ -155,14 +156,29 @@ export async function DELETE(request: NextRequest) {
     )
   }
   const chainId = TargetChainId
-  const result = await prisma.borrowerInvitation.deleteMany({
+  const borrower = await findBorrowerWithPendingInvitation(address)
+  await prisma.borrowerInvitation.delete({
     where: {
-      chainId,
-      address,
+      chainId_address: {
+        chainId,
+        address,
+      },
     },
   })
-  return NextResponse.json({ success: true, deleted: result.count })
+  if (borrower) {
+    // Delete borrower as well as invitation
+    await prisma.borrower.delete({
+      where: {
+        chainId_address: {
+          chainId,
+          address,
+        },
+      },
+    })
+  }
+  return NextResponse.json({ success: true })
 }
+const DATE_FORMAT = "MMMM DD, YYYY"
 
 /// PUT /api/invite
 /// Route for accepting a borrower invitation.
@@ -187,7 +203,14 @@ export async function PUT(request: NextRequest) {
   }
   const address = token.address.toLowerCase()
   const chainId = TargetChainId
-  const { name, dateSigned, signature } = body
+  const { name, timeSigned, signature } = body
+  console.log({
+    name,
+    timeSigned,
+    signature,
+    address,
+  })
+
   const borrowerInvitation = await findBorrowerWithPendingInvitation(address)
   if (!borrowerInvitation) {
     return NextResponse.json(
@@ -196,7 +219,8 @@ export async function PUT(request: NextRequest) {
     )
   }
   let agreementText = AgreementText
-  if (dateSigned) {
+  if (timeSigned) {
+    const dateSigned = dayjs(timeSigned).format(DATE_FORMAT)
     agreementText = `${agreementText}\n\nDate: ${dateSigned}`
   }
   agreementText = `${agreementText}\n\nOrganization Name: ${name}`
@@ -221,7 +245,7 @@ export async function PUT(request: NextRequest) {
         signature,
         address,
         name,
-        dateSigned,
+        timeSigned,
       },
       null,
       2,
@@ -243,7 +267,7 @@ export async function PUT(request: NextRequest) {
       chainId,
       address,
       signature,
-      timeSigned: dateSigned,
+      timeSigned: new Date(timeSigned),
       borrowerName: name,
       serviceAgreementHash: keccak256(toUtf8Bytes(AgreementText)),
     },

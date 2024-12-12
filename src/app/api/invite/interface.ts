@@ -18,7 +18,7 @@ export interface AcceptInvitationInput {
   address: string
   name: string
   signature: string
-  dateSigned: string
+  timeSigned: number
 }
 
 export type BorrowerInvitationForAdminView = BorrowerInvitation & {
