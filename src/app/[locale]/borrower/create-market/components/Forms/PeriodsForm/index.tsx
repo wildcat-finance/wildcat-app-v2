@@ -10,7 +10,6 @@ import {
   SectionGrid,
 } from "@/app/[locale]/borrower/create-market/components/Forms/style"
 import { MarketValidationSchemaType } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
-import { endDecorator } from "@/app/[locale]/borrower/(new-market)/components/NewMarketForm/style"
 import { InputLabel } from "@/components/InputLabel"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { useAppDispatch } from "@/store/hooks"
@@ -20,6 +19,7 @@ import {
   setIsDisabled,
   setIsValid,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
+import { COLORS } from "@/theme/colors"
 
 export type PeriodsFormProps = {
   form: UseFormReturn<MarketValidationSchemaType>
@@ -100,7 +100,7 @@ export const PeriodsForm = ({ form }: PeriodsFormProps) => {
             error={Boolean(errors.delinquencyGracePeriod)}
             helperText={errors.delinquencyGracePeriod?.message}
             endAdornment={
-              <Typography variant="text2" sx={endDecorator}>
+              <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
                 {t(
                   "createMarket.forms.marketDescription.block.gracePeriod.chip",
                 )}
@@ -126,7 +126,7 @@ export const PeriodsForm = ({ form }: PeriodsFormProps) => {
             error={Boolean(errors.withdrawalBatchDuration)}
             helperText={errors.withdrawalBatchDuration?.message}
             endAdornment={
-              <Typography variant="text2" sx={endDecorator}>
+              <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
                 {t(
                   "createMarket.forms.marketDescription.block.withdrawalCycle.chip",
                 )}

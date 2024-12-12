@@ -22,7 +22,6 @@ import {
   SectionGrid,
 } from "@/app/[locale]/borrower/create-market/components/Forms/style"
 import { MarketValidationSchemaType } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
-import { DropdownOption } from "@/app/[locale]/borrower/(new-market)/components/NewMarketForm/style"
 import ArrowLeftIcon from "@/assets/icons/sharpArrow_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
@@ -177,7 +176,7 @@ export const MarketPolicyForm = ({
               "createMarket.forms.marketDescription.block.policy.placeholder",
             )}
             options={policyOptions}
-            optionSX={DropdownOption}
+            optionSX={{ width: "360px" }}
           />
         </InputLabel>
 
@@ -214,7 +213,7 @@ export const MarketPolicyForm = ({
               "createMarket.forms.marketDescription.block.marketType.placeholder",
             )}
             options={mockedMarketTypesOptions}
-            optionSX={DropdownOption}
+            optionSX={{ width: "360px" }}
             disabled={disableFields}
           />
         </InputLabel>
@@ -240,7 +239,7 @@ export const MarketPolicyForm = ({
               "createMarket.forms.marketDescription.block.accessControl.placeholder",
             )}
             options={mockedAccessControlOptions}
-            optionSX={DropdownOption}
+            optionSX={{ width: "360px" }}
             disabled={disableFields}
           />
         </InputLabel>

@@ -3,11 +3,11 @@ import { useEffect } from "react"
 import { Box, InputAdornment, TextField, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
+import { UnderlyingAssetSelect } from "@/app/[locale]/borrower/(new-market)/components/NewMarketForm/UnderlyingAssetSelect"
 import {
   FormContainer,
   SectionGrid,
 } from "@/app/[locale]/borrower/create-market/components/Forms/style"
-import { UnderlyingAssetSelect } from "@/app/[locale]/borrower/(new-market)/components/NewMarketForm/UnderlyingAssetSelect"
 import { TokenInfo } from "@/app/api/tokens-list/interface"
 import { InputLabel } from "@/components/InputLabel"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
