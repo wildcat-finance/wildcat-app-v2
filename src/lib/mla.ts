@@ -215,7 +215,7 @@ export function getFieldValuesForBorrower(
   lastSlaUpdateTime: number,
 ) {
   const { underlyingToken: asset, hooksConfig } = market
-  const marketAddress = `0x${market.address}` // @todo: calculate market address
+  const marketAddress = market.address // @todo: calculate market address
   const marketName = market.name
   const marketSymbol = market.symbol
   // Deposits are only open if `depositRequiresAccess` is defined and false
@@ -312,11 +312,9 @@ export function getFieldValuesForBorrower(
     // date
     [
       "market.fixedTermEndTime",
-      formatDate(
-        hooksConfig?.kind === HooksKind.FixedTerm
-          ? hooksConfig.fixedTermEndTime
-          : undefined,
-      ),
+      hooksConfig?.kind === HooksKind.FixedTerm
+        ? formatDate(hooksConfig.fixedTermEndTime)
+        : "N/A",
     ],
     ["borrower.timeSigned", formatDate(borrowerTimeSigned)],
     // ["lender.timeSigned", formatDate(Date.now())],
@@ -391,7 +389,10 @@ export function fillInMlaTemplate(
 ) {
   let { html, plaintext } = template
   template.borrowerFields.forEach((field) => {
-    const value = fieldValues.get(field.source) ?? field.placeholder
+    const value = fieldValues.get(field.source) // ?? field.placeholder
+    if (value === undefined) {
+      return
+    }
     plaintext = plaintext.replaceAll(`{{${field.source}}}`, value)
     html = html.replaceAll(`{{${field.source}}}`, value)
   })
