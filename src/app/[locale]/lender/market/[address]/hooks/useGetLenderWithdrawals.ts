@@ -183,17 +183,30 @@ export function useGetLenderWithdrawals(
       `Updated ${incompleteWithdrawals.length} incomplete withdrawals...`,
     )
 
-    // const activeTotalPendingAmount =
-    //   withdrawals.activeWithdrawal?.normalizedUnpaidAmount ??
-    //   market.underlyingToken.getAmount(0)
+    const allWithdrawals = [
+      ...(withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []),
+      ...(withdrawals.completeWithdrawals ?? []),
+      ...(withdrawals.expiredPendingWithdrawals ?? []),
+    ]
+    const expiredPendingWithdrawals = allWithdrawals.filter(
+      (wd) =>
+        wd.expiry !== market.pendingWithdrawalExpiry &&
+        wd.normalizedAmountOwed.gt(0),
+    )
+    const activeWithdrawal = allWithdrawals.find(
+      (wd) =>
+        wd.expiry === market.pendingWithdrawalExpiry &&
+        wd.status === BatchStatus.Pending,
+    )
+    const completeWithdrawals = allWithdrawals.filter(
+      (wd) => wd.status === BatchStatus.Complete,
+    )
 
     const activeTotalPendingAmount =
-      withdrawals.activeWithdrawal?.requests.reduce(
+      activeWithdrawal?.requests.reduce(
         (acc, req) => acc.add(req.normalizedAmount),
         market.underlyingToken.getAmount(0),
       ) ?? market.underlyingToken.getAmount(0)
-
-    const { expiredPendingWithdrawals } = withdrawals
 
     const expiredTotalPendingAmount = expiredPendingWithdrawals
       .filter((w) => w.expiry !== market.pendingWithdrawalExpiry)
@@ -209,7 +222,9 @@ export function useGetLenderWithdrawals(
     )
 
     return {
-      ...withdrawals,
+      activeWithdrawal,
+      completeWithdrawals,
+      expiredPendingWithdrawals,
       activeTotalPendingAmount,
       expiredTotalPendingAmount,
       totalClaimableAmount,
