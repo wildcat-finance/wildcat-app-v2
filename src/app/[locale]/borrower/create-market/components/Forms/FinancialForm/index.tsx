@@ -62,11 +62,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
     if (isFormValid) {
       dispatch(
         setIsDisabled({
-          steps: [
-            CreateMarketSteps.LRESTRICTIONS,
-            CreateMarketSteps.BRESTRICTIONS,
-            CreateMarketSteps.PERIODS,
-          ],
+          steps: [CreateMarketSteps.LRESTRICTIONS],
           disabled: !isFormValid,
         }),
       )
