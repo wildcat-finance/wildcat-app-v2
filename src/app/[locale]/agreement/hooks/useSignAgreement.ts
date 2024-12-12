@@ -67,7 +67,6 @@ export const useSignAgreement = () => {
           )
 
           const result = await sdk.txs.signMessage(agreementText)
-          console.log(result)
 
           if ("safeTxHash" in result) {
             return {
@@ -82,7 +81,6 @@ export const useSignAgreement = () => {
             }
           }
         }
-        console.log(`Signing message with EOA`)
         const signatureResult = await signer.signMessage(agreementText)
         return { signature: signatureResult }
       }

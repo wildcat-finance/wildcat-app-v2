@@ -7,7 +7,7 @@ import { Trans } from "react-i18next"
 import { AgreementText } from "./components/AgreementText"
 import { SignButton } from "./components/SignButton"
 
-export default async function Agreement() {
+export default function Agreement() {
   return (
     <Box
       className="text"
