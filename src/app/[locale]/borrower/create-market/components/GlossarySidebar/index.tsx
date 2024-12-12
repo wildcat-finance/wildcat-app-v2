@@ -1,13 +1,17 @@
 import { Box, SvgIcon, Typography } from "@mui/material"
 
-import Info from "@/assets/icons/search_icon.svg"
+import Info from "@/assets/icons/info_icon.svg"
 import { COLORS } from "@/theme/colors"
 
 export type GlossarySidebarProps = {
   stepNumber: number
+  hideGlossary?: boolean
 }
 
-export const GlossarySidebar = ({ stepNumber }: GlossarySidebarProps) => {
+export const GlossarySidebar = ({
+  stepNumber,
+  hideGlossary,
+}: GlossarySidebarProps) => {
   let glossaryArray: {
     title: string
     description: string
@@ -87,7 +91,26 @@ export const GlossarySidebar = ({ stepNumber }: GlossarySidebarProps) => {
       break
     }
     case 5: {
-      glossaryArray = []
+      glossaryArray = [
+        {
+          title: "Restrict Deposits",
+          description: "Limits who can deposit into the market.",
+        },
+        {
+          title: "Disable Transfers",
+          description: "Prevents transferring tokens to others.",
+        },
+        {
+          title: "Restrict Withdrawals",
+          description:
+            "Limits withdrawals to users meeting market access criteria.",
+        },
+        {
+          title: "Restrict Transfers",
+          description:
+            "Limits transfers to participants who meet policy-defined access requirements.",
+        },
+      ]
       break
     }
     case 6: {
@@ -95,11 +118,17 @@ export const GlossarySidebar = ({ stepNumber }: GlossarySidebarProps) => {
       break
     }
     case 7: {
-      glossaryArray = []
-      break
-    }
-    case 8: {
-      glossaryArray = []
+      glossaryArray = [
+        {
+          title: "Grace period",
+          description:
+            "Time allowed for a delinquent market to recover before penalties apply.",
+        },
+        {
+          title: "Withdrawal cycle length",
+          description: "Time window until withdrawals are processed.",
+        },
+      ]
       break
     }
     default: {
@@ -117,6 +146,16 @@ export const GlossarySidebar = ({ stepNumber }: GlossarySidebarProps) => {
       break
     }
   }
+  if (hideGlossary)
+    return (
+      <Box
+        sx={{
+          width: "267px",
+          minWidth: "267px",
+          height: "100%",
+        }}
+      />
+    )
 
   return (
     <Box

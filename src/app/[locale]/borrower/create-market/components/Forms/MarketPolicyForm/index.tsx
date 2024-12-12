@@ -1,6 +1,13 @@
 import { useEffect } from "react"
 
-import { Box, Divider, Switch, TextField, Typography } from "@mui/material"
+import {
+  Box,
+  Divider,
+  SvgIcon,
+  Switch,
+  TextField,
+  Typography,
+} from "@mui/material"
 import { DesktopDatePicker } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
@@ -16,6 +23,7 @@ import {
 } from "@/app/[locale]/borrower/create-market/components/Forms/style"
 import { DropdownOption } from "@/app/[locale]/borrower/new-market/components/NewMarketForm/style"
 import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
+import ArrowLeftIcon from "@/assets/icons/sharpArrow_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
 import { HorizontalInputLabel } from "@/components/HorisontalInputLabel"
@@ -33,6 +41,27 @@ import {
   setIsValid,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import { COLORS } from "@/theme/colors"
+
+const DateCalendarArrowLeft = () => (
+  <SvgIcon
+    sx={{
+      "& path": { fill: `${COLORS.greySuit}` },
+    }}
+  >
+    <ArrowLeftIcon />
+  </SvgIcon>
+)
+
+const DateCalendarArrowRight = () => (
+  <SvgIcon
+    sx={{
+      "& path": { fill: `${COLORS.greySuit}` },
+    }}
+    style={{ rotate: "180deg" }}
+  >
+    <ArrowLeftIcon />
+  </SvgIcon>
+)
 
 type MarketPolicyFormProps = {
   form: UseFormReturn<MarketValidationSchemaType>
@@ -247,7 +276,28 @@ export const MarketPolicyForm = ({
                 }}
                 minDate={tomorrow}
                 maxDate={oneYearFromNow}
+                slots={{
+                  leftArrowIcon: DateCalendarArrowLeft,
+                  rightArrowIcon: DateCalendarArrowRight,
+                }}
                 slotProps={{
+                  layout: {
+                    sx: {
+                      "& .MuiYearCalendar-root": {
+                        padding: "12px",
+                      },
+                    },
+                  },
+                  popper: {
+                    sx: {
+                      "& .MuiYearCalendar-root": {
+                        padding: "12px",
+                      },
+                      "& .MuiPaper-root": {
+                        padding: "10px",
+                      },
+                    },
+                  },
                   textField: {
                     sx: {
                       minWidth: "342px",

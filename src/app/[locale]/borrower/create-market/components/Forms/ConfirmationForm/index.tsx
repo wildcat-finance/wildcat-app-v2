@@ -13,6 +13,7 @@ import {
 import { ConfirmationFormItem } from "@/app/[locale]/borrower/new-market/components/ConfirmationModal/ConfirmationFormItem"
 import { MarketValidationSchemaType } from "@/app/[locale]/borrower/new-market/validation/validationSchema"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
+import Info from "@/assets/icons/info_icon.svg"
 import {
   mockedAccessControlOptions,
   mockedMarketTypesOptions,
@@ -28,11 +29,13 @@ import { timestampToDateFormatted } from "@/utils/formatters"
 export type ConfirmationFormProps = {
   form: UseFormReturn<MarketValidationSchemaType>
   tokenAsset: Token | undefined
+  handleDeploy: () => void
 }
 
 export const ConfirmationForm = ({
   form,
   tokenAsset,
+  handleDeploy,
 }: ConfirmationFormProps) => {
   const { t } = useTranslation()
 
@@ -323,13 +326,15 @@ export const ConfirmationForm = ({
         />
 
         {allowForceBuyBack && (
-          <Typography
-            variant="text4"
-            color={COLORS.carminePink}
-            sx={{ maxWidth: "290px" }}
-          >
-            Note this will break integration with on-chain exchanges
-          </Typography>
+          <Box sx={{ width: "290px", display: "flex", gap: "6px" }}>
+            <SvgIcon sx={{ "& path": { fill: COLORS.carminePink } }}>
+              <Info />
+            </SvgIcon>
+
+            <Typography variant="text4" color={COLORS.carminePink}>
+              Note this will break integration with on-chain exchanges
+            </Typography>
+          </Box>
         )}
       </Box>
 
@@ -370,8 +375,14 @@ export const ConfirmationForm = ({
           borderRadius: "12px",
           backgroundColor: COLORS.hintOfRed,
           marginTop: "44px",
+          display: "flex",
+          gap: "8px",
         }}
       >
+        <SvgIcon sx={{ fontSize: "18px", "& path": { fill: COLORS.greySuit } }}>
+          <Info />
+        </SvgIcon>
+
         <Typography variant="text3">
           Note that once your market is created, the only adjustable parameters
           will be base APR and maximum capacity.
@@ -389,7 +400,7 @@ export const ConfirmationForm = ({
         <Button
           size="large"
           variant="text"
-          sx={{ justifyContent: "flex-start" }}
+          sx={{ justifyContent: "flex-start", borderRadius: "12px" }}
           onClick={handleBackClick}
         >
           <SvgIcon
@@ -409,7 +420,7 @@ export const ConfirmationForm = ({
             <Button
               size="large"
               variant="contained"
-              sx={{ width: "140px" }}
+              sx={{ width: "168px", borderRadius: "12px" }}
               disabled={signed}
               onClick={() => setSigned(true)}
             >
@@ -420,9 +431,9 @@ export const ConfirmationForm = ({
           <Button
             size="large"
             variant="contained"
-            sx={{ width: "140px" }}
+            sx={{ width: "168px", borderRadius: "12px" }}
             disabled={isMLA && !signed}
-            // onClick={nextOnClick}
+            onClick={handleDeploy}
           >
             Deploy Market
           </Button>

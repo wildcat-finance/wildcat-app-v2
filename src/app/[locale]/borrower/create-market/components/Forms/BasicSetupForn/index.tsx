@@ -41,7 +41,6 @@ export const BasicSetupForm = ({ form, tokenAsset }: BasicSetupFormProps) => {
   }
 
   const {
-    getValues,
     setValue,
     register,
     formState: { errors },

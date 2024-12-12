@@ -71,7 +71,11 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
     if (isFormValid) {
       dispatch(
         setIsDisabled({
-          steps: [CreateMarketSteps.LRESTRICTIONS],
+          steps: [
+            CreateMarketSteps.LRESTRICTIONS,
+            CreateMarketSteps.BRESTRICTIONS,
+            CreateMarketSteps.PERIODS,
+          ],
           disabled: !isFormValid,
         }),
       )
@@ -180,6 +184,8 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
             label={t(
               "createMarket.forms.marketDescription.block.ratio.placeholder",
             )}
+            min={0}
+            max={100}
             value={getValues("reserveRatioBips")}
             error={Boolean(errors.reserveRatioBips)}
             helperText={errors.reserveRatioBips?.message}
@@ -202,9 +208,10 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
       >
         <NumberTextField
           label="0"
+          max={getValues("maxTotalSupply")}
           value={getValues("minimumDeposit")}
           onValueChange={(v) => {
-            setValue("minimumDeposit", v.floatValue as number)
+            setValue("minimumDeposit", (v.floatValue as number) ?? 0)
           }}
           error={Boolean(errors.minimumDeposit)}
           helperText={errors.minimumDeposit?.message}

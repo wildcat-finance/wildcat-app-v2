@@ -111,10 +111,15 @@ const createMarketSidebarSlice = createSlice({
         }
       })
     },
+    setInitialCreateState: () => initialState,
   },
 })
 
-export const { setCreatingStep, setIsValid, setIsDisabled } =
-  createMarketSidebarSlice.actions
+export const {
+  setCreatingStep,
+  setIsValid,
+  setIsDisabled,
+  setInitialCreateState,
+} = createMarketSidebarSlice.actions
 
 export default createMarketSidebarSlice.reducer
