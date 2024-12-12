@@ -1,9 +1,11 @@
 "use client"
 
 import * as React from "react"
+import { useState } from "react"
 
-import { Box, Skeleton, Typography } from "@mui/material"
+import { Box, Skeleton, Typography, Button } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
+import { useTranslation } from "react-i18next"
 
 import { MarketWithdrawalRequetstCell } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/style"
 import { LinkGroup } from "@/components/LinkComponent"
@@ -16,11 +18,19 @@ import {
   BorrowerInvitesTableProps,
   TypeSafeColDef,
 } from "./interface"
+import { CancelInviteModal } from "../CancelInviteModal"
+import { InviteBorrowerModal } from "../InviteBorrowerModal"
 
 export const BorrowerInvitesTable = ({
   tableData,
   isLoading,
 }: BorrowerInvitesTableProps) => {
+  const { t } = useTranslation()
+  const [selectedInvite, setSelectedInvite] = useState<{
+    address: string
+    name: string
+  } | null>(null)
+
   const columns: TypeSafeColDef<BorrowerInvitationRow>[] = [
     {
       field: "timeInvited",
@@ -105,6 +115,33 @@ export const BorrowerInvitesTable = ({
         </span>
       ),
     },
+    {
+      field: "id",
+      headerName: "",
+      sortable: false,
+      width: 100,
+      align: "right",
+      headerAlign: "right",
+      renderCell: (params) => {
+        if (!params.row.timeSigned) {
+          return (
+            <Button
+              variant="text"
+              color="error"
+              onClick={() =>
+                setSelectedInvite({
+                  address: params.row.address,
+                  name: params.row.name,
+                })
+              }
+            >
+              {t("admin.inviteBorrower.cancel")}
+            </Button>
+          )
+        }
+        return null
+      },
+    },
   ]
 
   if (isLoading)
@@ -139,22 +176,48 @@ export const BorrowerInvitesTable = ({
     )
 
   return (
-    <DataGrid
+    <Box
       sx={{
-        overflow: "auto",
-        maxWidth: "calc(100vw - 267px)",
-
-        "& .MuiDataGrid-cell": {
-          minHeight: "52px",
-          height: "auto",
-          cursor: "default",
-        },
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+        gap: 3,
       }}
-      rows={tableData}
-      columns={columns}
-      columnHeaderHeight={40}
-      getRowHeight={() => "auto"}
-    />
+    >
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          width: "100%",
+        }}
+      >
+        <InviteBorrowerModal />
+      </Box>
+      <DataGrid
+        sx={{
+          overflow: "auto",
+          maxWidth: "calc(100vw - 267px)",
+
+          "& .MuiDataGrid-cell": {
+            minHeight: "52px",
+            height: "auto",
+            cursor: "default",
+          },
+        }}
+        rows={tableData}
+        columns={columns}
+        columnHeaderHeight={40}
+        getRowHeight={() => "auto"}
+      />
+      {selectedInvite && (
+        <CancelInviteModal
+          isOpen={!!selectedInvite}
+          onClose={() => setSelectedInvite(null)}
+          address={selectedInvite.address}
+          borrowerName={selectedInvite.name}
+        />
+      )}
+    </Box>
   )
 }
 
