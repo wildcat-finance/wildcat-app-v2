@@ -8,9 +8,9 @@ import { MlaTemplate } from "../../interface"
 /// Route to get the full content of an MLA template.
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: number } },
+  { params }: { params: { id: string } },
 ) {
-  const { id } = params
+  const id = parseInt(params.id, 10)
   const mlaTemplate = await prisma.mlaTemplate
     .findUnique({
       where: { id },

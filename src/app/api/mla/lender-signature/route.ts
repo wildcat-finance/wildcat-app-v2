@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(mlaSignatures)
 }
 
+/// POST /api/mla/lender-signature
 export async function POST(request: NextRequest) {
   let body: LenderMlaSignatureInput
 
@@ -102,7 +103,10 @@ export async function POST(request: NextRequest) {
       address: lenderAddress,
       market: marketAddress,
       signature,
-      blockNumber: timeSigned,
+      blockNumber:
+        "blockNumber" in verifiedSignature
+          ? verifiedSignature.blockNumber
+          : undefined,
       kind: verifiedSignature.kind,
       signer:
         "owner" in verifiedSignature

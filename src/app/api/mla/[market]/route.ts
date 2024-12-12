@@ -1,4 +1,4 @@
-import { Market } from "@wildcatfi/wildcat-sdk"
+import { getLensV2Contract, Market } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import { TargetChainId, TargetNetwork } from "@/config/network"
@@ -15,6 +15,7 @@ import { getZodParseError } from "@/lib/zod-error"
 
 import { SetMasterLoanAgreementInputDTO } from "./dto"
 import {
+  lastSlaUpdateTime,
   MasterLoanAgreementResponse,
   MlaTemplate,
   SetMasterLoanAgreementInput,
@@ -57,7 +58,19 @@ export async function POST(
   }
   const marketAddress = params.market.toLowerCase()
   const provider = getProviderForServer()
-  const market = await Market.getMarket(TargetChainId, marketAddress, provider)
+
+  const market = await Market.getMarket(
+    TargetChainId,
+    marketAddress,
+    provider,
+  ).catch(async () => {
+    const lens = getLensV2Contract(TargetChainId, provider)
+    return Market.fromMarketDataV2(
+      TargetChainId,
+      provider,
+      await lens.getMarketData(marketAddress),
+    )
+  })
   const address = market.borrower.toLowerCase()
 
   if (
@@ -104,13 +117,13 @@ export async function POST(
       { status: 400 },
     )
   }
-  const lastSlaUpdateTime = Date.now()
+
   const values = getFieldValuesForBorrower(
     market,
     borrowerProfile as BasicBorrowerInfo,
     TargetNetwork,
     body.timeSigned,
-    lastSlaUpdateTime,
+    +lastSlaUpdateTime,
   )
   const { html, plaintext } = fillInMlaTemplate(mlaTemplate, values)
   const signature = await verifyAndDescribeSignature({

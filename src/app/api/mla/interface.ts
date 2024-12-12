@@ -46,6 +46,9 @@ export type MasterLoanAgreementResponse = {
   html: string
   plaintext: string
   templateId: number
+  templateName: string
   lenderFields: MlaTemplateField[]
   borrowerSignature: MlaSignatureResponse
 }
+
+export const lastSlaUpdateTime = new Date("2024-01-01T12:00:00Z")
