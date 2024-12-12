@@ -5,5 +5,6 @@ export type THighLightSidebar = {
     statusDetails: boolean
     withdrawals: boolean
     lenders: boolean
+    mla: boolean
   }
 }
