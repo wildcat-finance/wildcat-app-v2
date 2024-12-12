@@ -48,6 +48,10 @@ export const AcceptInvitationForm = ({
         fullWidth
       />
 
+      {/* <Box sx={{ bgcolor: "background.paper", p: 3, borderRadius: 1 }}>
+        <AgreementText />
+      </Box> */}
+
       <Box
         sx={{
           maxWidth: "690px",

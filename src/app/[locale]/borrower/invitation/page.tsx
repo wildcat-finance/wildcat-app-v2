@@ -25,10 +25,10 @@ export const BorrowerInvitationPage = () => {
   if (isLoadingInvite) {
     return <Box sx={ContentContainer}>Loading...</Box>
   }
-  if (!inviteExists || !invitation) {
+  if (!inviteExists) {
     return <Box sx={ContentContainer}>No invitation found</Box>
   }
-  if (mustLogin) {
+  if (mustLogin || !invitation) {
     return (
       <Box sx={ContentContainer}>
         <Typography variant="h6">Login to view invitation</Typography>
