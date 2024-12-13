@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useAccount } from "wagmi"
 
 import { BORROWER_PROFILE_KEY } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { BorrowerProfileInput } from "@/app/api/profiles/interface"
 import { toastRequest } from "@/components/Toasts"
+import { useAuthToken } from "@/hooks/useApiAuth"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 
 const hashData = async (data: object): Promise<string> => {
@@ -24,18 +26,24 @@ const formatDateForMessage = (date: Date): string => {
 export const useUpdateBorrowerProfile = () => {
   const queryClient = useQueryClient()
   const signer = useEthersSigner()
+  const { address } = useAccount()
+  const token = useAuthToken()
 
-  const updateBorrowerProfile = async (
-    profile: BorrowerProfileInput,
-    signature: string,
-    updatedAt: number,
-  ) => {
-    const response = await fetch(`/api/profiles/${profile.address}`, {
-      method: "PUT",
+  const updateBorrowerProfile = async (profile: BorrowerProfileInput) => {
+    if (!token.token) {
+      throw new Error("No token available. Make sure you are logged in.")
+    }
+    const withoutEmpty = Object.fromEntries(
+      Object.entries(profile).filter(([key, value]) => value !== ""),
+    )
+    console.log(withoutEmpty)
+    const response = await fetch(`/api/profiles/updates`, {
+      method: "POST",
+      body: JSON.stringify({ ...withoutEmpty }),
       headers: {
+        Authorization: `Bearer ${token.token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ ...profile, signature, updatedAt }),
     })
 
     if (!response.ok) {
@@ -47,25 +55,38 @@ export const useUpdateBorrowerProfile = () => {
 
   return useMutation({
     mutationFn: async (profile: BorrowerProfileInput) => {
-      const dataHash = await hashData(profile)
-      const currentDate = formatDateForMessage(new Date())
-      const messageToSign = `I confirm updating my profile data to the new values. Hash of the new data: ${dataHash}, date of changing: ${currentDate}`
-
-      if (!signer) {
-        throw new Error("No signer available. Make sure MetaMask is connected.")
+      if (!address || !token) {
+        throw new Error("No address available. Make sure wallet is connected.")
       }
+      // const dataHash = await hashData(profile)
+      // const currentDate = formatDateForMessage(new Date())
+      // const messageToSign = `I confirm updating my profile data to the new values. Hash of the new data: ${dataHash}, date of changing: ${currentDate}`
 
-      const signature = await toastRequest(signer.signMessage(messageToSign), {
-        pending: `Waiting for MetaMask signature`,
-        success: `Signed successfully!`,
-        error: `Failed to sign!`,
-      })
+      // if (!signer) {
+      //   throw new Error("No signer available. Make sure MetaMask is connected.")
+      // }
 
-      if (!signature) {
-        throw new Error("Failed to obtain blockchain signature")
-      }
+      // const signature = await toastRequest(signer.signMessage(messageToSign), {
+      //   pending: `Waiting for MetaMask signature`,
+      //   success: `Signed successfully!`,
+      //   error: `Failed to sign!`,
+      // })
 
-      return updateBorrowerProfile(profile, signature, Date.now())
+      // if (!signature) {
+      //   throw new Error("Failed to obtain blockchain signature")
+      // }
+
+      await toastRequest(
+        updateBorrowerProfile({
+          ...profile,
+          address: address.toLowerCase(),
+        }),
+        {
+          pending: `Updating profile...`,
+          success: `Profile updated successfully`,
+          error: `Failed to update profile`,
+        },
+      )
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BORROWER_PROFILE_KEY] })

@@ -41,6 +41,7 @@ import {
   BorrowerProfile,
   BorrowerProfileInput,
 } from "@/app/api/profiles/interface"
+import { useAuthToken, useLogin } from "@/hooks/useApiAuth"
 import { mockedNaturesOptions } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -48,6 +49,9 @@ import { COLORS } from "@/theme/colors"
 export default function EditProfile() {
   const router = useRouter()
   const { t } = useTranslation()
+
+  const token= useAuthToken()
+  const { mutate: login } = useLogin()
 
   const publicForm = useEditPublicForm()
   const privateForm = useEditPrivateForm()
@@ -449,13 +453,23 @@ export default function EditProfile() {
           {t("borrowerProfile.edit.buttons.cancel")}
         </Button>
 
+        {!token && (
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => login(address as string)}
+          >
+            {t("borrowerProfile.edit.buttons.login")}
+          </Button>
+        )}
+
         {!isLoading && (
           <Button
             variant="contained"
             size="large"
             sx={{ width: "156px" }}
             onClick={handleSendUpdate}
-            disabled={arePublicInfoEqual}
+            disabled={arePublicInfoEqual || !token}
           >
             {t("borrowerProfile.edit.buttons.confirm")}
           </Button>

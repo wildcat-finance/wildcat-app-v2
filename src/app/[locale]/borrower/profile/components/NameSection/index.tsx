@@ -60,7 +60,7 @@ export const NameSection = ({
         </Typography>
       )}
 
-      {(website || twitter || linkedin) && (
+      {(
         <Box
           sx={{
             ...LinksContainer,
@@ -108,25 +108,24 @@ export const NameSection = ({
             )}
           </Box>
 
-          {type === "user" &&
-            (description || website || twitter || linkedin) && (
-              <Link href={ROUTES.borrower.editProfile}>
-                <Button variant="text" size="small" sx={{ gap: "4px" }}>
-                  <SvgIcon
-                    fontSize="medium"
-                    sx={{
-                      "& path": {
-                        fill: `${COLORS.greySuit}`,
-                        transition: "fill 0.2s",
-                      },
-                    }}
-                  >
-                    <Edit />
-                  </SvgIcon>
-                  {t("borrowerProfile.profile.buttons.edit")}
-                </Button>
-              </Link>
-            )}
+          {type === "user" && (
+            <Link href={ROUTES.borrower.editProfile}>
+              <Button variant="text" size="small" sx={{ gap: "4px" }}>
+                <SvgIcon
+                  fontSize="medium"
+                  sx={{
+                    "& path": {
+                      fill: `${COLORS.greySuit}`,
+                      transition: "fill 0.2s",
+                    },
+                  }}
+                >
+                  <Edit />
+                </SvgIcon>
+                {t("borrowerProfile.profile.buttons.edit")}
+              </Button>
+            </Link>
+          )}
         </Box>
       )}
 
