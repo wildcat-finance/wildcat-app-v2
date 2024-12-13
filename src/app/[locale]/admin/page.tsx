@@ -5,7 +5,7 @@ import AuthWrapper from "@/components/AuthWrapper"
 import { BorrowerInvitesTable } from "./components/BorrowerInvitesTable"
 import { useAllBorrowerInvitations } from "./hooks/useAllBorrowerInvitations"
 
-export const AdminPage = () => {
+const AdminPage = () => {
   const { data, isLoading } = useAllBorrowerInvitations()
   return (
     <AuthWrapper requiresAdmin>
