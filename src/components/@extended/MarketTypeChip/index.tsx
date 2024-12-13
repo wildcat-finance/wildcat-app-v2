@@ -10,7 +10,7 @@ import { remainingMillisecondsToDate } from "@/utils/formatters"
 import { MarketTypeChipProps } from "./interface"
 
 const ClockIcon = () => (
-  <SvgIcon fontSize="tiny" sx={{ "& path": { fill: COLORS.galliano } }}>
+  <SvgIcon fontSize="tiny" sx={{ "& path": { fill: COLORS.santasGrey } }}>
     <Clock />
   </SvgIcon>
 )
@@ -47,21 +47,23 @@ export const MarketTypeChip = ({ kind, fixedPeriod }: MarketTypeChipProps) => {
   return (
     <Box sx={{ display: "flex", gap: "4px 2px", flexWrap: "wrap" }}>
       <Chip
-        label={kind === HooksKind.OpenTerm ? "Standard" : "Fixed Term"}
+        icon={<ClockIcon />}
+        label={kind === HooksKind.OpenTerm ? "Open Term" : "Fixed Term"}
         sx={{
-          backgroundColor: COLORS.glitter,
-          color: COLORS.ultramarineBlue,
+          backgroundColor: COLORS.blackHaze,
+          color:
+            kind === HooksKind.OpenTerm ? COLORS.santasGrey : COLORS.blackRock,
         }}
       />
 
       {fixedPeriod && (
         <Chip
           label={additionalChipConfig.label}
-          icon={additionalChipConfig.icon}
+          // icon={additionalChipConfig.icon}
           sx={{
-            backgroundColor: additionalChipConfig.backgroundColor,
-            color: additionalChipConfig.color,
-            columnGap: "4px",
+            backgroundColor: COLORS.blackHaze,
+            color: COLORS.blackRock,
+            // columnGap: "4px",
           }}
         />
       )}

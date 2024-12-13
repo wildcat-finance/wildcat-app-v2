@@ -104,7 +104,7 @@ export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
   const {
     data: unfilteredBorrowerMarkets,
     isLoading: isBorrowerMarketsLoading,
-  } = useGetBorrowerMarkets(filter)
+  } = useGetBorrowerMarkets(undefined, filter)
   const { data: unfilteredOtherMarkets, isLoading: isOthersMarketsLoading } =
     useGetOthersMarkets(filter)
 
