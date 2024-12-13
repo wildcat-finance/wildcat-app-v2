@@ -913,8 +913,8 @@
     },
     "edit": {
       "public": {
-        "title": "Public Info",
-        "subtitle": "This info can be viewed by other users including lenders",
+        "title": "Basic Informnation",
+        "subtitle": "Basic details about your organization",
         "avatar": {
           "title": "Avatar",
           "generated": "Automatically Generated",
@@ -923,17 +923,17 @@
         },
         "name": {
           "title": "Legal Name",
-          "placeholder": "Use more than 1 character",
+          "placeholder": "Name of legal entity",
           "tooltip": "TBD"
         },
         "description": {
           "title": "Description",
-          "placeholder": "Use more than 1 character",
+          "placeholder": "Describe your organization",
           "tooltip": "TBD"
         },
         "founded": {
           "title": "Founded",
-          "placeholder": "Enter a year",
+          "placeholder": "Year organization was created",
           "tooltip": "TBD"
         },
         "headquarters": {
@@ -943,35 +943,35 @@
         },
         "website": {
           "title": "Website",
-          "placeholder": "Enter URL",
+          "placeholder": "not-alameda.com",
           "tooltip": "TBD"
         },
         "twitter": {
           "title": "Twitter",
-          "placeholder": "twitter.com/...",
+          "placeholder": "twitter.com/verylegitborrower",
           "tooltip": "TBD"
         },
         "linkedin": {
           "title": "Linkedin",
-          "placeholder": "linkedin.com/...",
+          "placeholder": "linkedin.com/notathief",
           "tooltip": "TBD"
         }
       },
       "private": {
-        "title": "Private Info",
-        "subtitle": "In case you want join to the Market with MLA you should share your legal info",
+        "title": "Legal Information",
+        "subtitle": "Legal details that will be used to fill out MLAs for markets you create, if you choose to use MLAs.",
         "jurisdiction": {
           "title": "Jurisdiction",
           "placeholder": "Please enter",
           "tooltip": "TBD"
         },
         "nature": {
-          "title": "Legal Nature",
+          "title": "Legal Entity Kind",
           "placeholder": "Please select",
           "tooltip": "TBD"
         },
         "address": {
-          "title": "Address",
+          "title": "Physical Address",
           "placeholder": "Enter a location",
           "tooltip": "TBD"
         },
@@ -984,7 +984,8 @@
       "buttons": {
         "back": "Back to",
         "cancel": "Cancel",
-        "confirm": "Confirm"
+        "confirm": "Confirm",
+        "login": "Sign a message before submitting changes to profile"
       }
     }
   }
