@@ -45,7 +45,7 @@ export default function Lender() {
             aria-label="Lender overview tabs"
           >
             <Tab value="markets" label={t("lenderMarketList.allMarkets")} />
-            <Tab value="mla" label={t("lenderMarketList.mla")} />
+            {/* <Tab value="mla" label={t("lenderMarketList.mla")} /> */}
           </Tabs>
         ) : (
           <Typography variant="title2">
@@ -57,7 +57,7 @@ export default function Lender() {
       {tab === "markets" && (
         <MarketsTab showConnectedData={showConnectedData} />
       )}
-      {tab === "mla" && <Box />}
+      {/* {tab === "mla" && <Box />} */}
     </Box>
   )
 }
