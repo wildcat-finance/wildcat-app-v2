@@ -23,10 +23,9 @@ export type SignAgreementProps = {
 
 export async function submitSignature(input: SignatureSubmissionProps) {
   const network = TargetNetwork.stringID
-  const url = "http://localhost:3000/api"
-  if (!url) throw Error(`API url not defined`)
 
-  await fetch(`${url}/sla`, {
+
+  await fetch(`/api/sla`, {
     method: "POST",
     body: JSON.stringify({
       ...input,
