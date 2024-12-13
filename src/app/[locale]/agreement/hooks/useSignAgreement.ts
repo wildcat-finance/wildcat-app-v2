@@ -24,7 +24,6 @@ export type SignAgreementProps = {
 export async function submitSignature(input: SignatureSubmissionProps) {
   const network = TargetNetwork.stringID
 
-
   await fetch(`/api/sla`, {
     method: "POST",
     body: JSON.stringify({
