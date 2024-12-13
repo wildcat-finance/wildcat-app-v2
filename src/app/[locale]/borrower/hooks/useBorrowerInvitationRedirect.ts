@@ -3,9 +3,7 @@ import { useAccount } from "wagmi"
 import { useGetController } from "@/hooks/useGetController"
 import { ROUTES } from "@/routes"
 
-import {
-  useBorrowerInvitationExists,
-} from "./useBorrowerInvitation"
+import { useBorrowerInvitationExists } from "./useBorrowerInvitation"
 
 const GOOGLE_FORM_LINK = "https://forms.gle/irca7KeC7ASmkRh16"
 
@@ -16,7 +14,8 @@ export const useBorrowerInvitationRedirect = () => {
     isLoading: isControllerLoading,
     isSuccess,
   } = useGetController()
-  const { isLoading: isLoadingInvitation, data: invitation } = useBorrowerInvitationExists(address)
+  const { isLoading: isLoadingInvitation, data: invitation } =
+    useBorrowerInvitationExists(address)
   const isRegisteredBorrower = controller?.isRegisteredBorrower
   const markets = controller?.markets || []
 

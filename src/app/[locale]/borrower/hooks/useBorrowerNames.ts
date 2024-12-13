@@ -11,12 +11,8 @@ export type BorrowerWithName = {
 }
 
 export const useBorrowerNames = () => {
-  const url = process.env.REACT_APP_API_URL as string | undefined
   const getBorrowers = async () => {
-    if (!url) throw Error(`API url not defined`)
-    const { data } = await fetch(
-      `${url}/borrowers/registered/${TargetNetwork?.name.toLowerCase()}`,
-    )
+    const { data } = await fetch(`/api/borrower-names`)
       .then((res) => res.json())
       .catch((err) => {
         console.log(err)
@@ -25,7 +21,7 @@ export const useBorrowerNames = () => {
     return data === undefined ? null : (data as BorrowerWithName[])
   }
   const { data, ...result } = useQuery({
-    enabled: !!url,
+    enabled: true,
     queryKey: [USE_REGISTERED_BORROWERS_KEY],
     queryFn: getBorrowers,
     refetchOnMount: false,
