@@ -36,7 +36,7 @@ export type TLenderAuthorizationChange = {
   blockTimestamp: number
   authorization: {
     marketAccounts: {
-      market: { name: string; id: string }
+      market: { name: string; id: string; borrower: string }
     }[]
   }
 }

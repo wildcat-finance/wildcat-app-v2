@@ -55,7 +55,7 @@ export const useAuthorizationChanges = (
                     <Trans
                       i18nKey="notifications.lenderAdded.description"
                       values={{
-                        borrower: trimAddress(change.borrower),
+                        borrower: trimAddress(marketAccount.market.borrower),
                         marketName: marketAccount.market.name,
                       }}
                       components={{ strong: <strong /> }}
