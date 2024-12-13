@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next"
 import { FormFooter } from "@/app/[locale]/borrower/create-market/components/FormFooter"
 import { FormContainer } from "@/app/[locale]/borrower/create-market/components/Forms/style"
 import { MarketValidationSchemaType } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
+import { useGetMlaTemplates } from "@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates"
 import ExtendedRadio from "@/components/@extended/ExtendedRadio"
 import { HorizontalInputLabel } from "@/components/HorisontalInputLabel"
 import { mockedMLATemplatesOptions } from "@/mocks/mocks"
@@ -54,6 +55,21 @@ export const MlaForm = ({ form }: MLAFormProps) => {
     setValue("mla", event.target.value)
   }
 
+  const { data: templates, isLoading: isLoadingTemplates } =
+    useGetMlaTemplates()
+  const options = [
+    {
+      id: "noMLA",
+      label: "Don’t Use",
+      value: "noMLA",
+    },
+    ...(templates?.map((template) => ({
+      id: template.id.toString(),
+      label: template.name,
+      value: template.id.toString(),
+    })) ?? []),
+  ]
+
   useEffect(() => {
     dispatch(setIsValid({ step: CreateMarketSteps.MLA, valid: !!mlaWatch }))
 
@@ -84,7 +100,7 @@ export const MlaForm = ({ form }: MLAFormProps) => {
             gap: "6px",
           }}
         >
-          {mockedMLATemplatesOptions.map((mla) => (
+          {options.map((mla) => (
             <FormControlLabel
               key={mla.id}
               label={mla.label}

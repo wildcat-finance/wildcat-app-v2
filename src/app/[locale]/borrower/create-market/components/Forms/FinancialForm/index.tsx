@@ -98,6 +98,12 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
               "createMarket.forms.marketDescription.block.capacity.placeholder",
             )}
             value={getValues("maxTotalSupply")}
+            // onBlur={(v) => {
+            //   setValue(
+            //     "maxTotalSupply",
+            //     parseFloat(v.target.value.replaceAll(",", "")) as number,
+            //   )
+            // }}
             onValueChange={(v) => {
               setValue("maxTotalSupply", v.floatValue as number)
             }}

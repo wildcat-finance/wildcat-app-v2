@@ -72,7 +72,7 @@ export const selectDepositAccessOptions: ExtendedSelectOptionItem<
 export const marketValidationSchema = z
   .object({
     marketName: z.string().min(1),
-    mla: z.string().min(1),
+    mla: z.string().optional(),
     accessControl: z.string().min(1),
     marketType: z.string().min(1),
     asset: z.string().refine((value) => isAddress(value), {

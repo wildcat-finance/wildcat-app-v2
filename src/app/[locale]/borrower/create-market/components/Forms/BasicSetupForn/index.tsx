@@ -64,7 +64,7 @@ export const BasicSetupForm = ({ form, tokenAsset }: BasicSetupFormProps) => {
     if (isFormValid) {
       dispatch(
         setIsDisabled({
-          steps: [CreateMarketSteps.MLA],
+          steps: [CreateMarketSteps.FINANCIAL],
           disabled: !isFormValid,
         }),
       )

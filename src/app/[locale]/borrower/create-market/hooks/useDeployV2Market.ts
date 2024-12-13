@@ -29,6 +29,9 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { GET_CONTROLLER_KEY } from "@/hooks/useGetController"
 
+import { GET_BORROWER_MARKETS } from "../../hooks/getMaketsHooks/useGetBorrowerMarkets"
+import { GET_ALL_MARKETS } from "../../hooks/getMaketsHooks/useGetOthersMarkets"
+
 export type DeployNewV2MarketParams =
   | (Omit<
       FixedTermMarketDeploymentArgs,
@@ -263,6 +266,8 @@ export const useDeployV2Market = () => {
     },
     onSuccess: () => {
       client.invalidateQueries({ queryKey: [GET_CONTROLLER_KEY] })
+      client.invalidateQueries({ queryKey: [GET_BORROWER_MARKETS] })
+      client.invalidateQueries({ queryKey: [GET_ALL_MARKETS] })
     },
     onError(error) {
       console.log(error)

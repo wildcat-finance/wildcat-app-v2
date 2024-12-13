@@ -109,8 +109,9 @@ export default function CreateMarketPage() {
     setTokenAsset(assetData)
   }, [assetData])
 
-  const handleDeployMarket = newMarketForm.handleSubmit(() => {
+  const handleDeployMarket = newMarketForm.handleSubmit((data) => {
     const marketParams = newMarketForm.getValues()
+
     // const deployedMarkets = selectedHooksTemplate?.totalMarkets
     if (assetData && tokenAsset && selectedHooksTemplate) {
       const randomSaltNumber = (Math.random() * 1000000000000000000)
@@ -170,6 +171,7 @@ export default function CreateMarketPage() {
   })
 
   const handleClickDeploy = () => {
+    console.log(`clicked deploy`)
     setFinalOpen(true)
     handleDeployMarket()
   }
@@ -220,11 +222,12 @@ export default function CreateMarketPage() {
           <BasicSetupForm form={newMarketForm} tokenAsset={tokenAsset} />
         )}
 
-        {currentStep === CreateMarketSteps.MLA && (
+        {/* {currentStep === CreateMarketSteps.MLA && (
           <MlaForm form={newMarketForm} />
-        )}
+        )} */}
 
-        {currentStep === CreateMarketSteps.FINANCIAL && (
+        {(currentStep === CreateMarketSteps.FINANCIAL ||
+          currentStep === CreateMarketSteps.MLA) && (
           <FinancialForm form={newMarketForm} tokenAsset={tokenAsset} />
         )}
 

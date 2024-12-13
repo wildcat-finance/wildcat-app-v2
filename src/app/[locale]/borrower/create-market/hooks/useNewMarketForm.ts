@@ -28,7 +28,7 @@ export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   policy: "",
   policyName: "",
   accessControl: "",
-  mla: "",
+  mla: "noMLA",
   marketName: "aa",
   asset: "0x",
   namePrefix: "",
