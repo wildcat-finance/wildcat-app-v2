@@ -50,7 +50,7 @@ export default function EditProfile() {
   const router = useRouter()
   const { t } = useTranslation()
 
-  const token= useAuthToken()
+  const token = useAuthToken()
   const { mutate: login } = useLogin()
 
   const publicForm = useEditPublicForm()

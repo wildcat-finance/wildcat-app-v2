@@ -60,74 +60,72 @@ export const NameSection = ({
         </Typography>
       )}
 
-      {(
-        <Box
-          sx={{
-            ...LinksContainer,
-            justifyContent: type === "user" ? "space-between" : "center",
-          }}
-        >
-          <Box display="flex" gap="6px">
-            {website && (
-              <Link href={website} target="_blank">
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="secondary"
-                  sx={ProfileHeaderButton}
-                >
-                  {t("borrowerProfile.profile.buttons.website")}
-                </Button>
-              </Link>
-            )}
+      <Box
+        sx={{
+          ...LinksContainer,
+          justifyContent: type === "user" ? "space-between" : "center",
+        }}
+      >
+        <Box display="flex" gap="6px">
+          {website && (
+            <Link href={website} target="_blank">
+              <Button
+                size="small"
+                variant="outlined"
+                color="secondary"
+                sx={ProfileHeaderButton}
+              >
+                {t("borrowerProfile.profile.buttons.website")}
+              </Button>
+            </Link>
+          )}
 
-            {twitter && (
-              <Link href={`https://x.com/${twitter}`} target="_blank">
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="secondary"
-                  sx={ProfileHeaderButton}
-                >
-                  {t("borrowerProfile.profile.buttons.twitter")}
-                </Button>
-              </Link>
-            )}
+          {twitter && (
+            <Link href={`https://x.com/${twitter}`} target="_blank">
+              <Button
+                size="small"
+                variant="outlined"
+                color="secondary"
+                sx={ProfileHeaderButton}
+              >
+                {t("borrowerProfile.profile.buttons.twitter")}
+              </Button>
+            </Link>
+          )}
 
-            {linkedin && (
-              <Link href={linkedin} target="_blank">
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="secondary"
-                  sx={ProfileHeaderButton}
-                >
-                  {t("borrowerProfile.profile.buttons.linkedin")}
-                </Button>
-              </Link>
-            )}
-          </Box>
-
-          {type === "user" && (
-            <Link href={ROUTES.borrower.editProfile}>
-              <Button variant="text" size="small" sx={{ gap: "4px" }}>
-                <SvgIcon
-                  fontSize="medium"
-                  sx={{
-                    "& path": {
-                      fill: `${COLORS.greySuit}`,
-                      transition: "fill 0.2s",
-                    },
-                  }}
-                >
-                  <Edit />
-                </SvgIcon>
-                {t("borrowerProfile.profile.buttons.edit")}
+          {linkedin && (
+            <Link href={linkedin} target="_blank">
+              <Button
+                size="small"
+                variant="outlined"
+                color="secondary"
+                sx={ProfileHeaderButton}
+              >
+                {t("borrowerProfile.profile.buttons.linkedin")}
               </Button>
             </Link>
           )}
         </Box>
-      )}
+
+        {type === "user" && (
+          <Link href={ROUTES.borrower.editProfile}>
+            <Button variant="text" size="small" sx={{ gap: "4px" }}>
+              <SvgIcon
+                fontSize="medium"
+                sx={{
+                  "& path": {
+                    fill: `${COLORS.greySuit}`,
+                    transition: "fill 0.2s",
+                  },
+                }}
+              >
+                <Edit />
+              </SvgIcon>
+              {t("borrowerProfile.profile.buttons.edit")}
+            </Button>
+          </Link>
+        )}
+      </Box>
 
       {type === "external" && marketsAmount === 0 && (
         <EmptyAlert
