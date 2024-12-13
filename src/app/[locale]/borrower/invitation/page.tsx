@@ -6,10 +6,10 @@ import { useAccount } from "wagmi"
 import { useLogin } from "@/hooks/useApiAuth"
 
 import { AcceptInvitationForm } from "./components/AcceptInvitationForm"
+import { PageContainer } from "../create-market/style"
 import { useGetBorrowerInvitation } from "../hooks/useBorrowerInvitation"
-import { ContentContainer } from "../new-market/style"
 
-export const BorrowerInvitationPage = () => {
+const BorrowerInvitationPage = () => {
   const { address } = useAccount()
   const login = useLogin()
   const {
@@ -20,17 +20,17 @@ export const BorrowerInvitationPage = () => {
   } = useGetBorrowerInvitation(address)
 
   if (!address) {
-    return <Box sx={ContentContainer}>No Wallet Connected</Box>
+    return <Box sx={PageContainer}>No Wallet Connected</Box>
   }
   if (isLoadingInvite) {
-    return <Box sx={ContentContainer}>Loading...</Box>
+    return <Box sx={PageContainer}>Loading...</Box>
   }
   if (!inviteExists) {
-    return <Box sx={ContentContainer}>No invitation found</Box>
+    return <Box sx={PageContainer}>No invitation found</Box>
   }
   if (mustLogin || !invitation) {
     return (
-      <Box sx={ContentContainer}>
+      <Box sx={PageContainer}>
         <Typography variant="h6">Login to view invitation</Typography>
         <Button onClick={() => login.mutate(address)}>Login</Button>
       </Box>
