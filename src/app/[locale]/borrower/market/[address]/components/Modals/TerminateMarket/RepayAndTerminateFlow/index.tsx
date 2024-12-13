@@ -269,7 +269,7 @@ export const RepayAndTerminateFlow = ({
             <Typography variant="text3">
               {t("borrowerMarketDetails.modals.terminate.total")}
             </Typography>
-            <Typography variant="text3" noWrap color={COLORS.wildWatermelon}>
+            <Typography variant="text3" noWrap color={COLORS.dullRed}>
               {formatTokenWithCommas(market.totalDebts, {
                 withSymbol: true,
               })}
@@ -288,7 +288,7 @@ export const RepayAndTerminateFlow = ({
               {t("borrowerMarketDetails.modals.terminate.totalAssets")}
             </Typography>
 
-            <Typography variant="text2" noWrap color={COLORS.lightGreen}>
+            <Typography variant="text2" noWrap color="green">
               {formatTokenWithCommas(market.totalAssets, {
                 withSymbol: true,
               })}
@@ -306,7 +306,7 @@ export const RepayAndTerminateFlow = ({
             <Typography variant="text2">
               {t("borrowerMarketDetails.modals.terminate.remainingDebt")}
             </Typography>
-            <Typography variant="text2" noWrap color={COLORS.wildWatermelon}>
+            <Typography variant="text2" noWrap color={COLORS.dullRed}>
               {formatTokenWithCommas(market.outstandingDebt, {
                 withSymbol: true,
               })}
