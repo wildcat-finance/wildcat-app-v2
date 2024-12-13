@@ -47,7 +47,10 @@ export async function POST(request: NextRequest) {
   let data: BorrowerProfileInput
   try {
     const input = await request.json()
-    data = BorrowerProfileInputDTO.parse(input)
+    data = {
+      ...BorrowerProfileInputDTO.parse(input),
+      address: token.address,
+    }
   } catch (error) {
     return getZodParseError(error)
   }
@@ -77,7 +80,7 @@ export async function POST(request: NextRequest) {
       { status: 404 },
     )
   }
-  const [, result] = await prisma.$transaction([
+  const [, updateRequest] = await prisma.$transaction([
     prisma.borrowerProfileUpdateRequest.deleteMany({
       where: {
         chainId,
@@ -102,7 +105,45 @@ export async function POST(request: NextRequest) {
       },
     }),
   ])
-  return NextResponse.json({ success: true, updateId: result.id })
+
+  // @todo Temporarily apply changes immediately
+  const newData: Omit<BorrowerProfileInput, "address"> = {}
+  const keys = [
+    "name",
+    "description",
+    "founded",
+    "headquarters",
+    "website",
+    "twitter",
+    "linkedin",
+    "email",
+  ] as const
+  keys.forEach((key) => {
+    if (data[key] !== null) {
+      newData[key] = data[key] || undefined
+    }
+  })
+  await Promise.all([
+    prisma.borrower.update({
+      where: {
+        chainId_address: {
+          address: updateRequest.address,
+          chainId: updateRequest.chainId,
+        },
+      },
+      data: newData,
+    }),
+    prisma.borrowerProfileUpdateRequest.update({
+      where: {
+        id: updateRequest.id,
+      },
+      data: {
+        acceptedAt: new Date().toISOString(),
+      },
+    }),
+  ])
+
+  return NextResponse.json({ success: true, updateId: updateRequest.id })
 }
 
 /// GET /api/profiles/updates?borrower=<borrower>&pending=<bool>
@@ -162,7 +203,7 @@ export async function PUT(request: NextRequest) {
     ] as const
     keys.forEach((key) => {
       if (updateRequest[key] !== null) {
-        newData[key] = updateRequest[key]
+        newData[key] = updateRequest[key] || undefined
       }
     })
     proms.push(
