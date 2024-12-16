@@ -5,21 +5,21 @@
       "lender": "Lender"
     },
     "button": {
-      "connectWallet": "Connect a wallet",
+      "connectWallet": "Connect Wallet",
       "wrongNetwork": "Wrong Network",
-      "switchNetwork": "Switch to",
+      "switchNetwork": "Switch To",
       "disconnect": "Disconnect"
     },
     "modal": {
-      "title": "Connect wallet",
-      "note": "By connecting a wallet, you agree to Wildcat Terms of Service and consent to its Privacy Policy"
+      "title": "Connect Wallet",
+      "note": "By connecting a wallet, you consent to the Wildcat Privacy Policy."
     },
     "notifications": {
       "noNewNotifications": "No new notifications",
       "anyOtherMessage": "Any other message. You can close the window.",
-      "viewEarlier": "View earlier",
+      "viewEarlier": "View Earlier",
       "notifications": "Notifications",
-      "markAsRead": "Mark as Read",
+      "markAsRead": "Mark As Read",
       "all": "All",
       "marketActivity": "Market Activity",
       "newLenders": "New Lenders",
@@ -1127,8 +1127,8 @@
       "title": "Borrower Restrictions",
       "subtitle": "This is your opportunity to encourage confidence from your lenders",
       "buybacks": {
-        "label": "Allow Force Buybacks",
-        "explainer": "Defines whether the borrower can forcibly buy back debt tokens from lenders."
+        "label": "[TO DELETE] Allow Force Buybacks",
+        "explainer": "[TO DELETE]"
       },
       "alert": {
         "title": "This will break integration with on-chain exchanges.",
@@ -1140,25 +1140,25 @@
       "title": "Grace and Withdrawal Periods",
       "sidebar": "Grace, Withdrawal Periods",
       "grace": {
-        "label": "Grace period",
+        "label": "Grace Period Duration",
         "placeholder": "10-20",
-        "chip": "hours",
+        "chip": "Hours",
         "glossary": "Time allowed for a delinquent market to recover before penalties apply."
       },
       "wdCycle": {
-        "label": "Withdrawal cycle length",
+        "label": "Withdrawal Cycle Duration",
         "placeholder": "10-20",
-        "chip": "hours",
+        "chip": "Hours",
         "glossary": "Time window until withdrawals are processed."
       }
     },
     "confirm": {
       "title": "Confirmation",
-      "typeTerms": "Market Type and Terms",
+      "typeTerms": "Market Type/Terms",
       "alert": "Note that once your market is created, the only adjustable parameters will be base APR and maximum capacity.",
       "legalInfo": {
-        "title": "Legal Info",
-        "legalName": "Full legal name",
+        "title": "Legal Information",
+        "legalName": "Legal Entity Name",
         "jurisdiction": "Jurisdiction",
         "legalNature": "Legal Nature",
         "address": "Address",
@@ -1167,22 +1167,22 @@
     },
     "deploy": {
       "loading": {
-        "title": "Just wait a bit ...",
-        "message": "Transaction in process or any other message."
+        "title": "Please Wait...",
+        "message": "Deployment Transaction Processing..."
       },
       "success": {
-        "title": "Market was created",
-        "message": "Market successfully created. You can onboard Lenders and borrow money now.",
+        "title": "Market Created!",
+        "message": "Market successfully created: the rest is up to you!",
         "buttons": {
-          "mla": "View and download MLA",
-          "markets": "Go to Markets Overview"
+          "mla": "View/Download MLA",
+          "markets": "Go To Market Overview"
         }
       },
       "error": {
-        "title": "Oops! Something goes wrong",
-        "message": "Explanatory message about the problem.",
+        "title": "Oops! Something Has Gone Wrong",
+        "message": "Can you reach out to us and tell us how you got here?",
         "buttons": {
-          "back": "Back to review step",
+          "back": "Back To Review Step",
           "again": "Try Again"
         }
       }
