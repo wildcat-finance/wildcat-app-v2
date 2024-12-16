@@ -385,7 +385,7 @@ export default function EditProfile() {
               onOpen={onOpen}
               onClose={onClose}
               onChange={handleNatureSelect}
-              value={privateWatch("legalNature")}
+              value={privateWatch("legalNature") || ""}
               MenuProps={{
                 sx: SelectStyles,
                 anchorOrigin: {
