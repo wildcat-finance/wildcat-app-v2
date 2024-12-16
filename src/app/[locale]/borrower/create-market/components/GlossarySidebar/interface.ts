@@ -1,4 +1,6 @@
+import { CreateMarketSteps } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
+
 export type GlossarySidebarProps = {
-  stepNumber: number
+  step: CreateMarketSteps
   hideGlossary?: boolean
 }

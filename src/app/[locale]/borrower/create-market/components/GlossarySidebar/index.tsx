@@ -1,130 +1,131 @@
 import { Box, SvgIcon, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import Info from "@/assets/icons/info_icon.svg"
+import { CreateMarketSteps } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import { COLORS } from "@/theme/colors"
 
 import { GlossarySidebarProps } from "./interface"
 import { GlossaryContainer, GlossaryItem } from "./style"
 
 export const GlossarySidebar = ({
-  stepNumber,
+  step,
   hideGlossary,
 }: GlossarySidebarProps) => {
+  const { t } = useTranslation()
+
   let glossaryArray: {
     title: string
     description: string
   }[]
 
-  switch (stepNumber) {
-    case 1: {
+  switch (step) {
+    case CreateMarketSteps.POLICY: {
       glossaryArray = [
         {
-          title: "Market Policy",
-          description:
-            "Rules defining loan type (open or fixed) and access requirements.",
+          title: t("createNewMarket.policy.policy.label"),
+          description: t("createNewMarket.policy.policy.glossary"),
         },
         {
-          title: "Policy Name",
-          description: "The name of the market’s rule set.",
+          title: t("createNewMarket.policy.name.label"),
+          description: t("createNewMarket.policy.name.glossary"),
         },
       ]
       break
     }
-    case 2: {
+    case CreateMarketSteps.BASIC: {
       glossaryArray = [
         {
-          title: "Underlying Asset",
-          description:
-            "The ERC-20 token used for all transactions in the market, such as Wrapped Ether (wETH) or USDC.",
+          title: t("createNewMarket.basic.asset.label"),
+          description: t("createNewMarket.basic.asset.glossary"),
         },
         {
-          title: "Market Token Name",
-          description:
-            "A descriptive name for the tokens lenders receive, representing their share in the market.",
+          title: t("createNewMarket.basic.tokenName.label"),
+          description: t("createNewMarket.basic.tokenName.glossary"),
         },
         {
-          title: "Market Token Symbol",
-          description:
-            'A short identifier, like "whcWETH," for the tokens lenders receive in the market.',
+          title: t("createNewMarket.basic.tokenSymbol.label"),
+          description: t("createNewMarket.basic.tokenSymbol.glossary"),
         },
       ]
       break
     }
-    case 3: {
+    case CreateMarketSteps.MLA: {
       glossaryArray = [
         {
-          title: "Master Loan Agreement",
-          description:
-            "A legally binding document that defines the terms, obligations, and penalties for borrowers and lenders in the market.",
+          title: t("createNewMarket.mla.mla.label"),
+          description: t("createNewMarket.mla.mla.glossary"),
         },
       ]
       break
     }
-    case 4: {
+    case CreateMarketSteps.FINANCIAL: {
       glossaryArray = [
         {
-          title: "Max Borrowing Capacity",
-          description:
-            "The total amount borrowers can withdraw from the market.",
+          title: t("createNewMarket.financial.maxCapacity.label"),
+          description: t("createNewMarket.financial.maxCapacity.glossary"),
         },
         {
-          title: "Base APR",
-          description: "The standard interest rate for borrowing.",
+          title: t("createNewMarket.financial.baseAPR.label"),
+          description: t("createNewMarket.financial.baseAPR.glossary"),
         },
         {
-          title: "Penalty APR",
-          description:
-            "Additional interest applied when the market is delinquent and beyond the grace period.",
+          title: t("createNewMarket.financial.penaltyAPR.label"),
+          description: t("createNewMarket.financial.penaltyAPR.glossary"),
         },
         {
-          title: "Reserve Ratio",
-          description:
-            "The percentage of market funds kept unborrowed and locked as reserve.",
+          title: t("createNewMarket.financial.ratio.label"),
+          description: t("createNewMarket.financial.ratio.glossary"),
         },
         {
-          title: "Minimum Deposit",
-          description: "The smallest deposit allowed in the market.",
+          title: t("createNewMarket.financial.minDeposit.label"),
+          description: t("createNewMarket.financial.minDeposit.glossary"),
         },
       ]
       break
     }
-    case 5: {
+    case CreateMarketSteps.LRESTRICTIONS: {
       glossaryArray = [
         {
-          title: "Restrict Deposits",
-          description: "Limits who can deposit into the market.",
+          title: t("createNewMarket.lenderRestrictions.restrictDeposits.label"),
+          description: t(
+            "createNewMarket.lenderRestrictions.restrictDeposits.glossary",
+          ),
         },
         {
-          title: "Disable Transfers",
-          description: "Prevents transferring tokens to others.",
+          title: t("createNewMarket.lenderRestrictions.disableTransfers.label"),
+          description: t(
+            "createNewMarket.lenderRestrictions.disableTransfers.glossary",
+          ),
         },
         {
-          title: "Restrict Withdrawals",
-          description:
-            "Limits withdrawals to users meeting market access criteria.",
+          title: t(
+            "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
+          ),
+          description: t(
+            "createNewMarket.lenderRestrictions.restrictWithdrawals.glossary",
+          ),
         },
         {
-          title: "Restrict Transfers",
-          description:
-            "Limits transfers to participants who meet policy-defined access requirements.",
+          title: t(
+            "createNewMarket.lenderRestrictions.restrictTransfers.label",
+          ),
+          description: t(
+            "createNewMarket.lenderRestrictions.restrictTransfers.glossary",
+          ),
         },
       ]
       break
     }
-    case 6: {
-      glossaryArray = []
-      break
-    }
-    case 7: {
+    case CreateMarketSteps.PERIODS: {
       glossaryArray = [
         {
-          title: "Grace period",
-          description:
-            "Time allowed for a delinquent market to recover before penalties apply.",
+          title: t("createNewMarket.periods.grace.label"),
+          description: t("createNewMarket.periods.grace.glossary"),
         },
         {
-          title: "Withdrawal cycle length",
-          description: "Time window until withdrawals are processed.",
+          title: t("createNewMarket.periods.wdCycle.label"),
+          description: t("createNewMarket.periods.wdCycle.glossary"),
         },
       ]
       break
@@ -132,13 +133,12 @@ export const GlossarySidebar = ({
     default: {
       glossaryArray = [
         {
-          title: "Market Policy",
-          description:
-            "Rules defining loan type (open or fixed) and access requirements.",
+          title: t("createNewMarket.policy.policy.label"),
+          description: t("createNewMarket.policy.policy.glossary"),
         },
         {
-          title: "Policy Name",
-          description: "The name of the market’s rule set.",
+          title: t("createNewMarket.policy.name.label"),
+          description: t("createNewMarket.policy.name.glossary"),
         },
       ]
       break
@@ -162,7 +162,7 @@ export const GlossarySidebar = ({
       </SvgIcon>
 
       <Typography variant="text1" sx={{ margin: "12px 0 32px" }}>
-        Glossary
+        {t("createNewMarket.glossary")}
       </Typography>
 
       {glossaryArray.map((block) => (

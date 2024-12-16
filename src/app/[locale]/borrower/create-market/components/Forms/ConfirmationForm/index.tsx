@@ -61,11 +61,11 @@ export const ConfirmationForm = ({
   return (
     <Box sx={{ ...FormContainer, width: "71.5%" }}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        Confirmation
+        {t("createNewMarket.confirm.title")}
       </Typography>
 
       <Typography variant="text4" sx={SubtitleStyle}>
-        Market Policy
+        {t("createNewMarket.policy.title")}
       </Typography>
 
       <Box
@@ -75,27 +75,21 @@ export const ConfirmationForm = ({
         }}
       >
         <ConfirmationFormItem
-          label="Market Policy"
+          label={t("createNewMarket.policy.policy.label")}
           value={isNewPolicy ? "NEW POLICY" : "EXISTING POLICY"}
         />
 
         <ConfirmationFormItem
-          label={t(
-            "createMarket.forms.marketDescription.block.policyName.title",
-          )}
+          label={t("createNewMarket.policy.name.label")}
           value={policyNameValue}
         />
         <ConfirmationFormItem
-          label={t(
-            "createMarket.forms.marketDescription.block.marketType.title",
-          )}
+          label={t("createNewMarket.policy.type.label")}
           value={marketTypeValue || ""}
         />
 
         <ConfirmationFormItem
-          label={t(
-            "createMarket.forms.marketDescription.block.accessControl.title",
-          )}
+          label={t("createNewMarket.policy.access.label")}
           value={accessControlValue ?? "-"}
         />
       </Box>
@@ -103,7 +97,7 @@ export const ConfirmationForm = ({
       <Divider sx={DividerStyle} />
 
       <Typography variant="text4" sx={SubtitleStyle}>
-        Basic Market Setup
+        {t("createNewMarket.basic.title")}
       </Typography>
 
       <Box
@@ -113,23 +107,17 @@ export const ConfirmationForm = ({
         }}
       >
         <ConfirmationFormItem
-          label={t(
-            "createMarket.forms.marketDescription.block.marketAsset.title",
-          )}
+          label={t("createNewMarket.basic.asset.label")}
           value={tokenAsset?.name || ""}
         />
 
         <ConfirmationFormItem
-          label={t(
-            "createMarket.forms.marketDescription.block.marketTokenName.title",
-          )}
+          label={t("createNewMarket.basic.tokenName.label")}
           value={`${getValues("namePrefix")} ${tokenAsset?.name}`}
         />
 
         <ConfirmationFormItem
-          label={t(
-            "createMarket.forms.marketDescription.block.marketTokenSymbol.title",
-          )}
+          label={t("createNewMarket.basic.tokenSymbol.label")}
           value={`${getValues("symbolPrefix")}${tokenAsset?.symbol}`}
         />
       </Box>
@@ -147,7 +135,7 @@ export const ConfirmationForm = ({
             }}
           >
             <Typography variant="text4" sx={{ textTransform: "uppercase" }}>
-              Loan Agreement
+              {t("createNewMarket.mla.title")}
             </Typography>
 
             <Button
@@ -156,7 +144,7 @@ export const ConfirmationForm = ({
               size="small"
               sx={{ width: "fit-content" }}
             >
-              View MLA
+              {t("createNewMarket.buttons.viewMLA")}
             </Button>
           </Box>
 
@@ -167,7 +155,7 @@ export const ConfirmationForm = ({
       {isFixedTerm && (
         <>
           <Typography variant="text4" sx={SubtitleStyle}>
-            Market Type and Terms
+            {t("createNewMarket.confirm.typeTerms")}
           </Typography>
 
           <Box
@@ -177,7 +165,7 @@ export const ConfirmationForm = ({
             }}
           >
             <ConfirmationFormItem
-              label="Expiration Date"
+              label={t("createNewMarket.policy.expiration.label")}
               value={
                 timestampToDateFormatted(
                   Number(getValues("fixedTermEndTime")),
@@ -187,12 +175,12 @@ export const ConfirmationForm = ({
             />
 
             <ConfirmationFormItem
-              label="Early Close"
+              label={t("createNewMarket.policy.earlyClose.label")}
               value={getValues("allowClosureBeforeTerm") ? "Yes" : "No"}
             />
 
             <ConfirmationFormItem
-              label="Reduce Expiration"
+              label={t("createNewMarket.policy.reduceExpiration.label")}
               value={getValues("allowTermReduction") ? "Yes" : "No"}
             />
           </Box>
@@ -202,7 +190,7 @@ export const ConfirmationForm = ({
       )}
 
       <Typography variant="text4" sx={SubtitleStyle}>
-        Financial Terms
+        {t("createNewMarket.financial.title")}
       </Typography>
 
       <Box
@@ -213,29 +201,27 @@ export const ConfirmationForm = ({
         }}
       >
         <ConfirmationFormItem
-          label={t("createMarket.forms.marketDescription.block.capacity.title")}
+          label={t("createNewMarket.financial.maxCapacity.label")}
           value={`${getValues("maxTotalSupply")} ${tokenAsset?.symbol}`}
         />
 
         <ConfirmationFormItem
-          label={t("createMarket.forms.marketDescription.block.baseAPR.title")}
+          label={t("createNewMarket.financial.baseAPR.label")}
           value={`${getValues("annualInterestBips")}%`}
         />
 
         <ConfirmationFormItem
-          label={t(
-            "createMarket.forms.marketDescription.block.penaltyAPR.title",
-          )}
+          label={t("createNewMarket.financial.penaltyAPR.label")}
           value={`${getValues("delinquencyFeeBips")}%`}
         />
 
         <ConfirmationFormItem
-          label={t("createMarket.forms.marketDescription.block.ratio.title")}
+          label={t("createNewMarket.financial.ratio.label")}
           value={`${getValues("reserveRatioBips")}%`}
         />
 
         <ConfirmationFormItem
-          label={t("createMarket.forms.marketDescription.block.deposit.title")}
+          label={t("createNewMarket.financial.minDeposit.label")}
           value={`${getValues("minimumDeposit")} ${tokenAsset?.symbol}`}
         />
       </Box>
@@ -243,7 +229,7 @@ export const ConfirmationForm = ({
       <Divider sx={DividerStyle} />
 
       <Typography variant="text4" sx={SubtitleStyle}>
-        Lender Restrictions
+        {t("createNewMarket.lenderRestrictions.title")}
       </Typography>
 
       <Box
@@ -253,27 +239,25 @@ export const ConfirmationForm = ({
         }}
       >
         <ConfirmationFormItem
-          label="Restrict Deposits"
+          label={t("createNewMarket.lenderRestrictions.restrictDeposits.label")}
           value={depositRequiresAccess ? "Yes" : "No"}
         />
 
         <ConfirmationFormItem
-          label={t(
-            "createMarket.forms.marketDescription.block.transferAccess.title",
-          )}
+          label={t("createNewMarket.lenderRestrictions.disableTransfers.label")}
           value={disableTransfers ? "Yes" : "No"}
         />
 
         <ConfirmationFormItem
           label={t(
-            "createMarket.forms.marketDescription.block.depositAccess.title",
+            "createNewMarket.lenderRestrictions.restrictTransfers.label",
           )}
           value={transferRequiresAccess ? "Yes" : "No"}
         />
 
         <ConfirmationFormItem
           label={t(
-            "createMarket.forms.marketDescription.block.withdrawalAccess.title",
+            "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
           )}
           value={withdrawalRequiresAccess ? "Yes" : "No"}
         />
@@ -282,7 +266,7 @@ export const ConfirmationForm = ({
       <Divider sx={DividerStyle} />
 
       <Typography variant="text4" sx={SubtitleStyle}>
-        Borrower Restrictions
+        {t("createNewMarket.borrowerRestrictions.title")}
       </Typography>
 
       <Box
@@ -294,7 +278,7 @@ export const ConfirmationForm = ({
         }}
       >
         <ConfirmationFormItem
-          label="Allow Force Buybacks"
+          label={t("createNewMarket.borrowerRestrictions.buybacks.label")}
           value={allowForceBuyBack ? "Yes" : "No"}
         />
 
@@ -305,7 +289,7 @@ export const ConfirmationForm = ({
             </SvgIcon>
 
             <Typography variant="text4" color={COLORS.carminePink}>
-              Note this will break integration with on-chain exchanges
+              {t("createNewMarket.borrowerRestrictions.alert.title")}
             </Typography>
           </Box>
         )}
@@ -314,7 +298,7 @@ export const ConfirmationForm = ({
       <Divider sx={DividerStyle} />
 
       <Typography variant="text4" sx={SubtitleStyle}>
-        Grace and Withdrawals
+        {t("createNewMarket.periods.title")}
       </Typography>
 
       <Box
@@ -325,15 +309,11 @@ export const ConfirmationForm = ({
         }}
       >
         <ConfirmationFormItem
-          label={t(
-            "createMarket.forms.marketDescription.block.gracePeriod.title",
-          )}
+          label={t("createNewMarket.periods.grace.label")}
           value={`${getValues("delinquencyGracePeriod")} hours`}
         />
         <ConfirmationFormItem
-          label={t(
-            "createMarket.forms.marketDescription.block.withdrawalCycle.title",
-          )}
+          label={t("createNewMarket.periods.wdCycle.label")}
           value={`${getValues("withdrawalBatchDuration")} hours`}
         />
       </Box>
@@ -344,8 +324,7 @@ export const ConfirmationForm = ({
         </SvgIcon>
 
         <Typography variant="text3">
-          Note that once your market is created, the only adjustable parameters
-          will be base APR and maximum capacity.
+          {t("createNewMarket.confirm.alert")}
         </Typography>
       </Box>
 
@@ -372,7 +351,7 @@ export const ConfirmationForm = ({
           >
             <BackArrow />
           </SvgIcon>
-          Back
+          {t("createNewMarket.buttons.back")}
         </Button>
 
         <Box sx={{ display: "flex", gap: "4px" }}>
@@ -384,7 +363,7 @@ export const ConfirmationForm = ({
               disabled={signed}
               onClick={() => setSigned(true)}
             >
-              Sign MLA
+              {t("createNewMarket.buttons.signMLA")}
             </Button>
           )}
 
@@ -395,7 +374,7 @@ export const ConfirmationForm = ({
             disabled={isMLA && !signed}
             onClick={handleDeploy}
           >
-            Deploy Market
+            {t("createNewMarket.buttons.deploy")}
           </Button>
         </Box>
       </Box>

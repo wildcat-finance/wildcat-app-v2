@@ -988,5 +988,203 @@
         "login": "Sign a message before submitting changes to profile"
       }
     }
+  },
+  "createNewMarket": {
+    "title": "Creating a New Market",
+    "glossary": "Glossary",
+    "buttons": {
+      "sidebar": "To Markets",
+      "back": "Back",
+      "next": "Next",
+      "viewMLA": "View MLA",
+      "signMLA": "Sign MLA",
+      "deploy": "Deploy Market"
+    },
+    "policy": {
+      "title": "Market Policy",
+      "policy": {
+        "label": "Market Policy",
+        "placeholder": "Choose option",
+        "glossary": "Rules defining loan type (open or fixed) and access requirements."
+      },
+      "name": {
+        "label": "Policy Name",
+        "placeholder": "Input Policy Name",
+        "glossary": "The name of the market’s rule set."
+      },
+      "type": {
+        "label": "Market Type",
+        "placeholder": "Please select"
+      },
+      "kyc": {
+        "label": "KYC Preferences",
+        "placeholder": "Share contact info for direct KYC"
+      },
+      "access": {
+        "label": "Access Control",
+        "placeholder": "Please select"
+      },
+      "expiration": {
+        "label": "Expiration Date"
+      },
+      "earlyClose": {
+        "label": "Early Close",
+        "explainer": "Allows you to close the market before it reaches maturity"
+      },
+      "reduceExpiration": {
+        "label": "Reduce Expiration",
+        "explainer": "Allows you to reduce the market's maturity date"
+      }
+    },
+    "basic": {
+      "title": "Basic Market Setup",
+      "asset": {
+        "label": "Underlying Asset",
+        "placeholder": "Search name or paste address",
+        "loading": "Loading...",
+        "dropdownPlaceholder": "Enter token name",
+        "glossary": "The ERC-20 token used for all transactions in the market, such as Wrapped Ether (wETH) or USDC."
+      },
+      "tokenName": {
+        "label": "Market Token Name",
+        "placeholder": "e.g. Blossom",
+        "chip": "Asset Name",
+        "glossary": "A descriptive name for the tokens lenders receive, representing their share in the market."
+      },
+      "tokenSymbol": {
+        "label": "Market Token Symbol",
+        "chip": "Token Symbol",
+        "placeholder": "e.g. blsm",
+        "glossary": "A short identifier, like \"whcWETH,\" for the tokens lenders receive in the market."
+      }
+    },
+    "mla": {
+      "title": "Loan Agreement",
+      "mla": {
+        "label": "Master Loan Agreement",
+        "explainer": "Explainer",
+        "glossary": "A legally binding document that defines the terms, obligations, and penalties for borrowers and lenders in the market."
+      }
+    },
+    "financial": {
+      "title": "Financial Terms",
+      "maxCapacity": {
+        "label": "Max. Borrowing Capacity",
+        "placeholder": "under 100",
+        "chip": "Token Symbol",
+        "glossary": "The total amount borrowers can withdraw from the market."
+      },
+      "baseAPR": {
+        "label": "Base APR",
+        "placeholder": "10-20",
+        "chip": "%",
+        "glossary": "The standard interest rate for borrowing."
+      },
+      "penaltyAPR": {
+        "label": "Penalty APR",
+        "placeholder": "10-20",
+        "chip": "%",
+        "glossary": "Additional interest applied when the market is delinquent and beyond the grace period."
+      },
+      "ratio": {
+        "label": "Reserve Ratio",
+        "placeholder": "10-20",
+        "chip": "%",
+        "glossary": "The percentage of market funds kept unborrowed and locked as reserve."
+      },
+      "minDeposit": {
+        "label": "Minimum Deposit",
+        "explainer": "This is non mandatory, the default is 0",
+        "placeholder": "0",
+        "chip": "Token Symbol",
+        "glossary": "The smallest deposit allowed in the market."
+      }
+    },
+    "lenderRestrictions": {
+      "title": "Lender Restrictions",
+      "restrictDeposits": {
+        "label": "Restrict Deposits",
+        "explainer": "Requires depositors to meet KYC requirements.",
+        "glossary": "Limits who can deposit into the market."
+      },
+      "disableTransfers": {
+        "label": "Disable Transfers",
+        "explainer": "Requires lenders to meet KYC requirements to request withdrawals.",
+        "glossary": "Prevents transferring tokens to others."
+      },
+      "restrictWithdrawals": {
+        "label": "Restrict Withdrawals",
+        "explainer": "Disables all transfers of the market token.",
+        "glossary": "Limits withdrawals to users meeting market access criteria."
+      },
+      "restrictTransfers": {
+        "label": "Restrict Transfers",
+        "explainer": "Requires transfer recipients to meet KYC requirements.",
+        "glossary": "Limits transfers to participants who meet policy-defined access requirements."
+      }
+    },
+    "borrowerRestrictions": {
+      "title": "Borrower Restrictions",
+      "subtitle": "This is your opportunity to encourage confidence from your lenders",
+      "buybacks": {
+        "label": "Allow Force Buybacks",
+        "explainer": "Defines whether the borrower can forcibly buy back debt tokens from lenders."
+      },
+      "alert": {
+        "title": "This will break integration with on-chain exchanges.",
+        "subtitle": "Lenders will see a warning about using this market with smart contracts.",
+        "button": "More Info"
+      }
+    },
+    "periods": {
+      "title": "Grace and Withdrawal Periods",
+      "sidebar": "Grace, Withdrawal Periods",
+      "grace": {
+        "label": "Grace period",
+        "placeholder": "10-20",
+        "chip": "hours",
+        "glossary": "Time allowed for a delinquent market to recover before penalties apply."
+      },
+      "wdCycle": {
+        "label": "Withdrawal cycle length",
+        "placeholder": "10-20",
+        "chip": "hours",
+        "glossary": "Time window until withdrawals are processed."
+      }
+    },
+    "confirm": {
+      "title": "Confirmation",
+      "typeTerms": "Market Type and Terms",
+      "alert": "Note that once your market is created, the only adjustable parameters will be base APR and maximum capacity.",
+      "legalInfo": {
+        "legalName": "Full legal name",
+        "jurisdiction": "Jurisdiction",
+        "legalNature": "Legal Nature",
+        "address": "address",
+        "email": "Email"
+      }
+    },
+    "deploy": {
+      "loading": {
+        "title": "Just wait a bit ...",
+        "message": "Transaction in process or any other message."
+      },
+      "success": {
+        "title": "Market was created",
+        "message": "Market successfully created. You can onboard Lenders and borrow money now.",
+        "buttons": {
+          "mla": "View and download MLA",
+          "markets": "Go to Markets Overview"
+        }
+      },
+      "error": {
+        "title": "Oops! Something goes wrong",
+        "message": "Explanatory message about the problem.",
+        "buttons": {
+          "back": "Back to review step",
+          "again": "Try Again"
+        }
+      }
+    }
   }
 }

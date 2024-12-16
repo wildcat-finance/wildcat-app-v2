@@ -28,6 +28,8 @@ export const CreateMarketSidebarButton = ({
   valid,
   onClick,
 }: CreateMarketSidebarButtonProps) => {
+  const { t } = useTranslation()
+
   let buttonConfig: {
     numberColor: string
     titleColor: string
@@ -99,7 +101,7 @@ export const CreateMarketSidebarButton = ({
           variant="text3"
           color={!disabled ? buttonConfig.titleColor : COLORS.greySuit}
         >
-          {title}
+          {t(title)}
         </Typography>
       </Box>
 
@@ -126,7 +128,7 @@ export const CreateMarketSidebar = () => {
 
   return (
     <Box sx={ContentContainer}>
-      <BackButton title={t("createMarket.sidebar.back")} />
+      <BackButton title={t("createNewMarket.buttons.sidebar")} />
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
         {steps.map((step) => (

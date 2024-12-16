@@ -81,7 +81,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        Financial Terms
+        {t("createNewMarket.financial.title")}
       </Typography>
 
       <Box
@@ -90,13 +90,9 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
           gap: "38px 10px",
         }}
       >
-        <InputLabel
-          label={t("createMarket.forms.marketDescription.block.capacity.title")}
-        >
+        <InputLabel label={t("createNewMarket.financial.maxCapacity.label")}>
           <NumberTextField
-            label={t(
-              "createMarket.forms.marketDescription.block.capacity.placeholder",
-            )}
+            label={t("createNewMarket.financial.maxCapacity.placeholder")}
             value={getValues("maxTotalSupply")}
             // onBlur={(v) => {
             //   setValue(
@@ -115,68 +111,50 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
                 size="regular"
                 text={
                   tokenAsset?.symbol ||
-                  `${t(
-                    "createMarket.forms.marketDescription.block.capacity.chip",
-                  )}`
+                  `${t("createNewMarket.financial.maxCapacity.chip")}`
                 }
               />
             }
           />
         </InputLabel>
 
-        <InputLabel
-          label={t("createMarket.forms.marketDescription.block.baseAPR.title")}
-        >
+        <InputLabel label={t("createNewMarket.financial.baseAPR.label")}>
           <NumberTextField
             min={0}
             max={100}
-            label={t(
-              "createMarket.forms.marketDescription.block.baseAPR.placeholder",
-            )}
+            label={t("createNewMarket.financial.baseAPR.placeholder")}
             value={getValues("annualInterestBips")}
             error={Boolean(errors.annualInterestBips)}
             helperText={errors.annualInterestBips?.message}
             endAdornment={
               <Typography variant="text2" sx={endDecorator}>
-                {t("createMarket.forms.marketDescription.block.baseAPR.chip")}
+                {t("createNewMarket.financial.baseAPR.chip")}
               </Typography>
             }
             {...register("annualInterestBips")}
           />
         </InputLabel>
 
-        <InputLabel
-          label={t(
-            "createMarket.forms.marketDescription.block.penaltyAPR.title",
-          )}
-        >
+        <InputLabel label={t("createNewMarket.financial.penaltyAPR.label")}>
           <NumberTextField
             min={0}
             max={100}
-            label={t(
-              "createMarket.forms.marketDescription.block.penaltyAPR.placeholder",
-            )}
+            label={t("createNewMarket.financial.penaltyAPR.placeholder")}
             value={getValues("delinquencyFeeBips")}
             error={Boolean(errors.delinquencyFeeBips)}
             helperText={errors.delinquencyFeeBips?.message}
             endAdornment={
               <Typography variant="text2" sx={endDecorator}>
-                {t(
-                  "createMarket.forms.marketDescription.block.penaltyAPR.chip",
-                )}
+                {t("createNewMarket.financial.penaltyAPR.chip")}
               </Typography>
             }
             {...register("delinquencyFeeBips")}
           />
         </InputLabel>
 
-        <InputLabel
-          label={t("createMarket.forms.marketDescription.block.ratio.title")}
-        >
+        <InputLabel label={t("createNewMarket.financial.ratio.label")}>
           <NumberTextField
-            label={t(
-              "createMarket.forms.marketDescription.block.ratio.placeholder",
-            )}
+            label={t("createNewMarket.financial.ratio.placeholder")}
             min={0}
             max={100}
             value={getValues("reserveRatioBips")}
@@ -184,7 +162,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
             helperText={errors.reserveRatioBips?.message}
             endAdornment={
               <Typography variant="text2" sx={endDecorator}>
-                {t("createMarket.forms.marketDescription.block.ratio.chip")}
+                {t("createNewMarket.financial.ratio.chip")}
               </Typography>
             }
             {...register("reserveRatioBips")}
@@ -193,14 +171,12 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
       </Box>
 
       <InputLabel
-        label={t("createMarket.forms.marketDescription.block.deposit.title")}
-        subtitle={t(
-          "createMarket.forms.marketDescription.block.deposit.subtitle",
-        )}
+        label={t("createNewMarket.financial.minDeposit.label")}
+        subtitle={t("createNewMarket.financial.minDeposit.explainer")}
         margin="36px 0 0 0"
       >
         <NumberTextField
-          label="0"
+          label={t("createNewMarket.financial.minDeposit.placeholder")}
           max={getValues("maxTotalSupply")}
           value={getValues("minimumDeposit")}
           onValueChange={(v) => {
@@ -215,9 +191,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
               size="regular"
               text={
                 tokenAsset?.symbol ||
-                `${t(
-                  "createMarket.forms.marketDescription.block.deposit.chip",
-                )}`
+                `${t("createNewMarket.financial.minDeposit.chip")}`
               }
             />
           }

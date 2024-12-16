@@ -1,7 +1,6 @@
 import { useEffect } from "react"
 
 import { Box, Typography } from "@mui/material"
-import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
 import { FormFooter } from "@/app/[locale]/borrower/create-market/components/FormFooter"
@@ -9,7 +8,6 @@ import {
   FormContainer,
   SectionGrid,
 } from "@/app/[locale]/borrower/create-market/components/Forms/style"
-import { MarketValidationSchemaType } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
 import { InputLabel } from "@/components/InputLabel"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { useAppDispatch } from "@/store/hooks"
@@ -21,9 +19,7 @@ import {
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import { COLORS } from "@/theme/colors"
 
-export type PeriodsFormProps = {
-  form: UseFormReturn<MarketValidationSchemaType>
-}
+import { PeriodsFormProps } from "./interface"
 
 export const PeriodsForm = ({ form }: PeriodsFormProps) => {
   const { t } = useTranslation()
@@ -74,7 +70,7 @@ export const PeriodsForm = ({ form }: PeriodsFormProps) => {
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        Grace and Withdrawal Periods
+        {t("createNewMarket.periods.title")}
       </Typography>
 
       <Box
@@ -84,52 +80,30 @@ export const PeriodsForm = ({ form }: PeriodsFormProps) => {
           gridTemplateRows: "repeat(1, 1fr)",
         }}
       >
-        <InputLabel
-          label={t(
-            "createMarket.forms.marketDescription.block.gracePeriod.title",
-          )}
-          tooltipText={t(
-            "createMarket.forms.marketDescription.block.gracePeriod.tooltip",
-          )}
-        >
+        <InputLabel label={t("createNewMarket.periods.grace.label")}>
           <NumberTextField
-            label={t(
-              "createMarket.forms.marketDescription.block.gracePeriod.placeholder",
-            )}
+            label={t("createNewMarket.periods.grace.placeholder")}
             value={delinquencyGracePeriodWatch}
             error={Boolean(errors.delinquencyGracePeriod)}
             helperText={errors.delinquencyGracePeriod?.message}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-                {t(
-                  "createMarket.forms.marketDescription.block.gracePeriod.chip",
-                )}
+                {t("createNewMarket.periods.grace.chip")}
               </Typography>
             }
             {...register("delinquencyGracePeriod")}
           />
         </InputLabel>
 
-        <InputLabel
-          label={t(
-            "createMarket.forms.marketDescription.block.withdrawalCycle.title",
-          )}
-          tooltipText={t(
-            "createMarket.forms.marketDescription.block.withdrawalCycle.tooltip",
-          )}
-        >
+        <InputLabel label={t("createNewMarket.periods.wdCycle.label")}>
           <NumberTextField
-            label={t(
-              "createMarket.forms.marketDescription.block.withdrawalCycle.placeholder",
-            )}
+            label={t("createNewMarket.periods.wdCycle.placeholder")}
             value={withdrawalBatchDurationWatch}
             error={Boolean(errors.withdrawalBatchDuration)}
             helperText={errors.withdrawalBatchDuration?.message}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-                {t(
-                  "createMarket.forms.marketDescription.block.withdrawalCycle.chip",
-                )}
+                {t("createNewMarket.periods.wdCycle.chip")}
               </Typography>
             }
             {...register("withdrawalBatchDuration")}

@@ -41,6 +41,8 @@ import {
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import { COLORS } from "@/theme/colors"
 
+import { MarketPolicyFormProps } from "./interface"
+
 const DateCalendarArrowLeft = () => (
   <SvgIcon
     sx={{
@@ -61,11 +63,6 @@ const DateCalendarArrowRight = () => (
     <ArrowLeftIcon />
   </SvgIcon>
 )
-
-type MarketPolicyFormProps = {
-  form: UseFormReturn<MarketValidationSchemaType>
-  policyOptions: ExtendedSelectOptionItem[]
-}
 
 export const MarketPolicyForm = ({
   form,
@@ -157,7 +154,7 @@ export const MarketPolicyForm = ({
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        Market Policy
+        {t("createNewMarket.policy.title")}
       </Typography>
 
       <Box
@@ -166,25 +163,19 @@ export const MarketPolicyForm = ({
           gap: "38px 10px",
         }}
       >
-        <InputLabel
-          label={t("createMarket.forms.marketDescription.block.policy.title")}
-        >
+        <InputLabel label={t("createNewMarket.policy.policy.label")}>
           <ExtendedSelect
             control={control}
             name="policy"
-            label={t(
-              "createMarket.forms.marketDescription.block.policy.placeholder",
-            )}
+            label={t("createNewMarket.policy.policy.placeholder")}
             options={policyOptions}
             optionSX={{ width: "360px" }}
           />
         </InputLabel>
 
-        <InputLabel label="Policy Name">
+        <InputLabel label={t("createNewMarket.policy.name.label")}>
           <TextField
-            placeholder={t(
-              "createMarket.forms.marketDescription.block.policyName.placeholder",
-            )}
+            placeholder={t("createNewMarket.policy.name.placeholder")}
             error={Boolean(errors.policyName)}
             helperText={errors.policyName?.message}
             {...register("policyName")}
@@ -192,11 +183,7 @@ export const MarketPolicyForm = ({
           />
         </InputLabel>
 
-        <InputLabel
-          label={t(
-            "createMarket.forms.marketDescription.block.marketType.title",
-          )}
-        >
+        <InputLabel label={t("createNewMarket.policy.type.label")}>
           <ExtendedSelect
             selectSX={{
               "& .MuiSelect-icon": {
@@ -209,20 +196,14 @@ export const MarketPolicyForm = ({
             }}
             control={control}
             name="marketType"
-            label={t(
-              "createMarket.forms.marketDescription.block.marketType.placeholder",
-            )}
+            label={t("createNewMarket.policy.type.placeholder")}
             options={mockedMarketTypesOptions}
             optionSX={{ width: "360px" }}
             disabled={disableFields}
           />
         </InputLabel>
 
-        <InputLabel
-          label={t(
-            "createMarket.forms.marketDescription.block.accessControl.title",
-          )}
-        >
+        <InputLabel label={t("createNewMarket.policy.access.label")}>
           <ExtendedSelect
             selectSX={{
               "& .MuiSelect-icon": {
@@ -235,9 +216,7 @@ export const MarketPolicyForm = ({
             }}
             control={control}
             name="accessControl"
-            label={t(
-              "createMarket.forms.marketDescription.block.accessControl.placeholder",
-            )}
+            label={t("createNewMarket.policy.access.placeholder")}
             options={mockedAccessControlOptions}
             optionSX={{ width: "360px" }}
             disabled={disableFields}
@@ -249,7 +228,9 @@ export const MarketPolicyForm = ({
         <>
           <Divider sx={{ margin: "28px 0" }} />
 
-          <Typography variant="text3">Expiration Date</Typography>
+          <Typography variant="text3">
+            {t("createNewMarket.policy.expiration.label")}
+          </Typography>
           <Box
             sx={{
               ...SectionGrid,
@@ -329,8 +310,8 @@ export const MarketPolicyForm = ({
             </LocalizationProvider>
 
             <HorizontalInputLabel
-              label="Early Close"
-              explainer="Allows you to close the market before it reaches maturity"
+              label={t("createNewMarket.policy.earlyClose.label")}
+              explainer={t("createNewMarket.policy.earlyClose.explainer")}
             >
               <Switch
                 checked={allowClosureBeforeTermWatch}
@@ -342,8 +323,10 @@ export const MarketPolicyForm = ({
 
             <Box sx={{ width: "100%", gridArea: "2/2/-2/-2" }}>
               <HorizontalInputLabel
-                label="Reduce Expiration"
-                explainer="Allows you to reduce the market's maturity date"
+                label={t("createNewMarket.policy.reduceExpiration.label")}
+                explainer={t(
+                  "createNewMarket.policy.reduceExpiration.explainer",
+                )}
               >
                 <Switch
                   checked={allowTermReductionWatch}

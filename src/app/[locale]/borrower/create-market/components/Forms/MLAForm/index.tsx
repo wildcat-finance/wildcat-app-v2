@@ -1,18 +1,10 @@
 import { useEffect } from "react"
 
-import {
-  Box,
-  FormControlLabel,
-  Radio,
-  RadioGroup,
-  Typography,
-} from "@mui/material"
-import { UseFormReturn } from "react-hook-form"
+import { Box, FormControlLabel, RadioGroup, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { FormFooter } from "@/app/[locale]/borrower/create-market/components/FormFooter"
 import { FormContainer } from "@/app/[locale]/borrower/create-market/components/Forms/style"
-import { MarketValidationSchemaType } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
 import { useGetMlaTemplates } from "@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates"
 import ExtendedRadio from "@/components/@extended/ExtendedRadio"
 import { HorizontalInputLabel } from "@/components/HorisontalInputLabel"
@@ -24,21 +16,15 @@ import {
   setIsDisabled,
   setIsValid,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
-import { COLORS } from "@/theme/colors"
 
-export type MLAFormProps = {
-  form: UseFormReturn<MarketValidationSchemaType>
-}
+import { MLAFormProps } from "./interface"
+import { MLAOption } from "./style"
 
 export const MlaForm = ({ form }: MLAFormProps) => {
-  const {
-    setValue,
-    register,
-    formState: { errors },
-    watch,
-  } = form
-
   const { t } = useTranslation()
+
+  const { setValue, watch } = form
+
   const dispatch = useAppDispatch()
 
   const handleNextClick = () => {
@@ -86,10 +72,13 @@ export const MlaForm = ({ form }: MLAFormProps) => {
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        Loan Agreement
+        {t("createNewMarket.mla.title")}
       </Typography>
 
-      <HorizontalInputLabel label="Master Loan Agreement" explainer="Explainer">
+      <HorizontalInputLabel
+        label={t("createNewMarket.mla.mla.label")}
+        explainer={t("createNewMarket.mla.mla.explainer")}
+      >
         <RadioGroup
           aria-labelledby="mla-label"
           name="mla"
@@ -107,15 +96,7 @@ export const MlaForm = ({ form }: MLAFormProps) => {
               control={
                 <ExtendedRadio value={mla.value} onChange={handleChangeMla} />
               }
-              sx={{
-                width: "100%",
-                height: "44px",
-                border: `1px solid ${COLORS.whiteLilac}`,
-                borderRadius: "8px",
-                padding: "0 15px",
-                display: "flex",
-                alignItems: "center",
-              }}
+              sx={MLAOption}
             />
           ))}
         </RadioGroup>

@@ -54,7 +54,7 @@ export const BorrowerRestrictionsForm = ({
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "8px" }}>
-        Borrower Restrictions
+        {t("createNewMarket.borrowerRestrictions.title")}
       </Typography>
 
       <Typography
@@ -62,12 +62,12 @@ export const BorrowerRestrictionsForm = ({
         color={COLORS.santasGrey}
         sx={{ marginBottom: "36px" }}
       >
-        This is your opportunity to encourage confidence from your lenders
+        {t("createNewMarket.borrowerRestrictions.subtitle")}
       </Typography>
 
       <HorizontalInputLabel
-        label="Allow Force Buybacks"
-        explainer="Defines whether the borrower can forcibly buy back debt tokens from lenders."
+        label={t("createNewMarket.borrowerRestrictions.buybacks.label")}
+        explainer={t("createNewMarket.borrowerRestrictions.buybacks.explainer")}
       >
         <Switch
           checked={allowForceBuyBackWatch}
@@ -82,16 +82,15 @@ export const BorrowerRestrictionsForm = ({
         <Box sx={AlertContainer}>
           <Box sx={TextContainer}>
             <Typography variant="text2" color={COLORS.dullRed}>
-              This will break integration with on-chain exchanges.
+              {t("createNewMarket.borrowerRestrictions.alert.title")}
             </Typography>
             <Typography variant="text4" color={COLORS.dullRed08}>
-              Lenders will see a warning about using this market with smart
-              contracts.
+              {t("createNewMarket.borrowerRestrictions.alert.subtitle")}
             </Typography>
           </Box>
 
           <Button variant="outlined" size="small" sx={MoreInfoButton}>
-            More Info
+            {t("createNewMarket.borrowerRestrictions.alert.button")}
           </Button>
         </Box>
       )}

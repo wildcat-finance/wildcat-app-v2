@@ -1,12 +1,10 @@
 import { useEffect } from "react"
 
 import { Box, Switch, Typography } from "@mui/material"
-import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
 import { FormFooter } from "@/app/[locale]/borrower/create-market/components/FormFooter"
 import { FormContainer } from "@/app/[locale]/borrower/create-market/components/Forms/style"
-import { MarketValidationSchemaType } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
 import { HorizontalInputLabel } from "@/components/HorisontalInputLabel"
 import { useAppDispatch } from "@/store/hooks"
 import {
@@ -16,9 +14,7 @@ import {
   setIsValid,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 
-export type LenderRestrictionsFormProps = {
-  form: UseFormReturn<MarketValidationSchemaType>
-}
+import { LenderRestrictionsFormProps } from "./interface"
 
 export const LenderRestrictionsForm = ({
   form,
@@ -26,13 +22,7 @@ export const LenderRestrictionsForm = ({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
-  const {
-    setValue,
-    register,
-    formState: { errors },
-    control,
-    watch,
-  } = form
+  const { setValue, watch } = form
 
   const withdrawalRequiresAccessWatch = watch("withdrawalRequiresAccess")
   const depositRequiresAccessWatch = watch("depositRequiresAccess")
@@ -60,7 +50,7 @@ export const LenderRestrictionsForm = ({
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        Lender Restrictions
+        {t("createNewMarket.lenderRestrictions.title")}
       </Typography>
 
       <Box
@@ -72,8 +62,10 @@ export const LenderRestrictionsForm = ({
         }}
       >
         <HorizontalInputLabel
-          label="Restrict Deposits"
-          explainer="Requires depositors to meet KYC requirements."
+          label={t("createNewMarket.lenderRestrictions.restrictDeposits.label")}
+          explainer={t(
+            "createNewMarket.lenderRestrictions.restrictDeposits.explainer",
+          )}
         >
           <Switch
             checked={depositRequiresAccessWatch}
@@ -84,8 +76,10 @@ export const LenderRestrictionsForm = ({
         </HorizontalInputLabel>
 
         <HorizontalInputLabel
-          label="Disable Transfers"
-          explainer="Requires lenders to meet KYC requirements to request withdrawals."
+          label={t("createNewMarket.lenderRestrictions.disableTransfers.label")}
+          explainer={t(
+            "createNewMarket.lenderRestrictions.disableTransfers.explainer",
+          )}
         >
           <Switch
             checked={disableTransfersWatch}
@@ -96,8 +90,12 @@ export const LenderRestrictionsForm = ({
         </HorizontalInputLabel>
 
         <HorizontalInputLabel
-          label="Restrict Withdrawals"
-          explainer="Disables all transfers of the market token."
+          label={t(
+            "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
+          )}
+          explainer={t(
+            "createNewMarket.lenderRestrictions.restrictWithdrawals.explainer",
+          )}
         >
           <Switch
             checked={withdrawalRequiresAccessWatch}
@@ -108,8 +106,12 @@ export const LenderRestrictionsForm = ({
         </HorizontalInputLabel>
 
         <HorizontalInputLabel
-          label="Restrict Transfers"
-          explainer="Requires transfer recipients to meet KYC requirements."
+          label={t(
+            "createNewMarket.lenderRestrictions.restrictTransfers.label",
+          )}
+          explainer={t(
+            "createNewMarket.lenderRestrictions.restrictTransfers.explainer",
+          )}
         >
           <Switch
             checked={transferRequiresAccessWatch}

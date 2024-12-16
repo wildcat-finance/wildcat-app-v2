@@ -61,7 +61,7 @@ import {
   InputGroupContainer,
   NextButton,
 } from "./style"
-import { UnderlyingAssetSelect } from "./UnderlyingAssetSelect"
+import { UnderlyingAssetSelect } from "../../../create-market/components/UnderlyingAssetSelect"
 
 type NewMarketFormProps = {
   form: UseFormReturn<MarketValidationSchemaType>

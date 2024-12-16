@@ -274,10 +274,10 @@ export default function CreateMarketPage() {
 
                   <Box sx={DeployTypoBox}>
                     <Typography variant="title3">
-                      {t("createMarket.modal.error.title")}
+                      {t("createNewMarket.deploy.error.title")}
                     </Typography>
                     <Typography variant="text3" sx={DeploySubtitle}>
-                      {t("createMarket.modal.error.message")}
+                      {t("createNewMarket.deploy.error.message")}
                     </Typography>
                   </Box>
                 </Box>
@@ -293,7 +293,7 @@ export default function CreateMarketPage() {
                       setFinalOpen(false)
                     }}
                   >
-                    {t("createMarket.modal.button.back")}
+                    {t("createNewMarket.deploy.error.buttons.back")}
                   </Button>
                   <Button
                     variant="contained"
@@ -304,7 +304,7 @@ export default function CreateMarketPage() {
                       handleDeployMarket()
                     }}
                   >
-                    {t("createMarket.modal.button.tryAgain")}
+                    {t("createNewMarket.deploy.error.buttons.again")}
                   </Button>
                 </Box>
               </Box>
@@ -328,10 +328,10 @@ export default function CreateMarketPage() {
 
                 <Box sx={DeployTypoBox}>
                   <Typography variant="title3">
-                    {t("createMarket.modal.success.title")}
+                    {t("createNewMarket.deploy.success.title")}
                   </Typography>
                   <Typography variant="text3" sx={DeploySubtitle}>
-                    {t("createMarket.modal.success.message")}
+                    {t("createNewMarket.deploy.success.message")}
                   </Typography>
                 </Box>
               </Box>
@@ -344,7 +344,7 @@ export default function CreateMarketPage() {
                     size="large"
                     fullWidth
                   >
-                    {t("createMarket.modal.button.downloadMla")}
+                    {t("createNewMarket.deploy.success.buttons.mla")}
                   </Button>
                 )}
                 <Button
@@ -353,7 +353,7 @@ export default function CreateMarketPage() {
                   size="large"
                   fullWidth
                 >
-                  {t("createMarket.modal.button.toMarkets")}
+                  {t("createNewMarket.deploy.success.buttons.markets")}
                 </Button>
               </Box>
             </Box>
@@ -365,10 +365,10 @@ export default function CreateMarketPage() {
 
               <Box sx={DeployTypoBox}>
                 <Typography variant="text1">
-                  {t("createMarket.modal.loading.title")}
+                  {t("createNewMarket.deploy.loading.title")}
                 </Typography>
                 <Typography variant="text3" sx={DeploySubtitle}>
-                  {t("createMarket.modal.loading.message")}
+                  {t("createNewMarket.deploy.loading.message")}
                 </Typography>
               </Box>
             </Box>
@@ -378,7 +378,7 @@ export default function CreateMarketPage() {
 
       {currentNumber && (
         <GlossarySidebar
-          stepNumber={currentNumber}
+          step={currentStep}
           hideGlossary={currentStep === CreateMarketSteps.BRESTRICTIONS}
         />
       )}

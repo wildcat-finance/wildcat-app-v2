@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { COLORS } from "@/theme/colors"
 
@@ -12,20 +13,24 @@ export const StepCounterTitle = ({
 }: {
   current?: number
   total: number
-}) => (
-  <Box sx={TitleContainer}>
-    <Typography variant="text3" color={COLORS.santasGrey}>
-      Creating a New Market
-    </Typography>
+}) => {
+  const { t } = useTranslation()
 
-    {current && (
-      <>
-        <Box sx={TitleDot} />
+  return (
+    <Box sx={TitleContainer}>
+      <Typography variant="text3" color={COLORS.santasGrey}>
+        {t("createNewMarket.title")}
+      </Typography>
 
-        <Typography variant="text3" color={COLORS.santasGrey}>
-          {`${current}/${total}`}
-        </Typography>
-      </>
-    )}
-  </Box>
-)
+      {current && (
+        <>
+          <Box sx={TitleDot} />
+
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            {`${current}/${total}`}
+          </Typography>
+        </>
+      )}
+    </Box>
+  )
+}

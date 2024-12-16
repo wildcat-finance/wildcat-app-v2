@@ -3,7 +3,6 @@ import { useEffect } from "react"
 import { Box, InputAdornment, TextField, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
-import { UnderlyingAssetSelect } from "@/app/[locale]/borrower/(new-market)/components/NewMarketForm/UnderlyingAssetSelect"
 import {
   FormContainer,
   SectionGrid,
@@ -21,13 +20,15 @@ import {
 
 import { BasicSetupFormProps } from "./interface"
 import { FormFooter } from "../../FormFooter"
+import { UnderlyingAssetSelect } from "../../UnderlyingAssetSelect"
 
 export const BasicSetupForm = ({ form, tokenAsset }: BasicSetupFormProps) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
+  // TODO: return to MLA
   const handleNextClick = () => {
-    dispatch(setCreatingStep(CreateMarketSteps.MLA))
+    dispatch(setCreatingStep(CreateMarketSteps.FINANCIAL))
   }
 
   const handleBackClick = () => {
@@ -85,7 +86,7 @@ export const BasicSetupForm = ({ form, tokenAsset }: BasicSetupFormProps) => {
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        Basic Market Setup
+        {t("createNewMarket.basic.title")}
       </Typography>
 
       <Box
@@ -94,14 +95,7 @@ export const BasicSetupForm = ({ form, tokenAsset }: BasicSetupFormProps) => {
           gap: "38px 10px",
         }}
       >
-        <InputLabel
-          label={t(
-            "createMarket.forms.marketDescription.block.marketAsset.title",
-          )}
-          tooltipText={t(
-            "createMarket.forms.marketDescription.block.marketAsset.tooltip",
-          )}
-        >
+        <InputLabel label={t("createNewMarket.basic.asset.label")}>
           <UnderlyingAssetSelect
             handleTokenSelect={handleTokenSelect}
             onBlur={tokenSelectorFormProps.onBlur}
@@ -111,18 +105,9 @@ export const BasicSetupForm = ({ form, tokenAsset }: BasicSetupFormProps) => {
           />
         </InputLabel>
 
-        <InputLabel
-          label={t(
-            "createMarket.forms.marketDescription.block.marketTokenName.title",
-          )}
-          tooltipText={t(
-            "createMarket.forms.marketDescription.block.marketTokenName.tooltip",
-          )}
-        >
+        <InputLabel label={t("createNewMarket.basic.tokenName.label")}>
           <TextField
-            label={t(
-              "createMarket.forms.marketDescription.block.marketTokenName.placeholder",
-            )}
+            label={t("createNewMarket.basic.tokenName.placeholder")}
             error={Boolean(errors.namePrefix)}
             helperText={errors.namePrefix?.message}
             InputProps={{
@@ -131,9 +116,7 @@ export const BasicSetupForm = ({ form, tokenAsset }: BasicSetupFormProps) => {
                   <TextfieldChip
                     text={
                       tokenAsset?.name ||
-                      `${t(
-                        "createMarket.forms.marketDescription.block.marketTokenName.chip",
-                      )}`
+                      `${t("createNewMarket.basic.tokenName.chip")}`
                     }
                   />
                 </InputAdornment>
@@ -143,18 +126,9 @@ export const BasicSetupForm = ({ form, tokenAsset }: BasicSetupFormProps) => {
           />
         </InputLabel>
 
-        <InputLabel
-          label={t(
-            "createMarket.forms.marketDescription.block.marketTokenSymbol.title",
-          )}
-          tooltipText={t(
-            "createMarket.forms.marketDescription.block.marketTokenSymbol.tooltip",
-          )}
-        >
+        <InputLabel label={t("createNewMarket.basic.tokenSymbol.label")}>
           <TextField
-            label={t(
-              "createMarket.forms.marketDescription.block.marketTokenSymbol.placeholder",
-            )}
+            label={t("createNewMarket.basic.tokenSymbol.placeholder")}
             error={Boolean(errors.symbolPrefix)}
             helperText={errors.symbolPrefix?.message}
             InputProps={{
@@ -163,9 +137,7 @@ export const BasicSetupForm = ({ form, tokenAsset }: BasicSetupFormProps) => {
                   <TextfieldChip
                     text={
                       tokenAsset?.symbol ||
-                      `${t(
-                        "createMarket.forms.marketDescription.block.marketTokenSymbol.chip",
-                      )}`
+                      `${t("createNewMarket.basic.tokenSymbol.chip")}`
                     }
                   />
                 </InputAdornment>
