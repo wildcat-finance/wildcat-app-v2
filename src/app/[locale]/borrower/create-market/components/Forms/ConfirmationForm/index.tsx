@@ -3,12 +3,15 @@ import { useState } from "react"
 import { Box, Button, Divider, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
+import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import Info from "@/assets/icons/info_icon.svg"
 import {
   mockedAccessControlOptions,
   mockedMarketTypesOptions,
+  mockedNaturesOptions,
 } from "@/mocks/mocks"
 import { useAppDispatch } from "@/store/hooks"
 import {
@@ -29,6 +32,14 @@ export const ConfirmationForm = ({
   handleDeploy,
 }: ConfirmationFormProps) => {
   const { t } = useTranslation()
+
+  const { address } = useAccount()
+  const { data: borrowerData, isLoading: isPublicDataLoading } =
+    useGetBorrowerProfile(address)
+
+  const legalNature = mockedNaturesOptions.find(
+    (option) => option.id === borrowerData?.legalNature,
+  )
 
   const dispatch = useAppDispatch()
 
@@ -317,6 +328,49 @@ export const ConfirmationForm = ({
           value={`${getValues("withdrawalBatchDuration")} hours`}
         />
       </Box>
+
+      {isMLA && (
+        <>
+          <Divider sx={DividerStyle} />
+
+          <Typography variant="text4" sx={SubtitleStyle}>
+            {t("createNewMarket.confirm.legalInfo.title")}
+          </Typography>
+
+          <Box
+            sx={{
+              ...SectionGrid,
+              gap: "20px 12px",
+              gridTemplateRows: "repeat(3, 1fr)",
+            }}
+          >
+            <ConfirmationFormItem
+              label={t("createNewMarket.confirm.legalInfo.legalName")}
+              value={borrowerData?.name || ""}
+            />
+
+            <ConfirmationFormItem
+              label={t("createNewMarket.confirm.legalInfo.jurisdiction")}
+              value={borrowerData?.jurisdiction || ""}
+            />
+
+            <ConfirmationFormItem
+              label={t("createNewMarket.confirm.legalInfo.legalNature")}
+              value={legalNature?.label || ""}
+            />
+
+            <ConfirmationFormItem
+              label={t("createNewMarket.confirm.legalInfo.address")}
+              value={borrowerData?.companyAddress || ""}
+            />
+
+            <ConfirmationFormItem
+              label={t("createNewMarket.confirm.legalInfo.email")}
+              value={borrowerData?.email || ""}
+            />
+          </Box>
+        </>
+      )}
 
       <Box sx={AlertContainer}>
         <SvgIcon sx={{ fontSize: "18px", "& path": { fill: COLORS.greySuit } }}>

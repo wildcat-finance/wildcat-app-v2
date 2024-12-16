@@ -1157,10 +1157,11 @@
       "typeTerms": "Market Type and Terms",
       "alert": "Note that once your market is created, the only adjustable parameters will be base APR and maximum capacity.",
       "legalInfo": {
+        "title": "Legal Info",
         "legalName": "Full legal name",
         "jurisdiction": "Jurisdiction",
         "legalNature": "Legal Nature",
-        "address": "address",
+        "address": "Address",
         "email": "Email"
       }
     },
