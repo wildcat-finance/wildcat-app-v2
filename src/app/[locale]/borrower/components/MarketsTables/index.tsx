@@ -31,15 +31,22 @@ import {
   MarketStatus,
 } from "@/utils/marketStatus"
 
-const filterMarketsByAssetAndStatus = (
+const getFilteredAndOrderedMarkets = (
   markets: Market[],
   name: string,
   statuses: MarketStatus[],
   assets: { name: string; address: string }[],
 ) => {
-  let filteredMarkets = markets.filter(
-    (market) => !EXCLUDED_MARKETS.includes(market.address.toLowerCase()),
-  )
+  let filteredMarkets = markets
+    .filter(
+      (market) => !EXCLUDED_MARKETS.includes(market.address.toLowerCase()),
+    )
+    .filter((market) => market.deployedEvent)
+    .sort(
+      (a, b) =>
+        (b.deployedEvent?.blockTimestamp || 0) -
+        (a.deployedEvent?.blockTimestamp || 0),
+    )
 
   const assetsNames = assets.map((asset) => asset.name)
 
@@ -104,7 +111,7 @@ export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
 
   const filteredBorrowerMarkets = useMemo(
     () =>
-      filterMarketsByAssetAndStatus(
+      getFilteredAndOrderedMarkets(
         unfilteredBorrowerMarkets ?? [],
         filterByMarketName,
         filterByStatus,
@@ -120,7 +127,7 @@ export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
 
   const filteredOtherMarkets = useMemo(
     () =>
-      filterMarketsByAssetAndStatus(
+      getFilteredAndOrderedMarkets(
         unfilteredOtherMarkets ?? [],
         filterByMarketName,
         filterByStatus,
