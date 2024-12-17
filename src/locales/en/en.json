@@ -1070,7 +1070,7 @@
       "title": "Financial Terms",
       "maxCapacity": {
         "label": "Max. Borrowing Capacity",
-        "placeholder": "under 100",
+        "placeholder": "under 1000",
         "chip": "Token Symbol",
         "glossary": "The total amount borrowers can withdraw from the market."
       },
