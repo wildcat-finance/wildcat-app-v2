@@ -1140,7 +1140,7 @@
     },
     "periods": {
       "title": "Grace And Withdrawal Periods",
-      "sidebar": "Grace And Withdrawal Periods",
+      "sidebar": "Grace/Withdrawal Periods",
       "grace": {
         "label": "Grace Period Duration",
         "placeholder": "0 - 2160",
