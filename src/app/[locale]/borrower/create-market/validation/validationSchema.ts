@@ -89,7 +89,7 @@ export const marketValidationSchema = z
     maxTotalSupply: z.coerce.number().gt(0),
     annualInterestBips: z.coerce.number().gt(0),
     delinquencyFeeBips: z.coerce.number().gt(0),
-    reserveRatioBips: z.coerce.number().gt(0),
+    reserveRatioBips: z.coerce.number().gte(0),
     minimumDeposit: z.coerce.number().optional(),
     delinquencyGracePeriod: z.coerce.number().gt(0),
     withdrawalBatchDuration: z.coerce.number().gt(0),
