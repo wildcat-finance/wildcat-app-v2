@@ -1023,7 +1023,8 @@
       },
       "access": {
         "label": "Access Control",
-        "placeholder": "Please Select"
+        "placeholder": "Please Select",
+        "glossary": "[TO FILL IN]"
       },
       "expiration": {
         "label": "Fixed Term Maturity Date"
@@ -1050,13 +1051,13 @@
         "label": "Market Token Name",
         "placeholder": "Alpha Beta Charlie",
         "chip": "Asset Name",
-        "glossary": "Name prefox - e.g. \"Alpha Beta Charlie USD Stablecoin\" - for the debt tokens issued by the market."
+        "glossary": " A descriptive name for the market tokens lenders receive, representing their share in the market."
       },
       "tokenSymbol": {
         "label": "Market Token Symbol",
         "chip": "Token Symbol",
         "placeholder": "abc",
-        "glossary": "Symbol prefix - e.g. \"abcUSDC\" - for the debt tokens issued by the market."
+        "glossary": "A short identifier prefix, such as \"abcWETH\" for the tokens lenders receive in the market."
       }
     },
     "mla": {
