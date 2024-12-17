@@ -20,6 +20,7 @@ import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
+import { EXCLUDED_MARKETS } from "@/utils/constants"
 import {
   formatBps,
   formatTokenWithCommas,
@@ -41,7 +42,12 @@ export const filterMarketAccounts = (
 ) => {
   if (!marketAccounts) return []
 
-  let filteredMarkets = marketAccounts
+  let filteredMarkets = marketAccounts.filter(
+    (account) =>
+      !EXCLUDED_MARKETS.includes(account.market.address.toLowerCase()) ||
+      account.isAuthorizedOnController ||
+      account.role !== LenderRole.Null,
+  )
 
   const assetsNames = assets.map((asset) => asset.name)
 

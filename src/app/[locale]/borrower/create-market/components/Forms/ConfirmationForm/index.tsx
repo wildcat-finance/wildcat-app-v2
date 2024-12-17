@@ -233,7 +233,7 @@ export const ConfirmationForm = ({
 
         <ConfirmationFormItem
           label={t("createNewMarket.financial.minDeposit.label")}
-          value={`${getValues("minimumDeposit")} ${tokenAsset?.symbol}`}
+          value={`${getValues("minimumDeposit") ?? 0} ${tokenAsset?.symbol}`}
         />
       </Box>
 
