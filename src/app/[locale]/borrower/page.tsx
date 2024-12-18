@@ -149,7 +149,7 @@ export default function Borrower() {
               value="markets"
               label={t("borrowerMarketList.title.allMarkets")}
             />
-            <Tab value="mla" label={t("borrowerMarketList.title.mla")} />
+            {/* <Tab value="mla" label={t("borrowerMarketList.title.mla")} /> */}
             <Tab
               value="policies"
               label={t("borrowerMarketList.title.policies")}
@@ -165,7 +165,7 @@ export default function Borrower() {
           <Link
             href={
               tab === "markets"
-                ? ROUTES.borrower.newMarket
+                ? ROUTES.borrower.createMarket
                 : ROUTES.borrower.lendersList
             }
           >

@@ -1,8 +1,13 @@
 import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 import { GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
-import { LenderRole, MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import {
+  HooksKind,
+  LenderRole,
+  MarketAccount,
+  TokenAmount,
+} from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
@@ -15,6 +20,7 @@ import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
+import { EXCLUDED_MARKETS } from "@/utils/constants"
 import {
   formatBps,
   formatTokenWithCommas,
@@ -36,7 +42,12 @@ export const filterMarketAccounts = (
 ) => {
   if (!marketAccounts) return []
 
-  let filteredMarkets = marketAccounts
+  let filteredMarkets = marketAccounts.filter(
+    (account) =>
+      !EXCLUDED_MARKETS.includes(account.market.address.toLowerCase()) ||
+      account.isAuthorizedOnController ||
+      account.role !== LenderRole.Null,
+  )
 
   const assetsNames = assets.map((asset) => asset.name)
 
@@ -134,11 +145,22 @@ export const getColumns = (
     },
     {
       field: "borrowerName",
-      headerName: "Borrower Name",
       minWidth: 134,
       flex: 1.7,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <Typography
+          variant="text4"
+          sx={{
+            lineHeight: "10px",
+            color: COLORS.santasGrey,
+            padding: "0 12px",
+          }}
+        >
+          Borrower
+        </Typography>
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -152,16 +174,28 @@ export const getColumns = (
             justifyContent: "flex-start",
           }}
         >
-          <span
+          <Link
+            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
             style={{
-              width: "100%",
-              paddingRight: "20px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
+              textDecoration: "none",
+              width: "fit-content",
+              height: "fit-content",
             }}
           >
-            {params.value}
-          </span>
+            <Button
+              size="small"
+              variant="text"
+              sx={{
+                fontSize: "13px",
+                lineHeight: "20px",
+                fontWeight: 500,
+                minWidth: "fit-content",
+                width: "fit-content",
+              }}
+            >
+              {params.value}
+            </Button>
+          </Link>
         </Link>
       ),
     },
@@ -444,6 +478,7 @@ export const getRows = (
       status: marketStatus,
       name,
       borrowerName,
+      borrowerAddress,
       asset: underlyingToken.symbol,
       lenderAPR: annualInterestBips,
       crr: reserveRatioBips,

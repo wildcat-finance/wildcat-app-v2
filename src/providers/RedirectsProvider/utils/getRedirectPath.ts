@@ -8,7 +8,7 @@ export type RedirectToPath = typeof ROUTES.agreement | "/" | null
 
 const NO_WALLET_RESTRICTED_PATHS = [
   ROUTES.agreement,
-  ROUTES.borrower.newMarket,
+  ROUTES.borrower.createMarket,
   ROUTES.borrower.market,
   ROUTES.borrower.lendersList,
 ]

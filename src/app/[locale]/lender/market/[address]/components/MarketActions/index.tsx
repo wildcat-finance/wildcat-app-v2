@@ -1,16 +1,18 @@
 import * as React from "react"
 
-import { Box, Button, Divider, Typography } from "@mui/material"
+import { Box, Button, Divider, Modal, Typography } from "@mui/material"
 import { DepositStatus, QueueWithdrawalStatus } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { StatementModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/StatementModal"
+import { LenderMlaModal } from "@/app/[locale]/lender/components/LenderMlaModal"
 import { TransactionsContainer } from "@/app/[locale]/lender/market/[address]/components/MarketActions/styles"
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import { TransactionBlock } from "@/components/TransactionBlock"
+import { useMarketMla } from "@/hooks/useMarketMla"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -22,6 +24,8 @@ export const MarketActions = ({
 }: MarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
+
+  const { data: mla, isLoading: mlaLoading } = useMarketMla(market.address)
 
   const [isStatementOpen, setIsStatementOpen] = React.useState(false)
 
@@ -39,7 +43,6 @@ export const MarketActions = ({
     marketAccount.depositAvailability !== DepositStatus.Ready
 
   const hideWithdraw =
-    market.isClosed ||
     marketAccount.marketBalance.raw.isZero() ||
     marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
 
@@ -76,6 +79,8 @@ export const MarketActions = ({
           isOpen={isStatementOpen}
           setIsOpen={setIsStatementOpen}
         />
+
+        <LenderMlaModal mla={mla} isLoading={mlaLoading} />
       </Box>
 
       <Divider sx={{ margin: "32px 0" }} />
@@ -102,30 +107,24 @@ export const MarketActions = ({
 
       <Divider sx={{ margin: "32px 0 40px" }} />
 
-      {!market.isClosed && (
-        <>
-          <Box width="100%" display="flex" flexDirection="column">
-            <Typography variant="title3" sx={{ marginBottom: "8px" }}>
-              {t("lenderMarketDetails.transactions.claim.title.beginning")}{" "}
-              {claimAmountString}{" "}
-              {t("lenderMarketDetails.transactions.claim.title.ending")}
-            </Typography>
-            <Typography
-              variant="text3"
-              sx={{ marginBottom: hideClaim ? "0" : "24px" }}
-              color={COLORS.santasGrey}
-            >
-              {t("lenderMarketDetails.transactions.claim.subtitle")}
-            </Typography>
+      <Box width="100%" display="flex" flexDirection="column">
+        <Typography variant="title3" sx={{ marginBottom: "8px" }}>
+          {t("lenderMarketDetails.transactions.claim.title.beginning")}{" "}
+          {claimAmountString}{" "}
+          {t("lenderMarketDetails.transactions.claim.title.ending")}
+        </Typography>
+        <Typography
+          variant="text3"
+          sx={{ marginBottom: hideClaim ? "0" : "24px" }}
+          color={COLORS.santasGrey}
+        >
+          {t("lenderMarketDetails.transactions.claim.subtitle")}
+        </Typography>
 
-            {!hideClaim && (
-              <ClaimModal market={market} withdrawals={withdrawals} />
-            )}
-          </Box>
+        {!hideClaim && <ClaimModal market={market} withdrawals={withdrawals} />}
+      </Box>
 
-          <Divider sx={{ margin: "40px 0 32px" }} />
-        </>
-      )}
+      <Divider sx={{ margin: "40px 0 32px" }} />
     </>
   )
 }

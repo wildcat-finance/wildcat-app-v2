@@ -68,7 +68,7 @@ export default async function RootLayout({
                   locale={locale}
                   resources={resources}
                 >
-                  <PollingRegistration />
+                  {/* <PollingRegistration /> */}
                   <ThemeRegistry>
                     <Box sx={BackgroundContainer} />
                     <Box position="relative" zIndex="1">

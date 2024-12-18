@@ -3,6 +3,7 @@ import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
+import AuthWrapper from "@/components/AuthWrapper"
 import { BarItem } from "@/components/BarChart/BarItem"
 import { MarketBarChartItem } from "@/components/BarChart/BarItem/interface"
 import { LegendItem } from "@/components/BarChart/LegendItem"
@@ -144,6 +145,10 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
           </LegendItem>
         ))}
       </Box>
+
+      <AuthWrapper>
+        <Typography variant="h6">You are logged in o wowie o boy</Typography>
+      </AuthWrapper>
     </Box>
   )
 }

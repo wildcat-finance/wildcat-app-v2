@@ -1,7 +1,7 @@
 import { COLORS } from "@/theme/colors"
 
 export const TerminateDialogContainer = {
-  height: "480px",
+  height: "540px",
   width: "440px",
   padding: "24px 0",
   margin: 0,

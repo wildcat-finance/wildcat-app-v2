@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react"
 
 import { Button } from "@mui/material"
-import dayjs from "dayjs"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { useSignAgreement } from "@/app/[locale]/agreement/hooks/useSignAgreement"
-
-const DATE_FORMAT = "MMMM DD, YYYY"
 
 export const SignButton = () => {
   const address = useAccount().address?.toLowerCase()
@@ -15,12 +12,12 @@ export const SignButton = () => {
 
   const { mutate: signAgreement, isPending: isSignPending } = useSignAgreement()
 
-  const [dateSigned, setDateSigned] = useState<string>("")
+  const [timeSigned, setTimeSigned] = useState<number>()
 
   const organization = "Wildcat Finance"
 
   useEffect(() => {
-    setDateSigned(dayjs(Date.now()).format(DATE_FORMAT))
+    setTimeSigned(Date.now())
   }, [])
 
   const isSigning = isSignPending
@@ -28,7 +25,7 @@ export const SignButton = () => {
   const handleSign = () => {
     signAgreement({
       name: organization,
-      dateSigned,
+      timeSigned,
       address,
     })
   }

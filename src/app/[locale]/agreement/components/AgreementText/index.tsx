@@ -11,7 +11,6 @@ export const AgreementText = () => (
       rowGap: "20px",
       position: "relative",
       zIndex: 0,
-
       color: "#383838",
     }}
   >

@@ -22,7 +22,7 @@ const CheckedIcon = styled(Icon)({
     display: "block",
     width: 11,
     height: 11,
-    backgroundColor: COLORS.blackRock,
+    backgroundColor: COLORS.ultramarineBlue,
     borderRadius: "50%",
     content: '""',
   },

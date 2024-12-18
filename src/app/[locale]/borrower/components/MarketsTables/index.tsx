@@ -5,7 +5,7 @@
 import React, { useEffect, useMemo, useRef } from "react"
 
 import { Box, Typography } from "@mui/material"
-import { Market, SubgraphMarket_Filter } from "@wildcatfi/wildcat-sdk"
+import { Market } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
@@ -24,66 +24,64 @@ import {
   setScrollTarget,
   setTerminatedAmount,
 } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
+import { EXCLUDED_MARKETS } from "@/utils/constants"
 import {
   getMarketStatus,
   MarketAssets,
   MarketStatus,
 } from "@/utils/marketStatus"
 
-const combineFilters = (
-  filters: SubgraphMarket_Filter[],
-  combine: "and" | "or" = "and",
-) => {
-  if (filters.length === 0) return {}
-  if (filters.length === 1) return filters[0]
-  return { [combine]: filters }
-}
-
-function buildMarketFilter(
+const getFilteredAndOrderedMarkets = (
+  markets: Market[],
   name: string,
   statuses: MarketStatus[],
   assets: { name: string; address: string }[],
-): SubgraphMarket_Filter | undefined {
-  console.log(`Executing buildMarketsFilter!!!!`)
-  const filters: SubgraphMarket_Filter[] = []
-  const statusFilters = statuses.map((status) => {
-    switch (status) {
-      case MarketStatus.DELINQUENT:
-        return { isDelinquent: true }
-      case MarketStatus.HEALTHY:
-        return { isDelinquent: false }
-      case MarketStatus.TERMINATED:
-        return { isClosed: true }
-      case MarketStatus.PENALTY:
-        return { isIncurringPenalties: true }
-      default:
-        throw Error(`what happened here?`)
-    }
-  })
-  if (statusFilters.length) filters.push(combineFilters(statusFilters, "or"))
-  if (name) filters.push({ name_contains_nocase: name.toLowerCase() })
-  const assetFilters = assets.map((asset): SubgraphMarket_Filter => {
-    if (asset.name) {
-      return {
-        asset_: { name_contains_nocase: asset.name.toLowerCase() },
-      }
-    }
+) => {
+  let filteredMarkets = markets
+    .filter(
+      (market) => !EXCLUDED_MARKETS.includes(market.address.toLowerCase()),
+    )
+    .filter((market) => market.deployedEvent)
+    .sort(
+      (a, b) =>
+        (b.deployedEvent?.blockTimestamp || 0) -
+        (a.deployedEvent?.blockTimestamp || 0),
+    )
 
-    return {
-      asset_: { address: asset.address.toLowerCase() },
-    }
-  })
-  if (assetFilters.length) filters.push(combineFilters(assetFilters, "or"))
-  if (filters.length) return combineFilters(filters, "and")
+  const assetsNames = assets.map((asset) => asset.name)
 
-  return undefined
+  if (filteredMarkets && name !== "") {
+    filteredMarkets = filteredMarkets.filter((market) =>
+      market.name.toLowerCase().includes(name.toLowerCase()),
+    )
+  }
+
+  if (filteredMarkets && statuses.length > 0) {
+    filteredMarkets = filteredMarkets.filter((market) =>
+      statuses.includes(
+        getMarketStatus(
+          market.isClosed,
+          market.isDelinquent || market.willBeDelinquent,
+          market.isIncurringPenalties,
+        ),
+      ),
+    )
+  }
+
+  if (filteredMarkets && assets.length > 0) {
+    filteredMarkets = filteredMarkets.filter((market) =>
+      assetsNames.includes(market.underlyingToken.symbol as MarketAssets),
+    )
+  }
+
+  return filteredMarkets
 }
 
 export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
-  const { address, isConnected } = useAccount()
+  const { isConnected } = useAccount()
   const { isWrongNetwork } = useCurrentNetwork()
 
   const { data: borrowers } = useGetBorrowers()
@@ -104,21 +102,39 @@ export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
       b.map((x) => `${x.name}:${x.address}`).join(","),
   )
 
-  const filter = useMemo(
-    () => ({
-      marketFilter: buildMarketFilter(
+  const {
+    data: unfilteredBorrowerMarkets,
+    isLoading: isBorrowerMarketsLoading,
+  } = useGetBorrowerMarkets(undefined)
+  const { data: unfilteredOtherMarkets, isLoading: isOthersMarketsLoading } =
+    useGetOthersMarkets()
+
+  const filteredBorrowerMarkets = useMemo(
+    () =>
+      getFilteredAndOrderedMarkets(
+        unfilteredBorrowerMarkets ?? [],
         filterByMarketName,
         filterByStatus,
         filterByAsset,
       ),
-    }),
-    [filterByMarketName, filterByStatus, filterByAsset],
+    [
+      unfilteredBorrowerMarkets,
+      filterByMarketName,
+      filterByStatus,
+      filterByAsset,
+    ],
   )
 
-  const { data: filteredBorrowerMarkets, isLoading: isBorrowerMarketsLoading } =
-    useGetBorrowerMarkets(filter)
-  const { data: filteredOtherMarkets, isLoading: isOthersMarketsLoading } =
-    useGetOthersMarkets(filter)
+  const filteredOtherMarkets = useMemo(
+    () =>
+      getFilteredAndOrderedMarkets(
+        unfilteredOtherMarkets ?? [],
+        filterByMarketName,
+        filterByStatus,
+        filterByAsset,
+      ),
+    [unfilteredOtherMarkets, filterByMarketName, filterByStatus, filterByAsset],
+  )
 
   const [activeBorrowerMarkets, terminatedBorrowerMarkets] = useMemo(
     () => [

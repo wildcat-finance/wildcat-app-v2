@@ -3,7 +3,7 @@ import { useAccount } from "wagmi"
 import { useGetController } from "@/hooks/useGetController"
 import { ROUTES } from "@/routes"
 
-import { useBorrowerInvitation } from "./useBorrowerInvitation"
+import { useBorrowerInvitationExists } from "./useBorrowerInvitation"
 
 const GOOGLE_FORM_LINK = "https://forms.gle/irca7KeC7ASmkRh16"
 
@@ -14,7 +14,8 @@ export const useBorrowerInvitationRedirect = () => {
     isLoading: isControllerLoading,
     isSuccess,
   } = useGetController()
-  const { isLoading: isLoadingInvitation } = useBorrowerInvitation(address)
+  const { isLoading: isLoadingInvitation, data: invitation } =
+    useBorrowerInvitationExists(address)
   const isRegisteredBorrower = controller?.isRegisteredBorrower
   const markets = controller?.markets || []
 
@@ -41,13 +42,26 @@ export const useBorrowerInvitationRedirect = () => {
         buttonText: "Create a Market",
         link: {
           isExternal: false,
-          url: ROUTES.borrower.newMarket,
+          url: ROUTES.borrower.createMarket,
         },
       }
     }
 
     return {
       hideBanner: true,
+    }
+  }
+
+  if (invitation) {
+    return {
+      title: "Pending Borrower Invitation",
+      text: "You've been invited to register as a Wildcat borrower.",
+      buttonText: "Accept",
+      hideBanner: false,
+      link: {
+        isExternal: false,
+        url: ROUTES.borrower.invitation,
+      },
     }
   }
 

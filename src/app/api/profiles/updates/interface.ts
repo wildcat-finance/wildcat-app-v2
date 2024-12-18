@@ -15,7 +15,6 @@ export type BorrowerProfileUpdateInput = Omit<
 >
 
 export type BorrowerProfileUpdateResponse = {
-  borrower: string
   updateId: number
   accept?: boolean
   rejectedReason?: string
