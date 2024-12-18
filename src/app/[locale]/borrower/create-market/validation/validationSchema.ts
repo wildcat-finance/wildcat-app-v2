@@ -87,8 +87,8 @@ export const marketValidationSchema = z
       .min(3)
       .refine(isLetterNumber.validate, isLetterNumber.message),
     maxTotalSupply: z.coerce.number().gt(0),
-    annualInterestBips: z.coerce.number().gt(0),
-    delinquencyFeeBips: z.coerce.number().gt(0),
+    annualInterestBips: z.coerce.number().gte(0),
+    delinquencyFeeBips: z.coerce.number().gte(0),
     reserveRatioBips: z.coerce.number().gte(0),
     minimumDeposit: z.coerce.number().optional(),
     delinquencyGracePeriod: z.coerce.number().gt(0),
