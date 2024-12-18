@@ -262,7 +262,7 @@ export const getColumns = (
           >
             CRR
           </Typography>
-          <TooltipButton value="TBD" />
+          <TooltipButton value="The percentage of market funds kept unborrowed and locked as reserve." />
         </Box>
       ),
       renderCell: (params) => (
