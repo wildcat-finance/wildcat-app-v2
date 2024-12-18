@@ -156,34 +156,6 @@ export const ConfirmLendersForm = ({
       ),
       flex: 1,
     },
-    {
-      sortable: true,
-      field: "activeMarkets",
-      headerName: "Assigned to Markets",
-      minWidth: 250,
-      headerAlign: "left",
-      align: "left",
-      flex: 7,
-      renderCell: (params) =>
-        params.value.filter(
-          (market: MarketTableDataType) =>
-            market.status !== EditLenderFlowStatuses.DELETED,
-        ).length !== activeBorrowerMarkets.length ? (
-          <Box sx={MarketsBox}>
-            {params.value.map((market: MarketTableDataType) => (
-              <LendersMarketChip
-                marketName={market.name}
-                type={market.status}
-                width="fit-content"
-              />
-            ))}
-          </Box>
-        ) : (
-          <Typography variant="text3">
-            {t("editLendersList.forms.confirm.all")}
-          </Typography>
-        ),
-    },
   ]
 
   return (
