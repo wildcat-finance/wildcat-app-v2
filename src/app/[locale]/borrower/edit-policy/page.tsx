@@ -55,6 +55,10 @@ export default function EditPolicyPage() {
     orderMarkets: SubgraphMarket_OrderBy.IsClosed,
     directionMarkets: SubgraphOrderDirection.Asc,
   })
+
+  const lendersTableData = useAppSelector(
+    (state) => state.editPolicy.lendersTableData,
+  )
   const [originalPolicyName, setOriginalPolicyName] = React.useState("")
   const [hooksKind, setHooksKind] = React.useState<HooksKind | undefined>()
   const [lenders, setLenders] = React.useState<LenderInfo[]>([])
@@ -140,9 +144,11 @@ export default function EditPolicyPage() {
       )
 
       dispatch(setInitialPolicyLendersTableData(formattedLendersData))
-      dispatch(setPolicyLendersTableData(formattedLendersData))
+      if (lendersTableData.length === 0) {
+        dispatch(setPolicyLendersTableData(formattedLendersData))
+      }
     }
-  }, [isPolicyLoading])
+  }, [isPolicyLoading, data])
 
   useEffect(() => {
     if (originalPolicyName && pendingPolicyName === "") {
@@ -193,9 +199,6 @@ export default function EditPolicyPage() {
   }, [])
   const initialLendersTableData = useAppSelector(
     (state) => state.editPolicy.initialLendersTableData,
-  )
-  const lendersTableData = useAppSelector(
-    (state) => state.editPolicy.lendersTableData,
   )
   const { addedOrModifiedLenders } = useTrackPolicyLendersChanges(
     initialLendersTableData,
