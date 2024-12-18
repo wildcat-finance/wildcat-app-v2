@@ -102,7 +102,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             value={`${market.underlyingToken.name} (${trimAddress(
               market.underlyingToken.address,
             )})`}
-            tooltipText="TBD"
+            tooltipText="The ERC-20 token used for all transactions in the market, such as Wrapped Ether (WETH) or USDC."
             handleCopy={() => {
               handleCopy(market.underlyingToken.address)
             }}
@@ -128,7 +128,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             value={`${market.maxTotalSupply.format(
               market.maxTotalSupply.token.decimals,
             )} ${market.underlyingToken.symbol}`}
-            tooltipText="TBD"
+            tooltipText="The maximum limit of funds that borrowers can access in the market."
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
@@ -143,7 +143,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               market.reserveRatioBips,
               MARKET_PARAMS_DECIMALS.reserveRatioBips,
             )}%`}
-            tooltipText="TBD"
+            tooltipText="A required percentage of market funds that must remain liquid and unavailable for borrowing."
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
@@ -152,7 +152,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               market.annualInterestBips,
               MARKET_PARAMS_DECIMALS.annualInterestBips,
             )}%`}
-            tooltipText="TBD"
+            tooltipText="The fixed annual percentage rate (excluding any protocol fees) that borrowers pay for assets within the market."
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
@@ -161,7 +161,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               market.delinquencyFeeBips,
               MARKET_PARAMS_DECIMALS.delinquencyFeeBips,
             )}%`}
-            tooltipText="TBD"
+            tooltipText="An additional interest rate charged if the market remains delinquent—failing to maintain required reserves—after the grace period has elapsed."
             alarmState={market.isIncurringPenalties}
             valueTooltipText={
               market.isIncurringPenalties
@@ -176,13 +176,13 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.maximumGracePeriod")}
             value={`${formatSecsToHours(market.delinquencyGracePeriod)}`}
-            tooltipText="TBD"
+            tooltipText="The duration borrowers have to resolve reserve deficiencies or correct delinquency in the market before penalties take effect."
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
             title={gracePeriodLabel}
             value={gracePeriodTimer}
-            tooltipText="TBD"
+            tooltipText="The portion of the grace period left for borrowers to fix non-compliance issues, such as restoring reserves."
             alarmState={timeDelinquent > delinquencyGracePeriod}
             valueTooltipText={gracePeriodTooltip}
           />
@@ -192,7 +192,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               "borrowerMarketDetails.parameters.withdrawalCycleDuration",
             )}
             value={`${formatSecsToHours(market.withdrawalBatchDuration)}`}
-            tooltipText="TBD"
+            tooltipText="A fixed period during which withdrawal requests are grouped and processed."
           />
         </Box>
       </Box>

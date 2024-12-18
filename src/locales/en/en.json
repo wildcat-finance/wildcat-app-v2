@@ -266,7 +266,7 @@
       "repay": {
         "interestRemaining": "Interest Remaining For",
         "upTo": "Up to",
-        "daysSubtitle": " number of additional days to cover interest and fees",
+        "daysSubtitle": " Number of additional days to cover interest and fees",
         "repay": "Repay",
         "repaySum": "Repay Sum",
         "needToRepay": "Need To Repay",
@@ -311,7 +311,7 @@
             "subtitle": "[TO DELETE] This is your opportunity to encourage confidence from your lenders"
           },
           "fixedTermEndTime": {
-            "title": "Fixed Term Maturity Date",
+            "title": "Fixed Term Maturity Date [00:00 UTC]",
             "subtitle": "The date after which lenders can request withdrawals.",
             "tooltip": ""
           },
@@ -464,13 +464,13 @@
           },
           "gracePeriod": {
             "title": "Grace Period",
-            "placeholder": "0 - 2160",
+            "placeholder": "0 - 2160 (90 Days)",
             "tooltip": "A buffer period during which a delinquent market—one failing to maintain required reserves—can return to compliance without penalties being imposed.",
             "chip": "Hours"
           },
           "withdrawalCycle": {
             "title": "Withdrawal Cycle Duration",
-            "placeholder": "0 - 8760",
+            "placeholder": "0 - 2160 (90 Days)",
             "tooltip": "A fixed period during which withdrawal requests are grouped and processed.",
             "chip": "Hours"
           }
