@@ -266,7 +266,7 @@
       "repay": {
         "interestRemaining": "Interest Remaining For",
         "upTo": "Up to",
-        "daysSubtitle": " number of additional days to cover interest and fees",
+        "daysSubtitle": " Number of additional days to cover interest and fees",
         "repay": "Repay",
         "repaySum": "Repay Sum",
         "needToRepay": "Need To Repay",
@@ -311,7 +311,7 @@
             "subtitle": "[TO DELETE] This is your opportunity to encourage confidence from your lenders"
           },
           "fixedTermEndTime": {
-            "title": "Fixed Term Maturity Date",
+            "title": "Fixed Term Maturity Date [00:00 UTC]",
             "subtitle": "The date after which lenders can request withdrawals.",
             "tooltip": ""
           },
