@@ -464,13 +464,13 @@
           },
           "gracePeriod": {
             "title": "Grace Period",
-            "placeholder": "0 - 2160 (90 Days)",
+            "placeholder": "0 - 2160",
             "tooltip": "A buffer period during which a delinquent market—one failing to maintain required reserves—can return to compliance without penalties being imposed.",
             "chip": "Hours"
           },
           "withdrawalCycle": {
             "title": "Withdrawal Cycle Duration",
-            "placeholder": "0 - 2160 (90 Days)",
+            "placeholder": "0 - 2160",
             "tooltip": "A fixed period during which withdrawal requests are grouped and processed.",
             "chip": "Hours"
           }
@@ -1150,7 +1150,7 @@
       },
       "wdCycle": {
         "label": "Withdrawal Cycle Duration",
-        "placeholder": "0 - 8760",
+        "placeholder": "0 - 2160",
         "chip": "Hours",
         "glossary": "A fixed period during which withdrawal requests are grouped and processed."
       }
