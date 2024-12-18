@@ -9,6 +9,7 @@ import {
   MenuItemButton,
   MenuItemButtonSelected,
 } from "@/components/Sidebar/style"
+import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setEditStep } from "@/store/slices/editPolicySlice/editPolicySlice"
 import { COLORS } from "@/theme/colors"
@@ -21,7 +22,7 @@ export const EditPolicySidebar = () => {
   const step = useAppSelector((state) => state.editPolicy.step)
 
   const handleBackClick = () => {
-    router.back()
+    router.push(ROUTES.borrower.root)
   }
 
   const handleClickConfirm = () => {
@@ -76,15 +77,6 @@ export const EditPolicySidebar = () => {
           // onClick={handleClickEdit}
         >
           {t("editPolicy.sidebar.edit")}
-        </Button>
-
-        <Button
-          variant="text"
-          size="medium"
-          sx={step === "confirm" ? MenuItemButtonSelected : MenuItemButton}
-          // onClick={handleClickConfirm}
-        >
-          {t("editPolicy.sidebar.confirm")}
         </Button>
       </Box>
     </Box>
