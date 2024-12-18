@@ -9,6 +9,10 @@ import {
 } from "@mui/material"
 import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
 import { HooksKind } from "@wildcatfi/wildcat-sdk"
+import {
+  FixedTermHooks,
+  OpenTermHooks,
+} from "@wildcatfi/wildcat-sdk/dist/access"
 import Link from "next/link"
 
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
@@ -33,7 +37,7 @@ export const PoliciesTable = ({ label, isOpen }: PoliciesTableProps) => {
     ...(hooksData?.hooksInstances.map((policy) => ({
       id: policy.address,
       name: policy.name || "Unnamed Policy",
-      kind: policy.kind === HooksKind.OpenTerm ? "Open Term" : "Fixed Term",
+      kind: policy.kind,
       numMarkets: policy.numMarkets || 0,
       accessRequirements:
         policy.roleProviders.length === 1 ? "Manual Approval" : "Self-Onboard",
@@ -85,7 +89,7 @@ export const PoliciesTable = ({ label, isOpen }: PoliciesTableProps) => {
           style={{ ...LinkCell, justifyContent: "flex-start" }}
         >
           <Box width={130}>
-            <MarketTypeChip {...params.value} />
+            <MarketTypeChip kind={params.row.kind} />
           </Box>
         </Link>
       ),
