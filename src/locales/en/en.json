@@ -318,16 +318,16 @@
           "allowForceBuyBack": {
             "title": "[TO DELETE] Allow Force Buy Backs",
             "subtitle": "[TO DELETE] Defines whether you can forcibly eject lenders by buying back their debt tokens",
-            "tooltip": "TBD"
+            "tooltip": ""
           },
           "allowClosureBeforeTerm": {
             "title": "Allow Early Closure",
-            "subtitle": "Allows you to close the market before it reaches maturity",
+            "subtitle": "Allows you to close the market before it reaches maturity.",
             "tooltip": "TBD"
           },
           "allowTermReduction": {
             "title": "Allow Term Reduction",
-            "subtitle": "Allows you to reduce the market's maturity date",
+            "subtitle": "Allows you to reduce the market's maturity date.",
             "tooltip": "TBD"
           },
           "depositAccess": {
@@ -373,18 +373,18 @@
           },
           "marketName": {
             "title": "Market Name",
-            "placeholder": "Use more than one character, e.g. demo",
+            "placeholder": "Use a distinct prefix, such as wldct for Wildcat.",
             "tooltip": "TBD"
           },
           "policyName": {
             "title": "Policy Name",
             "placeholder": "Enter Policy Name",
-            "tooltip": "TBD"
+            "tooltip": "The name of the market’s rule set."
           },
           "mla": {
             "title": "Master Loan Agreement",
             "placeholder": "Please Select",
-            "tooltip": "TBD",
+            "tooltip": "A legally binding document that defines the terms, obligations, and penalties for borrowers and lenders in the market.",
             "options": {
               "wildcat": "Wildcat Template MLA",
               "noMLA": "No MLA"
@@ -394,7 +394,7 @@
             "title": "Access Controls",
             "subtitle": "How lenders gain deposit credentials for markets under this policy.",
             "placeholder": "Please Select",
-            "tooltip": "TBD",
+            "tooltip": "Determine the way in which would-be lenders can be onboarded to this market.",
             "options": {
               "share": "Borrower Operated Allowlist",
               "notShare": "Lender Self-Onboarding"
@@ -404,7 +404,7 @@
             "title": "Market Type",
             "placeholder": "Please Select",
             "subtitle": "",
-            "tooltip": "TBD", 
+            "tooltip": "Select the nature of the market: open (lenders can make withdrawal requests at any time) or fixed (withdrawal requests only possible after a fixed maturity date).", 
             "options": {
               "standard": "Open Term Loan",
               "fixedTerm": "Fixed Term Loan"
@@ -488,12 +488,12 @@
           "jurisdiction": {
             "title": "Jurisdiction",
             "placeholder": "Use country code [e.g. USA, GBR]",
-            "tooltip": "TBD"
+            "tooltip": "The country in which the borrowing entity is incorporated."
           },
           "nature": {
             "title": "Legal Nature Of Borrower",
             "placeholder": "Please Select",
-            "tooltip": "TBD",
+            "tooltip": "Select the 'type' of entity that best describes the borrower.",
             "options": {
               "pi": "Private Individual",
               "llc": "Limited Liability Company",
@@ -503,12 +503,12 @@
           "address": {
             "title": "Address",
             "placeholder": "Enter a location",
-            "tooltip": "TBD"
+            "tooltip": "Enter the address of the headquarters/place of business of the borrower."
           },
           "email": {
             "title": "Email",
             "placeholder": "example@domain.com",
-            "tooltip": "TBD"
+            "tooltip": "Enter a contact email address for the borrower."
           }
         }
       }
@@ -788,7 +788,7 @@
       "deposit": {
         "button": "Deposit",
         "title": "Available To Deposit",
-        "tooltip": "TBD",
+        "tooltip": "The amount of the underlying asset held by the address you are connected with.",
         "modal": {
           "title": "Deposit",
           "available": "Available To Deposit",
@@ -798,7 +798,7 @@
       "withdraw": {
         "button": "Withdraw",
         "title": "Available To Withdraw",
-        "tooltip": "TBD",
+        "tooltip": "The amount of underlying asset debt that the address you are connected with is able to request a withdrawal for.",
         "modal": {
           "title": "Withdraw",
           "available": "Available To Withdraw",
@@ -926,7 +926,7 @@
         "name": {
           "title": "Legal Name",
           "placeholder": "Full name of legal entity.",
-          "tooltip": "TBD"
+          "tooltip": "You can incliude any d.b.a. aliases in brackets if you wish, i.e. HoldCo Ltd (Liquid Fund X)."
         },
         "description": {
           "title": "Description",
@@ -951,12 +951,12 @@
         "twitter": {
           "title": "Twitter/X",
           "placeholder": "x.com/borrower_profile",
-          "tooltip": "TBD"
+          "tooltip": "Enter a Twitter/X profile for the borrower, where applicable."
         },
         "linkedin": {
           "title": "LinkedIn",
           "placeholder": "linkedin.com/borrower_page",
-          "tooltip": "TBD"
+          "tooltip": "Enter a LinkedIn page for the borrower, where applicable."
         }
       },
       "private": {

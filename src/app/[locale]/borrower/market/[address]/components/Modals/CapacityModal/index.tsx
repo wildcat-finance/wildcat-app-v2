@@ -96,7 +96,7 @@ export const CapacityModal = ({
         {showForm && (
           <TxModalHeader
             title="Adjust Capacity"
-            tooltip="TBD"
+            tooltip="Increase or decrease the maximum amount of credit extendable within this market."
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
