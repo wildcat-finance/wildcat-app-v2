@@ -594,7 +594,8 @@
         "tooltip": "A unique name identifying the rules governing a market’s structure and participant eligibility."
       },
       "edit": {
-        "submit": "Submit"
+        "submit": "Submit",
+        "noLenders": "No lenders yet"
       }
     }
   },
