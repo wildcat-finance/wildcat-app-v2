@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { Box, Switch, Typography } from "@mui/material"
 import Link from "next/link"
@@ -10,6 +10,9 @@ import { useTranslation } from "react-i18next"
 import Logo from "@/assets/icons/logo_white.svg"
 import { ContentContainer, NavContainer } from "@/components/Header/style"
 import { ROUTES } from "@/routes"
+import { useAppDispatch } from "@/store/hooks"
+import { setTab } from "@/store/slices/borrowerOverviewSlice/borrowerOverviewSlice"
+import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
 import { COLORS } from "@/theme/colors"
 
 import { HeaderButton } from "./HeaderButton"
@@ -20,6 +23,7 @@ export default function Header() {
 
   const router = useRouter()
   const pathname = usePathname()
+  const dispatch = useAppDispatch()
 
   const [side, setSide] = useState<"borrower" | "lender">()
 
@@ -39,9 +43,23 @@ export default function Header() {
     } else setSide("lender")
   }, [pathname])
 
+  const handleClickLogo = () => {
+    if (side === "borrower") {
+      dispatch(setTab(BorrowerOverviewTabs.MARKETS))
+    }
+  }
+
+  const homeUrl = useMemo(
+    () => (side === "borrower" ? ROUTES.borrower.root : ROUTES.lender.root),
+    [side],
+  )
+
+  console.log(`Side: ${side}`)
+  console.log(`Home URL: ${homeUrl}`)
+
   return (
     <Box sx={ContentContainer}>
-      <Link href={ROUTES.borrower.root} style={{ height: "50px" }}>
+      <Link onClick={handleClickLogo} href={homeUrl} style={{ height: "50px" }}>
         <Logo />
       </Link>
       <Box sx={NavContainer}>
