@@ -191,22 +191,6 @@ export const EditLendersTable = () => {
       ),
     },
     {
-      field: "markets",
-      headerName: "Active Markets",
-      disableColumnMenu: true,
-      minWidth: 250,
-      flex: 9,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => (
-        <TableSelect
-          lenderAddress={params.row.address}
-          lenderStatus={params.row.status}
-          lenderMarkets={params.row.activeMarkets}
-        />
-      ),
-    },
-    {
       field: "delete",
       headerName: "",
       disableColumnMenu: true,
