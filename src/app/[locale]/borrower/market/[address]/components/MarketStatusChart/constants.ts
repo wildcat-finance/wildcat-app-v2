@@ -3,7 +3,7 @@ import { COLORS } from "@/theme/colors"
 export const MARKET_BAR_DATA = {
   availableToBorrow: {
     id: "availableToBorrow",
-    label: "Available to borrow",
+    label: "Available To Borrow",
     healthyBgColor: COLORS.blueRibbon,
     delinquentBgColor: "",
     healthyTextColor: COLORS.white,
