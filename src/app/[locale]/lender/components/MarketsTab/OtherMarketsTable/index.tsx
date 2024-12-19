@@ -103,7 +103,7 @@ export const OtherMarketsTable = ({
             No Self-Onboard Markets Available
           </Typography>
           <Typography variant="text3" color={COLORS.santasGrey}>
-            No markets that permit a lender to create their own credential are available (yet).
+            No markets that permit a lender to create their own credential are available at present.
           </Typography>
         </Box>
       )}
@@ -135,7 +135,7 @@ export const OtherMarketsTable = ({
               {nameFilter === "" ? "" : nameFilter}{" "}
               {assetFilter?.length !== 0 &&
                 `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
-              markets
+              markets at present.
             </Typography>
           </Box>
         )}
