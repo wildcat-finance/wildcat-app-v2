@@ -1,6 +1,31 @@
-import { TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { HooksKind, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
 import { MarketStatus } from "@/utils/marketStatus"
+
+export const typeComparator = (
+  v1:
+    | { kind: HooksKind.FixedTerm; fixedPeriod: number }
+    | { kind: HooksKind.Unknown | HooksKind.OpenTerm; fixedPeriod?: undefined },
+  v2:
+    | { kind: HooksKind.FixedTerm; fixedPeriod: number }
+    | { kind: HooksKind.Unknown | HooksKind.OpenTerm; fixedPeriod?: undefined },
+) => {
+  const order: { [key in HooksKind]: number } = {
+    [HooksKind.FixedTerm]: 0,
+    [HooksKind.OpenTerm]: 1,
+    [HooksKind.Unknown]: 2,
+  }
+
+  if (order[v1.kind] !== order[v2.kind]) {
+    return order[v1.kind] - order[v2.kind]
+  }
+
+  if (v1.kind === HooksKind.FixedTerm && v2.kind === HooksKind.FixedTerm) {
+    return v1.fixedPeriod - v2.fixedPeriod
+  }
+
+  return 0
+}
 
 export const statusComparator = (
   v1: {

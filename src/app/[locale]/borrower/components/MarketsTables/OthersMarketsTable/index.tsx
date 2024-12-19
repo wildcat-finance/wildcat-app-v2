@@ -21,7 +21,11 @@ import { TablePagination } from "@/components/TablePagination"
 import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
+import {
+  statusComparator,
+  tokenAmountComparator,
+  typeComparator,
+} from "@/utils/comparators"
 import {
   formatBps,
   formatTokenWithCommas,
@@ -104,6 +108,7 @@ export const OthersMarketsTable = ({
       flex: 2,
       headerAlign: "left",
       align: "left",
+      sortComparator: typeComparator,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
@@ -307,11 +312,12 @@ export const OthersMarketsTable = ({
     )
     const borrowerName = borrower ? borrower.name : trimAddress(borrowerAddress)
     const marketStatus = getMarketStatusChip(market)
+    const marketType = getMarketTypeChip(market)
 
     return {
       id: address,
       status: marketStatus,
-      marketType: getMarketTypeChip(market),
+      marketType,
       name,
       borrowerName,
       borrowerAddress,
