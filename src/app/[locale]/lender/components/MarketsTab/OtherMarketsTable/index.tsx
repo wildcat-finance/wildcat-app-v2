@@ -100,10 +100,10 @@ export const OtherMarketsTable = ({
           height="270px"
         >
           <Typography variant="title3" color={COLORS.blackRock}>
-            No self-onboard markets
+            No Self-Onboard Markets Available
           </Typography>
           <Typography variant="text3" color={COLORS.santasGrey}>
-            There are no self-onboard markets yet.
+            No markets that permit a lender to create their own credential are available (yet).
           </Typography>
         </Box>
       )}
