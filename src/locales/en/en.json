@@ -189,7 +189,7 @@
     "authorisedLenders": {
       "notSigned": "Not Yet Signed",
       "noLendersTitle": "No Lenders",
-      "noLendersSubtitle": "Your market doesn't have any onboarded lenders",
+      "noLendersSubtitle": "Your market doesn't have any onboarded lenders.",
       "editList": "Edit List",
       "editPolicy": "Edit Policy",
       "noActiveLenders": "No active lenders yet – you can approve specific addresses in your market policy.",
@@ -614,17 +614,17 @@
       },
       "edit": {
         "submit": "Submit",
-        "noLenders": "No lenders yet",
+        "noLenders": "No Lenders",
         "title": "Editing Lender List For",
         "table": {
           "addName": "Add Name",
           "undo": "Undo",
           "noLenders": "No Matching Lenders",
-          "resetFilters": "Reset filters",
+          "resetFilters": "Reset Filters",
           "name": "Name",
           "address": "Wallet Address",
-          "markets": "Assigned to Markets",
-          "noRows": "No lenders yet",
+          "markets": "Assigned To Markets",
+          "noRows": "No Lenders",
           "noFilteredRows": "No Matching Lenders",
           "reset": "Reset"
         },
@@ -644,7 +644,7 @@
         "atLeastOne": "Add this lender to at least one market.",
         "reset": "Reset",
         "allMarkets": "All Markets",
-        "searchByName": "Search by Name"
+        "searchByName": "Search By Name"
       },
       "delete": {
         "title": "Are you sure you want to remove",

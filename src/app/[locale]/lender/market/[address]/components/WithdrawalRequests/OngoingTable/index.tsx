@@ -70,7 +70,7 @@ export const OngoingTable = ({
           marginBottom="10px"
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            There are no ongoing withdrawals
+            No ongoing withdrawals.
           </Typography>
         </Box>
       )}
