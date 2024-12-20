@@ -241,7 +241,7 @@ export const MarketPolicyForm = ({
           >
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DesktopDatePicker
-                label="e.g. 12/12/25"
+                label="e.g. 25/12/2024"
                 format="DD/MM/YYYY"
                 value={
                   fixedTermEndTimeWatch
