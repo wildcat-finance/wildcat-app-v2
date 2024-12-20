@@ -1027,7 +1027,7 @@
         "glossary": "[TO FILL IN]"
       },
       "expiration": {
-        "label": "Fixed Term Maturity Date"
+        "label": "Fixed Term Maturity Date [00:00 UTC]"
       },
       "earlyClose": {
         "label": "Early Termination",
