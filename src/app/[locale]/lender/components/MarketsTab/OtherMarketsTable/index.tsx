@@ -103,7 +103,7 @@ export const OtherMarketsTable = ({
             No Self-Onboard Markets Available
           </Typography>
           <Typography variant="text3" color={COLORS.santasGrey}>
-            No markets that permit a lender to create their own credential are available at present.
+            No self-onboarding markets are available at present.
           </Typography>
         </Box>
       )}
