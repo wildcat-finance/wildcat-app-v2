@@ -36,7 +36,7 @@ export const useBorrowerInvitationRedirect = () => {
   if (isRegisteredBorrower) {
     if (!markets.length) {
       return {
-        title: "No Active Markets For This Borrower",
+        title: "No Active Markets",
         text: "Get started with Wildcat by creating an active market!",
         buttonText: "Create New Market",
         link: {
