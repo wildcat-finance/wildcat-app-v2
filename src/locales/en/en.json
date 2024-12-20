@@ -809,9 +809,9 @@
       "claim": {
         "title": {
           "beginning": "You have",
-          "ending": "to claim"
+          "ending": "to claim at present."
         },
-        "subtitle": "No assets available to claim from active markets.",
+        "subtitle": "No assets available to claim from this market.",
         "button": "Claim Assets"
       }
     },
