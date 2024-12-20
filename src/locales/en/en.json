@@ -1074,7 +1074,7 @@
         "label": "Maximum Borrowing Capacity",
         "placeholder": "e.g. 1,000,000",
         "chip": "Token Symbol",
-        "glossary": "The maximum limit of funds that the borrower can collectively access in the market."
+        "glossary": "The maximum limit of funds that borrowers can access in the market."
       },
       "baseAPR": {
         "label": "Base APR",

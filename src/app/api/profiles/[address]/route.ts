@@ -90,7 +90,7 @@ export async function DELETE(
   const borrower = address
   if (!borrower) {
     return NextResponse.json(
-      { success: false, message: "No borrower provided" },
+      { success: false, message: "No Borrower Provided" },
       { status: 400 },
     )
   }

@@ -111,8 +111,8 @@ const NoExistingMla = ({ marketAccount }: { marketAccount: MarketAccount }) => {
   const { data: borrowerProfile } = useBorrowerProfileTmp(
     marketAccount.market.borrower,
   )
-  if (!borrowerProfile) return <Box>No borrower profile</Box>
-  if (!marketAccount.isBorrower) return <Box>This market has no MLA</Box>
+  if (!borrowerProfile) return <Box>No Borrower Profile</Box>
+  if (!marketAccount.isBorrower) return <Box>No Market MLA</Box>
   return (
     <SetMarketMLAForm
       borrowerProfile={borrowerProfile as unknown as BasicBorrowerInfo}
@@ -155,8 +155,8 @@ export const MarketMLA = ({
   if (isLoadingMarketMla || isLoadingBorrowerProfile)
     return <div>Loading...</div>
 
-  if (!borrowerProfile) return <Box>No borrower profile</Box>
-  if (!marketAccount.isBorrower) return <Box>You are not the borrower</Box>
+  if (!borrowerProfile) return <Box>No Borrower Profile</Box>
+  if (!marketAccount.isBorrower) return <Box>Wrong Borrower Address</Box>
   if (marketMla)
     return (
       <ShowExistingMla
