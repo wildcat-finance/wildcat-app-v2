@@ -1028,14 +1028,14 @@
         "glossary": "[TO FILL IN]"
       },
       "expiration": {
-        "label": "Fixed Term Maturity Date"
+        "label": "Fixed Term Maturity Date [00:00 UTC]"
       },
       "earlyClose": {
-        "label": "Early Termination",
+        "label": "Permit Early Termination",
         "explainer": "Allows you to terminate a market before it reaches maturity."
       },
       "reduceExpiration": {
-        "label": "Shorten Maturity",
+        "label": "Permit Maturity Reduction",
         "explainer": "Allows you to reduce the maturity of a fixed term market."
       }
     },
@@ -1075,7 +1075,7 @@
         "label": "Maximum Borrowing Capacity",
         "placeholder": "e.g. 1,000,000",
         "chip": "Token Symbol",
-        "glossary": "The maximum limit of funds that the borrower can collectively access in the market."
+        "glossary": "The maximum limit of funds that borrowers can access in the market."
       },
       "baseAPR": {
         "label": "Base APR",

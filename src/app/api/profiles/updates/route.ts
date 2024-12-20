@@ -249,7 +249,7 @@ export async function DELETE(request: NextRequest) {
   const borrower = request.nextUrl.searchParams.get("borrower")
   if (!borrower) {
     return NextResponse.json(
-      { success: false, message: "No borrower provided" },
+      { success: false, message: "No Borrower Provided" },
       { status: 400 },
     )
   }

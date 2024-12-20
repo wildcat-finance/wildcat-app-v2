@@ -32,7 +32,7 @@ const mockedAccessControls = [
     value: "defaultPullProvider",
   },
   {
-    label: "Manually Add Lenders",
+    label: "Borrower Operated Allowlist",
     value: "manualApproval",
   },
 ]

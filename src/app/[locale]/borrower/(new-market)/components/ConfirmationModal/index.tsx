@@ -115,13 +115,13 @@ export const ConfirmationModal = ({
   const transferAccessMessage = disableTransfers
     ? "Disabled"
     : transferRequiresAccess
-      ? "Policy on-boarding required"
+      ? "Policy Onboarding Required"
       : "Unrestricted"
   const depositAccessMessage = depositRequiresAccess
-    ? "Policy on-boarding required"
+    ? "Policy Onboarding Required"
     : "Unrestricted"
   const withdrawalAccessMessage = withdrawalRequiresAccess
-    ? "Policy on-boarding required"
+    ? "Policy Onboard Required"
     : "Unrestricted"
 
   if (showErrorPopup) {
