@@ -24,11 +24,11 @@ export const useBorrowerInvitationRedirect = () => {
     return {
       hideNewMarketButton: true,
       hideBanner: false,
-      title: "Apply to become a borrower",
+      title: "Become A Borrower",
       message:
-        "Interested in borrowing through Wildcat? Click in the link below to apply!",
-      buttonText: "Leave a Request",
-      url: `https://forms.gle/irca7KeC7ASmkRh16`,
+        "Corporate entity interested in establishing a credit line?",
+      buttonText: "Get In Touch",
+      url: GOOGLE_FORM_LINK,
     }
   }
 
@@ -37,9 +37,9 @@ export const useBorrowerInvitationRedirect = () => {
   if (isRegisteredBorrower) {
     if (!markets.length) {
       return {
-        title: "Start creating your Markets here",
-        text: "No market currently active, let’s create a new one.",
-        buttonText: "Create a Market",
+        title: "No Active Markets For This Borrower",
+        text: "Get started with Wildcat by creating an active market!",
+        buttonText: "Create New Market",
         link: {
           isExternal: false,
           url: ROUTES.borrower.createMarket,
@@ -74,9 +74,9 @@ export const useBorrowerInvitationRedirect = () => {
 
   return {
     hideNewMarketButton: true,
-    title: "Apply to become a borrower",
+    title: "Become A Borrower",
     text: "We see you aren't whitelisted as a borrower. Please complete this Typeform and we'll reach out for next steps.",
-    buttonText: "Leave a Request",
+    buttonText: "Leave A Request",
     link: {
       isExternal: true,
       url: GOOGLE_FORM_LINK,
