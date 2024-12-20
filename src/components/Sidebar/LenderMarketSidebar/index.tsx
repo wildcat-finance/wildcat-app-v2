@@ -44,7 +44,7 @@ export const LenderMarketSidebar = () => {
       }}
     >
       <Box position="sticky" top="32px">
-        <BackButton title="Back to markets" link={ROUTES.lender.root} />
+        <BackButton title="Back To Markets" link={ROUTES.lender.root} />
 
         {isLoading && (
           <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
