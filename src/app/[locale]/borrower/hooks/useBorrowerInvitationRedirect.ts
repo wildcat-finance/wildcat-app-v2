@@ -25,8 +25,7 @@ export const useBorrowerInvitationRedirect = () => {
       hideNewMarketButton: true,
       hideBanner: false,
       title: "Become A Borrower",
-      message:
-        "Corporate entity interested in establishing a credit line?",
+      message: "Corporate entity interested in establishing a credit line?",
       buttonText: "Get In Touch",
       url: GOOGLE_FORM_LINK,
     }
