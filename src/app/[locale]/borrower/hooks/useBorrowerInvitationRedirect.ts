@@ -74,8 +74,8 @@ export const useBorrowerInvitationRedirect = () => {
   return {
     hideNewMarketButton: true,
     title: "Become A Borrower",
-    text: "We see you aren't whitelisted as a borrower. Please complete this Typeform and we'll reach out for next steps.",
-    buttonText: "Leave A Request",
+    text: "Corporate entity interested in establishing a credit line?",
+    buttonText: "Get In Touch",
     link: {
       isExternal: true,
       url: GOOGLE_FORM_LINK,
