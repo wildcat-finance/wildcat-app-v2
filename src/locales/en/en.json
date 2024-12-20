@@ -256,7 +256,7 @@
         "tryAgain": "Try Again"
       },
       "loading": {
-        "title": "Wait a moment",
+        "title": "Wait A Moment...",
         "subtitle": "Transaction pending..."
       },
       "success": {
