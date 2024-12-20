@@ -284,7 +284,7 @@ export const getColumns = (
     },
     {
       field: "maxCapacity",
-      headerName: "Max. Capacity",
+      headerName: "Max Capacity",
       minWidth: 106,
       flex: 1.6,
       headerAlign: "right",
@@ -311,7 +311,7 @@ export const getColumns = (
     },
     {
       field: "lend",
-      headerName: "To lend",
+      headerName: "Capacity Left",
       minWidth: 82,
       headerAlign: "right",
       align: "right",
@@ -343,7 +343,7 @@ export const getColumns = (
     },
     {
       field: "deploy",
-      headerName: "Deployed",
+      headerName: "Created",
       minWidth: otherMarketsTable ? 86 : 126,
       headerAlign: "right",
       align: "right",
@@ -381,7 +381,7 @@ export const getColumns = (
 
   const loanColumn: TypeSafeColDef<{ loan: TokenAmount }> = {
     field: "loan",
-    headerName: "My loan",
+    headerName: "My Loan",
     minWidth: 85,
     headerAlign: "right",
     align: "right",
