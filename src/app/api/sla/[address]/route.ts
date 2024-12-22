@@ -17,3 +17,20 @@ export async function GET(
 
   return NextResponse.json({ isSigned: !!signature })
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { address: `0x${string}` } },
+) {
+  if (process.env.NODE_ENV !== "development") {
+    return NextResponse.json({ error: "Not allowed" }, { status: 403 })
+  }
+  const address = params.address.toLowerCase()
+  await prisma.lenderServiceAgreementSignature.deleteMany({
+    where: {
+      signer: address.toLowerCase(),
+      chainId: TargetChainId,
+    },
+  })
+  return NextResponse.json({ success: true })
+}
