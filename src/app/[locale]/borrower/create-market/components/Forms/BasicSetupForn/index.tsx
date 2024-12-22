@@ -22,7 +22,16 @@ import { BasicSetupFormProps } from "./interface"
 import { FormFooter } from "../../FormFooter"
 import { UnderlyingAssetSelect } from "../../UnderlyingAssetSelect"
 
-export const BasicSetupForm = ({ form, tokenAsset }: BasicSetupFormProps) => {
+export const BasicSetupForm = ({
+  form,
+  tokenAsset,
+  tokens,
+  isLoading,
+  setQuery,
+  query,
+  handleSelect,
+  handleChange,
+}: BasicSetupFormProps) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
@@ -102,6 +111,13 @@ export const BasicSetupForm = ({ form, tokenAsset }: BasicSetupFormProps) => {
             ref={tokenSelectorFormProps.ref}
             error={Boolean(errors.asset)}
             errorText={errors.asset?.message}
+            tokens={tokens}
+            isLoading={isLoading}
+            setQuery={setQuery}
+            query={query}
+            handleSelect={handleSelect}
+            value={assetWatch}
+            handleChange={handleChange}
           />
         </InputLabel>
 

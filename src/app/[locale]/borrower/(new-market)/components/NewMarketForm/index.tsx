@@ -62,6 +62,7 @@ import {
   NextButton,
 } from "./style"
 import { UnderlyingAssetSelect } from "../../../create-market/components/UnderlyingAssetSelect"
+import { useTokensList } from "../../../create-market/components/UnderlyingAssetSelect/hooks/useTokensList"
 
 type NewMarketFormProps = {
   form: UseFormReturn<MarketValidationSchemaType>
@@ -146,9 +147,11 @@ export const NewMarketForm = ({
   const oneYearFromNow = today.add(365, "days")
 
   const mlaWatch = watch("mla")
-
+  const { handleChange, handleSelect, query, setQuery, isLoading, tokens } =
+    useTokensList()
   const policyWatch = watch("policy")
   const policyNameWatch = watch("policyName")
+  const assetWatch = watch("asset")
   const namePrefixWatch = watch("namePrefix")
   const symbolPrefixWatch = watch("symbolPrefix")
   const marketTypeWatch = watch("marketType")
@@ -348,6 +351,13 @@ export const NewMarketForm = ({
             ref={tokenSelectorFormProps.ref}
             error={Boolean(errors.asset)}
             errorText={errors.asset?.message}
+            tokens={tokens}
+            isLoading={isLoading}
+            setQuery={setQuery}
+            query={query}
+            handleSelect={handleSelect}
+            handleChange={handleChange}
+            value={assetWatch}
           />
         </InputLabel>
 

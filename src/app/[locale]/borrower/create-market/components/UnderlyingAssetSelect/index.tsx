@@ -1,4 +1,4 @@
-import { JSX, forwardRef, ForwardedRef } from "react"
+import { JSX, forwardRef, ForwardedRef, ChangeEvent } from "react"
 
 import {
   Autocomplete,
@@ -8,6 +8,7 @@ import {
   MenuItem,
   createFilterOptions,
 } from "@mui/material"
+import { Token } from "@wildcatfi/wildcat-sdk"
 import Image from "next/image"
 import { useTranslation } from "react-i18next"
 
@@ -46,14 +47,33 @@ const filterOptions = createFilterOptions({
     `${option.address}${option.name}${option.symbol}`,
 })
 
+type xprops = {
+  tokens: Token[] | TokenInfo[]
+  isLoading: boolean
+  setQuery: (query: string) => void
+  query: string
+  handleChange: (evt: ChangeEvent<HTMLInputElement>) => Promise<void>
+  handleSelect: (token: TokenInfo | null) => void
+}
+
 export const UnderlyingAssetSelect = forwardRef(
   (
-    { error, errorText, handleTokenSelect, onBlur }: TokenSelectorProps,
+    {
+      error,
+      errorText,
+      handleTokenSelect,
+      onBlur,
+      tokens,
+      isLoading,
+      setQuery,
+      query,
+      handleSelect,
+      handleChange,
+      value,
+    }: TokenSelectorProps,
     ref: ForwardedRef<HTMLInputElement>,
   ) => {
     const { t } = useTranslation()
-    const { handleChange, handleSelect, query, setQuery, isLoading, tokens } =
-      useTokensList()
 
     const handleSetToken = (
       event: React.SyntheticEvent,
@@ -63,6 +83,7 @@ export const UnderlyingAssetSelect = forwardRef(
       handleTokenSelect(selectedToken)
     }
 
+    const selectedToken = tokens.find((token) => token.address === value)
     return (
       <div>
         <Autocomplete
@@ -101,6 +122,7 @@ export const UnderlyingAssetSelect = forwardRef(
           )}
           isOptionEqualToValue={(option, val) => option.address === val.address}
           getOptionLabel={(option) => option.name}
+          value={selectedToken}
           options={tokens}
           popupIcon={null}
           onChange={handleSetToken}

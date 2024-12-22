@@ -38,6 +38,7 @@ import { MlaForm } from "./components/Forms/MLAForm"
 import { PeriodsForm } from "./components/Forms/PeriodsForm"
 import { GlossarySidebar } from "./components/GlossarySidebar"
 import { StepCounterTitle } from "./components/StepCounterTitle"
+import { useTokensList } from "./components/UnderlyingAssetSelect/hooks/useTokensList"
 import {
   FinalDialogContainer,
   DeployButtonContainer,
@@ -102,6 +103,9 @@ export default function CreateMarketPage() {
   const { data: assetData } = useTokenMetadata({
     address: assetWatch?.toLowerCase(),
   })
+
+  const { handleChange, handleSelect, query, setQuery, isLoading, tokens } =
+    useTokensList()
 
   const [tokenAsset, setTokenAsset] = useState<Token | undefined>()
 
@@ -219,7 +223,16 @@ export default function CreateMarketPage() {
         )}
 
         {currentStep === CreateMarketSteps.BASIC && (
-          <BasicSetupForm form={newMarketForm} tokenAsset={tokenAsset} />
+          <BasicSetupForm
+            form={newMarketForm}
+            tokenAsset={tokenAsset}
+            tokens={tokens}
+            isLoading={isLoading}
+            setQuery={setQuery}
+            query={query}
+            handleSelect={handleSelect}
+            handleChange={handleChange}
+          />
         )}
 
         {/* {currentStep === CreateMarketSteps.MLA && (
