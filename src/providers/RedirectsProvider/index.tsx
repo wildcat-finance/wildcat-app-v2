@@ -9,14 +9,14 @@ import { GenericProviderProps } from "@/providers/interface"
 import { useShouldRedirect } from "./hooks/useShouldRedirect"
 
 export const RedirectsProvider = ({ children }: GenericProviderProps) => {
-  const { replace } = useRouter()
-  const { data: redirectPath } = useShouldRedirect()
+  const router = useRouter()
+  const { data: redirectPath, isFetching } = useShouldRedirect()
 
   useEffect(() => {
-    if (redirectPath) {
-      replace(redirectPath)
+    if (redirectPath && !isFetching) {
+      router.push(redirectPath)
     }
-  }, [replace, redirectPath])
+  }, [router, redirectPath, isFetching])
 
   return children
 }

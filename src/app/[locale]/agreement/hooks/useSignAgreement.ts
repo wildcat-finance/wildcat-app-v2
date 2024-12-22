@@ -40,7 +40,7 @@ export async function submitSignature(input: SignatureSubmissionProps) {
 export const useSignAgreement = () => {
   const { sdk, connected: safeConnected } = useSafeAppsSDK()
   const signer = useEthersSigner()
-  const { replace } = useRouter()
+  const router = useRouter()
   const client = useQueryClient()
 
   return useMutation({
@@ -117,7 +117,7 @@ export const useSignAgreement = () => {
     onSuccess: () => {
       client.invalidateQueries({ queryKey: [SHOULD_REDIRECT_KEY] })
       client.invalidateQueries({ queryKey: [HAS_SIGNED_SLA_KEY] })
-      replace(ROUTES.borrower.root)
+      router.back()
     },
     onError(error) {
       console.log(error)
