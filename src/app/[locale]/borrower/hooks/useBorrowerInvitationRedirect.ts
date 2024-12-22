@@ -1,5 +1,6 @@
 import { useAccount } from "wagmi"
 
+import { useGetBasicBorrowerData } from "@/hooks/useGetBasicBorrowerData"
 import { useGetController } from "@/hooks/useGetController"
 import { ROUTES } from "@/routes"
 
@@ -10,14 +11,13 @@ const GOOGLE_FORM_LINK = "https://forms.gle/irca7KeC7ASmkRh16"
 export const useBorrowerInvitationRedirect = () => {
   const { address } = useAccount()
   const {
-    data: controller,
-    isLoading: isControllerLoading,
+    data: borrowerData,
+    isLoading: isLoadingBorrowerData,
     isSuccess,
-  } = useGetController()
+  } = useGetBasicBorrowerData(address as string)
   const { isLoading: isLoadingInvitation, data: invitation } =
     useBorrowerInvitationExists(address)
-  const isRegisteredBorrower = controller?.isRegisteredBorrower
-  const markets = controller?.markets || []
+  const isRegisteredBorrower = borrowerData?.isRegisteredBorrower
 
   // - If user is not logged in, hide banner
   if (!address) {
@@ -31,10 +31,17 @@ export const useBorrowerInvitationRedirect = () => {
     }
   }
 
-  const isLoading = isControllerLoading || isLoadingInvitation
+  const isLoading = isLoadingBorrowerData || isLoadingInvitation
+
+  if (isLoading || !isSuccess) {
+    return {
+      hideNewMarketButton: true,
+      hideBanner: true,
+    }
+  }
 
   if (isRegisteredBorrower) {
-    if (!markets.length) {
+    if (!borrowerData.hasMarkets) {
       return {
         title: "No Active Markets",
         text: "Get started with Wildcat by creating an active market!",
@@ -61,13 +68,6 @@ export const useBorrowerInvitationRedirect = () => {
         isExternal: false,
         url: ROUTES.borrower.invitation,
       },
-    }
-  }
-
-  if (isLoading || !isSuccess) {
-    return {
-      hideNewMarketButton: true,
-      hideBanner: true,
     }
   }
 
