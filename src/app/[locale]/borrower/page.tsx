@@ -161,26 +161,19 @@ export default function Borrower() {
           </Typography>
         )}
 
-        {!bannerDisplayConfig.hideNewMarketButton && (
-          <Link
-            href={
-              tab === "markets"
-                ? ROUTES.borrower.createMarket
-                : ROUTES.borrower.lendersList
-            }
-          >
-            <Button
-              variant="contained"
-              size="small"
-              disabled={isWrongNetwork}
-              sx={{ paddingTop: "8px", paddingBottom: "8px" }}
-            >
-              {tab === "markets"
-                ? `${t("borrowerMarketList.button.newMarket")}`
-                : "Edit Lender list"}
-            </Button>
-          </Link>
-        )}
+        {!bannerDisplayConfig.hideNewMarketButton &&
+          tab === BorrowerOverviewTabs.MARKETS && (
+            <Link href={ROUTES.borrower.createMarket}>
+              <Button
+                variant="contained"
+                size="small"
+                disabled={isWrongNetwork}
+                sx={{ paddingTop: "8px", paddingBottom: "8px" }}
+              >
+                {t("borrowerMarketList.button.newMarket")}
+              </Button>
+            </Link>
+          )}
       </Box>
 
       {!bannerDisplayConfig.hideBanner && (
