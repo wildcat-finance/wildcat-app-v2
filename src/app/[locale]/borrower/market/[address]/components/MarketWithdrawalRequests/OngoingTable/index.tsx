@@ -75,7 +75,7 @@ export const OngoingTable = ({
           marginBottom="10px"
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            {t("marketWithdrawalRequests.nooOngoing")}
+            {t("marketWithdrawalRequests.noOngoing")}
           </Typography>
         </Box>
       )}
