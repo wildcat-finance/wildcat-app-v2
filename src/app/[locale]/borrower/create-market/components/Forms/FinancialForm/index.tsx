@@ -28,7 +28,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
   }
 
   const handleBackClick = () => {
-    dispatch(setCreatingStep(CreateMarketSteps.MLA))
+    dispatch(setCreatingStep(CreateMarketSteps.BASIC))
   }
 
   const {

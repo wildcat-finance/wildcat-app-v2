@@ -7025,10 +7025,10 @@
     "@webassemblyjs/ast" "1.12.1"
     "@xtuc/long" "4.2.2"
 
-"@wildcatfi/wildcat-sdk@^3.0.25":
-  version "3.0.25"
-  resolved "https://registry.npmjs.org/@wildcatfi/wildcat-sdk/-/wildcat-sdk-3.0.25.tgz"
-  integrity sha512-3CdwajdJy3C3SxN8Re0Q5yxoMEtxgmtT74/XoZdwlWDZf9Ys/1REOnWSSIH+RbT572DNastzeWcc/kN83oIFxw==
+"@wildcatfi/wildcat-sdk@^3.0.26":
+  version "3.0.26"
+  resolved "https://registry.npmjs.org/@wildcatfi/wildcat-sdk/-/wildcat-sdk-3.0.26.tgz"
+  integrity sha512-JrtywwFzW2E+2GB7CXSn+/hHOfZ2K4Y1j4vofDZrXckZFEJQXQnskcyG1umTy8da5BaS/GeNtYfRxwspmQCkNQ==
   dependencies:
     "@apollo/client" "^3.8.6"
     "@tanstack/react-query" "^4.29.14"
