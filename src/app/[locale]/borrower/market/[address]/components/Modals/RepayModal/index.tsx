@@ -9,7 +9,7 @@ import {
   Tabs,
   Typography,
 } from "@mui/material"
-import { TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { RepayStatus, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
@@ -35,6 +35,7 @@ import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
+import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { RepayModalProps } from "./interface"
@@ -112,7 +113,26 @@ export const RepayModal = ({
     ? repayDaysAmount
     : maxRepayAmount || repayTokenAmount
 
-  const repayStep = marketAccount.previewRepay(finalRepayAmount || repayAmount)
+  // const repayStep = marketAccount.previewRepay(
+  //   finalRepayAmount || repayAmount,
+  // ).status
+
+  // TODO: remove when previewRepay will be fixed
+  const getRepayStep = (inputAmount: TokenAmount) => {
+    if (market.isClosed) return { status: RepayStatus.MarketClosed }
+    if (inputAmount.gt(marketAccount.underlyingBalance)) {
+      return { status: RepayStatus.InsufficientBalance }
+    }
+    if (marketAccount.isApprovedFor(inputAmount)) {
+      return { status: RepayStatus.InsufficientAllowance }
+    }
+    if (inputAmount.gt(market.outstandingDebt.raw)) {
+      return { status: RepayStatus.ExceedsOutstandingDebt }
+    }
+    return { status: RepayStatus.Ready }
+  }
+
+  const repayStep = getRepayStep(finalRepayAmount || repayAmount).status
 
   const handleRepay = () => {
     setTxHash("")
@@ -121,7 +141,7 @@ export const RepayModal = ({
 
   const handleApprove = () => {
     setTxHash("")
-    if (repayStep?.status === "InsufficientAllowance") {
+    if (repayStep === "InsufficientAllowance") {
       approve(repayAmount).then(() => {
         setFinalRepayAmount(repayAmount)
         modal.setFlowStep(ModalSteps.approved)
@@ -155,20 +175,20 @@ export const RepayModal = ({
     market.isClosed ||
     repayAmount.raw.isZero() ||
     repayAmount.raw.gt(market.outstandingDebt.raw) ||
-    repayStep?.status === "Ready" ||
-    repayStep?.status === "InsufficientBalance" ||
+    repayStep === "Ready" ||
+    repayStep === "InsufficientBalance" ||
     isApproving
 
   const disableRepay =
     market.isClosed ||
     repayAmount.raw.isZero() ||
     repayAmount.raw.gt(market.outstandingDebt.raw) ||
-    repayStep?.status === "InsufficientAllowance" ||
-    repayStep?.status === "InsufficientBalance" ||
+    repayStep === "InsufficientAllowance" ||
+    repayStep === "InsufficientBalance" ||
     isApproving
 
   const isApprovedButton =
-    repayStep?.status === "Ready" && !repayAmount.raw.isZero() && !isApproving
+    repayStep === "Ready" && !repayAmount.raw.isZero() && !isApproving
 
   const showForm = !(isRepaying || showSuccessPopup || showErrorPopup)
 
@@ -217,6 +237,30 @@ export const RepayModal = ({
       setShowSuccessPopup(true)
     }
   }, [isRepayError, isRepaid])
+
+  const [repayError, setRepayError] = useState<string | undefined>()
+
+  useEffect(() => {
+    if (
+      !isRepayByDays &&
+      (amount === "" || amount === "0" || repayStep === "Ready")
+    ) {
+      setRepayError(undefined)
+      return
+    }
+
+    if (
+      isRepayByDays &&
+      (days === "" || days === "0" || repayStep === "Ready")
+    ) {
+      setRepayError(undefined)
+      return
+    }
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    setRepayError(SDK_ERRORS_MAPPING.repay[repayStep])
+  }, [repayStep, amount])
 
   return (
     <>
@@ -341,6 +385,9 @@ export const RepayModal = ({
                 endAdornment={amountInputAdornment}
                 disabled={isApproving}
                 max={type === "days" ? 100000000 : undefined}
+                decimalScale={2}
+                error={!!repayError}
+                helperText={repayError}
               />
             )}
           </Box>

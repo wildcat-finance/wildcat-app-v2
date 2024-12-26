@@ -1,7 +1,7 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
 
 import { Box, Button, Dialog } from "@mui/material"
-import { MarketAccount, Signer, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { DepositStatus, Signer } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
@@ -64,7 +64,28 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     [amount],
   )
 
-  const depositStep = marketAccount.previewDeposit(depositTokenAmount).status
+  const minimumDeposit = market.hooksConfig?.minimumDeposit
+
+  // TODO: remove after fixing previewDeposit in wildcat.ts
+  const getDepositStatus = () => {
+    const status = marketAccount.depositAvailability
+    if (status !== DepositStatus.Ready) return { status }
+    if (depositTokenAmount.gt(market.maximumDeposit)) {
+      return { status: DepositStatus.ExceedsMaximumDeposit }
+    }
+    if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
+      return { status: DepositStatus.InsufficientBalance }
+    }
+    if (minimumDeposit && depositTokenAmount.lt(minimumDeposit)) {
+      return { status: DepositStatus.BelowMinimumDeposit }
+    }
+    if (!marketAccount.isApprovedFor(depositTokenAmount)) {
+      return { status: DepositStatus.InsufficientAllowance }
+    }
+    return { status: DepositStatus.Ready }
+  }
+
+  const depositStep = getDepositStatus().status
 
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
@@ -91,11 +112,6 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     setShowErrorPopup(false)
   }
 
-  const minimumDeposit = market.hooksConfig?.minimumDeposit
-  const isLtMinimumDeposit =
-    minimumDeposit &&
-    Number(amount) < Number(formatTokenWithCommas(minimumDeposit))
-
   const disableApprove =
     !!depositError ||
     market.isClosed ||
@@ -105,8 +121,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     depositStep === "InsufficientBalance" ||
     modal.approvedStep ||
     isApproving ||
-    !(market.provider instanceof Signer) ||
-    isLtMinimumDeposit
+    !(market.provider instanceof Signer)
 
   const disableDeposit =
     !!depositError ||
@@ -115,10 +130,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     depositTokenAmount.raw.gt(market.maximumDeposit.raw) ||
     depositStep === "InsufficientAllowance" ||
     depositStep === "InsufficientBalance" ||
-    isApproving ||
-    isLtMinimumDeposit
-
-  console.log(depositStep)
+    isApproving
 
   const isApprovedButton =
     depositStep === "Ready" && !depositTokenAmount.raw.isZero() && !isApproving
