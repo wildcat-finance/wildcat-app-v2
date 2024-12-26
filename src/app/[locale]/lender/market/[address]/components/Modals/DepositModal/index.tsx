@@ -1,7 +1,7 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
 
 import { Box, Button, Dialog } from "@mui/material"
-import { MarketAccount, Signer } from "@wildcatfi/wildcat-sdk"
+import { MarketAccount, Signer, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
@@ -91,6 +91,11 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     setShowErrorPopup(false)
   }
 
+  const minimumDeposit = market.hooksConfig?.minimumDeposit
+  const isLtMinimumDeposit =
+    minimumDeposit &&
+    Number(amount) < Number(formatTokenWithCommas(minimumDeposit))
+
   const disableApprove =
     !!depositError ||
     market.isClosed ||
@@ -100,7 +105,8 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     depositStep === "InsufficientBalance" ||
     modal.approvedStep ||
     isApproving ||
-    !(market.provider instanceof Signer)
+    !(market.provider instanceof Signer) ||
+    isLtMinimumDeposit
 
   const disableDeposit =
     !!depositError ||
@@ -109,7 +115,10 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     depositTokenAmount.raw.gt(market.maximumDeposit.raw) ||
     depositStep === "InsufficientAllowance" ||
     depositStep === "InsufficientBalance" ||
-    isApproving
+    isApproving ||
+    isLtMinimumDeposit
+
+  console.log(depositStep)
 
   const isApprovedButton =
     depositStep === "Ready" && !depositTokenAmount.raw.isZero() && !isApproving
@@ -185,9 +194,23 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
                     })}
                     containerSx={{
                       padding: "0 12px",
-                      margin: "16px 0 20px",
+                      marginTop: "16px",
+                      marginBottom: minimumDeposit ? "8px" : "20px",
                     }}
                   />
+
+                  {minimumDeposit && (
+                    <ModalDataItem
+                      title="Minimum Deposit"
+                      value={formatTokenWithCommas(minimumDeposit, {
+                        withSymbol: true,
+                      })}
+                      containerSx={{
+                        padding: "0 12px",
+                        marginBottom: "20px",
+                      }}
+                    />
+                  )}
 
                   <NumberTextField
                     label={formatTokenWithCommas(marketAccount.maximumDeposit)}
