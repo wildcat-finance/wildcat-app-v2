@@ -155,11 +155,11 @@ export const MarketAuthorisedLenders = ({
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.name",
       ),
-      minWidth: 176,
+      minWidth: 146,
       headerAlign: "left",
       align: "left",
       renderCell: (params) => <LenderName address={params.value.address} />,
-      flex: 2,
+      flex: 1,
     },
     {
       sortable: false,
@@ -167,7 +167,7 @@ export const MarketAuthorisedLenders = ({
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.walletAddress",
       ),
-      minWidth: 176,
+      minWidth: 146,
       headerAlign: "left",
       align: "left",
       renderCell: ({ value }) => (
@@ -199,7 +199,7 @@ export const MarketAuthorisedLenders = ({
           </Link>
         </Box>
       ),
-      flex: 2,
+      flex: 1,
     },
     {
       sortable: false,
@@ -211,6 +211,9 @@ export const MarketAuthorisedLenders = ({
       headerAlign: "left",
       align: "left",
       flex: 1.5,
+      renderCell: ({ value }) => (
+        <span style={{ width: "100%", whiteSpace: "normal" }}>{value}</span>
+      ),
     },
     {
       sortable: false,
@@ -222,6 +225,9 @@ export const MarketAuthorisedLenders = ({
       headerAlign: "left",
       align: "left",
       flex: 1.5,
+      renderCell: ({ value }) => (
+        <span style={{ width: "100%", whiteSpace: "normal" }}>{value}</span>
+      ),
     },
     {
       sortable: false,
@@ -229,10 +235,10 @@ export const MarketAuthorisedLenders = ({
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.accessExpiry",
       ),
-      minWidth: 124,
+      minWidth: 110,
       headerAlign: "left",
       align: "left",
-      flex: 1.5,
+      flex: 1,
     },
     ...(market?.hooksConfig?.allowForceBuyBacks
       ? ([
