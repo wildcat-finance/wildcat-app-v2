@@ -113,26 +113,25 @@ export const RepayModal = ({
     ? repayDaysAmount
     : maxRepayAmount || repayTokenAmount
 
-  // const repayStep = marketAccount.previewRepay(
-  //   finalRepayAmount || repayAmount,
-  // ).status
+  const repayStep = marketAccount.previewRepay(
+    finalRepayAmount || repayAmount,
+  ).status
 
-  // TODO: remove when previewRepay will be fixed
-  const getRepayStep = (inputAmount: TokenAmount) => {
-    if (market.isClosed) return { status: RepayStatus.MarketClosed }
-    if (inputAmount.gt(marketAccount.underlyingBalance)) {
-      return { status: RepayStatus.InsufficientBalance }
-    }
-    if (marketAccount.isApprovedFor(inputAmount)) {
-      return { status: RepayStatus.InsufficientAllowance }
-    }
-    if (inputAmount.gt(market.outstandingDebt.raw)) {
-      return { status: RepayStatus.ExceedsOutstandingDebt }
-    }
-    return { status: RepayStatus.Ready }
-  }
-
-  const repayStep = getRepayStep(finalRepayAmount || repayAmount).status
+  // const getRepayStep = (inputAmount: TokenAmount) => {
+  //   if (market.isClosed) return { status: RepayStatus.MarketClosed }
+  //   if (inputAmount.gt(marketAccount.underlyingBalance)) {
+  //     return { status: RepayStatus.InsufficientBalance }
+  //   }
+  //   if (marketAccount.isApprovedFor(inputAmount)) {
+  //     return { status: RepayStatus.InsufficientAllowance }
+  //   }
+  //   if (inputAmount.gt(market.outstandingDebt.raw)) {
+  //     return { status: RepayStatus.ExceedsOutstandingDebt }
+  //   }
+  //   return { status: RepayStatus.Ready }
+  // }
+  //
+  // const repayStep = getRepayStep(finalRepayAmount || repayAmount).status
 
   const handleRepay = () => {
     setTxHash("")
