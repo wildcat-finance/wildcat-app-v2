@@ -52,14 +52,13 @@ export const useGetMarketLenders = (market?: Market) => {
       }),
     ])
 
-    // const activeLenders = await
     const inactiveLenders = policyLenders.filter(
       (x) =>
         !activeLenders.some(
           (y) => y.address.toLowerCase() === x.address.toLowerCase(),
         ),
     )
-    // const updates =
+
     const allLenders = [
       ...activeLenders,
       ...inactiveLenders.map(
