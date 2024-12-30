@@ -3,9 +3,11 @@ import * as React from "react"
 import { Box, Button, Typography } from "@mui/material"
 import { GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import {
+  DepositStatus,
   HooksKind,
   LenderRole,
   MarketAccount,
+  MarketVersion,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
@@ -488,6 +490,7 @@ export const getRows = (
       deploy: deployedEvent ? deployedEvent.blockTimestamp : 0,
       selfOnboard:
         !marketAccount.hasEverInteracted &&
-        marketAccount.inferredRole !== LenderRole.Null,
+        marketAccount.market.version === MarketVersion.V2 &&
+        marketAccount.depositAvailability === DepositStatus.Ready,
     }
   })
