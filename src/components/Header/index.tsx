@@ -43,7 +43,7 @@ export default function Header() {
     } else setSide("lender")
   }, [pathname])
 
-  const handleClickLogo = () => {
+  const handleResetTab = () => {
     if (side === "borrower") {
       dispatch(setTab(BorrowerOverviewTabs.MARKETS))
     }
@@ -54,16 +54,17 @@ export default function Header() {
     [side],
   )
 
-  console.log(`Side: ${side}`)
-  console.log(`Home URL: ${homeUrl}`)
-
   return (
     <Box sx={ContentContainer}>
-      <Link onClick={handleClickLogo} href={homeUrl} style={{ height: "50px" }}>
+      <Link onClick={handleResetTab} href={homeUrl} style={{ height: "50px" }}>
         <Logo />
       </Link>
       <Box sx={NavContainer}>
-        <Link href={ROUTES.borrower.root} style={{ textDecoration: "none" }}>
+        <Link
+          onClick={handleResetTab}
+          href={ROUTES.borrower.root}
+          style={{ textDecoration: "none" }}
+        >
           <Typography
             variant="text2Highlighted"
             sx={{ color: COLORS.white, cursor: "pointer" }}
