@@ -35,6 +35,7 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
   const { mutate, isSuccess, isError, isPending } = useWithdraw(
     marketAccount,
     setTxHash,
+    !!maxAmount,
   )
 
   const modal = useApprovalModal(
