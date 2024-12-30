@@ -14,17 +14,12 @@ import {
   Typography,
 } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
-import {
-  BasicLenderData,
-  LenderRole,
-  MarketVersion,
-} from "@wildcatfi/wildcat-sdk"
+import { LenderRole, MarketVersion } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
-import { useGetAuthorisedLendersByMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetLenders"
 import {
   SkeletonContainer,
   SkeletonStyle,
@@ -102,10 +97,20 @@ export const MarketAuthorisedLenders = ({
                 ? "Withdraw Only"
                 : lender.inferredRole === LenderRole.Blocked
                   ? "Blocked From Deposits"
-                  : "Unknown", // @todo
+                  : lender.credential !== undefined
+                    ? !lender.hasValidCredential &&
+                      lender.credentialExpiry !== undefined &&
+                      lender.credentialExpiry < Date.now()
+                      ? "Credential Expired"
+                      : "Provider Removed"
+                    : "Unknown", // @todo
 
           accessExpiry: lender.credentialExpiry
-            ? formatBlockTimestamp(lender.credentialExpiry)
+            ? formatBlockTimestamp(lender.credentialExpiry, {
+                year: "numeric",
+                hour: undefined,
+                minute: undefined,
+              })
             : "Never", // @todo
           name: (() => {
             const correctLender =
@@ -125,22 +130,27 @@ export const MarketAuthorisedLenders = ({
           MLA: "View|Download",
           raw: lender,
         }
+        console.log(`Market Version: ${market.version}`)
         console.log(
-          `is deauthorized on controller: ${
-            lender.isAuthorizedOnController === false
-          }`,
+          `market requires access for deposit: ${market.hooksConfig?.depositRequiresAccess}`,
         )
-        console.log(
-          `role not undefined, not deposit and withdraw: ${
-            lender.role !== undefined &&
-            lender.role !== LenderRole.DepositAndWithdraw
-          }`,
-        )
-        console.log(
-          `expiry defined but expired: ${
-            lender.credentialExpiry !== undefined && !lender.hasValidCredential
-          }`,
-        )
+        console.log(`can deposit: ${lender.canDeposit}`)
+        // console.log(
+        //   `is deauthorized on controller: ${
+        //     lender.isAuthorizedOnController === false
+        //   }`,
+        // )
+        // console.log(
+        //   `role not undefined, not deposit and withdraw: ${
+        //     lender.role !== undefined &&
+        //     lender.role !== LenderRole.DepositAndWithdraw
+        //   }`,
+        // )
+        // console.log(
+        //   `expiry defined but expired: ${
+        //     lender.credentialExpiry !== undefined && !lender.hasValidCredential
+        //   }`,
+        // )
         return lenderData
       })
     : []
@@ -240,36 +250,6 @@ export const MarketAuthorisedLenders = ({
       align: "left",
       flex: 1,
     },
-    ...(market?.hooksConfig?.allowForceBuyBacks
-      ? ([
-          {
-            sortable: false,
-            field: "id",
-            headerName: t(
-              "borrowerMarketDetails.authorisedLenders.tableHeaders.forceBuyBack",
-            ),
-            minWidth: 124,
-            headerAlign: "left",
-            align: "left",
-            flex: 1.5,
-            renderCell: ({ row }) => (
-              <Box sx={MarketWithdrawalRequetstCell}>
-                <ForceBuyBackModal
-                  market={market}
-                  marketAccount={marketAccount}
-                  lender={row.raw as BasicLenderData}
-                  disableForceBuyBackButton={false}
-                  lenderName={
-                    lendersNames[
-                      (row.raw as BasicLenderData).address.toLowerCase()
-                    ]
-                  }
-                />
-              </Box>
-            ),
-          },
-        ] as GridColDef[])
-      : []),
     {
       sortable: false,
       field: "dateAdded",
