@@ -89,7 +89,7 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
       {!isDelinquent &&
         !market.isClosed &&
         !market.isIncurringPenalties &&
-        market.totalDebts.gt(0) && (
+        market.outstandingTotalSupply.gt(0) && (
           <Box sx={{ display: "flex", columnGap: "3px", marginBottom: "24px" }}>
             <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
               {t("borrowerMarketDetails.statusChart.sufficientReserves")}
