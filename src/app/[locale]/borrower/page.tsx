@@ -167,7 +167,11 @@ export default function Borrower() {
               variant="contained"
               size="small"
               disabled={isWrongNetwork}
-              sx={{ paddingTop: "8px", paddingBottom: "8px", minWidth: "100px" }}
+              sx={{
+                paddingTop: "8px",
+                paddingBottom: "8px",
+                minWidth: "100px",
+              }}
             >
               {tab === BorrowerOverviewTabs.MARKETS
                 ? t("borrowerMarketList.button.newMarket")
