@@ -248,14 +248,14 @@ export const EditLendersTable = () => {
             <Typography variant="text3" color={COLORS.santasGrey}>
               {t("editLendersList.forms.edit.table.noLenders")}
             </Typography>
-            <Button
-              onClick={() => dispatch(resetPolicyFilters())}
-              size="small"
-              variant="text"
-              sx={ResetButtonStyles}
-            >
-              {t("editLendersList.forms.edit.table.resetPolicyFilters")}
-            </Button>
+            {/* <Button */}
+            {/*  onClick={() => dispatch(resetPolicyFilters())} */}
+            {/*  size="small" */}
+            {/*  variant="text" */}
+            {/*  sx={ResetButtonStyles} */}
+            {/* > */}
+            {/*  {t("editLendersList.forms.edit.table.resetPolicyFilters")} */}
+            {/* </Button> */}
           </Box>
         </Box>
       )}
