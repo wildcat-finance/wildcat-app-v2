@@ -77,7 +77,15 @@ const getFilteredAndOrderedMarkets = (
   return filteredMarkets
 }
 
-export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
+export const MarketsTables = ({
+  showBanner,
+  unfilteredBorrowerMarkets,
+  isBorrowerMarketsLoading,
+}: {
+  showBanner: boolean
+  unfilteredBorrowerMarkets: Market[] | undefined
+  isBorrowerMarketsLoading: boolean
+}) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
@@ -102,10 +110,6 @@ export const MarketsTables = ({ showBanner }: { showBanner: boolean }) => {
       b.map((x) => `${x.name}:${x.address}`).join(","),
   )
 
-  const {
-    data: unfilteredBorrowerMarkets,
-    isLoading: isBorrowerMarketsLoading,
-  } = useGetBorrowerMarkets(undefined)
   const { data: unfilteredOtherMarkets, isLoading: isOthersMarketsLoading } =
     useGetOthersMarkets()
 
