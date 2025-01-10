@@ -13,6 +13,7 @@ export const ROUTES = {
     editProfile: `${BORROWER_ROOT}/profile/edit`,
     notifications: `${BORROWER_ROOT}/notifications`,
     editPolicy: `${BORROWER_ROOT}/edit-policy`,
+    policy: `${BORROWER_ROOT}/policy`,
     invitation: `${BORROWER_ROOT}/invitation`,
   },
   lender: {

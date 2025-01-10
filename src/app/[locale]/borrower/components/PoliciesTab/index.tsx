@@ -2,13 +2,8 @@ import React, { ChangeEvent, useRef, useState } from "react"
 
 import {
   Box,
-  Button,
-  FormControl,
-  FormControlLabel,
   IconButton,
   InputAdornment,
-  InputLabel,
-  Select,
   SvgIcon,
   TextField,
   Typography,
@@ -54,7 +49,7 @@ export const PoliciesTab = ({
   const [policyName, setPolicyName] = useState<string>("")
 
   const editPolicyLink = (policy: string) =>
-    `${ROUTES.borrower.editPolicy}?policy=${encodeURIComponent(policy)}`
+    `${ROUTES.borrower.policy}?policy=${encodeURIComponent(policy)}`
 
   const { data: hooksData, isLoading } = useGetBorrowerHooksDataWithSubgraph()
 
@@ -276,13 +271,6 @@ export const PoliciesTab = ({
           selected={marketsFilter}
           setSelected={setMarketsFilter}
         />
-
-        {/* <PolicyFilterSelect */}
-        {/*  placeholder="Policy Type" */}
-        {/*  options={marketsOptions ?? []} */}
-        {/*  selected={marketsFilter} */}
-        {/*  setSelected={setMarketsFilter} */}
-        {/* /> */}
       </Box>
 
       <Box>
