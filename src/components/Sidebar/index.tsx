@@ -65,6 +65,7 @@ export const Sidebar = () => {
       {pathname === ROUTES.borrower.createMarket && <CreateMarketSidebar />}
       {pathname === ROUTES.borrower.lendersList && <LenderListSidebar />}
       {pathname === ROUTES.borrower.editPolicy && <EditPolicySidebar />}
+      {pathname === ROUTES.borrower.policy && <EditPolicySidebar />}
       {pathname === ROUTES.borrower.notifications && <NotificationsSidebar />}
     </Box>
   )

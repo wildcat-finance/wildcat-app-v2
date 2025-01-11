@@ -9,6 +9,8 @@ import { useAccount } from "wagmi"
 
 import { LendersTable } from "@/app/[locale]/borrower/components/AuthorizedLendersTable"
 import { MarketsTables } from "@/app/[locale]/borrower/components/MarketsTables"
+import { PoliciesTab } from "@/app/[locale]/borrower/components/PoliciesTab"
+import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
 import { LeadBanner } from "@/components/LeadBanner"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -122,6 +124,8 @@ export default function Borrower() {
     return matchesSearch
   })
 
+  const { data: markets, isLoading } = useGetBorrowerMarkets(undefined)
+
   const authorizedLenders = filteredLendersData?.filter(
     (lender) => lender.isAuthorized,
   )
@@ -161,19 +165,24 @@ export default function Borrower() {
           </Typography>
         )}
 
-        {!bannerDisplayConfig.hideNewMarketButton &&
-          tab === BorrowerOverviewTabs.MARKETS && (
-            <Link href={ROUTES.borrower.createMarket}>
-              <Button
-                variant="contained"
-                size="small"
-                disabled={isWrongNetwork}
-                sx={{ paddingTop: "8px", paddingBottom: "8px" }}
-              >
-                {t("borrowerMarketList.button.newMarket")}
-              </Button>
-            </Link>
-          )}
+        {!bannerDisplayConfig.hideNewMarketButton && (
+          <Link href={ROUTES.borrower.createMarket}>
+            <Button
+              variant="contained"
+              size="small"
+              disabled={isWrongNetwork}
+              sx={{
+                paddingTop: "8px",
+                paddingBottom: "8px",
+                minWidth: "100px",
+              }}
+            >
+              {tab === BorrowerOverviewTabs.MARKETS
+                ? t("borrowerMarketList.button.newMarket")
+                : t("borrowerMarketList.button.newPolicy")}
+            </Button>
+          </Link>
+        )}
       </Box>
 
       {!bannerDisplayConfig.hideBanner && (
@@ -188,7 +197,11 @@ export default function Borrower() {
       )}
 
       {tab === "markets" && (
-        <MarketsTables showBanner={!bannerDisplayConfig.hideBanner} />
+        <MarketsTables
+          showBanner={!bannerDisplayConfig.hideBanner}
+          unfilteredBorrowerMarkets={markets}
+          isBorrowerMarketsLoading={isLoading}
+        />
       )}
 
       {tab === "policies" && (
@@ -209,7 +222,8 @@ export default function Borrower() {
             label="Active Lenders"
           /> */}
 
-          <PoliciesTable isOpen label="Policies" />
+          {/* <PoliciesTable isOpen label="Policies" /> */}
+          <PoliciesTab markets={markets} isMarketsLoading={isLoading} />
 
           {/* <Box marginTop="16px">
             <LendersTable

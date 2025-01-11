@@ -61,7 +61,8 @@
       "policies": "Policies"
     },
     "button": {
-      "newMarket": "Create Market"
+      "newMarket": "Create Market",
+      "newPolicy": "Create Policy"
     },
     "sidebar": {
       "searchPlaceholder": "Search By Market Name",
