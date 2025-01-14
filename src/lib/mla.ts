@@ -159,13 +159,13 @@ const formatString = (value: string | undefined): string | undefined =>
   value ?? undefined
 
 export const formatAddress = (value: string | undefined): string | undefined =>
-  value ? getAddress(value) : undefined
+  typeof value === "string" ? getAddress(value) : undefined
 
 const formatNumber = (value: number | undefined): string | undefined =>
-  value ? value.toString() : undefined
+  typeof value === "number" ? value.toString() : undefined
 
 export const formatBips = (value: number | undefined): string | undefined =>
-  value ? `${formatBps(value)}%` : undefined
+  typeof value === "number" ? `${formatBps(value)}%` : undefined
 
 const formatTokenAmount = (
   value: TokenAmount | undefined,
@@ -309,7 +309,7 @@ export function getFieldValuesForBorrower(
     ],
     [
       "market.minimumDeposit",
-      hooksConfig?.minimumDeposit
+      hooksConfig?.minimumDeposit?.gt(0)
         ? formatTokenAmount(hooksConfig.minimumDeposit)
         : "N/A",
     ],

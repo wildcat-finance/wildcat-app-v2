@@ -158,7 +158,7 @@ export function getFieldValuesForBorrowerFromForm(
     ],
     [
       "market.allowForceBuyBack",
-      formatBool(marketParams?.allowForceBuyBack) ?? "N/A",
+      formatBool(marketParams.allowForceBuyBack) ?? "N/A",
     ],
   ])
   return allData
