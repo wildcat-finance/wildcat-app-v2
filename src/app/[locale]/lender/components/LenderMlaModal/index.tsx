@@ -10,7 +10,11 @@ import { LenderMlaModalProps } from "./interface"
 import { useSignLenderMLA } from "../../hooks/useSignLenderMla"
 import { useGetSignedMla } from "../../hooks/useSignMla"
 
-export const LenderMlaModal = ({ mla, isLoading }: LenderMlaModalProps) => {
+export const LenderMlaModal = ({
+  mla: mlaInput,
+  isLoading,
+}: LenderMlaModalProps) => {
+  const mla = mlaInput && "noMLA" in mlaInput ? undefined : mlaInput
   const { address } = useAccount()
   const { data: signedMla, isLoading: signedMlaLoading } = useGetSignedMla(
     mla?.market,
@@ -38,20 +42,24 @@ export const LenderMlaModal = ({ mla, isLoading }: LenderMlaModalProps) => {
     return null
   }, [signedMla, address, mla])
 
+  const buttonText =
+    // eslint-disable-next-line no-nested-ternary
+    mla === null
+      ? t("lenderMarketDetails.buttons.mlaNotSet")
+      : mlaInput && "noMLA" in mlaInput
+        ? t("lenderMarketDetails.buttons.mlaRefused")
+        : t("lenderMarketDetails.buttons.viewMla")
+
   return (
     <>
       <Button
         variant="outlined"
         color="secondary"
         size="small"
-        disabled={isLoading || mla === null || signedMlaLoading || isPending}
+        disabled={isLoading || !mla || signedMlaLoading || isPending}
         onClick={() => mla && setIsMlaOpen(true)}
       >
-        {(isLoading && "Loading MLA...") ||
-          (!isLoading &&
-            (mla === null
-              ? t("lenderMarketDetails.buttons.noMla")
-              : t("lenderMarketDetails.buttons.viewMla")))}
+        {(isLoading && "Loading MLA...") || buttonText}
       </Button>
       <Modal
         open={isMlaOpen}
