@@ -1,5 +1,7 @@
 "use client"
 
+import { randomBytes } from "crypto"
+
 import * as React from "react"
 import { useEffect, useMemo, useState } from "react"
 
@@ -15,6 +17,7 @@ import {
 import { constants } from "ethers"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { PageContainer } from "@/app/[locale]/borrower/create-market/style"
 import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
@@ -53,11 +56,13 @@ import { useDeployV2Market } from "./hooks/useDeployV2Market"
 import { useNewMarketForm } from "./hooks/useNewMarketForm"
 import { useNewMarketHooksData } from "./hooks/useNewMarketHooksData"
 import { useTokenMetadata } from "./hooks/useTokenMetadata"
+import { useSignMla } from "../hooks/mla/useSignBorrowerMla"
 
 export default function CreateMarketPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const dispatch = useAppDispatch()
+  const { address } = useAccount()
 
   const currentStep = useAppSelector(
     (state) => state.createMarketSidebar.currentStep,
@@ -74,6 +79,25 @@ export default function CreateMarketPage() {
     useDeployV2Market()
 
   const [finalOpen, setFinalOpen] = useState<boolean>(false)
+
+  const [timeSigned, setTimeSigned] = useState(0)
+  useEffect(() => {
+    setTimeSigned(Date.now())
+  }, [])
+
+  const [salt, setSalt] = useState<string>("")
+  useEffect(() => {
+    const randomSaltNumber = randomBytes(12).toString("hex")
+    // Salt must be zero or deployer address as first 20 bytes, followed by a nonce in the last 12 bytes
+    const saltWithAddress = `${address}${randomSaltNumber}`
+    setSalt(saltWithAddress)
+  }, [address])
+
+  const {
+    data: mlaSignature,
+    mutate: signMla,
+    isPending: isSigning,
+  } = useSignMla(salt)
 
   const handleClickClose = () => {
     setFinalOpen(false)
@@ -117,12 +141,11 @@ export default function CreateMarketPage() {
     const marketParams = newMarketForm.getValues()
 
     // const deployedMarkets = selectedHooksTemplate?.totalMarkets
-    if (assetData && tokenAsset && selectedHooksTemplate) {
-      const randomSaltNumber = (Math.random() * 1000000000000000000)
-        .toString(16)
-        .padStart(12, "0")
-        .slice(-12)
+    if (assetData && tokenAsset && selectedHooksTemplate && mlaSignature) {
       deployNewMarket({
+        timeSigned,
+        mlaTemplateId: Number(marketParams.mla),
+        mlaSignature: mlaSignature.signature,
         namePrefix: `${marketParams.namePrefix.trimEnd()} `,
         symbolPrefix: marketParams.symbolPrefix,
         annualInterestBips: Number(marketParams.annualInterestBips) * 100,
@@ -148,7 +171,7 @@ export default function CreateMarketPage() {
             : TransferAccess.Open,
         hooksTemplate: selectedHooksTemplate,
         hooksInstanceName: marketParams.policyName,
-        salt: `0x${randomSaltNumber.padStart(64, "0")}`, // @todo use # of deployed markets
+        salt,
         hooksAddress: selectedHooksInstance?.address,
         // @todo proper solution
         existingProviders:
@@ -169,6 +192,7 @@ export default function CreateMarketPage() {
 
         newProviderInputs: [],
         roleProviderFactory: constants.AddressZero,
+        minimumDeposit: marketParams.minimumDeposit,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
     }
@@ -235,12 +259,11 @@ export default function CreateMarketPage() {
           />
         )}
 
-        {/* {currentStep === CreateMarketSteps.MLA && (
+        {currentStep === CreateMarketSteps.MLA && (
           <MlaForm form={newMarketForm} />
-        )} */}
+        )}
 
-        {(currentStep === CreateMarketSteps.FINANCIAL ||
-          currentStep === CreateMarketSteps.MLA) && (
+        {currentStep === CreateMarketSteps.FINANCIAL && (
           <FinancialForm form={newMarketForm} tokenAsset={tokenAsset} />
         )}
 
@@ -261,6 +284,11 @@ export default function CreateMarketPage() {
             form={newMarketForm}
             tokenAsset={tokenAsset}
             handleDeploy={handleClickDeploy}
+            salt={salt}
+            timeSigned={timeSigned}
+            onClickSign={signMla}
+            isSigning={isSigning}
+            mlaSignature={mlaSignature}
           />
         )}
 

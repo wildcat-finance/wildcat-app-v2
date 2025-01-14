@@ -1,6 +1,12 @@
 import { useEffect } from "react"
 
-import { Box, FormControlLabel, RadioGroup, Typography } from "@mui/material"
+import {
+  Box,
+  CircularProgress,
+  FormControlLabel,
+  RadioGroup,
+  Typography,
+} from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { FormFooter } from "@/app/[locale]/borrower/create-market/components/FormFooter"
@@ -8,7 +14,6 @@ import { FormContainer } from "@/app/[locale]/borrower/create-market/components/
 import { useGetMlaTemplates } from "@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates"
 import ExtendedRadio from "@/components/@extended/ExtendedRadio"
 import { HorizontalInputLabel } from "@/components/HorisontalInputLabel"
-import { mockedMLATemplatesOptions } from "@/mocks/mocks"
 import { useAppDispatch } from "@/store/hooks"
 import {
   CreateMarketSteps,
@@ -28,11 +33,11 @@ export const MlaForm = ({ form }: MLAFormProps) => {
   const dispatch = useAppDispatch()
 
   const handleNextClick = () => {
-    dispatch(setCreatingStep(CreateMarketSteps.FINANCIAL))
+    dispatch(setCreatingStep(CreateMarketSteps.CONFIRM))
   }
 
   const handleBackClick = () => {
-    dispatch(setCreatingStep(CreateMarketSteps.BASIC))
+    dispatch(setCreatingStep(CreateMarketSteps.PERIODS))
   }
 
   const mlaWatch = watch("mla")
@@ -62,7 +67,7 @@ export const MlaForm = ({ form }: MLAFormProps) => {
     if (mlaWatch) {
       dispatch(
         setIsDisabled({
-          steps: [CreateMarketSteps.FINANCIAL],
+          steps: [CreateMarketSteps.MLA],
           disabled: !mlaWatch,
         }),
       )
@@ -99,6 +104,20 @@ export const MlaForm = ({ form }: MLAFormProps) => {
               sx={MLAOption}
             />
           ))}
+          {isLoadingTemplates && (
+            <FormControlLabel
+              key="loading"
+              label="Loading templates..."
+              control={
+                <ExtendedRadio
+                  value="loading"
+                  onChange={handleChangeMla}
+                  disabled
+                />
+              }
+              sx={MLAOption}
+            />
+          )}
         </RadioGroup>
       </HorizontalInputLabel>
 

@@ -1,11 +1,17 @@
 import { useState } from "react"
 
-import { Box, Button, Divider, Typography } from "@mui/material"
+import { Box, Button, Divider, SxProps, Theme, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
+import { Token } from "@wildcatfi/wildcat-sdk"
+import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
+import { usePreviewMlaFromForm } from "@/app/[locale]/borrower/hooks/mla/usePreviewMla"
+import { SignMlaFromFormInputs } from "@/app/[locale]/borrower/hooks/mla/useSignBorrowerMla"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
+import { MlaModal } from "@/app/[locale]/lender/components/MlaModal"
+import { BorrowerProfile } from "@/app/api/profiles/interface"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import Info from "@/assets/icons/info_icon.svg"
 import {
@@ -23,13 +29,85 @@ import { timestampToDateFormatted } from "@/utils/formatters"
 
 import { ConfirmationFormProps } from "./interface"
 import { AlertContainer, DividerStyle, SubtitleStyle } from "./style"
+import { MarketValidationSchemaType } from "../../../validation/validationSchema"
 import { ConfirmationFormItem } from "../../ConfirmationFormItem"
 import { FormContainer, SectionGrid } from "../style"
+
+const PreviewMlaModal = ({
+  form,
+  mlaTemplateId,
+  timeSigned,
+  borrowerProfile,
+  asset,
+  salt,
+  onSign,
+  isSigning,
+  sx,
+  disabled,
+  modalButtonVariant,
+  modalButtonSize,
+  buttonText = "Sign",
+  showSignButton = true,
+  isClosed,
+}: {
+  form: UseFormReturn<MarketValidationSchemaType>
+  mlaTemplateId: number
+  timeSigned: number
+  borrowerProfile: BorrowerProfile | undefined
+  asset: Token | undefined
+  salt: string
+  onSign?: (args: SignMlaFromFormInputs) => void
+  isSigning: boolean
+  sx?: SxProps<Theme> | undefined
+  disabled?: boolean
+  modalButtonVariant?: "text" | "outlined" | "contained"
+  modalButtonSize?: "small" | "medium" | "large"
+  buttonText?: string
+  showSignButton?: boolean
+  isClosed?: boolean
+}) => {
+  const { data: mla, isLoading } = usePreviewMlaFromForm(
+    form,
+    mlaTemplateId,
+    timeSigned,
+    borrowerProfile,
+    asset,
+    salt,
+  )
+  return (
+    <MlaModal
+      mla={mla}
+      onSign={() => {
+        onSign?.({
+          form,
+          timeSigned,
+          borrowerProfile,
+          asset,
+        })
+      }}
+      disableModalButton={disabled}
+      disableSignButton={disabled}
+      isLoading={isLoading}
+      showSignButton={showSignButton}
+      isSigning={isSigning}
+      buttonText={buttonText}
+      sx={sx}
+      modalButtonVariant={modalButtonVariant}
+      modalButtonSize={modalButtonSize}
+      isClosed={isClosed}
+    />
+  )
+}
 
 export const ConfirmationForm = ({
   form,
   tokenAsset,
   handleDeploy,
+  timeSigned,
+  salt,
+  onClickSign,
+  isSigning,
+  mlaSignature,
 }: ConfirmationFormProps) => {
   const { t } = useTranslation()
 
@@ -45,7 +123,7 @@ export const ConfirmationForm = ({
 
   const { getValues } = form
 
-  const [signed, setSigned] = useState<boolean>(false)
+  const [requestedSign, setRequestedSign] = useState<boolean>(false)
 
   const marketTypeValue = mockedMarketTypesOptions.find(
     (el) => el.value === getValues("marketType"),
@@ -55,7 +133,6 @@ export const ConfirmationForm = ({
     (el) => el.value === getValues("accessControl"),
   )?.label
 
-  const isMLA = getValues("mla") === "wildcatMLA"
   const isFixedTerm = getValues("marketType") === "fixedTerm"
   const isNewPolicy = getValues("policy") === "createNewPolicy"
   const policyNameValue = getValues("policyName") || "Unnamed Policy"
@@ -65,8 +142,29 @@ export const ConfirmationForm = ({
   const disableTransfers = getValues("disableTransfers")
   const allowForceBuyBack = getValues("allowForceBuyBack")
 
+  const selectedMla = getValues("mla")
+  const mlaTemplateId =
+    selectedMla === "noMLA" ? undefined : Number(selectedMla)
+  const isMLA = mlaTemplateId !== undefined
+
+  /// Note: The signature is handled at a higher level, but we need to ensure the
+  /// signature was requested at this stage of the deployment process to prevent
+  /// using a signature from a previous version of the market's parameters in case
+  /// the user goes back and changes some settings.
+  const signed = requestedSign && !isSigning && !!mlaSignature
+
   const handleBackClick = () => {
-    dispatch(setCreatingStep(CreateMarketSteps.PERIODS))
+    dispatch(setCreatingStep(CreateMarketSteps.MLA))
+  }
+
+  const handleSign = () => {
+    onClickSign({
+      form,
+      timeSigned,
+      borrowerProfile: borrowerData,
+      asset: tokenAsset,
+    })
+    setRequestedSign(true)
   }
 
   return (
@@ -149,14 +247,29 @@ export const ConfirmationForm = ({
               {t("createNewMarket.mla.title")}
             </Typography>
 
-            <Button
+            {/* <Button
               variant="contained"
               color="secondary"
               size="small"
               sx={{ width: "fit-content" }}
             >
               {t("createNewMarket.buttons.viewMLA")}
-            </Button>
+            </Button> */}
+            <PreviewMlaModal
+              form={form}
+              mlaTemplateId={mlaTemplateId}
+              timeSigned={timeSigned}
+              borrowerProfile={borrowerData}
+              asset={tokenAsset}
+              salt={salt}
+              isSigning={false}
+              disabled={false}
+              sx={{ width: "fit-content" }}
+              modalButtonVariant="contained"
+              modalButtonSize="small"
+              buttonText="View MLA"
+              showSignButton={false}
+            />
           </Box>
 
           <Divider sx={DividerStyle} />
@@ -410,14 +523,31 @@ export const ConfirmationForm = ({
 
         <Box sx={{ display: "flex", gap: "4px" }}>
           {isMLA && (
+            <PreviewMlaModal
+              form={form}
+              mlaTemplateId={mlaTemplateId}
+              timeSigned={timeSigned}
+              borrowerProfile={borrowerData}
+              asset={tokenAsset}
+              salt={salt}
+              onSign={handleSign}
+              isSigning={isSigning}
+              disabled={signed}
+              sx={{ width: "168px", borderRadius: "12px" }}
+              modalButtonVariant="contained"
+              modalButtonSize="large"
+              isClosed={signed}
+            />
+          )}
+          {!isMLA && (
             <Button
               size="large"
               variant="contained"
               sx={{ width: "168px", borderRadius: "12px" }}
               disabled={signed}
-              onClick={() => setSigned(true)}
+              onClick={handleSign}
             >
-              {t("createNewMarket.buttons.signMLA")}
+              {t("createNewMarket.buttons.signMlaRefusal")}
             </Button>
           )}
 
@@ -425,7 +555,7 @@ export const ConfirmationForm = ({
             size="large"
             variant="contained"
             sx={{ width: "168px", borderRadius: "12px" }}
-            disabled={isMLA && !signed}
+            disabled={!signed}
             onClick={handleDeploy}
           >
             {t("createNewMarket.buttons.deploy")}
