@@ -1,11 +1,19 @@
 import { useMemo } from "react"
 
 import { Box, Divider, Typography } from "@mui/material"
+import {
+  MarketVersion,
+  HooksKind,
+  DepositAccess,
+  WithdrawalAccess,
+  TransferAccess,
+} from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
 import { EtherscanBaseUrl } from "@/config/network"
+import { formatDate } from "@/lib/mla"
 import {
   formatBps,
   formatRayAsPercentage,
@@ -74,6 +82,37 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
     copyToClipboard(text)
   }
 
+  const { hooksConfig } = market
+  const depositAccess =
+    hooksConfig?.depositRequiresAccess === false ? "open" : "restricted"
+
+  let withdrawalAccess: "open" | "restricted"
+  if (hooksConfig) {
+    if (
+      hooksConfig.flags.useOnQueueWithdrawal &&
+      (hooksConfig.kind === HooksKind.OpenTerm ||
+        hooksConfig.queueWithdrawalRequiresAccess)
+    ) {
+      withdrawalAccess = "restricted"
+    } else {
+      withdrawalAccess = "open"
+    }
+  } else {
+    withdrawalAccess = "restricted"
+  }
+  let transferAccess: "open" | "restricted" | "disabled"
+  if (hooksConfig) {
+    if (hooksConfig.transfersDisabled) {
+      transferAccess = "disabled"
+    } else if (hooksConfig.transferRequiresAccess) {
+      transferAccess = "restricted"
+    } else {
+      transferAccess = "open"
+    }
+  } else {
+    transferAccess = "open"
+  }
+
   return (
     <Box
       sx={{
@@ -135,6 +174,53 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             title={t("borrowerMarketDetails.parameters.totalInterestAccured")}
             value={toTokenAmountProps(totalInterestAccrued).value}
           />
+          <Divider sx={{ margin: "12px 0 12px" }} />
+          <MarketParametersItem
+            title={t("borrowerMarketDetails.parameters.minimumDeposit.label")}
+            // value={t(
+            // `borrowerMarketDetails.parameters.minimumDeposit.${market.hooksConfig?.minimumDeposit ? "none" : "none"}`,
+            // )}
+            {...(market.hooksConfig?.minimumDeposit?.gt(0)
+              ? toTokenAmountProps(market.hooksConfig.minimumDeposit)
+              : {
+                  value: t(
+                    "borrowerMarketDetails.parameters.minimumDeposit.none",
+                  ),
+                })}
+          />
+          {market.version === MarketVersion.V2 && (
+            <>
+              <Divider sx={{ margin: "12px 0 12px" }} />
+              <MarketParametersItem
+                title={t("borrowerMarketDetails.parameters.marketType.label")}
+                value={t(
+                  `borrowerMarketDetails.parameters.marketType.${market.hooksKind}.text`,
+                )}
+                valueTooltipText={t(
+                  `borrowerMarketDetails.parameters.marketType.${market.hooksKind}.tooltip`,
+                )}
+              />
+            </>
+          )}
+          {market.hooksConfig?.kind === HooksKind.FixedTerm && (
+            <>
+              <Divider sx={{ margin: "12px 0 12px" }} />
+              <MarketParametersItem
+                title={t("borrowerMarketDetails.parameters.marketExpiry")}
+                value={`${formatDate(market.hooksConfig.fixedTermEndTime)}`}
+              />
+            </>
+          )}
+          <Divider sx={{ margin: "12px 0 12px" }} />
+          <MarketParametersItem
+            title={t("borrowerMarketDetails.parameters.depositAccess.label")}
+            value={t(
+              `borrowerMarketDetails.parameters.depositAccess.${depositAccess}.text`,
+            )}
+            valueTooltipText={t(
+              `borrowerMarketDetails.parameters.depositAccess.${depositAccess}.tooltip`,
+            )}
+          />
         </Box>
         <Box sx={MarketParametersContainerColumn}>
           <MarketParametersItem
@@ -194,8 +280,78 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             value={`${formatSecsToHours(market.withdrawalBatchDuration)}`}
             tooltipText="A fixed period during which withdrawal requests are grouped and processed."
           />
+          <Divider sx={{ margin: "12px 0 12px" }} />
+          <MarketParametersItem
+            title={t("borrowerMarketDetails.parameters.withdrawalAccess.label")}
+            value={t(
+              `borrowerMarketDetails.parameters.withdrawalAccess.${withdrawalAccess}.text`,
+            )}
+            valueTooltipText={t(
+              `borrowerMarketDetails.parameters.withdrawalAccess.${withdrawalAccess}.tooltip`,
+            )}
+          />
+          <Divider sx={{ margin: "12px 0 12px" }} />
+          <MarketParametersItem
+            title={t("borrowerMarketDetails.parameters.transferAccess.label")}
+            value={t(
+              `borrowerMarketDetails.parameters.transferAccess.${transferAccess}.text`,
+            )}
+            valueTooltipText={t(
+              `borrowerMarketDetails.parameters.transferAccess.${transferAccess}.tooltip`,
+            )}
+          />
         </Box>
       </Box>
+      {hooksConfig && (
+        <>
+          <Typography variant="title3">
+            {t("borrowerMarketDetails.hooks.title")}
+          </Typography>
+          <Box sx={MarketParametersContainer}>
+            <Box sx={MarketParametersContainerColumn}>
+              <MarketParametersItem
+                title={t("borrowerMarketDetails.hooks.hooksAddress")}
+                value={hooksConfig.hooksAddress}
+                handleCopy={() => {
+                  handleCopy(hooksConfig.hooksAddress)
+                }}
+                link={`${EtherscanBaseUrl}/address/${hooksConfig.hooksAddress}`}
+              />
+              {(
+                [
+                  "useOnDeposit",
+                  "useOnQueueWithdrawal",
+                  "useOnExecuteWithdrawal",
+                  "useOnTransfer",
+                  "useOnBorrow",
+                ] as const
+              ).map((x) => (
+                <MarketParametersItem
+                  title={t(`borrowerMarketDetails.hooks.${x}`)}
+                  value={hooksConfig.flags[x] ? "True" : "False"}
+                />
+              ))}
+            </Box>
+            <Box sx={MarketParametersContainerColumn}>
+              {(
+                [
+                  "useOnRepay",
+                  "useOnCloseMarket",
+                  "useOnNukeFromOrbit",
+                  "useOnSetMaxTotalSupply",
+                  "useOnSetAnnualInterestAndReserveRatioBips",
+                  "useOnSetProtocolFeeBips",
+                ] as const
+              ).map((x) => (
+                <MarketParametersItem
+                  title={t(`borrowerMarketDetails.hooks.${x}`)}
+                  value={hooksConfig.flags[x] ? "True" : "False"}
+                />
+              ))}
+            </Box>
+          </Box>
+        </>
+      )}
     </Box>
   )
 }
