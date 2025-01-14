@@ -14,7 +14,11 @@ export const useMarketMla = (marketAddress: string | undefined) => {
     if (!marketAddress) return undefined
     const res = await fetch(`/api/mla/${marketAddress.toLowerCase()}`)
     if (res.status === 200) {
-      return (await res.json()) as MasterLoanAgreementResponse
+      const data = await res.json()
+      if (data.noMLA) {
+        return { noMLA: true }
+      }
+      return data as MasterLoanAgreementResponse
     }
     if (res.status === 404) {
       return null
