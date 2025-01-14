@@ -132,6 +132,17 @@
       "outstandingWds": "Outstanding WDs",
       "protocolFees": "Protocol Fees"
     },
+    "mla": {
+      "template": {
+        "label": "Select MLA Template",
+        "loading": "Loading templates..." 
+      },
+      "buttons": {
+        "set": "Set MLA",
+        "refuse": "Refuse MLA",
+        "loading": "Loading template..."
+      }
+    },
     "label": {
       "remainingTime": "Remaining Time With Delinquency Fees",
       "availableGracePeriod": "Available Grace Period"
@@ -144,7 +155,8 @@
     },
     "header": {
       "parameters": "Parameters",
-      "ongoingCycle": "Ongoing Cycle"
+      "ongoingCycle": "Ongoing Cycle",
+      "hooks": "Hooks"
     },
     "buttons": {
       "kyc": "KYC Preferences",
@@ -173,6 +185,21 @@
         "tooltip": "The portion of the market borrowing capacity that is still available for use."
       }
     },
+    "hooks": {
+      "title": "Market Hooks",
+      "hooksAddress": "Policy Address",
+      "useOnDeposit": "useOnDeposit",
+      "useOnQueueWithdrawal": "useOnQueueWithdrawal",
+      "useOnExecuteWithdrawal": "useOnExecuteWithdrawal",
+      "useOnTransfer": "useOnTransfer",
+      "useOnBorrow": "useOnBorrow",
+      "useOnRepay": "useOnRepay",
+      "useOnCloseMarket": "useOnCloseMarket",
+      "useOnNukeFromOrbit": "useOnNukeFromOrbit",
+      "useOnSetMaxTotalSupply": "useOnSetMaxTotalSupply",
+      "useOnSetAnnualInterestAndReserveRatioBips": "useOnSetAnnualInterestAndReserveRatioBips",
+      "useOnSetProtocolFeeBips": "useOnSetProtocolFeeBips"
+    },
     "parameters": {
       "marketAddress": "Market Address",
       "underlyingAsset": "Underlying Asset",
@@ -185,7 +212,60 @@
       "penaltyAPR": "Penalty APR",
       "maximumGracePeriod": "Maximum Grace Period",
       "availableGracePeriod": "Available Grace Period",
-      "withdrawalCycleDuration": "Withdrawal Cycle Duration"
+      "withdrawalCycleDuration": "Withdrawal Cycle Duration",
+      "marketType": {
+        "label": "Market Type",
+        "OpenTerm": {
+          "text": "Open Term",
+          "tooltip": "Withdrawal requests are possible at any time."
+        },
+        "FixedTerm": {
+          "text": "Fixed Term",
+          "tooltip": "Withdrawal requests are possible only after a fixed maturity date."
+        }
+      },
+      "marketExpiry": "Loan Maturity",
+      "depositAccess": {
+        "label": "Deposit Access",
+        "open": {
+          "text": "Open Deposits",
+          "tooltip": "Anyone can lend to this market."
+        },
+        "restricted": {
+          "text": "Restricted",
+          "tooltip": "Lenders must meet specific criteria to lend to this market."
+        }
+      },
+      "withdrawalAccess": {
+        "label": "Withdrawal Access",
+        "open": {
+          "text": "Open Withdrawals",
+          "tooltip": "Anyone can request withdrawals."
+        },
+        "restricted": {
+          "text": "Restricted",
+          "tooltip": "Lenders who have not directly deposited must meet specific criteria to withdraw."
+        }
+      },
+      "transferAccess": {
+        "label": "Transfer Access",
+        "open": {
+          "text": "Open Transfers",
+          "tooltip": "The market token can be transferred to any non-sanctioned address."
+        },
+        "restricted": {
+          "text": "Restricted",
+          "tooltip": "The market token can only be transferred to addresses that meet specific criteria."
+        },
+        "disabled": {
+          "text": "Disabled",
+          "tooltip": "The market token cannot be transferred."
+        }
+      },
+      "minimumDeposit": {
+        "label": "Minimum Deposit",
+        "none": "None"
+      }
     },
     "authorisedLenders": {
       "notSigned": "Not Yet Signed",
@@ -783,7 +863,8 @@
       "addToken": "Add Debt Token To Wallet",
       "statement": "Download Statement",
       "viewMla": "View MLA",
-      "noMla": "Market Has No MLA"
+      "mlaNotSet": "Borrower Has Not Configured MLA",
+      "mlaRefused": "Borrower Declined to Set MLA"
     },
     "transactions": {
       "deposit": {
@@ -1001,6 +1082,7 @@
       "next": "Next",
       "viewMLA": "View MLA",
       "signMLA": "Sign MLA",
+      "signMlaRefusal": "Sign MLA Refusal",
       "deploy": "Deploy Market"
     },
     "policy": {
