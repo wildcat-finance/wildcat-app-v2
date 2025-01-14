@@ -923,6 +923,15 @@
       }
     }
   },
+  "marketRecords": {
+    "table": {
+      "header": {
+        "transactionHash": "Transaction ID",
+        "time": "Time",
+        "event": "Event"
+      }
+    }
+  },
   "agreement": {
     "signButton": {
       "signing": "Signing...",

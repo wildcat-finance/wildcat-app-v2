@@ -1,0 +1,3 @@
+.page-btn-left:hover {
+  @apply cursor-pointer;
+}
