@@ -12,4 +12,8 @@ export type MlaModalProps = {
   buttonText?: string
   sx?: SxProps<Theme>
   isSigning?: boolean
+  disableSignButton?: boolean
+  modalButtonVariant?: "text" | "outlined" | "contained"
+  modalButtonSize?: "small" | "medium" | "large"
+  isClosed?: boolean
 }
