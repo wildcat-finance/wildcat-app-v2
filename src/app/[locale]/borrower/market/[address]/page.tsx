@@ -11,6 +11,7 @@ import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/comp
 import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
+import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
@@ -224,6 +225,12 @@ export default function MarketDetails({
           {checked === 5 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketMLA marketAccount={marketAccount} />
+            </Box>
+          )}
+          {checked === 6 && (
+            <Box sx={SlideContentContainer} marginTop="12px">
+              
+              <PaginatedMarketRecordsTable market={market} />
             </Box>
           )}
         </Box>

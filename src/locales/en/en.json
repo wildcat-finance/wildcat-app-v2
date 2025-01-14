@@ -173,7 +173,8 @@
       "withdrawalRequests": "Withdrawal Requests",
       "authorisedLenders": "Lenders",
       "terminateMarket": "Terminate Market",
-      "mla": "MLA"
+      "mla": "MLA",
+      "marketHistory": "Market History"
     },
     "transactions": {
       "toRepay": {
@@ -857,7 +858,8 @@
     "sidebar": {
       "actions": "Deposit & Withdraw",
       "status": "Status",
-      "requests": "Withdrawal Requests"
+      "requests": "Withdrawal Requests",
+      "marketHistory": "Market History"
     },
     "buttons": {
       "addToken": "Add Debt Token To Wallet",

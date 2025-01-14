@@ -30,6 +30,7 @@ import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
 import { SectionContainer, SkeletonContainer, SkeletonStyle } from "./style"
 import { getEffectiveLenderRole } from "./utils"
+import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 
 export default function LenderMarketDetails({
   params: { address },
@@ -162,6 +163,11 @@ export default function LenderMarketDetails({
           {currentSection === LenderMarketSections.REQUESTS && (
             <Box marginTop="12px">
               <WithdrawalRequests withdrawals={withdrawals} />
+            </Box>
+          )}
+          {currentSection === LenderMarketSections.MARKET_HISTORY && (
+            <Box marginTop="12px">
+              <PaginatedMarketRecordsTable market={market} />
             </Box>
           )}
         </Box>

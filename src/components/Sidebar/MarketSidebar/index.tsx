@@ -165,6 +165,32 @@ export const MarketSidebar = () => {
           >
             {t("borrowerMarketDetails.sidebar.mla")}
           </Button>
+          
+          <Button
+            variant="text"
+            size="medium"
+            sx={{
+              ...MenuItemButton,
+              backgroundColor: sidebarState.marketHistory
+                ? COLORS.whiteSmoke
+                : "transparent",
+            }}
+            onClick={() => {
+              dispatch(setCheckBlock(6))
+              dispatch(
+                setSidebarHighlightState({
+                  borrowRepay: false,
+                  statusDetails: false,
+                  withdrawals: false,
+                  lenders: false,
+                  mla: false,
+                  marketHistory: true,
+                }),
+              )
+            }}
+          >
+            {t("borrowerMarketDetails.sidebar.marketHistory")}
+          </Button>
         </Box>
 
         {marketAccount && holdTheMarket && (
