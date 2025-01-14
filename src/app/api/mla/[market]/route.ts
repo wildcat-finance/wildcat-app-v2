@@ -1,3 +1,6 @@
+import { writeFileSync } from "fs"
+import path from "path"
+
 import { getLensV2Contract, Market } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
@@ -7,7 +10,6 @@ import {
   BasicBorrowerInfo,
   fillInMlaTemplate,
   getFieldValuesForBorrower,
-  MlaTemplateField,
 } from "@/lib/mla"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
@@ -30,6 +32,15 @@ export async function GET(
   const market = params.market.toLowerCase()
   const mla = await getSignedMasterLoanAgreement(market)
   if (!mla) {
+    const refusal = await prisma.refusalToAssignMla.findFirst({
+      where: {
+        chainId: TargetChainId,
+        market,
+      },
+    })
+    if (refusal) {
+      return NextResponse.json({ noMLA: true })
+    }
     return NextResponse.json({ error: "MLA not found" }, { status: 404 })
   }
   if (!mla.borrowerSignature) {
@@ -45,10 +56,12 @@ export async function GET(
 /// POST /api/mla/[market]
 /// Route to create a new MLA for a given market.
 /// Does not require an API token because the MLA must be signed by the borrower.
+/// Fails if the MLA already exists or if the borrower has refused to assign an MLA.
 export async function POST(
   request: NextRequest,
   { params }: { params: { market: string } },
 ) {
+  console.log(`Got request to set MLA for market ${params.market}`)
   let body: SetMasterLoanAgreementInput
   try {
     const input = await request.json()
@@ -58,6 +71,22 @@ export async function POST(
   }
   const marketAddress = params.market.toLowerCase()
   const provider = getProviderForServer()
+  const codeSize = (await provider.getCode(marketAddress)).length
+  console.log(`Code size for market ${marketAddress}: ${codeSize}`)
+  console.log(body.timeSigned)
+
+  const refusal = await prisma.refusalToAssignMla.findFirst({
+    where: {
+      chainId: TargetChainId,
+      market: marketAddress,
+    },
+  })
+  if (refusal) {
+    return NextResponse.json(
+      { error: "MLA assignment already declined" },
+      { status: 400 },
+    )
+  }
 
   const market = await Market.getMarket(
     TargetChainId,
@@ -126,6 +155,7 @@ export async function POST(
     +lastSlaUpdateTime,
   )
   const { html, plaintext } = fillInMlaTemplate(mlaTemplate, values)
+  writeFileSync(path.join(process.cwd(), "mla.txt"), plaintext)
   const signature = await verifyAndDescribeSignature({
     provider,
     address,
