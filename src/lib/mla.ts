@@ -27,18 +27,18 @@ export type BasicBorrowerInfo = {
   entityKind?: string
 }
 
-const DepositAccessString = {
+export const DepositAccessString = {
   [DepositAccess.Open]: "Open",
   [DepositAccess.RequiresCredential]: "Restricted",
 }
 
-const TransferAccessString = {
+export const TransferAccessString = {
   [TransferAccess.Open]: "Open",
   [TransferAccess.RequiresCredential]: "Restricted",
   [TransferAccess.Disabled]: "Disabled",
 }
 
-const WithdrawalAccessString = {
+export const WithdrawalAccessString = {
   [WithdrawalAccess.Open]: "Open",
   [WithdrawalAccess.RequiresCredential]: "Restricted",
 }
@@ -150,7 +150,7 @@ type MlaTemplate = {
   lenderFields: MlaTemplateField[]
 }
 
-const formatBool = (value: boolean | undefined): string | undefined => {
+export const formatBool = (value: boolean | undefined): string | undefined => {
   if (value === undefined) return undefined
   return value ? "Yes" : "No"
 }
@@ -158,13 +158,13 @@ const formatBool = (value: boolean | undefined): string | undefined => {
 const formatString = (value: string | undefined): string | undefined =>
   value ?? undefined
 
-const formatAddress = (value: string | undefined): string | undefined =>
+export const formatAddress = (value: string | undefined): string | undefined =>
   value ? getAddress(value) : undefined
 
 const formatNumber = (value: number | undefined): string | undefined =>
   value ? value.toString() : undefined
 
-const formatBips = (value: number | undefined): string | undefined =>
+export const formatBips = (value: number | undefined): string | undefined =>
   value ? `${formatBps(value)}%` : undefined
 
 const formatTokenAmount = (
@@ -183,14 +183,16 @@ const toUnixMs = (value: number): number => {
   return value
 }
 
-const formatDate = (value: number | undefined): string | undefined => {
+export const formatDate = (value: number | undefined): string | undefined => {
   if (value === undefined) return undefined
   return dayjs(toUnixMs(value)).format("MMMM DD, YYYY")
 }
 
-const formatDuration = (value: number | undefined): string | undefined => {
+export const formatDuration = (
+  value: number | undefined,
+): string | undefined => {
   if (value === undefined) return undefined
-  return humanizeDuration(toUnixMs(value))
+  return humanizeDuration(1000 * value)
 }
 
 type LenderKeys =
@@ -251,6 +253,8 @@ export function getFieldValuesForBorrower(
     transferAccess = TransferAccess.Open
   }
 
+  console.log(`Min Deposit: ${hooksConfig?.minimumDeposit}`)
+
   const allData: Map<MlaFieldValueKey, string | undefined> = new Map([
     // number
     ["network.chainId", formatNumber(networkData.chainId)],
@@ -279,7 +283,11 @@ export function getFieldValuesForBorrower(
       "market.withdrawalAccess",
       formatString(WithdrawalAccessString[withdrawalAccess]),
     ],
-    ["asset.address", formatAddress(asset.address)],
+    // ["asset.address", formatAddress(asset.address)],
+    [
+      "asset.address",
+      TargetChainId === 1 ? formatAddress(asset?.address) : asset?.name,
+    ],
     ["market.address", formatAddress(marketAddress)],
     ["borrower.address", formatAddress(borrowerInfo.address)],
     // ["lender.address", formatAddress(marketParams.lenderAddress)],
@@ -293,7 +301,12 @@ export function getFieldValuesForBorrower(
       formatAddress(getDeploymentAddress(TargetChainId, "HooksFactory")),
     ],
     // token amount
-    ["market.capacity", formatTokenAmount(market.maxTotalSupply)],
+    [
+      "market.capacity",
+      formatTokenAmount(
+        market.underlyingToken.getAmount(market.maxTotalSupply.raw),
+      ),
+    ],
     [
       "market.minimumDeposit",
       hooksConfig?.minimumDeposit
@@ -338,9 +351,7 @@ export function getFieldValuesForBorrower(
     ],
     [
       "market.allowForceBuyBack",
-      hooksConfig?.kind === HooksKind.FixedTerm
-        ? formatBool(hooksConfig.allowForceBuyBacks)
-        : "N/A",
+      formatBool(hooksConfig?.allowForceBuyBacks) ?? "N/A",
     ],
   ])
   return allData
