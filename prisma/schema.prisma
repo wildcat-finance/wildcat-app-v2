@@ -49,6 +49,24 @@ model MlaSignature {
   @@id([chainId, market, signer])
 }
 
+model RefusalToAssignMla {
+  chainId Int
+  // The market address
+  market  String
+  // The address of the borrower
+  address String
+  // The address of the signer declining the MLA
+  signer  String
+  // The signature of the borrower declining the MLA
+  signature String
+  timeSigned DateTime
+  // The block number at which the signature was verified - only relevant for non-EOA signatures
+  blockNumber Int?
+  kind        SignatureKind
+
+  @@id([chainId, market])
+}
+
 model AdminAccount {
   id      Int    @id @default(autoincrement())
   address String
