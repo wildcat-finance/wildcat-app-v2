@@ -133,6 +133,12 @@ model BorrowerInvitation {
   address     String
   name        String
   inviter     String
+  description String?
+  founded     String?
+  headquarters String?
+  jurisdiction String?
+  physicalAddress String?
+  entityKind String?
   timeInvited DateTime
 
   borrower Borrower @relation("BorrowerToInvitation", fields: [chainId, address], references: [chainId, address], onDelete: Cascade)
