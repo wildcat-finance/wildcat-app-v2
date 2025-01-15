@@ -19,6 +19,10 @@ import { GlossarySidebar } from "@/app/[locale]/borrower/create-market/component
 import { useGetBorrowerHooksDataWithSubgraph } from "@/app/[locale]/borrower/hooks/useGetBorrowerHooksData"
 import { useGetPolicy } from "@/app/[locale]/borrower/hooks/useGetPolicy"
 import { DetailsTab } from "@/app/[locale]/borrower/policy/compoents/DetailsTab"
+import {
+  EditLenderFlowStatuses,
+  LendersTab,
+} from "@/app/[locale]/borrower/policy/compoents/LendersTab"
 import { MarketsTab } from "@/app/[locale]/borrower/policy/compoents/MarketsTab"
 import { PolicySelect } from "@/app/[locale]/borrower/policy/compoents/PolicySelect"
 import { CreateMarketSteps } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
@@ -105,6 +109,33 @@ export default function PolicyPage() {
 
   const markets = data?.markets ?? []
 
+  const lenders =
+    data?.lenders?.map((lender) => {
+      let isAuthorized: boolean
+      const { credential } = lender
+      if (credential) {
+        const { lastProvider } = credential
+        isAuthorized = !!lastProvider
+        return {
+          id: lender.address,
+          address: lender.address,
+          status: EditLenderFlowStatuses.OLD,
+          isAuthorized,
+        }
+      }
+      if (lender.isAuthorizedOnController) {
+        isAuthorized = true
+      } else {
+        isAuthorized = false
+      }
+      return {
+        id: lender.address,
+        address: lender.address,
+        status: EditLenderFlowStatuses.OLD,
+        isAuthorized,
+      }
+    }) ?? []
+
   return (
     <Box
       sx={{
@@ -183,6 +214,16 @@ export default function PolicyPage() {
 
           {tab === PolicyTabs.MARKETS && (
             <MarketsTab markets={markets} isLoading={isLoading} />
+          )}
+
+          {tab === PolicyTabs.LENDERS && (
+            <LendersTab
+              lenders={lenders}
+              isLoading={isLoading}
+              policyName={selectedPolicy.name}
+              policy={data?.hooksInstance}
+              controller={data?.controller}
+            />
           )}
         </Box>
       </Box>
