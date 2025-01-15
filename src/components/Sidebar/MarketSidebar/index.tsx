@@ -165,7 +165,7 @@ export const MarketSidebar = () => {
           >
             {t("borrowerMarketDetails.sidebar.mla")}
           </Button>
-          
+
           <Button
             variant="text"
             size="medium"

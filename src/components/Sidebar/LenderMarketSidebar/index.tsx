@@ -104,17 +104,19 @@ export const LenderMarketSidebar = () => {
               {t("lenderMarketDetails.sidebar.status")}
             </Button>
 
-          <Button
-            variant="text"
-            size="medium"
-            onClick={() => handleChangeSection(LenderMarketSections.MARKET_HISTORY)}
-            sx={{
-              ...MenuItemButton,
-              backgroundColor:
-                currentSection === LenderMarketSections.MARKET_HISTORY
-                  ? COLORS.whiteSmoke
-                  : "transparent",
-            }}
+            <Button
+              variant="text"
+              size="medium"
+              onClick={() =>
+                handleChangeSection(LenderMarketSections.MARKET_HISTORY)
+              }
+              sx={{
+                ...MenuItemButton,
+                backgroundColor:
+                  currentSection === LenderMarketSections.MARKET_HISTORY
+                    ? COLORS.whiteSmoke
+                    : "transparent",
+              }}
             >
               {t("lenderMarketDetails.sidebar.marketHistory")}
             </Button>
