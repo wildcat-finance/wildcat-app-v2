@@ -1,18 +1,16 @@
 import * as React from "react"
-import { Dispatch, SetStateAction, useState } from "react"
+import { useState } from "react"
 
 import { Box, Button, IconButton, SvgIcon, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { useTranslation } from "react-i18next"
 
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
-import {
-  EditLenderFlowStatuses,
-  LendersItem,
-} from "@/app/[locale]/borrower/policy/compoents/LendersTab"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
+import { useAppDispatch } from "@/store/hooks"
+import { setPolicyLenders } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
@@ -23,17 +21,15 @@ import {
   NoLendersBox,
   UndoButton,
 } from "./style"
-import { DeleteModal } from "../DeleteModal"
-
-export type EditLendersTableProps = {
-  lenders: LendersItem[]
-  setLenders: Dispatch<SetStateAction<LendersItem[]>>
-}
+import { EditLenderFlowStatuses, LendersItem } from "../../interface"
+import { DeleteModal } from "../Modals/DeleteModal"
 
 export const EditLendersTable = ({
-  lenders,
-  setLenders,
-}: EditLendersTableProps) => {
+  filteredLenders,
+}: {
+  filteredLenders: LendersItem[]
+}) => {
+  const dispatch = useAppDispatch()
   const { t } = useTranslation()
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
@@ -43,7 +39,7 @@ export const EditLendersTable = ({
     localStorage.getItem("lenders-name") || "{}",
   )
 
-  const noLenders = lenders.length === 0
+  const noLenders = filteredLenders.length === 0
 
   const handleDeleteLender = (
     lenderAddress: string,
@@ -53,33 +49,37 @@ export const EditLendersTable = ({
       setLenderToDelete(lenderAddress)
       setIsDeleteModalOpen(true)
     } else {
-      setLenders(
-        lenders.map((lender) => {
-          if (lender.address === lenderAddress) {
-            return {
-              ...lender,
-              status: EditLenderFlowStatuses.DELETED,
+      dispatch(
+        setPolicyLenders(
+          filteredLenders.map((lender) => {
+            if (lender.address === lenderAddress) {
+              return {
+                ...lender,
+                status: EditLenderFlowStatuses.DELETED,
+              }
             }
-          }
 
-          return lender
-        }),
+            return lender
+          }),
+        ),
       )
     }
   }
 
   const handleRestoreLender = (lenderAddress: string) => {
-    setLenders(
-      lenders.map((lender) => {
-        if (lender.address === lenderAddress) {
-          return {
-            ...lender,
-            status: EditLenderFlowStatuses.OLD,
+    dispatch(
+      setPolicyLenders(
+        filteredLenders.map((lender) => {
+          if (lender.address === lenderAddress) {
+            return {
+              ...lender,
+              status: EditLenderFlowStatuses.OLD,
+            }
           }
-        }
 
-        return lender
-      }),
+          return lender
+        }),
+      ),
     )
   }
 
@@ -197,7 +197,7 @@ export const EditLendersTable = ({
       {!noLenders && (
         <DataGrid
           columns={columns}
-          rows={lenders}
+          rows={filteredLenders}
           columnHeaderHeight={40}
           sx={EditLendersTableStyles}
           getRowHeight={() => "auto"}
@@ -216,8 +216,6 @@ export const EditLendersTable = ({
       )}
 
       <DeleteModal
-        lenders={lenders}
-        setLenders={setLenders}
         isOpen={isDeleteModalOpen}
         setIsOpen={setIsDeleteModalOpen}
         lenderAddress={lenderToDelete}

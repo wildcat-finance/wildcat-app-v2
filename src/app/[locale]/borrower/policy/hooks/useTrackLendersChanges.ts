@@ -2,9 +2,8 @@ import { useEffect, useState } from "react"
 
 import {
   EditLenderFlowStatuses,
-  PolicyLenderTableDataType,
-} from "@/app/[locale]/borrower/edit-policy/interface"
-import { LendersItem } from "@/app/[locale]/borrower/policy/compoents/LendersTab"
+  LendersItem,
+} from "@/app/[locale]/borrower/policy/components/LendersTab/interface"
 
 function useTrackPolicyLendersChanges(
   initialLenders: LendersItem[],

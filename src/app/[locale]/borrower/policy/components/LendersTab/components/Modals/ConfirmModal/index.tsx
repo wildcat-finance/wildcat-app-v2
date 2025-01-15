@@ -1,30 +1,27 @@
 import * as React from "react"
-import { useState } from "react"
+import { Dispatch, SetStateAction } from "react"
 
 import { Box, Button, Dialog, SvgIcon, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { UseMutateFunction } from "@tanstack/react-query"
-import { MarketController } from "@wildcatfi/wildcat-sdk"
-import { HooksInstance } from "@wildcatfi/wildcat-sdk/dist/access"
 import { useTranslation } from "react-i18next"
 
-import { useSubmitUpdates } from "@/app/[locale]/borrower/edit-policy/hooks/useSubmitUpdates"
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
-import { AddedDot } from "@/app/[locale]/borrower/policy/compoents/EditLendersTable/style"
-import {
-  EditLenderFlowStatuses,
-  LendersItem,
-} from "@/app/[locale]/borrower/policy/compoents/LendersTab"
+import { AddedDot } from "@/app/[locale]/borrower/policy/components/LendersTab/components/EditLendersTable/style"
 import { SubmitPolicyUpdatesInputs } from "@/app/[locale]/borrower/policy/hooks/useSubmitUpdates"
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import Coins from "@/assets/icons/coins_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
+import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
+import { EditLenderFlowStatuses } from "../../../interface"
+
 export type ConfirmModalProps = {
-  lenders: LendersItem[]
+  open: boolean
+  setIsOpen: Dispatch<SetStateAction<boolean>>
   disableConfirm: boolean
   policyName?: string
   submitUpdates: UseMutateFunction<
@@ -45,24 +42,25 @@ export type EditLendersTableModel = {
 }
 
 export const ConfirmModal = ({
-  lenders,
+  open,
+  setIsOpen,
   disableConfirm,
   policyName,
   submitUpdates,
 }: ConfirmModalProps) => {
   const { t } = useTranslation()
 
-  const [isOpen, setIsOpen] = useState(false)
+  const handleClose = () => {
+    setIsOpen(false)
+  }
 
   const lendersNames: { [key: string]: string } = JSON.parse(
     localStorage.getItem("lenders-name") || "{}",
   )
 
-  const handleClose = () => {
-    setIsOpen(false)
-  }
+  const lendersList = useAppSelector((state) => state.policyLenders.lenders)
 
-  const rows = lenders.filter(
+  const rows = lendersList.filter(
     (lender) => lender.status !== EditLenderFlowStatuses.OLD,
   )
 
@@ -150,10 +148,10 @@ export const ConfirmModal = ({
   ]
 
   const handleClickSubmit = () => {
-    const newLenders = lenders.filter(
+    const newLenders = lendersList.filter(
       (lender) => lender.status === EditLenderFlowStatuses.NEW,
     )
-    const removedLenders = lenders.filter(
+    const removedLenders = lendersList.filter(
       (lender) => lender.status === EditLenderFlowStatuses.DELETED,
     )
     let actionIndex = 1
@@ -195,7 +193,7 @@ export const ConfirmModal = ({
       </Button>
 
       <Dialog
-        open={isOpen}
+        open={open}
         onClose={handleClose}
         sx={{
           "& .MuiDialog-paper": {

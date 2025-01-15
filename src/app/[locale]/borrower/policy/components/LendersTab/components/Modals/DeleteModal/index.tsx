@@ -3,26 +3,26 @@ import { Dispatch, SetStateAction } from "react"
 import { Box, Button, Dialog, SvgIcon, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
-import { LendersItem } from "@/app/[locale]/borrower/policy/compoents/LendersTab"
 import CircledAlert from "@/assets/icons/circledAlert_icon.svg"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { setPolicyLenders } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
 export type DeleteModalProps = {
-  lenders: LendersItem[]
-  setLenders: Dispatch<SetStateAction<LendersItem[]>>
   isOpen: boolean
   setIsOpen: Dispatch<SetStateAction<boolean>>
   lenderAddress: string
 }
 
 export const DeleteModal = ({
-  lenders,
-  setLenders,
   isOpen,
   setIsOpen,
   lenderAddress,
 }: DeleteModalProps) => {
+  const dispatch = useAppDispatch()
+  const lendersList = useAppSelector((state) => state.policyLenders.lenders)
+
   const { t } = useTranslation()
 
   const lendersNames: { [key: string]: string } = JSON.parse(
@@ -37,7 +37,11 @@ export const DeleteModal = ({
   }
 
   const handleDelete = () => {
-    setLenders(lenders.filter((lender) => lender.address !== lenderAddress))
+    dispatch(
+      setPolicyLenders(
+        lendersList.filter((lender) => lender.address !== lenderAddress),
+      ),
+    )
     setIsOpen(false)
   }
 

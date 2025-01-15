@@ -2,77 +2,51 @@ import React, { ChangeEvent, useEffect, useState } from "react"
 
 import {
   Box,
-  Button,
   IconButton,
   InputAdornment,
+  Skeleton,
   SvgIcon,
   TextField,
 } from "@mui/material"
-import { MarketController } from "@wildcatfi/wildcat-sdk"
-import { HooksInstance } from "@wildcatfi/wildcat-sdk/dist/access"
-import { useTranslation } from "react-i18next"
 
-import { useSubmitUpdates } from "@/app/[locale]/borrower/edit-policy/hooks/useSubmitUpdates"
-import { ConfirmModal } from "@/app/[locale]/borrower/policy/compoents/ConfirmModal"
+import { useSubmitUpdates } from "@/app/[locale]/borrower/policy/hooks/useSubmitUpdates"
 import useTrackPolicyLendersChanges from "@/app/[locale]/borrower/policy/hooks/useTrackLendersChanges"
 import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
+import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 
-import { AddModal } from "../AddModal"
-import { EditLendersTable } from "../EditLendersTable"
-
-export enum EditLenderFlowStatuses {
-  OLD = "old",
-  NEW = "new",
-  DELETED = "deleted",
-}
-
-export type LendersItem = {
-  id: string
-  address: string
-  status: EditLenderFlowStatuses
-  isAuthorized: boolean
-}
-
-export type LendersTabProps = {
-  lenders: LendersItem[]
-  policyName?: string
-  isLoading: boolean
-  policy?: HooksInstance
-  controller?: MarketController
-}
+import { EditLendersTable } from "./components/EditLendersTable"
+import { AddModal } from "./components/Modals/AddModal"
+import { ConfirmModal } from "./components/Modals/ConfirmModal"
+import { FinalModal } from "./components/Modals/FinalModal"
+import { EditLenderFlowStatuses, LendersTabProps } from "./interface"
 
 export const LendersTab = ({
-  lenders,
   isLoading,
   policyName,
   policy,
   controller,
 }: LendersTabProps) => {
-  const { t } = useTranslation()
-
-  const [lendersList, setLendersList] = useState<LendersItem[]>([])
-  const [initialLendersList, setInitialLendersList] = useState<LendersItem[]>(
-    [],
+  const initialLendersList = useAppSelector(
+    (state) => state.policyLenders.initialLenders,
   )
-  const [lendersFilter, setLendersFilter] = useState<string>("")
-
-  const { submitUpdates, isSubmitting, isSuccess } = useSubmitUpdates(
-    policy ?? controller,
-  )
-
-  useEffect(() => {
-    setLendersList(lenders)
-    setInitialLendersList(lenders)
-  }, [isLoading])
-
-  const { isLendersHaveChanges, addedOrModifiedLenders } =
-    useTrackPolicyLendersChanges(initialLendersList, lendersList)
+  const lendersList = useAppSelector((state) => state.policyLenders.lenders)
 
   const lendersNames: { [key: string]: string } = JSON.parse(
     localStorage.getItem("lenders-name") || "{}",
   )
+
+  const [lendersFilter, setLendersFilter] = useState<string>("")
+
+  const handleChangeLendersFilter = (evt: ChangeEvent<HTMLInputElement>) => {
+    setLendersFilter(evt.target.value)
+  }
+
+  const handleClickErase = (evt: React.MouseEvent) => {
+    evt.stopPropagation()
+    setLendersFilter("")
+  }
 
   const filteredLenders = lendersList
     .filter(
@@ -84,14 +58,20 @@ export const LendersTab = ({
     )
     .filter((lender) => lender.isAuthorized && EditLenderFlowStatuses.OLD)
 
-  const handleChangeLendersFilter = (evt: ChangeEvent<HTMLInputElement>) => {
-    setLendersFilter(evt.target.value)
-  }
+  const { isLendersHaveChanges } = useTrackPolicyLendersChanges(
+    initialLendersList,
+    lendersList,
+  )
 
-  const handleClickErase = (evt: React.MouseEvent) => {
-    evt.stopPropagation()
-    setLendersFilter("")
-  }
+  const { submitUpdates, isSubmitting, isSuccess, isError } = useSubmitUpdates(
+    policy ?? controller,
+  )
+
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+
+  useEffect(() => {
+    setIsConfirmModalOpen(false)
+  }, [isSubmitting])
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -155,23 +135,57 @@ export const LendersTab = ({
         />
 
         <Box sx={{ display: "flex", gap: "6px" }}>
-          <AddModal lenders={lendersList} setLenders={setLendersList} />
+          <AddModal disabled={isLoading || isSubmitting} />
 
           <ConfirmModal
+            open={isConfirmModalOpen}
+            setIsOpen={setIsConfirmModalOpen}
             policyName={policyName}
-            lenders={lendersList}
-            disableConfirm={!isLendersHaveChanges}
+            disableConfirm={!isLendersHaveChanges || isLoading || isSubmitting}
             submitUpdates={submitUpdates}
           />
         </Box>
       </Box>
 
       {!isLoading && !isSubmitting && (
-        <EditLendersTable
-          lenders={filteredLenders}
-          setLenders={setLendersList}
-        />
+        <EditLendersTable filteredLenders={filteredLenders} />
       )}
+
+      {(isLoading || isSubmitting) && (
+        <Box
+          display="flex"
+          flexDirection="column"
+          padding="32px 16px"
+          rowGap="8px"
+        >
+          <Skeleton
+            height="52px"
+            width="100%"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
+          <Skeleton
+            height="52px"
+            width="100%"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
+          <Skeleton
+            height="52px"
+            width="100%"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
+          <Skeleton
+            height="52px"
+            width="100%"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
+        </Box>
+      )}
+
+      <FinalModal
+        isLoading={isSubmitting}
+        isSuccess={isSuccess}
+        isError={isError}
+      />
     </Box>
   )
 }

@@ -11,7 +11,7 @@ import { toastRequest, ToastRequestConfig } from "@/components/Toasts"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
-import { resetEditPolicyState } from "@/store/slices/editPolicySlice/editPolicySlice"
+import { resetPolicyLendersState } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 
 import { GET_POLICY_KEY } from "../../hooks/useGetPolicy"
 
@@ -163,7 +163,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
     },
     onSuccess: () => {
       client.invalidateQueries({ queryKey: [GET_POLICY_KEY] })
-      dispatch(resetEditPolicyState())
+      dispatch(resetPolicyLendersState())
     },
     onError(error) {
       console.log(error)

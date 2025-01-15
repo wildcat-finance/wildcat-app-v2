@@ -1,28 +1,21 @@
 import * as React from "react"
-import { Dispatch, SetStateAction, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 
 import { Box, Button, Dialog, TextField, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
-import {
-  EditLenderFlowStatuses,
-  MarketTableDataType,
-} from "@/app/[locale]/borrower/edit-lenders-list/interface"
-import { LendersItem } from "@/app/[locale]/borrower/policy/compoents/LendersTab"
+import { EditLenderFlowStatuses } from "@/app/[locale]/borrower/edit-lenders-list/interface"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setLendersTableData } from "@/store/slices/editLendersListSlice/editLendersListSlice"
+import { setPolicyLenders } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 import { COLORS } from "@/theme/colors"
 
 import { useAddLenderForm } from "./useAddLenderForm"
 
-export type AddModalProps = {
-  lenders: LendersItem[]
-  setLenders: Dispatch<SetStateAction<LendersItem[]>>
-}
-
-export const AddModal = ({ lenders, setLenders }: AddModalProps) => {
+export const AddModal = ({ disabled }: { disabled: boolean }) => {
   const { t } = useTranslation()
+  const dispatch = useAppDispatch()
+  const lendersList = useAppSelector((state) => state.policyLenders.lenders)
 
   const [isOpen, setIsOpen] = useState(false)
   const [isDisabled, setIsDisabled] = useState(false)
@@ -31,7 +24,9 @@ export const AddModal = ({ lenders, setLenders }: AddModalProps) => {
     localStorage.getItem("lenders-name") || "{}",
   )
 
-  const existingLenders = lenders.map((lender) => lender.address)
+  const existingLenders = lendersList
+    .filter((lender) => lender.isAuthorized && EditLenderFlowStatuses.OLD)
+    .map((lender) => lender.address)
 
   const {
     getValues,
@@ -72,15 +67,17 @@ export const AddModal = ({ lenders, setLenders }: AddModalProps) => {
   }
 
   const onSubmitLender = () => {
-    setLenders([
-      ...lenders,
-      {
-        id: getValues("address"),
-        address: getValues("address").toLowerCase(),
-        status: EditLenderFlowStatuses.NEW,
-        isAuthorized: true,
-      },
-    ])
+    dispatch(
+      setPolicyLenders([
+        ...lendersList,
+        {
+          id: getValues("address"),
+          address: getValues("address").toLowerCase(),
+          status: EditLenderFlowStatuses.NEW,
+          isAuthorized: true,
+        },
+      ]),
+    )
 
     if (getValues("name") === "") {
       delete lendersNames[getValues("address").toLowerCase()]
@@ -95,6 +92,7 @@ export const AddModal = ({ lenders, setLenders }: AddModalProps) => {
   return (
     <>
       <Button
+        disabled={disabled}
         onClick={handleOpen}
         variant="contained"
         color="secondary"
