@@ -11,6 +11,7 @@ import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/Bar
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
+import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -30,7 +31,6 @@ import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
 import { SectionContainer, SkeletonContainer, SkeletonStyle } from "./style"
 import { getEffectiveLenderRole } from "./utils"
-import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 
 export default function LenderMarketDetails({
   params: { address },
