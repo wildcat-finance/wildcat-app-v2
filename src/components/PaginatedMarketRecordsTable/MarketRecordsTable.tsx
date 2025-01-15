@@ -178,23 +178,23 @@ export function MarketRecordsTable({
     },
   ]
 
-  const paginationProps = useMemo(
-    () => ({
-      hideFooter: false,
-      paginationModel: {
-        page,
-        pageSize,
-      },
-      onPaginationModelChange: (model: { page: number; pageSize: number }) => {
-        setPage(model.page)
-        setPageSize(model.pageSize)
-      },
-      slots: {
-        pagination: TablePagination,
-      },
-    }),
-    [page, pageSize],
-  )
+  // const paginationProps = useMemo(
+  //   () => ({
+  //     hideFooter: false,
+  //     paginationModel: {
+  //       page,
+  //       pageSize,
+  //     },
+  //     onPaginationModelChange: (model: { page: number; pageSize: number }) => {
+  //       setPage(model.page)
+  //       setPageSize(model.pageSize)
+  //     },
+  //     slots: {
+  //       pagination: TablePagination,
+  //     },
+  //   }),
+  //   [page, pageSize],
+  // )
 
   console.log(`TOTAL ROWS: ${rowCount}`)
 
@@ -241,7 +241,7 @@ export function MarketRecordsTable({
       hideFooter={false}
       slots={{
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        pagination: TablePagination as any
+        pagination: TablePagination as any,
       }}
       slotProps={{
         pagination: {
