@@ -41,25 +41,25 @@ model MlaSignature {
   chainId     Int
   market      String
 
-  timeSigned  DateTime
+  timeSigned DateTime
 
   // Relation to the master loan agreement
-  mla         MasterLoanAgreement @relation("MlaSignatureToMasterLoanAgreement", fields: [chainId, market], references: [chainId, market])
+  mla MasterLoanAgreement @relation("MlaSignatureToMasterLoanAgreement", fields: [chainId, market], references: [chainId, market])
 
   @@id([chainId, market, signer])
 }
 
 model RefusalToAssignMla {
-  chainId Int
+  chainId     Int
   // The market address
-  market  String
+  market      String
   // The address of the borrower
-  address String
+  address     String
   // The address of the signer declining the MLA
-  signer  String
+  signer      String
   // The signature of the borrower declining the MLA
-  signature String
-  timeSigned DateTime
+  signature   String
+  timeSigned  DateTime
   // The block number at which the signature was verified - only relevant for non-EOA signatures
   blockNumber Int?
   kind        SignatureKind
@@ -152,6 +152,9 @@ model Borrower {
   twitter           String?
   linkedin          String?
   email             String?
+  jurisdiction      String?
+  physicalAddress   String?
+  entityKind        String?
   registeredOnChain Boolean
 
   invitation                BorrowerInvitation?                @relation("BorrowerToInvitation")
@@ -168,14 +171,17 @@ model BorrowerProfileUpdateRequest {
   address   String
   createdAt DateTime
 
-  name         String?
-  description  String?
-  founded      String?
-  headquarters String?
-  website      String?
-  twitter      String?
-  linkedin     String?
-  email        String?
+  name            String?
+  description     String?
+  founded         String?
+  headquarters    String?
+  website         String?
+  twitter         String?
+  linkedin        String?
+  email           String?
+  jurisdiction    String?
+  physicalAddress String?
+  entityKind      String?
 
   acceptedAt     DateTime?
   rejectedAt     DateTime?
