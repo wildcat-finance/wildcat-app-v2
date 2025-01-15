@@ -229,7 +229,6 @@ export default function MarketDetails({
           )}
           {checked === 6 && (
             <Box sx={SlideContentContainer} marginTop="12px">
-              
               <PaginatedMarketRecordsTable market={market} />
             </Box>
           )}
