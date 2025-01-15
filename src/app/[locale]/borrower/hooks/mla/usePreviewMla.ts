@@ -3,6 +3,7 @@ import {
   DepositAccess,
   getDeploymentAddress,
   getHooksFactoryContract,
+  HooksKind,
   Market,
   SignerOrProvider,
   Token,
@@ -17,24 +18,12 @@ import { TargetChainId, TargetNetwork } from "@/config/network"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import {
   BasicBorrowerInfo,
-  DepositAccessString,
   fillInMlaForLender,
   fillInMlaTemplate,
-  formatDuration,
-  formatDate,
-  formatAddress,
   getFieldValuesForBorrower,
-  MlaFieldValueKey,
-  TransferAccessString,
-  WithdrawalAccessString,
-  formatBips,
-  formatBool,
 } from "@/lib/mla"
 
-import {
-  CALCULATE_MARKET_ADDRESS_KEY,
-  useCalculateMarketAddress,
-} from "./useCalculateMarketAddress"
+import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
 
 export const PREVIEW_MLA_KEY = "PREVIEW_MLA"
@@ -71,97 +60,37 @@ export function getFieldValuesForBorrowerFromForm(
   const withdrawalBatchDuration =
     Number(marketParams.withdrawalBatchDuration) * 60 * 60
 
-  const allData: Map<MlaFieldValueKey, string | undefined> = new Map([
-    // number
-    ["network.chainId", networkData.chainId?.toString()],
-    // string
-    ["network.name", networkData.name],
-    ["asset.name", asset?.name],
-    ["asset.symbol", asset?.symbol],
-    [
-      "market.marketType",
-      marketParams.marketType === "standard" ? "Open Term" : "Fixed Term",
-    ],
-    ["market.name", marketName],
-    ["market.symbol", marketSymbol],
-    ["borrower.name", borrowerInfo.name],
-    ["borrower.jurisdiction", borrowerInfo.jurisdiction],
-    ["borrower.physicalAddress", borrowerInfo.physicalAddress],
-    // address (format as checksum address)
-    ["market.depositAccess", DepositAccessString[depositAccess]],
-    ["market.transferAccess", TransferAccessString[transferAccess]],
-    ["market.withdrawalAccess", WithdrawalAccessString[withdrawalAccess]],
-    [
-      "asset.address",
-      TargetChainId === 1 ? formatAddress(asset?.address) : asset?.name,
-    ],
-    ["market.address", formatAddress(marketAddress)],
-    ["borrower.address", formatAddress(borrowerInfo.address)],
-    // ["lender.address", formatAddress(marketParams.lenderAddress)],
-    [
-      /* @todo should be Chainalysis */
-      "chainalysisOracle.address",
-      formatAddress(getDeploymentAddress(TargetChainId, "MockChainalysis")),
-    ],
-    [
-      "hooksFactory.address",
-      formatAddress(getDeploymentAddress(TargetChainId, "HooksFactory")),
-    ],
-    // token amount
-    [
-      "market.capacity",
-      asset?.parseAmount(marketParams.maxTotalSupply)?.format(undefined, true),
-    ],
-    [
-      "market.minimumDeposit",
-      marketParams.minimumDeposit
-        ? asset
-            ?.parseAmount(marketParams.minimumDeposit)
-            ?.format(undefined, true)
-        : "N/A",
-    ],
-    // duration
-    [
-      "market.delinquencyGracePeriod",
-      formatDuration(delinquencyGracePeriod) ?? "N/A",
-    ],
-    [
-      "market.withdrawalBatchDuration",
-      formatDuration(withdrawalBatchDuration) ?? "N/A",
-    ],
-    // date
-    [
-      "market.fixedTermEndTime",
-      marketParams.marketType !== "standard"
-        ? formatDate(marketParams.fixedTermEndTime)
-        : "N/A",
-    ],
-    ["borrower.timeSigned", formatDate(borrowerTimeSigned)],
-    // ["lender.timeSigned", formatDate(Date.now())],
-    ["sla.timeUpdated", formatDate(+lastSlaUpdateTime)],
-    // bips (format as %)
-    ["market.apr", formatBips(annualInterestBips)],
-    ["market.delinquencyFee", formatBips(delinquencyFeeBips)],
-    ["market.reserveRatio", formatBips(reserveRatioBips)],
-    // boolean (format as Yes, No, N/A)
-    [
-      "market.allowClosureBeforeTerm",
-      marketParams.marketType !== "standard"
-        ? formatBool(marketParams.allowClosureBeforeTerm)
-        : "N/A",
-    ],
-    [
-      "market.allowTermReduction",
-      marketParams.marketType !== "standard"
-        ? formatBool(marketParams.allowTermReduction)
-        : "N/A",
-    ],
-    [
-      "market.allowForceBuyBack",
-      formatBool(marketParams.allowForceBuyBack) ?? "N/A",
-    ],
-  ])
-  return allData
+  const params = {
+    market: {
+      name: marketName,
+      symbol: marketSymbol,
+      marketType:
+        marketParams.marketType === "standard"
+          ? HooksKind.OpenTerm
+          : HooksKind.FixedTerm,
+      address: marketAddress,
+      depositAccess,
+      transferAccess,
+      withdrawalAccess,
+      capacity: asset.parseAmount(marketParams.maxTotalSupply),
+      minimumDeposit: asset.parseAmount(marketParams.minimumDeposit ?? 0),
+      delinquencyGracePeriod,
+      withdrawalBatchDuration,
+      fixedTermEndTime: marketParams.fixedTermEndTime,
+      allowClosureBeforeTerm: marketParams.allowClosureBeforeTerm,
+      allowTermReduction: marketParams.allowTermReduction,
+      allowForceBuyBack: marketParams.allowForceBuyBack,
+      apr: annualInterestBips,
+      delinquencyFee: delinquencyFeeBips,
+      reserveRatio: reserveRatioBips,
+    },
+    borrowerInfo,
+    asset,
+    timeSigned: borrowerTimeSigned,
+    lastSlaUpdateTime: +lastSlaUpdateTime,
+    networkData: TargetNetwork,
+  }
+  return getFieldValuesForBorrower(params)
 }
 
 export async function getMlaFromForm(
@@ -265,13 +194,14 @@ export const usePreviewMla = (
       ).then((res) => res.json() as Promise<MlaTemplate>)
       console.log(`borrowerProfile`)
       console.log(borrowerProfile)
-      const borrowerValues = getFieldValuesForBorrower(
+      const borrowerValues = getFieldValuesForBorrower({
         market,
-        borrowerProfile as BasicBorrowerInfo,
-        TargetNetwork,
+        borrowerInfo: borrowerProfile as BasicBorrowerInfo,
+        networkData: TargetNetwork,
         timeSigned,
-        +lastSlaUpdateTime,
-      )
+        lastSlaUpdateTime: +lastSlaUpdateTime,
+        asset: market.underlyingToken,
+      })
       const { html, plaintext } = fillInMlaTemplate(mlaTemplate, borrowerValues)
       const { html: htmlWithPlaceholders } = fillInMlaForLender(
         {

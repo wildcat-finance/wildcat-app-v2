@@ -68,13 +68,14 @@ export const useSetMarketMLA = () => {
       timeSigned: number
     }) => {
       if (!signer) return
-      const values = getFieldValuesForBorrower(
+      const values = getFieldValuesForBorrower({
         market,
-        profile,
-        TargetNetwork,
+        borrowerInfo: profile,
+        networkData: TargetNetwork,
         timeSigned,
-        +lastSlaUpdateTime,
-      )
+        lastSlaUpdateTime: +lastSlaUpdateTime,
+        asset: market.underlyingToken,
+      })
 
       let message: string
       if (template === "noMLA") {

@@ -124,7 +124,7 @@ export const MlaForm = ({ form }: MLAFormProps) => {
       <FormFooter
         backOnClick={handleBackClick}
         nextOnClick={handleNextClick}
-        disableNext={!mlaWatch}
+        disableNext={!mlaWatch || isLoadingTemplates}
       />
     </Box>
   )

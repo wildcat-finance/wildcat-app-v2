@@ -147,13 +147,14 @@ export async function POST(
     )
   }
 
-  const values = getFieldValuesForBorrower(
+  const values = getFieldValuesForBorrower({
     market,
-    borrowerProfile as BasicBorrowerInfo,
-    TargetNetwork,
-    body.timeSigned,
-    +lastSlaUpdateTime,
-  )
+    borrowerInfo: borrowerProfile as BasicBorrowerInfo,
+    networkData: TargetNetwork,
+    timeSigned: body.timeSigned,
+    lastSlaUpdateTime: +lastSlaUpdateTime,
+    asset: market.underlyingToken,
+  })
   const { html, plaintext } = fillInMlaTemplate(mlaTemplate, values)
   writeFileSync(path.join(process.cwd(), "mla.txt"), plaintext)
   const signature = await verifyAndDescribeSignature({

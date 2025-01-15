@@ -288,6 +288,7 @@ export const useDeployV2Market = () => {
 
       const doSubmit = async () => {
         if (mlaTemplateId === undefined) {
+          console.log(`Declining MLA for market ${marketAddress.toLowerCase()}`)
           const response = await fetch(
             `/api/mla/${marketAddress.toLowerCase()}/decline`,
             {
@@ -301,6 +302,7 @@ export const useDeployV2Market = () => {
           if (response.status !== 200) throw Error("Failed to submit MLA")
           return true
         }
+        console.log(`Submitting MLA for market ${marketAddress.toLowerCase()}`)
         const response = await fetch(
           `/api/mla/${marketAddress.toLowerCase()}`,
           {

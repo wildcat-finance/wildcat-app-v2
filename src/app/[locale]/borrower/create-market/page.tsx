@@ -52,7 +52,10 @@ import {
   DeploySubtitle,
   DeployTypoBox,
 } from "./deploy-style"
-import { useDeployV2Market } from "./hooks/useDeployV2Market"
+import {
+  DeployNewV2MarketParams,
+  useDeployV2Market,
+} from "./hooks/useDeployV2Market"
 import { useNewMarketForm } from "./hooks/useNewMarketForm"
 import { useNewMarketHooksData } from "./hooks/useNewMarketHooksData"
 import { useTokenMetadata } from "./hooks/useTokenMetadata"
@@ -93,10 +96,18 @@ export default function CreateMarketPage() {
     setSalt(saltWithAddress)
   }, [address])
 
+  // const resetSalt = () => {
+  //   const randomSaltNumber = randomBytes(12).toString("hex")
+  //   // Salt must be zero or deployer address as first 20 bytes, followed by a nonce in the last 12 bytes
+  //   const saltWithAddress = `${address}${randomSaltNumber}`
+  //   setSalt(saltWithAddress)
+  // }
+
   const {
     data: mlaSignature,
     mutate: signMla,
     isPending: isSigning,
+    reset: resetMlaSignature,
   } = useSignMla(salt)
 
   const handleClickClose = () => {
@@ -140,12 +151,17 @@ export default function CreateMarketPage() {
   const handleDeployMarket = newMarketForm.handleSubmit((data) => {
     const marketParams = newMarketForm.getValues()
 
+    console.log(`Deploying market with MLA template ID: ${marketParams.mla}`)
+
     // const deployedMarkets = selectedHooksTemplate?.totalMarkets
     if (assetData && tokenAsset && selectedHooksTemplate && mlaSignature) {
-      deployNewMarket({
+      const realParams: DeployNewV2MarketParams = {
         timeSigned,
-        mlaTemplateId: Number(marketParams.mla),
-        mlaSignature: mlaSignature.signature,
+        mlaTemplateId:
+          marketParams.mla !== undefined && marketParams.mla !== "noMLA"
+            ? Number(marketParams.mla)
+            : undefined,
+        mlaSignature: mlaSignature.signature as string,
         namePrefix: `${marketParams.namePrefix.trimEnd()} `,
         symbolPrefix: marketParams.symbolPrefix,
         annualInterestBips: Number(marketParams.annualInterestBips) * 100,
@@ -194,7 +210,12 @@ export default function CreateMarketPage() {
         roleProviderFactory: constants.AddressZero,
         minimumDeposit: marketParams.minimumDeposit,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any)
+      } as any
+
+      // console.log(`--- MARKET PARAMS ---`)
+      // console.log(realParams)
+      // console.log(`--- END MARKET PARAMS ---`)
+      deployNewMarket(realParams)
     }
   })
 

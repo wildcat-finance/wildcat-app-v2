@@ -267,7 +267,7 @@ export const ConfirmationForm = ({
               sx={{ width: "fit-content" }}
               modalButtonVariant="contained"
               modalButtonSize="small"
-              buttonText="View MLA"
+              buttonText={t("createNewMarket.buttons.viewMLA")}
               showSignButton={false}
             />
           </Box>
