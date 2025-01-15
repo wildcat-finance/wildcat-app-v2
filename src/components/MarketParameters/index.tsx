@@ -1,13 +1,7 @@
 import { useMemo } from "react"
 
 import { Box, Divider, Typography } from "@mui/material"
-import {
-  MarketVersion,
-  HooksKind,
-  DepositAccess,
-  WithdrawalAccess,
-  TransferAccess,
-} from "@wildcatfi/wildcat-sdk"
+import { MarketVersion, HooksKind } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
