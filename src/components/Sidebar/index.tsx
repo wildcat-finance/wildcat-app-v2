@@ -3,6 +3,7 @@
 import { Box } from "@mui/material"
 import { usePathname } from "next/navigation"
 
+import { BorrowerDashboardSidebar } from "@/components/Sidebar/BorrowerDashboardSidebar"
 import { BorrowerSidebar } from "@/components/Sidebar/BorrowerSidebar"
 import { CreateMarketSidebar } from "@/components/Sidebar/CreateMarketSidebar"
 import { EditProfileSidebar } from "@/components/Sidebar/EditProfileSidebar"
@@ -32,30 +33,32 @@ export const Sidebar = () => {
         overflowY: "auto",
       }}
     >
-      {(pathname === ROUTES.borrower.root || pathname === ROUTES.lender.root) &&
-        step === BorrowerOverviewTabs.MARKETS && <MarketsTabSidebar />}
-      {pathname === ROUTES.borrower.root &&
-        step === BorrowerOverviewTabs.MLA && (
-          <Box
-            sx={{
-              height: "100%",
-              width: "267px",
-              borderRight: `1px solid ${COLORS.blackRock006}`,
-            }}
-          />
-        )}
-      {pathname === ROUTES.borrower.root &&
-        step === BorrowerOverviewTabs.LENDERS && <LendersTabSidebar />}
-      {pathname === ROUTES.borrower.root &&
-        step === BorrowerOverviewTabs.POLICIES && (
-          <Box
-            sx={{
-              height: "100%",
-              width: "267px",
-              borderRight: `1px solid ${COLORS.blackRock006}`,
-            }}
-          />
-        )}
+      {/* {(pathname === ROUTES.borrower.root || pathname === ROUTES.lender.root) && */}
+      {/*  step === BorrowerOverviewTabs.MARKETS && <MarketsTabSidebar />} */}
+      {pathname === ROUTES.lender.root && <MarketsTabSidebar />}
+      {pathname === ROUTES.borrower.root && <BorrowerDashboardSidebar />}
+      {/* {pathname === ROUTES.borrower.root && */}
+      {/*  step === BorrowerOverviewTabs.MLA && ( */}
+      {/*    <Box */}
+      {/*      sx={{ */}
+      {/*        height: "100%", */}
+      {/*        width: "267px", */}
+      {/*        borderRight: `1px solid ${COLORS.blackRock006}`, */}
+      {/*      }} */}
+      {/*    /> */}
+      {/*  )} */}
+      {/* {pathname === ROUTES.borrower.root && */}
+      {/*  step === BorrowerOverviewTabs.LENDERS && <LendersTabSidebar />} */}
+      {/* {pathname === ROUTES.borrower.root && */}
+      {/*  step === BorrowerOverviewTabs.POLICIES && ( */}
+      {/*    <Box */}
+      {/*      sx={{ */}
+      {/*        height: "100%", */}
+      {/*        width: "267px", */}
+      {/*        borderRight: `1px solid ${COLORS.blackRock006}`, */}
+      {/*      }} */}
+      {/*    /> */}
+      {/*  )} */}
       {pathname.includes(ROUTES.borrower.market) && <MarketSidebar />}
       {pathname === ROUTES.borrower.editProfile && <EditProfileSidebar />}
       {(pathname.includes(ROUTES.borrower.profile) ||
