@@ -29,6 +29,8 @@ import {
 } from "@/app/[locale]/borrower/edit-lenders-list/components/MarketSelect/style"
 import Icon from "@/assets/icons/search_icon.svg"
 import { ROUTES } from "@/routes"
+import { useAppDispatch } from "@/store/hooks"
+import { resetPolicyLendersState } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 import { COLORS } from "@/theme/colors"
 
 export type PolicySelectProps = {
@@ -43,6 +45,7 @@ export const PolicySelect = ({
   setSelected,
 }: PolicySelectProps) => {
   const router = useRouter()
+  const dispatch = useAppDispatch()
 
   const [policyName, setPolicyName] = useState("")
 
@@ -69,6 +72,7 @@ export const PolicySelect = ({
 
     router.push(policyLink(selected.id))
     setPolicyName("")
+    dispatch(resetPolicyLendersState())
   }
 
   const selectRef = useRef<HTMLElement>(null)

@@ -25,6 +25,7 @@ import { PolicySelect } from "@/app/[locale]/borrower/policy/components/PolicySe
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { CreateMarketSteps } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import {
+  resetPolicyLendersState,
   setInitialPolicyLenders,
   setPolicyLenders,
 } from "@/store/slices/policyLendersSlice/policyLendersSlice"
@@ -85,14 +86,17 @@ export default function PolicyPage() {
     name: "",
   })
 
+  const policyName = policies.find((policy) => policy.id === policyAddress)
+    ?.name
+
   useEffect(() => {
-    if (data) {
+    if (policyName && policyAddress) {
       setSelectedPolicy({
-        id: data.hooksInstance?.address || "",
-        name: data.hooksInstance?.name || "",
+        id: policyAddress,
+        name: policyName,
       })
     }
-  }, [data])
+  }, [data, policyName, policyAddress])
 
   const accessControl = data?.hooksInstance?.roleProviders.some(
     (p) => p.isPullProvider,
@@ -110,13 +114,14 @@ export default function PolicyPage() {
   }
 
   const markets = data?.markets ?? []
+  const lenders = data?.lenders
 
   const dispatch = useAppDispatch()
 
   const lendersList = useAppSelector((state) => state.policyLenders.lenders)
 
   useEffect(() => {
-    if (data) {
+    if (lenders) {
       const lendersData =
         data?.lenders?.map((lender) => {
           let isAuthorized: boolean
@@ -149,7 +154,14 @@ export default function PolicyPage() {
       }
       dispatch(setInitialPolicyLenders(lendersData))
     }
-  }, [data, isPolicyLoading])
+  }, [lenders, isPolicyLoading])
+
+  useEffect(
+    () => () => {
+      dispatch(resetPolicyLendersState())
+    },
+    [],
+  )
 
   return (
     <Box
@@ -213,7 +225,7 @@ export default function PolicyPage() {
         <Box sx={{ width: "100%", padding: "0 24px" }}>
           {tab === PolicyTabs.DETAILS && (
             <DetailsTab
-              name={data?.hooksInstance?.name}
+              name={policyName}
               type={
                 (data?.hooksInstance?.kind ?? HooksKind.OpenTerm) ===
                 HooksKind.OpenTerm
