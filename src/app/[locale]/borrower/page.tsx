@@ -166,7 +166,13 @@ export default function Borrower() {
         )}
 
         {!bannerDisplayConfig.hideNewMarketButton && (
-          <Link href={ROUTES.borrower.createMarket}>
+          <Link
+            href={
+              tab === BorrowerOverviewTabs.MARKETS
+                ? ROUTES.borrower.createMarket
+                : ROUTES.borrower.createPolicy
+            }
+          >
             <Button
               variant="contained"
               size="small"

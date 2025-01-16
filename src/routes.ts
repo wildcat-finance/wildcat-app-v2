@@ -14,6 +14,7 @@ export const ROUTES = {
     notifications: `${BORROWER_ROOT}/notifications`,
     editPolicy: `${BORROWER_ROOT}/edit-policy`,
     policy: `${BORROWER_ROOT}/policy`,
+    createPolicy: `${BORROWER_ROOT}/create-policy`,
     invitation: `${BORROWER_ROOT}/invitation`,
   },
   lender: {
