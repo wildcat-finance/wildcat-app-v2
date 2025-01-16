@@ -14,38 +14,50 @@ export const AgreementText = () => (
       color: "#383838",
     }}
   >
+    <Typography variant="text2">1. Introduction and Agreement</Typography>
+
+    <Typography variant="text2">1.1 Welcome and Overview</Typography>
+
     <Typography variant="text2">
-      This Wildcat Protocol Services Agreement (this ’Agreement’) sets out the
-      terms and conditions under you access the Wildcat Protocol (the
-      ’Protocol’) and accept the Services (as defined below) that the Service
-      Provider (also referred to as ’us’; or ’we’) will provide in connection
-      with the Protocol.
+      Welcome! These Terms of Use (’Terms’) govern your access to and use of the
+      products, services and related information and materials (collectively,
+      the ’Products’) offered by Wildcat Foundation (’Company,’ ’we,’ ’us,’ or
+      ’our’), which includes wildcat.finance, app.wildcat.finance and the
+      interface and related services that facilitate interaction with the
+      Wildcat Protocol (the ’Protocol’). You understand and acknowledge that the
+      Protocol is not a Product. See Section 4 below titled ’Products vs.
+      Protocol’ for an overview.
+    </Typography>
+
+    <Typography variant="text2">1.2 Binding Agreement</Typography>
+
+    <Typography variant="text2">
+      These Terms form a legally binding agreement between you and us. By
+      accessing or using the Products, you confirm that you accept these Terms
+      and agree to comply with them. If you do not agree, you must cease using
+      the Products immediately.
     </Typography>
 
     <Typography variant="text2">
-      By entering into this Agreement by clicking on the ’Sign’ (or similar)
-      button, or by otherwise accessing or using the Protocol, you agree to be
-      bound by the terms and conditions as set forth in this Agreement.
+      1.3 Incorporation of Other Terms and Policies
     </Typography>
 
     <Typography variant="text2">
-      Using the Protocol can involve various risks. You can suffer loss and that
-      is a risk you shall be able to take. If you do not understand the risks or
-      are not willing to accept the risks or suffer loss, you should not enter
-      into transactions on, or otherwise use, the Protocol. Before transacting,
-      you must carefully assess and consider the risks, including those
-      contained in any documents we make available to you and obtain all
-      necessary professional advice you need.
+      Your use of the Products is also subject to any other Product-specific
+      terms we may provide or include with the Products – such as licence terms
+      included in the files of downloadable software components – as well as our
+      Risk Disclosures and Privacy Policy, which are all incorporated by
+      reference. Please review these documents carefully as they also contain
+      important information.
     </Typography>
 
     <Typography variant="text2">
-      You must decide for yourself whether you should participate in any
-      transaction. The Service Provider is not required to advise you on the use
-      of the Protocol and/or any aspects of a transaction you choose to enter
-      into, protect or minimize your exposure to loss or provide any warnings to
-      you. You must carefully consider and monitor your own transactions and in
-      particular any loans you have made or taken out. We are not party to these
-      transactions and therefore assume no obligation to monitor the same.
+      ARBITRATION NOTICE: THESE TERMS CONTAIN AN ARBITRATION CLAUSE BELOW.
+      EXCEPT FOR CERTAIN TYPES OF DISPUTES MENTIONED IN THAT ARBITRATION CLAUSE,
+      YOU AND WE AGREE THAT ANY DISPUTES RELATING TO THE PRODUCTS WILL BE
+      RESOLVED BY MANDATORY BINDING ARBITRATION, AND YOU WAIVE ANY RIGHT TO A
+      TRIAL BY JURY OR TO PARTICIPATE IN A CLASS ACTION LAWSUIT OR CLASS-WIDE
+      ARBITRATION.
     </Typography>
 
     <Typography variant="text2">
