@@ -1144,5 +1144,11 @@ export const AgreementText = () => (
     <Typography variant="text2">
       Updated and effective: 17 January 2025
     </Typography>
+
+    <Typography variant="text2">‎</Typography>
+    <Typography variant="text2">‎</Typography>
+    <Typography variant="text2">‎</Typography>
+    <Typography variant="text2">‎</Typography>
+    <Typography variant="text2">‎</Typography>
   </Box>
 )
