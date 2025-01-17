@@ -2,6 +2,7 @@ import React, { ChangeEvent, useRef, useState } from "react"
 
 import {
   Box,
+  Button,
   IconButton,
   InputAdornment,
   SvgIcon,
@@ -21,6 +22,7 @@ import {
 import { useGetBorrowerHooksDataWithSubgraph } from "@/app/[locale]/borrower/hooks/useGetBorrowerHooksData"
 import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
+import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { ROUTES } from "@/routes"
 import { setLenderFilter } from "@/store/slices/editLendersListSlice/editLendersListSlice"
 import { COLORS } from "@/theme/colors"
@@ -32,7 +34,7 @@ export type PolicyDataT = {
   name: string
   type: string
   accessRequirements: string
-  markets: number
+  markets: { name: string; address: string }[]
 }
 
 export type PoliciesTabProps = {
@@ -48,17 +50,27 @@ export const PoliciesTab = ({
 
   const [policyName, setPolicyName] = useState<string>("")
 
+  const [marketsFilter, setMarketsFilter] = useState<PolicyFilterSelectItem[]>(
+    [],
+  )
+
   const editPolicyLink = (policy: string) =>
     `${ROUTES.borrower.policy}?policy=${encodeURIComponent(policy)}`
 
   const { data: hooksData, isLoading } = useGetBorrowerHooksDataWithSubgraph()
 
-  const rows: GridRowsProp<PolicyDataT> = [
+  const policies: GridRowsProp<PolicyDataT> = [
     ...(hooksData?.hooksInstances.map((policy) => ({
       id: policy.address,
       name: policy.name || "Unnamed Policy",
       type: policy.kind,
-      markets: policy.numMarkets || 0,
+      markets: markets
+        ? markets
+            .filter(
+              (market) => market.hooksConfig?.hooksAddress === policy.address,
+            )
+            .map((market) => ({ name: market.name, address: market.address }))
+        : [],
       accessRequirements:
         policy.roleProviders.length === 1 ? "Manual Approval" : "Self-Onboard",
     })) ?? []),
@@ -68,13 +80,26 @@ export const PoliciesTab = ({
             id: hooksData.controller.address,
             name: "V1 Markets",
             type: HooksKind.OpenTerm,
-            // markets: hooksData.controller.markets.map((market) => market.name),
-            markets: hooksData.controller.numMarkets,
+            markets: markets
+              ? markets.filter(
+                  (market) => market.hooksConfig?.hooksAddress === undefined,
+                )
+              : [],
             accessRequirements: "Manual Approval",
           },
         ]
       : []),
   ].filter((policy) => policy.name.includes(policyName))
+
+  const rows: GridRowsProp<PolicyDataT> = policies
+    .filter((policy) => policy.name.includes(policyName))
+    .filter(
+      (policy) =>
+        marketsFilter.length === 0 ||
+        policy.markets.some((market) =>
+          marketsFilter.some((filter) => filter.id === market.address),
+        ),
+    )
 
   const columns: TypeSafeColDef<PolicyDataT>[] = [
     {
@@ -132,19 +157,30 @@ export const PoliciesTab = ({
       ),
     },
     {
+      sortable: true,
       field: "markets",
       headerName: "Assigned to Markets",
-      minWidth: 500,
-      flex: 4,
+      minWidth: 176,
       headerAlign: "left",
       align: "left",
+      flex: 4,
       renderCell: (params) => (
-        <Link
-          href={editPolicyLink(params.row.id)}
-          style={{ ...LinkCell, justifyContent: "flex-start" }}
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "4px",
+            padding: "14px 0",
+          }}
         >
-          <Box width={130}>{params.value}</Box>
-        </Link>
+          {params.value.map((market: { name: string; address: string }) => (
+            <LendersMarketChip
+              marketName={market.name}
+              key={market.address}
+              width="fit-content"
+            />
+          ))}
+        </Box>
       ),
     },
   ]
@@ -162,10 +198,6 @@ export const PoliciesTab = ({
     id: market.address,
     name: market.name,
   }))
-
-  const [marketsFilter, setMarketsFilter] = useState<PolicyFilterSelectItem[]>(
-    [],
-  )
 
   return (
     <Box sx={{ width: "100%" }}>

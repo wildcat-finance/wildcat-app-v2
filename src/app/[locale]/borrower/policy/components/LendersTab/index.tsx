@@ -175,7 +175,10 @@ export const LendersTab = ({
       </Box>
 
       {!isLoading && !isSubmitting && (
-        <EditLendersTable filteredLenders={filteredLenders} />
+        <EditLendersTable
+          filteredLenders={filteredLenders}
+          isFiltered={!!lendersFilter}
+        />
       )}
 
       {(isLoading || isSubmitting) && (

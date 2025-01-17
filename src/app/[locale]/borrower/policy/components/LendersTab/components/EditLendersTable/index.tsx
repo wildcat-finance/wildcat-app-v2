@@ -9,7 +9,7 @@ import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/
 import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
-import { useAppDispatch } from "@/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setPolicyLenders } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
@@ -26,8 +26,10 @@ import { DeleteModal } from "../Modals/DeleteModal"
 
 export const EditLendersTable = ({
   filteredLenders,
+  isFiltered,
 }: {
   filteredLenders: LendersItem[]
+  isFiltered: boolean
 }) => {
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
@@ -206,12 +208,12 @@ export const EditLendersTable = ({
       )}
 
       {noLenders && (
-        <Box sx={{ height: "100%", display: "flex" }}>
-          <Box sx={NoLendersBox}>
-            <Typography variant="text3" color={COLORS.santasGrey}>
-              {t("editLendersList.forms.edit.table.noLenders")}
-            </Typography>
-          </Box>
+        <Box sx={NoLendersBox}>
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            {isFiltered
+              ? `${t("editLendersList.forms.edit.table.noLenders")}`
+              : "No Active Lenders"}
+          </Typography>
         </Box>
       )}
 
