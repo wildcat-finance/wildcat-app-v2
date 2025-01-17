@@ -101,7 +101,7 @@ export const AgreementText = () => (
       You acknowledge that digital assets can be volatile, and you may lose some
       or all of your digital assets. Using the Protocol involves significant
       risks outlined in our Risk Disclosures – see also Section 4 below (titled
-      ’Products vs. Protocol).
+      ’Products vs. Protocol’).
     </Typography>
 
     <Typography variant="text2">## 3.3 No Financial Advice</Typography>
@@ -344,7 +344,7 @@ export const AgreementText = () => (
       Section 13 (Limitation of Liability), and Section 14 (Indemnification).
       You further agree that your use of any Market is governed by these
       provisions, and the Company disclaims all liability for any consequences
-      of your interactions with Market.
+      of your interactions with Markets.
     </Typography>
 
     <Typography variant="text2">## 6.4 No Control or Warranties</Typography>
@@ -804,7 +804,7 @@ export const AgreementText = () => (
 
     <Typography variant="text2"># 14 Indemnification</Typography>
 
-    <Typography variant="text2"># 14.1 User Responsibility</Typography>
+    <Typography variant="text2">## 14.1 User Responsibility</Typography>
     <Typography variant="text2">
       In addition to all other indemnification obligations set forth in these
       Terms, you agree to indemnify, defend, and hold harmless the Company, its
