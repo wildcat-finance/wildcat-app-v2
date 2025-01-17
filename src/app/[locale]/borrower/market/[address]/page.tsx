@@ -11,8 +11,10 @@ import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/comp
 import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
+import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
+import { useMarketMla } from "@/hooks/useMarketMla"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import {
@@ -48,6 +50,10 @@ export default function MarketDetails({
   const { checked } = useScrollHandler()
 
   const prevURL = sessionStorage.getItem("previousPageUrl")
+
+  const { data: marketMla, isLoading: isLoadingMarketMla } = useMarketMla(
+    marketAccount?.market.address,
+  )
 
   useEffect(() => {
     if (prevURL && prevURL.includes(ROUTES.borrower.lendersList)) {
@@ -91,6 +97,20 @@ export default function MarketDetails({
       </Box>
     )
 
+  if (!isLoadingMarketMla && marketMla === null && checked !== 5)
+    return (
+      <Box sx={{ padding: "52px 20px 0 44px" }}>
+        <Box sx={{ width: "69%" }}>
+          <LeadBanner
+            title="Select MLA Settings"
+            text="Your MLA selection was not successfully uploaded. Please try again."
+            buttonText="Go to MLA Settings"
+            buttonLink={undefined}
+            onClick={() => dispatch(setCheckBlock(5))}
+          />
+        </Box>
+      </Box>
+    )
   return (
     <Box sx={{ padding: "52px 20px 0 44px" }}>
       <Box sx={{ width: "69%" }}>
@@ -205,6 +225,11 @@ export default function MarketDetails({
           {checked === 5 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketMLA marketAccount={marketAccount} />
+            </Box>
+          )}
+          {checked === 6 && (
+            <Box sx={SlideContentContainer} marginTop="12px">
+              <PaginatedMarketRecordsTable market={market} />
             </Box>
           )}
         </Box>

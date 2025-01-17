@@ -714,13 +714,14 @@ describe("API", () => {
       })
       const timeSigned = Date.now()
 
-      const values = getFieldValuesForBorrower(
+      const values = getFieldValuesForBorrower({
         market,
-        borrowerProfile as BasicBorrowerInfo,
-        TargetNetwork,
+        borrowerInfo: borrowerProfile as BasicBorrowerInfo,
+        networkData: TargetNetwork,
         timeSigned,
-        +lastSlaUpdateTime,
-      )
+        lastSlaUpdateTime: +lastSlaUpdateTime,
+        asset: market.underlyingToken,
+      })
       const filledTemplate = fillInMlaTemplate(
         mlaTemplate as unknown as MlaTemplate,
         values,

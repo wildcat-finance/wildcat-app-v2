@@ -21,6 +21,7 @@ import {
   OpenTermHooksTemplate,
   OpenTermMarketDeploymentArgs,
 } from "@wildcatfi/wildcat-sdk/dist/access"
+import { MarketDeployedEvent } from "@wildcatfi/wildcat-sdk/dist/typechain/HooksFactory"
 import { parseUnits } from "ethers/lib/utils"
 
 import { toastError, toastRequest } from "@/components/Toasts"
@@ -32,7 +33,7 @@ import { GET_CONTROLLER_KEY } from "@/hooks/useGetController"
 import { GET_BORROWER_MARKETS } from "../../hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { GET_ALL_MARKETS } from "../../hooks/getMaketsHooks/useGetOthersMarkets"
 
-export type DeployNewV2MarketParams =
+export type DeployNewV2MarketParams = (
   | (Omit<
       FixedTermMarketDeploymentArgs,
       "maxTotalSupply" | "minimumDeposit" | "asset"
@@ -51,6 +52,11 @@ export type DeployNewV2MarketParams =
       assetData: MarketParameters["asset"]
       hooksTemplate: OpenTermHooksTemplate
     })
+) & {
+  timeSigned: number
+  mlaTemplateId: number | undefined
+  mlaSignature: string
+}
 
 export const useDeployV2Market = () => {
   const signer = useEthersSigner()
@@ -85,6 +91,9 @@ export const useDeployV2Market = () => {
       assetData,
       minimumDeposit: minimumDepositNum,
       maxTotalSupply: maxTotalSupplyNum,
+      timeSigned,
+      mlaTemplateId,
+      mlaSignature,
       ...marketParams
     }: DeployNewV2MarketParams) => {
       if (!signer || !hooksTemplate || !marketParams) {
@@ -143,10 +152,12 @@ export const useDeployV2Market = () => {
         asset,
       )
 
-      const minimumDeposit = new TokenAmount(
-        parseUnits(minimumDepositNum?.toString() ?? "0", asset.decimals),
-        asset,
-      )
+      const minimumDeposit = asset.parseAmount(minimumDepositNum ?? 0)
+      // new TokenAmount(
+      // parseUnits(minimumDepositNum?.toString() ?? "0", asset.decimals),
+      // asset,
+      // )
+      console.log(`Minimum Deposit: ${minimumDeposit.toString()}`)
 
       const borrowerAddress = hooksTemplate.signerAddress
       if (!borrowerAddress) throw Error(`Borrower not found`)
@@ -262,7 +273,55 @@ export const useDeployV2Market = () => {
         }
       }
 
-      await send()
+      const receipt = await send()
+      const marketDeployedTopic =
+        hooksTemplate.contract.interface.getEventTopic("MarketDeployed")
+
+      const log = receipt.logs.find((l) => l.topics[0] === marketDeployedTopic)!
+
+      const event = hooksTemplate.contract.interface.decodeEventLog(
+        "MarketDeployed",
+        log.data,
+        log.topics,
+      ) as unknown as MarketDeployedEvent["args"]
+      const marketAddress = event.market
+
+      const doSubmit = async () => {
+        if (mlaTemplateId === undefined) {
+          console.log(`Declining MLA for market ${marketAddress.toLowerCase()}`)
+          const response = await fetch(
+            `/api/mla/${marketAddress.toLowerCase()}/decline`,
+            {
+              method: "POST",
+              body: JSON.stringify({
+                signature: mlaSignature,
+                timeSigned,
+              }),
+            },
+          )
+          if (response.status !== 200) throw Error("Failed to submit MLA")
+          return true
+        }
+        console.log(`Submitting MLA for market ${marketAddress.toLowerCase()}`)
+        const response = await fetch(
+          `/api/mla/${marketAddress.toLowerCase()}`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              mlaTemplate: mlaTemplateId,
+              signature: mlaSignature,
+              timeSigned,
+            }),
+          },
+        )
+        if (response.status !== 200) throw Error("Failed to submit MLA")
+        return true
+      }
+      await toastRequest(doSubmit(), {
+        success: "MLA selection uploaded successfully",
+        error: "Failed to upload MLA selection",
+        pending: "Uploading MLA selection...",
+      })
     },
     onSuccess: () => {
       client.invalidateQueries({ queryKey: [GET_CONTROLLER_KEY] })

@@ -9,7 +9,6 @@ import {
   MarketValidationSchemaType,
   marketValidationSchema as vschema,
 } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
-import { mockedMarketTypes } from "@/mocks/mocks"
 import { formatConstrainToNumber } from "@/utils/formatters"
 
 export const defaultMarketForm: Partial<MarketValidationSchemaType> = {

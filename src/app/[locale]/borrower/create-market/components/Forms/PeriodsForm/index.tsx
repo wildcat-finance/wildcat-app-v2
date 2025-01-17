@@ -41,7 +41,7 @@ export const PeriodsForm = ({ form }: PeriodsFormProps) => {
     !errors.withdrawalBatchDuration
 
   const handleNextClick = () => {
-    dispatch(setCreatingStep(CreateMarketSteps.CONFIRM))
+    dispatch(setCreatingStep(CreateMarketSteps.MLA))
   }
 
   const handleBackClick = () => {

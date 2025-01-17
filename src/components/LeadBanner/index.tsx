@@ -11,6 +11,7 @@ export const LeadBanner = ({
   text,
   buttonText,
   buttonLink,
+  onClick,
 }: BannerProps) => (
   <Box sx={MarketListAlertContainer}>
     <Box sx={TextContainer}>
@@ -25,7 +26,7 @@ export const LeadBanner = ({
       href={buttonLink?.url || ""}
       target={buttonLink?.isExternal ? "_blank" : "_self"}
     >
-      <Button size="large" sx={RequestButton}>
+      <Button size="large" sx={RequestButton} onClick={onClick}>
         {buttonText}
       </Button>
     </Link>

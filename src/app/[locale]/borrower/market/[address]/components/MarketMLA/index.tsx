@@ -9,8 +9,10 @@ import {
   Select,
   MenuItem,
   Typography,
+  Button,
 } from "@mui/material"
 import { Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import { useGetMlaTemplates } from "@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates"
 import { usePreviewMla } from "@/app/[locale]/borrower/hooks/mla/usePreviewMla"
@@ -31,18 +33,19 @@ const SetMarketMLAForm = ({
   borrowerProfile: BasicBorrowerInfo
   marketAccount: MarketAccount
 }) => {
+  const { t } = useTranslation()
   const { data: templates, isLoading: isLoadingTemplates } =
     useGetMlaTemplates()
   const [timeSigned, setTimeSigned] = useState(0)
   const [selectedTemplateId, setSelectedTemplateId] = useState<
-    number | undefined
+    number | "noMLA" | undefined
   >(undefined)
   const { mutate: signMla, isPending: isSigning } = useSetMarketMLA()
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
 
   const { data: previewMla, isLoading: isLoadingPreviewMla } = usePreviewMla(
     marketAccount.market,
-    selectedTemplateId,
+    selectedTemplateId === "noMLA" ? undefined : selectedTemplateId,
     timeSigned,
     borrowerProfile as unknown as BorrowerProfile,
   )
@@ -51,16 +54,23 @@ const SetMarketMLAForm = ({
     setTimeSigned(Date.now())
   }, [])
 
-  const options = templates?.map((template) => ({
-    id: template.id,
-    label: template.name,
-    value: template.id,
-  }))
+  const options = [
+    {
+      id: "noMLA",
+      label: "Don’t Use",
+      value: "noMLA",
+    },
+    ...(templates?.map((template) => ({
+      id: template.id,
+      label: template.name,
+      value: template.id,
+    })) ?? []),
+  ]
 
   return (
     <Box sx={{ width: "100%" }}>
       <Typography variant="h6">
-        Select a template to set an MLA for this market.
+        {t("borrowerMarketDetails.mla.template.label")}
       </Typography>
       <Box
         sx={{ display: "flex", flexDirection: "row", gap: 2, width: "100%" }}
@@ -69,8 +79,12 @@ const SetMarketMLAForm = ({
           <InputLabel>Select MLA Template</InputLabel>
           <Select
             value={selectedTemplateId || ""}
-            onChange={(e) => setSelectedTemplateId(Number(e.target.value))}
-            label="Select MLA Template"
+            onChange={(e) =>
+              setSelectedTemplateId(
+                e.target.value === "noMLA" ? "noMLA" : Number(e.target.value),
+              )
+            }
+            label={t("createNewMarket.mla.mla.label")}
           >
             {options?.map((option) => (
               <MenuItem key={option.id} value={option.value}>
@@ -79,29 +93,51 @@ const SetMarketMLAForm = ({
             ))}
           </Select>
         </FormControl>
-        <MlaModal
-          mla={
-            previewMla
-              ? {
-                  html: previewMla.htmlWithPlaceholders,
-                }
-              : null
-          }
-          isLoading={isLoadingPreviewMla}
-          onSign={() =>
-            previewMla
-              ? signMla({
-                  template: previewMla.mlaTemplate,
-                  timeSigned,
-                  market: marketAccount.market,
-                  profile: borrowerProfile,
-                })
-              : {}
-          }
-          showSignButton
-          disableModalButton={!selectedTemplateId || isLoadingPreviewMla}
-          buttonText={isLoadingTemplates ? "Loading templates..." : "Set MLA"}
-        />
+        {selectedTemplateId === "noMLA" ? (
+          <Button
+            variant="outlined"
+            color="secondary"
+            size="small"
+            onClick={() =>
+              signMla({
+                template: "noMLA",
+                timeSigned,
+                market: marketAccount.market,
+                profile: borrowerProfile,
+              })
+            }
+          >
+            {t("borrowerMarketDetails.mla.buttons.refuse")}
+          </Button>
+        ) : (
+          <MlaModal
+            mla={
+              previewMla
+                ? {
+                    html: previewMla.htmlWithPlaceholders,
+                  }
+                : null
+            }
+            isLoading={isLoadingPreviewMla}
+            onSign={() =>
+              previewMla
+                ? signMla({
+                    template: previewMla.mlaTemplate,
+                    timeSigned,
+                    market: marketAccount.market,
+                    profile: borrowerProfile,
+                  })
+                : {}
+            }
+            showSignButton
+            disableModalButton={!selectedTemplateId || isLoadingPreviewMla}
+            buttonText={
+              isLoadingPreviewMla
+                ? t("borrowerMarketDetails.mla.buttons.loading")
+                : t("borrowerMarketDetails.mla.buttons.set")
+            }
+          />
+        )}
       </Box>
     </Box>
   )
@@ -157,6 +193,7 @@ export const MarketMLA = ({
 
   if (!borrowerProfile) return <Box>No Borrower Profile</Box>
   if (!marketAccount.isBorrower) return <Box>Wrong Borrower Address</Box>
+  if (marketMla && "noMLA" in marketMla) return <Box>Borrower declined MLA</Box>
   if (marketMla)
     return (
       <ShowExistingMla

@@ -384,7 +384,7 @@ export const RepayModal = ({
                 endAdornment={amountInputAdornment}
                 disabled={isApproving}
                 max={type === "days" ? 100000000 : undefined}
-                decimalScale={2}
+                // decimalScale={2}
                 error={!!repayError}
                 helperText={repayError}
               />
