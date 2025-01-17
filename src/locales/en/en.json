@@ -34,8 +34,8 @@
     "clear": "Clear"
   },
   "footer": {
-    "rights": "Wildcat © All Rights reserved. 2024",
-    "agreement": "Download Service Agreement"
+    "rights": "Wildcat Foundation 2025",
+    "agreement": "Download Terms Of Use"
   },
   "admin": {
     "inviteBorrower": {
@@ -940,7 +940,7 @@
       "sign": "Sign And Continue"
     },
     "page": {
-      "title": "Wildcat Service Agreement",
+      "title": "Wildcat Terms Of Use",
       "download": "Download"
     }
   },

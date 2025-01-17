@@ -9,7 +9,7 @@ import { BorrowerInvitation } from "../interface"
 /// Route to get an invitation for a borrower.
 ///
 /// Only returns invitations for the current chain ID and where the
-/// borrower has not already signed the service agreement.
+/// borrower has not already signed the terms of use.
 ///
 /// Query must be made by authenticated account the request is for or an admin.
 export async function GET(

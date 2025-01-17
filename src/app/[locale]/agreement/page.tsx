@@ -59,11 +59,7 @@ export default function Agreement() {
       >
         <SignButton />
 
-        <Link
-          href="/pdf/Wildcat_Protocol_Services_Agreement.pdf"
-          target="_blank"
-          download
-        >
+        <Link href="/pdf/Wildcat_Terms_of_Use.pdf" target="_blank" download>
           <Button
             variant="contained"
             color="secondary"
