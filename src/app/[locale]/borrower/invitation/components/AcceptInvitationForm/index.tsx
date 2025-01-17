@@ -99,11 +99,7 @@ export const AcceptInvitationForm = ({
           {submitMutation.isPending ? "Signing..." : "Sign & Accept"}
         </Button>
 
-        <Link
-          href="/pdf/Wildcat_Terms_of_Use.pdf"
-          target="_blank"
-          download
-        >
+        <Link href="/pdf/Wildcat_Terms_of_Use.pdf" target="_blank" download>
           <Button
             variant="contained"
             color="secondary"

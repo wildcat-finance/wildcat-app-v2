@@ -52,10 +52,7 @@ export const Footer = () => {
       </Typography>
       <div>{COMMIT_INFO}</div>
       {showFooter && (
-        <Link
-          href="/pdf/Wildcat_Terms_of_Use.pdf"
-          target="_blank"
-        >
+        <Link href="/pdf/Wildcat_Terms_of_Use.pdf" target="_blank">
           <Button variant="text" size="small">
             <Typography variant="text4" color={COLORS.santasGrey}>
               {t("footer.agreement")}
