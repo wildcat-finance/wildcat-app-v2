@@ -100,7 +100,7 @@ export const AcceptInvitationForm = ({
         </Button>
 
         <Link
-          href="/pdf/Wildcat_Protocol_Services_Agreement.pdf"
+          href="/pdf/Wildcat_Terms_of_Use.pdf"
           target="_blank"
           download
         >
