@@ -22,19 +22,27 @@ export type FinalModalProps = {
   isLoading: boolean
   isSuccess: boolean
   isError: boolean
+  handleTryAgain: () => void
 }
 
 export const FinalModal = ({
   isLoading,
   isSuccess,
   isError,
+  handleTryAgain,
 }: FinalModalProps) => {
   const [open, setIsOpen] = useState<boolean>(false)
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
 
+  const handleResetModal = () => {
+    setShowErrorPopup(false)
+    setShowSuccessPopup(false)
+  }
+
   const handleClickClose = () => {
     setIsOpen(false)
+    handleResetModal()
   }
 
   useEffect(() => {
@@ -86,9 +94,11 @@ export const FinalModal = ({
               </SvgIcon>
 
               <Box sx={DeployTypoBox}>
-                <Typography variant="title3">test</Typography>
+                <Typography variant="title3">
+                  Oops! Something went wrong!
+                </Typography>
                 <Typography variant="text3" sx={DeploySubtitle}>
-                  test
+                  Can you reach out to us and tell us how you got here?
                 </Typography>
               </Box>
             </Box>
@@ -99,23 +109,20 @@ export const FinalModal = ({
                 color="secondary"
                 size="large"
                 fullWidth
-                // onClick={() => {
-                //   handleResetModal()
-                //   setFinalOpen(false)
-                // }}
+                onClick={handleResetModal}
               >
-                test
+                Back
               </Button>
               <Button
                 variant="contained"
                 size="large"
                 fullWidth
-                // onClick={() => {
-                //   handleResetModal()
-                //   handleDeployMarket()
-                // }}
+                onClick={() => {
+                  handleResetModal()
+                  handleTryAgain()
+                }}
               >
-                test
+                Try Again
               </Button>
             </Box>
           </Box>
@@ -138,9 +145,9 @@ export const FinalModal = ({
             </SvgIcon>
 
             <Box sx={DeployTypoBox}>
-              <Typography variant="title3">test</Typography>
+              <Typography variant="title3">Lenders were edited!</Typography>
               <Typography variant="text3" sx={DeploySubtitle}>
-                test
+                Lenders were successfully edited: the rest is up to you!
               </Typography>
             </Box>
           </Box>
@@ -152,9 +159,9 @@ export const FinalModal = ({
           <Loader />
 
           <Box sx={DeployTypoBox}>
-            <Typography variant="text1">test</Typography>
+            <Typography variant="text1">Wait a second...</Typography>
             <Typography variant="text3" sx={DeploySubtitle}>
-              test
+              Transaction in process.
             </Typography>
           </Box>
         </Box>
