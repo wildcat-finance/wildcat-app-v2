@@ -28,6 +28,16 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
   const { connected: isConnectedToSafe, sdk: gnosisSafeSDK } = useSafeAppsSDK()
   const dispatch = useAppDispatch()
 
+  const waitForTransaction = async (txHash: string) => {
+    if (!gnosisSafeSDK) throw Error("No SDK found")
+    return gnosisSafeSDK.eth.getTransactionReceipt([txHash]).then((tx) => {
+      if (tx) {
+        tx.transactionHash = txHash
+      }
+      return tx
+    })
+  }
+
   const {
     mutate: submitUpdates,
     isPending: isSubmitting,
@@ -76,21 +86,59 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         txs.push(tx)
       }
 
-      if (isConnectedToSafe && isTestnet && txs.length > 1) {
-        await gnosisSafeSDK.txs.send({ txs })
-      } else {
-        // eslint-disable-next-line no-restricted-syntax
-        for (const tx of txs) {
-          // eslint-disable-next-line no-await-in-loop
-          await signer
-            .sendTransaction({
-              to: tx.to,
-              data: tx.data,
-              value: tx.value,
+      const send = async () => {
+        if (isConnectedToSafe && isTestnet && txs.length > 1) {
+          const tx = await gnosisSafeSDK.txs.send({ txs })
+          console.log("Transaction sent, result:", tx)
+
+          const checkTransaction = async (): Promise<string> => {
+            const transactionBySafeHash =
+              await gnosisSafeSDK.txs.getBySafeTxHash(tx.safeTxHash)
+
+            if (transactionBySafeHash?.txHash) {
+              console.log(
+                `Transaction confirmed. txHash: ${transactionBySafeHash.txHash}`,
+              )
+              return transactionBySafeHash.txHash
+            }
+
+            console.log("Transaction pending, rechecking in 1 second...")
+            return new Promise<string>((res) => {
+              setTimeout(async () => res(await checkTransaction()), 1000)
             })
-            .then(({ wait }) => wait())
+          }
+
+          const txHash = await checkTransaction()
+
+          if (txHash) {
+            console.log(`Waiting for transaction with txHash: ${txHash}`)
+            const receipt = await waitForTransaction(txHash)
+            console.log("Transaction confirmed, receipt received.")
+            return receipt
+          }
+
+          console.error("Failed to retrieve txHash.")
+          throw new Error("Transaction failed or hash not found.")
+        } else {
+          // eslint-disable-next-line no-restricted-syntax
+          for (const tx of txs) {
+            // eslint-disable-next-line no-await-in-loop
+            await signer
+              .sendTransaction({
+                to: tx.to,
+                data: tx.data,
+                value: tx.value,
+              })
+              .then(({ wait }) => wait())
+          }
+          return {
+            status: "success",
+            message: "All transactions processed successfully",
+          }
         }
       }
+
+      await send()
     },
     onSuccess: () => {
       client.invalidateQueries({ queryKey: [GET_POLICY_KEY] })

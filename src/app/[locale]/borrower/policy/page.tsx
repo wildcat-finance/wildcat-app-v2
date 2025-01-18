@@ -154,7 +154,7 @@ export default function PolicyPage() {
       }
       dispatch(setInitialPolicyLenders(lendersData))
     }
-  }, [lenders, isPolicyLoading])
+  }, [data, isPolicyLoading])
 
   useEffect(
     () => () => {
