@@ -36,7 +36,7 @@ export const Sidebar = () => {
       {/* {(pathname === ROUTES.borrower.root || pathname === ROUTES.lender.root) && */}
       {/*  step === BorrowerOverviewTabs.MARKETS && <MarketsTabSidebar />} */}
       {pathname === ROUTES.lender.root && <MarketsTabSidebar />}
-      {pathname === ROUTES.borrower.root && <BorrowerDashboardSidebar />}
+      {pathname === ROUTES.borrower.newRoot && <BorrowerDashboardSidebar />}
       {/* {pathname === ROUTES.borrower.root && */}
       {/*  step === BorrowerOverviewTabs.MLA && ( */}
       {/*    <Box */}
