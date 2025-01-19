@@ -49,7 +49,7 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
   } = form
 
   const handleNatureSelect = (event: SelectChangeEvent<string | null>) => {
-    setValue("legalNature", event.target.value?.toString() || "")
+    setValue("entityKind", event.target.value?.toString() || "")
   }
 
   const dispatch = useAppDispatch()
@@ -114,7 +114,7 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
           <ExtendedSelect
             label={t("createMarket.forms.legalInfo.block.nature.placeholder")}
             control={control}
-            name="legalNature"
+            name="entityKind"
             options={mockedNaturesOptions}
             optionSX={DropdownOption}
             onChange={handleNatureSelect}

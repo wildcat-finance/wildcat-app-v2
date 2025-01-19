@@ -44,6 +44,12 @@
       "description": "Enter borrower's details to send them an invitation.",
       "nameLabel": "Borrower Name",
       "addressLabel": "Wallet Address",
+      "descriptionLabel": "Description",
+      "foundedLabel": "Founded",
+      "headquartersLabel": "Headquarters",
+      "jurisdictionLabel": "Jurisdiction",
+      "physicalAddressLabel": "Physical Address",
+      "entityKindLabel": "Entity Kind",
       "submit": "Send Invitation",
        "cancel": "Cancel"
     },
@@ -1257,7 +1263,7 @@
         "title": "Legal Information",
         "legalName": "Legal Entity Name",
         "jurisdiction": "Jurisdiction",
-        "legalNature": "Legal Nature",
+        "entityKind": "Legal Nature",
         "address": "Address",
         "email": "Email"
       }

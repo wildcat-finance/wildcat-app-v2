@@ -156,7 +156,7 @@ export const marketValidationSchema = z
 const infoValidationSchema = z.object({
   legalName: z.string().min(1),
   jurisdiction: z.string().min(1),
-  legalNature: z.string().min(1),
+  entityKind: z.string().min(1),
   address: z.string().min(1),
   email: z.string().email(),
 })

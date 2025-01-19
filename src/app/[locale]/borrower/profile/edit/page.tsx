@@ -94,8 +94,8 @@ export default function EditProfile() {
     twitter: getPublicValues().twitter,
     linkedin: getPublicValues().linkedin,
     jurisdiction: getPrivateValues().jurisdiction,
-    legalNature: getPrivateValues().legalNature,
-    companyAddress: getPrivateValues().companyAddress,
+    entityKind: getPrivateValues().entityKind,
+    physicalAddress: getPrivateValues().physicalAddress,
     email: getPrivateValues().email,
   }
 
@@ -117,7 +117,7 @@ export default function EditProfile() {
     JSON.stringify(excludeKeys(publicData, ["updatedAt"]))
 
   const handleNatureSelect = (event: SelectChangeEvent<string | null>) => {
-    setPrivateValue("legalNature", event.target.value?.toString() || "")
+    setPrivateValue("entityKind", event.target.value?.toString() || "")
   }
 
   const handleSendUpdate = () => {
@@ -152,8 +152,8 @@ export default function EditProfile() {
     setPublicValue("linkedin", publicData?.linkedin)
 
     setPrivateValue("jurisdiction", publicData?.jurisdiction)
-    setPrivateValue("legalNature", publicData?.legalNature)
-    setPrivateValue("companyAddress", publicData?.companyAddress)
+    setPrivateValue("entityKind", publicData?.entityKind)
+    setPrivateValue("physicalAddress", publicData?.physicalAddress)
     setPrivateValue("email", publicData?.email)
   }, [publicData])
 
@@ -371,9 +371,9 @@ export default function EditProfile() {
           title={t("borrowerProfile.edit.private.nature.title")}
           tooltip={t("borrowerProfile.edit.private.nature.tooltip")}
           form={privateForm}
-          oldValue={publicData?.legalNature}
-          oldLabel={getLabelByValue(publicData?.legalNature)}
-          newValue={privateWatch("legalNature")}
+          oldValue={publicData?.entityKind}
+          oldLabel={getLabelByValue(publicData?.entityKind)}
+          newValue={privateWatch("entityKind")}
           isLoading={isLoading}
         >
           <FormControl fullWidth>
@@ -385,7 +385,7 @@ export default function EditProfile() {
               onOpen={onOpen}
               onClose={onClose}
               onChange={handleNatureSelect}
-              value={privateWatch("legalNature") || ""}
+              value={privateWatch("entityKind") || ""}
               MenuProps={{
                 sx: SelectStyles,
                 anchorOrigin: {
@@ -415,17 +415,17 @@ export default function EditProfile() {
           title={t("borrowerProfile.edit.private.address.title")}
           tooltip={t("borrowerProfile.edit.private.address.tooltip")}
           form={privateForm}
-          field="companyAddress"
-          oldValue={publicData?.companyAddress}
-          newValue={privateWatch("companyAddress")}
+          field="physicalAddress"
+          oldValue={publicData?.physicalAddress}
+          newValue={privateWatch("physicalAddress")}
           isLoading={isLoading}
         >
           <TextField
             placeholder={t("borrowerProfile.edit.private.address.placeholder")}
             fullWidth
-            error={Boolean(privateErrors.companyAddress)}
-            helperText={privateErrors.companyAddress?.message}
-            {...registerPrivate("companyAddress")}
+            error={Boolean(privateErrors.physicalAddress)}
+            helperText={privateErrors.physicalAddress?.message}
+            {...registerPrivate("physicalAddress")}
           />
         </EditProfileItem>
 

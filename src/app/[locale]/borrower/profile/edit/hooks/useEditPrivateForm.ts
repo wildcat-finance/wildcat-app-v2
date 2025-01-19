@@ -4,8 +4,8 @@ import { z } from "zod"
 
 export const privateValidationSchema = z.object({
   jurisdiction: z.string().optional(),
-  legalNature: z.string().optional(),
-  companyAddress: z.string().optional(),
+  entityKind: z.string().optional(),
+  physicalAddress: z.string().optional(),
   email: z.string().optional(),
 })
 export type PrivateValidationSchemaType = z.infer<
@@ -15,8 +15,8 @@ export type PrivateValidationSchemaType = z.infer<
 export const useEditPrivateForm = () => {
   const defaultEditPrivateForm: PrivateValidationSchemaType = {
     jurisdiction: "",
-    legalNature: "",
-    companyAddress: "",
+    entityKind: "",
+    physicalAddress: "",
     email: "",
   }
 

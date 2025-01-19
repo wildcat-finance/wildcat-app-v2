@@ -115,8 +115,8 @@ export const ConfirmationForm = ({
   const { data: borrowerData, isLoading: isPublicDataLoading } =
     useGetBorrowerProfile(address)
 
-  const legalNature = mockedNaturesOptions.find(
-    (option) => option.id === borrowerData?.legalNature,
+  const entityKind = mockedNaturesOptions.find(
+    (option) => option.id === borrowerData?.entityKind,
   )
 
   const dispatch = useAppDispatch()
@@ -468,13 +468,13 @@ export const ConfirmationForm = ({
             />
 
             <ConfirmationFormItem
-              label={t("createNewMarket.confirm.legalInfo.legalNature")}
-              value={legalNature?.label || ""}
+              label={t("createNewMarket.confirm.legalInfo.entityKind")}
+              value={entityKind?.label || ""}
             />
 
             <ConfirmationFormItem
               label={t("createNewMarket.confirm.legalInfo.address")}
-              value={borrowerData?.companyAddress || ""}
+              value={borrowerData?.physicalAddress || ""}
             />
 
             <ConfirmationFormItem

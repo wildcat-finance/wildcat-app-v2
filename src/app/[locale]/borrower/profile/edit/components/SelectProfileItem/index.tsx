@@ -30,7 +30,7 @@ export const SelectProfileItem = ({
   const valueWasntEmpty = oldValue && oldValue.length !== 0
 
   const handleRestoreValue = () => {
-    form.setValue("legalNature", oldValue)
+    form.setValue("entityKind", oldValue)
   }
 
   return (
