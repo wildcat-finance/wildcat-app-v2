@@ -214,6 +214,12 @@ export const BorrowerTerminatedMarketsTables = ({
           assetFilter={filters.assetFilter}
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
+          noMarketsTitle={t(
+            "borrowerMarketList.table.noMarkets.terminated.title",
+          )}
+          noMarketsSubtitle={t(
+            "borrowerMarketList.table.noMarkets.terminated.subtitle",
+          )}
         >
           <DataGrid
             sx={{
@@ -240,6 +246,12 @@ export const BorrowerTerminatedMarketsTables = ({
           assetFilter={filters.assetFilter}
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
+          noMarketsTitle={t(
+            "borrowerMarketList.table.noMarkets.terminated.title",
+          )}
+          noMarketsSubtitle={t(
+            "borrowerMarketList.table.noMarkets.terminated.subtitle",
+          )}
         >
           <DataGrid
             sx={{

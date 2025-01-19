@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from "react"
+import React, { ChangeEvent, useEffect, useState } from "react"
 
 import {
   Box,
@@ -14,6 +14,7 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
+import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
 import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { MarketSectionSwitcher } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketSectionSwitcher"
@@ -22,14 +23,20 @@ import { BorrowerTerminatedMarketsTables } from "@/app/[locale]/new-borrower/com
 import { OtherMarketsTables } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTables/OtherMarketsTables"
 import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
+import { LeadBanner } from "@/components/LeadBanner"
 import {
   SmallFilterSelect,
   SmallFilterSelectItem,
 } from "@/components/SmallFilterSelect"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetController } from "@/hooks/useGetController"
+import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { BorrowerMarketDashboardSections } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
+import {
+  BorrowerMarketDashboardSections,
+  setShowFullFunctionality,
+} from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
+import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
 import { setLenderFilter } from "@/store/slices/editLendersListSlice/editLendersListSlice"
 import { COLORS } from "@/theme/colors"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
@@ -150,9 +157,16 @@ export const MarketsSection = () => {
   const { isConnected, address } = useAccount()
   const { isWrongNetwork } = useCurrentNetwork()
 
-  const { data: borrowers } = useGetBorrowers()
   const { data: controller } = useGetController()
   const isRegisteredBorrower = controller?.isRegisteredBorrower
+
+  const showTables = !isWrongNetwork && isConnected && isRegisteredBorrower
+
+  const bannerDisplayConfig = useBorrowerInvitationRedirect()
+
+  useEffect(() => {
+    dispatch(setShowFullFunctionality(!!showTables))
+  }, [showTables])
 
   // TEST
 
@@ -168,6 +182,8 @@ export const MarketsSection = () => {
     (account) =>
       account.market.borrower.toLowerCase() === address?.toLowerCase(),
   )
+
+  const noMarkets = testBorrowerMarketAccounts.length === 0
 
   const testOtherMarketAccounts = marketAccounts.filter(
     (account) =>
@@ -209,9 +225,34 @@ export const MarketsSection = () => {
           padding: "0 24px",
         }}
       >
-        <Typography variant="title2" sx={{ marginBottom: "6px" }}>
-          Markets
-        </Typography>
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="title2" sx={{ marginBottom: "6px" }}>
+            Markets
+          </Typography>
+          {!bannerDisplayConfig.hideNewMarketButton && (
+            <Link href={ROUTES.borrower.createMarket}>
+              <Button
+                variant="contained"
+                size="small"
+                disabled={isWrongNetwork}
+                sx={{
+                  paddingTop: "8px",
+                  paddingBottom: "8px",
+                  minWidth: "100px",
+                }}
+              >
+                {t("borrowerMarketList.button.newMarket")}
+              </Button>
+            </Link>
+          )}
+        </Box>
         <Typography
           variant="text3"
           color={COLORS.santasGrey}
@@ -305,28 +346,53 @@ export const MarketsSection = () => {
         </Box>
       </Box>
 
-      {marketSection === BorrowerMarketDashboardSections.ACTIVE && (
-        <BorrowerActiveMarketsTables
-          marketAccounts={testActiveMarketAccounts}
-          isLoading={isLoading}
-          filters={filters}
-        />
-      )}
+      {!bannerDisplayConfig.hideBanner &&
+        !(marketSection === BorrowerMarketDashboardSections.OTHER) && (
+          <Box padding="24px 24px 0">
+            <LeadBanner
+              title={bannerDisplayConfig.title}
+              text={bannerDisplayConfig.text}
+              buttonText={bannerDisplayConfig.buttonText}
+              buttonLink={bannerDisplayConfig.link}
+            />
+          </Box>
+        )}
 
-      {marketSection === BorrowerMarketDashboardSections.TERMINATED && (
-        <BorrowerTerminatedMarketsTables
-          marketAccounts={testTerminatedMarketAccounts}
-          isLoading={isLoading}
-          filters={filters}
-        />
-      )}
+      {marketSection === BorrowerMarketDashboardSections.ACTIVE &&
+        showTables &&
+        !noMarkets && (
+          <BorrowerActiveMarketsTables
+            marketAccounts={testActiveMarketAccounts}
+            isLoading={isLoading}
+            filters={filters}
+          />
+        )}
 
-      {marketSection === BorrowerMarketDashboardSections.OTHER && (
-        <OtherMarketsTables
-          marketAccounts={testFilteredOtherMarketAccounts}
-          isLoading={isLoading}
-          filters={filters}
-        />
+      {marketSection === BorrowerMarketDashboardSections.TERMINATED &&
+        showTables &&
+        !noMarkets && (
+          <BorrowerTerminatedMarketsTables
+            marketAccounts={testTerminatedMarketAccounts}
+            isLoading={isLoading}
+            filters={filters}
+          />
+        )}
+
+      {marketSection === BorrowerMarketDashboardSections.OTHER &&
+        !isWrongNetwork && (
+          <OtherMarketsTables
+            marketAccounts={testFilteredOtherMarketAccounts}
+            isLoading={isLoading}
+            filters={filters}
+          />
+        )}
+
+      {isWrongNetwork && (
+        <Box sx={{ padding: "24px" }}>
+          <Typography variant="title3">
+            {t("borrowerMarketList.table.noMarkets.wrongNetwork")}
+          </Typography>
+        </Box>
       )}
     </Box>
   )

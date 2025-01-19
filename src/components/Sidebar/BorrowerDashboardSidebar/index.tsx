@@ -10,6 +10,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   BorrowerDashboardSections,
   BorrowerMarketDashboardSections,
+  resetMarketSection,
   setMarketSection,
   setScrollTarget,
   setSection,
@@ -189,9 +190,13 @@ export const BorrowerDashboardSidebar = () => {
   const marketSection = useAppSelector(
     (state) => state.borrowerDashboard.marketSection,
   )
+  const showFullFunctionality = useAppSelector(
+    (state) => state.borrowerDashboard.showFullFunctionality,
+  )
 
   const handleChangeSection = (selectedSection: BorrowerDashboardSections) => {
     dispatch(setSection(selectedSection))
+    dispatch(resetMarketSection())
   }
 
   const handleChangeMarketSection = (
@@ -283,41 +288,47 @@ export const BorrowerDashboardSidebar = () => {
         </DashboardSectionAccordion>
       </DashboardPageAccordion>
 
-      <DashboardPageAccordion
-        label="Lenders"
-        open={section === BorrowerDashboardSections.LENDERS}
-        onClick={() => handleChangeSection(BorrowerDashboardSections.LENDERS)}
-        icon={
-          <SvgIcon sx={{ marginRight: "10px" }}>
-            <Lenders />
-          </SvgIcon>
-        }
-      >
-        <DashboardSectionAccordion
-          label="Active Lenders"
-          open={false}
-          hideIndicator
-          onClick={() => handleScrollToTable("active")}
-        />
-        <DashboardSectionAccordion
-          label="Deleted Lenders"
-          open={false}
-          hideIndicator
-          onClick={() => handleScrollToTable("deleted")}
-        />
-      </DashboardPageAccordion>
+      {showFullFunctionality && (
+        <DashboardPageAccordion
+          label="Lenders"
+          open={section === BorrowerDashboardSections.LENDERS}
+          onClick={() => handleChangeSection(BorrowerDashboardSections.LENDERS)}
+          icon={
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <Lenders />
+            </SvgIcon>
+          }
+        >
+          <DashboardSectionAccordion
+            label="Active Lenders"
+            open={false}
+            hideIndicator
+            onClick={() => handleScrollToTable("active")}
+          />
+          <DashboardSectionAccordion
+            label="Deleted Lenders"
+            open={false}
+            hideIndicator
+            onClick={() => handleScrollToTable("deleted")}
+          />
+        </DashboardPageAccordion>
+      )}
 
-      <DashboardPageAccordion
-        label="Policies"
-        open={section === BorrowerDashboardSections.POLICIES}
-        onClick={() => handleChangeSection(BorrowerDashboardSections.POLICIES)}
-        hideAccordionButton
-        icon={
-          <SvgIcon sx={{ marginRight: "10px" }}>
-            <Policies />
-          </SvgIcon>
-        }
-      />
+      {showFullFunctionality && (
+        <DashboardPageAccordion
+          label="Policies"
+          open={section === BorrowerDashboardSections.POLICIES}
+          onClick={() =>
+            handleChangeSection(BorrowerDashboardSections.POLICIES)
+          }
+          hideAccordionButton
+          icon={
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <Policies />
+            </SvgIcon>
+          }
+        />
+      )}
     </Box>
   )
 }

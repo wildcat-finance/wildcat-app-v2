@@ -11,7 +11,6 @@ export const MarketListAlertContainer = {
   gap: "24px",
 
   padding: "28px 40px 32px 32px",
-  marginBottom: "32px",
   borderRadius: "16px",
   color: "white",
 

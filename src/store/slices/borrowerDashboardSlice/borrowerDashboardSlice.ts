@@ -15,12 +15,14 @@ export enum BorrowerMarketDashboardSections {
 export type BorrowerDashboardType = {
   section: BorrowerDashboardSections
   marketSection: BorrowerMarketDashboardSections
+  showFullFunctionality: boolean
   scrollTarget: string | null
 }
 
 const initialState: BorrowerDashboardType = {
   section: BorrowerDashboardSections.MARKETS,
   marketSection: BorrowerMarketDashboardSections.ACTIVE,
+  showFullFunctionality: false,
   scrollTarget: null,
 }
 
@@ -40,6 +42,9 @@ const borrowerDashboardSlice = createSlice({
     setScrollTarget: (state, action: PayloadAction<string | null>) => {
       state.scrollTarget = action.payload
     },
+    setShowFullFunctionality: (state, action: PayloadAction<boolean>) => {
+      state.showFullFunctionality = action.payload
+    },
     resetMarketSection: (state) => {
       state.marketSection = initialState.marketSection
     },
@@ -51,6 +56,7 @@ export const {
   setSection,
   setMarketSection,
   setScrollTarget,
+  setShowFullFunctionality,
   resetMarketSection,
   resetBorrowerDashboard,
 } = borrowerDashboardSlice.actions
