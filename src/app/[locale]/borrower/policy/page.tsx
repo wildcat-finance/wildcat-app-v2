@@ -4,7 +4,6 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 
 import { Box, Tab, Tabs, Typography } from "@mui/material"
-import { GridRowsProp } from "@mui/x-data-grid"
 import {
   HooksKind,
   // eslint-disable-next-line camelcase
@@ -18,10 +17,18 @@ import { PolicyFilterSelectItem } from "@/app/[locale]/borrower/components/Polic
 import { GlossarySidebar } from "@/app/[locale]/borrower/create-market/components/GlossarySidebar"
 import { useGetBorrowerHooksDataWithSubgraph } from "@/app/[locale]/borrower/hooks/useGetBorrowerHooksData"
 import { useGetPolicy } from "@/app/[locale]/borrower/hooks/useGetPolicy"
-import { DetailsTab } from "@/app/[locale]/borrower/policy/compoents/DetailsTab"
-import { MarketsTab } from "@/app/[locale]/borrower/policy/compoents/MarketsTab"
-import { PolicySelect } from "@/app/[locale]/borrower/policy/compoents/PolicySelect"
+import { DetailsTab } from "@/app/[locale]/borrower/policy/components/DetailsTab"
+import { LendersTab } from "@/app/[locale]/borrower/policy/components/LendersTab"
+import { EditLenderFlowStatuses } from "@/app/[locale]/borrower/policy/components/LendersTab/interface"
+import { MarketsTab } from "@/app/[locale]/borrower/policy/components/MarketsTab"
+import { PolicySelect } from "@/app/[locale]/borrower/policy/components/PolicySelect"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { CreateMarketSteps } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
+import {
+  resetPolicyLendersState,
+  setInitialPolicyLenders,
+  setPolicyLenders,
+} from "@/store/slices/policyLendersSlice/policyLendersSlice"
 import { COLORS } from "@/theme/colors"
 
 const TabStyle = {
@@ -79,14 +86,17 @@ export default function PolicyPage() {
     name: "",
   })
 
+  const policyName = policies.find((policy) => policy.id === policyAddress)
+    ?.name
+
   useEffect(() => {
-    if (data) {
+    if (policyName && policyAddress) {
       setSelectedPolicy({
-        id: data.hooksInstance?.address || "",
-        name: data.hooksInstance?.name || "",
+        id: policyAddress,
+        name: policyName,
       })
     }
-  }, [data])
+  }, [data, policyName, policyAddress])
 
   const accessControl = data?.hooksInstance?.roleProviders.some(
     (p) => p.isPullProvider,
@@ -104,6 +114,54 @@ export default function PolicyPage() {
   }
 
   const markets = data?.markets ?? []
+  const lenders = data?.lenders
+
+  const dispatch = useAppDispatch()
+
+  const lendersList = useAppSelector((state) => state.policyLenders.lenders)
+
+  useEffect(() => {
+    if (lenders) {
+      const lendersData =
+        data?.lenders?.map((lender) => {
+          let isAuthorized: boolean
+          const { credential } = lender
+          if (credential) {
+            const { lastProvider } = credential
+            isAuthorized = !!lastProvider
+            return {
+              id: lender.address,
+              address: lender.address,
+              status: EditLenderFlowStatuses.OLD,
+              isAuthorized,
+            }
+          }
+          if (lender.isAuthorizedOnController) {
+            isAuthorized = true
+          } else {
+            isAuthorized = false
+          }
+          return {
+            id: lender.address,
+            address: lender.address,
+            status: EditLenderFlowStatuses.OLD,
+            isAuthorized,
+          }
+        }) ?? []
+
+      if (lendersList.length === 0) {
+        dispatch(setPolicyLenders(lendersData))
+      }
+      dispatch(setInitialPolicyLenders(lendersData))
+    }
+  }, [data, isPolicyLoading])
+
+  useEffect(
+    () => () => {
+      dispatch(resetPolicyLendersState())
+    },
+    [],
+  )
 
   return (
     <Box
@@ -124,13 +182,11 @@ export default function PolicyPage() {
         <Box sx={{ display: "flex", gap: "6px", padding: "40px 24px 0" }}>
           <Typography variant="title2">Policy Info</Typography>
 
-          {!isLoading && (
-            <PolicySelect
-              policies={policies}
-              selected={selectedPolicy}
-              setSelected={setSelectedPolicy}
-            />
-          )}
+          <PolicySelect
+            policies={policies}
+            selected={selectedPolicy}
+            setSelected={setSelectedPolicy}
+          />
         </Box>
 
         <Tabs
@@ -169,7 +225,7 @@ export default function PolicyPage() {
         <Box sx={{ width: "100%", padding: "0 24px" }}>
           {tab === PolicyTabs.DETAILS && (
             <DetailsTab
-              name={data?.hooksInstance?.name}
+              name={policyName}
               type={
                 (data?.hooksInstance?.kind ?? HooksKind.OpenTerm) ===
                 HooksKind.OpenTerm
@@ -183,6 +239,15 @@ export default function PolicyPage() {
 
           {tab === PolicyTabs.MARKETS && (
             <MarketsTab markets={markets} isLoading={isLoading} />
+          )}
+
+          {tab === PolicyTabs.LENDERS && (
+            <LendersTab
+              isLoading={isLoading}
+              policyName={selectedPolicy.name}
+              policy={data?.hooksInstance}
+              controller={data?.controller}
+            />
           )}
         </Box>
       </Box>

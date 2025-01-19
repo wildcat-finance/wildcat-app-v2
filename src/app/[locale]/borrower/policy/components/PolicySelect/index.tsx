@@ -20,7 +20,6 @@ import {
 } from "@mui/material"
 import { useRouter } from "next/navigation"
 
-import { PolicyFilterSelectItem } from "@/app/[locale]/borrower/components/PoliciesTab/components/PolicyFilterSelect"
 import {
   MarketSelectMenuItemStyles,
   MarketSelectMenuStyles,
@@ -29,7 +28,11 @@ import {
 } from "@/app/[locale]/borrower/edit-lenders-list/components/MarketSelect/style"
 import Icon from "@/assets/icons/search_icon.svg"
 import { ROUTES } from "@/routes"
+import { useAppDispatch } from "@/store/hooks"
+import { resetPolicyLendersState } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 import { COLORS } from "@/theme/colors"
+
+export type PolicyFilterSelectItem = { id: string; name: string }
 
 export type PolicySelectProps = {
   policies: PolicyFilterSelectItem[]
@@ -43,6 +46,7 @@ export const PolicySelect = ({
   setSelected,
 }: PolicySelectProps) => {
   const router = useRouter()
+  const dispatch = useAppDispatch()
 
   const [policyName, setPolicyName] = useState("")
 
@@ -61,7 +65,7 @@ export const PolicySelect = ({
     const selectedValue = event.target.value
 
     const selectedPolicy = policies.find(
-      (policy) => policy.name === selectedValue,
+      (policy) => policy.id === selectedValue,
     )
     if (selectedPolicy) {
       setSelected(selectedPolicy)
@@ -69,6 +73,7 @@ export const PolicySelect = ({
 
     router.push(policyLink(selected.id))
     setPolicyName("")
+    dispatch(resetPolicyLendersState())
   }
 
   const selectRef = useRef<HTMLElement>(null)
@@ -95,16 +100,18 @@ export const PolicySelect = ({
     }
   }
 
+  const policyAddress = selected.id
+
   useEffect(() => {
-    if (selected?.id) {
-      router.push(policyLink(selected.id))
+    if (policyAddress) {
+      router.push(policyLink(policyAddress))
     }
-  }, [selected])
+  }, [policyAddress])
 
   return (
     <Select
       ref={selectRef}
-      value={selected.name}
+      value={selected.id}
       onOpen={onOpen}
       onClose={onClose}
       onChange={handleChangePolicy}
@@ -161,7 +168,7 @@ export const PolicySelect = ({
       {filteredPoliciesByName.map((policy) => (
         <MenuItem
           key={policy.id}
-          value={policy.name}
+          value={policy.id}
           sx={MarketSelectMenuItemStyles}
         >
           <Typography variant="text3" color={COLORS.white}>

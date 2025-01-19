@@ -10,7 +10,6 @@ import {
   SvgIcon,
   TextField,
 } from "@mui/material"
-import { useTranslation } from "react-i18next"
 
 import Filter from "@/assets/icons/filter_icon.svg"
 import Icon from "@/assets/icons/search_icon.svg"

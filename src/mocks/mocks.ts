@@ -54,8 +54,24 @@ const mockedNatures = [
     value: "pi",
   },
   {
-    label: "Limited Liability Company",
+    label: "Private Company Limited by Shares",
     value: "llc",
+  },
+  {
+    label: "Foundation Company Limited by Guarantee",
+    value: "fnd",
+  },
+  {
+    label: "Public Limited Company",
+    value: "plc",
+  },
+  {
+    label: "Limited Partnership",
+    value: "lp",
+  },
+  {
+    label: "General Partnership",
+    value: "gp",
   },
   {
     label: "Decentralised Autonomous Organisation",

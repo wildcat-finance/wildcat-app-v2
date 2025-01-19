@@ -34,8 +34,8 @@
     "clear": "Clear"
   },
   "footer": {
-    "rights": "Wildcat © All Rights reserved. 2024",
-    "agreement": "Download Service Agreement"
+    "rights": "Wildcat Foundation 2025",
+    "agreement": "Download Terms Of Use"
   },
   "admin": {
     "inviteBorrower": {
@@ -584,7 +584,11 @@
             "tooltip": "Select the 'type' of entity that best describes the borrower.",
             "options": {
               "pi": "Private Individual",
-              "llc": "Limited Liability Company",
+              "llc": "Private Company Limited by Shares",
+              "fnd": "Foundation Company Limited by Guarantee",
+              "plc": "Public Limited Company",
+              "lp": "Limited Partnership",
+              "gp": "General Partnership",
               "dao": "Decentralised Autonomous Organisation"
             }
           },
@@ -946,7 +950,7 @@
       "sign": "Sign And Continue"
     },
     "page": {
-      "title": "Wildcat Service Agreement",
+      "title": "Wildcat Terms Of Use",
       "download": "Download"
     }
   },
@@ -1014,7 +1018,7 @@
     },
     "edit": {
       "public": {
-        "title": "Basic Informnation",
+        "title": "Basic Profile Information",
         "subtitle": "Details Of Borrowing Entity",
         "avatar": {
           "title": "Avatar",
@@ -1059,7 +1063,7 @@
         }
       },
       "private": {
-        "title": "Legal Information",
+        "title": "Borrower Legal Information",
         "subtitle": "Entity details used to pre-populate template loan agreements for markets you create.",
         "jurisdiction": {
           "title": "Jurisdiction",
