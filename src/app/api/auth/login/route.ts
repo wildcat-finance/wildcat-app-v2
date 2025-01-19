@@ -2,6 +2,7 @@ import dayjs from "dayjs"
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { NextRequest, NextResponse } from "next/server"
 
+import { getLoginSignatureMessage } from "@/config/api"
 import { getProviderForServer } from "@/lib/provider"
 import { verifySignature } from "@/lib/signatures"
 import { getZodParseError } from "@/lib/zod-error"
@@ -20,9 +21,7 @@ export async function POST(request: NextRequest) {
   }
   const address = body.address.toLowerCase()
   const { signature, timeSigned } = body
-  const LoginMessage = `Connect to wildcat.finance as account ${address}\nDate: ${dayjs(
-    timeSigned,
-  ).format("MMMM DD, YYYY")}`
+  const LoginMessage = getLoginSignatureMessage(address, timeSigned)
   const provider = getProviderForServer()
   const result = await verifySignature({
     provider,

@@ -6,6 +6,7 @@ import dayjs from "dayjs"
 import { useAccount } from "wagmi"
 
 import { toastRequest } from "@/components/Toasts"
+import { getLoginSignatureMessage } from "@/config/api"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setApiToken } from "@/store/slices/apiTokensSlice/apiTokensSlice"
 import { ApiToken } from "@/store/slices/apiTokensSlice/interface"
@@ -38,9 +39,7 @@ export const useLogin = () => {
       const timeSigned = dayjs().unix()
 
       const sign = async () => {
-        const LoginMessage = `Connect to wildcat.finance as account ${address}\nDate: ${dayjs(
-          timeSigned,
-        ).format("MMMM DD, YYYY")}`
+        const LoginMessage = getLoginSignatureMessage(address, timeSigned)
 
         if (sdk && safeConnected) {
           console.log(
