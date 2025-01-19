@@ -69,7 +69,19 @@ const getFilteredAndOrderedMarkets = (
   return filteredMarkets
 }
 
-export const MarketsSection = () => {
+export type MarketsSectionProps = {
+  unfilteredBorrowerMarkets: Market[] | undefined
+  unfilteredOtherMarkets: Market[] | undefined
+  isBorrowerMarketsLoading: boolean
+  isOtherMarketsLoading: boolean
+}
+
+export const MarketsSection = ({
+  unfilteredBorrowerMarkets,
+  unfilteredOtherMarkets,
+  isBorrowerMarketsLoading,
+  isOtherMarketsLoading,
+}: MarketsSectionProps) => {
   const marketSection = useAppSelector(
     (state) => state.borrowerDashboard.marketSection,
   )
@@ -83,11 +95,6 @@ export const MarketsSection = () => {
   const { data: borrowers } = useGetBorrowers()
   const { data: controller } = useGetController()
   const isRegisteredBorrower = controller?.isRegisteredBorrower
-
-  const { data: unfilteredBorrowerMarkets, isLoading } =
-    useGetBorrowerMarkets(undefined)
-  const { data: unfilteredOtherMarkets, isLoading: isOthersMarketsLoading } =
-    useGetOthersMarkets()
 
   const activeFilteredBorrowerMarkets = (
     unfilteredBorrowerMarkets ?? []
@@ -130,7 +137,7 @@ export const MarketsSection = () => {
       {marketSection === BorrowerMarketDashboardSections.ACTIVE && (
         <BorrowerActiveMarketsTables
           markets={activeFilteredBorrowerMarkets}
-          isLoading={isLoading}
+          isLoading={isBorrowerMarketsLoading}
         />
       )}
     </Box>

@@ -2,6 +2,7 @@ import React, { ChangeEvent, useRef, useState } from "react"
 
 import {
   Box,
+  Button,
   IconButton,
   InputAdornment,
   SvgIcon,
@@ -40,7 +41,7 @@ export type PoliciesTabProps = {
   isMarketsLoading: boolean
 }
 
-export const PoliciesTab = ({
+export const PoliciesSection = ({
   markets,
   isMarketsLoading,
 }: PoliciesTabProps) => {
@@ -169,41 +170,43 @@ export const PoliciesTab = ({
 
   return (
     <Box sx={{ width: "100%" }}>
-      {/* <Box */}
-      {/*  sx={{ */}
-      {/*    width: "100%", */}
-      {/*    display: "flex", */}
-      {/*    justifyContent: "space-between", */}
-      {/*    alignItems: "center", */}
-      {/*  }} */}
-      {/* > */}
-      {/*  <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}> */}
-      {/*    <Typography variant="title2">Policies</Typography> */}
-      {/*    <Typography variant="text3" color={COLORS.santasGrey}> */}
-      {/*      Common agreement for several markets.{" "} */}
-      {/*      <Link */}
-      {/*        href="https://docs.wildcat.finance/" */}
-      {/*        style={{ color: COLORS.santasGrey }} */}
-      {/*      > */}
-      {/*        Learn more */}
-      {/*      </Link> */}
-      {/*    </Typography> */}
-      {/*  </Box> */}
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "0 24px",
+          marginBottom: "24px",
+        }}
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <Typography variant="title2">Policies</Typography>
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            Common agreement for several markets.{" "}
+            <Link
+              href="https://docs.wildcat.finance/"
+              style={{ color: COLORS.santasGrey }}
+            >
+              Learn more
+            </Link>
+          </Typography>
+        </Box>
 
-      {/*  <Link href={ROUTES.borrower.createMarket}> */}
-      {/*    <Button */}
-      {/*      variant="contained" */}
-      {/*      size="small" */}
-      {/*      sx={{ */}
-      {/*        paddingTop: "8px", */}
-      {/*        paddingBottom: "8px", */}
-      {/*        minWidth: "100px", */}
-      {/*      }} */}
-      {/*    > */}
-      {/*      {t("borrowerMarketList.button.newPolicy")} */}
-      {/*    </Button> */}
-      {/*  </Link> */}
-      {/* </Box> */}
+        <Link href={ROUTES.borrower.createMarket}>
+          <Button
+            variant="contained"
+            size="small"
+            sx={{
+              paddingTop: "8px",
+              paddingBottom: "8px",
+              minWidth: "100px",
+            }}
+          >
+            {t("borrowerMarketList.button.newPolicy")}
+          </Button>
+        </Link>
+      </Box>
 
       <Box
         sx={{

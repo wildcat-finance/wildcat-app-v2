@@ -230,10 +230,10 @@ export const BorrowerDashboardSidebar = () => {
             label="Non-Deposited"
             onClick={() => handleScrollToTable("non-deposited")}
           />
-          <DashboardButton
-            label="Outstanding Withdrawals"
-            onClick={() => handleScrollToTable("outstanding")}
-          />
+          {/* <DashboardButton */}
+          {/*  label="Outstanding Withdrawals" */}
+          {/*  onClick={() => handleScrollToTable("outstanding")} */}
+          {/* /> */}
         </DashboardSectionAccordion>
 
         <DashboardSectionAccordion
@@ -273,30 +273,30 @@ export const BorrowerDashboardSidebar = () => {
         </DashboardSectionAccordion>
       </DashboardPageAccordion>
 
-      <DashboardPageAccordion
-        label="MLA"
-        open={section === BorrowerDashboardSections.MLA}
-        onClick={() => handleChangeSection(BorrowerDashboardSections.MLA)}
-      >
-        <DashboardSectionAccordion
-          label="Waiting for sign"
-          open={false}
-          hideIndicator
-          onClick={() => handleScrollToTable("sign-waiting")}
-        />
-        <DashboardSectionAccordion
-          label="Signed"
-          open={false}
-          hideIndicator
-          onClick={() => handleScrollToTable("signed")}
-        />
-        <DashboardSectionAccordion
-          label="Other Markets"
-          open={false}
-          hideIndicator
-          onClick={() => handleScrollToTable("other")}
-        />
-      </DashboardPageAccordion>
+      {/* <DashboardPageAccordion */}
+      {/*  label="MLA" */}
+      {/*  open={section === BorrowerDashboardSections.MLA} */}
+      {/*  onClick={() => handleChangeSection(BorrowerDashboardSections.MLA)} */}
+      {/* > */}
+      {/*  <DashboardSectionAccordion */}
+      {/*    label="Waiting for sign" */}
+      {/*    open={false} */}
+      {/*    hideIndicator */}
+      {/*    onClick={() => handleScrollToTable("sign-waiting")} */}
+      {/*  /> */}
+      {/*  <DashboardSectionAccordion */}
+      {/*    label="Signed" */}
+      {/*    open={false} */}
+      {/*    hideIndicator */}
+      {/*    onClick={() => handleScrollToTable("signed")} */}
+      {/*  /> */}
+      {/*  <DashboardSectionAccordion */}
+      {/*    label="Other Markets" */}
+      {/*    open={false} */}
+      {/*    hideIndicator */}
+      {/*    onClick={() => handleScrollToTable("other")} */}
+      {/*  /> */}
+      {/* </DashboardPageAccordion> */}
 
       <DashboardPageAccordion
         label="Lenders"

@@ -9,7 +9,7 @@ import { useAccount } from "wagmi"
 
 import { LendersTable } from "@/app/[locale]/borrower/components/AuthorizedLendersTable"
 import { MarketsTables } from "@/app/[locale]/borrower/components/MarketsTables"
-import { PoliciesTab } from "@/app/[locale]/borrower/components/PoliciesTab"
+import { PoliciesSection } from "@/app/[locale]/borrower/components/PoliciesTab"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
 import { LeadBanner } from "@/components/LeadBanner"
@@ -229,7 +229,7 @@ export default function Borrower() {
           /> */}
 
           {/* <PoliciesTable isOpen label="Policies" /> */}
-          <PoliciesTab markets={markets} isMarketsLoading={isLoading} />
+          <PoliciesSection markets={markets} isMarketsLoading={isLoading} />
 
           {/* <Box marginTop="16px">
             <LendersTable
