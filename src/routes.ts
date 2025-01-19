@@ -5,7 +5,6 @@ export const ROUTES = {
   agreement: "/agreement",
   borrower: {
     root: BORROWER_ROOT,
-    newRoot: `/new-borrower`,
     market: `${BORROWER_ROOT}/market`,
     newMarket: `${BORROWER_ROOT}/new-market`,
     createMarket: `${BORROWER_ROOT}/create-market`,

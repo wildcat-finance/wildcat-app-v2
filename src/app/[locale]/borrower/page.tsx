@@ -9,11 +9,12 @@ import { useAccount } from "wagmi"
 import { PoliciesSection } from "@/app/[locale]/borrower/components/PoliciesTab"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetOthersMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetOthersMarkets"
+import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
-import { MarketsSection } from "./components/MarketsSection"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { BorrowerDashboardSections } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
-import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
+
+import { MarketsSection } from "./components/MarketsSection"
 
 export default function BorrowerPage() {
   const { t } = useTranslation()

@@ -7,12 +7,12 @@ import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { MarketsTableAccordion } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTableAccordion"
 import {
   MarketsTablesProps,
   TypeSafeColDef,
 } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
+import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"

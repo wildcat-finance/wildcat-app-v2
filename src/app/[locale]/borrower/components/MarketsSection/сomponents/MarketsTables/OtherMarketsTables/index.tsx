@@ -12,15 +12,15 @@ import {
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
-import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
-import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { MarketsTableAccordion } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTableAccordion"
 import { BorrowerActiveMarketsTableModel } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/BorrowerActiveMarketsTables"
 import {
   MarketsTablesProps,
   TypeSafeColDef,
 } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
+import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
+import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { TablePagination } from "@/components/TablePagination"

@@ -12,13 +12,13 @@ import { Market, MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
-import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { MarketsTableAccordion } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTableAccordion"
 import {
   MarketsTablesProps,
   TypeSafeColDef,
 } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
+import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
+import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
