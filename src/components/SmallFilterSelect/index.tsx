@@ -1,7 +1,9 @@
 import { ChangeEvent, Dispatch, SetStateAction, useRef, useState } from "react"
+import * as React from "react"
 
 import {
   Box,
+  Button,
   FormControl,
   FormControlLabel,
   InputAdornment,
@@ -249,6 +251,16 @@ export const SmallFilterSelect = ({
             />
           ))}
         </Box>
+
+        <Button
+          onClick={handleClear}
+          size="medium"
+          variant="contained"
+          color="secondary"
+          sx={{ width: "100%", marginTop: "12px" }}
+        >
+          Reset
+        </Button>
       </Select>
     </FormControl>
   )

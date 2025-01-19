@@ -1,7 +1,7 @@
 import { ReactNode } from "react"
 
-import { MarketStatus } from "@/utils/marketStatus"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
+import { MarketStatus } from "@/utils/marketStatus"
 
 export type MarketsTableAccordionProps = {
   isOpen?: boolean

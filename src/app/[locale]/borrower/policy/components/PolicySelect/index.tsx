@@ -20,7 +20,6 @@ import {
 } from "@mui/material"
 import { useRouter } from "next/navigation"
 
-import { SmallFilterSelectItem } from "../../../../../../components/SmallFilterSelect"
 import {
   MarketSelectMenuItemStyles,
   MarketSelectMenuStyles,
@@ -32,6 +31,8 @@ import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { resetPolicyLendersState } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 import { COLORS } from "@/theme/colors"
+
+import { SmallFilterSelectItem } from "../../../../../../components/SmallFilterSelect"
 
 export type PolicySelectProps = {
   policies: SmallFilterSelectItem[]

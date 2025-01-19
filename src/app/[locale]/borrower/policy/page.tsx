@@ -13,7 +13,6 @@ import {
 import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
-import { SmallFilterSelectItem } from "../../../../components/SmallFilterSelect"
 import { GlossarySidebar } from "@/app/[locale]/borrower/create-market/components/GlossarySidebar"
 import { useGetBorrowerHooksDataWithSubgraph } from "@/app/[locale]/borrower/hooks/useGetBorrowerHooksData"
 import { useGetPolicy } from "@/app/[locale]/borrower/hooks/useGetPolicy"
@@ -30,6 +29,8 @@ import {
   setPolicyLenders,
 } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 import { COLORS } from "@/theme/colors"
+
+import { SmallFilterSelectItem } from "../../../../components/SmallFilterSelect"
 
 const TabStyle = {
   fontSize: "13px",
