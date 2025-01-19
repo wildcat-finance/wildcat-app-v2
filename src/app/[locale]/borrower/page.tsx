@@ -1,244 +1,53 @@
 "use client"
 
-import React, { useEffect } from "react"
+import React from "react"
 
-import { Box, Button, Tab, Tabs, Typography } from "@mui/material"
-import Link from "next/link"
+import { Box } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
-import { LendersTable } from "@/app/[locale]/borrower/components/AuthorizedLendersTable"
-import { MarketsTables } from "@/app/[locale]/borrower/components/MarketsTables"
 import { PoliciesSection } from "@/app/[locale]/borrower/components/PoliciesTab"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
-import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
-import { LeadBanner } from "@/components/LeadBanner"
-import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-import { useGetController } from "@/hooks/useGetController"
-import { ROUTES } from "@/routes"
+import { useGetOthersMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetOthersMarkets"
+import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
+import { MarketsSection } from "./components/MarketsSection"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setTab } from "@/store/slices/borrowerOverviewSlice/borrowerOverviewSlice"
-import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
+import { BorrowerDashboardSections } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
+import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
 
-import { PoliciesTable } from "./components/PoliciesTable"
-import { useBorrowerInvitationRedirect } from "./hooks/useBorrowerInvitationRedirect"
-import { PageTitleContainer } from "./page-style"
-
-export default function Borrower() {
-  const dispatch = useAppDispatch()
-  const tab = useAppSelector((state) => state.borrowerOverview.tab)
-
+export default function BorrowerPage() {
   const { t } = useTranslation()
-  const bannerDisplayConfig = useBorrowerInvitationRedirect()
+  const dispatch = useAppDispatch()
 
-  const { isConnected } = useAccount()
+  const section = useAppSelector((state) => state.borrowerDashboard.section)
 
-  const { data: controller } = useGetController()
-  const { isWrongNetwork } = useCurrentNetwork()
-  const isRegisteredBorrower = controller?.isRegisteredBorrower
+  const { isConnected, address } = useAccount()
 
-  const showBorrowerTables =
-    !isWrongNetwork && isConnected && isRegisteredBorrower
-
-  const handleTabsChange = (
-    event: React.SyntheticEvent,
-    newTab: BorrowerOverviewTabs,
-  ) => {
-    dispatch(setTab(newTab))
-  }
+  const {
+    data: unfilteredBorrowerMarkets,
+    isLoading: isBorrowerMarketsLoading,
+  } = useGetBorrowerMarkets(undefined)
+  const { data: unfilteredOtherMarkets, isLoading: isOthersMarketsLoading } =
+    useGetOthersMarkets()
 
   const { data: lenders } = useGetAllLenders()
 
-  const selectedLendersStore = useAppSelector(
-    (state) => state.borrowerLendersTabSidebar.lenderFilter,
-  )
-  const selectedMarketsStore = useAppSelector(
-    (state) => state.borrowerLendersTabSidebar.marketFilter,
-  )
-  const searchStore = useAppSelector(
-    (state) => state.borrowerLendersTabSidebar.searchFilter,
-  )
-  const lendersNames: { [key: string]: string } = JSON.parse(
-    typeof window !== "undefined"
-      ? localStorage.getItem("lenders-name") || "{}"
-      : "{}",
-  )
-
-  const lendersData = lenders?.addresses
-    .map((a) => lenders?.lenders[a])
-    .map((l) => ({
-      ...l,
-      markets: l?.markets.marketIds.map((m) => l?.markets.markets[m]),
-    }))
-    .map((lender) => ({
-      address: lender.lender,
-      isAuthorized: lender.authorized,
-      markets: lender.markets.map((market) => ({
-        name: market.name,
-        address: market.id,
-      })),
-    }))
-
-  const filteredLendersData = (lendersData ?? []).filter((lender) => {
-    const searchFilterLower = searchStore.toLowerCase()
-
-    const isLenderMatchedBySearch =
-      (lendersNames[lender.address] ?? "")
-        .toLowerCase()
-        .includes(searchFilterLower) ||
-      lender.address.toLowerCase().includes(searchFilterLower)
-
-    const isMarketMatchedBySearch = lender.markets.some(
-      (market) =>
-        market.name.toLowerCase().includes(searchFilterLower) ||
-        market.address.toLowerCase().includes(searchFilterLower),
-    )
-
-    const matchesSearch =
-      searchStore === "" || isLenderMatchedBySearch || isMarketMatchedBySearch
-
-    const isLenderSelected =
-      selectedLendersStore.length === 0 ||
-      selectedLendersStore.some(
-        (selectedLender) => selectedLender.address === lender.address,
-      )
-
-    const hasSelectedMarkets =
-      selectedMarketsStore.length === 0 ||
-      lender.markets.some((market) =>
-        selectedMarketsStore.some(
-          (selectedMarket) => selectedMarket.address === market.address,
-        ),
-      )
-
-    if (selectedLendersStore.length > 0 && selectedMarketsStore.length > 0) {
-      return isLenderSelected && hasSelectedMarkets && matchesSearch
-    }
-    if (selectedLendersStore.length > 0) {
-      return isLenderSelected && matchesSearch
-    }
-    if (selectedMarketsStore.length > 0) {
-      return hasSelectedMarkets && matchesSearch
-    }
-
-    return matchesSearch
-  })
-
-  const { data: markets, isLoading } = useGetBorrowerMarkets(undefined)
-
-  const authorizedLenders = filteredLendersData?.filter(
-    (lender) => lender.isAuthorized,
-  )
-
-  const deauthorizedLenders = filteredLendersData?.filter(
-    (lender) => !lender.isAuthorized,
-  )
-
-  useEffect(() => {
-    sessionStorage.setItem("previousPageUrl", window.location.href)
-  }, [])
+  console.log(lenders, "lenders")
 
   return (
     <Box
-      sx={{ height: "calc(100vh - 43px - 43px - 52px)", overflow: "hidden" }}
+      sx={{
+        padding: "32px 0 0",
+        overflow: "hidden",
+      }}
     >
-      <Box sx={PageTitleContainer}>
-        {showBorrowerTables ? (
-          <Tabs
-            value={tab}
-            onChange={handleTabsChange}
-            aria-label="Borrower market list tabs"
-          >
-            <Tab
-              value="markets"
-              label={t("borrowerMarketList.title.allMarkets")}
-            />
-            {/* <Tab value="mla" label={t("borrowerMarketList.title.mla")} /> */}
-            <Tab
-              value="policies"
-              label={t("borrowerMarketList.title.policies")}
-            />
-          </Tabs>
-        ) : (
-          <Typography variant="title2">
-            {t("borrowerMarketList.title.allMarkets")}
-          </Typography>
-        )}
+      {section === BorrowerDashboardSections.MARKETS && <MarketsSection />}
 
-        {!bannerDisplayConfig.hideNewMarketButton && (
-          <Link
-            href={
-              tab === BorrowerOverviewTabs.MARKETS
-                ? ROUTES.borrower.createMarket
-                : ROUTES.borrower.createPolicy
-            }
-          >
-            <Button
-              variant="contained"
-              size="small"
-              disabled={isWrongNetwork}
-              sx={{
-                paddingTop: "8px",
-                paddingBottom: "8px",
-                minWidth: "100px",
-              }}
-            >
-              {tab === BorrowerOverviewTabs.MARKETS
-                ? t("borrowerMarketList.button.newMarket")
-                : t("borrowerMarketList.button.newPolicy")}
-            </Button>
-          </Link>
-        )}
-      </Box>
-
-      {!bannerDisplayConfig.hideBanner && (
-        <Box padding="0 16px">
-          <LeadBanner
-            title={bannerDisplayConfig.title}
-            text={bannerDisplayConfig.text}
-            buttonText={bannerDisplayConfig.buttonText}
-            buttonLink={bannerDisplayConfig.link}
-          />
-        </Box>
-      )}
-
-      {tab === "markets" && (
-        <MarketsTables
-          showBanner={!bannerDisplayConfig.hideBanner}
-          unfilteredBorrowerMarkets={markets}
-          isBorrowerMarketsLoading={isLoading}
+      {section === BorrowerDashboardSections.POLICIES && (
+        <PoliciesSection
+          markets={unfilteredBorrowerMarkets}
+          isMarketsLoading={isBorrowerMarketsLoading}
         />
-      )}
-
-      {tab === "policies" && (
-        <Box
-          sx={{
-            height: `calc(100vh - 43px - 52px - 52px - 110px)`,
-            display: "flex",
-            flexDirection: "column",
-            width: "100%",
-            overflow: "hidden",
-            overflowY: "visible",
-          }}
-        >
-          {/* <LendersTable
-            tableData={authorizedLenders}
-            isLoading={false}
-            isOpen
-            label="Active Lenders"
-          /> */}
-
-          {/* <PoliciesTable isOpen label="Policies" /> */}
-          <PoliciesSection markets={markets} isMarketsLoading={isLoading} />
-
-          {/* <Box marginTop="16px">
-            <LendersTable
-              tableData={deauthorizedLenders}
-              isLoading={false}
-              label="Deleted Lenders"
-            />
-          </Box> */}
-        </Box>
       )}
     </Box>
   )

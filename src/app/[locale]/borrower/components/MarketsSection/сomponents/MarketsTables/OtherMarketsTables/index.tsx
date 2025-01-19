@@ -15,12 +15,12 @@ import { useTranslation } from "react-i18next"
 import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
-import { MarketsTableAccordion } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTableAccordion"
-import { BorrowerActiveMarketsTableModel } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTables/BorrowerActiveMarketsTables"
+import { MarketsTableAccordion } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTableAccordion"
+import { BorrowerActiveMarketsTableModel } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/BorrowerActiveMarketsTables"
 import {
   MarketsTablesProps,
   TypeSafeColDef,
-} from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTables/interface"
+} from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { TablePagination } from "@/components/TablePagination"
@@ -220,7 +220,7 @@ export const OtherMarketsTables = ({
           }}
         >
           <Link
-            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+            href={`${ROUTES.borrower.profile}/${params.row.borrowerAddress}`}
             style={{
               textDecoration: "none",
               width: "fit-content",
@@ -267,6 +267,7 @@ export const OtherMarketsTables = ({
       headerAlign: "right",
       align: "right",
       flex: 1.5,
+      sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
