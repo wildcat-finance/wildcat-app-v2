@@ -6,11 +6,12 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
-import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
-import { useGetOthersMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetOthersMarkets"
 import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
-import { BorrowerActiveMarketsTables } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/BorrowerActiveMarketsTables"
+import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { MarketSectionSwitcher } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketSectionSwitcher"
+import { BorrowerActiveMarketsTables } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTables/BorrowerActiveMarketsTables"
+import { BorrowerTerminatedMarketsTables } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTables/BorrowerTerminatedMarketsTables"
+import { OtherMarketsTables } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTables/OtherMarketsTables"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetController } from "@/hooks/useGetController"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -89,7 +90,7 @@ export const MarketsSection = ({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
-  const { isConnected } = useAccount()
+  const { isConnected, address } = useAccount()
   const { isWrongNetwork } = useCurrentNetwork()
 
   const { data: borrowers } = useGetBorrowers()
@@ -99,6 +100,30 @@ export const MarketsSection = ({
   const activeFilteredBorrowerMarkets = (
     unfilteredBorrowerMarkets ?? []
   ).filter((market) => !market.isClosed)
+
+  // TEST
+
+  const {
+    data: marketAccounts,
+    isLoadingInitial,
+    isLoadingUpdate,
+  } = useLendersMarkets()
+
+  const isLoading = isLoadingInitial || isLoadingUpdate
+
+  const testBorrowerMarketAccounts = marketAccounts.filter(
+    (account) =>
+      account.market.borrower.toLowerCase() === address?.toLowerCase(),
+  )
+
+  const testTerminatedMarketAccounts = testBorrowerMarketAccounts.filter(
+    (account) => account.market.isClosed,
+  )
+
+  const testOtherMarketAccounts = marketAccounts.filter(
+    (account) =>
+      account.market.borrower.toLowerCase() !== address?.toLowerCase(),
+  )
 
   return (
     <Box
@@ -138,6 +163,20 @@ export const MarketsSection = ({
         <BorrowerActiveMarketsTables
           markets={activeFilteredBorrowerMarkets}
           isLoading={isBorrowerMarketsLoading}
+        />
+      )}
+
+      {marketSection === BorrowerMarketDashboardSections.TERMINATED && (
+        <BorrowerTerminatedMarketsTables
+          marketAccounts={testTerminatedMarketAccounts}
+          isLoading={isLoading}
+        />
+      )}
+
+      {marketSection === BorrowerMarketDashboardSections.OTHER && (
+        <OtherMarketsTables
+          marketAccounts={testOtherMarketAccounts}
+          isLoading={isLoading}
         />
       )}
     </Box>

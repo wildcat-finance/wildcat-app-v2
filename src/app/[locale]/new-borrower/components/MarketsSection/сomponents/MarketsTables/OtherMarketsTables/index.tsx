@@ -1,56 +1,62 @@
-import * as React from "react"
 import { useEffect, useRef } from "react"
+import * as React from "react"
 
-import { Box } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
+import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import {
-  DataGrid,
-  GridColDef,
-  GridRenderCellParams,
-  GridRowsProp,
-} from "@mui/x-data-grid"
-import { Market, TokenAmount } from "@wildcatfi/wildcat-sdk"
+  DepositStatus,
+  MarketAccount,
+  MarketVersion,
+  TokenAmount,
+} from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { MarketsTableAccordion } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTableAccordion"
+import { BorrowerActiveMarketsTableModel } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTables/BorrowerActiveMarketsTables"
+import { TypeSafeColDef } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { TablePagination } from "@/components/TablePagination"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
+import { COLORS } from "@/theme/colors"
 import {
   statusComparator,
   tokenAmountComparator,
   typeComparator,
 } from "@/utils/comparators"
-import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
-import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
+import {
+  formatBps,
+  formatTokenWithCommas,
+  trimAddress,
+} from "@/utils/formatters"
+import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
-export type BorrowerActiveMarketsTablesType = {
-  markets: Market[]
-  isLoading: boolean
-}
-
-export type TypeSafeColDef<T> = GridColDef & { field: keyof T }
-
-export type BorrowerActiveMarketsTableModel = {
+export type OtherMarketsTableModel = {
   id: string
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
+  borrower: string | undefined
   asset: string
   apr: number
   debt: TokenAmount | undefined
-  borrowable: TokenAmount
+  isSelfOnboard: boolean
 }
 
-export const BorrowerActiveMarketsTables = ({
-  markets,
+export const OtherMarketsTables = ({
+  marketAccounts,
   isLoading,
-}: BorrowerActiveMarketsTablesType) => {
+}: {
+  marketAccounts: MarketAccount[]
+  isLoading: boolean
+}) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
@@ -58,30 +64,41 @@ export const BorrowerActiveMarketsTables = ({
     (state) => state.borrowerDashboard.scrollTarget,
   )
 
-  const depositedRef = useRef<HTMLDivElement>(null)
-  const nonDepositedRef = useRef<HTMLDivElement>(null)
+  const selfOnboardRef = useRef<HTMLDivElement>(null)
+  const manualRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (scrollTargetId === "deposited" && depositedRef.current) {
-      depositedRef.current.scrollIntoView({ behavior: "smooth" })
+    if (scrollTargetId === "self-onboard" && selfOnboardRef.current) {
+      selfOnboardRef.current.scrollIntoView({ behavior: "smooth" })
       dispatch(setScrollTarget(null))
     }
-    if (scrollTargetId === "non-deposited" && nonDepositedRef.current) {
-      nonDepositedRef.current.scrollIntoView({ behavior: "smooth" })
+    if (scrollTargetId === "manual" && manualRef.current) {
+      manualRef.current.scrollIntoView({ behavior: "smooth" })
       dispatch(setScrollTarget(null))
     }
   }, [scrollTargetId])
 
-  const rows: GridRowsProp<BorrowerActiveMarketsTableModel> = markets.map(
-    (market) => {
+  const { data: borrowers } = useGetBorrowers()
+
+  const rows: GridRowsProp<OtherMarketsTableModel> = marketAccounts.map(
+    (account) => {
+      const { market } = account
+
       const {
         address,
         name,
+        borrower: borrowerAddress,
         underlyingToken,
         annualInterestBips,
-        borrowableAssets,
         totalBorrowed,
       } = market
+
+      const borrower = (borrowers ?? []).find(
+        (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
+      )
+      const borrowerName = borrower
+        ? borrower.name
+        : trimAddress(borrowerAddress)
 
       const marketStatus = getMarketStatusChip(market)
       const marketType = getMarketTypeChip(market)
@@ -91,25 +108,22 @@ export const BorrowerActiveMarketsTables = ({
         status: marketStatus,
         term: marketType,
         name,
+        borrower: borrowerName,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
-        borrowable: borrowableAssets,
         debt: totalBorrowed,
+        isSelfOnboard:
+          !account.hasEverInteracted &&
+          market.version === MarketVersion.V2 &&
+          account.depositAvailability === DepositStatus.Ready,
       }
     },
   )
 
-  const depositedMarkets = rows.filter(
-    (market) => !market.borrowable.raw.isZero() || !market.debt?.raw.isZero(),
-  )
+  const selfOnboard = rows.filter((market) => market.isSelfOnboard)
+  const manual = rows.filter((market) => !market.isSelfOnboard)
 
-  const nonDepositedMarkets = rows.filter(
-    (market) =>
-      market.borrowable.raw.isZero() &&
-      market.status.status === MarketStatus.HEALTHY,
-  )
-
-  const columns: TypeSafeColDef<BorrowerActiveMarketsTableModel>[] = [
+  const columns: TypeSafeColDef<OtherMarketsTableModel>[] = [
     {
       field: "status",
       headerName: "Status",
@@ -174,6 +188,62 @@ export const BorrowerActiveMarketsTables = ({
       ),
     },
     {
+      field: "borrower",
+      minWidth: 134,
+      flex: 1.7,
+      headerAlign: "left",
+      align: "left",
+      renderHeader: () => (
+        <Typography
+          variant="text4"
+          sx={{
+            lineHeight: "10px",
+            color: COLORS.santasGrey,
+            padding: "0 12px",
+          }}
+        >
+          Borrower
+        </Typography>
+      ),
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.lender.market}/${params.row.id}`}
+          style={{
+            textDecoration: "none",
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            color: "inherit",
+            justifyContent: "flex-start",
+          }}
+        >
+          <Link
+            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+            style={{
+              textDecoration: "none",
+              width: "fit-content",
+              height: "fit-content",
+            }}
+          >
+            <Button
+              size="small"
+              variant="text"
+              sx={{
+                fontSize: "13px",
+                lineHeight: "20px",
+                fontWeight: 500,
+                minWidth: "fit-content",
+                width: "fit-content",
+              }}
+            >
+              {params.value}
+            </Button>
+          </Link>
+        </Link>
+      ),
+    },
+    {
       field: "asset",
       headerName: "Asset",
       minWidth: 95,
@@ -211,30 +281,6 @@ export const BorrowerActiveMarketsTables = ({
       ),
     },
     {
-      field: "borrowable",
-      headerName: t("borrowerMarketList.table.header.borrowable"),
-      minWidth: 106,
-      flex: 1.6,
-      headerAlign: "right",
-      align: "right",
-      sortComparator: tokenAmountComparator,
-      renderCell: (
-        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
-      ) => (
-        <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
-        >
-          {params.value
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
-        </Link>
-      ),
-    },
-    {
       field: "apr",
       headerName: "APR",
       minWidth: 102,
@@ -252,6 +298,22 @@ export const BorrowerActiveMarketsTables = ({
     },
   ]
 
+  const [selfOnboardPaginationModel, setSelfOnboardPaginationModel] =
+    React.useState({
+      pageSize: 10,
+      page: 0,
+    })
+
+  const [manualPaginationModel, setManualPaginationModel] = React.useState({
+    pageSize: 10,
+    page: 0,
+  })
+
+  // useEffect(() => {
+  //   setSelfOnboardPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+  //   setManualPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+  // }, [assetFilter, statusFilter, nameFilter])
+
   return (
     <Box
       sx={{
@@ -266,10 +328,10 @@ export const BorrowerActiveMarketsTables = ({
         paddingBottom: "26px",
       }}
     >
-      <Box id="deposited" ref={depositedRef}>
+      <Box id="self-onboard" ref={selfOnboardRef}>
         <MarketsTableAccordion
-          label="Deposited"
-          marketsLength={depositedMarkets.length}
+          label="Self-Onboard"
+          marketsLength={selfOnboard.length}
           isLoading={isLoading}
           isOpen
         >
@@ -281,19 +343,25 @@ export const BorrowerActiveMarketsTables = ({
               "& .MuiDataGrid-columnHeader": { padding: 0 },
               "& .MuiDataGrid-cell": { padding: "0px" },
             }}
-            rows={depositedMarkets}
+            rows={selfOnboard}
             columns={columns}
             columnHeaderHeight={40}
+            paginationModel={selfOnboardPaginationModel}
+            onPaginationModelChange={setSelfOnboardPaginationModel}
+            slots={{
+              pagination: TablePagination,
+            }}
+            hideFooter={false}
           />
         </MarketsTableAccordion>
       </Box>
 
-      <Box id="non-deposited" ref={nonDepositedRef}>
+      <Box id="manual" ref={manualRef}>
         <MarketsTableAccordion
-          label="Non-Deposited"
+          label="Onboard by Borrower"
           isLoading={isLoading}
           isOpen
-          marketsLength={nonDepositedMarkets.length}
+          marketsLength={manual.length}
         >
           <DataGrid
             sx={{
@@ -303,9 +371,15 @@ export const BorrowerActiveMarketsTables = ({
               "& .MuiDataGrid-columnHeader": { padding: 0 },
               "& .MuiDataGrid-cell": { padding: "0px" },
             }}
-            rows={nonDepositedMarkets}
+            rows={manual}
             columns={columns}
             columnHeaderHeight={40}
+            paginationModel={manualPaginationModel}
+            onPaginationModelChange={setManualPaginationModel}
+            slots={{
+              pagination: TablePagination,
+            }}
+            hideFooter={false}
           />
         </MarketsTableAccordion>
       </Box>

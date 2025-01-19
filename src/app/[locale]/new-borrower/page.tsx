@@ -4,10 +4,12 @@ import React from "react"
 
 import { Box } from "@mui/material"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { PoliciesSection } from "@/app/[locale]/borrower/components/PoliciesTab"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetOthersMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetOthersMarkets"
+import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { MarketsSection } from "@/app/[locale]/new-borrower/components/MarketsSection"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { BorrowerDashboardSections } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
@@ -17,6 +19,8 @@ export default function BorrowerPage() {
   const dispatch = useAppDispatch()
 
   const section = useAppSelector((state) => state.borrowerDashboard.section)
+
+  const { isConnected, address } = useAccount()
 
   const {
     data: unfilteredBorrowerMarkets,
@@ -28,7 +32,6 @@ export default function BorrowerPage() {
   return (
     <Box
       sx={{
-        height: "calc(100vh - 43px - 43px - 52px)",
         padding: "32px 0 0",
         overflow: "hidden",
       }}
