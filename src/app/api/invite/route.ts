@@ -46,6 +46,12 @@ export async function GET(request: NextRequest) {
         chainId: true,
         address: true,
         name: true,
+        description: true,
+        founded: true,
+        headquarters: true,
+        jurisdiction: true,
+        physicalAddress: true,
+        entityKind: true,
         inviter: true,
         timeInvited: true,
         borrower: {
@@ -82,7 +88,15 @@ export async function POST(request: NextRequest) {
   }
   const address = body.address.toLowerCase()
   const chainId = TargetChainId
-  const { name } = body
+  const {
+    name,
+    description,
+    entityKind,
+    founded,
+    headquarters,
+    jurisdiction,
+    physicalAddress,
+  } = body
   const inviter = token.address
   const existingBorrower = await prisma.borrower.findFirst({
     where: {
@@ -102,6 +116,12 @@ export async function POST(request: NextRequest) {
         chainId,
         address,
         name,
+        description,
+        entityKind,
+        founded,
+        headquarters,
+        jurisdiction,
+        physicalAddress,
         registeredOnChain: isRegisteredBorrower,
         invitation: {
           create: {
@@ -203,9 +223,25 @@ export async function PUT(request: NextRequest) {
   }
   const address = token.address.toLowerCase()
   const chainId = TargetChainId
-  const { name, timeSigned, signature } = body
+  const {
+    name,
+    description,
+    entityKind,
+    founded,
+    headquarters,
+    jurisdiction,
+    physicalAddress,
+    timeSigned,
+    signature,
+  } = body
   console.log({
     name,
+    description,
+    entityKind,
+    founded,
+    headquarters,
+    jurisdiction,
+    physicalAddress,
     timeSigned,
     signature,
     address,
@@ -251,7 +287,15 @@ export async function PUT(request: NextRequest) {
       2,
     ),
   )
-  if (borrowerInvitation.name !== name) {
+  if (
+    borrowerInvitation.name !== name ||
+    borrowerInvitation.description !== description ||
+    borrowerInvitation.entityKind !== entityKind ||
+    borrowerInvitation.founded !== founded ||
+    borrowerInvitation.headquarters !== headquarters ||
+    borrowerInvitation.jurisdiction !== jurisdiction ||
+    borrowerInvitation.physicalAddress !== physicalAddress
+  ) {
     await prisma.borrower.update({
       where: {
         chainId_address: {
@@ -259,7 +303,15 @@ export async function PUT(request: NextRequest) {
           address,
         },
       },
-      data: { name },
+      data: {
+        name,
+        description,
+        entityKind,
+        founded,
+        headquarters,
+        jurisdiction,
+        physicalAddress,
+      },
     })
   }
   await prisma.borrowerServiceAgreementSignature.create({
