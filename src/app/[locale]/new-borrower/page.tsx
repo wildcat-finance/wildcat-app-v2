@@ -36,14 +36,7 @@ export default function BorrowerPage() {
         overflow: "hidden",
       }}
     >
-      {section === BorrowerDashboardSections.MARKETS && (
-        <MarketsSection
-          unfilteredBorrowerMarkets={unfilteredBorrowerMarkets}
-          unfilteredOtherMarkets={unfilteredOtherMarkets}
-          isBorrowerMarketsLoading={isBorrowerMarketsLoading}
-          isOtherMarketsLoading={isOthersMarketsLoading}
-        />
-      )}
+      {section === BorrowerDashboardSections.MARKETS && <MarketsSection />}
 
       {section === BorrowerDashboardSections.POLICIES && (
         <PoliciesSection

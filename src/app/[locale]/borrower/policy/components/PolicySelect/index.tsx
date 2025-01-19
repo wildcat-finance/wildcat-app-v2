@@ -20,7 +20,7 @@ import {
 } from "@mui/material"
 import { useRouter } from "next/navigation"
 
-import { PolicyFilterSelectItem } from "@/app/[locale]/borrower/components/PoliciesTab/components/PolicyFilterSelect"
+import { SmallFilterSelectItem } from "../../../../../../components/SmallFilterSelect"
 import {
   MarketSelectMenuItemStyles,
   MarketSelectMenuStyles,
@@ -34,9 +34,9 @@ import { resetPolicyLendersState } from "@/store/slices/policyLendersSlice/polic
 import { COLORS } from "@/theme/colors"
 
 export type PolicySelectProps = {
-  policies: PolicyFilterSelectItem[]
-  selected: PolicyFilterSelectItem
-  setSelected: Dispatch<SetStateAction<PolicyFilterSelectItem>>
+  policies: SmallFilterSelectItem[]
+  selected: SmallFilterSelectItem
+  setSelected: Dispatch<SetStateAction<SmallFilterSelectItem>>
 }
 
 export const PolicySelect = ({

@@ -15,16 +15,17 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
-import {
-  PolicyFilterSelect,
-  PolicyFilterSelectItem,
-} from "@/app/[locale]/borrower/components/PoliciesTab/components/PolicyFilterSelect"
 import { useGetBorrowerHooksDataWithSubgraph } from "@/app/[locale]/borrower/hooks/useGetBorrowerHooksData"
 import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
 import { ROUTES } from "@/routes"
 import { setLenderFilter } from "@/store/slices/editLendersListSlice/editLendersListSlice"
 import { COLORS } from "@/theme/colors"
+
+import {
+  SmallFilterSelect,
+  SmallFilterSelectItem,
+} from "../../../../../components/SmallFilterSelect"
 
 export type TypeSafeColDef<T> = GridColDef & { field: keyof T }
 
@@ -164,7 +165,7 @@ export const PoliciesSection = ({
     name: market.name,
   }))
 
-  const [marketsFilter, setMarketsFilter] = useState<PolicyFilterSelectItem[]>(
+  const [marketsFilter, setMarketsFilter] = useState<SmallFilterSelectItem[]>(
     [],
   )
 
@@ -268,7 +269,7 @@ export const PoliciesSection = ({
           }}
         />
 
-        <PolicyFilterSelect
+        <SmallFilterSelect
           placeholder="Markets"
           options={marketsOptions ?? []}
           selected={marketsFilter}

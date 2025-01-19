@@ -1,9 +1,17 @@
 import { GridColDef } from "@mui/x-data-grid"
-import { Market } from "@wildcatfi/wildcat-sdk"
+import { Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
 
-export type BorrowerMarketsTablesType = {
-  markets: Market[]
+import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
+import { MarketStatus } from "@/utils/marketStatus"
+
+export type MarketsTablesProps = {
+  marketAccounts: MarketAccount[]
   isLoading: boolean
+  filters: {
+    nameFilter: string
+    assetFilter: SmallFilterSelectItem[]
+    statusFilter: MarketStatus[]
+  }
 }
 
 export type TypeSafeColDef<T> = GridColDef & { field: keyof T }

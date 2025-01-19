@@ -8,7 +8,7 @@ import {
   GridRenderCellParams,
   GridRowsProp,
 } from "@mui/x-data-grid"
-import { Market, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { Market, MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -16,11 +16,12 @@ import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTab
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { MarketsTableAccordion } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTableAccordion"
 import {
-  BorrowerMarketsTablesType,
+  MarketsTablesProps,
   TypeSafeColDef,
 } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
@@ -45,9 +46,10 @@ export type BorrowerActiveMarketsTableModel = {
 }
 
 export const BorrowerActiveMarketsTables = ({
-  markets,
+  marketAccounts,
   isLoading,
-}: BorrowerMarketsTablesType) => {
+  filters,
+}: MarketsTablesProps) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
@@ -69,8 +71,10 @@ export const BorrowerActiveMarketsTables = ({
     }
   }, [scrollTargetId])
 
-  const rows: GridRowsProp<BorrowerActiveMarketsTableModel> = markets.map(
-    (market) => {
+  const rows: GridRowsProp<BorrowerActiveMarketsTableModel> =
+    marketAccounts.map((account) => {
+      const { market } = account
+
       const {
         address,
         name,
@@ -93,8 +97,7 @@ export const BorrowerActiveMarketsTables = ({
         borrowable: borrowableAssets,
         debt: totalBorrowed,
       }
-    },
-  )
+    })
 
   const depositedMarkets = rows.filter(
     (market) => !market.borrowable.raw.isZero() || !market.debt?.raw.isZero(),
@@ -269,6 +272,10 @@ export const BorrowerActiveMarketsTables = ({
           marketsLength={depositedMarkets.length}
           isLoading={isLoading}
           isOpen
+          nameFilter={filters.nameFilter}
+          assetFilter={filters.assetFilter}
+          statusFilter={filters.statusFilter}
+          showNoFilteredMarkets
         >
           <DataGrid
             sx={{
@@ -291,6 +298,10 @@ export const BorrowerActiveMarketsTables = ({
           isLoading={isLoading}
           isOpen
           marketsLength={nonDepositedMarkets.length}
+          nameFilter={filters.nameFilter}
+          assetFilter={filters.assetFilter}
+          statusFilter={filters.statusFilter}
+          showNoFilteredMarkets
         >
           <DataGrid
             sx={{

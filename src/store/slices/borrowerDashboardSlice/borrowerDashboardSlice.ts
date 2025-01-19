@@ -2,7 +2,6 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
 export enum BorrowerDashboardSections {
   MARKETS = "markets",
-  MLA = "mla",
   POLICIES = "policies",
   LENDERS = "lenders",
 }

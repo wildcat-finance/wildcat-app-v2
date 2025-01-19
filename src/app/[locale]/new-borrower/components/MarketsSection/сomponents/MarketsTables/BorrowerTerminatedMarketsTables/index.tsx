@@ -9,7 +9,10 @@ import { useTranslation } from "react-i18next"
 
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { MarketsTableAccordion } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTableAccordion"
-import { TypeSafeColDef } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTables/interface"
+import {
+  MarketsTablesProps,
+  TypeSafeColDef,
+} from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -34,10 +37,8 @@ export type BorrowerTerminatedMarketsTableModel = {
 export const BorrowerTerminatedMarketsTables = ({
   marketAccounts,
   isLoading,
-}: {
-  marketAccounts: MarketAccount[]
-  isLoading: boolean
-}) => {
+  filters,
+}: MarketsTablesProps) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
@@ -209,6 +210,10 @@ export const BorrowerTerminatedMarketsTables = ({
           marketsLength={prevActive.length}
           isLoading={isLoading}
           isOpen
+          nameFilter={filters.nameFilter}
+          assetFilter={filters.assetFilter}
+          statusFilter={filters.statusFilter}
+          showNoFilteredMarkets
         >
           <DataGrid
             sx={{
@@ -231,6 +236,10 @@ export const BorrowerTerminatedMarketsTables = ({
           isLoading={isLoading}
           isOpen
           marketsLength={neverActive.length}
+          nameFilter={filters.nameFilter}
+          assetFilter={filters.assetFilter}
+          statusFilter={filters.statusFilter}
+          showNoFilteredMarkets
         >
           <DataGrid
             sx={{

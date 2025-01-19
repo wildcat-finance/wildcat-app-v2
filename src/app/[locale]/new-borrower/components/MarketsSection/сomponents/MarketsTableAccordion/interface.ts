@@ -1,6 +1,7 @@
 import { ReactNode } from "react"
 
 import { MarketStatus } from "@/utils/marketStatus"
+import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 
 export type MarketsTableAccordionProps = {
   isOpen?: boolean
@@ -14,7 +15,7 @@ export type MarketsTableAccordionProps = {
 
   showNoFilteredMarkets?: boolean
   statusFilter?: MarketStatus[]
-  assetFilter?: { name: string; address: string }[]
+  assetFilter?: SmallFilterSelectItem[]
   nameFilter?: string
 
   children: ReactNode

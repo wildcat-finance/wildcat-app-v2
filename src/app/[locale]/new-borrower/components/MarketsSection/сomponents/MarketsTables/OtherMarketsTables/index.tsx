@@ -17,7 +17,10 @@ import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style
 import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { MarketsTableAccordion } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTableAccordion"
 import { BorrowerActiveMarketsTableModel } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTables/BorrowerActiveMarketsTables"
-import { TypeSafeColDef } from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTables/interface"
+import {
+  MarketsTablesProps,
+  TypeSafeColDef,
+} from "@/app/[locale]/new-borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { TablePagination } from "@/components/TablePagination"
@@ -53,10 +56,8 @@ export type OtherMarketsTableModel = {
 export const OtherMarketsTables = ({
   marketAccounts,
   isLoading,
-}: {
-  marketAccounts: MarketAccount[]
-  isLoading: boolean
-}) => {
+  filters,
+}: MarketsTablesProps) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
@@ -309,10 +310,12 @@ export const OtherMarketsTables = ({
     page: 0,
   })
 
-  // useEffect(() => {
-  //   setSelfOnboardPaginationModel((prevState) => ({ ...prevState, page: 0 }))
-  //   setManualPaginationModel((prevState) => ({ ...prevState, page: 0 }))
-  // }, [assetFilter, statusFilter, nameFilter])
+  const { assetFilter, statusFilter, nameFilter } = filters
+
+  useEffect(() => {
+    setSelfOnboardPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+    setManualPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+  }, [assetFilter, statusFilter, nameFilter])
 
   return (
     <Box
@@ -334,6 +337,10 @@ export const OtherMarketsTables = ({
           marketsLength={selfOnboard.length}
           isLoading={isLoading}
           isOpen
+          nameFilter={filters.nameFilter}
+          assetFilter={filters.assetFilter}
+          statusFilter={filters.statusFilter}
+          showNoFilteredMarkets
         >
           <DataGrid
             sx={{
@@ -362,6 +369,10 @@ export const OtherMarketsTables = ({
           isLoading={isLoading}
           isOpen
           marketsLength={manual.length}
+          nameFilter={filters.nameFilter}
+          assetFilter={filters.assetFilter}
+          statusFilter={filters.statusFilter}
+          showNoFilteredMarkets
         >
           <DataGrid
             sx={{

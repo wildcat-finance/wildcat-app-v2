@@ -104,7 +104,7 @@ export const MarketsTableAccordion = ({
           </Box>
         )}
 
-      {children}
+      {!isLoading && marketsLength !== 0 && children}
     </Accordion>
   )
 }

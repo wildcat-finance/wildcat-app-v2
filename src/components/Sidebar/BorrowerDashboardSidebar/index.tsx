@@ -3,6 +3,9 @@ import { ReactNode } from "react"
 import { Box, SvgIcon, Typography } from "@mui/material"
 
 import Arrow from "@/assets/icons/downArrow_icon.svg"
+import Markets from "@/assets/icons/markets_icon.svg"
+import Policies from "@/assets/icons/policies_icon.svg"
+import Lenders from "@/assets/icons/profile_icon.svg"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   BorrowerDashboardSections,
@@ -115,6 +118,7 @@ export const DashboardPageAccordion = ({
   amount,
   onClick,
   children,
+  icon,
   hideAccordionButton,
 }: {
   open: boolean
@@ -122,6 +126,7 @@ export const DashboardPageAccordion = ({
   amount?: number
   onClick?: () => void
   children?: ReactNode
+  icon?: ReactNode
   hideAccordionButton?: boolean
 }) => (
   <Box
@@ -148,8 +153,8 @@ export const DashboardPageAccordion = ({
         },
       }}
     >
-      <Box sx={{ display: "flex", width: "100%" }}>
-        <SvgIcon sx={{ marginRight: "10px" }}>{/* <Arrow /> */}</SvgIcon>
+      <Box sx={{ display: "flex", width: "100%", alignItems: "center" }}>
+        {icon}
         <Typography variant="text2" sx={{ marginRight: "6px" }}>
           {label}
         </Typography>
@@ -214,6 +219,11 @@ export const BorrowerDashboardSidebar = () => {
         label="Markets"
         open={section === BorrowerDashboardSections.MARKETS}
         onClick={() => handleChangeSection(BorrowerDashboardSections.MARKETS)}
+        icon={
+          <SvgIcon sx={{ marginRight: "10px" }}>
+            <Markets />
+          </SvgIcon>
+        }
       >
         <DashboardSectionAccordion
           label="Your Markets"
@@ -273,35 +283,15 @@ export const BorrowerDashboardSidebar = () => {
         </DashboardSectionAccordion>
       </DashboardPageAccordion>
 
-      {/* <DashboardPageAccordion */}
-      {/*  label="MLA" */}
-      {/*  open={section === BorrowerDashboardSections.MLA} */}
-      {/*  onClick={() => handleChangeSection(BorrowerDashboardSections.MLA)} */}
-      {/* > */}
-      {/*  <DashboardSectionAccordion */}
-      {/*    label="Waiting for sign" */}
-      {/*    open={false} */}
-      {/*    hideIndicator */}
-      {/*    onClick={() => handleScrollToTable("sign-waiting")} */}
-      {/*  /> */}
-      {/*  <DashboardSectionAccordion */}
-      {/*    label="Signed" */}
-      {/*    open={false} */}
-      {/*    hideIndicator */}
-      {/*    onClick={() => handleScrollToTable("signed")} */}
-      {/*  /> */}
-      {/*  <DashboardSectionAccordion */}
-      {/*    label="Other Markets" */}
-      {/*    open={false} */}
-      {/*    hideIndicator */}
-      {/*    onClick={() => handleScrollToTable("other")} */}
-      {/*  /> */}
-      {/* </DashboardPageAccordion> */}
-
       <DashboardPageAccordion
         label="Lenders"
         open={section === BorrowerDashboardSections.LENDERS}
         onClick={() => handleChangeSection(BorrowerDashboardSections.LENDERS)}
+        icon={
+          <SvgIcon sx={{ marginRight: "10px" }}>
+            <Lenders />
+          </SvgIcon>
+        }
       >
         <DashboardSectionAccordion
           label="Active Lenders"
@@ -322,6 +312,11 @@ export const BorrowerDashboardSidebar = () => {
         open={section === BorrowerDashboardSections.POLICIES}
         onClick={() => handleChangeSection(BorrowerDashboardSections.POLICIES)}
         hideAccordionButton
+        icon={
+          <SvgIcon sx={{ marginRight: "10px" }}>
+            <Policies />
+          </SvgIcon>
+        }
       />
     </Box>
   )

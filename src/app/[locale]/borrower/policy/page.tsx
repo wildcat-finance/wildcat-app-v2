@@ -13,7 +13,7 @@ import {
 import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
-import { PolicyFilterSelectItem } from "@/app/[locale]/borrower/components/PoliciesTab/components/PolicyFilterSelect"
+import { SmallFilterSelectItem } from "../../../../components/SmallFilterSelect"
 import { GlossarySidebar } from "@/app/[locale]/borrower/create-market/components/GlossarySidebar"
 import { useGetBorrowerHooksDataWithSubgraph } from "@/app/[locale]/borrower/hooks/useGetBorrowerHooksData"
 import { useGetPolicy } from "@/app/[locale]/borrower/hooks/useGetPolicy"
@@ -81,7 +81,7 @@ export default function PolicyPage() {
       : []),
   ]
 
-  const [selectedPolicy, setSelectedPolicy] = useState<PolicyFilterSelectItem>({
+  const [selectedPolicy, setSelectedPolicy] = useState<SmallFilterSelectItem>({
     id: "",
     name: "",
   })
