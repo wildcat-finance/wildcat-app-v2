@@ -578,7 +578,11 @@
             "tooltip": "Select the 'type' of entity that best describes the borrower.",
             "options": {
               "pi": "Private Individual",
-              "llc": "Limited Liability Company",
+              "llc": "Private Company Limited by Shares",
+              "fnd": "Foundation Company Limited by Guarantee",
+              "plc": "Public Limited Company",
+              "lp": "Limited Partnership",
+              "gp": "General Partnership",
               "dao": "Decentralised Autonomous Organisation"
             }
           },
@@ -1008,7 +1012,7 @@
     },
     "edit": {
       "public": {
-        "title": "Basic Informnation",
+        "title": "Basic Profile Information",
         "subtitle": "Details Of Borrowing Entity",
         "avatar": {
           "title": "Avatar",
@@ -1053,7 +1057,7 @@
         }
       },
       "private": {
-        "title": "Legal Information",
+        "title": "Borrower Legal Information",
         "subtitle": "Entity details used to pre-populate template loan agreements for markets you create.",
         "jurisdiction": {
           "title": "Jurisdiction",
