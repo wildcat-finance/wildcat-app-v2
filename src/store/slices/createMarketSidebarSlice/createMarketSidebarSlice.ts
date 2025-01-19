@@ -3,11 +3,11 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit"
 export enum CreateMarketSteps {
   POLICY = "policy",
   BASIC = "basicSetup",
-  MLA = "mla",
   FINANCIAL = "financialTerms",
   LRESTRICTIONS = "lenderRestrictions",
   BRESTRICTIONS = "borrowerRestrictions",
   PERIODS = "periods",
+  MLA = "mla",
   CONFIRM = "confirmation",
 }
 
@@ -39,13 +39,6 @@ const initialState: CreateMarketSidebarSliceType = {
       valid: false,
       step: CreateMarketSteps.BASIC,
     },
-    // {
-    //   number: 3,
-    //   title: "createNewMarket.mla.title",
-    //   disabled: true,
-    //   valid: false,
-    //   step: CreateMarketSteps.MLA,
-    // },
     {
       number: 3,
       title: "createNewMarket.financial.title",
@@ -73,6 +66,14 @@ const initialState: CreateMarketSidebarSliceType = {
       disabled: true,
       valid: false,
       step: CreateMarketSteps.PERIODS,
+    },
+
+    {
+      number: 7,
+      title: "createNewMarket.mla.title",
+      disabled: true,
+      valid: false,
+      step: CreateMarketSteps.MLA,
     },
     {
       number: undefined,

@@ -24,12 +24,7 @@ export type ConfirmModalProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>
   disableConfirm: boolean
   policyName?: string
-  submitUpdates: UseMutateFunction<
-    void,
-    Error,
-    SubmitPolicyUpdatesInputs,
-    unknown
-  >
+  handleClickSubmit: () => void
 }
 
 export type TypeSafeColDef<T> = GridColDef & { field: keyof T }
@@ -46,7 +41,7 @@ export const ConfirmModal = ({
   setIsOpen,
   disableConfirm,
   policyName,
-  submitUpdates,
+  handleClickSubmit,
 }: ConfirmModalProps) => {
   const { t } = useTranslation()
 
@@ -146,33 +141,6 @@ export const ConfirmModal = ({
       ),
     },
   ]
-
-  const handleClickSubmit = () => {
-    const newLenders = lendersList.filter(
-      (lender) => lender.status === EditLenderFlowStatuses.NEW,
-    )
-    const removedLenders = lendersList.filter(
-      (lender) => lender.status === EditLenderFlowStatuses.DELETED,
-    )
-    let actionIndex = 1
-
-    if (newLenders.length) {
-      console.log(
-        // eslint-disable-next-line no-plusplus
-        `ACTION #${actionIndex++} - Add ${newLenders.length} new lenders`,
-      )
-    }
-    if (removedLenders.length) {
-      console.log(
-        // eslint-disable-next-line no-plusplus
-        `ACTION #${actionIndex++} - Remove ${removedLenders.length} lenders`,
-      )
-    }
-    submitUpdates({
-      addLenders: newLenders.map((l) => l.address),
-      removeLenders: removedLenders.map((l) => l.address),
-    })
-  }
 
   return (
     <>

@@ -6,6 +6,7 @@ import {
   getDeploymentAddress,
   HooksKind,
   WithdrawalAccess,
+  Token,
 } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
 import humanizeDuration from "humanize-duration"
@@ -27,20 +28,54 @@ export type BasicBorrowerInfo = {
   entityKind?: string
 }
 
-const DepositAccessString = {
+export const DepositAccessString = {
   [DepositAccess.Open]: "Open",
   [DepositAccess.RequiresCredential]: "Restricted",
 }
 
-const TransferAccessString = {
+export const TransferAccessString = {
   [TransferAccess.Open]: "Open",
   [TransferAccess.RequiresCredential]: "Restricted",
   [TransferAccess.Disabled]: "Disabled",
 }
 
-const WithdrawalAccessString = {
+export const WithdrawalAccessString = {
   [WithdrawalAccess.Open]: "Open",
   [WithdrawalAccess.RequiresCredential]: "Restricted",
+}
+
+export type MlaBorrowerFields = {
+  lastSlaUpdateTime: number
+  networkData: NetworkData
+  market: {
+    address: string
+    name: string
+    symbol: string
+    marketType: HooksKind
+    depositAccess: DepositAccess
+    transferAccess: TransferAccess
+    withdrawalAccess: WithdrawalAccess
+    capacity: TokenAmount
+    minimumDeposit: TokenAmount | undefined
+    delinquencyGracePeriod: number
+    withdrawalBatchDuration: number
+    fixedTermEndTime: number | undefined
+    /** APR in bips (format as %) */
+    apr: number
+    /** Delinquency fee in bips (format as %) */
+    delinquencyFee: number
+    /** Reserve ratio in bips (format as %) */
+    reserveRatio: number
+    // boolean (format as Yes, No, N/A)
+    allowClosureBeforeTerm: boolean | undefined
+    allowTermReduction: boolean | undefined
+    allowForceBuyBack: boolean | undefined
+  }
+  borrowerInfo: BasicBorrowerInfo
+  // address (format as checksum address)
+  asset: Token
+  // Date
+  timeSigned: number
 }
 
 export const MlaFieldValueKeys = [
@@ -150,7 +185,7 @@ type MlaTemplate = {
   lenderFields: MlaTemplateField[]
 }
 
-const formatBool = (value: boolean | undefined): string | undefined => {
+export const formatBool = (value: boolean | undefined): string | undefined => {
   if (value === undefined) return undefined
   return value ? "Yes" : "No"
 }
@@ -158,14 +193,14 @@ const formatBool = (value: boolean | undefined): string | undefined => {
 const formatString = (value: string | undefined): string | undefined =>
   value ?? undefined
 
-const formatAddress = (value: string | undefined): string | undefined =>
+export const formatAddress = (value: string | undefined): string | undefined =>
   value ? getAddress(value) : undefined
 
 const formatNumber = (value: number | undefined): string | undefined =>
   value ? value.toString() : undefined
 
-const formatBips = (value: number | undefined): string | undefined =>
-  value ? `${formatBps(value)}%` : undefined
+export const formatBips = (value: number | undefined): string | undefined =>
+  typeof value === "number" ? `${formatBps(value)}%` : undefined
 
 const formatTokenAmount = (
   value: TokenAmount | undefined,
@@ -183,14 +218,16 @@ const toUnixMs = (value: number): number => {
   return value
 }
 
-const formatDate = (value: number | undefined): string | undefined => {
+export const formatDate = (value: number | undefined): string | undefined => {
   if (value === undefined) return undefined
   return dayjs(toUnixMs(value)).format("MMMM DD, YYYY")
 }
 
-const formatDuration = (value: number | undefined): string | undefined => {
+export const formatDuration = (
+  value: number | undefined,
+): string | undefined => {
   if (value === undefined) return undefined
-  return humanizeDuration(toUnixMs(value))
+  return humanizeDuration(1000 * value)
 }
 
 type LenderKeys =
@@ -207,17 +244,8 @@ type BorrowerSignedMla = {
   lenderFields: MlaTemplateField[]
 }
 
-export function getFieldValuesForBorrower(
-  market: Market,
-  borrowerInfo: BasicBorrowerInfo,
-  networkData: NetworkData,
-  borrowerTimeSigned: number,
-  lastSlaUpdateTime: number,
-) {
-  const { underlyingToken: asset, hooksConfig } = market
-  const marketAddress = market.address // @todo: calculate market address
-  const marketName = market.name
-  const marketSymbol = market.symbol
+const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
+  const { underlyingToken: asset, hooksConfig, name, symbol, address } = market
   // Deposits are only open if `depositRequiresAccess` is defined and false
   const depositAccess =
     hooksConfig?.depositRequiresAccess === false
@@ -250,6 +278,50 @@ export function getFieldValuesForBorrower(
   } else {
     transferAccess = TransferAccess.Open
   }
+  return {
+    address,
+    name,
+    symbol,
+    marketType: hooksConfig?.kind ?? HooksKind.OpenTerm,
+    depositAccess,
+    transferAccess,
+    withdrawalAccess,
+    capacity: market.maxTotalSupply,
+    minimumDeposit: hooksConfig?.minimumDeposit,
+    delinquencyGracePeriod: market.delinquencyGracePeriod,
+    withdrawalBatchDuration: market.withdrawalBatchDuration,
+    fixedTermEndTime:
+      hooksConfig?.kind === HooksKind.FixedTerm
+        ? hooksConfig.fixedTermEndTime
+        : undefined,
+    apr: market.annualInterestBips,
+    delinquencyFee: market.delinquencyFeeBips,
+    reserveRatio: market.reserveRatioBips,
+    allowClosureBeforeTerm:
+      hooksConfig?.kind === HooksKind.FixedTerm
+        ? hooksConfig.allowClosureBeforeTerm
+        : undefined,
+    allowTermReduction:
+      hooksConfig?.kind === HooksKind.FixedTerm
+        ? hooksConfig.allowTermReduction
+        : undefined,
+    allowForceBuyBack: hooksConfig?.allowForceBuyBacks,
+  }
+}
+
+export function getFieldValuesForBorrower({
+  market: marketInput,
+  borrowerInfo,
+  networkData,
+  asset,
+  timeSigned,
+  lastSlaUpdateTime,
+}: Omit<MlaBorrowerFields, "market"> & {
+  market: MlaBorrowerFields["market"] | Market
+}) {
+  const market =
+    marketInput instanceof Market ? getMarketParams(marketInput) : marketInput
+  // console.log(`Min Deposit: ${hooksConfig?.minimumDeposit}`)
 
   const allData: Map<MlaFieldValueKey, string | undefined> = new Map([
     // number
@@ -261,26 +333,34 @@ export function getFieldValuesForBorrower(
     [
       "market.marketType",
       formatString(
-        market.hooksKind === HooksKind.FixedTerm ? "Fixed Term" : "Open Term",
+        market.marketType === HooksKind.FixedTerm ? "Fixed Term" : "Open Term",
       ),
     ],
-    ["market.name", formatString(marketName)],
-    ["market.symbol", formatString(marketSymbol)],
+    ["market.name", formatString(market.name)],
+    ["market.symbol", formatString(market.symbol)],
     ["borrower.name", formatString(borrowerInfo.name)],
     ["borrower.jurisdiction", formatString(borrowerInfo.jurisdiction)],
     ["borrower.physicalAddress", formatString(borrowerInfo.physicalAddress)],
     // address (format as checksum address)
-    ["market.depositAccess", formatString(DepositAccessString[depositAccess])],
+    [
+      "market.depositAccess",
+      formatString(DepositAccessString[market.depositAccess]),
+    ],
     [
       "market.transferAccess",
-      formatString(TransferAccessString[transferAccess]),
+      formatString(TransferAccessString[market.transferAccess]),
     ],
     [
       "market.withdrawalAccess",
-      formatString(WithdrawalAccessString[withdrawalAccess]),
+      formatString(WithdrawalAccessString[market.withdrawalAccess]),
     ],
-    ["asset.address", formatAddress(asset.address)],
-    ["market.address", formatAddress(marketAddress)],
+    /// On Sepolia, we deploy new assets on the fly, so we need to use the name of the asset
+    /// instead of the address.
+    [
+      "asset.address",
+      TargetChainId === 1 ? formatAddress(asset?.address) : asset?.name,
+    ],
+    ["market.address", formatAddress(market.address)],
     ["borrower.address", formatAddress(borrowerInfo.address)],
     // ["lender.address", formatAddress(marketParams.lenderAddress)],
     [
@@ -293,11 +373,14 @@ export function getFieldValuesForBorrower(
       formatAddress(getDeploymentAddress(TargetChainId, "HooksFactory")),
     ],
     // token amount
-    ["market.capacity", formatTokenAmount(market.maxTotalSupply)],
+    [
+      "market.capacity",
+      formatTokenAmount(asset.getAmount(market.capacity.raw)),
+    ],
     [
       "market.minimumDeposit",
-      hooksConfig?.minimumDeposit
-        ? formatTokenAmount(hooksConfig.minimumDeposit)
+      market.minimumDeposit?.gt(0)
+        ? formatTokenAmount(asset.getAmount(market.minimumDeposit.raw))
         : "N/A",
     ],
     // duration
@@ -312,36 +395,31 @@ export function getFieldValuesForBorrower(
     // date
     [
       "market.fixedTermEndTime",
-      hooksConfig?.kind === HooksKind.FixedTerm
-        ? formatDate(hooksConfig.fixedTermEndTime)
+      market.marketType === HooksKind.FixedTerm
+        ? formatDate(market.fixedTermEndTime)
         : "N/A",
     ],
-    ["borrower.timeSigned", formatDate(borrowerTimeSigned)],
+    ["borrower.timeSigned", formatDate(timeSigned)],
     // ["lender.timeSigned", formatDate(Date.now())],
     ["sla.timeUpdated", formatDate(lastSlaUpdateTime)],
     // bips (format as %)
-    ["market.apr", formatBips(market.annualInterestBips)],
-    ["market.delinquencyFee", formatBips(market.delinquencyFeeBips)],
-    ["market.reserveRatio", formatBips(market.reserveRatioBips)],
+    ["market.apr", formatBips(market.apr)],
+    ["market.delinquencyFee", formatBips(market.delinquencyFee)],
+    ["market.reserveRatio", formatBips(market.reserveRatio)],
     // boolean (format as Yes, No, N/A)
     [
       "market.allowClosureBeforeTerm",
-      hooksConfig?.kind === HooksKind.FixedTerm
-        ? formatBool(hooksConfig.allowClosureBeforeTerm)
+      market.marketType === HooksKind.FixedTerm
+        ? formatBool(market.allowClosureBeforeTerm)
         : "N/A",
     ],
     [
       "market.allowTermReduction",
-      hooksConfig?.kind === HooksKind.FixedTerm
-        ? formatBool(hooksConfig.allowTermReduction)
+      market.marketType === HooksKind.FixedTerm
+        ? formatBool(market.allowTermReduction)
         : "N/A",
     ],
-    [
-      "market.allowForceBuyBack",
-      hooksConfig?.kind === HooksKind.FixedTerm
-        ? formatBool(hooksConfig.allowForceBuyBacks)
-        : "N/A",
-    ],
+    ["market.allowForceBuyBack", formatBool(market.allowForceBuyBack) ?? "N/A"],
   ])
   return allData
 }

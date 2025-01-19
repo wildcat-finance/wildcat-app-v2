@@ -8,4 +8,5 @@ export type BannerProps = {
   text: string | undefined
   buttonText: string | undefined
   buttonLink: Link | undefined
+  onClick?: () => void
 }

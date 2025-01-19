@@ -69,6 +69,33 @@ export const LendersTab = ({
 
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
 
+  const handleClickSubmit = () => {
+    const newLenders = lendersList.filter(
+      (lender) => lender.status === EditLenderFlowStatuses.NEW,
+    )
+    const removedLenders = lendersList.filter(
+      (lender) => lender.status === EditLenderFlowStatuses.DELETED,
+    )
+    let actionIndex = 1
+
+    if (newLenders.length) {
+      console.log(
+        // eslint-disable-next-line no-plusplus
+        `ACTION #${actionIndex++} - Add ${newLenders.length} new lenders`,
+      )
+    }
+    if (removedLenders.length) {
+      console.log(
+        // eslint-disable-next-line no-plusplus
+        `ACTION #${actionIndex++} - Remove ${removedLenders.length} lenders`,
+      )
+    }
+    submitUpdates({
+      addLenders: newLenders.map((l) => l.address),
+      removeLenders: removedLenders.map((l) => l.address),
+    })
+  }
+
   useEffect(() => {
     setIsConfirmModalOpen(false)
   }, [isSubmitting])
@@ -142,13 +169,16 @@ export const LendersTab = ({
             setIsOpen={setIsConfirmModalOpen}
             policyName={policyName}
             disableConfirm={!isLendersHaveChanges || isLoading || isSubmitting}
-            submitUpdates={submitUpdates}
+            handleClickSubmit={handleClickSubmit}
           />
         </Box>
       </Box>
 
       {!isLoading && !isSubmitting && (
-        <EditLendersTable filteredLenders={filteredLenders} />
+        <EditLendersTable
+          filteredLenders={filteredLenders}
+          isFiltered={!!lendersFilter}
+        />
       )}
 
       {(isLoading || isSubmitting) && (
@@ -185,6 +215,7 @@ export const LendersTab = ({
         isLoading={isSubmitting}
         isSuccess={isSuccess}
         isError={isError}
+        handleTryAgain={handleClickSubmit}
       />
     </Box>
   )

@@ -11,6 +11,7 @@ import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/Bar
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
+import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -162,6 +163,11 @@ export default function LenderMarketDetails({
           {currentSection === LenderMarketSections.REQUESTS && (
             <Box marginTop="12px">
               <WithdrawalRequests withdrawals={withdrawals} />
+            </Box>
+          )}
+          {currentSection === LenderMarketSections.MARKET_HISTORY && (
+            <Box marginTop="12px">
+              <PaginatedMarketRecordsTable market={market} />
             </Box>
           )}
         </Box>

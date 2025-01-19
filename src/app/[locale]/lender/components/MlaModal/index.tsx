@@ -18,15 +18,19 @@ export const MlaModal = ({
   buttonText,
   sx,
   isSigning,
+  disableSignButton,
+  modalButtonVariant = "outlined",
+  modalButtonSize = "small",
+  isClosed,
 }: MlaModalProps) => {
   const [isMlaOpen, setIsMlaOpen] = useState(false) // Add new state
   const { t } = useTranslation()
   return (
     <>
       <Button
-        variant="outlined"
+        variant={modalButtonVariant}
         color="secondary"
-        size="small"
+        size={modalButtonSize}
         disabled={isLoading || mla === null || disableModalButton}
         onClick={() => mla && setIsMlaOpen(true)}
         sx={sx}
@@ -39,7 +43,7 @@ export const MlaModal = ({
               : t("lenderMarketDetails.buttons.viewMla")))}
       </Button>
       <Modal
-        open={isMlaOpen}
+        open={isMlaOpen && !isClosed}
         onClose={() => setIsMlaOpen(false)}
         aria-labelledby="mla-modal"
       >
@@ -86,7 +90,11 @@ export const MlaModal = ({
               </Button>
             ) : (
               showSignButton && (
-                <Button variant="outlined" onClick={onSign}>
+                <Button
+                  variant="outlined"
+                  onClick={onSign}
+                  disabled={disableSignButton || isSigning}
+                >
                   Sign MLA
                 </Button>
               )

@@ -7,7 +7,6 @@ import {
   OpenTermHooks,
 } from "@wildcatfi/wildcat-sdk/dist/access"
 
-import { toastRequest, ToastRequestConfig } from "@/components/Toasts"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
@@ -23,7 +22,6 @@ export type SubmitPolicyUpdatesInputs = {
 }
 
 export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
-  // const { t } = useTranslation
   const signer = useEthersSigner()
   const client = useQueryClient()
   const { isTestnet } = useCurrentNetwork()
@@ -31,7 +29,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
   const dispatch = useAppDispatch()
 
   const waitForTransaction = async (txHash: string) => {
-    if (!gnosisSafeSDK) throw Error("No sdk found")
+    if (!gnosisSafeSDK) throw Error("No SDK found")
     return gnosisSafeSDK.eth.getTransactionReceipt([txHash]).then((tx) => {
       if (tx) {
         tx.transactionHash = txHash
@@ -52,128 +50,102 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       setName,
       marketsToUpdate,
     }: SubmitPolicyUpdatesInputs) => {
-      if (!signer || !policy) {
-        return
-      }
+      if (!signer || !policy) return
 
-      const gnosisTransactions: PartialTransaction[] = []
-      console.log(
-        `useDeployMarket :: isTestnet: ${isTestnet} :: isConnectedToSafe: ${isConnectedToSafe} :: gnosisSafeSDK: ${!!gnosisSafeSDK}`,
-      )
+      const txs: PartialTransaction[] = []
 
-      const txs: Array<PartialTransaction & ToastRequestConfig> = []
-      if (addLenders && addLenders.length) {
-        console.log(`adding lenders`)
-        console.log(addLenders)
-        if (
-          policy instanceof OpenTermHooks ||
-          policy instanceof FixedTermHooks
-        ) {
-          console.log(`adding lenders to v2 policy`)
-          const tx = policy.populateAddLenders(
-            addLenders.map((lender) => ({ lender })),
-          )
-          txs.push({
-            ...tx,
-            pending: `Adding ${addLenders.length} lenders`,
-            success: `Added ${addLenders.length} lenders`,
-            error: `Failed to add ${addLenders.length} lenders`,
-          })
-        } else {
-          console.log(`adding lenders to v1 policy`)
-          const tx = marketsToUpdate?.length
-            ? policy.populateAuthorizeLendersAndUpdateMarkets(
-                addLenders,
-                marketsToUpdate,
+      if (addLenders?.length) {
+        const tx =
+          // eslint-disable-next-line no-nested-ternary
+          policy instanceof OpenTermHooks || policy instanceof FixedTermHooks
+            ? policy.populateAddLenders(
+                addLenders.map((lender) => ({ lender })),
               )
-            : policy.populateAuthorizeLenders(addLenders)
-          txs.push({
-            ...tx,
-            pending: `Adding ${addLenders.length} lenders`,
-            success: `Added ${addLenders.length} lenders`,
-            error: `Failed to add ${addLenders.length} lenders`,
-          })
-        }
+            : marketsToUpdate?.length
+              ? policy.populateAuthorizeLendersAndUpdateMarkets(
+                  addLenders,
+                  marketsToUpdate,
+                )
+              : policy.populateAuthorizeLenders(addLenders)
+
+        txs.push(tx)
       }
-      if (removeLenders && removeLenders.length) {
-        console.log(`removing lenders`)
-        console.log(removeLenders)
-        console.log(`policy address: ${policy.address}`)
-        console.log(`policy address: ${policy.contract.address}`)
-        if (
-          policy instanceof OpenTermHooks ||
-          policy instanceof FixedTermHooks
-        ) {
-          const tx = policy.populateBlockLenders(removeLenders)
-          txs.push({
-            ...tx,
-            pending: `Removing ${removeLenders.length} lenders`,
-            success: `Removed ${removeLenders.length} lenders`,
-            error: `Failed to remove ${removeLenders.length} lenders`,
-          })
-        } else {
-          const tx = marketsToUpdate?.length
-            ? policy.populateDeauthorizeLendersAndUpdateMarkets(
-                removeLenders,
-                marketsToUpdate,
+
+      if (removeLenders?.length) {
+        const tx =
+          // eslint-disable-next-line no-nested-ternary
+          policy instanceof OpenTermHooks || policy instanceof FixedTermHooks
+            ? policy.populateBlockLenders(removeLenders)
+            : marketsToUpdate?.length
+              ? policy.populateDeauthorizeLendersAndUpdateMarkets(
+                  removeLenders,
+                  marketsToUpdate,
+                )
+              : policy.populateDeauthorizeLenders(removeLenders)
+
+        txs.push(tx)
+      }
+
+      const send = async () => {
+        if (isConnectedToSafe && isTestnet && txs.length > 1) {
+          const tx = await gnosisSafeSDK.txs.send({ txs })
+          console.log("Transaction sent, result:", tx)
+
+          const checkTransaction = async (): Promise<string> => {
+            const transactionBySafeHash =
+              await gnosisSafeSDK.txs.getBySafeTxHash(tx.safeTxHash)
+
+            if (transactionBySafeHash?.txHash) {
+              console.log(
+                `Transaction confirmed. txHash: ${transactionBySafeHash.txHash}`,
               )
-            : policy.populateDeauthorizeLenders(removeLenders)
-          txs.push({
-            ...tx,
-            pending: `Removing ${removeLenders.length} lenders`,
-            success: `Removed ${removeLenders.length} lenders`,
-            error: `Failed to remove ${removeLenders.length} lenders`,
-          })
-        }
-      }
+              return transactionBySafeHash.txHash
+            }
 
-      const useGnosisMultiSend =
-        isConnectedToSafe && isTestnet && txs.length > 1
-      if (txs.length > 1) {
-        txs.forEach((tx, i) => {
-          tx.pending = `Step ${i + 1}/${txs.length}: ${tx.pending}`
-          tx.success = `Step ${i + 1}/${txs.length}: ${tx.success}`
-          tx.error = `Step ${i + 1}/${txs.length}: ${tx.error}`
-        })
-      }
+            console.log("Transaction pending, rechecking in 1 second...")
+            return new Promise<string>((res) => {
+              setTimeout(async () => res(await checkTransaction()), 1000)
+            })
+          }
 
-      if (useGnosisMultiSend) {
-        const tx = gnosisSafeSDK.txs.send({ txs: gnosisTransactions })
-        await toastRequest(tx, {
-          pending: "Submitting gnosis transaction batch to update lenders...",
-          success: "Lenders updated!",
-          error: "Failed to update lenders",
-        })
-      } else {
-        // eslint-disable-next-line no-restricted-syntax, no-await-in-loop
-        for (const tx of txs) {
-          // eslint-disable-next-line no-restricted-syntax, no-await-in-loop
-          await toastRequest(
-            signer
+          const txHash = await checkTransaction()
+
+          if (txHash) {
+            console.log(`Waiting for transaction with txHash: ${txHash}`)
+            const receipt = await waitForTransaction(txHash)
+            console.log("Transaction confirmed, receipt received.")
+            return receipt
+          }
+
+          console.error("Failed to retrieve txHash.")
+          throw new Error("Transaction failed or hash not found.")
+        } else {
+          // eslint-disable-next-line no-restricted-syntax
+          for (const tx of txs) {
+            // eslint-disable-next-line no-await-in-loop
+            await signer
               .sendTransaction({
                 to: tx.to,
                 data: tx.data,
                 value: tx.value,
               })
-              .then(({ wait }) => wait()),
-            tx,
-          )
+              .then(({ wait }) => wait())
+          }
+          return {
+            status: "success",
+            message: "All transactions processed successfully",
+          }
         }
       }
+
+      await send()
     },
     onSuccess: () => {
       client.invalidateQueries({ queryKey: [GET_POLICY_KEY] })
       dispatch(resetPolicyLendersState())
     },
-    onError(error) {
-      console.log(error)
-    },
+    onError: (error) => console.log(error),
   })
 
-  return {
-    submitUpdates,
-    isSubmitting,
-    isSuccess,
-    isError,
-  }
+  return { submitUpdates, isSubmitting, isSuccess, isError }
 }

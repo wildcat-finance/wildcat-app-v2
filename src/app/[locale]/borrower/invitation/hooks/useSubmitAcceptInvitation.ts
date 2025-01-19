@@ -71,8 +71,8 @@ export const useSubmitAcceptInvitation = () => {
         }),
         {
           pending: `Waiting for signature...`,
-          success: `Service agreement signed!`,
-          error: `Failed to sign service agreement!`,
+          success: `Terms of use signed!`,
+          error: `Failed to sign terms of use!`,
         },
       )
 
