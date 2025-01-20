@@ -195,17 +195,17 @@
     "hooks": {
       "title": "Market Hooks",
       "hooksAddress": "Policy Address",
-      "useOnDeposit": "useOnDeposit",
-      "useOnQueueWithdrawal": "useOnQueueWithdrawal",
-      "useOnExecuteWithdrawal": "useOnExecuteWithdrawal",
-      "useOnTransfer": "useOnTransfer",
-      "useOnBorrow": "useOnBorrow",
-      "useOnRepay": "useOnRepay",
-      "useOnCloseMarket": "useOnCloseMarket",
-      "useOnNukeFromOrbit": "useOnNukeFromOrbit",
-      "useOnSetMaxTotalSupply": "useOnSetMaxTotalSupply",
-      "useOnSetAnnualInterestAndReserveRatioBips": "useOnSetAnnualInterestAndReserveRatioBips",
-      "useOnSetProtocolFeeBips": "useOnSetProtocolFeeBips"
+      "useOnDeposit": "Hook on Deposit?",
+      "useOnQueueWithdrawal": "Hook on Queuing Withdrawal?",
+      "useOnExecuteWithdrawal": "Hook on Claiming Assets?",
+      "useOnTransfer": "Hook on Token Transfer?",
+      "useOnBorrow": "Hook on Borrow?",
+      "useOnRepay": "Hook on Repayment?",
+      "useOnCloseMarket": "Hook on Market Termination?",
+      "useOnNukeFromOrbit": "Hook on Sanction Block?",
+      "useOnSetMaxTotalSupply": "Hook on Max Capacity Shift?",
+      "useOnSetAnnualInterestAndReserveRatioBips": "Hook on APR/CRR Shift?",
+      "useOnSetProtocolFeeBips": "Hook on Protocol Fee Shift?"
     },
     "parameters": {
       "marketAddress": "Market Address",
