@@ -194,7 +194,7 @@
     },
     "hooks": {
       "title": "Market Hooks",
-      "hooksAddress": "Policy Address",
+      "hooksAddress": "Policy (Hook Instance) Address",
       "useOnDeposit": "Hook on Deposit?",
       "useOnQueueWithdrawal": "Hook on Queuing Withdrawal?",
       "useOnExecuteWithdrawal": "Hook on Claiming Assets?",
