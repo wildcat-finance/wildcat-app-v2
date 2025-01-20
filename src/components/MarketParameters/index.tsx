@@ -201,7 +201,9 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               <Divider sx={{ margin: "12px 0 12px" }} />
               <MarketParametersItem
                 title={t("borrowerMarketDetails.parameters.marketExpiry")}
-                value={`${formatDate(market.hooksConfig.fixedTermEndTime)} 00:00 UTC`}
+                value={`${formatDate(
+                  market.hooksConfig.fixedTermEndTime
+                )} 00:00 UTC`}
               />
             </>
           )}
