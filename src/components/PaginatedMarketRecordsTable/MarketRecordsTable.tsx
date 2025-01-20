@@ -232,8 +232,8 @@ export function MarketRecordsTable({
         overflow: "auto",
         maxWidth: "calc(100vw - 267px)",
         padding: "16px",
-        '& .MuiDataGrid-overlay': {
-          paddingBottom: '56px', // Add space for footer
+        "& .MuiDataGrid-overlay": {
+          paddingBottom: "56px", // Add space for footer
         },
       }}
       getRowHeight={() => "auto"}
