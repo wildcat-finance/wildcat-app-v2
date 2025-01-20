@@ -24,9 +24,9 @@ const getRecordText = (
   borrowerName: string,
 ): string => {
   if (record.__typename === "AnnualInterestBipsUpdated") {
-    return `Interest rate changed from ${
-      record.oldAnnualInterestBips / 100
-    }% to ${record.newAnnualInterestBips / 100}%`
+    return `Base APR changed from ${record.oldAnnualInterestBips / 100}% to ${
+      record.newAnnualInterestBips / 100
+    }%`
   }
   if (record.__typename === "Borrow") {
     return `${borrowerName} borrowed ${record.amount.format(
@@ -67,7 +67,7 @@ const getRecordText = (
   if (record.__typename === "WithdrawalRequest") {
     const lenderName = lenderNames[record.address.toLowerCase()]
     const label = lenderName ?? trimAddress(record.address)
-    return `${label} requested withdrawal of ${record.normalizedAmount.format(
+    return `${label} requested a withdrawal of ${record.normalizedAmount.format(
       TOKEN_FORMAT_DECIMALS,
       true,
     )}`
@@ -95,7 +95,7 @@ const getRecordText = (
   }
   if (record.__typename === "FixedTermUpdated") {
     const time = dayjs(record.newFixedTermEndTime * 1000).format(DATE_FORMAT)
-    return `Market maturity reduced to ${time}`
+    return `Market maturity updated to ${time}`
   }
   if (record.__typename === "ForceBuyBack") {
     const lenderName = lenderNames[record.account.address.toLowerCase()]
