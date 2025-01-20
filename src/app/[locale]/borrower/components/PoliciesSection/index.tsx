@@ -18,6 +18,7 @@ import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style
 import { useGetBorrowerHooksDataWithSubgraph } from "@/app/[locale]/borrower/hooks/useGetBorrowerHooksData"
 import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
+import { FilterTextField } from "@/components/FilterTextfield"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { ROUTES } from "@/routes"
 import { setLenderFilter } from "@/store/slices/editLendersListSlice/editLendersListSlice"
@@ -27,7 +28,6 @@ import {
   SmallFilterSelect,
   SmallFilterSelectItem,
 } from "../../../../../components/SmallFilterSelect"
-import { FilterTextField } from "@/components/FilterTextfield"
 
 export type TypeSafeColDef<T> = GridColDef & { field: keyof T }
 

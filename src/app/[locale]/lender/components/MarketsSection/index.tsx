@@ -1,39 +1,32 @@
 import React, { useMemo, useState } from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
-import { MarketSectionSwitcher } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketSectionSwitcher"
-import { BorrowerActiveMarketsTables } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/BorrowerActiveMarketsTables"
-import { BorrowerTerminatedMarketsTables } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/BorrowerTerminatedMarketsTables"
-import { OtherMarketsTables } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/OtherMarketsTables"
-import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
+import { LenderMarketSectionSwitcher } from "@/app/[locale]/lender/components/MarketsSection/components/MarketSectionSwitcher"
+import { BorrowerActiveMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/BorrowerActiveMarketsTables"
+import { BorrowerTerminatedMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/BorrowerTerminatedMarketsTables"
+import { OtherMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/OtherMarketsTables"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { FilterTextField } from "@/components/FilterTextfield"
-import { LeadBanner } from "@/components/LeadBanner"
 import {
   SmallFilterSelect,
   SmallFilterSelectItem,
 } from "@/components/SmallFilterSelect"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { marketStatusesMock, underlyingAssetsMock } from "@/mocks/mocks"
-import { ROUTES } from "@/routes"
 import { useAppSelector } from "@/store/hooks"
-import { BorrowerMarketDashboardSections } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
+import { LenderMarketDashboardSections } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { COLORS } from "@/theme/colors"
 import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
 
 export const MarketsSection = () => {
   const marketSection = useAppSelector(
-    (state) => state.borrowerDashboard.marketSection,
-  )
-
-  const showFullFunctionality = useAppSelector(
-    (state) => state.borrowerDashboard.showFullFunctionality,
+    (state) => state.lenderDashboard.marketSection,
   )
 
   const [marketSearch, setMarketSearch] = useState<string>("")
@@ -53,10 +46,6 @@ export const MarketsSection = () => {
   const { address } = useAccount()
   const { isWrongNetwork } = useCurrentNetwork()
 
-  const bannerDisplayConfig = useBorrowerInvitationRedirect()
-
-  // TEST
-
   const {
     data: marketAccounts,
     isLoadingInitial,
@@ -64,11 +53,6 @@ export const MarketsSection = () => {
   } = useLendersMarkets()
 
   const isLoading = isLoadingInitial || isLoadingUpdate
-
-  const borrowerMarketAccounts = marketAccounts.filter(
-    (account) =>
-      account.market.borrower.toLowerCase() === address?.toLowerCase(),
-  )
 
   const filteredMarketAccounts = useMemo(
     () =>
@@ -82,16 +66,14 @@ export const MarketsSection = () => {
   )
 
   const {
-    active: filteredActiveBorrowerMarkets,
-    terminated: filteredTerminatedBorrowerMarkets,
+    active: filteredActiveLenderMarketAccounts,
+    terminated: filteredTerminatedMarketAccounts,
     other: filteredOtherMarketAccounts,
   } = useMemo(
     () =>
       filteredMarketAccounts.reduce(
         (all, account) => {
-          if (
-            account.market.borrower.toLowerCase() === address?.toLowerCase()
-          ) {
+          if (account.hasEverInteracted) {
             if (!account.market.isClosed) {
               all.active.push(account)
             } else {
@@ -100,7 +82,6 @@ export const MarketsSection = () => {
           } else {
             all.other.push(account)
           }
-
           return all
         },
         {
@@ -111,8 +92,6 @@ export const MarketsSection = () => {
       ),
     [filteredMarketAccounts],
   )
-
-  const noMarkets = borrowerMarketAccounts.length === 0
 
   return (
     <Box
@@ -138,22 +117,6 @@ export const MarketsSection = () => {
           <Typography variant="title2" sx={{ marginBottom: "6px" }}>
             Markets
           </Typography>
-          {!bannerDisplayConfig.hideNewMarketButton && (
-            <Link href={ROUTES.borrower.createMarket}>
-              <Button
-                variant="contained"
-                size="small"
-                disabled={isWrongNetwork}
-                sx={{
-                  paddingTop: "8px",
-                  paddingBottom: "8px",
-                  minWidth: "100px",
-                }}
-              >
-                {t("borrowerMarketList.button.newMarket")}
-              </Button>
-            </Link>
-          )}
         </Box>
         <Typography
           variant="text3"
@@ -177,7 +140,7 @@ export const MarketsSection = () => {
             justifyContent: "space-between",
           }}
         >
-          <MarketSectionSwitcher />
+          <LenderMarketSectionSwitcher />
 
           <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
             <FilterTextField
@@ -203,39 +166,23 @@ export const MarketsSection = () => {
         </Box>
       </Box>
 
-      {!bannerDisplayConfig.hideBanner &&
-        !(marketSection === BorrowerMarketDashboardSections.OTHER) && (
-          <Box padding="24px 24px 0">
-            <LeadBanner
-              title={bannerDisplayConfig.title}
-              text={bannerDisplayConfig.text}
-              buttonText={bannerDisplayConfig.buttonText}
-              buttonLink={bannerDisplayConfig.link}
-            />
-          </Box>
-        )}
+      {marketSection === LenderMarketDashboardSections.ACTIVE && (
+        <BorrowerActiveMarketsTables
+          marketAccounts={filteredActiveLenderMarketAccounts}
+          isLoading={isLoading}
+          filters={filters}
+        />
+      )}
 
-      {marketSection === BorrowerMarketDashboardSections.ACTIVE &&
-        showFullFunctionality &&
-        !noMarkets && (
-          <BorrowerActiveMarketsTables
-            marketAccounts={filteredActiveBorrowerMarkets}
-            isLoading={isLoading}
-            filters={filters}
-          />
-        )}
+      {marketSection === LenderMarketDashboardSections.TERMINATED && (
+        <BorrowerTerminatedMarketsTables
+          marketAccounts={filteredTerminatedMarketAccounts}
+          isLoading={isLoading}
+          filters={filters}
+        />
+      )}
 
-      {marketSection === BorrowerMarketDashboardSections.TERMINATED &&
-        showFullFunctionality &&
-        !noMarkets && (
-          <BorrowerTerminatedMarketsTables
-            marketAccounts={filteredTerminatedBorrowerMarkets}
-            isLoading={isLoading}
-            filters={filters}
-          />
-        )}
-
-      {marketSection === BorrowerMarketDashboardSections.OTHER &&
+      {marketSection === LenderMarketDashboardSections.OTHER &&
         !isWrongNetwork && (
           <OtherMarketsTables
             marketAccounts={filteredOtherMarketAccounts}
@@ -243,14 +190,6 @@ export const MarketsSection = () => {
             filters={filters}
           />
         )}
-
-      {isWrongNetwork && (
-        <Box sx={{ padding: "24px" }}>
-          <Typography variant="title3">
-            {t("borrowerMarketList.table.noMarkets.wrongNetwork")}
-          </Typography>
-        </Box>
-      )}
     </Box>
   )
 }

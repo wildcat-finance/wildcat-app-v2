@@ -7,6 +7,7 @@ import { BorrowerDashboardSidebar } from "@/components/Sidebar/BorrowerDashboard
 import { BorrowerSidebar } from "@/components/Sidebar/BorrowerSidebar"
 import { CreateMarketSidebar } from "@/components/Sidebar/CreateMarketSidebar"
 import { EditProfileSidebar } from "@/components/Sidebar/EditProfileSidebar"
+import { LenderDashboardSidebar } from "@/components/Sidebar/LenderDashboardSidebar"
 import { LenderMarketSidebar } from "@/components/Sidebar/LenderMarketSidebar"
 import { LenderListSidebar } from "@/components/Sidebar/LendersListSidebar"
 import { MarketSidebar } from "@/components/Sidebar/MarketSidebar"
@@ -35,7 +36,7 @@ export const Sidebar = () => {
     >
       {/* {(pathname === ROUTES.borrower.root || pathname === ROUTES.lender.root) && */}
       {/*  step === BorrowerOverviewTabs.MARKETS && <MarketsTabSidebar />} */}
-      {pathname === ROUTES.lender.root && <MarketsTabSidebar />}
+      {pathname === ROUTES.lender.root && <LenderDashboardSidebar />}
       {pathname === ROUTES.borrower.root && <BorrowerDashboardSidebar />}
       {/* {pathname === ROUTES.borrower.root && */}
       {/*  step === BorrowerOverviewTabs.MLA && ( */}
