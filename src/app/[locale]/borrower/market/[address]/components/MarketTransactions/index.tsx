@@ -28,7 +28,6 @@ import { AprModal } from "../Modals/AprModal"
 import { BorrowModal } from "../Modals/BorrowModal"
 import { CapacityModal } from "../Modals/CapacityModal"
 import { RepayModal } from "../Modals/RepayModal"
-import { StatementModal } from "../Modals/StatementModal"
 
 export const MarketTransactions = ({
   market,
@@ -60,52 +59,6 @@ export const MarketTransactions = ({
           {/* </Button> */}
           <CapacityModal marketAccount={marketAccount} />
           <AprModal marketAccount={marketAccount} />
-          <Button
-            variant="outlined"
-            color="secondary"
-            size="small"
-            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-              setAnchorEl(event.currentTarget)
-            }}
-            sx={ElseButtonContainer}
-          >
-            <Typography variant="text4" sx={ElseButtonText}>
-              ...
-            </Typography>
-          </Button>
-          <Menu
-            slotProps={{
-              paper: {
-                sx: { width: "220px", marginTop: "12px", marginLeft: "24px" },
-              },
-            }}
-            disableScrollLock
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleClose}
-          >
-            <MenuItem
-              onClick={() => {
-                setIsOpen(!isOpen)
-                handleClose()
-              }}
-              sx={{
-                display: "flex",
-                gap: "8px",
-                alignItems: "center",
-                padding: "9px 12px",
-              }}
-            >
-              <SvgIcon
-                fontSize="medium"
-                sx={{ "& path": { stroke: `${COLORS.greySuit}` } }}
-              >
-                <DocsIcon />
-              </SvgIcon>
-              <Typography variant="text2">Statement</Typography>
-            </MenuItem>
-          </Menu>
-          <StatementModal isOpen={isOpen} setIsOpen={setIsOpen} />
         </Box>
       )}
 
