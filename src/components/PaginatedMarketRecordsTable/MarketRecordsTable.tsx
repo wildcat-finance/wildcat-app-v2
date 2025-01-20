@@ -231,10 +231,7 @@ export function MarketRecordsTable({
         ...TableStyles,
         overflow: "auto",
         maxWidth: "calc(100vw - 267px)",
-        padding: "16px",
-        "& .MuiDataGrid-overlay": {
-          paddingBottom: "56px", // Add space for footer
-        },
+        padding: "16px 16px",
       }}
       getRowHeight={() => "auto"}
       rows={records?.map((r) => ({ id: r.transactionHash, ...r })) || []}
