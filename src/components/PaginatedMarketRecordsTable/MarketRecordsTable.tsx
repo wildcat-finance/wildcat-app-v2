@@ -129,8 +129,8 @@ export function MarketRecordsTable({
     {
       field: "transactionHash",
       headerName: t("marketRecords.table.header.transactionHash"),
-      maxWidth: 250,
-      minWidth: 250,
+      maxWidth: 300,
+      minWidth: 300,
       flex: 2,
       headerAlign: "left",
       align: "left",
@@ -165,9 +165,9 @@ export function MarketRecordsTable({
     {
       field: "eventIndex",
       headerName: t("marketRecords.table.header.event"),
-      minWidth: 130,
+      minWidth: 200,
       flex: 2,
-      headerAlign: "left",
+      headerAlign: "right",
       align: "right",
       sortable: false,
       renderCell: (params) => (
@@ -231,11 +231,14 @@ export function MarketRecordsTable({
         ...TableStyles,
         overflow: "auto",
         maxWidth: "calc(100vw - 267px)",
-        padding: "0 16px",
+        padding: "16px 16px",
       }}
       getRowHeight={() => "auto"}
       rows={records?.map((r) => ({ id: r.transactionHash, ...r })) || []}
       columns={columns}
+      localeText={{
+        noRowsLabel: "No unfiltered events",
+      }}
       // {...(paginationProps as any)}
       // rowCount={rowCount}
       hideFooter={false}
