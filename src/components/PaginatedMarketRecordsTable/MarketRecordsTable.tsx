@@ -24,7 +24,7 @@ const getRecordText = (
   borrowerName: string,
 ): string => {
   if (record.__typename === "AnnualInterestBipsUpdated") {
-    return `Interest rate changed from ${
+    return `Base APR changed from ${
       record.oldAnnualInterestBips / 100
     }% to ${record.newAnnualInterestBips / 100}%`
   }
@@ -67,7 +67,7 @@ const getRecordText = (
   if (record.__typename === "WithdrawalRequest") {
     const lenderName = lenderNames[record.address.toLowerCase()]
     const label = lenderName ?? trimAddress(record.address)
-    return `${label} requested withdrawal of ${record.normalizedAmount.format(
+    return `${label} requested a withdrawal of ${record.normalizedAmount.format(
       TOKEN_FORMAT_DECIMALS,
       true,
     )}`
