@@ -65,7 +65,7 @@ export const PolicySelect = ({
     const selectedValue = event.target.value
 
     const selectedPolicy = policies.find(
-      (policy) => policy.name === selectedValue,
+      (policy) => policy.id === selectedValue,
     )
     if (selectedPolicy) {
       setSelected(selectedPolicy)
@@ -100,16 +100,18 @@ export const PolicySelect = ({
     }
   }
 
+  const policyAddress = selected.id
+
   useEffect(() => {
-    if (selected?.id) {
-      router.push(policyLink(selected.id))
+    if (policyAddress) {
+      router.push(policyLink(policyAddress))
     }
-  }, [selected])
+  }, [policyAddress])
 
   return (
     <Select
       ref={selectRef}
-      value={selected.name}
+      value={selected.id}
       onOpen={onOpen}
       onClose={onClose}
       onChange={handleChangePolicy}
@@ -166,7 +168,7 @@ export const PolicySelect = ({
       {filteredPoliciesByName.map((policy) => (
         <MenuItem
           key={policy.id}
-          value={policy.name}
+          value={policy.id}
           sx={MarketSelectMenuItemStyles}
         >
           <Typography variant="text3" color={COLORS.white}>
