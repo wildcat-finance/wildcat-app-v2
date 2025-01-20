@@ -4,7 +4,6 @@ import { Box, Button, Divider, Modal, Typography } from "@mui/material"
 import { DepositStatus, QueueWithdrawalStatus } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
-import { StatementModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/StatementModal"
 import { LenderMlaModal } from "@/app/[locale]/lender/components/LenderMlaModal"
 import { TransactionsContainer } from "@/app/[locale]/lender/market/[address]/components/MarketActions/styles"
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
@@ -27,15 +26,9 @@ export const MarketActions = ({
 
   const { data: mla, isLoading: mlaLoading } = useMarketMla(market.address)
 
-  const [isStatementOpen, setIsStatementOpen] = React.useState(false)
-
   const { canAddToken, handleAddToken, isAddingToken } = useAddToken(
     market?.marketToken,
   )
-
-  const handleOpenStatement = () => {
-    setIsStatementOpen(true)
-  }
 
   const hideDeposit =
     market.isClosed ||
@@ -65,20 +58,6 @@ export const MarketActions = ({
         >
           {t("lenderMarketDetails.buttons.addToken")}
         </Button>
-
-        <Button
-          variant="outlined"
-          color="secondary"
-          size="small"
-          onClick={handleOpenStatement}
-        >
-          {t("lenderMarketDetails.buttons.statement")}
-        </Button>
-
-        <StatementModal
-          isOpen={isStatementOpen}
-          setIsOpen={setIsStatementOpen}
-        />
 
         <LenderMlaModal mla={mla} isLoading={mlaLoading} />
       </Box>
