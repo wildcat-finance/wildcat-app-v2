@@ -237,7 +237,7 @@ export function MarketRecordsTable({
       rows={records?.map((r) => ({ id: r.transactionHash, ...r })) || []}
       columns={columns}
       localeText={{
-        noRowsLabel: 'No unfiltered events',
+        noRowsLabel: "No unfiltered events",
       }}
       // {...(paginationProps as any)}
       // rowCount={rowCount}
