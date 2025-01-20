@@ -9,7 +9,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
-import { LenderRole, Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -19,10 +19,10 @@ import { BorrowerActiveMarketsTables } from "@/app/[locale]/borrower/components/
 import { BorrowerTerminatedMarketsTables } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/BorrowerTerminatedMarketsTables"
 import { OtherMarketsTables } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/OtherMarketsTables"
 import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
-import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
+import { FilterTextField } from "@/components/FilterTextfield"
 import { LeadBanner } from "@/components/LeadBanner"
 import {
   SmallFilterSelect,
@@ -36,10 +36,7 @@ import {
   BorrowerMarketDashboardSections,
   setShowFullFunctionality,
 } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
-import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
-import { setLenderFilter } from "@/store/slices/editLendersListSlice/editLendersListSlice"
 import { COLORS } from "@/theme/colors"
-import { EXCLUDED_MARKETS } from "@/utils/constants"
 import {
   getMarketStatus,
   MarketAssets,
@@ -130,6 +127,10 @@ export const MarketsSection = () => {
     (state) => state.borrowerDashboard.marketSection,
   )
 
+  const showFullFunctionality = useAppSelector(
+    (state) => state.borrowerDashboard.showFullFunctionality,
+  )
+
   const [marketSearch, setMarketSearch] = useState<string>("")
   const [marketAssets, setMarketAssets] = useState<SmallFilterSelectItem[]>([])
   const [marketStatuses, setMarketStatuses] = useState<SmallFilterSelectItem[]>(
@@ -152,21 +153,11 @@ export const MarketsSection = () => {
   }
 
   const { t } = useTranslation()
-  const dispatch = useAppDispatch()
 
-  const { isConnected, address } = useAccount()
+  const { address } = useAccount()
   const { isWrongNetwork } = useCurrentNetwork()
 
-  const { data: controller } = useGetController()
-  const isRegisteredBorrower = controller?.isRegisteredBorrower
-
-  const showTables = !isWrongNetwork && isConnected && isRegisteredBorrower
-
   const bannerDisplayConfig = useBorrowerInvitationRedirect()
-
-  useEffect(() => {
-    dispatch(setShowFullFunctionality(!!showTables))
-  }, [showTables])
 
   // TEST
 
@@ -277,56 +268,11 @@ export const MarketsSection = () => {
         >
           <MarketSectionSwitcher />
 
-          <Box sx={{ width: "fit-content", display: "flex", gap: "12px" }}>
-            <TextField
+          <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
+            <FilterTextField
               value={marketSearch}
-              onChange={handleChangeMarket}
-              size="small"
-              placeholder="Search"
-              sx={{
-                width: "180px",
-
-                "& .MuiInputBase-root": {
-                  paddingRight: "8px",
-                },
-              }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SvgIcon
-                      fontSize="small"
-                      sx={{
-                        width: "20px",
-                        "& path": { fill: `${COLORS.greySuit}` },
-                      }}
-                    >
-                      <Search />
-                    </SvgIcon>
-                  </InputAdornment>
-                ),
-                endAdornment: marketSearch ? (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={handleClickErase}
-                      disableRipple
-                      sx={{
-                        padding: "0 2px 0 0",
-                        "& path": {
-                          fill: `${COLORS.greySuit}`,
-                          transition: "fill 0.2s",
-                        },
-                        "& :hover": {
-                          "& path": { fill: `${COLORS.santasGrey}` },
-                        },
-                      }}
-                    >
-                      <SvgIcon fontSize="small">
-                        <Cross />
-                      </SvgIcon>
-                    </IconButton>
-                  </InputAdornment>
-                ) : null,
-              }}
+              setValue={setMarketSearch}
+              placeholder="Search by Name"
             />
 
             <SmallFilterSelect
@@ -359,7 +305,7 @@ export const MarketsSection = () => {
         )}
 
       {marketSection === BorrowerMarketDashboardSections.ACTIVE &&
-        showTables &&
+        showFullFunctionality &&
         !noMarkets && (
           <BorrowerActiveMarketsTables
             marketAccounts={testActiveMarketAccounts}
@@ -369,7 +315,7 @@ export const MarketsSection = () => {
         )}
 
       {marketSection === BorrowerMarketDashboardSections.TERMINATED &&
-        showTables &&
+        showFullFunctionality &&
         !noMarkets && (
           <BorrowerTerminatedMarketsTables
             marketAccounts={testTerminatedMarketAccounts}

@@ -27,6 +27,7 @@ import {
   SmallFilterSelect,
   SmallFilterSelectItem,
 } from "../../../../../components/SmallFilterSelect"
+import { FilterTextField } from "@/components/FilterTextfield"
 
 export type TypeSafeColDef<T> = GridColDef & { field: keyof T }
 
@@ -249,55 +250,10 @@ export const PoliciesSection = ({
           gap: "6px",
         }}
       >
-        <TextField
+        <FilterTextField
           value={policyName}
-          onChange={handleChangePolicy}
-          size="small"
-          placeholder="Search"
-          sx={{
-            width: "180px",
-
-            "& .MuiInputBase-root": {
-              paddingRight: "8px",
-            },
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SvgIcon
-                  fontSize="small"
-                  sx={{
-                    width: "20px",
-                    "& path": { fill: `${COLORS.greySuit}` },
-                  }}
-                >
-                  <Search />
-                </SvgIcon>
-              </InputAdornment>
-            ),
-            endAdornment: policyName ? (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={handleClickErase}
-                  disableRipple
-                  sx={{
-                    padding: "0 2px 0 0",
-                    "& path": {
-                      fill: `${COLORS.greySuit}`,
-                      transition: "fill 0.2s",
-                    },
-                    "& :hover": {
-                      "& path": { fill: `${COLORS.santasGrey}` },
-                    },
-                  }}
-                >
-                  <SvgIcon fontSize="small">
-                    <Cross />
-                  </SvgIcon>
-                </IconButton>
-              </InputAdornment>
-            ) : null,
-          }}
+          setValue={setPolicyName}
+          placeholder="Search by Name"
         />
 
         <SmallFilterSelect

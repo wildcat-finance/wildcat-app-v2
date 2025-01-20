@@ -1,39 +1,46 @@
 "use client"
 
-import React from "react"
+import React, { useEffect } from "react"
 
 import { Box } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
-import { PoliciesSection } from "@/app/[locale]/borrower/components/PoliciesTab"
+import { LendersSection } from "@/app/[locale]/borrower/components/LendersSection"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
-import { useGetOthersMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetOthersMarkets"
-import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
-import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useGetController } from "@/hooks/useGetController"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { BorrowerDashboardSections } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
+import {
+  BorrowerDashboardSections,
+  setShowFullFunctionality,
+} from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 
 import { MarketsSection } from "./components/MarketsSection"
+import { PoliciesSection } from "./components/PoliciesSection"
 
 export default function BorrowerPage() {
-  const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
   const section = useAppSelector((state) => state.borrowerDashboard.section)
 
-  const { isConnected, address } = useAccount()
+  const { isConnected } = useAccount()
 
   const {
     data: unfilteredBorrowerMarkets,
     isLoading: isBorrowerMarketsLoading,
   } = useGetBorrowerMarkets(undefined)
-  const { data: unfilteredOtherMarkets, isLoading: isOthersMarketsLoading } =
-    useGetOthersMarkets()
 
-  const { data: lenders } = useGetAllLenders()
+  const { data: controller } = useGetController()
+  const isRegisteredBorrower = controller?.isRegisteredBorrower
 
-  console.log(lenders, "lenders")
+  const { isWrongNetwork } = useCurrentNetwork()
+
+  const showTables = !isWrongNetwork && isConnected && isRegisteredBorrower
+
+  useEffect(() => {
+    dispatch(setShowFullFunctionality(!!showTables))
+  }, [showTables])
 
   return (
     <Box
@@ -43,6 +50,13 @@ export default function BorrowerPage() {
       }}
     >
       {section === BorrowerDashboardSections.MARKETS && <MarketsSection />}
+
+      {section === BorrowerDashboardSections.LENDERS && (
+        <LendersSection
+          markets={unfilteredBorrowerMarkets}
+          isMarketsLoading={isBorrowerMarketsLoading}
+        />
+      )}
 
       {section === BorrowerDashboardSections.POLICIES && (
         <PoliciesSection

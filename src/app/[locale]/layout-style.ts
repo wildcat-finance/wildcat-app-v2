@@ -1,5 +1,7 @@
 import Image from "@/assets/pictures/background.webp"
 
+export const calcHeight = "calc(100vh - 43px - 52px - 52px - 110px - 36px)"
+
 export const BackgroundContainer = {
   top: 0,
   left: 0,
