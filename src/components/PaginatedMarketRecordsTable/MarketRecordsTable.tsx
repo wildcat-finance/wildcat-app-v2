@@ -129,8 +129,8 @@ export function MarketRecordsTable({
     {
       field: "transactionHash",
       headerName: t("marketRecords.table.header.transactionHash"),
-      maxWidth: 350,
-      minWidth: 350,
+      maxWidth: 300,
+      minWidth: 300,
       flex: 2,
       headerAlign: "left",
       align: "left",
