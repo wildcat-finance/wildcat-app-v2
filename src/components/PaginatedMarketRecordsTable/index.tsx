@@ -88,14 +88,16 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
       <Box
         sx={{
           display: "flex",
-          flexDirection: "row",
+          flexWrap: "wrap",
           gap: "10px",
           marginTop: "10px",
-          flexWrap: "wrap",
+          justifyContent: "space-evenly",
+          alignItems: "center",
         }}
       >
         {options.map((o) => (
           <FormControlLabel
+            key={o.id}
             label={o.label}
             control={
               <ExtendedCheckbox
