@@ -95,7 +95,7 @@ const getRecordText = (
   }
   if (record.__typename === "FixedTermUpdated") {
     const time = dayjs(record.newFixedTermEndTime * 1000).format(DATE_FORMAT)
-    return `Market maturity reduced to ${time}`
+    return `Market maturity updated to ${time}`
   }
   if (record.__typename === "ForceBuyBack") {
     const lenderName = lenderNames[record.account.address.toLowerCase()]
