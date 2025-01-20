@@ -24,7 +24,7 @@ const getRecordText = (
   borrowerName: string,
 ): string => {
   if (record.__typename === "AnnualInterestBipsUpdated") {
-    return `Base APR changed from ${record.oldAnnualInterestBips / 100 }% to ${
+    return `Base APR changed from ${record.oldAnnualInterestBips / 100}% to ${
       record.newAnnualInterestBips / 100
     }%`
   }
