@@ -59,31 +59,6 @@ export const MarketTransactions = ({
           {/* </Button> */}
           <CapacityModal marketAccount={marketAccount} />
           <AprModal marketAccount={marketAccount} />
-          <Button
-            variant="outlined"
-            color="secondary"
-            size="small"
-            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-              setAnchorEl(event.currentTarget)
-            }}
-            sx={ElseButtonContainer}
-          >
-            <Typography variant="text4" sx={ElseButtonText}>
-              ...
-            </Typography>
-          </Button>
-          <Menu
-            slotProps={{
-              paper: {
-                sx: { width: "220px", marginTop: "12px", marginLeft: "24px" },
-              },
-            }}
-            disableScrollLock
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleClose}
-          >
-          </Menu>
         </Box>
       )}
 
