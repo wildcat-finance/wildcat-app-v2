@@ -231,7 +231,7 @@ export function MarketRecordsTable({
         ...TableStyles,
         overflow: "auto",
         maxWidth: "calc(100vw - 267px)",
-        padding: "0 16px",
+        padding: "16px",
       }}
       getRowHeight={() => "auto"}
       rows={records?.map((r) => ({ id: r.transactionHash, ...r })) || []}
