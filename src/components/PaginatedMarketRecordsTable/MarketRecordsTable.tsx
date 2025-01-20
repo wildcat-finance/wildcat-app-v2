@@ -129,8 +129,8 @@ export function MarketRecordsTable({
     {
       field: "transactionHash",
       headerName: t("marketRecords.table.header.transactionHash"),
-      maxWidth: 250,
-      minWidth: 250,
+      maxWidth: 350,
+      minWidth: 350,
       flex: 2,
       headerAlign: "left",
       align: "left",
@@ -165,9 +165,9 @@ export function MarketRecordsTable({
     {
       field: "eventIndex",
       headerName: t("marketRecords.table.header.event"),
-      minWidth: 130,
+      minWidth: 200,
       flex: 2,
-      headerAlign: "left",
+      headerAlign: "right",
       align: "right",
       sortable: false,
       renderCell: (params) => (
