@@ -211,7 +211,7 @@
       "marketAddress": "Market Address",
       "underlyingAsset": "Underlying Asset",
       "marketTokenName": "Market Token Name",
-      "marketTokenPrefix": "Market Token Prefix",
+      "marketTokenPrefix": "Market Token Symbol",
       "maxBorrowingCapacity": "Max. Borrowing Capacity",
       "totalInterestAccured": "Total Interest Accured",
       "minimumReserveRatio": "Minimum Reserve Ratio",
