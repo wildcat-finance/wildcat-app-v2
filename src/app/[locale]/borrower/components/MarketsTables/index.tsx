@@ -13,7 +13,7 @@ import { BorrowerMarketsTable } from "@/app/[locale]/borrower/components/Markets
 import { OthersMarketsTable } from "@/app/[locale]/borrower/components/MarketsTables/OthersMarketsTable"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetOthersMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetOthersMarkets"
-import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
+import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketsTablesContainer } from "@/app/[locale]/borrower/page-style"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetController } from "@/hooks/useGetController"
@@ -92,7 +92,7 @@ export const MarketsTables = ({
   const { isConnected } = useAccount()
   const { isWrongNetwork } = useCurrentNetwork()
 
-  const { data: borrowers } = useGetBorrowers()
+  const { data: borrowers } = useBorrowerNames()
   const { data: controller } = useGetController()
   const isRegisteredBorrower = controller?.isRegisteredBorrower
 

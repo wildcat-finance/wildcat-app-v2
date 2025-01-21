@@ -6,7 +6,7 @@ import { Box } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
-import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
+import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketsTableAccordion } from "@/app/[locale]/lender/components/MarketsTab/MarketsTableAccordion"
 import { OtherMarketsTable } from "@/app/[locale]/lender/components/MarketsTab/OtherMarketsTable"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
@@ -70,7 +70,9 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
     isLoadingUpdate,
   } = useLendersMarkets()
 
-  const { data: borrowers } = useGetBorrowers()
+  const { data: borrowers } = useBorrowerNames()
+
+  console.log(`Got ${borrowers?.length} borrowers`)
 
   const isLoading = isLoadingInitial || isLoadingUpdate
 
