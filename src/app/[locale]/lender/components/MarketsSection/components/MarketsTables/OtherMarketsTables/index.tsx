@@ -14,8 +14,7 @@ import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
-import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
-import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
+import { BorrowerWithName, useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
@@ -87,7 +86,7 @@ export const OtherMarketsTables = ({
     }
   }, [scrollTargetId])
 
-  const { data: borrowers } = useGetBorrowers()
+  const { data: borrowers } = useBorrowerNames()
 
   const rows: GridRowsProp<LenderOtherMarketsTableModel> = marketAccounts.map(
     (account) => {

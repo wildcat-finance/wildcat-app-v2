@@ -19,7 +19,6 @@ import {
 } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
-import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { TablePagination } from "@/components/TablePagination"
@@ -41,6 +40,7 @@ import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 import { MarketsTableAccordion } from "../../../../../../../../components/MarketsTableAccordion"
+import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 
 export type OtherMarketsTableModel = {
   id: string
@@ -80,7 +80,7 @@ export const OtherMarketsTables = ({
     }
   }, [scrollTargetId])
 
-  const { data: borrowers } = useGetBorrowers()
+  const { data: borrowers } = useBorrowerNames()
 
   const rows: GridRowsProp<OtherMarketsTableModel> = marketAccounts.map(
     (account) => {

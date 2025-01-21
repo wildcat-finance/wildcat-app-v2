@@ -6,7 +6,6 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
-import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { LenderMarketSectionSwitcher } from "@/app/[locale]/lender/components/MarketsSection/components/LenderMarketSectionSwitcher"
 import { LenderActiveMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/LenderActiveMarketsTables"
 import { LenderTerminatedMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/LenderTerminatedMarketsTables"
@@ -29,6 +28,7 @@ import { COLORS } from "@/theme/colors"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
+import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 
 export const MarketsSection = () => {
   const marketSection = useAppSelector(
@@ -99,7 +99,7 @@ export const MarketsSection = () => {
     [filteredMarketAccounts],
   )
 
-  const { data: borrowers } = useGetBorrowers()
+  const { data: borrowers } = useBorrowerNames()
 
   const lenderMarkets = marketAccounts
     .filter(
