@@ -76,6 +76,9 @@ export async function GET(
     linkedin: borrower.linkedin || undefined,
     email: borrower.email || undefined,
     registeredOnChain: borrower.registeredOnChain,
+    jurisdiction: borrower.jurisdiction || undefined,
+    physicalAddress: borrower.physicalAddress || undefined,
+    entityKind: borrower.entityKind || undefined,
   }
 
   return NextResponse.json({ profile })
