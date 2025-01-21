@@ -80,15 +80,19 @@ export const useLogin = () => {
           error: `Failed to sign login message!`,
         },
       )
-      const submitLogin = async () =>
-        (await fetch("/api/auth/login", {
+      const submitLogin = async () => {
+        const response = await fetch("/api/auth/login", {
           method: "POST",
           body: JSON.stringify({
             signature: result.signature ?? "0x",
             timeSigned,
             address,
           }),
-        }).then((res) => res.json())) as ApiToken
+        })
+        if (response.status !== 200)
+          throw Error(`Failed to log in! ${response.statusText}`)
+        return (await response.json()) as ApiToken
+      }
 
       const token = await toastRequest(submitLogin(), {
         pending: `Submitting login...`,
