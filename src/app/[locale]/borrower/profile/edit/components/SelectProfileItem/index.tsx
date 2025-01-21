@@ -23,6 +23,7 @@ export const SelectProfileItem = ({
   newValue,
   children,
   isLoading,
+  field,
 }: SelectProfileItemProps) => {
   const { t } = useTranslation()
 
@@ -30,14 +31,14 @@ export const SelectProfileItem = ({
   const valueWasntEmpty = oldValue && oldValue.length !== 0
 
   const handleRestoreValue = () => {
-    form.setValue("entityKind", oldValue)
+    form.setValue(field, oldValue)
   }
 
   return (
     <Box sx={ComponentContainer}>
       <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
         <Typography variant="text3">{title}</Typography>
-        <TooltipButton value={tooltip} />
+        {tooltip && <TooltipButton value={tooltip} />}
       </Box>
 
       <Box sx={FieldContainer}>

@@ -9,25 +9,42 @@ import {
   MarketParametersRowsDivider,
 } from "@/app/[locale]/borrower/profile/style"
 import { MarketParametersItem } from "@/components/MarketParameters/components/MarketParametersItem"
+import Jurisdictions from "@/config/jurisdictions.json"
+import ELFsByCountry from "@/config/elfs-by-country.json"
 
 import { OverallSectionProps } from "./interface"
 
 export const OverallSection = ({
   name,
-  website,
   headquarters,
   founded,
   marketsAmount,
   totalBorrowedAmount,
+  jurisdiction,
   defaults,
+  entityKind,
 }: OverallSectionProps) => {
   const { t } = useTranslation()
 
+  const jurisdictionObj =
+    jurisdiction !== undefined
+      ? Jurisdictions[jurisdiction as keyof typeof Jurisdictions]
+      : undefined
+  const jurisdictionText =
+    jurisdictionObj?.subDivisionName || jurisdictionObj?.countryName
+
+  const entityKindText =
+    entityKind !== undefined && jurisdictionObj
+      ? ELFsByCountry[jurisdictionObj.countryCode as keyof typeof ELFsByCountry].find(
+          (elf) => elf.elfCode === entityKind
+        )?.name
+      : undefined
+
   return (
     <Box>
-      <Typography variant="title3">
+     {/*  <Typography variant="title3">
         {t("borrowerProfile.profile.overallInfo.title")}
-      </Typography>
+      </Typography> */}
 
       <Box sx={MarketParametersContainer}>
         <Box sx={MarketParametersColumn}>
@@ -36,17 +53,26 @@ export const OverallSection = ({
               <MarketParametersItem
                 title={t("borrowerProfile.profile.overallInfo.name")}
                 value={name ?? ""}
-                link={website}
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
           )}
 
-          {headquarters && (
+          {jurisdictionText && (
             <Box>
               <MarketParametersItem
                 title={t("borrowerProfile.profile.overallInfo.headquarters")}
-                value={headquarters ?? ""}
+                value={jurisdictionText}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
+
+          {entityKindText && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.entityKind")}
+                value={entityKindText}
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>

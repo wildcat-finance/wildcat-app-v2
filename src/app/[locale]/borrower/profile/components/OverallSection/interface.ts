@@ -1,8 +1,6 @@
-export type OverallSectionProps = {
-  name?: string
-  website?: string
-  headquarters?: string
-  founded?: string
+import { BorrowerProfile } from "@/app/api/profiles/interface"
+
+export type OverallSectionProps = Partial<BorrowerProfile> & {
   marketsAmount?: number
   totalBorrowedAmount?: string
   defaults?: string

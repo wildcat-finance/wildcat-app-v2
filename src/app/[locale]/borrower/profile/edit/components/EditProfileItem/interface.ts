@@ -1,17 +1,17 @@
 import { ReactNode } from "react"
 
-import { UseFormReturn } from "react-hook-form"
-
-import { PublicValidationSchemaType } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPublicForm"
+import { SetValueConfig, UseFormReturn } from "react-hook-form"
 
 import { PrivateValidationSchemaType } from "../../hooks/useEditPrivateForm"
+import { PublicValidationSchemaType } from "../../hooks/useEditPublicForm"
 
 export type EditProfileItemProps = {
   title: string
-  tooltip: string
+  tooltip?: string
   form:
     | UseFormReturn<PublicValidationSchemaType & PrivateValidationSchemaType>
     | UseFormReturn<PrivateValidationSchemaType>
+    | UseFormReturn<PublicValidationSchemaType>
   field:
     | "legalName"
     | "description"
@@ -24,8 +24,13 @@ export type EditProfileItemProps = {
     | "entityKind"
     | "physicalAddress"
     | "email"
+    | "country"
+    | "entityCategory"
   oldValue: string | undefined
   newValue?: string
   children: ReactNode
   isLoading: boolean
+  oldLabel?: string
+  onRestoreValue?: () => void
+  setValueOptions?: SetValueConfig
 }

@@ -25,7 +25,6 @@ const formatDateForMessage = (date: Date): string => {
 
 export const useUpdateBorrowerProfile = () => {
   const queryClient = useQueryClient()
-  const signer = useEthersSigner()
   const { address } = useAccount()
   const token = useAuthToken()
 
@@ -33,13 +32,9 @@ export const useUpdateBorrowerProfile = () => {
     if (!token.token) {
       throw new Error("No token available. Make sure you are logged in.")
     }
-    const withoutEmpty = Object.fromEntries(
-      Object.entries(profile).filter(([key, value]) => value !== ""),
-    )
-    console.log(withoutEmpty)
     const response = await fetch(`/api/profiles/updates`, {
       method: "POST",
-      body: JSON.stringify({ ...withoutEmpty }),
+      body: JSON.stringify({ ...profile }),
       headers: {
         Authorization: `Bearer ${token.token}`,
         "Content-Type": "application/json",

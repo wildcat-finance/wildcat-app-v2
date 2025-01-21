@@ -11,12 +11,12 @@ import {
   FieldContainer,
   PrevValueContainer,
 } from "@/app/[locale]/borrower/profile/edit/components/style"
-import { PublicValidationSchemaType } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPublicForm"
 import Return from "@/assets/icons/return_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
 import { COLORS } from "@/theme/colors"
 
 import { PrivateValidationSchemaType } from "../../hooks/useEditPrivateForm"
+import { PublicValidationSchemaType } from "../../hooks/useEditPublicForm"
 
 export const EditProfileItem = ({
   title,
@@ -27,6 +27,9 @@ export const EditProfileItem = ({
   newValue,
   children,
   isLoading,
+  oldLabel,
+  onRestoreValue,
+  setValueOptions = { shouldValidate: true },
 }: EditProfileItemProps) => {
   const { t } = useTranslation()
 
@@ -38,14 +41,14 @@ export const EditProfileItem = ({
       form as UseFormReturn<
         PublicValidationSchemaType & PrivateValidationSchemaType
       >
-    ).setValue(field, oldValue)
+    ).setValue(field, oldValue, setValueOptions)
   }
 
   return (
     <Box sx={ComponentContainer}>
       <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
         <Typography variant="text3">{title}</Typography>
-        <TooltipButton value={tooltip} />
+        {tooltip && <TooltipButton value={tooltip} />}
       </Box>
 
       <Box sx={FieldContainer}>
@@ -64,7 +67,7 @@ export const EditProfileItem = ({
             <Button
               variant="text"
               size="small"
-              onClick={handleRestoreValue}
+              onClick={onRestoreValue ?? handleRestoreValue}
               sx={BackButtonContainer}
             >
               <SvgIcon
@@ -80,7 +83,7 @@ export const EditProfileItem = ({
               {t("borrowerProfile.edit.buttons.back")}
             </Button>
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {oldValue}
+              {oldLabel ?? oldValue}
             </Typography>
           </Box>
         )}

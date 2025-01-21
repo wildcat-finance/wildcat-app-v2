@@ -68,7 +68,10 @@ export const NameSection = ({
       >
         <Box display="flex" gap="6px">
           {website && (
-            <Link href={website} target="_blank">
+            <Link
+              href={website.startsWith("http") ? website : `https://${website}`}
+              target="_blank"
+            >
               <Button
                 size="small"
                 variant="outlined"
@@ -94,7 +97,10 @@ export const NameSection = ({
           )}
 
           {linkedin && (
-            <Link href={linkedin} target="_blank">
+            <Link
+              href={`https://www.linkedin.com/in/${linkedin}`}
+              target="_blank"
+            >
               <Button
                 size="small"
                 variant="outlined"

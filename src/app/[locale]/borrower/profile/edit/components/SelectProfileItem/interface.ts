@@ -13,4 +13,5 @@ export type SelectProfileItemProps = {
   newValue?: string
   children: ReactNode
   isLoading: boolean
+  field: keyof PrivateValidationSchemaType
 }

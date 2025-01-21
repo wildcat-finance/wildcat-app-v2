@@ -46,10 +46,12 @@ export async function POST(request: NextRequest) {
   }
   let data: BorrowerProfileInput
   try {
-    const input = await request.json()
+    const { address: inputAddress, ...input } = await request.json()
+    // Admin can update profiles for any address
+    const address = inputAddress && token.isAdmin ? inputAddress : token.address
     data = {
       ...BorrowerProfileInputDTO.parse(input),
-      address: token.address,
+      address,
     }
   } catch (error) {
     return getZodParseError(error)
@@ -69,7 +71,7 @@ export async function POST(request: NextRequest) {
     entityKind,
   } = data
 
-  const address = token.address.toLowerCase()
+  const address = data.address.toLowerCase()
   const chainId = TargetChainId
   const existingBorrower = await prisma.borrower.findFirst({
     where: {
@@ -113,7 +115,11 @@ export async function POST(request: NextRequest) {
   ])
 
   // @todo Temporarily apply changes immediately
-  const newData: Omit<BorrowerProfileInput, "address"> = {}
+  const newData: {
+    [key in keyof Omit<BorrowerProfileInput, "address">]?:
+      | BorrowerProfileInput[key]
+      | null
+  } = {}
   const keys = [
     "name",
     "description",
@@ -128,8 +134,8 @@ export async function POST(request: NextRequest) {
     "entityKind",
   ] as const
   keys.forEach((key) => {
-    if (data[key] !== null) {
-      newData[key] = data[key] || undefined
+    if (key in data) {
+      newData[key] = data[key] || null
     }
   })
   await Promise.all([
