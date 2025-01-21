@@ -115,6 +115,8 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
     } else {
       earlyClosure = "no"
     }
+  } else {
+    earlyClosure = "no"
   }
   let earlyMaturity: "yes" | "no" | "na"
   if (hooksConfig) {
@@ -125,6 +127,8 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
     } else {
       earlyMaturity = "no"
     }
+  } else {
+    earlyMaturity = "no"
   }
 
   return (
