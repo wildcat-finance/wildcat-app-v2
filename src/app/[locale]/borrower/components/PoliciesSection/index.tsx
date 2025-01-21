@@ -225,20 +225,6 @@ export const PoliciesSection = ({
             </Link>
           </Typography>
         </Box>
-
-        <Link href={ROUTES.borrower.createMarket}>
-          <Button
-            variant="contained"
-            size="small"
-            sx={{
-              paddingTop: "8px",
-              paddingBottom: "8px",
-              minWidth: "100px",
-            }}
-          >
-            {t("borrowerMarketList.button.newPolicy")}
-          </Button>
-        </Link>
       </Box>
 
       <Box
@@ -281,22 +267,31 @@ export const PoliciesSection = ({
         </Box>
 
         {rows.length !== 0 && !isLoading && (
-          <DataGrid
+          <Box
             sx={{
+              height: "calc(100vh - 43px - 52px - 52px - 110px - 36px - 30px)",
+              width: "100%",
               overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-
-              "& .MuiDataGrid-cell": {
-                minHeight: "52px",
-                height: "auto",
-                cursor: "default",
-              },
+              overflowY: "auto",
             }}
-            rows={rows}
-            columns={columns}
-            columnHeaderHeight={40}
-            getRowHeight={() => "auto"}
-          />
+          >
+            <DataGrid
+              sx={{
+                overflow: "auto",
+                maxWidth: "calc(100vw - 267px)",
+
+                "& .MuiDataGrid-cell": {
+                  minHeight: "52px",
+                  height: "auto",
+                  cursor: "default",
+                },
+              }}
+              rows={rows}
+              columns={columns}
+              columnHeaderHeight={40}
+              getRowHeight={() => "auto"}
+            />
+          </Box>
         )}
       </Box>
     </Box>

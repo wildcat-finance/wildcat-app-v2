@@ -59,7 +59,7 @@
       "borrowerSubtitle": "All markets you’ve created or create a new one.",
       "lenderSubtitle": "All markets you’ve created or create a new one.",
       "docsLink": "Learn more",
-      "borrowerTitleButton": "Create Market",
+      "borrowerTitleButton": "+ Create New Market",
       "lenderTitleButton": "Create Market",
       "filters": {
         "name": "Search by Name",

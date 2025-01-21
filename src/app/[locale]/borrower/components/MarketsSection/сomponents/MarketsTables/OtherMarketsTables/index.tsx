@@ -110,6 +110,7 @@ export const OtherMarketsTables = ({
         status: marketStatus,
         term: marketType,
         name,
+        borrowerAddress,
         borrower: borrowerName,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
@@ -314,10 +315,11 @@ export const OtherMarketsTables = ({
 
   const { assetFilter, statusFilter, nameFilter } = filters
 
-  useEffect(() => {
-    setSelfOnboardPaginationModel((prevState) => ({ ...prevState, page: 0 }))
-    setManualPaginationModel((prevState) => ({ ...prevState, page: 0 }))
-  }, [assetFilter, statusFilter, nameFilter])
+  // TODO: check why dont work
+  // useEffect(() => {
+  //   setSelfOnboardPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+  //   setManualPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+  // }, [assetFilter, statusFilter, nameFilter])
 
   return (
     <Box
