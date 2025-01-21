@@ -320,6 +320,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               `borrowerMarketDetails.parameters.transferAccess.${transferAccess}.tooltip`,
             )}
           />
+          <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
             title={t(
               "borrowerMarketDetails.parameters.marketEarlyClosure.label",
@@ -331,15 +332,16 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.tooltip`,
             )}
           />
+          <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
             title={t(
               "borrowerMarketDetails.parameters.marketMaturityReduction.label",
             )}
             value={t(
-              `borrowerMarketDetails.parameters.marketEarlyMaturity.${earlyMaturity}.text`,
+              `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.text`,
             )}
             valueTooltipText={t(
-              `borrowerMarketDetails.parameters.marketEarlyMaturity.${earlyMaturity}.tooltip`,
+              `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.tooltip`,
             )}
           />
         </Box>
