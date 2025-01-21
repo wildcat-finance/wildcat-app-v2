@@ -106,9 +106,9 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
   } else {
     transferAccess = "open"
   }
-  let earlyClosure: "yes" | "no" | "na"
+  let earlyClosure: "yes" | "no" | "na" = "no"
   if (hooksConfig) {
-    if (hooksConfig?.kind == HooksKind.OpenTerm) {
+    if (hooksConfig.kind === HooksKind.OpenTerm) {
       earlyClosure = "na"
     } else if (hooksConfig.allowClosureBeforeTerm) {
       earlyClosure = "yes"
@@ -118,9 +118,9 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
   } else {
     earlyClosure = "no"
   }
-  let earlyMaturity: "yes" | "no" | "na"
+  let earlyMaturity: "yes" | "no" | "na" = "no"
   if (hooksConfig) {
-    if (hooksConfig?.kind == HooksKind.OpenTerm) {
+    if (hooksConfig.kind === HooksKind.OpenTerm) {
       earlyMaturity = "na"
     } else if (hooksConfig.allowTermReduction) {
       earlyMaturity = "yes"
