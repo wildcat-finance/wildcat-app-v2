@@ -51,31 +51,15 @@ const mockedMLATemplates = [
 const mockedNatures = [
   {
     label: "Private Individual",
-    value: "pi",
-  },
-  {
-    label: "Private Company Limited by Shares",
-    value: "llc",
-  },
-  {
-    label: "Foundation Company Limited by Guarantee",
-    value: "fnd",
-  },
-  {
-    label: "Public Limited Company",
-    value: "plc",
-  },
-  {
-    label: "Limited Partnership",
-    value: "lp",
-  },
-  {
-    label: "General Partnership",
-    value: "gp",
+    value: "Private Individual",
   },
   {
     label: "Decentralised Autonomous Organisation",
-    value: "dao",
+    value: "Decentralised Autonomous Organisation",
+  },
+  {
+    label: "Registered Legal Entity",
+    value: "Registered Legal Entity",
   },
 ]
 
