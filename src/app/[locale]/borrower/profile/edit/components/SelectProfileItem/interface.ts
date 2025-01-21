@@ -8,8 +8,8 @@ export type SelectProfileItemProps = {
   title: string
   tooltip: string
   form: UseFormReturn<PrivateValidationSchemaType>
-  oldValue: string | undefined
-  oldLabel: string | undefined
+  oldValue?: string
+  oldLabel?: string
   newValue?: string
   children: ReactNode
   isLoading: boolean
