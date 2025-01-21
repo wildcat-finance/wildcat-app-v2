@@ -4,6 +4,8 @@ import { useState } from "react"
 import { Box, Button, Dialog, TextField, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
+import EditProfileForm from "@/app/[locale]/borrower/profile/edit/components/EditProfileForm"
+import { BorrowerProfileInput } from "@/app/api/profiles/interface"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { COLORS } from "@/theme/colors"
@@ -53,35 +55,48 @@ export const InviteBorrowerModal = () => {
     return isValid
   }
 
-  const handleSubmit = () => {
-    if (validateInputs()) {
-      mutate({
-        name,
-        address,
-        description,
-        founded,
-        headquarters,
-        jurisdiction,
-        physicalAddress,
-        entityKind,
-      })
-      // Reset the form
-      setName("")
-      setAddress("")
-      setDescription("")
-      setFounded("")
-      setHeadquarters("")
-      setJurisdiction("")
-      setPhysicalAddress("")
-      setEntityKind("")
-      setNameError("")
-      setAddressError("")
-    }
+  // const handleSubmit = () => {
+  //   if (validateInputs()) {
+  //     mutate({
+  //       name,
+  //       address,
+  //       description,
+  //       founded,
+  //       headquarters,
+  //       jurisdiction,
+  //       physicalAddress,
+  //       entityKind,
+  //     })
+  //     // Reset the form
+  //     setName("")
+  //     setAddress("")
+  //     setDescription("")
+  //     setFounded("")
+  //     setHeadquarters("")
+  //     setJurisdiction("")
+  //     setPhysicalAddress("")
+  //     setEntityKind("")
+  //     setNameError("")
+  //     setAddressError("")
+  //   }
+  // }
+
+  const handleSubmit = (data: BorrowerProfileInput) => {
+    mutate({
+      address,
+      name: data.name as string,
+      description: data.description,
+      founded: data.founded,
+      headquarters: data.headquarters,
+      jurisdiction: data.jurisdiction,
+      physicalAddress: data.physicalAddress,
+      entityKind: data.entityKind,
+    })
   }
 
-  const handleTryAgain = () => {
-    handleSubmit()
-  }
+  // const handleTryAgain = () => {
+  //   handleSubmit()
+  // }
 
   const showForm = !(isPending || isSuccess || isError)
 
@@ -119,8 +134,31 @@ export const InviteBorrowerModal = () => {
                 </Typography>
               </Box>
             </TxModalHeader>
-
             <Box width="100%" padding="24px">
+              <TextField
+                label={t("admin.inviteBorrower.addressLabel")}
+                value={address}
+                onChange={(e) => {
+                  setAddress(e.target.value)
+                  setAddressError("")
+                }}
+                error={!!addressError}
+                helperText={addressError}
+                fullWidth
+              />
+
+              {address && (
+                <EditProfileForm
+                  address={address as `0x${string}`}
+                  hideAvatar
+                  hideExternalLinks
+                  hideHeaders
+                  onSubmit={handleSubmit}
+                />
+              )}
+            </Box>
+
+            {/* <Box width="100%" padding="24px">
               <TextField
                 label={t("admin.inviteBorrower.nameLabel")}
                 value={name}
@@ -203,20 +241,19 @@ export const InviteBorrowerModal = () => {
                 onChange={(e) => setPhysicalAddress(e.target.value)}
                 fullWidth
               />
-            </Box>
+            </Box> */}
           </>
         )}
 
         {isPending && <LoadingModal />}
-        {isError && (
-          <ErrorModal onTryAgain={handleTryAgain} onClose={handleClose} />
-        )}
+        {isError && <ErrorModal onTryAgain={() => {}} onClose={handleClose} />}
         {isSuccess && <SuccessModal onClose={handleClose} />}
 
         {showForm && (
           <TxModalFooter
             mainBtnText={t("admin.inviteBorrower.submit")}
-            mainBtnOnClick={handleSubmit}
+            // mainBtnOnClick={handleSubmit}
+            mainBtnOnClick={() => {}}
             disableMainBtn={!name || !address}
             // hideSecondBtn
           />

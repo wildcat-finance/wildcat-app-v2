@@ -12,10 +12,15 @@ export type BorrowerWithName = {
 
 export const useBorrowerNames = () => {
   const getBorrowers = async () => {
-    const { data } = await fetch(`/api/borrower-names`)
-      .then((res) => res.json())
+    const data = await fetch(`/api/borrower-names`)
+      .then(async (res) => {
+        const result = (await res.json()) as BorrowerWithName[]
+        console.log(`GOT ${result.length} BORROWERS`)
+        return result
+      })
       .catch((err) => {
         console.log(err)
+        console.log(`ERROR RETRIEVING BORROWERS`)
         return undefined
       })
     return data === undefined ? null : (data as BorrowerWithName[])

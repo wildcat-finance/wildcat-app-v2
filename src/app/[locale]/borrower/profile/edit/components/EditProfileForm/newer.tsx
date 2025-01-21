@@ -7,6 +7,10 @@ import {
   Box,
   Button,
   Divider,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
   SelectChangeEvent,
   TextField,
   Typography,
@@ -49,6 +53,7 @@ import Jurisdictions from "@/config/jurisdictions.json"
 import { TargetChainId } from "@/config/network"
 import { useAuthToken, useLogin } from "@/hooks/useApiAuth"
 import { mockedNaturesOptions } from "@/mocks/mocks"
+import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
 import { EditProfileFormProps } from "./interface"
@@ -80,12 +85,10 @@ export default function EditProfileForm({
   address,
   hideAvatar,
   hideHeaders,
-  hideExternalLinks,
   onCancel,
   afterSubmit,
-  onSubmit,
-  sx,
 }: EditProfileFormProps) {
+  const router = useRouter()
   const { t } = useTranslation()
 
   const token = useAuthToken()
@@ -163,18 +166,6 @@ export default function EditProfileForm({
     }
   }
 
-  const handleSubmit = (changedValues: BorrowerProfileInput) => {
-    mutate(changedValues, {
-      onSuccess: () => {
-        invalidateBorrowerProfile()
-        afterSubmit?.()
-      },
-      onError: (error) => {
-        console.error(error)
-      },
-    })
-  }
-
   const handleSendUpdate = () => {
     const changedValues: BorrowerProfileInput = {
       address: address as string,
@@ -186,7 +177,19 @@ export default function EditProfileForm({
         changedValues[key] = newValue
       }
     })
-    ;(onSubmit ?? handleSubmit)(changedValues)
+    mutate(changedValues, {
+      onSuccess: () => {
+        invalidateBorrowerProfile()
+        router.push(ROUTES.borrower.profile)
+      },
+      onError: (error) => {
+        console.error(error)
+      },
+    })
+  }
+
+  const handleCancel = () => {
+    router.push(ROUTES.borrower.profile)
   }
 
   const [oldCountry, setOldCountry] = useState<string | undefined>(undefined)
@@ -273,37 +276,26 @@ export default function EditProfileForm({
         countryWatch as keyof typeof JurisdictionsByCountry
       ] || []
     setSubdivisions(subdivisionOptions)
-    // eslint-disable-next-line @typescript-eslint/no-shadow
-    const jurisdictionWatch = privateWatch("jurisdiction")
-    const entityKindWatch = privateWatch("entityKind")
     if (countryWatch) {
-      console.log(`Update country from useEffect`)
       if (subdivisionOptions.length === 0) {
         setPrivateValue("jurisdiction", "", { shouldValidate: true })
       } else if (subdivisionOptions.length === 1) {
         setPrivateValue("jurisdiction", subdivisionOptions[0].id, {
           shouldValidate: true,
         })
-        const elfs = ELFsByCountry[countryWatch as keyof typeof ELFsByCountry]
-        if (
-          entityKindWatch &&
-          !elfs.find((e) => e.elfCode === entityKindWatch)
-        ) {
-          setPrivateValue("entityKind", "", { shouldValidate: true })
-        }
+        setPrivateValue("entityKind", "", { shouldValidate: true })
       } else if (
         jurisdictionWatch &&
         !subdivisionOptions.some((sub) => sub.id === jurisdictionWatch)
       ) {
-        // console.log(`Jurisdiction exists but not in subdivision options`)
         setPrivateValue("jurisdiction", "", { shouldValidate: true })
         setPrivateValue("entityKind", "", { shouldValidate: true })
       }
     }
-  }, [countryWatch, setPrivateValue, privateWatch])
+  }, [countryWatch, setPrivateValue])
 
   return (
-    <Box sx={sx}>
+    <Box sx={EditPageContainer}>
       {!hideHeaders && (
         <Box sx={TitleContainer}>
           <Typography variant="title1">
@@ -391,84 +383,70 @@ export default function EditProfileForm({
             onChange={(e) => {
               // Don't update if the value is not a number
               if (!Number.isNaN(Number(e.target.value))) {
-                setPublicValue("founded", e.target.value, {
-                  shouldValidate: true,
-                })
+                setPublicValue("founded", e.target.value)
               }
             }}
             onBlur={(e) => {
               if (!Number.isNaN(Number(e.target.value))) {
-                setPublicValue("founded", e.target.value, {
-                  shouldValidate: true,
-                })
+                setPublicValue("founded", e.target.value)
               }
             }}
           />
         </EditProfileItem>
 
-        {!hideExternalLinks && (
-          <>
-            <EditProfileItem
-              title={t("borrowerProfile.edit.public.website.title")}
-              tooltip={t("borrowerProfile.edit.public.website.tooltip")}
-              form={publicForm}
-              field="website"
-              oldValue={publicData?.website}
-              newValue={publicWatch("website")}
-              isLoading={isLoading}
-            >
-              <TextField
-                placeholder={t(
-                  "borrowerProfile.edit.public.website.placeholder",
-                )}
-                fullWidth
-                error={Boolean(publicErrors.website)}
-                helperText={publicErrors.website?.message}
-                {...registerPublic("website")}
-              />
-            </EditProfileItem>
+        <EditProfileItem
+          title={t("borrowerProfile.edit.public.website.title")}
+          tooltip={t("borrowerProfile.edit.public.website.tooltip")}
+          form={publicForm}
+          field="website"
+          oldValue={publicData?.website}
+          newValue={publicWatch("website")}
+          isLoading={isLoading}
+        >
+          <TextField
+            placeholder={t("borrowerProfile.edit.public.website.placeholder")}
+            fullWidth
+            error={Boolean(publicErrors.website)}
+            helperText={publicErrors.website?.message}
+            {...registerPublic("website")}
+          />
+        </EditProfileItem>
 
-            <EditProfileItem
-              title={t("borrowerProfile.edit.public.twitter.title")}
-              tooltip={t("borrowerProfile.edit.public.twitter.tooltip")}
-              form={publicForm}
-              field="twitter"
-              oldValue={publicData?.twitter}
-              newValue={publicWatch("twitter")}
-              isLoading={isLoading}
-            >
-              <TextField
-                placeholder={t(
-                  "borrowerProfile.edit.public.twitter.placeholder",
-                )}
-                fullWidth
-                error={Boolean(publicErrors.twitter)}
-                helperText={publicErrors.twitter?.message}
-                {...registerPublic("twitter")}
-              />
-            </EditProfileItem>
+        <EditProfileItem
+          title={t("borrowerProfile.edit.public.twitter.title")}
+          tooltip={t("borrowerProfile.edit.public.twitter.tooltip")}
+          form={publicForm}
+          field="twitter"
+          oldValue={publicData?.twitter}
+          newValue={publicWatch("twitter")}
+          isLoading={isLoading}
+        >
+          <TextField
+            placeholder={t("borrowerProfile.edit.public.twitter.placeholder")}
+            fullWidth
+            error={Boolean(publicErrors.twitter)}
+            helperText={publicErrors.twitter?.message}
+            {...registerPublic("twitter")}
+          />
+        </EditProfileItem>
 
-            <EditProfileItem
-              title={t("borrowerProfile.edit.public.linkedin.title")}
-              tooltip={t("borrowerProfile.edit.public.linkedin.tooltip")}
-              form={publicForm}
-              field="linkedin"
-              oldValue={publicData?.linkedin}
-              newValue={publicWatch("linkedin")}
-              isLoading={isLoading}
-            >
-              <TextField
-                placeholder={t(
-                  "borrowerProfile.edit.public.linkedin.placeholder",
-                )}
-                fullWidth
-                error={Boolean(publicErrors.linkedin)}
-                helperText={publicErrors.linkedin?.message}
-                {...registerPublic("linkedin")}
-              />
-            </EditProfileItem>
-          </>
-        )}
+        <EditProfileItem
+          title={t("borrowerProfile.edit.public.linkedin.title")}
+          tooltip={t("borrowerProfile.edit.public.linkedin.tooltip")}
+          form={publicForm}
+          field="linkedin"
+          oldValue={publicData?.linkedin}
+          newValue={publicWatch("linkedin")}
+          isLoading={isLoading}
+        >
+          <TextField
+            placeholder={t("borrowerProfile.edit.public.linkedin.placeholder")}
+            fullWidth
+            error={Boolean(publicErrors.linkedin)}
+            helperText={publicErrors.linkedin?.message}
+            {...registerPublic("linkedin")}
+          />
+        </EditProfileItem>
       </Box>
 
       <Divider sx={{ width: "60.8%", margin: "40px 0" }} />
@@ -679,11 +657,9 @@ export default function EditProfileForm({
       </Box>
 
       <Box sx={ButtonsContainer}>
-        {onCancel && (
-          <Button variant="text" size="large" onClick={onCancel}>
-            {t("borrowerProfile.edit.buttons.cancel")}
-          </Button>
-        )}
+        <Button variant="text" size="large" onClick={onCancel ?? handleCancel}>
+          {t("borrowerProfile.edit.buttons.cancel")}
+        </Button>
 
         {!token && (
           <Button

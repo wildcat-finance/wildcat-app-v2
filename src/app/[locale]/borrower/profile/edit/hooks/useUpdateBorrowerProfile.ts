@@ -7,6 +7,8 @@ import { toastRequest } from "@/components/Toasts"
 import { useAuthToken } from "@/hooks/useApiAuth"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 
+import { USE_REGISTERED_BORROWERS_KEY } from "../../../hooks/useBorrowerNames"
+
 const hashData = async (data: object): Promise<string> => {
   const encoder = new TextEncoder()
   const encodedData = encoder.encode(JSON.stringify(data))
@@ -85,6 +87,9 @@ export const useUpdateBorrowerProfile = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BORROWER_PROFILE_KEY] })
+      queryClient.invalidateQueries({
+        queryKey: [USE_REGISTERED_BORROWERS_KEY],
+      })
     },
     onError(error) {
       console.error("Error updating profile with blockchain signature:", error)

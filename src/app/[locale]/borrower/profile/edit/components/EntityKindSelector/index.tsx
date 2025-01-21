@@ -132,8 +132,8 @@ export const EntityKindSelector = ({
             helperText={helperText}
           />
         )}
-        renderOption={(props, option) => (
-          <MenuItem {...props}>{getOptionLabel(option)}</MenuItem>
+        renderOption={({ key, ...props }, option) => (
+          <MenuItem key={key} {...props}>{getOptionLabel(option)}</MenuItem>
         )}
         isOptionEqualToValue={(option, val) => option.elfCode === val?.elfCode}
         getOptionLabel={getOptionLabel}
