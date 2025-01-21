@@ -32,12 +32,12 @@ import { useAppDispatch } from "@/store/hooks"
 import { resetPolicyLendersState } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 import { COLORS } from "@/theme/colors"
 
-export type PolicyFilterSelectItem = { id: string; name: string }
+import { SmallFilterSelectItem } from "../../../../../../components/SmallFilterSelect"
 
 export type PolicySelectProps = {
-  policies: PolicyFilterSelectItem[]
-  selected: PolicyFilterSelectItem
-  setSelected: Dispatch<SetStateAction<PolicyFilterSelectItem>>
+  policies: SmallFilterSelectItem[]
+  selected: SmallFilterSelectItem
+  setSelected: Dispatch<SetStateAction<SmallFilterSelectItem>>
 }
 
 export const PolicySelect = ({

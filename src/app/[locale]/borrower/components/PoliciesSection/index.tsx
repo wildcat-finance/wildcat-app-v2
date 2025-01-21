@@ -15,17 +15,19 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
-import {
-  PolicyFilterSelect,
-  PolicyFilterSelectItem,
-} from "@/app/[locale]/borrower/components/PoliciesTab/components/PolicyFilterSelect"
 import { useGetBorrowerHooksDataWithSubgraph } from "@/app/[locale]/borrower/hooks/useGetBorrowerHooksData"
 import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
+import { FilterTextField } from "@/components/FilterTextfield"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { ROUTES } from "@/routes"
 import { setLenderFilter } from "@/store/slices/editLendersListSlice/editLendersListSlice"
 import { COLORS } from "@/theme/colors"
+
+import {
+  SmallFilterSelect,
+  SmallFilterSelectItem,
+} from "../../../../../components/SmallFilterSelect"
 
 export type TypeSafeColDef<T> = GridColDef & { field: keyof T }
 
@@ -42,7 +44,7 @@ export type PoliciesTabProps = {
   isMarketsLoading: boolean
 }
 
-export const PoliciesTab = ({
+export const PoliciesSection = ({
   markets,
   isMarketsLoading,
 }: PoliciesTabProps) => {
@@ -50,7 +52,7 @@ export const PoliciesTab = ({
 
   const [policyName, setPolicyName] = useState<string>("")
 
-  const [marketsFilter, setMarketsFilter] = useState<PolicyFilterSelectItem[]>(
+  const [marketsFilter, setMarketsFilter] = useState<SmallFilterSelectItem[]>(
     [],
   )
 
@@ -201,41 +203,29 @@ export const PoliciesTab = ({
 
   return (
     <Box sx={{ width: "100%" }}>
-      {/* <Box */}
-      {/*  sx={{ */}
-      {/*    width: "100%", */}
-      {/*    display: "flex", */}
-      {/*    justifyContent: "space-between", */}
-      {/*    alignItems: "center", */}
-      {/*  }} */}
-      {/* > */}
-      {/*  <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}> */}
-      {/*    <Typography variant="title2">Policies</Typography> */}
-      {/*    <Typography variant="text3" color={COLORS.santasGrey}> */}
-      {/*      Common agreement for several markets.{" "} */}
-      {/*      <Link */}
-      {/*        href="https://docs.wildcat.finance/" */}
-      {/*        style={{ color: COLORS.santasGrey }} */}
-      {/*      > */}
-      {/*        Learn more */}
-      {/*      </Link> */}
-      {/*    </Typography> */}
-      {/*  </Box> */}
-
-      {/*  <Link href={ROUTES.borrower.createMarket}> */}
-      {/*    <Button */}
-      {/*      variant="contained" */}
-      {/*      size="small" */}
-      {/*      sx={{ */}
-      {/*        paddingTop: "8px", */}
-      {/*        paddingBottom: "8px", */}
-      {/*        minWidth: "100px", */}
-      {/*      }} */}
-      {/*    > */}
-      {/*      {t("borrowerMarketList.button.newPolicy")} */}
-      {/*    </Button> */}
-      {/*  </Link> */}
-      {/* </Box> */}
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "0 24px",
+          marginBottom: "24px",
+        }}
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <Typography variant="title2">Policies</Typography>
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            Common agreement for several markets.{" "}
+            <Link
+              href="https://docs.wildcat.finance/"
+              style={{ color: COLORS.santasGrey }}
+            >
+              Learn more
+            </Link>
+          </Typography>
+        </Box>
+      </Box>
 
       <Box
         sx={{
@@ -246,58 +236,13 @@ export const PoliciesTab = ({
           gap: "6px",
         }}
       >
-        <TextField
+        <FilterTextField
           value={policyName}
-          onChange={handleChangePolicy}
-          size="small"
-          placeholder="Search"
-          sx={{
-            width: "180px",
-
-            "& .MuiInputBase-root": {
-              paddingRight: "8px",
-            },
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SvgIcon
-                  fontSize="small"
-                  sx={{
-                    width: "20px",
-                    "& path": { fill: `${COLORS.greySuit}` },
-                  }}
-                >
-                  <Search />
-                </SvgIcon>
-              </InputAdornment>
-            ),
-            endAdornment: policyName ? (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={handleClickErase}
-                  disableRipple
-                  sx={{
-                    padding: "0 2px 0 0",
-                    "& path": {
-                      fill: `${COLORS.greySuit}`,
-                      transition: "fill 0.2s",
-                    },
-                    "& :hover": {
-                      "& path": { fill: `${COLORS.santasGrey}` },
-                    },
-                  }}
-                >
-                  <SvgIcon fontSize="small">
-                    <Cross />
-                  </SvgIcon>
-                </IconButton>
-              </InputAdornment>
-            ) : null,
-          }}
+          setValue={setPolicyName}
+          placeholder="Search by Name"
         />
 
-        <PolicyFilterSelect
+        <SmallFilterSelect
           placeholder="Markets"
           options={marketsOptions ?? []}
           selected={marketsFilter}
@@ -322,22 +267,31 @@ export const PoliciesTab = ({
         </Box>
 
         {rows.length !== 0 && !isLoading && (
-          <DataGrid
+          <Box
             sx={{
+              height: "calc(100vh - 43px - 52px - 52px - 110px - 36px - 30px)",
+              width: "100%",
               overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-
-              "& .MuiDataGrid-cell": {
-                minHeight: "52px",
-                height: "auto",
-                cursor: "default",
-              },
+              overflowY: "auto",
             }}
-            rows={rows}
-            columns={columns}
-            columnHeaderHeight={40}
-            getRowHeight={() => "auto"}
-          />
+          >
+            <DataGrid
+              sx={{
+                overflow: "auto",
+                maxWidth: "calc(100vw - 267px)",
+
+                "& .MuiDataGrid-cell": {
+                  minHeight: "52px",
+                  height: "auto",
+                  cursor: "default",
+                },
+              }}
+              rows={rows}
+              columns={columns}
+              columnHeaderHeight={40}
+              getRowHeight={() => "auto"}
+            />
+          </Box>
         )}
       </Box>
     </Box>

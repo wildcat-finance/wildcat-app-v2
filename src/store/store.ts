@@ -1,7 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit"
 import { persistStore } from "redux-persist"
 
+import borrowerDashboardSlice from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 import createMarketSidebarSlice from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
+import lenderDashboardSlice from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import policyLendersSlice from "@/store/slices/policyLendersSlice/policyLendersSlice"
 
 import apiTokensSlice from "./slices/apiTokensSlice/apiTokensSlice"
@@ -24,6 +26,8 @@ export const makeStore = () => {
       routing: routingSlice,
       createMarketSidebar: createMarketSidebarSlice,
       marketsOverviewSidebar: marketsOverviewSidebarSlice,
+      borrowerDashboard: borrowerDashboardSlice,
+      lenderDashboard: lenderDashboardSlice,
       highlightSidebar: highlightSidebarSlice,
       lenderMarketRouting: lenderMarketRoutingSlice,
       editLendersList: editLendersListSlice,

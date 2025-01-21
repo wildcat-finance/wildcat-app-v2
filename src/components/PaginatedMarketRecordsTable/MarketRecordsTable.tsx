@@ -24,9 +24,9 @@ const getRecordText = (
   borrowerName: string,
 ): string => {
   if (record.__typename === "AnnualInterestBipsUpdated") {
-    return `Interest rate changed from ${
-      record.oldAnnualInterestBips / 100
-    }% to ${record.newAnnualInterestBips / 100}%`
+    return `Base APR changed from ${record.oldAnnualInterestBips / 100}% to ${
+      record.newAnnualInterestBips / 100
+    }%`
   }
   if (record.__typename === "Borrow") {
     return `${borrowerName} borrowed ${record.amount.format(
@@ -67,7 +67,7 @@ const getRecordText = (
   if (record.__typename === "WithdrawalRequest") {
     const lenderName = lenderNames[record.address.toLowerCase()]
     const label = lenderName ?? trimAddress(record.address)
-    return `${label} requested withdrawal of ${record.normalizedAmount.format(
+    return `${label} requested a withdrawal of ${record.normalizedAmount.format(
       TOKEN_FORMAT_DECIMALS,
       true,
     )}`
@@ -95,7 +95,7 @@ const getRecordText = (
   }
   if (record.__typename === "FixedTermUpdated") {
     const time = dayjs(record.newFixedTermEndTime * 1000).format(DATE_FORMAT)
-    return `Market maturity reduced to ${time}`
+    return `Market maturity updated to ${time}`
   }
   if (record.__typename === "ForceBuyBack") {
     const lenderName = lenderNames[record.account.address.toLowerCase()]
@@ -129,8 +129,8 @@ export function MarketRecordsTable({
     {
       field: "transactionHash",
       headerName: t("marketRecords.table.header.transactionHash"),
-      maxWidth: 250,
-      minWidth: 250,
+      maxWidth: 300,
+      minWidth: 300,
       flex: 2,
       headerAlign: "left",
       align: "left",
@@ -165,9 +165,9 @@ export function MarketRecordsTable({
     {
       field: "eventIndex",
       headerName: t("marketRecords.table.header.event"),
-      minWidth: 130,
+      minWidth: 200,
       flex: 2,
-      headerAlign: "left",
+      headerAlign: "right",
       align: "right",
       sortable: false,
       renderCell: (params) => (
@@ -231,11 +231,14 @@ export function MarketRecordsTable({
         ...TableStyles,
         overflow: "auto",
         maxWidth: "calc(100vw - 267px)",
-        padding: "0 16px",
+        padding: "16px 16px",
       }}
       getRowHeight={() => "auto"}
       rows={records?.map((r) => ({ id: r.transactionHash, ...r })) || []}
       columns={columns}
+      localeText={{
+        noRowsLabel: "No unfiltered events",
+      }}
       // {...(paginationProps as any)}
       // rowCount={rowCount}
       hideFooter={false}

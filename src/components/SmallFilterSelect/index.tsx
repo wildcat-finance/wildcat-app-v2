@@ -1,7 +1,9 @@
 import { ChangeEvent, Dispatch, SetStateAction, useRef, useState } from "react"
+import * as React from "react"
 
 import {
   Box,
+  Button,
   FormControl,
   FormControlLabel,
   InputAdornment,
@@ -17,21 +19,21 @@ import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { COLORS } from "@/theme/colors"
 
-export type PolicyFilterSelectItem = { id: string; name: string }
+export type SmallFilterSelectItem = { id: string; name: string }
 
-export type PolicyFilterSelectProps = {
+export type SmallFilterSelectProps = {
   placeholder: string
-  options: PolicyFilterSelectItem[]
-  selected: PolicyFilterSelectItem[]
-  setSelected: Dispatch<SetStateAction<PolicyFilterSelectItem[]>>
+  options: SmallFilterSelectItem[]
+  selected: SmallFilterSelectItem[]
+  setSelected: Dispatch<SetStateAction<SmallFilterSelectItem[]>>
 }
 
-export const PolicyFilterSelect = ({
+export const SmallFilterSelect = ({
   placeholder,
   options,
   selected,
   setSelected,
-}: PolicyFilterSelectProps) => {
+}: SmallFilterSelectProps) => {
   const [search, setSearch] = useState("")
 
   const selectRef = useRef<HTMLElement>(null)
@@ -60,7 +62,7 @@ export const PolicyFilterSelect = ({
 
   const handleChangeItems = (
     event: React.ChangeEvent<HTMLInputElement>,
-    item: PolicyFilterSelectItem,
+    item: SmallFilterSelectItem,
   ) => {
     if (event.target.checked) {
       setSelected([...selected, item])
@@ -71,7 +73,7 @@ export const PolicyFilterSelect = ({
     }
   }
 
-  const handleDeleteItem = (item: PolicyFilterSelectItem) => {
+  const handleDeleteItem = (item: SmallFilterSelectItem) => {
     setSelected(selected.filter((existingItem) => existingItem.id !== item.id))
   }
 
@@ -249,6 +251,16 @@ export const PolicyFilterSelect = ({
             />
           ))}
         </Box>
+
+        <Button
+          onClick={handleClear}
+          size="medium"
+          variant="contained"
+          color="secondary"
+          sx={{ width: "100%", marginTop: "12px" }}
+        >
+          Reset
+        </Button>
       </Select>
     </FormControl>
   )
