@@ -321,7 +321,9 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             )}
           />
           <MarketParametersItem
-            title={t("borrowerMarketDetails.parameters.marketEarlyClosure.label")}
+            title={t(
+              "borrowerMarketDetails.parameters.marketEarlyClosure.label",
+            )}
             value={t(
               `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.text`,
             )}
