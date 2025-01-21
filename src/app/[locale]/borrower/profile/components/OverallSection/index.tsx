@@ -9,8 +9,8 @@ import {
   MarketParametersRowsDivider,
 } from "@/app/[locale]/borrower/profile/style"
 import { MarketParametersItem } from "@/components/MarketParameters/components/MarketParametersItem"
-import Jurisdictions from "@/config/jurisdictions.json"
 import ELFsByCountry from "@/config/elfs-by-country.json"
+import Jurisdictions from "@/config/jurisdictions.json"
 
 import { OverallSectionProps } from "./interface"
 
@@ -35,17 +35,13 @@ export const OverallSection = ({
 
   const entityKindText =
     entityKind !== undefined && jurisdictionObj
-      ? ELFsByCountry[jurisdictionObj.countryCode as keyof typeof ELFsByCountry].find(
-          (elf) => elf.elfCode === entityKind
-        )?.name
+      ? ELFsByCountry[
+          jurisdictionObj.countryCode as keyof typeof ELFsByCountry
+        ].find((elf) => elf.elfCode === entityKind)?.name
       : undefined
 
   return (
     <Box>
-     {/*  <Typography variant="title3">
-        {t("borrowerProfile.profile.overallInfo.title")}
-      </Typography> */}
-
       <Box sx={MarketParametersContainer}>
         <Box sx={MarketParametersColumn}>
           {name && (

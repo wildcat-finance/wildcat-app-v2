@@ -14,7 +14,10 @@ import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
-import { BorrowerWithName, useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import {
+  BorrowerWithName,
+  useBorrowerNames,
+} from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
