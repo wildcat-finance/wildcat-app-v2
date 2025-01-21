@@ -64,11 +64,13 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
 
   return (
     <Box marginTop="12px">
-      <Box sx={{
-        display: "flex",
-        justifyContent: "space-between",
-        overflow: "hidden"
-      }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          overflow: "hidden"
+        }}
+      >
         <Typography variant="title3">
           {t("borrowerMarketDetails.statusChart.totalDebt")}
         </Typography>
