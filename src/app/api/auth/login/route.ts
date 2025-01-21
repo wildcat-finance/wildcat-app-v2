@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { getLoginSignatureMessage } from "@/config/api"
 import { getProviderForServer } from "@/lib/provider"
-import { verifySignature } from "@/lib/signatures"
+import { verifyAndDescribeSignature, verifySignature } from "@/lib/signatures"
 import { getZodParseError } from "@/lib/zod-error"
 
 import { LoginInputDTO } from "./dto"
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   const { signature, timeSigned } = body
   const LoginMessage = getLoginSignatureMessage(address, timeSigned)
   const provider = getProviderForServer()
-  const result = await verifySignature({
+  const result = await verifyAndDescribeSignature({
     provider,
     signature,
     message: LoginMessage,
