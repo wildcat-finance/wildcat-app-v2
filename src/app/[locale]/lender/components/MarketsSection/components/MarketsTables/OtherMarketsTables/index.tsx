@@ -12,16 +12,13 @@ import {
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import { BorrowerActiveMarketsTableModel } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/BorrowerActiveMarketsTables"
-import {
-  MarketsTablesProps,
-  TypeSafeColDef,
-} from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
-import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
+import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { TablePagination } from "@/components/TablePagination"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -37,20 +34,20 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
-import { getMarketStatusChip } from "@/utils/marketStatus"
+import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 import { MarketsTableAccordion } from "../../../../../../../../components/MarketsTableAccordion"
 
-export type OtherMarketsTableModel = {
+export type LenderOtherMarketsTableModel = {
   id: string
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
   borrower: string | undefined
   asset: string
-  apr: number
   debt: TokenAmount | undefined
+  apr: number
   isSelfOnboard: boolean
 }
 
@@ -58,12 +55,21 @@ export const OtherMarketsTables = ({
   marketAccounts,
   isLoading,
   filters,
-}: MarketsTablesProps) => {
+}: {
+  marketAccounts: MarketAccount[]
+  borrowers: BorrowerWithName[]
+  isLoading: boolean
+  filters: {
+    nameFilter: string
+    assetFilter: SmallFilterSelectItem[]
+    statusFilter: MarketStatus[]
+  }
+}) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
   const scrollTargetId = useAppSelector(
-    (state) => state.borrowerDashboard.scrollTarget,
+    (state) => state.lenderDashboard.scrollTarget,
   )
 
   const selfOnboardRef = useRef<HTMLDivElement>(null)
@@ -82,7 +88,7 @@ export const OtherMarketsTables = ({
 
   const { data: borrowers } = useGetBorrowers()
 
-  const rows: GridRowsProp<OtherMarketsTableModel> = marketAccounts.map(
+  const rows: GridRowsProp<LenderOtherMarketsTableModel> = marketAccounts.map(
     (account) => {
       const { market } = account
 
@@ -125,7 +131,7 @@ export const OtherMarketsTables = ({
   const selfOnboard = rows.filter((market) => market.isSelfOnboard)
   const manual = rows.filter((market) => !market.isSelfOnboard)
 
-  const columns: TypeSafeColDef<OtherMarketsTableModel>[] = [
+  const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
     {
       field: "status",
       headerName: "Status",
@@ -136,7 +142,7 @@ export const OtherMarketsTables = ({
       sortComparator: statusComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -158,7 +164,7 @@ export const OtherMarketsTables = ({
       sortComparator: typeComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -179,7 +185,7 @@ export const OtherMarketsTables = ({
       align: "left",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -221,7 +227,7 @@ export const OtherMarketsTables = ({
           }}
         >
           <Link
-            href={`${ROUTES.borrower.profile}/${params.row.borrowerAddress}`}
+            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
             style={{
               textDecoration: "none",
               width: "fit-content",
@@ -254,7 +260,7 @@ export const OtherMarketsTables = ({
       flex: 1,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value}
@@ -271,7 +277,7 @@ export const OtherMarketsTables = ({
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value
@@ -292,7 +298,7 @@ export const OtherMarketsTables = ({
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {`${formatBps(params.value)}%`}

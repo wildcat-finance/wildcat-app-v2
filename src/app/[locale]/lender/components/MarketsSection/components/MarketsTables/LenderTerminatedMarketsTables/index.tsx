@@ -16,7 +16,7 @@ import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
+import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import {
@@ -59,7 +59,7 @@ export const LenderTerminatedMarketsTables = ({
   const dispatch = useAppDispatch()
 
   const scrollTargetId = useAppSelector(
-    (state) => state.borrowerDashboard.scrollTarget,
+    (state) => state.lenderDashboard.scrollTarget,
   )
 
   const prevActiveRef = useRef<HTMLDivElement>(null)
@@ -128,7 +128,7 @@ export const LenderTerminatedMarketsTables = ({
       sortComparator: statusComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -149,7 +149,7 @@ export const LenderTerminatedMarketsTables = ({
       align: "left",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -224,7 +224,7 @@ export const LenderTerminatedMarketsTables = ({
       flex: 1,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value}
@@ -241,7 +241,7 @@ export const LenderTerminatedMarketsTables = ({
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value
@@ -265,7 +265,7 @@ export const LenderTerminatedMarketsTables = ({
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value
@@ -286,7 +286,7 @@ export const LenderTerminatedMarketsTables = ({
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {`${formatBps(params.value)}%`}

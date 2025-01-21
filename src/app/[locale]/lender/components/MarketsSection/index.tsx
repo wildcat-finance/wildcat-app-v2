@@ -9,6 +9,7 @@ import { useAccount } from "wagmi"
 import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
 import { LenderMarketSectionSwitcher } from "@/app/[locale]/lender/components/MarketsSection/components/LenderMarketSectionSwitcher"
 import { LenderActiveMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/LenderActiveMarketsTables"
+import { LenderTerminatedMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/LenderTerminatedMarketsTables"
 import { OtherMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/OtherMarketsTables"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { FilterTextField } from "@/components/FilterTextfield"
@@ -23,9 +24,6 @@ import { LenderMarketDashboardSections } from "@/store/slices/lenderDashboardSli
 import { COLORS } from "@/theme/colors"
 import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
-import {
-  LenderTerminatedMarketsTables
-} from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/LenderTerminatedMarketsTables"
 
 export const MarketsSection = () => {
   const marketSection = useAppSelector(
@@ -193,6 +191,7 @@ export const MarketsSection = () => {
         !isWrongNetwork && (
           <OtherMarketsTables
             marketAccounts={filteredOtherMarketAccounts}
+            borrowers={borrowers ?? []}
             isLoading={isLoading}
             filters={filters}
           />
