@@ -998,6 +998,9 @@
         "founded": "Founded",
         "markets": "Markets",
         "borrowed": "Total Amount Borrowed",
+        "country": "Country",
+        "jurisdiction": "Jurisdiction",
+        "entityKind": "Entity Legal Form",
         "defaults": {
           "title": "Defaults",
           "tooltip": "TBD"
@@ -1023,33 +1026,46 @@
         "avatar": {
           "title": "Avatar",
           "generated": "Automatically Generated",
-          "tooltip": "TBD",
+          "tooltip": "",
           "edit": "Change Image"
         },
         "name": {
           "title": "Legal Name",
           "placeholder": "Full name of legal entity.",
-          "tooltip": "You can incliude any d.b.a. aliases in brackets if you wish, i.e. HoldCo Ltd (Liquid Fund X)."
+          "tooltip": "You can incliude any d.b.a. aliases in brackets if you wish, i.e. HoldCo Ltd (Liquid Fund X).",
+          "helperText": "This can only be changed by contacting support."
         },
         "description": {
           "title": "Description",
           "placeholder": "Description of your business operations, what you aim to borrow for, any external dashboards/information that lenders would find useful etc.",
-          "tooltip": "TBD"
+          "tooltip": ""
         },
         "founded": {
           "title": "Founded",
           "placeholder": "Year that the borrowing entity was created.",
-          "tooltip": "TBD"
+          "tooltip": ""
         },
         "headquarters": {
           "title": "Headquarters",
           "placeholder": "Location of entity headquarters/main place of business.",
-          "tooltip": "TBD"
+          "tooltip": ""
+        },
+        "country": {
+          "title": "Country",
+          "placeholder": "Please Select",
+          "tooltip": "",
+          "noOptions": "No countries found"
+        },
+        "jurisdiction": {
+          "title": "Jurisdiction",
+          "placeholder": "Please Select",
+          "tooltip": "TBD",
+          "noOptions": "No jurisdictions found"
         },
         "website": {
           "title": "Website",
           "placeholder": "borrower-profile.com",
-          "tooltip": "TBD"
+          "tooltip": ""
         },
         "twitter": {
           "title": "Twitter/X",
@@ -1060,6 +1076,12 @@
           "title": "LinkedIn",
           "placeholder": "linkedin.com/borrower_page",
           "tooltip": "Enter a LinkedIn page for the borrower, where applicable."
+        },
+        "entityKind": {
+          "title": "Entity Legal Form",
+          "placeholder": "Please Select",
+          "tooltip": "The kind of legal entity that is registered in the selected jurisdiction.",
+          "noOptions": "No legal forms found"
         }
       },
       "private": {
@@ -1068,22 +1090,24 @@
         "jurisdiction": {
           "title": "Jurisdiction",
           "placeholder": "Please Enter",
-          "tooltip": "TBD"
+          "tooltip": ""
         },
         "nature": {
           "title": "Nature Of Legal Entity",
           "placeholder": "Please Select",
-          "tooltip": "TBD"
+          "tooltip": ""
         },
         "address": {
           "title": "Entity Registered Address",
           "placeholder": "Enter Location",
-          "tooltip": "TBD"
+          "tooltip": "",
+          "helperText": "This address will not be private even prior to market deployment."
         },
         "email": {
           "title": "Email",
           "placeholder": "example@domain.com",
-          "tooltip": "TBD"
+          "tooltip": "",
+          "helperText": "This email will be shown to lenders that wish to be added to closed markets."
         }
       },
       "buttons": {
