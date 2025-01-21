@@ -22,6 +22,10 @@ export const LenderDashboardSidebar = () => {
     (state) => state.lenderDashboard.marketSection,
   )
 
+  const showFullFunctionality = useAppSelector(
+    (state) => state.lenderDashboard.showFullFunctionality,
+  )
+
   const handleChangeMarketSection = (
     selectedMarketSection: LenderMarketDashboardSections,
   ) => {
@@ -52,43 +56,49 @@ export const LenderDashboardSidebar = () => {
           </SvgIcon>
         }
       >
-        <DashboardSectionAccordion
-          label="Your Markets"
-          open={marketSection === LenderMarketDashboardSections.ACTIVE}
-          onClick={() =>
-            handleChangeMarketSection(LenderMarketDashboardSections.ACTIVE)
-          }
-        >
-          <DashboardButton
-            label="Deposited"
-            onClick={() => handleScrollToTable("deposited")}
-          />
-          <DashboardButton
-            label="Non-Deposited"
-            onClick={() => handleScrollToTable("non-deposited")}
-          />
-          {/* <DashboardButton */}
-          {/*  label="Outstanding Withdrawals" */}
-          {/*  onClick={() => handleScrollToTable("outstanding")} */}
-          {/* /> */}
-        </DashboardSectionAccordion>
+        {showFullFunctionality && (
+          <DashboardSectionAccordion
+            label="Your Markets"
+            open={marketSection === LenderMarketDashboardSections.ACTIVE}
+            onClick={() =>
+              handleChangeMarketSection(LenderMarketDashboardSections.ACTIVE)
+            }
+          >
+            <DashboardButton
+              label="Deposited"
+              onClick={() => handleScrollToTable("deposited")}
+            />
+            <DashboardButton
+              label="Non-Deposited"
+              onClick={() => handleScrollToTable("non-deposited")}
+            />
+            {/* <DashboardButton */}
+            {/*  label="Outstanding Withdrawals" */}
+            {/*  onClick={() => handleScrollToTable("outstanding")} */}
+            {/* /> */}
+          </DashboardSectionAccordion>
+        )}
 
-        <DashboardSectionAccordion
-          label="Your Terminated Markets"
-          open={marketSection === LenderMarketDashboardSections.TERMINATED}
-          onClick={() =>
-            handleChangeMarketSection(LenderMarketDashboardSections.TERMINATED)
-          }
-        >
-          <DashboardButton
-            label="Previously Active"
-            onClick={() => handleScrollToTable("prev-active")}
-          />
-          <DashboardButton
-            label="Never Active"
-            onClick={() => handleScrollToTable("never-active")}
-          />
-        </DashboardSectionAccordion>
+        {showFullFunctionality && (
+          <DashboardSectionAccordion
+            label="Your Terminated Markets"
+            open={marketSection === LenderMarketDashboardSections.TERMINATED}
+            onClick={() =>
+              handleChangeMarketSection(
+                LenderMarketDashboardSections.TERMINATED,
+              )
+            }
+          >
+            <DashboardButton
+              label="Previously Active"
+              onClick={() => handleScrollToTable("prev-active")}
+            />
+            <DashboardButton
+              label="Never Active"
+              onClick={() => handleScrollToTable("never-active")}
+            />
+          </DashboardSectionAccordion>
+        )}
 
         <DashboardSectionAccordion
           label="Other Markets"

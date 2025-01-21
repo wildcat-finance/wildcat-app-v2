@@ -49,6 +49,7 @@ export type LenderOtherMarketsTableModel = {
   debt: TokenAmount | undefined
   apr: number
   isSelfOnboard: boolean
+  button?: string
 }
 
 export const OtherMarketsTables = ({
@@ -117,6 +118,7 @@ export const OtherMarketsTables = ({
         term: marketType,
         name,
         borrower: borrowerName,
+        borrowerAddress,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
         debt: totalBorrowed,
@@ -124,6 +126,7 @@ export const OtherMarketsTables = ({
           !account.hasEverInteracted &&
           market.version === MarketVersion.V2 &&
           account.depositAvailability === DepositStatus.Ready,
+        button: address,
       }
     },
   )
@@ -302,6 +305,29 @@ export const OtherMarketsTables = ({
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {`${formatBps(params.value)}%`}
+        </Link>
+      ),
+    },
+    {
+      sortable: false,
+      field: "button",
+      headerName: "",
+      minWidth: 102,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => (
+        <Link
+          href={
+            params.row.isSelfOnboard
+              ? `${ROUTES.lender.market}/${params.row.id}`
+              : `${ROUTES.lender.profile}/${params.row.borrowerAddress}`
+          }
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          <Button size="small" variant="contained" color="secondary">
+            {params.row.isSelfOnboard ? "Deposit" : "Request"}
+          </Button>
         </Link>
       ),
     },
