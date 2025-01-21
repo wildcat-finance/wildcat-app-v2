@@ -307,7 +307,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             <Box sx={MarketParametersContainerColumn}>
               <MarketParametersItem
                 title={t("borrowerMarketDetails.hooks.hooksAddress")}
-                value={hooksConfig.hooksAddress}
+                value={trimAddress(hooksConfig.hooksAddress)}
                 handleCopy={() => {
                   handleCopy(hooksConfig.hooksAddress)
                 }}
