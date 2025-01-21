@@ -42,7 +42,7 @@ export const MarketSectionSwitcher = () => {
               : "transparent",
         }}
       >
-        Your markets
+        {t("dashboard.markets.tables.borrower.active.title")}
       </Button>
       <Button
         variant="text"
@@ -60,7 +60,7 @@ export const MarketSectionSwitcher = () => {
               : "transparent",
         }}
       >
-        Your Terminated Markets
+        {t("dashboard.markets.tables.borrower.closed.title")}
       </Button>
       <Button
         variant="text"
@@ -76,7 +76,7 @@ export const MarketSectionSwitcher = () => {
               : "transparent",
         }}
       >
-        Other markets
+        {t("dashboard.markets.tables.other.title")}
       </Button>
     </Box>
   )

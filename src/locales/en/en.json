@@ -53,9 +53,73 @@
       "confirm": "Cancel Invitation"
     }
   },
+  "dashboard": {
+    "markets": {
+      "title": "Markets",
+      "borrowerSubtitle": "All markets you’ve created or create a new one.",
+      "lenderSubtitle": "All markets you’ve created or create a new one.",
+      "docsLink": "Learn more",
+      "borrowerTitleButton": "Create Market",
+      "lenderTitleButton": "Create Market",
+      "filters": {
+        "name": "Search by Name",
+        "assets": "Asset",
+        "statuses": "Status"
+      },
+      "tables": {
+        "borrower": {
+          "active": {
+            "title": "Your Markets",
+            "deposited": "Deposited",
+            "nonDeposited": "Non-Deposited"
+          },
+          "closed": {
+            "title": "Your Terminated Markets",
+            "prevActive": "Previously Active",
+            "neverActive": "Never Active"
+          }
+        },
+        "other": {
+          "title": "Other markets",
+          "selfOnboard": "Self-Onboard",
+          "manual": "Onboard by Borrower"
+        },
+        "header": {
+          "status": "Status",
+          "term": "Term",
+          "name": "Market Name",
+          "borrower": "Borrower Name",
+          "asset": "Underlying Asset",
+          "debt": "Total Debt",
+          "borrowable": "Borrowable",
+          "apr": "APR"
+        }
+      },
+      "noMarkets": {
+        "wrongNetwork": "No Wildcat Markets On This Network",
+        "active": {
+          "title": "No Active Markets.",
+          "subtitle": "Create a new market, or check your terminated ones."
+        },
+        "closed": {
+          "title": "You don’t have any terminated markets",
+          "subtitle": "Have you got any active markets?"
+        },
+        "filter": {
+          "beginning": "No",
+          "type": {
+            "active": "active",
+            "terminated": "terminated",
+            "other": "other"
+          },
+          "ending": "markets found."
+        }
+      }
+    }
+  },
   "borrowerMarketList": {
     "title": {
-      "allMarkets": "All Markets",
+      "allMarkets": "Markets",
       "mla": "MLA",
       "lenders": "Lenders",
       "policies": "Policies"

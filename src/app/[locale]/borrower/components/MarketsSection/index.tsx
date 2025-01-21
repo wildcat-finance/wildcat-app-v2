@@ -136,7 +136,7 @@ export const MarketsSection = () => {
           }}
         >
           <Typography variant="title2" sx={{ marginBottom: "6px" }}>
-            Markets
+            {t("dashboard.markets.title")}
           </Typography>
           {!bannerDisplayConfig.hideNewMarketButton && (
             <Link href={ROUTES.borrower.createMarket}>
@@ -150,7 +150,7 @@ export const MarketsSection = () => {
                   minWidth: "100px",
                 }}
               >
-                {t("borrowerMarketList.button.newMarket")}
+                {t("dashboard.markets.borrowerTitleButton")}
               </Button>
             </Link>
           )}
@@ -160,13 +160,13 @@ export const MarketsSection = () => {
           color={COLORS.santasGrey}
           sx={{ marginBottom: "24px" }}
         >
-          All markets you’ve created or create a new one.{" "}
+          {t("dashboard.markets.borrowerSubtitle")}{" "}
           <Link
             href="https://docs.wildcat.finance/"
             style={{ color: COLORS.santasGrey }}
             target="_blank"
           >
-            Learn more
+            {t("dashboard.markets.docsLink")}
           </Link>
         </Typography>
 
@@ -183,18 +183,18 @@ export const MarketsSection = () => {
             <FilterTextField
               value={marketSearch}
               setValue={setMarketSearch}
-              placeholder="Search by Name"
+              placeholder={t("dashboard.markets.filters.name")}
             />
 
             <SmallFilterSelect
-              placeholder="Asset"
+              placeholder={t("dashboard.markets.filters.assets")}
               options={underlyingAssetsMock}
               selected={marketAssets}
               setSelected={setMarketAssets}
             />
 
             <SmallFilterSelect
-              placeholder="Status"
+              placeholder={t("dashboard.markets.filters.statuses")}
               options={marketStatusesMock}
               selected={marketStatuses}
               setSelected={setMarketStatuses}
@@ -247,7 +247,7 @@ export const MarketsSection = () => {
       {isWrongNetwork && (
         <Box sx={{ padding: "24px" }}>
           <Typography variant="title3">
-            {t("borrowerMarketList.table.noMarkets.wrongNetwork")}
+            {t("dashboard.markets.wrongNetwork")}
           </Typography>
         </Box>
       )}

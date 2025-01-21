@@ -2,13 +2,8 @@ import * as React from "react"
 import { useEffect, useRef } from "react"
 
 import { Box } from "@mui/material"
-import {
-  DataGrid,
-  GridColDef,
-  GridRenderCellParams,
-  GridRowsProp,
-} from "@mui/x-data-grid"
-import { Market, MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -20,7 +15,7 @@ import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTab
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
-import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
+import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
@@ -32,8 +27,6 @@ import {
 import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
-
-import { MarketsTableAccordion } from "../../../../../../../../components/MarketsTableAccordion"
 
 export type BorrowerActiveMarketsTableModel = {
   id: string
@@ -113,7 +106,7 @@ export const BorrowerActiveMarketsTables = ({
   const columns: TypeSafeColDef<BorrowerActiveMarketsTableModel>[] = [
     {
       field: "status",
-      headerName: "Status",
+      headerName: t("dashboard.markets.tables.header.status"),
       minWidth: 120,
       flex: 0.7,
       headerAlign: "left",
@@ -135,7 +128,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "term",
-      headerName: "Term",
+      headerName: t("dashboard.markets.tables.header.term"),
       minWidth: 170,
       flex: 1,
       headerAlign: "left",
@@ -157,7 +150,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "name",
-      headerName: "Market Name",
+      headerName: t("dashboard.markets.tables.header.name"),
       flex: 3,
       minWidth: 208,
       headerAlign: "left",
@@ -176,7 +169,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "asset",
-      headerName: "Asset",
+      headerName: t("dashboard.markets.tables.header.asset"),
       minWidth: 95,
       headerAlign: "right",
       align: "right",
@@ -192,7 +185,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "debt",
-      headerName: "Total Debt",
+      headerName: t("dashboard.markets.tables.header.debt"),
       minWidth: 110,
       headerAlign: "right",
       align: "right",
@@ -214,7 +207,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "borrowable",
-      headerName: t("borrowerMarketList.table.header.borrowable"),
+      headerName: t("dashboard.markets.tables.header.borrowable"),
       minWidth: 106,
       flex: 1.6,
       headerAlign: "right",
@@ -238,7 +231,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "apr",
-      headerName: "APR",
+      headerName: t("dashboard.markets.tables.header.apr"),
       minWidth: 102,
       flex: 1,
       headerAlign: "right",
@@ -270,14 +263,12 @@ export const BorrowerActiveMarketsTables = ({
     >
       <Box id="deposited" ref={depositedRef}>
         <MarketsTableAccordion
-          label="Deposited"
+          label={t("dashboard.markets.tables.borrower.active.deposited")}
           marketsLength={depositedMarkets.length}
           isLoading={isLoading}
           isOpen
-          noMarketsTitle={t("borrowerMarketList.table.noMarkets.active.title")}
-          noMarketsSubtitle={t(
-            "borrowerMarketList.table.noMarkets.active.subtitle",
-          )}
+          noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
+          noMarketsSubtitle={t("dashboard.markets.noMarkets.active.subtitle")}
           nameFilter={filters.nameFilter}
           assetFilter={filters.assetFilter}
           statusFilter={filters.statusFilter}
@@ -300,13 +291,11 @@ export const BorrowerActiveMarketsTables = ({
 
       <Box id="non-deposited" ref={nonDepositedRef}>
         <MarketsTableAccordion
-          label="Non-Deposited"
+          label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
           isLoading={isLoading}
           isOpen
-          noMarketsTitle={t("borrowerMarketList.table.noMarkets.active.title")}
-          noMarketsSubtitle={t(
-            "borrowerMarketList.table.noMarkets.active.subtitle",
-          )}
+          noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
+          noMarketsSubtitle={t("dashboard.markets.noMarkets.active.subtitle")}
           marketsLength={nonDepositedMarkets.length}
           nameFilter={filters.nameFilter}
           assetFilter={filters.assetFilter}

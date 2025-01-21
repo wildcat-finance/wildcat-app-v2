@@ -7,6 +7,7 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { COLORS } from "@/theme/colors"
 
@@ -31,6 +32,8 @@ export const MarketsTableAccordion = ({
 }: MarketsTableAccordionProps) => {
   const defaultFilters =
     assetFilter?.length === 0 && statusFilter?.length === 0 && nameFilter === ""
+
+  const { t } = useTranslation()
 
   return (
     <Accordion defaultExpanded={isOpen}>
@@ -93,13 +96,13 @@ export const MarketsTableAccordion = ({
         !defaultFilters && (
           <Box display="flex" flexDirection="column" padding="24px 16px 12px">
             <Typography variant="text2" color={COLORS.santasGrey}>
-              No {type}{" "}
+              {t("dashboard.markets.noMarkets.filter.beginning")} {type}{" "}
               {statusFilter?.length !== 0 &&
                 statusFilter?.map((status) => ` ${status.toLowerCase()}`)}{" "}
               {nameFilter === "" ? "" : nameFilter}{" "}
               {assetFilter?.length !== 0 &&
                 `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
-              markets available at present.
+              {t("dashboard.markets.noMarkets.filter.ending")}
             </Typography>
           </Box>
         )}
