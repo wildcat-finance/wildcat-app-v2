@@ -140,7 +140,7 @@ export const LenderActiveMarketsTables = ({
   const columns: TypeSafeColDef<LenderActiveMarketsTableModel>[] = [
     {
       field: "status",
-      headerName: "Status",
+      headerName: t("dashboard.markets.tables.header.status"),
       minWidth: 120,
       flex: 0.7,
       headerAlign: "left",
@@ -162,7 +162,7 @@ export const LenderActiveMarketsTables = ({
     },
     {
       field: "term",
-      headerName: "Term",
+      headerName: t("dashboard.markets.tables.header.term"),
       minWidth: 170,
       flex: 1,
       headerAlign: "left",
@@ -184,7 +184,7 @@ export const LenderActiveMarketsTables = ({
     },
     {
       field: "name",
-      headerName: "Market Name",
+      headerName: t("dashboard.markets.tables.header.name"),
       flex: 3,
       minWidth: 208,
       headerAlign: "left",
@@ -216,7 +216,7 @@ export const LenderActiveMarketsTables = ({
             padding: "0 12px",
           }}
         >
-          Borrower Name
+          {t("dashboard.markets.tables.header.borrower")}
         </Typography>
       ),
       renderCell: (params) => (
@@ -259,7 +259,7 @@ export const LenderActiveMarketsTables = ({
     },
     {
       field: "asset",
-      headerName: "Asset",
+      headerName: t("dashboard.markets.tables.header.asset"),
       minWidth: 95,
       headerAlign: "right",
       align: "right",
@@ -275,7 +275,7 @@ export const LenderActiveMarketsTables = ({
     },
     {
       field: "debt",
-      headerName: "Total Debt",
+      headerName: t("dashboard.markets.tables.header.debt"),
       minWidth: 110,
       headerAlign: "right",
       align: "right",
@@ -297,7 +297,7 @@ export const LenderActiveMarketsTables = ({
     },
     {
       field: "loan",
-      headerName: "My Loan",
+      headerName: t("dashboard.markets.tables.header.loan"),
       minWidth: 106,
       flex: 1.6,
       headerAlign: "right",
@@ -321,7 +321,7 @@ export const LenderActiveMarketsTables = ({
     },
     {
       field: "apr",
-      headerName: "APR",
+      headerName: t("dashboard.markets.tables.header.apr"),
       minWidth: 102,
       flex: 1,
       headerAlign: "right",
@@ -353,13 +353,13 @@ export const LenderActiveMarketsTables = ({
     >
       <Box id="deposited" ref={depositedRef}>
         <MarketsTableAccordion
-          label="Deposited"
+          label={t("dashboard.markets.tables.borrower.active.deposited")}
           marketsLength={depositedMarkets.length}
           isLoading={isLoading}
           isOpen
-          noMarketsTitle={t("borrowerMarketList.table.noMarkets.active.title")}
+          noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
           noMarketsSubtitle={t(
-            "borrowerMarketList.table.noMarkets.active.subtitle",
+            "dashboard.markets.noMarkets.active.lenderSubtitle",
           )}
           nameFilter={filters.nameFilter}
           assetFilter={filters.assetFilter}
@@ -383,12 +383,12 @@ export const LenderActiveMarketsTables = ({
 
       <Box id="non-deposited" ref={nonDepositedRef}>
         <MarketsTableAccordion
-          label="Non-Deposited"
+          label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
           isLoading={isLoading}
           isOpen
-          noMarketsTitle={t("borrowerMarketList.table.noMarkets.active.title")}
+          noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
           noMarketsSubtitle={t(
-            "borrowerMarketList.table.noMarkets.active.subtitle",
+            "dashboard.markets.noMarkets.active.lenderSubtitle",
           )}
           marketsLength={nonDepositedMarkets.length}
           nameFilter={filters.nameFilter}

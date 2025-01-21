@@ -50,7 +50,6 @@ export const MarketsSection = () => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
-  const { address } = useAccount()
   const { isWrongNetwork } = useCurrentNetwork()
 
   const {
@@ -102,12 +101,14 @@ export const MarketsSection = () => {
 
   const { data: borrowers } = useGetBorrowers()
 
-  const lenderMarkets = marketAccounts.filter(
-    (account) =>
-      !EXCLUDED_MARKETS.includes(account.market.address.toLowerCase()) ||
-      account.isAuthorizedOnController ||
-      account.role !== LenderRole.Null,
-  )
+  const lenderMarkets = marketAccounts
+    .filter(
+      (account) =>
+        !EXCLUDED_MARKETS.includes(account.market.address.toLowerCase()) ||
+        account.isAuthorizedOnController ||
+        account.role !== LenderRole.Null,
+    )
+    .filter((account) => account.hasEverInteracted)
 
   const noMarketsAtAll = lenderMarkets.length === 0
 
@@ -146,7 +147,7 @@ export const MarketsSection = () => {
           }}
         >
           <Typography variant="title2" sx={{ marginBottom: "6px" }}>
-            Markets
+            {t("dashboard.markets.title")}
           </Typography>
 
           {!(marketSection === LenderMarketDashboardSections.OTHER) &&
@@ -166,7 +167,7 @@ export const MarketsSection = () => {
                   )
                 }
               >
-                + Observe New Markets
+                {t("dashboard.markets.lenderTitleButton")}
               </Button>
             )}
         </Box>
@@ -175,14 +176,13 @@ export const MarketsSection = () => {
           color={COLORS.santasGrey}
           sx={{ marginBottom: "24px" }}
         >
-          Here you can see all markets you’ve been admitted or apply to new
-          ones.{" "}
+          {t("dashboard.markets.lenderSubtitle")}{" "}
           <Link
             href="https://docs.wildcat.finance/"
             style={{ color: COLORS.santasGrey }}
             target="_blank"
           >
-            Learn more
+            {t("dashboard.markets.docsLink")}
           </Link>
         </Typography>
 
@@ -199,18 +199,18 @@ export const MarketsSection = () => {
             <FilterTextField
               value={marketSearch}
               setValue={setMarketSearch}
-              placeholder="Search by Name"
+              placeholder={t("dashboard.markets.filters.name")}
             />
 
             <SmallFilterSelect
-              placeholder="Asset"
+              placeholder={t("dashboard.markets.filters.assets")}
               options={underlyingAssetsMock}
               selected={marketAssets}
               setSelected={setMarketAssets}
             />
 
             <SmallFilterSelect
-              placeholder="Status"
+              placeholder={t("dashboard.markets.filters.statuses")}
               options={marketStatusesMock}
               selected={marketStatuses}
               setSelected={setMarketStatuses}
@@ -250,48 +250,52 @@ export const MarketsSection = () => {
           />
         )}
 
-      {noActiveMarkets && !isLoading && !noMarketsAtAll && (
-        <Box sx={{ width: "100%", padding: "0 24px", marginTop: "24px" }}>
-          <Box
-            sx={{
-              width: "100%",
-              padding: "40px 24px",
-              display: "flex",
-              flexDirection: "column",
-              backgroundColor: COLORS.hintOfRed,
-              borderRadius: "16px",
-            }}
-          >
-            <Typography variant="text1" marginBottom="6px">
-              No active markets
-            </Typography>
-            <Typography
-              variant="text3"
-              color={COLORS.santasGrey}
-              marginBottom="24px"
+      {noActiveMarkets &&
+        !isLoading &&
+        !noMarketsAtAll &&
+        marketSection === LenderMarketDashboardSections.ACTIVE && (
+          <Box sx={{ width: "100%", padding: "0 24px", marginTop: "24px" }}>
+            <Box
+              sx={{
+                width: "100%",
+                padding: "40px 24px",
+                display: "flex",
+                flexDirection: "column",
+                backgroundColor: COLORS.hintOfRed,
+                borderRadius: "16px",
+              }}
             >
-              You don’t have any active markets now. Observe Other Markets list
-              to join any of them.
-            </Typography>
-
-            <Button
-              variant="contained"
-              sx={{ width: "fit-content", padding: "8px 12px" }}
-              onClick={() =>
-                dispatch(setMarketSection(LenderMarketDashboardSections.OTHER))
-              }
-            >
-              <Typography
-                variant="text4"
-                color={COLORS.white}
-                sx={{ fontWeight: 600 }}
-              >
-                Go to Other Markets
+              <Typography variant="text1" marginBottom="6px">
+                {t("dashboard.markets.noMarkets.lenderAlert.title")}
               </Typography>
-            </Button>
+              <Typography
+                variant="text3"
+                color={COLORS.santasGrey}
+                marginBottom="24px"
+              >
+                {t("dashboard.markets.noMarkets.lenderAlert.subtitle")}
+              </Typography>
+
+              <Button
+                variant="contained"
+                sx={{ width: "fit-content", padding: "8px 12px" }}
+                onClick={() =>
+                  dispatch(
+                    setMarketSection(LenderMarketDashboardSections.OTHER),
+                  )
+                }
+              >
+                <Typography
+                  variant="text4"
+                  color={COLORS.white}
+                  sx={{ fontWeight: 600 }}
+                >
+                  {t("dashboard.markets.noMarkets.lenderAlert.button")}
+                </Typography>
+              </Button>
+            </Box>
           </Box>
-        </Box>
-      )}
+        )}
     </Box>
   )
 }

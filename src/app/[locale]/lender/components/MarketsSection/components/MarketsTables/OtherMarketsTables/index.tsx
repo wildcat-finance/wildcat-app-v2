@@ -137,7 +137,7 @@ export const OtherMarketsTables = ({
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
     {
       field: "status",
-      headerName: "Status",
+      headerName: t("dashboard.markets.tables.header.status"),
       minWidth: 120,
       flex: 0.7,
       headerAlign: "left",
@@ -159,7 +159,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "term",
-      headerName: "Term",
+      headerName: t("dashboard.markets.tables.header.term"),
       minWidth: 170,
       flex: 1,
       headerAlign: "left",
@@ -181,7 +181,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "name",
-      headerName: "Market Name",
+      headerName: t("dashboard.markets.tables.header.name"),
       flex: 3,
       minWidth: 208,
       headerAlign: "left",
@@ -213,7 +213,7 @@ export const OtherMarketsTables = ({
             padding: "0 12px",
           }}
         >
-          Borrower
+          {t("dashboard.markets.tables.header.borrower")}
         </Typography>
       ),
       renderCell: (params) => (
@@ -256,7 +256,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "asset",
-      headerName: "Asset",
+      headerName: t("dashboard.markets.tables.header.asset"),
       minWidth: 95,
       headerAlign: "right",
       align: "right",
@@ -272,7 +272,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "debt",
-      headerName: "Total Debt",
+      headerName: t("dashboard.markets.tables.header.debt"),
       minWidth: 110,
       headerAlign: "right",
       align: "right",
@@ -294,7 +294,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "apr",
-      headerName: "APR",
+      headerName: t("dashboard.markets.tables.header.apr"),
       minWidth: 102,
       flex: 1,
       headerAlign: "right",
@@ -326,7 +326,9 @@ export const OtherMarketsTables = ({
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           <Button size="small" variant="contained" color="secondary">
-            {params.row.isSelfOnboard ? "Deposit" : "Request"}
+            {params.row.isSelfOnboard
+              ? `${t("dashboard.markets.tables.other.depositBTN")}`
+              : `${t("dashboard.markets.tables.other.requestBTN")}`}
           </Button>
         </Link>
       ),
@@ -367,7 +369,7 @@ export const OtherMarketsTables = ({
     >
       <Box id="self-onboard" ref={selfOnboardRef}>
         <MarketsTableAccordion
-          label="Self-Onboard"
+          label={t("dashboard.markets.tables.other.selfOnboard")}
           marketsLength={selfOnboard.length}
           isLoading={isLoading}
           isOpen
@@ -399,7 +401,7 @@ export const OtherMarketsTables = ({
 
       <Box id="manual" ref={manualRef}>
         <MarketsTableAccordion
-          label="Onboard by Borrower"
+          label={t("dashboard.markets.tables.other.manual")}
           isLoading={isLoading}
           isOpen
           marketsLength={manual.length}

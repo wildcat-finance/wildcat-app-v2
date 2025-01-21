@@ -1,4 +1,5 @@
 import { Box, SvgIcon } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import Markets from "@/assets/icons/markets_icon.svg"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -17,6 +18,7 @@ import {
 
 export const LenderDashboardSidebar = () => {
   const dispatch = useAppDispatch()
+  const { t } = useTranslation()
 
   const marketSection = useAppSelector(
     (state) => state.lenderDashboard.marketSection,
@@ -48,7 +50,7 @@ export const LenderDashboardSidebar = () => {
       }}
     >
       <DashboardPageAccordion
-        label="Markets"
+        label={t("dashboard.markets.title")}
         open
         icon={
           <SvgIcon sx={{ marginRight: "10px" }}>
@@ -58,18 +60,18 @@ export const LenderDashboardSidebar = () => {
       >
         {showFullFunctionality && (
           <DashboardSectionAccordion
-            label="Your Markets"
+            label={t("dashboard.markets.tables.borrower.active.title")}
             open={marketSection === LenderMarketDashboardSections.ACTIVE}
             onClick={() =>
               handleChangeMarketSection(LenderMarketDashboardSections.ACTIVE)
             }
           >
             <DashboardButton
-              label="Deposited"
+              label={t("dashboard.markets.tables.borrower.active.deposited")}
               onClick={() => handleScrollToTable("deposited")}
             />
             <DashboardButton
-              label="Non-Deposited"
+              label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
               onClick={() => handleScrollToTable("non-deposited")}
             />
             {/* <DashboardButton */}
@@ -81,7 +83,7 @@ export const LenderDashboardSidebar = () => {
 
         {showFullFunctionality && (
           <DashboardSectionAccordion
-            label="Your Terminated Markets"
+            label={t("dashboard.markets.tables.borrower.closed.title")}
             open={marketSection === LenderMarketDashboardSections.TERMINATED}
             onClick={() =>
               handleChangeMarketSection(
@@ -90,29 +92,29 @@ export const LenderDashboardSidebar = () => {
             }
           >
             <DashboardButton
-              label="Previously Active"
+              label={t("dashboard.markets.tables.borrower.closed.prevActive")}
               onClick={() => handleScrollToTable("prev-active")}
             />
             <DashboardButton
-              label="Never Active"
+              label={t("dashboard.markets.tables.borrower.closed.neverActive")}
               onClick={() => handleScrollToTable("never-active")}
             />
           </DashboardSectionAccordion>
         )}
 
         <DashboardSectionAccordion
-          label="Other Markets"
+          label={t("dashboard.markets.tables.other.title")}
           open={marketSection === LenderMarketDashboardSections.OTHER}
           onClick={() =>
             handleChangeMarketSection(LenderMarketDashboardSections.OTHER)
           }
         >
           <DashboardButton
-            label="Self-Onboard"
+            label={t("dashboard.markets.tables.other.selfOnboard")}
             onClick={() => handleScrollToTable("self-onboard")}
           />
           <DashboardButton
-            label="Onboard by Borrower"
+            label={t("dashboard.markets.tables.other.manual")}
             onClick={() => handleScrollToTable("manual")}
           />
         </DashboardSectionAccordion>

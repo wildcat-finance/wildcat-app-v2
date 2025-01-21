@@ -57,10 +57,10 @@
     "markets": {
       "title": "Markets",
       "borrowerSubtitle": "All markets you’ve created or create a new one.",
-      "lenderSubtitle": "All markets you’ve created or create a new one.",
+      "lenderSubtitle": "Here you can see all markets you’ve been admitted or apply to new ones.",
       "docsLink": "Learn more",
       "borrowerTitleButton": "+ Create New Market",
-      "lenderTitleButton": "Create Market",
+      "lenderTitleButton": "+ Observe New Markets",
       "filters": {
         "name": "Search by Name",
         "assets": "Asset",
@@ -82,14 +82,16 @@
         "other": {
           "title": "Other markets",
           "selfOnboard": "Self-Onboard",
-          "manual": "Onboard by Borrower"
+          "manual": "Onboard by Borrower",
+          "depositBTN": "Deposit",
+          "requestBTN": "Request"
         },
         "header": {
           "status": "Status",
           "term": "Term",
           "name": "Market Name",
           "borrower": "Borrower Name",
-          "asset": "Underlying Asset",
+          "asset": "Asset",
           "debt": "Total Debt",
           "borrowable": "Borrowable",
           "apr": "APR"
@@ -97,9 +99,15 @@
       },
       "noMarkets": {
         "wrongNetwork": "No Wildcat Markets On This Network",
+        "lenderAlert": {
+          "title": "No active markets",
+          "subtitle": "You don’t have any active markets now. Observe Other Markets list to join any of them.",
+          "button": "Go to Other Markets"
+        },
         "active": {
           "title": "No Active Markets.",
-          "subtitle": "Create a new market, or check your terminated ones."
+          "borrowerSubtitle": "Create a new market, or check your terminated ones.",
+          "lenderSubtitle": "Join a suitable self-onboarding market, or reach out to a borrower (see their profile) for access to restricted ones."
         },
         "closed": {
           "title": "You don’t have any terminated markets",
