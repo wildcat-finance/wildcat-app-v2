@@ -48,7 +48,7 @@ export const BorrowerInvitesTable = ({
             textOverflow: "ellipsis",
           }}
         >
-          {timestampToDateFormatted(params.value)}
+          {timestampToDateFormatted(+new Date(params.value) / 1000)}
         </span>
       ),
     },
@@ -111,7 +111,9 @@ export const BorrowerInvitesTable = ({
       align: "left",
       renderCell: (params) => (
         <span>
-          {params.value ? timestampToDateFormatted(params.value) : "N/A"}
+          {params.value
+            ? timestampToDateFormatted(+new Date(params.value) / 1000)
+            : "N/A"}
         </span>
       ),
     },

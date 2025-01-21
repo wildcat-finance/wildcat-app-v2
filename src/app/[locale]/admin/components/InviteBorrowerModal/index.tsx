@@ -18,6 +18,12 @@ export const InviteBorrowerModal = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [name, setName] = useState("")
   const [address, setAddress] = useState("")
+  const [description, setDescription] = useState("")
+  const [founded, setFounded] = useState("")
+  const [headquarters, setHeadquarters] = useState("")
+  const [jurisdiction, setJurisdiction] = useState("")
+  const [physicalAddress, setPhysicalAddress] = useState("")
+  const [entityKind, setEntityKind] = useState("")
   const [nameError, setNameError] = useState("")
   const [addressError, setAddressError] = useState("")
 
@@ -49,10 +55,25 @@ export const InviteBorrowerModal = () => {
 
   const handleSubmit = () => {
     if (validateInputs()) {
-      mutate({ name, address })
+      mutate({
+        name,
+        address,
+        description,
+        founded,
+        headquarters,
+        jurisdiction,
+        physicalAddress,
+        entityKind,
+      })
       // Reset the form
       setName("")
       setAddress("")
+      setDescription("")
+      setFounded("")
+      setHeadquarters("")
+      setJurisdiction("")
+      setPhysicalAddress("")
+      setEntityKind("")
       setNameError("")
       setAddressError("")
     }
@@ -122,6 +143,64 @@ export const InviteBorrowerModal = () => {
                 }}
                 error={!!addressError}
                 helperText={addressError}
+                fullWidth
+              />
+            </Box>
+
+            <Box
+              width="100%"
+              padding="24px"
+              display="flex"
+              flexDirection="row"
+              gap={2}
+            >
+              <TextField
+                label={t("admin.inviteBorrower.descriptionLabel")}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                fullWidth
+              />
+
+              <TextField
+                label={t("admin.inviteBorrower.foundedLabel")}
+                value={founded}
+                onChange={(e) => setFounded(e.target.value)}
+                fullWidth
+              />
+            </Box>
+
+            <Box
+              width="100%"
+              padding="24px"
+              display="flex"
+              flexDirection="row"
+              gap={2}
+            >
+              <TextField
+                label={t("admin.inviteBorrower.entityKindLabel")}
+                value={entityKind}
+                onChange={(e) => setEntityKind(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                label={t("admin.inviteBorrower.jurisdictionLabel")}
+                value={jurisdiction}
+                onChange={(e) => setJurisdiction(e.target.value)}
+                fullWidth
+              />
+            </Box>
+
+            <Box
+              width="100%"
+              padding="24px"
+              display="flex"
+              flexDirection="row"
+              gap={2}
+            >
+              <TextField
+                label={t("admin.inviteBorrower.physicalAddressLabel")}
+                value={physicalAddress}
+                onChange={(e) => setPhysicalAddress(e.target.value)}
                 fullWidth
               />
             </Box>

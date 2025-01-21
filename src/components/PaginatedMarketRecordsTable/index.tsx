@@ -21,10 +21,8 @@ const MarketRecordFilters: CheckboxOption<MarketRecordKind>[] = (
     ["DebtRepaid", "Repayment"],
     ["DelinquencyStatusChanged", "Delinquency"],
     ["Deposit", "Deposit"],
-    ["DisabledForceBuyBacks", "Force Buyback Disabled"],
     ["FeesCollected", "Fees"],
     ["FixedTermUpdated", "Fixed Term"],
-    ["ForceBuyBack", "Force Buyback"],
     ["MarketClosed", "Market Closed"],
     ["MaxTotalSupplyUpdated", "Capacity Change"],
     ["MinimumDepositUpdated", "Minimum Deposit Updated"],
@@ -90,14 +88,16 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
       <Box
         sx={{
           display: "flex",
-          flexDirection: "row",
+          flexWrap: "wrap",
           gap: "10px",
           marginTop: "10px",
-          flexWrap: "wrap",
+          justifyContent: "space-evenly",
+          alignItems: "center",
         }}
       >
         {options.map((o) => (
           <FormControlLabel
+            key={o.id}
             label={o.label}
             control={
               <ExtendedCheckbox

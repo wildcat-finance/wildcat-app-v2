@@ -11,8 +11,8 @@ export interface BorrowerProfile {
   twitter?: string
   linkedin?: string
   jurisdiction?: string
-  legalNature?: string
-  companyAddress?: string
+  entityKind?: string
+  physicalAddress?: string
   email?: string
   registeredOnChain: boolean
 }

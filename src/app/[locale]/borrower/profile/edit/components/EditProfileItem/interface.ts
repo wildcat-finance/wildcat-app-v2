@@ -21,8 +21,8 @@ export type EditProfileItemProps = {
     | "twitter"
     | "linkedin"
     | "jurisdiction"
-    | "legalNature"
-    | "companyAddress"
+    | "entityKind"
+    | "physicalAddress"
     | "email"
   oldValue: string | undefined
   newValue?: string

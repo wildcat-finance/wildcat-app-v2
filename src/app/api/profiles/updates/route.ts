@@ -27,8 +27,8 @@ const mockProfile: BorrowerProfile = {
   twitter: "wintermute_t",
   linkedin: "https://uk.linkedin.com/company/wintermute-trading",
   jurisdiction: "UK",
-  legalNature: "llc",
-  companyAddress: "48 Station Road, London, N73 8QA",
+  entityKind: "llc",
+  physicalAddress: "48 Station Road, London, N73 8QA",
   email: "example@domain.com",
   chainId: TargetChainId,
   registeredOnChain: true,
@@ -64,6 +64,9 @@ export async function POST(request: NextRequest) {
     twitter,
     linkedin,
     email,
+    jurisdiction,
+    physicalAddress,
+    entityKind,
   } = data
 
   const address = token.address.toLowerCase()
@@ -102,6 +105,9 @@ export async function POST(request: NextRequest) {
         twitter,
         linkedin,
         email,
+        jurisdiction,
+        physicalAddress,
+        entityKind,
       },
     }),
   ])
@@ -117,6 +123,9 @@ export async function POST(request: NextRequest) {
     "twitter",
     "linkedin",
     "email",
+    "jurisdiction",
+    "physicalAddress",
+    "entityKind",
   ] as const
   keys.forEach((key) => {
     if (data[key] !== null) {
@@ -200,6 +209,9 @@ export async function PUT(request: NextRequest) {
       "twitter",
       "linkedin",
       "email",
+      "jurisdiction",
+      "physicalAddress",
+      "entityKind",
     ] as const
     keys.forEach((key) => {
       if (updateRequest[key] !== null) {
