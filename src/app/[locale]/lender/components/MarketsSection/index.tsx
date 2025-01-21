@@ -6,9 +6,9 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
-import { LenderMarketSectionSwitcher } from "@/app/[locale]/lender/components/MarketsSection/components/MarketSectionSwitcher"
-import { BorrowerActiveMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/BorrowerActiveMarketsTables"
-import { BorrowerTerminatedMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/BorrowerTerminatedMarketsTables"
+import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
+import { LenderMarketSectionSwitcher } from "@/app/[locale]/lender/components/MarketsSection/components/LenderMarketSectionSwitcher"
+import { LenderActiveMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/LenderActiveMarketsTables"
 import { OtherMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/OtherMarketsTables"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { FilterTextField } from "@/components/FilterTextfield"
@@ -23,6 +23,9 @@ import { LenderMarketDashboardSections } from "@/store/slices/lenderDashboardSli
 import { COLORS } from "@/theme/colors"
 import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
+import {
+  LenderTerminatedMarketsTables
+} from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/LenderTerminatedMarketsTables"
 
 export const MarketsSection = () => {
   const marketSection = useAppSelector(
@@ -92,6 +95,8 @@ export const MarketsSection = () => {
       ),
     [filteredMarketAccounts],
   )
+
+  const { data: borrowers } = useGetBorrowers()
 
   return (
     <Box
@@ -167,16 +172,18 @@ export const MarketsSection = () => {
       </Box>
 
       {marketSection === LenderMarketDashboardSections.ACTIVE && (
-        <BorrowerActiveMarketsTables
+        <LenderActiveMarketsTables
           marketAccounts={filteredActiveLenderMarketAccounts}
+          borrowers={borrowers ?? []}
           isLoading={isLoading}
           filters={filters}
         />
       )}
 
       {marketSection === LenderMarketDashboardSections.TERMINATED && (
-        <BorrowerTerminatedMarketsTables
+        <LenderTerminatedMarketsTables
           marketAccounts={filteredTerminatedMarketAccounts}
+          borrowers={borrowers ?? []}
           isLoading={isLoading}
           filters={filters}
         />

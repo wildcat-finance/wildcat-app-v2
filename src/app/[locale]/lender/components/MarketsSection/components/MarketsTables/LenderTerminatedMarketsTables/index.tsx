@@ -1,45 +1,60 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box } from "@mui/material"
-import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
+import { Box, Button, Typography } from "@mui/material"
+import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import {
-  MarketsTablesProps,
-  TypeSafeColDef,
-} from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
+import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
+import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
+import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
+import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
-import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
-import { getMarketStatusChip } from "@/utils/marketStatus"
+import {
+  formatBps,
+  formatTokenWithCommas,
+  trimAddress,
+} from "@/utils/formatters"
+import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
-import { MarketsTableAccordion } from "../../../../../../../../components/MarketsTableAccordion"
-
-export type BorrowerTerminatedMarketsTableModel = {
+export type LenderTerminatedMarketsTableModel = {
   id: string
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
+  borrower: string | undefined
   asset: string
-  apr: number
   debt: TokenAmount | undefined
-  borrowable: TokenAmount
+  loan: TokenAmount | undefined
+  apr: number
   hasEverInteracted: boolean
 }
 
-export const BorrowerTerminatedMarketsTables = ({
+export const LenderTerminatedMarketsTables = ({
   marketAccounts,
+  borrowers,
   isLoading,
   filters,
-}: MarketsTablesProps) => {
+}: {
+  marketAccounts: MarketAccount[]
+  borrowers: BorrowerWithName[]
+  isLoading: boolean
+  filters: {
+    nameFilter: string
+    assetFilter: SmallFilterSelectItem[]
+    statusFilter: MarketStatus[]
+  }
+}) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
@@ -61,19 +76,25 @@ export const BorrowerTerminatedMarketsTables = ({
     }
   }, [scrollTargetId])
 
-  const rows: GridRowsProp<BorrowerTerminatedMarketsTableModel> =
+  const rows: GridRowsProp<LenderTerminatedMarketsTableModel> =
     marketAccounts.map((account) => {
-      const { market } = account
+      const { market, marketBalance, hasEverInteracted } = account
 
       const {
         address,
+        borrower: borrowerAddress,
         name,
         underlyingToken,
         annualInterestBips,
-        borrowableAssets,
         totalBorrowed,
       } = market
 
+      const borrower = borrowers?.find(
+        (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
+      )
+      const borrowerName = borrower
+        ? borrower.name
+        : trimAddress(borrowerAddress)
       const marketStatus = getMarketStatusChip(market)
       const marketType = getMarketTypeChip(market)
 
@@ -82,9 +103,11 @@ export const BorrowerTerminatedMarketsTables = ({
         status: marketStatus,
         term: marketType,
         name,
+        borrower: borrowerName,
+        borrowerAddress,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
-        borrowable: borrowableAssets,
+        loan: marketBalance,
         debt: totalBorrowed,
         hasEverInteracted: account.hasEverInteracted,
       }
@@ -94,7 +117,7 @@ export const BorrowerTerminatedMarketsTables = ({
 
   const neverActive = rows.filter((market) => !market.hasEverInteracted)
 
-  const columns: TypeSafeColDef<BorrowerTerminatedMarketsTableModel>[] = [
+  const columns: TypeSafeColDef<LenderTerminatedMarketsTableModel>[] = [
     {
       field: "status",
       headerName: "Status",
@@ -137,6 +160,62 @@ export const BorrowerTerminatedMarketsTables = ({
       ),
     },
     {
+      field: "borrower",
+      minWidth: 134,
+      flex: 1.7,
+      headerAlign: "left",
+      align: "left",
+      renderHeader: () => (
+        <Typography
+          variant="text4"
+          sx={{
+            lineHeight: "10px",
+            color: COLORS.santasGrey,
+            padding: "0 12px",
+          }}
+        >
+          Borrower Name
+        </Typography>
+      ),
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.lender.market}/${params.row.id}`}
+          style={{
+            textDecoration: "none",
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            color: "inherit",
+            justifyContent: "flex-start",
+          }}
+        >
+          <Link
+            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+            style={{
+              textDecoration: "none",
+              width: "fit-content",
+              height: "fit-content",
+            }}
+          >
+            <Button
+              size="small"
+              variant="text"
+              sx={{
+                fontSize: "13px",
+                lineHeight: "20px",
+                fontWeight: 500,
+                minWidth: "fit-content",
+                width: "fit-content",
+              }}
+            >
+              {params.value}
+            </Button>
+          </Link>
+        </Link>
+      ),
+    },
+    {
       field: "asset",
       headerName: "Asset",
       minWidth: 95,
@@ -161,6 +240,30 @@ export const BorrowerTerminatedMarketsTables = ({
       flex: 1.5,
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          {params.value
+            ? formatTokenWithCommas(params.value, {
+                withSymbol: false,
+                fractionDigits: 2,
+              })
+            : "0"}
+        </Link>
+      ),
+    },
+    {
+      field: "loan",
+      headerName: "My Loan",
+      minWidth: 106,
+      flex: 1.6,
+      headerAlign: "right",
+      align: "right",
+      sortComparator: tokenAmountComparator,
+      renderCell: (
+        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
+      ) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
