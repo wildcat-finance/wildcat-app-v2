@@ -1,10 +1,11 @@
 "use client"
 
+import { Box } from "@mui/material"
+
 import AuthWrapper from "@/components/AuthWrapper"
 
 import { BorrowerInvitesTable } from "./components/BorrowerInvitesTable"
 import { useAllBorrowerInvitations } from "./hooks/useAllBorrowerInvitations"
-import { Box } from "@mui/material"
 
 const AdminPageContainer = {
   height: "calc(100vh - 43px - 43px - 52px)",
