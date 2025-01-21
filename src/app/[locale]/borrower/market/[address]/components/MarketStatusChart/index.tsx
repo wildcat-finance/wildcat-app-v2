@@ -68,7 +68,7 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
         sx={{
           display: "flex",
           justifyContent: "space-between",
-          overflow: "hidden"
+          overflow: "hidden",
         }}
       >
         <Typography variant="title3">
