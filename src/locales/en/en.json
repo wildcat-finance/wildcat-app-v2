@@ -232,6 +232,36 @@
         }
       },
       "marketExpiry": "Loan Maturity",
+      "marketEarlyClosure": {
+        "label": "Fixed-Term Closure Permitted",
+        "na": {
+          "text": "N/A",
+          "tooltip": ""
+        },
+        "no": {
+          "text": "No",
+          "tooltip": ""
+        },
+        "yes": {
+          "text": "Yes",
+          "tooltip": ""
+        }
+      },
+      "marketMaturityReduction": {
+        "label": "Fixed-Term Maturity Reduction Permitted",
+        "na": {
+          "text": "N/A",
+          "tooltip": ""
+        },
+        "no": {
+          "text": "No",
+          "tooltip": ""
+        },
+        "yes": {
+          "text": "Yes",
+          "tooltip": ""
+        }
+      },
       "depositAccess": {
         "label": "Deposit Access",
         "open": {

@@ -106,6 +106,26 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
   } else {
     transferAccess = "open"
   }
+  let earlyClosure: "yes" | "no" | "na"
+  if (hooksConfig) {
+    if (hooksConfig?.kind == HooksKind.OpenTerm) {
+      earlyClosure = "na"
+    } else if (hooksConfig.allowClosureBeforeTerm) {
+      earlyClosure = "yes"
+    } else {
+      earlyClosure = "no"
+    }
+  }
+  let earlyMaturity: "yes" | "no" | "na"
+  if (hooksConfig) {
+    if (hooksConfig?.kind == HooksKind.OpenTerm) {
+      earlyMaturity = "na"
+    } else if (hooksConfig.allowTermReduction) {
+      earlyMaturity = "yes"
+    } else {
+      earlyMaturity = "no"
+    }
+  }
 
   return (
     <Box
@@ -294,6 +314,24 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             )}
             valueTooltipText={t(
               `borrowerMarketDetails.parameters.transferAccess.${transferAccess}.tooltip`,
+            )}
+          />
+          <MarketParametersItem
+            title={t("borrowerMarketDetails.parameters.marketEarlyClosure")}
+            value={t(
+              `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.text`,
+            )}
+            valueTooltipText={t(
+              `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.tooltip`,
+            )}
+          />
+          <MarketParametersItem
+            title={t("borrowerMarketDetails.parameters.marketMaturityReduction")}
+            value={t(
+              `borrowerMarketDetails.parameters.marketEarlyMaturity.${earlyMaturity}.text`,
+            )}
+            valueTooltipText={t(
+              `borrowerMarketDetails.parameters.marketEarlyMaturity.${earlyMaturity}.tooltip`,
             )}
           />
         </Box>
