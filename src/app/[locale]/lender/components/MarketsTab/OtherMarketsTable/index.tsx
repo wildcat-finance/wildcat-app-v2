@@ -55,7 +55,7 @@ export const OtherMarketsTable = ({
         <Tabs
           value={tab}
           onChange={handleTabsChange}
-          aria-label="Other markets table tabs"
+          aria-label="Other Markets table tabs"
           sx={TabsStyles}
         >
           <Box
