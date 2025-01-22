@@ -25,6 +25,8 @@ import {
 } from "./style"
 
 export const MarketParameters = ({ market }: MarketParametersProps) => {
+
+  const isLocalHost = window.location.hostname == 'localhost';
   const { t } = useTranslation()
   const [state, copyToClipboard] = useCopyToClipboard()
   const { timeDelinquent, delinquencyGracePeriod } = market
@@ -359,7 +361,8 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
           />
         </Box>
       </Box>
-      {hooksConfig && (
+
+      {hooksConfig && isLocalHost && (
         <>
           <Typography variant="title3">
             {t("borrowerMarketDetails.hooks.title")}
