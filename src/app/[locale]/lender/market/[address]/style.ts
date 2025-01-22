@@ -1,4 +1,5 @@
 import { COLORS } from "@/theme/colors"
+import { pageCalcHeights } from "@/utils/constants"
 
 export const SkeletonContainer = {
   width: "100%",
@@ -16,5 +17,6 @@ export const SectionContainer = {
   width: "100%",
   overflow: "hidden",
   overflowY: "visible",
-  height: "calc(100vh - 43px - 43px - 52px - 60px - 52px)",
+  height: `calc(100vh - ${pageCalcHeights.market})`,
+  paddingBottom: "24px",
 }

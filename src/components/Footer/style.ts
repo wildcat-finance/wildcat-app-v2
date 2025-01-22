@@ -4,10 +4,8 @@ export const ContentContainer = {
   minHeight: "43px",
   width: "100%",
   display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: "0 14px 15px 16px",
-  marginTop: "52px",
+  flexDirection: "column",
+  padding: "20px 16px",
 }
 
 export const DeployInfoSx = {
@@ -24,5 +22,5 @@ export const CommitHashLinkSx = {
 export const DownloadIcon = {
   rotate: "270deg",
   marginLeft: "2px",
-  color: COLORS.santasGrey,
+  color: COLORS.blackRock,
 }

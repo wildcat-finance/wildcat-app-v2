@@ -78,7 +78,7 @@ export default async function RootLayout({
                           <Sidebar />
                           <Box width="calc(100vw - 267px)">{children}</Box>
                         </Box>
-                        <Footer />
+                        {/* <Footer /> */}
                       </Box>
                     </Box>
                   </ThemeRegistry>

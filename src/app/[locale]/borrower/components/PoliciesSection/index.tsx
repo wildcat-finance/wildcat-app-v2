@@ -23,6 +23,7 @@ import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { ROUTES } from "@/routes"
 import { setLenderFilter } from "@/store/slices/editLendersListSlice/editLendersListSlice"
 import { COLORS } from "@/theme/colors"
+import { pageCalcHeights } from "@/utils/constants"
 
 import {
   SmallFilterSelect,
@@ -187,15 +188,6 @@ export const PoliciesSection = ({
     },
   ]
 
-  const handleChangePolicy = (evt: ChangeEvent<HTMLInputElement>) => {
-    setPolicyName(evt.target.value)
-  }
-
-  const handleClickErase = (evt: React.MouseEvent) => {
-    evt.stopPropagation()
-    setLenderFilter("")
-  }
-
   const marketsOptions = markets?.map((market) => ({
     id: market.address,
     name: market.name,
@@ -269,8 +261,8 @@ export const PoliciesSection = ({
         {rows.length !== 0 && !isLoading && (
           <Box
             sx={{
-              height: "calc(100vh - 43px - 52px - 52px - 110px - 36px - 30px)",
               width: "100%",
+              height: `calc(100vh - ${pageCalcHeights.dashboard} - 28px)`,
               overflow: "auto",
               overflowY: "auto",
             }}
@@ -278,7 +270,7 @@ export const PoliciesSection = ({
             <DataGrid
               sx={{
                 overflow: "auto",
-                maxWidth: "calc(100vw - 267px)",
+                maxWidth: "100%",
 
                 "& .MuiDataGrid-cell": {
                   minHeight: "52px",

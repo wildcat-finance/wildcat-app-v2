@@ -19,6 +19,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
+import { pageCalcHeights } from "@/utils/constants"
 import {
   formatBps,
   formatTokenWithCommas,
@@ -300,7 +301,7 @@ export const LenderTerminatedMarketsTables = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: "calc(100vh - 43px - 52px - 52px - 110px - 36px)",
+        height: `calc(100vh - ${pageCalcHeights.dashboard})`,
         width: "100%",
         overflow: "auto",
         overflowY: "auto",

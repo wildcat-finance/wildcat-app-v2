@@ -3,7 +3,8 @@ import { COLORS } from "@/theme/colors"
 export const GlossaryContainer = {
   width: "267px",
   minWidth: "267px",
-  height: "100%",
+  minHeight: "100%",
+  height: "max-content",
   padding: "44px 44px 0 24px",
   display: "flex",
   flexDirection: "column",

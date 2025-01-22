@@ -168,7 +168,7 @@ export const ConfirmationForm = ({
   }
 
   return (
-    <Box sx={{ ...FormContainer, width: "71.5%" }}>
+    <Box sx={{ ...FormContainer, width: "71.5%", paddingBottom: "24px" }}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
         {t("createNewMarket.confirm.title")}
       </Typography>

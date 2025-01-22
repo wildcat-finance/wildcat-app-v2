@@ -47,20 +47,40 @@ export const Footer = () => {
 
   return (
     <Box sx={ContentContainer}>
-      <Typography variant="text4" color={COLORS.santasGrey}>
-        {t("footer.rights")}
-      </Typography>
-      <div>{COMMIT_INFO}</div>
       {showFooter && (
-        <Link href="/pdf/Wildcat_Terms_of_Use.pdf" target="_blank">
-          <Button variant="text" size="small">
-            <Typography variant="text4" color={COLORS.santasGrey}>
-              {t("footer.agreement")}
-            </Typography>
+        <Link
+          href="/pdf/Wildcat_Terms_of_Use.pdf"
+          target="_blank"
+          style={{ width: "fit-content", marginBottom: "8px" }}
+        >
+          <Button
+            variant="text"
+            size="small"
+            sx={{
+              padding: 0,
+              color: COLORS.blackRock,
+              "&:hover": {
+                background: "transparent",
+                color: COLORS.blackRock,
+                boxShadow: "none",
+              },
+            }}
+          >
+            {t("footer.agreement")}
             <Box sx={DownloadIcon}>⇤</Box>
           </Button>
         </Link>
       )}
+      <Typography
+        variant="text4"
+        color={COLORS.santasGrey}
+        sx={{ marginBottom: COMMIT_INFO ? "8px" : 0 }}
+      >
+        {t("footer.rights")}
+      </Typography>
+      <Typography variant="text4" color={COLORS.santasGrey}>
+        {COMMIT_INFO}
+      </Typography>
     </Box>
   )
 }

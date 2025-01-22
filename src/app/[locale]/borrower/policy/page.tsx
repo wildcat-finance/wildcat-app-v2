@@ -29,6 +29,7 @@ import {
   setPolicyLenders,
 } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 import { COLORS } from "@/theme/colors"
+import { pageCalcHeights } from "@/utils/constants"
 
 import { SmallFilterSelectItem } from "../../../../components/SmallFilterSelect"
 
@@ -168,7 +169,7 @@ export default function PolicyPage() {
     <Box
       sx={{
         width: "100%",
-        height: "calc(100vh - 43px - 43px - 52px)",
+        height: `calc(100vh - ${pageCalcHeights.page})`,
         display: "flex",
         justifyContent: "space-between",
         overflow: "hidden",

@@ -35,9 +35,7 @@ export const LenderMarketSidebar = () => {
   return (
     <Box
       sx={{
-        minHeight: "100%",
         minWidth: "267px",
-        borderRight: `1px solid ${COLORS.blackRock006}`,
         padding: "32px 12px 0px",
         display: "flex",
         flexDirection: "column",

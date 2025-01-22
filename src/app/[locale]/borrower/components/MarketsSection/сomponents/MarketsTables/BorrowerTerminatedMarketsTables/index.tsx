@@ -17,6 +17,7 @@ import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
+import { pageCalcHeights } from "@/utils/constants"
 import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -197,7 +198,7 @@ export const BorrowerTerminatedMarketsTables = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: "calc(100vh - 43px - 52px - 52px - 110px - 36px)",
+        height: `calc(100vh - ${pageCalcHeights.dashboard})`,
         width: "100%",
         overflow: "auto",
         overflowY: "auto",
