@@ -107,18 +107,18 @@
       "noMarkets": {
         "wrongNetwork": "No Wildcat Markets On This Network",
         "lenderAlert": {
-          "title": "No active markets",
-          "subtitle": "You don’t have any active markets now. See the Other Markets list to join one.",
+          "title": "No Active Markets",
+          "subtitle": "You don’t have any active markets right now. See the Other Markets list to join one.",
           "button": "Go to Other Markets"
         },
         "active": {
-          "title": "No Active Markets.",
+          "title": "No Active Non-Deposited Markets",
           "borrowerSubtitle": "Create a new market, or check your terminated ones.",
-          "lenderSubtitle": "Join a suitable self-onboarding market, or reach out to a borrower (see their profile) for access to restricted ones."
+          "lenderSubtitle": "There are markets that you're approved for that you haven't joined yet."
         },
         "closed": {
           "title": "No Terminated Market Positions",
-          "subtitle": "Either your markets are still open, or you haven't deposited into one yet."
+          "subtitle": "Either your markets are still open, or you haven't joined one yet. Check Other Markets."
         },
         "filter": {
           "beginning": "No",
