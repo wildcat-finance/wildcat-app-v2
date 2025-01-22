@@ -241,6 +241,19 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               `borrowerMarketDetails.parameters.depositAccess.${depositAccess}.tooltip`,
             )}
           />
+          {hooksConfig && market.version === MarketVersion.V2 && (
+            <>
+              <Divider sx={{ margin: "12px 0 12px" }} />
+              <MarketParametersItem
+                title={t("borrowerMarketDetails.hooks.hooksAddress")}
+                value={trimAddress(hooksConfig.hooksAddress)}
+                handleCopy={() => {
+                  handleCopy(hooksConfig.hooksAddress)
+                }}
+                link={`${EtherscanBaseUrl}/address/${hooksConfig.hooksAddress}`}
+              />
+            </>
+          )}          
         </Box>
         <Box sx={MarketParametersContainerColumn}>
           <MarketParametersItem
