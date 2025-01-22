@@ -247,6 +247,8 @@ export const LenderActiveMarketsTables = ({
               sx={{
                 fontSize: "13px",
                 lineHeight: "20px",
+                textDecoration: "underline",
+                color: "#00008B",
                 fontWeight: 500,
                 minWidth: "fit-content",
                 width: "fit-content",

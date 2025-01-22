@@ -235,6 +235,8 @@ export const OtherMarketsTables = ({
               variant="text"
               sx={{
                 fontSize: "13px",
+                textDecoration: "underline",
+                color: "#00008B",
                 lineHeight: "20px",
                 fontWeight: 500,
                 minWidth: "fit-content",
