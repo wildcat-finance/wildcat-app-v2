@@ -802,7 +802,7 @@
     "confirm": "Confirm"
   },
   "notifications": {
-    "viewOnEtherscan": "View on Etherscan",
+    "viewOnEtherscan": "View on Explorer",
     "missing": "Missing",
     "history": {
       "title": "Notifications",
@@ -985,10 +985,10 @@
     }
   },
   "txModal": {
-    "viewOnEtherscan":"View on Etherscan"
+    "viewOnEtherscan":"View on Explorer"
   },
   "link": {
-    "viewOnEtherscan": "View on Etherscan"
+    "viewOnEtherscan": "View on Explorer"
   },
   "marketWithdrawalRequests": {
     "openWithdrawals": "Open Withdrawals",
