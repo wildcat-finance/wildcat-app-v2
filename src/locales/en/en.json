@@ -304,6 +304,36 @@
         }
       },
       "marketExpiry": "Loan Maturity",
+      "marketEarlyClosure": {
+        "label": "Fixed Term Closure Permitted",
+        "na": {
+          "text": "N/A",
+          "tooltip": "Market is Open Term, market can be terminated at any time."
+        },
+        "no": {
+          "text": "No",
+          "tooltip": "Market can only be terminated after fixed duration maturity."
+        },
+        "yes": {
+          "text": "Yes",
+          "tooltip": "Borrower can elect to terminate the market at any time."
+        }
+      },
+      "marketMaturityReduction": {
+        "label": "Fixed Term Maturity Reduction Permitted",
+        "na": {
+          "text": "N/A",
+          "tooltip": "No maturity to reduce in an Open Term setting."
+        },
+        "no": {
+          "text": "No",
+          "tooltip": "Maturity cannot be shortened from current value."
+        },
+        "yes": {
+          "text": "Yes",
+          "tooltip": "Borrower can elect to shorten Fixed Term duration."
+        }
+      },
       "depositAccess": {
         "label": "Deposit Access",
         "open": {
@@ -844,7 +874,7 @@
     "confirm": "Confirm"
   },
   "notifications": {
-    "viewOnEtherscan": "View on Etherscan",
+    "viewOnEtherscan": "View on Explorer",
     "missing": "Missing",
     "history": {
       "title": "Notifications",
@@ -1027,10 +1057,10 @@
     }
   },
   "txModal": {
-    "viewOnEtherscan":"View on Etherscan"
+    "viewOnEtherscan":"View on Explorer"
   },
   "link": {
-    "viewOnEtherscan": "View on Etherscan"
+    "viewOnEtherscan": "View on Explorer"
   },
   "marketWithdrawalRequests": {
     "openWithdrawals": "Open Withdrawals",

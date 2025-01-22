@@ -25,6 +25,7 @@ import {
 } from "./style"
 
 export const MarketParameters = ({ market }: MarketParametersProps) => {
+  const isLocalHost = window.location.hostname === "localhost"
   const { t } = useTranslation()
   const [state, copyToClipboard] = useCopyToClipboard()
   const { timeDelinquent, delinquencyGracePeriod } = market
@@ -105,6 +106,30 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
     }
   } else {
     transferAccess = "open"
+  }
+  let earlyClosure: "yes" | "no" | "na" = "no"
+  if (hooksConfig) {
+    if (hooksConfig.kind === HooksKind.OpenTerm) {
+      earlyClosure = "na"
+    } else if (hooksConfig.allowClosureBeforeTerm) {
+      earlyClosure = "yes"
+    } else {
+      earlyClosure = "no"
+    }
+  } else {
+    earlyClosure = "no"
+  }
+  let earlyMaturity: "yes" | "no" | "na" = "no"
+  if (hooksConfig) {
+    if (hooksConfig.kind === HooksKind.OpenTerm) {
+      earlyMaturity = "na"
+    } else if (hooksConfig.allowTermReduction) {
+      earlyMaturity = "yes"
+    } else {
+      earlyMaturity = "no"
+    }
+  } else {
+    earlyMaturity = "no"
   }
 
   return (
@@ -217,6 +242,19 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               `borrowerMarketDetails.parameters.depositAccess.${depositAccess}.tooltip`,
             )}
           />
+          {hooksConfig && market.version === MarketVersion.V2 && (
+            <>
+              <Divider sx={{ margin: "12px 0 12px" }} />
+              <MarketParametersItem
+                title={t("borrowerMarketDetails.hooks.hooksAddress")}
+                value={trimAddress(hooksConfig.hooksAddress)}
+                handleCopy={() => {
+                  handleCopy(hooksConfig.hooksAddress)
+                }}
+                link={`${EtherscanBaseUrl}/address/${hooksConfig.hooksAddress}`}
+              />
+            </>
+          )}
         </Box>
         <Box sx={MarketParametersContainerColumn}>
           <MarketParametersItem
@@ -296,9 +334,34 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               `borrowerMarketDetails.parameters.transferAccess.${transferAccess}.tooltip`,
             )}
           />
+          <Divider sx={{ margin: "12px 0 12px" }} />
+          <MarketParametersItem
+            title={t(
+              "borrowerMarketDetails.parameters.marketEarlyClosure.label",
+            )}
+            value={t(
+              `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.text`,
+            )}
+            valueTooltipText={t(
+              `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.tooltip`,
+            )}
+          />
+          <Divider sx={{ margin: "12px 0 12px" }} />
+          <MarketParametersItem
+            title={t(
+              "borrowerMarketDetails.parameters.marketMaturityReduction.label",
+            )}
+            value={t(
+              `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.text`,
+            )}
+            valueTooltipText={t(
+              `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.tooltip`,
+            )}
+          />
         </Box>
       </Box>
-      {hooksConfig && (
+
+      {hooksConfig && isLocalHost && (
         <>
           <Typography variant="title3">
             {t("borrowerMarketDetails.hooks.title")}
