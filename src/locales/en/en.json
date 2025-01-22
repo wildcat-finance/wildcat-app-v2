@@ -100,6 +100,7 @@
           "asset": "Asset",
           "debt": "Total Debt",
           "borrowable": "Borrowable",
+          "loan": "Your Loan",
           "apr": "APR"
         }
       },
