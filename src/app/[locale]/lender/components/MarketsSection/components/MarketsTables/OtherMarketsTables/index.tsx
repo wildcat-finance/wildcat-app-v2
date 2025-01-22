@@ -235,7 +235,8 @@ export const OtherMarketsTables = ({
           <Link
             href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
             style={{
-              textDecoration: "none",
+              textDecoration: "underline",
+              color: "#00008B",
               width: "fit-content",
               height: "fit-content",
             }}
