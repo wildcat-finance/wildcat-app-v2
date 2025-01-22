@@ -177,7 +177,7 @@ export const MarketsSection = () => {
         >
           {t("dashboard.markets.lenderSubtitle")}{" "}
           <Link
-            href="https://docs.wildcat.finance/"
+            href="https://docs.wildcat.finance/using-wildcat/day-to-day-usage/lenders"
             style={{ color: COLORS.santasGrey }}
             target="_blank"
           >
