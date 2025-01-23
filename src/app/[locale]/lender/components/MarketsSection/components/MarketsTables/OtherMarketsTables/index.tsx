@@ -333,7 +333,6 @@ export const OtherMarketsTables = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
-      renderHeader: () => <span>""</span>,
       renderCell: (params) => (
         <Link
           href={
