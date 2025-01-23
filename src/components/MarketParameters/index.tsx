@@ -288,7 +288,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.protocolAPR")}
             value={`${formatBps(
-              (market.protocolFeeBips * market.annualInterestBips / 10000),
+              (market.protocolFeeBips * market.annualInterestBips) / 10000,
               MARKET_PARAMS_DECIMALS.annualInterestBips,
             )}%`}
             tooltipText="An additional APR that accrues to the protocol by slowly increasing required reserves. Derived by the fee configuration of the protocol as a percentage of the current base APR."
@@ -297,7 +297,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.effectiveAPR")}
             value={`${formatRayAsPercentage(
-              market.effectiveLenderAPR ,
+              market.effectiveLenderAPR,
               MARKET_PARAMS_DECIMALS.annualInterestBips,
             )}%`}
             tooltipText="The current interest rate being paid to lenders: the base APR plus penalty APR if applicable."
