@@ -140,7 +140,6 @@ export const OtherMarketsTables = ({
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
     {
       field: "status",
-      headerName: t("dashboard.markets.tables.header.status"),
       minWidth: 120,
       flex: 0.7,
       headerAlign: "left",
@@ -165,7 +164,6 @@ export const OtherMarketsTables = ({
     },
     {
       field: "term",
-      headerName: t("dashboard.markets.tables.header.term"),
       minWidth: 170,
       flex: 1,
       headerAlign: "left",
@@ -190,7 +188,6 @@ export const OtherMarketsTables = ({
     },
     {
       field: "name",
-      headerName: t("dashboard.markets.tables.header.name"),
       flex: 3,
       minWidth: 208,
       headerAlign: "left",
@@ -270,7 +267,6 @@ export const OtherMarketsTables = ({
     },
     {
       field: "asset",
-      headerName: t("dashboard.markets.tables.header.asset"),
       minWidth: 95,
       headerAlign: "right",
       align: "right",
@@ -289,7 +285,6 @@ export const OtherMarketsTables = ({
     },
     {
       field: "debt",
-      headerName: t("dashboard.markets.tables.header.debt"),
       minWidth: 110,
       headerAlign: "right",
       align: "right",
@@ -314,7 +309,6 @@ export const OtherMarketsTables = ({
     },
     {
       field: "apr",
-      headerName: t("dashboard.markets.tables.header.apr"),
       minWidth: 102,
       flex: 1,
       headerAlign: "right",

@@ -128,7 +128,6 @@ export function MarketRecordsTable({
   const columns: TypeSafeColDef<MarketRecord>[] = [
     {
       field: "transactionHash",
-      headerName: t("marketRecords.table.header.transactionHash"),
       maxWidth: 300,
       minWidth: 300,
       flex: 2,
@@ -153,7 +152,6 @@ export function MarketRecordsTable({
     },
     {
       field: "blockTimestamp",
-      headerName: t("marketRecords.table.header.time"),
       flex: 3.35,
       minWidth: 160,
       maxWidth: 160,
@@ -170,7 +168,6 @@ export function MarketRecordsTable({
     },
     {
       field: "eventIndex",
-      headerName: t("marketRecords.table.header.event"),
       minWidth: 200,
       flex: 2,
       headerAlign: "right",

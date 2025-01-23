@@ -110,7 +110,6 @@ export const BorrowerActiveMarketsTables = ({
   const columns: TypeSafeColDef<BorrowerActiveMarketsTableModel>[] = [
     {
       field: "status",
-      headerName: t("dashboard.markets.tables.header.status"),
       minWidth: 120,
       flex: 0.7,
       headerAlign: "left",
@@ -135,7 +134,6 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "term",
-      headerName: t("dashboard.markets.tables.header.term"),
       minWidth: 170,
       flex: 1,
       headerAlign: "left",
@@ -160,7 +158,6 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "name",
-      headerName: t("dashboard.markets.tables.header.name"),
       flex: 3,
       minWidth: 208,
       headerAlign: "left",
@@ -182,7 +179,6 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "apr",
-      headerName: t("dashboard.markets.tables.header.apr"),
       minWidth: 102,
       flex: 1,
       headerAlign: "right",
@@ -201,7 +197,6 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "asset",
-      headerName: t("dashboard.markets.tables.header.asset"),
       minWidth: 95,
       headerAlign: "right",
       align: "right",
@@ -220,7 +215,6 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "capacityLeft",
-      headerName: t("dashboard.markets.tables.header.capacity"),
       minWidth: 82,
       headerAlign: "right",
       align: "right",
@@ -255,7 +249,6 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "debt",
-      headerName: t("dashboard.markets.tables.header.debt"),
       minWidth: 110,
       headerAlign: "right",
       align: "right",
@@ -280,7 +273,6 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "borrowable",
-      headerName: t("dashboard.markets.tables.header.borrowable"),
       minWidth: 106,
       flex: 1.6,
       headerAlign: "right",

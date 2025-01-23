@@ -121,7 +121,6 @@ export const LenderTerminatedMarketsTables = ({
   const columns: TypeSafeColDef<LenderTerminatedMarketsTableModel>[] = [
     {
       field: "status",
-      headerName: t("dashboard.markets.tables.header.status"),
       minWidth: 120,
       flex: 0.7,
       headerAlign: "left",
@@ -146,7 +145,6 @@ export const LenderTerminatedMarketsTables = ({
     },
     {
       field: "name",
-      headerName: t("dashboard.markets.tables.header.name"),
       flex: 3,
       minWidth: 208,
       headerAlign: "left",
@@ -226,7 +224,6 @@ export const LenderTerminatedMarketsTables = ({
     },
     {
       field: "asset",
-      headerName: t("dashboard.markets.tables.header.asset"),
       minWidth: 95,
       headerAlign: "right",
       align: "right",
@@ -245,7 +242,6 @@ export const LenderTerminatedMarketsTables = ({
     },
     {
       field: "debt",
-      headerName: t("dashboard.markets.tables.header.debt"),
       minWidth: 110,
       headerAlign: "right",
       align: "right",
@@ -270,7 +266,6 @@ export const LenderTerminatedMarketsTables = ({
     },
     {
       field: "loan",
-      headerName: t("dashboard.markets.tables.header.loan"),
       minWidth: 106,
       flex: 1.6,
       headerAlign: "right",
@@ -297,7 +292,6 @@ export const LenderTerminatedMarketsTables = ({
     },
     {
       field: "apr",
-      headerName: t("dashboard.markets.tables.header.apr"),
       minWidth: 102,
       flex: 1,
       headerAlign: "right",
