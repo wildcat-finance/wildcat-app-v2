@@ -1,7 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react"
 
 import { Box, Button, Typography } from "@mui/material"
-import { LenderRole, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  LenderRole,
+  MarketAccount,
+  MarketVersion,
+} from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -19,6 +24,8 @@ import {
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { marketStatusesMock, underlyingAssetsMock } from "@/mocks/mocks"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
+import { setLendersSectionAmount } from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import {
   LenderMarketDashboardSections,
   setMarketSection,
@@ -108,6 +115,85 @@ export const MarketsSection = () => {
         account.role !== LenderRole.Null,
     )
     .filter((account) => account.hasEverInteracted)
+
+  const depositedMarketsAmount = lenderMarkets.filter(
+    (market) => !market.market.isClosed && market.hasEverInteracted,
+  ).length
+
+  const nonDepositedMarketsAmount = lenderMarkets.filter(
+    (market) => !market.market.isClosed && !market.hasEverInteracted,
+  ).length
+
+  const prevActiveAmount = lenderMarkets.filter(
+    (market) => market.market.isClosed && market.hasEverInteracted,
+  ).length
+
+  const neverActiveAmount = lenderMarkets.filter(
+    (market) => market.market.isClosed && !market.hasEverInteracted,
+  ).length
+
+  const othersMarkets = marketAccounts
+    .filter(
+      (account) =>
+        !EXCLUDED_MARKETS.includes(account.market.address.toLowerCase()) ||
+        account.isAuthorizedOnController ||
+        account.role !== LenderRole.Null,
+    )
+    .filter((account) => !account.hasEverInteracted)
+
+  const selfOnboardAmount = othersMarkets.filter(
+    (account) =>
+      !account.hasEverInteracted &&
+      account.market.version === MarketVersion.V2 &&
+      account.depositAvailability === DepositStatus.Ready,
+  ).length
+
+  const manualAmount = othersMarkets.filter(
+    (account) =>
+      !(
+        !account.hasEverInteracted &&
+        account.market.version === MarketVersion.V2 &&
+        account.depositAvailability === DepositStatus.Ready
+      ),
+  ).length
+
+  useEffect(() => {
+    dispatch(
+      setLendersSectionAmount({
+        name: "deposited",
+        value: depositedMarketsAmount,
+      }),
+    )
+    dispatch(
+      setLendersSectionAmount({
+        name: "nonDeposited",
+        value: nonDepositedMarketsAmount,
+      }),
+    )
+    dispatch(
+      setLendersSectionAmount({ name: "prevActive", value: prevActiveAmount }),
+    )
+    dispatch(
+      setLendersSectionAmount({
+        name: "neverActive",
+        value: neverActiveAmount,
+      }),
+    )
+    dispatch(
+      setLendersSectionAmount({
+        name: "selfOnboard",
+        value: selfOnboardAmount,
+      }),
+    )
+    dispatch(setLendersSectionAmount({ name: "manual", value: manualAmount }))
+  }, [
+    depositedMarketsAmount,
+    nonDepositedMarketsAmount,
+    prevActiveAmount,
+    neverActiveAmount,
+    selfOnboardAmount,
+    manualAmount,
+  ])
 
   const noMarketsAtAll = lenderMarkets.length === 0
 

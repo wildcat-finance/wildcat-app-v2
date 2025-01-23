@@ -4,6 +4,7 @@ import { persistStore } from "redux-persist"
 import borrowerDashboardAmountsSlice from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import borrowerDashboardSlice from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 import createMarketSidebarSlice from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
+import lenderDashboardAmountsSlice from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import lenderDashboardSlice from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import policyLendersSlice from "@/store/slices/policyLendersSlice/policyLendersSlice"
 
@@ -30,6 +31,7 @@ export const makeStore = () => {
       borrowerDashboard: borrowerDashboardSlice,
       borrowerDashboardAmounts: borrowerDashboardAmountsSlice,
       lenderDashboard: lenderDashboardSlice,
+      lenderDashboardAmounts: lenderDashboardAmountsSlice,
       highlightSidebar: highlightSidebarSlice,
       lenderMarketRouting: lenderMarketRoutingSlice,
       editLendersList: editLendersListSlice,

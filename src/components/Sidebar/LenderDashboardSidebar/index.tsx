@@ -8,7 +8,6 @@ import {
   setMarketSection,
   setScrollTarget,
 } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
-import { COLORS } from "@/theme/colors"
 
 import {
   DashboardButton,
@@ -38,6 +37,39 @@ export const LenderDashboardSidebar = () => {
     dispatch(setScrollTarget(target))
   }
 
+  const depositedAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.deposited,
+  )
+
+  const nonDepositedAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.nonDeposited,
+  )
+
+  const activeMarketsAmount = depositedAmount + nonDepositedAmount
+
+  const prevActiveAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.prevActive,
+  )
+
+  const neverActiveAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.neverActive,
+  )
+
+  const closedMarketsAmount = prevActiveAmount + neverActiveAmount
+
+  const selfOnboardAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.selfOnboard,
+  )
+
+  const manualAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.manual,
+  )
+
+  const otherMarketsAmount = selfOnboardAmount + manualAmount
+
+  const marketsAmount =
+    activeMarketsAmount + closedMarketsAmount + otherMarketsAmount
+
   return (
     <Box
       sx={{
@@ -49,60 +81,62 @@ export const LenderDashboardSidebar = () => {
       }}
     >
       <DashboardPageAccordion
-        label={t("dashboard.markets.title")}
         open
+        label={t("dashboard.markets.title")}
+        amount={marketsAmount}
         icon={
           <SvgIcon sx={{ marginRight: "10px" }}>
             <Markets />
           </SvgIcon>
         }
       >
-        {showFullFunctionality && (
-          <DashboardSectionAccordion
-            label={t("dashboard.markets.tables.borrower.active.title")}
-            open={marketSection === LenderMarketDashboardSections.ACTIVE}
-            onClick={() =>
-              handleChangeMarketSection(LenderMarketDashboardSections.ACTIVE)
-            }
-          >
-            <DashboardButton
-              label={t("dashboard.markets.tables.borrower.active.deposited")}
-              onClick={() => handleScrollToTable("deposited")}
-            />
-            <DashboardButton
-              label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
-              onClick={() => handleScrollToTable("non-deposited")}
-            />
-            {/* <DashboardButton */}
-            {/*  label="Outstanding Withdrawals" */}
-            {/*  onClick={() => handleScrollToTable("outstanding")} */}
-            {/* /> */}
-          </DashboardSectionAccordion>
-        )}
+        <DashboardSectionAccordion
+          label={t("dashboard.markets.tables.borrower.active.title")}
+          amount={activeMarketsAmount}
+          open={marketSection === LenderMarketDashboardSections.ACTIVE}
+          onClick={() =>
+            handleChangeMarketSection(LenderMarketDashboardSections.ACTIVE)
+          }
+        >
+          <DashboardButton
+            label={t("dashboard.markets.tables.borrower.active.deposited")}
+            amount={depositedAmount}
+            onClick={() => handleScrollToTable("deposited")}
+          />
+          <DashboardButton
+            label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
+            amount={nonDepositedAmount}
+            onClick={() => handleScrollToTable("non-deposited")}
+          />
+          {/* <DashboardButton */}
+          {/*  label="Outstanding Withdrawals" */}
+          {/*  onClick={() => handleScrollToTable("outstanding")} */}
+          {/* /> */}
+        </DashboardSectionAccordion>
 
-        {showFullFunctionality && (
-          <DashboardSectionAccordion
-            label={t("dashboard.markets.tables.borrower.closed.title")}
-            open={marketSection === LenderMarketDashboardSections.TERMINATED}
-            onClick={() =>
-              handleChangeMarketSection(
-                LenderMarketDashboardSections.TERMINATED,
-              )
-            }
-          >
-            <DashboardButton
-              label={t("dashboard.markets.tables.borrower.closed.prevActive")}
-              onClick={() => handleScrollToTable("prev-active")}
-            />
-            <DashboardButton
-              label={t("dashboard.markets.tables.borrower.closed.neverActive")}
-              onClick={() => handleScrollToTable("never-active")}
-            />
-          </DashboardSectionAccordion>
-        )}
+        <DashboardSectionAccordion
+          label={t("dashboard.markets.tables.borrower.closed.title")}
+          amount={closedMarketsAmount}
+          open={marketSection === LenderMarketDashboardSections.TERMINATED}
+          onClick={() =>
+            handleChangeMarketSection(LenderMarketDashboardSections.TERMINATED)
+          }
+        >
+          <DashboardButton
+            label={t("dashboard.markets.tables.borrower.closed.prevActive")}
+            amount={prevActiveAmount}
+            onClick={() => handleScrollToTable("prev-active")}
+          />
+          <DashboardButton
+            label={t("dashboard.markets.tables.borrower.closed.neverActive")}
+            amount={neverActiveAmount}
+            onClick={() => handleScrollToTable("never-active")}
+          />
+        </DashboardSectionAccordion>
 
         <DashboardSectionAccordion
           label={t("dashboard.markets.tables.other.title")}
+          amount={otherMarketsAmount}
           open={marketSection === LenderMarketDashboardSections.OTHER}
           onClick={() =>
             handleChangeMarketSection(LenderMarketDashboardSections.OTHER)
@@ -110,10 +144,12 @@ export const LenderDashboardSidebar = () => {
         >
           <DashboardButton
             label={t("dashboard.markets.tables.other.selfOnboard")}
+            amount={selfOnboardAmount}
             onClick={() => handleScrollToTable("self-onboard")}
           />
           <DashboardButton
             label={t("dashboard.markets.tables.other.manual")}
+            amount={manualAmount}
             onClick={() => handleScrollToTable("manual")}
           />
         </DashboardSectionAccordion>
