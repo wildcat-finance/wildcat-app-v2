@@ -93,12 +93,6 @@ export const GlossarySidebar = ({
           ),
         },
         {
-          title: t("createNewMarket.lenderRestrictions.disableTransfers.label"),
-          description: t(
-            "createNewMarket.lenderRestrictions.disableTransfers.glossary",
-          ),
-        },
-        {
           title: t(
             "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
           ),
@@ -112,6 +106,12 @@ export const GlossarySidebar = ({
           ),
           description: t(
             "createNewMarket.lenderRestrictions.restrictTransfers.glossary",
+          ),
+        },
+        {
+          title: t("createNewMarket.lenderRestrictions.disableTransfers.label"),
+          description: t(
+            "createNewMarket.lenderRestrictions.disableTransfers.glossary",
           ),
         },
       ]
