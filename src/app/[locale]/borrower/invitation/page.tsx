@@ -34,14 +34,16 @@ const BorrowerInvitationPage = () => {
         sx={{
           ...PageContainer,
           display: "flex",
-          flexDirection: "column",
+          flexDirection: "row",
           justifyContent: "center",
           alignItems: "center",
           gap: 2,
           textAlign: "center",
         }}
       >
-        <Typography variant="h6">Sign In with wallet to view invitation</Typography>
+        <Typography variant="h6">
+          Sign In with wallet to view invitation
+        </Typography>
         <Button onClick={() => login.mutate(address)}>Sign In</Button>
       </Box>
     )
