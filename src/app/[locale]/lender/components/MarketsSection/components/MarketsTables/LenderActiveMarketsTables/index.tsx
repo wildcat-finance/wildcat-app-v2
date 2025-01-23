@@ -107,7 +107,7 @@ export const LenderActiveMarketsTables = ({
         name,
         underlyingToken,
         annualInterestBips,
-        maximumDeposit,
+        maxTotalSupply,
         totalDebts,
       } = market
 
@@ -131,7 +131,7 @@ export const LenderActiveMarketsTables = ({
         apr: annualInterestBips,
         loan: marketBalance,
         debt: totalDebts,
-        capacityLeft: maximumDeposit.sub(totalDebts),
+        capacityLeft: maxTotalSupply.sub(totalDebts),
         hasEverInteracted,
       }
     },

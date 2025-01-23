@@ -96,7 +96,7 @@ export const OtherMarketsTables = ({
 
   const rows: GridRowsProp<LenderOtherMarketsTableModel> = marketAccounts.map(
     (account) => {
-      const { market, maximumDeposit } = account
+      const { market } = account
 
       const {
         address,
@@ -105,6 +105,7 @@ export const OtherMarketsTables = ({
         underlyingToken,
         annualInterestBips,
         totalDebts,
+        maxTotalSupply,
       } = market
 
       const borrower = (borrowers ?? []).find(
@@ -127,7 +128,7 @@ export const OtherMarketsTables = ({
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
         debt: totalDebts,
-        capacityLeft: maximumDeposit.sub(totalDebts),
+        capacityLeft: maxTotalSupply.sub(totalDebts),
         isSelfOnboard:
           !account.hasEverInteracted &&
           market.version === MarketVersion.V2 &&
