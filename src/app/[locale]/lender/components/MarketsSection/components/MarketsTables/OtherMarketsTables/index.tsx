@@ -13,6 +13,7 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
+import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import {
   BorrowerWithName,
@@ -53,6 +54,7 @@ export type LenderOtherMarketsTableModel = {
   apr: number
   isSelfOnboard: boolean
   button?: string
+  capacityLeft: TokenAmount
 }
 
 export const OtherMarketsTables = ({
@@ -94,7 +96,7 @@ export const OtherMarketsTables = ({
 
   const rows: GridRowsProp<LenderOtherMarketsTableModel> = marketAccounts.map(
     (account) => {
-      const { market } = account
+      const { market, maximumDeposit } = account
 
       const {
         address,
@@ -102,7 +104,7 @@ export const OtherMarketsTables = ({
         borrower: borrowerAddress,
         underlyingToken,
         annualInterestBips,
-        totalBorrowed,
+        totalDebts,
       } = market
 
       const borrower = (borrowers ?? []).find(
@@ -124,7 +126,8 @@ export const OtherMarketsTables = ({
         borrowerAddress,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
-        debt: totalBorrowed,
+        debt: totalDebts,
+        capacityLeft: maximumDeposit.sub(totalDebts),
         isSelfOnboard:
           !account.hasEverInteracted &&
           market.version === MarketVersion.V2 &&
@@ -260,6 +263,22 @@ export const OtherMarketsTables = ({
       ),
     },
     {
+      field: "apr",
+      headerName: t("dashboard.markets.tables.header.apr"),
+      minWidth: 102,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.lender.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          {`${formatBps(params.value)}%`}
+        </Link>
+      ),
+    },
+    {
       field: "asset",
       headerName: t("dashboard.markets.tables.header.asset"),
       minWidth: 95,
@@ -272,6 +291,38 @@ export const OtherMarketsTables = ({
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value}
+        </Link>
+      ),
+    },
+    {
+      field: "capacityLeft",
+      headerName: "Remaining Capacity",
+      minWidth: 82,
+      headerAlign: "right",
+      align: "right",
+      sortComparator: tokenAmountComparator,
+      flex: 1.5,
+      renderCell: (
+        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
+      ) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{
+            textDecoration: "none",
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            color: "inherit",
+            justifyContent: "flex-end",
+          }}
+        >
+          {params.value && params.value.gt(0)
+            ? formatTokenWithCommas(params.value, {
+                withSymbol: false,
+                fractionDigits: 2,
+              })
+            : "0"}
         </Link>
       ),
     },
@@ -294,22 +345,6 @@ export const OtherMarketsTables = ({
                 fractionDigits: 2,
               })
             : "0"}
-        </Link>
-      ),
-    },
-    {
-      field: "apr",
-      headerName: t("dashboard.markets.tables.header.apr"),
-      minWidth: 102,
-      flex: 1,
-      headerAlign: "right",
-      align: "right",
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
-        >
-          {`${formatBps(params.value)}%`}
         </Link>
       ),
     },

@@ -1,6 +1,6 @@
 import React from "react"
 
-import { Box, Button } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -10,8 +10,15 @@ import {
 } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { COLORS } from "@/theme/colors"
 
-export const LenderMarketSectionSwitcher = () => {
-  const { t } = useTranslation()
+const SwitcherButton = ({
+  label,
+  section,
+  amount,
+}: {
+  label: string
+  section: LenderMarketDashboardSections
+  amount?: number
+}) => {
   const dispatch = useAppDispatch()
 
   const marketSection = useAppSelector(
@@ -25,57 +32,83 @@ export const LenderMarketSectionSwitcher = () => {
   }
 
   return (
+    <Button
+      variant="text"
+      onClick={() => handleChangeMarketSection(section)}
+      sx={{
+        gap: "6px",
+        padding: "6px 16px",
+        fontWeight: marketSection === section ? 600 : 500,
+        backgroundColor:
+          marketSection === section ? COLORS.whiteSmoke : "transparent",
+      }}
+    >
+      {label}
+      {amount !== 0 && (
+        <Typography
+          variant="text3"
+          color={COLORS.santasGrey}
+          sx={{ lineHeight: "20px" }}
+        >
+          {amount}
+        </Typography>
+      )}
+    </Button>
+  )
+}
+
+export const LenderMarketSectionSwitcher = () => {
+  const { t } = useTranslation()
+
+  const depositedAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.deposited,
+  )
+
+  const nonDepositedAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.nonDeposited,
+  )
+
+  const activeMarketsAmount = depositedAmount + nonDepositedAmount
+
+  const prevActiveAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.prevActive,
+  )
+
+  const neverActiveAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.neverActive,
+  )
+
+  const closedMarketsAmount = prevActiveAmount + neverActiveAmount
+
+  const selfOnboardAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.selfOnboard,
+  )
+
+  const manualAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.manual,
+  )
+
+  const otherMarketsAmount = selfOnboardAmount + manualAmount
+
+  return (
     <Box sx={{ width: "fit-content", display: "flex", gap: "12px" }}>
-      <Button
-        variant="text"
-        onClick={() =>
-          handleChangeMarketSection(LenderMarketDashboardSections.ACTIVE)
-        }
-        sx={{
-          fontWeight:
-            marketSection === LenderMarketDashboardSections.ACTIVE ? 600 : 500,
-          backgroundColor:
-            marketSection === LenderMarketDashboardSections.ACTIVE
-              ? COLORS.whiteSmoke
-              : "transparent",
-        }}
-      >
-        {t("dashboard.markets.tables.borrower.active.title")}
-      </Button>
-      <Button
-        variant="text"
-        onClick={() =>
-          handleChangeMarketSection(LenderMarketDashboardSections.TERMINATED)
-        }
-        sx={{
-          fontWeight:
-            marketSection === LenderMarketDashboardSections.TERMINATED
-              ? 600
-              : 500,
-          backgroundColor:
-            marketSection === LenderMarketDashboardSections.TERMINATED
-              ? COLORS.whiteSmoke
-              : "transparent",
-        }}
-      >
-        {t("dashboard.markets.tables.borrower.closed.title")}
-      </Button>
-      <Button
-        variant="text"
-        onClick={() =>
-          handleChangeMarketSection(LenderMarketDashboardSections.OTHER)
-        }
-        sx={{
-          fontWeight:
-            marketSection === LenderMarketDashboardSections.OTHER ? 600 : 500,
-          backgroundColor:
-            marketSection === LenderMarketDashboardSections.OTHER
-              ? COLORS.whiteSmoke
-              : "transparent",
-        }}
-      >
-        {t("dashboard.markets.tables.other.title")}
-      </Button>
+      <SwitcherButton
+        label={t("dashboard.markets.tables.borrower.active.title")}
+        amount={activeMarketsAmount}
+        section={LenderMarketDashboardSections.ACTIVE}
+      />
+
+      <SwitcherButton
+        label={t("dashboard.markets.tables.borrower.closed.title")}
+        amount={closedMarketsAmount}
+        section={LenderMarketDashboardSections.TERMINATED}
+      />
+
+      <SwitcherButton
+        label={t("dashboard.markets.tables.other.title")}
+        amount={otherMarketsAmount}
+        section={LenderMarketDashboardSections.OTHER}
+      />
     </Box>
   )
 }
