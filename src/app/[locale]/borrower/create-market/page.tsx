@@ -433,11 +433,7 @@ export default function CreateMarketPage() {
         </Dialog>
       </Box>
 
-      {currentNumber && (
-        <GlossarySidebar
-          step={currentStep}
-        />
-      )}
+      {currentNumber && <GlossarySidebar step={currentStep}/>}
     </Box>
   )
 }
