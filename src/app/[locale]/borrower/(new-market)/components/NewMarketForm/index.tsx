@@ -70,62 +70,6 @@ type NewMarketFormProps = {
   policyOptions: ExtendedSelectOptionItem[]
 }
 
-const ForceBuyBack = ({
-  control,
-}: {
-  control: UseFormReturn<MarketValidationSchemaType>["control"]
-}) => {
-  const { t } = useTranslation()
-  const { field } = useController({ name: "allowForceBuyBack", control })
-
-  return (
-    <Box marginTop="16px">
-      <FormControlLabel
-        name="allowForceBuyBack"
-        label={
-          <Box>
-            <Box sx={InputLabelContainer} marginBottom="2px">
-              <Box sx={InputLabelTypo}>
-                <Typography variant="text3">
-                  {t(
-                    "createMarket.forms.marketDescription.block.allowForceBuyBack.title",
-                  )}
-                </Typography>
-              </Box>
-              <TooltipButton
-                value={t(
-                  "createMarket.forms.marketDescription.block.allowForceBuyBack.tooltip",
-                )}
-              />
-            </Box>
-            <Typography marginTop="0px" variant="text4" sx={InputLabelSubtitle}>
-              {t(
-                "createMarket.forms.marketDescription.block.allowForceBuyBack.subtitle",
-              )}
-            </Typography>
-          </Box>
-        }
-        control={
-          <StyledSwitch
-            checkedcolor="red"
-            color="info"
-            size="medium"
-            {...field}
-          />
-        }
-      />
-      {field.value && (
-        <Alert variant="outlined" color="error" severity="error">
-          This will break integration with on-chain exchanges.
-          <br />
-          Lenders will see a warning about using this market with smart
-          contracts.
-        </Alert>
-      )}
-    </Box>
-  )
-}
-
 export const NewMarketForm = ({
   form,
   tokenAsset,
@@ -707,23 +651,6 @@ export const NewMarketForm = ({
       )}
 
       <Divider sx={DividerStyle} />
-
-      <Box marginBottom="2px" flexDirection="column">
-        <Box>
-          <Typography variant="text1">
-            {t(
-              "createMarket.forms.marketDescription.block.borrowerRestrictions.title",
-            )}
-          </Typography>
-        </Box>
-        <Typography marginTop="0px" variant="text4" sx={InputLabelSubtitle}>
-          {t(
-            "createMarket.forms.marketDescription.block.borrowerRestrictions.subtitle",
-          )}
-        </Typography>
-      </Box>
-
-      <ForceBuyBack control={control} />
 
       {isFixedTerm && (
         <Box marginTop="16px">

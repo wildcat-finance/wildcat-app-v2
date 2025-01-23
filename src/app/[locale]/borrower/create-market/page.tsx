@@ -32,7 +32,6 @@ import {
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 
 import { BasicSetupForm } from "./components/Forms/BasicSetupForn"
-import { BorrowerRestrictionsForm } from "./components/Forms/BorrowerRestrictionsForm"
 import { ConfirmationForm } from "./components/Forms/ConfirmationForm"
 import { FinancialForm } from "./components/Forms/FinancialForm"
 import { LenderRestrictionsForm } from "./components/Forms/LenderRestrictionsForm"
@@ -292,10 +291,6 @@ export default function CreateMarketPage() {
           <LenderRestrictionsForm form={newMarketForm} />
         )}
 
-        {currentStep === CreateMarketSteps.BRESTRICTIONS && (
-          <BorrowerRestrictionsForm form={newMarketForm} />
-        )}
-
         {currentStep === CreateMarketSteps.PERIODS && (
           <PeriodsForm form={newMarketForm} />
         )}
@@ -438,12 +433,7 @@ export default function CreateMarketPage() {
         </Dialog>
       </Box>
 
-      {currentNumber && (
-        <GlossarySidebar
-          step={currentStep}
-          hideGlossary={currentStep === CreateMarketSteps.BRESTRICTIONS}
-        />
-      )}
+      {currentNumber && <GlossarySidebar step={currentStep} />}
     </Box>
   )
 }
