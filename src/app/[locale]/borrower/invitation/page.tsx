@@ -30,9 +30,19 @@ const BorrowerInvitationPage = () => {
   }
   if (mustLogin || !invitation) {
     return (
-      <Box sx={PageContainer}>
-        <Typography variant="h6">Login to view invitation</Typography>
-        <Button onClick={() => login.mutate(address)}>Login</Button>
+      <Box
+        sx={{
+          ...PageContainer,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 2,
+          textAlign: "center",
+        }}
+      >
+        <Typography variant="h6">Sign In with wallet to view invitation</Typography>
+        <Button onClick={() => login.mutate(address)}>Sign In</Button>
       </Box>
     )
   }
