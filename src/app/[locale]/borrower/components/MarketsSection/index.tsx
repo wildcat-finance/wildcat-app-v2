@@ -1,7 +1,11 @@
-import React, { useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 
 import { Box, Button, Typography } from "@mui/material"
-import { MarketAccount } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  MarketAccount,
+  MarketVersion,
+} from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -21,13 +25,16 @@ import {
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { marketStatusesMock, underlyingAssetsMock } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
-import { useAppSelector } from "@/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import { BorrowerMarketDashboardSections } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 import { COLORS } from "@/theme/colors"
 import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
 
 export const MarketsSection = () => {
+  const dispatch = useAppDispatch()
+
   const marketSection = useAppSelector(
     (state) => state.borrowerDashboard.marketSection,
   )
@@ -113,6 +120,76 @@ export const MarketsSection = () => {
   )
 
   const noMarkets = borrowerMarketAccounts.length === 0
+
+  const borrowerMarkets = marketAccounts.filter(
+    (account) =>
+      account.market.borrower.toLowerCase() === address?.toLowerCase(),
+  )
+
+  const othersMarkets = marketAccounts.filter(
+    (account) =>
+      account.market.borrower.toLowerCase() !== address?.toLowerCase(),
+  )
+
+  const depositedMarketsAmount = borrowerMarkets.filter(
+    (account) =>
+      !account.market.isClosed &&
+      (!account.market.borrowableAssets.raw.isZero() ||
+        !account.market.totalBorrowed?.raw.isZero()),
+  ).length
+
+  const nonDepositedMarketsAmount = borrowerMarkets.filter(
+    (account) =>
+      account.market.borrowableAssets.raw.isZero() &&
+      account.market.totalBorrowed?.raw.isZero() &&
+      !account.market.isClosed &&
+      !account.market.isIncurringPenalties &&
+      !account.market.isDelinquent,
+  ).length
+
+  const prevActiveAmount = borrowerMarkets.filter(
+    (account) => account.market.isClosed && account.hasEverInteracted,
+  ).length
+
+  const neverActiveAmount = borrowerMarkets.filter(
+    (account) => account.market.isClosed && !account.hasEverInteracted,
+  ).length
+
+  const selfOnboardAmount = othersMarkets.filter(
+    (account) =>
+      !account.hasEverInteracted &&
+      account.market.version === MarketVersion.V2 &&
+      account.depositAvailability === DepositStatus.Ready,
+  ).length
+
+  const manualAmount = othersMarkets.length - selfOnboardAmount
+
+  useEffect(() => {
+    dispatch(
+      setSectionAmount({ name: "deposited", value: depositedMarketsAmount }),
+    )
+    dispatch(
+      setSectionAmount({
+        name: "nonDeposited",
+        value: nonDepositedMarketsAmount,
+      }),
+    )
+    dispatch(setSectionAmount({ name: "prevActive", value: prevActiveAmount }))
+    dispatch(
+      setSectionAmount({ name: "neverActive", value: neverActiveAmount }),
+    )
+    dispatch(
+      setSectionAmount({ name: "selfOnboard", value: selfOnboardAmount }),
+    )
+    dispatch(setSectionAmount({ name: "manual", value: manualAmount }))
+  }, [
+    depositedMarketsAmount,
+    nonDepositedMarketsAmount,
+    prevActiveAmount,
+    neverActiveAmount,
+    selfOnboardAmount,
+    manualAmount,
+  ])
 
   return (
     <Box

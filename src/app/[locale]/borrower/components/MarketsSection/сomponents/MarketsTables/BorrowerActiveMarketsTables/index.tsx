@@ -34,8 +34,9 @@ export type BorrowerActiveMarketsTableModel = {
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
-  asset: string
   apr: number
+  asset: string
+  capacityLeft: TokenAmount
   debt: TokenAmount | undefined
   borrowable: TokenAmount
 }
@@ -76,7 +77,8 @@ export const BorrowerActiveMarketsTables = ({
         underlyingToken,
         annualInterestBips,
         borrowableAssets,
-        totalBorrowed,
+        totalDebts,
+        maximumDeposit,
       } = market
 
       const marketStatus = getMarketStatusChip(market)
@@ -90,7 +92,8 @@ export const BorrowerActiveMarketsTables = ({
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
         borrowable: borrowableAssets,
-        debt: totalBorrowed,
+        debt: totalDebts,
+        capacityLeft: maximumDeposit.sub(totalDebts),
       }
     })
 
@@ -169,6 +172,22 @@ export const BorrowerActiveMarketsTables = ({
       ),
     },
     {
+      field: "apr",
+      headerName: t("dashboard.markets.tables.header.apr"),
+      minWidth: 102,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          {`${formatBps(params.value)}%`}
+        </Link>
+      ),
+    },
+    {
       field: "asset",
       headerName: t("dashboard.markets.tables.header.asset"),
       minWidth: 95,
@@ -181,6 +200,38 @@ export const BorrowerActiveMarketsTables = ({
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value}
+        </Link>
+      ),
+    },
+    {
+      field: "capacityLeft",
+      headerName: "Remaining Capacity",
+      minWidth: 82,
+      headerAlign: "right",
+      align: "right",
+      sortComparator: tokenAmountComparator,
+      flex: 1.5,
+      renderCell: (
+        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
+      ) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{
+            textDecoration: "none",
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            color: "inherit",
+            justifyContent: "flex-end",
+          }}
+        >
+          {params.value && params.value.gt(0)
+            ? formatTokenWithCommas(params.value, {
+                withSymbol: false,
+                fractionDigits: 2,
+              })
+            : "0"}
         </Link>
       ),
     },
@@ -227,22 +278,6 @@ export const BorrowerActiveMarketsTables = ({
                 fractionDigits: 2,
               })
             : "0"}
-        </Link>
-      ),
-    },
-    {
-      field: "apr",
-      headerName: t("dashboard.markets.tables.header.apr"),
-      minWidth: 102,
-      flex: 1,
-      headerAlign: "right",
-      align: "right",
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
-        >
-          {`${formatBps(params.value)}%`}
         </Link>
       ),
     },

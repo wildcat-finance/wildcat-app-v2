@@ -35,7 +35,7 @@ export const DashboardButton = ({
   >
     <Typography variant="text3">{label}</Typography>
     <Typography variant="text3" color={COLORS.santasGrey}>
-      {amount}
+      {amount !== 0 ? amount : null}
     </Typography>
   </Box>
 )
@@ -80,7 +80,7 @@ export const DashboardSectionAccordion = ({
         {label}
       </Typography>
       <Typography variant="text3" color={COLORS.santasGrey}>
-        {amount}
+        {amount !== 0 ? amount : null}
       </Typography>
     </Box>
 
@@ -148,7 +148,7 @@ export const DashboardPageAccordion = ({
           {label}
         </Typography>
         <Typography variant="text2" color={COLORS.santasGrey}>
-          {amount}
+          {amount !== 0 ? amount : null}
         </Typography>
       </Box>
 

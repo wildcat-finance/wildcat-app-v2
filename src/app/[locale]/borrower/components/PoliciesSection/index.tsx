@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useRef, useState } from "react"
+import React, { ChangeEvent, useEffect, useRef, useState } from "react"
 
 import {
   Box,
@@ -21,6 +21,8 @@ import Search from "@/assets/icons/search_icon.svg"
 import { FilterTextField } from "@/components/FilterTextfield"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { ROUTES } from "@/routes"
+import { useAppDispatch } from "@/store/hooks"
+import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import { setLenderFilter } from "@/store/slices/editLendersListSlice/editLendersListSlice"
 import { COLORS } from "@/theme/colors"
 import { pageCalcHeights } from "@/utils/constants"
@@ -42,14 +44,19 @@ export type PolicyDataT = {
 
 export type PoliciesTabProps = {
   markets: Market[] | undefined
+  policies: readonly PolicyDataT[]
   isMarketsLoading: boolean
+  isPoliciesLoading: boolean
 }
 
 export const PoliciesSection = ({
   markets,
+  policies,
   isMarketsLoading,
+  isPoliciesLoading,
 }: PoliciesTabProps) => {
   const { t } = useTranslation()
+  const dispatch = useAppDispatch()
 
   const [policyName, setPolicyName] = useState<string>("")
 
@@ -59,40 +66,6 @@ export const PoliciesSection = ({
 
   const editPolicyLink = (policy: string) =>
     `${ROUTES.borrower.policy}?policy=${encodeURIComponent(policy)}`
-
-  const { data: hooksData, isLoading } = useGetBorrowerHooksDataWithSubgraph()
-
-  const policies: GridRowsProp<PolicyDataT> = [
-    ...(hooksData?.hooksInstances.map((policy) => ({
-      id: policy.address,
-      name: policy.name || "Unnamed Policy",
-      type: policy.kind,
-      markets: markets
-        ? markets
-            .filter(
-              (market) => market.hooksConfig?.hooksAddress === policy.address,
-            )
-            .map((market) => ({ name: market.name, address: market.address }))
-        : [],
-      accessRequirements:
-        policy.roleProviders.length === 1 ? "Manual Approval" : "Self-Onboard",
-    })) ?? []),
-    ...(hooksData?.controller
-      ? [
-          {
-            id: hooksData.controller.address,
-            name: "V1 Markets",
-            type: HooksKind.OpenTerm,
-            markets: markets
-              ? markets.filter(
-                  (market) => market.hooksConfig?.hooksAddress === undefined,
-                )
-              : [],
-            accessRequirements: "Manual Approval",
-          },
-        ]
-      : []),
-  ].filter((policy) => policy.name.includes(policyName))
 
   const rows: GridRowsProp<PolicyDataT> = policies
     .filter((policy) => policy.name.includes(policyName))
@@ -253,12 +226,12 @@ export const PoliciesSection = ({
           <Box display="flex" columnGap="4px">
             <Typography variant="text3">Policies</Typography>
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {isLoading ? "Are Loading..." : rows.length}
+              {isPoliciesLoading ? "Are Loading..." : rows.length}
             </Typography>
           </Box>
         </Box>
 
-        {rows.length !== 0 && !isLoading && (
+        {rows.length !== 0 && !isPoliciesLoading && (
           <Box
             sx={{
               width: "100%",

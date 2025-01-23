@@ -72,7 +72,7 @@ export const BorrowerTerminatedMarketsTables = ({
         underlyingToken,
         annualInterestBips,
         borrowableAssets,
-        totalBorrowed,
+        totalDebts,
       } = market
 
       const marketStatus = getMarketStatusChip(market)
@@ -86,7 +86,7 @@ export const BorrowerTerminatedMarketsTables = ({
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
         borrowable: borrowableAssets,
-        debt: totalBorrowed,
+        debt: totalDebts,
         hasEverInteracted: account.hasEverInteracted,
       }
     })
