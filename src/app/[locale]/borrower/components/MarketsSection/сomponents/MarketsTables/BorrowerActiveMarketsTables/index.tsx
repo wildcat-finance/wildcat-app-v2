@@ -141,6 +141,9 @@ export const BorrowerActiveMarketsTables = ({
       headerAlign: "left",
       align: "left",
       sortComparator: typeComparator,
+      renderHeader: () => (
+        <span>{t("dashboard.markets.tables.header.term")}</span>
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
@@ -162,6 +165,9 @@ export const BorrowerActiveMarketsTables = ({
       minWidth: 208,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <span>{t("dashboard.markets.tables.header.name")}</span>
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
@@ -181,6 +187,9 @@ export const BorrowerActiveMarketsTables = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <span>{t("dashboard.markets.tables.header.apr")}</span>
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
@@ -197,6 +206,9 @@ export const BorrowerActiveMarketsTables = ({
       headerAlign: "right",
       align: "right",
       flex: 1,
+      renderHeader: () => (
+        <span>{t("dashboard.markets.tables.header.asset")}</span>
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
@@ -208,12 +220,15 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "capacityLeft",
-      headerName: "Remaining Capacity",
+      headerName: t("dashboard.markets.tables.header.capacity"),
       minWidth: 82,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
       flex: 1.5,
+      renderHeader: () => (
+        <span>{t("dashboard.markets.tables.header.capacity")}</span>
+      ),
       renderCell: (
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
@@ -246,6 +261,9 @@ export const BorrowerActiveMarketsTables = ({
       align: "right",
       flex: 1.5,
       sortComparator: tokenAmountComparator,
+      renderHeader: () => (
+        <span>{t("dashboard.markets.tables.header.debt")}</span>
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
@@ -268,6 +286,9 @@ export const BorrowerActiveMarketsTables = ({
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
+      renderHeader: () => (
+        <span>{t("dashboard.markets.tables.header.borrowable")}</span>
+      ),
       renderCell: (
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (

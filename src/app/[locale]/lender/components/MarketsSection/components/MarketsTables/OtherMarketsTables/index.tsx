@@ -146,6 +146,9 @@ export const OtherMarketsTables = ({
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
+      renderHeader: () => (
+        <span>{t("dashboard.markets.tables.header.status")}</span>
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -168,6 +171,9 @@ export const OtherMarketsTables = ({
       headerAlign: "left",
       align: "left",
       sortComparator: typeComparator,
+      renderHeader: () => (
+        <span>{t("dashboard.markets.tables.header.term")}</span>
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -189,6 +195,9 @@ export const OtherMarketsTables = ({
       minWidth: 208,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <span>{t("dashboard.markets.tables.header.name")}</span>
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -266,6 +275,9 @@ export const OtherMarketsTables = ({
       headerAlign: "right",
       align: "right",
       flex: 1,
+      renderHeader: () => (
+        <span>{t("dashboard.markets.tables.header.asset")}</span>
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -283,6 +295,9 @@ export const OtherMarketsTables = ({
       align: "right",
       flex: 1.5,
       sortComparator: tokenAmountComparator,
+      renderHeader: () => (
+        <span>{t("dashboard.markets.tables.header.debt")}</span>
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -304,6 +319,9 @@ export const OtherMarketsTables = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <span>{t("dashboard.markets.tables.header.apr")}</span>
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -321,6 +339,9 @@ export const OtherMarketsTables = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <span>{""}</span>
+      ),
       renderCell: (params) => (
         <Link
           href={
