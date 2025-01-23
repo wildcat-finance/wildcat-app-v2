@@ -464,6 +464,10 @@ export const ConfirmationForm = ({
         <Typography variant="text3">
           {t("createNewMarket.confirm.alertFee")}
         </Typography>
+
+        <Typography variant="text3">
+          {t("createNewMarket.confirm.alertFee2")}
+        </Typography>
       </Box>
 
       {isReductionAllowed && (
@@ -476,6 +480,10 @@ export const ConfirmationForm = ({
 
           <Typography variant="text3">
             {t("createNewMarket.confirm.alertReduction")}
+          </Typography>
+
+          <Typography variant="text3">
+            {t("createNewMarket.confirm.alertReduction2")}
           </Typography>
         </Box>
       )}
