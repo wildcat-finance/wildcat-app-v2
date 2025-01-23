@@ -37,7 +37,6 @@ import { FinancialForm } from "./components/Forms/FinancialForm"
 import { LenderRestrictionsForm } from "./components/Forms/LenderRestrictionsForm"
 import { MarketPolicyForm } from "./components/Forms/MarketPolicyForm"
 import { MlaForm } from "./components/Forms/MLAForm"
-import { PeriodsForm } from "./components/Forms/PeriodsForm"
 import { GlossarySidebar } from "./components/GlossarySidebar"
 import { StepCounterTitle } from "./components/StepCounterTitle"
 import { useTokensList } from "./components/UnderlyingAssetSelect/hooks/useTokensList"
@@ -289,10 +288,6 @@ export default function CreateMarketPage() {
 
         {currentStep === CreateMarketSteps.LRESTRICTIONS && (
           <LenderRestrictionsForm form={newMarketForm} />
-        )}
-
-        {currentStep === CreateMarketSteps.PERIODS && (
-          <PeriodsForm form={newMarketForm} />
         )}
 
         {currentStep === CreateMarketSteps.CONFIRM && (

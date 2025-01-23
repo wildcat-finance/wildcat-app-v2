@@ -83,7 +83,6 @@ export const BasicSetupForm = ({
         CreateMarketSteps.BRESTRICTIONS,
         CreateMarketSteps.CONFIRM,
         CreateMarketSteps.LRESTRICTIONS,
-        CreateMarketSteps.PERIODS,
         CreateMarketSteps.FINANCIAL,
         CreateMarketSteps.MLA,
       ]

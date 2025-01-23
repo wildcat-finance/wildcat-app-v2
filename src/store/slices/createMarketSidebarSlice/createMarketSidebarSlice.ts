@@ -55,13 +55,6 @@ const initialState: CreateMarketSidebarSliceType = {
     },
     {
       number: 5,
-      title: "createNewMarket.periods.sidebar",
-      disabled: true,
-      valid: false,
-      step: CreateMarketSteps.PERIODS,
-    },
-    {
-      number: 6,
       title: "createNewMarket.mla.title",
       disabled: true,
       valid: false,

@@ -78,6 +78,14 @@ export const GlossarySidebar = ({
           description: t("createNewMarket.financial.ratio.glossary"),
         },
         {
+          title: t("createNewMarket.periods.grace.label"),
+          description: t("createNewMarket.periods.grace.glossary"),
+        },
+        {
+          title: t("createNewMarket.periods.wdCycle.label"),
+          description: t("createNewMarket.periods.wdCycle.glossary"),
+        },
+        {
           title: t("createNewMarket.financial.minDeposit.label"),
           description: t("createNewMarket.financial.minDeposit.glossary"),
         },
@@ -113,19 +121,6 @@ export const GlossarySidebar = ({
           description: t(
             "createNewMarket.lenderRestrictions.disableTransfers.glossary",
           ),
-        },
-      ]
-      break
-    }
-    case CreateMarketSteps.PERIODS: {
-      glossaryArray = [
-        {
-          title: t("createNewMarket.periods.grace.label"),
-          description: t("createNewMarket.periods.grace.glossary"),
-        },
-        {
-          title: t("createNewMarket.periods.wdCycle.label"),
-          description: t("createNewMarket.periods.wdCycle.glossary"),
         },
       ]
       break

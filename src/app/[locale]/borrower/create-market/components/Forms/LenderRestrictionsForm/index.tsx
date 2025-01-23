@@ -30,7 +30,7 @@ export const LenderRestrictionsForm = ({
   const transferRequiresAccessWatch = watch("transferRequiresAccess")
 
   const handleNextClick = () => {
-    dispatch(setCreatingStep(CreateMarketSteps.PERIODS))
+    dispatch(setCreatingStep(CreateMarketSteps.MLA))
   }
 
   const handleBackClick = () => {
@@ -41,7 +41,7 @@ export const LenderRestrictionsForm = ({
     dispatch(setIsValid({ step: CreateMarketSteps.LRESTRICTIONS, valid: true }))
     dispatch(
       setIsDisabled({
-        steps: [CreateMarketSteps.PERIODS],
+        steps: [],
         disabled: false,
       }),
     )
