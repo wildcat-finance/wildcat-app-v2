@@ -99,6 +99,7 @@
           "borrower": "Borrower Name",
           "asset": "Asset",
           "debt": "Total Debt",
+          "capacity": "Remaining Capacity",
           "borrowable": "Borrowable",
           "loan": "Your Loan",
           "apr": "APR"

@@ -285,7 +285,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "capacityLeft",
-      headerName: "Remaining Capacity",
+      headerName: t("dashboard.markets.tables.header.capacity"),
       minWidth: 82,
       headerAlign: "right",
       align: "right",
