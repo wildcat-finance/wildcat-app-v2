@@ -242,6 +242,16 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               `borrowerMarketDetails.parameters.depositAccess.${depositAccess}.tooltip`,
             )}
           />
+          <Divider sx={{ margin: "12px 0 12px" }} />
+          <MarketParametersItem
+            title={t("borrowerMarketDetails.parameters.withdrawalAccess.label")}
+            value={t(
+              `borrowerMarketDetails.parameters.withdrawalAccess.${withdrawalAccess}.text`,
+            )}
+            valueTooltipText={t(
+              `borrowerMarketDetails.parameters.withdrawalAccess.${withdrawalAccess}.tooltip`,
+            )}
+          />
           {hooksConfig && market.version === MarketVersion.V2 && (
             <>
               <Divider sx={{ margin: "12px 0 12px" }} />
@@ -272,7 +282,25 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               market.annualInterestBips,
               MARKET_PARAMS_DECIMALS.annualInterestBips,
             )}%`}
-            tooltipText="The fixed annual percentage rate (excluding any protocol fees) that borrowers pay for assets within the market."
+            tooltipText="The fixed annual percentage rate (excluding any protocol fees) that borrowers pay to lenders for assets within the market."
+          />
+          <Divider sx={{ margin: "12px 0 12px" }} />
+          <MarketParametersItem
+            title={t("borrowerMarketDetails.parameters.protocolAPR")}
+            value={`${formatBps(
+              market.protocolFeeBips,
+              MARKET_PARAMS_DECIMALS.annualInterestBips,
+            )}%`}
+            tooltipText="`A protocol usage fee determined by the base APR that accrues to required reserves."
+          />
+          <Divider sx={{ margin: "12px 0 12px" }} />
+          <MarketParametersItem
+            title={t("borrowerMarketDetails.parameters.effectiveAPR")}
+            value={`${formatRayAsPercentage(
+              market.effectiveLenderAPR,
+              MARKET_PARAMS_DECIMALS.annualInterestBips,
+            )}%`}
+            tooltipText="`A protocol usage fee determined by the base APR that accrues to required reserves."
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
@@ -313,16 +341,6 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             )}
             value={`${formatSecsToHours(market.withdrawalBatchDuration)}`}
             tooltipText="A fixed period during which withdrawal requests are grouped and processed."
-          />
-          <Divider sx={{ margin: "12px 0 12px" }} />
-          <MarketParametersItem
-            title={t("borrowerMarketDetails.parameters.withdrawalAccess.label")}
-            value={t(
-              `borrowerMarketDetails.parameters.withdrawalAccess.${withdrawalAccess}.text`,
-            )}
-            valueTooltipText={t(
-              `borrowerMarketDetails.parameters.withdrawalAccess.${withdrawalAccess}.tooltip`,
-            )}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
