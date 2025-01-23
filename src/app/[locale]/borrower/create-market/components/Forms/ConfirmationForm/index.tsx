@@ -368,8 +368,10 @@ export const ConfirmationForm = ({
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.lenderRestrictions.disableTransfers.label")}
-          value={disableTransfers ? "Yes" : "No"}
+          label={t(
+            "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
+          )}
+          value={withdrawalRequiresAccess ? "Yes" : "No"}
         />
 
         <ConfirmationFormItem
@@ -380,10 +382,8 @@ export const ConfirmationForm = ({
         />
 
         <ConfirmationFormItem
-          label={t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
-          )}
-          value={withdrawalRequiresAccess ? "Yes" : "No"}
+          label={t("createNewMarket.lenderRestrictions.disableTransfers.label")}
+          value={disableTransfers ? "Yes" : "No"}
         />
       </Box>
 
