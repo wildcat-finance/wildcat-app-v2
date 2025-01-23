@@ -157,9 +157,7 @@ export function MarketRecordsTable({
       maxWidth: 160,
       headerAlign: "left",
       align: "left",
-      renderHeader: () => (
-        <span>{t("marketRecords.table.header.time")}</span>
-      ),
+      renderHeader: () => <span>{t("marketRecords.table.header.time")}</span>,
       renderCell: (params) => (
         <Typography variant="text3">
           {dayjs(params.value * 1000).format(DATE_FORMAT)}
@@ -173,9 +171,7 @@ export function MarketRecordsTable({
       headerAlign: "right",
       align: "right",
       sortable: false,
-      renderHeader: () => (
-        <span>{t("marketRecords.table.header.event")}</span>
-      ),
+      renderHeader: () => <span>{t("marketRecords.table.header.event")}</span>,
       renderCell: (params) => (
         <Typography variant="text3">
           {getRecordText(params.row, lendersName, name)}
