@@ -92,14 +92,15 @@ export const MarketActions = ({
           {claimAmountString}{" "}
           {t("lenderMarketDetails.transactions.claim.title.ending")}
         </Typography>
-        <Typography
-          variant="text3"
-          sx={{ marginBottom: hideClaim ? "0" : "24px" }}
-          color={COLORS.santasGrey}
-        >
-          {t("lenderMarketDetails.transactions.claim.subtitle")}
-        </Typography>
-
+        {claimAmountString !== "nothing" && 
+          <Typography
+            variant="text3"
+            sx={{ marginBottom: hideClaim ? "0" : "24px" }}
+            color={COLORS.santasGrey}
+          >
+            {t("lenderMarketDetails.transactions.claim.subtitle")}
+          </Typography>
+        }
         {!hideClaim && <ClaimModal market={market} withdrawals={withdrawals} />}
       </Box>
 
