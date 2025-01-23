@@ -286,7 +286,7 @@
       "marketTokenName": "Market Token Name",
       "marketTokenPrefix": "Market Token Symbol",
       "maxBorrowingCapacity": "Max. Borrowing Capacity",
-      "totalInterestAccured": "Total Interest Accured",
+      "totalInterestAccrued": "Total Interest Accrued",
       "minimumReserveRatio": "Minimum Reserve Ratio",
       "baseAPR": "Base APR",
       "penaltyAPR": "Penalty APR",
