@@ -146,6 +146,7 @@ export const ConfirmationForm = ({
   const mlaTemplateId =
     selectedMla === "noMLA" ? undefined : Number(selectedMla)
   const isMLA = mlaTemplateId !== undefined
+  const isReductionAllowed = getValues("allowTermReduction")
 
   /// Note: The signature is handled at a higher level, but we need to ensure the
   /// signature was requested at this stage of the deployment process to prevent
@@ -335,6 +336,12 @@ export const ConfirmationForm = ({
         />
 
         <ConfirmationFormItem
+          label={t("createNewMarket.financial.protocolFee.label")}
+          /* dev: hardcoded for now, need to grab protocol fee from template */
+          value={`${(getValues("annualInterestBips") * 5) / 100}%`}
+        />
+
+        <ConfirmationFormItem
           label={t("createNewMarket.financial.penaltyAPR.label")}
           value={`${getValues("delinquencyFeeBips")}%`}
         />
@@ -342,6 +349,15 @@ export const ConfirmationForm = ({
         <ConfirmationFormItem
           label={t("createNewMarket.financial.ratio.label")}
           value={`${getValues("reserveRatioBips")}%`}
+        />
+
+        <ConfirmationFormItem
+          label={t("createNewMarket.periods.grace.label")}
+          value={`${getValues("delinquencyGracePeriod")} hours`}
+        />
+        <ConfirmationFormItem
+          label={t("createNewMarket.periods.wdCycle.label")}
+          value={`${getValues("withdrawalBatchDuration")} hours`}
         />
 
         <ConfirmationFormItem
@@ -384,29 +400,6 @@ export const ConfirmationForm = ({
         <ConfirmationFormItem
           label={t("createNewMarket.lenderRestrictions.disableTransfers.label")}
           value={disableTransfers ? "Yes" : "No"}
-        />
-      </Box>
-
-      <Divider sx={DividerStyle} />
-
-      <Typography variant="text4" sx={SubtitleStyle}>
-        {t("createNewMarket.periods.title")}
-      </Typography>
-
-      <Box
-        sx={{
-          ...SectionGrid,
-          gap: "20px 12px",
-          gridTemplateRows: "repeat(1, 1fr)",
-        }}
-      >
-        <ConfirmationFormItem
-          label={t("createNewMarket.periods.grace.label")}
-          value={`${getValues("delinquencyGracePeriod")} hours`}
-        />
-        <ConfirmationFormItem
-          label={t("createNewMarket.periods.wdCycle.label")}
-          value={`${getValues("withdrawalBatchDuration")} hours`}
         />
       </Box>
 
@@ -462,6 +455,30 @@ export const ConfirmationForm = ({
           {t("createNewMarket.confirm.alert")}
         </Typography>
       </Box>
+
+      <Box sx={AlertContainer}>
+        <SvgIcon sx={{ fontSize: "18px", "& path": { fill: COLORS.greySuit } }}>
+          <Info />
+        </SvgIcon>
+
+        <Typography variant="text3">
+          {t("createNewMarket.confirm.alertFee")}
+        </Typography>
+      </Box>
+
+      {isReductionAllowed && (
+        <Box sx={AlertContainer}>
+          <SvgIcon
+            sx={{ fontSize: "18px", "& path": { fill: COLORS.greySuit } }}
+          >
+            <Info />
+          </SvgIcon>
+
+          <Typography variant="text3">
+            {t("createNewMarket.confirm.alertReduction")}
+          </Typography>
+        </Box>
+      )}
 
       <Box
         sx={{

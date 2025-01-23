@@ -141,7 +141,6 @@ export const MarketPolicyForm = ({
         CreateMarketSteps.BASIC,
         CreateMarketSteps.CONFIRM,
         CreateMarketSteps.LRESTRICTIONS,
-        CreateMarketSteps.PERIODS,
         CreateMarketSteps.FINANCIAL,
         CreateMarketSteps.MLA,
       ]

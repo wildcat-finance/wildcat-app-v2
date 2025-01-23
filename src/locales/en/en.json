@@ -619,6 +619,9 @@
             "tooltip": "The fixed annual percentage rate (excluding any protocol fees) that borrowers pay for assets within the market.",
             "chip": "%"
           },
+          "protocolFee": {
+            "title": "Protocol Fee APR"
+          },
           "penaltyAPR": {
             "title": "Penalty APR",
             "placeholder": "0 - 100",
@@ -1298,6 +1301,9 @@
         "chip": "%",
         "glossary": "The fixed annual percentage rate (excluding any protocol fees) that borrowers pay for assets within the market."
       },
+      "protocolFee": {
+        "label": "Protocol Fee APR"
+      },
       "penaltyAPR": {
         "label": "Penalty APR",
         "placeholder": "0 - 100",
@@ -1360,7 +1366,9 @@
     "confirm": {
       "title": "Confirmation",
       "typeTerms": "Market Type/Terms",
-      "alert": "Note that once your market is created, the only adjustable parameters will be Base APR and Maximum Capacity.",
+      "alert": "Note that once your market is created, the only basic parameters you can adjust are the Base APR and Maximum Capacity.",
+      "alertFee": "A protocol fee will be in place on this market, currently defined as a 5% additional rate on your Base APR, whatever you set it as.\n\nPlease factor this in, and be prepared to maintain sufficient market reserves over time: failure to do so can result in delinquency.",
+      "alertReduction": "You have enabled Permit Maturity Reduction on this market. You will be able to reduce the time until withdrawal requests are permitted.",
       "legalInfo": {
         "title": "Legal Information",
         "legalName": "Legal Entity Name",

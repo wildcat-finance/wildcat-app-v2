@@ -288,10 +288,10 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.protocolAPR")}
             value={`${formatBps(
-              market.protocolFeeBips,
+              (market.protocolFeeBips * market.annualInterestBips) / 10000,
               MARKET_PARAMS_DECIMALS.annualInterestBips,
             )}%`}
-            tooltipText="The percentage of the base APR that accrues to required reserves (not lenders) for protocol revenue."
+            tooltipText="An additional APR that accrues to the protocol by slowly increasing required reserves. Derived by the fee configuration of the protocol as a percentage of the current base APR."
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem

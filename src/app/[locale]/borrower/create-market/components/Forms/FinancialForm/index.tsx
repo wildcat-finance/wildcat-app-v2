@@ -14,6 +14,7 @@ import {
   setIsDisabled,
   setIsValid,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
+import { COLORS } from "@/theme/colors"
 
 import { FinancialFormProps } from "./interface"
 import { FormFooter } from "../../FormFooter"
@@ -43,6 +44,8 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
   const baseAprWatch = watch("annualInterestBips")
   const penaltyAprWatch = watch("delinquencyFeeBips")
   const ratioWatch = watch("reserveRatioBips")
+  const delinquencyGracePeriodWatch = watch("delinquencyGracePeriod")
+  const withdrawalBatchDurationWatch = watch("withdrawalBatchDuration")
 
   const isFormValid =
     !!capacityWatch &&
@@ -52,7 +55,11 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
     !!penaltyAprWatch &&
     !errors.delinquencyFeeBips &&
     !!ratioWatch &&
-    !errors.reserveRatioBips
+    !errors.reserveRatioBips &&
+    !!delinquencyGracePeriodWatch &&
+    !errors.delinquencyGracePeriod &&
+    !!withdrawalBatchDurationWatch &&
+    !errors.withdrawalBatchDuration
 
   useEffect(() => {
     dispatch(
@@ -70,7 +77,6 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
       const allStepsToDisable = [
         CreateMarketSteps.CONFIRM,
         CreateMarketSteps.LRESTRICTIONS,
-        CreateMarketSteps.PERIODS,
       ]
 
       dispatch(setIsDisabled({ steps: allStepsToDisable, disabled: true }))
@@ -165,6 +171,36 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
               </Typography>
             }
             {...register("reserveRatioBips")}
+          />
+        </InputLabel>
+
+        <InputLabel label={t("createNewMarket.periods.grace.label")}>
+          <NumberTextField
+            label={t("createNewMarket.periods.grace.placeholder")}
+            value={delinquencyGracePeriodWatch}
+            error={Boolean(errors.delinquencyGracePeriod)}
+            helperText={errors.delinquencyGracePeriod?.message}
+            endAdornment={
+              <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
+                {t("createNewMarket.periods.grace.chip")}
+              </Typography>
+            }
+            {...register("delinquencyGracePeriod")}
+          />
+        </InputLabel>
+
+        <InputLabel label={t("createNewMarket.periods.wdCycle.label")}>
+          <NumberTextField
+            label={t("createNewMarket.periods.wdCycle.placeholder")}
+            value={withdrawalBatchDurationWatch}
+            error={Boolean(errors.withdrawalBatchDuration)}
+            helperText={errors.withdrawalBatchDuration?.message}
+            endAdornment={
+              <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
+                {t("createNewMarket.periods.wdCycle.chip")}
+              </Typography>
+            }
+            {...register("withdrawalBatchDuration")}
           />
         </InputLabel>
       </Box>
