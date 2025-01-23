@@ -288,8 +288,10 @@
       "maxBorrowingCapacity": "Max. Borrowing Capacity",
       "totalInterestAccrued": "Total Interest Accrued",
       "minimumReserveRatio": "Minimum Reserve Ratio",
-      "baseAPR": "Base APR",
+      "baseAPR": "Base Lender APR",
       "penaltyAPR": "Penalty APR",
+      "protocolAPR": "Protocol Fee APR",
+      "effectiveAPR": "Effective Lender APR",
       "maximumGracePeriod": "Maximum Grace Period",
       "availableGracePeriod": "Available Grace Period",
       "withdrawalCycleDuration": "Withdrawal Cycle Duration",
@@ -389,8 +391,7 @@
         "view": "View",
         "download": "Download",
         "editList": "Edit List",
-        "editPolicy": "Edit Policy",
-        "forceBuyBack": "[TO DELETE] Force Buy Back"
+        "editPolicy": "Edit Policy"
       },
       "tableHeaders": {
         "name": "Name",
@@ -401,7 +402,6 @@
         "dateAdded": "Date Added",
         "signedMLA": "Signed MLA",
         "signDate": "Sign Date",
-        "forceBuyBack": "[TO DELETE] Force Buy Back",
         "MLA": "MLA"
       }
     },
@@ -430,13 +430,6 @@
         "availableToBorrow": "Available To Borrow",
         "afterTransaction": " after this transaction",
         "interestRemaining": "Interest Remaining"
-      },
-      "forceBuyBack": {
-        "title": "[TO DELETE] Force Buy Back",
-        "from": "[TO DELETE] From lender",
-        "description": "[TO DELETE] This action will forcibly eject the lender by buying their debt tokens in exchange for the equivalent underlying assets. It does NOT burn the market tokens; you will be entered into a withdrawal batch as if you were a lender.",
-        "warning": "[TO DELETE] This action is dangerous and may adversely affect your lenders. Use it with caution and ensure you are not violating the terms of your loan.",
-        "repurchaseAmount": "[TO DELETE] Repurchase Amount"
       },
       "capacity": {
         "current": "Current Capacity"
@@ -494,21 +487,11 @@
             "policy": "Policy",
             "amountDuties": "Amount and Duties",
             "restrictions": "Lender Restrictions",
-            "borrowerRestrictions": "[TO DELETE] Borrower Restrictions",
             "graceWithdrawals": "Grace And Withdrawals"
-          },
-          "borrowerRestrictions": {
-            "title": "[TO DELETE] Borrower Restrictions",
-            "subtitle": "[TO DELETE] This is your opportunity to encourage confidence from your lenders"
           },
           "fixedTermEndTime": {
             "title": "Fixed Term Maturity Date [00:00 UTC]",
             "subtitle": "The date after which lenders can request withdrawals.",
-            "tooltip": ""
-          },
-          "allowForceBuyBack": {
-            "title": "[TO DELETE] Allow Force Buy Backs",
-            "subtitle": "[TO DELETE] Defines whether you can forcibly eject lenders by buying back their debt tokens",
             "tooltip": ""
           },
           "allowClosureBeforeTerm": {
@@ -1355,19 +1338,6 @@
         "label": "Restrict Transfers",
         "explainer": "Allows transfers of market tokens only to users who satisfy the market’s policy-defined access conditions, such as holding valid credentials or being on an approved list.",
         "glossary": "Restrict Transfers ensures that market tokens can only be transferred between participants who meet the specific access requirements set by the market’s policy. These conditions may include holding approved deposit credentials or satisfying other borrower-defined qualifications. This restriction helps maintain compliance with the policy and supports secure market operations​​."
-      }
-    },
-    "borrowerRestrictions": {
-      "title": "[TO DELETE] Borrower Restrictions",
-      "subtitle": "[TO DELETE] This is your opportunity to encourage confidence from your lenders",
-      "buybacks": {
-        "label": "[TO DELETE] Allow Force Buybacks",
-        "explainer": "[TO DELETE]"
-      },
-      "alert": {
-        "title": "[TO DELETE] This will break integration with on-chain exchanges.",
-        "subtitle": "[TO DELETE] Lenders will see a warning about using this market with smart contracts.",
-        "button": "[TO DELETE] More Info"
       }
     },
     "periods": {
