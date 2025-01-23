@@ -336,6 +336,12 @@ export const ConfirmationForm = ({
         />
 
         <ConfirmationFormItem
+          label={t("createNewMarket.financial.protocolFee.label")}
+          /* dev: hardcoded for now, need to grab protocol fee from template */
+          value={`${getValues("annualInterestBips") * 5 / 100}%`}
+        />
+
+        <ConfirmationFormItem
           label={t("createNewMarket.financial.penaltyAPR.label")}
           value={`${getValues("delinquencyFeeBips")}%`}
         />

@@ -619,6 +619,9 @@
             "tooltip": "The fixed annual percentage rate (excluding any protocol fees) that borrowers pay for assets within the market.",
             "chip": "%"
           },
+          "protocolFee": {
+            "title": "Protocol Fee APR"
+          },
           "penaltyAPR": {
             "title": "Penalty APR",
             "placeholder": "0 - 100",
