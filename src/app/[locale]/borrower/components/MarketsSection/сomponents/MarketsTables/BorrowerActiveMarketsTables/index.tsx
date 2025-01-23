@@ -116,6 +116,9 @@ export const BorrowerActiveMarketsTables = ({
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
+      renderHeader: () => (
+        <span>{t("dashboard.markets.tables.header.status")}</span>
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
