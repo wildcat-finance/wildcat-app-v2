@@ -450,6 +450,16 @@ export const ConfirmationForm = ({
         </Typography>
       </Box>
 
+      <Box sx={AlertContainer}>
+        <SvgIcon sx={{ fontSize: "18px", "& path": { fill: COLORS.greySuit } }}>
+          <Info />
+        </SvgIcon>
+
+        <Typography variant="text3">
+          {t("createNewMarket.confirm.alertFee")}
+        </Typography>
+      </Box>
+
       {isReductionAllowed && (
       <Box sx={AlertContainer}>
         <SvgIcon sx={{ fontSize: "18px", "& path": { fill: COLORS.greySuit } }}>

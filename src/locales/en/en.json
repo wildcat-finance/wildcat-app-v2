@@ -1361,6 +1361,7 @@
       "title": "Confirmation",
       "typeTerms": "Market Type/Terms",
       "alert": "Note that once your market is created, the only basic parameters you can adjust are the Base APR and Maximum Capacity.",
+      "alertFee": "A protocol fee will be in place on this market, currently defined as a 5% addiitional rate on your Base APR. Please factor this in, and be prepared to maintain sufficient market reserves over time.",
       "alertReduction": "You have enabled Permit Maturity Reduction on this Fixed Term market, and so you can reduce the time until the market converts to Open Term and withdrawals are permitted.",
       "legalInfo": {
         "title": "Legal Information",
