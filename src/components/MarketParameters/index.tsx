@@ -190,7 +190,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
-            title={t("borrowerMarketDetails.parameters.totalInterestAccured")}
+            title={t("borrowerMarketDetails.parameters.totalInterestAccrued")}
             value={toTokenAmountProps(totalInterestAccrued).value}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
