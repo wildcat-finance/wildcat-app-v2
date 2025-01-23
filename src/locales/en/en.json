@@ -1360,7 +1360,8 @@
     "confirm": {
       "title": "Confirmation",
       "typeTerms": "Market Type/Terms",
-      "alert": "Note that once your market is created, the only adjustable parameters will be Base APR and Maximum Capacity.",
+      "alert": "Note that once your market is created, the only basic parameters you can adjust are the Base APR and Maximum Capacity.",
+      "alertReduction": "You have enabled Permit Maturity Reduction on this Fixed Term market, and so you can reduce the time until the market converts to Open Term and withdrawals are permitted.",
       "legalInfo": {
         "title": "Legal Information",
         "legalName": "Legal Entity Name",

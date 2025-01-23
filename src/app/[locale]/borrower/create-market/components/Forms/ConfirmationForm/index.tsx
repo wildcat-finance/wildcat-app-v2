@@ -146,6 +146,7 @@ export const ConfirmationForm = ({
   const mlaTemplateId =
     selectedMla === "noMLA" ? undefined : Number(selectedMla)
   const isMLA = mlaTemplateId !== undefined
+  const isReductionAllowed = getValues("allowTermReduction")
 
   /// Note: The signature is handled at a higher level, but we need to ensure the
   /// signature was requested at this stage of the deployment process to prevent
@@ -448,6 +449,18 @@ export const ConfirmationForm = ({
           {t("createNewMarket.confirm.alert")}
         </Typography>
       </Box>
+
+      {isReductionAllowed && (
+      <Box sx={AlertContainer}>
+        <SvgIcon sx={{ fontSize: "18px", "& path": { fill: COLORS.greySuit } }}>
+          <Info />
+        </SvgIcon>
+
+        <Typography variant="text3">
+          {t("createNewMarket.confirm.alertReduction")}
+        </Typography>
+      </Box>
+      )}
 
       <Box
         sx={{
