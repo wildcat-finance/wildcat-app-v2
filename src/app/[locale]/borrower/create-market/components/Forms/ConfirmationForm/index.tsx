@@ -345,6 +345,15 @@ export const ConfirmationForm = ({
         />
 
         <ConfirmationFormItem
+          label={t("createNewMarket.periods.grace.label")}
+          value={`${getValues("delinquencyGracePeriod")} hours`}
+        />
+        <ConfirmationFormItem
+          label={t("createNewMarket.periods.wdCycle.label")}
+          value={`${getValues("withdrawalBatchDuration")} hours`}
+        />
+
+        <ConfirmationFormItem
           label={t("createNewMarket.financial.minDeposit.label")}
           value={`${getValues("minimumDeposit") ?? 0} ${tokenAsset?.symbol}`}
         />
@@ -384,29 +393,6 @@ export const ConfirmationForm = ({
         <ConfirmationFormItem
           label={t("createNewMarket.lenderRestrictions.disableTransfers.label")}
           value={disableTransfers ? "Yes" : "No"}
-        />
-      </Box>
-
-      <Divider sx={DividerStyle} />
-
-      <Typography variant="text4" sx={SubtitleStyle}>
-        {t("createNewMarket.periods.title")}
-      </Typography>
-
-      <Box
-        sx={{
-          ...SectionGrid,
-          gap: "20px 12px",
-          gridTemplateRows: "repeat(1, 1fr)",
-        }}
-      >
-        <ConfirmationFormItem
-          label={t("createNewMarket.periods.grace.label")}
-          value={`${getValues("delinquencyGracePeriod")} hours`}
-        />
-        <ConfirmationFormItem
-          label={t("createNewMarket.periods.wdCycle.label")}
-          value={`${getValues("withdrawalBatchDuration")} hours`}
         />
       </Box>
 
