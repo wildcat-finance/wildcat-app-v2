@@ -76,20 +76,6 @@ export const LenderRestrictionsForm = ({
         </HorizontalInputLabel>
 
         <HorizontalInputLabel
-          label={t("createNewMarket.lenderRestrictions.disableTransfers.label")}
-          explainer={t(
-            "createNewMarket.lenderRestrictions.disableTransfers.explainer",
-          )}
-        >
-          <Switch
-            checked={disableTransfersWatch}
-            onChange={(e) => {
-              setValue("disableTransfers", e.target.checked)
-            }}
-          />
-        </HorizontalInputLabel>
-
-        <HorizontalInputLabel
           label={t(
             "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
           )}
@@ -117,6 +103,20 @@ export const LenderRestrictionsForm = ({
             checked={transferRequiresAccessWatch}
             onChange={(e) => {
               setValue("transferRequiresAccess", e.target.checked)
+            }}
+          />
+        </HorizontalInputLabel>
+
+        <HorizontalInputLabel
+          label={t("createNewMarket.lenderRestrictions.disableTransfers.label")}
+          explainer={t(
+            "createNewMarket.lenderRestrictions.disableTransfers.explainer",
+          )}
+        >
+          <Switch
+            checked={disableTransfersWatch}
+            onChange={(e) => {
+              setValue("disableTransfers", e.target.checked)
             }}
           />
         </HorizontalInputLabel>
