@@ -139,7 +139,6 @@ export const MarketPolicyForm = ({
     } else {
       const allStepsToDisable = [
         CreateMarketSteps.BASIC,
-        CreateMarketSteps.BRESTRICTIONS,
         CreateMarketSteps.CONFIRM,
         CreateMarketSteps.LRESTRICTIONS,
         CreateMarketSteps.PERIODS,

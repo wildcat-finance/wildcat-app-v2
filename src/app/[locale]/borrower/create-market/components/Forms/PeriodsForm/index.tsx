@@ -45,7 +45,7 @@ export const PeriodsForm = ({ form }: PeriodsFormProps) => {
   }
 
   const handleBackClick = () => {
-    dispatch(setCreatingStep(CreateMarketSteps.BRESTRICTIONS))
+    dispatch(setCreatingStep(CreateMarketSteps.LRESTRICTIONS))
   }
 
   useEffect(() => {

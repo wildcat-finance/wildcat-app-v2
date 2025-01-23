@@ -68,7 +68,6 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
       )
     } else {
       const allStepsToDisable = [
-        CreateMarketSteps.BRESTRICTIONS,
         CreateMarketSteps.CONFIRM,
         CreateMarketSteps.LRESTRICTIONS,
         CreateMarketSteps.PERIODS,

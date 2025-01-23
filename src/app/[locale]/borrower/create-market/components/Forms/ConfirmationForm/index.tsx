@@ -390,38 +390,6 @@ export const ConfirmationForm = ({
       <Divider sx={DividerStyle} />
 
       <Typography variant="text4" sx={SubtitleStyle}>
-        {t("createNewMarket.borrowerRestrictions.title")}
-      </Typography>
-
-      <Box
-        sx={{
-          ...SectionGrid,
-          gap: "20px 12px",
-          gridTemplateRows: "repeat(1, 1fr)",
-          alignItems: "center",
-        }}
-      >
-        <ConfirmationFormItem
-          label={t("createNewMarket.borrowerRestrictions.buybacks.label")}
-          value={allowForceBuyBack ? "Yes" : "No"}
-        />
-
-        {allowForceBuyBack && (
-          <Box sx={{ width: "290px", display: "flex", gap: "6px" }}>
-            <SvgIcon sx={{ "& path": { fill: COLORS.carminePink } }}>
-              <Info />
-            </SvgIcon>
-
-            <Typography variant="text4" color={COLORS.carminePink}>
-              {t("createNewMarket.borrowerRestrictions.alert.title")}
-            </Typography>
-          </Box>
-        )}
-      </Box>
-
-      <Divider sx={DividerStyle} />
-
-      <Typography variant="text4" sx={SubtitleStyle}>
         {t("createNewMarket.periods.title")}
       </Typography>
 

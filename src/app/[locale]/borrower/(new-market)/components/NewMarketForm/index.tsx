@@ -652,21 +652,6 @@ export const NewMarketForm = ({
 
       <Divider sx={DividerStyle} />
 
-      <Box marginBottom="2px" flexDirection="column">
-        <Box>
-          <Typography variant="text1">
-            {t(
-              "createMarket.forms.marketDescription.block.borrowerRestrictions.title",
-            )}
-          </Typography>
-        </Box>
-        <Typography marginTop="0px" variant="text4" sx={InputLabelSubtitle}>
-          {t(
-            "createMarket.forms.marketDescription.block.borrowerRestrictions.subtitle",
-          )}
-        </Typography>
-      </Box>
-
       {isFixedTerm && (
         <Box marginTop="16px">
           <FormControlLabel
