@@ -107,12 +107,12 @@
       "noMarkets": {
         "wrongNetwork": "No Wildcat Markets On This Network",
         "lenderAlert": {
-          "title": "No active markets",
+          "title": "No Active Markets",
           "subtitle": "You don’t have any active markets now. See the Other Markets list to join one.",
           "button": "Go to Other Markets"
         },
         "active": {
-          "title": "No Active Markets.",
+          "title": "No Active Markets",
           "borrowerSubtitle": "Create a new market, or check your terminated ones.",
           "lenderSubtitle": "Join a suitable self-onboarding market, or reach out to a borrower (see their profile) for access to restricted ones."
         },
@@ -179,7 +179,7 @@
       "noMarkets": {
         "wrongNetwork": "No Wildcat Markets On This Network",
         "active": {
-          "title": "No Active Markets.",
+          "title": "No Active Markets",
           "subtitle": "Create a new market, or check your terminated ones."
         },
         "terminated": {
@@ -1106,7 +1106,7 @@
         "entityKind": "Entity Legal Form",
         "defaults": {
           "title": "Defaults",
-          "tooltip": "TBD"
+          "tooltip": "Number of markets which have been in penalty for over 90 days."
         }
       },
       "emptyStates": {
