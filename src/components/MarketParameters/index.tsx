@@ -291,7 +291,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               market.protocolFeeBips,
               MARKET_PARAMS_DECIMALS.annualInterestBips,
             )}%`}
-            tooltipText="`A protocol usage fee determined by the base APR that accrues to required reserves."
+            tooltipText="The percentage of the base APR that accrues to required reserves (not lenders) for protocol revenue."
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
@@ -300,7 +300,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               market.effectiveLenderAPR,
               MARKET_PARAMS_DECIMALS.annualInterestBips,
             )}%`}
-            tooltipText="`A protocol usage fee determined by the base APR that accrues to required reserves."
+            tooltipText="The current interest rate being paid to lenders: the base APR plus penalty APR if applicable."
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
