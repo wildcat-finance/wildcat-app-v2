@@ -4,6 +4,7 @@ export enum CreateMarketSteps {
   POLICY = "policy",
   BASIC = "basicSetup",
   FINANCIAL = "financialTerms",
+  BRESTRICTIONS = "borrowerRestrictions",
   LRESTRICTIONS = "lenderRestrictions",
   PERIODS = "periods",
   MLA = "mla",
@@ -59,7 +60,6 @@ const initialState: CreateMarketSidebarSliceType = {
       valid: false,
       step: CreateMarketSteps.PERIODS,
     },
-
     {
       number: 6,
       title: "createNewMarket.mla.title",
