@@ -290,6 +290,7 @@
       "totalInterestAccured": "Total Interest Accured",
       "minimumReserveRatio": "Minimum Reserve Ratio",
       "baseAPR": "Base APR",
+      "protocolAPR": "Protocol Fee APR",
       "penaltyAPR": "Penalty APR",
       "maximumGracePeriod": "Maximum Grace Period",
       "availableGracePeriod": "Available Grace Period",
