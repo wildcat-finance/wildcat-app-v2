@@ -498,29 +498,29 @@
           "allowClosureBeforeTerm": {
             "title": "Allow Early Closure",
             "subtitle": "Allows you to close the market before it reaches maturity.",
-            "tooltip": "TBD"
+            "tooltip": ""
           },
           "allowTermReduction": {
             "title": "Allow Term Reduction",
             "subtitle": "Allows you to reduce the market's maturity date.",
-            "tooltip": "TBD"
+            "tooltip": ""
           },
           "depositAccess": {
             "title": "Deposit Restrictions",
             "subtitle": "Defines access level required for deposits",
             "placeholder": "Select a deposit access level",
-            "tooltip": "TBD"
+            "tooltip": ""
           },
           "withdrawalAccess": {
             "title": "Withdrawal Restrictions",
             "subtitle": "Defines access level required for withdrawals",
             "placeholder": "Select a withdrawal access level",
-            "tooltip": "TBD"
+            "tooltip": ""
           },
           "disableTransfers": {
             "title": "Disable Transfers",
             "subtitle": "Disables transfers of the market token",
-            "tooltip": "TBD"
+            "tooltip": ""
           },
           "transferRequiresAccess": {
             "title": "Restrict Transfers",
@@ -538,7 +538,7 @@
             "title": "Transfer Restrictions",
             "subtitle": "Defines access level required for transfers",
             "placeholder": "Select a transfer access level",
-            "tooltip": "TBD"
+            "tooltip": ""
           },
           "policy": {
             "title": "Market Policy",
@@ -549,7 +549,7 @@
           "marketName": {
             "title": "Market Name",
             "placeholder": "Use a distinct prefix, such as wldct for Wildcat.",
-            "tooltip": "TBD"
+            "tooltip": ""
           },
           "policyName": {
             "title": "Policy Name",
@@ -661,7 +661,7 @@
           "legalName": {
             "title": "Full Legal Name",
             "placeholder": "Use more than 1 character",
-            "tooltip": "TBD"
+            "tooltip": ""
           },
           "jurisdiction": {
             "title": "Jurisdiction",
@@ -1093,7 +1093,7 @@
         "entityKind": "Entity Legal Form",
         "defaults": {
           "title": "Defaults",
-          "tooltip": "TBD"
+          "tooltip": "The number of markets owned by this borrower in which a penalty fee has applied for more than 90 days."
         }
       },
       "emptyStates": {
@@ -1149,7 +1149,7 @@
         "jurisdiction": {
           "title": "Jurisdiction",
           "placeholder": "Please Select",
-          "tooltip": "TBD",
+          "tooltip": "",
           "noOptions": "No jurisdictions found"
         },
         "website": {
