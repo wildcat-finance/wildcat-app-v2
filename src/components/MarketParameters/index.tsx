@@ -12,6 +12,7 @@ import {
   formatBps,
   formatRayAsPercentage,
   formatSecsToHours,
+  formatTokenWithCommas,
   MARKET_PARAMS_DECIMALS,
   toTokenAmountProps,
   trimAddress,
@@ -23,7 +24,6 @@ import {
   MarketParametersContainer,
   MarketParametersContainerColumn,
 } from "./style"
-import { formatTokenWithCommas } from "@/utils/formatters"
 
 export const MarketParameters = ({ market }: MarketParametersProps) => {
   const isLocalHost = window.location.hostname === "localhost"
