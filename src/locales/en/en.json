@@ -982,11 +982,11 @@
       "withdraw": {
         "button": "Withdraw",
         "buttonLocked": "Fixed Term",
-        "title": "Available To Withdraw",
+        "title": "Available For Withdraw Requests",
         "tooltip": "The amount of underlying asset debt that the address you are connected with is able to request a withdrawal for.",
         "modal": {
           "title": "Withdraw",
-          "available": "Available To Request Withdrawal",
+          "available": "Available For Withdraw Requests",
           "buttons": {
             "confirm": "Confirm"
           }
