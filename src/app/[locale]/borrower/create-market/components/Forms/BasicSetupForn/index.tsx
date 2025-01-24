@@ -119,7 +119,14 @@ export const BasicSetupForm = ({
             handleChange={handleChange}
           />
         </InputLabel>
+      </Box>
 
+      <Box
+        sx={{
+          ...SectionGrid,
+          gap: "38px 10px",
+        }}
+      >
         <InputLabel label={t("createNewMarket.basic.tokenName.label")}>
           <TextField
             label={t("createNewMarket.basic.tokenName.placeholder")}
@@ -163,24 +170,17 @@ export const BasicSetupForm = ({
         </InputLabel>
       </Box>
 
-      <Box
-        sx={{
-          ...SectionGrid,
-          gap: "38px 10px",
-        }}
-      >
-        <Typography variant="title3" sx={{ marginBottom: "36px" }}>
-          {`Market Token Name: ${t(watch("namePrefix"))} ${t(
-            tokenAsset?.name || "",
-          )}`}
-        </Typography>
+      <Typography variant="title3" sx={{ marginTop: "36px" }}>
+        {`Market Token Name: ${t(watch("namePrefix"))} ${t(
+          tokenAsset?.name || "",
+        )}`}
+      </Typography>
 
-        <Typography variant="title3" sx={{ marginBottom: "36px" }}>
-          {`Market Token Ticker: ${t(watch("symbolPrefix"))}${t(
-            tokenAsset?.symbol || "",
-          )}`}
-        </Typography>
-      </Box>
+      <Typography variant="title3" sx={{ marginTop: "36px" }}>
+        {`Market Token Ticker: ${t(watch("symbolPrefix"))}${t(
+          tokenAsset?.symbol || "",
+        )}`}
+      </Typography>
 
       <FormFooter
         backOnClick={handleBackClick}
