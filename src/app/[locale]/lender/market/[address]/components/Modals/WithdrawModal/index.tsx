@@ -125,8 +125,7 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
       >
         {notMature
           ? t("lenderMarketDetails.transactions.withdraw.buttonFreeze")
-          : t("lenderMarketDetails.transactions.withdraw.button")
-        }
+          : t("lenderMarketDetails.transactions.withdraw.button")}
       </Button>
 
       <Dialog
