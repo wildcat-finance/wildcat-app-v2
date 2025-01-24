@@ -162,7 +162,7 @@ export const BasicSetupForm = ({
           />
         </InputLabel>
       </Box>
-      
+
       <Box
         sx={{
           ...SectionGrid,
