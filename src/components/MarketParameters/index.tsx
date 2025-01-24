@@ -12,6 +12,7 @@ import {
   formatBps,
   formatRayAsPercentage,
   formatSecsToHours,
+  formatTokenWithCommas,
   MARKET_PARAMS_DECIMALS,
   toTokenAmountProps,
   trimAddress,
@@ -183,9 +184,9 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.maxBorrowingCapacity")}
-            value={`${market.maxTotalSupply.format(
-              market.maxTotalSupply.token.decimals,
-            )} ${market.underlyingToken.symbol}`}
+            value={`${formatTokenWithCommas(market.maxTotalSupply, {
+              fractionDigits: market.maxTotalSupply.token.decimals,
+            })} ${market.underlyingToken.symbol}`}
             tooltipText="The maximum limit of funds that borrowers can access in the market."
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
