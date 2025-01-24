@@ -169,14 +169,14 @@ export const BasicSetupForm = ({
         </InputLabel>
       </Box>
 
-      <Typography variant="text4" sx={{ marginTop: "18px" }}>
-        {`Market Token Name: ${t(watch("namePrefix"))} ${t(
+      <Typography variant="text3" sx={{ marginTop: "18px" }}>
+        {`Full Market Token Name: ${t(watch("namePrefix"))} ${t(
           tokenAsset?.name || "",
         )}`}
       </Typography>
 
-      <Typography variant="text4" sx={{ marginTop: "18px" }}>
-        {`Market Token Ticker: ${t(watch("symbolPrefix"))}${t(
+      <Typography variant="text3" sx={{ marginTop: "18px" }}>
+        {`Full Market Token Ticker: ${t(watch("symbolPrefix"))}${t(
           tokenAsset?.symbol || "",
         )}`}
       </Typography>
