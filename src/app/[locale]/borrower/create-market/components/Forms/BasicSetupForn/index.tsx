@@ -162,18 +162,25 @@ export const BasicSetupForm = ({
           />
         </InputLabel>
       </Box>
+      
+      <Box
+        sx={{
+          ...SectionGrid,
+          gap: "38px 10px",
+        }}
+      >
+        <Typography variant="title3" sx={{ marginBottom: "36px" }}>
+          {`Market Token Name: ${t(watch("namePrefix"))} ${t(
+            tokenAsset?.name || "",
+          )}`}
+        </Typography>
 
-      <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {`Market Token Name: "${t(watch("namePrefix"))}" "${t(
-          tokenAsset?.name || "",
-        )}`}
-      </Typography>
-
-      <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {`Market Token Ticker: "${t(watch("symbolPrefix"))}${t(
-          tokenAsset?.symbol || "",
-        )}`}
-      </Typography>
+        <Typography variant="title3" sx={{ marginBottom: "36px" }}>
+          {`Market Token Ticker: ${t(watch("symbolPrefix"))}${t(
+            tokenAsset?.symbol || "",
+          )}`}
+        </Typography>
+      </Box>
 
       <FormFooter
         backOnClick={handleBackClick}
