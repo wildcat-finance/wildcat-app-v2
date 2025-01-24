@@ -124,7 +124,6 @@ export const BasicSetupForm = ({
       <Box
         sx={{
           ...SectionGrid,
-          gap: "19px 10px",
         }}
       >
         <InputLabel label={t("createNewMarket.basic.tokenName.label")}>
@@ -170,13 +169,13 @@ export const BasicSetupForm = ({
         </InputLabel>
       </Box>
 
-      <Typography variant="title3" sx={{ marginTop: "18px" }}>
+      <Typography variant="text4" sx={{ marginTop: "18px" }}>
         {`Market Token Name: ${t(watch("namePrefix"))} ${t(
           tokenAsset?.name || "",
         )}`}
       </Typography>
 
-      <Typography variant="title3" sx={{ marginTop: "18px" }}>
+      <Typography variant="text4" sx={{ marginTop: "18px" }}>
         {`Market Token Ticker: ${t(watch("symbolPrefix"))}${t(
           tokenAsset?.symbol || "",
         )}`}
