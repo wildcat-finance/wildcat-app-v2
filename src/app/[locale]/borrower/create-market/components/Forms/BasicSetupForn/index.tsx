@@ -163,6 +163,14 @@ export const BasicSetupForm = ({
         </InputLabel>
       </Box>
 
+      <Typography variant="title2" sx={{ marginBottom: "36px" }}>
+        {`Market Token Name: "${t(watch("namePrefix"))}" "${t(tokenAsset?.name || "")}`}
+      </Typography>
+
+      <Typography variant="title2" sx={{ marginBottom: "36px" }}>
+        {`Market Token Ticker: "${t(watch("symbolPrefix"))}${t(tokenAsset?.symbol || "")}`}
+      </Typography>
+
       <FormFooter
         backOnClick={handleBackClick}
         nextOnClick={handleNextClick}
