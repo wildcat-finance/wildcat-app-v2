@@ -164,11 +164,15 @@ export const BasicSetupForm = ({
       </Box>
 
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {`Market Token Name: "${t(watch("namePrefix"))}" "${t(tokenAsset?.name || "")}`}
+        {`Market Token Name: "${t(watch("namePrefix"))}" "${t(
+          tokenAsset?.name || "",
+        )}`}
       </Typography>
 
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {`Market Token Ticker: "${t(watch("symbolPrefix"))}${t(tokenAsset?.symbol || "")}`}
+        {`Market Token Ticker: "${t(watch("symbolPrefix"))}${t(
+          tokenAsset?.symbol || "",
+        )}`}
       </Typography>
 
       <FormFooter
