@@ -981,6 +981,7 @@
       },
       "withdraw": {
         "button": "Withdraw",
+        "buttonLocked": "Fixed Term Withdrawal Freeze",
         "title": "Available To Withdraw",
         "tooltip": "The amount of underlying asset debt that the address you are connected with is able to request a withdrawal for.",
         "modal": {
