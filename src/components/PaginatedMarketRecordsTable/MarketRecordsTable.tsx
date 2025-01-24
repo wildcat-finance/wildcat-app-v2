@@ -29,16 +29,14 @@ const getRecordText = (
     }%`
   }
   if (record.__typename === "Borrow") {
-    return `${borrowerName} borrowed ${record.amount.format(
-      TOKEN_FORMAT_DECIMALS,
-      true,
-    ).toLocaleString()}`
+    return `${borrowerName} borrowed ${record.amount
+      .format( TOKEN_FORMAT_DECIMALS, true)
+    .toLocaleString()}`
   }
   if (record.__typename === "DebtRepaid") {
-    return `${borrowerName} repaid ${record.amount.format(
-      TOKEN_FORMAT_DECIMALS,
-      true,
-    ).toLocaleString()}`
+    return `${borrowerName} repaid ${record.amount
+      .format(TOKEN_FORMAT_DECIMALS, true)
+    .toLocaleString()}`
   }
   if (record.__typename === "Deposit") {
     const lenderName = lenderNames[record.address.toLowerCase()]
@@ -56,10 +54,9 @@ const getRecordText = (
     return `Market delinquent by ${delinquentDebt.toLocaleString()}`
   }
   if (record.__typename === "FeesCollected") {
-    return `${record.amount.format(
-      TOKEN_FORMAT_DECIMALS,
-      true,
-    ).toLocaleString()} collected in protocol fees`
+    return `${record.amount
+      .format(TOKEN_FORMAT_DECIMALS, true)
+    .toLocaleString()} collected in protocol fees`
   }
   if (record.__typename === "MarketClosed") {
     return `Market closed`
@@ -67,25 +64,22 @@ const getRecordText = (
   if (record.__typename === "WithdrawalRequest") {
     const lenderName = lenderNames[record.address.toLowerCase()]
     const label = lenderName ?? trimAddress(record.address)
-    return `${label} requested a withdrawal of ${record.normalizedAmount.format(
-      TOKEN_FORMAT_DECIMALS,
-      true,
-    ).toLocaleString()}`
+    return `${label} requested a withdrawal of ${record.normalizedAmount
+      .format(TOKEN_FORMAT_DECIMALS, true)
+    .toLocaleString()}`
   }
   if (record.__typename === "MaxTotalSupplyUpdated") {
     const kind = record.newMaxTotalSupply.gt(record.oldMaxTotalSupply)
       ? "increased"
       : "reduced"
-    return `Market capacity ${kind} to ${record.newMaxTotalSupply.format(
-      TOKEN_FORMAT_DECIMALS,
-      true,
-    ).toLocaleString()}`
+    return `Market capacity ${kind} to ${record.newMaxTotalSupply
+      .format(TOKEN_FORMAT_DECIMALS, true)
+    .toLocaleString()}`
   }
   if (record.__typename === "MinimumDepositUpdated") {
-    return `Minimum deposit updated to ${record.newMinimumDeposit.format(
-      TOKEN_FORMAT_DECIMALS,
-      true,
-    ).toLocaleString()}`
+    return `Minimum deposit updated to ${record.newMinimumDeposit
+      .format(TOKEN_FORMAT_DECIMALS, true)
+    .toLocaleString()}`
   }
   if (record.__typename === "ProtocolFeeBipsUpdated") {
     return `Protocol fee updated to ${record.newProtocolFeeBips / 100}%`
