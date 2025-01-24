@@ -193,7 +193,7 @@ export const MarketMLA = ({
 
   if (!borrowerProfile) return <Box>No Borrower Profile</Box>
   if (!marketAccount.isBorrower) return <Box>Wrong Borrower Address</Box>
-  if (marketMla && "noMLA" in marketMla) return <Box>Borrower declined MLA</Box>
+  if (marketMla && "noMLA" in marketMla) return <Box>Borrower Declined MLA</Box>
   if (marketMla)
     return (
       <ShowExistingMla
