@@ -25,8 +25,10 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
   
-  const notMature =  market.hooksConfig?.kind === HooksKind.FixedTerm
-    && market.hooksConfig?.fixedTermEndTime * 1000 > Date.now()
+  const notMature =
+    market.hooksConfig?.kind === HooksKind.FixedTerm &&
+    market.hooksConfig?.fixedTermEndTime !== undefined &&
+    market.hooksConfig.fixedTermEndTime * 1000 >= Date.now();
 
   const [amount, setAmount] = useState("")
   const [maxAmount, setMaxAmount] = useState<TokenAmount>()
