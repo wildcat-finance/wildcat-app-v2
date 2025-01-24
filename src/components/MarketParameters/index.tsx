@@ -23,6 +23,7 @@ import {
   MarketParametersContainer,
   MarketParametersContainerColumn,
 } from "./style"
+import { formatTokenWithCommas } from "@/utils/formatters"
 
 export const MarketParameters = ({ market }: MarketParametersProps) => {
   const isLocalHost = window.location.hostname === "localhost"
@@ -183,9 +184,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.maxBorrowingCapacity")}
-            value={`${market.maxTotalSupply.format(
-              market.maxTotalSupply.token.decimals,
-            )} ${market.underlyingToken.symbol}`}
+            value={`${formatTokenWithCommas(market.maxTotalSupply, {fractionDigits: market.maxTotalSupply.token.decimals})} ${market.underlyingToken.symbol}`}
             tooltipText="The maximum limit of funds that borrowers can access in the market."
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
