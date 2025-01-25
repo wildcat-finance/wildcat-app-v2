@@ -12,6 +12,9 @@ import dayjs from "dayjs"
 import humanizeDuration from "humanize-duration"
 import { getAddress } from "viem"
 
+import { BorrowerProfile } from "@/app/api/profiles/interface"
+import ELFsByCountry from "@/config/elfs-by-country.json"
+import Jurisdictions from "@/config/jurisdictions.json"
 import { TargetChainId } from "@/config/network"
 import { formatBps } from "@/utils/formatters"
 
@@ -22,11 +25,7 @@ type NetworkData = {
 
 export type BasicBorrowerInfo = {
   address: string
-  name: string
-  jurisdiction?: string
-  physicalAddress?: string
-  entityKind?: string
-}
+} & Partial<Omit<BorrowerProfile, "registeredOnChain" | "chainId" | "address">>
 
 export const DepositAccessString = {
   [DepositAccess.Open]: "Open",
@@ -323,6 +322,22 @@ export function getFieldValuesForBorrower({
     marketInput instanceof Market ? getMarketParams(marketInput) : marketInput
   // console.log(`Min Deposit: ${hooksConfig?.minimumDeposit}`)
 
+  const { jurisdiction, entityKind } = borrowerInfo
+
+  const jurisdictionObj =
+    jurisdiction !== undefined
+      ? Jurisdictions[jurisdiction as keyof typeof Jurisdictions]
+      : undefined
+  const jurisdictionText =
+    jurisdictionObj?.subDivisionName || jurisdictionObj?.countryName
+
+  const entityKindText =
+    entityKind !== undefined && jurisdictionObj
+      ? ELFsByCountry[
+          jurisdictionObj.countryCode as keyof typeof ELFsByCountry
+        ].find((elf) => elf.elfCode === entityKind)?.name
+      : undefined
+
   const allData: Map<MlaFieldValueKey, string | undefined> = new Map([
     // number
     ["network.chainId", formatNumber(networkData.chainId)],
@@ -339,8 +354,9 @@ export function getFieldValuesForBorrower({
     ["market.name", formatString(market.name)],
     ["market.symbol", formatString(market.symbol)],
     ["borrower.name", formatString(borrowerInfo.name)],
-    ["borrower.jurisdiction", formatString(borrowerInfo.jurisdiction)],
+    ["borrower.jurisdiction", formatString(jurisdictionText)],
     ["borrower.physicalAddress", formatString(borrowerInfo.physicalAddress)],
+    ["borrower.entityKind", formatString(entityKindText)],
     // address (format as checksum address)
     [
       "market.depositAccess",
