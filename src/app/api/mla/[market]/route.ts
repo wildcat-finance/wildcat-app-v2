@@ -5,12 +5,12 @@ import { getLensV2Contract, Market } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import { TargetChainId, TargetNetwork } from "@/config/network"
-import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
 import {
-  BasicBorrowerInfo,
-  fillInMlaTemplate,
-  getFieldValuesForBorrower,
-} from "@/lib/mla"
+  getBorrowerProfile,
+  getSignedMasterLoanAgreement,
+  prisma,
+} from "@/lib/db"
+import { fillInMlaTemplate, getFieldValuesForBorrower } from "@/lib/mla"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
 import { getZodParseError } from "@/lib/zod-error"
@@ -134,12 +134,7 @@ export async function POST(
       { status: 400 },
     )
   }
-  const borrowerProfile = await prisma.borrower.findFirst({
-    where: {
-      address,
-      chainId: TargetChainId,
-    },
-  })
+  const borrowerProfile = await getBorrowerProfile(address)
   if (!borrowerProfile) {
     return NextResponse.json(
       { error: "Borrower profile not found" },
@@ -149,7 +144,7 @@ export async function POST(
 
   const values = getFieldValuesForBorrower({
     market,
-    borrowerInfo: borrowerProfile as BasicBorrowerInfo,
+    borrowerInfo: borrowerProfile,
     networkData: TargetNetwork,
     timeSigned: body.timeSigned,
     lastSlaUpdateTime: +lastSlaUpdateTime,
