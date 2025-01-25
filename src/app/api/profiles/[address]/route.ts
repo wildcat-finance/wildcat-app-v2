@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import { TargetChainId } from "@/config/network"
-import { prisma } from "@/lib/db"
+import { getBorrowerProfile, prisma } from "@/lib/db"
 
 const mockProfile: BorrowerProfile = {
   address: "0x1717503EE3f56e644cf8b1058e3F83F03a71b2E1",
@@ -54,31 +54,9 @@ export async function GET(
   }
 
   // TODO: Change when real API will be ready
-  const borrower = await prisma.borrower.findFirst({
-    where: {
-      address: address.toLowerCase(),
-      chainId: TargetChainId,
-    },
-  })
-  if (!borrower) {
+  const profile = await getBorrowerProfile(address)
+  if (!profile) {
     return NextResponse.json({ profile: null }, { status: 404 })
-  }
-
-  const profile: BorrowerProfile = {
-    address: borrower.address,
-    chainId: borrower.chainId,
-    name: borrower.name || undefined,
-    description: borrower.description || undefined,
-    founded: borrower.founded || undefined,
-    headquarters: borrower.headquarters || undefined,
-    website: borrower.website || undefined,
-    twitter: borrower.twitter || undefined,
-    linkedin: borrower.linkedin || undefined,
-    email: borrower.email || undefined,
-    registeredOnChain: borrower.registeredOnChain,
-    jurisdiction: borrower.jurisdiction || undefined,
-    physicalAddress: borrower.physicalAddress || undefined,
-    entityKind: borrower.entityKind || undefined,
   }
 
   return NextResponse.json({ profile })

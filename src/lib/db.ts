@@ -5,6 +5,7 @@ import {
   MasterLoanAgreementResponse,
   MlaSignatureResponse,
 } from "@/app/api/mla/interface"
+import { BorrowerProfile } from "@/app/api/profiles/interface"
 import { BorrowerProfileUpdate } from "@/app/api/profiles/updates/interface"
 import { TargetChainId } from "@/config/network"
 
@@ -141,5 +142,33 @@ export async function getSignedMasterLoanAgreement(
   return {
     ...mla,
     borrowerSignature,
+  }
+}
+
+export async function getBorrowerProfile(
+  address: string,
+): Promise<BorrowerProfile | undefined> {
+  const borrower = await prisma.borrower.findFirst({
+    where: {
+      address: address.toLowerCase(),
+      chainId: TargetChainId,
+    },
+  })
+  if (!borrower) return undefined
+  return {
+    address: borrower.address,
+    chainId: borrower.chainId,
+    name: borrower.name || undefined,
+    description: borrower.description || undefined,
+    founded: borrower.founded || undefined,
+    headquarters: borrower.headquarters || undefined,
+    website: borrower.website || undefined,
+    twitter: borrower.twitter || undefined,
+    linkedin: borrower.linkedin || undefined,
+    email: borrower.email || undefined,
+    registeredOnChain: borrower.registeredOnChain,
+    jurisdiction: borrower.jurisdiction || undefined,
+    physicalAddress: borrower.physicalAddress || undefined,
+    entityKind: borrower.entityKind || undefined,
   }
 }
