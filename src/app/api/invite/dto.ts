@@ -1,4 +1,4 @@
-import { z, ZodObject, ZodRawShape, ZodTypeAny } from "zod"
+import { z } from "zod"
 
 export const AcceptInvitationInputDTO = z.object({
   address: z.string().min(2).max(42),

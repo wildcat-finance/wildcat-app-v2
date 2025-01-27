@@ -42,7 +42,7 @@ export function useAddToken(token: NewToken | undefined) {
     return () => {
       clearInterval(intervalId)
     }
-  }, []) // Remove ethereumClient dependency to prevent re-running of the effect
+  }, [address]) // Remove ethereumClient dependency to prevent re-running of the effect
 
   const canAddToken = !!ethereumClient
 
@@ -54,7 +54,7 @@ export function useAddToken(token: NewToken | undefined) {
       if (!token) {
         throw Error("No token found")
       }
-      console.log(`Adding token...`)
+      // console.log(`Adding token...`)
       const { address: tokenAddress, name, symbol, decimals } = token
       const result = await ethereumClient.request({
         method: "wallet_watchAsset",
@@ -71,12 +71,12 @@ export function useAddToken(token: NewToken | undefined) {
 
       return result
     },
-    onError(e) {
-      console.log(e)
+    onError(/* e */) {
+      // console.log(e)
     },
-    onSuccess(result) {
-      console.log(`Added token!`)
-      console.log(result)
+    onSuccess(/* result */) {
+      // console.log(`Added token!`)
+      // console.log(result)
     },
   })
 

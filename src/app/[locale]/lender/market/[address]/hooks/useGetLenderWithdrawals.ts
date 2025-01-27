@@ -84,11 +84,13 @@ export function useGetLenderWithdrawals(
     logger.debug(
       `Got ${incompleteWithdrawals.length} incomplete withdrawals...`,
     )
+    /*
     for (const withdrawal of incompleteWithdrawals) {
       console.log(
         `Withdrawal ${withdrawal.expiry} ${withdrawal.requests.length} requests`,
       )
     }
+    */
     const activeWithdrawal = incompleteWithdrawals.find(
       (w) => w.status === BatchStatus.Pending,
     )
@@ -141,6 +143,7 @@ export function useGetLenderWithdrawals(
     refetchOnMount: false,
   })
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const withdrawals = data ?? {
     completeWithdrawals: [],
     expiredPendingWithdrawals: [],

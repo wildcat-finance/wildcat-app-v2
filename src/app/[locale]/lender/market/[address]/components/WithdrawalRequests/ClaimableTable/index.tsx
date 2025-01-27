@@ -191,7 +191,7 @@ export const ClaimableTable = ({ withdrawals, totalAmount }: TableProps) => {
       })),
   )
 
-  console.log(claimableRows, "claimableRows")
+  // console.log(claimableRows, "claimableRows")
 
   return (
     <DetailsAccordion

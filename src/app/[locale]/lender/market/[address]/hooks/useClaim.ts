@@ -55,8 +55,8 @@ export const useClaim = (
       client.invalidateQueries({ queryKey: [GET_MARKET_KEY] })
       client.invalidateQueries({ queryKey: [GET_MARKET_ACCOUNT_KEY] })
     },
-    onError(error) {
-      console.log(error)
+    onError(/* error */) {
+      // console.log(error)
     },
   })
 }

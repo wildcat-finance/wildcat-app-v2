@@ -2,19 +2,14 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { TargetChainId } from "@/config/network"
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
-import {
-  fillInMlaForLender,
-  fillInMlaTemplate,
-  getFieldValuesForLender,
-  MlaTemplateField,
-} from "@/lib/mla"
+import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
 import { getZodParseError } from "@/lib/zod-error"
 
 import { LenderMlaSignatureInputDTO } from "./dto"
 import { LenderMlaSignatureInput } from "./interface"
-import { MasterLoanAgreementResponse, MlaSignatureResponse } from "../interface"
+import { MlaSignatureResponse } from "../interface"
 
 export async function GET(request: NextRequest) {
   const lenderAddress = request.nextUrl.searchParams

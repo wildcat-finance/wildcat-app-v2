@@ -1,10 +1,7 @@
 import { Prisma } from "@prisma/client"
 import { NextRequest, NextResponse } from "next/server"
 
-import {
-  BorrowerProfile,
-  BorrowerProfileInput,
-} from "@/app/api/profiles/interface"
+import { BorrowerProfileInput } from "@/app/api/profiles/interface"
 import { TargetChainId } from "@/config/network"
 import { getBorrowerProfileUpdates, prisma } from "@/lib/db"
 import { getZodParseError } from "@/lib/zod-error"

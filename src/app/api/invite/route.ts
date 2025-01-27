@@ -234,6 +234,7 @@ export async function PUT(request: NextRequest) {
     timeSigned,
     signature,
   } = body
+  /*
   console.log({
     name,
     description,
@@ -246,6 +247,7 @@ export async function PUT(request: NextRequest) {
     signature,
     address,
   })
+  */
 
   const borrowerInvitation = await findBorrowerWithPendingInvitation(address)
   if (!borrowerInvitation) {
@@ -272,6 +274,7 @@ export async function PUT(request: NextRequest) {
   if (!result) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
+  /*
   console.log(`--- accept invite ---`)
   console.log("borrower", JSON.stringify(borrowerInvitation, null, 2))
   console.log(
@@ -287,6 +290,7 @@ export async function PUT(request: NextRequest) {
       2,
     ),
   )
+  */
   if (
     borrowerInvitation.name !== name ||
     borrowerInvitation.description !== description ||

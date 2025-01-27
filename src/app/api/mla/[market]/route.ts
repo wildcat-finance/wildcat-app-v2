@@ -61,7 +61,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { market: string } },
 ) {
-  console.log(`Got request to set MLA for market ${params.market}`)
+  // console.log(`Got request to set MLA for market ${params.market}`)
   let body: SetMasterLoanAgreementInput
   try {
     const input = await request.json()
@@ -71,9 +71,9 @@ export async function POST(
   }
   const marketAddress = params.market.toLowerCase()
   const provider = getProviderForServer()
-  const codeSize = (await provider.getCode(marketAddress)).length
-  console.log(`Code size for market ${marketAddress}: ${codeSize}`)
-  console.log(body.timeSigned)
+  // const codeSize = (await provider.getCode(marketAddress)).length
+  // console.log(`Code size for market ${marketAddress}: ${codeSize}`)
+  // console.log(body.timeSigned)
 
   const refusal = await prisma.refusalToAssignMla.findFirst({
     where: {
