@@ -453,9 +453,9 @@
         "upTo": "Up to",
         "daysSubtitle": " Number of additional days to cover interest and fees",
         "repay": "Repay",
-        "repaySum": "Repay Sum",
+        "repaySum": "Amount To Repay",
         "needToRepay": "Need To Repay",
-        "afterTransaction": " after transaction",
+        "afterTransaction": " After This",
         "approve": "Approve",
         "approved": "Approved"
       },
