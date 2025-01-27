@@ -17,6 +17,8 @@ import { trimAddress } from "@/utils/formatters"
 
 export type LendersSectionProps = {
   markets: Market[] | undefined
+  // eslint-disable-next-line react/no-unused-prop-types
+  isMarketsLoading: boolean
 }
 
 export const LendersSection = ({ markets }: LendersSectionProps) => {
