@@ -55,7 +55,7 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
   }
 
   const remainingInterest =
-    market.totalDebts.gt(0) && !market.isClosed
+    !market.isClosed
       ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
           round: true,
           largest: 1,
