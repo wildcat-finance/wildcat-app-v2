@@ -16,24 +16,6 @@ import {
 import { BorrowerProfileUpdateResponse } from "./interface"
 import { verifyApiToken } from "../../auth/verify-header"
 
-const mockProfile: BorrowerProfile = {
-  address: "0x1717503EE3f56e644cf8b1058e3F83F03a71b2E1",
-  name: "Wintermute LLC",
-  description:
-    "– leading global algorithmic trading firm and one of the largest players in digital asset markets. With an average daily trading volume of over $5bn.",
-  founded: "2017",
-  headquarters: "London",
-  website: "https://wintermute.com/",
-  twitter: "wintermute_t",
-  linkedin: "https://uk.linkedin.com/company/wintermute-trading",
-  jurisdiction: "UK",
-  entityKind: "llc",
-  physicalAddress: "48 Station Road, London, N73 8QA",
-  email: "example@domain.com",
-  chainId: TargetChainId,
-  registeredOnChain: true,
-}
-
 /// POST /api/profiles/updates
 /// Route to submit a new borrower profile update request.
 /// If there is an existing update which is pending, the old update should be deleted.

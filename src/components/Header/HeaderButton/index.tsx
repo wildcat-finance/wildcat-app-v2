@@ -39,7 +39,7 @@ export const HeaderButton = () => {
     } else if (!isConnected) {
       setButtonText(t("header.button.connectWallet"))
     }
-  }, [isConnected, address, isWrongNetwork])
+  }, [isConnected, address, isWrongNetwork, t])
 
   return (
     <>

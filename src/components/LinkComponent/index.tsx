@@ -16,7 +16,7 @@ export const LinkGroup = ({
   groupSX,
 }: LinkGroupProps) => {
   const { t } = useTranslation()
-  const [state, copyToClipboard] = useCopyToClipboard()
+  const [, copyToClipboard] = useCopyToClipboard()
 
   const handleCopy = (value: string) => {
     copyToClipboard(value)

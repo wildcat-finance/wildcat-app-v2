@@ -28,7 +28,7 @@ import {
 export const MarketParameters = ({ market }: MarketParametersProps) => {
   const isLocalHost = window.location.hostname === "localhost"
   const { t } = useTranslation()
-  const [state, copyToClipboard] = useCopyToClipboard()
+  const [, copyToClipboard] = useCopyToClipboard()
   const { timeDelinquent, delinquencyGracePeriod } = market
 
   const [gracePeriodLabel, gracePeriodTimer] =
@@ -65,7 +65,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
     }
     // If the market will continue to be delinquent after the next update:
     return t("borrowerMarketDetails.tooltip.delinquencyContinues")
-  }, [market])
+  }, [market, delinquencyGracePeriod, t, timeDelinquent])
 
   const totalInterestAccrued = market
     ? (

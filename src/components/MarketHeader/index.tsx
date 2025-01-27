@@ -2,12 +2,10 @@ import * as React from "react"
 
 import { Box, Tooltip, Typography } from "@mui/material"
 import humanizeDuration from "humanize-duration"
-import { useTranslation } from "react-i18next"
 
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
-import { COLORS } from "@/theme/colors"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 
 import { MarketHeaderProps } from "./interface"
@@ -21,7 +19,6 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
   const [remainingTime, setRemainingTime] = React.useState<string | undefined>(
     "",
   )
-  const { t } = useTranslation()
 
   const { market } = marketAccount
 

@@ -27,9 +27,9 @@ export function useMarketRecords({
   const [finalEventIndex, setFinalEventIndex] = useState(market.eventIndex)
   const getMarketRecordsInternal = async () => {
     if (finalEventIndex === undefined) {
-      console.error(
+      /* console.error(
         `Failed to retrieve market records: Market event index is undefined`,
-      )
+      ) */
       throw Error(
         `Failed to retrieve market records, likely an error in the subgraph`,
       )

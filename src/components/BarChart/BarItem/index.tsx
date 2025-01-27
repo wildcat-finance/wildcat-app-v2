@@ -7,7 +7,7 @@ import "./style.css"
 import { BarItemProps } from "./interface"
 
 export const BarItem = ({ chartItem, isOnlyBarItem }: BarItemProps) => {
-  const [shouldDisplayValue, setShouldDisplayValue] = useState(true)
+  const [, setShouldDisplayValue] = useState(true)
 
   const outerContainerRef = useRef<HTMLDivElement>(null)
   const innerContainerRef = useRef<HTMLDivElement>(null)

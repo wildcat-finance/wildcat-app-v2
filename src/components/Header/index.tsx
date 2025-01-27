@@ -16,7 +16,6 @@ import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/inter
 import { COLORS } from "@/theme/colors"
 
 import { HeaderButton } from "./HeaderButton"
-import { NotificationButton } from "./NotificationButton"
 
 export default function Header() {
   const { t } = useTranslation()

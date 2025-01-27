@@ -44,7 +44,7 @@ const fetchTokensFn = async () => {
 
     return tokenInfo?.tokens || []
   } catch (error) {
-    console.log(error)
+    // console.log(error)
   }
 
   return []
@@ -60,7 +60,7 @@ export async function fetchTokensList(searchQuery: string) {
   try {
     tokensList = await fetchTokensFnCached()
   } catch (error) {
-    console.log(error)
+    // console.log(error)
   }
 
   return filterByQueryType(searchQuery, tokensList)
