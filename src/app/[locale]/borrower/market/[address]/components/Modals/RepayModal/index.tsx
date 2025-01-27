@@ -10,9 +10,9 @@ import {
   Typography,
 } from "@mui/material"
 import { RepayStatus, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { BigNumber } from "ethers"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
-import { BigNumber } from "ethers"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
@@ -363,7 +363,10 @@ export const RepayModal = ({
                 {formatTokenWithCommas(
                   modal.approvedStep
                     ? repayTokenAmount.raw >= market.outstandingDebt.raw
-                      ? new TokenAmount(BigNumber.from(0), market.underlyingToken)
+                      ? new TokenAmount(
+                          BigNumber.from(0),
+                          market.underlyingToken
+                        )
                       : market.outstandingDebt.sub(
                           maxRepayAmount || repayTokenAmount,
                         )
