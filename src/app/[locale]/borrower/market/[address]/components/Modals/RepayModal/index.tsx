@@ -173,7 +173,6 @@ export const RepayModal = ({
   const disableApprove =
     market.isClosed ||
     repayAmount.raw.isZero() ||
-    repayAmount.raw.gt(market.outstandingDebt.raw) ||
     repayStep === "Ready" ||
     repayStep === "InsufficientBalance" ||
     isApproving
@@ -181,7 +180,6 @@ export const RepayModal = ({
   const disableRepay =
     market.isClosed ||
     repayAmount.raw.isZero() ||
-    repayAmount.raw.gt(market.outstandingDebt.raw) ||
     repayStep === "InsufficientAllowance" ||
     repayStep === "InsufficientBalance" ||
     isApproving
