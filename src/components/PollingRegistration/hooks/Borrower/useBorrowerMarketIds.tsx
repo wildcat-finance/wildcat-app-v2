@@ -19,11 +19,11 @@ export const useBorrowerMarketIds = (
       const ids = data.markets.map((market: { id: string }) => market.id)
       setMarketIds(ids)
     }
-  }, [data])
+  }, [data, setMarketIds])
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching borrower market IDs: ", error)
+      // console.error("Error fetching borrower market IDs: ", error)
     }
   }, [error])
 

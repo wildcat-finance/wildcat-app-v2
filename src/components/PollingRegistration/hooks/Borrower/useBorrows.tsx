@@ -23,7 +23,7 @@ export const useBorrows = (marketIds: string[], address?: `0x${string}`) => {
 
   useEffect(() => {
     if (data) {
-      console.dir(data)
+      // console.dir(data)
       data.borrows.forEach((borrow: TBorrow) => {
         dispatch(
           addNotification({
@@ -54,7 +54,7 @@ export const useBorrows = (marketIds: string[], address?: `0x${string}`) => {
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching borrows: ", error)
+      // console.error("Error fetching borrows: ", error)
     }
   }, [error])
 

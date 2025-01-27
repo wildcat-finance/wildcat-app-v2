@@ -1,5 +1,4 @@
 /* eslint-disable no-underscore-dangle */
-import { useMemo, useState } from "react"
 
 import { Box, Skeleton, TablePagination, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
@@ -178,7 +177,7 @@ export function MarketRecordsTable({
   //   [page, pageSize],
   // )
 
-  console.log(`TOTAL ROWS: ${rowCount}`)
+  // console.log(`TOTAL ROWS: ${rowCount}`)
 
   if (isLoading) {
     return (

@@ -16,7 +16,7 @@ export const getProviderForServer = () => {
     chain: sepolia,
     transport: http(rpcUrl),
   })
-  const { account, transport } = client
+  const { transport } = client
   const network = {
     chainId: chain.id,
     name: chain.name,

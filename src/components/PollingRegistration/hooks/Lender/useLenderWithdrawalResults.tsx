@@ -25,7 +25,7 @@ export const useLenderWithdrawalResults = (
 
   useEffect(() => {
     if (data) {
-      console.dir(data)
+      // console.dir(data)
       data.withdrawalBatchExpireds.forEach(
         (withdrawalBatchExpired: TWithdrawalBatchExpired) => {
           if (
@@ -59,13 +59,13 @@ export const useLenderWithdrawalResults = (
         },
       )
     }
-  }, [data, dispatch])
+  }, [data, dispatch, marketIds])
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching withdrawal results: ", error)
+      // console.error("Error fetching withdrawal results: ", error)
     }
-  }, [error])
+  }, [error, marketIds])
 
   return () => {
     // marketIds = ["0xa23ce7c1a04520efb6968b711331ce33e4efad9a"] // Testing

@@ -28,7 +28,7 @@ export const useWithdrawalExecutions = (
 
   useEffect(() => {
     if (data) {
-      console.dir(data)
+      // console.dir(data)
       data.withdrawalExecutions.forEach(
         (withdrawalExecution: TWithdrawalExecution) => {
           if (
@@ -71,11 +71,11 @@ export const useWithdrawalExecutions = (
         },
       )
     }
-  }, [data, dispatch])
+  }, [data, dispatch, marketIds])
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching withdrawal executions: ", error)
+      // console.error("Error fetching withdrawal executions: ", error)
     }
   }, [error])
 

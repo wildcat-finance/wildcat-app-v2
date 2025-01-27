@@ -69,7 +69,7 @@ export const LendersTabSidebar = () => {
   useEffect(() => {
     dispatch(setMarketsFilter(selectedMarkets))
     dispatch(setLendersFilter(selectedLenders))
-  }, [selectedMarkets, selectedLenders])
+  }, [selectedMarkets, selectedLenders, dispatch])
 
   return (
     <Box

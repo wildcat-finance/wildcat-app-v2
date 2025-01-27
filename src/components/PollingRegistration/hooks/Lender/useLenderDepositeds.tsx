@@ -12,7 +12,7 @@ import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets
 import { EtherscanBaseUrl } from "@/config/network"
 import { SubgraphClient } from "@/config/subgraph"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
-import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
+import { formatTokenWithCommas } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
 type MarketRecords = {
@@ -30,7 +30,7 @@ export const useLenderDepositeds = (address?: `0x${string}`) => {
 
   useEffect(() => {
     if (marketRecords) {
-      console.dir(marketRecords)
+      // console.dir(marketRecords)
       marketRecords.forEach((data: MarketRecords) => {
         data.records.forEach((record: DepositRecord) => {
           dispatch(
@@ -56,7 +56,7 @@ export const useLenderDepositeds = (address?: `0x${string}`) => {
         })
       })
     }
-  }, [marketRecords])
+  }, [marketRecords, dispatch])
 
   return () => {
     if (!address || !marketAccounts || isLoading) return
@@ -77,10 +77,11 @@ export const useLenderDepositeds = (address?: `0x${string}`) => {
             },
           ])
         })
-        .catch((err) => {
-          console.log(err)
-          return undefined
-        })
+        .catch(
+          (/* err */) =>
+            // console.log(err)
+            undefined,
+        )
     })
   }
 }

@@ -245,7 +245,7 @@ type BorrowerSignedMla = {
 }
 
 const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
-  const { underlyingToken: asset, hooksConfig, name, symbol, address } = market
+  const { hooksConfig, name, symbol, address } = market
   // Deposits are only open if `depositRequiresAccess` is defined and false
   const depositAccess =
     hooksConfig?.depositRequiresAccess === false

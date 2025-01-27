@@ -20,11 +20,6 @@ export const useAuthToken = () => {
   return token
 }
 
-type LoginProps = {
-  timeSigned: number
-  address: string
-}
-
 export const useLogin = () => {
   const dispatch = useAppDispatch()
 
@@ -42,13 +37,13 @@ export const useLogin = () => {
         const LoginMessage = getLoginSignatureMessage(address, timeSigned)
 
         if (sdk && safeConnected) {
-          console.log(
+          /* console.log(
             `Set safe settings: ${await sdk.eth.setSafeSettings([
               {
                 offChainSigning: true,
               },
             ])}`,
-          )
+          ) */
 
           const result = await sdk.txs.signMessage(LoginMessage)
 
@@ -65,7 +60,7 @@ export const useLogin = () => {
             }
           }
         }
-        console.log(`Signing message with EOA`)
+        // console.log(`Signing message with EOA`)
         const signatureResult = await signer.signMessage(LoginMessage)
         return { signature: signatureResult }
       }
@@ -104,13 +99,13 @@ export const useLogin = () => {
     onSuccess: (token) => {
       if (token) {
         dispatch(setApiToken(token))
-        console.log(`Login successful`)
+        // console.log(`Login successful`)
       } else {
         throw Error(`Login failed`)
       }
     },
-    onError(error) {
-      console.log(error)
+    onError(/* error */) {
+      // console.log(error)
     },
   })
 }

@@ -1,16 +1,6 @@
-import { createElement, Fragment, ReactNode } from "react"
-
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
 import { TNotifications } from "./interface"
-
-const formatter = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "short",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
-})
 
 const initialState: TNotifications = []
 

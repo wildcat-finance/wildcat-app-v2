@@ -85,7 +85,7 @@ export const useReserveRatioBipsUpdateds = (
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching reserve ratio bips updateds: ", error)
+      // console.error("Error fetching reserve ratio bips updateds: ", error)
     }
   }, [error])
 

@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react"
 
 import {
-  getMarketRecords,
-  MarketRecord,
   getWithdrawalBatch,
   WithdrawalBatch,
   WithdrawalPaymentRecord,
@@ -12,10 +10,8 @@ import { useDispatch } from "react-redux"
 
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { EtherscanBaseUrl } from "@/config/network"
-import { SubgraphClient } from "@/config/subgraph"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
-import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
-import { getLastFetchedTimestamp } from "@/utils/timestamp"
+import { formatTokenWithCommas } from "@/utils/formatters"
 
 export const useLenderTokensAvailables = (address?: `0x${string}`) => {
   const [withdrawalBatches, setWithdrawalBatches] = useState<WithdrawalBatch[]>(
@@ -29,7 +25,7 @@ export const useLenderTokensAvailables = (address?: `0x${string}`) => {
 
   useEffect(() => {
     if (withdrawalBatches) {
-      console.dir(withdrawalBatches)
+      // console.dir(withdrawalBatches)
       withdrawalBatches.forEach((batch: WithdrawalBatch) => {
         batch.payments.forEach((payment: WithdrawalPaymentRecord) => {
           dispatch(
@@ -55,7 +51,7 @@ export const useLenderTokensAvailables = (address?: `0x${string}`) => {
         })
       })
     }
-  }, [withdrawalBatches])
+  }, [withdrawalBatches, dispatch])
 
   return () => {
     if (!address || !marketAccounts || isLoading) return
@@ -64,10 +60,11 @@ export const useLenderTokensAvailables = (address?: `0x${string}`) => {
         .then((batch: WithdrawalBatch) => {
           setWithdrawalBatches((prev) => [...prev, batch])
         })
-        .catch((err) => {
-          console.log(err)
-          return undefined
-        })
+        .catch(
+          (/* err */) =>
+            // console.log(err)
+            undefined,
+        )
     })
   }
 }

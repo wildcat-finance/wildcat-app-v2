@@ -4,7 +4,6 @@ import { useLazyQuery } from "@apollo/client"
 import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
-import { EtherscanBaseUrl } from "@/config/network"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { LENDER_AUTHORIZATION_CHANGES } from "@/graphql/queries"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
@@ -75,7 +74,7 @@ export const useAuthorizationChanges = (
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching cycle endeds: ", error)
+      // console.error("Error fetching cycle endeds: ", error)
     }
   }, [error])
 

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect } from "react"
+import { useEffect } from "react"
 
 import { useSubscription } from "@apollo/client"
 import { useDispatch } from "react-redux"
@@ -9,14 +9,6 @@ import { SubgraphClient } from "@/config/subgraph"
 import { TNotification } from "@/store/slices/notificationsSlice/interface"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { BORROWER_REGISTRATION_CHANGE_SUBSCRIPTION } from "@/utils/subscriptions"
-
-const formatter = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "short",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
-})
 
 const BorrowerRegistrationListener = () => {
   const dispatch = useDispatch()
@@ -43,12 +35,12 @@ const BorrowerRegistrationListener = () => {
       dispatch(addNotification(notification))
     }
 
-    if (error) {
+    /* if (error) {
       console.error(
         "Error subscribing to borrower registration changes:",
         error,
       )
-    }
+    */
   }, [data, error, dispatch])
 
   return null

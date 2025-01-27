@@ -4,7 +4,6 @@ import { Box, Button, Typography } from "@mui/material"
 import { Market } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
-import { LendersTable } from "@/app/[locale]/borrower/components/AuthorizedLendersTable"
 import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
 import { FilterTextField } from "@/components/FilterTextfield"
 import {
@@ -18,13 +17,9 @@ import { trimAddress } from "@/utils/formatters"
 
 export type LendersSectionProps = {
   markets: Market[] | undefined
-  isMarketsLoading: boolean
 }
 
-export const LendersSection = ({
-  markets,
-  isMarketsLoading,
-}: LendersSectionProps) => {
+export const LendersSection = ({ markets }: LendersSectionProps) => {
   const { data: lenders } = useGetAllLenders()
 
   const [lenderSearch, setLenderSearch] = useState<string>("")
@@ -34,8 +29,6 @@ export const LendersSection = ({
   const [selectedLenders, setSelectedLenders] = useState<
     SmallFilterSelectItem[]
   >([])
-  const [startPeriod, setStartPeriod] = useState<string | null>(null)
-  const [endPeriod, setEndPeriod] = useState<string | null>(null)
 
   const showFullFunctionality = useAppSelector(
     (state) => state.borrowerDashboard.showFullFunctionality,

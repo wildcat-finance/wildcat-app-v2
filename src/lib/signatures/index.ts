@@ -6,7 +6,7 @@ import {
   // eslint-disable-next-line camelcase
   ISafe__factory,
 } from "@wildcatfi/wildcat-sdk/dist/typechain"
-import { providers, CallOverrides, constants, utils } from "ethers"
+import { providers, CallOverrides, utils } from "ethers"
 import {
   defaultAbiCoder,
   getAddress,
@@ -136,28 +136,6 @@ function getUserSignatureAddress(
   }
 }
 
-async function getSignatureAddress(
-  provider: JsonRpcProvider,
-  address: string,
-  message: string,
-  signature = "0x",
-): Promise<string | undefined> {
-  try {
-    const description = await describeAccount(provider, address)
-    if (description.kind === AccountKind.EOA) {
-      return getUserSignatureAddress(message, signature)
-    }
-    if (description.kind === AccountKind.Safe) {
-      if (await verifyGnosisSignature(address, provider, message, signature)) {
-        return address
-      }
-    }
-  } catch (err) {
-    console.log(`Bad Signature: ${signature}`)
-  }
-  return constants.AddressZero
-}
-
 export async function verifySignature({
   provider,
   address,
@@ -180,7 +158,7 @@ export async function verifySignature({
           return owners.includes(signer.toLowerCase())
         }
       } catch (err) {
-        console.log(`Not single owner signature: ${signature}`)
+        // console.log(`Not single owner signature: ${signature}`)
       }
     }
     return verifyGnosisSignature(address, provider, message, signature)
@@ -224,7 +202,7 @@ export async function verifyAndDescribeSignature({
           }
         }
       } catch (err) {
-        console.log(`Not single owner signature: ${signature}`)
+        // console.log(`Not single owner signature: ${signature}`)
       }
     }
     if (

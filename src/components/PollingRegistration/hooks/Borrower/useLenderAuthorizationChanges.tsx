@@ -1,20 +1,13 @@
 import React, { useEffect } from "react"
 
 import { useLazyQuery } from "@apollo/client"
-import { Box, Chip, Typography } from "@mui/material"
-import { Trans, useTranslation } from "react-i18next"
+import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
-import { EtherscanBaseUrl } from "@/config/network"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { AUTHORIZATION_CHANGES } from "@/graphql/queries"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
-import { COLORS } from "@/theme/colors"
-import {
-  formatBps,
-  MARKET_PARAMS_DECIMALS,
-  trimAddress,
-} from "@/utils/formatters"
+import { trimAddress } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
 import { TAuthorizationChange } from "../../interface"
@@ -24,7 +17,6 @@ export const useLenderAuthorizationChanges = (
   address?: `0x${string}`,
 ) => {
   const dispatch = useDispatch()
-  const { t } = useTranslation()
 
   const [fetchLenderAuthorizationChanges, { data, error }] = useLazyQuery(
     AUTHORIZATION_CHANGES,
@@ -97,7 +89,7 @@ export const useLenderAuthorizationChanges = (
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching lender authorization changes: ", error)
+      // console.error("Error fetching lender authorization changes: ", error)
     }
   }, [error])
 

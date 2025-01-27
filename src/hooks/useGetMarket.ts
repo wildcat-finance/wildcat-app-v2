@@ -86,7 +86,7 @@ export function useGetMarket({ address, ...filters }: UseMarketProps) {
     if (data && signerOrProvider && data.provider !== signerOrProvider) {
       data.provider = signerOrProvider
     }
-  }, [signerOrProvider])
+  }, [signerOrProvider, data])
 
   return { ...result, data }
 }

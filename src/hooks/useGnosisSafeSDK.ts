@@ -21,34 +21,35 @@ export type GnosisSafeHook = {
 export const WAIT_FOR_SAFE_TX_KEY = "wait-for-safe-tx"
 
 export function useGnosisSafeSDK(): GnosisSafeHook {
-  const { isConnected, address } = useAccount()
+  const { isConnected } = useAccount()
   const connector = useConnectorClient()
 
   const [sdk, setSdk] = useState<SafeAppsSDK | undefined>(undefined)
   const isConnectedToSafe = useMemo(
     () => isConnected && connector.data?.name === "Safe",
-    [isConnected, address],
+    [isConnected, connector.data?.name],
   )
   useEffect(() => {
-    console.log(`useGnosisSafeSDK :: Connected to safe: ${isConnectedToSafe}`)
+    // console.log(`useGnosisSafeSDK :: Connected to safe: ${isConnectedToSafe}`)
     if (isConnectedToSafe && !sdk) {
       if (!connector) throw Error("No connector found")
       // TODO: check connector options in wagmi v2
       setSdk(new SafeAppsSDK())
     }
     return undefined
-  }, [isConnectedToSafe])
+  }, [isConnectedToSafe, connector, sdk])
 
   const getTransactionHash = async (safeTxHash: string) => {
     if (!sdk) throw Error("No sdk found")
     return sdk.txs
       .getBySafeTxHash(safeTxHash)
       .then((resp) => resp.txHash ?? safeTxHash)
-      .catch((err) => {
-        console.log(`useGnosisSafeSDK :: Error getting tx hash`)
-        console.log(err)
-        return safeTxHash
-      })
+      .catch(
+        (/* err */) =>
+          // console.log(`useGnosisSafeSDK :: Error getting tx hash`)
+          // console.log(err)
+          safeTxHash,
+      )
   }
 
   const waitForTransaction = async (txHash: string) => {

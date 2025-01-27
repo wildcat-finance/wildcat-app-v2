@@ -29,7 +29,7 @@ export const useWithdrawalBatchExpireds = (
 
   useEffect(() => {
     if (data) {
-      console.dir(data)
+      // console.dir(data)
       data.withdrawalBatchExpireds.forEach(
         (withdrawalBatchExpired: TWithdrawalBatchExpired) => {
           if (
@@ -96,11 +96,11 @@ export const useWithdrawalBatchExpireds = (
         },
       )
     }
-  }, [data, dispatch])
+  }, [data, dispatch, marketIds, t])
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching expired withdrawals: ", error)
+      // console.error("Error fetching expired withdrawals: ", error)
     }
   }, [error])
 

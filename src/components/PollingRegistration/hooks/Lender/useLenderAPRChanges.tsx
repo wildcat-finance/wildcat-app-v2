@@ -30,7 +30,7 @@ export const useLenderAPRChanges = (address?: `0x${string}`) => {
 
   useEffect(() => {
     if (marketRecords) {
-      console.dir(marketRecords)
+      // console.dir(marketRecords)
       marketRecords.forEach((data: MarketRecords) => {
         data.records.forEach((record: AnnualInterestBipsUpdatedRecord) => {
           dispatch(
@@ -55,7 +55,7 @@ export const useLenderAPRChanges = (address?: `0x${string}`) => {
         })
       })
     }
-  }, [marketRecords])
+  }, [marketRecords, dispatch])
 
   return () => {
     if (!address || !marketAccounts || isLoading) return
@@ -76,10 +76,11 @@ export const useLenderAPRChanges = (address?: `0x${string}`) => {
             },
           ])
         })
-        .catch((err) => {
-          console.log(err)
-          return undefined
-        })
+        .catch(
+          (/* err */) =>
+            // console.log(err)
+            undefined,
+        )
     })
   }
 }

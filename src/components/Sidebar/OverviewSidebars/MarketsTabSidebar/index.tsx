@@ -144,12 +144,12 @@ export const MarketsTabSidebar = () => {
 
   useEffect(() => {
     dispatch(setMarketsAssets(selectedAssets))
-  }, [selectedAssets])
+  }, [selectedAssets, dispatch])
 
   useEffect(() => {
     setSelectedAssets([])
     dispatch(resetSidebarSlice())
-  }, [pathname])
+  }, [pathname, dispatch])
 
   const defaultFilters =
     selectedAssets?.length === 0 &&

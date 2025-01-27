@@ -12,20 +12,13 @@ import { LenderDashboardSidebar } from "@/components/Sidebar/LenderDashboardSide
 import { LenderMarketSidebar } from "@/components/Sidebar/LenderMarketSidebar"
 import { LenderListSidebar } from "@/components/Sidebar/LendersListSidebar"
 import { MarketSidebar } from "@/components/Sidebar/MarketSidebar"
-import { NewMarketSidebar } from "@/components/Sidebar/NewMarketSidebar"
-import { NotificationsSidebar } from "@/components/Sidebar/NotificationsSidebar"
-import { LendersTabSidebar } from "@/components/Sidebar/OverviewSidebars/LendersTabSidebar"
-import { MarketsTabSidebar } from "@/components/Sidebar/OverviewSidebars/MarketsTabSidebar"
 import { ROUTES } from "@/routes"
-import { useAppSelector } from "@/store/hooks"
-import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
 import { COLORS } from "@/theme/colors"
 
 import { EditPolicySidebar } from "./EditPolicySidebar"
 
 export const Sidebar = () => {
   const pathname = usePathname()
-  const step = useAppSelector((state) => state.borrowerOverview.tab)
 
   const showCommitHash =
     process.env.NODE_ENV === "production" ||

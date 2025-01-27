@@ -25,7 +25,7 @@ export const useBorrowerRegistrationChanges = (address?: `0x${string}`) => {
     if (data) {
       data.borrowerRegistrationChanges.forEach(
         (change: TBorrowerRegistrationChange) => {
-          console.dir(change)
+          // console.dir(change)
           dispatch(
             addNotification({
               description: t(
@@ -42,11 +42,11 @@ export const useBorrowerRegistrationChanges = (address?: `0x${string}`) => {
         },
       )
     }
-  }, [data, dispatch])
+  }, [data, dispatch, t])
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching borrower registration changes: ", error)
+      // console.error("Error fetching borrower registration changes: ", error)
     }
   }, [error])
 

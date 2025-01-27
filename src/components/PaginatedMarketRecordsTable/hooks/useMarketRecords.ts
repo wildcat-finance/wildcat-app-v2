@@ -35,10 +35,10 @@ export function useMarketRecords({
       )
     }
     const endEventIndex = Math.max(0, finalEventIndex - page * pageSize)
-    console.log(`END EVENT INDEX: ${endEventIndex}`)
-    console.log(`Page: ${page}`)
-    console.log(kinds)
-    console.log(`Page Size: ${pageSize}`)
+    // console.log(`END EVENT INDEX: ${endEventIndex}`)
+    // console.log(`Page: ${page}`)
+    // console.log(kinds)
+    // console.log(`Page Size: ${pageSize}`)
     const records = await getMarketRecords(SubgraphClient, {
       market,
       fetchPolicy: "network-only",
@@ -46,7 +46,7 @@ export function useMarketRecords({
       limit: pageSize,
       kinds: kinds?.length ? kinds : undefined,
     })
-    console.log(`Records: ${records.length}`)
+    // console.log(`Records: ${records.length}`)
     const newestEventIndex = Math.max(...records.map((r) => r.eventIndex + 1))
     if (newestEventIndex > finalEventIndex) {
       setFinalEventIndex(newestEventIndex)

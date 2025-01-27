@@ -1,10 +1,5 @@
 "use client"
 
-import { useEffect, useState } from "react"
-
-import { useDispatch } from "react-redux"
-import { useAccount } from "wagmi"
-
 // import { POLLING_INTERVAL } from "@/config/polling"
 // import { SubgraphClient } from "@/config/subgraph"
 // import { usePolling } from "@/hooks/usePolling"
@@ -34,12 +29,7 @@ import { useAccount } from "wagmi"
 // import { useLenderTokensAvailables } from "./hooks/Lender/useLenderTokensAvailables"
 // import { useLenderWithdrawalResults } from "./hooks/Lender/useLenderWithdrawalResults"
 
-const PollingRegistration = () => {
-  const { address } = useAccount()
-  const [marketIds, setMarketIds] = useState<string[]>([])
-  const [lenderMarketIds, setLenderMarketIds] = useState<string[]>([])
-  const dispatch = useDispatch()
-
+const PollingRegistration = () =>
   // const fetchBorrowerMarketIds = useBorrowerMarketIds(setMarketIds, address)
   // const fetchLenderMarketIds = useLenderMarketIds(setLenderMarketIds, address)
   // const fetchBorrowerRegistrationChanges =
@@ -129,7 +119,6 @@ const PollingRegistration = () => {
   //   }
   // }, [address])
 
-  return null
-}
+  null
 
 export default PollingRegistration

@@ -25,7 +25,7 @@ export const useLenderMarketTerminateds = (
 
   useEffect(() => {
     if (data) {
-      console.dir(data)
+      // console.dir(data)
       data.marketCloseds.forEach((terminated: TMarketTerminated) => {
         dispatch(
           addNotification({
@@ -48,7 +48,7 @@ export const useLenderMarketTerminateds = (
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching market terminateds: ", error)
+      // console.error("Error fetching market terminateds: ", error)
     }
   }, [error])
 

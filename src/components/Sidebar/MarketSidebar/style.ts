@@ -1,5 +1,3 @@
-import { COLORS } from "@/theme/colors"
-
 export const ContentContainer = {
   minWidth: "267px",
   padding: "32px 12px 0px",

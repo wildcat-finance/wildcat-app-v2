@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 
 import { useLazyQuery } from "@apollo/client"
 import { Chip, SvgIcon } from "@mui/material"
@@ -11,11 +11,7 @@ import { lazyQueryOptions } from "@/config/subgraph"
 import { WITHDRAWAL_BATCH_CREATEDS } from "@/graphql/queries"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { COLORS } from "@/theme/colors"
-import {
-  formatBps,
-  MARKET_PARAMS_DECIMALS,
-  formatSecsToHours,
-} from "@/utils/formatters"
+import { formatSecsToHours } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
 import { TWithdrawalBatchCreated } from "../../interface"
@@ -33,7 +29,7 @@ export const useWithdrawalBatchCreateds = (
 
   useEffect(() => {
     if (data) {
-      console.dir(data)
+      // console.dir(data)
       data.withdrawalBatchCreateds.forEach(
         (withdrawalBatchCreated: TWithdrawalBatchCreated) => {
           if (
@@ -85,11 +81,11 @@ export const useWithdrawalBatchCreateds = (
         },
       )
     }
-  }, [data, dispatch])
+  }, [data, dispatch, marketIds])
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching created withdrawals: ", error)
+      // console.error("Error fetching created withdrawals: ", error)
     }
   }, [error])
 

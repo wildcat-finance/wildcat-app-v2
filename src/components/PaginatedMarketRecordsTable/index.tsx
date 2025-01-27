@@ -6,7 +6,6 @@ import { Market, MarketRecordKind } from "@wildcatfi/wildcat-sdk"
 import { useMarketRecords } from "./hooks/useMarketRecords"
 import { MarketRecordsTable } from "./MarketRecordsTable"
 import ExtendedCheckbox from "../@extended/ExtendedСheckbox"
-import { TablePagination } from "../TablePagination"
 
 type CheckboxOption<T> = {
   id: string
@@ -42,7 +41,7 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
     setPage(0)
   }, [selectedFilters])
 
-  const { data, isLoading, pagesCount, finalEventIndex } = useMarketRecords({
+  const { data, isLoading, finalEventIndex } = useMarketRecords({
     market,
     page,
     pageSize,

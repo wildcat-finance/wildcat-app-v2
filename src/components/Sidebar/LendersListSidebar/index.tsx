@@ -9,27 +9,17 @@ import {
   MenuItemButton,
   MenuItemButtonSelected,
 } from "@/components/Sidebar/style"
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setEditStep } from "@/store/slices/editLendersListSlice/editLendersListSlice"
+import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 
 export const LenderListSidebar = () => {
   const { t } = useTranslation()
   const router = useRouter()
 
-  const dispatch = useAppDispatch()
   const step = useAppSelector((state) => state.editLendersList.step)
 
   const handleBackClick = () => {
     router.back()
-  }
-
-  const handleClickConfirm = () => {
-    dispatch(setEditStep("confirm"))
-  }
-
-  const handleClickEdit = () => {
-    dispatch(setEditStep("edit"))
   }
 
   return (

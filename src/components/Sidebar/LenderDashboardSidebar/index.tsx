@@ -23,10 +23,6 @@ export const LenderDashboardSidebar = () => {
     (state) => state.lenderDashboard.marketSection,
   )
 
-  const showFullFunctionality = useAppSelector(
-    (state) => state.lenderDashboard.showFullFunctionality,
-  )
-
   const handleChangeMarketSection = (
     selectedMarketSection: LenderMarketDashboardSections,
   ) => {

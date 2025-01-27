@@ -26,7 +26,7 @@ export const useDebtRepaids = (
 
   useEffect(() => {
     if (data) {
-      console.dir(data)
+      // console.dir(data)
       data.debtRepaids.forEach((debtRepaid: TDebtRepaid) => {
         dispatch(
           addNotification({
@@ -57,7 +57,7 @@ export const useDebtRepaids = (
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching dept repays: ", error)
+      // console.error("Error fetching dept repays: ", error)
     }
   }, [error])
 
