@@ -54,13 +54,12 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
     return "default"
   }
 
-  const remainingInterest =
-    market.totalDebts.gt(0) && !market.isClosed
-      ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
-          round: true,
-          largest: 1,
-        })
-      : ""
+  const remainingInterest = !market.isClosed
+    ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
+        round: true,
+        largest: 1,
+      })
+    : ""
 
   return (
     <Box marginTop="12px">
