@@ -361,19 +361,21 @@ export const RepayModal = ({
               </Typography>
               <Typography variant="text3">
                 {formatTokenWithCommas(
-                  modal.approvedStep
-                    ? repayTokenAmount.raw >= market.outstandingDebt.raw
-                      ? new TokenAmount(
+                  (() => {
+                    if (modal.approvedStep) {
+                      if (repayTokenAmount.raw >= market.outstandingDebt.raw) {
+                        return new TokenAmount(
                           BigNumber.from(0),
-                          market.underlyingToken
+                          market.underlyingToken,
                         )
-                      : market.outstandingDebt.sub(
-                          maxRepayAmount || repayTokenAmount,
-                        )
-                    : market.outstandingDebt,
-                  {
-                    withSymbol: true,
-                  },
+                      }
+                      return market.outstandingDebt.sub(
+                        maxRepayAmount || repayTokenAmount,
+                      )
+                    }
+                    return market.outstandingDebt
+                  })(),
+                  { withSymbol: true },
                 )}
               </Typography>
             </Box>
