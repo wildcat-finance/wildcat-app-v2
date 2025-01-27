@@ -41,7 +41,7 @@ export const MarketTransactions = ({
     setAnchorEl(null)
   }
 
-  const disableRepay = market.isClosed || market.totalDebts.raw.isZero()
+  const disableRepay = market.isClosed
   const disableBorrow =
     market.isClosed ||
     market?.isDelinquent ||
