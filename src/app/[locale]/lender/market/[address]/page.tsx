@@ -67,7 +67,7 @@ export default function LenderMarketDetails({
 
   useEffect(() => {
     dispatch(setIsLoading(isLoading))
-  }, [isLoading])
+  }, [isLoading, dispatch])
 
   useEffect(() => {
     if (!authorizedInMarket) {
@@ -77,13 +77,13 @@ export default function LenderMarketDetails({
       dispatch(setIsLender(authorizedInMarket))
       dispatch(setSection(LenderMarketSections.TRANSACTIONS))
     }
-  }, [authorizedInMarket])
+  }, [authorizedInMarket, dispatch])
 
   useEffect(
     () => () => {
       dispatch(resetPageState())
     },
-    [],
+    [dispatch],
   )
 
   if (isLoading)

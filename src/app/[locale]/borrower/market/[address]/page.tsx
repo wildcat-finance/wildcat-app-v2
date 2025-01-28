@@ -59,13 +59,13 @@ export default function MarketDetails({
     if (prevURL && prevURL.includes(ROUTES.borrower.lendersList)) {
       dispatch(setCheckBlock(4))
     }
-  }, [])
+  }, [dispatch, prevURL])
 
   useEffect(
     () => () => {
       dispatch(resetPageState())
     },
-    [],
+    [dispatch],
   )
 
   if (!market || !marketAccount)

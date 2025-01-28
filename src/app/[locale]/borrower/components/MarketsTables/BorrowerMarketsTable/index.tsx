@@ -8,7 +8,7 @@ import {
   Typography,
 } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
-import { HooksKind, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -63,7 +63,7 @@ export const BorrowerMarketsTable = ({
     if (usePagination) {
       setPaginationModel((prevState) => ({ ...prevState, page: 0 }))
     }
-  }, [assetFilter, statusFilter, nameFilter])
+  }, [assetFilter, statusFilter, nameFilter, usePagination])
 
   const paginationProps = React.useMemo(() => {
     if (usePagination) {

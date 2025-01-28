@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
 
-import { TargetNetwork } from "@/config/network"
 import { trimAddress } from "@/utils/formatters"
 
 export const USE_REGISTERED_BORROWERS_KEY = "use-borrower-names"

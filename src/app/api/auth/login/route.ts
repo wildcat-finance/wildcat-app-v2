@@ -1,10 +1,9 @@
-import dayjs from "dayjs"
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { NextRequest, NextResponse } from "next/server"
 
 import { getLoginSignatureMessage } from "@/config/api"
 import { getProviderForServer } from "@/lib/provider"
-import { verifyAndDescribeSignature, verifySignature } from "@/lib/signatures"
+import { verifyAndDescribeSignature } from "@/lib/signatures"
 import { getZodParseError } from "@/lib/zod-error"
 
 import { LoginInputDTO } from "./dto"

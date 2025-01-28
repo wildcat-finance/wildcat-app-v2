@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import puppeteer from "puppeteer"
 
 import { TargetChainId } from "@/config/network"
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"

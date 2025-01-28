@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react"
-
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
@@ -11,7 +9,6 @@ import {
   populateDeployToken,
   PartialTransaction,
   getMockArchControllerOwnerContract,
-  getDeploymentAddress,
   getHooksFactoryContract,
 } from "@wildcatfi/wildcat-sdk"
 import {

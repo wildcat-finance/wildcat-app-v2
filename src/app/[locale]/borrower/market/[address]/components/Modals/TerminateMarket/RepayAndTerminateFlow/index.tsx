@@ -1,18 +1,13 @@
 import React, { useEffect, useState } from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
-import {
-  CloseMarketStatus,
-  minTokenAmount,
-  TokenAmount,
-} from "@wildcatfi/wildcat-sdk"
+import { CloseMarketStatus, minTokenAmount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { useApprove } from "@/app/[locale]/borrower/market/[address]/hooks/useGetApproval"
-import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { useProcessUnpaidWithdrawalBatch } from "@/app/[locale]/borrower/market/[address]/hooks/useProcessUnpaidWithdrawalBatch"
 import { LinkGroup } from "@/components/LinkComponent"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
@@ -28,7 +23,6 @@ import {
   TerminateAlertContainer,
   TerminateDetailsContainer,
   TerminateDialogContainer,
-  TerminateTotalContainer,
 } from "./style"
 import { TerminateModalSteps, useTerminateModal } from "./useTerminateModal"
 
@@ -50,13 +44,12 @@ export const RepayAndTerminateFlow = ({
   const isModalOpen = isOpen && !modal.closedModalStep
 
   const { market } = marketAccount
-  const { data: withdrawals } = useGetWithdrawals(market)
 
-  const {
-    mutateAsync: approve,
-    isPending: isApproving,
-    isError: isApproveError,
-  } = useApprove(market.underlyingToken, market, setApproveTxHash)
+  const { mutateAsync: approve, isPending: isApproving } = useApprove(
+    market.underlyingToken,
+    market,
+    setApproveTxHash,
+  )
 
   const {
     mutateAsync: repayAndProcess,
@@ -172,10 +165,12 @@ export const RepayAndTerminateFlow = ({
     isApproving ||
     !(terminateMarketStep.status === CloseMarketStatus.InsufficientAllowance)
 
+  /*
   const disableRepay =
     terminateMarketStep?.status === "InsufficientAllowance" ||
     isApproveError ||
     isApproving
+  */
   const disableTerminate =
     terminateMarketStep?.status !== CloseMarketStatus.Ready || isProcessing
 
@@ -210,7 +205,7 @@ export const RepayAndTerminateFlow = ({
     } else {
       modal.setFlowStep(TerminateModalSteps.closedModal)
     }
-  }, [isOpen])
+  }, [isOpen, modal])
 
   return (
     <Dialog

@@ -47,7 +47,6 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
     mutationFn: async ({
       addLenders,
       removeLenders,
-      setName,
       marketsToUpdate,
     }: SubmitPolicyUpdatesInputs) => {
       if (!signer || !policy) return

@@ -1,29 +1,14 @@
-import React, { ChangeEvent, useEffect, useRef, useState } from "react"
+import React, { useState } from "react"
 
-import {
-  Box,
-  Button,
-  IconButton,
-  InputAdornment,
-  SvgIcon,
-  TextField,
-  Typography,
-} from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid"
 import { HooksKind, Market } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
-import { useTranslation } from "react-i18next"
 
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
-import { useGetBorrowerHooksDataWithSubgraph } from "@/app/[locale]/borrower/hooks/useGetBorrowerHooksData"
-import Cross from "@/assets/icons/cross_icon.svg"
-import Search from "@/assets/icons/search_icon.svg"
 import { FilterTextField } from "@/components/FilterTextfield"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { ROUTES } from "@/routes"
-import { useAppDispatch } from "@/store/hooks"
-import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
-import { setLenderFilter } from "@/store/slices/editLendersListSlice/editLendersListSlice"
 import { COLORS } from "@/theme/colors"
 import { pageCalcHeights } from "@/utils/constants"
 
@@ -45,19 +30,14 @@ export type PolicyDataT = {
 export type PoliciesTabProps = {
   markets: Market[] | undefined
   policies: readonly PolicyDataT[]
-  isMarketsLoading: boolean
   isPoliciesLoading: boolean
 }
 
 export const PoliciesSection = ({
   markets,
   policies,
-  isMarketsLoading,
   isPoliciesLoading,
 }: PoliciesTabProps) => {
-  const { t } = useTranslation()
-  const dispatch = useAppDispatch()
-
   const [policyName, setPolicyName] = useState<string>("")
 
   const [marketsFilter, setMarketsFilter] = useState<SmallFilterSelectItem[]>(

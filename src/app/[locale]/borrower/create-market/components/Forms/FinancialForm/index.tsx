@@ -81,7 +81,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
 
       dispatch(setIsDisabled({ steps: allStepsToDisable, disabled: true }))
     }
-  }, [isFormValid])
+  }, [isFormValid, dispatch])
 
   return (
     <Box sx={FormContainer}>

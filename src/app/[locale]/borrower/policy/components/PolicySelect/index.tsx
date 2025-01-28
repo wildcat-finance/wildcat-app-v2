@@ -106,7 +106,7 @@ export const PolicySelect = ({
     if (policyAddress) {
       router.push(policyLink(policyAddress))
     }
-  }, [policyAddress])
+  }, [policyAddress, router])
 
   return (
     <Select

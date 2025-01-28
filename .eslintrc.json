@@ -47,6 +47,7 @@
         ]
       }
     ],
+    "no-console": "off",
     "import/extensions": "off",
     "react/react-in-jsx-scope": "off",
     "no-shadow": "off",

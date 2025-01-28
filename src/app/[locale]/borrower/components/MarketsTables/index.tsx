@@ -11,7 +11,6 @@ import { useAccount } from "wagmi"
 
 import { BorrowerMarketsTable } from "@/app/[locale]/borrower/components/MarketsTables/BorrowerMarketsTable"
 import { OthersMarketsTable } from "@/app/[locale]/borrower/components/MarketsTables/OthersMarketsTable"
-import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetOthersMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetOthersMarkets"
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketsTablesContainer } from "@/app/[locale]/borrower/page-style"
@@ -174,7 +173,7 @@ export const MarketsTables = ({
       otherMarketsRef.current.scrollIntoView({ behavior: "smooth" })
       dispatch(setScrollTarget(null))
     }
-  }, [scrollTargetId])
+  }, [scrollTargetId, dispatch])
 
   useEffect(() => {
     dispatch(
@@ -198,7 +197,14 @@ export const MarketsTables = ({
           : (filteredOtherMarkets ?? []).length.toString(),
       ),
     )
-  }, [activeBorrowerMarkets, terminatedBorrowerMarkets, filteredOtherMarkets])
+  }, [
+    activeBorrowerMarkets,
+    terminatedBorrowerMarkets,
+    filteredOtherMarkets,
+    dispatch,
+    isBorrowerMarketsLoading,
+    isOthersMarketsLoading,
+  ])
 
   return (
     <Box

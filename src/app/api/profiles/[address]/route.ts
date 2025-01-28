@@ -22,6 +22,7 @@ const mockProfile: BorrowerProfile = {
   registeredOnChain: true,
 }
 
+/*
 const otherMockedProfile: BorrowerProfile = {
   address: "0xb1099527bd2af2cf8ee3abd7dc5fa95353f31c44",
   name: "Wildcat Finance",
@@ -39,6 +40,7 @@ const otherMockedProfile: BorrowerProfile = {
   chainId: TargetChainId,
   registeredOnChain: true,
 }
+*/
 
 // @todo hide borrower info if they only have a pending invite but
 // have not accepted it yet

@@ -5,7 +5,6 @@ import React, { useEffect } from "react"
 import { Box } from "@mui/material"
 import { GridRowsProp } from "@mui/x-data-grid"
 import { HooksKind } from "@wildcatfi/wildcat-sdk"
-import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { LendersSection } from "@/app/[locale]/borrower/components/LendersSection"
@@ -30,10 +29,7 @@ export default function BorrowerPage() {
 
   const { isConnected } = useAccount()
 
-  const {
-    data: unfilteredBorrowerMarkets,
-    isLoading: isBorrowerMarketsLoading,
-  } = useGetBorrowerMarkets(undefined)
+  const { data: unfilteredBorrowerMarkets } = useGetBorrowerMarkets(undefined)
 
   const { data: controller } = useGetController()
   const isRegisteredBorrower = controller?.isRegisteredBorrower
@@ -81,11 +77,11 @@ export default function BorrowerPage() {
 
   useEffect(() => {
     dispatch(setShowFullFunctionality(!!showTables))
-  }, [showTables])
+  }, [showTables, dispatch])
 
   useEffect(() => {
     dispatch(setSectionAmount({ name: "policies", value: policiesAmount }))
-  }, [policiesAmount])
+  }, [policiesAmount, dispatch])
 
   return (
     <Box
@@ -97,17 +93,13 @@ export default function BorrowerPage() {
       {section === BorrowerDashboardSections.MARKETS && <MarketsSection />}
 
       {section === BorrowerDashboardSections.LENDERS && (
-        <LendersSection
-          markets={unfilteredBorrowerMarkets}
-          isMarketsLoading={isBorrowerMarketsLoading}
-        />
+        <LendersSection markets={unfilteredBorrowerMarkets} />
       )}
 
       {section === BorrowerDashboardSections.POLICIES && (
         <PoliciesSection
           policies={policies}
           markets={unfilteredBorrowerMarkets}
-          isMarketsLoading={isBorrowerMarketsLoading}
           isPoliciesLoading={isPoliciesLoading}
         />
       )}

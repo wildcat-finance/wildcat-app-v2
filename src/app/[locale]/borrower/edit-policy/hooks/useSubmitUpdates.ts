@@ -30,6 +30,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
   const { connected: isConnectedToSafe, sdk: gnosisSafeSDK } = useSafeAppsSDK()
   const dispatch = useAppDispatch()
 
+  /*
   const waitForTransaction = async (txHash: string) => {
     if (!gnosisSafeSDK) throw Error("No sdk found")
     return gnosisSafeSDK.eth.getTransactionReceipt([txHash]).then((tx) => {
@@ -39,6 +40,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       return tx
     })
   }
+  */
 
   const {
     mutate: submitUpdates,
@@ -49,7 +51,6 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
     mutationFn: async ({
       addLenders,
       removeLenders,
-      setName,
       marketsToUpdate,
     }: SubmitPolicyUpdatesInputs) => {
       if (!signer || !policy) {

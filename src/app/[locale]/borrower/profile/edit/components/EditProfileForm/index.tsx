@@ -1,54 +1,34 @@
 "use client"
 
 import * as React from "react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 
-import {
-  Box,
-  Button,
-  Divider,
-  SelectChangeEvent,
-  TextField,
-  Typography,
-} from "@mui/material"
+import { Box, Button, Divider, TextField, Typography } from "@mui/material"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
-import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
-import { useAccount } from "wagmi"
 
 import { AvatarProfileItem } from "@/app/[locale]/borrower/profile/edit/components/AvatarProfileItem"
 import { EditProfileItem } from "@/app/[locale]/borrower/profile/edit/components/EditProfileItem"
-import { SelectProfileItem } from "@/app/[locale]/borrower/profile/edit/components/SelectProfileItem"
-import {
-  entityCategoryOptions,
-  EntityCategory,
-  useEditPrivateForm,
-} from "@/app/[locale]/borrower/profile/edit/hooks/useEditPrivateForm"
+import { useEditPrivateForm } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPrivateForm"
 import { useEditPublicForm } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPublicForm"
 import { useUpdateBorrowerProfile } from "@/app/[locale]/borrower/profile/edit/hooks/useUpdateBorrowerProfile"
 import {
   ButtonsContainer,
   DescriptionField,
-  EditPageContainer,
   FieldsContainer,
-  SelectStyles,
   TitleContainer,
 } from "@/app/[locale]/borrower/profile/edit/style"
 import {
   useGetBorrowerProfile,
   useInvalidateBorrowerProfile,
 } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
-import {
-  BorrowerProfile,
-  BorrowerProfileInput,
-} from "@/app/api/profiles/interface"
+import { BorrowerProfileInput } from "@/app/api/profiles/interface"
 import CountriesList from "@/config/countries.json"
 import ELFsByCountry from "@/config/elfs-by-country.json"
 import JurisdictionsByCountry from "@/config/jurisdictions-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import { TargetChainId } from "@/config/network"
 import { useAuthToken, useLogin } from "@/hooks/useApiAuth"
-import { mockedNaturesOptions } from "@/mocks/mocks"
 import { COLORS } from "@/theme/colors"
 
 import { EditProfileFormProps } from "./interface"
@@ -146,6 +126,7 @@ export default function EditProfileForm({
 
   const arePublicInfoEqual = compare()
 
+  /*
   const handleNatureSelect = (
     event: SelectChangeEvent<EntityCategory | null>,
   ) => {
@@ -162,6 +143,7 @@ export default function EditProfileForm({
       }
     }
   }
+  */
 
   const handleSubmit = (changedValues: BorrowerProfileInput) => {
     mutate(changedValues, {
@@ -234,8 +216,9 @@ export default function EditProfileForm({
       shouldValidate: true,
     })
     setPrivateValue("email", publicData?.email, { shouldValidate: true })
-  }, [publicData])
+  }, [publicData, setPrivateValue, setPublicValue])
 
+  /*
   const selectRef = useRef<HTMLElement>(null)
 
   const onOpen = () => {
@@ -262,6 +245,7 @@ export default function EditProfileForm({
     const option = mockedNaturesOptions.find((o) => o.value === value)
     return option ? option.label : undefined
   }
+  */
 
   const entityCategory = privateWatch("entityCategory")
   const countryWatch = privateWatch("country")

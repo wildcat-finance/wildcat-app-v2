@@ -9,7 +9,7 @@ import {
   Tabs,
   Typography,
 } from "@mui/material"
-import { RepayStatus, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
@@ -103,7 +103,7 @@ export const RepayModal = ({
 
   const repayTokenAmount = useMemo(
     () => market.underlyingToken.parseAmount(amount.replace(/,/g, "") || "0"), // delete commas
-    [amount],
+    [amount, market.underlyingToken],
   )
 
   const repayDaysAmount = market.repayRequiredForDuration(
@@ -258,7 +258,7 @@ export const RepayModal = ({
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
     setRepayError(SDK_ERRORS_MAPPING.repay[repayStep])
-  }, [repayStep, amount])
+  }, [repayStep, amount, days, isRepayByDays])
 
   return (
     <>

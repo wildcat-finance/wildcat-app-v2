@@ -1,53 +1,18 @@
 import * as React from "react"
-import { ChangeEvent, useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 
-import {
-  Box,
-  Button,
-  FormControl,
-  FormControlLabel,
-  InputAdornment,
-  InputLabel,
-  Select,
-  SvgIcon,
-  TextField,
-} from "@mui/material"
-import { useTranslation } from "react-i18next"
+import { Box, FormControl, InputLabel, Select } from "@mui/material"
 
-import {
-  EditLenderFlowStatuses,
-  MarketTableDataType,
-} from "@/app/[locale]/borrower/edit-lenders-list/interface"
-import Icon from "@/assets/icons/search_icon.svg"
-import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { COLORS } from "@/theme/colors"
 
 import { TableSelectProps } from "./interface"
-import {
-  ChipContainer,
-  InputLabelStyle,
-  MenuBox,
-  MenuStyle,
-  SelectStyle,
-  VariantsContainer,
-  VariantStyles,
-} from "./style"
+import { ChipContainer, InputLabelStyle, MenuStyle, SelectStyle } from "./style"
 
-export const TableSelect = ({
-  lenderAddress,
-  lenderMarkets,
-  lenderStatus,
-}: TableSelectProps) => {
-  const { t } = useTranslation()
-  const dispatch = useAppDispatch()
-
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
-
+export const TableSelect = ({ lenderMarkets }: TableSelectProps) => {
   console.log(`Table Select!`)
   console.log(lenderMarkets)
 
+  /*
   // Getting active borrower markets from the store
   const activeBorrowerMarkets = useAppSelector(
     (state) => state.editLendersList.activeBorrowerMarkets,
@@ -58,9 +23,11 @@ export const TableSelect = ({
     lenderMarkets.filter(
       (market) => market.status !== EditLenderFlowStatuses.DELETED,
     ).length
+  */
 
-  const [marketName, setMarketName] = useState("")
+  const [, setMarketName] = useState("")
 
+  /*
   const filteredMarketsByName = activeBorrowerMarkets.filter((market) =>
     market.name.toLowerCase().includes(marketName.toLowerCase()),
   )
@@ -77,6 +44,8 @@ export const TableSelect = ({
   const lendersTableData = useAppSelector(
     (state) => state.editLendersList.lendersTableData,
   )
+  */
+
   // Select settings
   const selectRef = useRef<HTMLElement>(null)
 
