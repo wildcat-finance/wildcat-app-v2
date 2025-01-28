@@ -98,7 +98,6 @@ export default function BorrowerPage() {
       {section === BorrowerDashboardSections.LENDERS && (
         <LendersSection
           markets={unfilteredBorrowerMarkets}
-          isMarketsLoading={isBorrowerMarketsLoading}
         />
       )}
 
@@ -106,7 +105,6 @@ export default function BorrowerPage() {
         <PoliciesSection
           policies={policies}
           markets={unfilteredBorrowerMarkets}
-          isMarketsLoading={isBorrowerMarketsLoading}
           isPoliciesLoading={isPoliciesLoading}
         />
       )}
