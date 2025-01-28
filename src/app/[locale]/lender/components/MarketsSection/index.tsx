@@ -24,7 +24,6 @@ import {
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { marketStatusesMock, underlyingAssetsMock } from "@/mocks/mocks"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import { setLendersSectionAmount } from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import {
   LenderMarketDashboardSections,
@@ -193,6 +192,7 @@ export const MarketsSection = () => {
     neverActiveAmount,
     selfOnboardAmount,
     manualAmount,
+    dispatch,
   ])
 
   const noMarketsAtAll = lenderMarkets.length === 0
@@ -208,7 +208,7 @@ export const MarketsSection = () => {
     } else {
       dispatch(setMarketSection(LenderMarketDashboardSections.ACTIVE))
     }
-  }, [noMarketsAtAll])
+  }, [noMarketsAtAll, dispatch, isLoading])
 
   return (
     <Box

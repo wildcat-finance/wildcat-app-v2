@@ -20,7 +20,7 @@ const fetchBorrowerProfile = async (
   }
 
   if (!response.ok) {
-    console.log(`Failed to fetch profile: ${response.statusText}`)
+    // console.log(`Failed to fetch profile: ${response.statusText}`)
     throw new Error("Failed to fetch profile")
   }
 

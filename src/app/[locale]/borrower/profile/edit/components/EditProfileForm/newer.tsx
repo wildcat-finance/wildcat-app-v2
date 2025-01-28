@@ -1,33 +1,16 @@
 "use client"
 
 import * as React from "react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 
-import {
-  Box,
-  Button,
-  Divider,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  TextField,
-  Typography,
-} from "@mui/material"
+import { Box, Button, Divider, TextField, Typography } from "@mui/material"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
-import { useAccount } from "wagmi"
 
 import { AvatarProfileItem } from "@/app/[locale]/borrower/profile/edit/components/AvatarProfileItem"
 import { EditProfileItem } from "@/app/[locale]/borrower/profile/edit/components/EditProfileItem"
-import { SelectProfileItem } from "@/app/[locale]/borrower/profile/edit/components/SelectProfileItem"
-import {
-  entityCategoryOptions,
-  EntityCategory,
-  useEditPrivateForm,
-} from "@/app/[locale]/borrower/profile/edit/hooks/useEditPrivateForm"
+import { useEditPrivateForm } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPrivateForm"
 import { useEditPublicForm } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPublicForm"
 import { useUpdateBorrowerProfile } from "@/app/[locale]/borrower/profile/edit/hooks/useUpdateBorrowerProfile"
 import {
@@ -35,24 +18,19 @@ import {
   DescriptionField,
   EditPageContainer,
   FieldsContainer,
-  SelectStyles,
   TitleContainer,
 } from "@/app/[locale]/borrower/profile/edit/style"
 import {
   useGetBorrowerProfile,
   useInvalidateBorrowerProfile,
 } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
-import {
-  BorrowerProfile,
-  BorrowerProfileInput,
-} from "@/app/api/profiles/interface"
+import { BorrowerProfileInput } from "@/app/api/profiles/interface"
 import CountriesList from "@/config/countries.json"
 import ELFsByCountry from "@/config/elfs-by-country.json"
 import JurisdictionsByCountry from "@/config/jurisdictions-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import { TargetChainId } from "@/config/network"
 import { useAuthToken, useLogin } from "@/hooks/useApiAuth"
-import { mockedNaturesOptions } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
@@ -86,7 +64,6 @@ export default function EditProfileForm({
   hideAvatar,
   hideHeaders,
   onCancel,
-  afterSubmit,
 }: EditProfileFormProps) {
   const router = useRouter()
   const { t } = useTranslation()
@@ -149,23 +126,6 @@ export default function EditProfileForm({
 
   const arePublicInfoEqual = compare()
 
-  const handleNatureSelect = (
-    event: SelectChangeEvent<EntityCategory | null>,
-  ) => {
-    const value = event.target.value || undefined
-    setPrivateValue("entityCategory", value as EntityCategory)
-    if (value === "Registered Legal Entity") {
-      setPrivateValue("entityKind", "", { shouldValidate: true })
-    } else {
-      setPrivateValue("entityKind", value || "", { shouldValidate: true })
-      if (value === "Decentralised Autonomous Organisation") {
-        setPrivateValue("country", "", { shouldValidate: true })
-        setPrivateValue("jurisdiction", "")
-        setPrivateValue("physicalAddress", "")
-      }
-    }
-  }
-
   const handleSendUpdate = () => {
     const changedValues: BorrowerProfileInput = {
       address: address as string,
@@ -182,8 +142,8 @@ export default function EditProfileForm({
         invalidateBorrowerProfile()
         router.push(ROUTES.borrower.profile)
       },
-      onError: (error) => {
-        console.error(error)
+      onError: (/* error */) => {
+        // console.error(error)
       },
     })
   }
@@ -237,34 +197,7 @@ export default function EditProfileForm({
       shouldValidate: true,
     })
     setPrivateValue("email", publicData?.email, { shouldValidate: true })
-  }, [publicData])
-
-  const selectRef = useRef<HTMLElement>(null)
-
-  const onOpen = () => {
-    if (selectRef.current) {
-      selectRef.current.classList.add("Mui-focused")
-
-      const previousElement = selectRef.current
-        .previousSibling as Element | null
-      previousElement?.classList.add("Mui-focused")
-    }
-  }
-
-  const onClose = () => {
-    if (selectRef.current) {
-      selectRef.current.classList.remove("Mui-focused")
-
-      const previousElement = selectRef.current
-        .previousSibling as Element | null
-      previousElement?.classList.remove("Mui-focused")
-    }
-  }
-
-  const getLabelByValue = (value: string | undefined) => {
-    const option = mockedNaturesOptions.find((o) => o.value === value)
-    return option ? option.label : undefined
-  }
+  }, [publicData, setPrivateValue, setPublicValue])
 
   const entityCategory = privateWatch("entityCategory")
   const countryWatch = privateWatch("country")
@@ -292,7 +225,7 @@ export default function EditProfileForm({
         setPrivateValue("entityKind", "", { shouldValidate: true })
       }
     }
-  }, [countryWatch, setPrivateValue])
+  }, [countryWatch, setPrivateValue, jurisdictionWatch])
 
   return (
     <Box sx={EditPageContainer}>

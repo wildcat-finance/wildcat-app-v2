@@ -1,4 +1,4 @@
-import { JSX, forwardRef, ForwardedRef, ChangeEvent } from "react"
+import { JSX } from "react"
 
 import {
   Autocomplete,
@@ -9,8 +9,6 @@ import {
   createFilterOptions,
 } from "@mui/material"
 import { useTranslation } from "react-i18next"
-
-import countries from "@/config/countries.json"
 
 const MyPopper = (props: JSX.IntrinsicAttributes & PopperProps) => (
   <Popper
