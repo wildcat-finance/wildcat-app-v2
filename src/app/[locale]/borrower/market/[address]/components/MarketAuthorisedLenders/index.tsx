@@ -65,7 +65,7 @@ export const MarketAuthorisedLenders = ({
     localStorage.getItem("lenders-name") || "{}",
   )
 
-  const [copyToClipboard] = useCopyToClipboard()
+  const [, copyToClipboard] = useCopyToClipboard()
 
   const { data, isLoading } = useGetMarketLenders(market)
   const { t } = useTranslation()
