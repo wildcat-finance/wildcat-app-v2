@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Box, Button, Dialog, TextField, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
+import { AddSelect } from "@/app/[locale]/borrower/edit-lenders-list/components/EditLendersForm/Modals/AddModal/AddSelect"
 import {
   EditLenderFlowStatuses,
   MarketTableDataType,
@@ -61,7 +62,7 @@ export const AddModal = () => {
       setIsDisabled(false)
       reset({ name: "" })
     }
-  }, [existingLender, lendersNames, reset, setValue])
+  }, [existingLender])
 
   const handleOpen = () => {
     reset()
@@ -98,7 +99,6 @@ export const AddModal = () => {
     setIsOpen(false)
   }
 
-  /*
   const onSubmitMarket = () => {
     dispatch(
       setPolicyLendersTableData(
@@ -121,7 +121,6 @@ export const AddModal = () => {
 
     setIsOpen(false)
   }
-  */
 
   return (
     <>

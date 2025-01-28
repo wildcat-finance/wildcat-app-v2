@@ -65,7 +65,7 @@ export const PeriodsForm = ({ form }: PeriodsFormProps) => {
 
       dispatch(setIsDisabled({ steps: allStepsToDisable, disabled: true }))
     }
-  }, [isFormValid, dispatch])
+  }, [isFormValid])
 
   return (
     <Box sx={FormContainer}>

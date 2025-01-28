@@ -105,13 +105,13 @@ export default function CreateMarketPage() {
     data: mlaSignature,
     mutate: signMla,
     isPending: isSigning,
+    reset: resetMlaSignature,
   } = useSignMla(salt)
 
   const handleClickClose = () => {
     setFinalOpen(false)
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const defaultPolicyOption = {
     id: "createNewPolicy",
     label: "Create New Policy",
@@ -129,7 +129,7 @@ export default function CreateMarketPage() {
         value: instance.address,
       })) ?? []),
     ],
-    [hooksInstances, defaultPolicyOption],
+    [hooksInstances],
   )
 
   const assetWatch = newMarketForm.watch("asset")
@@ -146,7 +146,7 @@ export default function CreateMarketPage() {
     setTokenAsset(assetData)
   }, [assetData])
 
-  const handleDeployMarket = newMarketForm.handleSubmit(() => {
+  const handleDeployMarket = newMarketForm.handleSubmit((data) => {
     const marketParams = newMarketForm.getValues()
 
     console.log(`Deploying market with MLA template ID: ${marketParams.mla}`)
@@ -246,7 +246,7 @@ export default function CreateMarketPage() {
   useEffect(() => {
     newMarketForm.reset()
     dispatch(setInitialCreateState())
-  }, [dispatch, newMarketForm])
+  }, [])
 
   return (
     <Box sx={PageContainer}>

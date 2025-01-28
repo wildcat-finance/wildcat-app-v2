@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import * as React from "react"
 
-import { Box, TextField, Typography } from "@mui/material"
+import { Box, FormControlLabel, TextField, Typography } from "@mui/material"
 import {
   HooksKind,
   MarketVersion,
@@ -11,10 +11,12 @@ import {
   SubgraphMarket_OrderBy,
   SubgraphOrderDirection,
 } from "@wildcatfi/wildcat-sdk"
+import { PolicyLender } from "@wildcatfi/wildcat-sdk/dist/gql/utils"
 import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
+import { InputLabel } from "@/components/InputLabel"
 import {
   InputLabelContainer,
   InputLabelSubtitle,
@@ -32,7 +34,7 @@ import {
 
 import { ConfirmLendersForm } from "./components/ConfirmLendersForm"
 import { EditLendersForm } from "./components/EditLendersForm"
-// import useTrackPolicyLendersChanges from "./hooks/useTrackLendersChanges"
+import useTrackPolicyLendersChanges from "./hooks/useTrackLendersChanges"
 import {
   PolicyLenderTableDataType,
   EditLenderFlowStatuses,
@@ -59,7 +61,7 @@ export default function EditPolicyPage() {
   )
   const [originalPolicyName, setOriginalPolicyName] = React.useState("")
   const [hooksKind, setHooksKind] = React.useState<HooksKind | undefined>()
-  const [, setLenders] = React.useState<LenderInfo[]>([])
+  const [lenders, setLenders] = React.useState<LenderInfo[]>([])
   const [version, setVersion] = React.useState<MarketVersion | undefined>()
   const [pendingPolicyName, setPendingPolicyName] = React.useState("")
   const [accessControl, setAccessControl] = React.useState<string | undefined>()
@@ -146,13 +148,13 @@ export default function EditPolicyPage() {
         dispatch(setPolicyLendersTableData(formattedLendersData))
       }
     }
-  }, [isPolicyLoading, data, dispatch, t, lendersTableData.length])
+  }, [isPolicyLoading, data])
 
   useEffect(() => {
     if (originalPolicyName && pendingPolicyName === "") {
       setPendingPolicyName(originalPolicyName)
     }
-  }, [originalPolicyName, pendingPolicyName])
+  }, [originalPolicyName])
 
   // Getting Borrower Markets Logic
   const { data: borrowerMarkets, isLoading: isMarketsLoading } =
@@ -165,7 +167,7 @@ export default function EditPolicyPage() {
     if (activeBorrowerMarkets) {
       dispatch(setActivePolicyMarkets(activeBorrowerMarkets))
     }
-  }, [isMarketsLoading, activeBorrowerMarkets, dispatch])
+  }, [isMarketsLoading])
 
   // Filtration settings
   const lenderAddress = urlParams.get("lenderAddress")
@@ -178,7 +180,7 @@ export default function EditPolicyPage() {
     return () => {
       dispatch(resetPolicyFilters())
     }
-  }, [dispatch, lenderAddress])
+  }, [])
 
   // Constants
   const isLoading = isPolicyLoading
@@ -189,19 +191,19 @@ export default function EditPolicyPage() {
     () => () => {
       dispatch(resetEditPolicyState())
     },
-    [dispatch],
+    [],
   )
 
   useEffect(() => {
     sessionStorage.setItem("previousPageUrl", window.location.href)
   }, [])
-  useAppSelector((state) => state.editPolicy.initialLendersTableData)
-  /*
+  const initialLendersTableData = useAppSelector(
+    (state) => state.editPolicy.initialLendersTableData,
+  )
   const { addedOrModifiedLenders } = useTrackPolicyLendersChanges(
     initialLendersTableData,
     lendersTableData,
   )
-  */
 
   return (
     <Box

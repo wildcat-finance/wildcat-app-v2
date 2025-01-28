@@ -20,7 +20,13 @@ export const InviteBorrowerModal = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [name, setName] = useState("")
   const [address, setAddress] = useState("")
-  const [, setNameError] = useState("")
+  const [description, setDescription] = useState("")
+  const [founded, setFounded] = useState("")
+  const [headquarters, setHeadquarters] = useState("")
+  const [jurisdiction, setJurisdiction] = useState("")
+  const [physicalAddress, setPhysicalAddress] = useState("")
+  const [entityKind, setEntityKind] = useState("")
+  const [nameError, setNameError] = useState("")
   const [addressError, setAddressError] = useState("")
 
   const { mutate, isPending, isSuccess, isError } = useInviteBorrower()
@@ -33,7 +39,6 @@ export const InviteBorrowerModal = () => {
     setAddressError("")
   }
 
-  /*
   const validateInputs = () => {
     let isValid = true
     if (!name) {
@@ -49,7 +54,6 @@ export const InviteBorrowerModal = () => {
     }
     return isValid
   }
-  */
 
   // const handleSubmit = () => {
   //   if (validateInputs()) {

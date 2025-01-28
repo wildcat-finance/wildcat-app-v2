@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import {
   DepositAccess,
+  getDeploymentAddress,
   getHooksFactoryContract,
   HooksKind,
   Market,
@@ -34,7 +35,7 @@ export function getFieldValuesForBorrowerFromForm(
   marketAddress: string,
   asset: Token,
 ) {
-  // const networkData = TargetNetwork
+  const networkData = TargetNetwork
   // eslint-disable-next-line no-nested-ternary
   const transferAccess = marketParams.disableTransfers
     ? TransferAccess.Disabled

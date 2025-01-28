@@ -1,6 +1,12 @@
 import { useEffect } from "react"
 
-import { Box, FormControlLabel, RadioGroup, Typography } from "@mui/material"
+import {
+  Box,
+  CircularProgress,
+  FormControlLabel,
+  RadioGroup,
+  Typography,
+} from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { FormFooter } from "@/app/[locale]/borrower/create-market/components/FormFooter"
@@ -66,7 +72,7 @@ export const MlaForm = ({ form }: MLAFormProps) => {
         }),
       )
     }
-  }, [mlaWatch, dispatch])
+  }, [mlaWatch])
 
   return (
     <Box sx={FormContainer}>

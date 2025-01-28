@@ -1,7 +1,10 @@
 import { Prisma } from "@prisma/client"
 import { NextRequest, NextResponse } from "next/server"
 
-import { BorrowerProfileInput } from "@/app/api/profiles/interface"
+import {
+  BorrowerProfile,
+  BorrowerProfileInput,
+} from "@/app/api/profiles/interface"
 import { TargetChainId } from "@/config/network"
 import { getBorrowerProfileUpdates, prisma } from "@/lib/db"
 import { getZodParseError } from "@/lib/zod-error"
@@ -13,7 +16,6 @@ import {
 import { BorrowerProfileUpdateResponse } from "./interface"
 import { verifyApiToken } from "../../auth/verify-header"
 
-/*
 const mockProfile: BorrowerProfile = {
   address: "0x1717503EE3f56e644cf8b1058e3F83F03a71b2E1",
   name: "Wintermute LLC",
@@ -31,7 +33,6 @@ const mockProfile: BorrowerProfile = {
   chainId: TargetChainId,
   registeredOnChain: true,
 }
-*/
 
 /// POST /api/profiles/updates
 /// Route to submit a new borrower profile update request.

@@ -9,6 +9,7 @@ import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.js
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { HAS_SIGNED_SLA_KEY } from "@/providers/RedirectsProvider/hooks/useHasSignedSla"
 import { SHOULD_REDIRECT_KEY } from "@/providers/RedirectsProvider/hooks/useShouldRedirect"
+import { ROUTES } from "@/routes"
 
 import { SignatureSubmissionProps } from "./interface"
 

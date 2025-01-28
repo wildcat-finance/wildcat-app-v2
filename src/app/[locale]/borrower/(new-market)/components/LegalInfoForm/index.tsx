@@ -64,7 +64,7 @@ export const LegalInfoForm = ({ form }: LegalInfoFormProps) => {
 
   useEffect(() => {
     dispatch(setDisableConfirmationStepSidebar(!isValid))
-  }, [isValid, dispatch])
+  }, [isValid])
 
   return (
     <Box maxWidth="766px" width="100%">

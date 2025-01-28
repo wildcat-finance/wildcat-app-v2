@@ -61,7 +61,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
 
   const depositTokenAmount = useMemo(
     () => marketAccount.market.underlyingToken.parseAmount(amount || "0"),
-    [amount, marketAccount.market.underlyingToken],
+    [amount],
   )
 
   const minimumDeposit = market.hooksConfig?.minimumDeposit

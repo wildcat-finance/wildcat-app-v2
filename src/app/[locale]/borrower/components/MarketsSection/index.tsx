@@ -116,7 +116,7 @@ export const MarketsSection = () => {
           other: [] as MarketAccount[],
         },
       ),
-    [filteredMarketAccounts, address],
+    [filteredMarketAccounts],
   )
 
   const noMarkets = borrowerMarketAccounts.length === 0
@@ -189,7 +189,6 @@ export const MarketsSection = () => {
     neverActiveAmount,
     selfOnboardAmount,
     manualAmount,
-    dispatch,
   ])
 
   return (

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 
 import {
   Alert,
@@ -16,7 +16,7 @@ import SvgIcon from "@mui/material/SvgIcon"
 import { Token } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
 import Link from "next/link"
-import { UseFormReturn } from "react-hook-form"
+import { FieldError, useController, UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
 import { MarketValidationSchemaType } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
@@ -128,7 +128,7 @@ export const NewMarketForm = ({
     } else {
       dispatch(setHideInfoStep(true))
     }
-  }, [mlaWatch, dispatch])
+  }, [mlaWatch])
 
   useEffect(() => {
     if (hideLegalInfoStep) {
@@ -138,7 +138,7 @@ export const NewMarketForm = ({
       dispatch(setDisableConfirmationStepSidebar(true))
       dispatch(setDisableInfoStepSidebar(!isValid))
     }
-  }, [isValid, hideLegalInfoStep, dispatch])
+  }, [isValid, hideLegalInfoStep])
 
   const tokenSelectorFormProps = register("asset")
 

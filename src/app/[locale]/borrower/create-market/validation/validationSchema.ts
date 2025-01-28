@@ -9,6 +9,16 @@ import { z } from "zod"
 import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
 import { isLetterNumber, isLetterNumberSpace } from "@/utils/validations"
 
+const DepositAccessOptions = ["Open", "RequiresCredential"] as const
+
+const WithdrawalAccessOptions = ["Open", "RequiresCredential"] as const
+
+const TransferAccessOptions = [
+  "Open",
+  "RequiresCredential",
+  "Disabled",
+] as const
+
 export const selectTransferAccessOptions: ExtendedSelectOptionItem<
   keyof typeof TransferAccess
 >[] = [

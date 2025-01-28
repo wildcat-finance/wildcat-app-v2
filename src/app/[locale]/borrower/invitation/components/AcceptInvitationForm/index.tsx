@@ -5,10 +5,12 @@ import { useEffect, useState } from "react"
 import { Box, Button, TextField, Typography } from "@mui/material"
 import Link from "next/link"
 import { Trans } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { AgreementText } from "@/app/[locale]/agreement/components/AgreementText"
 import { BorrowerInvitation } from "@/app/api/invite/interface"
 
+import { useBorrowerInvitation } from "../../../hooks/useBorrowerInvitation"
 import { useSubmitAcceptInvitation } from "../../hooks/useSubmitAcceptInvitation"
 // import { useBorrowerInvitation } from "@/hooks/useBorrowerInvitation"
 

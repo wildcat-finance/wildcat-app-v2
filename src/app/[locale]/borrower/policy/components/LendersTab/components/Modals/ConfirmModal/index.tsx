@@ -3,10 +3,12 @@ import { Dispatch, SetStateAction } from "react"
 
 import { Box, Button, Dialog, SvgIcon, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import { UseMutateFunction } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import { AddedDot } from "@/app/[locale]/borrower/policy/components/LendersTab/components/EditLendersTable/style"
+import { SubmitPolicyUpdatesInputs } from "@/app/[locale]/borrower/policy/hooks/useSubmitUpdates"
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import Coins from "@/assets/icons/coins_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
