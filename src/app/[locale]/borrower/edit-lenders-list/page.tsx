@@ -64,7 +64,7 @@ export default function EditLendersListPage() {
       dispatch(setInitialLendersTableData(formattedLendersData))
       dispatch(setLendersTableData(formattedLendersData))
     }
-  }, [isLendersLoading])
+  }, [isLendersLoading, dispatch, lendersData])
 
   // Getting Borrower Markets Logic
   const { data: borrowerMarkets, isLoading: isMarketsLoading } =
@@ -77,7 +77,7 @@ export default function EditLendersListPage() {
     if (activeBorrowerMarkets) {
       dispatch(setActiveBorrowerMarkets(activeBorrowerMarkets))
     }
-  }, [isMarketsLoading])
+  }, [isMarketsLoading, activeBorrowerMarkets, dispatch])
 
   // Filtration settings
   const marketName = urlParams.get("marketName")
@@ -95,7 +95,7 @@ export default function EditLendersListPage() {
     return () => {
       dispatch(resetFilters())
     }
-  }, [])
+  }, [dispatch, lenderAddress, marketAddress, marketName])
 
   // Constants
   const isLoading = isMarketsLoading || isLendersLoading
@@ -106,7 +106,7 @@ export default function EditLendersListPage() {
     () => () => {
       dispatch(resetEditLendersListState())
     },
-    [],
+    [dispatch],
   )
 
   useEffect(() => {

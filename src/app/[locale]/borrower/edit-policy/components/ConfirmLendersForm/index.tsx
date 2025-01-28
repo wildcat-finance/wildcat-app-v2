@@ -5,12 +5,8 @@ import { DataGrid } from "@mui/x-data-grid"
 import { useTranslation } from "react-i18next"
 
 import useTrackLendersChanges from "@/app/[locale]/borrower/edit-policy/hooks/useTrackLendersChanges"
-import {
-  EditLenderFlowStatuses,
-  MarketTableDataType,
-} from "@/app/[locale]/borrower/edit-policy/interface"
+import { EditLenderFlowStatuses } from "@/app/[locale]/borrower/edit-policy/interface"
 import Coins from "@/assets/icons/coins_icon.svg"
-import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -23,13 +19,7 @@ import {
   ConfirmLendersTableModel,
   TypeSafeColDef,
 } from "./interface"
-import {
-  AddedDot,
-  AlertBox,
-  ButtonsBox,
-  MarketsBox,
-  TableStyles,
-} from "./style"
+import { AddedDot, AlertBox, ButtonsBox, TableStyles } from "./style"
 import { useSubmitUpdates } from "../../hooks/useSubmitUpdates"
 
 export const ConfirmLendersForm = ({
@@ -51,9 +41,11 @@ export const ConfirmLendersForm = ({
     localStorage.getItem("lenders-name") || "{}",
   )
 
+  /*
   const activeBorrowerMarkets = useAppSelector(
     (state) => state.editPolicy.activeBorrowerMarkets,
   )
+  */
 
   const handleClickEdit = () => {
     dispatch(setEditStep("edit"))
