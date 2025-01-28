@@ -6,7 +6,6 @@ import {
   getActiveLendersByMarket,
   getLensV2Contract,
   getPolicyMarketsAndLenders,
-  LenderRole,
   Market,
   MarketVersion,
   SignerOrProvider,

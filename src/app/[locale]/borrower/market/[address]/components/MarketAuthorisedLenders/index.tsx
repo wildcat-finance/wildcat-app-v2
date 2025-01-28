@@ -48,7 +48,6 @@ import {
   MLATableButton,
 } from "./style"
 import { useGetMarketLenders } from "../../hooks/useGetMarketLenders"
-import { ForceBuyBackModal } from "../Modals/ForceBuyBackModal"
 
 export const MarketAuthorisedLenders = ({
   market,
@@ -66,7 +65,7 @@ export const MarketAuthorisedLenders = ({
     localStorage.getItem("lenders-name") || "{}",
   )
 
-  const [state, copyToClipboard] = useCopyToClipboard()
+  const [copyToClipboard] = useCopyToClipboard()
 
   const { data, isLoading } = useGetMarketLenders(market)
   const { t } = useTranslation()

@@ -5,7 +5,6 @@ import React, { useEffect } from "react"
 import { Box } from "@mui/material"
 import { GridRowsProp } from "@mui/x-data-grid"
 import { HooksKind } from "@wildcatfi/wildcat-sdk"
-import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { LendersSection } from "@/app/[locale]/borrower/components/LendersSection"
@@ -81,11 +80,11 @@ export default function BorrowerPage() {
 
   useEffect(() => {
     dispatch(setShowFullFunctionality(!!showTables))
-  }, [showTables])
+  }, [showTables, dispatch])
 
   useEffect(() => {
     dispatch(setSectionAmount({ name: "policies", value: policiesAmount }))
-  }, [policiesAmount])
+  }, [policiesAmount, dispatch])
 
   return (
     <Box

@@ -1,8 +1,6 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Market, Token } from "@wildcatfi/wildcat-sdk"
-import { getAddress } from "ethers/lib/utils"
-import { useRouter } from "next/navigation"
 import { UseFormReturn } from "react-hook-form"
 
 import { lastSlaUpdateTime, MlaTemplate } from "@/app/api/mla/interface"
@@ -13,7 +11,7 @@ import {
 import { toastRequest } from "@/components/Toasts"
 import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
 import { TargetNetwork } from "@/config/network"
-import { useEthersProvider, useEthersSigner } from "@/hooks/useEthersSigner"
+import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { GET_MARKET_MLA_KEY } from "@/hooks/useMarketMla"
 import {
   BasicBorrowerInfo,
@@ -23,11 +21,7 @@ import {
 } from "@/lib/mla"
 
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
-import {
-  getMlaFromForm,
-  PREVIEW_MLA_KEY,
-  usePreviewMlaFromForm,
-} from "./usePreviewMla"
+import { getMlaFromForm, PREVIEW_MLA_KEY } from "./usePreviewMla"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
 
 const GET_BORROWER_PROFILE_KEY = "GET_BORROWER_PROFILE"

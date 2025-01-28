@@ -11,7 +11,7 @@ import {
   Typography,
   Button,
 } from "@mui/material"
-import { Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { useGetMlaTemplates } from "@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates"
@@ -34,14 +34,12 @@ const SetMarketMLAForm = ({
   marketAccount: MarketAccount
 }) => {
   const { t } = useTranslation()
-  const { data: templates, isLoading: isLoadingTemplates } =
-    useGetMlaTemplates()
+  const { data: templates } = useGetMlaTemplates()
   const [timeSigned, setTimeSigned] = useState(0)
   const [selectedTemplateId, setSelectedTemplateId] = useState<
     number | "noMLA" | undefined
   >(undefined)
-  const { mutate: signMla, isPending: isSigning } = useSetMarketMLA()
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+  const { mutate: signMla } = useSetMarketMLA()
 
   const { data: previewMla, isLoading: isLoadingPreviewMla } = usePreviewMla(
     marketAccount.market,
@@ -159,11 +157,9 @@ const NoExistingMla = ({ marketAccount }: { marketAccount: MarketAccount }) => {
 
 const ShowExistingMla = ({
   mla,
-  borrowerProfile,
   marketAccount,
 }: {
   mla: MasterLoanAgreementResponse
-  borrowerProfile: BasicBorrowerInfo
   marketAccount: MarketAccount
 }) => (
   <Box>

@@ -16,6 +16,7 @@ const useScrollSlidesHandler = (
   const checkedRef = useRef<number>(1)
   checkedRef.current = checked
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleScroll = (evt: WheelEvent) => {
     if (!scrollEnabled) return
     const tempChecked = checkedRef.current
@@ -58,7 +59,7 @@ const useScrollSlidesHandler = (
     return () => {
       if (container) container.removeEventListener("wheel", handleScroll)
     }
-  }, [scrollEnabled, scrollContainer.current])
+  }, [scrollEnabled, handleScroll, scrollContainer])
 
   useEffect(() => {
     if (!scrollEnabled) {

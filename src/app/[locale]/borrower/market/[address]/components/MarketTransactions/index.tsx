@@ -1,29 +1,13 @@
 import * as React from "react"
 
-import {
-  Box,
-  Button,
-  Divider,
-  Menu,
-  MenuItem,
-  SvgIcon,
-  Typography,
-} from "@mui/material"
+import { Box, Divider } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
-import DocsIcon from "@/assets/icons/docs_icon.svg"
 import { TransactionBlock } from "@/components/TransactionBlock"
-import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { MarketTransactionsProps } from "./interface"
-import {
-  ElseButtonContainer,
-  ElseButtonText,
-  MarketTxContainer,
-  MarketTxUpperButtonsContainer,
-  MenuItemButton,
-} from "./style"
+import { MarketTxContainer, MarketTxUpperButtonsContainer } from "./style"
 import { AprModal } from "../Modals/AprModal"
 import { BorrowModal } from "../Modals/BorrowModal"
 import { CapacityModal } from "../Modals/CapacityModal"
@@ -35,11 +19,6 @@ export const MarketTransactions = ({
   holdTheMarket,
 }: MarketTransactionsProps) => {
   const { t } = useTranslation()
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
-  const [isOpen, setIsOpen] = React.useState(false)
-  const handleClose = () => {
-    setAnchorEl(null)
-  }
 
   const disableRepay = market.isClosed
   const disableBorrow =
