@@ -75,11 +75,11 @@ export const LenderTerminatedMarketsTables = ({
       neverActiveRef.current.scrollIntoView({ behavior: "smooth" })
       dispatch(setScrollTarget(null))
     }
-  }, [scrollTargetId])
+  }, [scrollTargetId, dispatch])
 
   const rows: GridRowsProp<LenderTerminatedMarketsTableModel> =
     marketAccounts.map((account) => {
-      const { market, marketBalance, hasEverInteracted } = account
+      const { market, marketBalance } = account
 
       const {
         address,

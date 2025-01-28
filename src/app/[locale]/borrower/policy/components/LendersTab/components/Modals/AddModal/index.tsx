@@ -55,7 +55,7 @@ export const AddModal = ({ disabled }: { disabled: boolean }) => {
       setIsDisabled(false)
       reset({ name: "" })
     }
-  }, [existingLender])
+  }, [existingLender, lendersNames, reset, setValue])
 
   const handleOpen = () => {
     reset()

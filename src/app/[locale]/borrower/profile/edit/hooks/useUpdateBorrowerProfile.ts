@@ -5,10 +5,10 @@ import { BORROWER_PROFILE_KEY } from "@/app/[locale]/borrower/profile/hooks/useG
 import { BorrowerProfileInput } from "@/app/api/profiles/interface"
 import { toastRequest } from "@/components/Toasts"
 import { useAuthToken } from "@/hooks/useApiAuth"
-import { useEthersSigner } from "@/hooks/useEthersSigner"
 
 import { USE_REGISTERED_BORROWERS_KEY } from "../../../hooks/useBorrowerNames"
 
+/*
 const hashData = async (data: object): Promise<string> => {
   const encoder = new TextEncoder()
   const encodedData = encoder.encode(JSON.stringify(data))
@@ -24,6 +24,7 @@ const formatDateForMessage = (date: Date): string => {
     .toString()
     .padStart(2, "0")}/${date.getDate().toString().padStart(2, "0")}`
 }
+*/
 
 export const useUpdateBorrowerProfile = () => {
   const queryClient = useQueryClient()
