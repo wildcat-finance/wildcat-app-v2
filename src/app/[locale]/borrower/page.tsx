@@ -29,10 +29,7 @@ export default function BorrowerPage() {
 
   const { isConnected } = useAccount()
 
-  const {
-    data: unfilteredBorrowerMarkets,
-    isLoading: isBorrowerMarketsLoading,
-  } = useGetBorrowerMarkets(undefined)
+  const { data: unfilteredBorrowerMarkets } = useGetBorrowerMarkets(undefined)
 
   const { data: controller } = useGetController()
   const isRegisteredBorrower = controller?.isRegisteredBorrower
@@ -96,9 +93,7 @@ export default function BorrowerPage() {
       {section === BorrowerDashboardSections.MARKETS && <MarketsSection />}
 
       {section === BorrowerDashboardSections.LENDERS && (
-        <LendersSection
-          markets={unfilteredBorrowerMarkets}
-        />
+        <LendersSection markets={unfilteredBorrowerMarkets} />
       )}
 
       {section === BorrowerDashboardSections.POLICIES && (
