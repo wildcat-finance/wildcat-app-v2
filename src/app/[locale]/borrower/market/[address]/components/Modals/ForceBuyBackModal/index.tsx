@@ -2,7 +2,8 @@ import { ChangeEvent, useEffect, useState } from "react"
 import * as React from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
-import { minTokenAmount } from "@wildcatfi/wildcat-sdk"
+import { maxTokenAmount, minTokenAmount } from "@wildcatfi/wildcat-sdk"
+import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
@@ -12,6 +13,7 @@ import {
   ModalSteps,
   useApprovalModal,
 } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
+import { useBorrow } from "@/app/[locale]/borrower/market/[address]/hooks/useBorrow"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"

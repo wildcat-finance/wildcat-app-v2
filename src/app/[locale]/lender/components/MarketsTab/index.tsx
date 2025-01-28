@@ -48,7 +48,7 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
       otherMarketsRef.current.scrollIntoView({ behavior: "smooth" })
       dispatch(setScrollTarget(null))
     }
-  }, [scrollTargetId, dispatch])
+  }, [scrollTargetId])
 
   const filterByMarketName = useAppSelector(
     (state) => state.marketsOverviewSidebar.marketName,
@@ -135,8 +135,6 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
     filteredActiveLenderMarketAccounts,
     filteredOtherMarketAccounts,
     terminatedMarketAccounts,
-    dispatch,
-    isLoading,
   ])
 
   return (

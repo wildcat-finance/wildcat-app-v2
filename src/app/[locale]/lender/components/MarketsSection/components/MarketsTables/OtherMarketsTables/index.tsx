@@ -90,7 +90,7 @@ export const OtherMarketsTables = ({
       manualRef.current.scrollIntoView({ behavior: "smooth" })
       dispatch(setScrollTarget(null))
     }
-  }, [scrollTargetId, dispatch])
+  }, [scrollTargetId])
 
   const { data: borrowers } = useBorrowerNames()
 

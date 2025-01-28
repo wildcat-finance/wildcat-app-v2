@@ -113,10 +113,9 @@ export function useLendersMarkets(
     refetchOnMount: false,
   })
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const accounts = data ?? []
 
-  // const CHUNK_SIZE = TargetChainId === 1 ? 5 : 50
+  const CHUNK_SIZE = TargetChainId === 1 ? 5 : 50
 
   async function getLenderUpdates() {
     logger.debug(`Getting lender updates...`)
@@ -184,7 +183,7 @@ export function useLendersMarkets(
 
   const updateQueryKeys = useMemo(
     () => accounts.map((b) => [b.market.address, lender]),
-    [accounts, lender],
+    [accounts],
   )
 
   const {

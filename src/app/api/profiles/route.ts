@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
 import { TargetChainId } from "@/config/network"
 import { prisma } from "@/lib/db"

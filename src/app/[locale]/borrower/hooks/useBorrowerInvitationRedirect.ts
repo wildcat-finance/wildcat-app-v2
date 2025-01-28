@@ -1,6 +1,7 @@
 import { useAccount } from "wagmi"
 
 import { useGetBasicBorrowerData } from "@/hooks/useGetBasicBorrowerData"
+import { useGetController } from "@/hooks/useGetController"
 import { ROUTES } from "@/routes"
 
 import { useBorrowerInvitationExists } from "./useBorrowerInvitation"

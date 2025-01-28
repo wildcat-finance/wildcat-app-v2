@@ -45,7 +45,7 @@ export const LenderRestrictionsForm = ({
         disabled: false,
       }),
     )
-  }, [dispatch])
+  }, [])
 
   return (
     <Box sx={FormContainer}>

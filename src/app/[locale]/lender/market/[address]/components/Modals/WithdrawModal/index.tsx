@@ -2,7 +2,7 @@ import { ChangeEvent, useEffect, useMemo, useState } from "react"
 import * as React from "react"
 
 import { Box, Button, Dialog } from "@mui/material"
-import { HooksKind, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { HooksKind, MarketVersion, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
@@ -80,7 +80,7 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
       marketAccount.market.underlyingToken.parseAmount(
         amount.replace(/,/g, "") || "0",
       ),
-    [amount, marketAccount.market.underlyingToken],
+    [amount],
   )
 
   const withdrawAmount = maxAmount || underlyingWithdrawAmount

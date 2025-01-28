@@ -1,11 +1,14 @@
+import { useMemo } from "react"
+
 import {
   DepositAccess,
+  TokenAmount,
   TransferAccess,
   getDeploymentAddress,
 } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
 import humanizeDuration from "humanize-duration"
-import { getAddress } from "viem"
+import { checksumAddress, getAddress } from "viem"
 
 import { TargetChainId } from "@/config/network"
 import { formatBps } from "@/utils/formatters"
@@ -229,7 +232,6 @@ export const useGetMlaFieldValuesForBorrower = (
   return allData
 }
 
-/*
 type MlaTemplateField = {
   source: MlaFieldValueKey // one of the available field names
   placeholder: string // text to replace
@@ -243,7 +245,6 @@ type MlaTemplate = {
 }
 
 /// Derives the MLA template to be signed by a borrower.
-
 const useMlaForBorrower = (
   template: MlaTemplate,
   marketParams: DeployNewV2MarketParams,
@@ -277,4 +278,3 @@ const useMlaForBorrower = (
 
   return { html: html.trim(), plaintext: plaintext.trim() }
 }
-*/

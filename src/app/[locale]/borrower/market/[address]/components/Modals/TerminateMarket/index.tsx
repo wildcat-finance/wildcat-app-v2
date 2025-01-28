@@ -56,7 +56,7 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
     } else {
       setFlow("repayAndTerminate")
     }
-  }, [isModalOpen, isReadyForTermination, market.outstandingDebt])
+  }, [isModalOpen])
 
   useEffect(() => {
     if (isTerminatedError) {

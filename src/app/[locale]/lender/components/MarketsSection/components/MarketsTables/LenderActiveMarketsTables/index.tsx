@@ -2,12 +2,26 @@ import * as React from "react"
 import { useEffect, useRef } from "react"
 
 import { Box, Button, Typography } from "@mui/material"
-import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
-import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import {
+  DataGrid,
+  GridColDef,
+  GridRenderCellParams,
+  GridRowsProp,
+} from "@mui/x-data-grid"
+import {
+  DepositStatus,
+  Market,
+  MarketAccount,
+  MarketVersion,
+  TokenAmount,
+} from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
+import {
+  MarketsTablesProps,
+  TypeSafeColDef,
+} from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
@@ -81,7 +95,7 @@ export const LenderActiveMarketsTables = ({
       nonDepositedRef.current.scrollIntoView({ behavior: "smooth" })
       dispatch(setScrollTarget(null))
     }
-  }, [scrollTargetId, dispatch])
+  }, [scrollTargetId])
 
   const rows: GridRowsProp<LenderActiveMarketsTableModel> = marketAccounts.map(
     (account) => {

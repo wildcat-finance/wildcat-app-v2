@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import { useQuery } from "@tanstack/react-query"
 import {
+  Market,
   SignerOrProvider,
   SubgraphGetMarketsWithEventsQueryVariables,
   getMarketsWithEvents,

@@ -5,12 +5,14 @@ import { Box, Button, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import {
   DepositStatus,
+  MarketAccount,
   MarketVersion,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
+import { BorrowerActiveMarketsTableModel } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/BorrowerActiveMarketsTables"
 import {
   MarketsTablesProps,
   TypeSafeColDef,
@@ -78,7 +80,7 @@ export const OtherMarketsTables = ({
       manualRef.current.scrollIntoView({ behavior: "smooth" })
       dispatch(setScrollTarget(null))
     }
-  }, [scrollTargetId, dispatch])
+  }, [scrollTargetId])
 
   const { data: borrowers } = useBorrowerNames()
 
@@ -348,6 +350,8 @@ export const OtherMarketsTables = ({
     pageSize: 10,
     page: 0,
   })
+
+  const { assetFilter, statusFilter, nameFilter } = filters
 
   // TODO: check why dont work
   // useEffect(() => {

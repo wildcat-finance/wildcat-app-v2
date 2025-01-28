@@ -77,7 +77,7 @@ export const AddModal = () => {
       setIsDisabled(false)
       reset({ name: "" })
     }
-  }, [existingLender, lendersNames, reset, setValue])
+  }, [existingLender])
 
   useEffect(() => {
     if (isFilteredByMarket) {
@@ -88,7 +88,7 @@ export const AddModal = () => {
         },
       ])
     }
-  }, [selectedMarket, isOpen, isFilteredByMarket])
+  }, [selectedMarket, isOpen])
 
   const handleOpen = () => {
     reset()

@@ -282,14 +282,7 @@ export const TableSelect = ({
         )
       }
     }
-  }, [
-    lenderMarketsAmount,
-    dispatch,
-    lenderAddress,
-    lenderMarkets,
-    lenderStatus,
-    lendersTableData,
-  ])
+  }, [lenderMarketsAmount])
 
   // Select settings
   const selectRef = useRef<HTMLElement>(null)

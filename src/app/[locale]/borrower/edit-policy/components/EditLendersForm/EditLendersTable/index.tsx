@@ -10,7 +10,10 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setPolicyLendersTableData } from "@/store/slices/editPolicySlice/editPolicySlice"
+import {
+  resetPolicyFilters,
+  setPolicyLendersTableData,
+} from "@/store/slices/editPolicySlice/editPolicySlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
@@ -19,8 +22,10 @@ import {
   AddedDot,
   EditLendersTableStyles,
   NoLendersBox,
+  ResetButtonStyles,
   UndoButton,
 } from "./style"
+import { TableSelect } from "./TableSelect"
 import { EditLenderFlowStatuses } from "../../../interface"
 import { DeleteModal } from "../Modals/DeleteModal"
 

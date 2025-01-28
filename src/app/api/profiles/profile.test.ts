@@ -4,10 +4,12 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { randomBytes } from "crypto"
+import { before } from "node:test"
 
 import { getLensV2Contract, Market } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
 import { Wallet } from "ethers"
+import { NextApiRequest } from "next"
 import { RequestInit } from "next/dist/server/web/spec-extension/request"
 import { NextRequest } from "next/server"
 // import { Body, createMocks, createRequest } from "node-mocks-http"
@@ -23,8 +25,14 @@ import {
 } from "@/lib/mla"
 import { getProviderForServer } from "@/lib/provider"
 
-import { GET as getProfile } from "./[address]/route"
-import { POST as postProfileUpdateRequest } from "./updates/route"
+import { GET as getProfile, DELETE as deleteProfile } from "./[address]/route"
+import { GET as getAllProfiles } from "./route"
+import {
+  GET as getProfileUpdateRequests,
+  POST as postProfileUpdateRequest,
+  PUT as putProfileUpdateRequest,
+  DELETE as deleteProfileUpdateRequest,
+} from "./updates/route"
 import { LoginInput } from "../auth/login/interface"
 import { POST as postLogin } from "../auth/login/route"
 import {
@@ -36,7 +44,9 @@ import {
   BorrowerInvitationInput,
 } from "../invite/interface"
 import {
+  GET as getBorrowerInvites,
   POST as postBorrowerInvite,
+  DELETE as deleteBorrowerInvite,
   PUT as putBorrowerInvite,
 } from "../invite/route"
 import { POST as postMla } from "../mla/[market]/route"

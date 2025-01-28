@@ -3,7 +3,7 @@ import * as React from "react"
 
 import { Box } from "@mui/material"
 import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
-import { TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -60,7 +60,7 @@ export const BorrowerTerminatedMarketsTables = ({
       neverActiveRef.current.scrollIntoView({ behavior: "smooth" })
       dispatch(setScrollTarget(null))
     }
-  }, [scrollTargetId, dispatch])
+  }, [scrollTargetId])
 
   const rows: GridRowsProp<BorrowerTerminatedMarketsTableModel> =
     marketAccounts.map((account) => {

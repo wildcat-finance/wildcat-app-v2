@@ -26,13 +26,11 @@ interface BorrowerInvitation {
   timeInvited: Date
 }
 
-/*
 type BorrowerInvitationResponse = {
   inviteExists: boolean
   mustLogin: boolean
   invitation?: BorrowerInvitation
 }
-*/
 
 export const useGetBorrowerInvitation = (address: string | undefined) => {
   const token = useAuthToken()

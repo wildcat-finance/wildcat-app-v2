@@ -112,7 +112,8 @@ export const ConfirmationForm = ({
   const { t } = useTranslation()
 
   const { address } = useAccount()
-  const { data: borrowerData } = useGetBorrowerProfile(address)
+  const { data: borrowerData, isLoading: isPublicDataLoading } =
+    useGetBorrowerProfile(address)
 
   const entityKind = mockedNaturesOptions.find(
     (option) => option.id === borrowerData?.entityKind,
@@ -139,6 +140,7 @@ export const ConfirmationForm = ({
   const withdrawalRequiresAccess = getValues("withdrawalRequiresAccess")
   const transferRequiresAccess = getValues("transferRequiresAccess")
   const disableTransfers = getValues("disableTransfers")
+  const allowForceBuyBack = getValues("allowForceBuyBack")
 
   const selectedMla = getValues("mla")
   const mlaTemplateId =

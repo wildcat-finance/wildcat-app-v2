@@ -62,14 +62,14 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
         }
       }
     }
-  }, [hooksData, policyValue, form, marketType])
+  }, [hooksData, policyValue])
 
   useEffect(() => {
     if (marketType === "fixedTerm") {
       form.setValue("allowClosureBeforeTerm", undefined)
       form.setValue("allowTermReduction", undefined)
     }
-  }, [marketType, form])
+  }, [marketType, form.setValue])
 
   return {
     selectedHooksInstance,
