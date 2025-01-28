@@ -65,7 +65,7 @@ export const BorrowerActiveMarketsTables = ({
       nonDepositedRef.current.scrollIntoView({ behavior: "smooth" })
       dispatch(setScrollTarget(null))
     }
-  }, [scrollTargetId])
+  }, [scrollTargetId, dispatch])
 
   const rows: GridRowsProp<BorrowerActiveMarketsTableModel> =
     marketAccounts.map((account) => {

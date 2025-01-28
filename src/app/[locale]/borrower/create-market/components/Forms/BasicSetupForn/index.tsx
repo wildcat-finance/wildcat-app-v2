@@ -89,7 +89,7 @@ export const BasicSetupForm = ({
 
       dispatch(setIsDisabled({ steps: allStepsToDisable, disabled: true }))
     }
-  }, [isFormValid])
+  }, [isFormValid, dispatch])
 
   return (
     <Box sx={FormContainer}>
