@@ -56,11 +56,12 @@ export const usePreviewSignedMla = (mla: MasterLoanAgreementResponse) => {
 
 export const useSignMla = (mla: MasterLoanAgreementResponse) => {
   const { address } = useAccount()
-  const { mutateAsync: signMla } = useMutation({
+
+  useMutation({
     mutationFn: async (timeSigned: number) => {
       if (!address) throw new Error("No address")
       const values = getFieldValuesForLender(address, timeSigned)
-      const { plaintext } = fillInMlaForLender(mla, values)
+      fillInMlaForLender(mla, values)
     },
   })
 }

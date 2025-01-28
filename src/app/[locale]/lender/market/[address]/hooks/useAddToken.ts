@@ -42,7 +42,7 @@ export function useAddToken(token: NewToken | undefined) {
     return () => {
       clearInterval(intervalId)
     }
-  }, []) // Remove ethereumClient dependency to prevent re-running of the effect
+  }, [address]) // Remove ethereumClient dependency to prevent re-running of the effect
 
   const canAddToken = !!ethereumClient
 

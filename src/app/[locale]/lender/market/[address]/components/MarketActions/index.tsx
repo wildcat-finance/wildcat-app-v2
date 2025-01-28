@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Box, Button, Divider, Modal, Typography } from "@mui/material"
+import { Box, Button, Divider, Typography } from "@mui/material"
 import { DepositStatus, QueueWithdrawalStatus } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
