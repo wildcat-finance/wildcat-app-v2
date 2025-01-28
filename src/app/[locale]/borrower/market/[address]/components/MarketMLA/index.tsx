@@ -194,7 +194,7 @@ export const MarketMLA = ({
     return (
       <ShowExistingMla
         mla={marketMla}
-        borrowerProfile={borrowerProfile as BasicBorrowerInfo}
+        // borrowerProfile={borrowerProfile as BasicBorrowerInfo}
         marketAccount={marketAccount}
       />
     )
