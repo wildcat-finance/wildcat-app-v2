@@ -28,11 +28,11 @@ import { toastError, toastRequest } from "@/components/Toasts"
 import { TargetChainId } from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { GET_BASIC_BORROWER_DATA_KEY } from "@/hooks/useGetBasicBorrowerData"
 import { GET_CONTROLLER_KEY } from "@/hooks/useGetController"
 
 import { GET_BORROWER_MARKETS } from "../../hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { GET_ALL_MARKETS } from "../../hooks/getMaketsHooks/useGetOthersMarkets"
-import { GET_BASIC_BORROWER_DATA_KEY } from "@/hooks/useGetBasicBorrowerData"
 
 export type DeployNewV2MarketParams = (
   | (Omit<

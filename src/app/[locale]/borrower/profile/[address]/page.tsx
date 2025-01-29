@@ -11,7 +11,7 @@ import { ROUTES } from "@/routes"
 
 import { BorrowerProfileDetails } from "../components/BorrowerProfileDetails"
 
-export function OtherBorrowerProfile({
+export default function OtherBorrowerProfile({
   params: { address },
 }: {
   params: { address: `0x${string}` }
@@ -26,5 +26,3 @@ export function OtherBorrowerProfile({
 
   return <BorrowerProfileDetails address={address} sx={ContentContainer} />
 }
-
-export default OtherBorrowerProfile

@@ -27,76 +27,75 @@ export const useBorrowerInvitationRedirect = () => {
 
   const isRegisteredBorrower = borrowerData?.isRegisteredBorrower
 
-  const isLoading =
-    isLoadingBorrowerData || isLoadingInvitation
+  const isLoading = isLoadingBorrowerData || isLoadingInvitation
 
-    // - If user is not logged in, hide banner
-    if (!address) {
-      return {
-        hideNewMarketButton: true,
-        hideBanner: false,
-        title: "Become A Borrower",
-        message: "Corporate entity interested in establishing a credit line?",
-        buttonText: "Get In Touch",
-        url: GOOGLE_FORM_LINK,
-      }
+  // - If user is not logged in, hide banner
+  if (!address) {
+    return {
+      hideNewMarketButton: true,
+      hideBanner: false,
+      title: "Become A Borrower",
+      message: "Corporate entity interested in establishing a credit line?",
+      buttonText: "Get In Touch",
+      url: GOOGLE_FORM_LINK,
     }
+  }
 
-    if (isLoading || !isSuccess) {
-      return {
-        hideNewMarketButton: true,
-        hideBanner: true,
-      }
+  if (isLoading || !isSuccess) {
+    return {
+      hideNewMarketButton: true,
+      hideBanner: true,
     }
+  }
 
-    if (isRegisteredBorrower) {
-      if (!borrowerData.hasMarkets) {
-        return {
-          title: "No Active Markets",
-          text: "Get started with Wildcat by creating an active market!",
-          buttonText: "Create New Market",
-          link: {
-            isExternal: false,
-            url: ROUTES.borrower.createMarket,
-          },
-        }
-      }
-
+  if (isRegisteredBorrower) {
+    if (!borrowerData.hasMarkets) {
       return {
-        hideBanner: true,
-      }
-    }
-
-    if (invitationStatus !== undefined) {
-      if (invitationStatus === BorrowerInvitationStatus.PendingRegistration) {
-        return {
-          hideNewMarketButton: true,
-          hideBanner: false,
-          title: "Pending On-chain Registration",
-          text: "You will be able to create your first market once the Wildcat team finalizes your borrower registration on-chain.",
-        }
-      }
-      return {
-        hideNewMarketButton: true,
-        title: "Pending Borrower Invitation",
-        text: "You've been invited to register as a Wildcat borrower.",
-        buttonText: "Accept",
-        hideBanner: false,
+        title: "No Active Markets",
+        text: "Get started with Wildcat by creating an active market!",
+        buttonText: "Create New Market",
         link: {
           isExternal: false,
-          url: ROUTES.borrower.invitation,
+          url: ROUTES.borrower.createMarket,
         },
       }
     }
 
     return {
+      hideBanner: true,
+    }
+  }
+
+  if (invitationStatus !== undefined) {
+    if (invitationStatus === BorrowerInvitationStatus.PendingRegistration) {
+      return {
+        hideNewMarketButton: true,
+        hideBanner: false,
+        title: "Pending On-chain Registration",
+        text: "You will be able to create your first market once the Wildcat team finalizes your borrower registration on-chain.",
+      }
+    }
+    return {
       hideNewMarketButton: true,
-      title: "Become A Borrower",
-      text: "Corporate entity interested in establishing a credit line?",
-      buttonText: "Get In Touch",
+      title: "Pending Borrower Invitation",
+      text: "You've been invited to register as a Wildcat borrower.",
+      buttonText: "Accept",
+      hideBanner: false,
       link: {
-        isExternal: true,
-        url: GOOGLE_FORM_LINK,
+        isExternal: false,
+        url: ROUTES.borrower.invitation,
       },
     }
+  }
+
+  return {
+    hideNewMarketButton: true,
+    title: "Become A Borrower",
+    text: "Corporate entity interested in establishing a credit line?",
+    buttonText: "Get In Touch",
+    link: {
+      isExternal: true,
+      url: GOOGLE_FORM_LINK,
+    },
+  }
 }

@@ -106,25 +106,25 @@ export const OverallSection = ({
             </Box>
           )}
 
-          {totalBorrowedAmount !== undefined && <Box>
-            <MarketParametersItem
-              title={t("borrowerProfile.profile.overallInfo.borrowed")}
-              value={totalBorrowedAmount || ""}
-            />
-            <Divider sx={MarketParametersRowsDivider} />
-          </Box>}
+          {totalBorrowedAmount !== undefined && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.borrowed")}
+                value={totalBorrowedAmount || ""}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
 
           {defaults !== undefined && (
             <Box>
               <MarketParametersItem
-                title={t(
-                  "borrowerProfile.profile.overallInfo.defaults.title",
-                )}
+                title={t("borrowerProfile.profile.overallInfo.defaults.title")}
                 value={defaults || ""}
                 tooltipText={t(
-                "borrowerProfile.profile.overallInfo.defaults.tooltip",
-              )}
-            />
+                  "borrowerProfile.profile.overallInfo.defaults.tooltip",
+                )}
+              />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
           )}

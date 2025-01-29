@@ -1,7 +1,12 @@
 import * as React from "react"
 
 import { Box, Button, Divider, Modal, Typography } from "@mui/material"
-import { DepositStatus, MarketAccount, QueueWithdrawalStatus, SupportedChainId } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  MarketAccount,
+  QueueWithdrawalStatus,
+  SupportedChainId,
+} from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { LenderMlaModal } from "@/app/[locale]/lender/components/LenderMlaModal"
@@ -11,17 +16,20 @@ import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import { TransactionBlock } from "@/components/TransactionBlock"
+import { TargetChainId } from "@/config/network"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { MarketActionsProps } from "./interface"
-import { TargetChainId } from "@/config/network"
 import { useFaucet } from "../../hooks/useFaucet"
 
 const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
-  const { mutate: faucet, isPending: isFauceting, isSuccess } = useFaucet(marketAccount)
-
+  const {
+    mutate: faucet,
+    isPending: isFauceting,
+    isSuccess,
+  } = useFaucet(marketAccount)
 
   if (isSuccess) return null
 
@@ -56,12 +64,11 @@ export const MarketActions = ({
     marketAccount.maximumDeposit.raw.isZero() ||
     marketAccount.depositAvailability !== DepositStatus.Ready
 
-  const showFaucet = (
+  const showFaucet =
     hideDeposit &&
     TargetChainId === SupportedChainId.Sepolia &&
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.raw.isZero()
-  )
 
   const hideWithdraw =
     marketAccount.marketBalance.raw.isZero() ||
@@ -100,7 +107,7 @@ export const MarketActions = ({
           asset={market.underlyingToken.symbol}
         >
           {!hideDeposit && <DepositModal marketAccount={marketAccount} />}
-          {showFaucet && <FaucetButton marketAccount={marketAccount}  />}
+          {showFaucet && <FaucetButton marketAccount={marketAccount} />}
         </TransactionBlock>
 
         <TransactionBlock

@@ -11,9 +11,11 @@ import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
 
 export const GET_SIGNED_MLA_KEY = "GET_SIGNED_MLA_KEY"
 
-export const useGetSignedMla = (mla: MasterLoanAgreementResponse | null | undefined ) => {
+export const useGetSignedMla = (
+  mla: MasterLoanAgreementResponse | null | undefined,
+) => {
   const { address } = useAccount()
-  
+
   const getSignedMla = async () => {
     if (!mla) return undefined
     const marketAddress = mla.market
@@ -23,7 +25,10 @@ export const useGetSignedMla = (mla: MasterLoanAgreementResponse | null | undefi
     )
     if (res.status === 200) {
       const signed = (await res.json()) as MlaSignatureResponse
-      const values = getFieldValuesForLender(signed.address, +new Date(signed.timeSigned))
+      const values = getFieldValuesForLender(
+        signed.address,
+        +new Date(signed.timeSigned),
+      )
       const filledMla = fillInMlaForLender(mla, values)
       return {
         ...signed,

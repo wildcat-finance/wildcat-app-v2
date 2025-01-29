@@ -16,9 +16,7 @@ export const LenderMlaModal = ({
 }: LenderMlaModalProps) => {
   const mla = mlaInput && "noMLA" in mlaInput ? undefined : mlaInput
   const { address } = useAccount()
-  const { data: signedMla, isLoading: signedMlaLoading } = useGetSignedMla(
-    mla
-  )
+  const { data: signedMla, isLoading: signedMlaLoading } = useGetSignedMla(mla)
   const [timeSigned, setTimeSigned] = useState(0)
   useEffect(() => {
     setTimeSigned(Date.now())
