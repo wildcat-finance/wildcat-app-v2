@@ -1,8 +1,11 @@
+import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import { TargetChainId } from "@/config/network"
 import { getBorrowerProfile, prisma } from "@/lib/db"
+
+import { verifyApiToken } from "../../auth/verify-header"
 
 const mockProfile: BorrowerProfile = {
   address: "0x1717503EE3f56e644cf8b1058e3F83F03a71b2E1",
@@ -68,6 +71,10 @@ export async function DELETE(
   request: NextRequest,
   { params: { address } }: { params: { address: string } },
 ) {
+  const token = await verifyApiToken(request)
+  if (!token || !token.isAdmin || TargetChainId !== SupportedChainId.Sepolia) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
   const borrower = address
   if (!borrower) {
     return NextResponse.json(
