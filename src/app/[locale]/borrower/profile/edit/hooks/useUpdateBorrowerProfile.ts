@@ -8,6 +8,7 @@ import { useAuthToken } from "@/hooks/useApiAuth"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 
 import { USE_REGISTERED_BORROWERS_KEY } from "../../../hooks/useBorrowerNames"
+import { GET_ALL_BORROWER_PROFILES_KEY } from "@/app/[locale]/admin/hooks/useAllBorrowerProfiles"
 
 const hashData = async (data: object): Promise<string> => {
   const encoder = new TextEncoder()
@@ -76,7 +77,9 @@ export const useUpdateBorrowerProfile = () => {
       await toastRequest(
         updateBorrowerProfile({
           ...profile,
-          address: address.toLowerCase(),
+          address: token.isAdmin
+            ? profile.address.toLowerCase()
+            : address.toLowerCase(),
         }),
         {
           pending: `Updating profile...`,
@@ -90,6 +93,11 @@ export const useUpdateBorrowerProfile = () => {
       queryClient.invalidateQueries({
         queryKey: [USE_REGISTERED_BORROWERS_KEY],
       })
+      if (token.isAdmin) {
+        queryClient.invalidateQueries({
+          queryKey: [GET_ALL_BORROWER_PROFILES_KEY],
+        })
+      }
     },
     onError(error) {
       console.error("Error updating profile with blockchain signature:", error)
