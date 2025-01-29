@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next"
 
 import EditProfileForm from "@/app/[locale]/borrower/profile/edit/components/EditProfileForm"
 import { BorrowerProfileInput } from "@/app/api/profiles/interface"
-import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { COLORS } from "@/theme/colors"
 
@@ -18,68 +17,16 @@ import { useInviteBorrower } from "../../hooks/useInviteBorrower"
 export const InviteBorrowerModal = () => {
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
-  const [name, setName] = useState("")
   const [address, setAddress] = useState("")
-  const [description, setDescription] = useState("")
-  const [founded, setFounded] = useState("")
-  const [headquarters, setHeadquarters] = useState("")
-  const [jurisdiction, setJurisdiction] = useState("")
-  const [physicalAddress, setPhysicalAddress] = useState("")
-  const [entityKind, setEntityKind] = useState("")
-  const [nameError, setNameError] = useState("")
   const [addressError, setAddressError] = useState("")
 
-  const { mutate, isPending, isSuccess, isError } = useInviteBorrower()
+  const { mutate, isPending, isSuccess, isError } = useInviteBorrower(address)
 
   const handleClose = () => {
     setIsOpen(false)
-    setName("")
     setAddress("")
-    setNameError("")
     setAddressError("")
   }
-
-  const validateInputs = () => {
-    let isValid = true
-    if (!name) {
-      setNameError("Name is required")
-      isValid = false
-    }
-    if (!address) {
-      setAddressError("Address is required")
-      isValid = false
-    } else if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
-      setAddressError("Invalid Ethereum address")
-      isValid = false
-    }
-    return isValid
-  }
-
-  // const handleSubmit = () => {
-  //   if (validateInputs()) {
-  //     mutate({
-  //       name,
-  //       address,
-  //       description,
-  //       founded,
-  //       headquarters,
-  //       jurisdiction,
-  //       physicalAddress,
-  //       entityKind,
-  //     })
-  //     // Reset the form
-  //     setName("")
-  //     setAddress("")
-  //     setDescription("")
-  //     setFounded("")
-  //     setHeadquarters("")
-  //     setJurisdiction("")
-  //     setPhysicalAddress("")
-  //     setEntityKind("")
-  //     setNameError("")
-  //     setAddressError("")
-  //   }
-  // }
 
   const handleSubmit = (data: BorrowerProfileInput) => {
     mutate({
@@ -93,10 +40,6 @@ export const InviteBorrowerModal = () => {
       entityKind: data.entityKind,
     })
   }
-
-  // const handleTryAgain = () => {
-  //   handleSubmit()
-  // }
 
   const showForm = !(isPending || isSuccess || isError)
 
@@ -149,6 +92,7 @@ export const InviteBorrowerModal = () => {
 
               {address && (
                 <EditProfileForm
+                  key={address}
                   address={address as `0x${string}`}
                   hideAvatar
                   hideExternalLinks
@@ -157,105 +101,27 @@ export const InviteBorrowerModal = () => {
                 />
               )}
             </Box>
-
-            {/* <Box width="100%" padding="24px">
-              <TextField
-                label={t("admin.inviteBorrower.nameLabel")}
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value)
-                  setNameError("")
-                }}
-                error={!!nameError}
-                helperText={nameError}
-                fullWidth
-                sx={{ marginBottom: 2 }}
-              />
-
-              <TextField
-                label={t("admin.inviteBorrower.addressLabel")}
-                value={address}
-                onChange={(e) => {
-                  setAddress(e.target.value)
-                  setAddressError("")
-                }}
-                error={!!addressError}
-                helperText={addressError}
-                fullWidth
-              />
-            </Box>
-
-            <Box
-              width="100%"
-              padding="24px"
-              display="flex"
-              flexDirection="row"
-              gap={2}
-            >
-              <TextField
-                label={t("admin.inviteBorrower.descriptionLabel")}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                fullWidth
-              />
-
-              <TextField
-                label={t("admin.inviteBorrower.foundedLabel")}
-                value={founded}
-                onChange={(e) => setFounded(e.target.value)}
-                fullWidth
-              />
-            </Box>
-
-            <Box
-              width="100%"
-              padding="24px"
-              display="flex"
-              flexDirection="row"
-              gap={2}
-            >
-              <TextField
-                label={t("admin.inviteBorrower.entityKindLabel")}
-                value={entityKind}
-                onChange={(e) => setEntityKind(e.target.value)}
-                fullWidth
-              />
-              <TextField
-                label={t("admin.inviteBorrower.jurisdictionLabel")}
-                value={jurisdiction}
-                onChange={(e) => setJurisdiction(e.target.value)}
-                fullWidth
-              />
-            </Box>
-
-            <Box
-              width="100%"
-              padding="24px"
-              display="flex"
-              flexDirection="row"
-              gap={2}
-            >
-              <TextField
-                label={t("admin.inviteBorrower.physicalAddressLabel")}
-                value={physicalAddress}
-                onChange={(e) => setPhysicalAddress(e.target.value)}
-                fullWidth
-              />
-            </Box> */}
           </>
         )}
 
-        {isPending && <LoadingModal />}
-        {isError && <ErrorModal onTryAgain={() => {}} onClose={handleClose} />}
-        {isSuccess && <SuccessModal onClose={handleClose} />}
-
-        {showForm && (
-          <TxModalFooter
-            mainBtnText={t("admin.inviteBorrower.submit")}
-            // mainBtnOnClick={handleSubmit}
-            mainBtnOnClick={() => {}}
-            disableMainBtn={!name || !address}
-            // hideSecondBtn
+        {isPending && (
+          <LoadingModal
+            title={t("admin.inviteBorrower.loading.title")}
+            subtitle={t("admin.inviteBorrower.loading.subtitle")}
+          />
+        )}
+        {isError && (
+          <ErrorModal
+            onClose={handleClose}
+            title={t("admin.inviteBorrower.error.title")}
+            subtitle={t("admin.inviteBorrower.error.subtitle")}
+          />
+        )}
+        {isSuccess && (
+          <SuccessModal
+            onClose={handleClose}
+            title={t("admin.inviteBorrower.success.title")}
+            subtitle={t("admin.inviteBorrower.success.subtitle")}
           />
         )}
       </Dialog>

@@ -1,11 +1,14 @@
 "use client"
 
+import { useState } from "react"
+
 import { Box } from "@mui/material"
 
 import AuthWrapper from "@/components/AuthWrapper"
 
+import { AdminSectionSwitcher } from "./components/AdminSectionSwitcher"
 import { BorrowerInvitesTable } from "./components/BorrowerInvitesTable"
-import { useAllBorrowerInvitations } from "./hooks/useAllBorrowerInvitations"
+import { BorrowersTable } from "./components/BorrowersTable"
 
 const AdminPageContainer = {
   height: "calc(100vh - 43px - 43px - 52px)",
@@ -15,11 +18,17 @@ const AdminPageContainer = {
   flexDirection: "column",
 }
 const AdminPage = () => {
-  const { data, isLoading } = useAllBorrowerInvitations()
+  const [activeSection, setActiveSection] = useState("invitations")
+
   return (
     <AuthWrapper requiresAdmin>
       <Box sx={AdminPageContainer}>
-        <BorrowerInvitesTable tableData={data || []} isLoading={isLoading} />
+        <AdminSectionSwitcher
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+        />
+        {activeSection === "invitations" && <BorrowerInvitesTable />}
+        {activeSection === "borrowers" && <BorrowersTable />}
       </Box>
     </AuthWrapper>
   )
