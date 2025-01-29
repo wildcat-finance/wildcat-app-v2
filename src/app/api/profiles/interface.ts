@@ -17,6 +17,11 @@ export interface BorrowerProfile {
   registeredOnChain: boolean
 }
 
+export type BorrowerProfileForAdminView = BorrowerProfile & {
+  timeInvited?: Date
+  timeSigned?: Date
+}
+
 export type BorrowerProfileInput = Omit<
   BorrowerProfile,
   "registeredOnChain" | "chainId"
