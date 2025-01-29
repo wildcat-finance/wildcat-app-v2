@@ -127,6 +127,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
           <NumberTextField
             min={0}
             max={100}
+            decimalScale={2}
             label={t("createNewMarket.financial.baseAPR.placeholder")}
             value={getValues("annualInterestBips")}
             error={Boolean(errors.annualInterestBips)}
@@ -144,6 +145,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
           <NumberTextField
             min={0}
             max={100}
+            decimalScale={2}
             label={t("createNewMarket.financial.penaltyAPR.placeholder")}
             value={getValues("delinquencyFeeBips")}
             error={Boolean(errors.delinquencyFeeBips)}
@@ -162,6 +164,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
             label={t("createNewMarket.financial.ratio.placeholder")}
             min={0}
             max={100}
+            decimalScale={2}
             value={getValues("reserveRatioBips")}
             error={Boolean(errors.reserveRatioBips)}
             helperText={errors.reserveRatioBips?.message}
@@ -180,6 +183,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
             value={delinquencyGracePeriodWatch}
             error={Boolean(errors.delinquencyGracePeriod)}
             helperText={errors.delinquencyGracePeriod?.message}
+            decimalScale={2}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
                 {t("createNewMarket.periods.grace.chip")}
@@ -195,6 +199,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
             value={withdrawalBatchDurationWatch}
             error={Boolean(errors.withdrawalBatchDuration)}
             helperText={errors.withdrawalBatchDuration?.message}
+            decimalScale={2}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
                 {t("createNewMarket.periods.wdCycle.chip")}
