@@ -1,6 +1,8 @@
 /// Borrower invitation.
-export interface BorrowerInvitation {
+
+export type BorrowerInvitation = {
   id: number
+  inviter: string
   chainId: number
   address: string
   name: string
@@ -11,6 +13,8 @@ export interface BorrowerInvitation {
   physicalAddress?: string
   entityKind?: string
   timeInvited: Date
+  timeSigned?: Date
+  registeredOnChain: boolean
 }
 
 /// Input for inviting a borrower.

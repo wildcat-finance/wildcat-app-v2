@@ -21,10 +21,10 @@ export async function GET(
   if (!token?.isAdmin && token?.address.toLowerCase() !== address) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  const borrower = await findBorrowerWithPendingInvitation(address)
-  if (borrower?.invitation) {
+  const invitation = await findBorrowerWithPendingInvitation(address)
+  if (invitation) {
     return NextResponse.json({
-      invitation: borrower.invitation as BorrowerInvitation,
+      invitation,
     })
   }
   return NextResponse.json({ invitation: null }, { status: 404 })
@@ -38,9 +38,17 @@ export async function HEAD(
   request: NextRequest,
   { params }: { params: { address: `0x${string}` } },
 ) {
-  const borrower = await findBorrowerWithPendingInvitation(params.address)
+  const invitation = await findBorrowerWithPendingInvitation(params.address)
+  if (!invitation || invitation.registeredOnChain) {
+    return new NextResponse(null, {
+      status: 404,
+    })
+  }
   return new NextResponse(null, {
-    status: borrower?.invitation ? 200 : 404,
+    status: 200,
+    headers: {
+      Signed: invitation?.timeSigned ? "true" : "false",
+    },
   })
 }
 

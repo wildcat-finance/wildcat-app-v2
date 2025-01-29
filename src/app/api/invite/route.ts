@@ -5,7 +5,12 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { TargetChainId } from "@/config/network"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
-import { findBorrowerWithPendingInvitation, prisma } from "@/lib/db"
+import {
+  findBorrowersWithPendingInvitations,
+  findBorrowerWithPendingInvitation,
+  prisma,
+  tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered,
+} from "@/lib/db"
 import { getProviderForServer } from "@/lib/provider"
 import { verifySignature } from "@/lib/signatures"
 import { getZodParseError } from "@/lib/zod-error"
@@ -26,48 +31,17 @@ export async function GET(request: NextRequest) {
   if (!token?.isAdmin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  const onlyPendingInvitations = request.nextUrl.searchParams.get(
+  /* const onlyPendingInvitations = request.nextUrl.searchParams.get(
     "onlyPendingInvitations",
-  )
-  const allInvitations = (
-    await prisma.borrowerInvitation.findMany({
-      where: {
-        chainId: TargetChainId,
-        ...(onlyPendingInvitations
-          ? {
-              borrower: {
-                serviceAgreementSignature: null,
-              },
-            }
-          : {}),
-      },
-      select: {
-        id: true,
-        chainId: true,
-        address: true,
-        name: true,
-        description: true,
-        founded: true,
-        headquarters: true,
-        jurisdiction: true,
-        physicalAddress: true,
-        entityKind: true,
-        inviter: true,
-        timeInvited: true,
-        borrower: {
-          select: {
-            serviceAgreementSignature: true,
-            registeredOnChain: true,
-          },
-        },
-      },
-    })
-  ).map(({ borrower, ...rest }) => ({
-    ...rest,
-    hasSignedServiceAgreement: !!borrower.serviceAgreementSignature,
-    timeSigned: borrower.serviceAgreementSignature?.timeSigned,
-    registeredOnChain: borrower.registeredOnChain,
-  })) as BorrowerInvitationForAdminView[]
+  ) */
+  await tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered()
+  const allInvitations = (await findBorrowersWithPendingInvitations()).map(
+    ({ timeSigned, ...rest }) => ({
+      ...rest,
+      hasSignedServiceAgreement: !!timeSigned,
+      timeSigned,
+    }),
+  ) as BorrowerInvitationForAdminView[]
   return NextResponse.json(allInvitations)
 }
 
@@ -160,6 +134,76 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ success: true })
 }
 
+/* const invitations = await prisma.borrowerInvitation.findMany({
+      where: {
+        chainId: TargetChainId,
+        borrower: {
+          OR: [
+            {
+              entityKind: null,
+            },
+            {
+              jurisdiction: null,
+            },
+            {
+              physicalAddress: null,
+            },
+          ],
+        },
+      },
+      include: {
+        borrower: {
+          select: {
+            registeredOnChain: true,
+            serviceAgreementSignature: true,
+            name: true,
+            entityKind: true,
+            jurisdiction: true,
+            physicalAddress: true,
+          },
+        },
+      },
+    })
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const invitation of invitations) {
+      const missingFields = []
+      if (!invitation.borrower?.name) missingFields.push("name")
+      if (!invitation.borrower?.entityKind) missingFields.push("entityKind")
+      if (!invitation.borrower?.jurisdiction) missingFields.push("jurisdiction")
+      if (!invitation.borrower?.physicalAddress)
+        missingFields.push("physicalAddress")
+      console.log(
+        `${invitation.address.slice(0, 10)}... | Name: ${
+          invitation.name
+        } | MISSING ${missingFields.join(", ")} | Registered: ${invitation
+          .borrower?.registeredOnChain} | Signed: ${!!invitation.borrower
+          ?.serviceAgreementSignature}`,
+      )
+    }
+    await prisma.$transaction([
+      ...invitations.map(({ address }) =>
+        prisma.borrowerInvitation.delete({
+          where: {
+            chainId_address: {
+              chainId: TargetChainId,
+              address,
+            },
+          },
+        }),
+      ),
+      ...invitations.map(({ address }) =>
+        prisma.borrower.delete({
+          where: {
+            chainId_address: {
+              chainId: TargetChainId,
+              address,
+            },
+          },
+        }),
+      ),
+    ]) */
+
 /// DELETE /api/invite?address=<address>
 /// Route to delete an invitation for a borrower.
 /// Admin-only endpoint.
@@ -248,7 +292,7 @@ export async function PUT(request: NextRequest) {
   })
 
   const borrowerInvitation = await findBorrowerWithPendingInvitation(address)
-  if (!borrowerInvitation) {
+  if (!borrowerInvitation || borrowerInvitation.timeSigned) {
     return NextResponse.json(
       { error: `Pending borrower invitation not found for ${address}` },
       { status: 404 },
