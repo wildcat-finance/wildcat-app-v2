@@ -8,7 +8,7 @@ const GET_BASIC_BORROWER_DATA_KEY = "basicBorrowerData"
 
 export const useGetBasicBorrowerData = (borrowerAddress?: string) =>
   useQuery({
-    queryKey: [GET_BASIC_BORROWER_DATA_KEY],
+    queryKey: [GET_BASIC_BORROWER_DATA_KEY, borrowerAddress],
     queryFn: () =>
       getBasicBorrowerData(
         SubgraphClient,
