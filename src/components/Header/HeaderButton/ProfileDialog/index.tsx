@@ -26,6 +26,7 @@ import { ProfileDialogProps } from "@/components/Header/HeaderButton/ProfileDial
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl, TargetNetwork } from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useGetController } from "@/hooks/useGetController"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
@@ -46,6 +47,9 @@ export const ProfileDialog = ({
     disconnect()
     handleClose()
   }
+
+  const { data: controller } = useGetController()
+  const isRegisteredBorrower = controller?.isRegisteredBorrower
 
   return (
     <Dialog open={open} onClose={handleClose} sx={DialogContainer}>
@@ -107,34 +111,36 @@ export const ProfileDialog = ({
         />
 
         <Box sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
-          <Link href={ROUTES.borrower.profile} onClick={handleClose}>
-            <Button
-              variant="text"
-              fullWidth
-              sx={{
-                padding: "10px 12px 10px 8px !important",
-                gap: "8px",
-                alignItems: "center",
-              }}
-            >
-              <SvgIcon
+          {isRegisteredBorrower && (
+            <Link href={ROUTES.borrower.profile} onClick={handleClose}>
+              <Button
+                variant="text"
+                fullWidth
                 sx={{
-                  "& path": {
-                    fill: `${COLORS.greySuit}`,
-                  },
+                  padding: "10px 12px 10px 8px !important",
+                  gap: "8px",
+                  alignItems: "center",
                 }}
               >
-                <Profile />
-              </SvgIcon>
+                <SvgIcon
+                  sx={{
+                    "& path": {
+                      fill: `${COLORS.greySuit}`,
+                    },
+                  }}
+                >
+                  <Profile />
+                </SvgIcon>
 
-              <Typography
-                variant="text2"
-                sx={{ width: "100%", fontWeight: 600, textAlign: "left" }}
-              >
-                View Profile
-              </Typography>
-            </Button>
-          </Link>
+                <Typography
+                  variant="text2"
+                  sx={{ width: "100%", fontWeight: 600, textAlign: "left" }}
+                >
+                  View Profile
+                </Typography>
+              </Button>
+            </Link>
+          )}
 
           <Button
             variant="text"
