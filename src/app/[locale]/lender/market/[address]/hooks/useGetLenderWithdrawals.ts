@@ -138,7 +138,7 @@ export function useGetLenderWithdrawals(
     refetchInterval: POLLING_INTERVAL,
     placeholderData: keepPreviousData,
     enabled: !!lender && !!market,
-    refetchOnMount: false,
+    // refetchOnMount: false,
   })
 
   const withdrawals = data ?? {
@@ -151,6 +151,7 @@ export function useGetLenderWithdrawals(
   }
 
   async function updateWithdrawals() {
+    console.log(`Updating withdrawals...`)
     if (!lender || !market || !marketAddress) throw Error()
     const lens = getLensContract(TargetChainId, market.provider)
     const incompleteWithdrawals = [
@@ -191,6 +192,7 @@ export function useGetLenderWithdrawals(
     const expiredPendingWithdrawals = allWithdrawals.filter(
       (wd) =>
         wd.expiry !== market.pendingWithdrawalExpiry &&
+        wd.expiry <= Math.floor(Date.now() / 1000) &&
         wd.normalizedAmountOwed.gt(0),
     )
     const activeWithdrawal = allWithdrawals.find(
@@ -209,7 +211,7 @@ export function useGetLenderWithdrawals(
       ) ?? market.underlyingToken.getAmount(0)
 
     const expiredTotalPendingAmount = expiredPendingWithdrawals
-      .filter((w) => w.expiry !== market.pendingWithdrawalExpiry)
+      // .filter((w) => w.expiry !== market.pendingWithdrawalExpiry)
       .reduce(
         (acc, w) => acc.add(w.normalizedUnpaidAmount),
         market.underlyingToken.getAmount(0),
@@ -254,7 +256,7 @@ export function useGetLenderWithdrawals(
     queryFn: updateWithdrawals,
     placeholderData: keepPreviousData,
     enabled: !!data,
-    refetchOnMount: false,
+    // refetchOnMount: false,
   })
 
   return {
