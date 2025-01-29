@@ -1,14 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useAccount } from "wagmi"
 
+import { GET_ALL_BORROWER_PROFILES_KEY } from "@/app/[locale]/admin/hooks/useAllBorrowerProfiles"
 import { BORROWER_PROFILE_KEY } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { BorrowerProfileInput } from "@/app/api/profiles/interface"
 import { toastRequest } from "@/components/Toasts"
 import { useAuthToken } from "@/hooks/useApiAuth"
-import { useEthersSigner } from "@/hooks/useEthersSigner"
 
 import { USE_REGISTERED_BORROWERS_KEY } from "../../../hooks/useBorrowerNames"
-import { GET_ALL_BORROWER_PROFILES_KEY } from "@/app/[locale]/admin/hooks/useAllBorrowerProfiles"
 
 const hashData = async (data: object): Promise<string> => {
   const encoder = new TextEncoder()
