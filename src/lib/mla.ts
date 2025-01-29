@@ -461,9 +461,10 @@ export function getFieldValuesForLender(
   lenderTimeSigned: number,
 ) {
   const date = new Date(lenderTimeSigned)
+  const utcDate = date.getUTCDate()
   const data: Map<LenderKeys, string | undefined> = new Map([
     ["lender.timeSigned", formatDate(lenderTimeSigned)],
-    ["lender.timeSignedDayOrdinal", nth(date.getUTCDate())],
+    ["lender.timeSignedDayOrdinal", `${utcDate}${nth(utcDate)}`],
     [
       "lender.timeSignedMonthYear",
       date.toLocaleDateString("en-US", {
