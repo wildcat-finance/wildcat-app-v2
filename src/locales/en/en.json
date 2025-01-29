@@ -51,12 +51,30 @@
       "physicalAddressLabel": "Physical Address",
       "entityKindLabel": "Entity Kind",
       "submit": "Send Invitation",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "loading": {
+        "title": "Sending Invitation...",
+        "subtitle": "This may take a few seconds."
+      },
+      "success": {
+        "title": "Invitation Sent",
+        "subtitle": "The invitation has been sent to the borrower."
+      },
+      "error": {
+        "title": "Oops! Something went wrong!",
+        "subtitle": "An error occurred while sending the invitation."
+      }
     },
     "cancelInvite": {
       "title": "Cancel Invitation",
       "description": "Are you sure you want to cancel the invitation for {{name}} ({{address}})? This action cannot be undone.",
       "confirm": "Cancel Invitation"
+    },
+    "editBorrower": {
+      "button": "Edit",
+      "title": "Edit Borrower Profile",
+      "description": "Edit borrower's profile details.",
+      "submit": "Save Changes"
     }
   },
   "dashboard": {
