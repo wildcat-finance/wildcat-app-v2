@@ -4,7 +4,7 @@ import { getBasicBorrowerData } from "@wildcatfi/wildcat-sdk"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { SubgraphClient } from "@/config/subgraph"
 
-const GET_BASIC_BORROWER_DATA_KEY = "basicBorrowerData"
+export const GET_BASIC_BORROWER_DATA_KEY = "basicBorrowerData"
 
 export const useGetBasicBorrowerData = (borrowerAddress?: string) =>
   useQuery({

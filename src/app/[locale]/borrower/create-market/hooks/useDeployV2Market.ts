@@ -32,6 +32,7 @@ import { GET_CONTROLLER_KEY } from "@/hooks/useGetController"
 
 import { GET_BORROWER_MARKETS } from "../../hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { GET_ALL_MARKETS } from "../../hooks/getMaketsHooks/useGetOthersMarkets"
+import { GET_BASIC_BORROWER_DATA_KEY } from "@/hooks/useGetBasicBorrowerData"
 
 export type DeployNewV2MarketParams = (
   | (Omit<
@@ -327,6 +328,7 @@ export const useDeployV2Market = () => {
       client.invalidateQueries({ queryKey: [GET_CONTROLLER_KEY] })
       client.invalidateQueries({ queryKey: [GET_BORROWER_MARKETS] })
       client.invalidateQueries({ queryKey: [GET_ALL_MARKETS] })
+      client.invalidateQueries({ queryKey: [GET_BASIC_BORROWER_DATA_KEY] })
     },
     onError(error) {
       console.log(error)
