@@ -55,7 +55,7 @@ export const MarketAuthorisedLenders = ({
   marketAccount,
 }: MarketAuthorisedLendersProps) => {
   const editLendersLink = market
-    ? `${ROUTES.borrower.editPolicy}?policy=${encodeURIComponent(
+    ? `${ROUTES.borrower.policy}?policy=${encodeURIComponent(
         market?.hooksConfig?.hooksAddress ?? market?.controller ?? "",
       )}`
     : ROUTES.borrower.lendersList

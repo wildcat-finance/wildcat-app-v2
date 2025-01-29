@@ -471,9 +471,9 @@
         "upTo": "Up to",
         "daysSubtitle": " Number of additional days to cover interest and fees",
         "repay": "Repay",
-        "repaySum": "Repay Sum",
+        "repaySum": "Amount To Repay",
         "needToRepay": "Need To Repay",
-        "afterTransaction": " after transaction",
+        "afterTransaction": " After This",
         "approve": "Approve",
         "approved": "Approved"
       },
@@ -1001,7 +1001,7 @@
         "button": "Withdraw",
         "buttonLocked": "Fixed Term",
         "title": "Available For Withdraw Requests",
-        "tooltip": "The amount of underlying asset debt that the address you are connected with is able to request a withdrawal for.",
+        "tooltip": "The amount of underlying asset debt that the address you are connected with is able to request a withdrawal for. Note that if this market is still in a fixed term note (see maturity below), you are unable to make withdrawal requests.",
         "modal": {
           "title": "Withdraw",
           "available": "Available For Withdraw Requests",
