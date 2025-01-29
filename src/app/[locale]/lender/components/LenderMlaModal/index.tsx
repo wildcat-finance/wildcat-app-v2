@@ -17,7 +17,7 @@ export const LenderMlaModal = ({
   const mla = mlaInput && "noMLA" in mlaInput ? undefined : mlaInput
   const { address } = useAccount()
   const { data: signedMla, isLoading: signedMlaLoading } = useGetSignedMla(
-    mla?.market,
+    mla
   )
   const [timeSigned, setTimeSigned] = useState(0)
   useEffect(() => {
@@ -87,7 +87,7 @@ export const LenderMlaModal = ({
             }}
           >
             <iframe
-              srcDoc={mla?.html}
+              srcDoc={signedMla?.html ?? mla?.html}
               style={{
                 width: "800px",
                 height: "100%",
