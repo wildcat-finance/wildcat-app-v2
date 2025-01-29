@@ -30,6 +30,8 @@ import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
+import { useGetController } from "@/hooks/useGetController"
+
 export const ProfileDialog = ({
   open,
   handleClose,
@@ -46,6 +48,9 @@ export const ProfileDialog = ({
     disconnect()
     handleClose()
   }
+
+  const { data: controller } = useGetController()
+  const isRegisteredBorrower = controller?.isRegisteredBorrower
 
   return (
     <Dialog open={open} onClose={handleClose} sx={DialogContainer}>
@@ -107,6 +112,8 @@ export const ProfileDialog = ({
         />
 
         <Box sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
+          
+          {isRegisteredBorrower && (
           <Link href={ROUTES.borrower.profile} onClick={handleClose}>
             <Button
               variant="text"
@@ -135,6 +142,7 @@ export const ProfileDialog = ({
               </Typography>
             </Button>
           </Link>
+          )}
 
           <Button
             variant="text"
