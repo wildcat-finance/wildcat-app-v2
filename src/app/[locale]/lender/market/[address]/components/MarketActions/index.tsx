@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import { Box, Button, Divider, Modal, Typography } from "@mui/material"
-import { DepositStatus, QueueWithdrawalStatus } from "@wildcatfi/wildcat-sdk"
+import { DepositStatus, MarketAccount, QueueWithdrawalStatus, SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { LenderMlaModal } from "@/app/[locale]/lender/components/LenderMlaModal"
@@ -16,6 +16,27 @@ import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { MarketActionsProps } from "./interface"
+import { TargetChainId } from "@/config/network"
+import { useFaucet } from "../../hooks/useFaucet"
+
+const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
+  const { mutate: faucet, isPending: isFauceting, isSuccess } = useFaucet(marketAccount)
+
+
+  if (isSuccess) return null
+
+  return (
+    <Button
+      disabled={isFauceting}
+      variant="contained"
+      size="large"
+      sx={{ width: "152px" }}
+      onClick={() => faucet()}
+    >
+      {isFauceting ? "Requesting tokens..." : "Faucet"}
+    </Button>
+  )
+}
 
 export const MarketActions = ({
   marketAccount,
@@ -34,6 +55,13 @@ export const MarketActions = ({
     market.isClosed ||
     marketAccount.maximumDeposit.raw.isZero() ||
     marketAccount.depositAvailability !== DepositStatus.Ready
+
+  const showFaucet = (
+    hideDeposit &&
+    TargetChainId === SupportedChainId.Sepolia &&
+    market.underlyingToken.isMock &&
+    marketAccount.underlyingBalance.raw.isZero()
+  )
 
   const hideWithdraw =
     marketAccount.marketBalance.raw.isZero() ||
@@ -72,6 +100,7 @@ export const MarketActions = ({
           asset={market.underlyingToken.symbol}
         >
           {!hideDeposit && <DepositModal marketAccount={marketAccount} />}
+          {showFaucet && <FaucetButton marketAccount={marketAccount}  />}
         </TransactionBlock>
 
         <TransactionBlock
