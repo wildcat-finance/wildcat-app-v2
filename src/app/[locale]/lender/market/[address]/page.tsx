@@ -4,6 +4,7 @@ import * as React from "react"
 import { useEffect } from "react"
 
 import { Box, Divider, Skeleton, Typography } from "@mui/material"
+import { redirect } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
@@ -31,6 +32,15 @@ import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
 import { SectionContainer, SkeletonContainer, SkeletonStyle } from "./style"
 import { getEffectiveLenderRole } from "./utils"
+import OtherBorrowerProfile from "../../profile/[address]/page"
+import { BorrowerProfileDetails } from "@/app/[locale]/borrower/profile/components/BorrowerProfileDetails"
+
+const BorrowerProfileRedirect = ({ address }: { address: string }) => {
+  useEffect(() => {
+    redirect(`/borrower/profile/${address}`)
+  }, [])
+  return null
+}
 
 export default function LenderMarketDetails({
   params: { address },
@@ -158,6 +168,10 @@ export default function LenderMarketDetails({
               <Divider sx={{ margin: "40px 0 44px" }} />
               <MarketParameters market={market} />
             </Box>
+          )}
+
+          {currentSection === LenderMarketSections.BORROWER_PROFILE && (
+            <BorrowerProfileDetails address={marketAccount.market.borrower} hideMarkets />
           )}
 
           {currentSection === LenderMarketSections.REQUESTS && (
