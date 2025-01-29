@@ -88,9 +88,9 @@ export const useSignAgreement = () => {
           result = res
         }),
         {
-          pending: `Waiting for signature...`,
-          success: `Terms of use signed!`,
-          error: `Failed to sign terms of use!`,
+          pending: `Waiting For Signature...`,
+          success: `Terms of Use signed!`,
+          error: `Failed to sign Terms of Use!`,
         },
       )
 
