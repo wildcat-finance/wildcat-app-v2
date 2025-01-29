@@ -21,10 +21,14 @@ export const ErrorModal = ({
   onTryAgain,
   onClose,
   txHash,
+  title,
+  subtitle,
 }: {
-  onTryAgain: () => void
+  onTryAgain?: () => void
   onClose: () => void
   txHash?: string
+  title?: string
+  subtitle?: string
 }) => (
   <>
     <Box sx={FinalModalHeader}>
@@ -43,10 +47,14 @@ export const ErrorModal = ({
 
         <Box sx={FinalModalTypoBox}>
           <Typography variant="title3">
-            <Trans i18nKey="borrowerMarketDetails.modals.error.wait" />
+            {title ?? (
+              <Trans i18nKey="borrowerMarketDetails.modals.error.wait" />
+            )}
           </Typography>
           <Typography variant="text3" sx={FinalModalSubtitle}>
-            <Trans i18nKey="borrowerMarketDetails.modals.error.subtitle" />
+            {subtitle ?? (
+              <Trans i18nKey="borrowerMarketDetails.modals.error.subtitle" />
+            )}
           </Typography>
         </Box>
       </Box>
@@ -59,9 +67,11 @@ export const ErrorModal = ({
         />
       )}
 
-      <Button variant="contained" size="large" onClick={onTryAgain} fullWidth>
-        <Trans i18nKey="borrowerMarketDetails.modals.error.tryAgain" />
-      </Button>
+      {onTryAgain && (
+        <Button variant="contained" size="large" onClick={onTryAgain} fullWidth>
+          <Trans i18nKey="borrowerMarketDetails.modals.error.tryAgain" />
+        </Button>
+      )}
     </Box>
   </>
 )
