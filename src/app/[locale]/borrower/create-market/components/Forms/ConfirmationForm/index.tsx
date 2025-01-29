@@ -14,6 +14,9 @@ import { MlaModal } from "@/app/[locale]/lender/components/MlaModal"
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import Info from "@/assets/icons/info_icon.svg"
+import ELFsByCountry from "@/config/elfs-by-country.json"
+import JurisdictionsByCountry from "@/config/jurisdictions-by-country.json"
+import Jurisdictions from "@/config/jurisdictions.json"
 import {
   mockedAccessControlOptions,
   mockedMarketTypesOptions,
@@ -115,9 +118,9 @@ export const ConfirmationForm = ({
   const { data: borrowerData, isLoading: isPublicDataLoading } =
     useGetBorrowerProfile(address)
 
-  const entityKind = mockedNaturesOptions.find(
-    (option) => option.id === borrowerData?.entityKind,
-  )
+  // const entityKind = mockedNaturesOptions.find(
+  // (option) => option.id === borrowerData?.entityKind,
+  // )
 
   const dispatch = useAppDispatch()
 
@@ -147,6 +150,17 @@ export const ConfirmationForm = ({
     selectedMla === "noMLA" ? undefined : Number(selectedMla)
   const isMLA = mlaTemplateId !== undefined
   const isReductionAllowed = getValues("allowTermReduction")
+
+  const jurisdiction = borrowerData?.jurisdiction
+    ? Jurisdictions[borrowerData.jurisdiction as keyof typeof Jurisdictions]
+    : undefined
+  const entityKind =
+    borrowerData?.entityKind &&
+    jurisdiction &&
+    (
+      ELFsByCountry[jurisdiction.countryCode as keyof typeof ELFsByCountry] ||
+      []
+    ).find((e) => e.elfCode === borrowerData.entityKind)?.name
 
   /// Note: The signature is handled at a higher level, but we need to ensure the
   /// signature was requested at this stage of the deployment process to prevent
@@ -425,12 +439,16 @@ export const ConfirmationForm = ({
 
             <ConfirmationFormItem
               label={t("createNewMarket.confirm.legalInfo.jurisdiction")}
-              value={borrowerData?.jurisdiction || ""}
+              value={
+                jurisdiction
+                  ? jurisdiction.subDivisionName || jurisdiction.countryName
+                  : ""
+              }
             />
 
             <ConfirmationFormItem
               label={t("createNewMarket.confirm.legalInfo.entityKind")}
-              value={entityKind?.label || ""}
+              value={entityKind || ""}
             />
 
             <ConfirmationFormItem
