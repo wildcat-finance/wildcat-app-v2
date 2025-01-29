@@ -977,7 +977,8 @@
       "actions": "Deposit & Withdraw",
       "status": "Status",
       "requests": "Withdrawal Requests",
-      "marketHistory": "Market History"
+      "marketHistory": "Market History",
+      "borrowerProfile": "About Borrower"
     },
     "buttons": {
       "addToken": "Add Debt Token To Wallet",
