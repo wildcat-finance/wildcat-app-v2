@@ -8,6 +8,7 @@
     "start": "next start",
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build",
+    "lint:errors": "next lint --quiet",
     "lint": "next lint"
   },
   "dependencies": {
