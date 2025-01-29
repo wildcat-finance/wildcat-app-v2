@@ -143,13 +143,15 @@ export const ConfirmationForm = ({
   const withdrawalRequiresAccess = getValues("withdrawalRequiresAccess")
   const transferRequiresAccess = getValues("transferRequiresAccess")
   const disableTransfers = getValues("disableTransfers")
-  const allowForceBuyBack = getValues("allowForceBuyBack")
+  const minimumDeposit = getValues("minimumDeposit") ?? 0
+  const maximumCapacity = getValues("maxTotalSupply")
 
   const selectedMla = getValues("mla")
   const mlaTemplateId =
     selectedMla === "noMLA" ? undefined : Number(selectedMla)
   const isMLA = mlaTemplateId !== undefined
   const isReductionAllowed = getValues("allowTermReduction")
+  const isMinDepOverMaxCap = minimumDeposit > maximumCapacity
 
   const jurisdiction = borrowerData?.jurisdiction
     ? Jurisdictions[borrowerData.jurisdiction as keyof typeof Jurisdictions]
@@ -494,6 +496,20 @@ export const ConfirmationForm = ({
 
           <Typography variant="text3">
             {t("createNewMarket.confirm.alertReduction")}
+          </Typography>
+        </Box>
+      )}
+
+      {isMinDepOverMaxCap && (
+        <Box sx={AlertContainer}>
+          <SvgIcon
+            sx={{ fontSize: "18px", "& path": { fill: COLORS.dullRed } }}
+          >
+            <Info />
+          </SvgIcon>
+
+          <Typography variant="text3">
+            {t("createNewMarket.confirm.alertMinDep")}
           </Typography>
         </Box>
       )}
