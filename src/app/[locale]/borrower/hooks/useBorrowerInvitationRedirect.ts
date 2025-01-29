@@ -28,9 +28,8 @@ export const useBorrowerInvitationRedirect = () => {
   const isRegisteredBorrower = borrowerData?.isRegisteredBorrower
 
   const isLoading =
-    isLoadingBorrowerData || isLoadingInvitation || isFetchingInvitation
+    isLoadingBorrowerData || isLoadingInvitation
 
-  return useMemo(() => {
     // - If user is not logged in, hide banner
     if (!address) {
       return {
@@ -100,13 +99,4 @@ export const useBorrowerInvitationRedirect = () => {
         url: GOOGLE_FORM_LINK,
       },
     }
-  }, [
-    address,
-    isLoading,
-    isSuccess,
-    isRegisteredBorrower,
-    invitationStatus,
-    borrowerData?.hasMarkets,
-    isFetchingInvitation,
-  ])
 }
