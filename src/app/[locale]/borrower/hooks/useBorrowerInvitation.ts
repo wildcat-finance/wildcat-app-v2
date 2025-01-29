@@ -1,36 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
 
-// import { BorrowerInvitation } from "@/app/api/invite/interface"
+import { BorrowerInvitation } from "@/app/api/invite/interface"
 import { useAuthToken } from "@/hooks/useApiAuth"
 
 export const USE_BORROWER_INVITE_KEY = "use-borrower-invite"
 export const USE_BORROWER_INVITE_EXISTS_KEY = "use-borrower-invite-exists"
-
-export type BorrowerInvite = {
-  address: string
-  name?: string
-  timeInvited: string
-  timeAccepted?: string
-  signature?: string
-  messageHash?: string
-  dateSigned?: string
-  registeredMainnet?: number
-  registeredSepolia?: number
-}
-
-interface BorrowerInvitation {
-  id: number
-  chainId: number
-  address: string
-  name: string
-  timeInvited: Date
-}
-
-type BorrowerInvitationResponse = {
-  inviteExists: boolean
-  mustLogin: boolean
-  invitation?: BorrowerInvitation
-}
 
 export const useGetBorrowerInvitation = (address: string | undefined) => {
   const token = useAuthToken()
@@ -65,6 +39,11 @@ export const useGetBorrowerInvitation = (address: string | undefined) => {
   return { ...data, ...result }
 }
 
+export enum BorrowerInvitationStatus {
+  PendingSignature,
+  PendingRegistration,
+}
+
 /**
  * The route for checking if a borrower has a pending invitation
  * is unauthenticated; however, the route for getting the invitation
@@ -72,17 +51,19 @@ export const useGetBorrowerInvitation = (address: string | undefined) => {
  */
 export const useBorrowerInvitationExists = (address: string | undefined) => {
   const getInvitationExists = async () => {
-    if (!address) return false
+    if (!address) return undefined
     const res = await fetch(`/api/invite/${address.toLowerCase()}`, {
       method: "HEAD",
     })
-    return res.status === 200
+    if (res.status === 404) return undefined
+    if (res.headers.get("Signed") === "true")
+      return BorrowerInvitationStatus.PendingRegistration
+    return BorrowerInvitationStatus.PendingSignature
   }
   const { data, ...result } = useQuery({
     enabled: !!address,
     queryKey: [USE_BORROWER_INVITE_EXISTS_KEY, address],
     queryFn: getInvitationExists,
-    refetchOnMount: false,
   })
   return {
     data: data === null ? undefined : data,
