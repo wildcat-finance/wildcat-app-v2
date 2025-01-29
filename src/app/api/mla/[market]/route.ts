@@ -151,7 +151,7 @@ export async function POST(
     asset: market.underlyingToken,
   })
   const { html, plaintext } = fillInMlaTemplate(mlaTemplate, values)
-  writeFileSync(path.join(process.cwd(), "mla.txt"), plaintext)
+  // writeFileSync(path.join(process.cwd(), "mla.txt"), plaintext)
   const signature = await verifyAndDescribeSignature({
     provider,
     address,
