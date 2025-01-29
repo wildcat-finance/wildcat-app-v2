@@ -22,13 +22,15 @@ export const LeadBanner = ({
         {text}
       </Typography>
     </Box>
-    <Link
-      href={buttonLink?.url || ""}
-      target={buttonLink?.isExternal ? "_blank" : "_self"}
-    >
-      <Button size="large" sx={RequestButton} onClick={onClick}>
-        {buttonText}
-      </Button>
-    </Link>
+    {buttonLink && (
+      <Link
+        href={buttonLink.url || ""}
+        target={buttonLink.isExternal ? "_blank" : "_self"}
+      >
+        <Button size="large" sx={RequestButton} onClick={onClick}>
+          {buttonText}
+        </Button>
+      </Link>
+    )}
   </Box>
 )
