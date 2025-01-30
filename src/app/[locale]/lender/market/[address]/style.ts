@@ -18,5 +18,5 @@ export const SectionContainer = {
   overflow: "hidden",
   overflowY: "visible",
   height: `calc(100vh - ${pageCalcHeights.market})`,
-  paddingBottom: "24px",
+  padding: "0 32.3% 24px 44px",
 }
