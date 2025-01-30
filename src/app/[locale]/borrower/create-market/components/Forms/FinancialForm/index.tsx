@@ -127,6 +127,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
           <NumberTextField
             min={0}
             max={100}
+            decimalScale={2}
             label={t("createNewMarket.financial.baseAPR.placeholder")}
             value={getValues("annualInterestBips")}
             error={Boolean(errors.annualInterestBips)}
@@ -144,6 +145,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
           <NumberTextField
             min={0}
             max={100}
+            decimalScale={2}
             label={t("createNewMarket.financial.penaltyAPR.placeholder")}
             value={getValues("delinquencyFeeBips")}
             error={Boolean(errors.delinquencyFeeBips)}
@@ -162,6 +164,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
             label={t("createNewMarket.financial.ratio.placeholder")}
             min={0}
             max={100}
+            decimalScale={2}
             value={getValues("reserveRatioBips")}
             error={Boolean(errors.reserveRatioBips)}
             helperText={errors.reserveRatioBips?.message}
@@ -176,6 +179,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
 
         <InputLabel label={t("createNewMarket.periods.grace.label")}>
           <NumberTextField
+            decimalScale={2}
             label={t("createNewMarket.periods.grace.placeholder")}
             value={delinquencyGracePeriodWatch}
             error={Boolean(errors.delinquencyGracePeriod)}
@@ -191,6 +195,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
 
         <InputLabel label={t("createNewMarket.periods.wdCycle.label")}>
           <NumberTextField
+            decimalScale={2}
             label={t("createNewMarket.periods.wdCycle.placeholder")}
             value={withdrawalBatchDurationWatch}
             error={Boolean(errors.withdrawalBatchDuration)}
