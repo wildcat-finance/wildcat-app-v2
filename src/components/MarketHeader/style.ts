@@ -3,6 +3,7 @@ export const MarketHeaderUpperContainer = {
   alignItems: "center",
   justifyContent: "space-between",
   marginBottom: "20px",
+  padding: "52px 31% 0 44px",
 }
 
 export const MarketHeaderTitleContainer = {

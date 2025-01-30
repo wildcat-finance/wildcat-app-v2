@@ -40,7 +40,7 @@ export const Sidebar = () => {
         overflowY: "auto",
       }}
     >
-      <Box sx={{ height: `calc(100% - ${showCommitHash ? "112px" : "88px"})` }}>
+      <Box sx={{ height: `calc(100% - ${showCommitHash ? "130px" : "88px"})` }}>
         {pathname === ROUTES.lender.root && <LenderDashboardSidebar />}
         {pathname === ROUTES.borrower.root && <BorrowerDashboardSidebar />}
         {pathname.includes(ROUTES.borrower.market) && <MarketSidebar />}
