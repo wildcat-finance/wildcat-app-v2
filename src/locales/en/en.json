@@ -983,9 +983,9 @@
     "buttons": {
       "addToken": "Add Debt Token To Wallet",
       "statement": "Download Statement",
-      "viewMla": "View MLA",
-      "mlaNotSet": "Borrower Has Not Configured MLA",
-      "mlaRefused": "Borrower Declined to Set MLA"
+      "viewMla": "View/Sign MLA",
+      "mlaNotSet": "Borrower Has Not Configured An MLA",
+      "mlaRefused": "Borrower Declined to Set An MLA"
     },
     "transactions": {
       "deposit": {
