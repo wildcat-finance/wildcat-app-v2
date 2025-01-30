@@ -42,7 +42,7 @@ const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
       sx={{ width: "152px" }}
       onClick={() => faucet()}
     >
-      {isFauceting ? "Requesting tokens..." : "Faucet"}
+      {isFauceting ? "Requesting Tokens..." : "Faucet"}
     </Button>
   )
 }
@@ -137,31 +137,33 @@ export const MarketActions = ({
             >
               {!hideWithdraw && <WithdrawModal marketAccount={marketAccount} />}
             </TransactionBlock>
+
+            <Divider sx={{ margin: "32px 0 40px" }} />
+
+            <Box width="100%" display="flex" flexDirection="column">
+              <Typography variant="title3" sx={{ marginBottom: "8px" }}>
+                {t("lenderMarketDetails.transactions.claim.title.beginning")}{" "}
+                {claimAmountString}{" "}
+                {t("lenderMarketDetails.transactions.claim.title.ending")}
+              </Typography>
+              {claimAmountString === "nothing" && (
+                <Typography
+                  variant="text3"
+                  sx={{ marginBottom: hideClaim ? "0" : "24px" }}
+                  color={COLORS.santasGrey}
+                >
+                  {t("lenderMarketDetails.transactions.claim.subtitle")}
+                </Typography>
+              )}
+              {!hideClaim && (
+                <ClaimModal market={market} withdrawals={withdrawals} />
+              )}
+            </Box>
+
+            <Divider sx={{ margin: "40px 0 32px" }} />
           </Box>
         )}
       </Box>
-
-      <Divider sx={{ margin: "32px 0 40px" }} />
-
-      <Box width="100%" display="flex" flexDirection="column">
-        <Typography variant="title3" sx={{ marginBottom: "8px" }}>
-          {t("lenderMarketDetails.transactions.claim.title.beginning")}{" "}
-          {claimAmountString}{" "}
-          {t("lenderMarketDetails.transactions.claim.title.ending")}
-        </Typography>
-        {claimAmountString === "nothing" && (
-          <Typography
-            variant="text3"
-            sx={{ marginBottom: hideClaim ? "0" : "24px" }}
-            color={COLORS.santasGrey}
-          >
-            {t("lenderMarketDetails.transactions.claim.subtitle")}
-          </Typography>
-        )}
-        {!hideClaim && <ClaimModal market={market} withdrawals={withdrawals} />}
-      </Box>
-
-      <Divider sx={{ margin: "40px 0 32px" }} />
     </>
   )
 }
