@@ -1014,7 +1014,7 @@
       "claim": {
         "title": {
           "beginning": "You have",
-          "ending": "to claim at present."
+          "ending": "to claim right now."
         },
         "subtitle": "No assets available to claim from this market.",
         "button": "Claim Assets"
