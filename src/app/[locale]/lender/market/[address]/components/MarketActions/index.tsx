@@ -62,9 +62,8 @@ export const MarketActions = ({
 
   const mlaResponse = mla && "noMLA" in mla ? null : mla
   const { data: signedMla } = useGetSignedMla(mlaResponse)
-  // this makes sure that the result isn't null or undefined
   const mlaRequiredAndUnsigned =
-    typeof signedMla !== "object" && typeof mla === "object" // !signedMla && mlaResponse != null
+    typeof mla === "object" && (signedMla === null || signedMla === undefined)
 
   const hideDeposit =
     market.isClosed ||
@@ -117,7 +116,7 @@ export const MarketActions = ({
               sx={{ marginBottom: hideClaim ? "0" : "24px" }}
               color={COLORS.santasGrey}
             >
-              You need to sign the MLA before you can deposit, see above.
+              You need to sign the MLA before you can access this market.
             </Typography>
           </>
         ) : (
