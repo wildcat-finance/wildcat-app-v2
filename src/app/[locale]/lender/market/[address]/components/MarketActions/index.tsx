@@ -62,6 +62,7 @@ export const MarketActions = ({
 
   const mlaResponse = mla && "noMLA" in mla ? null : mla
   const { data: signedMla } = useGetSignedMla(mlaResponse)
+  const mlaRequiredAndUnsigned = !signedMla && mlaResponse !== null
 
   const hideDeposit =
     market.isClosed ||
@@ -104,7 +105,7 @@ export const MarketActions = ({
       <Divider sx={{ margin: "32px 0" }} />
 
       <Box width="100%" display="flex" flexDirection="column">
-        {!signedMla ? (
+        {!mlaRequiredAndUnsigned ? (
           <>
             <Typography variant="title3" sx={{ marginBottom: "8px" }}>
               Loan Agreement Signature Required
