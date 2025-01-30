@@ -62,7 +62,7 @@ export const MarketActions = ({
 
   const mlaResponse = mla && "noMLA" in mla ? null : mla
   const { data: signedMla } = useGetSignedMla(mlaResponse)
-  const mlaRequiredAndUnsigned = !signedMla && mlaResponse !== null
+  const mlaRequiredAndUnsigned = !signedMla && mlaResponse != null
 
   const hideDeposit =
     market.isClosed ||
