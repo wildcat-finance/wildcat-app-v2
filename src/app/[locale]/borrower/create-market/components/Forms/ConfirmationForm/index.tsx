@@ -474,7 +474,7 @@ export const ConfirmationForm = ({
         </Typography>
       </Box>
 
-      <Box sx={AlertContainer}>
+      <Box sx={{ ...AlertContainer, marginTop: "12px" }}>
         <SvgIcon sx={{ fontSize: "18px", "& path": { fill: COLORS.greySuit } }}>
           <Info />
         </SvgIcon>

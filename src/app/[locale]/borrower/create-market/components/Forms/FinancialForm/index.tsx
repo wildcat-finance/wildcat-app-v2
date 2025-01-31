@@ -179,6 +179,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
 
         <InputLabel label={t("createNewMarket.periods.grace.label")}>
           <NumberTextField
+            decimalScale={2}
             label={t("createNewMarket.periods.grace.placeholder")}
             value={delinquencyGracePeriodWatch}
             error={Boolean(errors.delinquencyGracePeriod)}
@@ -195,6 +196,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
 
         <InputLabel label={t("createNewMarket.periods.wdCycle.label")}>
           <NumberTextField
+            decimalScale={2}
             label={t("createNewMarket.periods.wdCycle.placeholder")}
             value={withdrawalBatchDurationWatch}
             error={Boolean(errors.withdrawalBatchDuration)}

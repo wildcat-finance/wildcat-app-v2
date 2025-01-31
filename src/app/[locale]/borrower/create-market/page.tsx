@@ -305,7 +305,14 @@ export default function CreateMarketPage() {
 
         <Dialog
           open={finalOpen}
-          onClose={!isDeploying ? () => setFinalOpen(false) : undefined}
+          onClose={
+            isError
+              ? () => {
+                  handleResetModal()
+                  setFinalOpen(false)
+                }
+              : undefined
+          }
           sx={FinalDialogContainer}
         >
           {showErrorPopup && (

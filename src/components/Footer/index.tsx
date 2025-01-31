@@ -25,16 +25,21 @@ const getCommitInfo = () => {
     return null
 
   return (
-    <div style={DeployInfoSx}>
+    <Box sx={DeployInfoSx}>
       <Link
         href={`${process.env.NEXT_PUBLIC_GIT_WILDCAT_URL}/${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA}`}
         target="_blank"
         style={CommitHashLinkSx}
       >
-        {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA}
+        <Typography variant="text4" color={COLORS.santasGrey}>
+          {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA}
+        </Typography>
       </Link>
-      {dayjs(process.env.BUILD_TIME).format(DEPLOY_DATE_FORMAT)}
-    </div>
+
+      <Typography variant="text4" color={COLORS.santasGrey}>
+        {dayjs(process.env.BUILD_TIME).format(DEPLOY_DATE_FORMAT)}
+      </Typography>
+    </Box>
   )
 }
 
@@ -78,9 +83,8 @@ export const Footer = () => {
       >
         {t("footer.rights")}
       </Typography>
-      <Typography variant="text4" color={COLORS.santasGrey}>
-        {COMMIT_INFO}
-      </Typography>
+
+      {COMMIT_INFO}
     </Box>
   )
 }

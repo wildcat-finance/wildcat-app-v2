@@ -14,4 +14,6 @@ export const SkeletonStyle = {
 
 export const SlideContentContainer = {
   width: "100%",
+  overflow: "hidden",
+  overflowY: "visible",
 }

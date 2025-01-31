@@ -22,6 +22,7 @@ import {
   setCheckBlock,
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
+import { pageCalcHeights } from "@/utils/constants"
 
 import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
 import { MarketMLA } from "./components/MarketMLA"
@@ -111,16 +112,19 @@ export default function MarketDetails({
         </Box>
       </Box>
     )
+
   return (
-    <Box sx={{ padding: "52px 20px 0 44px" }}>
-      <Box sx={{ width: "69%" }}>
+    <Box>
+      <Box>
         {!bannerDisplayConfig.hideBanner && checked === 1 && (
-          <LeadBanner
-            title={bannerDisplayConfig.title}
-            text={bannerDisplayConfig.text}
-            buttonText={bannerDisplayConfig.buttonText}
-            buttonLink={bannerDisplayConfig.link}
-          />
+          <Box padding="24px 32.3% 0 44px">
+            <LeadBanner
+              title={bannerDisplayConfig.title}
+              text={bannerDisplayConfig.text}
+              buttonText={bannerDisplayConfig.buttonText}
+              buttonLink={bannerDisplayConfig.link}
+            />
+          </Box>
         )}
         <MarketHeader marketAccount={marketAccount} />
         <Box
@@ -129,10 +133,11 @@ export default function MarketDetails({
             width: "100%",
             overflow: "hidden",
             overflowY: "visible",
+            padding: "0 32.3% 24px 44px",
             height:
               !bannerDisplayConfig.hideBanner && checked === 1
-                ? "calc(100vh - 43px - 43px - 52px - 60px - 52px - 220px)"
-                : "calc(100vh - 43px - 43px - 52px - 60px - 52px)",
+                ? `calc(100vh - ${pageCalcHeights.market} - 220px)`
+                : `calc(100vh - ${pageCalcHeights.market})`,
           }}
         >
           {/* <Slide */}

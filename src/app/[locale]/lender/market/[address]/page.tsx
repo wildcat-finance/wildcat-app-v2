@@ -136,8 +136,8 @@ export default function LenderMarketDetails({
     )
 
   return (
-    <Box sx={{ padding: "52px 20px 0 44px" }}>
-      <Box width="69%">
+    <Box>
+      <Box>
         <MarketHeader marketAccount={marketAccount} />
 
         <Box sx={SectionContainer}>
