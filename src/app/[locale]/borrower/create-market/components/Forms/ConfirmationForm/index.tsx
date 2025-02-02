@@ -139,7 +139,7 @@ export const ConfirmationForm = ({
   const isFixedTerm = getValues("marketType") === "fixedTerm"
   const isNewPolicy = getValues("policy") === "createNewPolicy"
   const policyNameValue = getValues("policyName") || "Unnamed Policy"
-  const depositRequiresAccess = getValues("depositRequiresAccess")
+  const depositRequiresAccess = "Yes" // getValues("depositRequiresAccess")
   const withdrawalRequiresAccess = getValues("withdrawalRequiresAccess")
   const transferRequiresAccess = getValues("transferRequiresAccess")
   const disableTransfers = getValues("disableTransfers")
@@ -392,11 +392,6 @@ export const ConfirmationForm = ({
           gap: "20px 12px",
         }}
       >
-        <ConfirmationFormItem
-          label={t("createNewMarket.lenderRestrictions.restrictDeposits.label")}
-          value={depositRequiresAccess ? "Yes" : "No"}
-        />
-
         <ConfirmationFormItem
           label={t(
             "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
