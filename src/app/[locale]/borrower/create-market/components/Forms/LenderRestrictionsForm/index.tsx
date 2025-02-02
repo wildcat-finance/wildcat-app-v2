@@ -25,7 +25,6 @@ export const LenderRestrictionsForm = ({
   const { setValue, watch } = form
 
   const withdrawalRequiresAccessWatch = watch("withdrawalRequiresAccess")
-  const depositRequiresAccessWatch = watch("depositRequiresAccess")
   const disableTransfersWatch = watch("disableTransfers")
   const transferRequiresAccessWatch = watch("transferRequiresAccess")
 
@@ -61,20 +60,6 @@ export const LenderRestrictionsForm = ({
           gap: "24px",
         }}
       >
-        <HorizontalInputLabel
-          label={t("createNewMarket.lenderRestrictions.restrictDeposits.label")}
-          explainer={t(
-            "createNewMarket.lenderRestrictions.restrictDeposits.explainer",
-          )}
-        >
-          <Switch
-            checked={depositRequiresAccessWatch}
-            onChange={(e) => {
-              setValue("depositRequiresAccess", e.target.checked)
-            }}
-          />
-        </HorizontalInputLabel>
-
         <HorizontalInputLabel
           label={t(
             "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
