@@ -55,7 +55,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       ),
     },
     {
-      field: "term",
+      field: "type",
       headerName: "Term",
       minWidth: 170,
       flex: 1,
