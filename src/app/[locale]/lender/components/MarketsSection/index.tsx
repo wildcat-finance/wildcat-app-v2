@@ -47,11 +47,16 @@ export const MarketsSection = () => {
     [],
   )
 
-  const filters = {
-    nameFilter: marketSearch,
-    assetFilter: marketAssets,
-    statusFilter: marketStatuses.map((status) => status.name) as MarketStatus[],
-  }
+  const filters = useMemo(
+    () => ({
+      nameFilter: marketSearch,
+      assetFilter: marketAssets,
+      statusFilter: marketStatuses.map(
+        (status) => status.name,
+      ) as MarketStatus[],
+    }),
+    [marketSearch, marketAssets, marketStatuses],
+  )
 
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
