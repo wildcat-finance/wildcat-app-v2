@@ -61,7 +61,8 @@ export const MarketActions = ({
   )
 
   const mlaResponse = mla && "noMLA" in mla ? null : mla
-  const { data: signedMla, isLoading: signedMlaLoading } = useGetSignedMla(mlaResponse)
+  const { data: signedMla, isLoading: signedMlaLoading } =
+    useGetSignedMla(mlaResponse)
   const mlaRequiredAndUnsigned =
     signedMla === null && !!mla && !mlaLoading && !signedMlaLoading
 
