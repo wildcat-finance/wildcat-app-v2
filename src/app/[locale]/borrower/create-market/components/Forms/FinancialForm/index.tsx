@@ -99,6 +99,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
           <NumberTextField
             label={t("createNewMarket.financial.maxCapacity.placeholder")}
             value={getValues("maxTotalSupply")}
+            decimalScale={tokenAsset?.decimals}
             // onBlur={(v) => {
             //   setValue(
             //     "maxTotalSupply",
@@ -184,7 +185,6 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
             value={delinquencyGracePeriodWatch}
             error={Boolean(errors.delinquencyGracePeriod)}
             helperText={errors.delinquencyGracePeriod?.message}
-            decimalScale={2}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
                 {t("createNewMarket.periods.grace.chip")}
@@ -201,7 +201,6 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
             value={withdrawalBatchDurationWatch}
             error={Boolean(errors.withdrawalBatchDuration)}
             helperText={errors.withdrawalBatchDuration?.message}
-            decimalScale={2}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
                 {t("createNewMarket.periods.wdCycle.chip")}
@@ -226,6 +225,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
           }}
           error={Boolean(errors.minimumDeposit)}
           helperText={errors.minimumDeposit?.message}
+          decimalScale={tokenAsset?.decimals}
           thousandSeparator
           style={{ maxWidth: "50%" }}
           endAdornment={
