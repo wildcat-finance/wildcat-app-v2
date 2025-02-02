@@ -111,7 +111,7 @@ export const MarketActions = ({
       <Divider sx={{ margin: "32px 0" }} />
 
       <Box width="100%" display="flex" flexDirection="column">
-        {!mlaRequiredAndUnsigned ? (
+        {mlaRequiredAndUnsigned ? (
           <>
             <Typography variant="title3" sx={{ marginBottom: "8px" }}>
               Loan Agreement Signature Required
