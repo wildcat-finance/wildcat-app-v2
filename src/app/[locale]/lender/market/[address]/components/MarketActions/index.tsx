@@ -64,11 +64,7 @@ export const MarketActions = ({
   const { data: signedMla, isLoading: signedMlaLoading } =
     useGetSignedMla(mlaResponse)
   const mlaRequiredAndUnsigned =
-    signedMla === null &&
-    !!mla &&
-    !("noMLA" in mla) &&
-    !mlaLoading &&
-    !signedMlaLoading
+    signedMla === null && !!mla && !("noMLA" in mla)
 
   const hideDeposit =
     market.isClosed ||
@@ -111,41 +107,53 @@ export const MarketActions = ({
       <Divider sx={{ margin: "32px 0" }} />
 
       <Box width="100%" display="flex" flexDirection="column">
-        {mlaRequiredAndUnsigned ? (
-          <>
-            <Typography variant="title3" sx={{ marginBottom: "8px" }}>
-              Loan Agreement Signature Required
-            </Typography>
-            <Typography
-              variant="text3"
-              sx={{ marginBottom: hideClaim ? "0" : "24px" }}
-              color={COLORS.santasGrey}
-            >
-              You need to sign the MLA before you can access this market.
-            </Typography>
-          </>
-        ) : (
-          <Box sx={TransactionsContainer}>
-            <TransactionBlock
-              title={t("lenderMarketDetails.transactions.deposit.title")}
-              tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
-              amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
-              asset={market.underlyingToken.symbol}
-            >
-              {!hideDeposit && <DepositModal marketAccount={marketAccount} />}
-              {showFaucet && <FaucetButton marketAccount={marketAccount} />}
-            </TransactionBlock>
+        {(() => {
+          if (mlaLoading || signedMlaLoading) {
+            return <Typography variant="text3">Loading...</Typography>
+          }
 
-            <TransactionBlock
-              title={t("lenderMarketDetails.transactions.withdraw.title")}
-              tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
-              amount={formatTokenWithCommas(marketAccount.marketBalance)}
-              asset={market.underlyingToken.symbol}
-            >
-              {!hideWithdraw && <WithdrawModal marketAccount={marketAccount} />}
-            </TransactionBlock>
-          </Box>
-        )}
+          if (mlaRequiredAndUnsigned) {
+            return (
+              <>
+                <Typography variant="title3" sx={{ marginBottom: "8px" }}>
+                  Loan Agreement Signature Required
+                </Typography>
+                <Typography
+                  variant="text3"
+                  sx={{ marginBottom: hideClaim ? "0" : "24px" }}
+                  color={COLORS.santasGrey}
+                >
+                  You need to sign the MLA before you can access this market.
+                </Typography>
+              </>
+            )
+          }
+
+          return (
+            <Box sx={TransactionsContainer}>
+              <TransactionBlock
+                title={t("lenderMarketDetails.transactions.deposit.title")}
+                tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
+                amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
+                asset={market.underlyingToken.symbol}
+              >
+                {!hideDeposit && <DepositModal marketAccount={marketAccount} />}
+                {showFaucet && <FaucetButton marketAccount={marketAccount} />}
+              </TransactionBlock>
+
+              <TransactionBlock
+                title={t("lenderMarketDetails.transactions.withdraw.title")}
+                tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
+                amount={formatTokenWithCommas(marketAccount.marketBalance)}
+                asset={market.underlyingToken.symbol}
+              >
+                {!hideWithdraw && (
+                  <WithdrawModal marketAccount={marketAccount} />
+                )}
+              </TransactionBlock>
+            </Box>
+          )
+        })()}
       </Box>
 
       <Divider sx={{ margin: "32px 0 40px" }} />
