@@ -95,12 +95,6 @@ export const GlossarySidebar = ({
     case CreateMarketSteps.LRESTRICTIONS: {
       glossaryArray = [
         {
-          title: t("createNewMarket.lenderRestrictions.restrictDeposits.label"),
-          description: t(
-            "createNewMarket.lenderRestrictions.restrictDeposits.glossary",
-          ),
-        },
-        {
           title: t(
             "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
           ),

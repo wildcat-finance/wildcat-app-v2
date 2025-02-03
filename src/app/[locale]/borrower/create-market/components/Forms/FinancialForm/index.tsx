@@ -99,6 +99,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
           <NumberTextField
             label={t("createNewMarket.financial.maxCapacity.placeholder")}
             value={getValues("maxTotalSupply")}
+            decimalScale={tokenAsset?.decimals}
             // onBlur={(v) => {
             //   setValue(
             //     "maxTotalSupply",
@@ -224,6 +225,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
           }}
           error={Boolean(errors.minimumDeposit)}
           helperText={errors.minimumDeposit?.message}
+          decimalScale={tokenAsset?.decimals}
           thousandSeparator
           style={{ maxWidth: "50%" }}
           endAdornment={

@@ -99,7 +99,7 @@ export const MarketsTableAccordion = ({
               {nameFilter === "" ? "" : nameFilter}{" "}
               {assetFilter?.length !== 0 &&
                 `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
-              markets available at present.
+              markets available right now.
             </Typography>
           </Box>
         )}

@@ -103,7 +103,7 @@ export const OtherMarketsTable = ({
             No Self-Onboard Markets Available
           </Typography>
           <Typography variant="text3" color={COLORS.santasGrey}>
-            No self-onboarding markets are available at present.
+            No self-onboarding markets are available right now.
           </Typography>
         </Box>
       )}
@@ -135,7 +135,7 @@ export const OtherMarketsTable = ({
               {nameFilter === "" ? "" : nameFilter}{" "}
               {assetFilter?.length !== 0 &&
                 `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
-              markets at present.
+              markets right now.
             </Typography>
           </Box>
         )}
