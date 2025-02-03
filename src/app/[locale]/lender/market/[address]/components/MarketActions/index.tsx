@@ -109,7 +109,7 @@ export const MarketActions = ({
       <Box width="100%" display="flex" flexDirection="column">
         {(() => {
           if (mlaLoading || signedMlaLoading) {
-            return <Typography variant="text3">Loading...</Typography>
+            return <Typography variant="title3">Loading MLA Data...</Typography>
           }
 
           if (mlaRequiredAndUnsigned) {
