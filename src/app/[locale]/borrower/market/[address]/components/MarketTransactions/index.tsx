@@ -9,8 +9,15 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
+import {
+  FixedTermHooksConfig,
+  HooksKind,
+  MarketVersion,
+} from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
+import { MaturityModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MaturityModal"
+import { MinimumDepositModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MinimumDepositModal"
 import DocsIcon from "@/assets/icons/docs_icon.svg"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { COLORS } from "@/theme/colors"
@@ -47,6 +54,18 @@ export const MarketTransactions = ({
     market?.isDelinquent ||
     (marketAccount && marketAccount.market.borrowableAssets.raw.isZero())
 
+  const isFixedTerm =
+    (market.version === MarketVersion.V1
+      ? HooksKind.OpenTerm
+      : market.hooksKind!) === HooksKind.FixedTerm
+
+  const isAllowTermReduction =
+    market.hooksConfig?.kind === HooksKind.FixedTerm
+      ? market.hooksConfig.allowTermReduction
+      : undefined
+
+  // const isAllowTermReduction = true
+
   return (
     <>
       {holdTheMarket && (
@@ -59,6 +78,10 @@ export const MarketTransactions = ({
           {/* </Button> */}
           <CapacityModal marketAccount={marketAccount} />
           <AprModal marketAccount={marketAccount} />
+          <MinimumDepositModal marketAccount={marketAccount} />
+          {isFixedTerm && isAllowTermReduction && (
+            <MaturityModal marketAccount={marketAccount} />
+          )}
         </Box>
       )}
 
