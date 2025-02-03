@@ -111,20 +111,7 @@ export const MarketActions = ({
       <Divider sx={{ margin: "32px 0" }} />
 
       <Box width="100%" display="flex" flexDirection="column">
-        {mlaRequiredAndUnsigned ? (
-          <>
-            <Typography variant="title3" sx={{ marginBottom: "8px" }}>
-              Loan Agreement Signature Required
-            </Typography>
-            <Typography
-              variant="text3"
-              sx={{ marginBottom: hideClaim ? "0" : "24px" }}
-              color={COLORS.santasGrey}
-            >
-              You need to sign the MLA before you can access this market.
-            </Typography>
-          </>
-        ) : (
+        {!mlaRequiredAndUnsigned ? (
           <Box sx={TransactionsContainer}>
             <TransactionBlock
               title={t("lenderMarketDetails.transactions.deposit.title")}
@@ -145,6 +132,19 @@ export const MarketActions = ({
               {!hideWithdraw && <WithdrawModal marketAccount={marketAccount} />}
             </TransactionBlock>
           </Box>
+        ) : (
+          <>
+            <Typography variant="title3" sx={{ marginBottom: "8px" }}>
+              Loan Agreement Signature Required
+            </Typography>
+            <Typography
+              variant="text3"
+              sx={{ marginBottom: hideClaim ? "0" : "24px" }}
+              color={COLORS.santasGrey}
+            >
+              You need to sign the MLA before you can access this market.
+            </Typography>
+          </>
         )}
       </Box>
 
