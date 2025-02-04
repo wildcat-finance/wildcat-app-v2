@@ -3,6 +3,7 @@ import {
   TransferAccess,
   WithdrawalAccess,
 } from "@wildcatfi/wildcat-sdk"
+import dayjs from "dayjs"
 import { isAddress } from "viem"
 import { z } from "zod"
 
@@ -95,7 +96,18 @@ export const marketValidationSchema = z
     withdrawalBatchDuration: z.coerce.number().gt(0),
     policy: z.string().min(1),
     policyName: z.string(),
-    fixedTermEndTime: z.coerce.number().optional(),
+    fixedTermEndTime: z.coerce
+      .number()
+      .optional()
+      .refine((value) => {
+        if (value !== undefined) {
+          const today = dayjs.unix(Date.now() / 1_000).startOf("day")
+          const tomorrow = today.add(1, "day")
+          const oneYearFromNow = today.add(365, "days")
+          return value >= tomorrow.unix() && value <= oneYearFromNow.unix()
+        }
+        return true
+      }, `Must be between tomorrow and one year from now`),
     allowForceBuyBack: z.boolean(),
     allowClosureBeforeTerm: z.boolean().optional(),
     allowTermReduction: z.boolean().optional(),
