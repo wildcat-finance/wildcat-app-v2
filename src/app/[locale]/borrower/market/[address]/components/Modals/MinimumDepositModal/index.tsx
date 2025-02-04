@@ -128,7 +128,7 @@ export const MinimumDepositModal = ({
             />
 
             <NumberTextField
-              label="Enter a new minimum deposit"
+              label="Enter New Minimum Deposit Amount"
               size="medium"
               style={{ width: "100%" }}
               value={amount}
