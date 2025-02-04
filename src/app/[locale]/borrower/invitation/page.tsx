@@ -49,19 +49,7 @@ const BorrowerInvitationPage = () => {
     )
   }
 
-  return (
-    <Box
-      sx={{
-        height: "calc(100vh - 43px - 43px - 52px)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        width: "100vw",
-      }}
-    >
-      <AcceptInvitationForm invitation={invitation} address={address} />
-    </Box>
-  )
+  return <AcceptInvitationForm invitation={invitation} address={address} />
 }
 
 export default BorrowerInvitationPage

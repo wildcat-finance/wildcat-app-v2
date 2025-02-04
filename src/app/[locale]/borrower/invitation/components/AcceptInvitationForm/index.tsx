@@ -38,16 +38,15 @@ export const AcceptInvitationForm = ({
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      <Typography variant="h4">Accept Invitation</Typography>
-
-      <TextField
-        label="Organization Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        fullWidth
-      />
-
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+        alignItems: "center",
+        width: "100%",
+      }}
+    >
       {/* <Box sx={{ bgcolor: "background.paper", p: 3, borderRadius: 1 }}>
         <AgreementText />
       </Box> */}
@@ -61,6 +60,14 @@ export const AcceptInvitationForm = ({
           justifyContent: "center",
         }}
       >
+        <Typography variant="h4">Accept Invitation</Typography>
+
+        <TextField
+          label="Organization Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          fullWidth
+        />
         <Typography variant="title2" fontWeight={600} marginBottom="24px">
           <Trans i18nKey="agreement.page.title" />
         </Typography>
