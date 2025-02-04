@@ -2,7 +2,6 @@
 
 import { randomBytes } from "crypto"
 
-import * as React from "react"
 import { useEffect, useMemo, useState } from "react"
 
 import { Box, Button, Dialog, IconButton, Typography } from "@mui/material"
@@ -306,16 +305,16 @@ export default function CreateMarketPage() {
         <Dialog
           open={finalOpen}
           onClose={
-            isError
-              ? () => {
-                  handleResetModal()
+            isDeploying
+              ? undefined
+              : () => {
                   setFinalOpen(false)
+                  if (isSuccess) handleGoToMarkets()
                 }
-              : undefined
           }
           sx={FinalDialogContainer}
         >
-          {showErrorPopup && (
+          {isError && !isDeploying && (
             <>
               <Box sx={DeployHeaderContainer}>
                 <Box width="20px" height="20px" />
@@ -370,7 +369,7 @@ export default function CreateMarketPage() {
             </>
           )}
 
-          {showSuccessPopup && (
+          {isSuccess && !isDeploying && (
             <Box padding="24px" sx={DeployContentContainer}>
               <Box
                 margin="auto"

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
@@ -11,7 +11,6 @@ import {
   populateDeployToken,
   PartialTransaction,
   getMockArchControllerOwnerContract,
-  getDeploymentAddress,
   getHooksFactoryContract,
 } from "@wildcatfi/wildcat-sdk"
 import {
@@ -65,12 +64,6 @@ export const useDeployV2Market = () => {
   const { isTestnet } = useCurrentNetwork()
   const { connected: isConnectedToSafe, sdk: gnosisSafeSDK } = useSafeAppsSDK()
 
-  // const [timeSigned, setTimeSigned] = useState(0)
-
-  // useEffect(() => {
-  //   setTimeSigned(Date.now())
-  // }, [])
-
   const waitForTransaction = async (txHash: string) => {
     if (!gnosisSafeSDK) throw Error("No sdk found")
     return gnosisSafeSDK.eth.getTransactionReceipt([txHash]).then((tx) => {
@@ -81,11 +74,14 @@ export const useDeployV2Market = () => {
     })
   }
 
+  const [deployedMarket, setDeployedMarket] = useState<string | undefined>()
+
   const {
     mutate: deployNewMarket,
     isPending: isDeploying,
     isSuccess,
     isError,
+    error: deployError,
   } = useMutation({
     mutationFn: async ({
       hooksTemplate,
@@ -101,191 +97,194 @@ export const useDeployV2Market = () => {
         return
       }
 
-      const useGnosisMultiSend = isConnectedToSafe && isTestnet
-
-      let asset: Token
-      const gnosisTransactions: PartialTransaction[] = []
-      console.log(
-        `useDeployMarket :: isTestnet: ${isTestnet} :: isConnectedToSafe: ${isConnectedToSafe} :: gnosisSafeSDK: ${!!gnosisSafeSDK}`,
-      )
-      if (isTestnet) {
-        if (isConnectedToSafe) {
-          const { chainId } = hooksTemplate
-          const address = await signer.getAddress()
-          asset = new Token(
-            chainId,
-            await getNextTokenAddress(chainId, signer, address),
-            assetData.name,
-            assetData.symbol,
-            18,
-            true,
-            signer,
-          )
-          gnosisTransactions.push(
-            await populateDeployToken(
-              chainId,
-              signer,
-              assetData.name,
-              assetData.symbol,
-            ),
-          )
-        } else {
-          asset = await toastRequest(
-            deployToken(
-              TargetChainId,
-              signer,
-              assetData.name,
-              assetData.symbol,
-            ).then((t) => t.token),
-            {
-              pending: "Step 1/2: Deploying Mock Token...",
-              success: "Step 1/2: Mock Token Deployed Successfully!",
-              error: "Step 1/2: Mock Token Deployment Failed.",
-            },
-          )
-        }
+      let marketAddress: string | undefined
+      if (deployedMarket) {
+        marketAddress = deployedMarket
       } else {
-        asset = assetData
-      }
+        const useGnosisMultiSend = isConnectedToSafe && isTestnet
 
-      const maxTotalSupply = new TokenAmount(
-        parseUnits(maxTotalSupplyNum.toString(), asset.decimals),
-        asset,
-      )
-
-      const minimumDeposit = asset.parseAmount(minimumDepositNum ?? 0)
-      // new TokenAmount(
-      // parseUnits(minimumDepositNum?.toString() ?? "0", asset.decimals),
-      // asset,
-      // )
-      console.log(`Minimum Deposit: ${minimumDeposit.toString()}`)
-
-      const borrowerAddress = hooksTemplate.signerAddress
-      if (!borrowerAddress) throw Error(`Borrower not found`)
-      // 1. Ensure borrower is registered on the arch-controller.
-      // For the testnet deployment, anyone can register a borrower
-      if (!hooksTemplate.isRegisteredBorrower) {
+        let asset: Token
+        const gnosisTransactions: PartialTransaction[] = []
+        console.log(
+          `useDeployMarket :: isTestnet: ${isTestnet} :: isConnectedToSafe: ${isConnectedToSafe} :: gnosisSafeSDK: ${!!gnosisSafeSDK}`,
+        )
         if (isTestnet) {
-          const archControllerOwner = getMockArchControllerOwnerContract(
-            hooksTemplate.chainId,
-            signer,
-          )
           if (isConnectedToSafe) {
-            gnosisTransactions.push({
-              to: archControllerOwner.address,
-              data: archControllerOwner.interface.encodeFunctionData(
-                "registerBorrower",
-                [borrowerAddress],
+            const { chainId } = hooksTemplate
+            const address = await signer.getAddress()
+            asset = new Token(
+              chainId,
+              await getNextTokenAddress(chainId, signer, address),
+              assetData.name,
+              assetData.symbol,
+              18,
+              true,
+              signer,
+            )
+            gnosisTransactions.push(
+              await populateDeployToken(
+                chainId,
+                signer,
+                assetData.name,
+                assetData.symbol,
               ),
-              value: "0",
-            })
+            )
           } else {
-            await toastRequest(
-              archControllerOwner.registerBorrower(borrowerAddress),
+            asset = await toastRequest(
+              deployToken(
+                TargetChainId,
+                signer,
+                assetData.name,
+                assetData.symbol,
+              ).then((t) => t.token),
               {
-                pending: "Adjusting: Registering Borrower...",
-                success: "Adjusting: Borrower Registered Successfully",
-                error: "Adjusting: Borrower Registration Failed",
+                pending: "Step 1/2: Deploying Mock Token...",
+                success: "Step 1/2: Mock Token Deployed Successfully!",
+                error: "Step 1/2: Mock Token Deployment Failed.",
               },
             )
           }
         } else {
-          toastError("Must Be Registered Borrower")
-          throw Error("Not Registered Borrower")
+          asset = assetData
         }
-      }
 
-      const send = async () => {
-        const x = marketParams as Parameters<
-          typeof hooksTemplate.previewDeployMarket
-        >[0]
-        const params = {
-          ...x,
-          maxTotalSupply,
-          minimumDeposit,
+        const maxTotalSupply = new TokenAmount(
+          parseUnits(maxTotalSupplyNum.toString(), asset.decimals),
           asset,
-        }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const preview = hooksTemplate.previewDeployMarket(params as any)
-        if (preview.status !== DeployMarketStatus.Ready) {
-          throw Error(`Market not ready : ${preview.status}`)
-        }
-        const hooksFactory = getHooksFactoryContract(
-          hooksTemplate.chainId,
-          signer,
         )
-        if (useGnosisMultiSend) {
-          const data =
-            preview.fn === "deployMarket"
-              ? hooksFactory.interface.encodeFunctionData(
-                  "deployMarket",
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  preview.args as any,
-                )
-              : hooksFactory.interface.encodeFunctionData(
-                  "deployMarketAndHooks",
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  preview.args as any,
-                )
 
-          gnosisTransactions.push({
-            data,
-            to: hooksFactory.address,
-            value: "0",
-          })
+        const minimumDeposit = asset.parseAmount(minimumDepositNum ?? 0)
 
-          console.log("Sending Gnosis transactions:", gnosisTransactions)
-
-          const tx = await gnosisSafeSDK.txs.send({ txs: gnosisTransactions })
-          console.log("Transaction sent, result:", tx)
-
-          const checkTransaction = async () => {
-            const transactionBySafeHash =
-              await gnosisSafeSDK.txs.getBySafeTxHash(tx.safeTxHash)
-
-            if (transactionBySafeHash?.txHash) {
-              console.log(
-                `Transaction confirmed. txHash: ${transactionBySafeHash.txHash}`,
+        const borrowerAddress = hooksTemplate.signerAddress
+        if (!borrowerAddress) throw Error(`Borrower not found`)
+        // 1. Ensure borrower is registered on the arch-controller.
+        // For the testnet deployment, anyone can register a borrower
+        if (!hooksTemplate.isRegisteredBorrower) {
+          if (isTestnet) {
+            const archControllerOwner = getMockArchControllerOwnerContract(
+              hooksTemplate.chainId,
+              signer,
+            )
+            if (isConnectedToSafe) {
+              gnosisTransactions.push({
+                to: archControllerOwner.address,
+                data: archControllerOwner.interface.encodeFunctionData(
+                  "registerBorrower",
+                  [borrowerAddress],
+                ),
+                value: "0",
+              })
+            } else {
+              await toastRequest(
+                archControllerOwner.registerBorrower(borrowerAddress),
+                {
+                  pending: "Adjusting: Registering Borrower...",
+                  success: "Adjusting: Borrower Registered Successfully",
+                  error: "Adjusting: Borrower Registration Failed",
+                },
               )
-              return transactionBySafeHash.txHash
             }
-            console.log("Transaction pending, rechecking in 1 second...")
-            return new Promise<string>((res) => {
-              setTimeout(async () => res(await checkTransaction()), 1000)
-            })
+          } else {
+            toastError("Must Be Registered Borrower")
+            throw Error("Not Registered Borrower")
           }
-
-          const txHash = await checkTransaction()
-
-          if (txHash) {
-            console.log(`Waiting for transaction with txHash: ${txHash}`)
-            const receipt = await waitForTransaction(txHash)
-            console.log("Transaction confirmed, receipt received.")
-            return receipt
-          }
-          console.error("Failed to retrieve txHash.")
-          throw new Error("Transaction failed or hash not found.")
-        } else {
-          // const exec = (...args: any[]) => hooksFactory[preview.fn]()
-          const tx = await (preview.fn === "deployMarket"
-            ? hooksFactory.deployMarket(...preview.args)
-            : hooksFactory.deployMarketAndHooks(...preview.args))
-          return tx.wait()
         }
+
+        const send = async () => {
+          const x = marketParams as Parameters<
+            typeof hooksTemplate.previewDeployMarket
+          >[0]
+          const params = {
+            ...x,
+            maxTotalSupply,
+            minimumDeposit,
+            asset,
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const preview = hooksTemplate.previewDeployMarket(params as any)
+          if (preview.status !== DeployMarketStatus.Ready) {
+            throw Error(`Market not ready : ${preview.status}`)
+          }
+          const hooksFactory = getHooksFactoryContract(
+            hooksTemplate.chainId,
+            signer,
+          )
+          if (useGnosisMultiSend) {
+            const data =
+              preview.fn === "deployMarket"
+                ? hooksFactory.interface.encodeFunctionData(
+                    "deployMarket",
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    preview.args as any,
+                  )
+                : hooksFactory.interface.encodeFunctionData(
+                    "deployMarketAndHooks",
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    preview.args as any,
+                  )
+
+            gnosisTransactions.push({
+              data,
+              to: hooksFactory.address,
+              value: "0",
+            })
+
+            console.log("Sending Gnosis transactions:", gnosisTransactions)
+
+            const tx = await gnosisSafeSDK.txs.send({ txs: gnosisTransactions })
+            console.log("Transaction sent, result:", tx)
+
+            const checkTransaction = async () => {
+              const transactionBySafeHash =
+                await gnosisSafeSDK.txs.getBySafeTxHash(tx.safeTxHash)
+
+              if (transactionBySafeHash?.txHash) {
+                console.log(
+                  `Transaction confirmed. txHash: ${transactionBySafeHash.txHash}`,
+                )
+                return transactionBySafeHash.txHash
+              }
+              console.log("Transaction pending, rechecking in 1 second...")
+              return new Promise<string>((res) => {
+                setTimeout(async () => res(await checkTransaction()), 1000)
+              })
+            }
+
+            const txHash = await checkTransaction()
+
+            if (txHash) {
+              console.log(`Waiting for transaction with txHash: ${txHash}`)
+              const receipt = await waitForTransaction(txHash)
+              console.log("Transaction confirmed, receipt received.")
+              return receipt
+            }
+            console.error("Failed to retrieve txHash.")
+            throw new Error("Transaction failed or hash not found.")
+          } else {
+            // const exec = (...args: any[]) => hooksFactory[preview.fn]()
+            const tx = await (preview.fn === "deployMarket"
+              ? hooksFactory.deployMarket(...preview.args)
+              : hooksFactory.deployMarketAndHooks(...preview.args))
+            return tx.wait()
+          }
+        }
+
+        const receipt = await send()
+        const marketDeployedTopic =
+          hooksTemplate.contract.interface.getEventTopic("MarketDeployed")
+
+        const log = receipt.logs.find(
+          (l) => l.topics[0] === marketDeployedTopic,
+        )!
+
+        const event = hooksTemplate.contract.interface.decodeEventLog(
+          "MarketDeployed",
+          log.data,
+          log.topics,
+        ) as unknown as MarketDeployedEvent["args"]
+        marketAddress = event.market
+        setDeployedMarket(marketAddress)
       }
-
-      const receipt = await send()
-      const marketDeployedTopic =
-        hooksTemplate.contract.interface.getEventTopic("MarketDeployed")
-
-      const log = receipt.logs.find((l) => l.topics[0] === marketDeployedTopic)!
-
-      const event = hooksTemplate.contract.interface.decodeEventLog(
-        "MarketDeployed",
-        log.data,
-        log.topics,
-      ) as unknown as MarketDeployedEvent["args"]
-      const marketAddress = event.market
 
       const doSubmit = async () => {
         if (mlaTemplateId === undefined) {
@@ -334,6 +333,10 @@ export const useDeployV2Market = () => {
       console.log(error)
     },
   })
+
+  if (deployError?.message === "Failed to upload MLA selection") {
+    console.log("Failed to upload MLA selection")
+  }
 
   return {
     deployNewMarket,
