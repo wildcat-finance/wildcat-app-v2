@@ -7,13 +7,13 @@ import {
   Switch,
   TextField,
   Typography,
+  useTheme,
 } from "@mui/material"
 import { DesktopDatePicker } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
 import dayjs from "dayjs"
 import { useRouter } from "next/navigation"
-import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
 import { FormFooter } from "@/app/[locale]/borrower/create-market/components/FormFooter"
@@ -21,10 +21,8 @@ import {
   FormContainer,
   SectionGrid,
 } from "@/app/[locale]/borrower/create-market/components/Forms/style"
-import { MarketValidationSchemaType } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
 import ArrowLeftIcon from "@/assets/icons/sharpArrow_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
-import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
 import { HorizontalInputLabel } from "@/components/HorisontalInputLabel"
 import { InputLabel } from "@/components/InputLabel"
 import {
@@ -69,6 +67,7 @@ export const MarketPolicyForm = ({
   policyOptions,
 }: MarketPolicyFormProps) => {
   const { t } = useTranslation()
+  const theme = useTheme()
   const dispatch = useAppDispatch()
   const router = useRouter()
 
@@ -106,7 +105,8 @@ export const MarketPolicyForm = ({
     !!marketTypeWatch &&
     marketTypeWatch.trim() !== "" &&
     !!accessControlWatch &&
-    accessControlWatch.trim() !== ""
+    accessControlWatch.trim() !== "" &&
+    !errors.fixedTermEndTime
 
   const isFixedFormValid =
     !!policyWatch &&
@@ -117,7 +117,8 @@ export const MarketPolicyForm = ({
     marketTypeWatch.trim() !== "" &&
     !!accessControlWatch &&
     accessControlWatch.trim() !== "" &&
-    !!fixedTermEndTimeWatch
+    !!fixedTermEndTimeWatch &&
+    !errors.fixedTermEndTime
 
   const isFormValid = isFixedTerm ? isFixedFormValid : isStandardFormValid
 
@@ -237,75 +238,89 @@ export const MarketPolicyForm = ({
               marginTop: "8px",
             }}
           >
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DesktopDatePicker
-                label="e.g. 25/12/2024"
-                format="DD/MM/YYYY"
-                value={
-                  fixedTermEndTimeWatch
-                    ? dayjs.unix(fixedTermEndTimeWatch)
-                    : null
-                }
-                onChange={(v) => {
-                  setValue(
-                    "fixedTermEndTime",
-                    (v ? v.unix() : undefined) as number,
-                  )
-                }}
-                minDate={tomorrow}
-                maxDate={oneYearFromNow}
-                slots={{
-                  leftArrowIcon: DateCalendarArrowLeft,
-                  rightArrowIcon: DateCalendarArrowRight,
-                }}
-                slotProps={{
-                  layout: {
-                    sx: {
-                      "& .MuiYearCalendar-root": {
-                        padding: "12px",
-                      },
-                    },
-                  },
-                  popper: {
-                    sx: {
-                      "& .MuiYearCalendar-root": {
-                        padding: "12px",
-                      },
-                      "& .MuiPaper-root": {
-                        padding: "10px",
-                      },
-                    },
-                  },
-                  textField: {
-                    sx: {
-                      minWidth: "342px",
-
-                      "&.MuiFormControl-root.MuiTextField-root": {
-                        border: `1px solid ${COLORS.whiteLilac}`,
-                        borderRadius: "12px",
-                      },
-
-                      "& .MuiInputBase-root.MuiFilledInput-root": {
-                        fontFamily: "inherit",
-                        fontSize: 14,
-                        fontWeight: 500,
-                        lineHeight: "20px",
-                        backgroundColor: "transparent",
-
-                        "&:before, &:after": {
-                          display: "none",
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DesktopDatePicker
+                  label="e.g. 25/12/2024"
+                  format="DD/MM/YYYY"
+                  value={
+                    fixedTermEndTimeWatch
+                      ? dayjs.unix(fixedTermEndTimeWatch)
+                      : null
+                  }
+                  onChange={(v) => {
+                    setValue(
+                      "fixedTermEndTime",
+                      (v ? v.unix() : undefined) as number,
+                      { shouldTouch: true },
+                    )
+                  }}
+                  minDate={tomorrow}
+                  maxDate={oneYearFromNow}
+                  slots={{
+                    leftArrowIcon: DateCalendarArrowLeft,
+                    rightArrowIcon: DateCalendarArrowRight,
+                    textField: TextField,
+                  }}
+                  slotProps={{
+                    layout: {
+                      sx: {
+                        "& .MuiYearCalendar-root": {
+                          padding: "12px",
                         },
                       },
-
-                      "& .MuiInputBase-input.MuiFilledInput-input": {
-                        height: "20px",
-                        padding: "16px",
+                    },
+                    popper: {
+                      sx: {
+                        "& .MuiYearCalendar-root": {
+                          padding: "12px",
+                        },
+                        "& .MuiPaper-root": {
+                          padding: "10px",
+                        },
                       },
                     },
-                  },
-                }}
-              />
-            </LocalizationProvider>
+                    textField: {
+                      sx: {
+                        minWidth: "342px",
+                        "&.MuiFormControl-root.MuiTextField-root": {
+                          border: `1px solid ${COLORS.whiteLilac}`,
+                          borderRadius: "12px",
+                        },
+
+                        "& .MuiInputBase-root.MuiFilledInput-root": {
+                          fontFamily: "inherit",
+                          fontSize: 14,
+                          fontWeight: 500,
+                          lineHeight: "20px",
+                          backgroundColor: "transparent",
+
+                          "&:before, &:after": {
+                            display: "none",
+                          },
+                        },
+
+                        "& .MuiInputBase-input.MuiFilledInput-input": {
+                          height: "20px",
+                          padding: "16px",
+                        },
+                      },
+                      helperText: errors.fixedTermEndTime?.message,
+                      error: Boolean(errors.fixedTermEndTime),
+                      FormHelperTextProps: {
+                        sx: {
+                          color: "wildWatermelon",
+                          fontSize: "11px",
+                          letterSpacing: "normal",
+                          lineHeight: "16px",
+                        },
+                      },
+                    },
+                  }}
+                  disablePast
+                />
+              </LocalizationProvider>
+            </Box>
 
             <HorizontalInputLabel
               label={t("createNewMarket.policy.earlyClose.label")}
