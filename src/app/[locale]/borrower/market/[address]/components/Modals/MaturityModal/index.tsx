@@ -5,7 +5,12 @@ import { Box, Button, Dialog, SvgIcon } from "@mui/material"
 import { DesktopDatePicker } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
-import { HooksKind, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import {
+  HooksKind,
+  MarketAccount,
+  SetFixedTermEndTimePreview,
+  SetFixedTermEndTimeStatus,
+} from "@wildcatfi/wildcat-sdk"
 import dayjs, { Dayjs } from "dayjs"
 import { useTranslation } from "react-i18next"
 
@@ -25,6 +30,8 @@ import {
   formatTokenWithCommas,
   remainingMillisecondsToDate,
 } from "@/utils/formatters"
+
+import { useSetFixedTermEndTime } from "../../../hooks/useSetFixedTermEndTime"
 
 const DateCalendarArrowLeft = () => (
   <SvgIcon
@@ -57,7 +64,12 @@ export const MaturityModal = ({
   const [maturity, setMaturity] = useState<Dayjs | null | undefined>(undefined)
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
-
+  const [maturityError, setMaturityError] = useState<string | undefined>(
+    undefined,
+  )
+  const [preview, setPreview] = useState<
+    SetFixedTermEndTimePreview | undefined
+  >()
   const modal = useApprovalModal(
     setShowSuccessPopup,
     setShowErrorPopup,
@@ -65,19 +77,49 @@ export const MaturityModal = ({
     setTxHash,
   )
 
+  const { mutate, isPending } = useSetFixedTermEndTime(marketAccount, setTxHash)
+
   const { t } = useTranslation()
 
   const { market } = marketAccount
 
   // todo: write hook for mutation
 
-  const handleMaturityChange = (evt: ChangeEvent<HTMLInputElement>) => {
-    const { value } = evt.target
-    setNewMaturity(value)
+  const handleMaturityChange = (value: Dayjs | null) => {
+    setMaturity(value)
+
+    const newPreview = value
+      ? marketAccount.previewSetFixedTermEndTime(value.unix())
+      : undefined
+    setPreview(newPreview)
+    if (newPreview && newPreview.status !== SetFixedTermEndTimeStatus.Ready) {
+      const errorMessages: {
+        [key in Exclude<
+          SetFixedTermEndTimeStatus,
+          SetFixedTermEndTimeStatus.Ready
+        >]: string
+      } = {
+        [SetFixedTermEndTimeStatus.FixedTermEndTimeIncrease]:
+          "You cannot increase the maturity date",
+        [SetFixedTermEndTimeStatus.FixedTermEndTimeNotChangeable]:
+          "This market does not allow modifications to the maturity date",
+        [SetFixedTermEndTimeStatus.NotFixedTermMarket]:
+          "This is not a fixed term market. How did you get here?",
+        [SetFixedTermEndTimeStatus.NotBorrower]:
+          "You are not a borrower. How did you get here?",
+        [SetFixedTermEndTimeStatus.NotV2Market]:
+          "This is not a V2 market. How did you get here?",
+      }
+      const errorMessage = errorMessages[newPreview.status]
+      setMaturityError(errorMessage)
+    } else {
+      setMaturityError(undefined)
+    }
   }
 
   const handleConfirm = () => {
-    console.log("test")
+    if (!maturity) throw Error("Maturity is required")
+    mutate(maturity.unix())
   }
 
   const handleTryAgain = () => {
@@ -88,9 +130,9 @@ export const MaturityModal = ({
 
   const disableAdjustMaturity = market.isClosed
 
-  const disableConfirm = newMaturity === ""
+  const disableConfirm =
+    !maturity || preview?.status !== SetFixedTermEndTimeStatus.Ready
 
-  const isPending = false
   const showForm = !(isPending || showSuccessPopup || showErrorPopup)
 
   const hooksConfig =
@@ -146,10 +188,10 @@ export const MaturityModal = ({
                 format="DD/MM/YYYY"
                 value={maturity}
                 onChange={(v) => {
-                  setMaturity(v)
+                  handleMaturityChange(v)
                 }}
                 minDate={today}
-                maxDate={oneYearFromNow}
+                maxDate={dayjs.unix(hooksConfig!.fixedTermEndTime)}
                 slots={{
                   leftArrowIcon: DateCalendarArrowLeft,
                   rightArrowIcon: DateCalendarArrowRight,
@@ -175,7 +217,6 @@ export const MaturityModal = ({
                   textField: {
                     sx: {
                       minWidth: "342px",
-
                       "&.MuiFormControl-root.MuiTextField-root": {
                         border: `1px solid ${COLORS.whiteLilac}`,
                         borderRadius: "12px",
@@ -196,6 +237,16 @@ export const MaturityModal = ({
                       "& .MuiInputBase-input.MuiFilledInput-input": {
                         height: "20px",
                         padding: "16px",
+                      },
+                    },
+                    helperText: maturityError,
+                    error: Boolean(maturityError),
+                    FormHelperTextProps: {
+                      sx: {
+                        color: "wildWatermelon",
+                        fontSize: "11px",
+                        letterSpacing: "normal",
+                        lineHeight: "16px",
                       },
                     },
                   },

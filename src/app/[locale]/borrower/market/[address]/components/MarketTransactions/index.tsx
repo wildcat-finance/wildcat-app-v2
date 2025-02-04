@@ -1,36 +1,16 @@
 import * as React from "react"
 
-import {
-  Box,
-  Button,
-  Divider,
-  Menu,
-  MenuItem,
-  SvgIcon,
-  Typography,
-} from "@mui/material"
-import {
-  FixedTermHooksConfig,
-  HooksKind,
-  MarketVersion,
-} from "@wildcatfi/wildcat-sdk"
+import { Box, Divider } from "@mui/material"
+import { HooksKind, MarketVersion } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { MaturityModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MaturityModal"
 import { MinimumDepositModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MinimumDepositModal"
-import DocsIcon from "@/assets/icons/docs_icon.svg"
 import { TransactionBlock } from "@/components/TransactionBlock"
-import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { MarketTransactionsProps } from "./interface"
-import {
-  ElseButtonContainer,
-  ElseButtonText,
-  MarketTxContainer,
-  MarketTxUpperButtonsContainer,
-  MenuItemButton,
-} from "./style"
+import { MarketTxContainer, MarketTxUpperButtonsContainer } from "./style"
 import { AprModal } from "../Modals/AprModal"
 import { BorrowModal } from "../Modals/BorrowModal"
 import { CapacityModal } from "../Modals/CapacityModal"
@@ -61,10 +41,12 @@ export const MarketTransactions = ({
 
   const isAllowTermReduction =
     market.hooksConfig?.kind === HooksKind.FixedTerm
-      ? market.hooksConfig.allowTermReduction
+      ? market.hooksConfig.allowTermReduction && market.isInFixedTerm
       : undefined
 
-  // const isAllowTermReduction = true
+  const allowSetMinDeposit =
+    market.version === MarketVersion.V2 &&
+    market.hooksConfig?.flags.useOnDeposit
 
   return (
     <>
@@ -78,7 +60,9 @@ export const MarketTransactions = ({
           {/* </Button> */}
           <CapacityModal marketAccount={marketAccount} />
           <AprModal marketAccount={marketAccount} />
-          <MinimumDepositModal marketAccount={marketAccount} />
+          {allowSetMinDeposit && (
+            <MinimumDepositModal marketAccount={marketAccount} />
+          )}
           {isFixedTerm && isAllowTermReduction && (
             <MaturityModal marketAccount={marketAccount} />
           )}
