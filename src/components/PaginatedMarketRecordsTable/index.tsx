@@ -87,11 +87,12 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
 
       <Box
         sx={{
-          display: "flex",
-          flexWrap: "wrap",
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)", // 4 columns
+          gridTemplateRows: "repeat(3, auto)", // 3 rows
           gap: "10px",
           marginTop: "10px",
-          justifyContent: "space-evenly",
+          justifyContent: "center",
           alignItems: "center",
         }}
       >
