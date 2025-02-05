@@ -110,8 +110,8 @@ export const PoliciesSection = ({
         >
           <Typography variant="text3">
             {params.row.type === HooksKind.OpenTerm
-              ? "Standard Loan"
-              : "Fixed Loan"}
+              ? "Open Term"
+              : "Fixed Term"}
           </Typography>
         </Link>
       ),
