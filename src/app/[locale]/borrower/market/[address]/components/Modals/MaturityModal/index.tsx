@@ -216,7 +216,7 @@ export const MaturityModal = ({
                   },
                   textField: {
                     sx: {
-                      minWidth: "342px",
+                      minWidth: "100%",
                       "&.MuiFormControl-root.MuiTextField-root": {
                         border: `1px solid ${COLORS.whiteLilac}`,
                         borderRadius: "12px",

@@ -1,5 +1,5 @@
 // import Image from "@/assets/pictures/banner_bg.png"
-import Image from "@/assets/pictures/banner_bg.png"
+import Image from "@/assets/pictures/bannerBG.webp"
 import { COLORS } from "@/theme/colors"
 
 export const MarketListAlertContainer = {
