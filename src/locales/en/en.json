@@ -1073,9 +1073,9 @@
   "marketWithdrawalRequests": {
     "openWithdrawals": "Open Withdrawals",
     "total": "Total",
-    "noOutstanding": "No outstanding withdrawals from previous cycles",
-    "noOngoing": "No ongoing withdrawals in the current cycle",
-    "noClaimable": "No claimable withdrawals from previous cycles"
+    "noOutstanding": "No outstanding withdrawals from previous cycles.",
+    "noOngoing": "No ongoing withdrawals in the current cycle.",
+    "noClaimable": "No claimable withdrawals from previous cycles."
   },
   "borrowerProfile": {
     "sidebar": {
