@@ -34,7 +34,10 @@ export const MinimumDepositModal = ({
   const [showErrorPopup, setShowErrorPopup] = useState(false)
   const [preview, setPreview] = useState<SetMinimumDepositPreview | undefined>()
 
-  const { mutate, isPending } = useSetMinimumDeposit(marketAccount, setTxHash)
+  const { mutate, isPending, isError, isSuccess } = useSetMinimumDeposit(
+    marketAccount,
+    setTxHash,
+  )
 
   const modal = useApprovalModal(
     setShowSuccessPopup,
@@ -75,6 +78,15 @@ export const MinimumDepositModal = ({
     amount === "" || preview?.status !== SetMinimumDepositStatus.Ready
 
   const showForm = !(isPending || showSuccessPopup || showErrorPopup)
+
+  useEffect(() => {
+    if (isError) {
+      setShowErrorPopup(true)
+    }
+    if (isSuccess) {
+      setShowSuccessPopup(true)
+    }
+  }, [isError, isSuccess])
 
   return (
     <>

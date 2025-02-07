@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ChangeEvent, useState } from "react"
+import { ChangeEvent, useEffect, useState } from "react"
 
 import { Box, Button, Dialog, SvgIcon } from "@mui/material"
 import { DesktopDatePicker } from "@mui/x-date-pickers"
@@ -77,7 +77,10 @@ export const MaturityModal = ({
     setTxHash,
   )
 
-  const { mutate, isPending } = useSetFixedTermEndTime(marketAccount, setTxHash)
+  const { mutate, isPending, isError, isSuccess } = useSetFixedTermEndTime(
+    marketAccount,
+    setTxHash,
+  )
 
   const { t } = useTranslation()
 
@@ -117,6 +120,11 @@ export const MaturityModal = ({
     }
   }
 
+  const handleOpen = () => {
+    modal.handleOpenModal()
+    setMaturity(undefined)
+  }
+
   const handleConfirm = () => {
     if (!maturity) throw Error("Maturity is required")
     mutate(maturity.unix())
@@ -144,8 +152,15 @@ export const MaturityModal = ({
     hooksConfig && hooksConfig.fixedTermEndTime * 1000 - Date.now()
 
   const today = dayjs.unix(Date.now() / 1_000).startOf("day")
-  const tomorrow = today.add(1, "day")
-  const oneYearFromNow = today.add(365, "days")
+
+  useEffect(() => {
+    if (isError) {
+      setShowErrorPopup(true)
+    }
+    if (isSuccess) {
+      setShowSuccessPopup(true)
+    }
+  }, [isError, isSuccess])
 
   return (
     <>
@@ -153,7 +168,7 @@ export const MaturityModal = ({
         variant="outlined"
         color="secondary"
         size="small"
-        onClick={modal.handleOpenModal}
+        onClick={handleOpen}
         disabled={disableAdjustMaturity}
       >
         Adjust Maturity
