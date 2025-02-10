@@ -1,5 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import { useMemo, useState } from "react"
+import * as React from "react"
 
 import { Box, Skeleton, TablePagination, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
@@ -207,40 +208,49 @@ export function MarketRecordsTable({
     )
   }
 
+  const rows = records?.map((r) => ({ id: r.transactionHash, ...r }))
+
   return (
-    <DataGrid
-      sx={{
-        ...TableStyles,
-        overflow: "auto",
-        maxWidth: "calc(100vw - 267px)",
-        padding: "16px 16px",
-      }}
-      getRowHeight={() => "auto"}
-      rows={records?.map((r) => ({ id: r.transactionHash, ...r })) || []}
-      columns={columns}
-      localeText={{
-        noRowsLabel: "No unfiltered events",
-      }}
-      // {...(paginationProps as any)}
-      // rowCount={rowCount}
-      hideFooter={false}
-      slots={{
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        pagination: TablePagination as any,
-      }}
-      slotProps={{
-        pagination: {
-          count: rowCount,
-          page,
-          rowsPerPage: pageSize,
-          onPageChange: (event, newPage) => {
-            setPage(newPage)
-          },
-          onRowsPerPageChange: (event) => {
-            setPageSize(Number(event.target.value))
-          },
-        },
-      }}
-    />
+    <>
+      {rows && rows?.length ? (
+        <DataGrid
+          sx={{
+            ...TableStyles,
+            overflow: "auto",
+            maxWidth: "calc(100vw - 267px)",
+            padding: "16px 16px",
+          }}
+          getRowHeight={() => "auto"}
+          rows={rows || []}
+          columns={columns}
+          // {...(paginationProps as any)}
+          // rowCount={rowCount}
+          hideFooter={false}
+          slots={{
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pagination: TablePagination as any,
+          }}
+          slotProps={{
+            pagination: {
+              count: rowCount,
+              page,
+              rowsPerPage: pageSize,
+              onPageChange: (event, newPage) => {
+                setPage(newPage)
+              },
+              onRowsPerPageChange: (event) => {
+                setPageSize(Number(event.target.value))
+              },
+            },
+          }}
+        />
+      ) : (
+        <Box display="flex" flexDirection="column" marginTop="24px">
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            No unfiltered events
+          </Typography>
+        </Box>
+      )}
+    </>
   )
 }
