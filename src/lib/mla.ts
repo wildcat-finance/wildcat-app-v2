@@ -330,8 +330,18 @@ export function getFieldValuesForBorrower({
     jurisdiction !== undefined
       ? Jurisdictions[jurisdiction as keyof typeof Jurisdictions]
       : undefined
-  const jurisdictionText =
-    jurisdictionObj?.subDivisionName || jurisdictionObj?.countryName
+  let jurisdictionText: string | undefined
+  // If there is no subDivisionCode or the subDivisionCode is the same as the countryCode,
+  // then we use the countryName.
+  if (
+    !jurisdictionObj?.subDivisionCode ||
+    jurisdictionObj?.subDivisionCode === jurisdictionObj?.countryCode
+  ) {
+    jurisdictionText = jurisdictionObj?.countryName
+  } else {
+    jurisdictionText =
+      jurisdictionObj?.subDivisionName || jurisdictionObj?.countryName
+  }
 
   const entityKindText =
     entityKind !== undefined && jurisdictionObj
