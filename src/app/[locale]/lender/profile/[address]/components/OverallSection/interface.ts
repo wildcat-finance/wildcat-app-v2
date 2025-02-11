@@ -1,4 +1,5 @@
 export type OverallSectionProps = {
+  address?: string
   name?: string
   website?: string
   headquarters?: string

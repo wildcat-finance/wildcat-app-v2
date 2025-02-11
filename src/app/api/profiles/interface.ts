@@ -10,6 +10,8 @@ export interface BorrowerProfile {
   website?: string
   twitter?: string
   linkedin?: string
+  // TODO: we should add this, or introduce it quickly
+  // telegram?: string
   jurisdiction?: string
   entityKind?: string
   physicalAddress?: string

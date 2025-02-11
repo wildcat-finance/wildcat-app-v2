@@ -11,10 +11,12 @@ import {
 import { MarketParametersItem } from "@/components/MarketParameters/components/MarketParametersItem"
 import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
+import { trimAddress } from "@/utils/formatters"
 
 import { OverallSectionProps } from "./interface"
 
 export const OverallSection = ({
+  address,
   name,
   headquarters,
   founded,
@@ -30,8 +32,7 @@ export const OverallSection = ({
     jurisdiction !== undefined
       ? Jurisdictions[jurisdiction as keyof typeof Jurisdictions]
       : undefined
-  const jurisdictionText =
-    jurisdictionObj?.subDivisionName || jurisdictionObj?.countryName
+  const jurisdictionText = jurisdictionObj?.countryName
 
   const entityKindText =
     entityKind !== undefined && jurisdictionObj
@@ -96,6 +97,16 @@ export const OverallSection = ({
         </Box>
 
         <Box sx={MarketParametersColumn}>
+          {address && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.address")}
+                value={trimAddress(address) ?? ""}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
+
           {(headquarters || founded) && (
             <Box>
               <MarketParametersItem
@@ -110,7 +121,7 @@ export const OverallSection = ({
             <Box>
               <MarketParametersItem
                 title={t("borrowerProfile.profile.overallInfo.borrowed")}
-                value={totalBorrowedAmount || ""}
+                value="[Coming Soon, Oracles Needed]"
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
