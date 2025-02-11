@@ -11,6 +11,7 @@ import {
 import { MarketParametersItem } from "@/components/MarketParameters/components/MarketParametersItem"
 import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
+import { trimAddress } from "@/utils/formatters"
 
 import { OverallSectionProps } from "./interface"
 
@@ -100,7 +101,7 @@ export const OverallSection = ({
             <Box>
               <MarketParametersItem
                 title={t("borrowerProfile.profile.overallInfo.address")}
-                value={address ?? ""}
+                value={trimAddress(address) ?? ""}
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
