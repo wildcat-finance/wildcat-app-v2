@@ -9,11 +9,12 @@ export const getProviderForServer = () => {
     process.env.NEXT_PUBLIC_TARGET_NETWORK === NETWORKS.Sepolia.name
       ? [sepolia, "eth-sepolia"]
       : [mainnet, "eth-mainnet"]
-  const rpcUrl =
-    process.env.NEXT_RPC_URL ??
-    `https://${alchemyId}.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`
+  const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY
+  const rpcUrl = alchemyKey
+    ? `https://${alchemyId}.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`
+    : process.env.NEXT_RPC_URL
   const client = createPublicClient({
-    chain: sepolia,
+    chain,
     transport: http(rpcUrl),
   })
   const { account, transport } = client
