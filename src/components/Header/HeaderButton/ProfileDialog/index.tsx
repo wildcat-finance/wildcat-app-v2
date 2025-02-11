@@ -24,7 +24,11 @@ import {
 } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { ProfileDialogProps } from "@/components/Header/HeaderButton/ProfileDialog/type"
 import { LinkGroup } from "@/components/LinkComponent"
-import { EtherscanBaseUrl, TargetNetwork } from "@/config/network"
+import {
+  EtherscanBaseUrl,
+  TargetChainId,
+  TargetNetwork,
+} from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetController } from "@/hooks/useGetController"
 import { ROUTES } from "@/routes"
@@ -63,7 +67,7 @@ export const ProfileDialog = ({
               variant="outlined"
               size="small"
               sx={WrongNetworkButton}
-              onClick={() => switchChain({ chainId: sepolia.id })}
+              onClick={() => switchChain({ chainId: TargetChainId })}
             >
               {t("header.button.switchNetwork")} {TargetNetwork.name}
             </Button>
