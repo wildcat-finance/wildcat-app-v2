@@ -25,6 +25,7 @@ export const NameSection = ({
   website,
   twitter,
   linkedin,
+  telegram,
   marketsAmount,
   type,
 }: NameSectionProps) => {
@@ -45,9 +46,10 @@ export const NameSection = ({
 
       <Typography variant="title1">{name}</Typography>
 
-      {type === "user" && !(description || website || twitter || linkedin) && (
-        <EmptyAlert type="user" marginTop="32px" />
-      )}
+      {type === "user" &&
+        !(description || website || twitter || linkedin || telegram) && (
+          <EmptyAlert type="user" marginTop="32px" />
+        )}
 
       {description && (
         <Typography
@@ -92,6 +94,19 @@ export const NameSection = ({
                 sx={ProfileHeaderButton}
               >
                 {t("borrowerProfile.profile.buttons.twitter")}
+              </Button>
+            </Link>
+          )}
+
+          {telegram && (
+            <Link href={`https://t.me/${telegram}`} target="_blank">
+              <Button
+                size="small"
+                variant="outlined"
+                color="secondary"
+                sx={ProfileHeaderButton}
+              >
+                {t("borrowerProfile.profile.buttons.telegram")}
               </Button>
             </Link>
           )}

@@ -27,6 +27,13 @@ export const publicValidationSchema = z.object({
     })
     .optional()
     .or(z.literal("")),
+  telegram: z
+    .string()
+    .regex(/^(@?(\w){5,32}$)$/, {
+      message: `Invalid Telegram username`,
+    })
+    .optional()
+    .or(z.literal("")),
   linkedin: z.string().optional(),
 })
 

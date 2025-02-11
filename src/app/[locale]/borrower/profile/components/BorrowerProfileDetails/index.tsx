@@ -41,6 +41,7 @@ export function BorrowerProfileDetails({
         website={profileData?.website}
         twitter={profileData?.twitter}
         linkedin={profileData?.linkedin}
+        telegram={profileData?.telegram}
         marketsAmount={marketsAmount}
       />
 

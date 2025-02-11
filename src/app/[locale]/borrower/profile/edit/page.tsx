@@ -74,6 +74,7 @@ const ProfileKeys = [
   "headquarters",
   "website",
   "twitter",
+  "telegram",
   "linkedin",
   "jurisdiction",
   "entityKind",

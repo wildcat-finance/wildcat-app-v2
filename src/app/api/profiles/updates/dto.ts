@@ -22,6 +22,13 @@ export const BorrowerProfileInputDTO = z.object({
     })
     .optional()
     .or(z.literal("")),
+  telegram: z
+    .string()
+    .regex(/^(@?(\w){5,32}$)$/, {
+      message: `Invalid Telegram username`,
+    })
+    .optional()
+    .or(z.literal("")),
   linkedin: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
   jurisdiction: z.string().min(0).max(64).optional(),

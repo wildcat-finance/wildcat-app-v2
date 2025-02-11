@@ -9,6 +9,7 @@ export interface BorrowerProfile {
   headquarters?: string
   website?: string
   twitter?: string
+  telegram?: string
   linkedin?: string
   jurisdiction?: string
   entityKind?: string

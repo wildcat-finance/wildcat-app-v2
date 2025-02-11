@@ -42,6 +42,7 @@ export async function GET() {
         headquarters: borrower.headquarters || undefined,
         website: borrower.website || undefined,
         twitter: borrower.twitter || undefined,
+        telegram: borrower.telegram || undefined,
         linkedin: borrower.linkedin || undefined,
         email: borrower.email || undefined,
         registeredOnChain: borrower.registeredOnChain,

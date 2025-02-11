@@ -1087,6 +1087,7 @@
       "buttons": {
         "website": "Website",
         "twitter": "Twitter/X",
+        "telegram": "Telegram",
         "linkedin": "Linkedin",
         "edit": "Edit Profile"
       },
@@ -1181,6 +1182,11 @@
           "title": "Twitter/X",
           "placeholder": "x.com/borrower_profile",
           "tooltip": "Enter a Twitter/X profile for the borrower, where applicable."
+        },
+        "telegram": {
+          "title": "Telegram",
+          "placeholder": "t.me/borrower_profile",
+          "tooltip": "Enter a Telegram profile for the borrower, where applicable."
         },
         "linkedin": {
           "title": "LinkedIn",
