@@ -1108,6 +1108,7 @@
         "headquarters": "Headquarters",
         "founded": "Founded",
         "markets": "Markets",
+        "address": "Borrower Address",
         "borrowed": "Total Amount Borrowed",
         "country": "Country",
         "jurisdiction": "Jurisdiction",
@@ -1119,7 +1120,7 @@
       },
       "emptyStates": {
         "external": {
-          "noMarkets": "Borrower has deployed no markets."
+          "noMarkets": "Borrower has no active markets."
         },
         "user": {
           "noInfo": {

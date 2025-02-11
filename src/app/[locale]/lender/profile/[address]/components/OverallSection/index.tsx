@@ -9,10 +9,12 @@ import {
   MarketParametersRowsDivider,
 } from "@/app/[locale]/borrower/profile/style"
 import { MarketParametersItem } from "@/components/MarketParameters/components/MarketParametersItem"
+import { trimAddress } from "@/utils/formatters"
 
 import { OverallSectionProps } from "./interface"
 
 export const OverallSection = ({
+  address,
   name,
   website,
   headquarters,
@@ -74,6 +76,16 @@ export const OverallSection = ({
         </Box>
 
         <Box sx={MarketParametersColumn}>
+          {address && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.address")}
+                value={trimAddress(address) ?? ""}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
+
           {(headquarters || founded) && (
             <Box>
               <MarketParametersItem
