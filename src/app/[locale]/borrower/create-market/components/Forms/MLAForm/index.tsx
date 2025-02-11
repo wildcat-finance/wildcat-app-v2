@@ -54,11 +54,13 @@ export const MlaForm = ({ form }: MLAFormProps) => {
       label: "Don’t Use",
       value: "noMLA",
     },
-    ...(templates?.map((template) => ({
-      id: template.id.toString(),
-      label: template.name,
-      value: template.id.toString(),
-    })) ?? []),
+    ...(templates
+      ?.filter((x) => !x.hide)
+      .map((template) => ({
+        id: template.id.toString(),
+        label: template.name,
+        value: template.id.toString(),
+      })) ?? []),
   ]
 
   useEffect(() => {
