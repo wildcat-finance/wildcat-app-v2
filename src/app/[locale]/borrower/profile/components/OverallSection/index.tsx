@@ -121,7 +121,7 @@ export const OverallSection = ({
             <Box>
               <MarketParametersItem
                 title={t("borrowerProfile.profile.overallInfo.borrowed")}
-                value={totalBorrowedAmount || ""}
+                value="[Coming Soon, Oracles Needed]"
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
