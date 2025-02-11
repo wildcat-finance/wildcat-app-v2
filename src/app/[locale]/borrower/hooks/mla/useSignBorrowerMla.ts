@@ -87,7 +87,7 @@ export const useSetMarketMLA = () => {
         console.log("message", message)
       } else {
         const mlaData = fillInMlaTemplate(template, values)
-        message = mlaData.plaintext
+        message = mlaData.message
       }
 
       const signMessage = async () => {
@@ -234,7 +234,7 @@ export const useSignMla = (salt: string) => {
           asset,
           salt,
         )
-        message = mlaData.plaintext
+        message = mlaData.message
         console.log("message", message)
       }
 

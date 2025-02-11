@@ -39,7 +39,7 @@ export async function GET(
 
   const timeSigned = +mlaSignature.timeSigned
   const values = getFieldValuesForLender(lenderAddress, timeSigned)
-  const { html } = fillInMlaForLender(mla, values)
+  const { html } = fillInMlaForLender(mla, values, market)
   const finalHtml = encodeURIComponent(html)
   const browser = await puppeteer.launch({
     args: ["--no-sandbox"],

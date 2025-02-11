@@ -38,7 +38,7 @@ export async function GET(
 
   const timeSigned = +mlaSignature.timeSigned
   const values = getFieldValuesForLender(lenderAddress, timeSigned)
-  const { html } = fillInMlaForLender(mla, values)
+  const { html } = fillInMlaForLender(mla, values, market)
   return new NextResponse(html, {
     status: 200,
     headers: {

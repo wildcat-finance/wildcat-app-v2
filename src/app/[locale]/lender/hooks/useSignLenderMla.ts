@@ -26,7 +26,7 @@ export const useSignLenderMLA = () => {
     }) => {
       if (!signer) return
       const values = getFieldValuesForLender(lenderAddress, timeSigned)
-      const mlaData = fillInMlaForLender(mla, values)
+      const mlaData = fillInMlaForLender(mla, values, mla.market)
 
       const signMessage = async () => {
         if (sdk && safeConnected) {
@@ -36,7 +36,7 @@ export const useSignLenderMLA = () => {
             },
           ])
 
-          const result = await sdk.txs.signMessage(mlaData.plaintext)
+          const result = await sdk.txs.signMessage(mlaData.message)
 
           if ("safeTxHash" in result) {
             return {
@@ -51,7 +51,7 @@ export const useSignLenderMLA = () => {
             }
           }
         }
-        const signatureResult = await signer.signMessage(mlaData.plaintext)
+        const signatureResult = await signer.signMessage(mlaData.message)
         return {
           signature: signatureResult,
           safeTxHash: undefined,

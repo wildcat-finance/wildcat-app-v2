@@ -29,7 +29,7 @@ export const useGetSignedMla = (
         signed.address,
         +new Date(signed.timeSigned),
       )
-      const filledMla = fillInMlaForLender(mla, values)
+      const filledMla = fillInMlaForLender(mla, values, marketAddress)
       return {
         ...signed,
         ...filledMla,
@@ -59,7 +59,7 @@ export const usePreviewSignedMla = (mla: MasterLoanAgreementResponse) => {
   const preview = useMemo(() => {
     if (!address) return undefined
     const values = getFieldValuesForLender(address, timeSigned)
-    return fillInMlaForLender(mla, values)
+    return fillInMlaForLender(mla, values, mla.market)
   }, [mla, address, timeSigned])
 
   return {
@@ -74,7 +74,7 @@ export const useSignMla = (mla: MasterLoanAgreementResponse) => {
     mutationFn: async (timeSigned: number) => {
       if (!address) throw new Error("No address")
       const values = getFieldValuesForLender(address, timeSigned)
-      const { plaintext } = fillInMlaForLender(mla, values)
+      const { plaintext } = fillInMlaForLender(mla, values, mla.market)
     },
   })
 }

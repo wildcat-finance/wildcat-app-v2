@@ -122,10 +122,12 @@ export async function POST(
     .then((obj) => {
       if (!obj) return undefined
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { isDefault, description, ...rest } = obj
+      const { isDefault, hide, description, ...rest } = obj
       return {
         ...rest,
         description: description || undefined,
+        hide: hide || false,
+        isDefault: isDefault || false,
       } as MlaTemplate
     })
   if (!mlaTemplate) {
@@ -150,13 +152,14 @@ export async function POST(
     lastSlaUpdateTime: +lastSlaUpdateTime,
     asset: market.underlyingToken,
   })
-  const { html, plaintext } = fillInMlaTemplate(mlaTemplate, values)
+  const { html, plaintext, message } = fillInMlaTemplate(mlaTemplate, values)
+
   // writeFileSync(path.join(process.cwd(), "mla.txt"), plaintext)
   const signature = await verifyAndDescribeSignature({
     provider,
     address,
     allowSingleSafeOwner: false,
-    message: plaintext,
+    message,
     signature: body.signature,
   })
   if (!signature) {
