@@ -17,11 +17,15 @@ export async function GET() {
         id: true,
         name: true,
         description: true,
+        hide: true,
+        isDefault: true,
       },
     })
-  ).map(({ description, ...rest }) => ({
+  ).map(({ description, hide, isDefault, ...rest }) => ({
     ...rest,
     description: description || undefined,
+    hide: hide || false,
+    isDefault: isDefault || false,
   }))
   return NextResponse.json(mlas)
 }
