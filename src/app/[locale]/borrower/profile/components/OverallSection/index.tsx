@@ -15,6 +15,7 @@ import Jurisdictions from "@/config/jurisdictions.json"
 import { OverallSectionProps } from "./interface"
 
 export const OverallSection = ({
+  address,
   name,
   headquarters,
   founded,
@@ -96,6 +97,16 @@ export const OverallSection = ({
         </Box>
 
         <Box sx={MarketParametersColumn}>
+          {address && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.address")}
+                value={address ?? ""}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
+
           {(headquarters || founded) && (
             <Box>
               <MarketParametersItem
