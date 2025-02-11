@@ -5,6 +5,7 @@ import {
   DepositStatus,
   MarketAccount,
   MarketVersion,
+  SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
@@ -22,8 +23,10 @@ import {
   SmallFilterSelect,
   SmallFilterSelectItem,
 } from "@/components/SmallFilterSelect"
+import { TargetChainId } from "@/config/network"
+import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-import { marketStatusesMock, underlyingAssetsMock } from "@/mocks/mocks"
+import { marketStatusesMock } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
@@ -61,6 +64,18 @@ export const MarketsSection = () => {
   const { isWrongNetwork } = useCurrentNetwork()
 
   const bannerDisplayConfig = useBorrowerInvitationRedirect()
+
+  const { data: tokensRaw } = useAllTokensWithMarkets()
+  const tokens = useMemo(() => {
+    if (TargetChainId === SupportedChainId.Sepolia) {
+      /// Only take first token with a given symbol
+      return tokensRaw?.filter(
+        (token, index, self) =>
+          index === self.findIndex((x) => x.symbol === token.symbol),
+      )
+    }
+    return tokensRaw
+  }, [tokensRaw])
 
   // TEST
 
@@ -265,7 +280,12 @@ export const MarketsSection = () => {
 
             <SmallFilterSelect
               placeholder={t("dashboard.markets.filters.assets")}
-              options={underlyingAssetsMock}
+              options={
+                tokens?.map((token) => ({
+                  id: token.address,
+                  name: token.symbol,
+                })) ?? []
+              }
               selected={marketAssets}
               setSelected={setMarketAssets}
             />

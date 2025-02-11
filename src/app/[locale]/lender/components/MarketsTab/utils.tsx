@@ -32,7 +32,6 @@ import {
 import {
   getMarketStatus,
   getMarketStatusChip,
-  MarketAssets,
   MarketStatus,
 } from "@/utils/marketStatus"
 
@@ -73,7 +72,7 @@ export const filterMarketAccounts = (
 
   if (filteredMarkets && assets.length > 0) {
     filteredMarkets = filteredMarkets.filter(({ market }) =>
-      assetsNames.includes(market.underlyingToken.symbol as MarketAssets),
+      assetsNames.includes(market.underlyingToken.symbol),
     )
   }
 

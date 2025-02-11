@@ -25,11 +25,7 @@ import {
   setTerminatedAmount,
 } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
-import {
-  getMarketStatus,
-  MarketAssets,
-  MarketStatus,
-} from "@/utils/marketStatus"
+import { getMarketStatus, MarketStatus } from "@/utils/marketStatus"
 
 const getFilteredAndOrderedMarkets = (
   markets: Market[],
@@ -70,7 +66,7 @@ const getFilteredAndOrderedMarkets = (
 
   if (filteredMarkets && assets.length > 0) {
     filteredMarkets = filteredMarkets.filter((market) =>
-      assetsNames.includes(market.underlyingToken.symbol as MarketAssets),
+      assetsNames.includes(market.underlyingToken.symbol),
     )
   }
 
