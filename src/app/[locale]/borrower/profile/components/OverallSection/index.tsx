@@ -31,8 +31,7 @@ export const OverallSection = ({
     jurisdiction !== undefined
       ? Jurisdictions[jurisdiction as keyof typeof Jurisdictions]
       : undefined
-  const jurisdictionText =
-    jurisdictionObj?.subDivisionName || jurisdictionObj?.countryName
+  const jurisdictionText = jurisdictionObj?.countryName
 
   const entityKindText =
     entityKind !== undefined && jurisdictionObj
