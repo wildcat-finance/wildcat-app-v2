@@ -13,6 +13,7 @@ import { MarketParametersItem } from "@/components/MarketParameters/components/M
 import { OverallSectionProps } from "./interface"
 
 export const OverallSection = ({
+  address,
   name,
   website,
   headquarters,
@@ -74,6 +75,16 @@ export const OverallSection = ({
         </Box>
 
         <Box sx={MarketParametersColumn}>
+          {address && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.address")}
+                value={address ?? ""}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
+
           {(headquarters || founded) && (
             <Box>
               <MarketParametersItem
