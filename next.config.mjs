@@ -39,7 +39,7 @@ const nextConfig = {
     return [
       {
         source: '/',
-        destination: '/borrower',
+        destination: '/lender',
         permanent: true,
       },
     ]
