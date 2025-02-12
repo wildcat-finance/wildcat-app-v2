@@ -68,6 +68,7 @@ type Jurisdiction = {
 }
 const ProfileKeys = [
   "name",
+  "alias",
   "avatar",
   "description",
   "founded",

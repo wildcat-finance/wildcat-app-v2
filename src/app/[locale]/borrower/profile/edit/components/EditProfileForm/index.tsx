@@ -63,6 +63,7 @@ type Jurisdiction = {
 }
 const ProfileKeys = [
   "name",
+  "alias",
   "avatar",
   "description",
   "founded",
@@ -126,6 +127,7 @@ export default function EditProfileForm({
     address: address as string,
     avatar,
     name: getPublicValues().legalName,
+    alias: getPublicValues().tradingName,
     description: getPublicValues().description,
     founded: getPublicValues().founded,
     headquarters: getPublicValues().headquarters,
@@ -196,6 +198,9 @@ export default function EditProfileForm({
 
   useEffect(() => {
     setPublicValue("legalName", publicData?.name || "", {
+      shouldValidate: true,
+    })
+    setPublicValue("tradingName", publicData?.alias || "", {
       shouldValidate: true,
     })
     setPublicValue("description", publicData?.description, {
@@ -348,6 +353,30 @@ export default function EditProfileForm({
                 : undefined)
             }
             {...registerPublic("legalName")}
+          />
+        </EditProfileItem>
+
+        <EditProfileItem
+          title={t("borrowerProfile.edit.public.alias.title")}
+          tooltip={t("borrowerProfile.edit.public.alias.tooltip")}
+          form={publicForm}
+          field="tradingName"
+          oldValue={publicData?.alias}
+          newValue={publicWatch("tradingName")}
+          isLoading={isLoading}
+        >
+          <TextField
+            fullWidth
+            placeholder={t("borrowerProfile.edit.public.alias.placeholder")}
+            error={Boolean(publicErrors.tradingName)}
+            // disabled={TargetChainId === SupportedChainId.Mainnet}
+            helperText={
+              publicErrors.tradingName?.message ??
+              (TargetChainId === SupportedChainId.Mainnet
+                ? t("borrowerProfile.edit.public.alias.helperText")
+                : undefined)
+            }
+            {...registerPublic("tradingName")}
           />
         </EditProfileItem>
 

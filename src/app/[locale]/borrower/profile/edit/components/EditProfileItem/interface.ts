@@ -14,6 +14,7 @@ export type EditProfileItemProps = {
     | UseFormReturn<PublicValidationSchemaType>
   field:
     | "legalName"
+    | "tradingName"
     | "description"
     | "founded"
     | "headquarters"

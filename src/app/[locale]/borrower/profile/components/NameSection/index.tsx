@@ -21,6 +21,7 @@ import { EmptyAlert } from "../EmptyAlert"
 export const NameSection = ({
   avatar,
   name,
+  alias,
   description,
   website,
   twitter,
@@ -44,7 +45,7 @@ export const NameSection = ({
         </SvgIcon>
       )}
 
-      <Typography variant="title1">{name}</Typography>
+      <Typography variant="title1">{alias}</Typography>
 
       {type === "user" &&
         !(description || website || twitter || linkedin || telegram) && (

@@ -4,6 +4,7 @@ import { z } from "zod"
 
 export const publicValidationSchema = z.object({
   legalName: z.string().min(1),
+  tradingName: z.string().min(1),
   description: z
     .string()
     .max(1000, "Description cannot be longer than 1000 characters")
@@ -42,6 +43,7 @@ export type PublicValidationSchemaType = z.infer<typeof publicValidationSchema>
 export const useEditPublicForm = () => {
   const defaultEditPublicForm: PublicValidationSchemaType = {
     legalName: "",
+    tradingName: "",
     description: "",
     founded: "",
     headquarters: "",

@@ -317,6 +317,7 @@ export async function getBorrowerProfile(
     address: borrower.address,
     chainId: borrower.chainId,
     name: borrower.name || undefined,
+    alias: borrower.alias || undefined,
     description: borrower.description || undefined,
     founded: borrower.founded || undefined,
     headquarters: borrower.headquarters || undefined,

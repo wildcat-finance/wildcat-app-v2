@@ -2,6 +2,7 @@ import { z } from "zod"
 
 export const BorrowerProfileInputDTO = z.object({
   name: z.string().min(0).max(64).optional(),
+  alias: z.string().min(0).max(128).optional(),
   description: z.string().min(0).max(256).optional(),
   founded: z.string().min(0).max(128).optional(),
   headquarters: z.string().min(0).max(128).optional(),

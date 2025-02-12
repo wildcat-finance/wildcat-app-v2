@@ -152,12 +152,13 @@ model Borrower {
   address String
 
   name              String?
+  alias             String?
   description       String?
   founded           String?
   headquarters      String?
   website           String?
   twitter           String?
-  telegram        String?
+  telegram          String?
   linkedin          String?
   email             String?
   jurisdiction      String?
@@ -180,6 +181,7 @@ model BorrowerProfileUpdateRequest {
   createdAt DateTime
 
   name            String?
+  alias           String?
   description     String?
   founded         String?
   headquarters    String?

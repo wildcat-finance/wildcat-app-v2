@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
 
   const {
     name,
+    alias,
     description,
     founded,
     headquarters,
@@ -101,6 +102,7 @@ export async function POST(request: NextRequest) {
         address,
         createdAt: new Date().toISOString(),
         name,
+        alias,
         description,
         founded,
         headquarters,
@@ -124,6 +126,7 @@ export async function POST(request: NextRequest) {
   } = {}
   const keys = [
     "name",
+    "alias",
     "description",
     "founded",
     "headquarters",
@@ -212,6 +215,7 @@ export async function PUT(request: NextRequest) {
     const newData: Omit<BorrowerProfileInput, "address"> = {}
     const keys = [
       "name",
+      "alias",
       "description",
       "founded",
       "headquarters",
