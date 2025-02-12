@@ -34,8 +34,7 @@ export const config = createConfig({
     }),
     walletConnect({
       metadata: {
-        description:
-          "An undercollateralised credit facility protocol.",
+        description: "An undercollateralised credit facility protocol.",
         name: "Wildcat",
         url: "https://app.wildcat.finance",
         icons: ["https://avatars.githubusercontent.com/u/113041915?s=200&v=4"],
