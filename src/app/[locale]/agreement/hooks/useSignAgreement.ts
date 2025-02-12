@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import dayjs from "dayjs"
 import { useRouter } from "next/navigation"
 
-import { toastRequest } from "@/components/Toasts"
+import { toastError, toastRequest } from "@/components/Toasts"
 import { TargetNetwork } from "@/config/network"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
@@ -114,6 +114,9 @@ export const useSignAgreement = () => {
         name,
         timeSigned,
         address,
+      }).catch((error) => {
+        toastError("Failed to submit ToS signature")
+        throw error
       })
       return result
     },
