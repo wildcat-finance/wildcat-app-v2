@@ -24,7 +24,7 @@ export type SignAgreementProps = {
 export async function submitSignature(input: SignatureSubmissionProps) {
   const network = TargetNetwork.stringID
 
-  await fetch(`/api/sla`, {
+  const result = await fetch(`/api/sla`, {
     method: "POST",
     body: JSON.stringify({
       ...input,
@@ -34,7 +34,10 @@ export async function submitSignature(input: SignatureSubmissionProps) {
       "Content-Type": "application/json",
     },
     credentials: "include",
-  })
+  }).then((res) => res.json())
+  if (!result.success) {
+    throw Error(`Failed to submit signature`)
+  }
 }
 
 export const useSignAgreement = () => {
