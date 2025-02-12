@@ -299,6 +299,25 @@ export const AgreementText = () => (
     </Typography>
 
     <Typography variant="text2">
+      By creating and deploying a Market, you explicitly agree to repay all debt
+      incurred by your Market in accordance with the terms applicable to your
+      Market. This obligation includes, but is not limited to, principal
+      amounts, interest, protocol fees, and any other associated costs.
+    </Typography>
+
+    <Typography variant="text2">
+      By creating and deploying a Market, whether or not a Loan Agreement is
+      utilised, you explicitly acknowledge and accept that if your Market enters
+      into a delinquent state and has incurred the penalty rate (as determined
+      by the grace tracker) for a continuous period of ninety (90) days, your
+      Market will be considered in default. This default status may trigger
+      enforcement actions, including but not limited to, liquidation of assets,
+      legal proceedings, or other remedies as permitted under applicable law and
+      the terms governing the Market. In the event that a Loan Agreement is in
+      place, this paragraph is superseded by that Loan Agreement.
+    </Typography>
+
+    <Typography variant="text2">
       ## 6.3 Market Users/Lenders: Acknowledgment of Risk and Responsibility
     </Typography>
     <Typography variant="text2">
@@ -1142,7 +1161,7 @@ export const AgreementText = () => (
     </Typography>
 
     <Typography variant="text2">
-      Updated and effective: 17 January 2025
+      Updated and effective: 12 February 2025
     </Typography>
 
     <Typography variant="text2">‎</Typography>
