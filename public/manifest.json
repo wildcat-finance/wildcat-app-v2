@@ -1,7 +1,7 @@
 {
   "short_name": "Wildcat Finance",
   "name": "Wildcat Finance",
-  "description": "An undercollateralised credit facility protocol: banking, but worse",
+  "description": "An undercollateralised credit facility protocol.",
   "icons": [
     {
       "src": "favicon.ico",

@@ -27,7 +27,7 @@ const mockProfile: BorrowerProfile = {
 
 const otherMockedProfile: BorrowerProfile = {
   address: "0xb1099527bd2af2cf8ee3abd7dc5fa95353f31c44",
-  name: "Wildcat Finance",
+  name: "Wildcat",
   description:
     "- an Ethereum protocol enabling undercollateralised on-chain credit facilities which a borrower can parameterise however they wish.",
   founded: undefined,
