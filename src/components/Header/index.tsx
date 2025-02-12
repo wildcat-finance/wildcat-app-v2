@@ -26,7 +26,7 @@ export default function Header() {
   const dispatch = useAppDispatch()
 
   // Set default to "lender"
-  const [side, setSide] = useState<"borrower" | "lender">("lender")
+  const [side, setSide] = useState<"lender" | "borrower">("lender")
 
   const handleToggleSide = () => {
     if (side === "lender") {
@@ -54,7 +54,7 @@ export default function Header() {
   }
 
   const homeUrl = useMemo(
-    () => (side === "borrower" ? ROUTES.borrower.root : ROUTES.lender.root),
+    () => (side === "lender" ? ROUTES.lender.root : ROUTES.borrower.root),
     [side],
   )
 
