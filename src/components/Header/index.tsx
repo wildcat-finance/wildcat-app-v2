@@ -25,7 +25,8 @@ export default function Header() {
   const pathname = usePathname()
   const dispatch = useAppDispatch()
 
-  const [side, setSide] = useState<"borrower" | "lender">()
+  // Set default to "lender"
+  const [side, setSide] = useState<"borrower" | "lender">("lender")
 
   const handleToggleSide = () => {
     if (side === "borrower") {
@@ -38,9 +39,12 @@ export default function Header() {
   }
 
   useEffect(() => {
+    // Default to lender unless explicitly on borrower path
     if (pathname.includes(ROUTES.borrower.root)) {
       setSide("borrower")
-    } else setSide("lender")
+    } else {
+      setSide("lender")
+    }
   }, [pathname])
 
   const handleResetTab = () => {
@@ -60,16 +64,13 @@ export default function Header() {
         <Logo />
       </Link>
       <Box sx={NavContainer}>
-        <Link
-          onClick={handleResetTab}
-          href={ROUTES.borrower.root}
-          style={{ textDecoration: "none" }}
-        >
+        {/* Lender on the left */}
+        <Link href={ROUTES.lender.root} style={{ textDecoration: "none" }}>
           <Typography
             variant="text2Highlighted"
             sx={{ color: COLORS.white, cursor: "pointer" }}
           >
-            {t("header.role.borrower")}
+            {t("header.role.lender")}
           </Typography>
         </Link>
         <Switch
@@ -88,14 +89,18 @@ export default function Header() {
             },
           }}
           onClick={handleToggleSide}
-          checked={side === "lender"}
+          checked={side === "borrower"}
         />
-        <Link href={ROUTES.lender.root} style={{ textDecoration: "none" }}>
+        <Link
+          onClick={handleResetTab}
+          href={ROUTES.borrower.root}
+          style={{ textDecoration: "none" }}
+        >
           <Typography
             variant="text2Highlighted"
             sx={{ color: COLORS.white, cursor: "pointer" }}
           >
-            {t("header.role.lender")}
+            {t("header.role.borrower")}
           </Typography>
         </Link>
       </Box>
