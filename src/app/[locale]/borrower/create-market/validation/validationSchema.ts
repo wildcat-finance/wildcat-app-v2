@@ -92,8 +92,8 @@ export const marketValidationSchema = z
     delinquencyFeeBips: z.coerce.number().gte(0),
     reserveRatioBips: z.coerce.number().gte(0),
     minimumDeposit: z.coerce.number().optional(),
-    delinquencyGracePeriod: z.coerce.number().gt(0),
-    withdrawalBatchDuration: z.coerce.number().gt(0),
+    delinquencyGracePeriod: z.coerce.number().gt(0).lt(2160),
+    withdrawalBatchDuration: z.coerce.number().gt(0).lt(2160),
     policy: z.string().min(1),
     policyName: z.string(),
     fixedTermEndTime: z.coerce
