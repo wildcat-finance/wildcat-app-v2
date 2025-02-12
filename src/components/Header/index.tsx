@@ -29,7 +29,7 @@ export default function Header() {
   const [side, setSide] = useState<"borrower" | "lender">("lender")
 
   const handleToggleSide = () => {
-    if (side === "borrower") {
+    if (side === "lender") {
       setSide("lender")
       router.push(ROUTES.lender.root)
     } else {
