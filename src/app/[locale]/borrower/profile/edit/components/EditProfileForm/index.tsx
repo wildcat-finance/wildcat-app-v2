@@ -340,7 +340,7 @@ export default function EditProfileForm({
             fullWidth
             placeholder={t("borrowerProfile.edit.public.name.placeholder")}
             error={Boolean(publicErrors.legalName)}
-            disabled={TargetChainId === SupportedChainId.Mainnet}
+            // disabled={TargetChainId === SupportedChainId.Mainnet}
             helperText={
               publicErrors.legalName?.message ??
               (TargetChainId === SupportedChainId.Mainnet
