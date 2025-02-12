@@ -4,6 +4,7 @@ import * as React from "react"
 import { useEffect } from "react"
 
 import { Box, Divider, Skeleton } from "@mui/material"
+import { MarketVersion } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
@@ -44,7 +45,6 @@ export default function MarketDetails({
   const { data: market } = useGetMarket({ address })
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
   const { address: walletAddress } = useAccount()
-  const bannerDisplayConfig = useBorrowerInvitationRedirect()
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 
@@ -98,7 +98,12 @@ export default function MarketDetails({
       </Box>
     )
 
-  if (!isLoadingMarketMla && marketMla === null && checked !== 5)
+  if (
+    !isLoadingMarketMla &&
+    marketMla === null &&
+    checked !== 5 &&
+    market.version === MarketVersion.V2
+  )
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>
@@ -116,16 +121,6 @@ export default function MarketDetails({
   return (
     <Box>
       <Box>
-        {!bannerDisplayConfig.hideBanner && checked === 1 && (
-          <Box padding="24px 32.3% 0 44px">
-            <LeadBanner
-              title={bannerDisplayConfig.title}
-              text={bannerDisplayConfig.text}
-              buttonText={bannerDisplayConfig.buttonText}
-              buttonLink={bannerDisplayConfig.link}
-            />
-          </Box>
-        )}
         <MarketHeader marketAccount={marketAccount} />
         <Box
           // ref={scrollContainer}
@@ -134,10 +129,7 @@ export default function MarketDetails({
             overflow: "hidden",
             overflowY: "visible",
             padding: "0 32.3% 24px 44px",
-            height:
-              !bannerDisplayConfig.hideBanner && checked === 1
-                ? `calc(100vh - ${pageCalcHeights.market} - 220px)`
-                : `calc(100vh - ${pageCalcHeights.market})`,
+            height: `calc(100vh - ${pageCalcHeights.market})`,
           }}
         >
           {/* <Slide */}
