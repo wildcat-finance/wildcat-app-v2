@@ -6,7 +6,7 @@ export const publicValidationSchema = z.object({
   legalName: z.string().min(1),
   description: z
     .string()
-    .max(1000, "Description cannot be longer than 1000 characters")
+    .max(1024, "Description cannot be longer than 1024 characters")
     .optional(),
   founded: z.string().optional(),
   headquarters: z.string().optional(),
