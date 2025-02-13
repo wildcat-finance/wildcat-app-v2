@@ -191,6 +191,33 @@ export const MarketSidebar = () => {
           >
             {t("borrowerMarketDetails.sidebar.marketHistory")}
           </Button>
+
+          <Button
+            variant="text"
+            size="medium"
+            sx={{
+              ...MenuItemButton,
+              backgroundColor: sidebarState.collateralContract
+                ? COLORS.whiteSmoke
+                : "transparent",
+            }}
+            onClick={() => {
+              dispatch(setCheckBlock(7))
+              dispatch(
+                setSidebarHighlightState({
+                  borrowRepay: false,
+                  statusDetails: false,
+                  withdrawals: false,
+                  lenders: false,
+                  mla: false,
+                  marketHistory: false,
+                  collateralContract: true,
+                }),
+              )
+            }}
+          >
+            Collateral Contract
+          </Button>
         </Box>
 
         {marketAccount && holdTheMarket && (

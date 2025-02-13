@@ -7,7 +7,7 @@ export const AmountContainer = {
 }
 
 export const BlockContainer = {
-  width: "395px",
+  width: "100%",
   padding: "16px",
   display: "flex",
   justifyContent: "space-between",

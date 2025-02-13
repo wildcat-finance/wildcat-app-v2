@@ -11,6 +11,7 @@ import { useAccount } from "wagmi"
 import { BorrowerProfileDetails } from "@/app/[locale]/borrower/profile/components/BorrowerProfileDetails"
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
+import { CommonGlossarySidebar } from "@/components/CommonGlossarySidebar"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
@@ -33,6 +34,7 @@ import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
 import { SectionContainer, SkeletonContainer, SkeletonStyle } from "./style"
 import { getEffectiveLenderRole } from "./utils"
+import { MarketCollateralContract } from "@/app/[locale]/lender/market/[address]/components/MarketCollateralContract"
 
 const BorrowerProfileRedirect = ({ address }: { address: string }) => {
   useEffect(() => {
@@ -95,6 +97,19 @@ export default function LenderMarketDetails({
     [],
   )
 
+  const glossary = [
+    {
+      title: "Collateral Contract",
+      description:
+        "Rules defining loan type (open or fixed) and access requirements.",
+    },
+    {
+      title: "Liquidate",
+      description:
+        "Rules defining loan type (open or fixed) and access requirements.",
+    },
+  ]
+
   if (isLoading)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
@@ -136,8 +151,8 @@ export default function LenderMarketDetails({
     )
 
   return (
-    <Box>
-      <Box>
+    <Box sx={{ width: "100%", display: "flex" }}>
+      <Box sx={{ width: "100%" }}>
         <MarketHeader marketAccount={marketAccount} />
 
         <Box sx={SectionContainer}>
@@ -186,8 +201,18 @@ export default function LenderMarketDetails({
               <PaginatedMarketRecordsTable market={market} />
             </Box>
           )}
+          {currentSection === LenderMarketSections.COLLATERAL_CONTRACT && (
+            <MarketCollateralContract market={market} />
+          )}
         </Box>
       </Box>
+
+      <CommonGlossarySidebar
+        glossaryArray={glossary}
+        hideGlossary={
+          currentSection !== LenderMarketSections.COLLATERAL_CONTRACT
+        }
+      />
     </Box>
   )
 }

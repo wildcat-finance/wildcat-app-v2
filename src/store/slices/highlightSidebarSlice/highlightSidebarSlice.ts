@@ -11,6 +11,7 @@ const initialState: THighLightSidebar = {
     lenders: false,
     mla: false,
     marketHistory: false,
+    collateralContract: false,
   },
 }
 

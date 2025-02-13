@@ -7,5 +7,6 @@ export type THighLightSidebar = {
     lenders: boolean
     mla: boolean
     marketHistory: boolean
+    collateralContract: boolean
   }
 }
