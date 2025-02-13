@@ -122,20 +122,20 @@ export default function MarketDetails({
       </Box>
     )
 
-  // if (!isLoadingMarketMla && marketMla === null && checked !== 5)
-  //   return (
-  //     <Box sx={{ padding: "52px 20px 0 44px" }}>
-  //       <Box sx={{ width: "69%" }}>
-  //         <LeadBanner
-  //           title="Select MLA Settings"
-  //           text="Your MLA selection was not successfully uploaded. Please try again."
-  //           buttonText="Go to MLA Settings"
-  //           buttonLink={undefined}
-  //           onClick={() => dispatch(setCheckBlock(5))}
-  //         />
-  //       </Box>
-  //     </Box>
-  //   )
+  if (!isLoadingMarketMla && marketMla === null && checked !== 5)
+    return (
+      <Box sx={{ padding: "52px 20px 0 44px" }}>
+        <Box sx={{ width: "69%" }}>
+          <LeadBanner
+            title="Select MLA Settings"
+            text="Your MLA selection was not successfully uploaded. Please try again."
+            buttonText="Go to MLA Settings"
+            buttonLink={undefined}
+            onClick={() => dispatch(setCheckBlock(5))}
+          />
+        </Box>
+      </Box>
+    )
 
   return (
     <Box>

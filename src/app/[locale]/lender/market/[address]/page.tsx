@@ -10,6 +10,7 @@ import { useAccount } from "wagmi"
 
 import { BorrowerProfileDetails } from "@/app/[locale]/borrower/profile/components/BorrowerProfileDetails"
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
+import { MarketCollateralContract } from "@/app/[locale]/lender/market/[address]/components/MarketCollateralContract"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
 import { CommonGlossarySidebar } from "@/components/CommonGlossarySidebar"
 import { MarketHeader } from "@/components/MarketHeader"
@@ -34,7 +35,6 @@ import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
 import { SectionContainer, SkeletonContainer, SkeletonStyle } from "./style"
 import { getEffectiveLenderRole } from "./utils"
-import { MarketCollateralContract } from "@/app/[locale]/lender/market/[address]/components/MarketCollateralContract"
 
 const BorrowerProfileRedirect = ({ address }: { address: string }) => {
   useEffect(() => {
