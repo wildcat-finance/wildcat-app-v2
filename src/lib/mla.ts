@@ -9,12 +9,14 @@ import {
   Token,
 } from "@wildcatfi/wildcat-sdk"
 import dayjs from "dayjs"
+import { toUtf8Bytes } from "ethers/lib/utils"
 import humanizeDuration from "humanize-duration"
-import { getAddress } from "viem"
+import { getAddress, keccak256 } from "viem"
 
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
+import { ACCEPT_MLA_MESSAGE } from "@/config/mla-acceptance"
 import { TargetChainId } from "@/config/network"
 import { formatBps } from "@/utils/formatters"
 
@@ -328,8 +330,18 @@ export function getFieldValuesForBorrower({
     jurisdiction !== undefined
       ? Jurisdictions[jurisdiction as keyof typeof Jurisdictions]
       : undefined
-  const jurisdictionText =
-    jurisdictionObj?.subDivisionName || jurisdictionObj?.countryName
+  let jurisdictionText: string | undefined
+  // If there is no subDivisionCode or the subDivisionCode is the same as the countryCode,
+  // then we use the countryName.
+  if (
+    !jurisdictionObj?.subDivisionCode ||
+    jurisdictionObj?.subDivisionCode === jurisdictionObj?.countryCode
+  ) {
+    jurisdictionText = jurisdictionObj?.countryName
+  } else {
+    jurisdictionText =
+      jurisdictionObj?.subDivisionName || jurisdictionObj?.countryName
+  }
 
   const entityKindText =
     entityKind !== undefined && jurisdictionObj
@@ -491,15 +503,25 @@ export function fillInMlaTemplate(
     plaintext = plaintext.replaceAll(`{{${field.source}}}`, value)
     html = html.replaceAll(`{{${field.source}}}`, value)
   })
+  const marketAddress = fieldValues.get("market.address")
+  if (!marketAddress) {
+    throw new Error("Market address is required")
+  }
+  const message = ACCEPT_MLA_MESSAGE.replace(
+    "{{market}}",
+    formatAddress(marketAddress) as string,
+  ).replace("{{hash}}", keccak256(toUtf8Bytes(plaintext)))
   return {
     html,
     plaintext,
+    message,
   }
 }
 
 export function fillInMlaForLender(
   mla: BorrowerSignedMla,
   values: Map<MlaFieldValueKey, string | undefined>,
+  marketAddress: string,
 ) {
   let { html, plaintext } = mla
   mla.lenderFields.forEach((field) => {
@@ -507,5 +529,10 @@ export function fillInMlaForLender(
     plaintext = plaintext.replaceAll(`{{${field.source}}}`, value)
     html = html.replaceAll(`{{${field.source}}}`, value)
   })
-  return { html, plaintext }
+  const message = ACCEPT_MLA_MESSAGE.replace(
+    "{{market}}",
+    formatAddress(marketAddress) as string,
+  ).replace("{{hash}}", keccak256(toUtf8Bytes(plaintext)))
+
+  return { html, plaintext, message }
 }

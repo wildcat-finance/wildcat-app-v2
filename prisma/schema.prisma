@@ -76,6 +76,7 @@ model MlaTemplate {
   id             Int      @id @default(autoincrement())
   name           String
   description    String?
+  hide           Boolean? @default(false)
   isDefault      Boolean?
   html           String
   plaintext      String
@@ -156,6 +157,7 @@ model Borrower {
   headquarters      String?
   website           String?
   twitter           String?
+  telegram        String?
   linkedin          String?
   email             String?
   jurisdiction      String?
@@ -183,6 +185,7 @@ model BorrowerProfileUpdateRequest {
   headquarters    String?
   website         String?
   twitter         String?
+  telegram        String?
   linkedin        String?
   email           String?
   jurisdiction    String?

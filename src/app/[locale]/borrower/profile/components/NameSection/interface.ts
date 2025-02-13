@@ -6,6 +6,7 @@ export type NameSectionProps = {
   description?: string
   website?: string
   twitter?: string
+  telegram?: string
   linkedin?: string
   marketsAmount?: number
 

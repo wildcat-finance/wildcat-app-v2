@@ -41,7 +41,7 @@ export async function GET(
 
   const timeSigned = +mlaSignature.timeSigned
   const values = getFieldValuesForLender(lenderAddress, timeSigned)
-  const { plaintext } = fillInMlaForLender(mla, values)
+  const { plaintext } = fillInMlaForLender(mla, values, market)
   const borrowerSignature = mla.borrowerSignature!
 
   const result = [

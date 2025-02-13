@@ -35,7 +35,7 @@ export async function GET(
       `[${field.placeholder}]`,
     ]),
   )
-  const { html } = fillInMlaForLender(mla, values)
+  const { html } = fillInMlaForLender(mla, values, market)
   const finalHtml = encodeURIComponent(html)
   const browser = await puppeteer.launch({
     args: ["--no-sandbox"],

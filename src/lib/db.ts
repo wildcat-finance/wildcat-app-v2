@@ -322,6 +322,7 @@ export async function getBorrowerProfile(
     headquarters: borrower.headquarters || undefined,
     website: borrower.website || undefined,
     twitter: borrower.twitter || undefined,
+    telegram: borrower.telegram || undefined,
     linkedin: borrower.linkedin || undefined,
     email: borrower.email || undefined,
     registeredOnChain: borrower.registeredOnChain,

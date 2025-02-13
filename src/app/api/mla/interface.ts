@@ -14,12 +14,16 @@ export interface MlaTemplateMetadata {
   id: number
   name: string
   description?: string
+  hide?: boolean
+  isDefault?: boolean
 }
 
 export interface MlaTemplate {
   id: number
   name: string
   description?: string
+  hide?: boolean
+  isDefault?: boolean
   html: string
   plaintext: string
   borrowerFields: MlaTemplateField[]

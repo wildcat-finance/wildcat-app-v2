@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
     headquarters,
     website,
     twitter,
+    telegram,
     linkedin,
     email,
     jurisdiction,
@@ -105,6 +106,7 @@ export async function POST(request: NextRequest) {
         headquarters,
         website,
         twitter,
+        telegram,
         linkedin,
         email,
         jurisdiction,
@@ -127,11 +129,13 @@ export async function POST(request: NextRequest) {
     "headquarters",
     "website",
     "twitter",
+    "telegram",
     "linkedin",
     "email",
     "jurisdiction",
     "physicalAddress",
     "entityKind",
+    "telegram",
   ] as const
   keys.forEach((key) => {
     if (key in data) {
@@ -213,6 +217,7 @@ export async function PUT(request: NextRequest) {
       "headquarters",
       "website",
       "twitter",
+      "telegram",
       "linkedin",
       "email",
       "jurisdiction",

@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import dayjs from "dayjs"
 import { useRouter } from "next/navigation"
 
-import { toastRequest } from "@/components/Toasts"
+import { toastError, toastRequest } from "@/components/Toasts"
 import { TargetNetwork } from "@/config/network"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
@@ -24,7 +24,7 @@ export type SignAgreementProps = {
 export async function submitSignature(input: SignatureSubmissionProps) {
   const network = TargetNetwork.stringID
 
-  await fetch(`/api/sla`, {
+  const result = await fetch(`/api/sla`, {
     method: "POST",
     body: JSON.stringify({
       ...input,
@@ -34,7 +34,10 @@ export async function submitSignature(input: SignatureSubmissionProps) {
       "Content-Type": "application/json",
     },
     credentials: "include",
-  })
+  }).then((res) => res.json())
+  if (!result.success) {
+    throw Error(`Failed to submit signature`)
+  }
 }
 
 export const useSignAgreement = () => {
@@ -111,6 +114,9 @@ export const useSignAgreement = () => {
         name,
         timeSigned,
         address,
+      }).catch((error) => {
+        toastError("Failed to submit ToS signature")
+        throw error
       })
       return result
     },

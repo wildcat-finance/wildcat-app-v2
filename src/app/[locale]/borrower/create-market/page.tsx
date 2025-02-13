@@ -8,6 +8,7 @@ import { Box, Button, Dialog, IconButton, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import {
   DepositAccess,
+  getDeploymentAddress,
   HooksKind,
   Token,
   TransferAccess,
@@ -23,6 +24,7 @@ import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { Loader } from "@/components/Loader"
+import { TargetChainId } from "@/config/network"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
@@ -191,8 +193,11 @@ export default function CreateMarketPage() {
           marketParams.accessControl === "defaultPullProvider"
             ? [
                 {
-                  providerAddress: "0x9aCdE253F7A51456c48604185C0ceA4Fc9e58E3a",
-                  timeToLive: 2 ** 32 - 1,
+                  providerAddress: getDeploymentAddress(
+                    TargetChainId,
+                    "OpenAccessRoleProvider",
+                  ),
+                  timeToLive: 90 * 86_400,
                 },
               ]
             : [],

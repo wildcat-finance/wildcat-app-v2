@@ -32,14 +32,7 @@ export default function UserBorrowerProfile() {
 
   return (
     <Box sx={ContentContainer}>
-      <NameSection
-        type="user"
-        name={profileData?.name}
-        description={profileData?.description}
-        website={profileData?.website}
-        twitter={profileData?.twitter}
-        linkedin={profileData?.linkedin}
-      />
+      <NameSection type="user" {...profileData} />
 
       <OverallSection
         {...profileData}

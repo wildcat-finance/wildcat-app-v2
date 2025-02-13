@@ -117,7 +117,10 @@ export async function getMlaFromForm(
     asset,
   )
 
-  const { html, plaintext } = fillInMlaTemplate(mlaTemplate, borrowerValues)
+  const { html, plaintext, message } = fillInMlaTemplate(
+    mlaTemplate,
+    borrowerValues,
+  )
   const { html: htmlWithPlaceholders } = fillInMlaForLender(
     {
       html,
@@ -130,10 +133,12 @@ export async function getMlaFromForm(
         `[${field.placeholder}]`,
       ]),
     ),
+    marketAddress,
   )
   return {
     html,
     plaintext,
+    message,
     htmlWithPlaceholders,
     mlaTemplate,
   }
@@ -215,6 +220,7 @@ export const usePreviewMla = (
             `[${field.placeholder}]`,
           ]),
         ),
+        market.address,
       )
       return {
         html,

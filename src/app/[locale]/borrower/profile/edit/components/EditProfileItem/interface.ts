@@ -19,6 +19,7 @@ export type EditProfileItemProps = {
     | "headquarters"
     | "website"
     | "twitter"
+    | "telegram"
     | "linkedin"
     | "jurisdiction"
     | "entityKind"

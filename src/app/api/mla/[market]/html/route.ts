@@ -34,7 +34,7 @@ export async function GET(
       `[${field.placeholder}]`,
     ]),
   )
-  const { html } = fillInMlaForLender(mla, values)
+  const { html } = fillInMlaForLender(mla, values, market)
   return new NextResponse(html, {
     status: 200,
     headers: {

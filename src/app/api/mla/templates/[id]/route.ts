@@ -22,14 +22,18 @@ export async function GET(
         plaintext: true,
         borrowerFields: true,
         lenderFields: true,
+        hide: true,
+        isDefault: true,
       },
     })
     .then((obj) => {
       if (!obj) return undefined
-      const { description, ...rest } = obj
+      const { description, hide, isDefault, ...rest } = obj
       return {
         ...rest,
         description: description || undefined,
+        hide: hide || false,
+        isDefault: isDefault || false,
       } as MlaTemplate
     })
 

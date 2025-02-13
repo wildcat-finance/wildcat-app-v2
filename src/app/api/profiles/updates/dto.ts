@@ -2,7 +2,7 @@ import { z } from "zod"
 
 export const BorrowerProfileInputDTO = z.object({
   name: z.string().min(0).max(64).optional(),
-  description: z.string().min(0).max(256).optional(),
+  description: z.string().min(0).max(1024).optional(),
   founded: z.string().min(0).max(128).optional(),
   headquarters: z.string().min(0).max(128).optional(),
   website: z
@@ -19,6 +19,13 @@ export const BorrowerProfileInputDTO = z.object({
     .string()
     .regex(/^(@?(\w){1,15}$)$/, {
       message: `Invalid Twitter username`,
+    })
+    .optional()
+    .or(z.literal("")),
+  telegram: z
+    .string()
+    .regex(/^(@?(\w){5,32}$)$/, {
+      message: `Invalid Telegram username`,
     })
     .optional()
     .or(z.literal("")),

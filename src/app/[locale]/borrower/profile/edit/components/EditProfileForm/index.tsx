@@ -69,6 +69,7 @@ const ProfileKeys = [
   "headquarters",
   "website",
   "twitter",
+  "telegram",
   "linkedin",
   "jurisdiction",
   "entityKind",
@@ -130,6 +131,7 @@ export default function EditProfileForm({
     headquarters: getPublicValues().headquarters,
     website: getPublicValues().website,
     twitter: getPublicValues().twitter,
+    telegram: getPublicValues().telegram,
     linkedin: getPublicValues().linkedin,
     jurisdiction: getPrivateValues().jurisdiction,
     entityKind: getPrivateValues().entityKind,
@@ -206,6 +208,7 @@ export default function EditProfileForm({
     setPublicValue("website", publicData?.website, { shouldValidate: true })
     setPublicValue("twitter", publicData?.twitter, { shouldValidate: true })
     setPublicValue("linkedin", publicData?.linkedin, { shouldValidate: true })
+    setPublicValue("telegram", publicData?.telegram, { shouldValidate: true })
     if (publicData?.jurisdiction) {
       setPrivateValue("entityCategory", "Registered Legal Entity")
       const jurisdiction =
@@ -337,7 +340,7 @@ export default function EditProfileForm({
             fullWidth
             placeholder={t("borrowerProfile.edit.public.name.placeholder")}
             error={Boolean(publicErrors.legalName)}
-            disabled={TargetChainId === SupportedChainId.Mainnet}
+            // disabled={TargetChainId === SupportedChainId.Mainnet}
             helperText={
               publicErrors.legalName?.message ??
               (TargetChainId === SupportedChainId.Mainnet
@@ -445,6 +448,26 @@ export default function EditProfileForm({
                 error={Boolean(publicErrors.twitter)}
                 helperText={publicErrors.twitter?.message}
                 {...registerPublic("twitter")}
+              />
+            </EditProfileItem>
+
+            <EditProfileItem
+              title={t("borrowerProfile.edit.public.telegram.title")}
+              tooltip={t("borrowerProfile.edit.public.telegram.tooltip")}
+              form={publicForm}
+              field="telegram"
+              oldValue={publicData?.telegram}
+              newValue={publicWatch("telegram")}
+              isLoading={isLoading}
+            >
+              <TextField
+                placeholder={t(
+                  "borrowerProfile.edit.public.telegram.placeholder",
+                )}
+                fullWidth
+                error={Boolean(publicErrors.telegram)}
+                helperText={publicErrors.telegram?.message}
+                {...registerPublic("telegram")}
               />
             </EditProfileItem>
 

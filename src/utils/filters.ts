@@ -1,7 +1,7 @@
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
-import { getMarketStatus, MarketAssets } from "@/utils/marketStatus"
+import { getMarketStatus } from "@/utils/marketStatus"
 
 export const filterMarketAccounts = (
   marketAccounts: MarketAccount[] | undefined,
@@ -37,7 +37,7 @@ export const filterMarketAccounts = (
 
   if (filteredMarkets && assets.length > 0) {
     filteredMarkets = filteredMarkets.filter(({ market }) =>
-      assetsNames.includes(market.underlyingToken.symbol as MarketAssets),
+      assetsNames.includes(market.underlyingToken.symbol),
     )
   }
 

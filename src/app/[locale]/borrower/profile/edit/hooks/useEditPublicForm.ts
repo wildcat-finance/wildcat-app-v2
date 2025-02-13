@@ -6,7 +6,7 @@ export const publicValidationSchema = z.object({
   legalName: z.string().min(1),
   description: z
     .string()
-    .max(1000, "Description cannot be longer than 1000 characters")
+    .max(1024, "Description cannot be longer than 1024 characters")
     .optional(),
   founded: z.string().optional(),
   headquarters: z.string().optional(),
@@ -24,6 +24,13 @@ export const publicValidationSchema = z.object({
     .string()
     .regex(/^(@?(\w){1,15}$)$/, {
       message: `Invalid Twitter username`,
+    })
+    .optional()
+    .or(z.literal("")),
+  telegram: z
+    .string()
+    .regex(/^(@?(\w){5,32}$)$/, {
+      message: `Invalid Telegram username`,
     })
     .optional()
     .or(z.literal("")),

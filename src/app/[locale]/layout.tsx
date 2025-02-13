@@ -38,7 +38,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Wildcat Finance",
+  title: "Wildcat - Your Markets, Your Terms",
 }
 
 export function generateStaticParams() {

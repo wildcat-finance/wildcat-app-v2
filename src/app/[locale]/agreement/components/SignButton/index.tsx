@@ -14,7 +14,7 @@ export const SignButton = () => {
 
   const [timeSigned, setTimeSigned] = useState<number>()
 
-  const organization = "Wildcat Finance"
+  const organization = "Wildcat Foundation"
 
   useEffect(() => {
     setTimeSigned(Date.now())

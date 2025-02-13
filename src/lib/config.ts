@@ -29,14 +29,13 @@ export const config = createConfig({
       debug: false,
     }),
     coinbaseWallet({
-      appName: "Wildcat Finance",
+      appName: "Wildcat",
       appLogoUrl: "https://avatars.githubusercontent.com/u/113041915?s=200&v=4",
     }),
     walletConnect({
       metadata: {
-        description:
-          "An undercollateralised credit facility protocol: banking, but worse",
-        name: "Wildcat Finance",
+        description: "An undercollateralised credit facility protocol.",
+        name: "Wildcat",
         url: "https://app.wildcat.finance",
         icons: ["https://avatars.githubusercontent.com/u/113041915?s=200&v=4"],
       },

@@ -83,12 +83,12 @@ export async function POST(request: NextRequest) {
     )
   }
   const values = getFieldValuesForLender(lenderAddress, timeSigned)
-  const { plaintext } = fillInMlaForLender(mla, values)
+  const { plaintext, message } = fillInMlaForLender(mla, values, marketAddress)
   const provider = getProviderForServer()
   const verifiedSignature = await verifyAndDescribeSignature({
     provider,
     address: lenderAddress,
-    message: plaintext,
+    message,
     signature,
   })
   if (!verifiedSignature) {

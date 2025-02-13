@@ -108,7 +108,7 @@ export const UnderlyingAssetSelect = forwardRef(
           )}
           renderOption={(props, option) => (
             <MenuItem {...props}>
-              {option.logoURI && (
+              {"logoURI" in option && option.logoURI && (
                 <Image
                   width={20}
                   height={20}

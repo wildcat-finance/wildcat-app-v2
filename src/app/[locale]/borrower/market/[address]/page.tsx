@@ -4,6 +4,7 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 
 import { Box, Divider, Skeleton } from "@mui/material"
+import { MarketVersion } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
@@ -46,7 +47,6 @@ export default function MarketDetails({
   const { data: market } = useGetMarket({ address })
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
   const { address: walletAddress } = useAccount()
-  const bannerDisplayConfig = useBorrowerInvitationRedirect()
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 
@@ -122,7 +122,12 @@ export default function MarketDetails({
       </Box>
     )
 
-  if (!isLoadingMarketMla && marketMla === null && checked !== 5)
+  if (
+    !isLoadingMarketMla &&
+    marketMla === null &&
+    checked !== 5 &&
+    market.version === MarketVersion.V2
+  )
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>
@@ -139,6 +144,104 @@ export default function MarketDetails({
 
   return (
     <Box>
+      <Box>
+        <MarketHeader marketAccount={marketAccount} />
+        <Box
+          // ref={scrollContainer}
+          sx={{
+            width: "100%",
+            overflow: "hidden",
+            overflowY: "visible",
+            padding: "0 32.3% 24px 44px",
+            height: `calc(100vh - ${pageCalcHeights.market})`,
+          }}
+        >
+          {/* <Slide */}
+          {/*  direction={direction} */}
+          {/*  container={scrollContainer.current} */}
+          {/*  unmountOnExit */}
+          {/*  in={checked === 1} */}
+          {/* > */}
+          {/*  <Box sx={SlideContentContainer}> */}
+          {/*    {holdTheMarket && ( */}
+          {/*      <MarketTransactions */}
+          {/*        market={market} */}
+          {/*        marketAccount={marketAccount} */}
+          {/*        holdTheMarket={holdTheMarket} */}
+          {/*      /> */}
+          {/*    )} */}
+          {/*    {holdTheMarket && <Divider sx={{ margin: "32px 0 44px" }} />} */}
+          {/*    <MarketStatusChart market={market} /> */}
+          {/*  </Box> */}
+          {/* </Slide> */}
+          {checked === 1 && (
+            <Box sx={SlideContentContainer}>
+              {holdTheMarket && (
+                <MarketTransactions
+                  market={market}
+                  marketAccount={marketAccount}
+                  holdTheMarket={holdTheMarket}
+                />
+              )}
+              {holdTheMarket && <Divider sx={{ margin: "32px 0" }} />}
+              <MarketStatusChart market={market} />
+            </Box>
+          )}
+          {/* <Slide */}
+          {/*  direction={direction} */}
+          {/*  container={scrollContainer.current} */}
+          {/*  unmountOnExit */}
+          {/*  in={checked === 2} */}
+          {/* > */}
+          {/*  <Box sx={SlideContentContainer} marginTop="12px"> */}
+          {/*    <MarketStatusChart market={market} /> */}
+          {/*    <Divider sx={{ margin: "32px 0 44px" }} /> */}
+          {/*    <MarketParameters market={market} /> */}
+          {/*  </Box> */}
+          {/* </Slide> */}
+          {checked === 2 && (
+            <Box sx={SlideContentContainer} marginTop="12px">
+              <MarketStatusChart market={market} />
+              <Divider sx={{ margin: "32px 0 44px" }} />
+              <MarketParameters market={market} />
+            </Box>
+          )}
+          {/* <Slide */}
+          {/*  direction={direction} */}
+          {/*  container={scrollContainer.current} */}
+          {/*  unmountOnExit */}
+          {/*  in={checked === 3} */}
+          {/* > */}
+          {/*  <Box sx={SlideContentContainer} marginTop="12px"> */}
+          {/*    <MarketWithdrawalRequests marketAccount={marketAccount} /> */}
+          {/*  </Box> */}
+          {/* </Slide> */}
+          {checked === 3 && (
+            <Box sx={SlideContentContainer} marginTop="12px">
+              <MarketWithdrawalRequests
+                marketAccount={marketAccount}
+                isHoldingMarket={holdTheMarket}
+              />
+            </Box>
+          )}
+          {/* <Slide */}
+          {/*  direction={direction} */}
+          {/*  container={scrollContainer.current} */}
+          {/*  unmountOnExit */}
+          {/*  in={checked === 4} */}
+          {/* > */}
+          {/*  <Box sx={SlideContentContainer} marginTop="12px"> */}
+          {/*    <MarketAuthorisedLenders market={market} /> */}
+          {/*  </Box> */}
+          {/* </Slide> */}
+          {checked === 4 && (
+            <Box sx={SlideContentContainer} marginTop="12px">
+              <MarketAuthorisedLenders
+                market={market}
+                marketAccount={marketAccount}
+              />
+            </Box>
+          )}
       {!bannerDisplayConfig.hideBanner && checked === 1 && (
         <Box padding="24px 32.3% 0 44px">
           <LeadBanner
