@@ -83,6 +83,26 @@ export const BorrowerInvitesTable = () => {
       ),
     },
     {
+      field: "alias",
+      headerName: "Borrower Alias",
+      flex: 1,
+      // minWidth: 134,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => (
+        <span
+          style={{
+            width: "100%",
+            paddingRight: "20px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {params.value}
+        </span>
+      ),
+    },
+    {
       field: "timeInvited",
       headerName: "Invited",
       flex: 1,
