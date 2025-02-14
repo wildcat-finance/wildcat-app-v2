@@ -1,12 +1,6 @@
 import { http, createConfig, createStorage, cookieStorage } from "wagmi"
 import { mainnet, sepolia } from "wagmi/chains"
-import {
-  injected,
-  coinbaseWallet,
-  safe,
-  walletConnect,
-  metaMask,
-} from "wagmi/connectors"
+import { coinbaseWallet, safe, walletConnect } from "wagmi/connectors"
 
 import { NETWORKS } from "@/config/network"
 

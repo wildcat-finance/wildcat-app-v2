@@ -42,7 +42,7 @@ export const ProfileDialog = ({
 }: ProfileDialogProps) => {
   const { t } = useTranslation()
 
-  const { address, isConnected } = useAccount()
+  const { address, isConnected, connector } = useAccount()
   const { disconnect } = useDisconnect()
   const { isWrongNetwork } = useCurrentNetwork()
   const { switchChain } = useSwitchChain()
@@ -95,6 +95,15 @@ export const ProfileDialog = ({
                   copyValue={address?.toString()}
                   linkValue={`${EtherscanBaseUrl}/address/${address}`}
                 />
+
+                {connector?.name && (
+                  <Typography
+                    variant="text3"
+                    sx={{ color: COLORS.santasGrey, marginTop: "4px" }}
+                  >
+                    {t("header.button.connectedWith")} {connector.name}
+                  </Typography>
+                )}
               </Box>
             )}
             {name && (
