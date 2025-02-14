@@ -237,7 +237,7 @@ export const LenderActiveMarketsTables = ({
           }}
         >
           <Link
-            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+            href={`${ROUTES.borrower.profile}/${params.row.borrowerAddress}`}
             style={{
               textDecoration: "none",
               width: "fit-content",

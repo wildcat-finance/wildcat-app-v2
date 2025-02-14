@@ -45,8 +45,7 @@ export const Sidebar = () => {
         {pathname === ROUTES.borrower.root && <BorrowerDashboardSidebar />}
         {pathname.includes(ROUTES.borrower.market) && <MarketSidebar />}
         {pathname === ROUTES.borrower.editProfile && <EditProfileSidebar />}
-        {(pathname.includes(ROUTES.borrower.profile) ||
-          pathname.includes(ROUTES.lender.profile)) && <BorrowerSidebar />}
+        {pathname.includes(ROUTES.borrower.profile) && <BorrowerSidebar />}
         {pathname.includes(ROUTES.lender.market) && <LenderMarketSidebar />}
         {pathname === ROUTES.borrower.createMarket && <CreateMarketSidebar />}
         {pathname === ROUTES.borrower.lendersList && <LenderListSidebar />}
