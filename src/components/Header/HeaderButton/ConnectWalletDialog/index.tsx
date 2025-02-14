@@ -13,7 +13,11 @@ import { Connector, CreateConnectorFn, useConnect } from "wagmi"
 
 import CoinBase from "@/assets/icons/coinbase_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
+import Keplr from "@/assets/icons/keplr_icon.svg"
 import MetaMask from "@/assets/icons/meta_icon.svg"
+import Phantom from "@/assets/icons/rabby_icon.svg"
+import Rabby from "@/assets/icons/rabby_icon.svg"
+import Rainbow from "@/assets/icons/rainbow_icon.svg"
 import Safe from "@/assets/icons/safe.svg"
 import WalletConnect from "@/assets/icons/walletConnect_icon.svg"
 import {
@@ -29,6 +33,10 @@ import { ConnectWalletDialogProps } from "@/components/Header/HeaderButton/Conne
 const SAFE_CONNECTOR_NAME = "Safe"
 
 const walletIcons = {
+  Rainbow: <Rainbow />,
+  Keplr: <Keplr />,
+  "Rabby Wallet": <Rabby />,
+  Phantom: <Phantom />,
   MetaMask: <MetaMask />,
   WalletConnect: <WalletConnect />,
   "Coinbase Wallet": <CoinBase />,
