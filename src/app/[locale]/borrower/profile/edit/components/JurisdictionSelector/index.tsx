@@ -52,6 +52,7 @@ type xprops = {
   options: Jurisdiction[]
   error?: boolean
   helperText?: string
+  disabled?: boolean
 }
 
 export const JurisdictionSelector = ({
@@ -60,6 +61,7 @@ export const JurisdictionSelector = ({
   options,
   error,
   helperText,
+  disabled,
 }: xprops) => {
   const { t } = useTranslation()
 
@@ -73,6 +75,7 @@ export const JurisdictionSelector = ({
   return (
     <div>
       <Autocomplete
+        disabled={disabled}
         filterOptions={filterOptions}
         PopperComponent={MyPopper}
         noOptionsText={t("borrowerProfile.edit.public.jurisdiction.noOptions")}

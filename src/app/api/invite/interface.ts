@@ -6,6 +6,7 @@ export type BorrowerInvitation = {
   chainId: number
   address: string
   name: string
+  alias?: string
   description?: string
   founded?: string
   headquarters?: string
@@ -21,6 +22,7 @@ export type BorrowerInvitation = {
 export interface BorrowerInvitationInput {
   address: string
   name: string
+  alias?: string
   description?: string
   founded?: string
   headquarters?: string
@@ -33,6 +35,7 @@ export interface BorrowerInvitationInput {
 export interface AcceptInvitationInput {
   address: string
   name: string
+  alias?: string
   description?: string
   founded?: string
   headquarters?: string

@@ -66,6 +66,7 @@ type xprops = {
   value: string | null
   error?: boolean
   helperText?: string
+  disabled?: boolean
 }
 
 const filterOptions = createFilterOptions({
@@ -80,6 +81,7 @@ export const EntityKindSelector = ({
   jurisdictionCode,
   error,
   helperText,
+  disabled,
 }: xprops) => {
   const { t } = useTranslation()
 
@@ -121,6 +123,7 @@ export const EntityKindSelector = ({
   return (
     <div>
       <Autocomplete
+        disabled={disabled}
         PopperComponent={MyPopper}
         filterOptions={filterOptions}
         noOptionsText={t("borrowerProfile.edit.public.entityKind.noOptions")}

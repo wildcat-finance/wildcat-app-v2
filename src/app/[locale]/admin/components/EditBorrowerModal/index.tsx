@@ -77,6 +77,7 @@ export const EditBorrowerModal = ({ address }: { address: `0x${string}` }) => {
                 hideAvatar
                 hideExternalLinks
                 hideHeaders
+                isAdmin
                 // onSubmit={handleSubmit}
                 afterSubmit={handleClose}
               />
