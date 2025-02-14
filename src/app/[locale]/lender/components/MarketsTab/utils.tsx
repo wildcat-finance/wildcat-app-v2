@@ -471,7 +471,9 @@ export const getRows = (
     const borrower = borrowers?.find(
       (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
     )
-    const borrowerName = borrower ? borrower.name : trimAddress(borrowerAddress)
+    const borrowerName = borrower
+      ? borrower.alias || borrower.name
+      : trimAddress(borrowerAddress)
     const marketStatus = getMarketStatusChip(market)
 
     return {

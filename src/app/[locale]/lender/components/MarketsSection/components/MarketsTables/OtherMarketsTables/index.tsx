@@ -112,7 +112,7 @@ export const OtherMarketsTables = ({
         (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
       )
       const borrowerName = borrower
-        ? borrower.name
+        ? borrower.alias || borrower.name
         : trimAddress(borrowerAddress)
 
       const marketStatus = getMarketStatusChip(market)
