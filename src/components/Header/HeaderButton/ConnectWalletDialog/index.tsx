@@ -39,7 +39,7 @@ const walletIcons = {
   Phantom: <Phantom />,
   MetaMask: <MetaMask />,
   WalletConnect: <WalletConnect />,
-  "Coinbase Wallet": <CoinBase />,
+  //"Coinbase Wallet": <CoinBase />,
   [SAFE_CONNECTOR_NAME]: <Safe />,
 }
 
