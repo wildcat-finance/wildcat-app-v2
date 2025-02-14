@@ -33,13 +33,13 @@ import { ConnectWalletDialogProps } from "@/components/Header/HeaderButton/Conne
 const SAFE_CONNECTOR_NAME = "Safe"
 
 const walletIcons = {
-  //Rainbow: <Rainbow />,
-  //Keplr: <Keplr />,
-  //"Rabby Wallet": <Rabby />,
-  //Phantom: <Phantom />,
+  // Rainbow: <Rainbow />,
+  // Keplr: <Keplr />,
+  // "Rabby Wallet": <Rabby />,
+  // Phantom: <Phantom />,
   MetaMask: <MetaMask />,
   WalletConnect: <WalletConnect />,
-  //"Coinbase Wallet": <CoinBase />,
+  // "Coinbase Wallet": <CoinBase />,
   [SAFE_CONNECTOR_NAME]: <Safe />,
 }
 
