@@ -201,7 +201,7 @@ export default function EditProfileForm({
     setPublicValue("legalName", publicData?.name || "", {
       shouldValidate: true,
     })
-    setPublicValue("alias", publicData?.alias || "", {
+    setPublicValue("alias", publicData?.alias || "Dummy Value", {
       shouldValidate: true,
     })
     setPublicValue("description", publicData?.description, {
