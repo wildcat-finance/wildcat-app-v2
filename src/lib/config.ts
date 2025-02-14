@@ -1,12 +1,6 @@
 import { http, createConfig, createStorage, cookieStorage } from "wagmi"
 import { mainnet, sepolia } from "wagmi/chains"
-import {
-  injected,
-  coinbaseWallet,
-  safe,
-  walletConnect,
-  metaMask,
-} from "wagmi/connectors"
+import { safe, walletConnect } from "wagmi/connectors"
 
 import { NETWORKS } from "@/config/network"
 
@@ -33,10 +27,11 @@ export const config = createConfig({
       allowedDomains: [/gnosis-safe.io$/, /app.safe.global$/],
       debug: false,
     }),
-    coinbaseWallet({
+    /* coinbaseWallet({
       appName: "Wildcat",
       appLogoUrl: "https://avatars.githubusercontent.com/u/113041915?s=200&v=4",
     }),
+    */
     walletConnect({
       metadata: {
         description: "An undercollateralised credit facility protocol.",

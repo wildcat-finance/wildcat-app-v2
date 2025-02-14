@@ -8,6 +8,7 @@
       "connectWallet": "Connect Wallet",
       "wrongNetwork": "Wrong Network",
       "switchNetwork": "Switch To",
+      "connectedWith": "Connected Via",
       "disconnect": "Disconnect"
     },
     "modal": {
