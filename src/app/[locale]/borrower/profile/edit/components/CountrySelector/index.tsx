@@ -51,6 +51,7 @@ type xprops = {
   value: string | null
   error?: boolean
   helperText?: string
+  disabled?: boolean
 }
 
 export const CountrySelector = ({
@@ -58,6 +59,7 @@ export const CountrySelector = ({
   value,
   error,
   helperText,
+  disabled,
 }: xprops) => {
   const { t } = useTranslation()
 
@@ -74,6 +76,7 @@ export const CountrySelector = ({
         PopperComponent={MyPopper}
         noOptionsText={t("borrowerProfile.edit.public.country.noOptions")}
         filterOptions={filterOptions}
+        disabled={disabled}
         renderInput={(params) => (
           <TextField
             {...params}

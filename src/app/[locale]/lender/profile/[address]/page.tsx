@@ -60,6 +60,7 @@ export default function OtherBorrowerProfile({
 
       <OverallSection
         name={profileData?.name}
+        alias={profileData?.alias}
         website={profileData?.website}
         headquarters={profileData?.headquarters}
         founded={profileData?.founded}

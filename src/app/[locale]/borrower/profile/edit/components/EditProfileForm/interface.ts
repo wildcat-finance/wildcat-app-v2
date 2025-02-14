@@ -11,4 +11,5 @@ export type EditProfileFormProps = {
   afterSubmit?: () => void
   onSubmit?: (changedValues: BorrowerProfileInput) => void
   sx?: SxProps<Theme>
+  isAdmin?: boolean
 }

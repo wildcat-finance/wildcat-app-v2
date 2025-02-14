@@ -3,7 +3,8 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 export const publicValidationSchema = z.object({
-  legalName: z.string().min(1),
+  legalName: z.string().min(1).max(64),
+  alias: z.string().min(0).max(64).optional(),
   description: z
     .string()
     .max(1024, "Description cannot be longer than 1024 characters")
@@ -42,6 +43,7 @@ export type PublicValidationSchemaType = z.infer<typeof publicValidationSchema>
 export const useEditPublicForm = () => {
   const defaultEditPublicForm: PublicValidationSchemaType = {
     legalName: "",
+    alias: "",
     description: "",
     founded: "",
     headquarters: "",

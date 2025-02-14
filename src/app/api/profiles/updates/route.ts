@@ -18,7 +18,8 @@ import { verifyApiToken } from "../../auth/verify-header"
 
 const mockProfile: BorrowerProfile = {
   address: "0x1717503EE3f56e644cf8b1058e3F83F03a71b2E1",
-  name: "Wintermute LLC",
+  name: "Wintermute",
+  alias: "Wintermute LLC",
   description:
     "– leading global algorithmic trading firm and one of the largest players in digital asset markets. With an average daily trading volume of over $5bn.",
   founded: "2017",
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
 
   const {
     name,
+    alias,
     description,
     founded,
     headquarters,
@@ -101,6 +103,7 @@ export async function POST(request: NextRequest) {
         address,
         createdAt: new Date().toISOString(),
         name,
+        alias,
         description,
         founded,
         headquarters,
@@ -123,18 +126,23 @@ export async function POST(request: NextRequest) {
       | null
   } = {}
   const keys = [
-    "name",
+    ...(token.isAdmin
+      ? ([
+          "name",
+          "alias",
+          "founded",
+          "headquarters",
+          "jurisdiction",
+          "physicalAddress",
+          "entityKind",
+        ] as const)
+      : []),
     "description",
-    "founded",
-    "headquarters",
     "website",
     "twitter",
     "telegram",
     "linkedin",
     "email",
-    "jurisdiction",
-    "physicalAddress",
-    "entityKind",
     "telegram",
   ] as const
   keys.forEach((key) => {
@@ -212,6 +220,7 @@ export async function PUT(request: NextRequest) {
     const newData: Omit<BorrowerProfileInput, "address"> = {}
     const keys = [
       "name",
+      "alias",
       "description",
       "founded",
       "headquarters",

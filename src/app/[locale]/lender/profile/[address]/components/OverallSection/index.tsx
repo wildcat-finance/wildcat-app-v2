@@ -16,6 +16,7 @@ import { OverallSectionProps } from "./interface"
 export const OverallSection = ({
   address,
   name,
+  alias,
   website,
   headquarters,
   founded,
@@ -39,6 +40,15 @@ export const OverallSection = ({
                 title={t("borrowerProfile.profile.overallInfo.name")}
                 value={name ?? ""}
                 link={website}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
+          {alias && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.alias")}
+                value={alias ?? ""}
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>

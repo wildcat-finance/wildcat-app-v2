@@ -97,6 +97,7 @@ export const InviteBorrowerModal = () => {
                   hideAvatar
                   hideExternalLinks
                   hideHeaders
+                  isAdmin
                   onSubmit={handleSubmit}
                 />
               )}
