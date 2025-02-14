@@ -14,6 +14,7 @@ import { Connector, CreateConnectorFn, useConnect } from "wagmi"
 import CoinBase from "@/assets/icons/coinbase_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import MetaMask from "@/assets/icons/meta_icon.svg"
+import RabbyIcon from "@/assets/icons/rabby_icon.svg"
 import Safe from "@/assets/icons/safe.svg"
 import WalletConnect from "@/assets/icons/walletConnect_icon.svg"
 import {
@@ -27,12 +28,15 @@ import {
 import { ConnectWalletDialogProps } from "@/components/Header/HeaderButton/ConnectWalletDialog/type"
 
 const SAFE_CONNECTOR_NAME = "Safe"
+const METAMASK_CONNECTOR_NAME = "MetaMask"
+const RABBY_CONNECTOR_NAME = "Rabby"
 
 const walletIcons = {
-  MetaMask: <MetaMask />,
+  [METAMASK_CONNECTOR_NAME]: <MetaMask />,
   WalletConnect: <WalletConnect />,
   "Coinbase Wallet": <CoinBase />,
   [SAFE_CONNECTOR_NAME]: <Safe />,
+  [RABBY_CONNECTOR_NAME]: <RabbyIcon />,
 }
 
 export const ConnectWalletDialog = ({
@@ -45,7 +49,7 @@ export const ConnectWalletDialog = ({
 
   useEffect(() => {
     async function setConnectors() {
-      const filteredConnectors = connectors
+      let filteredConnectors = connectors
         .filter(
           (connector) =>
             !(
@@ -55,6 +59,19 @@ export const ConnectWalletDialog = ({
         )
         .reverse()
 
+      // Detect if Rabby is installed
+      const isRabbyInstalled =
+        typeof window !== "undefined" && window.ethereum?.isRabby
+
+      if (isRabbyInstalled) {
+        filteredConnectors = filteredConnectors.map((connector) =>
+          connector.name === METAMASK_CONNECTOR_NAME
+            ? { ...connector, name: RABBY_CONNECTOR_NAME }
+            : connector,
+        )
+      }
+
+      // Safe Connector Logic
       const safeConnector = connectors.find(
         (connector) => connector.name === SAFE_CONNECTOR_NAME,
       )
