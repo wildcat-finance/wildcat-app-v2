@@ -237,7 +237,7 @@ export const OtherMarketsTables = ({
           }}
         >
           <Link
-            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+            href={`${ROUTES.borrower.profile}/${params.row.borrowerAddress}`}
             style={{
               textDecoration: "underline",
               width: "fit-content",
@@ -362,7 +362,7 @@ export const OtherMarketsTables = ({
           href={
             params.row.isSelfOnboard
               ? `${ROUTES.lender.market}/${params.row.id}`
-              : `${ROUTES.lender.profile}/${params.row.borrowerAddress}`
+              : `${ROUTES.borrower.profile}/${params.row.borrowerAddress}`
           }
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
