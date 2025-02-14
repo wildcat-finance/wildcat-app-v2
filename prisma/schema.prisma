@@ -133,6 +133,7 @@ model BorrowerInvitation {
   chainId     Int
   address     String
   name        String
+  alias       String?
   inviter     String
   description String?
   founded     String?
@@ -152,6 +153,7 @@ model Borrower {
   address String
 
   name              String?
+  alias             String?
   description       String?
   founded           String?
   headquarters      String?
@@ -180,6 +182,7 @@ model BorrowerProfileUpdateRequest {
   createdAt DateTime
 
   name            String?
+  alias           String?
   description     String?
   founded         String?
   headquarters    String?
