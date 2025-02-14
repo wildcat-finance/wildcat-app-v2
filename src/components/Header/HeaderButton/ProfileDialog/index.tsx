@@ -95,20 +95,20 @@ export const ProfileDialog = ({
                   copyValue={address?.toString()}
                   linkValue={`${EtherscanBaseUrl}/address/${address}`}
                 />
-
-                {connector?.name && (
-                  <Typography
-                    variant="text3"
-                    sx={{ color: COLORS.santasGrey, marginTop: "4px" }}
-                  >
-                    {t("header.button.connectedWith")} {connector.name}
-                  </Typography>
-                )}
               </Box>
             )}
+
             {name && (
               <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
                 {name}
+              </Typography>
+            )}
+            {connector?.name && (
+              <Typography
+                variant="text3"
+                sx={{ color: COLORS.santasGrey, marginTop: "4px" }}
+              >
+                {t("header.button.connectedWith")} {connector.name}
               </Typography>
             )}
           </Box>
