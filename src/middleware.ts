@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
         </head>
         <body>
           <h1>The Wildcat UI isn't configured for mobile, sorry!</h1>
-          <p>The amount of tables and data shown aren't conducive to being rendered on a phone.</p>
+          <p>The amount of tables and data shown aren't suitable to display on a phone.</p>
           <p>Hop on a desktop or laptop instead: we're aiming to sort this out in time.</p>
         </body>
       </html>
