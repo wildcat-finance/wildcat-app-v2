@@ -77,6 +77,26 @@ export const BorrowersTable = () => {
       ),
     },
     {
+      field: "alias",
+      headerName: "Borrower Alias",
+      flex: 1,
+      // minWidth: 134,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => (
+        <span
+          style={{
+            width: "100%",
+            paddingRight: "20px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {params.value}
+        </span>
+      ),
+    },
+    {
       sortable: false,
       field: "address",
       headerName: "Wallet Address",

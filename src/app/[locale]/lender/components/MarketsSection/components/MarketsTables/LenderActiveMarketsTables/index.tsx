@@ -115,7 +115,7 @@ export const LenderActiveMarketsTables = ({
         (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
       )
       const borrowerName = borrower
-        ? borrower.name
+        ? borrower.alias || borrower.name
         : trimAddress(borrowerAddress)
       const marketStatus = getMarketStatusChip(market)
       const marketType = getMarketTypeChip(market)
@@ -237,7 +237,7 @@ export const LenderActiveMarketsTables = ({
           }}
         >
           <Link
-            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+            href={`${ROUTES.borrower.profile}/${params.row.borrowerAddress}`}
             style={{
               textDecoration: "none",
               width: "fit-content",

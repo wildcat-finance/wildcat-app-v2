@@ -8,6 +8,7 @@
       "connectWallet": "Connect Wallet",
       "wrongNetwork": "Wrong Network",
       "switchNetwork": "Switch To",
+      "connectedWith": "Connected Via",
       "disconnect": "Disconnect"
     },
     "modal": {
@@ -1105,7 +1106,7 @@
       "overallInfo": {
         "title": "Overall Info",
         "name": "Legal Name",
-        "alias": "Alias",
+        "alias": "Alias/Trading Name",
         "headquarters": "Headquarters",
         "founded": "Founded",
         "markets": "Markets",
@@ -1145,13 +1146,13 @@
         "name": {
           "title": "Legal Name",
           "placeholder": "Full name of legal entity.",
-          "tooltip": "Name that will be displayed in MLAs.",
+          "tooltip": "If you're called X Capital Fund Ltd but are known as Y, enter the former.",
           "helperText": "This can only be changed by contacting support."
         },
         "alias": {
-          "title": "Alias",
-          "placeholder": "Alias for the borrower.",
-          "tooltip": "Name that will be displayed on the borrower profile.",
+          "title": "Alias/Trading Name",
+          "placeholder": "Name by which borrower might be more well known.",
+          "tooltip": "If you're called X Capital Fund Ltd but are known as Y, enter the latter.",
           "helperText": "This can only be changed by contacting support."
         },
         "description": {

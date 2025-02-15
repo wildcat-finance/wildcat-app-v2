@@ -1,6 +1,6 @@
 import { http, createConfig, createStorage, cookieStorage } from "wagmi"
 import { mainnet, sepolia } from "wagmi/chains"
-import { injected, coinbaseWallet, safe, walletConnect } from "wagmi/connectors"
+import { safe, walletConnect } from "wagmi/connectors"
 
 import { NETWORKS } from "@/config/network"
 
@@ -13,7 +13,7 @@ export const config = createConfig({
   storage: createStorage({
     storage: cookieStorage,
   }),
-  multiInjectedProviderDiscovery: false,
+  // multiInjectedProviderDiscovery: false,
   transports: {
     [sepolia.id]: http(
       `https://eth-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
@@ -23,15 +23,15 @@ export const config = createConfig({
     ),
   },
   connectors: [
-    injected({ target: "metaMask" }),
     safe({
       allowedDomains: [/gnosis-safe.io$/, /app.safe.global$/],
       debug: false,
     }),
-    coinbaseWallet({
+    /* coinbaseWallet({
       appName: "Wildcat",
       appLogoUrl: "https://avatars.githubusercontent.com/u/113041915?s=200&v=4",
     }),
+    */
     walletConnect({
       metadata: {
         description: "An undercollateralised credit facility protocol.",
