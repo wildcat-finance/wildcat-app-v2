@@ -1,45 +1,47 @@
-import { NextRequest } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { i18nRouter } from "next-i18n-router"
-// import { State, deserialize } from "wagmi"
-//
-// import { getSignedServiceAgreement } from "@/app/api/sla/[address]/services"
-// import { getRedirectPath } from "@/providers/RedirectsProvider/utils/getRedirectPath"
 
 import i18nConfig from "../i18nConfig"
 
 export async function middleware(request: NextRequest) {
-  // const wagmiStoreCookie = request.cookies.get("wagmi.store")
-  // let wagmiState: State | undefined
-  //
-  // if (wagmiStoreCookie) {
-  //   wagmiState = deserialize<{ state: State }>(wagmiStoreCookie.value).state
-  // }
-  //
-  // let connectedAddress: `0x${string}` | undefined
-  // let isSigned: boolean = false
-  //
-  // if (wagmiState?.current) {
-  //   const currentConnection = wagmiState.current
-  //   connectedAddress =
-  //     wagmiState.connections.get(currentConnection)?.accounts[0]
-  //
-  //   if (connectedAddress) {
-  //     isSigned = await getSignedServiceAgreement(connectedAddress)
-  //   }
-  // }
-  //
-  // const redirectPath = getRedirectPath({
-  //   connectedAddress,
-  //   pathname: request.nextUrl.pathname,
-  //   isSignedSA: isSigned,
-  //   currentChainId: wagmiState?.chainId,
-  // })
-  //
-  // if (redirectPath) {
-  //   const url = request.nextUrl.clone()
-  //   url.pathname = redirectPath
-  //   return NextResponse.redirect(url)
-  // }
+  // Detect mobile user-agent
+  const userAgent = request.headers.get("user-agent") || ""
+  const isMobile = /android|iphone|ipad|mobile/i.test(userAgent)
+
+  if (isMobile) {
+    return new NextResponse(
+      `
+      <html>
+        <head>
+          <title>Wildcat - Mobile Not Supported</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              text-align: center;
+              padding: 50px;
+            }
+            h1 {
+              color: #333;
+            }
+            p {
+              color: #666;
+              font-size: 16px;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>The Wildcat UI isn't configured for mobile, sorry!</h1>
+          <p>The amount of tables and data shown aren't suitable to display on a phone.</p>
+          <p>Hop on a desktop or laptop instead: we're aiming to sort this out in time.</p>
+        </body>
+      </html>
+      `,
+      {
+        status: 403,
+        headers: { "Content-Type": "text/html" },
+      },
+    )
+  }
 
   return i18nRouter(request, i18nConfig)
 }
