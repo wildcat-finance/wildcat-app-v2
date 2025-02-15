@@ -70,7 +70,7 @@ export async function middleware(request: NextRequest) {
       {
         status: 403,
         headers: { "Content-Type": "text/html" },
-      }
+      },
     )
   }
 
