@@ -37,6 +37,7 @@ export function BorrowerProfileDetails({
       <NameSection
         type="external"
         name={profileData?.name || trimAddress(address)}
+        alias={profileData?.alias}
         description={profileData?.description}
         website={profileData?.website}
         twitter={profileData?.twitter}
