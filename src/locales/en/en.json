@@ -1105,6 +1105,7 @@
       "overallInfo": {
         "title": "Overall Info",
         "name": "Legal Name",
+        "alias": "Alias",
         "headquarters": "Headquarters",
         "founded": "Founded",
         "markets": "Markets",
@@ -1144,7 +1145,13 @@
         "name": {
           "title": "Legal Name",
           "placeholder": "Full name of legal entity.",
-          "tooltip": "You can incliude any d.b.a. aliases in brackets if you wish, i.e. HoldCo Ltd (Liquid Fund X).",
+          "tooltip": "Name that will be displayed in MLAs.",
+          "helperText": "This can only be changed by contacting support."
+        },
+        "alias": {
+          "title": "Alias",
+          "placeholder": "Alias for the borrower.",
+          "tooltip": "Name that will be displayed on the borrower profile.",
           "helperText": "This can only be changed by contacting support."
         },
         "description": {
