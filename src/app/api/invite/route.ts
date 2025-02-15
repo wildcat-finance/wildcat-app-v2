@@ -103,6 +103,13 @@ export async function POST(request: NextRequest) {
           create: {
             inviter,
             name,
+            alias,
+            description,
+            entityKind,
+            founded,
+            headquarters,
+            jurisdiction,
+            physicalAddress,
             timeInvited: new Date().toISOString(),
           },
         },
