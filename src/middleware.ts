@@ -35,7 +35,8 @@ export async function middleware(request: NextRequest) {
               padding: 30px;
               border-radius: 10px;
               box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-              max-width: 400px;
+              max-width: 800px;
+              width: 90%;
             }
             h1 {
               color: #333;
