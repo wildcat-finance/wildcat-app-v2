@@ -33,6 +33,8 @@ export async function middleware(request: NextRequest) {
           <h1>The Wildcat UI isn't configured for mobile, sorry!</h1>
           <p>The amount of tables and data shown aren't suitable to display on a phone.</p>
           <p>Hop on a desktop or laptop instead: we're aiming to sort this out in time.</p>
+          <p>For an overview of its usage, check out our <a href="https://defillama.com/protocol/wildcat-protocol">DefiLlama</a> page.<p>
+          <p>For protocol documentation, check out our <a href="https://docs.wildcat.finance">Gitbook</a>.</p>
         </body>
       </html>
       `,
