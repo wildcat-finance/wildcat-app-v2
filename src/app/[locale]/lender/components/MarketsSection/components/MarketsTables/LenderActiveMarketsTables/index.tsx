@@ -237,7 +237,7 @@ export const LenderActiveMarketsTables = ({
           }}
         >
           <Link
-            href={`${ROUTES.borrower.profile}/${params.row.borrowerAddress}`}
+            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
             style={{
               textDecoration: "none",
               width: "fit-content",
@@ -307,7 +307,7 @@ export const LenderActiveMarketsTables = ({
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{
             textDecoration: "none",
             width: "100%",

@@ -214,7 +214,7 @@ export const OtherMarketsTables = ({
       ),
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{
             textDecoration: "none",
             width: "100%",

@@ -237,7 +237,7 @@ export const OtherMarketsTables = ({
           }}
         >
           <Link
-            href={`${ROUTES.borrower.profile}/${params.row.borrowerAddress}`}
+            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
             style={{
               textDecoration: "underline",
               width: "fit-content",
@@ -307,7 +307,7 @@ export const OtherMarketsTables = ({
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{
             textDecoration: "none",
             width: "100%",
@@ -362,7 +362,7 @@ export const OtherMarketsTables = ({
           href={
             params.row.isSelfOnboard
               ? `${ROUTES.lender.market}/${params.row.id}`
-              : `${ROUTES.borrower.profile}/${params.row.borrowerAddress}`
+              : `${ROUTES.lender.profile}/${params.row.borrowerAddress}`
           }
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
