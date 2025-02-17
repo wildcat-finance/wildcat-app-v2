@@ -1080,7 +1080,7 @@
   },
   "borrowerProfile": {
     "sidebar": {
-      "profile": "Company Profile",
+      "profile": "Borrower Profile",
       "edit": "Edit Borrower Profile",
       "events": "Market Events"
     },
