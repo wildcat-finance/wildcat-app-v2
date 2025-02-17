@@ -128,7 +128,6 @@ export const NameSection = ({
             </Link>
           )}
         </Box>
-
       </Box>
 
       {type === "external" && marketsAmount === 0 && (
