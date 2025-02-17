@@ -394,7 +394,7 @@ export function getFieldValuesForBorrower({
     [
       /* @todo should be Chainalysis */
       "chainalysisOracle.address",
-      formatAddress(getDeploymentAddress(TargetChainId, "MockChainalysis")),
+      formatAddress(getDeploymentAddress(TargetChainId, "Chainalysis")),
     ],
     [
       "hooksFactory.address",
