@@ -42,7 +42,6 @@ const fetchTokensFn = async () => {
     const response = await fetch(`${process.env.NEXT_PUBLIC_TOKENS_LIST_URL}`)
     const tokenInfo: TokenList = await response.json()
 
-    return tokenInfo?.tokens || []
   } catch (error) {
     console.log(error)
   }
