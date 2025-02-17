@@ -12,11 +12,11 @@ export default function EditProfile() {
   const router = useRouter()
   const { address } = useAccount()
   const afterSubmit = () => {
-    router.push(ROUTES.borrower.profile)
+    router.push(ROUTES.lender.profile)
   }
 
   const handleCancel = () => {
-    router.push(ROUTES.borrower.profile)
+    router.push(ROUTES.lender.profile)
   }
   return (
     <EditProfileForm

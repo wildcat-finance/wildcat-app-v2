@@ -20,7 +20,7 @@ export default function OtherBorrowerProfile({
 
   useEffect(() => {
     if (address.toLowerCase() === userAddress?.toLowerCase()) {
-      redirect(ROUTES.borrower.profile)
+      redirect(ROUTES.lender.profile)
     }
   }, [address, userAddress])
 
