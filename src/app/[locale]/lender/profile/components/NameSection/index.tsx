@@ -129,24 +129,6 @@ export const NameSection = ({
           )}
         </Box>
 
-        {type === "user" && (
-          <Link href={ROUTES.borrower.editProfile}>
-            <Button variant="text" size="small" sx={{ gap: "4px" }}>
-              <SvgIcon
-                fontSize="medium"
-                sx={{
-                  "& path": {
-                    fill: `${COLORS.greySuit}`,
-                    transition: "fill 0.2s",
-                  },
-                }}
-              >
-                <Edit />
-              </SvgIcon>
-              {t("borrowerProfile.profile.buttons.edit")}
-            </Button>
-          </Link>
-        )}
       </Box>
 
       {type === "external" && marketsAmount === 0 && (
