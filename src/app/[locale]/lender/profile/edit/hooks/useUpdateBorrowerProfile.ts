@@ -7,7 +7,7 @@ import { BorrowerProfileInput } from "@/app/api/profiles/interface"
 import { toastRequest } from "@/components/Toasts"
 import { useAuthToken } from "@/hooks/useApiAuth"
 
-import { USE_REGISTERED_BORROWERS_KEY } from "../../../hooks/useBorrowerNames"
+import { USE_REGISTERED_BORROWERS_KEY } from "../../../../borrower/hooks/useBorrowerNames"
 
 const hashData = async (data: object): Promise<string> => {
   const encoder = new TextEncoder()
