@@ -57,7 +57,7 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
       align: "left",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -84,7 +84,7 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
       sortComparator: statusComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -107,7 +107,7 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
       flex: 2,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -128,7 +128,7 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
       flex: 1,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value}
@@ -145,7 +145,7 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
       flex: 1,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {`${params.value / 100}%`}
@@ -161,7 +161,7 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
       flex: 1.5,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value
