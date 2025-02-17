@@ -34,7 +34,7 @@ export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   symbolPrefix: "",
   disableTransfers: false,
   transferRequiresAccess: false,
-  depositRequiresAccess: false,
+  depositRequiresAccess: true,
   withdrawalRequiresAccess: false,
 }
 
