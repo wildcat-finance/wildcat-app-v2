@@ -6,11 +6,11 @@ import { Box, Divider } from "@mui/material"
 import { useAccount } from "wagmi"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
-import { MarketsSection } from "@/app/[locale]/borrower/profile/components/MarketsSection"
 import { NameSection } from "@/app/[locale]/borrower/profile/components/NameSection"
 import { OverallSection } from "@/app/[locale]/borrower/profile/components/OverallSection"
 import { ProfileSkeleton } from "@/app/[locale]/borrower/profile/components/ProfileSkeleton"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
+import { MarketsSection } from "@/app/[locale]/lender/profile/components/MarketsSection"
 
 import { ContentContainer } from "./style"
 
