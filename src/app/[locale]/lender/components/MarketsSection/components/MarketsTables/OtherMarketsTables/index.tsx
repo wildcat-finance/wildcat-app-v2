@@ -307,7 +307,7 @@ export const OtherMarketsTables = ({
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{
             textDecoration: "none",
             width: "100%",
