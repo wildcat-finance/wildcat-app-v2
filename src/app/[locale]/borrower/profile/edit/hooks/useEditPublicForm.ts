@@ -35,7 +35,13 @@ export const publicValidationSchema = z.object({
     })
     .optional()
     .or(z.literal("")),
-  linkedin: z.string().optional(),
+  linkedin: z
+    .string()
+    .regex(/^(@?(\w){1,64}$)$/, {
+      message: `Invalid LinkedIn company name`,
+    })
+    .optional()
+    .or(z.literal("")),
 })
 
 export type PublicValidationSchemaType = z.infer<typeof publicValidationSchema>

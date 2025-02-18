@@ -114,7 +114,7 @@ export const NameSection = ({
 
           {linkedin && (
             <Link
-              href={`https://www.linkedin.com/in/${linkedin}`}
+              href={`https://www.linkedin.com/company/${linkedin}`}
               target="_blank"
             >
               <Button
