@@ -44,12 +44,11 @@ export const useRepay = (
       const repay = async () => {
         const maxBatches =
           marketAccount.market.unpaidWithdrawalBatchExpiries.length
-        const tx = await (processUnpaidWithdrawalsIfAny && maxBatches > 0
-          ? marketAccount.market.repayAndProcessUnpaidWithdrawalBatches(
-              amount,
-              maxBatches,
-            )
-          : marketAccount.repay(amount.raw))
+        const tx =
+          await marketAccount.market.repayAndProcessUnpaidWithdrawalBatches(
+            amount,
+            maxBatches,
+          )
 
         if (!safeConnected) setTxHash(tx.hash)
 
