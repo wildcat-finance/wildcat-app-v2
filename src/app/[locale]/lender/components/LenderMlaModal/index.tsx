@@ -117,7 +117,7 @@ export const LenderMlaModal = ({
                 variant="outlined"
                 onClick={() => window.open(downloadPdfUrl, "_blank")}
               >
-                Download PDF
+                Download PFD
               </Button>
             )}
             {downloadSignedUrl && (
