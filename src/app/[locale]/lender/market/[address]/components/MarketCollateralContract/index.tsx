@@ -86,7 +86,6 @@ export const MarketCollateralContract = ({ market }: ContractActionsType) => {
   const address = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
 
   return (
-    
     <Box
       sx={{
         width: "100%",
@@ -94,11 +93,12 @@ export const MarketCollateralContract = ({ market }: ContractActionsType) => {
         flexDirection: "column",
       }}
     >
-            <Typography variant="title3" marginBottom="4px">
+      <Typography variant="title3" marginBottom="4px">
         Collateral Contract
       </Typography>
       <Typography variant="text3" color={COLORS.santasGrey} marginBottom="24px">
-        In the event that this market enters penalised delinquency, backing assets - if present - can be liquidated to repay the debt.{" "}
+        In the event that this market enters penalised delinquency, backing
+        assets - if present - can be liquidated to repay the debt.{" "}
         <Link
           href="https://docs.wildcat.finance/"
           style={{ color: COLORS.santasGrey }}
@@ -155,7 +155,8 @@ export const MarketCollateralContract = ({ market }: ContractActionsType) => {
       />
 
       <Typography variant="text3" color={COLORS.santasGrey} marginBottom="24px">
-        Collateral cannot be reclaimed until the underlying market is terminated.  
+        Collateral cannot be reclaimed until the underlying market is
+        terminated.
       </Typography>
     </Box>
   )

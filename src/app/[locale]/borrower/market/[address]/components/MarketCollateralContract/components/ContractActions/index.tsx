@@ -91,7 +91,8 @@ export const ContractActions = ({ market, token }: ContractActionsType) => {
         Collateral Contract
       </Typography>
       <Typography variant="text3" color={COLORS.santasGrey} marginBottom="24px">
-        In the event that this market enters penalised delinquency, backing assets - if present - can be liquidated to repay the debt.{" "}
+        In the event that this market enters penalised delinquency, backing
+        assets - if present - can be liquidated to repay the debt.{" "}
         <Link
           href="https://docs.wildcat.finance/"
           style={{ color: COLORS.santasGrey }}
@@ -160,7 +161,8 @@ export const ContractActions = ({ market, token }: ContractActionsType) => {
       </ContractActionsItem>
 
       <Typography variant="text3" color={COLORS.santasGrey} marginBottom="24px">
-        Collateral cannot be reclaimed until the underlying market is terminated.  
+        Collateral cannot be reclaimed until the underlying market is
+        terminated.
       </Typography>
     </Box>
   )
