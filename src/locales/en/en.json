@@ -8,6 +8,7 @@
       "connectWallet": "Connect Wallet",
       "wrongNetwork": "Wrong Network",
       "switchNetwork": "Switch To",
+      "connectedWith": "Connected Via",
       "disconnect": "Disconnect"
     },
     "modal": {
@@ -1079,7 +1080,7 @@
   },
   "borrowerProfile": {
     "sidebar": {
-      "profile": "Company Profile",
+      "profile": "Borrower Profile",
       "edit": "Edit Borrower Profile",
       "events": "Market Events"
     },
@@ -1105,6 +1106,7 @@
       "overallInfo": {
         "title": "Overall Info",
         "name": "Legal Name",
+        "alias": "Alias/Trading Name",
         "headquarters": "Headquarters",
         "founded": "Founded",
         "markets": "Markets",
@@ -1144,7 +1146,13 @@
         "name": {
           "title": "Legal Name",
           "placeholder": "Full name of legal entity.",
-          "tooltip": "You can incliude any d.b.a. aliases in brackets if you wish, i.e. HoldCo Ltd (Liquid Fund X).",
+          "tooltip": "If you're called X Capital Fund Ltd but are known as Y, enter the former.",
+          "helperText": "This can only be changed by contacting support."
+        },
+        "alias": {
+          "title": "Alias/Trading Name",
+          "placeholder": "Name by which borrower might be more well known.",
+          "tooltip": "If you're called X Capital Fund Ltd but are known as Y, enter the latter.",
           "helperText": "This can only be changed by contacting support."
         },
         "description": {
@@ -1181,18 +1189,18 @@
         },
         "twitter": {
           "title": "Twitter/X",
-          "placeholder": "x.com/borrower_profile",
-          "tooltip": "Enter a Twitter/X profile for the borrower, where applicable."
+          "placeholder": "borrower_profile",
+          "tooltip": "Enter a Twitter/X username for the borrower (no @), where applicable."
         },
         "telegram": {
           "title": "Telegram",
-          "placeholder": "t.me/borrower_profile",
-          "tooltip": "Enter a Telegram profile for the borrower, where applicable."
+          "placeholder": "borrower_profile",
+          "tooltip": "Enter a Telegram username for the borrower (no @), where applicable."
         },
         "linkedin": {
           "title": "LinkedIn",
-          "placeholder": "linkedin.com/borrower_page",
-          "tooltip": "Enter a LinkedIn page for the borrower, where applicable."
+          "placeholder": "borrower_page",
+          "tooltip": "Enter a LinkedIn company page for the borrower (e.g. wildcat-labs), where applicable."
         },
         "entityKind": {
           "title": "Entity Legal Form",

@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { Box, Divider, Skeleton, Typography } from "@mui/material"
+import { SxProps, Theme } from "@mui/system"
 
 import {
   ContentContainer,
@@ -10,8 +11,16 @@ import {
 } from "@/app/[locale]/borrower/profile/style"
 import { COLORS } from "@/theme/colors"
 
-export const ProfileSkeleton = ({ type }: { type: "user" | "external" }) => (
-  <Box sx={ContentContainer}>
+export const ProfileSkeleton = ({
+  type,
+  hideMarkets,
+  rootSx,
+}: {
+  type: "user" | "external"
+  hideMarkets?: boolean
+  rootSx?: SxProps<Theme>
+}) => (
+  <Box sx={rootSx}>
     <Box
       sx={{
         display: "flex",
@@ -80,31 +89,38 @@ export const ProfileSkeleton = ({ type }: { type: "user" | "external" }) => (
 
     <Divider sx={{ margin: "32px 0" }} />
 
-    <Box marginBottom="44px">
-      <Typography variant="title3">Active Markets</Typography>
-      <Box marginTop="30px" display="flex" flexDirection="column" rowGap="8px">
-        <Skeleton
-          height="52px"
-          width="100%"
-          sx={{ bgcolor: COLORS.athensGrey }}
-        />
-        <Skeleton
-          height="52px"
-          width="100%"
-          sx={{ bgcolor: COLORS.athensGrey }}
-        />
-        <Skeleton
-          height="52px"
-          width="100%"
-          sx={{ bgcolor: COLORS.athensGrey }}
-        />
-        <Skeleton
-          height="52px"
-          width="100%"
-          sx={{ bgcolor: COLORS.athensGrey }}
-        />
+    {!hideMarkets && (
+      <Box marginBottom="44px">
+        <Typography variant="title3">Active Markets</Typography>
+        <Box
+          marginTop="30px"
+          display="flex"
+          flexDirection="column"
+          rowGap="8px"
+        >
+          <Skeleton
+            height="52px"
+            width="100%"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
+          <Skeleton
+            height="52px"
+            width="100%"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
+          <Skeleton
+            height="52px"
+            width="100%"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
+          <Skeleton
+            height="52px"
+            width="100%"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
+        </Box>
       </Box>
-    </Box>
+    )}
 
     <Box>
       <Typography variant="title3">Overall Info</Typography>

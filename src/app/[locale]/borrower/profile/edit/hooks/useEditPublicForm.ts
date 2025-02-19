@@ -3,7 +3,8 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 export const publicValidationSchema = z.object({
-  legalName: z.string().min(1),
+  legalName: z.string().min(1).max(64),
+  alias: z.string().min(0).max(64).optional(),
   description: z
     .string()
     .max(1024, "Description cannot be longer than 1024 characters")
@@ -34,7 +35,13 @@ export const publicValidationSchema = z.object({
     })
     .optional()
     .or(z.literal("")),
-  linkedin: z.string().optional(),
+  linkedin: z
+    .string()
+    .regex(/^(@?(\w){1,64}$)$/, {
+      message: `Invalid LinkedIn company name`,
+    })
+    .optional()
+    .or(z.literal("")),
 })
 
 export type PublicValidationSchemaType = z.infer<typeof publicValidationSchema>
@@ -42,6 +49,7 @@ export type PublicValidationSchemaType = z.infer<typeof publicValidationSchema>
 export const useEditPublicForm = () => {
   const defaultEditPublicForm: PublicValidationSchemaType = {
     legalName: "",
+    alias: "",
     description: "",
     founded: "",
     headquarters: "",

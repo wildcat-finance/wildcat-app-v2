@@ -18,6 +18,7 @@ import { OverallSectionProps } from "./interface"
 export const OverallSection = ({
   address,
   name,
+  alias,
   headquarters,
   founded,
   marketsAmount,
@@ -49,7 +50,17 @@ export const OverallSection = ({
             <Box>
               <MarketParametersItem
                 title={t("borrowerProfile.profile.overallInfo.name")}
-                value={name ?? ""}
+                value={name}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
+
+          {alias && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.alias")}
+                value={alias}
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
@@ -121,7 +132,7 @@ export const OverallSection = ({
             <Box>
               <MarketParametersItem
                 title={t("borrowerProfile.profile.overallInfo.borrowed")}
-                value="[Coming Soon, Oracles Needed]"
+                value="[Coming Soon]"
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>

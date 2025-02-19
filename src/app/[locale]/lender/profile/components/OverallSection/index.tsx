@@ -9,6 +9,8 @@ import {
   MarketParametersRowsDivider,
 } from "@/app/[locale]/borrower/profile/style"
 import { MarketParametersItem } from "@/components/MarketParameters/components/MarketParametersItem"
+import ELFsByCountry from "@/config/elfs-by-country.json"
+import Jurisdictions from "@/config/jurisdictions.json"
 import { trimAddress } from "@/utils/formatters"
 
 import { OverallSectionProps } from "./interface"
@@ -16,39 +18,69 @@ import { OverallSectionProps } from "./interface"
 export const OverallSection = ({
   address,
   name,
-  website,
+  alias,
   headquarters,
   founded,
   marketsAmount,
   totalBorrowedAmount,
+  jurisdiction,
   defaults,
+  entityKind,
 }: OverallSectionProps) => {
   const { t } = useTranslation()
 
+  const jurisdictionObj =
+    jurisdiction !== undefined
+      ? Jurisdictions[jurisdiction as keyof typeof Jurisdictions]
+      : undefined
+  const jurisdictionText = jurisdictionObj?.countryName
+
+  const entityKindText =
+    entityKind !== undefined && jurisdictionObj
+      ? ELFsByCountry[
+          jurisdictionObj.countryCode as keyof typeof ELFsByCountry
+        ].find((elf) => elf.elfCode === entityKind)?.name
+      : undefined
+
   return (
     <Box>
-      <Typography variant="title3">
-        {t("borrowerProfile.profile.overallInfo.title")}
-      </Typography>
-
       <Box sx={MarketParametersContainer}>
         <Box sx={MarketParametersColumn}>
           {name && (
             <Box>
               <MarketParametersItem
                 title={t("borrowerProfile.profile.overallInfo.name")}
-                value={name ?? ""}
-                link={website}
+                value={name}
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
           )}
 
-          {headquarters && (
+          {alias && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.alias")}
+                value={alias}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
+
+          {jurisdictionText && (
             <Box>
               <MarketParametersItem
                 title={t("borrowerProfile.profile.overallInfo.headquarters")}
-                value={headquarters ?? ""}
+                value={jurisdictionText}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
+
+          {entityKindText && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.entityKind")}
+                value={entityKindText}
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
@@ -96,24 +128,28 @@ export const OverallSection = ({
             </Box>
           )}
 
-          <Box>
-            <MarketParametersItem
-              title={t("borrowerProfile.profile.overallInfo.borrowed")}
-              value={totalBorrowedAmount || ""}
-            />
-            <Divider sx={MarketParametersRowsDivider} />
-          </Box>
+          {totalBorrowedAmount !== undefined && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.borrowed")}
+                value="[Coming Soon]"
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
 
-          <Box>
-            <MarketParametersItem
-              title={t("borrowerProfile.profile.overallInfo.defaults.title")}
-              value={defaults || ""}
-              tooltipText={t(
-                "borrowerProfile.profile.overallInfo.defaults.tooltip",
-              )}
-            />
-            <Divider sx={MarketParametersRowsDivider} />
-          </Box>
+          {defaults !== undefined && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.defaults.title")}
+                value={defaults || ""}
+                tooltipText={t(
+                  "borrowerProfile.profile.overallInfo.defaults.tooltip",
+                )}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
         </Box>
       </Box>
     </Box>

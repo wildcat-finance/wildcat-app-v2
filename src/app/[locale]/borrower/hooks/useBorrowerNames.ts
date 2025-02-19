@@ -8,6 +8,7 @@ export const USE_REGISTERED_BORROWERS_KEY = "use-borrower-names"
 export type BorrowerWithName = {
   address: string
   name?: string
+  alias?: string
 }
 
 export const useBorrowerNames = () => {
@@ -41,8 +42,10 @@ export const useBorrowerNames = () => {
 export const useBorrowerNameOrAddress = (address: string): string => {
   const borrowers = useBorrowerNames()
   if (!borrowers.data) return trimAddress(address)
+
   const borrower = borrowers.data.find(
     (b) => b.address.toLowerCase() === address.toLowerCase(),
   )
-  return borrower?.name ?? trimAddress(address)
+
+  return borrower?.alias ?? borrower?.name ?? trimAddress(address)
 }

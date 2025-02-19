@@ -3,6 +3,7 @@ export interface BorrowerProfile {
   address: string
 
   name?: string
+  alias?: string
   avatar?: string
   description?: string
   founded?: string

@@ -148,7 +148,7 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
           href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {params.value}
+          {`${params.value / 100}%`}
         </Link>
       ),
     },

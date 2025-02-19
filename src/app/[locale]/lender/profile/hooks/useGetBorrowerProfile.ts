@@ -6,7 +6,8 @@ export const BORROWER_PROFILE_KEY = "borrower-profile-key"
 
 const fetchBorrowerProfile = async (
   address: `0x${string}` | undefined,
-): Promise<BorrowerProfile> => {
+): Promise<BorrowerProfile | undefined> => {
+  if (!address) return undefined
   const response = await fetch(`/api/profiles/${address}`, {
     method: "GET",
     headers: {
@@ -14,7 +15,12 @@ const fetchBorrowerProfile = async (
     },
   })
 
+  if (response.status === 404) {
+    return undefined
+  }
+
   if (!response.ok) {
+    console.log(`Failed to fetch profile: ${response.statusText}`)
     throw new Error("Failed to fetch profile")
   }
 
@@ -23,7 +29,7 @@ const fetchBorrowerProfile = async (
 }
 
 export const useGetBorrowerProfile = (address: `0x${string}` | undefined) =>
-  useQuery<BorrowerProfile>({
+  useQuery<BorrowerProfile | undefined>({
     queryKey: [BORROWER_PROFILE_KEY, address],
     queryFn: () => fetchBorrowerProfile(address),
     enabled: !!address,

@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
   const chainId = TargetChainId
   const {
     name,
+    alias,
     description,
     entityKind,
     founded,
@@ -90,6 +91,7 @@ export async function POST(request: NextRequest) {
         chainId,
         address,
         name,
+        alias,
         description,
         entityKind,
         founded,
@@ -101,6 +103,13 @@ export async function POST(request: NextRequest) {
           create: {
             inviter,
             name,
+            alias,
+            description,
+            entityKind,
+            founded,
+            headquarters,
+            jurisdiction,
+            physicalAddress,
             timeInvited: new Date().toISOString(),
           },
         },
@@ -127,6 +136,7 @@ export async function POST(request: NextRequest) {
         address,
         inviter,
         name,
+        alias,
         timeInvited: new Date().toISOString(),
       },
     })

@@ -63,6 +63,7 @@ type Jurisdiction = {
 }
 const ProfileKeys = [
   "name",
+  "alias",
   "avatar",
   "description",
   "founded",
@@ -85,6 +86,7 @@ export default function EditProfileForm({
   onCancel,
   afterSubmit,
   onSubmit,
+  isAdmin,
   sx,
 }: EditProfileFormProps) {
   const { t } = useTranslation()
@@ -126,6 +128,7 @@ export default function EditProfileForm({
     address: address as string,
     avatar,
     name: getPublicValues().legalName,
+    alias: getPublicValues().alias,
     description: getPublicValues().description,
     founded: getPublicValues().founded,
     headquarters: getPublicValues().headquarters,
@@ -196,6 +199,9 @@ export default function EditProfileForm({
 
   useEffect(() => {
     setPublicValue("legalName", publicData?.name || "", {
+      shouldValidate: true,
+    })
+    setPublicValue("alias", publicData?.alias || "", {
       shouldValidate: true,
     })
     setPublicValue("description", publicData?.description, {
@@ -340,6 +346,7 @@ export default function EditProfileForm({
             fullWidth
             placeholder={t("borrowerProfile.edit.public.name.placeholder")}
             error={Boolean(publicErrors.legalName)}
+            disabled={!isAdmin}
             // disabled={TargetChainId === SupportedChainId.Mainnet}
             helperText={
               publicErrors.legalName?.message ??
@@ -348,6 +355,31 @@ export default function EditProfileForm({
                 : undefined)
             }
             {...registerPublic("legalName")}
+          />
+        </EditProfileItem>
+
+        <EditProfileItem
+          title={t("borrowerProfile.edit.public.alias.title")}
+          tooltip={t("borrowerProfile.edit.public.alias.tooltip")}
+          form={publicForm}
+          field="alias"
+          oldValue={publicData?.alias}
+          newValue={publicWatch("alias")}
+          isLoading={isLoading}
+        >
+          <TextField
+            fullWidth
+            placeholder={t("borrowerProfile.edit.public.alias.placeholder")}
+            error={Boolean(publicErrors.alias)}
+            disabled={!isAdmin}
+            // disabled={TargetChainId === SupportedChainId.Mainnet}
+            helperText={
+              publicErrors.alias?.message ??
+              (TargetChainId === SupportedChainId.Mainnet
+                ? t("borrowerProfile.edit.public.alias.helperText")
+                : undefined)
+            }
+            {...registerPublic("alias")}
           />
         </EditProfileItem>
 
@@ -388,6 +420,7 @@ export default function EditProfileForm({
             placeholder={t("borrowerProfile.edit.public.founded.placeholder")}
             fullWidth
             error={Boolean(publicErrors.founded)}
+            disabled={!isAdmin}
             helperText={publicErrors.founded?.message}
             {...registerPublic("founded")}
             value={publicWatch("founded")}
@@ -565,6 +598,7 @@ export default function EditProfileForm({
             >
               <CountrySelector
                 value={countryWatch || null}
+                disabled={!isAdmin}
                 handleSelect={(country) => {
                   setPrivateValue("country", country?.id || "", {
                     shouldValidate: true,
@@ -598,6 +632,7 @@ export default function EditProfileForm({
               >
                 <JurisdictionSelector
                   options={subdivisions}
+                  disabled={!isAdmin}
                   error={Boolean(privateErrors.jurisdiction)}
                   helperText={privateErrors.jurisdiction?.message}
                   handleSelect={(jurisdiction) => {
@@ -631,6 +666,7 @@ export default function EditProfileForm({
                 isLoading={isLoading}
               >
                 <EntityKindSelector
+                  disabled={!isAdmin}
                   value={privateWatch("entityKind") || null}
                   error={Boolean(privateErrors.entityKind)}
                   helperText={privateErrors.entityKind?.message}
@@ -668,6 +704,7 @@ export default function EditProfileForm({
                   "borrowerProfile.edit.private.address.placeholder",
                 )}
                 fullWidth
+                disabled={!isAdmin}
                 error={Boolean(privateErrors.physicalAddress)}
                 helperText={
                   privateErrors.physicalAddress?.message ??

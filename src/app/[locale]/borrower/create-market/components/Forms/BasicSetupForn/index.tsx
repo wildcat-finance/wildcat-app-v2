@@ -184,6 +184,10 @@ export const BasicSetupForm = ({
             tokenAsset?.symbol || "",
           )}`}
         </Typography>
+
+        <Typography variant="text3">
+          {`Underlying Asset Address: ${t(tokenAsset?.address || "")}`}
+        </Typography>
       </Box>
 
       <FormFooter

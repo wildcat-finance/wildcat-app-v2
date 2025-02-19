@@ -32,6 +32,7 @@ export const InviteBorrowerModal = () => {
     mutate({
       address,
       name: data.name as string,
+      alias: data.alias,
       description: data.description,
       founded: data.founded,
       headquarters: data.headquarters,
@@ -97,6 +98,7 @@ export const InviteBorrowerModal = () => {
                   hideAvatar
                   hideExternalLinks
                   hideHeaders
+                  isAdmin
                   onSubmit={handleSubmit}
                 />
               )}

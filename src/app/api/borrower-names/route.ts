@@ -11,12 +11,13 @@ export async function GET() {
       },
       select: {
         name: true,
+        alias: true,
         address: true,
       },
     })
-  ).map(({ name, address }) => ({
+  ).map(({ name, alias, address }) => ({
     address,
-    name: name || undefined,
+    name: alias || name || undefined,
   }))
   return NextResponse.json(names)
 }

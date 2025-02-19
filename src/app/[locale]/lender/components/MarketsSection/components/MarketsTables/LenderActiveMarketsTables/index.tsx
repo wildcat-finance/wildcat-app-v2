@@ -115,7 +115,7 @@ export const LenderActiveMarketsTables = ({
         (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
       )
       const borrowerName = borrower
-        ? borrower.name
+        ? borrower.alias || borrower.name
         : trimAddress(borrowerAddress)
       const marketStatus = getMarketStatusChip(market)
       const marketType = getMarketTypeChip(market)
@@ -307,7 +307,7 @@ export const LenderActiveMarketsTables = ({
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{
             textDecoration: "none",
             width: "100%",

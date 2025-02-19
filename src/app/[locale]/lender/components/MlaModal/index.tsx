@@ -84,21 +84,6 @@ export const MlaModal = ({
               justifyContent: "center",
             }}
           >
-            {isSigning ? (
-              <Button variant="outlined" onClick={onSign}>
-                Signing...
-              </Button>
-            ) : (
-              showSignButton && (
-                <Button
-                  variant="outlined"
-                  onClick={onSign}
-                  disabled={disableSignButton || isSigning}
-                >
-                  Sign MLA
-                </Button>
-              )
-            )}
             {downloadPdfUrl && (
               <Button
                 variant="outlined"
