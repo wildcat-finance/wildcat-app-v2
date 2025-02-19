@@ -1,6 +1,10 @@
+import React, { ReactNode } from "react"
+
 import { Box, Button, Typography } from "@mui/material"
 import { Market, Token } from "@wildcatfi/wildcat-sdk"
+import Link from "next/link"
 
+import { DepositModalContract } from "@/app/[locale]/borrower/market/[address]/components/MarketCollateralContract/components/DepositModal"
 import { LinkGroup } from "@/components/LinkComponent"
 import { TooltipButton } from "@/components/TooltipButton"
 import { COLORS } from "@/theme/colors"
@@ -16,9 +20,7 @@ export type ContractActionsItemType = {
   amount: string | number | undefined
   asset: string | undefined
   convertedAmount: string | number | undefined
-  showButton: boolean
-  buttonLabel: string
-  buttonOnClick: () => void
+  children: ReactNode
   marginBottom?: string
 }
 
@@ -27,9 +29,7 @@ export const ContractActionsItem = ({
   amount,
   asset,
   convertedAmount,
-  showButton,
-  buttonLabel,
-  buttonOnClick,
+  children,
   marginBottom,
 }: ContractActionsItemType) => (
   <Box
@@ -67,17 +67,7 @@ export const ContractActionsItem = ({
           {convertedAmount}
         </Typography>
       </Box>
-
-      {showButton && (
-        <Button
-          variant="contained"
-          size="small"
-          onClick={buttonOnClick}
-          sx={{ height: "fit-content", width: "90px" }}
-        >
-          {buttonLabel}
-        </Button>
-      )}
+      {children}
     </Box>
   </Box>
 )
@@ -97,6 +87,20 @@ export const ContractActions = ({ market, token }: ContractActionsType) => {
         flexDirection: "column",
       }}
     >
+      <Typography variant="title3" marginBottom="4px">
+        Collateral Contract
+      </Typography>
+      <Typography variant="text3" color={COLORS.santasGrey} marginBottom="24px">
+        This function is useful not to get delinquent.{" "}
+        <Link
+          href="https://docs.wildcat.finance/"
+          style={{ color: COLORS.santasGrey }}
+          target="_blank"
+        >
+          Learn more
+        </Link>
+      </Typography>
+
       <Box
         sx={{
           width: "100%",
@@ -125,33 +129,35 @@ export const ContractActions = ({ market, token }: ContractActionsType) => {
       <ContractActionsItem
         amount={498.2}
         label="Market Delinquent Debt"
-        showButton={showDeposit}
-        buttonLabel="Deposit"
-        buttonOnClick={() => {
-          console.log("Test Deposit")
-        }}
         asset={token?.symbol}
         convertedAmount={`0 ${market.underlyingToken.symbol}`}
         marginBottom="10px"
-      />
+      >
+        {showDeposit && token && (
+          <DepositModalContract
+            market={market}
+            collateralAsset={token.symbol}
+          />
+        )}
+      </ContractActionsItem>
 
       <ContractActionsItem
         amount={498.2}
         label="Amount Held"
-        showButton={showLiquidate || showReclaim}
-        buttonLabel={showReclaim ? "Reclaim" : "Liquidate"}
-        buttonOnClick={
-          showReclaim
-            ? () => {
-                console.log("Test Reclaim")
-              }
-            : () => {
-                console.log("Test Liquidate")
-              }
-        }
         asset={token?.symbol}
         convertedAmount={`0 ${market.underlyingToken.symbol}`}
-      />
+      >
+        {(showLiquidate || showReclaim) && (
+          <Button
+            variant="contained"
+            size="small"
+            onClick={() => {}}
+            sx={{ height: "fit-content", width: "90px" }}
+          >
+            {showReclaim ? "Reclaim" : "Liquidate"}
+          </Button>
+        )}
+      </ContractActionsItem>
     </Box>
   )
 }
