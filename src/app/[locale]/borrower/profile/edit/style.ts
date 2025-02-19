@@ -1,9 +1,12 @@
+import { pageCalcHeights } from "@/utils/constants"
+
 export const EditPageContainer = {
-  height: "calc(100vh - 43px - 43px - 52px)",
+  height: `calc(100vh - ${pageCalcHeights.page})`,
   overflow: "scroll",
   padding: "52px 20px 0 44px",
   display: "flex",
   flexDirection: "column",
+  paddingBottom: "24px",
 }
 
 export const TitleContainer = {
