@@ -1,5 +1,6 @@
 import { Box, Button, Typography } from "@mui/material"
 import { Market, Token } from "@wildcatfi/wildcat-sdk"
+import Link from "next/link"
 
 import { LinkGroup } from "@/components/LinkComponent"
 import { TooltipButton } from "@/components/TooltipButton"
@@ -82,9 +83,10 @@ export const ContractActionsItem = ({
 )
 
 export const MarketCollateralContract = ({ market }: ContractActionsType) => {
-  const address = "0xca732651410e915090d7a7d889a1e44ef4575fce"
+  const address = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
 
   return (
+    
     <Box
       sx={{
         width: "100%",
@@ -92,6 +94,20 @@ export const MarketCollateralContract = ({ market }: ContractActionsType) => {
         flexDirection: "column",
       }}
     >
+            <Typography variant="title3" marginBottom="4px">
+        Collateral Contract
+      </Typography>
+      <Typography variant="text3" color={COLORS.santasGrey} marginBottom="24px">
+        In the event that this market enters penalised delinquency, backing assets - if present - can be liquidated to repay the debt.{" "}
+        <Link
+          href="https://docs.wildcat.finance/"
+          style={{ color: COLORS.santasGrey }}
+          target="_blank"
+        >
+          Learn More.
+        </Link>
+      </Typography>
+
       <Box
         sx={{
           width: "100%",
@@ -119,7 +135,7 @@ export const MarketCollateralContract = ({ market }: ContractActionsType) => {
 
       <ContractActionsItem
         amount={498.2}
-        label="Amount of Unhealthy"
+        label="Market Delinquent Debt"
         showButton
         buttonLabel="Liquidate"
         buttonOnClick={() => {
@@ -132,11 +148,15 @@ export const MarketCollateralContract = ({ market }: ContractActionsType) => {
 
       <ContractActionsItem
         amount={498.2}
-        label="Amount Held"
+        label="Collateral Assets Available"
         showButton={false}
         asset="TST"
         convertedAmount={`0 ${market.underlyingToken.symbol}`}
       />
+
+      <Typography variant="text3" color={COLORS.santasGrey} marginBottom="24px">
+        Collateral cannot be reclaimed until the underlying market is terminated.  
+      </Typography>
     </Box>
   )
 }

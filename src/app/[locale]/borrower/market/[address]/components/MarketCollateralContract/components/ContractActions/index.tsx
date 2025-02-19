@@ -73,7 +73,7 @@ export const ContractActionsItem = ({
 )
 
 export const ContractActions = ({ market, token }: ContractActionsType) => {
-  const address = "0xca732651410e915090d7a7d889a1e44ef4575fce"
+  const address = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
 
   const showDeposit = !market.isClosed
   const showLiquidate = market.isIncurringPenalties || market.isDelinquent
@@ -91,13 +91,13 @@ export const ContractActions = ({ market, token }: ContractActionsType) => {
         Collateral Contract
       </Typography>
       <Typography variant="text3" color={COLORS.santasGrey} marginBottom="24px">
-        This function is useful not to get delinquent.{" "}
+        In the event that this market enters penalised delinquency, backing assets - if present - can be liquidated to repay the debt.{" "}
         <Link
           href="https://docs.wildcat.finance/"
           style={{ color: COLORS.santasGrey }}
           target="_blank"
         >
-          Learn more
+          Learn More.
         </Link>
       </Typography>
 
@@ -143,7 +143,7 @@ export const ContractActions = ({ market, token }: ContractActionsType) => {
 
       <ContractActionsItem
         amount={498.2}
-        label="Amount Held"
+        label="Collateral Assets Available"
         asset={token?.symbol}
         convertedAmount={`0 ${market.underlyingToken.symbol}`}
       >
@@ -158,6 +158,10 @@ export const ContractActions = ({ market, token }: ContractActionsType) => {
           </Button>
         )}
       </ContractActionsItem>
+
+      <Typography variant="text3" color={COLORS.santasGrey} marginBottom="24px">
+        Collateral cannot be reclaimed until the underlying market is terminated.  
+      </Typography>
     </Box>
   )
 }

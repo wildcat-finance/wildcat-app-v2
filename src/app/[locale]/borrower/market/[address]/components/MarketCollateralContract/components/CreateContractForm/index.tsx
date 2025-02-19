@@ -43,7 +43,7 @@ export const CreateContractForm = ({
           color={COLORS.santasGrey}
           marginBottom="24px"
         >
-          Firstly, select an asset to create a contract
+          Select an asset to back your market with:
         </Typography>
 
         <Box sx={{ display: "flex", gap: "10px" }}>
