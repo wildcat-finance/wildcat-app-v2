@@ -251,6 +251,14 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
                 </>
               )}
 
+              {isFixedTerm && (
+                <Typography variant="text3" color={COLORS.santasGrey}>
+                  {`This is currently a fixed-term market: deposited funds will be unavailable to withdraw until ${formatDate(
+                    fixedTermMaturity,
+                  )}.`}
+                </Typography>
+              )}
+
               {modal.approvedStep && (
                 <ModalDataItem
                   title={t(
@@ -267,14 +275,6 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
               )}
             </Box>
           </>
-        )}
-
-        {isFixedTerm && (
-          <Typography variant="text3" color={COLORS.santasGrey}>
-            {`This is currently a fixed-term market: your funds will be unavailable to withdraw until ${formatDate(
-              fixedTermMaturity,
-            )}.`}
-          </Typography>
         )}
 
         {isDepositing && <LoadingModal txHash={txHash} />}
