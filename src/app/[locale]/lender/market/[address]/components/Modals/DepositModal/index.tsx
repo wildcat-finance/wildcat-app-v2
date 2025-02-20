@@ -271,7 +271,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
             </Box>
 
             <Box width="100%" height="100%" padding="0 24px">
-              {earlyTermination && (
+              {isFixedTerm && earlyTermination && (
                 <Typography variant="text3" color={COLORS.dullRed}>
                   This market also has a flag set that allows the borrower to
                   terminate it before maturity by repaying all debt.
@@ -280,7 +280,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
             </Box>
 
             <Box width="100%" height="100%" padding="0 24px">
-              {earlyMaturity && (
+              {isFixedTerm && earlyMaturity && (
                 <Typography variant="text3" color={COLORS.dullRed}>
                   This market also has a flag set that allows the borrower to
                   bring the maturity closer to the present day.
