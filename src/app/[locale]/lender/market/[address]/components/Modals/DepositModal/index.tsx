@@ -258,7 +258,9 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
                   />
                 </>
               )}
+            </Box>
 
+            <Box width="100%" height="100%" padding="0 24px">
               {isFixedTerm && (
                 <Typography variant="text3" color={COLORS.dullRed}>
                   {`This is currently a fixed-term market: deposited funds will be unavailable to withdraw until ${formatDate(
@@ -266,21 +268,27 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
                   )}.`}
                 </Typography>
               )}
+            </Box>
 
+            <Box width="100%" height="100%" padding="0 24px">
               {earlyTermination && (
                 <Typography variant="text3" color={COLORS.dullRed}>
                   This market also has a flag set that allows the borrower to
                   terminate it before maturity by repaying all debt.
                 </Typography>
               )}
+            </Box>
 
+            <Box width="100%" height="100%" padding="0 24px">
               {earlyMaturity && (
                 <Typography variant="text3" color={COLORS.dullRed}>
                   This market also has a flag set that allows the borrower to
                   bring the maturity closer to the present day.
                 </Typography>
               )}
+            </Box>
 
+            <Box width="100%" height="100%" padding="0 24px">
               {modal.approvedStep && (
                 <ModalDataItem
                   title={t(
