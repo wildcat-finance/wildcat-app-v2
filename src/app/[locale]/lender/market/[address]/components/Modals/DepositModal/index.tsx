@@ -142,6 +142,14 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     market.hooksConfig?.kind === HooksKind.FixedTerm
       ? market.hooksConfig.fixedTermEndTime
       : undefined
+  const earlyTermination =
+    market.hooksConfig?.kind === HooksKind.FixedTerm
+      ? market.hooksConfig.allowClosureBeforeTerm
+      : false
+  const earlyMaturity =
+    market.hooksConfig?.kind === HooksKind.FixedTerm
+      ? market.hooksConfig.allowTermReduction
+      : false
 
   const showForm = !(isDepositing || showSuccessPopup || showErrorPopup)
 
@@ -252,10 +260,24 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
               )}
 
               {isFixedTerm && (
-                <Typography variant="text3" color={COLORS.santasGrey}>
+                <Typography variant="text3" color={COLORS.dullRed}>
                   {`This is currently a fixed-term market: deposited funds will be unavailable to withdraw until ${formatDate(
                     fixedTermMaturity,
                   )}.`}
+                </Typography>
+              )}
+
+              {earlyTermination && (
+                <Typography variant="text3" color={COLORS.dullRed}>
+                  This market also has a flag set that allows the borrower to
+                  terminate it before maturity by repaying all debt.
+                </Typography>
+              )}
+
+              {earlyMaturity && (
+                <Typography variant="text3" color={COLORS.dullRed}>
+                  This market also has a flag set that allows the borrower to
+                  bring the maturity closer to the present day.
                 </Typography>
               )}
 
