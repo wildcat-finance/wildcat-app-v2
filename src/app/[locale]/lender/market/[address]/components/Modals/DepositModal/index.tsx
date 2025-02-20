@@ -1,7 +1,7 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
 
-import { Box, Button, Dialog } from "@mui/material"
-import { DepositStatus, Signer } from "@wildcatfi/wildcat-sdk"
+import { Box, Button, Dialog, Typography } from "@mui/material"
+import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
@@ -19,6 +19,8 @@ import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { EtherscanBaseUrl } from "@/config/network"
+import { formatDate } from "@/lib/mla"
+import { COLORS } from "@/theme/colors"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -134,6 +136,12 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
 
   const isApprovedButton =
     depositStep === "Ready" && !depositTokenAmount.raw.isZero() && !isApproving
+
+  const isFixedTerm = market.isInFixedTerm
+  const fixedTermMaturity =
+    market.hooksConfig?.kind === HooksKind.FixedTerm
+      ? market.hooksConfig.fixedTermEndTime
+      : undefined
 
   const showForm = !(isDepositing || showSuccessPopup || showErrorPopup)
 
@@ -259,6 +267,14 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
               )}
             </Box>
           </>
+        )}
+
+        {isFixedTerm && (
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            {`This is currently a fixed-term market: your funds will be unavailable to withdraw until ${formatDate(
+              fixedTermMaturity,
+            )}.`}
+          </Typography>
         )}
 
         {isDepositing && <LoadingModal txHash={txHash} />}
