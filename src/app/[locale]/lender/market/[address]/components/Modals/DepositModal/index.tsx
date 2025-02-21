@@ -270,7 +270,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
               )}
             </Box>
 
-            <Box width="100%" height="100%" padding="0 24px">
+            <Box width="100%" height="100%" padding="24px 24px">
               {isFixedTerm && earlyTermination && (
                 <Typography variant="text3" color={COLORS.dullRed}>
                   This market also has a flag set that allows the borrower to
