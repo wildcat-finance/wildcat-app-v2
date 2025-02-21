@@ -35,16 +35,14 @@ export const LenderMarketSidebar = () => {
   return (
     <Box
       sx={{
-        minHeight: "100%",
         minWidth: "267px",
-        borderRight: `1px solid ${COLORS.blackRock006}`,
         padding: "32px 12px 0px",
         display: "flex",
         flexDirection: "column",
       }}
     >
       <Box position="sticky" top="32px">
-        <BackButton title="Back to markets" link={ROUTES.lender.root} />
+        <BackButton title="Back To Markets" link={ROUTES.lender.root} />
 
         {isLoading && (
           <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
@@ -102,6 +100,42 @@ export const LenderMarketSidebar = () => {
               }}
             >
               {t("lenderMarketDetails.sidebar.status")}
+            </Button>
+
+            {isLender && (
+              <Button
+                variant="text"
+                size="medium"
+                onClick={() =>
+                  handleChangeSection(LenderMarketSections.BORROWER_PROFILE)
+                }
+                sx={{
+                  ...MenuItemButton,
+                  backgroundColor:
+                    currentSection === LenderMarketSections.BORROWER_PROFILE
+                      ? COLORS.whiteSmoke
+                      : "transparent",
+                }}
+              >
+                {t("lenderMarketDetails.sidebar.borrowerProfile")}
+              </Button>
+            )}
+
+            <Button
+              variant="text"
+              size="medium"
+              onClick={() =>
+                handleChangeSection(LenderMarketSections.MARKET_HISTORY)
+              }
+              sx={{
+                ...MenuItemButton,
+                backgroundColor:
+                  currentSection === LenderMarketSections.MARKET_HISTORY
+                    ? COLORS.whiteSmoke
+                    : "transparent",
+              }}
+            >
+              {t("lenderMarketDetails.sidebar.marketHistory")}
             </Button>
 
             {isLender && (

@@ -50,7 +50,7 @@ export const OutstandingTable = ({
     <DetailsAccordion
       isOpen={isOutstandingOpen}
       setIsOpen={setIsOutstandingOpen}
-      summaryText="Outstanding from past cycles"
+      summaryText="Outstanding From Past Cycles"
       summarySx={{
         borderRadius: "0px",
         borderBottom: isOutstandingOpen ? "none" : `1px solid`,

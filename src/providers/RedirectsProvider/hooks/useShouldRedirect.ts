@@ -3,14 +3,13 @@ import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { usePathname } from "next/navigation"
 import { useAccount } from "wagmi"
 
-import { API_URL } from "@/config/api"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { getRedirectPath } from "@/providers/RedirectsProvider/utils/getRedirectPath"
 
 export const SHOULD_REDIRECT_KEY = "should-redirect"
 
 type Response = {
-  data: boolean
+  isSigned: boolean
 }
 
 const fetchSLARedirectStatus = async (
@@ -19,13 +18,12 @@ const fetchSLARedirectStatus = async (
   chainId: SupportedChainId | undefined,
 ) => {
   let isSignedResult = false
-
   if (address) {
-    const { data }: Response = await fetch(`${API_URL}/sla/${address}`).then(
+    const { isSigned }: Response = await fetch(`/api/sla/${address}`).then(
       (res) => res.json(),
     )
 
-    isSignedResult = data
+    isSignedResult = isSigned
   }
 
   return getRedirectPath({

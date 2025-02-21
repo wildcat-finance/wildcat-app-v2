@@ -4,6 +4,7 @@ import * as React from "react"
 import { useEffect } from "react"
 
 import { Box, Divider, Skeleton } from "@mui/material"
+import { MarketVersion } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
@@ -11,8 +12,10 @@ import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/comp
 import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
+import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
+import { useMarketMla } from "@/hooks/useMarketMla"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import {
@@ -20,8 +23,10 @@ import {
   setCheckBlock,
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
+import { pageCalcHeights } from "@/utils/constants"
 
 import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
+import { MarketMLA } from "./components/MarketMLA"
 import { MarketTransactions } from "./components/MarketTransactions"
 import { MarketWithdrawalRequests } from "./components/MarketWithdrawalRequests"
 import useScrollHandler from "./hooks/useScrollHandler"
@@ -40,13 +45,16 @@ export default function MarketDetails({
   const { data: market } = useGetMarket({ address })
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
   const { address: walletAddress } = useAccount()
-  const bannerDisplayConfig = useBorrowerInvitationRedirect()
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 
   const { checked } = useScrollHandler()
 
   const prevURL = sessionStorage.getItem("previousPageUrl")
+
+  const { data: marketMla, isLoading: isLoadingMarketMla } = useMarketMla(
+    marketAccount?.market.address,
+  )
 
   useEffect(() => {
     if (prevURL && prevURL.includes(ROUTES.borrower.lendersList)) {
@@ -90,17 +98,29 @@ export default function MarketDetails({
       </Box>
     )
 
-  return (
-    <Box sx={{ padding: "52px 20px 0 44px" }}>
-      <Box sx={{ width: "69%" }}>
-        {!bannerDisplayConfig.hideBanner && checked === 1 && (
+  if (
+    !isLoadingMarketMla &&
+    marketMla === null &&
+    checked !== 5 &&
+    market.version === MarketVersion.V2
+  )
+    return (
+      <Box sx={{ padding: "52px 20px 0 44px" }}>
+        <Box sx={{ width: "69%" }}>
           <LeadBanner
-            title={bannerDisplayConfig.title}
-            text={bannerDisplayConfig.text}
-            buttonText={bannerDisplayConfig.buttonText}
-            buttonLink={bannerDisplayConfig.link}
+            title="Select MLA Settings"
+            text="Your MLA selection was not successfully uploaded. Please try again."
+            buttonText="Go to MLA Settings"
+            buttonLink={undefined}
+            onClick={() => dispatch(setCheckBlock(5))}
           />
-        )}
+        </Box>
+      </Box>
+    )
+
+  return (
+    <Box>
+      <Box>
         <MarketHeader marketAccount={marketAccount} />
         <Box
           // ref={scrollContainer}
@@ -108,10 +128,8 @@ export default function MarketDetails({
             width: "100%",
             overflow: "hidden",
             overflowY: "visible",
-            height:
-              !bannerDisplayConfig.hideBanner && checked === 1
-                ? "calc(100vh - 43px - 43px - 52px - 60px - 52px - 220px)"
-                : "calc(100vh - 43px - 43px - 52px - 60px - 52px)",
+            padding: "0 32.3% 24px 44px",
+            height: `calc(100vh - ${pageCalcHeights.market})`,
           }}
         >
           {/* <Slide */}
@@ -198,6 +216,17 @@ export default function MarketDetails({
                 market={market}
                 marketAccount={marketAccount}
               />
+            </Box>
+          )}
+
+          {checked === 5 && (
+            <Box sx={SlideContentContainer} marginTop="12px">
+              <MarketMLA marketAccount={marketAccount} />
+            </Box>
+          )}
+          {checked === 6 && (
+            <Box sx={SlideContentContainer} marginTop="12px">
+              <PaginatedMarketRecordsTable market={market} />
             </Box>
           )}
         </Box>

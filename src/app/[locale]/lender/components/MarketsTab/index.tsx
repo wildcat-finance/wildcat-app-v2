@@ -4,13 +4,9 @@ import { useEffect, useMemo, useRef } from "react"
 
 import { Box } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
-import {
-  LenderRole,
-  MarketAccount,
-  SubgraphMarket_Filter,
-} from "@wildcatfi/wildcat-sdk"
+import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
-import { useGetBorrowers } from "@/app/[locale]/borrower/hooks/useGetBorrowers"
+import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketsTableAccordion } from "@/app/[locale]/lender/components/MarketsTab/MarketsTableAccordion"
 import { OtherMarketsTable } from "@/app/[locale]/lender/components/MarketsTab/OtherMarketsTable"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
@@ -21,60 +17,9 @@ import {
   setScrollTarget,
   setTerminatedAmount,
 } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
-import { EXCLUDED_MARKETS } from "@/utils/constants"
-import { MarketStatus } from "@/utils/marketStatus"
 
 import { MarketsTabProps } from "./interface"
 import { filterMarketAccounts, getColumns, getRows } from "./utils"
-
-const combineFilters = (
-  filters: SubgraphMarket_Filter[],
-  combine: "and" | "or" = "and",
-) => {
-  if (filters.length === 0) return {}
-  if (filters.length === 1) return filters[0]
-  return { [combine]: filters }
-}
-
-function buildMarketFilter(
-  name: string,
-  statuses: MarketStatus[],
-  assets: { name: string; address: string }[],
-): SubgraphMarket_Filter | undefined {
-  console.log(`Executing buildMarketsFilter!!!!`)
-  const filters: SubgraphMarket_Filter[] = []
-  const statusFilters = statuses.map((status) => {
-    switch (status) {
-      case MarketStatus.DELINQUENT:
-        return { isDelinquent: true }
-      case MarketStatus.HEALTHY:
-        return { isDelinquent: false }
-      case MarketStatus.TERMINATED:
-        return { isClosed: true }
-      case MarketStatus.PENALTY:
-        return { isIncurringPenalties: true }
-      default:
-        throw Error(`what happened here?`)
-    }
-  })
-  if (statusFilters.length) filters.push(combineFilters(statusFilters, "or"))
-  if (name) filters.push({ name_contains_nocase: name.toLowerCase() })
-  const assetFilters = assets.map((asset): SubgraphMarket_Filter => {
-    if (asset.name) {
-      return {
-        asset_: { name_contains_nocase: asset.name.toLowerCase() },
-      }
-    }
-
-    return {
-      asset_: { address: asset.address.toLowerCase() },
-    }
-  })
-  if (assetFilters.length) filters.push(combineFilters(assetFilters, "or"))
-  if (filters.length) return combineFilters(filters, "and")
-
-  return undefined
-}
 
 export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
   const dispatch = useAppDispatch()
@@ -119,41 +64,29 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
       b.map((x) => `${x.name}:${x.address}`).join(","),
   )
 
-  const filter = useMemo(
-    () => ({
-      marketFilter: buildMarketFilter(
-        filterByMarketName,
-        filterByStatus,
-        filterByAsset,
-      ),
-    }),
-    [filterByMarketName, filterByStatus, filterByAsset],
-  )
-
   const {
     data: lenderMarketAccounts,
     isLoadingInitial,
     isLoadingUpdate,
-  } = useLendersMarkets(filter)
+  } = useLendersMarkets()
 
-  const { data: borrowers } = useGetBorrowers()
+  const { data: borrowers } = useBorrowerNames()
+
+  console.log(`Got ${borrowers?.length} borrowers`)
 
   const isLoading = isLoadingInitial || isLoadingUpdate
 
   const filteredMarketAccounts = useMemo(
     () =>
-      lenderMarketAccounts
-        ? lenderMarketAccounts.filter(
-            (account) =>
-              !EXCLUDED_MARKETS.includes(
-                account.market.address.toLowerCase(),
-              ) ||
-              account.isAuthorizedOnController ||
-              account.role !== LenderRole.Null,
-          )
-        : [],
-    [lenderMarketAccounts],
+      filterMarketAccounts(
+        lenderMarketAccounts,
+        filterByMarketName,
+        filterByStatus,
+        filterByAsset,
+      ),
+    [lenderMarketAccounts, filterByStatus, filterByMarketName, filterByAsset],
   )
+
   const {
     active: filteredActiveLenderMarketAccounts,
     terminated: terminatedMarketAccounts,
@@ -181,6 +114,7 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
       ),
     [filteredMarketAccounts],
   )
+
   useEffect(() => {
     dispatch(
       setActiveAmount(
@@ -219,8 +153,8 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
           <Box id="active-lender-markets" ref={activeMarketsRef}>
             <MarketsTableAccordion
               label="Your Active Markets"
-              noMarketsTitle="No active markets"
-              noMarketsSubtitle="Choose a market below or use a direct link to a particular one to leave a request for joining"
+              noMarketsTitle="No Active Markets"
+              noMarketsSubtitle="Join a suitable self-onboarding market below, or reach out to a borrower (see their profile) for access to restricted ones."
               type="active"
               marketsLength={filteredActiveLenderMarketAccounts.length}
               isLoading={isLoading}

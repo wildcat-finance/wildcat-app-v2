@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum AccountKind {
+  EOA
+  GnosisSafe
+  OtherContract
+}
+
+enum SignatureKind {
+  // Signature from the target account (e.g. borrower)
+  ECDSA
+  // Signature from the gnosis safe
+  GnosisSignature
+  // ECDSA signature from a single owner of the gnosis safe
+  GnosisOwnerECDSA
+  // Non-Gnosis EIP-1271 contract signature
+  EIP1271
+}
+
+// @todo - need to make the borrower/lender signatures distinct as the borrower
+// can technically also be a lender, but that would use a different message
+
+model MlaSignature {
+  kind        SignatureKind
+  address     String
+  // If the signature is from a single owner of a gnosis safe, this is the address of the
+  // owner that made the signature; otherwise, it's the same as `address`
+  signer      String
+  signature   String
+  // The block number at which the signature was verified - only relevant for non-EOA signatures
+  blockNumber Int?
+  // The chain ID and market address of the master loan agreement that this signature is for
+  chainId     Int
+  market      String
+
+  timeSigned DateTime
+
+  // Relation to the master loan agreement
+  mla MasterLoanAgreement @relation("MlaSignatureToMasterLoanAgreement", fields: [chainId, market], references: [chainId, market])
+
+  @@id([chainId, market, signer])
+}
+
+model RefusalToAssignMla {
+  chainId     Int
+  // The market address
+  market      String
+  // The address of the borrower
+  address     String
+  // The address of the signer declining the MLA
+  signer      String
+  // The signature of the borrower declining the MLA
+  signature   String
+  timeSigned  DateTime
+  // The block number at which the signature was verified - only relevant for non-EOA signatures
+  blockNumber Int?
+  kind        SignatureKind
+
+  @@id([chainId, market])
+}
+
+model AdminAccount {
+  id      Int    @id @default(autoincrement())
+  address String
+}
+
+model MlaTemplate {
+  id             Int      @id @default(autoincrement())
+  name           String
+  description    String?
+  hide           Boolean? @default(false)
+  isDefault      Boolean?
+  html           String
+  plaintext      String
+  borrowerFields Json
+  lenderFields   Json
+
+  mlas MasterLoanAgreement[] @relation("MlaTemplateToMasterLoanAgreement")
+}
+
+model MasterLoanAgreement {
+  chainId        Int
+  market         String
+  borrower       String
+  html           String
+  plaintext      String
+  templateId     Int
+  lenderFields   Json
+  mlaSignatureId Int?
+
+  borrowerProfile Borrower @relation("BorrowerToMasterLoanAgreement", fields: [chainId, borrower], references: [chainId, address])
+
+  template      MlaTemplate    @relation("MlaTemplateToMasterLoanAgreement", fields: [templateId], references: [id])
+  mlaSignatures MlaSignature[] @relation("MlaSignatureToMasterLoanAgreement")
+
+  // market must be unique
+  @@id([chainId, market])
+}
+
+model LenderServiceAgreementSignature {
+  chainId              Int
+  signer               String
+  signature            String
+  timeSigned           DateTime
+  serviceAgreementHash String
+
+  @@id([chainId, signer, serviceAgreementHash])
+}
+
+model BorrowerServiceAgreementSignature {
+  chainId              Int
+  address              String
+  signature            String
+  timeSigned           DateTime
+  borrowerName         String
+  serviceAgreementHash String
+
+  borrower Borrower @relation("BorrowerToServiceAgreementSignature", fields: [chainId, address], references: [chainId, address], onDelete: Cascade)
+
+  @@id([chainId, address])
+}
+
+model BorrowerInvitation {
+  id          Int      @id @default(autoincrement())
+  chainId     Int
+  address     String
+  name        String
+  alias       String?
+  inviter     String
+  description String?
+  founded     String?
+  headquarters String?
+  jurisdiction String?
+  physicalAddress String?
+  entityKind String?
+  timeInvited DateTime
+
+  borrower Borrower @relation("BorrowerToInvitation", fields: [chainId, address], references: [chainId, address], onDelete: Cascade)
+
+  @@unique([chainId, address])
+}
+
+model Borrower {
+  chainId Int
+  address String
+
+  name              String?
+  alias             String?
+  description       String?
+  founded           String?
+  headquarters      String?
+  website           String?
+  twitter           String?
+  telegram        String?
+  linkedin          String?
+  email             String?
+  jurisdiction      String?
+  physicalAddress   String?
+  entityKind        String?
+  registeredOnChain Boolean
+
+  invitation                BorrowerInvitation?                @relation("BorrowerToInvitation")
+  serviceAgreementSignature BorrowerServiceAgreementSignature? @relation("BorrowerToServiceAgreementSignature")
+  updates                   BorrowerProfileUpdateRequest[]     @relation("BorrowerToProfileUpdateRequest")
+  mlas                      MasterLoanAgreement[]              @relation("BorrowerToMasterLoanAgreement")
+
+  @@unique([chainId, address])
+}
+
+model BorrowerProfileUpdateRequest {
+  id        Int      @id @default(autoincrement())
+  chainId   Int
+  address   String
+  createdAt DateTime
+
+  name            String?
+  alias           String?
+  description     String?
+  founded         String?
+  headquarters    String?
+  website         String?
+  twitter         String?
+  telegram        String?
+  linkedin        String?
+  email           String?
+  jurisdiction    String?
+  physicalAddress String?
+  entityKind      String?
+
+  acceptedAt     DateTime?
+  rejectedAt     DateTime?
+  rejectedReason String?
+
+  borrowerProfile Borrower @relation("BorrowerToProfileUpdateRequest", fields: [chainId, address], references: [chainId, address], onDelete: Cascade)
+
+  @@index([chainId, address])
+}

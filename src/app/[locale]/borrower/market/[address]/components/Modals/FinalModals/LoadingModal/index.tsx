@@ -13,7 +13,15 @@ import { LinkGroup } from "@/components/LinkComponent"
 import { Loader } from "@/components/Loader"
 import { EtherscanBaseUrl } from "@/config/network"
 
-export const LoadingModal = ({ txHash }: { txHash?: string }) => (
+export const LoadingModal = ({
+  txHash,
+  title,
+  subtitle,
+}: {
+  txHash?: string
+  title?: string
+  subtitle?: string
+}) => (
   <>
     <Box width="20px" height="20px" />
 
@@ -23,10 +31,14 @@ export const LoadingModal = ({ txHash }: { txHash?: string }) => (
 
         <Box sx={FinalModalTypoBox}>
           <Typography variant="text1">
-            <Trans i18nKey="borrowerMarketDetails.modals.loading.title" />
+            {title ?? (
+              <Trans i18nKey="borrowerMarketDetails.modals.loading.title" />
+            )}
           </Typography>
           <Typography variant="text3" sx={FinalModalSubtitle}>
-            <Trans i18nKey="borrowerMarketDetails.modals.loading.subtitle" />
+            {subtitle ?? (
+              <Trans i18nKey="borrowerMarketDetails.modals.loading.subtitle" />
+            )}
           </Typography>
         </Box>
       </Box>

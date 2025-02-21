@@ -1,31 +1,60 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 
+import { TargetChainId } from "@/config/network"
 import {
-  getAllBorrowerProfiles,
-  removeBorrowerProfile,
-  resetTmpDb,
-} from "@/lib/tmp-db"
+  prisma,
+  tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered,
+} from "@/lib/db"
+
+import { BorrowerProfileForAdminView } from "./interface"
 
 export async function GET() {
-  const allProfiles = getAllBorrowerProfiles()
+  await tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered()
+  const data = await prisma.borrower.findMany({
+    where: {
+      chainId: TargetChainId,
+      registeredOnChain: true,
+      NOT: {
+        serviceAgreementSignature: null,
+      },
+    },
+    include: {
+      invitation: {
+        select: {
+          timeInvited: true,
+        },
+      },
+      serviceAgreementSignature: {
+        select: {
+          timeSigned: true,
+        },
+      },
+    },
+  })
+  const allProfiles = data.map(
+    (borrower) =>
+      ({
+        address: borrower.address,
+        chainId: borrower.chainId,
+        name: borrower.name || undefined,
+        description: borrower.description || undefined,
+        founded: borrower.founded || undefined,
+        headquarters: borrower.headquarters || undefined,
+        website: borrower.website || undefined,
+        twitter: borrower.twitter || undefined,
+        telegram: borrower.telegram || undefined,
+        linkedin: borrower.linkedin || undefined,
+        email: borrower.email || undefined,
+        registeredOnChain: borrower.registeredOnChain,
+        entityKind: borrower.entityKind || undefined,
+        jurisdiction: borrower.jurisdiction || undefined,
+        physicalAddress: borrower.physicalAddress || undefined,
+        timeInvited: borrower.invitation?.timeInvited || undefined,
+        timeSigned: borrower.serviceAgreementSignature?.timeSigned || undefined,
+      }) as BorrowerProfileForAdminView,
+  )
 
   return NextResponse.json(allProfiles)
 }
 
-// DELETE /api/profiles?borrower=<borrower | all>
-// Test function only
-export async function DELETE(request: NextRequest) {
-  const borrower = request.nextUrl.searchParams.get("borrower")
-  if (!borrower) {
-    return NextResponse.json(
-      { success: false, message: "No borrower provided" },
-      { status: 400 },
-    )
-  }
-  if (borrower === "all") {
-    resetTmpDb()
-  } else {
-    removeBorrowerProfile(borrower)
-  }
-  return NextResponse.json({ success: true })
-}
+export const dynamic = "force-dynamic"

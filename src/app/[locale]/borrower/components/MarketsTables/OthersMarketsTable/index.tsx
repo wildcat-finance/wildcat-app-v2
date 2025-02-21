@@ -5,6 +5,7 @@ import {
   Accordion,
   AccordionSummary,
   Box,
+  Button,
   Skeleton,
   Typography,
 } from "@mui/material"
@@ -20,7 +21,11 @@ import { TablePagination } from "@/components/TablePagination"
 import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
+import {
+  statusComparator,
+  tokenAmountComparator,
+  typeComparator,
+} from "@/utils/comparators"
 import {
   formatBps,
   formatTokenWithCommas,
@@ -103,6 +108,7 @@ export const OthersMarketsTable = ({
       flex: 2,
       headerAlign: "left",
       align: "left",
+      sortComparator: typeComparator,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
@@ -121,21 +127,48 @@ export const OthersMarketsTable = ({
       flex: 1.7,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <Typography
+          variant="text4"
+          sx={{
+            lineHeight: "10px",
+            color: COLORS.santasGrey,
+            padding: "0 12px",
+          }}
+        >
+          Borrower
+        </Typography>
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-start" }}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-start",
+          }}
         >
-          <span
+          <Link
+            href={`${ROUTES.borrower.profile}/${params.row.borrowerAddress}`}
             style={{
-              width: "100%",
-              paddingRight: "20px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
+              textDecoration: "none",
+              width: "fit-content",
+              height: "fit-content",
             }}
           >
-            {params.value}
-          </span>
+            <Button
+              size="small"
+              variant="text"
+              sx={{
+                fontSize: "13px",
+                lineHeight: "20px",
+                fontWeight: 500,
+                minWidth: "fit-content",
+                width: "fit-content",
+              }}
+            >
+              {params.value}
+            </Button>
+          </Link>
         </Link>
       ),
     },
@@ -186,7 +219,7 @@ export const OthersMarketsTable = ({
           >
             CRR
           </Typography>
-          <TooltipButton value="TBD" />
+          <TooltipButton value="The percentage of market funds kept unborrowed and locked as reserve." />
         </Box>
       ),
       renderCell: (params) => (
@@ -277,15 +310,19 @@ export const OthersMarketsTable = ({
     const borrower = borrowersData?.find(
       (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
     )
-    const borrowerName = borrower ? borrower.name : trimAddress(borrowerAddress)
+    const borrowerName = borrower
+      ? borrower.alias || borrower.name
+      : trimAddress(borrowerAddress)
     const marketStatus = getMarketStatusChip(market)
+    const marketType = getMarketTypeChip(market)
 
     return {
       id: address,
       status: marketStatus,
-      marketType: getMarketTypeChip(market),
+      marketType,
       name,
       borrowerName,
+      borrowerAddress,
       asset: underlyingToken.symbol,
       lenderAPR: annualInterestBips,
       crr: reserveRatioBips,
@@ -368,6 +405,12 @@ export const OthersMarketsTable = ({
             padding: "0 16px",
             "& .MuiDataGrid-columnHeader": { padding: 0 },
             "& .MuiDataGrid-cell": { padding: "0px" },
+
+            "& .MuiDataGrid-row": {
+              "& > a:hover": {
+                backgroundColor: "transparent",
+              },
+            },
 
             "& .MuiDataGrid-footerContainer": {
               "& .MuiToolbar-root": {

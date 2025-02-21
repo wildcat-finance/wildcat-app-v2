@@ -20,6 +20,7 @@ import { GetMarketsProps } from "./interface"
 export const GET_BORROWER_MARKETS = "get-borrower-markets"
 
 export function useGetBorrowerMarketsQuery({
+  borrowerAddress,
   provider,
   enabled,
   chainId,
@@ -27,7 +28,9 @@ export function useGetBorrowerMarketsQuery({
   shouldSkipRecords = true,
   ...variables
 }: GetMarketsProps) {
-  const { address } = useAccount()
+  const { address: userAddress } = useAccount()
+
+  const address = borrowerAddress ?? userAddress
 
   async function queryBorrowerMarkets() {
     console.log(`Running getMarketsForBorrower!`)
@@ -71,6 +74,7 @@ export function useGetBorrowerMarketsQuery({
 }
 
 export const useGetBorrowerMarkets = (
+  borrowerAddress?: `0x${string}`,
   args?: SubgraphGetMarketsWithEventsQueryVariables | undefined,
 ) => {
   const { chainId } = useCurrentNetwork()
@@ -79,6 +83,7 @@ export const useGetBorrowerMarkets = (
   const signerOrProvider = signer ?? provider
 
   return useGetBorrowerMarketsQuery({
+    borrowerAddress,
     provider: signerOrProvider,
     enabled: !!signerOrProvider && !isWrongNetwork,
     chainId,

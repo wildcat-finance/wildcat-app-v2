@@ -9,17 +9,20 @@ import { COLORS } from "@/theme/colors"
 export type BackButtonProps = {
   title: string
   link?: string
+  onClick?: () => void
 }
 
 export const BackButton = ({
   title,
   link = ROUTES.borrower.root,
+  onClick,
 }: BackButtonProps) => (
   <Link href={link} passHref>
     <Button
       fullWidth
       variant="text"
       size="medium"
+      onClick={onClick}
       sx={{
         color: COLORS.santasGrey,
         fontWeight: 500,

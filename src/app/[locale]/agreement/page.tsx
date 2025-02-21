@@ -7,7 +7,7 @@ import { Trans } from "react-i18next"
 import { AgreementText } from "./components/AgreementText"
 import { SignButton } from "./components/SignButton"
 
-export default async function Agreement() {
+export default function Agreement() {
   return (
     <Box
       className="text"
@@ -59,11 +59,7 @@ export default async function Agreement() {
       >
         <SignButton />
 
-        <Link
-          href="/pdf/Wildcat_Protocol_Services_Agreement.pdf"
-          target="_blank"
-          download
-        >
+        <Link href="/pdf/Wildcat_Terms_of_Use.pdf" target="_blank" download>
           <Button
             variant="contained"
             color="secondary"

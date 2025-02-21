@@ -78,7 +78,7 @@ export function useGetOthersMarketsQuery({
 }
 
 export const useGetOthersMarkets = (
-  args: Omit<SubgraphGetMarketsWithEventsQueryVariables, "skip"> | undefined,
+  args?: Omit<SubgraphGetMarketsWithEventsQueryVariables, "skip"> | undefined,
 ) => {
   const { chainId } = useCurrentNetwork()
   const { isWrongNetwork, provider, signer } = useEthersProvider()

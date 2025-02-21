@@ -163,13 +163,15 @@ export const formatTokenAmount = (
     : formattedAmount
 }
 
-export const formatBlockTimestamp = (blockTimestamp: number) => {
-  console.log("blockTimestamp ", blockTimestamp)
-  return new Intl.DateTimeFormat("en-GB", {
+export const formatBlockTimestamp = (
+  blockTimestamp: number,
+  opts?: Intl.DateTimeFormatOptions,
+) =>
+  new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    ...opts,
   }).format(new Date(blockTimestamp * 1000))
-}

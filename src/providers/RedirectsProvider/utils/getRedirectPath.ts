@@ -8,7 +8,7 @@ export type RedirectToPath = typeof ROUTES.agreement | "/" | null
 
 const NO_WALLET_RESTRICTED_PATHS = [
   ROUTES.agreement,
-  ROUTES.borrower.newMarket,
+  ROUTES.borrower.createMarket,
   ROUTES.borrower.market,
   ROUTES.borrower.lendersList,
 ]
@@ -28,15 +28,14 @@ export const getRedirectPath = (params: {
   currentChainId: SupportedChainId | undefined
 }): RedirectToPath => {
   const { connectedAddress, pathname, isSignedSA, currentChainId } = params
+  const isWrongNetwork = checkIsWrongNetwork(currentChainId)
+  const isAgreementPath = pathname === ROUTES.agreement
 
   // If wallet is NOT CONNECTED or WRONG NETWORK
   // Redirect from restricted pages to root
-  const isWrongNetwork = checkIsWrongNetwork(currentChainId)
   if ((!connectedAddress || isWrongNetwork) && isNotPublicPath(pathname)) {
     return "/"
   }
-
-  const isAgreementPath = pathname === ROUTES.agreement
 
   // If wallet CONNECTED and SIGNED SA
   // Redirect from Agreement page to Root url
@@ -47,6 +46,10 @@ export const getRedirectPath = (params: {
   // If wallet CONNECTED and NOT SIGNED SA
   // Redirect to Agreement page
   if (!isAgreementPath && connectedAddress && !isSignedSA) {
+    if (isWrongNetwork) {
+      return "/"
+    }
+
     return ROUTES.agreement
   }
 

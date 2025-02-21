@@ -1,34 +1,20 @@
 import * as React from "react"
 
-import {
-  Box,
-  Button,
-  Divider,
-  Menu,
-  MenuItem,
-  SvgIcon,
-  Typography,
-} from "@mui/material"
+import { Box, Divider } from "@mui/material"
+import { HooksKind, MarketVersion } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
-import DocsIcon from "@/assets/icons/docs_icon.svg"
+import { MaturityModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MaturityModal"
+import { MinimumDepositModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MinimumDepositModal"
 import { TransactionBlock } from "@/components/TransactionBlock"
-import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { MarketTransactionsProps } from "./interface"
-import {
-  ElseButtonContainer,
-  ElseButtonText,
-  MarketTxContainer,
-  MarketTxUpperButtonsContainer,
-  MenuItemButton,
-} from "./style"
+import { MarketTxContainer, MarketTxUpperButtonsContainer } from "./style"
 import { AprModal } from "../Modals/AprModal"
 import { BorrowModal } from "../Modals/BorrowModal"
 import { CapacityModal } from "../Modals/CapacityModal"
 import { RepayModal } from "../Modals/RepayModal"
-import { StatementModal } from "../Modals/StatementModal"
 
 export const MarketTransactions = ({
   market,
@@ -42,11 +28,25 @@ export const MarketTransactions = ({
     setAnchorEl(null)
   }
 
-  const disableRepay = market.isClosed || market.totalDebts.raw.isZero()
+  const disableRepay = market.isClosed
   const disableBorrow =
     market.isClosed ||
     market?.isDelinquent ||
     (marketAccount && marketAccount.market.borrowableAssets.raw.isZero())
+
+  const isFixedTerm =
+    (market.version === MarketVersion.V1
+      ? HooksKind.OpenTerm
+      : market.hooksKind!) === HooksKind.FixedTerm
+
+  const isAllowTermReduction =
+    market.hooksConfig?.kind === HooksKind.FixedTerm
+      ? market.hooksConfig.allowTermReduction && market.isInFixedTerm
+      : undefined
+
+  const allowSetMinDeposit =
+    market.version === MarketVersion.V2 &&
+    market.hooksConfig?.flags.useOnDeposit
 
   return (
     <>
@@ -60,52 +60,12 @@ export const MarketTransactions = ({
           {/* </Button> */}
           <CapacityModal marketAccount={marketAccount} />
           <AprModal marketAccount={marketAccount} />
-          <Button
-            variant="outlined"
-            color="secondary"
-            size="small"
-            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-              setAnchorEl(event.currentTarget)
-            }}
-            sx={ElseButtonContainer}
-          >
-            <Typography variant="text4" sx={ElseButtonText}>
-              ...
-            </Typography>
-          </Button>
-          <Menu
-            slotProps={{
-              paper: {
-                sx: { width: "220px", marginTop: "12px", marginLeft: "24px" },
-              },
-            }}
-            disableScrollLock
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleClose}
-          >
-            <MenuItem
-              onClick={() => {
-                setIsOpen(!isOpen)
-                handleClose()
-              }}
-              sx={{
-                display: "flex",
-                gap: "8px",
-                alignItems: "center",
-                padding: "9px 12px",
-              }}
-            >
-              <SvgIcon
-                fontSize="medium"
-                sx={{ "& path": { stroke: `${COLORS.greySuit}` } }}
-              >
-                <DocsIcon />
-              </SvgIcon>
-              <Typography variant="text2">Statement</Typography>
-            </MenuItem>
-          </Menu>
-          <StatementModal isOpen={isOpen} setIsOpen={setIsOpen} />
+          {allowSetMinDeposit && (
+            <MinimumDepositModal marketAccount={marketAccount} />
+          )}
+          {isFixedTerm && isAllowTermReduction && (
+            <MaturityModal marketAccount={marketAccount} />
+          )}
         </Box>
       )}
 

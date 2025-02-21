@@ -8,24 +8,26 @@ export const USE_REGISTERED_BORROWERS_KEY = "use-borrower-names"
 export type BorrowerWithName = {
   address: string
   name?: string
+  alias?: string
 }
 
 export const useBorrowerNames = () => {
-  const url = process.env.REACT_APP_API_URL as string | undefined
   const getBorrowers = async () => {
-    if (!url) throw Error(`API url not defined`)
-    const { data } = await fetch(
-      `${url}/borrowers/registered/${TargetNetwork?.name.toLowerCase()}`,
-    )
-      .then((res) => res.json())
+    const data = await fetch(`/api/borrower-names`)
+      .then(async (res) => {
+        const result = (await res.json()) as BorrowerWithName[]
+        console.log(`GOT ${result.length} BORROWERS`)
+        return result
+      })
       .catch((err) => {
         console.log(err)
+        console.log(`ERROR RETRIEVING BORROWERS`)
         return undefined
       })
     return data === undefined ? null : (data as BorrowerWithName[])
   }
   const { data, ...result } = useQuery({
-    enabled: !!url,
+    enabled: true,
     queryKey: [USE_REGISTERED_BORROWERS_KEY],
     queryFn: getBorrowers,
     refetchOnMount: false,
@@ -40,8 +42,10 @@ export const useBorrowerNames = () => {
 export const useBorrowerNameOrAddress = (address: string): string => {
   const borrowers = useBorrowerNames()
   if (!borrowers.data) return trimAddress(address)
+
   const borrower = borrowers.data.find(
     (b) => b.address.toLowerCase() === address.toLowerCase(),
   )
-  return borrower?.name ?? trimAddress(address)
+
+  return borrower?.alias ?? borrower?.name ?? trimAddress(address)
 }

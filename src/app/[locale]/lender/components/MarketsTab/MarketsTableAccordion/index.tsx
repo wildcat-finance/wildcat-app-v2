@@ -38,7 +38,7 @@ export const MarketsTableAccordion = ({
         <Box display="flex" columnGap="4px">
           <Typography variant="text3">{label}</Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            {isLoading ? "is loading..." : marketsLength}
+            {isLoading ? "Are Loading..." : marketsLength}
           </Typography>
         </Box>
       </AccordionSummary>
@@ -93,13 +93,13 @@ export const MarketsTableAccordion = ({
         !defaultFilters && (
           <Box display="flex" flexDirection="column" padding="24px 16px 12px">
             <Typography variant="text2" color={COLORS.santasGrey}>
-              There are no {type}{" "}
+              No {type}{" "}
               {statusFilter?.length !== 0 &&
                 statusFilter?.map((status) => ` ${status.toLowerCase()}`)}{" "}
               {nameFilter === "" ? "" : nameFilter}{" "}
               {assetFilter?.length !== 0 &&
                 `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
-              markets
+              markets available right now.
             </Typography>
           </Box>
         )}

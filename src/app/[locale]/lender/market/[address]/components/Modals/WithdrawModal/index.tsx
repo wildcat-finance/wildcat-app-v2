@@ -2,7 +2,7 @@ import { ChangeEvent, useEffect, useMemo, useState } from "react"
 import * as React from "react"
 
 import { Box, Button, Dialog } from "@mui/material"
-import { TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { HooksKind, MarketVersion, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
@@ -25,6 +25,11 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
 
+  const notMature =
+    market.hooksConfig?.kind === HooksKind.FixedTerm &&
+    market.hooksConfig?.fixedTermEndTime !== undefined &&
+    market.hooksConfig.fixedTermEndTime * 1000 >= Date.now()
+
   const [amount, setAmount] = useState("")
   const [maxAmount, setMaxAmount] = useState<TokenAmount>()
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
@@ -35,6 +40,7 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
   const { mutate, isSuccess, isError, isPending } = useWithdraw(
     marketAccount,
     setTxHash,
+    !!maxAmount,
   )
 
   const modal = useApprovalModal(
@@ -115,8 +121,11 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
         size="large"
         sx={{ width: "152px" }}
         onClick={handleOpenModal}
+        disabled={notMature}
       >
-        {t("lenderMarketDetails.transactions.withdraw.button")}
+        {notMature
+          ? t("lenderMarketDetails.transactions.withdraw.buttonLocked")
+          : t("lenderMarketDetails.transactions.withdraw.button")}
       </Button>
 
       <Dialog

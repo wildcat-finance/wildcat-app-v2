@@ -25,10 +25,10 @@ export type UseMarketProps = {
 } & Partial<Omit<SubgraphGetMarketQueryVariables, "market">>
 
 export function useGetMarket({ address, ...filters }: UseMarketProps) {
-  const { signer, isWrongNetwork } = useEthersProvider()
+  const { signer, provider, isWrongNetwork } = useEthersProvider()
   const marketAddressFormatted = address?.toLowerCase()
   // since we still need to have an address and have the correct network, it means we need to have a connected wallet, so we only need a signer
-  const signerOrProvider = signer
+  const signerOrProvider = signer || provider
 
   async function queryMarket() {
     if (!marketAddressFormatted || !signerOrProvider) throw Error()
@@ -52,14 +52,14 @@ export function useGetMarket({ address, ...filters }: UseMarketProps) {
   }
 
   async function updateMarket(market: Market | undefined) {
-    if (!market || !address || !signerOrProvider) throw Error()
+    if (!market || !signerOrProvider) throw Error()
     if (market.version === MarketVersion.V1) {
       const lens = getLensContract(TargetChainId, signerOrProvider)
-      const update = await lens.getMarketData(address)
+      const update = await lens.getMarketData(market.address)
       market.updateWith(update)
     } else {
       const lens = getLensV2Contract(TargetChainId, signerOrProvider)
-      const update = await lens.getMarketData(address)
+      const update = await lens.getMarketData(market.address)
       market.updateWith(update)
     }
     if (market.provider !== signerOrProvider) {
@@ -78,7 +78,7 @@ export function useGetMarket({ address, ...filters }: UseMarketProps) {
     queryKey: [GET_MARKET_KEY, address],
     queryFn,
     refetchInterval: POLLING_INTERVAL,
-    enabled: !!address || !signerOrProvider || isWrongNetwork,
+    enabled: !(!marketAddressFormatted || !signerOrProvider || isWrongNetwork),
     refetchOnMount: false,
   })
 

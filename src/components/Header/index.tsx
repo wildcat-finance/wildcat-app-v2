@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { Box, Switch, Typography } from "@mui/material"
 import Link from "next/link"
@@ -10,6 +10,9 @@ import { useTranslation } from "react-i18next"
 import Logo from "@/assets/icons/logo_white.svg"
 import { ContentContainer, NavContainer } from "@/components/Header/style"
 import { ROUTES } from "@/routes"
+import { useAppDispatch } from "@/store/hooks"
+import { setTab } from "@/store/slices/borrowerOverviewSlice/borrowerOverviewSlice"
+import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
 import { COLORS } from "@/theme/colors"
 
 import { HeaderButton } from "./HeaderButton"
@@ -20,8 +23,10 @@ export default function Header() {
 
   const router = useRouter()
   const pathname = usePathname()
+  const dispatch = useAppDispatch()
 
-  const [side, setSide] = useState<"borrower" | "lender">()
+  // Set default to "lender"
+  const [side, setSide] = useState<"lender" | "borrower">("lender")
 
   const handleToggleSide = () => {
     if (side === "borrower") {
@@ -34,26 +39,32 @@ export default function Header() {
   }
 
   useEffect(() => {
+    // Default to lender unless explicitly on borrower path
     if (pathname.includes(ROUTES.borrower.root)) {
       setSide("borrower")
-    } else setSide("lender")
+    } else {
+      setSide("lender")
+    }
   }, [pathname])
+
+  const handleResetTab = () => {
+    if (side === "borrower") {
+      dispatch(setTab(BorrowerOverviewTabs.MARKETS))
+    }
+  }
+
+  const homeUrl = useMemo(
+    () => (side === "lender" ? ROUTES.lender.root : ROUTES.borrower.root),
+    [side],
+  )
 
   return (
     <Box sx={ContentContainer}>
-      <Link href={ROUTES.borrower.root} style={{ height: "50px" }}>
+      <Link onClick={handleResetTab} href={homeUrl} style={{ height: "50px" }}>
         <Logo />
       </Link>
       <Box sx={NavContainer}>
-        <Link href={ROUTES.borrower.root} style={{ textDecoration: "none" }}>
-          <Typography
-            variant="text2Highlighted"
-            sx={{ color: COLORS.white, cursor: "pointer" }}
-          >
-            {t("header.role.borrower")}
-          </Typography>
-        </Link>
-        <Switch onClick={handleToggleSide} checked={side === "lender"} />
+        {/* Lender on the left */}
         <Link href={ROUTES.lender.root} style={{ textDecoration: "none" }}>
           <Typography
             variant="text2Highlighted"
@@ -62,8 +73,38 @@ export default function Header() {
             {t("header.role.lender")}
           </Typography>
         </Link>
+        <Switch
+          sx={{
+            "& .MuiSwitch-switchBase": {
+              "&.Mui-checked": {
+                "& + .MuiSwitch-track": {
+                  opacity: 0.3,
+                  backgroundColor: COLORS.white,
+                },
+              },
+            },
+            "& .MuiSwitch-track": {
+              opacity: 0.3,
+              backgroundColor: COLORS.white,
+            },
+          }}
+          onClick={handleToggleSide}
+          checked={side === "borrower"}
+        />
+        <Link
+          onClick={handleResetTab}
+          href={ROUTES.borrower.root}
+          style={{ textDecoration: "none" }}
+        >
+          <Typography
+            variant="text2Highlighted"
+            sx={{ color: COLORS.white, cursor: "pointer" }}
+          >
+            {t("header.role.borrower")}
+          </Typography>
+        </Link>
       </Box>
-      <NotificationButton />
+      {/* <NotificationButton /> */}
       <HeaderButton />
     </Box>
   )

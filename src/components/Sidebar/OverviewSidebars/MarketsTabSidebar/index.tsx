@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from "react"
+import { ChangeEvent, useEffect, useMemo, useState } from "react"
 
 import {
   Box,
@@ -9,6 +9,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
+import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -16,6 +17,8 @@ import { useAccount } from "wagmi"
 import Icon from "@/assets/icons/search_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { FilterSelect } from "@/components/FilterSelect"
+import { TargetChainId } from "@/config/network"
+import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
@@ -26,30 +29,7 @@ import {
   setScrollTarget,
 } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { COLORS } from "@/theme/colors"
-import { MarketAssets, MarketStatus } from "@/utils/marketStatus"
-
-export const underlyingAssetsMock = [
-  {
-    address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-    name: MarketAssets.WBTC,
-  },
-  {
-    address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-    name: MarketAssets.WETH,
-  },
-  {
-    address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-    name: MarketAssets.USDT,
-  },
-  {
-    address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-    name: MarketAssets.USDC,
-  },
-  {
-    address: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-    name: MarketAssets.DAI,
-  },
-]
+import { MarketStatus } from "@/utils/marketStatus"
 
 export const SidebarButton = ({
   label,
@@ -90,6 +70,18 @@ export const MarketsTabSidebar = () => {
   const [selectedAssets, setSelectedAssets] = useState<
     { name: string; address: string }[]
   >([])
+
+  const { data: tokensRaw } = useAllTokensWithMarkets()
+  const tokens = useMemo(() => {
+    if (TargetChainId === SupportedChainId.Sepolia) {
+      /// Only take first token with a given symbol
+      return tokensRaw?.filter(
+        (token, index, self) =>
+          index === self.findIndex((x) => x.symbol === token.symbol),
+      )
+    }
+    return tokensRaw
+  }, [tokensRaw])
 
   const marketName = useAppSelector(
     (state) => state.marketsOverviewSidebar.marketName,
@@ -335,7 +327,12 @@ export const MarketsTabSidebar = () => {
         placeholder="Filter by Asset"
         selected={selectedAssets}
         setSelected={setSelectedAssets}
-        options={underlyingAssetsMock}
+        options={
+          tokens?.map((token) => ({
+            name: token.symbol,
+            address: token.address,
+          })) ?? []
+        }
       />
 
       {!defaultFilters && (

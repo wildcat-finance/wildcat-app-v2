@@ -55,7 +55,7 @@ export const OtherMarketsTable = ({
         <Tabs
           value={tab}
           onChange={handleTabsChange}
-          aria-label="Other markets table tabs"
+          aria-label="Other Markets table tabs"
           sx={TabsStyles}
         >
           <Box
@@ -100,10 +100,10 @@ export const OtherMarketsTable = ({
           height="270px"
         >
           <Typography variant="title3" color={COLORS.blackRock}>
-            No self-onboard markets
+            No Self-Onboard Markets Available
           </Typography>
           <Typography variant="text3" color={COLORS.santasGrey}>
-            There are no self-onboard markets yet.
+            No self-onboarding markets are available right now.
           </Typography>
         </Box>
       )}
@@ -135,7 +135,7 @@ export const OtherMarketsTable = ({
               {nameFilter === "" ? "" : nameFilter}{" "}
               {assetFilter?.length !== 0 &&
                 `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
-              markets
+              markets right now.
             </Typography>
           </Box>
         )}

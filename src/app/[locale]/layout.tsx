@@ -38,7 +38,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Wildcat Finance",
+  title: "Wildcat - Private Credit, On Your Terms",
 }
 
 export function generateStaticParams() {
@@ -68,7 +68,7 @@ export default async function RootLayout({
                   locale={locale}
                   resources={resources}
                 >
-                  <PollingRegistration />
+                  {/* <PollingRegistration /> */}
                   <ThemeRegistry>
                     <Box sx={BackgroundContainer} />
                     <Box position="relative" zIndex="1">
@@ -78,7 +78,7 @@ export default async function RootLayout({
                           <Sidebar />
                           <Box width="calc(100vw - 267px)">{children}</Box>
                         </Box>
-                        <Footer />
+                        {/* <Footer /> */}
                       </Box>
                     </Box>
                   </ThemeRegistry>

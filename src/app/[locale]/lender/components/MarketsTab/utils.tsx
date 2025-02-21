@@ -1,8 +1,15 @@
 import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 import { GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
-import { LenderRole, MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  HooksKind,
+  LenderRole,
+  MarketAccount,
+  MarketVersion,
+  TokenAmount,
+} from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
@@ -15,6 +22,7 @@ import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
+import { EXCLUDED_MARKETS } from "@/utils/constants"
 import {
   formatBps,
   formatTokenWithCommas,
@@ -24,7 +32,6 @@ import {
 import {
   getMarketStatus,
   getMarketStatusChip,
-  MarketAssets,
   MarketStatus,
 } from "@/utils/marketStatus"
 
@@ -36,7 +43,12 @@ export const filterMarketAccounts = (
 ) => {
   if (!marketAccounts) return []
 
-  let filteredMarkets = marketAccounts
+  let filteredMarkets = marketAccounts.filter(
+    (account) =>
+      !EXCLUDED_MARKETS.includes(account.market.address.toLowerCase()) ||
+      account.isAuthorizedOnController ||
+      account.role !== LenderRole.Null,
+  )
 
   const assetsNames = assets.map((asset) => asset.name)
 
@@ -60,7 +72,7 @@ export const filterMarketAccounts = (
 
   if (filteredMarkets && assets.length > 0) {
     filteredMarkets = filteredMarkets.filter(({ market }) =>
-      assetsNames.includes(market.underlyingToken.symbol as MarketAssets),
+      assetsNames.includes(market.underlyingToken.symbol),
     )
   }
 
@@ -134,11 +146,22 @@ export const getColumns = (
     },
     {
       field: "borrowerName",
-      headerName: "Borrower Name",
       minWidth: 134,
       flex: 1.7,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <Typography
+          variant="text4"
+          sx={{
+            lineHeight: "10px",
+            color: COLORS.santasGrey,
+            padding: "0 12px",
+          }}
+        >
+          Borrower
+        </Typography>
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -152,16 +175,28 @@ export const getColumns = (
             justifyContent: "flex-start",
           }}
         >
-          <span
+          <Link
+            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
             style={{
-              width: "100%",
-              paddingRight: "20px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
+              textDecoration: "none",
+              width: "fit-content",
+              height: "fit-content",
             }}
           >
-            {params.value}
-          </span>
+            <Button
+              size="small"
+              variant="text"
+              sx={{
+                fontSize: "13px",
+                lineHeight: "20px",
+                fontWeight: 500,
+                minWidth: "fit-content",
+                width: "fit-content",
+              }}
+            >
+              {params.value}
+            </Button>
+          </Link>
         </Link>
       ),
     },
@@ -228,7 +263,7 @@ export const getColumns = (
           >
             CRR
           </Typography>
-          <TooltipButton value="TBD" />
+          <TooltipButton value="The percentage of market funds kept unborrowed and locked as reserve." />
         </Box>
       ),
       renderCell: (params) => (
@@ -250,7 +285,7 @@ export const getColumns = (
     },
     {
       field: "maxCapacity",
-      headerName: "Max. Capacity",
+      headerName: "Max Capacity",
       minWidth: 106,
       flex: 1.6,
       headerAlign: "right",
@@ -277,7 +312,7 @@ export const getColumns = (
     },
     {
       field: "lend",
-      headerName: "To lend",
+      headerName: "Capacity Left",
       minWidth: 82,
       headerAlign: "right",
       align: "right",
@@ -309,7 +344,7 @@ export const getColumns = (
     },
     {
       field: "deploy",
-      headerName: "Deployed",
+      headerName: "Created",
       minWidth: otherMarketsTable ? 86 : 126,
       headerAlign: "right",
       align: "right",
@@ -347,7 +382,7 @@ export const getColumns = (
 
   const loanColumn: TypeSafeColDef<{ loan: TokenAmount }> = {
     field: "loan",
-    headerName: "My loan",
+    headerName: "My Loan",
     minWidth: 85,
     headerAlign: "right",
     align: "right",
@@ -436,7 +471,9 @@ export const getRows = (
     const borrower = borrowers?.find(
       (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
     )
-    const borrowerName = borrower ? borrower.name : trimAddress(borrowerAddress)
+    const borrowerName = borrower
+      ? borrower.alias || borrower.name
+      : trimAddress(borrowerAddress)
     const marketStatus = getMarketStatusChip(market)
 
     return {
@@ -444,6 +481,7 @@ export const getRows = (
       status: marketStatus,
       name,
       borrowerName,
+      borrowerAddress,
       asset: underlyingToken.symbol,
       lenderAPR: annualInterestBips,
       crr: reserveRatioBips,
@@ -453,6 +491,7 @@ export const getRows = (
       deploy: deployedEvent ? deployedEvent.blockTimestamp : 0,
       selfOnboard:
         !marketAccount.hasEverInteracted &&
-        marketAccount.inferredRole !== LenderRole.Null,
+        marketAccount.market.version === MarketVersion.V2 &&
+        marketAccount.depositAvailability === DepositStatus.Ready,
     }
   })

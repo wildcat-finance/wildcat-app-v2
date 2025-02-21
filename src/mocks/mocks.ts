@@ -1,4 +1,5 @@
 import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
+import { MarketStatus } from "@/utils/marketStatus"
 
 const MOCK = [
   {
@@ -17,7 +18,7 @@ const MOCK = [
 
 export const mockedMarketTypes = [
   {
-    label: "Standard Loan",
+    label: "Open Term Loan",
     value: "standard",
   },
   {
@@ -32,34 +33,34 @@ const mockedAccessControls = [
     value: "defaultPullProvider",
   },
   {
-    label: "Manually Add Lenders",
+    label: "Borrower Operated Allowlist",
     value: "manualApproval",
   },
 ]
 
 const mockedMLATemplates = [
   {
-    label: "No MLA",
-    value: "noMLA",
+    label: "Wildcat MLA Template",
+    value: "wildcatMLA",
   },
   {
-    label: "Wildcat MLA template",
-    value: "wildcatMLA",
+    label: "Don’t Use",
+    value: "noMLA",
   },
 ]
 
 const mockedNatures = [
   {
     label: "Private Individual",
-    value: "pi",
-  },
-  {
-    label: "Limited Liability Company",
-    value: "llc",
+    value: "Private Individual",
   },
   {
     label: "Decentralised Autonomous Organisation",
-    value: "dao",
+    value: "Decentralised Autonomous Organisation",
+  },
+  {
+    label: "Registered Legal Entity",
+    value: "Registered Legal Entity",
   },
 ]
 
@@ -70,6 +71,21 @@ export const mockedStories: ExtendedSelectOptionItem[] = MOCK.map(
     value: mockItem.value,
   }),
 )
+
+export const marketStatusesMock = [
+  {
+    id: MarketStatus.HEALTHY,
+    name: MarketStatus.HEALTHY,
+  },
+  {
+    id: MarketStatus.DELINQUENT,
+    name: MarketStatus.DELINQUENT,
+  },
+  {
+    id: MarketStatus.PENALTY,
+    name: MarketStatus.PENALTY,
+  },
+]
 
 export const mockedMarketTypesOptions: ExtendedSelectOptionItem[] =
   mockedMarketTypes.map((marketType) => ({

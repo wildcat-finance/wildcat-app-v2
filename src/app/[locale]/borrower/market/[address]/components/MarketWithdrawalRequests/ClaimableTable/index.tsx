@@ -219,7 +219,7 @@ export const ClaimableTable = ({
           marginBottom="10px"
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            There are no claimable withdrawals
+            No claimable withdrawals.
           </Typography>
         </Box>
       )}

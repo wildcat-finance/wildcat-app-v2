@@ -8,7 +8,7 @@ import useSidebarHighlight from "./useSidebarHighlight"
 const useScrollHandler = () => {
   const scrollContainer = useRef<HTMLElement>(null)
   const checked = useAppSelector((state) => state.highlightSidebar.checked)
-  const slidesCount = 4
+  const slidesCount = 5
 
   const { scrollEnabled, setScrollEnabled, direction, setDirection } =
     useScrollSlidesHandler(slidesCount, checked, scrollContainer)

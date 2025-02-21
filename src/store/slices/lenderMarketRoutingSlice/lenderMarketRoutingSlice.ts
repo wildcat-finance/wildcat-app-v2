@@ -4,6 +4,8 @@ export enum LenderMarketSections {
   TRANSACTIONS = "transactions",
   STATUS = "status",
   REQUESTS = "requests",
+  MARKET_HISTORY = "marketHistory",
+  BORROWER_PROFILE = "borrowerProfile",
 }
 
 export type LenderMarketRoutingSliceType = {

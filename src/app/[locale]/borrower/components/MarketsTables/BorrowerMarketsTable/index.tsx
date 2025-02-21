@@ -8,7 +8,7 @@ import {
   Typography,
 } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
-import { TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { HooksKind, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -23,7 +23,11 @@ import { TablePagination } from "@/components/TablePagination"
 import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
+import {
+  statusComparator,
+  tokenAmountComparator,
+  typeComparator,
+} from "@/utils/comparators"
 import {
   formatBps,
   formatTokenWithCommas,
@@ -122,6 +126,8 @@ export const BorrowerMarketsTable = ({
       flex: 2,
       headerAlign: "left",
       align: "left",
+      sortComparator: typeComparator,
+      sortable: true,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
@@ -180,7 +186,7 @@ export const BorrowerMarketsTable = ({
           >
             CRR
           </Typography>
-          <TooltipButton value="TBD" />
+          <TooltipButton value="The percentage of market funds kept unborrowed and locked as reserve." />
         </Box>
       ),
       renderCell: (params) => (
@@ -268,11 +274,12 @@ export const BorrowerMarketsTable = ({
     } = market
 
     const marketStatus = getMarketStatusChip(market)
+    const marketType = getMarketTypeChip(market)
 
     return {
       id: address,
       status: marketStatus,
-      marketType: getMarketTypeChip(market),
+      marketType,
       name,
       asset: underlyingToken.symbol,
       lenderAPR: annualInterestBips,

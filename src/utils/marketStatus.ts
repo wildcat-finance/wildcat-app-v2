@@ -9,14 +9,6 @@ export enum MarketStatus {
   TERMINATED = "Terminated",
 }
 
-export enum MarketAssets {
-  WBTC = "WBTC",
-  WETH = "WETH",
-  USDT = "USDT",
-  USDC = "USDC",
-  DAI = "DAI",
-}
-
 export const getMarketStatus = (
   isClosed: boolean,
   isDelinquent: boolean,

@@ -78,9 +78,8 @@ export const ConfirmLendersForm = () => {
                 params.row.status === "deleted" ? "line-through" : "none",
             }}
           >
-            {lendersName[params.row.address.toLowerCase()] === ("" || undefined)
-              ? t("editLendersList.forms.confirm.addName")
-              : lendersName[params.row.address.toLowerCase()]}
+            {lendersName[params.row.address.toLowerCase()] ||
+              t("editLendersList.forms.confirm.addName")}
           </Typography>
         </>
       ),

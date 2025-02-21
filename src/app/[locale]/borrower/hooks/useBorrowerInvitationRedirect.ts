@@ -1,53 +1,43 @@
+import { useMemo } from "react"
+
 import { useAccount } from "wagmi"
 
-import { useGetController } from "@/hooks/useGetController"
+import { useGetBasicBorrowerData } from "@/hooks/useGetBasicBorrowerData"
 import { ROUTES } from "@/routes"
 
-import { useBorrowerInvitation } from "./useBorrowerInvitation"
+import {
+  BorrowerInvitationStatus,
+  useBorrowerInvitationExists,
+} from "./useBorrowerInvitation"
 
 const GOOGLE_FORM_LINK = "https://forms.gle/irca7KeC7ASmkRh16"
 
 export const useBorrowerInvitationRedirect = () => {
   const { address } = useAccount()
   const {
-    data: controller,
-    isLoading: isControllerLoading,
+    data: borrowerData,
+    isLoading: isLoadingBorrowerData,
     isSuccess,
-  } = useGetController()
-  const { isLoading: isLoadingInvitation } = useBorrowerInvitation(address)
-  const isRegisteredBorrower = controller?.isRegisteredBorrower
-  const markets = controller?.markets || []
+  } = useGetBasicBorrowerData(address as string)
+  const {
+    isLoading: isLoadingInvitation,
+    data: invitationStatus,
+    isFetching: isFetchingInvitation,
+  } = useBorrowerInvitationExists(address)
+
+  const isRegisteredBorrower = borrowerData?.isRegisteredBorrower
+
+  const isLoading = isLoadingBorrowerData || isLoadingInvitation
 
   // - If user is not logged in, hide banner
   if (!address) {
     return {
       hideNewMarketButton: true,
       hideBanner: false,
-      title: "Apply to become a borrower",
-      message:
-        "Interested in borrowing through Wildcat? Click in the link below to apply!",
-      buttonText: "Leave a Request",
-      url: `https://forms.gle/irca7KeC7ASmkRh16`,
-    }
-  }
-
-  const isLoading = isControllerLoading || isLoadingInvitation
-
-  if (isRegisteredBorrower) {
-    if (!markets.length) {
-      return {
-        title: "Start creating your Markets here",
-        text: "No market currently active, let’s create a new one.",
-        buttonText: "Create a Market",
-        link: {
-          isExternal: false,
-          url: ROUTES.borrower.newMarket,
-        },
-      }
-    }
-
-    return {
-      hideBanner: true,
+      title: "Become A Borrower",
+      message: "Corporate entity interested in establishing a credit line?",
+      buttonText: "Get In Touch",
+      url: GOOGLE_FORM_LINK,
     }
   }
 
@@ -58,11 +48,51 @@ export const useBorrowerInvitationRedirect = () => {
     }
   }
 
+  if (isRegisteredBorrower) {
+    if (!borrowerData.hasMarkets) {
+      return {
+        title: "No Active Markets",
+        text: "Get started with Wildcat by creating an active market!",
+        buttonText: "Create New Market",
+        link: {
+          isExternal: false,
+          url: ROUTES.borrower.createMarket,
+        },
+      }
+    }
+
+    return {
+      hideBanner: true,
+    }
+  }
+
+  if (invitationStatus !== undefined) {
+    if (invitationStatus === BorrowerInvitationStatus.PendingRegistration) {
+      return {
+        hideNewMarketButton: true,
+        hideBanner: false,
+        title: "Pending On-chain Registration",
+        text: "You will be able to create your first market once the Wildcat team finalizes your borrower registration on-chain.",
+      }
+    }
+    return {
+      hideNewMarketButton: true,
+      title: "Pending Borrower Invitation",
+      text: "You've been invited to register as a Wildcat borrower.",
+      buttonText: "Accept",
+      hideBanner: false,
+      link: {
+        isExternal: false,
+        url: ROUTES.borrower.invitation,
+      },
+    }
+  }
+
   return {
     hideNewMarketButton: true,
-    title: "Apply to become a borrower",
-    text: "We see you aren't whitelisted as a borrower. Please complete this Typeform and we'll reach out for next steps.",
-    buttonText: "Leave a Request",
+    title: "Become A Borrower",
+    text: "Corporate entity interested in establishing a credit line?",
+    buttonText: "Get In Touch",
     link: {
       isExternal: true,
       url: GOOGLE_FORM_LINK,

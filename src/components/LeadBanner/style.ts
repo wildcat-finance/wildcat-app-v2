@@ -1,5 +1,5 @@
 // import Image from "@/assets/pictures/banner_bg.png"
-import Image from "@/assets/pictures/banner_bg.png"
+import Image from "@/assets/pictures/bannerBG.webp"
 import { COLORS } from "@/theme/colors"
 
 export const MarketListAlertContainer = {
@@ -11,7 +11,6 @@ export const MarketListAlertContainer = {
   gap: "24px",
 
   padding: "28px 40px 32px 32px",
-  marginBottom: "32px",
   borderRadius: "16px",
   color: "white",
 

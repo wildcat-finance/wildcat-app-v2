@@ -265,6 +265,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
         color="secondary"
         size="small"
         onClick={modal.handleOpenModal}
+        disabled={market.isClosed}
       >
         {t("borrowerMarketDetails.modals.apr.adjustBase")}
       </Button>

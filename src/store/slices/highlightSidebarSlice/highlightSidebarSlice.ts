@@ -9,6 +9,8 @@ const initialState: THighLightSidebar = {
     statusDetails: false,
     withdrawals: false,
     lenders: false,
+    mla: false,
+    marketHistory: false,
   },
 }
 

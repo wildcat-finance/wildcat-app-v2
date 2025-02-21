@@ -12,6 +12,7 @@ import { GET_MARKET_KEY } from "@/hooks/useGetMarket"
 export const useWithdraw = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
+  queueFullWithdrawal?: boolean,
 ) => {
   const { address } = useAccount()
   const client = useQueryClient()
@@ -30,7 +31,9 @@ export const useWithdraw = (
       )
 
       const withdraw = async () => {
-        const tx = await marketAccount.queueWithdrawal(tokenAmount)
+        const tx = queueFullWithdrawal
+          ? await marketAccount.queueFullWithdrawal()
+          : await marketAccount.queueWithdrawal(tokenAmount)
 
         if (!safeConnected) setTxHash(tx.transaction.hash)
 

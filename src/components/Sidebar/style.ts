@@ -1,9 +1,7 @@
 import { COLORS } from "@/theme/colors"
 
 export const ContentContainer = {
-  minHeight: "calc(100vh - 43px - 43px - 60px)",
-  minWidth: "267px",
-  borderRight: `1px solid ${COLORS.blackRock006}`,
+  width: "267px",
   padding: "32px 12px 0px",
   display: "flex",
   flexDirection: "column",

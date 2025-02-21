@@ -3,5 +3,5 @@ export type SignatureSubmissionProps = {
   name: string
   signature: string
   messageHash?: string
-  dateSigned?: string
+  timeSigned?: number
 }

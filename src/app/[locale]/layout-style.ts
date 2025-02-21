@@ -1,4 +1,6 @@
-import Image from "@/assets/pictures/background.webp"
+import Image from "@/assets/pictures/overviewBG.webp"
+
+export const calcHeight = "calc(100vh - 43px - 52px - 52px - 110px - 36px)"
 
 export const BackgroundContainer = {
   top: 0,
@@ -9,7 +11,7 @@ export const BackgroundContainer = {
   backgroundImage: `url(${Image.src})`,
   backgroundPosition: "center",
   backgroundRepeat: "no-repeat",
-  backgroundSize: "cover",
+  backgroundSize: "100% 100%",
 
   zIndex: "-1",
 }
@@ -23,7 +25,7 @@ export const PageContainer = {
 }
 
 export const ContentContainer = {
-  height: "calc(100vh - 82px - 43px - 52px)",
+  height: "calc(100vh - 82px)",
   width: "100%",
   display: "flex",
   flexDirection: "row",

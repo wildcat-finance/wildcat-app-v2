@@ -68,7 +68,7 @@ export const OutstandingTable = ({
           marginBottom="10px"
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            There are no ongoing withdrawals
+            No withdrawal requests from previous cycles.
           </Typography>
         </Box>
       )}

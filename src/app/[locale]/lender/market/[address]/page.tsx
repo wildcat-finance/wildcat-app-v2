@@ -4,13 +4,16 @@ import * as React from "react"
 import { useEffect } from "react"
 
 import { Box, Divider, Skeleton, Typography } from "@mui/material"
+import { redirect } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
+import { BorrowerProfileDetails } from "@/app/[locale]/borrower/profile/components/BorrowerProfileDetails"
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
+import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -30,6 +33,13 @@ import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
 import { SectionContainer, SkeletonContainer, SkeletonStyle } from "./style"
 import { getEffectiveLenderRole } from "./utils"
+
+const BorrowerProfileRedirect = ({ address }: { address: string }) => {
+  useEffect(() => {
+    redirect(`/borrower/profile/${address}`)
+  }, [])
+  return null
+}
 
 export default function LenderMarketDetails({
   params: { address },
@@ -126,8 +136,8 @@ export default function LenderMarketDetails({
     )
 
   return (
-    <Box sx={{ padding: "52px 20px 0 44px" }}>
-      <Box width="69%">
+    <Box>
+      <Box>
         <MarketHeader marketAccount={marketAccount} />
 
         <Box sx={SectionContainer}>
@@ -159,9 +169,21 @@ export default function LenderMarketDetails({
             </Box>
           )}
 
+          {currentSection === LenderMarketSections.BORROWER_PROFILE && (
+            <BorrowerProfileDetails
+              address={marketAccount.market.borrower}
+              hideMarkets
+            />
+          )}
+
           {currentSection === LenderMarketSections.REQUESTS && (
             <Box marginTop="12px">
               <WithdrawalRequests withdrawals={withdrawals} />
+            </Box>
+          )}
+          {currentSection === LenderMarketSections.MARKET_HISTORY && (
+            <Box marginTop="12px">
+              <PaginatedMarketRecordsTable market={market} />
             </Box>
           )}
         </Box>

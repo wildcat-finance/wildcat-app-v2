@@ -14,17 +14,12 @@ import {
   Typography,
 } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
-import {
-  BasicLenderData,
-  LenderRole,
-  MarketVersion,
-} from "@wildcatfi/wildcat-sdk"
+import { LenderRole, MarketVersion } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
-import { useGetAuthorisedLendersByMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useGetLenders"
 import {
   SkeletonContainer,
   SkeletonStyle,
@@ -60,7 +55,7 @@ export const MarketAuthorisedLenders = ({
   marketAccount,
 }: MarketAuthorisedLendersProps) => {
   const editLendersLink = market
-    ? `${ROUTES.borrower.editPolicy}?policy=${encodeURIComponent(
+    ? `${ROUTES.borrower.policy}?policy=${encodeURIComponent(
         market?.hooksConfig?.hooksAddress ?? market?.controller ?? "",
       )}`
     : ROUTES.borrower.lendersList
@@ -102,10 +97,20 @@ export const MarketAuthorisedLenders = ({
                 ? "Withdraw Only"
                 : lender.inferredRole === LenderRole.Blocked
                   ? "Blocked From Deposits"
-                  : "Unknown", // @todo
+                  : lender.credential !== undefined
+                    ? !lender.hasValidCredential &&
+                      lender.credentialExpiry !== undefined &&
+                      lender.credentialExpiry < Date.now()
+                      ? "Credential Expired"
+                      : "Provider Removed"
+                    : "Unknown", // @todo
 
           accessExpiry: lender.credentialExpiry
-            ? formatBlockTimestamp(lender.credentialExpiry)
+            ? formatBlockTimestamp(lender.credentialExpiry, {
+                year: "numeric",
+                hour: undefined,
+                minute: undefined,
+              })
             : "Never", // @todo
           name: (() => {
             const correctLender =
@@ -125,22 +130,27 @@ export const MarketAuthorisedLenders = ({
           MLA: "View|Download",
           raw: lender,
         }
+        console.log(`Market Version: ${market.version}`)
         console.log(
-          `is deauthorized on controller: ${
-            lender.isAuthorizedOnController === false
-          }`,
+          `market requires access for deposit: ${market.hooksConfig?.depositRequiresAccess}`,
         )
-        console.log(
-          `role not undefined, not deposit and withdraw: ${
-            lender.role !== undefined &&
-            lender.role !== LenderRole.DepositAndWithdraw
-          }`,
-        )
-        console.log(
-          `expiry defined but expired: ${
-            lender.credentialExpiry !== undefined && !lender.hasValidCredential
-          }`,
-        )
+        console.log(`can deposit: ${lender.canDeposit}`)
+        // console.log(
+        //   `is deauthorized on controller: ${
+        //     lender.isAuthorizedOnController === false
+        //   }`,
+        // )
+        // console.log(
+        //   `role not undefined, not deposit and withdraw: ${
+        //     lender.role !== undefined &&
+        //     lender.role !== LenderRole.DepositAndWithdraw
+        //   }`,
+        // )
+        // console.log(
+        //   `expiry defined but expired: ${
+        //     lender.credentialExpiry !== undefined && !lender.hasValidCredential
+        //   }`,
+        // )
         return lenderData
       })
     : []
@@ -155,11 +165,11 @@ export const MarketAuthorisedLenders = ({
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.name",
       ),
-      minWidth: 176,
+      minWidth: 146,
       headerAlign: "left",
       align: "left",
       renderCell: (params) => <LenderName address={params.value.address} />,
-      flex: 2,
+      flex: 1,
     },
     {
       sortable: false,
@@ -167,7 +177,7 @@ export const MarketAuthorisedLenders = ({
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.walletAddress",
       ),
-      minWidth: 176,
+      minWidth: 146,
       headerAlign: "left",
       align: "left",
       renderCell: ({ value }) => (
@@ -199,7 +209,7 @@ export const MarketAuthorisedLenders = ({
           </Link>
         </Box>
       ),
-      flex: 2,
+      flex: 1,
     },
     {
       sortable: false,
@@ -211,6 +221,9 @@ export const MarketAuthorisedLenders = ({
       headerAlign: "left",
       align: "left",
       flex: 1.5,
+      renderCell: ({ value }) => (
+        <span style={{ width: "100%", whiteSpace: "normal" }}>{value}</span>
+      ),
     },
     {
       sortable: false,
@@ -222,6 +235,9 @@ export const MarketAuthorisedLenders = ({
       headerAlign: "left",
       align: "left",
       flex: 1.5,
+      renderCell: ({ value }) => (
+        <span style={{ width: "100%", whiteSpace: "normal" }}>{value}</span>
+      ),
     },
     {
       sortable: false,
@@ -229,41 +245,11 @@ export const MarketAuthorisedLenders = ({
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.accessExpiry",
       ),
-      minWidth: 124,
+      minWidth: 110,
       headerAlign: "left",
       align: "left",
-      flex: 1.5,
+      flex: 1,
     },
-    ...(market?.hooksConfig?.allowForceBuyBacks
-      ? ([
-          {
-            sortable: false,
-            field: "id",
-            headerName: t(
-              "borrowerMarketDetails.authorisedLenders.tableHeaders.forceBuyBack",
-            ),
-            minWidth: 124,
-            headerAlign: "left",
-            align: "left",
-            flex: 1.5,
-            renderCell: ({ row }) => (
-              <Box sx={MarketWithdrawalRequetstCell}>
-                <ForceBuyBackModal
-                  market={market}
-                  marketAccount={marketAccount}
-                  lender={row.raw as BasicLenderData}
-                  disableForceBuyBackButton={false}
-                  lenderName={
-                    lendersNames[
-                      (row.raw as BasicLenderData).address.toLowerCase()
-                    ]
-                  }
-                />
-              </Box>
-            ),
-          },
-        ] as GridColDef[])
-      : []),
     {
       sortable: false,
       field: "dateAdded",
@@ -356,7 +342,7 @@ export const MarketAuthorisedLenders = ({
 
   return (
     <Box sx={MarketWithdrawalRequestsContainer} id="lenders">
-      {lendersRows.length === 0 && (
+      {lendersRows.length === 0 && marketAccount?.isBorrower && (
         <Box display="flex" flexDirection="column">
           <Typography variant="title3" sx={{ marginBottom: "8px" }}>
             {t("borrowerMarketDetails.authorisedLenders.noLendersTitle")}
@@ -375,36 +361,40 @@ export const MarketAuthorisedLenders = ({
                 borderRadius: 2,
               }}
             >
-              {t("borrowerMarketDetails.authorisedLenders.editPolicy")}
-            </Button>
-          </Link>
-        </Box>
-      )}
-
-      {authorizedRows.length === 0 && lendersRows.length !== 0 && (
-        <Box display="flex" flexDirection="column">
-          <Typography variant="title3" sx={{ marginBottom: "8px" }}>
-            {t("borrowerMarketDetails.authorisedLenders.header")}
-          </Typography>
-          <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-            {t("borrowerMarketDetails.authorisedLenders.noActiveLenders")}
-          </Typography>
-          <Link href={editLendersLink}>
-            <Button
-              variant="contained"
-              size="small"
-              sx={{
-                width: "100px",
-                height: "32px",
-                marginTop: "24px",
-                borderRadius: 2,
-              }}
-            >
               {t("borrowerMarketDetails.authorisedLenders.buttons.editPolicy")}
             </Button>
           </Link>
         </Box>
       )}
+
+      {authorizedRows.length === 0 &&
+        lendersRows.length !== 0 &&
+        marketAccount?.isBorrower && (
+          <Box display="flex" flexDirection="column">
+            <Typography variant="title3" sx={{ marginBottom: "8px" }}>
+              {t("borrowerMarketDetails.authorisedLenders.header")}
+            </Typography>
+            <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
+              {t("borrowerMarketDetails.authorisedLenders.noActiveLenders")}
+            </Typography>
+            <Link href={editLendersLink}>
+              <Button
+                variant="contained"
+                size="small"
+                sx={{
+                  width: "100px",
+                  height: "32px",
+                  marginTop: "24px",
+                  borderRadius: 2,
+                }}
+              >
+                {t(
+                  "borrowerMarketDetails.authorisedLenders.buttons.editPolicy",
+                )}
+              </Button>
+            </Link>
+          </Box>
+        )}
 
       {authorizedRows.length !== 0 && market && (
         <>
@@ -418,13 +408,15 @@ export const MarketAuthorisedLenders = ({
             <Typography variant="title3">
               {t("borrowerMarketDetails.authorisedLenders.header")}
             </Typography>
-            <Link href={editLendersLink}>
-              <Button size="small" variant="outlined" color="secondary">
-                {t(
-                  "borrowerMarketDetails.authorisedLenders.buttons.editPolicy",
-                )}
-              </Button>
-            </Link>
+            {marketAccount?.isBorrower && (
+              <Link href={editLendersLink}>
+                <Button size="small" variant="outlined" color="secondary">
+                  {t(
+                    "borrowerMarketDetails.authorisedLenders.buttons.editPolicy",
+                  )}
+                </Button>
+              </Link>
+            )}
           </Box>
           <DataGrid
             sx={{
