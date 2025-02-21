@@ -217,12 +217,18 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     !!aprError ||
     modal.approvedStep
 
+  const isFixedTerm = market.isInFixedTerm
+
+  const aprReductionForbidden =
+    isFixedTerm && parseFloat(apr) < market.annualInterestBips
+
   const disableAdjust =
     apr === "" ||
     apr === "0" ||
     !!aprError ||
     modal.gettingValueStep ||
-    !notified
+    !notified ||
+    aprReductionForbidden
 
   const isResetToOriginalRatio =
     aprPreview &&
@@ -240,8 +246,6 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     market.temporaryReserveRatio &&
     !showRatioTimer &&
     formatBps(market.originalReserveRatioBips) !== newReserveRatio
-
-  const isFixedTerm = market.isInFixedTerm
 
   useEffect(() => {
     if (isError) {
@@ -569,7 +573,11 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
         {showForm && (
           <TxModalFooter
-            mainBtnText={t("borrowerMarketDetails.modals.apr.adjust")}
+            mainBtnText={
+              aprReductionForbidden
+                ? "Forbidden"
+                : t("borrowerMarketDetails.modals.apr.adjust")
+            }
             secondBtnText={
               modal.approvedStep
                 ? t("borrowerMarketDetails.modals.apr.confirmed")
