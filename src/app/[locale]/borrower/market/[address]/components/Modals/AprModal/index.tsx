@@ -220,7 +220,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     isAprLTZero ||
     apr === formatBps(market.annualInterestBips) ||
     !!aprError ||
-    modal.approvedStep
+    modal.approvedStep ||
+    aprFixedReduction
 
   const disableAdjust =
     apr === "" ||
@@ -560,7 +561,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
           <TxModalFooter
             mainBtnText={
               aprFixedReduction
-                ? "Forbidden"
+                ? "Forbidden [Fixed-Term]"
                 : t("borrowerMarketDetails.modals.apr.adjust")
             }
             secondBtnText={
