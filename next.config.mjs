@@ -93,6 +93,13 @@ const nextConfig = {
         hostname: 'raw.githubusercontent.com',
         port: '',
       },
+      // Mainnet tokens
+      {
+        protocol: 'https',
+        pathname: '/**',
+        hostname: 'tokens-data.1inch.io',
+        port: '',
+      },
     ],
   },
 
