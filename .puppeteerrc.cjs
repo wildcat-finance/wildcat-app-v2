@@ -1,9 +1,8 @@
 const {join} = require('path');
-const {existsSync} = require('fs');
 
 // If we're running on Vercel, the cache directory is at /vercel/.cache/puppeteer
 // Otherwise, it's at ~/.cache/puppeteer
-const cacheDirectory = existsSync('/vercel')
+const cacheDirectory = process.env.VERCEL
   ? join('/vercel', '.cache', 'puppeteer')
   : join(process.env.HOME, '.cache', 'puppeteer');
 
