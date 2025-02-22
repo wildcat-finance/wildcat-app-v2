@@ -45,6 +45,8 @@ export default function BorrowerPage() {
   const { data: hooksData, isLoading: isPoliciesLoading } =
     useGetBorrowerHooksDataWithSubgraph()
 
+  console.log()
+
   const policies: GridRowsProp<PolicyDataT> = [
     ...(hooksData?.hooksInstances.map((policy) => ({
       id: policy.address,

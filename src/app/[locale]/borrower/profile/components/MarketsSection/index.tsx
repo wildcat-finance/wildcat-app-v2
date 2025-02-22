@@ -26,13 +26,8 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
   const rows: GridRowsProp = (markets ?? [])
     .filter((market) => !market.isClosed)
     .map((market) => {
-      const {
-        address,
-        name,
-        underlyingToken,
-        annualInterestBips,
-        totalBorrowed,
-      } = market
+      const { address, name, underlyingToken, annualInterestBips, totalDebts } =
+        market
 
       const marketStatus = getMarketStatusChip(market)
 
@@ -43,7 +38,7 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
         asset: underlyingToken.symbol,
         lenderAPR: annualInterestBips,
         term: getMarketTypeChip(market),
-        debt: totalBorrowed,
+        debt: totalDebts,
       }
     })
 

@@ -1189,18 +1189,18 @@
         },
         "twitter": {
           "title": "Twitter/X",
-          "placeholder": "x.com/borrower_profile",
-          "tooltip": "Enter a Twitter/X profile for the borrower, where applicable."
+          "placeholder": "borrower_profile",
+          "tooltip": "Enter a Twitter/X username for the borrower (no @), where applicable."
         },
         "telegram": {
           "title": "Telegram",
-          "placeholder": "t.me/borrower_profile",
-          "tooltip": "Enter a Telegram profile for the borrower, where applicable."
+          "placeholder": "borrower_profile",
+          "tooltip": "Enter a Telegram username for the borrower (no @), where applicable."
         },
         "linkedin": {
           "title": "LinkedIn",
-          "placeholder": "linkedin.com/borrower_page",
-          "tooltip": "Enter a LinkedIn page for the borrower, where applicable."
+          "placeholder": "borrower_page",
+          "tooltip": "Enter a LinkedIn company page for the borrower (e.g. wildcat-labs), where applicable."
         },
         "entityKind": {
           "title": "Entity Legal Form",

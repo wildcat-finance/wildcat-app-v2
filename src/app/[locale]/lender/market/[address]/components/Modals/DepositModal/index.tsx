@@ -1,7 +1,7 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
 
-import { Box, Button, Dialog } from "@mui/material"
-import { DepositStatus, Signer } from "@wildcatfi/wildcat-sdk"
+import { Box, Button, Dialog, Typography } from "@mui/material"
+import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
@@ -19,6 +19,8 @@ import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { EtherscanBaseUrl } from "@/config/network"
+import { formatDate } from "@/lib/mla"
+import { COLORS } from "@/theme/colors"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -135,6 +137,20 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
   const isApprovedButton =
     depositStep === "Ready" && !depositTokenAmount.raw.isZero() && !isApproving
 
+  const isFixedTerm = market.isInFixedTerm
+  const fixedTermMaturity =
+    market.hooksConfig?.kind === HooksKind.FixedTerm
+      ? market.hooksConfig.fixedTermEndTime
+      : undefined
+  const earlyTermination =
+    market.hooksConfig?.kind === HooksKind.FixedTerm
+      ? market.hooksConfig.allowClosureBeforeTerm
+      : false
+  const earlyMaturity =
+    market.hooksConfig?.kind === HooksKind.FixedTerm
+      ? market.hooksConfig.allowTermReduction
+      : false
+
   const showForm = !(isDepositing || showSuccessPopup || showErrorPopup)
 
   useEffect(() => {
@@ -242,7 +258,37 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
                   />
                 </>
               )}
+            </Box>
 
+            <Box width="100%" height="100%" padding="24px">
+              {isFixedTerm && (
+                <Typography variant="text3" color={COLORS.dullRed}>
+                  {`This is currently a fixed-term market: deposited funds will be unavailable to withdraw until ${formatDate(
+                    fixedTermMaturity,
+                  )}.`}
+                </Typography>
+              )}
+            </Box>
+
+            <Box width="100%" height="100%" padding="0 24px">
+              {isFixedTerm && earlyTermination && (
+                <Typography variant="text3" color={COLORS.dullRed}>
+                  This market also has a flag set that allows the borrower to
+                  terminate it before maturity by repaying all debt.
+                </Typography>
+              )}
+            </Box>
+
+            <Box width="100%" height="100%" padding="0 24px">
+              {isFixedTerm && earlyMaturity && (
+                <Typography variant="text3" color={COLORS.dullRed}>
+                  This market also has a flag set that allows the borrower to
+                  bring the maturity closer to the present day.
+                </Typography>
+              )}
+            </Box>
+
+            <Box width="100%" height="100%" padding="0 24px">
               {modal.approvedStep && (
                 <ModalDataItem
                   title={t(

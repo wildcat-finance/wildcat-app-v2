@@ -21,7 +21,7 @@ export const BorrowerSidebar = () => {
 
       <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
         <Button variant="text" size="medium" sx={MenuItemButton}>
-          Borrower Profile
+          {pathname === ROUTES.borrower.editProfile && "Edit "}Borrower Profile
         </Button>
       </Box>
     </Box>
