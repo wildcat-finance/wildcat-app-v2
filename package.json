@@ -27,6 +27,8 @@
     "@reduxjs/toolkit": "^2.2.3",
     "@safe-global/safe-apps-react-sdk": "^4.7.2",
     "@safe-global/safe-apps-sdk": "^9.1.0",
+    "@sparticuz/chromium": "^131.0.1",
+    "@supabase/supabase-js": "^2.48.1",
     "@tanstack/react-query": "^5.28.9",
     "@types/humanize-duration": "^3.27.4",
     "@types/react-scroll": "^1.8.10",

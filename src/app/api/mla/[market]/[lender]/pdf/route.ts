@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import puppeteer from "puppeteer"
 
 import { TargetChainId } from "@/config/network"
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
 import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
+import { launchPuppeteer } from "@/lib/puppeteer"
 
 /// GET /api/mla/[market]
 /// Route to get the MLA for a given market.
@@ -41,10 +41,7 @@ export async function GET(
   const values = getFieldValuesForLender(lenderAddress, timeSigned)
   const { html } = fillInMlaForLender(mla, values, market)
   const finalHtml = encodeURIComponent(html)
-  const browser = await puppeteer.launch({
-    args: ["--no-sandbox"],
-    headless: true,
-  })
+  const browser = await launchPuppeteer()
   const page = await browser.newPage()
   await page.goto(`data:text/html;charset=UTF-8,${finalHtml}`, {
     waitUntil: "networkidle0",
