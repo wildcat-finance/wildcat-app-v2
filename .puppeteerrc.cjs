@@ -2,9 +2,8 @@ const {join} = require('path');
 
 // If we're running on Vercel, the cache directory is at /vercel/.cache/puppeteer
 // Otherwise, it's at ~/.cache/puppeteer
-const cacheDirectory = process.env.VERCEL
-  ? join('/vercel', '.cache', 'puppeteer')
-  : join(process.env.HOME, '.cache', 'puppeteer');
+const cacheDirectory = join('/vercel', '.cache', 'puppeteer')
+  
 
 /**
  * @type {import("puppeteer").Configuration}
