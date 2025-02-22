@@ -439,7 +439,7 @@
         "newBaseApr": "New Base APR",
         "newCollateralObligation": "New Collateral Obligation",
         "newReservedRatio": "New Reserve Ratio",
-        "approveNotified": "I understand that adjusting this APR will impact all market lenders.",
+        "approveNotified": "I understand that adjusting this APR impacts all lenders.",
         "adjust": "Adjust",
         "confirmed": "Confirmed",
         "confirm": "Confirm"
