@@ -85,6 +85,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const [apr, setApr] = useState("")
   const [aprPreview, setAprPreview] = useState<SetAprPreview>()
   const [aprError, setAprError] = useState<string | undefined>()
+  const [aprFixedReduction, setAprFixReduction] = useState<boolean>(false)
 
   const [notified, setNotified] = useState<boolean>(false)
 
@@ -92,6 +93,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const [showErrorPopup, setShowErrorPopup] = useState(false)
 
   const [txHash, setTxHash] = useState<string | undefined>()
+
+  const isFixedTerm = market.isInFixedTerm
 
   const modal = useApprovalModal(
     setShowSuccessPopup,
@@ -118,6 +121,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     const parsedNewApr = parseFloat(value) * 100
     const preview = marketAccount.previewSetAPR(parsedNewApr)
     setAprPreview(preview)
+
+    setAprFixReduction(isFixedTerm && parsedNewApr < market.annualInterestBips)
 
     if (value === "" || value === "0") {
       setAprError(undefined)
@@ -217,18 +222,13 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     !!aprError ||
     modal.approvedStep
 
-  const isFixedTerm = market.isInFixedTerm
-
-  const aprReductionForbidden =
-    isFixedTerm && parseFloat(apr) < market.annualInterestBips
-
   const disableAdjust =
     apr === "" ||
     apr === "0" ||
     !!aprError ||
     modal.gettingValueStep ||
     !notified ||
-    aprReductionForbidden
+    aprFixedReduction
 
   const isResetToOriginalRatio =
     aprPreview &&
@@ -559,7 +559,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
         {showForm && (
           <TxModalFooter
             mainBtnText={
-              aprReductionForbidden
+              aprFixedReduction
                 ? "Forbidden"
                 : t("borrowerMarketDetails.modals.apr.adjust")
             }
