@@ -212,7 +212,7 @@ export const MarketAuthorisedLenders = ({
       flex: 1,
     },
     {
-      sortable: false,
+      sortable: true,
       field: "balance",
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.balance",
