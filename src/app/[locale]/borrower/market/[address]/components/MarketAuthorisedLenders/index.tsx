@@ -224,6 +224,11 @@ export const MarketAuthorisedLenders = ({
       renderCell: ({ value }) => (
         <span style={{ width: "100%", whiteSpace: "normal" }}>{value}</span>
       ),
+      sortComparator: (v1, v2) => {
+        const num1 = parseFloat(v1.split(" ")[0].replace(/,/g, "")) || 0
+        const num2 = parseFloat(v2.split(" ")[0].replace(/,/g, "")) || 0
+        return num1 - num2
+      },
     },
     {
       sortable: false,
