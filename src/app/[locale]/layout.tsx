@@ -2,7 +2,6 @@ import "./globals.css"
 
 import { ReactNode } from "react"
 
-import { Box } from "@mui/material"
 import { dir } from "i18next"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
@@ -10,16 +9,7 @@ import { headers } from "next/headers"
 import { Toaster } from "react-hot-toast"
 import { cookieToInitialState } from "wagmi"
 
-import {
-  BackgroundContainer,
-  ContentContainer,
-  PageContainer,
-} from "@/app/[locale]/layout-style"
 import initTranslations from "@/app/i18n"
-import { Footer } from "@/components/Footer"
-import Header from "@/components/Header"
-import PollingRegistration from "@/components/PollingRegistration"
-import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
 import TranslationsProvider from "@/components/TranslationsProvider"
@@ -69,19 +59,7 @@ export default async function RootLayout({
                   resources={resources}
                 >
                   {/* <PollingRegistration /> */}
-                  <ThemeRegistry>
-                    <Box sx={BackgroundContainer} />
-                    <Box position="relative" zIndex="1">
-                      <Header />
-                      <Box sx={PageContainer}>
-                        <Box sx={ContentContainer}>
-                          <Sidebar />
-                          <Box width="calc(100vw - 267px)">{children}</Box>
-                        </Box>
-                        {/* <Footer /> */}
-                      </Box>
-                    </Box>
-                  </ThemeRegistry>
+                  <ThemeRegistry>{children}</ThemeRegistry>
                 </TranslationsProvider>
               </StoreProvider>
             </RedirectsProvider>
