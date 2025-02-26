@@ -2,6 +2,7 @@ const BORROWER_ROOT = "/borrower"
 const LENDER_ROOT = "/lender"
 
 export const ROUTES = {
+  sale: "/sale",
   agreement: "/agreement",
   borrower: {
     root: BORROWER_ROOT,

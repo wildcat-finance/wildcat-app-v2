@@ -3,6 +3,7 @@ import { COLORS } from "@/theme/colors"
 export const DialogContainer = {
   "& .MuiDialog-paper": {
     width: "320px",
+    height: "276px",
     borderRadius: "12px",
     border: "none",
     margin: 0,
@@ -11,6 +12,7 @@ export const DialogContainer = {
 }
 
 export const ContentContainer = {
+  height: "100%",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",

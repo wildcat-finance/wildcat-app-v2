@@ -43,7 +43,7 @@ const walletIcons = {
   [SAFE_CONNECTOR_NAME]: <Safe />,
 }
 
-export const ConnectWalletDialog = ({
+export const SaleConnectWalletDialog = ({
   open,
   handleClose,
 }: ConnectWalletDialogProps) => {

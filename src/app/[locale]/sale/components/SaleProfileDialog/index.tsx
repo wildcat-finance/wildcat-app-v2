@@ -35,7 +35,7 @@ import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
-export const ProfileDialog = ({
+export const SaleProfileDialog = ({
   open,
   handleClose,
   name,
@@ -52,12 +52,9 @@ export const ProfileDialog = ({
     handleClose()
   }
 
-  const { data: controller } = useGetController()
-  const isRegisteredBorrower = controller?.isRegisteredBorrower
-
   return (
     <Dialog open={open} onClose={handleClose} sx={DialogContainer}>
-      <Box sx={ContentContainer} className="test">
+      <Box sx={ContentContainer}>
         {isConnected && isWrongNetwork && (
           <Box sx={WrongNetworkContainer}>
             <Typography variant="text3" color={COLORS.dullRed}>
@@ -74,7 +71,7 @@ export const ProfileDialog = ({
           </Box>
         )}
 
-        <Box sx={ProfileContainer} marginTop={isWrongNetwork ? "24px" : "40px"}>
+        <Box sx={ProfileContainer} marginTop={isWrongNetwork ? "12px" : "38px"}>
           <SvgIcon sx={{ fontSize: "44px" }}>
             <Avatar />
           </SvgIcon>
@@ -104,85 +101,23 @@ export const ProfileDialog = ({
               </Typography>
             )}
             {connector?.name && (
-              <Typography
-                variant="text3"
-                sx={{ color: COLORS.santasGrey, marginTop: "4px" }}
-              >
+              <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
                 {t("header.button.connectedWith")} {connector.name}
               </Typography>
             )}
           </Box>
         </Box>
 
-        <Divider
-          sx={{
-            height: "1px",
-            width: "100%",
-            marginTop: isWrongNetwork ? "28px" : "56px",
-            marginBottom: "20px",
-          }}
-        />
-
-        <Box sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
-          {isRegisteredBorrower && (
-            <Link href={ROUTES.borrower.profile} onClick={handleClose}>
-              <Button
-                variant="text"
-                fullWidth
-                sx={{
-                  padding: "10px 12px 10px 8px !important",
-                  gap: "8px",
-                  alignItems: "center",
-                }}
-              >
-                <SvgIcon
-                  sx={{
-                    "& path": {
-                      fill: `${COLORS.greySuit}`,
-                    },
-                  }}
-                >
-                  <Profile />
-                </SvgIcon>
-
-                <Typography
-                  variant="text2"
-                  sx={{ width: "100%", fontWeight: 600, textAlign: "left" }}
-                >
-                  View Profile
-                </Typography>
-              </Button>
-            </Link>
-          )}
-
-          <Button
-            variant="text"
-            fullWidth
-            sx={{
-              padding: "10px 12px 10px 8px !important",
-              gap: "8px",
-              alignItems: "center",
-            }}
-            onClick={handleClickDisconnect}
-          >
-            <SvgIcon
-              sx={{
-                "& path": {
-                  fill: `${COLORS.greySuit}`,
-                },
-              }}
-            >
-              <Cross />
-            </SvgIcon>
-
-            <Typography
-              variant="text2"
-              sx={{ width: "100%", fontWeight: 600, textAlign: "left" }}
-            >
-              {t("header.button.disconnect")}
-            </Typography>
-          </Button>
-        </Box>
+        <Button
+          fullWidth
+          variant="contained"
+          color="secondary"
+          size="large"
+          onClick={handleClickDisconnect}
+          sx={{ marginTop: "auto" }}
+        >
+          {t("header.button.disconnect")}
+        </Button>
       </Box>
     </Dialog>
   )
