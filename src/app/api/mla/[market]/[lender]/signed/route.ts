@@ -27,7 +27,7 @@ const getReadmeFile = ({
   lenderMessage: string
   borrowerSignature: VerifiedSignature
   lenderSignature: VerifiedSignature
-}) => `# MLA Signature Verification
+}) => `MLA Signature Verification
 
 This folder contains three files needed to verify the signatures on the MLA:
 1. \`Borrower Signed MLA.txt\`: The version of the MLA that the borrower signed. This version includes the parameters the market had at deployment, but does not include any lender details (such as the address or the time of the signature).
@@ -118,7 +118,7 @@ export async function GET(
     borrowerSignature: borrowerSignature as VerifiedSignature,
     lenderSignature: mlaSignature as VerifiedSignature,
   })
-  zip.file("README.md", readme)
+  zip.file("README.txt", readme)
   const zipBlob = await zip.generateAsync({ type: "blob" })
 
   return new NextResponse(zipBlob, {
