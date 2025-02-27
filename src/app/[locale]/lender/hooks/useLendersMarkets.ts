@@ -12,6 +12,7 @@ import {
   getLensV2Contract,
   SubgraphGetAllMarketsForLenderViewQueryVariables,
   getLenderAccountsForAllMarkets,
+  SubgraphMarket_Filter,
 } from "@wildcatfi/wildcat-sdk"
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { constants } from "ethers"
@@ -21,7 +22,8 @@ import { POLLING_INTERVAL } from "@/config/polling"
 import { SubgraphClient } from "@/config/subgraph"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
-import { TOKENS_ADDRESSES } from "@/utils/constants"
+import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
+import { combineFilters } from "@/utils/filters"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type LenderMarketsQueryProps =
@@ -76,14 +78,20 @@ export function useLendersMarkets(
     logger.debug(`Getting all markets...`)
     if (!chainId) throw Error("No chainId")
     if (!signerOrProvider) throw Error(`no provider`)
+    const { marketFilter, ...otherFilters } = filters
+    const filter = combineFilters([
+      { ...marketFilter },
+      ...EXCLUDED_MARKETS_FILTER,
+    ]) as SubgraphMarket_Filter
     const lenderAccounts = await getLenderAccountsForAllMarkets(
       SubgraphClient,
       {
-        ...filters,
+        ...otherFilters,
         lender: lender ?? constants.AddressZero,
         fetchPolicy: "network-only",
         chainId,
         signerOrProvider,
+        marketFilter: filter,
       },
     )
     lenderAccounts.sort(
