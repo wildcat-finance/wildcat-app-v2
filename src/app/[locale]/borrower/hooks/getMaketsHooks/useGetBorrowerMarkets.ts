@@ -1,8 +1,8 @@
+/* eslint-disable camelcase */
 import { useQuery } from "@tanstack/react-query"
 import {
   SignerOrProvider,
   SubgraphGetMarketsWithEventsQueryVariables,
-  // eslint-disable-next-line camelcase
   SubgraphMarket_Filter,
   SupportedChainId,
   getMarketsForBorrower,
@@ -14,6 +14,8 @@ import { POLLING_INTERVAL } from "@/config/polling"
 import { SubgraphClient } from "@/config/subgraph"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
+import { combineFilters } from "@/utils/filters"
 
 import { GetMarketsProps } from "./interface"
 
@@ -36,7 +38,12 @@ export function useGetBorrowerMarketsQuery({
     console.log(`Running getMarketsForBorrower!`)
     if (!address) return []
     // eslint-disable-next-line camelcase
-    const filter: SubgraphMarket_Filter = { ...marketFilter }
+    const filter = combineFilters([
+      {
+        ...marketFilter,
+      },
+      ...EXCLUDED_MARKETS_FILTER,
+    ]) as SubgraphMarket_Filter
     if (address) {
       filter.borrower = address.toLowerCase()
     }
