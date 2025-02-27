@@ -13,7 +13,8 @@ export const TIMESTAMP_KEY = "lastFetchedTimestamp"
 // Show if on development or if host is secretsite.wildcat.finance
 export const shouldShowExcludedMarkets =
   process.env.NODE_ENV === "development" ||
-  window.location.host === "secretsite.wildcat.finance"
+  (typeof window !== "undefined" &&
+    window.location.host === "secretsite.wildcat.finance")
 
 export const EXCLUDED_MARKETS = shouldShowExcludedMarkets
   ? []
