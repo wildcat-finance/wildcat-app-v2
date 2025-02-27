@@ -81,13 +81,10 @@ export const SaleHeader = () => {
         </Box>
 
         <Divider
-          sx={{
-            transform: "rotate(90deg)",
-            width: "28px",
-            height: "1px",
-            margin: "16px 0",
-            padding: 0,
-          }}
+          orientation="vertical"
+          variant="middle"
+          flexItem
+          sx={{ height: "100%", margin: "0 16px" }}
         />
 
         <SaleProfileButton />

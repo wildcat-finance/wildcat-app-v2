@@ -76,7 +76,9 @@ export const SaleProfileButton = () => {
           }}
         />
 
-        <Typography variant="text3">{trimAddress(address)}</Typography>
+        <Typography variant="text3">
+          {isWrongNetwork ? "Wrong Network" : trimAddress(address)}
+        </Typography>
 
         <DropdownIcon open={open} />
       </Box>
