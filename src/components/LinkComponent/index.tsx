@@ -1,3 +1,5 @@
+"use client"
+
 import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"

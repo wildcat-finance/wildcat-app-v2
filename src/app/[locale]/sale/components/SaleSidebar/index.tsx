@@ -1,5 +1,8 @@
+import * as React from "react"
+
 import { Box, Chip, Divider, SvgIcon, Typography } from "@mui/material"
 
+import { SaleChip } from "@/app/[locale]/sale/components/SaleChip"
 import { SaleTokenModal } from "@/app/[locale]/sale/components/SaleTokenModal"
 import Clock from "@/assets/icons/clock_icon.svg"
 import { COLORS } from "@/theme/colors"
@@ -40,20 +43,11 @@ export const SaleSidebar = () => {
             WLDC
           </Typography>
 
-          <Box
-            sx={{
-              padding: "2px 8px",
-              backgroundColor: COLORS.glitter,
-              borderRadius: "26px",
-
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <Typography variant="text4" color={COLORS.blueRibbon}>
-              $WLDC
-            </Typography>
-          </Box>
+          <SaleChip
+            value="$WLDC"
+            color={COLORS.glitter}
+            textColor={COLORS.blueRibbon}
+          />
         </Box>
       </Box>
 
