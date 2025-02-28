@@ -115,7 +115,7 @@ export const useSignAgreement = () => {
         timeSigned,
         address,
       }).catch((error) => {
-        toastError("Failed to submit ToS signature")
+        toastError("Failed to submit TOU signature.")
         throw error
       })
       return result
