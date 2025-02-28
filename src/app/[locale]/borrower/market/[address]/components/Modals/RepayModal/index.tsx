@@ -9,6 +9,7 @@ import {
   Tabs,
   Typography,
 } from "@mui/material"
+import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { RepayStatus, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
 import humanizeDuration from "humanize-duration"
@@ -51,6 +52,8 @@ export const RepayModal = ({
 }: RepayModalProps) => {
   const { t } = useTranslation()
   const [type, setType] = React.useState<"sum" | "days">("sum")
+
+  const { connected: isConnectedToSafe } = useSafeAppsSDK()
 
   const [amount, setAmount] = useState("")
   const [days, setDays] = useState("")
@@ -181,7 +184,7 @@ export const RepayModal = ({
   const disableRepay =
     market.isClosed ||
     repayAmount.raw.isZero() ||
-    repayStep === "InsufficientAllowance" ||
+    (repayStep === "InsufficientAllowance" && !isConnectedToSafe) ||
     repayStep === "InsufficientBalance" ||
     isApproving
 
@@ -421,11 +424,14 @@ export const RepayModal = ({
         <TxModalFooter
           mainBtnText="Repay"
           secondBtnText={
-            isApprovedButton
-              ? t("borrowerMarketDetails.modals.repay.approved")
-              : t("borrowerMarketDetails.modals.repay.approve")
+            // eslint-disable-next-line no-nested-ternary
+            isConnectedToSafe
+              ? undefined
+              : isApprovedButton
+                ? t("borrowerMarketDetails.modals.repay.approved")
+                : t("borrowerMarketDetails.modals.repay.approve")
           }
-          secondBtnIcon={isApprovedButton}
+          secondBtnIcon={isApprovedButton && !isConnectedToSafe}
           mainBtnOnClick={handleRepay}
           secondBtnOnClick={handleApprove}
           disableMainBtn={disableRepay}
