@@ -15,21 +15,12 @@ import { POLLING_INTERVAL } from "@/config/polling"
 import { SubgraphClient } from "@/config/subgraph"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
+import { combineFilters } from "@/utils/filters"
 
 import { GetMarketsProps } from "./interface"
 
 export const GET_ALL_MARKETS = "get-all-markets"
-
-const combineFilters = (
-  _filters: (SubgraphMarket_Filter | null | undefined)[],
-) => {
-  const filters = _filters.filter(
-    (filter) => filter && Object.keys(filter).length > 0,
-  ) as SubgraphMarket_Filter[]
-  if (filters.length === 0) return undefined
-  if (filters.length === 1) return filters[0]
-  return { and: filters }
-}
 
 export function useGetOthersMarketsQuery({
   provider,
@@ -45,7 +36,8 @@ export function useGetOthersMarketsQuery({
     const filter = combineFilters([
       marketFilter,
       address ? { borrower_not: address.toLowerCase() } : {},
-    ])
+      ...EXCLUDED_MARKETS_FILTER,
+    ]) as SubgraphMarket_Filter
     const result = await getMarketsWithEvents(SubgraphClient, {
       chainId: chainId as SupportedChainId,
       fetchPolicy: "network-only",

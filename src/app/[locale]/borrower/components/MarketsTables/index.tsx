@@ -24,7 +24,7 @@ import {
   setScrollTarget,
   setTerminatedAmount,
 } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
-import { EXCLUDED_MARKETS } from "@/utils/constants"
+import { isNotExcludedMarket } from "@/utils/filters"
 import { getMarketStatus, MarketStatus } from "@/utils/marketStatus"
 
 const getFilteredAndOrderedMarkets = (
@@ -34,9 +34,7 @@ const getFilteredAndOrderedMarkets = (
   assets: { name: string; address: string }[],
 ) => {
   let filteredMarkets = markets
-    .filter(
-      (market) => !EXCLUDED_MARKETS.includes(market.address.toLowerCase()),
-    )
+    .filter(isNotExcludedMarket)
     .filter((market) => market.deployedEvent)
     .sort(
       (a, b) =>
