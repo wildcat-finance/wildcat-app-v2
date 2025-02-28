@@ -106,7 +106,7 @@ export default function LineWithPrediction() {
       ]}
       height={370}
       slots={{ line: CustomAnimatedLine }}
-      slotProps={{ line: { limit: historicalData.length - 1 } as any }}
+      slotProps={{ line: { limit: historicalData.length - 1 } as never }}
       sx={{
         pointerEvents: "none",
 

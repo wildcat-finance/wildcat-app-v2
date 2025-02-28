@@ -437,4 +437,6 @@ export const SaleTokenModal = () => {
       </SaleTokenModalBox>
     )
   }
+
+  return undefined
 }
