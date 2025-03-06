@@ -14,7 +14,6 @@ import {
 } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import { Token } from "@wildcatfi/wildcat-sdk"
-import dayjs from "dayjs"
 import Link from "next/link"
 import { FieldError, useController, UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
@@ -50,6 +49,7 @@ import {
   setHideInfoStep,
   setNextStep,
 } from "@/store/slices/routingSlice/routingSlice"
+import { dayjs } from "@/utils/dayjs"
 
 import {
   BackButton,
