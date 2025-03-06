@@ -38,14 +38,18 @@ export function useGetBorrowerMarketsQuery({
     console.log(`Running getMarketsForBorrower!`)
     if (!address) return []
     // eslint-disable-next-line camelcase
-    const filter = combineFilters([
+    let filter = combineFilters([
       {
         ...marketFilter,
       },
       ...EXCLUDED_MARKETS_FILTER,
     ]) as SubgraphMarket_Filter
     if (address) {
-      filter.borrower = address.toLowerCase()
+      if (!filter) {
+        filter = { borrower: address.toLowerCase() }
+      } else {
+        filter.borrower = address.toLowerCase()
+      }
     }
 
     return getMarketsForBorrower(SubgraphClient, {
@@ -60,8 +64,13 @@ export function useGetBorrowerMarketsQuery({
   }
 
   async function getBorrowerMarkets() {
-    const subgraphMarkets = await queryBorrowerMarkets()
-    return updateMarkets(subgraphMarkets, provider)
+    try {
+      const subgraphMarkets = await queryBorrowerMarkets()
+      return updateMarkets(subgraphMarkets, provider)
+    } catch (error) {
+      console.log("Error fetching borrower markets", error)
+      throw error
+    }
   }
 
   return useQuery({
