@@ -36,12 +36,8 @@ export function BorrowerProfileDetails({
     <Box sx={sx}>
       <NameSection
         type="external"
+        {...profileData}
         name={profileData?.name || trimAddress(address)}
-        description={profileData?.description}
-        website={profileData?.website}
-        twitter={profileData?.twitter}
-        linkedin={profileData?.linkedin}
-        telegram={profileData?.telegram}
         marketsAmount={marketsAmount}
       />
 

@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react"
 import { useEffect, useRef, useState } from "react"
 
 import {
@@ -12,15 +11,11 @@ import {
   Typography,
 } from "@mui/material"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
-import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
-import { useAccount } from "wagmi"
 
 import { AvatarProfileItem } from "@/app/[locale]/borrower/profile/edit/components/AvatarProfileItem"
 import { EditProfileItem } from "@/app/[locale]/borrower/profile/edit/components/EditProfileItem"
-import { SelectProfileItem } from "@/app/[locale]/borrower/profile/edit/components/SelectProfileItem"
 import {
-  entityCategoryOptions,
   EntityCategory,
   useEditPrivateForm,
 } from "@/app/[locale]/borrower/profile/edit/hooks/useEditPrivateForm"
@@ -29,19 +24,14 @@ import { useUpdateBorrowerProfile } from "@/app/[locale]/borrower/profile/edit/h
 import {
   ButtonsContainer,
   DescriptionField,
-  EditPageContainer,
   FieldsContainer,
-  SelectStyles,
   TitleContainer,
 } from "@/app/[locale]/borrower/profile/edit/style"
 import {
   useGetBorrowerProfile,
   useInvalidateBorrowerProfile,
 } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
-import {
-  BorrowerProfile,
-  BorrowerProfileInput,
-} from "@/app/api/profiles/interface"
+import { BorrowerProfileInput } from "@/app/api/profiles/interface"
 import CountriesList from "@/config/countries.json"
 import ELFsByCountry from "@/config/elfs-by-country.json"
 import JurisdictionsByCountry from "@/config/jurisdictions-by-country.json"
@@ -183,6 +173,9 @@ export default function EditProfileForm({
   const handleSendUpdate = () => {
     const changedValues: BorrowerProfileInput = {
       address: address as string,
+    }
+    if (avatar) {
+      changedValues.avatar = avatar
     }
     ProfileKeys.forEach((key) => {
       const oldValue = publicData?.[key] || ""

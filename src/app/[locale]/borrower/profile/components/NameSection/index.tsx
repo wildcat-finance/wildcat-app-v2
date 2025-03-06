@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
+import Image from "next/image"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -39,7 +40,9 @@ export const NameSection = ({
         alignItems: type === "user" ? "flex-start" : "center",
       }}
     >
-      {avatar || (
+      {avatar ? (
+        <Image src={avatar} alt="avatar" width={48} height={48} />
+      ) : (
         <SvgIcon sx={{ fontSize: "48px", marginBottom: "24px" }}>
           <Avatar />
         </SvgIcon>
