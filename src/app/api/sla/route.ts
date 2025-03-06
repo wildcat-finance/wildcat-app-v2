@@ -1,4 +1,3 @@
-import dayjs from "dayjs"
 import { keccak256, toUtf8Bytes } from "ethers/lib/utils"
 import { NextRequest, NextResponse } from "next/server"
 
@@ -8,11 +7,10 @@ import { prisma } from "@/lib/db"
 import { getProviderForServer } from "@/lib/provider"
 import { verifySignature } from "@/lib/signatures"
 import { getZodParseError } from "@/lib/zod-error"
+import { formatUnixMsAsDate } from "@/utils/formatters"
 
 import { ServiceAgreementSignatureInputDTO } from "./dto"
 import { ServiceAgreementSignatureInput } from "./interface"
-
-const DATE_FORMAT = "MMMM DD, YYYY"
 
 const ServiceAgreementVersion = keccak256(toUtf8Bytes(AgreementText))
 
@@ -26,7 +24,7 @@ export async function POST(request: NextRequest) {
   }
   const { signature, timeSigned } = body
   const address = body.address.toLowerCase()
-  const dateSigned = dayjs(timeSigned).format(DATE_FORMAT)
+  const dateSigned = formatUnixMsAsDate(timeSigned)
   const agreementText = `${AgreementText}\n\nDate: ${dateSigned}`
   const provider = getProviderForServer()
   const result = await verifySignature({

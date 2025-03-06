@@ -16,10 +16,7 @@ export const DATE_FORMAT_WITH_TIME = "DD-MMM-YYYY HH:mm"
 export const DATE_FORMAT = "DD-MMM-YYYY"
 
 export const formatUnixMsAsDate = (unixMs: number) =>
-  dayjs(unixMs).utc().format(DATE_FORMAT)
-
-export const formatUnixMsAsDateAndTime = (unixMs: number) =>
-  dayjs(unixMs).utc().format(DATE_FORMAT_WITH_TIME)
+  dayjs(unixMs).utc().format("MMMM DD, YYYY")
 
 export const timestampToDateFormatted = (
   timestamp: number,

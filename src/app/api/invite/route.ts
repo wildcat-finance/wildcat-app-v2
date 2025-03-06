@@ -1,5 +1,4 @@
 import { getArchControllerContract } from "@wildcatfi/wildcat-sdk"
-import dayjs from "dayjs"
 import { keccak256, toUtf8Bytes } from "ethers/lib/utils"
 import { NextRequest, NextResponse } from "next/server"
 
@@ -14,6 +13,7 @@ import {
 import { getProviderForServer } from "@/lib/provider"
 import { verifySignature } from "@/lib/signatures"
 import { getZodParseError } from "@/lib/zod-error"
+import { formatUnixMsAsDate } from "@/utils/formatters"
 
 import { AcceptInvitationInputDTO, BorrowerInvitationInputDTO } from "./dto"
 import {
@@ -252,8 +252,6 @@ export async function DELETE(request: NextRequest) {
   }
   return NextResponse.json({ success: true })
 }
-const DATE_FORMAT = "MMMM DD, YYYY"
-
 /// PUT /api/invite
 /// Route for accepting a borrower invitation.
 /// Borrower-only endpoint but does not require login.
@@ -310,7 +308,7 @@ export async function PUT(request: NextRequest) {
   }
   let agreementText = AgreementText
   if (timeSigned) {
-    const dateSigned = dayjs(timeSigned).format(DATE_FORMAT)
+    const dateSigned = formatUnixMsAsDate(timeSigned)
     agreementText = `${agreementText}\n\nDate: ${dateSigned}`
   }
   agreementText = `${agreementText}\n\nOrganization Name: ${name}`

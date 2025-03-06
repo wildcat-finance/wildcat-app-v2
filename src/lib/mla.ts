@@ -18,7 +18,7 @@ import Jurisdictions from "@/config/jurisdictions.json"
 import { ACCEPT_MLA_MESSAGE } from "@/config/mla-acceptance"
 import { TargetChainId } from "@/config/network"
 import { dayjs } from "@/utils/dayjs"
-import { formatBps } from "@/utils/formatters"
+import { formatBps, formatUnixMsAsDate } from "@/utils/formatters"
 
 type NetworkData = {
   chainId?: number
@@ -221,7 +221,7 @@ const toUnixMs = (value: number): number => {
 
 export const formatDate = (value: number | undefined): string | undefined => {
   if (value === undefined) return undefined
-  return dayjs(toUnixMs(value)).utc().format("MMMM DD, YYYY")
+  return formatUnixMsAsDate(toUnixMs(value))
 }
 
 export const formatDuration = (
