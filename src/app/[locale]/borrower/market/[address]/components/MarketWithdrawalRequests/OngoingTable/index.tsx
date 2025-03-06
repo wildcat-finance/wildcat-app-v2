@@ -1,17 +1,19 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { TokenAmount, WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
-import dayjs from "dayjs"
 import { useTranslation } from "react-i18next"
 
 import { WithdrawalTxRow } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/interface"
 import { DataGridCells } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/style"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
 import { COLORS } from "@/theme/colors"
-import { formatTokenWithCommas } from "@/utils/formatters"
+import {
+  formatTokenWithCommas,
+  timestampToDateFormatted,
+} from "@/utils/formatters"
 
 export type OngoingTableProps = {
   withdrawalBatches: WithdrawalBatch[]
@@ -32,9 +34,7 @@ export const OngoingTable = ({
       id: withdrawal.id,
       lender: withdrawal.address,
       transactionId: withdrawal.transactionHash,
-      dateSubmitted: dayjs(withdrawal.blockTimestamp * 1000).format(
-        "DD-MMM-YYYY",
-      ),
+      dateSubmitted: timestampToDateFormatted(withdrawal.blockTimestamp),
       amount: formatTokenWithCommas(
         withdrawal.getNormalizedTotalAmount(batch),
         {
