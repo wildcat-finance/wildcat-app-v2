@@ -44,7 +44,7 @@ export const TxModalFooter = ({
 
     {!hideButtons && (
       <Box marginTop={link ? "8px" : ""} sx={TxModalFooterContainer}>
-        {(secondBtnText || secondBtnOnClick) && (
+        {(secondBtnText || secondBtnIcon) && secondBtnOnClick && (
           <Button
             variant="contained"
             size="large"
