@@ -6,6 +6,7 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
+import Image from "next/image"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount, useDisconnect, useSwitchChain } from "wagmi"
@@ -39,6 +40,8 @@ export const ProfileDialog = ({
   open,
   handleClose,
   name,
+  alias,
+  avatar,
 }: ProfileDialogProps) => {
   const { t } = useTranslation()
 
@@ -75,9 +78,13 @@ export const ProfileDialog = ({
         )}
 
         <Box sx={ProfileContainer} marginTop={isWrongNetwork ? "24px" : "40px"}>
-          <SvgIcon sx={{ fontSize: "44px" }}>
-            <Avatar />
-          </SvgIcon>
+          {avatar ? (
+            <Image src={avatar} alt="avatar" width={44} height={44} />
+          ) : (
+            <SvgIcon sx={{ fontSize: "44px" }}>
+              <Avatar />
+            </SvgIcon>
+          )}
 
           <Box
             display="flex"
@@ -98,9 +105,9 @@ export const ProfileDialog = ({
               </Box>
             )}
 
-            {name && (
+            {(alias || name) && (
               <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-                {name}
+                {alias || name}
               </Typography>
             )}
             {connector?.name && (
