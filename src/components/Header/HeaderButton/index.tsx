@@ -52,6 +52,8 @@ export const HeaderButton = () => {
           open={open}
           handleClose={handleClose}
           name={data?.name}
+          alias={data?.alias}
+          avatar={data?.avatar}
         />
       ) : (
         <ConnectWalletDialog open={open} handleClose={handleClose} />

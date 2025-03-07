@@ -4,15 +4,19 @@ import {
   stripTrailingZeroes,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
-import dayjs from "dayjs"
 import duration from "dayjs/plugin/duration"
 import { BigNumber } from "ethers"
 import { formatUnits } from "ethers/lib/utils"
+
+import { dayjs } from "@/utils/dayjs"
 
 // <---- TIMESTAMP TO DATE FORMATTERS ---->
 
 export const DATE_FORMAT_WITH_TIME = "DD-MMM-YYYY HH:mm"
 export const DATE_FORMAT = "DD-MMM-YYYY"
+
+export const formatUnixMsAsDate = (unixMs: number) =>
+  dayjs(unixMs).utc().format("MMMM DD, YYYY")
 
 export const timestampToDateFormatted = (
   timestamp: number,

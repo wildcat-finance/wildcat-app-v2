@@ -37,6 +37,7 @@ import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
+import { isUSDTLikeToken } from "@/utils/constants"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -145,10 +146,22 @@ export const RepayModal = ({
   const handleApprove = () => {
     setTxHash("")
     if (repayStep === "InsufficientAllowance") {
-      approve(repayAmount).then(() => {
-        setFinalRepayAmount(repayAmount)
-        modal.setFlowStep(ModalSteps.approved)
-      })
+      if (
+        marketAccount.underlyingApproval.gt(0) &&
+        isUSDTLikeToken(market.underlyingToken.address)
+      ) {
+        approve(repayAmount.token.getAmount(0)).then(() => {
+          approve(repayAmount).then(() => {
+            setFinalRepayAmount(repayAmount)
+            modal.setFlowStep(ModalSteps.approved)
+          })
+        })
+      } else {
+        approve(repayAmount).then(() => {
+          setFinalRepayAmount(repayAmount)
+          modal.setFlowStep(ModalSteps.approved)
+        })
+      }
     }
   }
 
@@ -173,6 +186,11 @@ export const RepayModal = ({
     const { value } = evt.target
     setDays(value)
   }
+
+  const mustResetAllowance =
+    repayStep === "InsufficientAllowance" &&
+    marketAccount.underlyingApproval.gt(0) &&
+    isUSDTLikeToken(market.underlyingToken.address)
 
   const disableApprove =
     market.isClosed ||
@@ -419,6 +437,24 @@ export const RepayModal = ({
             linkValue={`${EtherscanBaseUrl}/tx/${txHash}`}
             groupSX={{ padding: "8px", marginBottom: "8px" }}
           />
+        )}
+
+        {mustResetAllowance && (
+          <Box width="100%" height="100%" padding="0 24px">
+            <Typography variant="text3" color={COLORS.dullRed}>
+              You have an existing allowance of{" "}
+              {market.underlyingToken
+                .getAmount(marketAccount.underlyingApproval)
+                .format(market.underlyingToken.decimals, true)}{" "}
+              for this market.
+              <br />
+              {market.underlyingToken.symbol} requires that allowances be reset
+              to zero prior to being increased.
+              <br />
+              You will be prompted to execute two approval transactions to first
+              reset and then increase the allowance for this market.
+            </Typography>
+          </Box>
         )}
 
         <TxModalFooter

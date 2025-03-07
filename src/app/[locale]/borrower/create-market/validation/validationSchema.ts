@@ -3,11 +3,11 @@ import {
   TransferAccess,
   WithdrawalAccess,
 } from "@wildcatfi/wildcat-sdk"
-import dayjs from "dayjs"
 import { isAddress } from "viem"
 import { z } from "zod"
 
 import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
+import { dayjs } from "@/utils/dayjs"
 import { isLetterNumber, isLetterNumberSpace } from "@/utils/validations"
 
 const DepositAccessOptions = ["Open", "RequiresCredential"] as const

@@ -5,19 +5,20 @@ import * as React from "react"
 import { Box, Skeleton, TablePagination, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { MarketRecord } from "@wildcatfi/wildcat-sdk"
-import dayjs from "dayjs"
 import { useTranslation } from "react-i18next"
 
 import { TableStyles } from "@/app/[locale]/borrower/edit-lenders-list/components/ConfirmLendersForm/style"
 import { useBorrowerNameOrAddress } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
-import { TOKEN_FORMAT_DECIMALS, trimAddress } from "@/utils/formatters"
+import {
+  timestampToDateFormatted,
+  TOKEN_FORMAT_DECIMALS,
+  trimAddress,
+} from "@/utils/formatters"
 
 import { MarketRecordsTableProps, TypeSafeColDef } from "./interface"
 import { LinkGroup } from "../LinkComponent"
-
-const DATE_FORMAT = "DD-MMM-YYYY HH:mm"
 
 const getRecordText = (
   record: MarketRecord,
@@ -85,7 +86,8 @@ const getRecordText = (
     return `Protocol fee updated to ${record.newProtocolFeeBips / 100}%`
   }
   if (record.__typename === "FixedTermUpdated") {
-    const time = dayjs(record.newFixedTermEndTime * 1000).format(DATE_FORMAT)
+    const time = timestampToDateFormatted(record.newFixedTermEndTime)
+
     return `Market maturity updated to ${time}`
   }
   return ""
@@ -141,7 +143,7 @@ export function MarketRecordsTable({
       align: "left",
       renderCell: (params) => (
         <Typography variant="text3">
-          {dayjs(params.value * 1000).format(DATE_FORMAT)}
+          {timestampToDateFormatted(params.value)}
         </Typography>
       ),
     },

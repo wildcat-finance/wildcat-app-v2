@@ -1,12 +1,12 @@
 "use client"
 
 import { Box, Button, Typography } from "@mui/material"
-import dayjs from "dayjs"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { COLORS } from "@/theme/colors"
+import { dayjs } from "@/utils/dayjs"
 
 import {
   ContentContainer,

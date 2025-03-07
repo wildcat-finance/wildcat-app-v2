@@ -9,7 +9,6 @@ import {
   Typography,
 } from "@mui/material"
 import { BIP, Market, SetAprPreview } from "@wildcatfi/wildcat-sdk"
-import dayjs from "dayjs"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -18,6 +17,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { COLORS } from "@/theme/colors"
+import { dayjs } from "@/utils/dayjs"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import {
   formatBps,
