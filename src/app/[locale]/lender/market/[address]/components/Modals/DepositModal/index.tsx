@@ -1,6 +1,7 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
+import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
@@ -36,6 +37,8 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
   const [amount, setAmount] = useState("")
 
   const [depositError, setDepositError] = useState<string | undefined>()
+
+  const { connected: isConnectedToSafe } = useSafeAppsSDK()
 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
@@ -148,7 +151,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     market.isClosed ||
     depositTokenAmount.raw.isZero() ||
     depositTokenAmount.raw.gt(market.maximumDeposit.raw) ||
-    depositStep === "InsufficientAllowance" ||
+    (depositStep === "InsufficientAllowance" && !isConnectedToSafe) ||
     depositStep === "InsufficientBalance" ||
     isApproving
 
@@ -310,8 +313,14 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
             {mustResetAllowance && (
               <Box width="100%" height="100%" padding="0 24px">
                 <Typography variant="text3" color={COLORS.dullRed}>
-                  This token requires your token allowance be reset to zero
-                  prior to increasing it.
+                  You have an existing allowance of{" "}
+                  {market.underlyingToken
+                    .getAmount(marketAccount.underlyingApproval)
+                    .format(market.underlyingToken.decimals, true)}{" "}
+                  for this market.
+                  <br />
+                  {market.underlyingToken.symbol} requires that allowances be
+                  reset to zero prior to being increased.
                   <br />
                   You will be prompted to execute two approval transactions to
                   first reset and then increase the allowance for this market.
@@ -360,8 +369,15 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
 
         <TxModalFooter
           mainBtnText={t("lenderMarketDetails.transactions.deposit.button")}
-          secondBtnText={isApprovedButton ? "Approved" : "Approve"}
-          secondBtnIcon={isApprovedButton}
+          secondBtnText={
+            // eslint-disable-next-line no-nested-ternary
+            isConnectedToSafe
+              ? undefined
+              : isApprovedButton
+                ? "Approved"
+                : "Approve"
+          }
+          secondBtnIcon={isApprovedButton && !isConnectedToSafe}
           mainBtnOnClick={handleDeposit}
           secondBtnOnClick={handleApprove}
           disableMainBtn={disableDeposit}
