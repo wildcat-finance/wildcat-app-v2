@@ -12,7 +12,6 @@ import {
 import { DesktopDatePicker } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
-import dayjs from "dayjs"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
@@ -38,6 +37,7 @@ import {
   setIsValid,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import { COLORS } from "@/theme/colors"
+import { dayjs } from "@/utils/dayjs"
 
 import { MarketPolicyFormProps } from "./interface"
 

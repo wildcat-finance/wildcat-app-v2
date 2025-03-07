@@ -42,3 +42,11 @@ export const pageCalcHeights = {
   page: "82px",
   market: "194px",
 }
+
+export const USDT_LIKE_TOKENS = [
+  "0xdac17f958d2ee523a2206206994597c13d831ec7",
+  "0x90ecd2b85fe8cda3080d502ee7c56979a9bfa4d0",
+]
+
+export const isUSDTLikeToken = (address: string) =>
+  USDT_LIKE_TOKENS.includes(address.toLowerCase())

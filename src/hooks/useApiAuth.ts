@@ -2,7 +2,6 @@
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation } from "@tanstack/react-query"
-import dayjs from "dayjs"
 import { useAccount } from "wagmi"
 
 import { toastRequest } from "@/components/Toasts"
@@ -10,6 +9,7 @@ import { getLoginSignatureMessage } from "@/config/api"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setApiToken } from "@/store/slices/apiTokensSlice/apiTokensSlice"
 import { ApiToken } from "@/store/slices/apiTokensSlice/interface"
+import { dayjs } from "@/utils/dayjs"
 
 import { useEthersSigner } from "./useEthersSigner"
 
@@ -18,11 +18,6 @@ export const useAuthToken = () => {
   const tokenKey = address?.toLowerCase() ?? ""
   const token = useAppSelector((state) => state.apiTokens[tokenKey])
   return token
-}
-
-type LoginProps = {
-  timeSigned: number
-  address: string
 }
 
 export const useLogin = () => {

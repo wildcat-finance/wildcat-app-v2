@@ -129,19 +129,19 @@ model BorrowerServiceAgreementSignature {
 }
 
 model BorrowerInvitation {
-  id          Int      @id @default(autoincrement())
-  chainId     Int
-  address     String
-  name        String
-  alias       String?
-  inviter     String
-  description String?
-  founded     String?
-  headquarters String?
-  jurisdiction String?
+  id              Int      @id @default(autoincrement())
+  chainId         Int
+  address         String
+  name            String
+  alias           String?
+  inviter         String
+  description     String?
+  founded         String?
+  headquarters    String?
+  jurisdiction    String?
   physicalAddress String?
-  entityKind String?
-  timeInvited DateTime
+  entityKind      String?
+  timeInvited     DateTime
 
   borrower Borrower @relation("BorrowerToInvitation", fields: [chainId, address], references: [chainId, address], onDelete: Cascade)
 
@@ -154,12 +154,13 @@ model Borrower {
 
   name              String?
   alias             String?
+  avatar            String?
   description       String?
   founded           String?
   headquarters      String?
   website           String?
   twitter           String?
-  telegram        String?
+  telegram          String?
   linkedin          String?
   email             String?
   jurisdiction      String?
@@ -183,6 +184,7 @@ model BorrowerProfileUpdateRequest {
 
   name            String?
   alias           String?
+  avatar          String?
   description     String?
   founded         String?
   headquarters    String?

@@ -6,27 +6,20 @@ import { useState } from "react"
 import { Box, Skeleton, Typography, Button } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
-import dayjs from "dayjs"
-import relativeTime from "dayjs/plugin/relativeTime"
 import { useTranslation } from "react-i18next"
 
 import { MarketWithdrawalRequetstCell } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/style"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl, TargetChainId } from "@/config/network"
 import { COLORS } from "@/theme/colors"
+import { dayjs } from "@/utils/dayjs"
 import { timestampToDateFormatted, trimAddress } from "@/utils/formatters"
 
-import {
-  BorrowerInvitationRow,
-  BorrowerInvitesTableProps,
-  TypeSafeColDef,
-} from "./interface"
+import { BorrowerInvitationRow, TypeSafeColDef } from "./interface"
 import { useAllBorrowerInvitations } from "../../hooks/useAllBorrowerInvitations"
 import { useRegisterTestnetBorrower } from "../../hooks/useRegisterTestnetBorrower"
 import { CancelInviteModal } from "../CancelInviteModal"
 import { InviteBorrowerModal } from "../InviteBorrowerModal"
-
-dayjs.extend(relativeTime)
 
 const RegisterBorrowerButton = ({ address }: { address: string }) => {
   const { mutate, isPending } = useRegisterTestnetBorrower()

@@ -4,7 +4,6 @@ import * as React from "react"
 import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { LenderWithdrawalStatus } from "@wildcatfi/wildcat-sdk"
-import dayjs from "dayjs"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -19,7 +18,11 @@ import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/s
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
-import { formatTokenWithCommas, trimAddress } from "@/utils/formatters"
+import {
+  formatTokenWithCommas,
+  timestampToDateFormatted,
+  trimAddress,
+} from "@/utils/formatters"
 
 const claimableColumns: GridColDef[] = [
   {
@@ -185,7 +188,7 @@ export const ClaimableTable = ({ withdrawals, totalAmount }: TableProps) => {
           (request) => request.transactionHash,
         ),
         dateSubmitted: withdrawal.requests.map((request) =>
-          dayjs(request.blockTimestamp * 1000).format("DD-MMM-YYYY"),
+          timestampToDateFormatted(request.blockTimestamp),
         ),
         amount: getClaimableRequestAmounts(withdrawal),
       })),

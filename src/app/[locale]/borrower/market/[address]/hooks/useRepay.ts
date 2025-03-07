@@ -7,7 +7,6 @@ import {
 } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
-import { ContractReceipt } from "ethers"
 
 import { GET_WITHDRAWALS_KEY } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
@@ -15,6 +14,7 @@ import {
   GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY,
   GET_MARKET_ACCOUNT_KEY,
 } from "@/hooks/useGetMarketAccount"
+import { isUSDTLikeToken } from "@/utils/constants"
 
 export const useRepay = (
   marketAccount: MarketAccount,
@@ -47,6 +47,16 @@ export const useRepay = (
       const gnosisTransactions: BaseTransaction[] = []
       if (step.status !== "Ready") {
         if (safeConnected && step.status === "InsufficientAllowance") {
+          if (
+            marketAccount.underlyingApproval.gt(0) &&
+            isUSDTLikeToken(marketAccount.market.underlyingToken.address)
+          ) {
+            gnosisTransactions.push(
+              await marketAccount.populateApproveMarket(
+                amount.token.getAmount(0),
+              ),
+            )
+          }
           gnosisTransactions.push(
             await marketAccount.populateApproveMarket(amount),
           )

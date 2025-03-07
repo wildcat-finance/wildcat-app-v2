@@ -1,6 +1,7 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
+import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
@@ -21,6 +22,7 @@ import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { EtherscanBaseUrl } from "@/config/network"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
+import { isUSDTLikeToken } from "@/utils/constants"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -35,6 +37,8 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
   const [amount, setAmount] = useState("")
 
   const [depositError, setDepositError] = useState<string | undefined>()
+
+  const { connected: isConnectedToSafe } = useSafeAppsSDK()
 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
@@ -101,10 +105,22 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
 
   const handleApprove = () => {
     setTxHash("")
+
     if (depositStep === "InsufficientAllowance") {
-      approve(depositTokenAmount).then(() => {
-        modal.setFlowStep(ModalSteps.approved)
-      })
+      if (
+        marketAccount.underlyingApproval.gt(0) &&
+        isUSDTLikeToken(market.underlyingToken.address)
+      ) {
+        approve(depositTokenAmount.token.getAmount(0)).then(() => {
+          approve(depositTokenAmount).then(() => {
+            modal.setFlowStep(ModalSteps.approved)
+          })
+        })
+      } else {
+        approve(depositTokenAmount).then(() => {
+          modal.setFlowStep(ModalSteps.approved)
+        })
+      }
     }
   }
 
@@ -113,6 +129,11 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     handleDeposit()
     setShowErrorPopup(false)
   }
+
+  const mustResetAllowance =
+    depositStep === "InsufficientAllowance" &&
+    marketAccount.underlyingApproval.gt(0) &&
+    isUSDTLikeToken(market.underlyingToken.address)
 
   const disableApprove =
     !!depositError ||
@@ -130,7 +151,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     market.isClosed ||
     depositTokenAmount.raw.isZero() ||
     depositTokenAmount.raw.gt(market.maximumDeposit.raw) ||
-    depositStep === "InsufficientAllowance" ||
+    (depositStep === "InsufficientAllowance" && !isConnectedToSafe) ||
     depositStep === "InsufficientBalance" ||
     isApproving
 
@@ -159,6 +180,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
     }
     if (isDeposed) {
       setShowSuccessPopup(true)
+      setShowErrorPopup(false)
     }
   }, [isDepositError, isDeposed])
 
@@ -288,6 +310,24 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
               )}
             </Box>
 
+            {mustResetAllowance && (
+              <Box width="100%" height="100%" padding="0 24px">
+                <Typography variant="text3" color={COLORS.dullRed}>
+                  You have an existing allowance of{" "}
+                  {market.underlyingToken
+                    .getAmount(marketAccount.underlyingApproval)
+                    .format(market.underlyingToken.decimals, true)}{" "}
+                  for this market.
+                  <br />
+                  {market.underlyingToken.symbol} requires that allowances be
+                  reset to zero prior to being increased.
+                  <br />
+                  You will be prompted to execute two approval transactions to
+                  first reset and then increase the allowance for this market.
+                </Typography>
+              </Box>
+            )}
+
             <Box width="100%" height="100%" padding="0 24px">
               {modal.approvedStep && (
                 <ModalDataItem
@@ -329,8 +369,15 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
 
         <TxModalFooter
           mainBtnText={t("lenderMarketDetails.transactions.deposit.button")}
-          secondBtnText={isApprovedButton ? "Approved" : "Approve"}
-          secondBtnIcon={isApprovedButton}
+          secondBtnText={
+            // eslint-disable-next-line no-nested-ternary
+            isConnectedToSafe
+              ? undefined
+              : isApprovedButton
+                ? "Approved"
+                : "Approve"
+          }
+          secondBtnIcon={isApprovedButton && !isConnectedToSafe}
           mainBtnOnClick={handleDeposit}
           secondBtnOnClick={handleApprove}
           disableMainBtn={disableDeposit}

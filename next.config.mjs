@@ -100,6 +100,12 @@ const nextConfig = {
         hostname: 'tokens-data.1inch.io',
         port: '',
       },
+      {
+        protocol: 'https',
+        pathname: '/**',
+        hostname: '*.supabase.co',
+        port: '',
+      },
     ],
   },
 

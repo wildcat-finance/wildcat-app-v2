@@ -8,7 +8,6 @@ import {
   TokenAmount,
   WithdrawalBatch,
 } from "@wildcatfi/wildcat-sdk"
-import dayjs from "dayjs"
 import Link from "next/link"
 
 import LinkIcon from "@/assets/icons/link_icon.svg"
@@ -17,7 +16,11 @@ import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/s
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
-import { formatTokenWithCommas, trimAddress } from "@/utils/formatters"
+import {
+  formatTokenWithCommas,
+  timestampToDateFormatted,
+  trimAddress,
+} from "@/utils/formatters"
 
 import { DataGridCells, MarketWithdrawalRequetstCell } from "../style"
 
@@ -181,7 +184,7 @@ export const ClaimableTable = ({
         (request) => request.transactionHash,
       ),
       dateSubmitted: withdrawal.requests.map((request) =>
-        dayjs(request.blockTimestamp * 1000).format("DD-MMM-YYYY"),
+        timestampToDateFormatted(request.blockTimestamp),
       ),
       amount: getClaimableRequestAmounts(withdrawal),
     })),
