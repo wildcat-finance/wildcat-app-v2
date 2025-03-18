@@ -7,6 +7,7 @@ import { Box, IconButton, SvgIcon, Tab, Tabs, Typography } from "@mui/material"
 import Link from "next/link"
 import { useCopyToClipboard } from "react-use"
 
+import { HistoryTable } from "@/app/[locale]/sale/components/HistoryTable"
 import LineWithPrediction from "@/app/[locale]/sale/components/SaleChart"
 import { SaleChip } from "@/app/[locale]/sale/components/SaleChip"
 import { SaleSidebar } from "@/app/[locale]/sale/components/SaleSidebar"
@@ -470,6 +471,8 @@ export default function SaleTokenPage() {
               </Box>
             </>
           )}
+
+          {tab === "history" && <HistoryTable />}
         </Box>
       </Box>
     </Box>

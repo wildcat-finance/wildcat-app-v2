@@ -36,7 +36,6 @@ function CustomAnimatedLine(props: CustomAnimatedLineProps) {
 
   return (
     <>
-      {/* Clip to show the line before the limit */}
       <clipPath id={clipIdLeft}>
         <rect
           x={left}
@@ -45,7 +44,6 @@ function CustomAnimatedLine(props: CustomAnimatedLineProps) {
           height={top + height + bottom}
         />
       </clipPath>
-      {/* Clip to show the line after the limit */}
       <clipPath id={clipIdRight}>
         <rect
           x={limitPosition}
@@ -55,20 +53,19 @@ function CustomAnimatedLine(props: CustomAnimatedLineProps) {
         />
       </clipPath>
       <g clipPath={`url(#${clipIdLeft})`} className="line-before">
-        <AnimatedLine {...other} strokeWidth={2} />{" "}
-        {/* Установлена толщина основной линии 2px */}
+        <AnimatedLine {...other} strokeWidth={2} />
       </g>
       <g clipPath={`url(#${clipIdRight})`} className="line-after">
-        <AnimatedLine {...other} strokeWidth={1} />{" "}
-        {/* Установлена толщина пунктирной линии 1px */}
+        <AnimatedLine {...other} strokeWidth={1} />
       </g>
     </>
   )
 }
 
 export default function LineWithPrediction() {
-  const historicalData = [100, 80, 65, 50, 40, 35] // Исторические данные
-  const futureData = [30, 25, 22, 20] // Прогноз
+  const historicalData = [100, 80, 65, 50, 40, 35]
+  const futureData = [30, 25, 22, 20]
+  const lastRealIndex = historicalData.length - 1
 
   return (
     <LineChart
@@ -79,7 +76,7 @@ export default function LineWithPrediction() {
           showMark: false,
           data: [...historicalData, ...futureData],
           valueFormatter: (v, i) =>
-            `${v}${i.dataIndex >= historicalData.length ? " (estimated)" : ""}`,
+            `${v}${i.dataIndex > lastRealIndex ? " (estimated)" : ""}`,
         },
       ]}
       xAxis={[
@@ -89,51 +86,51 @@ export default function LineWithPrediction() {
             (_, i) => i * 2,
           ),
           valueFormatter: (time) => {
-            if (time === 6) return "Now"
+            if (time === 6) return "6am"
             if (time === 0) return "12am"
             if (time === 12) return "12pm"
             if (time === 18) return "6pm"
             return ""
           },
           tickLabelStyle: {
-            fontFamily: "inherit", // Шрифт Inter
-            fontWeight: 500, // Жирность 500
-            fontSize: "11px", // Размер 11px
-            lineHeight: "16px", // Высота строки 16px
-            fill: COLORS.greySuit, // Цвет текста
+            fontFamily: "inherit",
+            fontWeight: 500,
+            fontSize: "11px",
+            lineHeight: "16px",
+            fill: COLORS.greySuit,
           },
         },
       ]}
       height={370}
       slots={{ line: CustomAnimatedLine }}
-      slotProps={{ line: { limit: historicalData.length - 1 } as never }}
+      slotProps={{ line: { limit: lastRealIndex } as never }}
       sx={{
         pointerEvents: "none",
 
         "& .line-after path": {
-          strokeDasharray: "6 4", // Сделана пунктирная линия
+          strokeDasharray: "6 4",
           stroke: COLORS.blueRibbon,
-          strokeWidth: 1, // Установлена толщина пунктирной линии 1px
+          strokeWidth: 1,
         },
         "& .line-before path": {
-          strokeWidth: 2, // Установлена толщина основной линии 2px
+          strokeWidth: 2,
         },
         "& .MuiChartsAxis-bottom .MuiChartsAxis-line": {
-          stroke: COLORS.greySuit, // Изменен цвет нижней границы
+          stroke: COLORS.greySuit,
         },
         "& .MuiChartsAxis-bottom .MuiChartsAxis-tickLabel": {
-          fill: COLORS.greySuit, // Изменен цвет подписей на оси X
+          fill: COLORS.greySuit,
         },
         "& .MuiChartsGrid-lineHorizontal": {
-          strokeDasharray: "4 4", // Вертикальные линии пунктирные
-          stroke: COLORS.greySuit, // Цвет линий
+          strokeDasharray: "4 4",
+          stroke: COLORS.greySuit,
         },
       }}
       leftAxis={null}
       bottomAxis={{
         disableTicks: true,
       }}
-      grid={{ vertical: false, horizontal: true }} // Добавлены горизонтальные пунктирные линии
+      grid={{ vertical: false, horizontal: true }}
     />
   )
 }
