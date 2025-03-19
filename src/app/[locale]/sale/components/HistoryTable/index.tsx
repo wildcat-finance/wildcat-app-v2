@@ -2,18 +2,12 @@ import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
-import { TokenAmount } from "@wildcatfi/wildcat-sdk"
-import Link from "next/link"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
-import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
-import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
-import { getMarketStatusChip } from "@/utils/marketStatus"
-import { getMarketTypeChip } from "@/utils/marketType"
 
 export type HistoryTableModel = {
   name: string

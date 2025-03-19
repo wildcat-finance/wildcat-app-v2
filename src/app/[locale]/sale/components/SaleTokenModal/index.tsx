@@ -44,9 +44,14 @@ export const SaleTokenModalBox = ({
   </Box>
 )
 
-export const SaleTokenModal = () => {
+export type SaleTokenModalProps = {
+  tokenName: string
+  impact: string
+}
+
+export const SaleTokenModal = ({ tokenName, impact }: SaleTokenModalProps) => {
   const { isWrongNetwork } = useCurrentNetwork()
-  const { address, isConnected } = useAccount()
+  const { isConnected } = useAccount()
   const [openConnect, setOpenConnect] = useState(false)
   const [selectedToken, setSelectedToken] = useState<string>(
     "0x07c8082984e97f52744116ed7f58381da786ca5b",
@@ -154,7 +159,7 @@ export const SaleTokenModal = () => {
                 color={COLORS.whiteSmoke}
                 sx={{ opacity: 0.6 }}
               >
-                WLDC
+                {tokenName}
               </Typography>
             }
           />
@@ -245,7 +250,7 @@ export const SaleTokenModal = () => {
               <TooltipButton value="TBD" />
             </Box>
             <Typography variant="text4" color={COLORS.whiteLilac}>
-              3.784%
+              {impact}
             </Typography>
           </Box>
         </Box>
@@ -335,7 +340,7 @@ export const SaleTokenModal = () => {
               {amount}
             </Typography>
             <Typography variant="text4" color={COLORS.whiteLilac}>
-              WLDC
+              {tokenName}
             </Typography>
           </Box>
         </Box>
@@ -382,7 +387,7 @@ export const SaleTokenModal = () => {
               <TooltipButton value="TBD" />
             </Box>
             <Typography variant="text4" color={COLORS.whiteLilac}>
-              3.784%
+              {impact}
             </Typography>
           </Box>
         </Box>

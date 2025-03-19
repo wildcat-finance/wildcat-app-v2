@@ -13,11 +13,29 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
+const ButtonStyles = {
+  width: "106px",
+}
+
+const ProfileBoxStyles = {
+  display: "flex",
+  gap: "12px",
+  alignItems: "center",
+  cursor: "pointer",
+}
+
+const AvatarBoxStyles = {
+  width: "24px",
+  height: "24px",
+  borderRadius: "50%",
+  backgroundColor: COLORS.athensGrey,
+}
+
 const DropdownIcon = ({ open }: { open: boolean }) => (
   <SvgIcon
     sx={{
       transform: `rotate(${open ? "180deg" : "0deg"})`,
-      "& path": { fill: `${COLORS.santasGrey}` },
+      "& path": { fill: COLORS.santasGrey },
     }}
   >
     <Arrow />
@@ -45,7 +63,7 @@ export const SaleProfileButton = () => {
         <Button
           variant="contained"
           size="small"
-          sx={{ width: "106px" }}
+          sx={ButtonStyles}
           onClick={handleOpen}
         >
           Connect Wallet
@@ -58,23 +76,8 @@ export const SaleProfileButton = () => {
 
   return (
     <>
-      <Box
-        sx={{
-          display: "flex",
-          gap: "12px",
-          alignItems: "center",
-          cursor: "pointer",
-        }}
-        onClick={handleOpen}
-      >
-        <Box
-          sx={{
-            width: "24px",
-            height: "24px",
-            borderRadius: "50%",
-            backgroundColor: COLORS.athensGrey,
-          }}
-        />
+      <Box sx={ProfileBoxStyles} onClick={handleOpen}>
+        <Box sx={AvatarBoxStyles} />
 
         <Typography variant="text3">
           {isWrongNetwork ? "Wrong Network" : trimAddress(address)}
