@@ -303,7 +303,7 @@
     "parameters": {
       "marketAddress": "Market Address",
       "underlyingAsset": "Underlying Asset",
-      "marketTokenName": "Market Token Name",
+      "marketTokenName": "Market Token",
       "marketTokenPrefix": "Market Token Symbol",
       "maxBorrowingCapacity": "Max. Borrowing Capacity",
       "totalInterestAccrued": "Total Interest Accrued",

@@ -322,24 +322,43 @@ export const theme = createTheme({
         arrow: true,
       },
       styleOverrides: {
-        tooltip: () => ({
-          minWidth: "120px",
-          padding: "12px",
-          border: "none",
-          borderRadius: "8px",
+        tooltip: ({ ownerState }) => ({
+          ...(ownerState.arrow === true && {
+            minWidth: "120px",
+            padding: "12px",
+            border: "none",
+            borderRadius: "8px",
 
-          fontSize: 11,
-          fontWeight: 500,
-          lineHeight: "16px",
-          letterSpacing: "0.2px",
-          color: COLORS.white,
-          backgroundColor: COLORS.blackRock,
+            fontSize: 11,
+            fontWeight: 500,
+            lineHeight: "16px",
+            letterSpacing: "0.2px",
+            color: COLORS.white,
+            backgroundColor: COLORS.blackRock,
 
-          "& .MuiTooltip-arrow": {
-            height: "4px",
-            width: "10px",
-            color: COLORS.blackRock,
-          },
+            "& .MuiTooltip-arrow": {
+              height: "4px",
+              width: "10px",
+              color: COLORS.blackRock,
+            },
+          }),
+          ...(ownerState.arrow === false &&
+            ownerState.placement === "bottom-start" && {
+              padding: "2px 6px",
+              border: "none",
+              borderRadius: "6px",
+
+              fontSize: 11,
+              fontWeight: 500,
+              lineHeight: "16px",
+              letterSpacing: "0.2px",
+              color: COLORS.white,
+              backgroundColor: COLORS.bunker08,
+
+              "&.MuiTooltip-tooltip": {
+                marginTop: "0px !important",
+              },
+            }),
         }),
       },
     },
