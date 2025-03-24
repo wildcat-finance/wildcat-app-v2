@@ -49,7 +49,7 @@ export const LinkGroup = ({
               <div>
                 <Tooltip
                   arrow={false}
-                  placement="bottom-start"
+                  placement="left"
                   onClose={handleTooltipClose}
                   open={open}
                   disableFocusListener

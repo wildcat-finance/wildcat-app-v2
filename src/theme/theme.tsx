@@ -343,7 +343,7 @@ export const theme = createTheme({
             },
           }),
           ...(ownerState.arrow === false &&
-            ownerState.placement === "bottom-start" && {
+            ownerState.placement === "left" && {
               padding: "2px 6px",
               border: "none",
               borderRadius: "6px",
@@ -356,7 +356,7 @@ export const theme = createTheme({
               backgroundColor: COLORS.bunker08,
 
               "&.MuiTooltip-tooltip": {
-                marginTop: "0px !important",
+                margin: "0px !important",
               },
             }),
         }),
