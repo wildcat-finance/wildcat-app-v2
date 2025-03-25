@@ -343,7 +343,7 @@ export const theme = createTheme({
             },
           }),
           ...(ownerState.arrow === false &&
-            ownerState.placement === "left" && {
+            ownerState.placement === "right" && {
               padding: "2px 6px",
               border: "none",
               borderRadius: "6px",
@@ -357,6 +357,7 @@ export const theme = createTheme({
 
               "&.MuiTooltip-tooltip": {
                 margin: "0px !important",
+                marginLeft: "2px !important",
               },
             }),
         }),

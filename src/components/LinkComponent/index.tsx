@@ -27,13 +27,11 @@ export const LinkGroup = ({
   const { t } = useTranslation()
   const [state, copyToClipboard] = useCopyToClipboard()
   const [open, setOpen] = useState(false)
-
-  const handleTooltipClose = () => {
-    setOpen(false)
-  }
-
   const handleTooltipOpen = () => {
     setOpen(true)
+    setTimeout(() => {
+      setOpen(false)
+    }, 700)
   }
 
   const handleCopy = (value: string) => {
@@ -45,38 +43,33 @@ export const LinkGroup = ({
       return (
         <Box sx={{ ...ButtonsContainer, ...groupSX }}>
           {copyValue && (
-            <ClickAwayListener onClickAway={handleTooltipClose}>
-              <div>
-                <Tooltip
-                  arrow={false}
-                  placement="left"
-                  onClose={handleTooltipClose}
-                  open={open}
-                  disableFocusListener
-                  disableHoverListener
-                  disableTouchListener
-                  title="Copied"
-                  slotProps={{
-                    popper: {
-                      disablePortal: true,
-                    },
-                  }}
-                >
-                  <IconButton
-                    disableRipple
-                    sx={ButtonStyle}
-                    onClick={() => {
-                      handleCopy(copyValue)
-                      handleTooltipOpen()
-                    }}
-                  >
-                    <SvgIcon fontSize="medium">
-                      <Copy />
-                    </SvgIcon>
-                  </IconButton>
-                </Tooltip>
-              </div>
-            </ClickAwayListener>
+            <Tooltip
+              arrow={false}
+              placement="right"
+              open={open}
+              disableFocusListener
+              disableHoverListener
+              disableTouchListener
+              title="Copied"
+              slotProps={{
+                popper: {
+                  disablePortal: true,
+                },
+              }}
+            >
+              <IconButton
+                disableRipple
+                sx={ButtonStyle}
+                onClick={() => {
+                  handleCopy(copyValue)
+                  handleTooltipOpen()
+                }}
+              >
+                <SvgIcon fontSize="medium">
+                  <Copy />
+                </SvgIcon>
+              </IconButton>
+            </Tooltip>
           )}
 
           {linkValue && (
