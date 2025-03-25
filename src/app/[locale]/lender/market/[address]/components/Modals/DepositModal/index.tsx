@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
 
-import { Box, Button, Dialog, Typography } from "@mui/material"
+import { Box, Button, Dialog, Tooltip, Typography } from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
@@ -195,14 +195,34 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
 
   return (
     <>
-      <Button
-        onClick={modal.handleOpenModal}
-        variant="contained"
-        size="large"
-        sx={{ width: "152px" }}
-      >
-        {t("lenderMarketDetails.transactions.deposit.button")}
-      </Button>
+      {marketAccount.maximumDeposit.raw.isZero() ? (
+        <Tooltip
+          title="You don't have not enough tokens in your wallet"
+          placement="right"
+        >
+          <Box sx={{ display: "flex" }}>
+            <Button
+              onClick={modal.handleOpenModal}
+              variant="contained"
+              size="large"
+              sx={{ width: "152px" }}
+              disabled={marketAccount.maximumDeposit.raw.isZero()}
+            >
+              {t("lenderMarketDetails.transactions.deposit.button")}
+            </Button>
+          </Box>
+        </Tooltip>
+      ) : (
+        <Button
+          onClick={modal.handleOpenModal}
+          variant="contained"
+          size="large"
+          sx={{ width: "152px" }}
+          disabled={marketAccount.maximumDeposit.raw.isZero()}
+        >
+          {t("lenderMarketDetails.transactions.deposit.button")}
+        </Button>
+      )}
 
       <Dialog
         open={modal.isModalOpen}

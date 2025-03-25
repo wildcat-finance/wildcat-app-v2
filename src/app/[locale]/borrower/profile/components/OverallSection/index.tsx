@@ -120,9 +120,7 @@ export const OverallSection = ({
               <MarketParametersItem
                 title={t("borrowerProfile.profile.overallInfo.address")}
                 value={trimAddress(address) ?? ""}
-                handleCopy={() => {
-                  handleCopy(address)
-                }}
+                copy={address}
                 link={`${EtherscanBaseUrl}/address/${address}`}
               />
               <Divider sx={MarketParametersRowsDivider} />

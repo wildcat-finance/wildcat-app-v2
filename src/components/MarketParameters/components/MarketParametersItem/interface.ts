@@ -4,6 +4,6 @@ export type MarketParametersItemProps = {
   tooltipText?: string
   valueTooltipText?: string
   alarmState?: boolean
-  handleCopy?: () => void
+  copy?: string
   link?: string
 }
