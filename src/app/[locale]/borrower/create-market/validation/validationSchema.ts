@@ -103,11 +103,11 @@ export const marketValidationSchema = z
         if (value !== undefined) {
           const today = dayjs.unix(Date.now() / 1_000).startOf("day")
           const tomorrow = today.add(1, "day")
-          const oneYearFromNow = today.add(365, "days")
-          return value >= tomorrow.unix() && value <= oneYearFromNow.unix()
+          const twoYearsFromNow = today.add(730, "days")
+          return value >= tomorrow.unix() && value <= twoYearsFromNow.unix()
         }
         return true
-      }, `Must be between tomorrow and one year from now`),
+      }, `Must be between tomorrow and two years from now`),
     allowForceBuyBack: z.boolean(),
     allowClosureBeforeTerm: z.boolean().optional(),
     allowTermReduction: z.boolean().optional(),
