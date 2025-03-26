@@ -28,7 +28,10 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
       const { hooksInstances, hooksTemplates } = hooksData
       if (policyValue === "createNewPolicy") {
         const hooksTemplate = hooksTemplates.find(
-          (template) => template.kind === selectedHooksKind,
+          (template) =>
+            template.kind === selectedHooksKind &&
+            template.hooksTemplate.toLowerCase() !==
+              "0x7e49CabA6FB53CDc70CD98829731A2b8d76dfc36".toLowerCase(),
         )
         setSelectedHooksInstance(undefined)
         setSelectedHooksTemplate(hooksTemplate)
