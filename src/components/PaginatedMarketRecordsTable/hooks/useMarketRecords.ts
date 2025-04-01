@@ -35,23 +35,33 @@ export function useMarketRecords({
       )
     }
     const endEventIndex = Math.max(0, finalEventIndex - page * pageSize)
+    console.log(finalEventIndex, "finalEventIndex")
     console.log(`END EVENT INDEX: ${endEventIndex}`)
     console.log(`Page: ${page}`)
     console.log(kinds)
     console.log(`Page Size: ${pageSize}`)
+
     const records = await getMarketRecords(SubgraphClient, {
       market,
       fetchPolicy: "network-only",
       endEventIndex,
-      limit: pageSize,
+      limit: pageSize * 4,
       kinds: kinds?.length ? kinds : undefined,
     })
+
     console.log(`Records: ${records.length}`)
-    const newestEventIndex = Math.max(...records.map((r) => r.eventIndex + 1))
+
+    console.log(`Start Event Index: ${endEventIndex - pageSize}`)
+    console.log(`End Event Index: ${endEventIndex}`)
+
+    const newestEventIndex = Math.max(
+      ...records.slice(0, pageSize).map((r) => r.eventIndex + 1),
+    )
     if (newestEventIndex > finalEventIndex) {
       setFinalEventIndex(newestEventIndex)
     }
-    return records
+    records.sort((a, b) => b.eventIndex - a.eventIndex)
+    return records.slice(0, pageSize)
   }
   const { data, isLoading, error, isError } = useQuery({
     queryKey: [GET_MARKET_RECORDS_KEY, market.address, page, pageSize, kinds],
