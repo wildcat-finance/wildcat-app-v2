@@ -4,7 +4,7 @@ import { secondsToDays } from "@/utils/formatters"
 
 export enum MarketStatus {
   HEALTHY = "Healthy",
-  DELINQUENT = "Delinquent",
+  DELINQUENT = "Pending",
   PENALTY = "Penalty",
   TERMINATED = "Terminated",
 }
