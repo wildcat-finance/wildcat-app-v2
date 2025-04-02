@@ -63,12 +63,11 @@ export function useMarketRecords({
     }
     records.sort((a, b) => b.eventIndex - a.eventIndex)
 
-    console.log("DEBUG records", {
-      records,
-      sliced: records.slice(0, pageSize),
-    })
+    const startIndex = page * pageSize
+    const endIndex = startIndex + pageSize
+
     return {
-      records: records.slice(0, pageSize),
+      records: records.slice(startIndex, endIndex),
       totalRecords: records.length,
     }
   }

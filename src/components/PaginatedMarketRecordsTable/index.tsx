@@ -64,26 +64,15 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
   }
 
   const [startEventIndex, endEventIndex] = useMemo(() => {
-    if (
-      finalEventIndex === undefined ||
-      data === undefined ||
-      data.records.length === 0
-    ) {
+    if (!data?.records.length || data.totalRecords === undefined) {
       return [undefined, undefined]
     }
-    return [
-      finalEventIndex - data.records[0].eventIndex,
-      finalEventIndex - data.records[data.records.length - 1].eventIndex,
-    ]
-  }, [data, finalEventIndex])
 
-  console.log("DEBUG page", {
-    page,
-    data,
-    pageSize,
-    pagesCount,
-    rowCount: finalEventIndex,
-  })
+    const start = page * pageSize + 1
+    const end = Math.min(start + data.records.length - 1, data.totalRecords)
+
+    return [start, end]
+  }, [data, page, pageSize])
 
   return (
     <>
