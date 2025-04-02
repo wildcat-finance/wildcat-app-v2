@@ -32,6 +32,6 @@ echo "Removing $PACKAGE_NAME..."
 yarn remove $PACKAGE_NAME
 
 echo "Installing latest local build of $PACKAGE_NAME..."
-yarn add file:$(ls -t $WILDCAT_SDK_PATH | head -1)
+yarn add file:$(ls -t $WILDCAT_SDK_PATH | head -1) --no-cache
 
 echo "Installation complete!"

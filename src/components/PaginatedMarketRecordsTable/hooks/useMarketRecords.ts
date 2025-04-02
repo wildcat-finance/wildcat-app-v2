@@ -42,7 +42,7 @@ export function useMarketRecords({
     console.log(kinds)
     console.log(`Page Size: ${pageSize}`)
 
-    const { records, totalRecords } = await getMarketRecords(SubgraphClient, {
+    const records = await getMarketRecords(SubgraphClient, {
       market,
       fetchPolicy: "network-only",
       endEventIndex: finalEventIndex,
@@ -69,7 +69,7 @@ export function useMarketRecords({
     })
     return {
       records: records.slice(0, pageSize),
-      totalRecords,
+      totalRecords: records.length,
     }
   }
 
