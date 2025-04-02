@@ -67,15 +67,23 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
     if (
       finalEventIndex === undefined ||
       data === undefined ||
-      data.length === 0
+      data.records.length === 0
     ) {
       return [undefined, undefined]
     }
     return [
-      finalEventIndex - data[0].eventIndex,
-      finalEventIndex - data[data.length - 1].eventIndex,
+      finalEventIndex - data.records[0].eventIndex,
+      finalEventIndex - data.records[data.records.length - 1].eventIndex,
     ]
   }, [data, finalEventIndex])
+
+  console.log("DEBUG page", {
+    page,
+    data,
+    pageSize,
+    pagesCount,
+    rowCount: finalEventIndex,
+  })
 
   return (
     <>
@@ -117,13 +125,13 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
       </Box>
       <MarketRecordsTable
         market={market}
-        records={data}
+        records={data?.records}
         isLoading={isLoading}
         page={page}
         setPage={setPage}
         pageSize={pageSize}
         setPageSize={setPageSize}
-        rowCount={finalEventIndex}
+        rowCount={data?.totalRecords}
       />
 
       <div className="h-9 flex justify-between items-center bg-tint-9 px-6">

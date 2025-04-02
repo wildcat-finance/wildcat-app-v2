@@ -25,6 +25,7 @@ export function useMarketRecords({
   kinds,
 }: UseMarketRecordsProps) {
   const [finalEventIndex, setFinalEventIndex] = useState(market.eventIndex)
+
   const getMarketRecordsInternal = async () => {
     if (finalEventIndex === undefined) {
       console.error(
@@ -41,11 +42,11 @@ export function useMarketRecords({
     console.log(kinds)
     console.log(`Page Size: ${pageSize}`)
 
-    const records = await getMarketRecords(SubgraphClient, {
+    const { records, totalRecords } = await getMarketRecords(SubgraphClient, {
       market,
       fetchPolicy: "network-only",
-      endEventIndex,
-      limit: pageSize * 4,
+      endEventIndex: finalEventIndex,
+      limit: 500,
       kinds: kinds?.length ? kinds : undefined,
     })
 
@@ -61,14 +62,24 @@ export function useMarketRecords({
       setFinalEventIndex(newestEventIndex)
     }
     records.sort((a, b) => b.eventIndex - a.eventIndex)
-    return records.slice(0, pageSize)
+
+    console.log("DEBUG records", {
+      records,
+      sliced: records.slice(0, pageSize),
+    })
+    return {
+      records: records.slice(0, pageSize),
+      totalRecords,
+    }
   }
+
   const { data, isLoading, error, isError } = useQuery({
     queryKey: [GET_MARKET_RECORDS_KEY, market.address, page, pageSize, kinds],
     queryFn: getMarketRecordsInternal,
     enabled: true,
     refetchOnMount: false,
   })
+
   return {
     data,
     isLoading,
