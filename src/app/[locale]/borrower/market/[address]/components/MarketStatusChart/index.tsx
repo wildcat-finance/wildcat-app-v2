@@ -78,7 +78,7 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
         >
           <Typography variant="title3">
             {market.totalBorrowed &&
-              `${formatTokenWithCommas(market.totalDebts)}`}
+              `${formatTokenWithCommas(market.totalSupply)}`}
           </Typography>
           <Typography variant="text4" sx={{ marginTop: "4px" }}>
             {market.underlyingToken.symbol}
