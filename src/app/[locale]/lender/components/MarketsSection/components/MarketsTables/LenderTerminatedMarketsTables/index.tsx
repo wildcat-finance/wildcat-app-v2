@@ -87,7 +87,7 @@ export const LenderTerminatedMarketsTables = ({
         name,
         underlyingToken,
         annualInterestBips,
-        totalBorrowed,
+        totalSupply,
       } = market
 
       const borrower = borrowers?.find(
@@ -109,7 +109,7 @@ export const LenderTerminatedMarketsTables = ({
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
         loan: marketBalance,
-        debt: totalBorrowed,
+        debt: totalSupply,
         hasEverInteracted: account.hasEverInteracted,
       }
     })
