@@ -26,7 +26,7 @@ export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
     .filter((barId) => barRawData[barId] !== undefined)
     .map((barId) => barRawData[barId])
 
-  const { totalDebts } = marketAccount.market
+  const { totalSupply } = marketAccount.market
 
   return (
     <Box marginTop="12px">
@@ -43,7 +43,7 @@ export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
           }}
         >
           <Typography variant="title3">
-            {formatTokenWithCommas(totalDebts)}
+            {formatTokenWithCommas(totalSupply)}
           </Typography>
           <Typography variant="text4" sx={{ marginTop: "4px" }}>
             {marketAccount.market.underlyingToken.symbol}
@@ -51,7 +51,7 @@ export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
         </Box>
       </Box>
 
-      {totalDebts.gt(0) && (
+      {totalSupply.gt(0) && (
         <Box className="barchart__container">
           {bars.map((chartItem) => (
             <BarItem
@@ -63,7 +63,7 @@ export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
         </Box>
       )}
 
-      {totalDebts.gt(0) && (
+      {totalSupply.gt(0) && (
         <Box sx={{ display: "flex", gap: "28px", marginTop: "24px" }}>
           {legendItems.map((chartItem) => (
             <LenderLegendItem

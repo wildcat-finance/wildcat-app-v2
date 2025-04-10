@@ -21,6 +21,7 @@ import {
 } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { TablePagination } from "@/components/TablePagination"
 import { ROUTES } from "@/routes"
@@ -40,8 +41,6 @@ import {
 } from "@/utils/formatters"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
-
-import { MarketsTableAccordion } from "../../../../../../../../components/MarketsTableAccordion"
 
 export type LenderOtherMarketsTableModel = {
   id: string
@@ -104,8 +103,8 @@ export const OtherMarketsTables = ({
         borrower: borrowerAddress,
         underlyingToken,
         annualInterestBips,
-        totalDebts,
         maxTotalSupply,
+        totalSupply,
       } = market
 
       const borrower = (borrowers ?? []).find(
@@ -127,8 +126,8 @@ export const OtherMarketsTables = ({
         borrowerAddress,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
-        debt: totalDebts,
-        capacityLeft: maxTotalSupply.sub(totalDebts),
+        debt: totalSupply,
+        capacityLeft: maxTotalSupply.sub(totalSupply),
         isSelfOnboard:
           !account.hasEverInteracted &&
           market.version === MarketVersion.V2 &&
