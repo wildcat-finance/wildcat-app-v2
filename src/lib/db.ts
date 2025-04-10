@@ -334,5 +334,6 @@ export async function getBorrowerProfile(
     jurisdiction: borrower.jurisdiction || undefined,
     physicalAddress: borrower.physicalAddress || undefined,
     entityKind: borrower.entityKind || undefined,
+    avatar: borrower.avatar || undefined,
   }
 }

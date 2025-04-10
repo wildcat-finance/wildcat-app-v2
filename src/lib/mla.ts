@@ -8,7 +8,6 @@ import {
   WithdrawalAccess,
   Token,
 } from "@wildcatfi/wildcat-sdk"
-import dayjs from "dayjs"
 import { toUtf8Bytes } from "ethers/lib/utils"
 import humanizeDuration from "humanize-duration"
 import { getAddress, keccak256 } from "viem"
@@ -18,7 +17,8 @@ import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import { ACCEPT_MLA_MESSAGE } from "@/config/mla-acceptance"
 import { TargetChainId } from "@/config/network"
-import { formatBps } from "@/utils/formatters"
+import { dayjs } from "@/utils/dayjs"
+import { formatBps, formatUnixMsAsDate } from "@/utils/formatters"
 
 type NetworkData = {
   chainId?: number
@@ -221,7 +221,7 @@ const toUnixMs = (value: number): number => {
 
 export const formatDate = (value: number | undefined): string | undefined => {
   if (value === undefined) return undefined
-  return dayjs(toUnixMs(value)).format("MMMM DD, YYYY")
+  return formatUnixMsAsDate(toUnixMs(value))
 }
 
 export const formatDuration = (

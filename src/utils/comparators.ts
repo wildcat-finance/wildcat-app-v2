@@ -118,5 +118,12 @@ export const dateComparator = (v1: string, v2: string): number => {
   return date1.getTime() - date2.getTime()
 }
 
-export const tokenAmountComparator = (v1: TokenAmount, v2: TokenAmount) =>
-  v1.gte(v2) ? 1 : -1
+export const tokenAmountComparator = (v1: TokenAmount, v2: TokenAmount) => {
+  if (v1.decimals !== v2.decimals) {
+    const v1Num = +v1.toFixed(v1.decimals)
+    const v2Num = +v2.toFixed(v2.decimals)
+    return v1Num - v2Num
+  }
+
+  return v1.gte(v2) ? 1 : -1
+}

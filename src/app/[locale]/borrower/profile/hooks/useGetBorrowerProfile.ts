@@ -33,6 +33,7 @@ export const useGetBorrowerProfile = (address: `0x${string}` | undefined) =>
     queryKey: [BORROWER_PROFILE_KEY, address],
     queryFn: () => fetchBorrowerProfile(address),
     enabled: !!address,
+    refetchOnMount: false,
   })
 
 export const useInvalidateBorrowerProfile = (

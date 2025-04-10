@@ -27,9 +27,9 @@ export const MarketStatusChip = ({
       }
       break
     }
-    case "Delinquent": {
+    case "Pending": {
       chipConfig = {
-        label: "Delinquent",
+        label: "Pending",
         icon: <Clock />,
         backgroundColor: COLORS.oasis,
         fontColor: variant === "text" ? COLORS.galliano : COLORS.butteredRum,
@@ -100,7 +100,7 @@ export const MarketStatusChip = ({
               color: chipConfig.fontColor,
             }}
           />
-          {(status.status === "Penalty" || status.status === "Delinquent") && (
+          {(status.status === "Penalty" || status.status === "Pending") && (
             <Arrow
               fill={chipConfig.fontColor}
               style={{ position: "relative", top: "-2px" }}

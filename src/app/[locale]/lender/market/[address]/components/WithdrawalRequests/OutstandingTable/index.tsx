@@ -3,14 +3,16 @@ import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
-import dayjs from "dayjs"
 import { useTranslation } from "react-i18next"
 
 import { DataGridCells } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/style"
 import { TableProps } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests/interface"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
 import { COLORS } from "@/theme/colors"
-import { formatTokenWithCommas } from "@/utils/formatters"
+import {
+  formatTokenWithCommas,
+  timestampToDateFormatted,
+} from "@/utils/formatters"
 
 export const OutstandingTable = ({
   withdrawals,
@@ -27,9 +29,7 @@ export const OutstandingTable = ({
         id: withdrawal.id,
         lender: withdrawal.address,
         transactionId: withdrawal.transactionHash,
-        dateSubmitted: dayjs(withdrawal.blockTimestamp * 1000).format(
-          "DD-MMM-YYYY",
-        ),
+        dateSubmitted: timestampToDateFormatted(withdrawal.blockTimestamp),
         amount: formatTokenWithCommas(
           withdrawal.getNormalizedAmountOwed(status.batch),
           { withSymbol: true },

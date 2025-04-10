@@ -1,6 +1,5 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import dayjs from "dayjs"
 import { useRouter } from "next/navigation"
 
 import { SignAgreementProps } from "@/app/[locale]/agreement/hooks/useSignAgreement"
@@ -9,13 +8,12 @@ import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.js
 import { useAuthToken } from "@/hooks/useApiAuth"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { ROUTES } from "@/routes"
+import { formatUnixMsAsDate } from "@/utils/formatters"
 
 import {
   USE_BORROWER_INVITE_EXISTS_KEY,
   USE_BORROWER_INVITE_KEY,
 } from "../../hooks/useBorrowerInvitation"
-
-const DATE_FORMAT = "MMMM DD, YYYY"
 
 export const useSubmitAcceptInvitation = () => {
   const { sdk, connected: safeConnected } = useSafeAppsSDK()
@@ -33,7 +31,7 @@ export const useSubmitAcceptInvitation = () => {
       if (!token) throw Error(`No token`)
 
       const sign = async () => {
-        const dateSigned = dayjs(timeSigned).format(DATE_FORMAT)
+        const dateSigned = formatUnixMsAsDate(timeSigned)
         let agreementText = AgreementText
         if (dateSigned) {
           agreementText = `${agreementText}\n\nDate: ${dateSigned}`

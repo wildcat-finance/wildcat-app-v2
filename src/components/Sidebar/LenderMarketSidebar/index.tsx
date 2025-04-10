@@ -102,24 +102,22 @@ export const LenderMarketSidebar = () => {
               {t("lenderMarketDetails.sidebar.status")}
             </Button>
 
-            {isLender && (
-              <Button
-                variant="text"
-                size="medium"
-                onClick={() =>
-                  handleChangeSection(LenderMarketSections.BORROWER_PROFILE)
-                }
-                sx={{
-                  ...MenuItemButton,
-                  backgroundColor:
-                    currentSection === LenderMarketSections.BORROWER_PROFILE
-                      ? COLORS.whiteSmoke
-                      : "transparent",
-                }}
-              >
-                {t("lenderMarketDetails.sidebar.borrowerProfile")}
-              </Button>
-            )}
+            <Button
+              variant="text"
+              size="medium"
+              onClick={() =>
+                handleChangeSection(LenderMarketSections.BORROWER_PROFILE)
+              }
+              sx={{
+                ...MenuItemButton,
+                backgroundColor:
+                  currentSection === LenderMarketSections.BORROWER_PROFILE
+                    ? COLORS.whiteSmoke
+                    : "transparent",
+              }}
+            >
+              {t("lenderMarketDetails.sidebar.borrowerProfile")}
+            </Button>
 
             <Button
               variant="text"
