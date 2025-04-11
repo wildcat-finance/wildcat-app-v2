@@ -3,17 +3,23 @@ import { useAccount } from "wagmi"
 
 import { TargetChainId } from "@/config/network"
 
+import { useEthersProvider } from "./useEthersSigner"
+
 export const checkIsWrongNetwork = (
   currentChainId: SupportedChainId | undefined,
 ) => currentChainId !== TargetChainId
 
 export const useCurrentNetwork = () => {
-  const { chain: accountChain } = useAccount()
+  const { isTestnet: defaultIsTestnet, chain: defaultChain } =
+    useEthersProvider()
+  const { chain: accountChain, isConnected } = useAccount()
+
+  const activeChain = isConnected ? accountChain : defaultChain
 
   return {
-    chainId: accountChain?.id,
-    networkName: accountChain?.name,
-    isWrongNetwork: checkIsWrongNetwork(accountChain?.id),
-    isTestnet: accountChain?.testnet,
+    chainId: activeChain?.id,
+    networkName: activeChain?.name,
+    isWrongNetwork: checkIsWrongNetwork(activeChain?.id),
+    isTestnet: isConnected ? accountChain?.testnet : defaultIsTestnet,
   }
 }
