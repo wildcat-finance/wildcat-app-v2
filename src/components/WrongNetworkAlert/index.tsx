@@ -4,7 +4,7 @@ import { Box, Button, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useSwitchChain } from "wagmi"
 
-import { TargetChainId } from "@/config/network"
+import { TargetChainId, TargetNetwork } from "@/config/network"
 
 import { AlertContainer, ButtonStyle, PageContainer } from "./style"
 
@@ -28,7 +28,8 @@ export const WrongNetworkAlert = () => {
           color="#8A8C9F"
           sx={{ marginBottom: "24px" }}
         >
-          Try switching to another network to explore more markets.
+          Switch to {TargetChainId === 1 ? "Ethereum" : "Sepolia"} to explore
+          the markets.
         </Typography>
 
         <Button
