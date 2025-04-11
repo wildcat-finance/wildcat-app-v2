@@ -23,6 +23,7 @@ import {
   SmallFilterSelect,
   SmallFilterSelectItem,
 } from "@/components/SmallFilterSelect"
+import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
 import { TargetChainId } from "@/config/network"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -181,22 +182,41 @@ export const MarketsSection = () => {
 
   useEffect(() => {
     dispatch(
-      setSectionAmount({ name: "deposited", value: depositedMarketsAmount }),
+      setSectionAmount({
+        name: "deposited",
+        value: isWrongNetwork ? 0 : depositedMarketsAmount,
+      }),
     )
     dispatch(
       setSectionAmount({
         name: "nonDeposited",
-        value: nonDepositedMarketsAmount,
+        value: isWrongNetwork ? 0 : nonDepositedMarketsAmount,
       }),
     )
-    dispatch(setSectionAmount({ name: "prevActive", value: prevActiveAmount }))
     dispatch(
-      setSectionAmount({ name: "neverActive", value: neverActiveAmount }),
+      setSectionAmount({
+        name: "prevActive",
+        value: isWrongNetwork ? 0 : prevActiveAmount,
+      }),
     )
     dispatch(
-      setSectionAmount({ name: "selfOnboard", value: selfOnboardAmount }),
+      setSectionAmount({
+        name: "neverActive",
+        value: isWrongNetwork ? 0 : neverActiveAmount,
+      }),
     )
-    dispatch(setSectionAmount({ name: "manual", value: manualAmount }))
+    dispatch(
+      setSectionAmount({
+        name: "selfOnboard",
+        value: isWrongNetwork ? 0 : selfOnboardAmount,
+      }),
+    )
+    dispatch(
+      setSectionAmount({
+        name: "manual",
+        value: isWrongNetwork ? 0 : manualAmount,
+      }),
+    )
   }, [
     depositedMarketsAmount,
     nonDepositedMarketsAmount,
@@ -204,6 +224,7 @@ export const MarketsSection = () => {
     neverActiveAmount,
     selfOnboardAmount,
     manualAmount,
+    isWrongNetwork,
   ])
 
   return (
@@ -314,7 +335,8 @@ export const MarketsSection = () => {
 
       {marketSection === BorrowerMarketDashboardSections.ACTIVE &&
         showFullFunctionality &&
-        !noMarkets && (
+        !noMarkets &&
+        !isWrongNetwork && (
           <BorrowerActiveMarketsTables
             marketAccounts={filteredActiveBorrowerMarkets}
             isLoading={isLoading}
@@ -324,7 +346,8 @@ export const MarketsSection = () => {
 
       {marketSection === BorrowerMarketDashboardSections.TERMINATED &&
         showFullFunctionality &&
-        !noMarkets && (
+        !noMarkets &&
+        !isWrongNetwork && (
           <BorrowerTerminatedMarketsTables
             marketAccounts={filteredTerminatedBorrowerMarkets}
             isLoading={isLoading}
@@ -341,13 +364,7 @@ export const MarketsSection = () => {
           />
         )}
 
-      {isWrongNetwork && (
-        <Box sx={{ padding: "24px" }}>
-          <Typography variant="title3">
-            {t("dashboard.markets.noMarkets.wrongNetwork")}
-          </Typography>
-        </Box>
-      )}
+      {isWrongNetwork && <WrongNetworkAlert />}
     </Box>
   )
 }
