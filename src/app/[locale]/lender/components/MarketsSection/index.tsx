@@ -360,6 +360,14 @@ export const MarketsSection = () => {
           />
         )}
 
+      {isWrongNetwork && (
+        <Box sx={{ padding: "24px" }}>
+          <Typography variant="title3">
+            {t("dashboard.markets.noMarkets.wrongNetwork")}
+          </Typography>
+        </Box>
+      )}
+
       {noActiveMarkets &&
         !isLoading &&
         !noMarketsAtAll &&
