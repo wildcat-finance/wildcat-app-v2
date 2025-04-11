@@ -38,7 +38,7 @@ export const WrongNetworkAlert = () => {
           sx={ButtonStyle}
           onClick={handleSwitchChain}
         >
-          Switch to {TargetChainId === 1 ? "Ethereum" : "Sepolia"}
+          Switch Network
         </Button>
       </Box>
     </Box>
