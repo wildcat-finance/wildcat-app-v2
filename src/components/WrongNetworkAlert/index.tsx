@@ -26,7 +26,7 @@ export const WrongNetworkAlert = () => {
         <Typography
           variant="text3"
           color="#8A8C9F"
-          sx={{ maxWidth: "298px", marginBottom: "24px" }}
+          sx={{ marginBottom: "24px" }}
         >
           Try switching to another network to explore more markets.
         </Typography>
