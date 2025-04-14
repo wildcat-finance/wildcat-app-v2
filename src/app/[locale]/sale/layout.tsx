@@ -1,6 +1,6 @@
 import { Box } from "@mui/material"
 
-import { SaleHeader } from "@/app/[locale]/sale/components/SaleHeader"
+import { SideAppHeader } from "@/components/SideAppHeader"
 
 export default function SaleLayout({
   children,
@@ -9,7 +9,7 @@ export default function SaleLayout({
 }) {
   return (
     <Box>
-      <SaleHeader />
+      <SideAppHeader />
       {children}
     </Box>
   )

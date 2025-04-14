@@ -42,7 +42,15 @@ const DropdownIcon = ({ open }: { open: boolean }) => (
   </SvgIcon>
 )
 
-export const SaleProfileButton = () => {
+export type SideAppProfileButtonProps = {
+  theme?: "light" | "dark"
+}
+
+export const SideAppProfileButton = ({
+  theme = "light",
+}: SideAppProfileButtonProps) => {
+  const isLightTheme = theme === "light"
+
   const { address, isConnected } = useAccount()
   const { data } = useGetBorrowerProfile(address)
   const { isWrongNetwork } = useCurrentNetwork()
@@ -62,6 +70,7 @@ export const SaleProfileButton = () => {
       <>
         <Button
           variant="contained"
+          color={isLightTheme ? "primary" : "secondary"}
           size="small"
           sx={ButtonStyles}
           onClick={handleOpen}
@@ -79,7 +88,10 @@ export const SaleProfileButton = () => {
       <Box sx={ProfileBoxStyles} onClick={handleOpen}>
         <Box sx={AvatarBoxStyles} />
 
-        <Typography variant="text3">
+        <Typography
+          variant="text3"
+          color={isLightTheme ? COLORS.bunker : COLORS.white}
+        >
           {isWrongNetwork ? "Wrong Network" : trimAddress(address)}
         </Typography>
 

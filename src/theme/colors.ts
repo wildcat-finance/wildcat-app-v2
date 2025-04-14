@@ -16,6 +16,7 @@ export const COLORS = {
   iron: "#D6D6DE",
   whiteLilac: "#E6E7EB",
   athensGrey: "#EFF0F4",
+  athensGrey01: "#EFF0F41A",
   whiteSmoke: "#F4F4F8",
   blackHaze: "#F6F6F7",
   hintOfRed: "#F9F9FA",
@@ -26,6 +27,7 @@ export const COLORS = {
   white03: "#FFFFFF4D",
   white04: "#FFFFFF66",
   white06: "#FFFFFF99",
+  concreetGrey: "#8A8C9F",
 
   dullRed: "#C24647",
   dullRed08: "#C24647CC",
@@ -37,7 +39,9 @@ export const COLORS = {
 
   butteredRum: "#9E7A11",
   galliano: "#D7A820",
+  galliano04: "#D7A82066",
   oasis: "#FBEDC3",
+  citrus: "#FFF5D7",
 
   ultramarineBlue: "#3E68FF",
   blueRibbon: "#4971FF",
@@ -46,4 +50,8 @@ export const COLORS = {
   hawkesBlue: "#D2DDFF",
   glitter: "#E4EBFE",
   lightGreen: "#E4F5E0",
+
+  freshGrass: "#28CA7C",
+  forestGreen: "#19965A",
+  salad: "#D1FAE6",
 }
