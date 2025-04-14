@@ -28,3 +28,13 @@ export const DataGridCells = {
   "& .MuiDataGrid-cell": { padding: "0px 8px", cursor: "default" },
   "& .MuiDataGrid-columnHeader": { padding: "0px 8px" },
 }
+
+export const NumberOfLenders = {
+  width: "100%",
+  display: "flex",
+  flexDirection: "column",
+  gap: "8px",
+  borderRadius: "8px",
+  backgroundColor: COLORS.hintOfRed,
+  padding: "8px 12px",
+}

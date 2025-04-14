@@ -46,6 +46,7 @@ import {
   MarketWithdrawalRequestsContainer,
   MarketWithdrawalRequetstCell,
   MLATableButton,
+  NumberOfLenders,
 } from "./style"
 import { useGetMarketLenders } from "../../hooks/useGetMarketLenders"
 import { ForceBuyBackModal } from "../Modals/ForceBuyBackModal"
@@ -333,6 +334,10 @@ export const MarketAuthorisedLenders = ({
     ? [...commonColumns, ...mlaColumns]
     : commonColumns
 
+  const lendersInMarket = authorizedRows.filter(
+    (lender) => parseFloat(lender.balance.split(" ")[0].replace(/,/g, "")) > 0,
+  ).length
+
   if (isLoading) {
     return (
       <Box sx={MarketWithdrawalRequestsContainer} id="lenders">
@@ -428,6 +433,25 @@ export const MarketAuthorisedLenders = ({
               </Link>
             )}
           </Box>
+
+          <Box sx={{ width: "100%", display: "flex", gap: "11px" }}>
+            <Box sx={NumberOfLenders}>
+              <Typography variant="text4" color={COLORS.santasGrey}>
+                Number of Lenders
+              </Typography>
+              <Typography variant="text1">{authorizedRows.length}</Typography>
+            </Box>
+
+            <Box sx={NumberOfLenders}>
+              <Typography variant="text4" color={COLORS.santasGrey}>
+                Lenders Currently in the Market
+              </Typography>
+              <Typography variant="text1" color={COLORS.ultramarineBlue}>
+                {lendersInMarket}
+              </Typography>
+            </Box>
+          </Box>
+
           <DataGrid
             sx={{
               ...DataGridCells,
