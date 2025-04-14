@@ -196,10 +196,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
   return (
     <>
       {marketAccount.maximumDeposit.raw.isZero() ? (
-        <Tooltip
-          title="You don't have not enough tokens in your wallet"
-          placement="right"
-        >
+        <Tooltip title="Market is at full capacity" placement="right">
           <Box sx={{ display: "flex" }}>
             <Button
               onClick={modal.handleOpenModal}
