@@ -5,13 +5,17 @@ import { useEffect, useState } from "react"
 import {
   Box,
   Button,
+  Divider,
   InputAdornment,
   TextField,
   Typography,
 } from "@mui/material"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
+import { ParametersItem } from "@/app/[locale]/airdrop/[allocation]/Parameters/components/ParametersItem"
+import { AirdropChip } from "@/app/[locale]/airdrop/components/AirdropChip"
 import Icon from "@/assets/icons/wildcatAllocation_icon.png"
 import { COLORS } from "@/theme/colors"
 
@@ -46,6 +50,12 @@ const AddressTextfieldStyle = {
       padding: "14px 0",
     },
 
+    "&.Mui-error": {
+      borderColor: COLORS.carminePink,
+      color: COLORS.white,
+      backgroundColor: "#F7575726",
+    },
+
     "&.Mui-disabled": {
       border: `1px solid #E6E7EB33`,
       color: COLORS.whiteLilac,
@@ -59,6 +69,26 @@ const AddressTextfieldStyle = {
   },
 }
 
+const ActivateButtonStyle = {
+  marginTop: "24px",
+  backgroundColor: COLORS.ultramarineBlue,
+  color: COLORS.white,
+  "&:hover": {
+    backgroundColor: COLORS.blueRibbon,
+    color: COLORS.white,
+  },
+}
+
+const ViewButtonStyle = {
+  marginTop: "24px",
+  backgroundColor: COLORS.glitter,
+  color: COLORS.ultramarineBlue,
+  "&:hover": {
+    backgroundColor: COLORS.hawkesBlue,
+    color: COLORS.ultramarineBlue,
+  },
+}
+
 const TextfieldButton = ({
   state,
   onClick,
@@ -68,8 +98,6 @@ const TextfieldButton = ({
   onClick: () => void
   disabled: boolean
 }) => {
-  const a = ""
-
   if (!state)
     return (
       <Button
@@ -117,11 +145,31 @@ const TextfieldButton = ({
   return null
 }
 
-export default function AirdropPage() {
-  const mockAllocation = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+const mockAllocations = [
+  {
+    address: "00000",
+    status: "non-active",
+  },
+  {
+    address: "11111",
+    status: "active",
+  },
+  {
+    address: "22222",
+    status: "expired",
+  },
+]
 
+export default function AirdropPage() {
   const [address, setAddress] = useState<string>("")
   const [hasFullAddress, setHasFullAddress] = useState<boolean>(false)
+  const [error, setError] = useState<string | undefined>(undefined)
+
+  const router = useRouter()
+
+  const handleClickView = () => {
+    router.push(`/airdrop/${address}`)
+  }
 
   const handleChangeFullAddress = () => {
     setHasFullAddress(!hasFullAddress)
@@ -131,9 +179,24 @@ export default function AirdropPage() {
     setAddress(event.target.value)
   }
 
+  const handleResetAddress = () => {
+    setAddress("")
+  }
+
+  // mock logic
+
+  const allocation = mockAllocations.find((a) => a.address === address)
+
   useEffect(() => {
     setHasFullAddress(false)
+    setError(undefined)
   }, [address])
+
+  useEffect(() => {
+    if (hasFullAddress && !allocation) {
+      setError("‣ No Allocation Found. Try another one.")
+    }
+  }, [hasFullAddress])
 
   return (
     <Box
@@ -149,7 +212,7 @@ export default function AirdropPage() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          margin: "auto",
+          margin: "25vh auto 0px",
 
           width: "100%",
           maxWidth: "600px",
@@ -186,19 +249,85 @@ export default function AirdropPage() {
           onChange={handleChangeAddress}
           fullWidth
           placeholder="Enter address to check eligibility"
+          error={!!error}
+          helperText={error}
           sx={AddressTextfieldStyle}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
                 <TextfieldButton
                   state={hasFullAddress}
-                  onClick={handleChangeFullAddress}
+                  onClick={
+                    hasFullAddress
+                      ? handleResetAddress
+                      : handleChangeFullAddress
+                  }
                   disabled={!address}
                 />
               </InputAdornment>
             ),
           }}
         />
+
+        {hasFullAddress && allocation && (
+          <Box
+            sx={{
+              width: "100%",
+              borderRadius: "16px",
+              padding: "24px",
+              backgroundColor: COLORS.white,
+              marginTop: "9px",
+            }}
+          >
+            <ParametersItem
+              title="Alloaction"
+              value={
+                <AirdropChip
+                  type={
+                    allocation.status as "non-active" | "active" | "expired"
+                  }
+                />
+              }
+            />
+
+            <Divider sx={{ width: "100%", margin: "12px 0" }} />
+
+            <ParametersItem
+              title="Amount"
+              value="15,000 WETH"
+              tooltipText="TBD"
+            />
+
+            <Divider sx={{ width: "100%", margin: "12px 0" }} />
+
+            <ParametersItem
+              title="Amount Claimed"
+              value="0 WETH"
+              tooltipText="TBD"
+            />
+
+            <Divider sx={{ width: "100%", margin: "12px 0" }} />
+
+            <ParametersItem title="Claimable Amount" value="0 WETH" />
+
+            {allocation.status !== "expired" && (
+              <Link href={`/airdrop/${address}`}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  sx={
+                    allocation.status === "non-active"
+                      ? ActivateButtonStyle
+                      : ViewButtonStyle
+                  }
+                >
+                  {allocation.status === "non-active" ? "Activate" : "View"}
+                </Button>
+              </Link>
+            )}
+          </Box>
+        )}
       </Box>
     </Box>
   )
