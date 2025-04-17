@@ -1435,5 +1435,36 @@
         }
       }
     }
+  },
+  "airdrop": {
+    "title": "Airdrop",
+    "subtitle": "Airdrop",
+    "button": "Add Details",
+    "allocation": {
+      "allocation": "Allocation",
+      "amount": "Amount",
+      "chainId": "Chain ID",
+      "contract": "Contract",
+      "claimStartDate": "Claim Start Date",
+      "durationWeeks": "Duration Weeks",
+      "initialUnlock": "Initial Unlock",
+      "amountClaimed": "Amount Claimed",
+      "claimableAmount": "Claimable Amount",
+      "claim": "Claim",
+      "yourAddress": "Your Address",
+      "tryAnother": "Try Another",
+      "showLess": "Show Less",
+      "showMore": "Show More",
+      "youHaveAllocation": "You have Wildcat {{amount}} Allocation"
+    },
+    "claimCard": {
+    "totalAllocation": "Общее распределение",
+    "contractAddress": "Адрес контракта",
+    "copyAddress": "Копировать адрес",
+      "availableToClaim": "Available to claim",
+      "claim": "Claim",
+      "nextClaimOn": "Next claim on",
+      "claimed": "Claimed"
+    }
   }
 }
