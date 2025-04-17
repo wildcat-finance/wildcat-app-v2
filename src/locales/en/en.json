@@ -1455,12 +1455,16 @@
       "tryAnother": "Try Another",
       "showLess": "Show Less",
       "showMore": "Show More",
-      "youHaveAllocation": "You have Wildcat {{amount}} Allocation"
+      "youHaveAllocation": "You have Wildcat {{amount}} Allocation",
+      "detailedInfo": "Detailed Info",
+      "tokenDelegation": "Token Delegation",
+      "giveAnotherWallet": "Give another wallet limited access to manage or claim your tokens — you stay in control and can revoke access anytime",
+      "delegateTokens": "Delegate Tokens"
     },
     "claimCard": {
-    "totalAllocation": "Общее распределение",
-    "contractAddress": "Адрес контракта",
-    "copyAddress": "Копировать адрес",
+      "totalAllocation": "Total Allocation",
+      "contractAddress": "Contract Address",
+      "copyAddress": "Copy Address",
       "availableToClaim": "Available to claim",
       "claim": "Claim",
       "nextClaimOn": "Next claim on",

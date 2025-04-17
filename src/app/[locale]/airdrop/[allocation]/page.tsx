@@ -1,107 +1,97 @@
 "use client"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { COLORS } from "@/theme/colors"
 
+import { AllocationBox } from "./AllocationBox"
 import { ClaimCard } from "./ClaimCard"
 import { Parameters } from "./Parameters"
+import {
+  mainBox,
+  leftBox,
+  rightBox,
+  footerText,
+  containerBox,
+  leftTitle,
+  rightTitle,
+} from "./style"
 import { AllocationAlert } from "../components/AllocationAlert"
 
-export default function AirdropPage() {
+export default function AllocationPage() {
   const { t } = useTranslation()
+  const theme = useTheme()
+  const breakpoint = theme.breakpoints
+  const isMobile = useMediaQuery(breakpoint.down("sm"))
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        width: "100%",
-        height: "calc(100vh - 60px)",
-        padding: "8px",
-      }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          width: "100%",
-          gap: "8px",
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            flex: 1,
-            flexDirection: "column",
-            padding: "28px 16px",
-            height: "100%",
-            width: "100%",
-            gap: "12px",
-            justifyContent: "space-between",
-            backgroundColor: COLORS.white,
-            borderRadius: "12px",
-            overflow: "scroll",
-          }}
-        >
+    <Box sx={containerBox(theme)}>
+      <Box sx={mainBox(theme)}>
+        <Box sx={leftBox(theme)}>
           <Box sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <Typography
               variant="text2"
-              sx={{ color: COLORS.black }}
+              sx={leftTitle(theme)}
               textAlign="center"
             >
-              {t("airdrop.allocation.yourAddress")}
+              {isMobile
+                ? t("airdrop.allocation.detailedInfo")
+                : t("airdrop.allocation.yourAddress")}
             </Typography>
-            <Box
-              sx={{
-                display: "flex",
-                padding: "12px",
-                backgroundColor: COLORS.glitter,
-                borderRadius: "12px",
-                gap: "12px",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Typography variant="text2" sx={{ color: COLORS.blueRibbon }}>
-                87453gqhrq-485hrq8gv4rb
-              </Typography>
-              <Button
-                variant="text"
-                size="small"
-                sx={{ color: COLORS.blueRibbon }}
-              >
-                {t("airdrop.allocation.tryAnother")}
-              </Button>
-            </Box>
+            {!isMobile && (
+              <AllocationBox allocation="87453gqhrq-485hrq8gv4rb" />
+            )}
             <Parameters />
           </Box>
-          <Typography variant="text4" color={COLORS.santasGrey}>
+          <Typography
+            sx={footerText(theme)}
+            variant="text4"
+            color={COLORS.santasGrey}
+          >
             {t("footer.rights")}
           </Typography>
         </Box>
-        <Box
-          sx={{
-            display: "flex",
-            flex: 2,
-            flexDirection: "column",
-            padding: "16px 28px",
-            height: "100%",
-            width: "100%",
-            backgroundColor: COLORS.white,
-            borderRadius: "12px",
-          }}
-        >
+        <Box sx={rightBox(theme)}>
+          {isMobile && <AllocationBox allocation="87453gqhrq-485hrq8gv4rb" />}
           <Typography
             variant="title3"
             textAlign="center"
-            sx={{ color: COLORS.black }}
+            sx={rightTitle(theme)}
           >
             {t("airdrop.allocation.youHaveAllocation", {
               amount: "1",
             })}
           </Typography>
           <AllocationAlert type="expired" date="18-03-25 13:24:56" />
-          <ClaimCard />
+          <Box
+            display="flex"
+            flexDirection="column"
+            margin="0 auto"
+            gap="42px"
+            maxWidth="550px"
+          >
+            <ClaimCard />
+            <Box
+              display="flex"
+              flexDirection="column"
+              gap="20px"
+              alignItems="center"
+              textAlign="center"
+            >
+              <Box display="flex" flexDirection="column" gap="12px">
+                <Typography variant="text1" color={COLORS.blackRock}>
+                  {t("airdrop.allocation.tokenDelegation")}
+                </Typography>
+                <Typography variant="text3" color={COLORS.concreetGrey}>
+                  {t("airdrop.allocation.giveAnotherWallet")}
+                </Typography>
+              </Box>
+              <Button variant="contained">
+                {t("airdrop.allocation.delegateTokens")}
+              </Button>
+            </Box>
+          </Box>
         </Box>
       </Box>
     </Box>
