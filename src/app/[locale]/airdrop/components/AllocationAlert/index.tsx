@@ -8,6 +8,7 @@ export type AllocationAlertProps = {
   date?: string
   account?: string
   connectedAccount?: string
+  handleActivate?: () => void
 }
 
 export const AllocationAlert = ({
@@ -15,6 +16,7 @@ export const AllocationAlert = ({
   date,
   account,
   connectedAccount,
+  handleActivate,
 }: AllocationAlertProps) => {
   let alertConfig: {
     title: string
@@ -146,6 +148,7 @@ export const AllocationAlert = ({
               backgroundColor: alertConfig.button.hover,
             },
           }}
+          onClick={handleActivate}
         >
           {alertConfig.button.title}
         </Button>

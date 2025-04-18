@@ -14,8 +14,9 @@ export const mainBox = (theme: Theme): SxProps<Theme> => ({
   display: "flex",
   width: "100%",
   gap: "8px",
+  flexDirection: "row-reverse",
   [theme.breakpoints.down("sm")]: {
-    flexDirection: "column-reverse",
+    flexDirection: "column",
     gap: "0px",
     height: "calc(100% - 0.1px)",
     overflow: "scroll",
@@ -40,6 +41,8 @@ export const leftBox = (theme: Theme): SxProps<Theme> => ({
     borderRadius: "0px",
     height: "max-content",
     padding: "0px",
+    flex: "unset",
+    gap: "8px",
   },
 })
 
@@ -65,13 +68,15 @@ export const rightBox = (theme: Theme): SxProps<Theme> => ({
     borderRadius: "0px",
     height: "max-content",
     padding: "0px",
+    flex: "unset",
+    gap: "10px",
   },
 })
 
 export const rightTitle = (theme: Theme): SxProps<Theme> => ({
   color: COLORS.black,
   [theme.breakpoints.down("sm")]: {
-    marginTop: "32px",
+    marginTop: "22px",
   },
 })
 

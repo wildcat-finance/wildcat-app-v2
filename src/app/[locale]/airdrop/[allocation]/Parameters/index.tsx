@@ -3,6 +3,7 @@
 import { useState } from "react"
 
 import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
+import { useParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
@@ -17,11 +18,25 @@ import { AirdropChip } from "../../components/AirdropChip"
 export const Parameters = () => {
   const { t } = useTranslation()
   const [showMore, setShowMore] = useState(false)
+  const { allocation } = useParams()
+
+  const getStatus = () => {
+    switch (allocation) {
+      case "22222":
+        return "expired"
+      case "00000":
+        return "non-active"
+      case "11111":
+        return "active"
+      default:
+        return "text"
+    }
+  }
 
   const mainParameters = [
     {
       title: t("airdrop.allocation.allocation"),
-      value: <AirdropChip type="active" text="Active" />,
+      value: <AirdropChip type={getStatus()} text="Active" />,
     },
     {
       title: t("airdrop.allocation.amount"),
