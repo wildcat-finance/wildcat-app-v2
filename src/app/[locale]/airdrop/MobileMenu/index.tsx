@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react"
+import { Dispatch, SetStateAction, useEffect, useState } from "react"
 
 import {
   Box,
@@ -9,7 +9,9 @@ import {
   SvgIcon,
 } from "@mui/material"
 
+import { MobileConnectWallet } from "@/app/[locale]/airdrop/components/MobileConnectWallet"
 import Menu from "@/assets/icons/burgerMenu_icon.svg"
+import Cross from "@/assets/icons/cross_icon.svg"
 import { COLORS } from "@/theme/colors"
 
 export type MobileMenuProps = {
@@ -31,17 +33,34 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
     setIsOpen(!open)
   }
 
+  const [openConnect, setOpenConnect] = useState<boolean>(false)
+
+  const handleCloseConnect = () => {
+    setOpenConnect(false)
+  }
+
+  console.log(openConnect)
+
   return (
     <>
       <IconButton
         onClick={handleToggleModal}
         sx={{
           marginLeft: { xs: "12px", sm: "0" },
-          display: { xs: "block", sm: "none" },
+          display: { xs: "flex", sm: "none" },
+          width: "40px",
+          height: "40px",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        <SvgIcon sx={{ fontSize: "40px" }}>
-          <Menu />
+        <SvgIcon
+          sx={{
+            fontSize: !open ? "40px" : "30px",
+            "& path": { fill: COLORS.white },
+          }}
+        >
+          {!open || openConnect ? <Menu /> : <Cross />}
         </SvgIcon>
       </IconButton>
 
@@ -50,8 +69,8 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
         onClose={handleToggleModal}
         fullWidth
         sx={{
+          height: openConnect ? "0px" : "calc(100vh - 68px)",
           marginTop: "auto",
-          height: "calc(100vh - 73.5px)",
 
           "& .MuiPaper-root.MuiDialog-paper": {
             margin: "0 4px auto",
@@ -60,7 +79,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
           },
           "& .MuiBackdrop-root": {
             marginTop: "auto",
-            height: "calc(100vh - 73.5px)",
+            height: "calc(100vh - 68px)",
             backgroundColor: "transparent",
             backdropFilter: "blur(20px)",
           },
@@ -79,6 +98,27 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
             App
           </Button>
         </Box>
+
+        <Button
+          size="large"
+          onClick={() => setOpenConnect(true)}
+          sx={{
+            marginTop: "6px",
+            backgroundColor: COLORS.ultramarineBlue,
+            color: COLORS.white,
+            "&:hover": {
+              backgroundColor: COLORS.blueRibbon,
+              color: COLORS.white,
+            },
+          }}
+        >
+          Connect
+        </Button>
+
+        <MobileConnectWallet
+          open={openConnect}
+          handleClose={handleCloseConnect}
+        />
       </Dialog>
     </>
   )

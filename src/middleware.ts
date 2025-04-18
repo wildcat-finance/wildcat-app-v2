@@ -8,7 +8,7 @@ export async function middleware(request: NextRequest) {
   const userAgent = request.headers.get("user-agent") || ""
   const isMobile = /android|iphone|ipad|mobile/i.test(userAgent)
 
-  if (isMobile) {
+  if (false) {
     return new NextResponse(
       `
       <html>

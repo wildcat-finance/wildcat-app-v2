@@ -168,12 +168,6 @@ export default function AirdropPage() {
   const [hasFullAddress, setHasFullAddress] = useState<boolean>(false)
   const [error, setError] = useState<string | undefined>(undefined)
 
-  const router = useRouter()
-
-  const handleClickView = () => {
-    router.push(`/airdrop/${address}`)
-  }
-
   const handleChangeFullAddress = () => {
     setHasFullAddress(!hasFullAddress)
   }
@@ -215,7 +209,7 @@ export default function AirdropPage() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          margin: "25vh auto 0px",
+          margin: "15vh auto 0px",
 
           width: "100%",
           maxWidth: "600px",
@@ -229,6 +223,7 @@ export default function AirdropPage() {
         />
 
         <Typography
+          textAlign="center"
           variant="title1"
           color={COLORS.white}
           sx={{ marginBottom: "10px", marginTop: "15px" }}
@@ -238,6 +233,7 @@ export default function AirdropPage() {
 
         <Typography
           variant="text1"
+          textAlign="center"
           color={COLORS.white06}
           sx={{ marginBottom: "32px" }}
         >
@@ -253,7 +249,6 @@ export default function AirdropPage() {
           fullWidth
           placeholder="Enter address to check eligibility"
           error={!!error}
-          helperText={error}
           sx={AddressTextfieldStyle}
           InputProps={{
             endAdornment: (
@@ -271,6 +266,61 @@ export default function AirdropPage() {
             ),
           }}
         />
+
+        {!hasFullAddress && address && (
+          <Button
+            variant="contained"
+            color="secondary"
+            fullWidth
+            sx={{
+              borderRadius: "32px",
+              padding: "16px 28.5px",
+              fontSize: "14px",
+              lineHeight: "20px",
+              display: { xs: "block", sm: "none" },
+            }}
+            onClick={handleChangeFullAddress}
+            disabled={!address}
+          >
+            Check Address
+          </Button>
+        )}
+
+        {!!error && (
+          <Button
+            fullWidth
+            variant="contained"
+            color="secondary"
+            sx={{
+              borderRadius: "32px",
+              padding: "16px 28.5px",
+              fontSize: "14px",
+              lineHeight: "20px",
+
+              backgroundColor: "#FFFFFF33",
+              color: COLORS.white,
+              display: { xs: "block", sm: "none" },
+
+              "&:hover": {
+                background: COLORS.white01,
+                boxShadow: "none",
+              },
+            }}
+            onClick={handleResetAddress}
+          >
+            Try Again
+          </Button>
+        )}
+
+        {!!error && (
+          <Typography
+            variant="text3"
+            color={COLORS.white}
+            sx={{ padding: "12px 20px 0", width: "100%" }}
+          >
+            {error}
+          </Typography>
+        )}
 
         {hasFullAddress && allocation && (
           <Box
