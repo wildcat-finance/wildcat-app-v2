@@ -2,10 +2,14 @@
 
 import { useState } from "react"
 
-import { Box, Button, Divider } from "@mui/material"
+import { Box, Button, Divider, useMediaQuery } from "@mui/material"
 import Link from "next/link"
+import { userAgent } from "next/server"
+import { useAccount } from "wagmi"
 
+import { MobileConnectWallet } from "@/app/[locale]/airdrop/components/MobileConnectWallet"
 import { MobileMenu } from "@/app/[locale]/airdrop/MobileMenu"
+import { SaleConnectWalletDialog } from "@/app/[locale]/sale/components/SaleConnectWalletDialog"
 import LogoWhite from "@/assets/icons/logo_new_white.svg"
 import LogoBlack from "@/assets/icons/sale_logo_black.svg"
 import { ROUTES } from "@/routes"
@@ -60,7 +64,19 @@ export type SideAppHeaderProps = {
 export const SideAppHeader = ({ theme = "light" }: SideAppHeaderProps) => {
   const isLightTheme = theme === "light"
 
+  const isMobile = useMediaQuery("(max-width:600px)")
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false)
+  const [open, setOpen] = useState(false)
+  const handleClose = () => {
+    setOpen(false)
+  }
+
+  const handleOpen = () => {
+    setOpen(true)
+  }
+
+  const { address, isConnected } = useAccount()
 
   return (
     <Box
@@ -150,7 +166,27 @@ export const SideAppHeader = ({ theme = "light" }: SideAppHeaderProps) => {
           }}
         />
 
-        {!isMobileMenuOpen && <SideAppProfileButton theme={theme} />}
+        {!isConnected && !isMobileMenuOpen && (
+          <>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              sx={{
+                width: "106px",
+              }}
+              onClick={handleOpen}
+            >
+              Connect Wallet
+            </Button>
+
+            {isMobile ? (
+              <MobileConnectWallet open={open} handleClose={handleClose} />
+            ) : (
+              <SaleConnectWalletDialog open={open} handleClose={handleClose} />
+            )}
+          </>
+        )}
 
         <MobileMenu open={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
       </Box>
