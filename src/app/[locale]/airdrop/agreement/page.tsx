@@ -1,8 +1,11 @@
 "use client"
 
+import { useEffect } from "react"
+
 import { Box, Button, Typography, useTheme } from "@mui/material"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import {
   containerBox,
@@ -13,12 +16,22 @@ import {
   whiteGradientBox,
 } from "./style"
 
+const HAS_SIGNED_AIRDROP_KEY = "hasSignedAirdrop"
+
 export default function AgreementPage() {
   const theme = useTheme()
   const { t } = useTranslation()
   const router = useRouter()
+  const { address } = useAccount()
+
+  useEffect(() => {
+    if (address) {
+      router.back()
+    }
+  }, [address, router])
 
   const handleSignAndConfirm = () => {
+    localStorage.setItem(HAS_SIGNED_AIRDROP_KEY, "true")
     router.back()
   }
 

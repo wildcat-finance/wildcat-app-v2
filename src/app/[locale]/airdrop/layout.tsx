@@ -1,18 +1,33 @@
 "use client"
 
+import { useEffect } from "react"
+
 import { Box, Typography } from "@mui/material"
+import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import Background from "@/assets/pictures/overviewBG.webp"
 import { SideAppHeader } from "@/components/SideAppHeader"
 import { COLORS } from "@/theme/colors"
+
+const HAS_SIGNED_AIRDROP_KEY = "hasSignedAirdrop"
 
 export default function AirdropLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const { address } = useAccount()
   const { t } = useTranslation()
+  const router = useRouter()
+  const agreementSigned = localStorage.getItem(HAS_SIGNED_AIRDROP_KEY)
+
+  useEffect(() => {
+    if (address && !agreementSigned) {
+      router.push("/airdrop/agreement")
+    }
+  }, [address, agreementSigned, router])
 
   return (
     <Box sx={{ height: "-webkit-fill-available" }}>
