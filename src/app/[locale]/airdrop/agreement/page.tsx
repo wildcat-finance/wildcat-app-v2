@@ -22,13 +22,6 @@ export default function AgreementPage() {
   const theme = useTheme()
   const { t } = useTranslation()
   const router = useRouter()
-  const { address } = useAccount()
-
-  useEffect(() => {
-    if (address) {
-      router.back()
-    }
-  }, [address, router])
 
   const handleSignAndConfirm = () => {
     localStorage.setItem(HAS_SIGNED_AIRDROP_KEY, "true")
