@@ -1,11 +1,8 @@
 "use client"
 
-import { useEffect } from "react"
-
 import { Box, Button, Typography, useTheme } from "@mui/material"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
-import { useAccount } from "wagmi"
 
 import {
   containerBox,

@@ -51,6 +51,10 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
     disconnect()
   }
 
+  if (!isConnected) {
+    return null
+  }
+
   return (
     <>
       <IconButton
