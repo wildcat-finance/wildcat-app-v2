@@ -99,38 +99,40 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
           },
         }}
       >
-        <Box
-          sx={{
-            width: "100%",
-            borderRadius: "20px",
-            padding: "6px 4px",
-            backgroundColor: COLORS.whiteSmoke,
-            display: "flex",
-            alignItems: "center",
-            marginBottom: "6px",
-          }}
-        >
+        {isConnected && address && (
           <Box
             sx={{
-              width: "24px",
-              height: "24px",
-              borderRadius: "50%",
-              backgroundColor: COLORS.santasGrey,
-              marginRight: "7px",
+              width: "100%",
+              borderRadius: "20px",
+              padding: "6px 4px",
+              backgroundColor: COLORS.whiteSmoke,
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "6px",
             }}
-          />
-
-          <Typography variant="text3">
-            {trimAddress(address as string, 30)}
-          </Typography>
-
-          <Box marginLeft="auto" paddingRight="8px">
-            <LinkGroup
-              linkValue={`${EtherscanBaseUrl}/address/${address}`}
-              copyValue={address}
+          >
+            <Box
+              sx={{
+                width: "24px",
+                height: "24px",
+                borderRadius: "50%",
+                backgroundColor: COLORS.santasGrey,
+                marginRight: "7px",
+              }}
             />
+
+            <Typography variant="text3">
+              {trimAddress(address as string, 30)}
+            </Typography>
+
+            <Box marginLeft="auto" paddingRight="8px">
+              <LinkGroup
+                linkValue={`${EtherscanBaseUrl}/address/${address}`}
+                copyValue={address}
+              />
+            </Box>
           </Box>
-        </Box>
+        )}
 
         <Box sx={{ padding: "0 6px" }}>
           <Button size="large" fullWidth sx={TextButtonStyles}>
