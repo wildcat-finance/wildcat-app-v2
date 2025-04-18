@@ -1,13 +1,19 @@
-import { Box } from "@mui/material"
+"use client"
+
+import { Box, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import Background from "@/assets/pictures/overviewBG.webp"
 import { SideAppHeader } from "@/components/SideAppHeader"
+import { COLORS } from "@/theme/colors"
 
 export default function AirdropLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const { t } = useTranslation()
+
   return (
     <Box sx={{ height: "-webkit-fill-available" }}>
       <Box
@@ -27,6 +33,17 @@ export default function AirdropLayout({
       />
       <SideAppHeader theme="dark" />
       {children}
+      <Typography
+        sx={{
+          display: { xs: "block", md: "none" },
+          textAlign: "center",
+          pb: "10px",
+        }}
+        variant="text4"
+        color={COLORS.white06}
+      >
+        {t("footer.rights")}
+      </Typography>
     </Box>
   )
 }

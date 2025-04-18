@@ -7,7 +7,9 @@ export const containerBox = (theme: Theme): SxProps<Theme> => ({
   width: "100%",
   height: "calc(100vh - 60px)",
   padding: "8px",
-  [theme.breakpoints.down("sm")]: {},
+  [theme.breakpoints.down("sm")]: {
+    height: "calc(100vh - 96px)",
+  },
 })
 
 export const mainBox = (theme: Theme): SxProps<Theme> => ({
@@ -37,12 +39,14 @@ export const leftBox = (theme: Theme): SxProps<Theme> => ({
   justifyContent: "space-between",
   backgroundColor: COLORS.white,
   borderRadius: "12px",
+  overflow: "scroll",
   [theme.breakpoints.down("sm")]: {
     borderRadius: "0px",
     height: "max-content",
     padding: "0px",
     flex: "unset",
     gap: "8px",
+    overflow: "unset",
   },
 })
 
@@ -64,12 +68,14 @@ export const rightBox = (theme: Theme): SxProps<Theme> => ({
   backgroundColor: COLORS.white,
   borderRadius: "12px",
   gap: "20px",
+  overflow: "scroll",
   [theme.breakpoints.down("sm")]: {
     borderRadius: "0px",
     height: "max-content",
     padding: "0px",
     flex: "unset",
     gap: "10px",
+    overflow: "unset",
   },
 })
 

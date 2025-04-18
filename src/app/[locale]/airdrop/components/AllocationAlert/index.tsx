@@ -111,9 +111,19 @@ export const AllocationAlert = ({
         backgroundColor: alertConfig.backgroundColor,
         justifyContent: "space-between",
         alignItems: "center",
+        flexDirection: { xs: "column", md: "row" },
+        gap: { xs: "20px", md: "0px" },
       }}
     >
-      <Box sx={{ display: "flex", gap: "12px" }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: "12px",
+          flexDirection: { xs: "column", md: "row" },
+          alignItems: { xs: "center", md: "flex-start" },
+          textAlign: { xs: "center", md: "left" },
+        }}
+      >
         <SvgIcon
           sx={{ marginTop: "2px", "& path": { fill: alertConfig.iconColor } }}
         >
@@ -142,6 +152,7 @@ export const AllocationAlert = ({
             color: alertConfig.button.color,
             border: alertConfig.button.border,
             background: alertConfig.button.background,
+            width: { xs: "100%", md: "auto" },
 
             "&:hover": {
               color: alertConfig.button.color,

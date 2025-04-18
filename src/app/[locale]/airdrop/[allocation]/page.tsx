@@ -84,6 +84,7 @@ export default function AllocationPage() {
                 alignItems="center"
                 textAlign="center"
                 px={{ md: "0px", xs: "12px" }}
+                pb={{ md: "0px", xs: "12px" }}
               >
                 <Box
                   display="flex"
