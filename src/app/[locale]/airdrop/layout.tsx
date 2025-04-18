@@ -18,16 +18,16 @@ export default function AirdropLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { address } = useAccount()
+  const { address, isConnected } = useAccount()
   const { t } = useTranslation()
   const router = useRouter()
   const agreementSigned = localStorage.getItem(HAS_SIGNED_AIRDROP_KEY)
 
   useEffect(() => {
-    if (address && !agreementSigned) {
+    if (address && isConnected && !agreementSigned) {
       router.push("/airdrop/agreement")
     }
-  }, [address, agreementSigned, router])
+  }, [address, agreementSigned, isConnected, router])
 
   return (
     <Box sx={{ height: "-webkit-fill-available" }}>
