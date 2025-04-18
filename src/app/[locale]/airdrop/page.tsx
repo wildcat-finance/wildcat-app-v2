@@ -108,6 +108,7 @@ const TextfieldButton = ({
           padding: "10px 28.5px",
           fontSize: "14px",
           lineHeight: "20px",
+          display: { xs: "none", sm: "block" },
         }}
         onClick={onClick}
         disabled={disabled}
@@ -134,6 +135,8 @@ const TextfieldButton = ({
             background: COLORS.white01,
             boxShadow: "none",
           },
+
+          display: { xs: "none", sm: "block" },
         }}
         onClick={onClick}
         disabled={disabled}
@@ -239,7 +242,7 @@ export default function AirdropPage() {
           sx={{ marginBottom: "32px" }}
         >
           Claim tokens of your Wildcat Network Allocations.{" "}
-          <Link href="#" style={{ color: COLORS.white }}>
+          <Link href="https://wildcat.finance/" style={{ color: COLORS.white }}>
             Learn more
           </Link>
         </Typography>

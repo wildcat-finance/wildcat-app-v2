@@ -1,8 +1,11 @@
 "use client"
 
+import { useState } from "react"
+
 import { Box, Button, Divider } from "@mui/material"
 import Link from "next/link"
 
+import { MobileMenu } from "@/app/[locale]/airdrop/MobileMenu"
 import LogoWhite from "@/assets/icons/logo_new_white.svg"
 import LogoBlack from "@/assets/icons/sale_logo_black.svg"
 import { ROUTES } from "@/routes"
@@ -29,11 +32,13 @@ const LinksContainerStyles = {
 }
 
 const OutlinedButtonStyles = {
+  display: { xs: "none", sm: "flex" },
   padding: "6px 12px",
   minWidth: "fit-content",
 }
 
 const TextButtonStyles = {
+  display: { xs: "none", sm: "flex" },
   padding: 0,
   minWidth: "fit-content",
   "&:hover": {
@@ -43,6 +48,7 @@ const TextButtonStyles = {
 }
 
 const DividerStyles = {
+  display: { xs: "none", sm: "flex" },
   height: "28px",
   margin: "0 16px",
 }
@@ -53,6 +59,8 @@ export type SideAppHeaderProps = {
 
 export const SideAppHeader = ({ theme = "light" }: SideAppHeaderProps) => {
   const isLightTheme = theme === "light"
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false)
 
   return (
     <Box
@@ -142,7 +150,9 @@ export const SideAppHeader = ({ theme = "light" }: SideAppHeaderProps) => {
           }}
         />
 
-        <SideAppProfileButton theme={theme} />
+        {!isMobileMenuOpen && <SideAppProfileButton theme={theme} />}
+
+        <MobileMenu open={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
       </Box>
     </Box>
   )
