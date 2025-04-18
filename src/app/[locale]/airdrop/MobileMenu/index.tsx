@@ -9,6 +9,7 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
+import Link from "next/link"
 import { useAccount, useDisconnect } from "wagmi"
 
 import { MobileConnectWallet } from "@/app/[locale]/airdrop/components/MobileConnectWallet"
@@ -16,6 +17,7 @@ import Menu from "@/assets/icons/burgerMenu_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
+import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
@@ -135,17 +137,29 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
         )}
 
         <Box sx={{ padding: "0 6px" }}>
-          <Button size="large" fullWidth sx={TextButtonStyles}>
-            Help
-          </Button>
+          <Link
+            href="https://x.com/functi0nZer0"
+            style={{ display: "flex", textDecoration: "none" }}
+          >
+            <Button size="large" fullWidth sx={TextButtonStyles}>
+              Help
+            </Button>
+          </Link>
           <Divider sx={{ width: "100%" }} />
-          <Button size="large" fullWidth sx={TextButtonStyles}>
-            Docs
-          </Button>
+          <Link
+            href="https://docs.wildcat.finance/"
+            style={{ display: "flex", textDecoration: "none" }}
+          >
+            <Button size="large" fullWidth sx={TextButtonStyles}>
+              Docs
+            </Button>
+          </Link>
           <Divider sx={{ width: "100%" }} />
-          <Button size="large" fullWidth sx={TextButtonStyles}>
-            App
-          </Button>
+          <Link href={ROUTES.lender.root} style={{ textTransform: "none" }}>
+            <Button size="large" fullWidth sx={TextButtonStyles}>
+              App
+            </Button>
+          </Link>
         </Box>
 
         {isConnected ? (

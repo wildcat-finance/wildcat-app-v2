@@ -89,13 +89,13 @@ export const SideAppHeader = ({ theme = "light" }: SideAppHeaderProps) => {
         borderBottom: isLightTheme ? `1px solid ${COLORS.athensGrey}` : "none",
       }}
     >
-      <Link href={ROUTES.sale} style={{ height: "32px" }}>
+      <Link href={ROUTES.lender.root} style={{ height: "32px" }}>
         {isLightTheme ? <LogoBlack /> : <LogoWhite />}
       </Link>
 
       <Box sx={ButtonContainerStyles}>
         <Box sx={LinksContainerStyles}>
-          <Link href={ROUTES.lender.root}>
+          <Link href={ROUTES.lender.root} style={{ textTransform: "none" }}>
             <Button
               variant="outlined"
               color="secondary"
