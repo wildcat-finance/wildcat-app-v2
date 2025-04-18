@@ -7,12 +7,17 @@ import {
   Divider,
   IconButton,
   SvgIcon,
+  Typography,
 } from "@mui/material"
+import { useAccount, useDisconnect } from "wagmi"
 
 import { MobileConnectWallet } from "@/app/[locale]/airdrop/components/MobileConnectWallet"
 import Menu from "@/assets/icons/burgerMenu_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
+import { LinkGroup } from "@/components/LinkComponent"
+import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
+import { trimAddress } from "@/utils/formatters"
 
 export type MobileMenuProps = {
   open: boolean
@@ -29,6 +34,8 @@ const TextButtonStyles = {
 }
 
 export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
+  const { address, isConnected } = useAccount()
+
   const handleToggleModal = () => {
     setIsOpen(!open)
   }
@@ -39,7 +46,10 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
     setOpenConnect(false)
   }
 
-  console.log(openConnect)
+  const { disconnect } = useDisconnect()
+  const handleClickDisconnect = () => {
+    disconnect()
+  }
 
   return (
     <>
@@ -85,6 +95,39 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
           },
         }}
       >
+        <Box
+          sx={{
+            width: "100%",
+            borderRadius: "20px",
+            padding: "6px 4px",
+            backgroundColor: COLORS.whiteSmoke,
+            display: "flex",
+            alignItems: "center",
+            marginBottom: "6px",
+          }}
+        >
+          <Box
+            sx={{
+              width: "24px",
+              height: "24px",
+              borderRadius: "50%",
+              backgroundColor: COLORS.santasGrey,
+              marginRight: "7px",
+            }}
+          />
+
+          <Typography variant="text3">
+            {trimAddress(address as string, 30)}
+          </Typography>
+
+          <Box marginLeft="auto" paddingRight="8px">
+            <LinkGroup
+              linkValue={`${EtherscanBaseUrl}/address/${address}`}
+              copyValue={address}
+            />
+          </Box>
+        </Box>
+
         <Box sx={{ padding: "0 6px" }}>
           <Button size="large" fullWidth sx={TextButtonStyles}>
             Help
@@ -99,21 +142,34 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
           </Button>
         </Box>
 
-        <Button
-          size="large"
-          onClick={() => setOpenConnect(true)}
-          sx={{
-            marginTop: "6px",
-            backgroundColor: COLORS.ultramarineBlue,
-            color: COLORS.white,
-            "&:hover": {
-              backgroundColor: COLORS.blueRibbon,
+        {isConnected ? (
+          <Button
+            fullWidth
+            variant="contained"
+            color="secondary"
+            size="large"
+            onClick={handleClickDisconnect}
+            sx={{ marginTop: "6px" }}
+          >
+            Disconnect
+          </Button>
+        ) : (
+          <Button
+            size="large"
+            onClick={() => setOpenConnect(true)}
+            sx={{
+              marginTop: "6px",
+              backgroundColor: COLORS.ultramarineBlue,
               color: COLORS.white,
-            },
-          }}
-        >
-          Connect
-        </Button>
+              "&:hover": {
+                backgroundColor: COLORS.blueRibbon,
+                color: COLORS.white,
+              },
+            }}
+          >
+            Connect
+          </Button>
+        )}
 
         <MobileConnectWallet
           open={openConnect}

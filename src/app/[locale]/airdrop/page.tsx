@@ -6,9 +6,12 @@ import {
   Box,
   Button,
   Divider,
+  IconButton,
   InputAdornment,
+  SvgIcon,
   TextField,
   Typography,
+  useMediaQuery,
 } from "@mui/material"
 import Image from "next/image"
 import Link from "next/link"
@@ -16,6 +19,7 @@ import { useRouter } from "next/navigation"
 
 import { ParametersItem } from "@/app/[locale]/airdrop/[allocation]/Parameters/components/ParametersItem"
 import { AirdropChip } from "@/app/[locale]/airdrop/components/AirdropChip"
+import Cross from "@/assets/icons/cross_icon.svg"
 import Icon from "@/assets/icons/wildcatAllocation_icon.png"
 import { COLORS } from "@/theme/colors"
 
@@ -167,6 +171,7 @@ export default function AirdropPage() {
   const [address, setAddress] = useState<string>("")
   const [hasFullAddress, setHasFullAddress] = useState<boolean>(false)
   const [error, setError] = useState<string | undefined>(undefined)
+  const isMobile = useMediaQuery("(max-width:600px)")
 
   const handleChangeFullAddress = () => {
     setHasFullAddress(!hasFullAddress)
@@ -253,15 +258,43 @@ export default function AirdropPage() {
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <TextfieldButton
-                  state={hasFullAddress}
-                  onClick={
-                    hasFullAddress
-                      ? handleResetAddress
-                      : handleChangeFullAddress
-                  }
-                  disabled={!address}
-                />
+                {!isMobile && (
+                  <TextfieldButton
+                    state={hasFullAddress}
+                    onClick={
+                      hasFullAddress
+                        ? handleResetAddress
+                        : handleChangeFullAddress
+                    }
+                    disabled={!address}
+                  />
+                )}
+                {isMobile && address && (
+                  <IconButton
+                    sx={{
+                      borderRadius: "32px",
+                      padding: "10px",
+
+                      backgroundColor: "#FFFFFF33",
+                      color: COLORS.white,
+
+                      "&:hover": {
+                        background: COLORS.white01,
+                        boxShadow: "none",
+                      },
+                    }}
+                    onClick={handleResetAddress}
+                  >
+                    <SvgIcon
+                      sx={{
+                        fontSize: "16px",
+                        "& path": { fill: COLORS.white },
+                      }}
+                    >
+                      <Cross />
+                    </SvgIcon>
+                  </IconButton>
+                )}
               </InputAdornment>
             ),
           }}
