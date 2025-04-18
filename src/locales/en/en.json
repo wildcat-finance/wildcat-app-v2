@@ -1471,6 +1471,11 @@
       "claimed": "Claimed",
       "nextClaimAvailable": "Next claim available in 5 days 3 hours",
       "great": "Great! Vesting is active — your tokens will be available starting April, 1."
+    },
+    "agreement": {
+      "wildcatService": "Wildcat Service Agreement",
+      "termsOfUse": "Terms of Use",
+      "signAndConfirm": "Sign and Confirm"
     }
   }
 }
