@@ -192,7 +192,9 @@ export const SideAppHeader = ({ theme = "light" }: SideAppHeaderProps) => {
           </>
         )}
 
-        <MobileMenu open={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
+        {isMobile && (
+          <MobileMenu open={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
+        )}
       </Box>
     </Box>
   )

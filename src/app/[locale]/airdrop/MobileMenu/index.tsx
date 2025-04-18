@@ -51,10 +51,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   const { disconnect } = useDisconnect()
   const handleClickDisconnect = () => {
     disconnect()
-  }
-
-  if (!isConnected) {
-    return null
+    handleToggleModal()
   }
 
   return (
@@ -62,8 +59,8 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
       <IconButton
         onClick={handleToggleModal}
         sx={{
-          marginLeft: { xs: "12px", sm: "0" },
-          display: { xs: "flex", sm: "none" },
+          marginLeft: "12px",
+          display: "flex",
           width: "40px",
           height: "40px",
           alignItems: "center",
