@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-import { Box, Button, Divider, useMediaQuery } from "@mui/material"
+import { Box, Button, Divider, Typography, useMediaQuery } from "@mui/material"
 import Link from "next/link"
 import { userAgent } from "next/server"
 import { useAccount } from "wagmi"
@@ -10,10 +10,12 @@ import { useAccount } from "wagmi"
 import { MobileConnectWallet } from "@/app/[locale]/airdrop/components/MobileConnectWallet"
 import { MobileMenu } from "@/app/[locale]/airdrop/MobileMenu"
 import { SaleConnectWalletDialog } from "@/app/[locale]/sale/components/SaleConnectWalletDialog"
+import { SaleProfileDialog } from "@/app/[locale]/sale/components/SaleProfileDialog"
 import LogoWhite from "@/assets/icons/logo_new_white.svg"
 import LogoBlack from "@/assets/icons/sale_logo_black.svg"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { trimAddress } from "@/utils/formatters"
 
 import { SideAppProfileButton } from "../SideAppProfileButton"
 
@@ -78,6 +80,8 @@ export const SideAppHeader = ({ theme = "light" }: SideAppHeaderProps) => {
 
   const { address, isConnected } = useAccount()
 
+  console.log(!isMobile && !isConnected)
+
   return (
     <Box
       sx={{
@@ -85,13 +89,13 @@ export const SideAppHeader = ({ theme = "light" }: SideAppHeaderProps) => {
         borderBottom: isLightTheme ? `1px solid ${COLORS.athensGrey}` : "none",
       }}
     >
-      <Link href={ROUTES.sale} style={{ height: "32px" }}>
+      <Link href={ROUTES.lender.root} style={{ height: "32px" }}>
         {isLightTheme ? <LogoBlack /> : <LogoWhite />}
       </Link>
 
       <Box sx={ButtonContainerStyles}>
         <Box sx={LinksContainerStyles}>
-          <Link href={ROUTES.lender.root}>
+          <Link href={ROUTES.lender.root} style={{ textTransform: "none" }}>
             <Button
               variant="outlined"
               color="secondary"
@@ -166,7 +170,9 @@ export const SideAppHeader = ({ theme = "light" }: SideAppHeaderProps) => {
           }}
         />
 
-        {!isConnected && !isMobileMenuOpen && (
+        {!isMobile && <SideAppProfileButton theme={theme} />}
+
+        {!isConnected && !isMobileMenuOpen && isMobile && (
           <>
             <Button
               variant="contained"
@@ -180,15 +186,15 @@ export const SideAppHeader = ({ theme = "light" }: SideAppHeaderProps) => {
               Connect Wallet
             </Button>
 
-            {isMobile ? (
+            {isMobile && !isConnected && (
               <MobileConnectWallet open={open} handleClose={handleClose} />
-            ) : (
-              <SaleConnectWalletDialog open={open} handleClose={handleClose} />
             )}
           </>
         )}
 
-        <MobileMenu open={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
+        {isMobile && (
+          <MobileMenu open={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
+        )}
       </Box>
     </Box>
   )
