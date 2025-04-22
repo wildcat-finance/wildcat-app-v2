@@ -1476,6 +1476,10 @@
       "wildcatService": "Wildcat Service Agreement",
       "termsOfUse": "Terms of Use",
       "signAndConfirm": "Sign and Confirm"
+    },
+    "delegation": {
+      "more": "More",
+      "select": "Select"
     }
   }
 }

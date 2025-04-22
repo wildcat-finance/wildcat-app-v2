@@ -3,7 +3,7 @@
 import { useState } from "react"
 
 import { Box, Button, Typography, useMediaQuery, useTheme } from "@mui/material"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { COLORS } from "@/theme/colors"
@@ -29,6 +29,11 @@ export default function AllocationPage() {
   const breakpoint = theme.breakpoints
   const isMobile = useMediaQuery(breakpoint.down("sm"))
   const [activated, setActivated] = useState(false)
+  const router = useRouter()
+
+  const handleDelegation = () => {
+    router.push(`/airdrop/${allocation}/delegation`)
+  }
 
   const handleActivate = () => {
     setActivated(true)
@@ -102,6 +107,7 @@ export default function AllocationPage() {
                 <Button
                   variant="contained"
                   sx={{ width: { xs: "100%", md: "auto" } }}
+                  onClick={handleDelegation}
                 >
                   {t("airdrop.allocation.delegateTokens")}
                 </Button>

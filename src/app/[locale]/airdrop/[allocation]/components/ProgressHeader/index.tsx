@@ -1,10 +1,12 @@
 import { Dispatch, SetStateAction } from "react"
 
-import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
+import { Box, IconButton, SvgIcon, Typography, useTheme } from "@mui/material"
 import LinearProgress from "@mui/material/LinearProgress"
 
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import { COLORS } from "@/theme/colors"
+
+import { containerBox } from "./styles"
 
 export type ProgressHeaderProps = {
   progress: number
@@ -15,19 +17,17 @@ export const ProgressHeader = ({
   progress,
   setProgress,
 }: ProgressHeaderProps) => {
-  const a = ""
+  const theme = useTheme()
 
   return (
-    <Box
-      sx={{
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-      }}
-    >
+    <Box sx={containerBox(theme)}>
       <Box
-        sx={{ width: "100%", display: "flex", justifyContent: "space-between" }}
+        sx={{
+          width: "100%",
+          px: "20px",
+          display: "flex",
+          justifyContent: "space-between",
+        }}
       >
         <IconButton disableRipple sx={{ height: "20px" }}>
           <SvgIcon sx={{ fontSize: "20px" }}>

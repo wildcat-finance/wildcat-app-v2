@@ -5,13 +5,18 @@ import { Box, FormControlLabel, RadioGroup, Typography } from "@mui/material"
 import ExtendedRadio from "@/components/@extended/ExtendedRadio"
 import { COLORS } from "@/theme/colors"
 
-export const DelegationForm = () => {
+export const AccountType = ({
+  setProgress,
+}: {
+  setProgress: (progress: number) => void
+}) => {
   const [delegation, setDelegation] = useState<"self" | "another">("self")
 
   const handleChangeDelegation = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setDelegation(event.target.value as "self" | "another")
+    setProgress(40)
   }
 
   return (
