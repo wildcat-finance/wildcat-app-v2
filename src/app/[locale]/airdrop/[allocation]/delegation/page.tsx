@@ -14,6 +14,7 @@ import {
   footerText,
   containerBox,
   leftTitle,
+  formBox,
 } from "./style"
 import { AllocationBox } from "../AllocationBox"
 import { AccountsList } from "../components/AccountsList"
@@ -21,6 +22,7 @@ import { AccountType } from "../components/AccountType"
 import { ConfirmDelegation } from "../components/ConfirmDelegation"
 import { ProgressHeader } from "../components/ProgressHeader"
 import { Parameters } from "../Parameters"
+import { AllocationAccountType } from "../types"
 
 const steps = {
   "20": {
@@ -43,42 +45,54 @@ export default function DelegationPage() {
   const breakpoint = theme.breakpoints
   const isMobile = useMediaQuery(breakpoint.down("sm"))
   const [progress, setProgress] = useState(20)
-  const [selectedAccount, setSelectedAccount] = useState<string | null>(null)
+  const [selectedAccount, setSelectedAccount] = useState<
+    string | AllocationAccountType | null
+  >(null)
   const StepComponent = steps[String(progress) as keyof typeof steps].component
+
+  const handleSelectAccount = (account: string | AllocationAccountType) => {
+    setSelectedAccount(account)
+  }
 
   return (
     <Box sx={containerBox(theme)}>
       <Box sx={mainBox(theme)}>
         <Box sx={rightBox(theme)}>
           <ProgressHeader progress={progress} setProgress={setProgress} />
-          <Box sx={{ padding: "0px 20px 20px", flexGrow: 1 }}>
-            <StepComponent setProgress={setProgress} />
+          <Box sx={formBox(theme)}>
+            <StepComponent
+              selectedAccount={selectedAccount}
+              handleSelectAccount={handleSelectAccount}
+              setProgress={setProgress}
+            />
           </Box>
         </Box>
-        <Box sx={leftBox(theme)}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        {!isMobile && (
+          <Box sx={leftBox(theme)}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <Typography
+                variant="text2"
+                sx={leftTitle(theme)}
+                textAlign="center"
+              >
+                {isMobile
+                  ? t("airdrop.allocation.detailedInfo")
+                  : t("airdrop.allocation.yourAddress")}
+              </Typography>
+              {!isMobile && (
+                <AllocationBox allocation="87453gqhrq-485hrq8gv4rb" />
+              )}
+              <Parameters />
+            </Box>
             <Typography
-              variant="text2"
-              sx={leftTitle(theme)}
-              textAlign="center"
+              sx={footerText(theme)}
+              variant="text4"
+              color={COLORS.santasGrey}
             >
-              {isMobile
-                ? t("airdrop.allocation.detailedInfo")
-                : t("airdrop.allocation.yourAddress")}
+              {t("footer.rights")}
             </Typography>
-            {!isMobile && (
-              <AllocationBox allocation="87453gqhrq-485hrq8gv4rb" />
-            )}
-            <Parameters />
           </Box>
-          <Typography
-            sx={footerText(theme)}
-            variant="text4"
-            color={COLORS.santasGrey}
-          >
-            {t("footer.rights")}
-          </Typography>
-        </Box>
+        )}
       </Box>
     </Box>
   )

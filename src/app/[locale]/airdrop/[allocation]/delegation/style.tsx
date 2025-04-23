@@ -70,10 +70,20 @@ export const rightBox = (theme: Theme): SxProps<Theme> => ({
   overflow: "scroll",
   [theme.breakpoints.down("sm")]: {
     borderRadius: "0px",
-    height: "max-content",
     flex: "unset",
-    gap: "10px",
     overflow: "unset",
+  },
+})
+
+export const formBox = (theme: Theme): SxProps<Theme> => ({
+  display: "flex",
+  flexDirection: "column",
+  gap: "16px",
+  padding: "0px 20px 20px",
+  flexGrow: 1,
+  [theme.breakpoints.down("sm")]: {
+    gap: "8px",
+    padding: "0px",
   },
 })
 

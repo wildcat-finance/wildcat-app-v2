@@ -1,7 +1,11 @@
+"use client"
+
 import { Dispatch, SetStateAction } from "react"
 
 import { Box, IconButton, SvgIcon, Typography, useTheme } from "@mui/material"
 import LinearProgress from "@mui/material/LinearProgress"
+import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import { COLORS } from "@/theme/colors"
@@ -18,6 +22,15 @@ export const ProgressHeader = ({
   setProgress,
 }: ProgressHeaderProps) => {
   const theme = useTheme()
+  const router = useRouter()
+  const { t } = useTranslation()
+  const handleBack = () => {
+    if (progress - 20) {
+      setProgress(progress - 20)
+    } else {
+      router.back()
+    }
+  }
 
   return (
     <Box sx={containerBox(theme)}>
@@ -29,7 +42,7 @@ export const ProgressHeader = ({
           justifyContent: "space-between",
         }}
       >
-        <IconButton disableRipple sx={{ height: "20px" }}>
+        <IconButton onClick={handleBack} disableRipple sx={{ height: "20px" }}>
           <SvgIcon sx={{ fontSize: "20px" }}>
             <Arrow />
           </SvgIcon>
@@ -44,9 +57,11 @@ export const ProgressHeader = ({
           }}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            Claim Tokens
+            {t("delegation.claimTokens")}
           </Typography>
-          <Typography variant="text1">Delegation to</Typography>
+          <Typography variant="text1">
+            {t("delegation.delegationTo")}
+          </Typography>
         </Box>
 
         <Box height={20} width={20} />

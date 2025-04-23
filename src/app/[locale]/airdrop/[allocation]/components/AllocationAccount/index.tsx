@@ -1,6 +1,6 @@
 "use client"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import LinkedinIcon from "@/assets/icons/linkedin_icon.svg"
@@ -13,13 +13,19 @@ import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
+import { AllocationAccountType } from "../../types"
+
 export const AllocationAccount = ({
   handleSelect,
+  borders,
 }: {
-  handleSelect: () => void
+  handleSelect?: (account: AllocationAccountType) => void | undefined
+  borders?: boolean
 }) => {
   const { t } = useTranslation()
-  const account = {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const account: AllocationAccountType = {
     ens: "robbie.eth",
     location: "United States",
     address: "0x1234567890123456789012345678901234567890",
@@ -28,7 +34,12 @@ export const AllocationAccount = ({
   }
   return (
     <Box display="flex" flexDirection="column" gap="12px">
-      <Box display="flex" justifyContent="space-between" alignItems="center">
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        gap="4px"
+      >
         <Box display="flex" gap="12px">
           <Box
             sx={{
@@ -62,13 +73,23 @@ export const AllocationAccount = ({
             4.9m VP
           </Typography>
         </Box>
+        {handleSelect && isMobile && (
+          <Button
+            variant="contained"
+            size="small"
+            sx={{ height: "28px", marginLeft: "auto" }}
+            onClick={() => handleSelect(account)}
+          >
+            {t("delegation.select")}
+          </Button>
+        )}
       </Box>
       <Box display="flex" justifyContent="space-between" alignItems="flex-end">
         <Box display="flex" flexDirection="column" gap="12px">
           <Box display="flex" gap="4px">
             <Typography
               variant="text2"
-              maxWidth="280px"
+              maxWidth={isMobile ? "200px" : "280px"}
               overflow="hidden"
               textOverflow="ellipsis"
               whiteSpace="nowrap"
@@ -77,7 +98,7 @@ export const AllocationAccount = ({
               {account.description}
             </Typography>
             <Typography variant="text2" color={COLORS.blueRibbon}>
-              {t("airdrop.delegation.more")}
+              {t("delegation.more")}
             </Typography>
           </Box>
           <Box display="flex" gap="6px">
@@ -88,6 +109,7 @@ export const AllocationAccount = ({
               borderRadius="8px"
               sx={{
                 backgroundColor: COLORS.whiteSmoke,
+                border: borders ? `1px solid ${COLORS.whiteLilac}` : "none",
               }}
             >
               <Typography variant="text3" color={COLORS.blackRock}>
@@ -105,6 +127,7 @@ export const AllocationAccount = ({
               borderRadius="8px"
               sx={{
                 backgroundColor: COLORS.whiteSmoke,
+                border: borders ? `1px solid ${COLORS.whiteLilac}` : "none",
               }}
             >
               <LinkedinIcon />
@@ -116,6 +139,7 @@ export const AllocationAccount = ({
               borderRadius="8px"
               sx={{
                 backgroundColor: COLORS.whiteSmoke,
+                border: borders ? `1px solid ${COLORS.whiteLilac}` : "none",
               }}
             >
               <SiteIcon />
@@ -127,20 +151,23 @@ export const AllocationAccount = ({
               borderRadius="8px"
               sx={{
                 backgroundColor: COLORS.whiteSmoke,
+                border: borders ? `1px solid ${COLORS.whiteLilac}` : "none",
               }}
             >
               <XIcon />
             </Box>
           </Box>
         </Box>
-        <Button
-          variant="contained"
-          size="small"
-          sx={{ height: "28px" }}
-          onClick={handleSelect}
-        >
-          {t("airdrop.delegation.select")}
-        </Button>
+        {handleSelect && !isMobile && (
+          <Button
+            variant="contained"
+            size="small"
+            sx={{ height: "28px" }}
+            onClick={() => handleSelect(account)}
+          >
+            {t("delegation.select")}
+          </Button>
+        )}
       </Box>
     </Box>
   )

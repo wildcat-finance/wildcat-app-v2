@@ -1476,10 +1476,20 @@
       "wildcatService": "Wildcat Service Agreement",
       "termsOfUse": "Terms of Use",
       "signAndConfirm": "Sign and Confirm"
-    },
-    "delegation": {
-      "more": "More",
-      "select": "Select"
     }
-  }
+  },
+  "delegation": {
+      "more": "More",
+      "select": "Select",
+      "back": "Back",
+      "next": "Next",
+      "claimTokens": "Claim Tokens",
+      "delegationTo": "Delegation to",
+      "youDelegate": "You delegate",
+      "to": "to",
+      "chooseAccount": "Choose below to whom you want to delegate your vote?",
+      "self": "Self",
+      "other": "Another Address",
+      "sign": "Sign"
+    }
 }
