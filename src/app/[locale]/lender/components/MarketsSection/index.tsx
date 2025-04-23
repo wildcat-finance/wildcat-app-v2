@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Typography, useMediaQuery } from "@mui/material"
 import {
   DepositStatus,
   LenderRole,
@@ -49,6 +49,8 @@ export const MarketsSection = () => {
   const [marketStatuses, setMarketStatuses] = useState<SmallFilterSelectItem[]>(
     [],
   )
+  const [showFilters, setShowFilters] = useState(false)
+  const isMobile = useMediaQuery('(max-width:768px)')
 
   const filters = useMemo(
     () => ({
@@ -230,6 +232,10 @@ export const MarketsSection = () => {
     }
   }, [noMarketsAtAll])
 
+  const toggleFilters = () => {
+    setShowFilters(!showFilters)
+  }
+
   return (
     <Box
       sx={{
@@ -240,7 +246,9 @@ export const MarketsSection = () => {
         sx={{
           display: "flex",
           flexDirection: "column",
-          padding: "0 24px",
+          padding: isMobile ? "0 16px" : "0 24px",
+          width: "100%",
+          maxWidth: "100%",
         }}
       >
         <Box
@@ -249,6 +257,7 @@ export const MarketsSection = () => {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            flexDirection: isMobile ? "column" : "row",
           }}
         >
           <Typography variant="title2" sx={{ marginBottom: "6px" }}>
@@ -265,6 +274,7 @@ export const MarketsSection = () => {
                   paddingTop: "8px",
                   paddingBottom: "8px",
                   minWidth: "100px",
+                  marginBottom: isMobile ? "16px" : 0,
                 }}
                 onClick={() =>
                   dispatch(
@@ -296,36 +306,83 @@ export const MarketsSection = () => {
             width: "100%",
             display: "flex",
             justifyContent: "space-between",
+            flexDirection: isMobile ? "column" : "row",
+            gap: isMobile ? "16px" : 0,
           }}
         >
           {!noMarketsAtAll && <LenderMarketSectionSwitcher />}
 
-          <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
-            <FilterTextField
-              value={marketSearch}
-              setValue={setMarketSearch}
-              placeholder={t("dashboard.markets.filters.name")}
-            />
+          {isMobile ? (
+            <Box sx={{ width: "100%" }}>
+              <Button 
+                variant="outlined" 
+                fullWidth 
+                onClick={toggleFilters}
+                sx={{
+                  borderColor: COLORS.blackRock006,
+                  color: COLORS.blackRock,
+                }}
+              >
+                {showFilters ? t("common.hideFilters") : t("common.showFilters")}
+              </Button>
+              
+              {showFilters && (
+                <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <FilterTextField
+                    value={marketSearch}
+                    setValue={setMarketSearch}
+                    placeholder={t("dashboard.markets.filters.name")}
+                  />
 
-            <SmallFilterSelect
-              placeholder={t("dashboard.markets.filters.assets")}
-              options={
-                tokens?.map((token) => ({
-                  id: token.address,
-                  name: token.symbol,
-                })) ?? []
-              }
-              selected={marketAssets}
-              setSelected={setMarketAssets}
-            />
+                  <SmallFilterSelect
+                    placeholder={t("dashboard.markets.filters.assets")}
+                    options={
+                      tokens?.map((token) => ({
+                        id: token.address,
+                        name: token.symbol,
+                      })) ?? []
+                    }
+                    selected={marketAssets}
+                    setSelected={setMarketAssets}
+                  />
 
-            <SmallFilterSelect
-              placeholder={t("dashboard.markets.filters.statuses")}
-              options={marketStatusesMock}
-              selected={marketStatuses}
-              setSelected={setMarketStatuses}
-            />
-          </Box>
+                  <SmallFilterSelect
+                    placeholder={t("dashboard.markets.filters.statuses")}
+                    options={marketStatusesMock}
+                    selected={marketStatuses}
+                    setSelected={setMarketStatuses}
+                  />
+                </Box>
+              )}
+            </Box>
+          ) : (
+            <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
+              <FilterTextField
+                value={marketSearch}
+                setValue={setMarketSearch}
+                placeholder={t("dashboard.markets.filters.name")}
+              />
+
+              <SmallFilterSelect
+                placeholder={t("dashboard.markets.filters.assets")}
+                options={
+                  tokens?.map((token) => ({
+                    id: token.address,
+                    name: token.symbol,
+                  })) ?? []
+                }
+                selected={marketAssets}
+                setSelected={setMarketAssets}
+              />
+
+              <SmallFilterSelect
+                placeholder={t("dashboard.markets.filters.statuses")}
+                options={marketStatusesMock}
+                selected={marketStatuses}
+                setSelected={setMarketStatuses}
+              />
+            </Box>
+          )}
         </Box>
       </Box>
 
@@ -337,6 +394,7 @@ export const MarketsSection = () => {
             borrowers={borrowers ?? []}
             isLoading={isLoading}
             filters={filters}
+            isMobile={isMobile}
           />
         )}
 
@@ -347,6 +405,7 @@ export const MarketsSection = () => {
             borrowers={borrowers ?? []}
             isLoading={isLoading}
             filters={filters}
+            isMobile={isMobile}
           />
         )}
 
@@ -357,6 +416,7 @@ export const MarketsSection = () => {
             borrowers={borrowers ?? []}
             isLoading={isLoading}
             filters={filters}
+            isMobile={isMobile}
           />
         )}
 
@@ -364,11 +424,11 @@ export const MarketsSection = () => {
         !isLoading &&
         !noMarketsAtAll &&
         marketSection === LenderMarketDashboardSections.ACTIVE && (
-          <Box sx={{ width: "100%", padding: "0 24px", marginTop: "24px" }}>
+          <Box sx={{ width: "100%", padding: isMobile ? "0 16px" : "0 24px", marginTop: "24px" }}>
             <Box
               sx={{
                 width: "100%",
-                padding: "40px 24px",
+                padding: isMobile ? "24px 16px" : "40px 24px",
                 display: "flex",
                 flexDirection: "column",
                 backgroundColor: COLORS.hintOfRed,

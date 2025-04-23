@@ -169,7 +169,7 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
                   <DataGrid
                     sx={{
                       overflow: "auto",
-                      maxWidth: "calc(100vw - 267px)",
+                      maxWidth: "100%",
                       padding: "0 16px",
                       "& .MuiDataGrid-columnHeader": { padding: 0 },
                       "& .MuiDataGrid-cell": { padding: "0px" },
@@ -203,7 +203,7 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
                 <DataGrid
                   sx={{
                     overflow: "auto",
-                    maxWidth: "calc(100vw - 267px)",
+                    maxWidth: "100%",
                     padding: "0 16px",
                     "& .MuiDataGrid-columnHeader": { padding: 0 },
                     "& .MuiDataGrid-cell": { padding: "0px" },

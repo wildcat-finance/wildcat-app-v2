@@ -16,7 +16,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => (
       <Box sx={PageContainer}>
         <Box sx={ContentContainer}>
           <Sidebar />
-          <Box width="calc(100vw - 267px)">{children}</Box>
+          <Box width="100%">{children}</Box>
         </Box>
         {/* <Footer /> */}
       </Box>

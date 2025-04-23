@@ -6,6 +6,7 @@ import {
   Box,
   Skeleton,
   Typography,
+  useMediaQuery,
 } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
@@ -16,24 +17,24 @@ import { MarketsTableAccordionProps } from "./interface"
 export const MarketsTableAccordion = ({
   isOpen,
   isLoading,
-
   label,
   marketsLength,
   type,
   noMarketsTitle,
   noMarketsSubtitle,
-
   showNoFilteredMarkets,
   assetFilter,
   statusFilter,
   nameFilter,
-
   children,
+  isMobile,
 }: MarketsTableAccordionProps) => {
   const defaultFilters =
     assetFilter?.length === 0 && statusFilter?.length === 0 && nameFilter === ""
 
   const { t } = useTranslation()
+  const isSmallScreen = useMediaQuery("(max-width:768px)")
+  const mobileView = isMobile || isSmallScreen
 
   return (
     <Accordion defaultExpanded={isOpen}>
@@ -50,29 +51,51 @@ export const MarketsTableAccordion = ({
         <Box
           display="flex"
           flexDirection="column"
-          padding="32px 16px"
+          padding={mobileView ? "16px 12px" : "32px 16px"}
           rowGap="8px"
         >
-          <Skeleton
-            height="52px"
-            width="100%"
-            sx={{ bgcolor: COLORS.athensGrey }}
-          />
-          <Skeleton
-            height="52px"
-            width="100%"
-            sx={{ bgcolor: COLORS.athensGrey }}
-          />
-          <Skeleton
-            height="52px"
-            width="100%"
-            sx={{ bgcolor: COLORS.athensGrey }}
-          />
-          <Skeleton
-            height="52px"
-            width="100%"
-            sx={{ bgcolor: COLORS.athensGrey }}
-          />
+          {mobileView ? (
+            <>
+              <Skeleton
+                height="120px"
+                width="100%"
+                sx={{ bgcolor: COLORS.athensGrey, borderRadius: "8px" }}
+              />
+              <Skeleton
+                height="120px"
+                width="100%"
+                sx={{ bgcolor: COLORS.athensGrey, borderRadius: "8px" }}
+              />
+              <Skeleton
+                height="120px"
+                width="100%"
+                sx={{ bgcolor: COLORS.athensGrey, borderRadius: "8px" }}
+              />
+            </>
+          ) : (
+            <>
+              <Skeleton
+                height="52px"
+                width="100%"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+              <Skeleton
+                height="52px"
+                width="100%"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+              <Skeleton
+                height="52px"
+                width="100%"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+              <Skeleton
+                height="52px"
+                width="100%"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+            </>
+          )}
         </Box>
       )}
 

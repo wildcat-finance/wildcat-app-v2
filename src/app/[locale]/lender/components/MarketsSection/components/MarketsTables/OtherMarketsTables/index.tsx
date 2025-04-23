@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Typography, useMediaQuery, Theme } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import {
   DepositStatus,
@@ -21,6 +21,7 @@ import {
 } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { MarketCard } from "@/components/MarketCard"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { TablePagination } from "@/components/TablePagination"
 import { ROUTES } from "@/routes"
@@ -49,6 +50,7 @@ export type LenderOtherMarketsTableModel = {
   term: ReturnType<typeof getMarketTypeChip>
   name: string
   borrower: string | undefined
+  borrowerAddress: string
   asset: string
   debt: TokenAmount | undefined
   apr: number
@@ -61,6 +63,8 @@ export const OtherMarketsTables = ({
   marketAccounts,
   isLoading,
   filters,
+  borrowers,
+  isMobile,
 }: {
   marketAccounts: MarketAccount[]
   borrowers: BorrowerWithName[]
@@ -70,9 +74,14 @@ export const OtherMarketsTables = ({
     assetFilter: SmallFilterSelectItem[]
     statusFilter: MarketStatus[]
   }
+  isMobile?: boolean
 }) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const isSmallScreen = useMediaQuery((theme: Theme) => 
+    theme.breakpoints.down("md"),
+  )
+  const mobileView = isMobile || isSmallScreen
 
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
@@ -91,8 +100,6 @@ export const OtherMarketsTables = ({
       dispatch(setScrollTarget(null))
     }
   }, [scrollTargetId])
-
-  const { data: borrowers } = useBorrowerNames()
 
   const rows: GridRowsProp<LenderOtherMarketsTableModel> = marketAccounts.map(
     (account) => {
@@ -394,18 +401,65 @@ export const OtherMarketsTables = ({
     setManualPaginationModel((prevState) => ({ ...prevState, page: 0 }))
   }, [assetFilter, statusFilter, nameFilter])
 
+  // Render market cards for mobile view
+  const renderMarketCards = (markets: LenderOtherMarketsTableModel[]) => 
+    markets.map((market) => {
+      const aprFormatted = `${formatBps(market.apr)}%`
+      const capacityFormatted = market.capacityLeft
+        ? formatTokenWithCommas(market.capacityLeft, {
+            withSymbol: false,
+            fractionDigits: 2,
+          })
+        : "0"
+      const debtFormatted = market.debt
+        ? formatTokenWithCommas(market.debt, {
+            withSymbol: false,
+            fractionDigits: 2,
+          })
+        : "0"
+
+      // Get status string from the market status
+      const statusText = market.status.status
+      const isDelinquent = market.status.status === MarketStatus.DELINQUENT
+
+      return (
+        <MarketCard
+          key={market.id}
+          marketName={market.name}
+          borrowerName={market.borrower}
+          borrowerAddress={market.borrowerAddress}
+          marketAddress={market.id}
+          assetName={market.asset}
+          apr={aprFormatted}
+          marketLink={
+            market.isSelfOnboard
+              ? `${ROUTES.lender.market}/${market.id}`
+              : `${ROUTES.lender.profile}/${market.borrowerAddress}`
+          }
+          capacity={`${capacityFormatted} ${market.asset}`}
+          totalDeposited={`${debtFormatted} ${market.asset}`}
+          delinquent={isDelinquent}
+          status={statusText}
+          isLender
+        />
+      )
+    })
+
   return (
     <Box
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: `calc(100vh - ${pageCalcHeights.dashboard})`,
+        height: mobileView 
+          ? "auto" 
+          : `calc(100vh - ${pageCalcHeights.dashboard})`,
         width: "100%",
         overflow: "auto",
         overflowY: "auto",
         gap: "16px",
         marginTop: "24px",
         paddingBottom: "26px",
+        paddingX: mobileView ? "16px" : 0,
       }}
     >
       <Box id="self-onboard" ref={selfOnboardRef}>
@@ -418,25 +472,32 @@ export const OtherMarketsTables = ({
           assetFilter={filters.assetFilter}
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
+          isMobile={mobileView}
         >
-          <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
-            }}
-            rows={selfOnboard}
-            columns={columns}
-            columnHeaderHeight={40}
-            paginationModel={selfOnboardPaginationModel}
-            onPaginationModelChange={setSelfOnboardPaginationModel}
-            slots={{
-              pagination: TablePagination,
-            }}
-            hideFooter={false}
-          />
+          {mobileView ? (
+            <Box sx={{ padding: "12px", width: "100%" }}>
+              {renderMarketCards(selfOnboard)}
+            </Box>
+          ) : (
+            <DataGrid
+              sx={{
+                overflow: "auto",
+                maxWidth: "100%",
+                padding: "0 16px",
+                "& .MuiDataGrid-columnHeader": { padding: 0 },
+                "& .MuiDataGrid-cell": { padding: "0px" },
+              }}
+              rows={selfOnboard}
+              columns={columns}
+              columnHeaderHeight={40}
+              paginationModel={selfOnboardPaginationModel}
+              onPaginationModelChange={setSelfOnboardPaginationModel}
+              slots={{
+                pagination: TablePagination,
+              }}
+              hideFooter={false}
+            />
+          )}
         </MarketsTableAccordion>
       </Box>
 
@@ -450,25 +511,32 @@ export const OtherMarketsTables = ({
           assetFilter={filters.assetFilter}
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
+          isMobile={mobileView}
         >
-          <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
-            }}
-            rows={manual}
-            columns={columns}
-            columnHeaderHeight={40}
-            paginationModel={manualPaginationModel}
-            onPaginationModelChange={setManualPaginationModel}
-            slots={{
-              pagination: TablePagination,
-            }}
-            hideFooter={false}
-          />
+          {mobileView ? (
+            <Box sx={{ padding: "12px", width: "100%" }}>
+              {renderMarketCards(manual)}
+            </Box>
+          ) : (
+            <DataGrid
+              sx={{
+                overflow: "auto",
+                maxWidth: "100%",
+                padding: "0 16px",
+                "& .MuiDataGrid-columnHeader": { padding: 0 },
+                "& .MuiDataGrid-cell": { padding: "0px" },
+              }}
+              rows={manual}
+              columns={columns}
+              columnHeaderHeight={40}
+              paginationModel={manualPaginationModel}
+              onPaginationModelChange={setManualPaginationModel}
+              slots={{
+                pagination: TablePagination,
+              }}
+              hideFooter={false}
+            />
+          )}
         </MarketsTableAccordion>
       </Box>
     </Box>

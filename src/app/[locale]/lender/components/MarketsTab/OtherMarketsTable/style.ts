@@ -26,7 +26,7 @@ export const MarketsTableStyles = {
   height: "626px",
 
   overflow: "auto",
-  maxWidth: "calc(100vw - 267px)",
+  width: "100%",
   padding: "0 16px",
   "& .MuiDataGrid-columnHeader": { padding: 0 },
   "& .MuiDataGrid-cell": { padding: "0px" },

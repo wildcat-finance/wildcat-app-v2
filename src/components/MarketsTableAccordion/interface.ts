@@ -17,6 +17,8 @@ export type MarketsTableAccordionProps = {
   statusFilter?: MarketStatus[]
   assetFilter?: SmallFilterSelectItem[]
   nameFilter?: string
+  
+  isMobile?: boolean
 
   children: ReactNode
 }

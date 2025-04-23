@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Typography, useMediaQuery, Theme } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
@@ -12,6 +12,7 @@ import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTab
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { MarketCard } from "@/components/MarketCard"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { ROUTES } from "@/routes"
@@ -34,6 +35,7 @@ export type LenderTerminatedMarketsTableModel = {
   term: ReturnType<typeof getMarketTypeChip>
   name: string
   borrower: string | undefined
+  borrowerAddress: string
   asset: string
   debt: TokenAmount | undefined
   loan: TokenAmount | undefined
@@ -46,6 +48,7 @@ export const LenderTerminatedMarketsTables = ({
   borrowers,
   isLoading,
   filters,
+  isMobile,
 }: {
   marketAccounts: MarketAccount[]
   borrowers: BorrowerWithName[]
@@ -55,9 +58,12 @@ export const LenderTerminatedMarketsTables = ({
     assetFilter: SmallFilterSelectItem[]
     statusFilter: MarketStatus[]
   }
+  isMobile?: boolean
 }) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const isSmallScreen = useMediaQuery((theme: Theme) => theme.breakpoints.down("md"))
+  const mobileView = isMobile || isSmallScreen
 
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
@@ -298,18 +304,54 @@ export const LenderTerminatedMarketsTables = ({
     },
   ]
 
+  // Render market cards for mobile view
+  const renderMarketCards = (markets: LenderTerminatedMarketsTableModel[]) => {
+    return markets.map((market) => {
+      const aprFormatted = `${formatBps(market.apr)}%`
+      const debtFormatted = market.debt
+        ? formatTokenWithCommas(market.debt, { withSymbol: false, fractionDigits: 2 })
+        : "0"
+      const loanFormatted = market.loan
+        ? formatTokenWithCommas(market.loan, { withSymbol: false, fractionDigits: 2 })
+        : "0"
+
+      // Get status string from the market.status object
+      const statusText = market.status.label
+      const isDelinquent = market.status.color === "error"
+      
+      return (
+        <MarketCard
+          key={market.id}
+          marketName={market.name}
+          borrowerName={market.borrower}
+          borrowerAddress={market.borrowerAddress}
+          marketAddress={market.id}
+          assetName={market.asset}
+          apr={aprFormatted}
+          marketLink={`${ROUTES.lender.market}/${market.id}`}
+          capacity={`${debtFormatted} ${market.asset}`}
+          totalDeposited={`${loanFormatted} ${market.asset}`}
+          delinquent={isDelinquent}
+          status={statusText}
+          isLender
+        />
+      )
+    })
+  }
+
   return (
     <Box
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: `calc(100vh - ${pageCalcHeights.dashboard})`,
+        height: mobileView ? "auto" : `calc(100vh - ${pageCalcHeights.dashboard})`,
         width: "100%",
         overflow: "auto",
         overflowY: "auto",
         gap: "16px",
         marginTop: "24px",
         paddingBottom: "26px",
+        paddingX: mobileView ? "16px" : 0,
       }}
     >
       <Box id="prev-active" ref={prevActiveRef}>
@@ -324,19 +366,26 @@ export const LenderTerminatedMarketsTables = ({
           showNoFilteredMarkets
           noMarketsTitle={t("dashboard.markets.noMarkets.closed.title")}
           noMarketsSubtitle={t("dashboard.markets.noMarkets.closed.subtitle")}
+          isMobile={mobileView}
         >
-          <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
-            }}
-            rows={prevActive}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
+          {mobileView ? (
+            <Box sx={{ padding: "12px" }}>
+              {renderMarketCards(prevActive)}
+            </Box>
+          ) : (
+            <DataGrid
+              sx={{
+                overflow: "auto",
+                maxWidth: "100%",
+                padding: "0 16px",
+                "& .MuiDataGrid-columnHeader": { padding: 0 },
+                "& .MuiDataGrid-cell": { padding: "0px" },
+              }}
+              rows={prevActive}
+              columns={columns}
+              columnHeaderHeight={40}
+            />
+          )}
         </MarketsTableAccordion>
       </Box>
 
@@ -352,19 +401,26 @@ export const LenderTerminatedMarketsTables = ({
           showNoFilteredMarkets
           noMarketsTitle={t("dashboard.markets.noMarkets.closed.title")}
           noMarketsSubtitle={t("dashboard.markets.noMarkets.closed.subtitle")}
+          isMobile={mobileView}
         >
-          <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
-            }}
-            rows={neverActive}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
+          {mobileView ? (
+            <Box sx={{ padding: "12px" }}>
+              {renderMarketCards(neverActive)}
+            </Box>
+          ) : (
+            <DataGrid
+              sx={{
+                overflow: "auto",
+                maxWidth: "100%",
+                padding: "0 16px",
+                "& .MuiDataGrid-columnHeader": { padding: 0 },
+                "& .MuiDataGrid-cell": { padding: "0px" },
+              }}
+              rows={neverActive}
+              columns={columns}
+              columnHeaderHeight={40}
+            />
+          )}
         </MarketsTableAccordion>
       </Box>
     </Box>

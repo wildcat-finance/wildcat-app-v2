@@ -227,7 +227,7 @@ export function MarketRecordsTable({
       sx={{
         ...TableStyles,
         overflow: "auto",
-        maxWidth: "calc(100vw - 267px)",
+        width: "100%",
         padding: "16px 16px",
       }}
       getRowHeight={() => "auto"}
