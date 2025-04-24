@@ -377,12 +377,12 @@ export const OtherMarketsTables = ({
 
   const [selfOnboardPaginationModel, setSelfOnboardPaginationModel] =
     React.useState({
-      pageSize: 10,
+      pageSize: 20,
       page: 0,
     })
 
   const [manualPaginationModel, setManualPaginationModel] = React.useState({
-    pageSize: 10,
+    pageSize: 20,
     page: 0,
   })
 
