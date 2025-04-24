@@ -42,6 +42,7 @@ import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
 import { MarketsTab } from "../MarketsTab"
 import { MobileLenderMarketSectionSwitcher } from "./components/MobileLenderMarketSectionSwitcher"
+import { DocsSection } from "./components/DocsSection"
 
 export const MarketsSection = () => {
   const marketSection = useAppSelector(
@@ -285,33 +286,7 @@ export const MarketsSection = () => {
               </Button>
             )}
         </Box>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: "24px" }}>
-          <Typography
-            variant="text3"
-            color={COLORS.santasGrey}
-            sx={{ textAlign: 'center', marginBottom: '8px' }}
-          >
-            {t("dashboard.markets.lenderSubtitle")}
-          </Typography>
-
-          <Typography
-            variant="text3"
-            color={COLORS.santasGrey}
-            sx={{ textAlign: 'center', marginBottom: '8px' }}
-          >
-          <Link
-            href="https://docs.wildcat.finance/using-wildcat/day-to-day-usage/lenders"
-            style={{ 
-              color: COLORS.santasGrey,
-              textAlign: 'center',
-              display: 'block'
-            }}
-            target="_blank"
-          >
-            {t("dashboard.markets.docsLink")}
-          </Link>
-          </Typography>
-        </Box>
+        <DocsSection isMobile={isMobile} />
 
         <Box
           sx={{
