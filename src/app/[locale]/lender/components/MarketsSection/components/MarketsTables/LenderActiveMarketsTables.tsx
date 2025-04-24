@@ -3,8 +3,6 @@ import React from "react"
 import {
   Box,
   Stack,
-  Typography,
-  styled,
   useMediaQuery,
   Theme,
 } from "@mui/material"
@@ -15,25 +13,11 @@ import { useTranslation } from "react-i18next"
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketCard } from "@/components/MarketCard"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
-import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { ROUTES } from "@/routes"
-import { COLORS } from "@/theme/colors"
-import { MarketStatus } from "@/utils/marketStatus"
 
 import { NonDepositedTableProps } from "./interfaces"
 import { LenderMarketsTable } from "./LenderMarketsTable"
 
-const NoMarketsBlock = styled(Box)({
-  backgroundColor: COLORS.hintOfRed,
-  borderRadius: 8,
-  padding: "24px 16px",
-  width: "100%",
-})
-
-const TableContainer = styled(Box)({
-  marginTop: 32,
-  width: "100%",
-})
 
 export const LenderActiveMarketsTables = ({
   marketAccounts,
@@ -134,7 +118,6 @@ export const LenderActiveMarketsTables = ({
               markets={depositedMarkets ?? []}
               borrowers={borrowers}
               isLoading={isLoading}
-              mobileView={mobileView}
             />
           )}
         </MarketsTableAccordion>

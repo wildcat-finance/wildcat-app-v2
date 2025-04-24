@@ -369,7 +369,6 @@ export const MarketsSection = () => {
             borrowers={borrowers ?? []}
             isLoading={isLoading}
             filters={filters}
-            isMobile={isMobile}
           />
         )}
 
