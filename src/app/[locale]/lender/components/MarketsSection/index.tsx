@@ -40,6 +40,8 @@ import { COLORS } from "@/theme/colors"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
+import { MarketsTab } from "../MarketsTab"
+import { MobileLenderMarketSectionSwitcher } from "./components/MobileLenderMarketSectionSwitcher"
 
 export const MarketsSection = () => {
   const marketSection = useAppSelector(
@@ -283,20 +285,33 @@ export const MarketsSection = () => {
               </Button>
             )}
         </Box>
-        <Typography
-          variant="text3"
-          color={COLORS.santasGrey}
-          sx={{ marginBottom: "24px" }}
-        >
-          {t("dashboard.markets.lenderSubtitle")}{" "}
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: "24px" }}>
+          <Typography
+            variant="text3"
+            color={COLORS.santasGrey}
+            sx={{ textAlign: 'center', marginBottom: '8px' }}
+          >
+            {t("dashboard.markets.lenderSubtitle")}
+          </Typography>
+
+          <Typography
+            variant="text3"
+            color={COLORS.santasGrey}
+            sx={{ textAlign: 'center', marginBottom: '8px' }}
+          >
           <Link
             href="https://docs.wildcat.finance/using-wildcat/day-to-day-usage/lenders"
-            style={{ color: COLORS.santasGrey }}
+            style={{ 
+              color: COLORS.santasGrey,
+              textAlign: 'center',
+              display: 'block'
+            }}
             target="_blank"
           >
             {t("dashboard.markets.docsLink")}
           </Link>
-        </Typography>
+          </Typography>
+        </Box>
 
         <Box
           sx={{
@@ -307,7 +322,9 @@ export const MarketsSection = () => {
             gap: isMobile ? "16px" : 0,
           }}
         >
-          {!noMarketsAtAll && <LenderMarketSectionSwitcher />}
+          {/* { <LenderMarketSectionSwitcher />} */}
+
+          {isMobile ? <MobileLenderMarketSectionSwitcher/> : <LenderMarketSectionSwitcher/>}  
 
           {isMobile ? (
             <Box sx={{ width: "100%" }}>
