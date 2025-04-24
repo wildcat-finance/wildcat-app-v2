@@ -34,6 +34,9 @@
   "filter": {
     "clear": "Clear"
   },
+  "common": {
+    "toggleSidebar": "Filter Markets"
+  },
   "footer": {
     "rights": "Wildcat Foundation 2025",
     "agreement": "Download Terms Of Use"
@@ -81,7 +84,7 @@
   "dashboard": {
     "markets": {
       "title": "Markets",
-      "borrowerSubtitle": "All markets you’ve previously created.",
+      "borrowerSubtitle": "All markets you've previously created.",
       "lenderSubtitle": "All markets you have a position in or are potentially eligible for.",
       "docsLink": "Learn More (Documentation)",
       "borrowerTitleButton": "+ Create New Market",
@@ -128,7 +131,7 @@
         "wrongNetwork": "No Wildcat Markets On This Network",
         "lenderAlert": {
           "title": "No active markets",
-          "subtitle": "You don’t have any active markets now. See the Other Markets list to join one.",
+          "subtitle": "You don't have any active markets now. See the Other Markets list to join one.",
           "button": "Go to Other Markets"
         },
         "active": {
@@ -203,7 +206,7 @@
           "subtitle": "Create a new market, or check your terminated ones."
         },
         "terminated": {
-          "title": "You don’t have any terminated markets",
+          "title": "You don't have any terminated markets",
           "subtitle": "Have you got any active markets?"
         },
         "filter": {
@@ -573,7 +576,7 @@
           "policyName": {
             "title": "Policy Name",
             "placeholder": "Enter Policy Name",
-            "tooltip": "The name of the market’s rule set."
+            "tooltip": "The name of the market's rule set."
           },
           "mla": {
             "title": "Master Loan Agreement",
@@ -615,7 +618,7 @@
             "title": "Market Token Name",
             "subtitle": "A descriptive name for the tokens lenders receive, representing their share in the market.",
             "placeholder": "e.g. Alpha Beta Charlie",
-            "tooltip": "The market token name is the full descriptive title for tokens issued by the market. These tokens are given to lenders when they deposit assets and indicate their claims on the market’s funds, including the principal and interest. For example, a token name like \"Wildcat Wrapped Ether\" reflects its association with WETH deposits in a specific market named “Wildcat”.",
+            "tooltip": "The market token name is the full descriptive title for tokens issued by the market. These tokens are given to lenders when they deposit assets and indicate their claims on the market's funds, including the principal and interest. For example, a token name like \"Wildcat Wrapped Ether\" reflects its association with WETH deposits in a specific market named \"Wildcat\".",
             "chip": "Asset Name"
           },
           "marketTokenSymbol": {
@@ -792,7 +795,7 @@
       "policyName": {
         "title": "Policy Name",
         "placeholder": "Wildcat Demo Policy",
-        "tooltip": "A unique name identifying the rules governing a market’s structure and participant eligibility."
+        "tooltip": "A unique name identifying the rules governing a market's structure and participant eligibility."
       },
       "edit": {
         "submit": "Submit",
@@ -1378,8 +1381,8 @@
       },
       "restrictTransfers": {
         "label": "Restrict Transfers",
-        "explainer": "Allows transfers of market tokens only to users who satisfy the market’s policy-defined access conditions, such as holding valid credentials or being on an approved list.",
-        "glossary": "Restrict Transfers ensures that market tokens can only be transferred between participants who meet the specific access requirements set by the market’s policy. These conditions may include holding approved deposit credentials or satisfying other borrower-defined qualifications. This restriction helps maintain compliance with the policy and supports secure market operations​​."
+        "explainer": "Allows transfers of market tokens only to users who satisfy the market's policy-defined access conditions, such as holding valid credentials or being on an approved list.",
+        "glossary": "Restrict Transfers ensures that market tokens can only be transferred between participants who meet the specific access requirements set by the market's policy. These conditions may include holding approved deposit credentials or satisfying other borrower-defined qualifications. This restriction helps maintain compliance with the policy and supports secure market operations​​."
       }
     },
     "periods": {

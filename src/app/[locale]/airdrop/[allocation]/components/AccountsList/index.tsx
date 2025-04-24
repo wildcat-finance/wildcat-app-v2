@@ -59,7 +59,7 @@ export const AccountsList = ({
   }
 
   return (
-    <Box display="flex" gap="32px" flexDirection="column" height="100%">
+    <Box display="flex" gap="32px" flexDirection="row" height="100%">
       <TextField
         onChange={handleChangeAccountAddress}
         onKeyDown={(e) => e.stopPropagation()}

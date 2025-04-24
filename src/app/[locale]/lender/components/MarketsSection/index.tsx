@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState, useCallback } from "react"
 
+import MenuIcon from "@mui/icons-material/Menu"
 import { Box, Button, Typography, useMediaQuery } from "@mui/material"
 import {
   DepositStatus,
@@ -10,6 +11,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
+import { useAppDispatch } from "@/store/hooks"
 
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { LenderMarketSectionSwitcher } from "@/app/[locale]/lender/components/MarketsSection/components/LenderMarketSectionSwitcher"
@@ -26,7 +28,7 @@ import { TargetChainId } from "@/config/network"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { marketStatusesMock } from "@/mocks/mocks"
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { useAppSelector } from "@/store/hooks"
 import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import { setLendersSectionAmount } from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import {
@@ -49,8 +51,7 @@ export const MarketsSection = () => {
   const [marketStatuses, setMarketStatuses] = useState<SmallFilterSelectItem[]>(
     [],
   )
-  const [showFilters, setShowFilters] = useState(false)
-  const isMobile = useMediaQuery('(max-width:768px)')
+  const isMobile = useMediaQuery("(max-width:768px)")
 
   const filters = useMemo(
     () => ({
@@ -232,10 +233,6 @@ export const MarketsSection = () => {
     }
   }, [noMarketsAtAll])
 
-  const toggleFilters = () => {
-    setShowFilters(!showFilters)
-  }
-
   return (
     <Box
       sx={{
@@ -314,46 +311,32 @@ export const MarketsSection = () => {
 
           {isMobile ? (
             <Box sx={{ width: "100%" }}>
-              <Button 
-                variant="outlined" 
-                fullWidth 
-                onClick={toggleFilters}
-                sx={{
-                  borderColor: COLORS.blackRock006,
-                  color: COLORS.blackRock,
-                }}
-              >
-                {showFilters ? t("common.hideFilters") : t("common.showFilters")}
-              </Button>
-              
-              {showFilters && (
-                <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <FilterTextField
-                    value={marketSearch}
-                    setValue={setMarketSearch}
-                    placeholder={t("dashboard.markets.filters.name")}
-                  />
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "12px" }}>
+                <FilterTextField
+                  value={marketSearch}
+                  setValue={setMarketSearch}
+                  placeholder={t("dashboard.markets.filters.name")}
+                />
 
-                  <SmallFilterSelect
-                    placeholder={t("dashboard.markets.filters.assets")}
-                    options={
-                      tokens?.map((token) => ({
-                        id: token.address,
-                        name: token.symbol,
-                      })) ?? []
-                    }
-                    selected={marketAssets}
-                    setSelected={setMarketAssets}
-                  />
+                <SmallFilterSelect
+                  placeholder={t("dashboard.markets.filters.assets")}
+                  options={
+                    tokens?.map((token) => ({
+                      id: token.address,
+                      name: token.symbol,
+                    })) ?? []
+                  }
+                  selected={marketAssets}
+                  setSelected={setMarketAssets}
+                />
 
-                  <SmallFilterSelect
-                    placeholder={t("dashboard.markets.filters.statuses")}
-                    options={marketStatusesMock}
-                    selected={marketStatuses}
-                    setSelected={setMarketStatuses}
-                  />
-                </Box>
-              )}
+                <SmallFilterSelect
+                  placeholder={t("dashboard.markets.filters.statuses")}
+                  options={marketStatusesMock}
+                  selected={marketStatuses}
+                  setSelected={setMarketStatuses}
+                />
+              </Box>
             </Box>
           ) : (
             <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>

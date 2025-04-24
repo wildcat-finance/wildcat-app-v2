@@ -23,6 +23,7 @@ export interface MarketData {
   isIncurringPenalties?: boolean
   isClosed?: boolean
   willBeDelinquent?: boolean
+  term: string
 }
 
 export interface MarketAccount {
@@ -46,5 +47,4 @@ export interface LenderMarketsTableProps {
   markets: MarketAccount[]
   borrowers: BorrowerWithName[]
   isLoading: boolean
-  mobileView: boolean
 } 

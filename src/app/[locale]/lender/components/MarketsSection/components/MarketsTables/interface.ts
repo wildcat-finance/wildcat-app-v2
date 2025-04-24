@@ -12,6 +12,7 @@ export type MarketsTablesProps = {
     assetFilter: SmallFilterSelectItem[]
     statusFilter: MarketStatus[]
   }
+  isMobile?: boolean
 }
 
 export type TypeSafeColDef<T> = GridColDef & { field: keyof T }

@@ -26,7 +26,6 @@ export const LenderMarketsTable = ({
   markets,
   borrowers,
   isLoading,
-  mobileView,
 }: LenderMarketsTableProps) => {
   const { t } = useTranslation()
 

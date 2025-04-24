@@ -78,7 +78,7 @@ export const OtherMarketsTables = ({
 }) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-  const isSmallScreen = useMediaQuery((theme: Theme) => 
+  const isSmallScreen = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down("md"),
   )
   const mobileView = isMobile || isSmallScreen
@@ -402,7 +402,7 @@ export const OtherMarketsTables = ({
   }, [assetFilter, statusFilter, nameFilter])
 
   // Render market cards for mobile view
-  const renderMarketCards = (markets: LenderOtherMarketsTableModel[]) => 
+  const renderMarketCards = (markets: LenderOtherMarketsTableModel[]) =>
     markets.map((market) => {
       const aprFormatted = `${formatBps(market.apr)}%`
       const capacityFormatted = market.capacityLeft
@@ -420,7 +420,9 @@ export const OtherMarketsTables = ({
 
       // Get status string from the market status
       const statusText = market.status.status
-      const isDelinquent = market.status.status === MarketStatus.DELINQUENT
+      const isDelinquent =
+        market.status.status === MarketStatus.DELINQUENT ||
+        market.status.status === MarketStatus.PENALTY
 
       return (
         <MarketCard
@@ -441,6 +443,8 @@ export const OtherMarketsTables = ({
           delinquent={isDelinquent}
           status={statusText}
           isLender
+          term={market.term}
+          isSelfOnboard={market.isSelfOnboard}
         />
       )
     })
@@ -450,8 +454,8 @@ export const OtherMarketsTables = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: mobileView 
-          ? "auto" 
+        height: mobileView
+          ? "auto"
           : `calc(100vh - ${pageCalcHeights.dashboard})`,
         width: "100%",
         overflow: "auto",

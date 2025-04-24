@@ -62,7 +62,9 @@ export const LenderTerminatedMarketsTables = ({
 }) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-  const isSmallScreen = useMediaQuery((theme: Theme) => theme.breakpoints.down("md"))
+  const isSmallScreen = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("md"),
+  )
   const mobileView = isMobile || isSmallScreen
 
   const scrollTargetId = useAppSelector(
@@ -305,20 +307,28 @@ export const LenderTerminatedMarketsTables = ({
   ]
 
   // Render market cards for mobile view
-  const renderMarketCards = (markets: LenderTerminatedMarketsTableModel[]) => {
-    return markets.map((market) => {
+  const renderMarketCards = (markets: LenderTerminatedMarketsTableModel[]) =>
+    markets.map((market) => {
       const aprFormatted = `${formatBps(market.apr)}%`
       const debtFormatted = market.debt
-        ? formatTokenWithCommas(market.debt, { withSymbol: false, fractionDigits: 2 })
+        ? formatTokenWithCommas(market.debt, {
+            withSymbol: false,
+            fractionDigits: 2,
+          })
         : "0"
       const loanFormatted = market.loan
-        ? formatTokenWithCommas(market.loan, { withSymbol: false, fractionDigits: 2 })
+        ? formatTokenWithCommas(market.loan, {
+            withSymbol: false,
+            fractionDigits: 2,
+          })
         : "0"
 
       // Get status string from the market.status object
-      const statusText = market.status.label
-      const isDelinquent = market.status.color === "error"
-      
+      const statusText = market.status.status
+      const isDelinquent =
+        market.status.status === MarketStatus.DELINQUENT ||
+        market.status.status === MarketStatus.PENALTY
+
       return (
         <MarketCard
           key={market.id}
@@ -334,17 +344,19 @@ export const LenderTerminatedMarketsTables = ({
           delinquent={isDelinquent}
           status={statusText}
           isLender
+          term={market.term}
         />
       )
     })
-  }
 
   return (
     <Box
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: mobileView ? "auto" : `calc(100vh - ${pageCalcHeights.dashboard})`,
+        height: mobileView
+          ? "auto"
+          : `calc(100vh - ${pageCalcHeights.dashboard})`,
         width: "100%",
         overflow: "auto",
         overflowY: "auto",
@@ -369,9 +381,7 @@ export const LenderTerminatedMarketsTables = ({
           isMobile={mobileView}
         >
           {mobileView ? (
-            <Box sx={{ padding: "12px" }}>
-              {renderMarketCards(prevActive)}
-            </Box>
+            <Box sx={{ padding: "12px" }}>{renderMarketCards(prevActive)}</Box>
           ) : (
             <DataGrid
               sx={{
@@ -404,9 +414,7 @@ export const LenderTerminatedMarketsTables = ({
           isMobile={mobileView}
         >
           {mobileView ? (
-            <Box sx={{ padding: "12px" }}>
-              {renderMarketCards(neverActive)}
-            </Box>
+            <Box sx={{ padding: "12px" }}>{renderMarketCards(neverActive)}</Box>
           ) : (
             <DataGrid
               sx={{

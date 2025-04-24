@@ -16,12 +16,12 @@ import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames
 import { MarketCard } from "@/components/MarketCard"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
-import { COLORS } from "@/theme/colors"
 import { ROUTES } from "@/routes"
+import { COLORS } from "@/theme/colors"
 import { MarketStatus } from "@/utils/marketStatus"
 
-import { LenderMarketsTable } from "./LenderMarketsTable"
 import { NonDepositedTableProps } from "./interfaces"
+import { LenderMarketsTable } from "./LenderMarketsTable"
 
 const NoMarketsBlock = styled(Box)({
   backgroundColor: COLORS.hintOfRed,
@@ -90,10 +90,12 @@ export const LenderActiveMarketsTables = ({
               {depositedMarkets?.map((market) => {
                 const borrower = borrowers?.find(
                   (b) =>
-                    b.address.toLowerCase() === market.market.borrower.toLowerCase(),
+                    b.address.toLowerCase() === market.market.borrower.toLowerCase()
                 )
-                const { symbol, status, isDelinquent } = market.market
+                const { status, isDelinquent } = market.market
+                const symbol = market.market.underlyingToken.symbol
                 const apr = `${market.market.aprBps / 100}%`
+                
                 
                 return (
                   <MarketCard
@@ -116,6 +118,13 @@ export const LenderActiveMarketsTables = ({
                     delinquent={isDelinquent}
                     status={status}
                     isLender
+                    term={{
+                      kind: "FixedTerm",
+                      fixedPeriod: market.market.term 
+                        ? parseInt(market.market.term, 10) * 86400 
+                        : 30 * 86400 // Default to 30 days if no term is provided
+                    }}
+
                   />
                 )
               })}
@@ -155,10 +164,13 @@ export const LenderActiveMarketsTables = ({
               {nonDepositedMarkets?.map((market) => {
                 const borrower = borrowers?.find(
                   (b) =>
-                    b.address.toLowerCase() === market.market.borrower.toLowerCase(),
+                    b.address.toLowerCase() === market.market.borrower.toLowerCase()
                 )
-                const { symbol, status, isDelinquent } = market.market
+                const { status, isDelinquent } = market.market
+                const symbol = market.market.underlyingToken.symbol
                 const apr = `${market.market.aprBps / 100}%`
+                
+
                 
                 return (
                   <MarketCard
@@ -181,6 +193,12 @@ export const LenderActiveMarketsTables = ({
                     delinquent={isDelinquent}
                     status={status}
                     isLender
+                    term={{
+                      kind: "FixedTerm",
+                      fixedPeriod: market.market.term 
+                        ? parseInt(market.market.term, 10) * 86400 
+                        : 30 * 86400 // Default to 30 days if no term is provided
+                    }}
                   />
                 )
               })}
@@ -190,7 +208,6 @@ export const LenderActiveMarketsTables = ({
               markets={nonDepositedMarkets ?? []}
               borrowers={borrowers}
               isLoading={isLoading}
-              mobileView={mobileView}
             />
           )}
         </MarketsTableAccordion>
