@@ -36,6 +36,8 @@ import { COLORS } from "@/theme/colors"
 import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
 
+import { useBorrowerNames } from "../../hooks/useBorrowerNames"
+
 export const MarketsSection = () => {
   const dispatch = useAppDispatch()
 
@@ -48,6 +50,7 @@ export const MarketsSection = () => {
   )
 
   const [marketSearch, setMarketSearch] = useState<string>("")
+  const [borrowerSearch, setBorrowerSearch] = useState<string>("")
   const [marketAssets, setMarketAssets] = useState<SmallFilterSelectItem[]>([])
   const [marketStatuses, setMarketStatuses] = useState<SmallFilterSelectItem[]>(
     [],
@@ -63,6 +66,7 @@ export const MarketsSection = () => {
 
   const { address } = useAccount()
   const { isWrongNetwork } = useCurrentNetwork()
+  const { data: borrowers } = useBorrowerNames()
 
   const bannerDisplayConfig = useBorrowerInvitationRedirect()
 
@@ -93,16 +97,31 @@ export const MarketsSection = () => {
       account.market.borrower.toLowerCase() === address?.toLowerCase(),
   )
 
-  const filteredMarketAccounts = useMemo(
-    () =>
-      filterMarketAccounts(
-        marketAccounts,
-        marketSearch,
-        marketStatuses,
-        marketAssets,
-      ),
-    [marketAccounts, marketSearch, marketStatuses, marketAssets],
-  )
+  const filteredMarketAccounts = useMemo(() => {
+    const borrowersSearch = borrowers
+      ?.filter(
+        (b) =>
+          b.name?.toLowerCase().includes(borrowerSearch.toLowerCase()) ||
+          b.alias?.toLowerCase().includes(borrowerSearch.toLowerCase()) ||
+          b.address?.toLowerCase().includes(borrowerSearch.toLowerCase()),
+      )
+      .map((b) => b.address)
+
+    return filterMarketAccounts(
+      marketAccounts,
+      marketSearch,
+      marketStatuses,
+      marketAssets,
+      borrowersSearch,
+    )
+  }, [
+    marketAccounts,
+    marketSearch,
+    marketStatuses,
+    marketAssets,
+    borrowerSearch,
+    borrowers,
+  ])
 
   const {
     active: filteredActiveBorrowerMarkets,
@@ -297,7 +316,17 @@ export const MarketsSection = () => {
               value={marketSearch}
               setValue={setMarketSearch}
               placeholder={t("dashboard.markets.filters.name")}
+              width="160px"
             />
+
+            {marketSection === BorrowerMarketDashboardSections.OTHER && (
+              <FilterTextField
+                value={borrowerSearch}
+                setValue={setBorrowerSearch}
+                placeholder={t("dashboard.markets.filters.borrower")}
+                width="180px"
+              />
+            )}
 
             <SmallFilterSelect
               placeholder={t("dashboard.markets.filters.assets")}
@@ -309,6 +338,7 @@ export const MarketsSection = () => {
               }
               selected={marketAssets}
               setSelected={setMarketAssets}
+              width="100px"
             />
 
             <SmallFilterSelect
@@ -316,6 +346,7 @@ export const MarketsSection = () => {
               options={marketStatusesMock}
               selected={marketStatuses}
               setSelected={setMarketStatuses}
+              width="100px"
             />
           </Box>
         </Box>

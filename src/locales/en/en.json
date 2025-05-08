@@ -88,6 +88,7 @@
       "lenderTitleButton": "+ Observe New Markets",
       "filters": {
         "name": "Search by Name",
+        "borrower": "Search by Borrower",
         "assets": "Asset",
         "statuses": "Status"
       },

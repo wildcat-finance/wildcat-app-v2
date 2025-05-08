@@ -39,6 +39,7 @@ export const filterMarketAccounts = (
   name: string,
   statuses: SmallFilterSelectItem[],
   assets: SmallFilterSelectItem[],
+  borrowers: string[] | undefined,
 ) => {
   if (!marketAccounts) return []
 
@@ -49,6 +50,14 @@ export const filterMarketAccounts = (
   if (filteredMarkets && name !== "") {
     filteredMarkets = filteredMarkets.filter(({ market }) =>
       market.name.toLowerCase().includes(name.toLowerCase()),
+    )
+  }
+
+  if (filteredMarkets && borrowers && borrowers.length > 0) {
+    filteredMarkets = filteredMarkets.filter(({ market }) =>
+      borrowers.some((borrower) =>
+        market.borrower.toLowerCase().includes(borrower.toLowerCase()),
+      ),
     )
   }
 
