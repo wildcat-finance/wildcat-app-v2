@@ -2,7 +2,12 @@ import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
 
 import { Box, Button, Dialog, Tooltip, Typography } from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  Signer,
+  HooksKind,
+  SupportedChainId,
+} from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
@@ -19,7 +24,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
-import { EtherscanBaseUrl } from "@/config/network"
+import { EtherscanBaseUrl, TargetChainId } from "@/config/network"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
 import { isUSDTLikeToken } from "@/utils/constants"
@@ -174,6 +179,14 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
 
   const showForm = !(isDepositing || showSuccessPopup || showErrorPopup)
 
+  const underlyingBalanceIsZero =
+    // TargetChainId === SupportedChainId.Mainnet &&
+    marketAccount.underlyingBalance.raw.isZero()
+
+  const tooltip = underlyingBalanceIsZero
+    ? "Underlying token balance is zero"
+    : "Market is at full capacity"
+
   useEffect(() => {
     if (isDepositError) {
       setShowErrorPopup(true)
@@ -195,15 +208,18 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
 
   return (
     <>
-      {marketAccount.maximumDeposit.raw.isZero() ? (
-        <Tooltip title="Market is at full capacity" placement="right">
+      {marketAccount.maximumDeposit.raw.isZero() || underlyingBalanceIsZero ? (
+        <Tooltip title={tooltip} placement="right">
           <Box sx={{ display: "flex" }}>
             <Button
               onClick={modal.handleOpenModal}
               variant="contained"
               size="large"
               sx={{ width: "152px" }}
-              disabled={marketAccount.maximumDeposit.raw.isZero()}
+              disabled={
+                marketAccount.maximumDeposit.raw.isZero() ||
+                underlyingBalanceIsZero
+              }
             >
               {t("lenderMarketDetails.transactions.deposit.button")}
             </Button>
@@ -215,7 +231,9 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
           variant="contained"
           size="large"
           sx={{ width: "152px" }}
-          disabled={marketAccount.maximumDeposit.raw.isZero()}
+          disabled={
+            marketAccount.maximumDeposit.raw.isZero() || underlyingBalanceIsZero
+          }
         >
           {t("lenderMarketDetails.transactions.deposit.button")}
         </Button>
