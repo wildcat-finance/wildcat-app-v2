@@ -179,9 +179,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
 
   const showForm = !(isDepositing || showSuccessPopup || showErrorPopup)
 
-  const underlyingBalanceIsZero =
-    // TargetChainId === SupportedChainId.Mainnet &&
-    marketAccount.underlyingBalance.raw.isZero()
+  const underlyingBalanceIsZero = marketAccount.underlyingBalance.raw.isZero()
 
   const tooltip = underlyingBalanceIsZero
     ? "Underlying token balance is zero"
