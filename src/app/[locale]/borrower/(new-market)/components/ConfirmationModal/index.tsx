@@ -11,6 +11,7 @@ import {
 import SvgIcon from "@mui/material/SvgIcon"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { match } from "ts-pattern"
 
 import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
@@ -111,12 +112,15 @@ export const ConfirmationModal = ({
   const withdrawalRequiresAccess = getMarketValues("withdrawalRequiresAccess")
   const transferRequiresAccess = getMarketValues("transferRequiresAccess")
   const disableTransfers = getMarketValues("disableTransfers")
-  // eslint-disable-next-line no-nested-ternary
-  const transferAccessMessage = disableTransfers
-    ? "Disabled"
-    : transferRequiresAccess
-      ? "Policy Onboarding Required"
-      : "Unrestricted"
+
+  const transferAccessMessage = match({
+    disableTransfers,
+    transferRequiresAccess,
+  })
+    .with({ disableTransfers: true }, () => "Disabled")
+    .with({ transferRequiresAccess: true }, () => "Policy Onboarding Required")
+    .otherwise(() => "Unrestricted")
+
   const depositAccessMessage = depositRequiresAccess
     ? "Policy Onboarding Required"
     : "Unrestricted"

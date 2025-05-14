@@ -12,6 +12,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { match } from "ts-pattern"
 
 import { GlossarySidebar } from "@/app/[locale]/borrower/create-market/components/GlossarySidebar"
 import { useGetBorrowerHooksDataWithSubgraph } from "@/app/[locale]/borrower/hooks/useGetBorrowerHooksData"
@@ -225,32 +226,32 @@ export default function PolicyPage() {
         </Tabs>
 
         <Box sx={{ width: "100%", padding: "0 24px" }}>
-          {tab === PolicyTabs.DETAILS && (
-            <DetailsTab
-              name={policyName}
-              type={
-                (data?.hooksInstance?.kind ?? HooksKind.OpenTerm) ===
-                HooksKind.OpenTerm
-                  ? t("policyType.OpenTerm")
-                  : t("policyType.FixedTerm")
-              }
-              access={accessControl}
-              isLoading={isLoading}
-            />
-          )}
-
-          {tab === PolicyTabs.MARKETS && (
-            <MarketsTab markets={markets} isLoading={isLoading} />
-          )}
-
-          {tab === PolicyTabs.LENDERS && (
-            <LendersTab
-              isLoading={isLoading}
-              policyName={selectedPolicy.name}
-              policy={data?.hooksInstance}
-              controller={data?.controller}
-            />
-          )}
+          {match(tab)
+            .with(PolicyTabs.DETAILS, () => (
+              <DetailsTab
+                name={policyName}
+                type={
+                  (data?.hooksInstance?.kind ?? HooksKind.OpenTerm) ===
+                  HooksKind.OpenTerm
+                    ? t("policyType.OpenTerm")
+                    : t("policyType.FixedTerm")
+                }
+                access={accessControl}
+                isLoading={isLoading}
+              />
+            ))
+            .with(PolicyTabs.MARKETS, () => (
+              <MarketsTab markets={markets} isLoading={isLoading} />
+            ))
+            .with(PolicyTabs.LENDERS, () => (
+              <LendersTab
+                isLoading={isLoading}
+                policyName={selectedPolicy.name}
+                policy={data?.hooksInstance}
+                controller={data?.controller}
+              />
+            ))
+            .otherwise(() => null)}
         </Box>
       </Box>
 

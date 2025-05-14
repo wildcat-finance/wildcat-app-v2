@@ -1,6 +1,7 @@
 "use client"
 
 import { Box, Button, Typography } from "@mui/material"
+import { match, P } from "ts-pattern"
 import { useAccount } from "wagmi"
 
 import { useLogin } from "@/hooks/useApiAuth"
@@ -19,17 +20,23 @@ const BorrowerInvitationPage = () => {
     isLoading: isLoadingInvite,
   } = useGetBorrowerInvitation(address)
 
-  if (!address) {
-    return <Box sx={PageContainer}>No Wallet Connected</Box>
-  }
-  if (isLoadingInvite) {
-    return <Box sx={PageContainer}>Loading...</Box>
-  }
-  if (!inviteExists) {
-    return <Box sx={PageContainer}>No invitation found</Box>
-  }
-  if (mustLogin || !invitation) {
-    return (
+  return match({
+    address,
+    isLoadingInvite,
+    inviteExists,
+    mustLogin,
+    invitation,
+  })
+    .with({ address: P.nullish }, () => (
+      <Box sx={PageContainer}>No Wallet Connected</Box>
+    ))
+    .with({ isLoadingInvite: true }, () => (
+      <Box sx={PageContainer}>Loading...</Box>
+    ))
+    .with({ inviteExists: false }, () => (
+      <Box sx={PageContainer}>No invitation found</Box>
+    ))
+    .with({ mustLogin: true, invitation: P.nullish }, () => (
       <Box
         sx={{
           ...PageContainer,
@@ -44,12 +51,22 @@ const BorrowerInvitationPage = () => {
         <Typography variant="h6">
           Sign In with wallet to view invitation
         </Typography>
-        <Button onClick={() => login.mutate(address)}>Sign In</Button>
+        <Button onClick={() => login.mutate(address as string)}>Sign In</Button>
       </Box>
+    ))
+    .with(
+      {
+        address: P.string,
+        invitation: P.not(P.nullish),
+      },
+      (data) => (
+        <AcceptInvitationForm
+          invitation={data.invitation}
+          address={data.address}
+        />
+      ),
     )
-  }
-
-  return <AcceptInvitationForm invitation={invitation} address={address} />
+    .otherwise(() => null)
 }
 
 export default BorrowerInvitationPage

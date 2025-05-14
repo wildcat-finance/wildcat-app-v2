@@ -6,6 +6,7 @@ import { Box } from "@mui/material"
 import { GridRowsProp } from "@mui/x-data-grid"
 import { HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
+import { match } from "ts-pattern"
 import { useAccount } from "wagmi"
 
 import { LendersSection } from "@/app/[locale]/borrower/components/LendersSection"
@@ -94,23 +95,23 @@ export default function BorrowerPage() {
         overflow: "hidden",
       }}
     >
-      {section === BorrowerDashboardSections.MARKETS && <MarketsSection />}
-
-      {section === BorrowerDashboardSections.LENDERS && (
-        <LendersSection
-          markets={unfilteredBorrowerMarkets}
-          isMarketsLoading={isBorrowerMarketsLoading}
-        />
-      )}
-
-      {section === BorrowerDashboardSections.POLICIES && (
-        <PoliciesSection
-          policies={policies}
-          markets={unfilteredBorrowerMarkets}
-          isMarketsLoading={isBorrowerMarketsLoading}
-          isPoliciesLoading={isPoliciesLoading}
-        />
-      )}
+      {match(section)
+        .with(BorrowerDashboardSections.MARKETS, () => <MarketsSection />)
+        .with(BorrowerDashboardSections.LENDERS, () => (
+          <LendersSection
+            markets={unfilteredBorrowerMarkets}
+            isMarketsLoading={isBorrowerMarketsLoading}
+          />
+        ))
+        .with(BorrowerDashboardSections.POLICIES, () => (
+          <PoliciesSection
+            policies={policies}
+            markets={unfilteredBorrowerMarkets}
+            isMarketsLoading={isBorrowerMarketsLoading}
+            isPoliciesLoading={isPoliciesLoading}
+          />
+        ))
+        .otherwise(() => null)}
     </Box>
   )
 }

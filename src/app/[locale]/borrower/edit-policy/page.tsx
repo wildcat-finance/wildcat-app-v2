@@ -14,6 +14,7 @@ import {
 import { PolicyLender } from "@wildcatfi/wildcat-sdk/dist/gql/utils"
 import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { match } from "ts-pattern"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { InputLabel } from "@/components/InputLabel"
@@ -317,16 +318,17 @@ export default function EditPolicyPage() {
       </Box>
       <Typography variant="title2">{t("editPolicy.lenders")}</Typography>
 
-      {step === "edit" && <EditLendersForm isLoading={isLoading} />}
-
-      {step === "confirm" && (
-        <ConfirmLendersForm
-          originalPolicyName={originalPolicyName}
-          pendingPolicyName={pendingPolicyName}
-          policy={data?.hooksInstance}
-          controller={data?.controller}
-        />
-      )}
+      {match(step)
+        .with("edit", () => <EditLendersForm isLoading={isLoading} />)
+        .with("confirm", () => (
+          <ConfirmLendersForm
+            originalPolicyName={originalPolicyName}
+            pendingPolicyName={pendingPolicyName}
+            policy={data?.hooksInstance}
+            controller={data?.controller}
+          />
+        ))
+        .otherwise(() => null)}
     </Box>
   )
 }

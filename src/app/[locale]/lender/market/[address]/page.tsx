@@ -6,6 +6,7 @@ import { useEffect } from "react"
 import { Box, Divider, Skeleton, Typography } from "@mui/material"
 import { redirect } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { match } from "ts-pattern"
 import { useAccount } from "wagmi"
 
 import { BorrowerProfileDetails } from "@/app/[locale]/borrower/profile/components/BorrowerProfileDetails"
@@ -141,51 +142,50 @@ export default function LenderMarketDetails({
         <MarketHeader marketAccount={marketAccount} />
 
         <Box sx={SectionContainer}>
-          {currentSection === LenderMarketSections.TRANSACTIONS && (
-            <Box>
-              {authorizedInMarket && (
-                <MarketActions
+          {match(currentSection)
+            .with(LenderMarketSections.TRANSACTIONS, () => (
+              <Box>
+                {authorizedInMarket && (
+                  <MarketActions
+                    marketAccount={marketAccount}
+                    withdrawals={withdrawals}
+                  />
+                )}
+                <CapacityBarChart
+                  marketAccount={marketAccount}
+                  legendType="big"
+                  isLender={authorizedInMarket}
+                />
+              </Box>
+            ))
+            .with(LenderMarketSections.STATUS, () => (
+              <Box marginTop="12px">
+                <BarCharts
                   marketAccount={marketAccount}
                   withdrawals={withdrawals}
+                  isLender={authorizedInMarket}
                 />
-              )}
-              <CapacityBarChart
-                marketAccount={marketAccount}
-                legendType="big"
-                isLender={authorizedInMarket}
+                <Divider sx={{ margin: "40px 0 44px" }} />
+                <MarketParameters market={market} />
+              </Box>
+            ))
+            .with(LenderMarketSections.BORROWER_PROFILE, () => (
+              <BorrowerProfileDetails
+                address={marketAccount.market.borrower}
+                hideMarkets
               />
-            </Box>
-          )}
-
-          {currentSection === LenderMarketSections.STATUS && (
-            <Box marginTop="12px">
-              <BarCharts
-                marketAccount={marketAccount}
-                withdrawals={withdrawals}
-                isLender={authorizedInMarket}
-              />
-              <Divider sx={{ margin: "40px 0 44px" }} />
-              <MarketParameters market={market} />
-            </Box>
-          )}
-
-          {currentSection === LenderMarketSections.BORROWER_PROFILE && (
-            <BorrowerProfileDetails
-              address={marketAccount.market.borrower}
-              hideMarkets
-            />
-          )}
-
-          {currentSection === LenderMarketSections.REQUESTS && (
-            <Box marginTop="12px">
-              <WithdrawalRequests withdrawals={withdrawals} />
-            </Box>
-          )}
-          {currentSection === LenderMarketSections.MARKET_HISTORY && (
-            <Box marginTop="12px">
-              <PaginatedMarketRecordsTable market={market} />
-            </Box>
-          )}
+            ))
+            .with(LenderMarketSections.REQUESTS, () => (
+              <Box marginTop="12px">
+                <WithdrawalRequests withdrawals={withdrawals} />
+              </Box>
+            ))
+            .with(LenderMarketSections.MARKET_HISTORY, () => (
+              <Box marginTop="12px">
+                <PaginatedMarketRecordsTable market={market} />
+              </Box>
+            ))
+            .otherwise(() => null)}
         </Box>
       </Box>
     </Box>

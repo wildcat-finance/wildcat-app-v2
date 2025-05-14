@@ -9,6 +9,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
+import { match, P } from "ts-pattern"
 import { useAccount } from "wagmi"
 
 import { MarketSectionSwitcher } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketSectionSwitcher"
@@ -333,36 +334,56 @@ export const MarketsSection = () => {
           </Box>
         )}
 
-      {marketSection === BorrowerMarketDashboardSections.ACTIVE &&
-        showFullFunctionality &&
-        !noMarkets &&
-        !isWrongNetwork && (
-          <BorrowerActiveMarketsTables
-            marketAccounts={filteredActiveBorrowerMarkets}
-            isLoading={isLoading}
-            filters={filters}
-          />
-        )}
-
-      {marketSection === BorrowerMarketDashboardSections.TERMINATED &&
-        showFullFunctionality &&
-        !noMarkets &&
-        !isWrongNetwork && (
-          <BorrowerTerminatedMarketsTables
-            marketAccounts={filteredTerminatedBorrowerMarkets}
-            isLoading={isLoading}
-            filters={filters}
-          />
-        )}
-
-      {marketSection === BorrowerMarketDashboardSections.OTHER &&
-        !isWrongNetwork && (
-          <OtherMarketsTables
-            marketAccounts={filteredOtherMarketAccounts}
-            isLoading={isLoading}
-            filters={filters}
-          />
-        )}
+      {match({
+        section: marketSection,
+        showFullFunctionality,
+        noMarkets,
+        isWrongNetwork,
+      })
+        .with(
+          {
+            section: BorrowerMarketDashboardSections.ACTIVE,
+            showFullFunctionality: true,
+            noMarkets: false,
+            isWrongNetwork: false,
+          },
+          () => (
+            <BorrowerActiveMarketsTables
+              marketAccounts={filteredActiveBorrowerMarkets}
+              isLoading={isLoading}
+              filters={filters}
+            />
+          ),
+        )
+        .with(
+          {
+            section: BorrowerMarketDashboardSections.TERMINATED,
+            showFullFunctionality: true,
+            noMarkets: false,
+            isWrongNetwork: false,
+          },
+          () => (
+            <BorrowerTerminatedMarketsTables
+              marketAccounts={filteredTerminatedBorrowerMarkets}
+              isLoading={isLoading}
+              filters={filters}
+            />
+          ),
+        )
+        .with(
+          {
+            section: BorrowerMarketDashboardSections.OTHER,
+            isWrongNetwork: false,
+          },
+          () => (
+            <OtherMarketsTables
+              marketAccounts={filteredOtherMarketAccounts}
+              isLoading={isLoading}
+              filters={filters}
+            />
+          ),
+        )
+        .otherwise(() => null)}
 
       {isWrongNetwork && <WrongNetworkAlert />}
     </Box>
