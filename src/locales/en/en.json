@@ -1118,6 +1118,9 @@
         "infoLink1": "Informational Link #1",
         "infoLink2": "Informational Link #2",
         "infoLink3": "Informational Link #3",
+        "additionalInfo1": "Additional Info #1",
+        "additionalInfo2": "Additional Info #2",
+        "additionalInfo3": "Additional Info #3",
         "defaults": {
           "title": "Defaults",
           "tooltip": "The number of markets owned by this borrower in which a penalty fee has applied for more than 90 days."
@@ -1166,6 +1169,21 @@
         "founded": {
           "title": "Founded",
           "placeholder": "Year that the borrowing entity was created.",
+          "tooltip": ""
+        },
+        "additionalInfo1": {
+          "title": "Additional Info 1",
+          "placeholder": "Additional Info 1",
+          "tooltip": ""
+        },
+        "additionalInfo2": {
+          "title": "Additional Info 2",
+          "placeholder": "Additional Info 2",
+          "tooltip": ""
+        },
+        "additionalInfo3": {
+          "title": "Additional Info 3",
+          "placeholder": "Additional Info 3",
           "tooltip": ""
         },
         "headquarters": {

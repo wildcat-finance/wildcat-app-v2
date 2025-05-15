@@ -58,6 +58,9 @@ const ProfileKeys = [
   "description",
   "founded",
   "headquarters",
+  "additionalInfo1",
+  "additionalInfo2",
+  "additionalInfo3",
   "website",
   "twitter",
   "telegram",
@@ -130,6 +133,9 @@ export default function EditProfileForm({
     entityKind: getPrivateValues().entityKind,
     physicalAddress: getPrivateValues().physicalAddress,
     email: getPrivateValues().email,
+    additionalInfo1: getPublicValues().additionalInfo1,
+    additionalInfo2: getPublicValues().additionalInfo2,
+    additionalInfo3: getPublicValues().additionalInfo3,
   }
 
   const compare = () =>
@@ -177,7 +183,12 @@ export default function EditProfileForm({
     if (avatar) {
       changedValues.avatar = avatar
     }
-    ProfileKeys.forEach((key) => {
+    ProfileKeys.filter(
+      (key) =>
+        key !== "additionalInfo1" &&
+        key !== "additionalInfo2" &&
+        key !== "additionalInfo3",
+    ).forEach((key) => {
       const oldValue = publicData?.[key] || ""
       const newValue = publicInfo[key] || ""
       if (oldValue !== newValue) {
@@ -432,6 +443,66 @@ export default function EditProfileForm({
                 })
               }
             }}
+          />
+        </EditProfileItem>
+
+        <EditProfileItem
+          title={t("borrowerProfile.edit.public.additionalInfo1.title")}
+          tooltip={t("borrowerProfile.edit.public.additionalInfo1.tooltip")}
+          form={publicForm}
+          field="additionalInfo1"
+          oldValue={publicData?.additionalInfo1}
+          newValue={publicWatch("additionalInfo1")}
+          isLoading={isLoading}
+        >
+          <TextField
+            placeholder={t(
+              "borrowerProfile.edit.public.additionalInfo1.placeholder",
+            )}
+            fullWidth
+            error={Boolean(publicErrors.additionalInfo1)}
+            helperText={publicErrors.additionalInfo1?.message}
+            {...registerPublic("additionalInfo1")}
+          />
+        </EditProfileItem>
+
+        <EditProfileItem
+          title={t("borrowerProfile.edit.public.additionalInfo2.title")}
+          tooltip={t("borrowerProfile.edit.public.additionalInfo2.tooltip")}
+          form={publicForm}
+          field="additionalInfo2"
+          oldValue={publicData?.additionalInfo2}
+          newValue={publicWatch("additionalInfo2")}
+          isLoading={isLoading}
+        >
+          <TextField
+            placeholder={t(
+              "borrowerProfile.edit.public.additionalInfo2.placeholder",
+            )}
+            fullWidth
+            error={Boolean(publicErrors.additionalInfo2)}
+            helperText={publicErrors.additionalInfo2?.message}
+            {...registerPublic("additionalInfo2")}
+          />
+        </EditProfileItem>
+
+        <EditProfileItem
+          title={t("borrowerProfile.edit.public.additionalInfo3.title")}
+          tooltip={t("borrowerProfile.edit.public.additionalInfo3.tooltip")}
+          form={publicForm}
+          field="additionalInfo3"
+          oldValue={publicData?.additionalInfo3}
+          newValue={publicWatch("additionalInfo3")}
+          isLoading={isLoading}
+        >
+          <TextField
+            placeholder={t(
+              "borrowerProfile.edit.public.additionalInfo3.placeholder",
+            )}
+            fullWidth
+            error={Boolean(publicErrors.additionalInfo3)}
+            helperText={publicErrors.additionalInfo3?.message}
+            {...registerPublic("additionalInfo3")}
           />
         </EditProfileItem>
 

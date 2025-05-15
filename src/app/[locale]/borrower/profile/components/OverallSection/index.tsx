@@ -49,6 +49,10 @@ export const OverallSection = ({
         ].find((elf) => elf.elfCode === entityKind)?.name
       : undefined
 
+  const additionalInfo1 = "Additional Info #1"
+  const additionalInfo2 = "Additional Info #2"
+  const additionalInfo3 = "Additional Info #3"
+
   return (
     <Box>
       <Box sx={MarketParametersContainer}>
@@ -112,6 +116,16 @@ export const OverallSection = ({
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
           )}
+
+          {additionalInfo1 && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.additionalInfo1")}
+                value={additionalInfo1}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
         </Box>
 
         <Box sx={MarketParametersColumn}>
@@ -155,6 +169,26 @@ export const OverallSection = ({
                 tooltipText={t(
                   "borrowerProfile.profile.overallInfo.defaults.tooltip",
                 )}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
+
+          {additionalInfo2 && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.additionalInfo2")}
+                value={additionalInfo2}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          )}
+
+          {additionalInfo3 && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.additionalInfo3")}
+                value={additionalInfo3}
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
