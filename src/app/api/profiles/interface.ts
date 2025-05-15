@@ -19,6 +19,9 @@ export interface BorrowerProfile {
   physicalAddress?: string
   email?: string
   registeredOnChain: boolean
+  additionalInfo1?: string
+  additionalInfo2?: string
+  additionalInfo3?: string
 }
 
 export type BorrowerProfileForAdminView = BorrowerProfile & {
