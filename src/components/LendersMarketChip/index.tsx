@@ -1,4 +1,5 @@
 import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
+import { match } from "ts-pattern"
 
 import Cross from "@/assets/icons/cross_icon.svg"
 import Return from "@/assets/icons/return_icon.svg"
@@ -14,46 +15,31 @@ export const LendersMarketChip = ({
   width = "100%",
   disabled,
 }: LendersMarketChipProps) => {
-  let chipConfig
-
-  switch (type) {
-    case "old": {
-      chipConfig = {
-        backgroundColor: COLORS.whiteSmoke,
-        color: COLORS.blackRock,
-        endIcon: <Cross />,
-        iconColor: COLORS.santasGrey,
-      }
-      break
-    }
-    case "new": {
-      chipConfig = {
-        backgroundColor: COLORS.glitter,
-        color: COLORS.ultramarineBlue,
-        endIcon: <Cross />,
-        iconColor: COLORS.cornflowerBlue,
-      }
-      break
-    }
-    case "deleted": {
-      chipConfig = {
-        backgroundColor: COLORS.whiteSmoke,
-        color: COLORS.greySuit,
-        endIcon: <Return />,
-        iconColor: COLORS.santasGrey,
-      }
-      break
-    }
-    default: {
-      chipConfig = {
-        backgroundColor: COLORS.whiteSmoke,
-        color: COLORS.blackRock,
-        endIcon: <Cross />,
-        iconColor: COLORS.santasGrey,
-      }
-      break
-    }
-  }
+  const chipConfig = match(type)
+    .with("old", () => ({
+      backgroundColor: COLORS.whiteSmoke,
+      color: COLORS.blackRock,
+      endIcon: <Cross />,
+      iconColor: COLORS.santasGrey,
+    }))
+    .with("new", () => ({
+      backgroundColor: COLORS.glitter,
+      color: COLORS.ultramarineBlue,
+      endIcon: <Cross />,
+      iconColor: COLORS.cornflowerBlue,
+    }))
+    .with("deleted", () => ({
+      backgroundColor: COLORS.whiteSmoke,
+      color: COLORS.greySuit,
+      endIcon: <Return />,
+      iconColor: COLORS.santasGrey,
+    }))
+    .otherwise(() => ({
+      backgroundColor: COLORS.whiteSmoke,
+      color: COLORS.blackRock,
+      endIcon: <Cross />,
+      iconColor: COLORS.santasGrey,
+    }))
 
   const onMouseDown = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.stopPropagation()

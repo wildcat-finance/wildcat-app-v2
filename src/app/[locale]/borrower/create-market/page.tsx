@@ -17,6 +17,7 @@ import {
 import { constants } from "ethers"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { match } from "ts-pattern"
 import { useAccount } from "wagmi"
 
 import { PageContainer } from "@/app/[locale]/borrower/create-market/style"
@@ -262,50 +263,45 @@ export default function CreateMarketPage() {
       >
         <StepCounterTitle current={currentNumber} total={steps.length - 1} />
 
-        {currentStep === CreateMarketSteps.POLICY && (
-          <MarketPolicyForm
-            form={newMarketForm}
-            policyOptions={policyOptions}
-          />
-        )}
-
-        {currentStep === CreateMarketSteps.BASIC && (
-          <BasicSetupForm
-            form={newMarketForm}
-            tokenAsset={tokenAsset}
-            tokens={tokens}
-            isLoading={isLoading}
-            setQuery={setQuery}
-            query={query}
-            handleSelect={handleSelect}
-            handleChange={handleChange}
-          />
-        )}
-
-        {currentStep === CreateMarketSteps.MLA && (
-          <MlaForm form={newMarketForm} />
-        )}
-
-        {currentStep === CreateMarketSteps.FINANCIAL && (
-          <FinancialForm form={newMarketForm} tokenAsset={tokenAsset} />
-        )}
-
-        {currentStep === CreateMarketSteps.LRESTRICTIONS && (
-          <LenderRestrictionsForm form={newMarketForm} />
-        )}
-
-        {currentStep === CreateMarketSteps.CONFIRM && (
-          <ConfirmationForm
-            form={newMarketForm}
-            tokenAsset={tokenAsset}
-            handleDeploy={handleClickDeploy}
-            salt={salt}
-            timeSigned={timeSigned}
-            onClickSign={signMla}
-            isSigning={isSigning}
-            mlaSignature={mlaSignature}
-          />
-        )}
+        {match(currentStep)
+          .with(CreateMarketSteps.POLICY, () => (
+            <MarketPolicyForm
+              form={newMarketForm}
+              policyOptions={policyOptions}
+            />
+          ))
+          .with(CreateMarketSteps.BASIC, () => (
+            <BasicSetupForm
+              form={newMarketForm}
+              tokenAsset={tokenAsset}
+              tokens={tokens}
+              isLoading={isLoading}
+              setQuery={setQuery}
+              query={query}
+              handleSelect={handleSelect}
+              handleChange={handleChange}
+            />
+          ))
+          .with(CreateMarketSteps.MLA, () => <MlaForm form={newMarketForm} />)
+          .with(CreateMarketSteps.FINANCIAL, () => (
+            <FinancialForm form={newMarketForm} tokenAsset={tokenAsset} />
+          ))
+          .with(CreateMarketSteps.LRESTRICTIONS, () => (
+            <LenderRestrictionsForm form={newMarketForm} />
+          ))
+          .with(CreateMarketSteps.CONFIRM, () => (
+            <ConfirmationForm
+              form={newMarketForm}
+              tokenAsset={tokenAsset}
+              handleDeploy={handleClickDeploy}
+              salt={salt}
+              timeSigned={timeSigned}
+              onClickSign={signMla}
+              isSigning={isSigning}
+              mlaSignature={mlaSignature}
+            />
+          ))
+          .otherwise(() => null)}
 
         <Dialog
           open={finalOpen}
@@ -319,123 +315,123 @@ export default function CreateMarketPage() {
           }
           sx={FinalDialogContainer}
         >
-          {isError && !isDeploying && (
-            <>
-              <Box sx={DeployHeaderContainer}>
-                <Box width="20px" height="20px" />
-                <IconButton disableRipple onClick={handleClickClose}>
-                  <SvgIcon fontSize="big" sx={DeployCloseButtonIcon}>
-                    <Cross />
-                  </SvgIcon>
-                </IconButton>
-              </Box>
+          {match({ isError, isSuccess, isDeploying })
+            .with({ isError: true, isDeploying: false }, () => (
+              <>
+                <Box sx={DeployHeaderContainer}>
+                  <Box width="20px" height="20px" />
+                  <IconButton disableRipple onClick={handleClickClose}>
+                    <SvgIcon fontSize="big" sx={DeployCloseButtonIcon}>
+                      <Cross />
+                    </SvgIcon>
+                  </IconButton>
+                </Box>
+                <Box padding="24px" sx={DeployContentContainer}>
+                  <Box margin="auto" sx={DeployMainContainer}>
+                    <SvgIcon fontSize="colossal">
+                      <CircledCrossRed />
+                    </SvgIcon>
+
+                    <Box sx={DeployTypoBox}>
+                      <Typography variant="title3">
+                        {t("createNewMarket.deploy.error.title")}
+                      </Typography>
+                      <Typography variant="text3" sx={DeploySubtitle}>
+                        {t("createNewMarket.deploy.error.message")}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box sx={DeployButtonContainer}>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      size="large"
+                      fullWidth
+                      onClick={() => {
+                        handleResetModal()
+                        setFinalOpen(false)
+                      }}
+                    >
+                      {t("createNewMarket.deploy.error.buttons.back")}
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="large"
+                      fullWidth
+                      onClick={() => {
+                        handleResetModal()
+                        handleDeployMarket()
+                      }}
+                    >
+                      {t("createNewMarket.deploy.error.buttons.again")}
+                    </Button>
+                  </Box>
+                </Box>
+              </>
+            ))
+            .with({ isSuccess: true, isDeploying: false }, () => (
               <Box padding="24px" sx={DeployContentContainer}>
-                <Box margin="auto" sx={DeployMainContainer}>
+                <Box
+                  margin="auto"
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    rowGap: "24px",
+                  }}
+                >
                   <SvgIcon fontSize="colossal">
-                    <CircledCrossRed />
+                    <CircledCheckBlue />
                   </SvgIcon>
 
                   <Box sx={DeployTypoBox}>
                     <Typography variant="title3">
-                      {t("createNewMarket.deploy.error.title")}
+                      {t("createNewMarket.deploy.success.title")}
                     </Typography>
                     <Typography variant="text3" sx={DeploySubtitle}>
-                      {t("createNewMarket.deploy.error.message")}
+                      {t("createNewMarket.deploy.success.message")}
                     </Typography>
                   </Box>
                 </Box>
 
                 <Box sx={DeployButtonContainer}>
+                  {newMarketForm.getValues("mla") === "wildcatMLA" && (
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      size="large"
+                      fullWidth
+                    >
+                      {t("createNewMarket.deploy.success.buttons.mla")}
+                    </Button>
+                  )}
                   <Button
+                    onClick={handleGoToMarkets}
                     variant="contained"
-                    color="secondary"
                     size="large"
                     fullWidth
-                    onClick={() => {
-                      handleResetModal()
-                      setFinalOpen(false)
-                    }}
                   >
-                    {t("createNewMarket.deploy.error.buttons.back")}
-                  </Button>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    fullWidth
-                    onClick={() => {
-                      handleResetModal()
-                      handleDeployMarket()
-                    }}
-                  >
-                    {t("createNewMarket.deploy.error.buttons.again")}
+                    {t("createNewMarket.deploy.success.buttons.markets")}
                   </Button>
                 </Box>
               </Box>
-            </>
-          )}
-
-          {isSuccess && !isDeploying && (
-            <Box padding="24px" sx={DeployContentContainer}>
-              <Box
-                margin="auto"
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  rowGap: "24px",
-                }}
-              >
-                <SvgIcon fontSize="colossal">
-                  <CircledCheckBlue />
-                </SvgIcon>
+            ))
+            .with({ isDeploying: true }, () => (
+              <Box sx={DeployContentContainer} rowGap="24px">
+                <Loader />
 
                 <Box sx={DeployTypoBox}>
-                  <Typography variant="title3">
-                    {t("createNewMarket.deploy.success.title")}
+                  <Typography variant="text1">
+                    {t("createNewMarket.deploy.loading.title")}
                   </Typography>
                   <Typography variant="text3" sx={DeploySubtitle}>
-                    {t("createNewMarket.deploy.success.message")}
+                    {t("createNewMarket.deploy.loading.message")}
                   </Typography>
                 </Box>
               </Box>
-
-              <Box sx={DeployButtonContainer}>
-                {newMarketForm.getValues("mla") === "wildcatMLA" && (
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    size="large"
-                    fullWidth
-                  >
-                    {t("createNewMarket.deploy.success.buttons.mla")}
-                  </Button>
-                )}
-                <Button
-                  onClick={handleGoToMarkets}
-                  variant="contained"
-                  size="large"
-                  fullWidth
-                >
-                  {t("createNewMarket.deploy.success.buttons.markets")}
-                </Button>
-              </Box>
-            </Box>
-          )}
-
-          {isDeploying && (
-            <Box sx={DeployContentContainer} rowGap="24px">
-              <Loader />
-
-              <Box sx={DeployTypoBox}>
-                <Typography variant="text1">
-                  {t("createNewMarket.deploy.loading.title")}
-                </Typography>
-                <Typography variant="text3" sx={DeploySubtitle}>
-                  {t("createNewMarket.deploy.loading.message")}
-                </Typography>
-              </Box>
-            </Box>
-          )}
+            ))
+            .otherwise(() => null)}
         </Dialog>
       </Box>
 
