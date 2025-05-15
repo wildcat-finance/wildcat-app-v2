@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, RefObject } from "react"
 
 import { useDispatch } from "react-redux"
+import { match, P } from "ts-pattern"
 
 import { setCheckBlock } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 
@@ -21,33 +22,49 @@ const useScrollSlidesHandler = (
     const tempChecked = checkedRef.current
     const container = scrollContainer.current
     if (container) {
-      if (
-        container.scrollTop + container.clientHeight >=
-        container.scrollHeight
-      ) {
-        if (evt.deltaY > 0 && checkedRef.current !== slidesCount) {
-          setDirection("down")
-          setScrollEnabled(false)
-          dispatch(setCheckBlock(0))
-          setTimeout(() => {
-            setDirection("up")
-            dispatch(setCheckBlock(tempChecked + 1))
-            setScrollEnabled(true)
-          }, 600)
-        }
-      }
-      if (container.scrollTop === 0) {
-        if (evt.deltaY < 0 && checkedRef.current !== 1) {
-          setDirection("up")
-          setScrollEnabled(false)
-          dispatch(setCheckBlock(0))
-          setTimeout(() => {
+      match({
+        isAtBottom:
+          container.scrollTop + container.clientHeight >=
+          container.scrollHeight,
+        isAtTop: container.scrollTop === 0,
+        deltaY: evt.deltaY,
+        currentChecked: checkedRef.current,
+      })
+        .with(
+          {
+            isAtBottom: true,
+            deltaY: P.when((y: number) => y > 0),
+            currentChecked: P.when((c: number) => c !== slidesCount),
+          },
+          () => {
             setDirection("down")
-            dispatch(setCheckBlock(tempChecked - 1))
-            setScrollEnabled(true)
-          }, 600)
-        }
-      }
+            setScrollEnabled(false)
+            dispatch(setCheckBlock(0))
+            setTimeout(() => {
+              setDirection("up")
+              dispatch(setCheckBlock(tempChecked + 1))
+              setScrollEnabled(true)
+            }, 600)
+          },
+        )
+        .with(
+          {
+            isAtTop: true,
+            deltaY: P.when((y: number) => y < 0),
+            currentChecked: P.when((c: number) => c !== 1),
+          },
+          () => {
+            setDirection("up")
+            setScrollEnabled(false)
+            dispatch(setCheckBlock(0))
+            setTimeout(() => {
+              setDirection("down")
+              dispatch(setCheckBlock(tempChecked - 1))
+              setScrollEnabled(true)
+            }, 600)
+          },
+        )
+        .otherwise(() => {})
     }
   }
 

@@ -1,4 +1,5 @@
 import { HooksKind, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { match } from "ts-pattern"
 
 import { MarketStatus } from "@/utils/marketStatus"
 
@@ -41,20 +42,13 @@ export const statusComparator = (
     delinquencyPeriod: number
   },
 ) => {
-  const statusOrder = (status: MarketStatus) => {
-    switch (status) {
-      case MarketStatus.HEALTHY:
-        return 1
-      case MarketStatus.DELINQUENT:
-        return 2
-      case MarketStatus.PENALTY:
-        return 3
-      case MarketStatus.TERMINATED:
-        return 4
-      default:
-        return 5
-    }
-  }
+  const statusOrder = (status: MarketStatus) =>
+    match(status)
+      .with(MarketStatus.HEALTHY, () => 1)
+      .with(MarketStatus.DELINQUENT, () => 2)
+      .with(MarketStatus.PENALTY, () => 3)
+      .with(MarketStatus.TERMINATED, () => 4)
+      .otherwise(() => 5)
 
   const statusComparison = statusOrder(v1.status) - statusOrder(v2.status)
   if (statusComparison !== 0) {

@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 
 import { useDispatch } from "react-redux"
+import { match } from "ts-pattern"
 
 import { setSidebarHighlightState } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 
@@ -8,8 +9,8 @@ const useSidebarHighlight = (checked: number) => {
   const dispatch = useDispatch()
 
   useEffect(() => {
-    switch (checked) {
-      case 1:
+    match(checked)
+      .with(1, () => {
         dispatch(
           setSidebarHighlightState({
             borrowRepay: true,
@@ -18,8 +19,8 @@ const useSidebarHighlight = (checked: number) => {
             lenders: false,
           }),
         )
-        break
-      case 2:
+      })
+      .with(2, () => {
         dispatch(
           setSidebarHighlightState({
             borrowRepay: false,
@@ -28,8 +29,8 @@ const useSidebarHighlight = (checked: number) => {
             lenders: false,
           }),
         )
-        break
-      case 3:
+      })
+      .with(3, () => {
         dispatch(
           setSidebarHighlightState({
             borrowRepay: false,
@@ -38,8 +39,8 @@ const useSidebarHighlight = (checked: number) => {
             lenders: false,
           }),
         )
-        break
-      case 4:
+      })
+      .with(4, () => {
         dispatch(
           setSidebarHighlightState({
             borrowRepay: false,
@@ -48,8 +49,8 @@ const useSidebarHighlight = (checked: number) => {
             lenders: true,
           }),
         )
-        break
-      default:
+      })
+      .otherwise(() => {
         dispatch(
           setSidebarHighlightState({
             borrowRepay: false,
@@ -58,8 +59,7 @@ const useSidebarHighlight = (checked: number) => {
             lenders: false,
           }),
         )
-        break
-    }
+      })
   }, [checked, dispatch])
 }
 
