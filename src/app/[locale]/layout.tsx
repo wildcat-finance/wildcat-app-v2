@@ -16,6 +16,7 @@ import {
   PageContainer,
 } from "@/app/[locale]/layout-style"
 import initTranslations from "@/app/i18n"
+import CookieBanner from "@/components/CookieBanner"
 import { Footer } from "@/components/Footer"
 import Header from "@/components/Header"
 import PollingRegistration from "@/components/PollingRegistration"
@@ -77,6 +78,7 @@ export default async function RootLayout({
                         <Box sx={ContentContainer}>
                           <Sidebar />
                           <Box width="calc(100vw - 267px)">{children}</Box>
+                          <CookieBanner />
                         </Box>
                         {/* <Footer /> */}
                       </Box>
