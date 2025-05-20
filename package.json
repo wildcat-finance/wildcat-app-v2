@@ -41,6 +41,7 @@
     "humanize-duration": "^3.32.1",
     "i18next": "^23.10.1",
     "i18next-resources-to-backend": "^1.2.0",
+    "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
     "jszip": "^3.10.1",
     "next": "14.1.2",
