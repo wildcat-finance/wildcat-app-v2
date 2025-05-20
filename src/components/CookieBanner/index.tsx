@@ -27,7 +27,7 @@ export default function CookieBanner() {
     const s = d.getElementsByTagName("script")[0]
     g.async = true
     g.src =
-      "https://cdn.matomo.cloud/wildcatfinance.matomo.cloud/container_OPA9mHzt.js"
+      "https://cdn.matomo.cloud/wildcatfinance.matomo.cloud/container_jeDotXew.js"
     s.parentNode?.insertBefore(g, s)
   }
 
