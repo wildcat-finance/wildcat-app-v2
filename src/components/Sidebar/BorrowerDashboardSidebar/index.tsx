@@ -109,7 +109,10 @@ export const BorrowerDashboardSidebar = () => {
         <DashboardSectionAccordion
           label={t("dashboard.markets.tables.borrower.active.title")}
           amount={activeMarketsAmount}
-          open={marketSection === BorrowerMarketDashboardSections.ACTIVE}
+          open={
+            marketSection === BorrowerMarketDashboardSections.ACTIVE &&
+            activeMarketsAmount > 0
+          }
           onClick={() =>
             handleChangeMarketSection(BorrowerMarketDashboardSections.ACTIVE)
           }
@@ -133,7 +136,10 @@ export const BorrowerDashboardSidebar = () => {
         <DashboardSectionAccordion
           label={t("dashboard.markets.tables.borrower.closed.title")}
           amount={closedMarketsAmount}
-          open={marketSection === BorrowerMarketDashboardSections.TERMINATED}
+          open={
+            marketSection === BorrowerMarketDashboardSections.TERMINATED &&
+            closedMarketsAmount > 0
+          }
           onClick={() =>
             handleChangeMarketSection(
               BorrowerMarketDashboardSections.TERMINATED,

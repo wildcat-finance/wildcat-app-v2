@@ -124,9 +124,7 @@ export function MarketRecordsTable({
           <Typography variant="text3">
             {trimAddress(params.value, 10)}
           </Typography>
-
           <LinkGroup
-            type="etherscan"
             linkValue={`${EtherscanBaseUrl}/tx/${params.value}`}
             copyValue={params.value}
           />
@@ -228,7 +226,7 @@ export function MarketRecordsTable({
         ...TableStyles,
         overflow: "auto",
         maxWidth: "calc(100vw - 267px)",
-        padding: "16px 16px",
+        padding: "16px 0px",
       }}
       getRowHeight={() => "auto"}
       rows={rows || []}

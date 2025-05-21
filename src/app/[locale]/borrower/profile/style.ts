@@ -1,9 +1,14 @@
 import { pageCalcHeights } from "@/utils/constants"
 
 export const ContentContainer = {
-  width: "69.88%",
+  width: "100%",
   height: `calc(100vh - ${pageCalcHeights.page})`,
   overflow: "scroll",
+}
+
+export const MainContainer = {
+  width: "69.88%",
+  margin: "0 auto 0 0",
   padding: "52px 20px 24px 44px",
 }
 

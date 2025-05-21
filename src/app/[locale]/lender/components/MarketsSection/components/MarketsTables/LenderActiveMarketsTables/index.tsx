@@ -240,7 +240,7 @@ export const LenderActiveMarketsTables = ({
             href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
             style={{
               textDecoration: "none",
-              width: "fit-content",
+              width: "100%",
               height: "fit-content",
             }}
           >
@@ -253,8 +253,13 @@ export const LenderActiveMarketsTables = ({
                 textDecoration: "underline",
                 color: "#00008B",
                 fontWeight: 500,
-                minWidth: "fit-content",
-                width: "fit-content",
+                minWidth: "calc(100% - 1px)",
+                width: "calc(100% - 1px)",
+                textAlign: "left",
+                textOverflow: "ellipsis",
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                display: "inline-block",
               }}
             >
               {params.value}
