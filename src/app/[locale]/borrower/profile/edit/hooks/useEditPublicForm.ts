@@ -42,6 +42,9 @@ export const publicValidationSchema = z.object({
     })
     .optional()
     .or(z.literal("")),
+  additionalInfo1: z.string().optional(),
+  additionalInfo2: z.string().optional(),
+  additionalInfo3: z.string().optional(),
 })
 
 export type PublicValidationSchemaType = z.infer<typeof publicValidationSchema>
@@ -54,6 +57,9 @@ export const useEditPublicForm = () => {
     founded: "",
     headquarters: "",
     website: "",
+    additionalInfo1: "",
+    additionalInfo2: "",
+    additionalInfo3: "",
   }
 
   return useForm<PublicValidationSchemaType>({
