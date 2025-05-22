@@ -8,6 +8,7 @@ import {
   SvgIcon,
   TextField,
 } from "@mui/material"
+import { match, P } from "ts-pattern"
 
 import { useSubmitUpdates } from "@/app/[locale]/borrower/policy/hooks/useSubmitUpdates"
 import useTrackPolicyLendersChanges from "@/app/[locale]/borrower/policy/hooks/useTrackLendersChanges"
@@ -174,42 +175,47 @@ export const LendersTab = ({
         </Box>
       </Box>
 
-      {!isLoading && !isSubmitting && (
-        <EditLendersTable
-          filteredLenders={filteredLenders}
-          isFiltered={!!lendersFilter}
-        />
-      )}
-
-      {(isLoading || isSubmitting) && (
-        <Box
-          display="flex"
-          flexDirection="column"
-          padding="32px 16px"
-          rowGap="8px"
-        >
-          <Skeleton
-            height="52px"
-            width="100%"
-            sx={{ bgcolor: COLORS.athensGrey }}
+      {match({ isLoading, isSubmitting })
+        .with({ isLoading: false, isSubmitting: false }, () => (
+          <EditLendersTable
+            filteredLenders={filteredLenders}
+            isFiltered={!!lendersFilter}
           />
-          <Skeleton
-            height="52px"
-            width="100%"
-            sx={{ bgcolor: COLORS.athensGrey }}
-          />
-          <Skeleton
-            height="52px"
-            width="100%"
-            sx={{ bgcolor: COLORS.athensGrey }}
-          />
-          <Skeleton
-            height="52px"
-            width="100%"
-            sx={{ bgcolor: COLORS.athensGrey }}
-          />
-        </Box>
-      )}
+        ))
+        .with(
+          { isLoading: true, isSubmitting: P.any },
+          { isLoading: P.any, isSubmitting: true },
+          () => (
+            <Box
+              display="flex"
+              flexDirection="column"
+              padding="32px 16px"
+              rowGap="8px"
+            >
+              <Skeleton
+                height="52px"
+                width="100%"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+              <Skeleton
+                height="52px"
+                width="100%"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+              <Skeleton
+                height="52px"
+                width="100%"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+              <Skeleton
+                height="52px"
+                width="100%"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+            </Box>
+          ),
+        )
+        .otherwise(() => null)}
 
       <FinalModal
         isLoading={isSubmitting}

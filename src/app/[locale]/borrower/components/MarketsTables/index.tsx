@@ -7,6 +7,7 @@ import React, { useEffect, useMemo, useRef } from "react"
 import { Box, Typography } from "@mui/material"
 import { Market } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
+import { match, P } from "ts-pattern"
 import { useAccount } from "wagmi"
 
 import { BorrowerMarketsTable } from "@/app/[locale]/borrower/components/MarketsTables/BorrowerMarketsTable"
@@ -33,7 +34,7 @@ const getFilteredAndOrderedMarkets = (
   statuses: MarketStatus[],
   assets: { name: string; address: string }[],
 ) => {
-  let filteredMarkets = markets
+  const filteredMarkets = markets
     .filter(isNotExcludedMarket)
     .filter((market) => market.deployedEvent)
     .sort(
@@ -44,31 +45,52 @@ const getFilteredAndOrderedMarkets = (
 
   const assetsNames = assets.map((asset) => asset.name)
 
-  if (filteredMarkets && name !== "") {
-    filteredMarkets = filteredMarkets.filter((market) =>
-      market.name.toLowerCase().includes(name.toLowerCase()),
-    )
-  }
+  const applyFilters = (initialMarkets: Market[]) =>
+    match({
+      marketsToFilter: initialMarkets,
+      searchName: name,
+      filterStatuses: statuses,
+      filterAssets: assets,
+    })
+      .with(
+        {
+          marketsToFilter: P.not(P.nullish),
+          searchName: P.when((searchName) => searchName !== ""),
+        },
+        ({ marketsToFilter, searchName }) =>
+          marketsToFilter.filter((market) =>
+            market.name.toLowerCase().includes(searchName.toLowerCase()),
+          ),
+      )
+      .with(
+        {
+          markets: P.not(P.nullish),
+          filterStatuses: P.when((filterStatuses) => filterStatuses.length > 0),
+        },
+        ({ marketsToFilter, filterStatuses }) =>
+          marketsToFilter.filter((market) =>
+            filterStatuses.includes(
+              getMarketStatus(
+                market.isClosed,
+                market.isDelinquent || market.willBeDelinquent,
+                market.isIncurringPenalties,
+              ),
+            ),
+          ),
+      )
+      .with(
+        {
+          markets: P.not(P.nullish),
+          filterAssets: P.when((filterAssets) => filterAssets.length > 0),
+        },
+        ({ marketsToFilter }) =>
+          marketsToFilter.filter((market) =>
+            assetsNames.includes(market.underlyingToken.symbol),
+          ),
+      )
+      .otherwise(({ marketsToFilter }) => marketsToFilter)
 
-  if (filteredMarkets && statuses.length > 0) {
-    filteredMarkets = filteredMarkets.filter((market) =>
-      statuses.includes(
-        getMarketStatus(
-          market.isClosed,
-          market.isDelinquent || market.willBeDelinquent,
-          market.isIncurringPenalties,
-        ),
-      ),
-    )
-  }
-
-  if (filteredMarkets && assets.length > 0) {
-    filteredMarkets = filteredMarkets.filter((market) =>
-      assetsNames.includes(market.underlyingToken.symbol),
-    )
-  }
-
-  return filteredMarkets
+  return applyFilters(filteredMarkets)
 }
 
 export const MarketsTables = ({

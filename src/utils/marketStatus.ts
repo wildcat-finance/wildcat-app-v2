@@ -1,4 +1,5 @@
 import { Market } from "@wildcatfi/wildcat-sdk"
+import { match } from "ts-pattern"
 
 import { secondsToDays } from "@/utils/formatters"
 
@@ -13,12 +14,12 @@ export const getMarketStatus = (
   isClosed: boolean,
   isDelinquent: boolean,
   isIncurringPenalties: boolean,
-): MarketStatus => {
-  if (isClosed) return MarketStatus.TERMINATED
-  if (isIncurringPenalties) return MarketStatus.PENALTY
-  if (isDelinquent) return MarketStatus.DELINQUENT
-  return MarketStatus.HEALTHY
-}
+): MarketStatus =>
+  match({ isClosed, isDelinquent, isIncurringPenalties })
+    .with({ isClosed: true }, () => MarketStatus.TERMINATED)
+    .with({ isIncurringPenalties: true }, () => MarketStatus.PENALTY)
+    .with({ isDelinquent: true }, () => MarketStatus.DELINQUENT)
+    .otherwise(() => MarketStatus.HEALTHY)
 
 export const getMarketStatusChip = (market: Market) => {
   const delinquencyPeriod =
