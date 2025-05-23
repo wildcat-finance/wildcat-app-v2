@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-import { Button } from "@mui/material"
+import { Button, useTheme } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
@@ -9,6 +9,7 @@ import { useSignAgreement } from "@/app/[locale]/agreement/hooks/useSignAgreemen
 export const SignButton = () => {
   const address = useAccount().address?.toLowerCase()
   const { t } = useTranslation()
+  const theme = useTheme()
 
   const { mutate: signAgreement, isPending: isSignPending } = useSignAgreement()
 
@@ -34,7 +35,13 @@ export const SignButton = () => {
     <Button
       variant="contained"
       size="large"
-      sx={{ width: "169", height: "44px" }}
+      sx={{
+        width: "169",
+        height: "44px",
+        [theme.breakpoints.down("sm")]: {
+          width: "100%",
+        },
+      }}
       onClick={handleSign}
       disabled={isSigning}
     >

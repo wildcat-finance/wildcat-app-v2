@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 
-import { Button } from "@mui/material"
+import { Button, useMediaQuery } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
@@ -10,6 +10,7 @@ import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/use
 import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWalletDialog"
 import { ProfileDialog } from "@/components/Header/HeaderButton/ProfileDialog"
 import { ConnectButton } from "@/components/Header/HeaderButton/style"
+import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { trimAddress } from "@/utils/formatters"
 
@@ -17,6 +18,7 @@ export const HeaderButton = () => {
   const { t } = useTranslation()
   const { address, isConnected } = useAccount()
   const { data } = useGetBorrowerProfile(address)
+  const isMobile = useMediaQuery("(max-width:600px)")
 
   const { isWrongNetwork } = useCurrentNetwork()
 
@@ -56,7 +58,14 @@ export const HeaderButton = () => {
           avatar={data?.avatar}
         />
       ) : (
-        <ConnectWalletDialog open={open} handleClose={handleClose} />
+        <>
+          {!isMobile && (
+            <ConnectWalletDialog open={open} handleClose={handleClose} />
+          )}
+          {isMobile && (
+            <MobileConnectWallet open={open} handleClose={handleClose} />
+          )}
+        </>
       )}
     </>
   )

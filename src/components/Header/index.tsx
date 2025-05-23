@@ -2,13 +2,16 @@
 
 import { useEffect, useMemo, useState } from "react"
 
-import { Box, Switch, Typography } from "@mui/material"
+import { Box, Switch, Typography, useMediaQuery, useTheme } from "@mui/material"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
+import LogoWhite from "@/assets/icons/airdrop_logo_new.svg"
 import Logo from "@/assets/icons/logo_white.svg"
-import { ContentContainer, NavContainer } from "@/components/Header/style"
+import LogoBlack from "@/assets/icons/sale_logo_black.svg"
+import { contentContainer, NavContainer } from "@/components/Header/style"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setTab } from "@/store/slices/borrowerOverviewSlice/borrowerOverviewSlice"
@@ -16,10 +19,13 @@ import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/inter
 import { COLORS } from "@/theme/colors"
 
 import { HeaderButton } from "./HeaderButton"
-import { NotificationButton } from "./NotificationButton"
+import { MobileMenu } from "./MobileMenu"
 
 export default function Header() {
   const { t } = useTranslation()
+  const theme = useTheme()
+  const isMobile = useMediaQuery("(max-width:600px)")
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false)
 
   const router = useRouter()
   const pathname = usePathname()
@@ -58,54 +64,65 @@ export default function Header() {
     [side],
   )
 
+  const mobileLogo = side ? <LogoBlack /> : <LogoWhite />
+
   return (
-    <Box sx={ContentContainer}>
-      <Link onClick={handleResetTab} href={homeUrl} style={{ height: "50px" }}>
-        <Logo />
+    <Box sx={contentContainer(theme)}>
+      <Link
+        onClick={handleResetTab}
+        href={homeUrl}
+        style={{ height: isMobile ? "32px" : "50px" }}
+      >
+        {!isMobile ? <Logo /> : mobileLogo}
       </Link>
-      <Box sx={NavContainer}>
-        {/* Lender on the left */}
-        <Link href={ROUTES.lender.root} style={{ textDecoration: "none" }}>
-          <Typography
-            variant="text2Highlighted"
-            sx={{ color: COLORS.white, cursor: "pointer" }}
-          >
-            {t("header.role.lender")}
-          </Typography>
-        </Link>
-        <Switch
-          sx={{
-            "& .MuiSwitch-switchBase": {
-              "&.Mui-checked": {
-                "& + .MuiSwitch-track": {
-                  opacity: 0.3,
-                  backgroundColor: COLORS.white,
+      {!isMobile && (
+        <Box sx={NavContainer}>
+          {/* Lender on the left */}
+          <Link href={ROUTES.lender.root} style={{ textDecoration: "none" }}>
+            <Typography
+              variant="text2Highlighted"
+              sx={{ color: COLORS.white, cursor: "pointer" }}
+            >
+              {t("header.role.lender")}
+            </Typography>
+          </Link>
+          <Switch
+            sx={{
+              "& .MuiSwitch-switchBase": {
+                "&.Mui-checked": {
+                  "& + .MuiSwitch-track": {
+                    opacity: 0.3,
+                    backgroundColor: COLORS.white,
+                  },
                 },
               },
-            },
-            "& .MuiSwitch-track": {
-              opacity: 0.3,
-              backgroundColor: COLORS.white,
-            },
-          }}
-          onClick={handleToggleSide}
-          checked={side === "borrower"}
-        />
-        <Link
-          onClick={handleResetTab}
-          href={ROUTES.borrower.root}
-          style={{ textDecoration: "none" }}
-        >
-          <Typography
-            variant="text2Highlighted"
-            sx={{ color: COLORS.white, cursor: "pointer" }}
+              "& .MuiSwitch-track": {
+                opacity: 0.3,
+                backgroundColor: COLORS.white,
+              },
+            }}
+            onClick={handleToggleSide}
+            checked={side === "borrower"}
+          />
+          <Link
+            onClick={handleResetTab}
+            href={ROUTES.borrower.root}
+            style={{ textDecoration: "none" }}
           >
-            {t("header.role.borrower")}
-          </Typography>
-        </Link>
-      </Box>
+            <Typography
+              variant="text2Highlighted"
+              sx={{ color: COLORS.white, cursor: "pointer" }}
+            >
+              {t("header.role.borrower")}
+            </Typography>
+          </Link>
+        </Box>
+      )}
       {/* <NotificationButton /> */}
-      <HeaderButton />
+      {!isMobile && <HeaderButton />}
+      {isMobile && (
+        <MobileMenu open={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
+      )}
     </Box>
   )
 }
