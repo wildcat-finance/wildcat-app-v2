@@ -330,14 +330,14 @@ export const MarketsSection = () => {
               value={marketSearch}
               setValue={setMarketSearch}
               placeholder={t("dashboard.markets.filters.name")}
-              width="160px"
+              width="165px"
             />
 
             <FilterTextField
               value={borrowerSearch}
               setValue={setBorrowerSearch}
               placeholder={t("dashboard.markets.filters.borrower")}
-              width="180px"
+              width="175px"
             />
 
             <SmallFilterSelect
@@ -350,7 +350,7 @@ export const MarketsSection = () => {
               }
               selected={marketAssets}
               setSelected={setMarketAssets}
-              width="100px"
+              width="130px"
             />
 
             <SmallFilterSelect
@@ -358,7 +358,7 @@ export const MarketsSection = () => {
               options={marketStatusesMock}
               selected={marketStatuses}
               setSelected={setMarketStatuses}
-              width="100px"
+              width="150px"
             />
           </Box>
         </Box>
