@@ -28,6 +28,7 @@ export const OverallSection = ({
   jurisdiction,
   defaults,
   entityKind,
+  additionalUrls,
 }: OverallSectionProps) => {
   const { t } = useTranslation()
   const [state, copyToClipboard] = useCopyToClipboard()
@@ -49,9 +50,16 @@ export const OverallSection = ({
         ].find((elf) => elf.elfCode === entityKind)?.name
       : undefined
 
-  const additionalInfo1 = "Additional Info #1"
-  const additionalInfo2 = "Additional Info #2"
-  const additionalInfo3 = "Additional Info #3"
+  // Split the additionalUrls into two arrays, the left column and the right column.
+  // The left column should have one less of the additionalUrls than the right column, as the right
+  // column has 1 less value in the default layout.
+  const rightSideColumns = additionalUrls?.slice(
+    0,
+    Math.ceil(additionalUrls.length / 2),
+  )
+  const leftSideColumns = additionalUrls?.slice(
+    Math.ceil(additionalUrls.length / 2),
+  )
 
   return (
     <Box>
@@ -117,15 +125,16 @@ export const OverallSection = ({
             </Box>
           )}
 
-          {additionalInfo1 && (
+          {leftSideColumns?.map((column) => (
             <Box>
               <MarketParametersItem
-                title={t("borrowerProfile.profile.overallInfo.additionalInfo1")}
-                value={additionalInfo1}
+                title={column.label}
+                value={column.url}
+                link={column.url}
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
-          )}
+          ))}
         </Box>
 
         <Box sx={MarketParametersColumn}>
@@ -174,25 +183,16 @@ export const OverallSection = ({
             </Box>
           )}
 
-          {additionalInfo2 && (
+          {rightSideColumns?.map((column) => (
             <Box>
               <MarketParametersItem
-                title={t("borrowerProfile.profile.overallInfo.additionalInfo2")}
-                value={additionalInfo2}
+                title={column.label}
+                value={column.url}
+                link={column.url}
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
-          )}
-
-          {additionalInfo3 && (
-            <Box>
-              <MarketParametersItem
-                title={t("borrowerProfile.profile.overallInfo.additionalInfo3")}
-                value={additionalInfo3}
-              />
-              <Divider sx={MarketParametersRowsDivider} />
-            </Box>
-          )}
+          ))}
         </Box>
       </Box>
     </Box>

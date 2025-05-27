@@ -51,6 +51,7 @@ export async function GET() {
         physicalAddress: borrower.physicalAddress || undefined,
         timeInvited: borrower.invitation?.timeInvited || undefined,
         timeSigned: borrower.serviceAgreementSignature?.timeSigned || undefined,
+        additionalUrls: borrower.additionalUrls || undefined,
       }) as BorrowerProfileForAdminView,
   )
 

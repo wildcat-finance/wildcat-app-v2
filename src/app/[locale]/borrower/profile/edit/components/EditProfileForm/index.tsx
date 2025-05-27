@@ -32,6 +32,7 @@ import {
   useInvalidateBorrowerProfile,
 } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { BorrowerProfileInput } from "@/app/api/profiles/interface"
+import AddIcon from "@/assets/icons/plus_icon.svg"
 import CountriesList from "@/config/countries.json"
 import ELFsByCountry from "@/config/elfs-by-country.json"
 import JurisdictionsByCountry from "@/config/jurisdictions-by-country.json"
@@ -69,6 +70,7 @@ const ProfileKeys = [
   "entityKind",
   "physicalAddress",
   "email",
+  "additionalUrls",
 ] as (keyof BorrowerProfileInput)[]
 
 export default function EditProfileForm({
@@ -133,19 +135,25 @@ export default function EditProfileForm({
     entityKind: getPrivateValues().entityKind,
     physicalAddress: getPrivateValues().physicalAddress,
     email: getPrivateValues().email,
-    additionalInfo1: getPublicValues().additionalInfo1,
-    additionalInfo2: getPublicValues().additionalInfo2,
-    additionalInfo3: getPublicValues().additionalInfo3,
+    additionalUrls: getPublicValues().additionalUrls,
   }
 
+  const [additionalUrls, setAdditionalUrls] = useState<
+    { label: string; url: string }[]
+  >(publicData?.additionalUrls || [])
+
   const compare = () =>
+    isPublicDataLoading ||
     ProfileKeys.every((key) => {
-      const oldValue = publicInfo[key] || ""
-      const newValue = publicData?.[key] || ""
+      if (key === "additionalUrls") {
+        const oldValue = publicData?.[key] || []
+        const newValue = publicInfo[key] || []
+        return JSON.stringify(oldValue) === JSON.stringify(newValue)
+      }
+      const oldValue = publicData?.[key] || ""
+      const newValue = publicInfo[key] || ""
       return oldValue === newValue
     })
-
-  const arePublicInfoEqual = compare()
 
   const handleNatureSelect = (
     event: SelectChangeEvent<EntityCategory | null>,
@@ -183,16 +191,19 @@ export default function EditProfileForm({
     if (avatar) {
       changedValues.avatar = avatar
     }
-    ProfileKeys.filter(
-      (key) =>
-        key !== "additionalInfo1" &&
-        key !== "additionalInfo2" &&
-        key !== "additionalInfo3",
-    ).forEach((key) => {
-      const oldValue = publicData?.[key] || ""
-      const newValue = publicInfo[key] || ""
-      if (oldValue !== newValue) {
-        changedValues[key] = newValue
+    ProfileKeys.forEach((key) => {
+      if (key === "additionalUrls") {
+        const oldValue = publicData?.[key] || []
+        const newValue = publicInfo[key] || []
+        if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
+          changedValues.additionalUrls = newValue
+        }
+      } else {
+        const oldValue = publicData?.[key] || ""
+        const newValue = publicInfo[key] || ""
+        if (oldValue !== newValue) {
+          changedValues[key] = newValue
+        }
       }
     })
     ;(onSubmit ?? handleSubmit)(changedValues)
@@ -219,6 +230,11 @@ export default function EditProfileForm({
     setPublicValue("twitter", publicData?.twitter, { shouldValidate: true })
     setPublicValue("linkedin", publicData?.linkedin, { shouldValidate: true })
     setPublicValue("telegram", publicData?.telegram, { shouldValidate: true })
+    setAdditionalUrls(publicData?.additionalUrls || [])
+    setPublicValue("additionalUrls", publicData?.additionalUrls || [], {
+      shouldValidate: true,
+    })
+    setAvatar(publicData?.avatar || "")
     if (publicData?.jurisdiction) {
       setPrivateValue("entityCategory", "Registered Legal Entity")
       const jurisdiction =
@@ -249,6 +265,7 @@ export default function EditProfileForm({
     setPrivateValue("email", publicData?.email, { shouldValidate: true })
   }, [publicData])
 
+  const arePublicInfoEqual = compare()
   const selectRef = useRef<HTMLElement>(null)
 
   const onOpen = () => {
@@ -314,6 +331,27 @@ export default function EditProfileForm({
       }
     }
   }, [countryWatch, setPrivateValue, privateWatch])
+
+  const handleAddUrl = () => {
+    setAdditionalUrls([...additionalUrls, { label: "", url: "" }])
+  }
+
+  const handleUrlChange = (
+    index: number,
+    field: "label" | "url",
+    value: string,
+  ) => {
+    const newUrls = [...additionalUrls]
+    newUrls[index] = { ...newUrls[index], [field]: value }
+    setAdditionalUrls(newUrls)
+    setPublicValue("additionalUrls", newUrls, { shouldValidate: true })
+  }
+
+  const handleRemoveUrl = (index: number) => {
+    const newUrls = additionalUrls.filter((_, i) => i !== index)
+    setAdditionalUrls(newUrls)
+    setPublicValue("additionalUrls", newUrls, { shouldValidate: true })
+  }
 
   return (
     <Box sx={sx}>
@@ -446,66 +484,6 @@ export default function EditProfileForm({
           />
         </EditProfileItem>
 
-        <EditProfileItem
-          title={t("borrowerProfile.edit.public.additionalInfo1.title")}
-          tooltip={t("borrowerProfile.edit.public.additionalInfo1.tooltip")}
-          form={publicForm}
-          field="additionalInfo1"
-          oldValue={publicData?.additionalInfo1}
-          newValue={publicWatch("additionalInfo1")}
-          isLoading={isLoading}
-        >
-          <TextField
-            placeholder={t(
-              "borrowerProfile.edit.public.additionalInfo1.placeholder",
-            )}
-            fullWidth
-            error={Boolean(publicErrors.additionalInfo1)}
-            helperText={publicErrors.additionalInfo1?.message}
-            {...registerPublic("additionalInfo1")}
-          />
-        </EditProfileItem>
-
-        <EditProfileItem
-          title={t("borrowerProfile.edit.public.additionalInfo2.title")}
-          tooltip={t("borrowerProfile.edit.public.additionalInfo2.tooltip")}
-          form={publicForm}
-          field="additionalInfo2"
-          oldValue={publicData?.additionalInfo2}
-          newValue={publicWatch("additionalInfo2")}
-          isLoading={isLoading}
-        >
-          <TextField
-            placeholder={t(
-              "borrowerProfile.edit.public.additionalInfo2.placeholder",
-            )}
-            fullWidth
-            error={Boolean(publicErrors.additionalInfo2)}
-            helperText={publicErrors.additionalInfo2?.message}
-            {...registerPublic("additionalInfo2")}
-          />
-        </EditProfileItem>
-
-        <EditProfileItem
-          title={t("borrowerProfile.edit.public.additionalInfo3.title")}
-          tooltip={t("borrowerProfile.edit.public.additionalInfo3.tooltip")}
-          form={publicForm}
-          field="additionalInfo3"
-          oldValue={publicData?.additionalInfo3}
-          newValue={publicWatch("additionalInfo3")}
-          isLoading={isLoading}
-        >
-          <TextField
-            placeholder={t(
-              "borrowerProfile.edit.public.additionalInfo3.placeholder",
-            )}
-            fullWidth
-            error={Boolean(publicErrors.additionalInfo3)}
-            helperText={publicErrors.additionalInfo3?.message}
-            {...registerPublic("additionalInfo3")}
-          />
-        </EditProfileItem>
-
         {!hideExternalLinks && (
           <>
             <EditProfileItem
@@ -590,6 +568,68 @@ export default function EditProfileForm({
           </>
         )}
       </Box>
+
+      <Divider sx={{ width: "60.8%", margin: "40px 0" }} />
+
+      {!hideExternalLinks && (
+        <Box sx={{ width: "60.8%", mb: 2 }}>
+          {!hideHeaders && (
+            <Box sx={TitleContainer}>
+              <Typography variant="title1">
+                {t("borrowerProfile.edit.public.additionalUrls.title")}
+              </Typography>
+              <Typography variant="text2" color={COLORS.santasGrey}>
+                {t("borrowerProfile.edit.public.additionalUrls.subtitle")}
+              </Typography>
+            </Box>
+          )}
+          {additionalUrls.map((url, index) => (
+            // eslint-disable-next-line react/no-array-index-key
+            <Box key={index.toString()} sx={{ display: "flex", gap: 2, mb: 2 }}>
+              <TextField
+                placeholder={t(
+                  "borrowerProfile.edit.public.additionalUrls.labelPlaceholder",
+                )}
+                value={url.label}
+                onChange={(e) =>
+                  handleUrlChange(index, "label", e.target.value)
+                }
+                error={Boolean(publicErrors.additionalUrls?.[index]?.label)}
+                helperText={
+                  publicErrors.additionalUrls?.[index]?.label?.message
+                }
+                sx={{ flex: 1 }}
+              />
+              <TextField
+                placeholder={t(
+                  "borrowerProfile.edit.public.additionalUrls.urlPlaceholder",
+                )}
+                value={url.url}
+                onChange={(e) => handleUrlChange(index, "url", e.target.value)}
+                error={Boolean(publicErrors.additionalUrls?.[index]?.url)}
+                helperText={publicErrors.additionalUrls?.[index]?.url?.message}
+                sx={{ flex: 2 }}
+              />
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => handleRemoveUrl(index)}
+                sx={{ minWidth: "40px" }}
+              >
+                ×
+              </Button>
+            </Box>
+          ))}
+          <Button
+            variant="outlined"
+            startIcon={<AddIcon />}
+            onClick={handleAddUrl}
+            sx={{ mt: 1 }}
+          >
+            {t("borrowerProfile.edit.public.additionalUrls.add")}
+          </Button>
+        </Box>
+      )}
 
       <Divider sx={{ width: "60.8%", margin: "40px 0" }} />
 
