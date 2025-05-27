@@ -28,9 +28,6 @@ export type EditProfileItemProps = {
     | "email"
     | "country"
     | "entityCategory"
-    | "additionalInfo1"
-    | "additionalInfo2"
-    | "additionalInfo3"
   oldValue: string | undefined
   newValue?: string
   children: ReactNode
