@@ -80,16 +80,6 @@ export const OverallSection = ({
             </Box>
           )}
 
-          {jurisdictionText && (
-            <Box>
-              <MarketParametersItem
-                title={t("borrowerProfile.profile.overallInfo.headquarters")}
-                value={jurisdictionText}
-              />
-              <Divider sx={MarketParametersRowsDivider} />
-            </Box>
-          )}
-
           {entityKindText && (
             <Box>
               <MarketParametersItem
@@ -115,16 +105,6 @@ export const OverallSection = ({
               <MarketParametersItem
                 title={t("borrowerProfile.profile.overallInfo.markets")}
                 value={marketsAmount || 0}
-              />
-              <Divider sx={MarketParametersRowsDivider} />
-            </Box>
-          )}
-
-          {additionalInfo1 && (
-            <Box>
-              <MarketParametersItem
-                title={t("borrowerProfile.profile.overallInfo.additionalInfo1")}
-                value={additionalInfo1}
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
@@ -170,26 +150,6 @@ export const OverallSection = ({
                 tooltipText={t(
                   "borrowerProfile.profile.overallInfo.defaults.tooltip",
                 )}
-              />
-              <Divider sx={MarketParametersRowsDivider} />
-            </Box>
-          )}
-
-          {additionalInfo2 && (
-            <Box>
-              <MarketParametersItem
-                title={t("borrowerProfile.profile.overallInfo.additionalInfo2")}
-                value={additionalInfo2}
-              />
-              <Divider sx={MarketParametersRowsDivider} />
-            </Box>
-          )}
-
-          {additionalInfo3 && (
-            <Box>
-              <MarketParametersItem
-                title={t("borrowerProfile.profile.overallInfo.additionalInfo3")}
-                value={additionalInfo3}
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
