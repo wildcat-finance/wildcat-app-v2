@@ -185,7 +185,7 @@ export default function EditProfileForm({
     const changedValues: BorrowerProfileInput = {
       address: address as string,
     }
-    if (avatar) {
+    if (avatar && avatar !== publicData?.avatar) {
       changedValues.avatar = avatar
     }
     ProfileKeys.forEach((key) => {
