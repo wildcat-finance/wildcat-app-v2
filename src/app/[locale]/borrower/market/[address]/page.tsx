@@ -7,7 +7,6 @@ import { Box, Divider, Skeleton } from "@mui/material"
 import { MarketVersion } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
-import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
 import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart"
 import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"

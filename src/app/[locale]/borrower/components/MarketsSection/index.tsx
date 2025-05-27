@@ -56,11 +56,16 @@ export const MarketsSection = () => {
     [],
   )
 
-  const filters = {
-    nameFilter: marketSearch,
-    assetFilter: marketAssets,
-    statusFilter: marketStatuses.map((status) => status.name) as MarketStatus[],
-  }
+  const filters = useMemo(
+    () => ({
+      nameFilter: marketSearch,
+      assetFilter: marketAssets,
+      statusFilter: marketStatuses.map(
+        (status) => status.name,
+      ) as MarketStatus[],
+    }),
+    [marketSearch, marketAssets, marketStatuses],
+  )
 
   const { t } = useTranslation()
 
@@ -81,8 +86,6 @@ export const MarketsSection = () => {
     }
     return tokensRaw
   }, [tokensRaw])
-
-  // TEST
 
   const {
     data: marketAccounts,
@@ -270,7 +273,7 @@ export const MarketsSection = () => {
           <Typography variant="title2" sx={{ marginBottom: "6px" }}>
             {t("dashboard.markets.title")}
           </Typography>
-          {!bannerDisplayConfig.hideNewMarketButton && (
+          {!bannerDisplayConfig.hideCreateMarket && (
             <Link href={ROUTES.borrower.createMarket}>
               <Button
                 variant="contained"
@@ -316,7 +319,7 @@ export const MarketsSection = () => {
               value={marketSearch}
               setValue={setMarketSearch}
               placeholder={t("dashboard.markets.filters.name")}
-              width="160px"
+              width="165px"
             />
 
             {marketSection === BorrowerMarketDashboardSections.OTHER && (
@@ -324,7 +327,7 @@ export const MarketsSection = () => {
                 value={borrowerSearch}
                 setValue={setBorrowerSearch}
                 placeholder={t("dashboard.markets.filters.borrower")}
-                width="180px"
+                width="175px"
               />
             )}
 
@@ -338,7 +341,7 @@ export const MarketsSection = () => {
               }
               selected={marketAssets}
               setSelected={setMarketAssets}
-              width="100px"
+              width="140px"
             />
 
             <SmallFilterSelect
@@ -346,7 +349,7 @@ export const MarketsSection = () => {
               options={marketStatusesMock}
               selected={marketStatuses}
               setSelected={setMarketStatuses}
-              width="100px"
+              width="150px"
             />
           </Box>
         </Box>
@@ -357,8 +360,8 @@ export const MarketsSection = () => {
           <Box padding="24px 24px 0">
             <LeadBanner
               title={bannerDisplayConfig.title}
-              text={bannerDisplayConfig.text}
-              buttonText={bannerDisplayConfig.buttonText}
+              text={bannerDisplayConfig.message}
+              buttonText={bannerDisplayConfig.button}
               buttonLink={bannerDisplayConfig.link}
             />
           </Box>

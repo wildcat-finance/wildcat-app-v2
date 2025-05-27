@@ -36,6 +36,21 @@ export const BorrowerProfileInputDTO = z.object({
   jurisdiction: z.string().min(0).max(64).optional(),
   physicalAddress: z.string().min(0).max(128).optional(),
   entityKind: z.string().min(0).max(64).optional(),
+  additionalUrls: z
+    .array(
+      z.object({
+        label: z.string().min(0).max(64),
+        url: z
+          .string()
+          .regex(
+            /^(?:(?:https):\/\/)?(?:\S+(?::\S*)?@)?(?:(?:(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[0-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))|localhost)(?::\d{2,5})?(?:(\/|\?|#)[^\s]*)?$/,
+            {
+              message: `Invalid URL`,
+            },
+          ),
+      }),
+    )
+    .optional(),
 })
 
 export const BorrowerProfileUpdateResponseDTO = z.object({

@@ -229,7 +229,7 @@ export const OtherMarketsTables = ({
             href={`${ROUTES.borrower.profile}/${params.row.borrowerAddress}`}
             style={{
               textDecoration: "none",
-              width: "fit-content",
+              width: "100%",
               height: "fit-content",
             }}
           >
@@ -242,8 +242,13 @@ export const OtherMarketsTables = ({
                 color: "#00008B",
                 lineHeight: "20px",
                 fontWeight: 500,
-                minWidth: "fit-content",
-                width: "fit-content",
+                minWidth: "calc(100% - 1px)",
+                width: "calc(100% - 1px)",
+                textAlign: "left",
+                textOverflow: "ellipsis",
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                display: "inline-block",
               }}
             >
               {params.value}
@@ -353,11 +358,10 @@ export const OtherMarketsTables = ({
 
   const { assetFilter, statusFilter, nameFilter } = filters
 
-  // TODO: check why dont work
-  // useEffect(() => {
-  //   setSelfOnboardPaginationModel((prevState) => ({ ...prevState, page: 0 }))
-  //   setManualPaginationModel((prevState) => ({ ...prevState, page: 0 }))
-  // }, [assetFilter, statusFilter, nameFilter])
+  useEffect(() => {
+    setSelfOnboardPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+    setManualPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+  }, [assetFilter, statusFilter, nameFilter])
 
   return (
     <Box
