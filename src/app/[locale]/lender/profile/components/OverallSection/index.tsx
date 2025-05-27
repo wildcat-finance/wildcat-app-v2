@@ -42,10 +42,6 @@ export const OverallSection = ({
         ].find((elf) => elf.elfCode === entityKind)?.name
       : undefined
 
-  const additionalInfo1 = "Additional Info #1"
-  const additionalInfo2 = "Additional Info #2"
-  const additionalInfo3 = "Additional Info #3"
-
   return (
     <Box>
       <Box sx={MarketParametersContainer}>
