@@ -4,6 +4,11 @@ export const MarketHeaderUpperContainer = {
   justifyContent: "space-between",
   marginBottom: "20px",
   padding: "52px 32.3% 0 44px",
+  "@media (max-width: 600px)": {
+    background: "white",
+    flexDirection: "column-reverse",
+    borderRadius: "14px",
+  },
 }
 
 export const MarketHeaderTitleContainer = {
