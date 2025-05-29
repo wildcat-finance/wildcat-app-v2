@@ -22,6 +22,10 @@ export const PageContainer = {
 
   display: "flex",
   flexDirection: "column",
+  "@media (max-width: 600px)": {
+    backgroundColor: "transparent",
+    borderRadius: "0px",
+  },
 }
 
 export const ContentContainer = {
@@ -29,4 +33,9 @@ export const ContentContainer = {
   width: "100%",
   display: "flex",
   flexDirection: "row",
+  "@media (max-width: 600px)": {
+    height: "100%",
+    paddingX: "4px",
+    paddingBottom: "4px",
+  },
 }
