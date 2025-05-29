@@ -1,8 +1,9 @@
 import { Box } from "@mui/material"
+import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { MarketParameters } from "@/components/MarketParameters"
+
 import { MarketWithdrawalRequests } from "../[address]/components/MarketWithdrawalRequests"
-import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 type MobilePageProps = {
   marketAccount: MarketAccount

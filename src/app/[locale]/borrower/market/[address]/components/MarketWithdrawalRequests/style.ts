@@ -1,5 +1,6 @@
-import { COLORS } from "@/theme/colors"
 import { Theme, SxProps } from "@mui/material"
+
+import { COLORS } from "@/theme/colors"
 
 export const TotalAccordionSummary = (theme: Theme): SxProps<Theme> => ({
   display: "flex",

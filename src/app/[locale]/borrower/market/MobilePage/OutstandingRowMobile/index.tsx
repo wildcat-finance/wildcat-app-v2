@@ -1,12 +1,14 @@
 import { useState } from "react"
+
 import { Box, Typography } from "@mui/material"
 import { WithdrawalBatch, TokenAmount } from "@wildcatfi/wildcat-sdk"
-import { OutstandingRow } from "../OutstandingRow"
+import { useTranslation } from "react-i18next"
+
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
-import { t } from "i18next"
-import { useTranslation } from "react-i18next"
+
+import { OutstandingRow } from "../OutstandingRow"
 
 export const OutstandingRowMobile = ({
   withdrawalBatches,
@@ -48,9 +50,9 @@ export const OutstandingRowMobile = ({
     >
       {rows.length ? (
         <Box display="flex" flexDirection="column">
-          {rows.map((transaction, index) => (
+          {rows.map((transaction) => (
             <OutstandingRow
-              key={`${transaction.id}-${index}`}
+              key={transaction.id}
               address={transaction.lender}
               amount={transaction.amount}
               timestamp={transaction.dateSubmitted}

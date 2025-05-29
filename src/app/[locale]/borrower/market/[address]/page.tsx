@@ -73,7 +73,7 @@ export default function MarketDetails({
   )
   if (isMobile) {
     if (!market || !marketAccount) return null
-    return <MobilePage marketAccount={marketAccount} isHoldingMarket={true} />
+    return <MobilePage marketAccount={marketAccount} isHoldingMarket />
   }
 
   if (!market || !marketAccount)
