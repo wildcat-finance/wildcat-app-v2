@@ -1,6 +1,12 @@
 import { useMemo } from "react"
 
-import { Box, Divider, Typography } from "@mui/material"
+import {
+  Box,
+  Divider,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material"
 import { MarketVersion, HooksKind } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
@@ -28,6 +34,8 @@ import {
 export const MarketParameters = ({ market }: MarketParametersProps) => {
   const isLocalHost = window.location.hostname === "localhost"
   const { t } = useTranslation()
+  const theme = useTheme()
+  const isMobile = useMediaQuery("(max-width:600px)")
   const [state, copyToClipboard] = useCopyToClipboard()
   const { timeDelinquent, delinquencyGracePeriod } = market
 
@@ -145,8 +153,8 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
       <Typography variant="title3">
         {t("borrowerMarketDetails.header.parameters")}
       </Typography>
-      <Box sx={MarketParametersContainer}>
-        <Box sx={MarketParametersContainerColumn}>
+      <Box sx={MarketParametersContainer(theme)}>
+        <Box sx={MarketParametersContainerColumn(theme)}>
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.marketAddress")}
             value={trimAddress(market.address)}
@@ -259,7 +267,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             </>
           )}
         </Box>
-        <Box sx={MarketParametersContainerColumn}>
+        <Box sx={MarketParametersContainerColumn(theme)}>
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.minimumReserveRatio")}
             value={`${formatBps(
@@ -377,8 +385,8 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
           <Typography variant="title3">
             {t("borrowerMarketDetails.hooks.title")}
           </Typography>
-          <Box sx={MarketParametersContainer}>
-            <Box sx={MarketParametersContainerColumn}>
+          <Box sx={MarketParametersContainer(theme)}>
+            <Box sx={MarketParametersContainerColumn(theme)}>
               <MarketParametersItem
                 title={t("borrowerMarketDetails.hooks.hooksAddress")}
                 value={trimAddress(hooksConfig.hooksAddress)}
@@ -400,7 +408,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
                 />
               ))}
             </Box>
-            <Box sx={MarketParametersContainerColumn}>
+            <Box sx={MarketParametersContainerColumn(theme)}>
               {(
                 [
                   "useOnRepay",

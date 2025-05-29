@@ -68,7 +68,7 @@ export const OverallSection = ({
 
           {jurisdictionText && (
             <Box>
-              <MarketParametersItem
+              <MarketItem
                 title={t("borrowerProfile.profile.overallInfo.headquarters")}
                 value={jurisdictionText}
               />

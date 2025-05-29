@@ -30,7 +30,6 @@ export const OutstandingTable = ({
 }: OngoingTableProps) => {
   const { t } = useTranslation()
   const [isOutstandingOpen, setIsOutstandingOpen] = useState(false)
-
   const outstandingRows: WithdrawalTxRow[] = withdrawalBatches.flatMap(
     (batch) =>
       batch.requests

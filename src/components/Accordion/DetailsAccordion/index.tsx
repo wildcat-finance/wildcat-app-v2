@@ -1,4 +1,10 @@
-import { Box, SvgIcon, Typography } from "@mui/material"
+import {
+  Box,
+  SvgIcon,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material"
 
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
 import { DetailsAccordionProps } from "@/components/Accordion/DetailsAccordion/interface"
@@ -17,46 +23,52 @@ export const DetailsAccordion = ({
   chipValue,
   bodySx,
   children,
+  summaryContent,
 }: DetailsAccordionProps) => {
   const handleToggleOpen = () => {
     setIsOpen(!isOpen)
   }
-
+  const theme = useTheme()
+  const isMobile = useMediaQuery("(max-width:600px)")
   return (
     <>
       <Box
         sx={{
-          ...SummaryContainer,
+          ...SummaryContainer(theme),
           ...summarySx,
         }}
         onClick={handleToggleOpen}
       >
-        <Typography variant="text2">{summaryText}</Typography>
-        <Box
-          sx={{
-            width: "100%",
-            display: "flex",
-            justifyContent: arrowOnRight ? "flex-end" : "flex-start",
-          }}
-        >
-          <SvgIcon
-            fontSize="medium"
-            sx={{
-              "& path": {
-                fill: `${iconColor}`,
-              },
-              transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-            }}
-          >
-            <UpArrow />
-          </SvgIcon>
-        </Box>
-        {chipValue && (
-          <TextfieldChip
-            text={chipValue}
-            color={chipColor}
-            textColor={chipValueColor}
-          />
+        {summaryContent || (
+          <>
+            <Typography variant="text2">{summaryText}</Typography>
+            <Box
+              sx={{
+                width: "100%",
+                display: "flex",
+                justifyContent: arrowOnRight ? "flex-end" : "flex-start",
+              }}
+            >
+              <SvgIcon
+                fontSize="medium"
+                sx={{
+                  "& path": {
+                    fill: `${iconColor}`,
+                  },
+                  transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                }}
+              >
+                <UpArrow />
+              </SvgIcon>
+            </Box>
+            {chipValue && (
+              <TextfieldChip
+                text={chipValue}
+                color={chipColor}
+                textColor={chipValueColor}
+              />
+            )}
+          </>
         )}
       </Box>
       <Box

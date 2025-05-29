@@ -1,6 +1,13 @@
 import * as React from "react"
 
-import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
+import {
+  Box,
+  IconButton,
+  SvgIcon,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
@@ -24,6 +31,7 @@ import {
   MarketWithdrawalRequestsContainer,
   MarketWithdrawalRequetstCell,
 } from "./style"
+import { OutstandingRowMobile } from "../../../MobilePage/OutstandingRowMobile"
 
 export const MarketWithdrawalRequests = ({
   marketAccount,
@@ -33,7 +41,8 @@ export const MarketWithdrawalRequests = ({
 
   const { t } = useTranslation()
   const { data } = useGetWithdrawals(market)
-
+  const theme = useTheme()
+  const isMobile = useMediaQuery("(max-width:600px)")
   const expiredTotalAmount = data.expiredWithdrawalsTotalOwed
   const activeTotalAmount = data.activeWithdrawalsTotalOwed
   const claimableTotalAmount = data.claimableWithdrawalsAmount
@@ -110,7 +119,7 @@ export const MarketWithdrawalRequests = ({
   ]
 
   return (
-    <Box sx={MarketWithdrawalRequestsContainer} id="withdrawals">
+    <Box sx={MarketWithdrawalRequestsContainer(theme)} id="withdrawals">
       <Box
         sx={{
           display: "flex",
@@ -130,7 +139,7 @@ export const MarketWithdrawalRequests = ({
           )}
       </Box>
 
-      <Box sx={TotalAccordionSummary}>
+      <Box sx={TotalAccordionSummary(theme)}>
         <Typography variant="text2">
           {t("marketWithdrawalRequests.total")}
         </Typography>
@@ -155,11 +164,18 @@ export const MarketWithdrawalRequests = ({
         totalAmount={data.claimableWithdrawalsAmount}
       />
 
-      <OutstandingTable
-        columns={columns}
-        withdrawalBatches={data?.expiredPendingWithdrawals ?? []}
-        totalAmount={data.expiredWithdrawalsTotalOwed}
-      />
+      {isMobile ? (
+        <OutstandingRowMobile
+          withdrawalBatches={data?.expiredPendingWithdrawals ?? []}
+          totalAmount={data.expiredWithdrawalsTotalOwed}
+        />
+      ) : (
+        <OutstandingTable
+          columns={columns}
+          withdrawalBatches={data?.expiredPendingWithdrawals ?? []}
+          totalAmount={data.expiredWithdrawalsTotalOwed}
+        />
+      )}
     </Box>
   )
 }

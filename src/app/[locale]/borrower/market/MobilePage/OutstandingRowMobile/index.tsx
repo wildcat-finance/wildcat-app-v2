@@ -1,0 +1,74 @@
+import { useState } from "react"
+import { Box, Typography } from "@mui/material"
+import { WithdrawalBatch, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { OutstandingRow } from "../OutstandingRow"
+import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
+import { COLORS } from "@/theme/colors"
+import { formatTokenWithCommas } from "@/utils/formatters"
+import { t } from "i18next"
+import { useTranslation } from "react-i18next"
+
+export const OutstandingRowMobile = ({
+  withdrawalBatches,
+  totalAmount,
+}: {
+  withdrawalBatches: WithdrawalBatch[]
+  totalAmount: TokenAmount
+}) => {
+  const [isOutstandingOpen, setIsOutstandingOpen] = useState(false)
+  const { t } = useTranslation()
+  const rows = withdrawalBatches.flatMap((batch) =>
+    batch.requests
+      .filter((withdrawal) => withdrawal.getNormalizedAmountOwed(batch).gt(0))
+      .map((withdrawal) => ({
+        id: withdrawal.id,
+        lender: withdrawal.address,
+        transactionId: withdrawal.transactionHash,
+        dateSubmitted: withdrawal.blockTimestamp,
+        amount: formatTokenWithCommas(
+          withdrawal.getNormalizedAmountOwed(batch),
+          { withSymbol: true },
+        ),
+      })),
+  )
+
+  return (
+    <DetailsAccordion
+      isOpen={isOutstandingOpen}
+      setIsOpen={setIsOutstandingOpen}
+      summaryText="Outstanding From Past Cycles"
+      summarySx={{
+        borderRadius: "0px",
+        borderBottom: isOutstandingOpen ? "none" : `1px solid`,
+        borderColor: COLORS.athensGrey,
+      }}
+      chipValue={formatTokenWithCommas(totalAmount, { withSymbol: true })}
+      chipColor={COLORS.whiteSmoke}
+      chipValueColor={COLORS.blackRock}
+    >
+      {rows.length ? (
+        <Box display="flex" flexDirection="column">
+          {rows.map((transaction, index) => (
+            <OutstandingRow
+              key={`${transaction.id}-${index}`}
+              address={transaction.lender}
+              amount={transaction.amount}
+              timestamp={transaction.dateSubmitted}
+            />
+          ))}
+        </Box>
+      ) : (
+        <Box
+          display="flex"
+          flexDirection="column"
+          padding="0 16px"
+          marginBottom="10px"
+        >
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            {t("marketWithdrawalRequests.noOutstanding")}
+          </Typography>
+        </Box>
+      )}
+    </DetailsAccordion>
+  )
+}
