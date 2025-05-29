@@ -341,7 +341,7 @@ export const MarketsSection = () => {
               }
               selected={marketAssets}
               setSelected={setMarketAssets}
-              width="140px"
+              width="155px"
             />
 
             <SmallFilterSelect
@@ -349,7 +349,7 @@ export const MarketsSection = () => {
               options={marketStatusesMock}
               selected={marketStatuses}
               setSelected={setMarketStatuses}
-              width="150px"
+              width="160px"
             />
           </Box>
         </Box>

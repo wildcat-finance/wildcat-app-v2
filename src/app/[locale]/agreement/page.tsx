@@ -13,7 +13,7 @@ export default function Agreement() {
       className="text"
       sx={{
         padding: "50px 0 3px",
-        width: "100%",
+        width: "100vw",
         display: "flex",
         justifyContent: "center",
       }}

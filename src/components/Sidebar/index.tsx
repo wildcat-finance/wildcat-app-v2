@@ -25,11 +25,14 @@ import { EditPolicySidebar } from "./EditPolicySidebar"
 
 export const Sidebar = () => {
   const pathname = usePathname()
-  const step = useAppSelector((state) => state.borrowerOverview.tab)
 
   const showCommitHash =
     process.env.NODE_ENV === "production" ||
     process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
+
+  if (pathname === ROUTES.agreement) {
+    return null
+  }
 
   return (
     <Box

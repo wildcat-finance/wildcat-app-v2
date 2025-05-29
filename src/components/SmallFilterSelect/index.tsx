@@ -11,6 +11,7 @@ import {
   Select,
   SvgIcon,
   TextField,
+  Typography,
 } from "@mui/material"
 
 import Filter from "@/assets/icons/filter_icon.svg"
@@ -93,6 +94,8 @@ export const SmallFilterSelect = ({
       option.id.toLowerCase().includes(search.toLowerCase()),
   )
 
+  if (options.length === 0) return null
+
   return (
     <FormControl>
       {selected.length === 0 && (
@@ -140,20 +143,32 @@ export const SmallFilterSelect = ({
             sx={{
               height: "20px",
               display: "flex",
-              flexWrap: "wrap",
+              flexWrap: "nowrap",
               overflow: "hidden",
-              gap: 0.5,
+              gap: 0.1,
+              alignItems: "center",
             }}
           >
-            {selectedMarkets.map((market) => (
+            {selectedMarkets.length > 0 && (
               <LendersMarketChip
-                key={market.id}
-                marketName={market.name}
+                key={selectedMarkets[0].id}
+                marketName={selectedMarkets[0].name}
                 withButton
-                width={market.name.length > 15 ? "100%" : "fit-content"}
-                onClick={() => handleDeleteItem(market)}
+                width={
+                  selectedMarkets[0].name.length > 15 ? "100%" : "fit-content"
+                }
+                onClick={() => handleDeleteItem(selectedMarkets[0])}
               />
-            ))}
+            )}
+
+            {selectedMarkets.length > 1 && (
+              <Typography
+                variant="text3"
+                sx={{ whiteSpace: "nowrap", marginLeft: "4px" }}
+              >
+                ...
+              </Typography>
+            )}
           </Box>
         )}
         MenuProps={{

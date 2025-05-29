@@ -70,7 +70,7 @@ export const CreateMarketSidebarButton = ({
         width: "100%",
         justifyContent: "space-between",
         alignItems: "center",
-        padding: "8px",
+        padding: "4px",
 
         "&.MuiButtonBase-root.MuiButton-root.Mui-disabled": {
           opacity: 1,

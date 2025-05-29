@@ -1,4 +1,6 @@
-import { Box, SvgIcon, Typography } from "@mui/material"
+import React, { useState } from "react"
+
+import { Box, SvgIcon, Typography, Button } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import Info from "@/assets/icons/info_icon.svg"
@@ -8,11 +10,14 @@ import { COLORS } from "@/theme/colors"
 import { GlossarySidebarProps } from "./interface"
 import { GlossaryContainer, GlossaryItem } from "./style"
 
+const MAX_DESCRIPTION_LENGTH = 60
+
 export const GlossarySidebar = ({
   step,
   hideGlossary,
 }: GlossarySidebarProps) => {
   const { t } = useTranslation()
+  const [expandedIndexes, setExpandedIndexes] = useState<Set<number>>(new Set())
 
   let glossaryArray: {
     title: string
@@ -133,6 +138,7 @@ export const GlossarySidebar = ({
       break
     }
   }
+
   if (hideGlossary)
     return (
       <Box
@@ -144,6 +150,18 @@ export const GlossarySidebar = ({
       />
     )
 
+  const toggleExpand = (index: number) => {
+    setExpandedIndexes((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(index)) {
+        newSet.delete(index)
+      } else {
+        newSet.add(index)
+      }
+      return newSet
+    })
+  }
+
   return (
     <Box sx={GlossaryContainer}>
       <SvgIcon sx={{ "& path": { fill: COLORS.greySuit } }}>
@@ -154,15 +172,70 @@ export const GlossarySidebar = ({
         {t("createNewMarket.glossary")}
       </Typography>
 
-      {glossaryArray.map((block) => (
-        <Box sx={GlossaryItem}>
-          <Typography variant="text3">{`‣ ${block.title}`}</Typography>
+      {glossaryArray.map((block, i) => {
+        const isExpanded = expandedIndexes.has(i)
+        const shouldTruncate = block.description.length > MAX_DESCRIPTION_LENGTH
 
-          <Typography variant="text3" color={COLORS.santasGrey}>
-            {block.description}
-          </Typography>
-        </Box>
-      ))}
+        if (!shouldTruncate) {
+          return (
+            <Box key={block.title} sx={GlossaryItem}>
+              <Typography variant="text3">{`‣ ${block.title}`}</Typography>
+              <Typography variant="text3" color={COLORS.santasGrey}>
+                {block.description}
+              </Typography>
+            </Box>
+          )
+        }
+
+        if (isExpanded) {
+          return (
+            <Box key={block.title} sx={GlossaryItem}>
+              <Typography variant="text3">{`‣ ${block.title}`}</Typography>
+              <Typography variant="text3" color={COLORS.santasGrey}>
+                {block.description}
+              </Typography>
+            </Box>
+          )
+        }
+
+        const truncatedText = block.description.slice(0, MAX_DESCRIPTION_LENGTH)
+
+        return (
+          <Box key={block.title} sx={GlossaryItem}>
+            <Typography variant="text3">{`‣ ${block.title}`}</Typography>
+            <Typography
+              variant="text3"
+              color={COLORS.santasGrey}
+              sx={{ display: "inline" }}
+            >
+              {truncatedText}
+              <Box
+                component="span"
+                sx={{
+                  display: "inline",
+                  whiteSpace: "nowrap",
+                  cursor: "pointer",
+                }}
+                onClick={() => toggleExpand(i)}
+              >
+                …{" "}
+                <Box
+                  component="span"
+                  sx={{
+                    color: COLORS.ultramarineBlue,
+                    fontWeight: 500,
+                    fontSize: 13,
+                    lineHeight: "20px",
+                    "&:hover": { color: COLORS.blueRibbon },
+                  }}
+                >
+                  show more
+                </Box>
+              </Box>
+            </Typography>
+          </Box>
+        )
+      })}
     </Box>
   )
 }

@@ -40,7 +40,7 @@ const TabStyle = {
   height: "41px",
   minHeight: "41px",
   minWidth: "fit-content",
-  padding: "0 4px",
+  padding: "0 5px",
 
   borderColor: COLORS.athensGrey,
 }

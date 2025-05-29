@@ -158,7 +158,7 @@ export const EditLendersTable = ({
       field: "delete",
       headerName: "",
       disableColumnMenu: true,
-      flex: 0.0001,
+      flex: 7,
       align: "right",
       renderCell: (params) => (
         <>

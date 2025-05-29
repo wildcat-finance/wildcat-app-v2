@@ -69,6 +69,7 @@ export const LenderRestrictionsForm = ({
           )}
         >
           <Switch
+            sx={{ marginLeft: "10px" }}
             checked={withdrawalRequiresAccessWatch}
             onChange={(e) => {
               setValue("withdrawalRequiresAccess", e.target.checked)
@@ -85,6 +86,7 @@ export const LenderRestrictionsForm = ({
           )}
         >
           <Switch
+            sx={{ marginLeft: "10px" }}
             checked={transferRequiresAccessWatch}
             onChange={(e) => {
               setValue("transferRequiresAccess", e.target.checked)
@@ -99,6 +101,7 @@ export const LenderRestrictionsForm = ({
           )}
         >
           <Switch
+            sx={{ marginLeft: "10px" }}
             checked={disableTransfersWatch}
             onChange={(e) => {
               setValue("disableTransfers", e.target.checked)
