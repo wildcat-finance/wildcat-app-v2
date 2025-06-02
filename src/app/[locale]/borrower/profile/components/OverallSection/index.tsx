@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { Box, Divider, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
+import { useCopyToClipboard } from "react-use"
 
 import {
   MarketParametersColumn,
@@ -11,6 +12,7 @@ import {
 import { MarketParametersItem } from "@/components/MarketParameters/components/MarketParametersItem"
 import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
+import { EtherscanBaseUrl } from "@/config/network"
 import { trimAddress } from "@/utils/formatters"
 
 import { OverallSectionProps } from "./interface"
@@ -28,6 +30,11 @@ export const OverallSection = ({
   entityKind,
 }: OverallSectionProps) => {
   const { t } = useTranslation()
+  const [state, copyToClipboard] = useCopyToClipboard()
+
+  const handleCopy = (text: string) => {
+    copyToClipboard(text)
+  }
 
   const jurisdictionObj =
     jurisdiction !== undefined
@@ -113,6 +120,8 @@ export const OverallSection = ({
               <MarketParametersItem
                 title={t("borrowerProfile.profile.overallInfo.address")}
                 value={trimAddress(address) ?? ""}
+                copy={address}
+                link={`${EtherscanBaseUrl}/address/${address}`}
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>

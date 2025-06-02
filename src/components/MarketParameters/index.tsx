@@ -150,9 +150,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.marketAddress")}
             value={trimAddress(market.address)}
-            handleCopy={() => {
-              handleCopy(market.address)
-            }}
+            copy={market.address}
             link={`${EtherscanBaseUrl}/address/${market.address}`}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
@@ -162,18 +160,14 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               market.underlyingToken.address,
             )})`}
             tooltipText="The ERC-20 token used for all transactions in the market, such as Wrapped Ether (WETH) or USDC."
-            handleCopy={() => {
-              handleCopy(market.underlyingToken.address)
-            }}
+            copy={market.underlyingToken.address}
             link={`${EtherscanBaseUrl}/token/${market.underlyingToken.address}`}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.marketTokenName")}
             value={market.marketToken.name}
-            handleCopy={() => {
-              handleCopy(market.marketToken.name)
-            }}
+            copy={`${EtherscanBaseUrl}/token/${market.marketToken.address}`}
             link={`${EtherscanBaseUrl}/token/${market.marketToken.address}`}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
@@ -259,9 +253,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               <MarketParametersItem
                 title={t("borrowerMarketDetails.hooks.hooksAddress")}
                 value={trimAddress(hooksConfig.hooksAddress)}
-                handleCopy={() => {
-                  handleCopy(hooksConfig.hooksAddress)
-                }}
+                copy={hooksConfig.hooksAddress}
                 link={`${EtherscanBaseUrl}/address/${hooksConfig.hooksAddress}`}
               />
             </>
@@ -390,9 +382,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               <MarketParametersItem
                 title={t("borrowerMarketDetails.hooks.hooksAddress")}
                 value={trimAddress(hooksConfig.hooksAddress)}
-                handleCopy={() => {
-                  handleCopy(hooksConfig.hooksAddress)
-                }}
+                copy={hooksConfig.hooksAddress}
                 link={`${EtherscanBaseUrl}/address/${hooksConfig.hooksAddress}`}
               />
               {(

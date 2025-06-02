@@ -1,12 +1,9 @@
 import * as React from "react"
 
-import { Box, IconButton, SvgIcon, Tooltip, Typography } from "@mui/material"
-import Link from "next/link"
+import { Box, SvgIcon, Tooltip, Typography } from "@mui/material"
 
 import Question from "@/assets/icons/circledQuestion_icon.svg"
-import Copy from "@/assets/icons/copy_icon.svg"
-import LinkIcon from "@/assets/icons/link_icon.svg"
-import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
+import { LinkGroup } from "@/components/LinkComponent"
 import { TooltipButton } from "@/components/TooltipButton"
 import { COLORS } from "@/theme/colors"
 
@@ -23,7 +20,7 @@ export const MarketParametersItem = ({
   tooltipText,
   valueTooltipText,
   alarmState,
-  handleCopy,
+  copy,
   link,
 }: MarketParametersItemProps) => (
   <Box sx={MarketParametersItemContainer}>
@@ -80,26 +77,7 @@ export const MarketParametersItem = ({
         </Tooltip>
       )}
 
-      {handleCopy && (
-        <IconButton disableRipple sx={AddressButtons} onClick={handleCopy}>
-          <SvgIcon fontSize="medium">
-            <Copy />
-          </SvgIcon>
-        </IconButton>
-      )}
-      {link && (
-        <Link
-          href={link}
-          target="_blank"
-          style={{ display: "flex", justifyContent: "center" }}
-        >
-          <IconButton disableRipple sx={AddressButtons}>
-            <SvgIcon fontSize="medium">
-              <LinkIcon />
-            </SvgIcon>
-          </IconButton>
-        </Link>
-      )}
+      <LinkGroup linkValue={link} copyValue={copy} />
     </Box>
   </Box>
 )

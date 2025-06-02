@@ -108,7 +108,7 @@ export const LenderActiveMarketsTables = ({
         underlyingToken,
         annualInterestBips,
         maxTotalSupply,
-        totalDebts,
+        totalSupply,
       } = market
 
       const borrower = borrowers?.find(
@@ -130,8 +130,8 @@ export const LenderActiveMarketsTables = ({
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
         loan: marketBalance,
-        debt: totalDebts,
-        capacityLeft: maxTotalSupply.sub(totalDebts),
+        debt: totalSupply,
+        capacityLeft: maxTotalSupply.sub(totalSupply),
         hasEverInteracted,
       }
     },

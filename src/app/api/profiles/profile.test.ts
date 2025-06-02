@@ -7,7 +7,6 @@ import { randomBytes } from "crypto"
 import { before } from "node:test"
 
 import { getLensV2Contract, Market } from "@wildcatfi/wildcat-sdk"
-import dayjs from "dayjs"
 import { Wallet } from "ethers"
 import { NextApiRequest } from "next"
 import { RequestInit } from "next/dist/server/web/spec-extension/request"
@@ -24,6 +23,7 @@ import {
   MlaTemplateField,
 } from "@/lib/mla"
 import { getProviderForServer } from "@/lib/provider"
+import { dayjs } from "@/utils/dayjs"
 
 import { GET as getProfile, DELETE as deleteProfile } from "./[address]/route"
 import { GET as getAllProfiles } from "./route"

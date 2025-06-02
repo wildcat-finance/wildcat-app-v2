@@ -46,6 +46,7 @@ import {
   MarketWithdrawalRequestsContainer,
   MarketWithdrawalRequetstCell,
   MLATableButton,
+  NumberOfLenders,
 } from "./style"
 import { useGetMarketLenders } from "../../hooks/useGetMarketLenders"
 import { ForceBuyBackModal } from "../Modals/ForceBuyBackModal"
@@ -212,7 +213,7 @@ export const MarketAuthorisedLenders = ({
       flex: 1,
     },
     {
-      sortable: false,
+      sortable: true,
       field: "balance",
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.balance",
@@ -221,9 +222,19 @@ export const MarketAuthorisedLenders = ({
       headerAlign: "left",
       align: "left",
       flex: 1.5,
-      renderCell: ({ value }) => (
-        <span style={{ width: "100%", whiteSpace: "normal" }}>{value}</span>
-      ),
+      renderCell: ({ value }) => {
+        const number = parseFloat(value.split(" ")[0].replace(/,/g, "")) || 0
+        return (
+          <span style={{ width: "100%", whiteSpace: "normal" }}>
+            {number.toLocaleString()}
+          </span>
+        )
+      },
+      sortComparator: (v1, v2) => {
+        const num1 = parseFloat(v1.split(" ")[0].replace(/,/g, "")) || 0
+        const num2 = parseFloat(v2.split(" ")[0].replace(/,/g, "")) || 0
+        return num1 - num2
+      },
     },
     {
       sortable: false,
@@ -323,6 +334,10 @@ export const MarketAuthorisedLenders = ({
     ? [...commonColumns, ...mlaColumns]
     : commonColumns
 
+  const lendersInMarket = authorizedRows.filter(
+    (lender) => parseFloat(lender.balance.split(" ")[0].replace(/,/g, "")) > 0,
+  ).length
+
   if (isLoading) {
     return (
       <Box sx={MarketWithdrawalRequestsContainer} id="lenders">
@@ -418,6 +433,25 @@ export const MarketAuthorisedLenders = ({
               </Link>
             )}
           </Box>
+
+          <Box sx={{ width: "100%", display: "flex", gap: "11px" }}>
+            <Box sx={NumberOfLenders}>
+              <Typography variant="text4" color={COLORS.santasGrey}>
+                Number of Lenders
+              </Typography>
+              <Typography variant="text1">{authorizedRows.length}</Typography>
+            </Box>
+
+            <Box sx={NumberOfLenders}>
+              <Typography variant="text4" color={COLORS.santasGrey}>
+                Lenders Currently in the Market
+              </Typography>
+              <Typography variant="text1" color={COLORS.ultramarineBlue}>
+                {lendersInMarket}
+              </Typography>
+            </Box>
+          </Box>
+
           <DataGrid
             sx={{
               ...DataGridCells,

@@ -1,6 +1,5 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import dayjs from "dayjs"
 import { useRouter } from "next/navigation"
 
 import { toastError, toastRequest } from "@/components/Toasts"
@@ -9,11 +8,9 @@ import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.js
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { HAS_SIGNED_SLA_KEY } from "@/providers/RedirectsProvider/hooks/useHasSignedSla"
 import { SHOULD_REDIRECT_KEY } from "@/providers/RedirectsProvider/hooks/useShouldRedirect"
-import { ROUTES } from "@/routes"
+import { formatUnixMsAsDate } from "@/utils/formatters"
 
 import { SignatureSubmissionProps } from "./interface"
-
-const DATE_FORMAT = "MMMM DD, YYYY"
 
 export type SignAgreementProps = {
   address: string | undefined
@@ -53,9 +50,9 @@ export const useSignAgreement = () => {
       if (!name) throw Error(`No organization name`)
 
       const sign = async () => {
-        const dateSigned = dayjs(timeSigned).format(DATE_FORMAT)
         let agreementText = AgreementText
-        if (dateSigned) {
+        if (timeSigned) {
+          const dateSigned = formatUnixMsAsDate(timeSigned)
           agreementText = `${agreementText}\n\nDate: ${dateSigned}`
         }
 
@@ -115,7 +112,7 @@ export const useSignAgreement = () => {
         timeSigned,
         address,
       }).catch((error) => {
-        toastError("Failed to submit ToS signature")
+        toastError("Failed to submit TOU signature.")
         throw error
       })
       return result

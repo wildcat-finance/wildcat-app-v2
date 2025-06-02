@@ -12,16 +12,18 @@ import {
   getLensV2Contract,
   SubgraphGetAllMarketsForLenderViewQueryVariables,
   getLenderAccountsForAllMarkets,
+  SubgraphMarket_Filter,
 } from "@wildcatfi/wildcat-sdk"
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
-import { constants } from "ethers"
+import { BigNumber, constants } from "ethers"
 
 import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { SubgraphClient } from "@/config/subgraph"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
-import { TOKENS_ADDRESSES } from "@/utils/constants"
+import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
+import { combineFilters } from "@/utils/filters"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type LenderMarketsQueryProps =
@@ -76,14 +78,20 @@ export function useLendersMarkets(
     logger.debug(`Getting all markets...`)
     if (!chainId) throw Error("No chainId")
     if (!signerOrProvider) throw Error(`no provider`)
+    const { marketFilter, ...otherFilters } = filters
+    const filter = combineFilters([
+      { ...marketFilter },
+      ...EXCLUDED_MARKETS_FILTER,
+    ]) as SubgraphMarket_Filter
     const lenderAccounts = await getLenderAccountsForAllMarkets(
       SubgraphClient,
       {
-        ...filters,
+        ...otherFilters,
         lender: lender ?? constants.AddressZero,
         fetchPolicy: "network-only",
         chainId,
         signerOrProvider,
+        marketFilter: filter,
       },
     )
     lenderAccounts.sort(
@@ -129,60 +137,67 @@ export function useLendersMarkets(
     )
 
     const { v1Chunks, v2Chunks } = getChunks(TargetChainId, accounts)
-    if (lender) {
-      await Promise.all([
-        ...v1Chunks.map(async (accountsChunk) => {
-          const updates = await lens.getMarketsDataWithLenderStatus(
-            lender,
-            accountsChunk.map((m) => m.market.address),
-          )
-          accountsChunk.forEach((account, i) => {
-            const update = updates[i]
-            account.market.updateWith(update.market)
-            account.updateWith(update.lenderStatus)
-          })
-        }),
-        ...v2Chunks.map(async (accountsChunk) => {
-          const updates = await lensV2.getMarketsDataWithLenderStatus(
-            lender,
-            accountsChunk.map((m) => m.market.address),
-          )
-          accountsChunk.forEach((account, i) => {
-            const update = updates[i]
-            account.market.updateWith(update.market)
-            account.updateWith(update.lenderStatus)
-          })
-        }),
-      ])
-      logger.debug(`getLenderUpdates:: Got lender updates: ${accounts.length}`)
-    } else {
-      await Promise.all([
-        ...v1Chunks.map(async (accountsChunk) => {
-          const updates = await lens.getMarketsData(
-            accountsChunk.map((m) => m.market.address),
-          )
-          accountsChunk.forEach((account, i) => {
-            const update = updates[i]
-            account.market.updateWith(update)
-          })
-        }),
-        ...v2Chunks.map(async (accountsChunk) => {
-          const updates = await lensV2.getMarketsData(
-            accountsChunk.map((m) => m.market.address),
-          )
-          accountsChunk.forEach((account, i) => {
-            const update = updates[i]
-            account.market.updateWith(update)
-          })
-        }),
-      ])
-      logger.debug(`getLenderUpdates:: Got market updates: ${accounts.length}`)
-    }
+    await Promise.all([
+      ...v1Chunks.map(async (accountsChunk) => {
+        const updates = await lens.getMarketsDataWithLenderStatus(
+          lender ?? constants.AddressZero,
+          accountsChunk.map((m) => m.market.address),
+        )
+        accountsChunk.forEach((account, i) => {
+          let update = updates[i]
+          account.market.updateWith(update.market)
+          // If the lender account is not set, set the balances to 0 but still use
+          // the credential, as that will tell us whether the market is open access.
+          if (!lender) {
+            update = {
+              ...update,
+              lenderStatus: {
+                ...update.lenderStatus,
+                normalizedBalance: BigNumber.from(0),
+                scaledBalance: BigNumber.from(0),
+                underlyingBalance: BigNumber.from(0),
+                underlyingApproval: BigNumber.from(0),
+              },
+            }
+          }
+          account.updateWith(update.lenderStatus)
+        })
+      }),
+      ...v2Chunks.map(async (accountsChunk) => {
+        const updates = await lensV2.getMarketsDataWithLenderStatus(
+          lender ?? constants.AddressZero,
+          accountsChunk.map((m) => m.market.address),
+        )
+        accountsChunk.forEach((account, i) => {
+          let update = updates[i]
+          account.market.updateWith(update.market)
+          // If the lender account is not set, set the balances to 0 but still use
+          // the credential, as that will tell us whether the market is open access.
+          if (!lender) {
+            update = {
+              ...update,
+              lenderStatus: {
+                ...update.lenderStatus,
+                normalizedBalance: BigNumber.from(0),
+                scaledBalance: BigNumber.from(0),
+                underlyingBalance: BigNumber.from(0),
+                underlyingApproval: BigNumber.from(0),
+              },
+            }
+          }
+          account.updateWith(update.lenderStatus)
+        })
+      }),
+    ]).catch((e) => {
+      console.log(e)
+      throw e
+    })
+    console.log(`getLenderUpdates:: Got lender updates: ${accounts.length}`)
     return accounts
   }
 
   const updateQueryKeys = useMemo(
-    () => accounts.map((b) => [b.market.address, lender]),
+    () => accounts.map((b) => [b.market.address, b.account]),
     [accounts],
   )
 

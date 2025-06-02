@@ -94,8 +94,8 @@ export const OtherMarketsTables = ({
         borrower: borrowerAddress,
         underlyingToken,
         annualInterestBips,
-        totalDebts,
         maxTotalSupply,
+        totalSupply,
       } = market
 
       const borrower = (borrowers ?? []).find(
@@ -117,8 +117,8 @@ export const OtherMarketsTables = ({
         borrower: borrowerName,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
-        capacityLeft: maxTotalSupply.sub(totalDebts),
-        debt: totalDebts,
+        capacityLeft: maxTotalSupply.sub(totalSupply),
+        debt: totalSupply,
         isSelfOnboard:
           !account.hasEverInteracted &&
           market.version === MarketVersion.V2 &&
@@ -342,12 +342,12 @@ export const OtherMarketsTables = ({
 
   const [selfOnboardPaginationModel, setSelfOnboardPaginationModel] =
     React.useState({
-      pageSize: 10,
+      pageSize: 20,
       page: 0,
     })
 
   const [manualPaginationModel, setManualPaginationModel] = React.useState({
-    pageSize: 10,
+    pageSize: 20,
     page: 0,
   })
 

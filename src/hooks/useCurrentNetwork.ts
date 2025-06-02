@@ -1,4 +1,5 @@
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
+import { useAccount } from "wagmi"
 
 import { TargetChainId } from "@/config/network"
 
@@ -9,12 +10,16 @@ export const checkIsWrongNetwork = (
 ) => currentChainId !== TargetChainId
 
 export const useCurrentNetwork = () => {
-  const { isTestnet, chain } = useEthersProvider()
+  const { isTestnet: defaultIsTestnet, chain: defaultChain } =
+    useEthersProvider()
+  const { chain: accountChain, isConnected } = useAccount()
+
+  const activeChain = isConnected ? accountChain : defaultChain
 
   return {
-    chainId: chain?.id,
-    networkName: chain?.name,
-    isWrongNetwork: checkIsWrongNetwork(chain?.id),
-    isTestnet,
+    chainId: activeChain?.id,
+    networkName: activeChain?.name,
+    isWrongNetwork: checkIsWrongNetwork(activeChain?.id),
+    isTestnet: isConnected ? accountChain?.testnet : defaultIsTestnet,
   }
 }

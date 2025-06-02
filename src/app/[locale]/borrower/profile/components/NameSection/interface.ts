@@ -1,7 +1,5 @@
-import { ReactNode } from "react"
-
 export type NameSectionProps = {
-  avatar?: ReactNode
+  avatar?: string
   name?: string
   alias?: string
   description?: string

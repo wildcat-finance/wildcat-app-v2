@@ -1,4 +1,13 @@
-import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
+import { useState } from "react"
+
+import {
+  Box,
+  ClickAwayListener,
+  IconButton,
+  SvgIcon,
+  Tooltip,
+  Typography,
+} from "@mui/material"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
@@ -17,6 +26,13 @@ export const LinkGroup = ({
 }: LinkGroupProps) => {
   const { t } = useTranslation()
   const [state, copyToClipboard] = useCopyToClipboard()
+  const [open, setOpen] = useState(false)
+  const handleTooltipOpen = () => {
+    setOpen(true)
+    setTimeout(() => {
+      setOpen(false)
+    }, 700)
+  }
 
   const handleCopy = (value: string) => {
     copyToClipboard(value)
@@ -27,15 +43,33 @@ export const LinkGroup = ({
       return (
         <Box sx={{ ...ButtonsContainer, ...groupSX }}>
           {copyValue && (
-            <IconButton
-              disableRipple
-              sx={ButtonStyle}
-              onClick={() => handleCopy(copyValue)}
+            <Tooltip
+              arrow={false}
+              placement="right"
+              open={open}
+              disableFocusListener
+              disableHoverListener
+              disableTouchListener
+              title="Copied"
+              slotProps={{
+                popper: {
+                  disablePortal: true,
+                },
+              }}
             >
-              <SvgIcon fontSize="medium">
-                <Copy />
-              </SvgIcon>
-            </IconButton>
+              <IconButton
+                disableRipple
+                sx={ButtonStyle}
+                onClick={() => {
+                  handleCopy(copyValue)
+                  handleTooltipOpen()
+                }}
+              >
+                <SvgIcon fontSize="medium">
+                  <Copy />
+                </SvgIcon>
+              </IconButton>
+            </Tooltip>
           )}
 
           {linkValue && (

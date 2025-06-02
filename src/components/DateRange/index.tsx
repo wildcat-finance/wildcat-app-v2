@@ -4,11 +4,11 @@ import { Box, SvgIcon, TextField, Typography } from "@mui/material"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar"
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
-import dayjs from "dayjs"
 import { useTranslation } from "react-i18next"
 
 import ArrowLeftIcon from "@/assets/icons/sharpArrow_icon.svg"
 import { COLORS } from "@/theme/colors"
+import { dayjs } from "@/utils/dayjs"
 
 import { DateRangeProps } from "./interface"
 import {

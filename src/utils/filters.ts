@@ -1,7 +1,38 @@
-import { MarketAccount } from "@wildcatfi/wildcat-sdk"
+/* eslint-disable camelcase */
+import {
+  Market,
+  MarketAccount,
+  SubgraphMarket_Filter,
+} from "@wildcatfi/wildcat-sdk"
 
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { getMarketStatus } from "@/utils/marketStatus"
+
+import { EXCLUDED_MARKETS, EXCLUDED_BORROWERS } from "./constants"
+
+export const isExcludedMarket = (market: Market | string) => {
+  if (typeof market === "string") {
+    return EXCLUDED_MARKETS.includes(market.toLowerCase())
+  }
+  return (
+    EXCLUDED_MARKETS.includes(market.address.toLowerCase()) ||
+    EXCLUDED_BORROWERS.includes(market.borrower.toLowerCase())
+  )
+}
+
+export const isNotExcludedMarket = (market: Market | string) =>
+  !isExcludedMarket(market)
+
+export const combineFilters = (
+  _filters: (SubgraphMarket_Filter | null | undefined)[],
+) => {
+  const filters = _filters.filter(
+    (filter) => filter && Object.keys(filter).length > 0,
+  ) as SubgraphMarket_Filter[]
+  if (filters.length === 0) return undefined
+  if (filters.length === 1) return filters[0]
+  return { and: filters }
+}
 
 export const filterMarketAccounts = (
   marketAccounts: MarketAccount[] | undefined,

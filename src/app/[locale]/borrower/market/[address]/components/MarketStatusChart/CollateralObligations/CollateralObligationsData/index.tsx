@@ -33,7 +33,7 @@ export const CollateralObligationsData = ({
     : normalizedPendingWithdrawals
 
   const totalProtocolFeesAccrued =
-    market.totalProtocolFeesAccrued ||
+    market.lastAccruedProtocolFees ||
     new TokenAmount(BigNumber.from(0), market.underlyingToken)
 
   return (
