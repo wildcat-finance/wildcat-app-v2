@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material"
+import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { BarItem } from "@/components/BarChart/BarItem"
@@ -12,7 +12,8 @@ import { BarChartProps } from "../interface"
 
 export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
   const { t } = useTranslation()
-
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const barRawData = useGenerateDebtsBarData(marketAccount)
   const barOrders = MARKET_BAR_ORDER.healthyBarchartOrder
   const legendItemsOrder = MARKET_BAR_ORDER.healthyLegendOrder
@@ -64,7 +65,14 @@ export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
       )}
 
       {totalSupply.gt(0) && (
-        <Box sx={{ display: "flex", gap: "28px", marginTop: "24px" }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: "28px",
+            marginTop: "24px",
+            flexDirection: isMobile ? "column" : "row",
+          }}
+        >
           {legendItems.map((chartItem) => (
             <LenderLegendItem
               key={chartItem.label}
@@ -72,6 +80,7 @@ export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
               label={chartItem.label}
               value={chartItem.value}
               asset={chartItem.asset}
+              withDivider={isMobile}
             />
           ))}
         </Box>

@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material"
+import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { MARKET_BAR_ORDER } from "@/app/[locale]/lender/market/[address]/components/BarCharts/CapacityBarChart/constants"
@@ -17,6 +17,8 @@ export const CapacityBarChart = ({
   isLender,
 }: BarChartProps & { legendType?: "big" | "small"; isLender?: boolean }) => {
   const { t } = useTranslation()
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
 
   const barRawData = useGenerateCapacityBarData(marketAccount)
 
@@ -79,14 +81,21 @@ export const CapacityBarChart = ({
             <LegendItem
               key={chartItem.label}
               chartItem={chartItem}
-              type="default"
+              type={isMobile ? "noBorderWithDivider" : "default"}
             />
           ))}
         </Box>
       )}
 
       {legendType === "small" && (
-        <Box sx={{ display: "flex", gap: "28px", marginTop: "24px" }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: "28px",
+            marginTop: "24px",
+            flexDirection: isMobile ? "column" : "row",
+          }}
+        >
           {legendItems.map((chartItem) => (
             <LenderLegendItem
               key={chartItem.label}
@@ -94,6 +103,7 @@ export const CapacityBarChart = ({
               label={chartItem.label}
               value={chartItem.value}
               asset={chartItem.asset}
+              withDivider={isMobile}
             />
           ))}
         </Box>

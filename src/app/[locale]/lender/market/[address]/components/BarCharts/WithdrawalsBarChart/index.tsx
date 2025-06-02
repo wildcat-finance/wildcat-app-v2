@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material"
+import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
@@ -16,7 +16,8 @@ export const WithdrawalsBarChart = ({
   withdrawals,
 }: BarChartProps & { withdrawals: LenderWithdrawalsForMarketResult }) => {
   const { t } = useTranslation()
-
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const { barData: barRawData, total } = useGenerateWithdrawalsBarData({
     market: marketAccount.market,
     lenderWithdrawals: withdrawals,
@@ -76,7 +77,14 @@ export const WithdrawalsBarChart = ({
       )}
 
       {total.gt(0) && (
-        <Box sx={{ display: "flex", gap: "28px", marginTop: "24px" }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: "28px",
+            marginTop: "24px",
+            flexDirection: isMobile ? "column" : "row",
+          }}
+        >
           {legendItems.map((chartItem) => (
             <LenderLegendItem
               key={chartItem.label}
@@ -84,6 +92,7 @@ export const WithdrawalsBarChart = ({
               label={chartItem.label}
               value={chartItem.value}
               asset={chartItem.asset}
+              withDivider={isMobile}
             />
           ))}
         </Box>

@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useEffect } from "react"
 
-import { Box, Divider, Skeleton, Typography } from "@mui/material"
+import { Box, Divider, Skeleton, Typography, useTheme } from "@mui/material"
 import { redirect } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -46,6 +46,7 @@ export default function LenderMarketDetails({
 }: {
   params: { address: string }
 }) {
+  const theme = useTheme()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const { isConnected } = useAccount()
@@ -140,7 +141,7 @@ export default function LenderMarketDetails({
       <Box>
         <MarketHeader marketAccount={marketAccount} />
 
-        <Box sx={SectionContainer}>
+        <Box sx={SectionContainer(theme)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (
             <Box>
               {authorizedInMarket && (

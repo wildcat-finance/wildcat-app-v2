@@ -72,6 +72,48 @@ export const LegendItem = ({
         </Box>
       )
 
+    case "noBorderWithDivider":
+      return (
+        <Box sx={{ width: "100%" }}>
+          <Box
+            className="barchart__legend-header"
+            sx={{
+              borderBottom: `1px solid ${COLORS.athensGrey}`,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "16px",
+              paddingBottom: "10px",
+              paddingTop: "10px",
+              cursor: "pointer",
+              width: "100%",
+            }}
+            onClick={() => toggleExpanded(expanded)}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+              <Typography variant="text3">{chartItem.label}</Typography>
+              <Box
+                className={cn(
+                  "barchart__legend-dot",
+                  chartItem.legendDotClassName,
+                )}
+                sx={{
+                  backgroundColor: chartItem.color,
+                  width: 12,
+                  height: 12,
+                  borderRadius: "50%",
+                }}
+              />
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <Typography variant="text3">
+                {formatTokenWithCommas(chartItem.value)} {chartItem.asset}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      )
+
     default:
       return (
         <Box
