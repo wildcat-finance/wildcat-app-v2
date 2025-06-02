@@ -12,6 +12,7 @@ import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
+import { PaginatedMarketRecordsTableNew } from "@/components/PaginatedMarketRecordsTableNew"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
@@ -225,7 +226,7 @@ export default function MarketDetails({
           )}
           {checked === 6 && (
             <Box sx={SlideContentContainer} marginTop="12px">
-              <PaginatedMarketRecordsTable market={market} />
+              <PaginatedMarketRecordsTableNew market={market} />
             </Box>
           )}
         </Box>

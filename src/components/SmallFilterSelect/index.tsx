@@ -28,6 +28,8 @@ export type SmallFilterSelectProps = {
   selected: SmallFilterSelectItem[]
   setSelected: Dispatch<SetStateAction<SmallFilterSelectItem[]>>
   width?: string
+  withSearch?: boolean
+  showResultsbutton?: boolean
 }
 
 export const SmallFilterSelect = ({
@@ -36,6 +38,8 @@ export const SmallFilterSelect = ({
   selected,
   setSelected,
   width,
+  withSearch = true,
+  showResultsbutton = false,
 }: SmallFilterSelectProps) => {
   const [search, setSearch] = useState("")
 
@@ -205,29 +209,30 @@ export const SmallFilterSelect = ({
           },
         }}
       >
-        <TextField
-          value={search}
-          onChange={handleChangeName}
-          fullWidth
-          size="small"
-          placeholder="Search"
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SvgIcon
-                  fontSize="small"
-                  sx={{
-                    width: "20px",
-                    "& path": { fill: `${COLORS.greySuit}` },
-                  }}
-                >
-                  <Icon />
-                </SvgIcon>
-              </InputAdornment>
-            ),
-          }}
-        />
-
+        {withSearch && (
+          <TextField
+            value={search}
+            onChange={handleChangeName}
+            fullWidth
+            size="small"
+            placeholder="Search"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SvgIcon
+                    fontSize="small"
+                    sx={{
+                      width: "20px",
+                      "& path": { fill: `${COLORS.greySuit}` },
+                    }}
+                  >
+                    <Icon />
+                  </SvgIcon>
+                </InputAdornment>
+              ),
+            }}
+          />
+        )}
         <Box
           sx={{
             maxHeight: "150px",
@@ -269,15 +274,40 @@ export const SmallFilterSelect = ({
           ))}
         </Box>
 
-        <Button
-          onClick={handleClear}
-          size="medium"
-          variant="contained"
-          color="secondary"
-          sx={{ width: "100%", marginTop: "12px" }}
-        >
-          Reset
-        </Button>
+        {showResultsbutton ? (
+          <Box
+            sx={{
+              display: "flex",
+              gap: "6px",
+              marginTop: "12px",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Button
+              onClick={handleClear}
+              size="small"
+              variant="contained"
+              color="secondary"
+              fullWidth
+            >
+              Reset
+            </Button>
+            <Button size="small" color="primary" variant="contained" fullWidth>
+              Show Results
+            </Button>
+          </Box>
+        ) : (
+          <Button
+            onClick={handleClear}
+            size="medium"
+            variant="contained"
+            color="secondary"
+            sx={{ width: "100%", marginTop: "12px" }}
+          >
+            Reset
+          </Button>
+        )}
       </Select>
     </FormControl>
   )

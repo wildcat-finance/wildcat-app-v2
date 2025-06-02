@@ -1,8 +1,8 @@
 /* eslint-disable no-underscore-dangle */
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import * as React from "react"
 
-import { Box, Skeleton, TablePagination, Typography } from "@mui/material"
+import { Box, Skeleton, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { MarketRecord } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
@@ -19,6 +19,7 @@ import {
 
 import { MarketRecordsTableProps, TypeSafeColDef } from "./interface"
 import { LinkGroup } from "../LinkComponent"
+import { TablePagination } from "../TablePagination"
 
 const getRecordText = (
   record: MarketRecord,
@@ -105,6 +106,10 @@ export function MarketRecordsTable({
 }: MarketRecordsTableProps) {
   const name = useBorrowerNameOrAddress(market.borrower)
   const { t } = useTranslation()
+  const [paginationModel, setPaginationModel] = useState({
+    pageSize: 5,
+    page: 0,
+  })
 
   const lendersName: { [key: string]: string } = JSON.parse(
     localStorage.getItem("lenders-name") || "{}",
@@ -231,12 +236,14 @@ export function MarketRecordsTable({
       getRowHeight={() => "auto"}
       rows={rows || []}
       columns={columns}
+      paginationModel={paginationModel}
+      onPaginationModelChange={setPaginationModel}
       // {...(paginationProps as any)}
       // rowCount={rowCount}
       hideFooter={false}
       slots={{
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        pagination: TablePagination as any,
+        pagination: TablePagination,
       }}
       slotProps={{
         pagination: {
