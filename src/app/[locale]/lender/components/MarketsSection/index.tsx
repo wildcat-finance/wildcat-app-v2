@@ -73,7 +73,7 @@ export const MarketsSection = () => {
     isLoadingUpdate,
   } = useLendersMarkets()
 
-  const isLoading = isLoadingInitial || isLoadingUpdate
+  const isLoading = false
 
   const filteredMarketAccounts = useMemo(
     () =>

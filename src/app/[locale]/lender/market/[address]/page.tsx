@@ -3,13 +3,23 @@
 import * as React from "react"
 import { useEffect } from "react"
 
-import { Box, Divider, Skeleton, Typography, useTheme } from "@mui/material"
+import {
+  Box,
+  Divider,
+  Skeleton,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material"
 import { redirect } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { BorrowerProfileDetails } from "@/app/[locale]/borrower/profile/components/BorrowerProfileDetails"
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
+import { MobileMarketActions } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMarketActions"
+import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
+import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
@@ -96,6 +106,12 @@ export default function LenderMarketDetails({
     [],
   )
 
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+
+  const [isMobileDepositOpen, setIsMobileDepositOpen] = React.useState(false)
+  const [isMobileWithdrawalOpen, setIsMobileWithdrawalOpen] =
+    React.useState(false)
+
   if (isLoading)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
@@ -134,6 +150,35 @@ export default function LenderMarketDetails({
           </Typography>
         </Box>
       </Box>
+    )
+
+  if (isMobile && isMobileDepositOpen)
+    return (
+      <DepositModal
+        isMobileOpen={isMobileDepositOpen}
+        setIsMobileOpen={setIsMobileDepositOpen}
+        marketAccount={marketAccount}
+      />
+    )
+
+  if (isMobile && isMobileWithdrawalOpen)
+    return (
+      <WithdrawModal
+        marketAccount={marketAccount}
+        isMobileOpen={isMobileWithdrawalOpen}
+        setIsMobileOpen={setIsMobileWithdrawalOpen}
+      />
+    )
+
+  if (isMobile)
+    return (
+      <MobileMarketActions
+        marketAccount={marketAccount}
+        isMobileDepositOpen={isMobileDepositOpen}
+        isMobileWithdrawalOpen={isMobileWithdrawalOpen}
+        setIsMobileDepositOpen={setIsMobileDepositOpen}
+        setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
+      />
     )
 
   return (
