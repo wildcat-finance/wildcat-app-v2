@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { WithdrawalBatch, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
@@ -19,6 +19,8 @@ export const OutstandingRowMobile = ({
 }) => {
   const [isOutstandingOpen, setIsOutstandingOpen] = useState(false)
   const { t } = useTranslation()
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const rows = withdrawalBatches.flatMap((batch) =>
     batch.requests
       .filter((withdrawal) => withdrawal.getNormalizedAmountOwed(batch).gt(0))
@@ -61,10 +63,12 @@ export const OutstandingRowMobile = ({
         </Box>
       ) : (
         <Box
-          display="flex"
-          flexDirection="column"
-          padding="0 16px"
-          marginBottom="10px"
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            padding: isMobile ? theme.spacing(0, 0.5) : theme.spacing(0, 2),
+            marginBottom: "10px",
+          }}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
             {t("marketWithdrawalRequests.noOutstanding")}

@@ -21,9 +21,8 @@ export const SectionContainer = (theme: Theme): SxProps<Theme> => ({
   overflowY: "visible",
   height: `calc(100vh - ${pageCalcHeights.market})`,
   padding: "0 32.3% 24px 44px",
-
   [theme.breakpoints.down("sm")]: {
-    padding: "12px 16px 28px",
+    padding: "12px 0px 0px",
     height: "auto",
   },
 })

@@ -24,7 +24,14 @@ export const LenderLegendItem = ({
 
   if (isMobile) {
     return (
-      <Box sx={{ width: "100%" }}>
+      <Box
+        sx={{
+          width: "100%",
+          backgroundColor: COLORS.white,
+          borderRadius: "14px",
+          padding: "12px 16px",
+        }}
+      >
         <Box
           className="barchart__legend-header"
           sx={{
@@ -34,9 +41,8 @@ export const LenderLegendItem = ({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "16px",
-            paddingBottom: "10px",
-            paddingTop: "10px",
+            marginBottom: "0px",
+            padding: "10px 0",
             gap: "8px",
             cursor: onClick ? "pointer" : "default",
             width: "100%",

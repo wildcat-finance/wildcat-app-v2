@@ -74,7 +74,11 @@ export const LegendItem = ({
 
     case "noBorderWithDivider":
       return (
-        <Box sx={{ width: "100%" }}>
+        <Box
+          sx={{
+            width: "100%",
+          }}
+        >
           <Box
             className="barchart__legend-header"
             sx={{
@@ -82,9 +86,8 @@ export const LegendItem = ({
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              marginBottom: "16px",
-              paddingBottom: "10px",
-              paddingTop: "10px",
+              marginBottom: "0px",
+              padding: "10px 0",
               cursor: "pointer",
               width: "100%",
             }}

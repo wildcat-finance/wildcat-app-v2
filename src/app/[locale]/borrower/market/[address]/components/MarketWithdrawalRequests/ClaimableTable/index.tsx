@@ -1,7 +1,14 @@
 import * as React from "react"
 import { useState } from "react"
 
-import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
+import {
+  Box,
+  IconButton,
+  SvgIcon,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import {
   LenderWithdrawalStatus,
@@ -163,7 +170,8 @@ export const ClaimableTable = ({
   totalAmount,
 }: ClaimableTableProps) => {
   const [isClaimableOpen, setIsClaimableOpen] = useState(false)
-
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const getClaimableRequestAmounts = (status: LenderWithdrawalStatus) => {
     const claimableAmount = status.availableWithdrawalAmount
     return status.requests.flatMap((request) =>
@@ -216,10 +224,12 @@ export const ClaimableTable = ({
         />
       ) : (
         <Box
-          display="flex"
-          flexDirection="column"
-          padding="0 16px"
-          marginBottom="10px"
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            padding: isMobile ? theme.spacing(0, 0.5) : theme.spacing(0, 2),
+            marginBottom: "10px",
+          }}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
             No claimable withdrawals.

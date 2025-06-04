@@ -14,6 +14,7 @@ import { useCopyToClipboard } from "react-use"
 
 import { EtherscanBaseUrl } from "@/config/network"
 import { formatDate } from "@/lib/mla"
+import { COLORS } from "@/theme/colors"
 import {
   formatBps,
   formatRayAsPercentage,
@@ -148,6 +149,9 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
         flexDirection: "column",
         gap: "24px",
         width: "100%",
+        backgroundColor: isMobile ? COLORS.white : "transparent",
+        borderRadius: isMobile ? "14px" : 0,
+        padding: isMobile ? "12px 16px 12px" : "0px",
       }}
     >
       <Typography variant="title3">

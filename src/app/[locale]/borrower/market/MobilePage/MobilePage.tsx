@@ -14,7 +14,7 @@ export const MobilePage = ({
   marketAccount,
   isHoldingMarket,
 }: MobilePageProps) => (
-  <Box display="flex" flexDirection="column" gap={4} p={2}>
+  <Box display="flex" flexDirection="column" gap="4px">
     <MarketParameters market={marketAccount.market} />
     <MarketWithdrawalRequests
       marketAccount={marketAccount}

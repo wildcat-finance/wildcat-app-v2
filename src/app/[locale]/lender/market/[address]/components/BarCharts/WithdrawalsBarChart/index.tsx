@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 
 import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
 import { BarItem } from "@/components/BarChart/BarItem"
+import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { MARKET_BAR_ORDER } from "./constants"
@@ -43,60 +44,69 @@ export const WithdrawalsBarChart = ({
 
   return (
     <Box marginTop="12px">
-      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="title3">
-          {t("lenderMarketDetails.barchart.withdrawals.title")}
-        </Typography>
-
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: "4px",
-          }}
-        >
+      <Box
+        sx={{
+          backgroundColor: isMobile ? COLORS.white : "transparent",
+          borderRadius: isMobile ? "14px" : 0,
+          padding: isMobile ? "16px" : 0,
+          overflow: isMobile ? "hidden" : "visible",
+        }}
+      >
+        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
           <Typography variant="title3">
-            {formatTokenWithCommas(total)}
+            {t("lenderMarketDetails.barchart.withdrawals.title")}
           </Typography>
-          <Typography variant="text4" sx={{ marginTop: "4px" }}>
-            {marketAccount.market.underlyingToken.symbol}
-          </Typography>
+
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "4px",
+            }}
+          >
+            <Typography variant="title3">
+              {formatTokenWithCommas(total)}
+            </Typography>
+            <Typography variant="text4" sx={{ marginTop: "4px" }}>
+              {marketAccount.market.underlyingToken.symbol}
+            </Typography>
+          </Box>
         </Box>
+
+        {total.gt(0) && (
+          <Box className="barchart__container">
+            {bars.map((chartItem) => (
+              <BarItem
+                key={chartItem.id}
+                chartItem={chartItem}
+                isOnlyBarItem={bars.length === 1}
+              />
+            ))}
+          </Box>
+        )}
+
+        {total.gt(0) && (
+          <Box
+            sx={{
+              display: "flex",
+              gap: isMobile ? "0px" : "28px",
+              marginTop: "24px",
+              flexDirection: isMobile ? "column" : "row",
+            }}
+          >
+            {legendItems.map((chartItem) => (
+              <LenderLegendItem
+                key={chartItem.label}
+                color={chartItem.color}
+                label={chartItem.label}
+                value={chartItem.value}
+                asset={chartItem.asset}
+                withDivider={isMobile}
+              />
+            ))}
+          </Box>
+        )}
       </Box>
-
-      {total.gt(0) && (
-        <Box className="barchart__container">
-          {bars.map((chartItem) => (
-            <BarItem
-              key={chartItem.id}
-              chartItem={chartItem}
-              isOnlyBarItem={bars.length === 1}
-            />
-          ))}
-        </Box>
-      )}
-
-      {total.gt(0) && (
-        <Box
-          sx={{
-            display: "flex",
-            gap: "28px",
-            marginTop: "24px",
-            flexDirection: isMobile ? "column" : "row",
-          }}
-        >
-          {legendItems.map((chartItem) => (
-            <LenderLegendItem
-              key={chartItem.label}
-              color={chartItem.color}
-              label={chartItem.label}
-              value={chartItem.value}
-              asset={chartItem.asset}
-              withDivider={isMobile}
-            />
-          ))}
-        </Box>
-      )}
     </Box>
   )
 }
