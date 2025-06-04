@@ -147,14 +147,14 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
       sx={{
         display: "flex",
         flexDirection: "column",
-        gap: "24px",
+        gap: isMobile ? "20px" : "24px",
         width: "100%",
         backgroundColor: isMobile ? COLORS.white : "transparent",
         borderRadius: isMobile ? "14px" : 0,
         padding: isMobile ? "12px 16px 12px" : "0px",
       }}
     >
-      <Typography variant="title3">
+      <Typography variant="title3" sx={isMobile ? { marginTop: "12px" } : {}}>
         {t("borrowerMarketDetails.header.parameters")}
       </Typography>
       <Box sx={MarketParametersContainer(theme)}>
@@ -259,6 +259,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               `borrowerMarketDetails.parameters.withdrawalAccess.${withdrawalAccess}.tooltip`,
             )}
           />
+
           {hooksConfig && market.version === MarketVersion.V2 && (
             <>
               <Divider sx={{ margin: "12px 0 12px" }} />
@@ -270,6 +271,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               />
             </>
           )}
+          {isMobile && <Divider sx={{ margin: "12px 0 12px" }} />}
         </Box>
         <Box sx={MarketParametersContainerColumn(theme)}>
           <MarketParametersItem

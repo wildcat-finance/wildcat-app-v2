@@ -50,72 +50,94 @@ export const CapacityBarChart = ({
           overflow: isMobile ? "hidden" : "visible",
         }}
       >
-        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Typography variant="title3">
-            {t("lenderMarketDetails.barchart.capacity.title")}
-          </Typography>
-
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: isMobile ? "16px" : 0,
+          }}
+        >
           <Box
             sx={{
               display: "flex",
-              alignItems: "flex-start",
-              gap: "4px",
+              justifyContent: "space-between",
             }}
           >
-            <Typography variant="title3">
-              {formatTokenWithCommas(marketCapacity)}
+            <Typography
+              variant="title3"
+              sx={{ marginTop: isMobile ? "12px" : 0 }}
+            >
+              {t("lenderMarketDetails.barchart.capacity.title")}
             </Typography>
-            <Typography variant="text4" sx={{ marginTop: "4px" }}>
-              {marketAccount.market.underlyingToken.symbol}
-            </Typography>
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "4px",
+              }}
+            >
+              <Typography
+                variant="title3"
+                sx={{ marginTop: isMobile ? "12px" : 0 }}
+              >
+                {formatTokenWithCommas(marketCapacity)}
+              </Typography>
+              <Typography
+                variant="text4"
+                sx={{ marginTop: isMobile ? "12px" : "4px" }}
+              >
+                {marketAccount.market.underlyingToken.symbol}
+              </Typography>
+            </Box>
           </Box>
+
+          {marketCapacity.gt(0) && (
+            <Box className="barchart__container">
+              {bars.map((chartItem) => (
+                <BarItem
+                  key={chartItem.id}
+                  chartItem={chartItem}
+                  isOnlyBarItem={bars.length === 1}
+                />
+              ))}
+            </Box>
+          )}
+
+          {legendType === "big" && (
+            <Box className="barchart__legend">
+              {legendItems.map((chartItem) => (
+                <LegendItem
+                  key={chartItem.label}
+                  chartItem={chartItem}
+                  type={isMobile ? "noBorderWithDivider" : "default"}
+                />
+              ))}
+            </Box>
+          )}
+
+          {legendType === "small" && (
+            <Box
+              sx={{
+                display: "flex",
+                gap: isMobile ? "0px" : "28px",
+                marginTop: "24px",
+                flexDirection: isMobile ? "column" : "row",
+              }}
+            >
+              {legendItems.map((chartItem) => (
+                <LenderLegendItem
+                  key={chartItem.label}
+                  color={chartItem.color}
+                  label={chartItem.label}
+                  value={chartItem.value}
+                  asset={chartItem.asset}
+                  withDivider={isMobile}
+                />
+              ))}
+            </Box>
+          )}
         </Box>
-
-        {marketCapacity.gt(0) && (
-          <Box className="barchart__container">
-            {bars.map((chartItem) => (
-              <BarItem
-                key={chartItem.id}
-                chartItem={chartItem}
-                isOnlyBarItem={bars.length === 1}
-              />
-            ))}
-          </Box>
-        )}
-
-        {legendType === "big" && (
-          <Box className="barchart__legend">
-            {legendItems.map((chartItem) => (
-              <LegendItem
-                key={chartItem.label}
-                chartItem={chartItem}
-                type={isMobile ? "noBorderWithDivider" : "default"}
-              />
-            ))}
-          </Box>
-        )}
-
-        {legendType === "small" && (
-          <Box
-            sx={{
-              display: "flex",
-              gap: isMobile ? "0px" : "28px",
-              marginTop: "24px",
-              flexDirection: isMobile ? "column" : "row",
-            }}
-          >
-            {legendItems.map((chartItem) => (
-              <LenderLegendItem
-                key={chartItem.label}
-                color={chartItem.color}
-                label={chartItem.label}
-                value={chartItem.value}
-                asset={chartItem.asset}
-                withDivider={isMobile}
-              />
-            ))}
-          </Box>
-        )}
       </Box>
     </Box>
   )

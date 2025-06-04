@@ -52,60 +52,77 @@ export const WithdrawalsBarChart = ({
           overflow: isMobile ? "hidden" : "visible",
         }}
       >
-        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Typography variant="title3">
-            {t("lenderMarketDetails.barchart.withdrawals.title")}
-          </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: isMobile ? "16px" : 0,
+          }}
+        >
+          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+            <Typography
+              variant="title3"
+              sx={{ marginTop: isMobile ? "12px" : 0 }}
+            >
+              {t("lenderMarketDetails.barchart.withdrawals.title")}
+            </Typography>
 
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: "4px",
-            }}
-          >
-            <Typography variant="title3">
-              {formatTokenWithCommas(total)}
-            </Typography>
-            <Typography variant="text4" sx={{ marginTop: "4px" }}>
-              {marketAccount.market.underlyingToken.symbol}
-            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "4px",
+              }}
+            >
+              <Typography
+                variant="title3"
+                sx={{ marginTop: isMobile ? "12px" : 0 }}
+              >
+                {formatTokenWithCommas(total)}
+              </Typography>
+              <Typography
+                variant="text4"
+                sx={{ marginTop: isMobile ? "12px" : "4px" }}
+              >
+                {marketAccount.market.underlyingToken.symbol}
+              </Typography>
+            </Box>
           </Box>
+
+          {total.gt(0) && (
+            <Box className="barchart__container">
+              {bars.map((chartItem) => (
+                <BarItem
+                  key={chartItem.id}
+                  chartItem={chartItem}
+                  isOnlyBarItem={bars.length === 1}
+                />
+              ))}
+            </Box>
+          )}
+
+          {total.gt(0) && (
+            <Box
+              sx={{
+                display: "flex",
+                gap: isMobile ? "0px" : "28px",
+                marginTop: "24px",
+                flexDirection: isMobile ? "column" : "row",
+              }}
+            >
+              {legendItems.map((chartItem) => (
+                <LenderLegendItem
+                  key={chartItem.label}
+                  color={chartItem.color}
+                  label={chartItem.label}
+                  value={chartItem.value}
+                  asset={chartItem.asset}
+                  withDivider={isMobile}
+                />
+              ))}
+            </Box>
+          )}
         </Box>
-
-        {total.gt(0) && (
-          <Box className="barchart__container">
-            {bars.map((chartItem) => (
-              <BarItem
-                key={chartItem.id}
-                chartItem={chartItem}
-                isOnlyBarItem={bars.length === 1}
-              />
-            ))}
-          </Box>
-        )}
-
-        {total.gt(0) && (
-          <Box
-            sx={{
-              display: "flex",
-              gap: isMobile ? "0px" : "28px",
-              marginTop: "24px",
-              flexDirection: isMobile ? "column" : "row",
-            }}
-          >
-            {legendItems.map((chartItem) => (
-              <LenderLegendItem
-                key={chartItem.label}
-                color={chartItem.color}
-                label={chartItem.label}
-                value={chartItem.value}
-                asset={chartItem.asset}
-                withDivider={isMobile}
-              />
-            ))}
-          </Box>
-        )}
       </Box>
     </Box>
   )

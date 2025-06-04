@@ -77,6 +77,7 @@ export const LegendItem = ({
         <Box
           sx={{
             width: "100%",
+            gap: "16px",
           }}
         >
           <Box
@@ -93,7 +94,7 @@ export const LegendItem = ({
             }}
             onClick={() => toggleExpanded(expanded)}
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <Typography variant="text3">{chartItem.label}</Typography>
               <Box
                 className={cn(

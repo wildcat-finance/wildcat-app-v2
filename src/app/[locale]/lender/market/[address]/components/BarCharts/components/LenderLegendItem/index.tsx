@@ -29,7 +29,6 @@ export const LenderLegendItem = ({
           width: "100%",
           backgroundColor: COLORS.white,
           borderRadius: "14px",
-          padding: "12px 16px",
         }}
       >
         <Box
@@ -49,7 +48,7 @@ export const LenderLegendItem = ({
           }}
           onClick={onClick}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <Typography variant="text3">{label}</Typography>
             <Box
               className={cn("barchart__legend-dot", legendDotClassName)}

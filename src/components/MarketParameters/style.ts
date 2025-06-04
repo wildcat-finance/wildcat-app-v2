@@ -8,6 +8,7 @@ export const MarketParametersContainer = (theme: Theme): SxProps<Theme> => ({
   justifyContent: "space-between",
   [theme.breakpoints.down("sm")]: {
     flexDirection: "column",
+    gap: "0px",
   },
 })
 export const MarketParametersContainerColumn = (

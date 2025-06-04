@@ -127,7 +127,7 @@ export const MarketWithdrawalRequests = ({
           alignItems: "center",
         }}
       >
-        <Typography variant="title3">
+        <Typography variant="title3" sx={isMobile ? { marginTop: "12px" } : {}}>
           {t("marketWithdrawalRequests.openWithdrawals")}
         </Typography>
         {(market.isDelinquent || market.isIncurringPenalties) &&

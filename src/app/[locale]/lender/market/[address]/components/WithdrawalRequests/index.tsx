@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import { useTranslation } from "react-i18next"
 
@@ -23,6 +23,8 @@ export const WithdrawalRequests = ({
   withdrawals,
 }: WithdrawalRequestsProps) => {
   const { t } = useTranslation()
+  const theme = useTheme()
+  const isMobile = useMediaQuery("(max-width:600px)")
 
   const expiredTotalAmount = withdrawals.expiredTotalPendingAmount
   const activeTotalAmount = withdrawals.activeTotalPendingAmount
@@ -85,40 +87,46 @@ export const WithdrawalRequests = ({
 
   return (
     <Box>
-      <Typography variant="title3">
-        {t("lenderMarketDetails.requests.title")}
-      </Typography>
-
-      <Box sx={TotalAccordionSummary}>
-        <Typography variant="text2">
-          {t("lenderMarketDetails.requests.total")}
+      <Box
+        sx={{
+          backgroundColor: isMobile ? COLORS.white : "transparent",
+          borderRadius: isMobile ? "14px" : 0,
+        }}
+      >
+        <Typography variant="title3" sx={isMobile ? { marginTop: "12px" } : {}}>
+          {t("lenderMarketDetails.requests.title")}
         </Typography>
 
-        <TextfieldChip
-          text={formatTokenWithCommas(totalAmount, { withSymbol: true })}
-          color={COLORS.whiteSmoke}
-          textColor={COLORS.blackRock}
+        <Box sx={TotalAccordionSummary(theme)}>
+          <Typography variant="text2">
+            {t("lenderMarketDetails.requests.total")}
+          </Typography>
+
+          <TextfieldChip
+            text={formatTokenWithCommas(totalAmount, { withSymbol: true })}
+            color={COLORS.whiteSmoke}
+            textColor={COLORS.blackRock}
+          />
+        </Box>
+
+        <OngoingTable
+          withdrawals={
+            withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
+          }
+          totalAmount={activeTotalAmount}
+          columns={columns}
+        />
+
+        <ClaimableTable
+          withdrawals={withdrawals.expiredPendingWithdrawals}
+          totalAmount={claimableTotalAmount}
+        />
+        <OutstandingTable
+          totalAmount={expiredTotalAmount}
+          withdrawals={withdrawals?.expiredPendingWithdrawals ?? []}
+          columns={columns}
         />
       </Box>
-
-      <OngoingTable
-        withdrawals={
-          withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
-        }
-        totalAmount={activeTotalAmount}
-        columns={columns}
-      />
-
-      <ClaimableTable
-        withdrawals={withdrawals.expiredPendingWithdrawals}
-        totalAmount={claimableTotalAmount}
-      />
-
-      <OutstandingTable
-        totalAmount={expiredTotalAmount}
-        withdrawals={withdrawals?.expiredPendingWithdrawals ?? []}
-        columns={columns}
-      />
     </Box>
   )
 }

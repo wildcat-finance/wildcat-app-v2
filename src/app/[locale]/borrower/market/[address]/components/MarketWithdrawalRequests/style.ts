@@ -11,9 +11,8 @@ export const TotalAccordionSummary = (theme: Theme): SxProps<Theme> => ({
     borderRadius: "10px",
     textWrap: "nowrap",
     backgroundColor: COLORS.whiteSmoke,
-    margin: "24px 0 12px",
-    marginBottom: "8px",
-    padding: "13px 0 13px 12px",
+    marginTop: "24px",
+    padding: "13px 12px 13px 12px",
     width: "100%",
   },
 })

@@ -73,7 +73,7 @@ export const OngoingTable = ({
           sx={{
             display: "flex",
             flexDirection: "column",
-            padding: isMobile ? theme.spacing(0, 0.5) : theme.spacing(0, 2),
+            padding: isMobile ? "0px 4px" : "0px 16px",
             marginBottom: "10px",
           }}
         >
