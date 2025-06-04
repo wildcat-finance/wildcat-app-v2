@@ -1,7 +1,7 @@
 import { useState } from "react"
 import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { useTranslation } from "react-i18next"
 
@@ -23,7 +23,8 @@ export const OngoingTable = ({
 }: TableProps) => {
   const { t } = useTranslation()
   const [isOngoingOpen, setIsOngoingOpen] = useState(false)
-
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const ongoingRows: WithdrawalTxRow[] = withdrawals.flatMap((batch) =>
     batch.requests.map((withdrawal) => ({
       id: withdrawal.id,
@@ -66,8 +67,8 @@ export const OngoingTable = ({
         <Box
           display="flex"
           flexDirection="column"
-          padding="0 16px"
-          marginBottom="10px"
+          padding={isMobile ? "0 4px" : "0 16px"}
+          marginBottom={isMobile ? "0px" : "10px"}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
             No ongoing withdrawals.

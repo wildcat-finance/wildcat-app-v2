@@ -74,7 +74,7 @@ export const OngoingTable = ({
             display: "flex",
             flexDirection: "column",
             padding: isMobile ? "0px 4px" : "0px 16px",
-            marginBottom: "10px",
+            marginBottom: isMobile ? "0px" : "10px",
           }}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>

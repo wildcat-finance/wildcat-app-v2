@@ -11,9 +11,7 @@ export const TotalAccordionSummary = (theme: Theme): SxProps<Theme> => ({
     borderRadius: "10px",
     textWrap: "nowrap",
     backgroundColor: COLORS.whiteSmoke,
-    marginTop: "24px",
-    padding: "13px 12px 13px 12px",
-    width: "100%",
+    margin: "24px -12px 0 -12px",
   },
 })
 
@@ -32,6 +30,7 @@ export const MarketWithdrawalRequestsContainer = (
     backgroundColor: COLORS.white,
     borderRadius: "14px",
     padding: "12px 16px 12px",
+    margin: "0px",
   },
 })
 

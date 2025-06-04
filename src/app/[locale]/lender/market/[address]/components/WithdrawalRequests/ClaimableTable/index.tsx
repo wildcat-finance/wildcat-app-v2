@@ -1,7 +1,14 @@
 import { useState } from "react"
 import * as React from "react"
 
-import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
+import {
+  Box,
+  IconButton,
+  SvgIcon,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { LenderWithdrawalStatus } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
@@ -150,6 +157,8 @@ const claimableColumns: GridColDef[] = [
 export const ClaimableTable = ({ withdrawals, totalAmount }: TableProps) => {
   const { t } = useTranslation()
   const [isClaimableOpen, setIsClaimableOpen] = useState(false)
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
 
   const expiredPendingWithdrawals: {
     [key: string]: LenderWithdrawalStatus[]
@@ -224,8 +233,8 @@ export const ClaimableTable = ({ withdrawals, totalAmount }: TableProps) => {
         <Box
           display="flex"
           flexDirection="column"
-          padding="0 16px"
-          marginBottom="10px"
+          padding={isMobile ? "0 4px" : "0 16px"}
+          marginBottom={isMobile ? "0px" : "10px"}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
             No claimable withdrawals.

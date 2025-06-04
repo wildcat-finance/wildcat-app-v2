@@ -8,6 +8,7 @@ import { ClaimableTable } from "@/app/[locale]/lender/market/[address]/component
 import { WithdrawalRequestsProps } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests/interface"
 import { OutstandingTable } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests/OutstandingTable"
 import {
+  MarketWithdrawalRequestsContainer,
   MarketWithdrawalRequetstCell,
   TotalAccordionSummary,
 } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests/style"
@@ -86,14 +87,15 @@ export const WithdrawalRequests = ({
   ]
 
   return (
-    <Box>
+    <Box sx={MarketWithdrawalRequestsContainer(theme)}>
       <Box
         sx={{
           backgroundColor: isMobile ? COLORS.white : "transparent",
           borderRadius: isMobile ? "14px" : 0,
+          marginTop: isMobile ? "12px" : 0,
         }}
       >
-        <Typography variant="title3" sx={isMobile ? { marginTop: "12px" } : {}}>
+        <Typography variant="title3">
           {t("lenderMarketDetails.requests.title")}
         </Typography>
 

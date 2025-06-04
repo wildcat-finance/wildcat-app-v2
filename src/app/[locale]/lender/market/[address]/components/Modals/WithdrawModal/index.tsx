@@ -22,7 +22,7 @@ import {
 } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
 import { TxModalDialog } from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
 import { useWithdraw } from "@/app/[locale]/lender/market/[address]/hooks/useWithdraw"
-import { TransactionHeader } from "@/components/mobile/TransactionHeader"
+import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { useTranslation } from "react-i18next"
 
@@ -21,7 +21,8 @@ export const OutstandingTable = ({
 }: TableProps) => {
   const { t } = useTranslation()
   const [isOutstandingOpen, setIsOutstandingOpen] = useState(false)
-
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const outstandingRows = withdrawals.flatMap((status) =>
     status.requests
       .filter((wd) => wd.getNormalizedAmountOwed(status.batch).gt(0))
@@ -64,8 +65,8 @@ export const OutstandingTable = ({
         <Box
           display="flex"
           flexDirection="column"
-          padding="0 16px"
-          marginBottom="10px"
+          padding={isMobile ? "0 4px" : "0 16px"}
+          marginBottom={isMobile ? "0px" : "10px"}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
             No withdrawal requests from previous cycles.

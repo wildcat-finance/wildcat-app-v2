@@ -151,7 +151,7 @@ export default function LenderMarketDetails({
         </Box>
       </Box>
     )
-
+  /*
   if (isMobile && isMobileDepositOpen)
     return (
       <DepositModal
@@ -180,7 +180,7 @@ export default function LenderMarketDetails({
         setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
       />
     )
-
+  */
   return (
     <Box>
       <Box>
