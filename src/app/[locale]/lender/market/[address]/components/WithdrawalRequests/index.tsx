@@ -19,6 +19,7 @@ import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas, trimAddress } from "@/utils/formatters"
 
 import { OngoingTable } from "./OngoingTable"
+import { OutstandingRowMobileTable } from "./OutstandingRowMobileTable "
 
 export const WithdrawalRequests = ({
   withdrawals,
@@ -123,11 +124,18 @@ export const WithdrawalRequests = ({
           withdrawals={withdrawals.expiredPendingWithdrawals}
           totalAmount={claimableTotalAmount}
         />
-        <OutstandingTable
-          totalAmount={expiredTotalAmount}
-          withdrawals={withdrawals?.expiredPendingWithdrawals ?? []}
-          columns={columns}
-        />
+        {isMobile ? (
+          <OutstandingRowMobileTable
+            withdrawals={withdrawals?.expiredPendingWithdrawals ?? []}
+            totalAmount={expiredTotalAmount}
+          />
+        ) : (
+          <OutstandingTable
+            totalAmount={expiredTotalAmount}
+            withdrawals={withdrawals?.expiredPendingWithdrawals ?? []}
+            columns={columns}
+          />
+        )}
       </Box>
     </Box>
   )

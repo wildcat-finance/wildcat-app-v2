@@ -26,7 +26,7 @@ export const OutstandingRow = ({
       display="flex"
       justifyContent="space-between"
       alignItems="center"
-      padding={1}
+      sx={{ mx: "4px" }}
     >
       <Box display="flex" flexDirection="column" gap="4px">
         <Box display="flex" alignItems="center" gap={1}>
