@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 import { WithdrawalTxRow } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/interface"
 import { DataGridCells } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/style"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
+import { WithdrawalsMobileTableItem } from "@/components/Mobile/WithdrawalsMobileTableItem"
 import { COLORS } from "@/theme/colors"
 import {
   formatTokenWithCommas,
@@ -33,12 +34,52 @@ export const OngoingTable = ({
       dateSubmitted: timestampToDateFormatted(withdrawal.blockTimestamp),
       amount: formatTokenWithCommas(
         withdrawal.getNormalizedTotalAmount(batch.batch),
-        {
-          withSymbol: true,
-        },
+        { withSymbol: true },
       ),
     })),
   )
+
+  const renderContent = () => {
+    if (ongoingRows.length === 0) {
+      return (
+        <Box
+          display="flex"
+          flexDirection="column"
+          padding={isMobile ? "0 4px" : "0 16px"}
+          marginBottom={isMobile ? "0px" : "10px"}
+        >
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            No ongoing withdrawals.
+          </Typography>
+        </Box>
+      )
+    }
+
+    if (isMobile) {
+      return (
+        <Box display="flex" flexDirection="column" gap="8px">
+          {ongoingRows.map((row) => (
+            <WithdrawalsMobileTableItem
+              key={row.id}
+              lender={row.lender}
+              transactionId={row.transactionId}
+              dateSubmitted={row.dateSubmitted}
+              amount={row.amount}
+            />
+          ))}
+        </Box>
+      )
+    }
+
+    return (
+      <DataGrid
+        sx={DataGridCells}
+        rows={ongoingRows}
+        columns={columns || []}
+        columnHeaderHeight={40}
+      />
+    )
+  }
 
   return (
     <DetailsAccordion
@@ -50,31 +91,11 @@ export const OngoingTable = ({
         borderBottom: isOngoingOpen ? "none" : `1px solid`,
         borderColor: COLORS.athensGrey,
       }}
-      chipValue={formatTokenWithCommas(totalAmount, {
-        withSymbol: true,
-      })}
+      chipValue={formatTokenWithCommas(totalAmount, { withSymbol: true })}
       chipColor={COLORS.whiteSmoke}
       chipValueColor={COLORS.blackRock}
     >
-      {ongoingRows.length && columns ? (
-        <DataGrid
-          sx={DataGridCells}
-          rows={ongoingRows}
-          columns={columns}
-          columnHeaderHeight={40}
-        />
-      ) : (
-        <Box
-          display="flex"
-          flexDirection="column"
-          padding={isMobile ? "0 4px" : "0 16px"}
-          marginBottom={isMobile ? "0px" : "10px"}
-        >
-          <Typography variant="text3" color={COLORS.santasGrey}>
-            No ongoing withdrawals.
-          </Typography>
-        </Box>
-      )}
+      {renderContent()}
     </DetailsAccordion>
   )
 }

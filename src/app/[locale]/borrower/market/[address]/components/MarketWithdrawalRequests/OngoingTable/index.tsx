@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next"
 import { WithdrawalTxRow } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/interface"
 import { DataGridCells } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/style"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
+import { WithdrawalsMobileTableItem } from "@/components/Mobile/WithdrawalsMobileTableItem"
 import { COLORS } from "@/theme/colors"
 import {
   formatTokenWithCommas,
@@ -61,27 +62,51 @@ export const OngoingTable = ({
       chipColor={COLORS.whiteSmoke}
       chipValueColor={COLORS.blackRock}
     >
-      {ongoingRows.length ? (
-        <DataGrid
-          sx={DataGridCells}
-          rows={ongoingRows}
-          columns={columns}
-          columnHeaderHeight={40}
-        />
-      ) : (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            padding: isMobile ? "0px 4px" : "0px 16px",
-            marginBottom: isMobile ? "0px" : "10px",
-          }}
-        >
-          <Typography variant="text3" color={COLORS.santasGrey}>
-            {t("marketWithdrawalRequests.noOngoing")}
-          </Typography>
-        </Box>
-      )}
+      {(() => {
+        if (!ongoingRows.length) {
+          return (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                padding: isMobile ? "0px 4px" : "0px 16px",
+                marginBottom: isMobile ? "0px" : "10px",
+              }}
+            >
+              <Typography variant="text3" color={COLORS.santasGrey}>
+                {t("marketWithdrawalRequests.noOngoing")}
+              </Typography>
+            </Box>
+          )
+        }
+
+        if (isMobile) {
+          return (
+            <Box>
+              {ongoingRows.map(
+                ({ id, lender, transactionId, amount, dateSubmitted }) => (
+                  <WithdrawalsMobileTableItem
+                    key={id}
+                    lender={lender}
+                    transactionId={transactionId}
+                    amount={amount}
+                    dateSubmitted={dateSubmitted}
+                  />
+                ),
+              )}
+            </Box>
+          )
+        }
+
+        return (
+          <DataGrid
+            sx={DataGridCells}
+            rows={ongoingRows}
+            columns={columns}
+            columnHeaderHeight={40}
+          />
+        )
+      })()}
     </DetailsAccordion>
   )
 }

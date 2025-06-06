@@ -21,6 +21,7 @@ import LinkIcon from "@/assets/icons/link_icon.svg"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { LinkGroup } from "@/components/LinkComponent"
+import { WithdrawalsMobileTableItem } from "@/components/Mobile/WithdrawalsMobileTableItem"
 import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
 import {
@@ -214,28 +215,53 @@ export const ClaimableTable = ({
       chipColor={COLORS.whiteSmoke}
       chipValueColor={COLORS.blackRock}
     >
-      {claimableRows.length ? (
-        <DataGrid
-          sx={DataGridCells}
-          rows={claimableRows}
-          columns={claimableColumns}
-          columnHeaderHeight={40}
-          getRowHeight={() => "auto"}
-        />
-      ) : (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            padding: isMobile ? "0px 4px" : "0px 16px",
-            marginBottom: isMobile ? "0px" : "10px",
-          }}
-        >
-          <Typography variant="text3" color={COLORS.santasGrey}>
-            No claimable withdrawals.
-          </Typography>
-        </Box>
-      )}
+      {(() => {
+        if (!claimableRows.length) {
+          return (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                padding: isMobile ? "0px 4px" : "0px 16px",
+                marginBottom: isMobile ? "0px" : "10px",
+              }}
+            >
+              <Typography variant="text3" color={COLORS.santasGrey}>
+                No claimable withdrawals.
+              </Typography>
+            </Box>
+          )
+        }
+
+        if (isMobile) {
+          return (
+            <Box>
+              {claimableRows.map(
+                ({ id, lender, transactionId, amount, dateSubmitted }) =>
+                  transactionId.map((txId, idx) => (
+                    <WithdrawalsMobileTableItem
+                      key={`${id.toString()}_${txId}`}
+                      lender={lender}
+                      transactionId={txId}
+                      amount={amount[idx]}
+                      dateSubmitted={dateSubmitted[idx]}
+                    />
+                  )),
+              )}
+            </Box>
+          )
+        }
+
+        return (
+          <DataGrid
+            sx={DataGridCells}
+            rows={claimableRows}
+            columns={claimableColumns}
+            columnHeaderHeight={40}
+            getRowHeight={() => "auto"}
+          />
+        )
+      })()}
     </DetailsAccordion>
   )
 }
