@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react"
 import * as React from "react"
 
-import { Button, Dialog } from "@mui/material"
+import {
+  Box,
+  Button,
+  Dialog,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
@@ -9,11 +16,16 @@ import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/component
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { useClaim } from "@/app/[locale]/lender/market/[address]/hooks/useClaim"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { COLORS } from "@/theme/colors"
+import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { ClaimModalProps } from "./interface"
 
 export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
   const { t } = useTranslation()
+
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
 
   const [isOpen, setIsOpen] = useState(false)
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
@@ -54,44 +66,123 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
     }
   }, [isError, isSuccess])
 
-  return (
-    <>
-      <Button
-        variant="contained"
-        size="small"
-        sx={{ width: "fit-content" }}
-        onClick={handleClaim}
-        disabled={!signer}
-      >
-        {t("lenderMarketDetails.transactions.claim.button")}
-      </Button>
+  const hideClaim = withdrawals.totalClaimableAmount.raw.isZero()
 
-      <Dialog
-        open={isOpen}
-        onClose={handleToggleModal}
-        sx={{
-          "& .MuiDialog-paper": {
-            height: "404px",
-            width: "440px",
-            border: "none",
-            borderRadius: "20px",
-            margin: 0,
-            padding: "24px 0",
-          },
-        }}
-      >
-        {isLoading && <LoadingModal txHash={txHash} />}
-        {showErrorPopup && (
-          <ErrorModal
-            onTryAgain={handleTryAgain}
-            onClose={handleToggleModal}
-            txHash={txHash}
-          />
+  console.log(isLoading, "isLoading")
+
+  if (isMobile)
+    return (
+      <>
+        {!hideClaim && (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              width: "100%",
+              backgroundColor: COLORS.white,
+              borderRadius: "14px",
+              padding: "12px 16px",
+            }}
+          >
+            <Typography variant="title3" margin="12px 0 8px" textAlign="center">
+              {formatTokenWithCommas(withdrawals.totalClaimableAmount)}{" "}
+              {market.underlyingToken.symbol} to Claim
+            </Typography>
+
+            <Typography
+              variant="text2"
+              color={COLORS.santasGrey}
+              marginBottom="20px"
+              textAlign="center"
+            >
+              You have funds available for taking out
+            </Typography>
+
+            <Button
+              variant="contained"
+              size="large"
+              fullWidth
+              onClick={handleClaim}
+              disabled={!signer}
+              sx={{ padding: "10px 20px" }}
+            >
+              {t("lenderMarketDetails.transactions.claim.button")}
+            </Button>
+          </Box>
         )}
-        {showSuccessPopup && (
-          <SuccessModal onClose={handleToggleModal} txHash={txHash} />
-        )}
-      </Dialog>
-    </>
-  )
+
+        <Dialog
+          open={isLoading || showErrorPopup || showSuccessPopup}
+          onClose={handleToggleModal}
+          sx={{
+            backdropFilter: "blur(10px)",
+
+            "& .MuiDialog-paper": {
+              height: "353px",
+              width: "367px",
+              border: "none",
+              borderRadius: "20px",
+              padding: "24px 0",
+              margin: "auto 0 4px",
+            },
+          }}
+        >
+          {isLoading && <LoadingModal txHash={txHash} />}
+          {showErrorPopup && (
+            <ErrorModal
+              onTryAgain={handleTryAgain}
+              onClose={handleToggleModal}
+              txHash={txHash}
+            />
+          )}
+          {showSuccessPopup && (
+            <SuccessModal onClose={handleToggleModal} txHash={txHash} />
+          )}
+        </Dialog>
+      </>
+    )
+
+  if (!isMobile)
+    return (
+      <>
+        <Button
+          variant="contained"
+          size="small"
+          sx={{ width: "fit-content" }}
+          onClick={handleClaim}
+          disabled={!signer}
+        >
+          {t("lenderMarketDetails.transactions.claim.button")}
+        </Button>
+
+        <Dialog
+          open={isOpen}
+          onClose={handleToggleModal}
+          sx={{
+            "& .MuiDialog-paper": {
+              height: "404px",
+              width: "440px",
+              border: "none",
+              borderRadius: "20px",
+              margin: 0,
+              padding: "24px 0",
+            },
+          }}
+        >
+          {isLoading && <LoadingModal txHash={txHash} />}
+          {showErrorPopup && (
+            <ErrorModal
+              onTryAgain={handleTryAgain}
+              onClose={handleToggleModal}
+              txHash={txHash}
+            />
+          )}
+          {showSuccessPopup && (
+            <SuccessModal onClose={handleToggleModal} txHash={txHash} />
+          )}
+        </Dialog>
+      </>
+    )
+
+  return null
 }

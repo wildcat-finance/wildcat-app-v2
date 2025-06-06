@@ -52,14 +52,18 @@ const MobileMarketTransactionItem = ({
         gap: "4px",
       }}
     >
-      <Typography variant="title3" color={COLORS.white}>
+      <Typography
+        variant="title3"
+        sx={{ fontSize: "18px", lineHeight: "24px" }}
+        color={COLORS.white}
+      >
         {amount}
       </Typography>
       <Typography
         color={COLORS.white}
         variant="text4"
         sx={{
-          marginTop: "4px",
+          marginTop: "1px",
         }}
       >
         {asset}
@@ -92,6 +96,10 @@ export const MobileMarketActions = ({
         padding: "12px",
         backgroundColor: COLORS.bunker,
         borderRadius: "14px",
+
+        position: "fixed",
+        bottom: "4px",
+        width: "calc(100vw - 8px)",
       }}
     >
       <Box

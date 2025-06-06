@@ -26,7 +26,7 @@ export const BarCharts = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        gap: "28px",
+        gap: isMobile ? "16px" : "28px",
         backgroundColor: isMobile ? COLORS.white : "transparent",
         borderRadius: isMobile ? "14px" : 0,
       }}

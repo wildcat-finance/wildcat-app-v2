@@ -67,62 +67,66 @@ export default function Header() {
   const mobileLogo = side ? <LogoBlack /> : <LogoWhite />
 
   return (
-    <Box sx={contentContainer(theme)}>
-      <Link
-        onClick={handleResetTab}
-        href={homeUrl}
-        style={{ height: isMobile ? "32px" : "50px" }}
-      >
-        {!isMobile ? <Logo /> : mobileLogo}
-      </Link>
-      {!isMobile && (
-        <Box sx={NavContainer}>
-          {/* Lender on the left */}
-          <Link href={ROUTES.lender.root} style={{ textDecoration: "none" }}>
-            <Typography
-              variant="text2Highlighted"
-              sx={{ color: COLORS.white, cursor: "pointer" }}
-            >
-              {t("header.role.lender")}
-            </Typography>
-          </Link>
-          <Switch
-            sx={{
-              "& .MuiSwitch-switchBase": {
-                "&.Mui-checked": {
-                  "& + .MuiSwitch-track": {
-                    opacity: 0.3,
-                    backgroundColor: COLORS.white,
+    <>
+      {isMobile && <Box sx={{ width: "100%", height: "68px" }} />}
+
+      <Box sx={contentContainer(theme)}>
+        <Link
+          onClick={handleResetTab}
+          href={homeUrl}
+          style={{ height: isMobile ? "32px" : "50px" }}
+        >
+          {!isMobile ? <Logo /> : mobileLogo}
+        </Link>
+        {!isMobile && (
+          <Box sx={NavContainer}>
+            {/* Lender on the left */}
+            <Link href={ROUTES.lender.root} style={{ textDecoration: "none" }}>
+              <Typography
+                variant="text2Highlighted"
+                sx={{ color: COLORS.white, cursor: "pointer" }}
+              >
+                {t("header.role.lender")}
+              </Typography>
+            </Link>
+            <Switch
+              sx={{
+                "& .MuiSwitch-switchBase": {
+                  "&.Mui-checked": {
+                    "& + .MuiSwitch-track": {
+                      opacity: 0.3,
+                      backgroundColor: COLORS.white,
+                    },
                   },
                 },
-              },
-              "& .MuiSwitch-track": {
-                opacity: 0.3,
-                backgroundColor: COLORS.white,
-              },
-            }}
-            onClick={handleToggleSide}
-            checked={side === "borrower"}
-          />
-          <Link
-            onClick={handleResetTab}
-            href={ROUTES.borrower.root}
-            style={{ textDecoration: "none" }}
-          >
-            <Typography
-              variant="text2Highlighted"
-              sx={{ color: COLORS.white, cursor: "pointer" }}
+                "& .MuiSwitch-track": {
+                  opacity: 0.3,
+                  backgroundColor: COLORS.white,
+                },
+              }}
+              onClick={handleToggleSide}
+              checked={side === "borrower"}
+            />
+            <Link
+              onClick={handleResetTab}
+              href={ROUTES.borrower.root}
+              style={{ textDecoration: "none" }}
             >
-              {t("header.role.borrower")}
-            </Typography>
-          </Link>
-        </Box>
-      )}
-      {/* <NotificationButton /> */}
-      {!isMobile && <HeaderButton />}
-      {isMobile && (
-        <MobileMenu open={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
-      )}
-    </Box>
+              <Typography
+                variant="text2Highlighted"
+                sx={{ color: COLORS.white, cursor: "pointer" }}
+              >
+                {t("header.role.borrower")}
+              </Typography>
+            </Link>
+          </Box>
+        )}
+        {/* <NotificationButton /> */}
+        {!isMobile && <HeaderButton />}
+        {isMobile && (
+          <MobileMenu open={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
+        )}
+      </Box>
+    </>
   )
 }

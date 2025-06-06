@@ -9,14 +9,18 @@ export const contentContainer = (theme: Theme): SxProps<Theme> => ({
   justifyContent: "space-between",
   margin: "16px 16px 16px 8px",
   background: "transparent",
+
   [theme.breakpoints.down("sm")]: {
+    position: "fixed",
+    top: "4px",
+    width: "calc(100vw - 8px)",
+
     margin: "4px",
     background: COLORS.white,
     borderRadius: "14px",
     height: "56px",
     paddingRight: "12px",
-    position: "relative",
-    zIndex: 9999,
+    zIndex: 10,
   },
 })
 

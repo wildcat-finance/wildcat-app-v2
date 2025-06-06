@@ -151,7 +151,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
         width: "100%",
         backgroundColor: isMobile ? COLORS.white : "transparent",
         borderRadius: isMobile ? "14px" : 0,
-        padding: isMobile ? "12px 16px 12px" : "0px",
+        padding: isMobile ? "12px 16px 24px" : "0px",
       }}
     >
       <Typography variant="title3" sx={isMobile ? { marginTop: "12px" } : {}}>

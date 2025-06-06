@@ -48,7 +48,7 @@ export const WithdrawalsBarChart = ({
         sx={{
           backgroundColor: isMobile ? COLORS.white : "transparent",
           borderRadius: isMobile ? "14px" : 0,
-          padding: isMobile ? "16px" : 0,
+          padding: isMobile ? "12px 16px" : 0,
           overflow: isMobile ? "hidden" : "visible",
         }}
       >
@@ -56,14 +56,10 @@ export const WithdrawalsBarChart = ({
           sx={{
             display: "flex",
             flexDirection: "column",
-            gap: isMobile ? "16px" : 0,
           }}
         >
           <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-            <Typography
-              variant="title3"
-              sx={{ marginTop: isMobile ? "12px" : 0 }}
-            >
+            <Typography variant="title3">
               {t("lenderMarketDetails.barchart.withdrawals.title")}
             </Typography>
 
@@ -74,16 +70,10 @@ export const WithdrawalsBarChart = ({
                 gap: "4px",
               }}
             >
-              <Typography
-                variant="title3"
-                sx={{ marginTop: isMobile ? "12px" : 0 }}
-              >
+              <Typography variant="title3">
                 {formatTokenWithCommas(total)}
               </Typography>
-              <Typography
-                variant="text4"
-                sx={{ marginTop: isMobile ? "12px" : "4px" }}
-              >
+              <Typography variant="text4">
                 {marketAccount.market.underlyingToken.symbol}
               </Typography>
             </Box>
@@ -106,18 +96,18 @@ export const WithdrawalsBarChart = ({
               sx={{
                 display: "flex",
                 gap: isMobile ? "0px" : "28px",
-                marginTop: "24px",
+                marginTop: "16px",
                 flexDirection: isMobile ? "column" : "row",
               }}
             >
-              {legendItems.map((chartItem) => (
+              {legendItems.map((chartItem, index) => (
                 <LenderLegendItem
                   key={chartItem.label}
                   color={chartItem.color}
                   label={chartItem.label}
                   value={chartItem.value}
                   asset={chartItem.asset}
-                  withDivider={isMobile}
+                  withDivider={isMobile && index !== legendItems.length - 1}
                 />
               ))}
             </Box>

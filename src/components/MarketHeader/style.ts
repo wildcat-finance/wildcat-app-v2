@@ -1,3 +1,7 @@
+import { SxProps, Theme } from "@mui/material"
+
+import { pageCalcHeights } from "@/utils/constants"
+
 export const MarketHeaderUpperContainer = {
   display: "flex",
   alignItems: "center",
@@ -16,7 +20,14 @@ export const MarketHeaderTitleContainer = {
   columnGap: "8px",
 }
 
-export const MarketHeaderStatusContainer = {
+export const MarketHeaderStatusContainer = (theme: Theme): SxProps<Theme> => ({
   display: "flex",
   columnGap: "12px",
-}
+
+  [theme.breakpoints.down("sm")]: {
+    padding: "12px 0",
+    columnGap: "0px",
+    justifyContent: "space-between",
+    marginBottom: "12px",
+  },
+})

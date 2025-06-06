@@ -18,6 +18,7 @@ import { useAccount } from "wagmi"
 import { BorrowerProfileDetails } from "@/app/[locale]/borrower/profile/components/BorrowerProfileDetails"
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
 import { MobileMarketActions } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMarketActions"
+import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
@@ -151,7 +152,7 @@ export default function LenderMarketDetails({
         </Box>
       </Box>
     )
-  /*
+
   if (isMobile && isMobileDepositOpen)
     return (
       <DepositModal
@@ -172,15 +173,46 @@ export default function LenderMarketDetails({
 
   if (isMobile)
     return (
-      <MobileMarketActions
-        marketAccount={marketAccount}
-        isMobileDepositOpen={isMobileDepositOpen}
-        isMobileWithdrawalOpen={isMobileWithdrawalOpen}
-        setIsMobileDepositOpen={setIsMobileDepositOpen}
-        setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
-      />
+      <Box>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "4px",
+            paddingBottom: "4px",
+          }}
+        >
+          <MarketHeader marketAccount={marketAccount} />
+
+          <ClaimModal market={market} withdrawals={withdrawals} />
+
+          <BarCharts
+            marketAccount={marketAccount}
+            withdrawals={withdrawals}
+            isLender={authorizedInMarket}
+          />
+
+          <MarketParameters market={market} />
+
+          <WithdrawalRequests withdrawals={withdrawals} />
+
+          {authorizedInMarket && (
+            <Box sx={{ width: "100%", height: "126px" }} />
+          )}
+
+          {authorizedInMarket && (
+            <MobileMarketActions
+              marketAccount={marketAccount}
+              isMobileDepositOpen={isMobileDepositOpen}
+              isMobileWithdrawalOpen={isMobileWithdrawalOpen}
+              setIsMobileDepositOpen={setIsMobileDepositOpen}
+              setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
+            />
+          )}
+        </Box>
+      </Box>
     )
-  */
+
   return (
     <Box>
       <Box>
