@@ -31,7 +31,6 @@ import {
   MarketWithdrawalRequestsContainer,
   MarketWithdrawalRequetstCell,
 } from "./style"
-import { OutstandingRowMobile } from "../../../MobilePage/OutstandingRowMobile"
 
 export const MarketWithdrawalRequests = ({
   marketAccount,
@@ -164,18 +163,11 @@ export const MarketWithdrawalRequests = ({
         totalAmount={data.claimableWithdrawalsAmount}
       />
 
-      {isMobile ? (
-        <OutstandingRowMobile
-          withdrawalBatches={data?.expiredPendingWithdrawals ?? []}
-          totalAmount={data.expiredWithdrawalsTotalOwed}
-        />
-      ) : (
-        <OutstandingTable
-          columns={columns}
-          withdrawalBatches={data?.expiredPendingWithdrawals ?? []}
-          totalAmount={data.expiredWithdrawalsTotalOwed}
-        />
-      )}
+      <OutstandingTable
+        columns={columns}
+        withdrawalBatches={data?.expiredPendingWithdrawals ?? []}
+        totalAmount={data.expiredWithdrawalsTotalOwed}
+      />
     </Box>
   )
 }

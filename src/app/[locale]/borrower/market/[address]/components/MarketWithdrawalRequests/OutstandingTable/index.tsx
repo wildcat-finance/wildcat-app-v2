@@ -7,6 +7,7 @@ import { TokenAmount, WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
+import { WithdrawalsMobileTableItem } from "@/components/Mobile/WithdrawalsMobileTableItem"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 import {
@@ -47,7 +48,6 @@ export const OutstandingTable = ({
           ),
         })),
   )
-
   return (
     <DetailsAccordion
       isOpen={isOutstandingOpen}
@@ -58,31 +58,52 @@ export const OutstandingTable = ({
         borderBottom: isOutstandingOpen ? "none" : `1px solid`,
         borderColor: COLORS.athensGrey,
       }}
-      chipValue={formatTokenWithCommas(totalAmount, {
-        withSymbol: true,
-      })}
+      chipValue={formatTokenWithCommas(totalAmount, { withSymbol: true })}
       chipColor={COLORS.whiteSmoke}
       chipValueColor={COLORS.blackRock}
     >
-      {outstandingRows.length ? (
-        <DataGrid
-          sx={DataGridCells}
-          rows={outstandingRows}
-          columns={columns}
-          columnHeaderHeight={40}
-        />
-      ) : (
-        <Box
-          display="flex"
-          flexDirection="column"
-          padding={isMobile ? "0 4px" : "0 16px"}
-          marginBottom={isMobile ? "0px" : "10px"}
-        >
-          <Typography variant="text3" color={COLORS.santasGrey}>
-            {t("marketWithdrawalRequests.noOutstanding")}
-          </Typography>
-        </Box>
-      )}
+      {(() => {
+        if (!outstandingRows.length) {
+          return (
+            <Box
+              display="flex"
+              flexDirection="column"
+              padding={isMobile ? "0 4px" : "0 16px"}
+              marginBottom={isMobile ? "0px" : "10px"}
+            >
+              <Typography variant="text3" color={COLORS.santasGrey}>
+                {t("marketWithdrawalRequests.noOutstanding")}
+              </Typography>
+            </Box>
+          )
+        }
+        if (isMobile) {
+          return (
+            <Box>
+              {outstandingRows.map(
+                ({ id, lender, transactionId, amount, dateSubmitted }) => (
+                  <WithdrawalsMobileTableItem
+                    key={id}
+                    lender={lender}
+                    transactionId={transactionId}
+                    amount={amount}
+                    dateSubmitted={dateSubmitted}
+                  />
+                ),
+              )}
+            </Box>
+          )
+        }
+        return (
+          <DataGrid
+            sx={DataGridCells}
+            rows={outstandingRows}
+            columns={columns}
+            columnHeaderHeight={40}
+            autoHeight
+          />
+        )
+      })()}
     </DetailsAccordion>
   )
 }

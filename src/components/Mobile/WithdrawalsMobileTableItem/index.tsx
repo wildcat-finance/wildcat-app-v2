@@ -1,25 +1,26 @@
 import * as React from "react"
 
 import { Box, Typography, Divider, SvgIcon, IconButton } from "@mui/material"
-import { GridColDef } from "@mui/x-data-grid"
-import { TokenAmount, WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
 
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { ButtonStyle } from "@/components/LinkComponent/style"
+import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
-import { timestampToDateFormatted, trimAddress } from "@/utils/formatters"
+import { trimAddress } from "@/utils/formatters"
 
 type OutstandingRowProps = {
-  address: string
+  lender: string
+  transactionId: string
   amount: string
-  timestamp: number
+  dateSubmitted: string
 }
 
-export const OutstandingRow = ({
-  address,
+export const WithdrawalsMobileTableItem = ({
+  lender,
+  transactionId,
   amount,
-  timestamp,
+  dateSubmitted,
 }: OutstandingRowProps) => (
   <Box>
     <Box
@@ -29,9 +30,9 @@ export const OutstandingRow = ({
       sx={{ mx: "4px" }}
     >
       <Box display="flex" flexDirection="column" gap="4px">
-        <Box display="flex" alignItems="center" gap={1}>
+        <Box display="flex" alignItems="center" gap="4px">
           <Typography variant="text3" sx={{ color: COLORS.blackRock }}>
-            Wildcat
+            {lender ? trimAddress(lender) : ""}
           </Typography>
           <IconButton disableRipple sx={ButtonStyle}>
             <SvgIcon fontSize="medium">
@@ -41,13 +42,12 @@ export const OutstandingRow = ({
         </Box>
         <Box display="flex" alignItems="center">
           <Typography variant="text4" fontWeight="500">
-            {trimAddress(address)}
+            {trimAddress(transactionId)}
           </Typography>
           <LinkGroup
             type="withCopy"
-            copyValue={address}
-            linkValue={`https://etherscan.io/address/${address}`}
-            groupSX={{ ml: 1 }}
+            copyValue={transactionId}
+            linkValue={`${EtherscanBaseUrl}/address/${transactionId}`}
           />
         </Box>
       </Box>
@@ -56,7 +56,7 @@ export const OutstandingRow = ({
           {amount}
         </Typography>
         <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          {timestampToDateFormatted(timestamp)}
+          {dateSubmitted}
         </Typography>
       </Box>
     </Box>
