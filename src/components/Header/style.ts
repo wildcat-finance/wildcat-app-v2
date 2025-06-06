@@ -12,7 +12,7 @@ export const contentContainer = (theme: Theme): SxProps<Theme> => ({
 
   [theme.breakpoints.down("sm")]: {
     position: "fixed",
-    top: "4px",
+    top: "0px",
     width: "calc(100vw - 8px)",
 
     margin: "4px",
@@ -20,7 +20,7 @@ export const contentContainer = (theme: Theme): SxProps<Theme> => ({
     borderRadius: "14px",
     height: "56px",
     paddingRight: "12px",
-    zIndex: 10,
+    zIndex: 5,
   },
 })
 

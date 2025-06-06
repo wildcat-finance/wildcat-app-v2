@@ -91,8 +91,10 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
         sx={{
           height: openConnect ? "0px" : "calc(100vh - 64px)",
           marginTop: "auto",
+          zIndex: 4,
 
           "& .MuiPaper-root.MuiDialog-paper": {
+            border: "none",
             margin: "0 4px auto",
             width: "100%",
             padding: "8px",
@@ -128,7 +130,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
             />
 
             <Typography variant="text3">
-              {trimAddress(address as string, 30)}
+              {trimAddress(address as string, 20)}
             </Typography>
 
             <Box marginLeft="auto" paddingRight="8px">
@@ -173,7 +175,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
             color="primary"
             size="large"
             onClick={handleClickDisconnect}
-            sx={{ marginTop: "6px" }}
+            sx={{ marginTop: "6px", borderRadius: "10px" }}
           >
             Disconnect
           </Button>
@@ -182,6 +184,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
             size="large"
             onClick={() => setOpenConnect(true)}
             sx={{
+              borderRadius: "10px",
               marginTop: "6px",
               backgroundColor: COLORS.ultramarineBlue,
               color: COLORS.white,

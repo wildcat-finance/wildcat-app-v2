@@ -18,6 +18,7 @@ import { useAccount } from "wagmi"
 import { BorrowerProfileDetails } from "@/app/[locale]/borrower/profile/components/BorrowerProfileDetails"
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
 import { MobileMarketActions } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMarketActions"
+import { MobileMlaAlert } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaAlert"
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
@@ -196,9 +197,7 @@ export default function LenderMarketDetails({
 
           <WithdrawalRequests withdrawals={withdrawals} />
 
-          {authorizedInMarket && (
-            <Box sx={{ width: "100%", height: "126px" }} />
-          )}
+          <MobileMlaAlert marketAccount={marketAccount} />
 
           {authorizedInMarket && (
             <MobileMarketActions
