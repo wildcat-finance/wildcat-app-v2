@@ -173,6 +173,7 @@ export const ClaimableTable = ({
   const [isClaimableOpen, setIsClaimableOpen] = useState(false)
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+
   const getClaimableRequestAmounts = (status: LenderWithdrawalStatus) => {
     const claimableAmount = status.availableWithdrawalAmount
     return status.requests.flatMap((request) =>
@@ -199,6 +200,63 @@ export const ClaimableTable = ({
     })),
   )
 
+  const renderContent = () => {
+    if (!claimableRows.length) {
+      return (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            padding: isMobile ? "0px 4px" : "0px 16px",
+            marginBottom: isMobile ? "0px" : "10px",
+          }}
+        >
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            No claimable withdrawals.
+          </Typography>
+        </Box>
+      )
+    }
+
+    if (isMobile) {
+      const mobileRows = claimableRows.flatMap(
+        ({ id, lender, transactionId, amount, dateSubmitted }) =>
+          transactionId.map((txId, idx) => ({
+            key: `${id.toString()}_${txId}`,
+            lender,
+            transactionId: txId,
+            amount: amount[idx],
+            dateSubmitted: dateSubmitted[idx],
+          })),
+      )
+
+      return (
+        <Box>
+          {mobileRows.map((row, index) => (
+            <WithdrawalsMobileTableItem
+              key={row.key}
+              lender={row.lender}
+              transactionId={row.transactionId}
+              amount={row.amount}
+              dateSubmitted={row.dateSubmitted}
+              isLast={index === mobileRows.length - 1}
+            />
+          ))}
+        </Box>
+      )
+    }
+
+    return (
+      <DataGrid
+        sx={DataGridCells}
+        rows={claimableRows}
+        columns={claimableColumns}
+        columnHeaderHeight={40}
+        getRowHeight={() => "auto"}
+      />
+    )
+  }
+
   return (
     <DetailsAccordion
       isOpen={isClaimableOpen}
@@ -215,53 +273,7 @@ export const ClaimableTable = ({
       chipColor={COLORS.whiteSmoke}
       chipValueColor={COLORS.blackRock}
     >
-      {(() => {
-        if (!claimableRows.length) {
-          return (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                padding: isMobile ? "0px 4px" : "0px 16px",
-                marginBottom: isMobile ? "0px" : "10px",
-              }}
-            >
-              <Typography variant="text3" color={COLORS.santasGrey}>
-                No claimable withdrawals.
-              </Typography>
-            </Box>
-          )
-        }
-
-        if (isMobile) {
-          return (
-            <Box>
-              {claimableRows.map(
-                ({ id, lender, transactionId, amount, dateSubmitted }) =>
-                  transactionId.map((txId, idx) => (
-                    <WithdrawalsMobileTableItem
-                      key={`${id.toString()}_${txId}`}
-                      lender={lender}
-                      transactionId={txId}
-                      amount={amount[idx]}
-                      dateSubmitted={dateSubmitted[idx]}
-                    />
-                  )),
-              )}
-            </Box>
-          )
-        }
-
-        return (
-          <DataGrid
-            sx={DataGridCells}
-            rows={claimableRows}
-            columns={claimableColumns}
-            columnHeaderHeight={40}
-            getRowHeight={() => "auto"}
-          />
-        )
-      })()}
+      {renderContent()}
     </DetailsAccordion>
   )
 }

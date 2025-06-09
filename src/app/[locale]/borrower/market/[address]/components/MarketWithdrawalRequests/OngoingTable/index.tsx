@@ -31,6 +31,7 @@ export const OngoingTable = ({
   const [isOngoingOpen, setIsOngoingOpen] = useState(false)
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+
   const ongoingRows: WithdrawalTxRow[] = withdrawalBatches.flatMap((batch) =>
     batch.requests.map((withdrawal) => ({
       id: withdrawal.id,
@@ -45,6 +46,53 @@ export const OngoingTable = ({
       ),
     })),
   )
+
+  const renderContent = () => {
+    if (!ongoingRows.length) {
+      return (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            padding: isMobile ? "0px 4px" : "0px 16px",
+            marginBottom: isMobile ? "0px" : "10px",
+          }}
+        >
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            {t("marketWithdrawalRequests.noOngoing")}
+          </Typography>
+        </Box>
+      )
+    }
+
+    if (isMobile) {
+      return (
+        <Box>
+          {ongoingRows.map(
+            ({ id, lender, transactionId, amount, dateSubmitted }, index) => (
+              <WithdrawalsMobileTableItem
+                key={id}
+                lender={lender}
+                transactionId={transactionId}
+                amount={amount}
+                dateSubmitted={dateSubmitted}
+                isLast={index === ongoingRows.length - 1}
+              />
+            ),
+          )}
+        </Box>
+      )
+    }
+
+    return (
+      <DataGrid
+        sx={DataGridCells}
+        rows={ongoingRows}
+        columns={columns}
+        columnHeaderHeight={40}
+      />
+    )
+  }
 
   return (
     <DetailsAccordion
@@ -62,51 +110,7 @@ export const OngoingTable = ({
       chipColor={COLORS.whiteSmoke}
       chipValueColor={COLORS.blackRock}
     >
-      {(() => {
-        if (!ongoingRows.length) {
-          return (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                padding: isMobile ? "0px 4px" : "0px 16px",
-                marginBottom: isMobile ? "0px" : "10px",
-              }}
-            >
-              <Typography variant="text3" color={COLORS.santasGrey}>
-                {t("marketWithdrawalRequests.noOngoing")}
-              </Typography>
-            </Box>
-          )
-        }
-
-        if (isMobile) {
-          return (
-            <Box>
-              {ongoingRows.map(
-                ({ id, lender, transactionId, amount, dateSubmitted }) => (
-                  <WithdrawalsMobileTableItem
-                    key={id}
-                    lender={lender}
-                    transactionId={transactionId}
-                    amount={amount}
-                    dateSubmitted={dateSubmitted}
-                  />
-                ),
-              )}
-            </Box>
-          )
-        }
-
-        return (
-          <DataGrid
-            sx={DataGridCells}
-            rows={ongoingRows}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
-        )
-      })()}
+      {renderContent()}
     </DetailsAccordion>
   )
 }

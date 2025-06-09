@@ -23,6 +23,7 @@ export const LinkGroup = ({
   copyValue,
   linkValue,
   groupSX,
+  iconSize,
 }: LinkGroupProps) => {
   const { t } = useTranslation()
   const [state, copyToClipboard] = useCopyToClipboard()
@@ -37,7 +38,7 @@ export const LinkGroup = ({
   const handleCopy = (value: string) => {
     copyToClipboard(value)
   }
-
+  const iconSx = { fontSize: iconSize ?? "16px" }
   switch (type) {
     case "withCopy": {
       return (
@@ -65,7 +66,7 @@ export const LinkGroup = ({
                   handleTooltipOpen()
                 }}
               >
-                <SvgIcon fontSize="medium">
+                <SvgIcon sx={iconSx}>
                   <Copy />
                 </SvgIcon>
               </IconButton>
@@ -79,7 +80,7 @@ export const LinkGroup = ({
               style={{ display: "flex", justifyContent: "center" }}
             >
               <IconButton disableRipple sx={ButtonStyle}>
-                <SvgIcon fontSize="medium">
+                <SvgIcon sx={iconSx}>
                   <LinkIcon />
                 </SvgIcon>
               </IconButton>

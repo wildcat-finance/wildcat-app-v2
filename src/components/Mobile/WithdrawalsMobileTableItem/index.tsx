@@ -14,6 +14,7 @@ type OutstandingRowProps = {
   transactionId: string
   amount: string
   dateSubmitted: string
+  isLast?: boolean
 }
 
 export const WithdrawalsMobileTableItem = ({
@@ -21,17 +22,29 @@ export const WithdrawalsMobileTableItem = ({
   transactionId,
   amount,
   dateSubmitted,
+  isLast = false,
 }: OutstandingRowProps) => (
   <Box>
     <Box
       display="flex"
       justifyContent="space-between"
       alignItems="center"
-      sx={{ mx: "4px" }}
+      sx={{
+        paddingTop: "12px",
+        paddingRight: "10px",
+        paddingBottom: "12px",
+        marginLeft: "4px",
+        marginRight: "4px",
+      }}
     >
-      <Box display="flex" flexDirection="column" gap="4px">
+      <Box display="flex" flexDirection="column">
         <Box display="flex" alignItems="center" gap="4px">
-          <Typography variant="text3" sx={{ color: COLORS.blackRock }}>
+          <Typography
+            variant="text3"
+            sx={{
+              color: COLORS.blackRock,
+            }}
+          >
             {lender ? trimAddress(lender) : ""}
           </Typography>
           <IconButton disableRipple sx={ButtonStyle}>
@@ -40,14 +53,13 @@ export const WithdrawalsMobileTableItem = ({
             </SvgIcon>
           </IconButton>
         </Box>
-        <Box display="flex" alignItems="center">
-          <Typography variant="text4" fontWeight="500">
-            {trimAddress(transactionId)}
-          </Typography>
+        <Box display="flex" alignItems="center" gap="4px">
+          <Typography variant="text4">{trimAddress(transactionId)}</Typography>
           <LinkGroup
             type="withCopy"
             copyValue={transactionId}
             linkValue={`${EtherscanBaseUrl}/address/${transactionId}`}
+            iconSize="12px"
           />
         </Box>
       </Box>
@@ -60,6 +72,6 @@ export const WithdrawalsMobileTableItem = ({
         </Typography>
       </Box>
     </Box>
-    <Divider sx={{ my: 1 }} />
+    {!isLast && <Divider sx={{ mb: 1 }} />}
   </Box>
 )

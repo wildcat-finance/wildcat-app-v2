@@ -57,16 +57,19 @@ export const OngoingTable = ({
 
     if (isMobile) {
       return (
-        <Box display="flex" flexDirection="column" gap="8px">
-          {ongoingRows.map((row) => (
-            <WithdrawalsMobileTableItem
-              key={row.id}
-              lender={row.lender}
-              transactionId={row.transactionId}
-              dateSubmitted={row.dateSubmitted}
-              amount={row.amount}
-            />
-          ))}
+        <Box>
+          {ongoingRows.map(
+            ({ id, lender, transactionId, amount, dateSubmitted }, index) => (
+              <WithdrawalsMobileTableItem
+                key={id}
+                lender={lender}
+                transactionId={transactionId}
+                dateSubmitted={dateSubmitted}
+                amount={amount}
+                isLast={index === ongoingRows.length - 1}
+              />
+            ),
+          )}
         </Box>
       )
     }

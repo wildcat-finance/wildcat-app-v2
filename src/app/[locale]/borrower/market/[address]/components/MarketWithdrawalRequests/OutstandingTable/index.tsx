@@ -33,6 +33,7 @@ export const OutstandingTable = ({
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [isOutstandingOpen, setIsOutstandingOpen] = useState(false)
+
   const outstandingRows: WithdrawalTxRow[] = withdrawalBatches.flatMap(
     (batch) =>
       batch.requests
@@ -48,6 +49,53 @@ export const OutstandingTable = ({
           ),
         })),
   )
+
+  const renderContent = () => {
+    if (!outstandingRows.length) {
+      return (
+        <Box
+          display="flex"
+          flexDirection="column"
+          padding={isMobile ? "0 4px" : "0 16px"}
+          marginBottom={isMobile ? "0px" : "10px"}
+        >
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            {t("marketWithdrawalRequests.noOutstanding")}
+          </Typography>
+        </Box>
+      )
+    }
+
+    if (isMobile) {
+      return (
+        <Box>
+          {outstandingRows.map(
+            ({ id, lender, transactionId, amount, dateSubmitted }, index) => (
+              <WithdrawalsMobileTableItem
+                key={id}
+                lender={lender}
+                transactionId={transactionId}
+                amount={amount}
+                dateSubmitted={dateSubmitted}
+                isLast={index === outstandingRows.length - 1}
+              />
+            ),
+          )}
+        </Box>
+      )
+    }
+
+    return (
+      <DataGrid
+        sx={DataGridCells}
+        rows={outstandingRows}
+        columns={columns}
+        columnHeaderHeight={40}
+        autoHeight
+      />
+    )
+  }
+
   return (
     <DetailsAccordion
       isOpen={isOutstandingOpen}
@@ -55,55 +103,14 @@ export const OutstandingTable = ({
       summaryText="Outstanding From Past Cycles"
       summarySx={{
         borderRadius: "0px",
-        borderBottom: isOutstandingOpen ? "none" : `1px solid`,
+        borderBottom: isOutstandingOpen || isMobile ? "none" : `1px solid`,
         borderColor: COLORS.athensGrey,
       }}
       chipValue={formatTokenWithCommas(totalAmount, { withSymbol: true })}
       chipColor={COLORS.whiteSmoke}
       chipValueColor={COLORS.blackRock}
     >
-      {(() => {
-        if (!outstandingRows.length) {
-          return (
-            <Box
-              display="flex"
-              flexDirection="column"
-              padding={isMobile ? "0 4px" : "0 16px"}
-              marginBottom={isMobile ? "0px" : "10px"}
-            >
-              <Typography variant="text3" color={COLORS.santasGrey}>
-                {t("marketWithdrawalRequests.noOutstanding")}
-              </Typography>
-            </Box>
-          )
-        }
-        if (isMobile) {
-          return (
-            <Box>
-              {outstandingRows.map(
-                ({ id, lender, transactionId, amount, dateSubmitted }) => (
-                  <WithdrawalsMobileTableItem
-                    key={id}
-                    lender={lender}
-                    transactionId={transactionId}
-                    amount={amount}
-                    dateSubmitted={dateSubmitted}
-                  />
-                ),
-              )}
-            </Box>
-          )
-        }
-        return (
-          <DataGrid
-            sx={DataGridCells}
-            rows={outstandingRows}
-            columns={columns}
-            columnHeaderHeight={40}
-            autoHeight
-          />
-        )
-      })()}
+      {renderContent()}
     </DetailsAccordion>
   )
 }
