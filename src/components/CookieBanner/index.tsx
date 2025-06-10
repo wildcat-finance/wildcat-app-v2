@@ -31,15 +31,15 @@ export default function CookieBanner() {
     s.parentNode?.insertBefore(g, s)
   }
 
-  useEffect(() => {
-    const consent = Cookies.get("tracking_consent")
-
-    if (!consent) {
-      setIsVisible(true)
-    } else if (consent === "accepted") {
-      loadMatomo()
-    }
-  }, [])
+  // useEffect(() => {
+  //   const consent = Cookies.get("tracking_consent")
+  //
+  //   if (!consent) {
+  //     setIsVisible(true)
+  //   } else if (consent === "accepted") {
+  //     loadMatomo()
+  //   }
+  // }, [])
 
   const handleAccept = () => {
     Cookies.set("tracking_consent", "accepted", { expires: 365 })

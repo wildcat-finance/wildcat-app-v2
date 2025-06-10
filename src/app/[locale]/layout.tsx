@@ -78,7 +78,7 @@ export default async function RootLayout({
                         <Box sx={ContentContainer}>
                           <Sidebar />
                           <Box width="calc(100vw - 267px)">{children}</Box>
-                          <CookieBanner />
+                          {/* <CookieBanner /> */}
                         </Box>
                         {/* <Footer /> */}
                       </Box>
