@@ -13,6 +13,7 @@ export const LegendItem = ({
   chartItem,
   type = "default",
   children,
+  withDivider = false,
 }: LegendItemProps) => {
   const [expanded, setExpanded] = useState(true)
 
@@ -77,13 +78,14 @@ export const LegendItem = ({
         <Box
           sx={{
             width: "100%",
-            gap: "16px",
           }}
         >
           <Box
             className="barchart__legend-header"
             sx={{
-              borderBottom: `1px solid ${COLORS.athensGrey}`,
+              borderBottom: withDivider
+                ? `1px solid ${COLORS.athensGrey}`
+                : "none",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",

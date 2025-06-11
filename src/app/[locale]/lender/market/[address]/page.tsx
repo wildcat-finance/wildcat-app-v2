@@ -184,20 +184,26 @@ export default function LenderMarketDetails({
           }}
         >
           <MarketHeader marketAccount={marketAccount} />
+          <Box id="depositWithdraw">
+            <ClaimModal market={market} withdrawals={withdrawals} />
+            <BarCharts
+              marketAccount={marketAccount}
+              withdrawals={withdrawals}
+              isLender={authorizedInMarket}
+            />
+          </Box>
 
-          <ClaimModal market={market} withdrawals={withdrawals} />
+          <Box id="status">
+            <MarketParameters market={market} />
+          </Box>
 
-          <BarCharts
-            marketAccount={marketAccount}
-            withdrawals={withdrawals}
-            isLender={authorizedInMarket}
-          />
+          <Box id="requests">
+            <WithdrawalRequests withdrawals={withdrawals} />
+          </Box>
 
-          <MarketParameters market={market} />
-
-          <WithdrawalRequests withdrawals={withdrawals} />
-
-          <MobileMlaAlert marketAccount={marketAccount} />
+          <Box id="mla">
+            <MobileMlaAlert marketAccount={marketAccount} />
+          </Box>
 
           {authorizedInMarket && (
             <MobileMarketActions

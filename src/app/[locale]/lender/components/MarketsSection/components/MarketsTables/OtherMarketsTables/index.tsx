@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Typography, useMediaQuery, Tooltip } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import {
   DepositStatus,
@@ -22,12 +22,15 @@ import {
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
+import { InfoCard } from "@/components/Mobile/Card/InfoCard"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { TablePagination } from "@/components/TablePagination"
+import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { COLORS } from "@/theme/colors"
+import { theme } from "@/theme/theme"
 import {
   statusComparator,
   tokenAmountComparator,
@@ -72,6 +75,7 @@ export const OtherMarketsTables = ({
 }) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
 
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
@@ -423,27 +427,73 @@ export const OtherMarketsTables = ({
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
         >
-          <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
-            }}
-            rows={selfOnboard}
-            columns={columns}
-            columnHeaderHeight={40}
-            paginationModel={selfOnboardPaginationModel}
-            onPaginationModelChange={setSelfOnboardPaginationModel}
-            slots={{
-              pagination: TablePagination,
-            }}
-            hideFooter={false}
-          />
+          {isMobile ? (
+            <Box display="flex" flexDirection="column">
+              {selfOnboard.map((row) => (
+                <InfoCard
+                  key={row.id}
+                  status={<MarketStatusChip status={row.status} />}
+                  apr={`${formatBps(row.apr)}%`}
+                  aprIcon={<TooltipButton value=" APR" />}
+                  term={<MarketTypeChip {...row.term} />}
+                  name={row.name}
+                  capacityLeft={
+                    row.capacityLeft && row.capacityLeft.gt(0)
+                      ? formatTokenWithCommas(row.capacityLeft, {
+                          withSymbol: false,
+                          fractionDigits: 2,
+                        })
+                      : "0"
+                  }
+                  asset={row.asset}
+                  rightText={row.borrower || ""}
+                  totalDebt={
+                    row.debt
+                      ? formatTokenWithCommas(row.debt, {
+                          withSymbol: false,
+                          fractionDigits: 2,
+                        })
+                      : "0"
+                  }
+                  leftButton={
+                    <Button variant="outlined" size="small" color="secondary">
+                      <Typography variant="text4" color={COLORS.blackRock}>
+                        More
+                      </Typography>
+                    </Button>
+                  }
+                  rightButton={
+                    <Button variant="contained" size="small" color="primary">
+                      <Typography variant="text4" color={COLORS.white}>
+                        Onboard
+                      </Typography>
+                    </Button>
+                  }
+                />
+              ))}
+            </Box>
+          ) : (
+            <DataGrid
+              sx={{
+                overflow: "auto",
+                maxWidth: "calc(100vw - 267px)",
+                padding: "0 16px",
+                "& .MuiDataGrid-columnHeader": { padding: 0 },
+                "& .MuiDataGrid-cell": { padding: "0px" },
+              }}
+              rows={selfOnboard}
+              columns={columns}
+              columnHeaderHeight={40}
+              paginationModel={selfOnboardPaginationModel}
+              onPaginationModelChange={setSelfOnboardPaginationModel}
+              slots={{
+                pagination: TablePagination,
+              }}
+              hideFooter={false}
+            />
+          )}
         </MarketsTableAccordion>
       </Box>
-
       <Box id="manual" ref={manualRef}>
         <MarketsTableAccordion
           label={t("dashboard.markets.tables.other.manual")}
@@ -455,24 +505,71 @@ export const OtherMarketsTables = ({
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
         >
-          <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
-            }}
-            rows={manual}
-            columns={columns}
-            columnHeaderHeight={40}
-            paginationModel={manualPaginationModel}
-            onPaginationModelChange={setManualPaginationModel}
-            slots={{
-              pagination: TablePagination,
-            }}
-            hideFooter={false}
-          />
+          {isMobile ? (
+            <Box display="flex" flexDirection="column">
+              {manual.map((row) => (
+                <InfoCard
+                  key={row.id}
+                  status={<MarketStatusChip status={row.status} />}
+                  apr={<>{formatBps(row.apr)}%</>}
+                  aprIcon={<TooltipButton value="APR" size="small" />}
+                  term={<MarketTypeChip {...row.term} />}
+                  name={row.name}
+                  capacityLeft={
+                    row.capacityLeft && row.capacityLeft.gt(0)
+                      ? formatTokenWithCommas(row.capacityLeft, {
+                          withSymbol: false,
+                          fractionDigits: 2,
+                        })
+                      : "0"
+                  }
+                  asset={row.asset}
+                  rightText={row.borrower || ""}
+                  totalDebt={
+                    row.debt
+                      ? formatTokenWithCommas(row.debt, {
+                          withSymbol: false,
+                          fractionDigits: 2,
+                        })
+                      : "0"
+                  }
+                  leftButton={
+                    <Button variant="outlined" size="small" color="secondary">
+                      <Typography variant="text4" color={COLORS.blackRock}>
+                        More
+                      </Typography>
+                    </Button>
+                  }
+                  rightButton={
+                    <Button variant="contained" size="small" color="primary">
+                      <Typography variant="text4" color={COLORS.white}>
+                        Onboard
+                      </Typography>
+                    </Button>
+                  }
+                />
+              ))}
+            </Box>
+          ) : (
+            <DataGrid
+              sx={{
+                overflow: "auto",
+                maxWidth: "calc(100vw - 267px)",
+                padding: "0 16px",
+                "& .MuiDataGrid-columnHeader": { padding: 0 },
+                "& .MuiDataGrid-cell": { padding: "0px" },
+              }}
+              rows={manual}
+              columns={columns}
+              columnHeaderHeight={40}
+              paginationModel={manualPaginationModel}
+              onPaginationModelChange={setManualPaginationModel}
+              slots={{
+                pagination: TablePagination,
+              }}
+              hideFooter={false}
+            />
+          )}
         </MarketsTableAccordion>
       </Box>
     </Box>

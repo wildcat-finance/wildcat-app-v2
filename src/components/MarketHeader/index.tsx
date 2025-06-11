@@ -71,7 +71,6 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
   }, [data, market.withdrawalBatchDuration, cycleStart])
 
   const marketStatus = getMarketStatusChip(market)
-
   if (isMobile)
     return (
       <Box
@@ -124,30 +123,35 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
             variant="text"
             size="small"
             sx={{ padding: "6px 8px", flexShrink: 0 }}
+            component="a"
+            href="#depositWithdraw"
           >
             Deposit and Withdraw
           </Button>
-
           <Button
             variant="text"
             size="small"
             sx={{ padding: "6px 8px", flexShrink: 0 }}
+            component="a"
+            href="#status"
           >
             Status
           </Button>
-
           <Button
             variant="text"
             size="small"
             sx={{ padding: "6px 8px", flexShrink: 0 }}
+            component="a"
+            href="#requests"
           >
             Withdrawal Requests
           </Button>
-
           <Button
             variant="text"
             size="small"
             sx={{ padding: "6px 8px", flexShrink: 0 }}
+            component="a"
+            href="#mla"
           >
             MLA
           </Button>

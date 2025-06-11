@@ -2,57 +2,71 @@ import { Box, Divider, Typography } from "@mui/material"
 
 import { COLORS } from "@/theme/colors"
 
-import { InfoCardProps } from "./interface"
+export type InfoCardProps = {
+  status: React.ReactNode
+  apr: React.ReactNode
+  term: React.ReactNode
+  name: string
+  capacityLeft: string | number
+  icon?: React.ReactNode
+  asset: string | React.ReactNode
+  rightText: string | React.ReactNode
+  bottomLeftIcon?: React.ReactNode
+  bottomLeftTextColor?: string
+  totalDebt: string | number
+  leftButton?: React.ReactNode
+  rightButton?: React.ReactNode
+  aprIcon?: React.ReactNode
+}
 
 export const InfoCard = ({
-  statusChip,
-  statusText,
-  cycleChip,
-  title,
-  value,
-  leftText,
-  rightText,
-  bottomLeftText,
-  leftButton,
-  rightButton,
+  status,
+  apr,
+  term,
+  name,
+  capacityLeft,
   icon,
+  asset,
+  rightText,
   bottomLeftIcon,
   bottomLeftTextColor,
-  statusTooltip,
+  totalDebt,
+  leftButton,
+  rightButton,
+  aprIcon,
 }: InfoCardProps) => (
   <Box
     sx={{
-      width: "367",
-      height: "152px",
       display: "flex",
       flexDirection: "column",
       gap: "14px",
-      background: COLORS.white,
       padding: "12px",
       borderRadius: "14px",
     }}
   >
     <Box display="flex" justifyContent="space-between" alignItems="center">
-      <Box display="flex" gap="8px">
-        {statusChip}
+      <Box display="flex" gap="8px" alignItems="center">
+        {status}
         <Box display="flex" alignItems="center" gap="4px">
-          <Typography variant="text4">{statusText}</Typography>
-          {statusTooltip}
+          <Typography variant="text4">APR</Typography>
+          <Typography variant="text4">{apr}</Typography>
+          {aprIcon && <Box>{aprIcon}</Box>}
         </Box>
       </Box>
-      <Box display="flex">{cycleChip}</Box>
+      <Box display="flex">{term}</Box>
     </Box>
-
     <Box display="flex" flexDirection="column" gap="2px">
-      <Box display="flex" justifyContent="space-between">
-        <Typography variant="text2">{title}</Typography>
-        <Typography variant="text2">{value}</Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Typography variant="text2">{name}</Typography>
+        <Box display="flex" alignItems="center" gap="2px">
+          <Typography variant="text2">{capacityLeft}</Typography>
+          <Typography variant="text2">{asset}</Typography>
+        </Box>
       </Box>
 
       <Box display="flex" justifyContent="space-between">
         <Box display="flex" alignItems="center" gap="6px">
           {icon}
-          <Typography variant="text4">{leftText}</Typography>
         </Box>
         <Typography variant="text4" color={COLORS.santasGrey}>
           {rightText}
@@ -69,10 +83,9 @@ export const InfoCard = ({
           variant="text4"
           color={bottomLeftTextColor || COLORS.santasGrey}
         >
-          {bottomLeftText}
+          {totalDebt}
         </Typography>
       </Box>
-
       <Box display="flex" gap="4px">
         {leftButton}
         {rightButton}
