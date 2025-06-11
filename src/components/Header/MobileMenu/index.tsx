@@ -89,7 +89,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
         onClose={handleToggleModal}
         fullWidth
         sx={{
-          height: openConnect ? "0px" : "calc(100vh - 64px)",
+          height: openConnect ? "0px" : "calc(100dvh - 64px)",
           marginTop: "auto",
           zIndex: 4,
 
@@ -101,7 +101,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
           },
           "& .MuiBackdrop-root": {
             marginTop: "auto",
-            height: "calc(100vh - 0px)",
+            height: "calc(100dvh - 0px)",
             backgroundColor: "transparent",
             backdropFilter: "blur(20px)",
           },

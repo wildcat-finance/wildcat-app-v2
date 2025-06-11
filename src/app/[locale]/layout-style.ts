@@ -34,7 +34,7 @@ export const ContentContainer = {
   display: "flex",
   flexDirection: "row",
   "@media (max-width: 600px)": {
-    height: "calc(100vh - 68px)",
+    height: "calc(100dvh - 68px)",
     paddingX: "4px",
     paddingBottom: "4px",
   },
