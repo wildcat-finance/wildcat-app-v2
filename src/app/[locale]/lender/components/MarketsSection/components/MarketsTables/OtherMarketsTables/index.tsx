@@ -22,7 +22,7 @@ import {
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
-import { InfoCard } from "@/components/Mobile/Card/InfoCard"
+import { OtherMarketsCard } from "@/components/Mobile/Card/OtherMarketsCard"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { TablePagination } from "@/components/TablePagination"
 import { TooltipButton } from "@/components/TooltipButton"
@@ -430,7 +430,7 @@ export const OtherMarketsTables = ({
           {isMobile ? (
             <Box display="flex" flexDirection="column">
               {selfOnboard.map((row) => (
-                <InfoCard
+                <OtherMarketsCard
                   key={row.id}
                   status={<MarketStatusChip status={row.status} />}
                   apr={`${formatBps(row.apr)}%`}
@@ -446,28 +446,38 @@ export const OtherMarketsTables = ({
                       : "0"
                   }
                   asset={row.asset}
-                  rightText={row.borrower || ""}
-                  totalDebt={
-                    row.debt
-                      ? formatTokenWithCommas(row.debt, {
-                          withSymbol: false,
-                          fractionDigits: 2,
-                        })
-                      : "0"
-                  }
+                  borrower={row.borrower || ""}
                   leftButton={
-                    <Button variant="outlined" size="small" color="secondary">
-                      <Typography variant="text4" color={COLORS.blackRock}>
-                        More
-                      </Typography>
-                    </Button>
+                    <Link
+                      href={`${ROUTES.lender.market}/${row.id}`}
+                      passHref
+                      legacyBehavior
+                    >
+                      <Button
+                        component="a"
+                        variant="outlined"
+                        size="small"
+                        color="secondary"
+                        sx={{ textTransform: "none" }}
+                      >
+                        <Typography variant="text4" color={COLORS.blackRock}>
+                          More
+                        </Typography>
+                      </Button>
+                    </Link>
                   }
                   rightButton={
-                    <Button variant="contained" size="small" color="primary">
-                      <Typography variant="text4" color={COLORS.white}>
-                        Onboard
-                      </Typography>
-                    </Button>
+                    <Link
+                      href={`${ROUTES.lender.market}/${row.id}`}
+                      passHref
+                      legacyBehavior
+                    >
+                      <Button variant="contained" size="small" color="primary">
+                        <Typography variant="text4" color={COLORS.white}>
+                          Onboard
+                        </Typography>
+                      </Button>
+                    </Link>
                   }
                 />
               ))}
@@ -508,7 +518,7 @@ export const OtherMarketsTables = ({
           {isMobile ? (
             <Box display="flex" flexDirection="column">
               {manual.map((row) => (
-                <InfoCard
+                <OtherMarketsCard
                   key={row.id}
                   status={<MarketStatusChip status={row.status} />}
                   apr={<>{formatBps(row.apr)}%</>}
@@ -524,7 +534,7 @@ export const OtherMarketsTables = ({
                       : "0"
                   }
                   asset={row.asset}
-                  rightText={row.borrower || ""}
+                  borrower={row.borrower || ""}
                   totalDebt={
                     row.debt
                       ? formatTokenWithCommas(row.debt, {
@@ -534,18 +544,36 @@ export const OtherMarketsTables = ({
                       : "0"
                   }
                   leftButton={
-                    <Button variant="outlined" size="small" color="secondary">
-                      <Typography variant="text4" color={COLORS.blackRock}>
-                        More
-                      </Typography>
-                    </Button>
+                    <Link
+                      href={`${ROUTES.lender.market}/${row.id}`}
+                      passHref
+                      legacyBehavior
+                    >
+                      <Button
+                        component="a"
+                        variant="outlined"
+                        size="small"
+                        color="secondary"
+                        sx={{ textTransform: "none" }}
+                      >
+                        <Typography variant="text4" color={COLORS.blackRock}>
+                          More
+                        </Typography>
+                      </Button>
+                    </Link>
                   }
                   rightButton={
-                    <Button variant="contained" size="small" color="primary">
-                      <Typography variant="text4" color={COLORS.white}>
-                        Onboard
-                      </Typography>
-                    </Button>
+                    <Link
+                      href={`${ROUTES.lender.market}/${row.id}`}
+                      passHref
+                      legacyBehavior
+                    >
+                      <Button variant="contained" size="small" color="primary">
+                        <Typography variant="text4" color={COLORS.white}>
+                          Request
+                        </Typography>
+                      </Button>
+                    </Link>
                   }
                 />
               ))}

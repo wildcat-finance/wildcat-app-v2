@@ -1,25 +1,27 @@
 import { Box, Divider, Typography } from "@mui/material"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 
 import { COLORS } from "@/theme/colors"
 
-export type InfoCardProps = {
-  status: React.ReactNode
+export type OtherMarketsCardProps = {
+  status: string | React.ReactNode
   apr: React.ReactNode
-  term: React.ReactNode
+  term: string | React.ReactNode
   name: string
   capacityLeft: string | number
   icon?: React.ReactNode
   asset: string | React.ReactNode
-  rightText: string | React.ReactNode
+  borrower: string | React.ReactNode
   bottomLeftIcon?: React.ReactNode
   bottomLeftTextColor?: string
-  totalDebt: string | number
+  totalDebt?: string | number
+  loan?: string | React.ReactNode
   leftButton?: React.ReactNode
   rightButton?: React.ReactNode
   aprIcon?: React.ReactNode
 }
 
-export const InfoCard = ({
+export const OtherMarketsCard = ({
   status,
   apr,
   term,
@@ -27,14 +29,15 @@ export const InfoCard = ({
   capacityLeft,
   icon,
   asset,
-  rightText,
+  borrower,
   bottomLeftIcon,
   bottomLeftTextColor,
   totalDebt,
+  loan,
   leftButton,
   rightButton,
   aprIcon,
-}: InfoCardProps) => (
+}: OtherMarketsCardProps) => (
   <Box
     sx={{
       display: "flex",
@@ -55,6 +58,7 @@ export const InfoCard = ({
       </Box>
       <Box display="flex">{term}</Box>
     </Box>
+
     <Box display="flex" flexDirection="column" gap="2px">
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Typography variant="text2">{name}</Typography>
@@ -64,28 +68,35 @@ export const InfoCard = ({
         </Box>
       </Box>
 
-      <Box display="flex" justifyContent="space-between">
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Typography variant="text4">{borrower}</Typography>
+        <Typography variant="text4" color={COLORS.santasGrey}>
+          available to lend
+        </Typography>
+      </Box>
+
+      {icon && (
         <Box display="flex" alignItems="center" gap="6px">
           {icon}
         </Box>
-        <Typography variant="text4" color={COLORS.santasGrey}>
-          {rightText}
-        </Typography>
-      </Box>
+      )}
     </Box>
 
     <Divider />
 
     <Box display="flex" justifyContent="space-between" alignItems="center">
       <Box display="flex" alignItems="center" gap="4px">
-        {bottomLeftIcon && <Box>{bottomLeftIcon}</Box>}
         <Typography
           variant="text4"
           color={bottomLeftTextColor || COLORS.santasGrey}
         >
-          {totalDebt}
+          {loan}
+        </Typography>
+        <Typography variant="text4" color={COLORS.santasGrey}>
+          MATIC deposited
         </Typography>
       </Box>
+
       <Box display="flex" gap="4px">
         {leftButton}
         {rightButton}

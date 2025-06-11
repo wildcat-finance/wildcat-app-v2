@@ -1,7 +1,7 @@
 import * as React from "react"
 import { useEffect, useRef } from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Typography, useMediaQuery } from "@mui/material"
 import {
   DataGrid,
   GridColDef,
@@ -28,11 +28,14 @@ import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
+import { OtherMarketsCard } from "@/components/Mobile/Card/OtherMarketsCard"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
+import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { COLORS } from "@/theme/colors"
+import { theme } from "@/theme/theme"
 import {
   statusComparator,
   tokenAmountComparator,
@@ -79,6 +82,7 @@ export const LenderActiveMarketsTables = ({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
   )
@@ -409,18 +413,78 @@ export const LenderActiveMarketsTables = ({
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
         >
-          <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
-            }}
-            rows={depositedMarkets}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
+          {isMobile ? (
+            <Box display="flex" flexDirection="column">
+              {depositedMarkets.map((row) => (
+                <OtherMarketsCard
+                  key={row.id}
+                  status={<MarketStatusChip status={row.status} />}
+                  apr={`${formatBps(row.apr)}%`}
+                  aprIcon={<TooltipButton value=" APR" />}
+                  term={<MarketTypeChip {...row.term} />}
+                  name={row.name}
+                  capacityLeft={formatTokenWithCommas(row.capacityLeft, {
+                    fractionDigits: 2,
+                  })}
+                  asset={row.asset}
+                  borrower={row.borrower}
+                  loan={
+                    row.loan
+                      ? formatTokenWithCommas(row.loan, {
+                          fractionDigits: 2,
+                        })
+                      : "0"
+                  }
+                  bottomLeftTextColor={COLORS.blackRock}
+                  leftButton={
+                    <Link
+                      href={`${ROUTES.lender.market}/${row.id}`}
+                      passHref
+                      legacyBehavior
+                    >
+                      <Button
+                        component="a"
+                        variant="outlined"
+                        size="small"
+                        color="secondary"
+                        sx={{ textTransform: "none" }}
+                      >
+                        <Typography variant="text4" color={COLORS.blackRock}>
+                          More
+                        </Typography>
+                      </Button>
+                    </Link>
+                  }
+                  rightButton={
+                    <Link
+                      href={`${ROUTES.lender.market}/${row.id}`}
+                      passHref
+                      legacyBehavior
+                    >
+                      <Button variant="contained" size="small" color="primary">
+                        <Typography variant="text4" color={COLORS.white}>
+                          Deposit
+                        </Typography>
+                      </Button>
+                    </Link>
+                  }
+                />
+              ))}
+            </Box>
+          ) : (
+            <DataGrid
+              sx={{
+                overflow: "auto",
+                maxWidth: "calc(100vw - 267px)",
+                padding: "0 16px",
+                "& .MuiDataGrid-columnHeader": { padding: 0 },
+                "& .MuiDataGrid-cell": { padding: "0px" },
+              }}
+              rows={depositedMarkets}
+              columns={columns}
+              columnHeaderHeight={40}
+            />
+          )}
         </MarketsTableAccordion>
       </Box>
 
@@ -439,18 +503,77 @@ export const LenderActiveMarketsTables = ({
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
         >
-          <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
-            }}
-            rows={nonDepositedMarkets}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
+          {isMobile ? (
+            <Box display="flex" flexDirection="column">
+              {nonDepositedMarkets.map((row) => (
+                <OtherMarketsCard
+                  key={row.id}
+                  status={<MarketStatusChip status={row.status} />}
+                  apr={`${formatBps(row.apr)}%`}
+                  aprIcon={<TooltipButton value=" APR" />}
+                  term={<MarketTypeChip {...row.term} />}
+                  name={row.name}
+                  capacityLeft={formatTokenWithCommas(row.capacityLeft, {
+                    fractionDigits: 2,
+                  })}
+                  asset={row.asset}
+                  borrower={row.borrower}
+                  loan={
+                    row.loan
+                      ? formatTokenWithCommas(row.loan, {
+                          fractionDigits: 2,
+                        })
+                      : "0"
+                  }
+                  leftButton={
+                    <Link
+                      href={`${ROUTES.lender.market}/${row.id}`}
+                      passHref
+                      legacyBehavior
+                    >
+                      <Button
+                        component="a"
+                        variant="outlined"
+                        size="small"
+                        color="secondary"
+                        sx={{ textTransform: "none" }}
+                      >
+                        <Typography variant="text4" color={COLORS.blackRock}>
+                          More
+                        </Typography>
+                      </Button>
+                    </Link>
+                  }
+                  rightButton={
+                    <Link
+                      href={`${ROUTES.lender.market}/${row.id}`}
+                      passHref
+                      legacyBehavior
+                    >
+                      <Button variant="contained" size="small" color="primary">
+                        <Typography variant="text4" color={COLORS.white}>
+                          Deposit
+                        </Typography>
+                      </Button>
+                    </Link>
+                  }
+                />
+              ))}
+            </Box>
+          ) : (
+            <DataGrid
+              sx={{
+                overflow: "auto",
+                maxWidth: "calc(100vw - 267px)",
+                padding: "0 16px",
+                "& .MuiDataGrid-columnHeader": { padding: 0 },
+                "& .MuiDataGrid-cell": { padding: "0px" },
+              }}
+              rows={nonDepositedMarkets}
+              columns={columns}
+              columnHeaderHeight={40}
+            />
+          )}
         </MarketsTableAccordion>
       </Box>
     </Box>
