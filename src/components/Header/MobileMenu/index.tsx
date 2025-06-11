@@ -11,10 +11,12 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useAccount, useDisconnect } from "wagmi"
 
+import Avatarmob from "@/assets/icons/avatarmob_icon.png"
 import Menu from "@/assets/icons/burgerMenu_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
@@ -43,46 +45,70 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   const pathname = usePathname()
   const isMain = pathname.includes("lender") || pathname.includes("borrower")
 
+  const { disconnect } = useDisconnect()
+
   const handleToggleModal = () => {
     setIsOpen(!open)
   }
 
   const [openConnect, setOpenConnect] = useState<boolean>(false)
-
   const handleCloseConnect = () => {
     setOpenConnect(false)
   }
 
-  const { disconnect } = useDisconnect()
   const handleClickDisconnect = () => {
     disconnect()
     handleToggleModal()
   }
 
+  const handleSwitchAccount = async () => {
+    setOpenConnect(true)
+  }
+
   return (
     <>
-      <IconButton
-        onClick={handleToggleModal}
-        sx={{
-          marginLeft: "12px",
-          display: "flex",
-          width: "40px",
-          height: "40px",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <SvgIcon
+      <Box sx={{ display: "flex", alignItems: "center" }}>
+        {isConnected && address && (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              backgroundColor: COLORS.whiteSmoke,
+              borderRadius: "20px",
+              padding: "2px 6px 2px 2px",
+              gap: "7px",
+            }}
+          >
+            <Image src={Avatarmob} alt="avatar" width={24} height={24} />
+            <Typography variant="text3">
+              {trimAddress(address as string)}
+            </Typography>
+          </Box>
+        )}
+
+        <IconButton
+          onClick={handleToggleModal}
           sx={{
-            fontSize: !open ? "40px" : "30px",
-            "& path": {
-              stroke: isMain && !open ? COLORS.black : COLORS.white,
-            },
+            marginLeft: "12px",
+            display: "flex",
+            width: "40px",
+            height: "40px",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          {!open || openConnect ? <Menu /> : <Cross />}
-        </SvgIcon>
-      </IconButton>
+          <SvgIcon
+            sx={{
+              fontSize: !open ? "40px" : "30px",
+              "& path": {
+                stroke: isMain && !open ? COLORS.black : COLORS.white,
+              },
+            }}
+          >
+            {!open || openConnect ? <Menu /> : <Cross />}
+          </SvgIcon>
+        </IconButton>
+      </Box>
 
       <Dialog
         open={open}
@@ -169,16 +195,30 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
         </Box>
 
         {isConnected ? (
-          <Button
-            fullWidth
-            variant="contained"
-            color="primary"
-            size="large"
-            onClick={handleClickDisconnect}
-            sx={{ marginTop: "6px", borderRadius: "10px" }}
-          >
-            Disconnect
-          </Button>
+          <>
+            <Button
+              fullWidth
+              size="medium"
+              onClick={handleSwitchAccount}
+              sx={{
+                marginTop: "6px",
+                borderRadius: "10px",
+                backgroundColor: COLORS.whiteSmoke,
+              }}
+            >
+              Switch Account
+            </Button>
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              size="large"
+              onClick={handleClickDisconnect}
+              sx={{ marginTop: "6px", borderRadius: "10px" }}
+            >
+              Disconnect
+            </Button>
+          </>
         ) : (
           <Button
             size="large"
