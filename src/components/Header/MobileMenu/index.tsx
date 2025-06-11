@@ -14,7 +14,8 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useAccount, useDisconnect } from "wagmi"
+import { useAccount, useConnect, useDisconnect } from "wagmi"
+import { injected } from "wagmi/connectors"
 
 import Avatarmob from "@/assets/icons/avatarmob_icon.png"
 import Menu from "@/assets/icons/burgerMenu_icon.svg"
@@ -46,7 +47,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   const isMain = pathname.includes("lender") || pathname.includes("borrower")
 
   const { disconnect } = useDisconnect()
-
+  const { connect } = useConnect()
   const handleToggleModal = () => {
     setIsOpen(!open)
   }
@@ -62,7 +63,11 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   }
 
   const handleSwitchAccount = async () => {
-    setOpenConnect(true)
+    try {
+      await connect({ connector: injected() })
+    } catch (error) {
+      console.error("Error:", error)
+    }
   }
 
   return (
@@ -76,7 +81,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
               backgroundColor: COLORS.whiteSmoke,
               borderRadius: "20px",
               padding: "2px 6px 2px 2px",
-              gap: "7px",
+              gap: "4px",
             }}
           >
             <Image src={Avatarmob} alt="avatar" width={24} height={24} />
@@ -198,7 +203,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
           <>
             <Button
               fullWidth
-              size="medium"
+              size="large"
               onClick={handleSwitchAccount}
               sx={{
                 marginTop: "6px",
