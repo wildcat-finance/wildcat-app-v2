@@ -124,15 +124,6 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
             size="small"
             sx={{ padding: "6px 8px", flexShrink: 0 }}
             component="a"
-            href="#depositWithdraw"
-          >
-            Deposit and Withdraw
-          </Button>
-          <Button
-            variant="text"
-            size="small"
-            sx={{ padding: "6px 8px", flexShrink: 0 }}
-            component="a"
             href="#status"
           >
             Status

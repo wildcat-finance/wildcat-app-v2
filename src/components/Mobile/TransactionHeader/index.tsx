@@ -12,7 +12,7 @@ import { COLORS } from "@/theme/colors"
 
 export type TransactionHeaderProps = {
   label: string
-  progress: number
+  progress?: number
   arrowOnClick: (() => void) | null
   crossOnClick: (() => void) | null
 }
@@ -74,16 +74,18 @@ export const TransactionHeader = ({
       )}
     </Box>
 
-    <LinearProgress
-      variant="determinate"
-      value={progress}
-      sx={{
-        height: "2px",
-        backgroundColor: COLORS.whiteLilac,
-        "& .MuiLinearProgress-bar1Determinate": {
-          backgroundColor: COLORS.ultramarineBlue,
-        },
-      }}
-    />
+    {progress && (
+      <LinearProgress
+        variant="determinate"
+        value={progress}
+        sx={{
+          height: "2px",
+          backgroundColor: COLORS.whiteLilac,
+          "& .MuiLinearProgress-bar1Determinate": {
+            backgroundColor: COLORS.ultramarineBlue,
+          },
+        }}
+      />
+    )}
   </Box>
 )

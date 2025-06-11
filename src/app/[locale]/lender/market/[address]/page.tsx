@@ -19,6 +19,7 @@ import { BorrowerProfileDetails } from "@/app/[locale]/borrower/profile/componen
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
 import { MobileMarketActions } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMarketActions"
 import { MobileMlaAlert } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaAlert"
+import { MobileMlaModal } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaModal/MobileMlaModal"
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
@@ -28,6 +29,7 @@ import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetMarket } from "@/hooks/useGetMarket"
+import { useMarketMla } from "@/hooks/useMarketMla"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   LenderMarketSections,
@@ -110,9 +112,12 @@ export default function LenderMarketDetails({
 
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
 
+  const { data: mla, isLoading: mlaLoading } = useMarketMla(market?.address)
+
   const [isMobileDepositOpen, setIsMobileDepositOpen] = React.useState(false)
   const [isMobileWithdrawalOpen, setIsMobileWithdrawalOpen] =
     React.useState(false)
+  const [isMobileMLAOpen, setIsMobileMLAOpen] = React.useState(false)
 
   if (isLoading)
     return (
@@ -172,6 +177,16 @@ export default function LenderMarketDetails({
       />
     )
 
+  if (isMobile && isMobileMLAOpen)
+    return (
+      <MobileMlaModal
+        isMobileOpen={isMobileMLAOpen}
+        setIsMobileOpen={setIsMobileMLAOpen}
+        mla={mla}
+        isLoading={mlaLoading}
+      />
+    )
+
   if (isMobile)
     return (
       <Box>
@@ -184,8 +199,10 @@ export default function LenderMarketDetails({
           }}
         >
           <MarketHeader marketAccount={marketAccount} />
+
+          <ClaimModal market={market} withdrawals={withdrawals} />
+
           <Box id="depositWithdraw">
-            <ClaimModal market={market} withdrawals={withdrawals} />
             <BarCharts
               marketAccount={marketAccount}
               withdrawals={withdrawals}
@@ -202,7 +219,12 @@ export default function LenderMarketDetails({
           </Box>
 
           <Box id="mla">
-            <MobileMlaAlert marketAccount={marketAccount} />
+            <MobileMlaAlert
+              mla={mla}
+              isLoading={mlaLoading}
+              isMLAOpen={isMobileMLAOpen}
+              setIsMLAOpen={setIsMobileMLAOpen}
+            />
           </Box>
 
           {authorizedInMarket && (
@@ -212,6 +234,8 @@ export default function LenderMarketDetails({
               isMobileWithdrawalOpen={isMobileWithdrawalOpen}
               setIsMobileDepositOpen={setIsMobileDepositOpen}
               setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
+              isMLAOpen={isMobileMLAOpen}
+              setIsMLAOpen={setIsMobileMLAOpen}
             />
           )}
         </Box>

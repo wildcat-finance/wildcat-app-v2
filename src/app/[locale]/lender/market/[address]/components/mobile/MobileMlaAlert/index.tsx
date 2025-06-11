@@ -1,30 +1,48 @@
 import * as React from "react"
+import { Dispatch, SetStateAction } from "react"
 
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
-import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
+import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
 import Check from "@/assets/icons/check_icon.svg"
-import { useMarketMla } from "@/hooks/useMarketMla"
 import { COLORS } from "@/theme/colors"
 import { formatDate } from "@/utils/formatters"
 
 export type MobileMlaAlertProps = {
-  marketAccount: MarketAccount
+  mla: MasterLoanAgreementResponse | undefined | null | { noMLA: boolean }
+  isLoading: boolean
+  isMLAOpen: boolean
+  setIsMLAOpen: Dispatch<SetStateAction<boolean>>
 }
 
-export const MobileMlaAlert = ({ marketAccount }: MobileMlaAlertProps) => {
-  const { market } = marketAccount
+export const MobileMlaAlert = ({
+  mla,
+  isLoading,
+  isMLAOpen,
+  setIsMLAOpen,
+}: MobileMlaAlertProps) => {
   const { t } = useTranslation()
 
-  const { data: mla, isLoading: mlaLoading } = useMarketMla(market.address)
   const mlaResponse = mla && "noMLA" in mla ? null : mla
   const { data: signedMla, isLoading: signedMlaLoading } =
     useGetSignedMla(mlaResponse)
 
   const mlaRequiredAndUnsigned =
     signedMla === null && !!mla && !("noMLA" in mla)
+
+  const handleClickToggleMLA = () => {
+    setIsMLAOpen(!isMLAOpen)
+  }
+
+  const buttonText =
+    // eslint-disable-next-line no-nested-ternary
+    mla === null
+      ? t("lenderMarketDetails.buttons.mlaNotSet")
+      : mla && "noMLA" in mla
+        ? t("lenderMarketDetails.buttons.mlaRefused")
+        : t("lenderMarketDetails.buttons.viewMla")
 
   if (!mlaRequiredAndUnsigned && !!signedMla)
     return (
@@ -69,6 +87,7 @@ export const MobileMlaAlert = ({ marketAccount }: MobileMlaAlertProps) => {
         </Box>
 
         <Button
+          onClick={handleClickToggleMLA}
           variant="contained"
           size="large"
           color="secondary"
@@ -81,7 +100,7 @@ export const MobileMlaAlert = ({ marketAccount }: MobileMlaAlertProps) => {
             lineHeight: "20px",
           }}
         >
-          {t("lenderMarketDetails.buttons.viewMla")}
+          {buttonText}
         </Button>
       </Box>
     )

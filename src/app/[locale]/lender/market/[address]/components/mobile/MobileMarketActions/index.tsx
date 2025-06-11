@@ -18,6 +18,8 @@ export type MobileMarketActionsProps = {
   isMobileWithdrawalOpen: boolean
   setIsMobileDepositOpen: Dispatch<SetStateAction<boolean>>
   setIsMobileWithdrawalOpen: Dispatch<SetStateAction<boolean>>
+  isMLAOpen: boolean
+  setIsMLAOpen: Dispatch<SetStateAction<boolean>>
 }
 
 export type MobileMarketTransactionItemProps = {
@@ -81,6 +83,8 @@ export const MobileMarketActions = ({
   isMobileDepositOpen,
   setIsMobileWithdrawalOpen,
   setIsMobileDepositOpen,
+  isMLAOpen,
+  setIsMLAOpen,
 }: MobileMarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
@@ -97,6 +101,10 @@ export const MobileMarketActions = ({
     useGetSignedMla(mlaResponse)
   const mlaRequiredAndUnsigned =
     signedMla === null && !!mla && !("noMLA" in mla)
+
+  const handleClickToggleMLA = () => {
+    setIsMLAOpen(!isMLAOpen)
+  }
 
   return (
     <>
@@ -155,6 +163,7 @@ export const MobileMarketActions = ({
             </Box>
 
             <Button
+              onClick={handleClickToggleMLA}
               variant="contained"
               color="secondary"
               size="large"
