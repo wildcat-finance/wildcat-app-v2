@@ -1,6 +1,7 @@
 "use client"
 
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
+import * as React from "react"
 
 import {
   Box,
@@ -17,6 +18,8 @@ import { usePathname } from "next/navigation"
 import { useAccount, useConnect, useDisconnect } from "wagmi"
 import { injected } from "wagmi/connectors"
 
+import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
+import Avatar from "@/assets/icons/avatar_icon.svg"
 import Avatarmob from "@/assets/icons/avatarmob_icon.png"
 import Menu from "@/assets/icons/burgerMenu_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
@@ -46,8 +49,10 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   const pathname = usePathname()
   const isMain = pathname.includes("lender") || pathname.includes("borrower")
 
+  const { data: profileData, isLoading: isProfileLoading } =
+    useGetBorrowerProfile(address as `0x${string}`)
+
   const { disconnect } = useDisconnect()
-  const { connect } = useConnect()
   const handleToggleModal = () => {
     setIsOpen(!open)
   }
@@ -64,27 +69,44 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
 
   const handleSwitchAccount = async () => {
     try {
-      await connect({ connector: injected() })
+      if (typeof window.ethereum !== "undefined") {
+        await window.ethereum.request({
+          method: "wallet_requestPermissions",
+          params: [{ eth_accounts: {} }],
+        })
+      }
     } catch (error) {
-      console.error("Error:", error)
+      console.error(error)
     }
   }
 
   return (
     <>
       <Box sx={{ display: "flex", alignItems: "center" }}>
-        {isConnected && address && (
+        {isConnected && address && !open && (
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
               backgroundColor: COLORS.whiteSmoke,
               borderRadius: "20px",
-              padding: "2px 6px 2px 2px",
+              padding: "2px 12px 2px 2px",
               gap: "4px",
             }}
           >
-            <Image src={Avatarmob} alt="avatar" width={24} height={24} />
+            {profileData && profileData.avatar ? (
+              <Image
+                src={profileData.avatar}
+                alt="avatar"
+                width={24}
+                height={24}
+                style={{ borderRadius: "50%" }}
+              />
+            ) : (
+              <SvgIcon sx={{ fontSize: "24px" }}>
+                <Avatar />
+              </SvgIcon>
+            )}
             <Typography variant="text3">
               {trimAddress(address as string)}
             </Typography>
@@ -150,15 +172,19 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
               marginBottom: "6px",
             }}
           >
-            <Box
-              sx={{
-                width: "24px",
-                height: "24px",
-                borderRadius: "50%",
-                backgroundColor: COLORS.santasGrey,
-                marginRight: "7px",
-              }}
-            />
+            {profileData && profileData.avatar ? (
+              <Image
+                src={profileData.avatar}
+                style={{ borderRadius: "50%" }}
+                alt="avatar"
+                width={24}
+                height={24}
+              />
+            ) : (
+              <SvgIcon sx={{ fontSize: "24px" }}>
+                <Avatar />
+              </SvgIcon>
+            )}
 
             <Typography variant="text3">
               {trimAddress(address as string, 20)}
