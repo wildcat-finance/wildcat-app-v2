@@ -1,7 +1,7 @@
 import { Dispatch } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { QueryKey, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Market, Token, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
 import {
@@ -11,23 +11,20 @@ import {
 
 export const useApprove = (
   token: Token,
-  market: Market,
+  spender: string,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
+  queryKeysToInvalidate: QueryKey[] = [
+    [GET_MARKET_ACCOUNT_KEY],
+    [GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY],
+  ],
 ) => {
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
   return useMutation({
     mutationFn: async (tokenAmount: TokenAmount) => {
-      if (!market) {
-        return
-      }
-
       const approve = async () => {
-        const tx = await token.contract.approve(
-          market.address.toLowerCase(),
-          tokenAmount.raw,
-        )
+        const tx = await token.contract.approve(spender, tokenAmount.raw)
 
         if (!safeConnected) setTxHash(tx.hash)
 
@@ -50,9 +47,8 @@ export const useApprove = (
       await approve()
     },
     onSuccess() {
-      client.invalidateQueries({ queryKey: [GET_MARKET_ACCOUNT_KEY] })
-      client.invalidateQueries({
-        queryKey: [GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY],
+      queryKeysToInvalidate.forEach((queryKey) => {
+        client.invalidateQueries({ queryKey })
       })
     },
   })

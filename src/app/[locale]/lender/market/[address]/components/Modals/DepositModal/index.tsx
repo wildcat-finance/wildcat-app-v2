@@ -54,7 +54,7 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
 
   const { mutateAsync: approve, isPending: isApproving } = useApprove(
     market.underlyingToken,
-    market,
+    market.address,
     setTxHash,
   )
 

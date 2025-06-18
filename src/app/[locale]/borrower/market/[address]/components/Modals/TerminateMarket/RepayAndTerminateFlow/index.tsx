@@ -56,7 +56,7 @@ export const RepayAndTerminateFlow = ({
     mutateAsync: approve,
     isPending: isApproving,
     isError: isApproveError,
-  } = useApprove(market.underlyingToken, market, setApproveTxHash)
+  } = useApprove(market.underlyingToken, market.address, setApproveTxHash)
 
   const {
     mutateAsync: repayAndProcess,
