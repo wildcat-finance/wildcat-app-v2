@@ -19,6 +19,7 @@ import { OtherMarketsTables } from "@/app/[locale]/lender/components/MarketsSect
 import { MobileMarketSectionHeader } from "@/app/[locale]/lender/components/MarketsSection/components/MobileMarketSectionSwitcher"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { FilterTextField } from "@/components/FilterTextfield"
+import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
 import {
   SmallFilterSelect,
   SmallFilterSelectItem,
@@ -29,7 +30,6 @@ import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { marketStatusesMock } from "@/mocks/mocks"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import { setLendersSectionAmount } from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import {
   LenderMarketDashboardSections,
@@ -345,7 +345,25 @@ export const MarketsSection = () => {
         </Box>
       )}
 
-      {isMobile && <MobileMarketSectionHeader />}
+      {isMobile && (
+        <MobileMarketSectionHeader>
+          <Box>
+            <MobileFilterButton
+              assetsOptions={
+                tokens?.map((token) => ({
+                  id: token.address,
+                  name: token.symbol,
+                })) ?? []
+              }
+              statusesOptions={marketStatusesMock}
+              marketAssets={marketAssets}
+              marketStatuses={marketStatuses}
+              setMarketAssets={setMarketAssets}
+              setMarketStatuses={setMarketStatuses}
+            />
+          </Box>
+        </MobileMarketSectionHeader>
+      )}
 
       {marketSection === LenderMarketDashboardSections.ACTIVE &&
         !noActiveMarkets &&

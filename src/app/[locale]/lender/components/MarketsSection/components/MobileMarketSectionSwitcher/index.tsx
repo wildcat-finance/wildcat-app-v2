@@ -1,6 +1,6 @@
-import React from "react"
+import React, { ReactNode, useEffect } from "react"
 
-import { Box, Button, Divider, Typography } from "@mui/material"
+import { Box, Button, Divider, IconButton, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -103,7 +103,11 @@ const MobileSwitcherButton = ({
   )
 }
 
-export const MobileMarketSectionHeader = () => {
+export const MobileMarketSectionHeader = ({
+  children,
+}: {
+  children: ReactNode
+}) => {
   const { t } = useTranslation()
 
   const marketSection = useAppSelector(
@@ -140,6 +144,20 @@ export const MobileMarketSectionHeader = () => {
 
   const otherMarketsAmount = selfOnboardAmount + manualAmount
 
+  const dispatch = useAppDispatch()
+
+  useEffect(() => {
+    if (marketSection === LenderMarketDashboardSections.ACTIVE) {
+      dispatch(setScrollTarget("deposited"))
+    }
+    if (marketSection === LenderMarketDashboardSections.TERMINATED) {
+      dispatch(setScrollTarget("prev-active"))
+    }
+    if (marketSection === LenderMarketDashboardSections.OTHER) {
+      dispatch(setScrollTarget("self-onboard"))
+    }
+  }, [marketSection])
+
   return (
     <Box
       sx={{
@@ -163,10 +181,7 @@ export const MobileMarketSectionHeader = () => {
           Markets
         </Typography>
 
-        {/* <Box> */}
-        {/*  <Button>Filters</Button> */}
-        {/*  <Button>Search</Button> */}
-        {/* </Box> */}
+        {children}
       </Box>
 
       <Box
@@ -211,67 +226,55 @@ export const MobileMarketSectionHeader = () => {
       >
         {marketSection === LenderMarketDashboardSections.ACTIVE && (
           <>
-            {!!depositedAmount && (
-              <MobileSwitcherButton
-                label="Active"
-                target="deposited"
-                amount={depositedAmount}
-                type="secondary"
-              />
-            )}
+            <MobileSwitcherButton
+              label="Active"
+              target="deposited"
+              amount={depositedAmount}
+              type="secondary"
+            />
 
-            {!!nonDepositedAmount && (
-              <MobileSwitcherButton
-                label="Non-Deposited"
-                target="non-deposited"
-                amount={nonDepositedAmount}
-                type="secondary"
-              />
-            )}
+            <MobileSwitcherButton
+              label="Non-Deposited"
+              target="non-deposited"
+              amount={nonDepositedAmount}
+              type="secondary"
+            />
           </>
         )}
 
         {marketSection === LenderMarketDashboardSections.TERMINATED && (
           <>
-            {!!prevActiveAmount && (
-              <MobileSwitcherButton
-                label="Prev. Active"
-                target="prev-active"
-                amount={prevActiveAmount}
-                type="secondary"
-              />
-            )}
+            <MobileSwitcherButton
+              label="Prev. Active"
+              target="prev-active"
+              amount={prevActiveAmount}
+              type="secondary"
+            />
 
-            {!!neverActiveAmount && (
-              <MobileSwitcherButton
-                label="Never Active"
-                target="never-active"
-                amount={neverActiveAmount}
-                type="secondary"
-              />
-            )}
+            <MobileSwitcherButton
+              label="Never Active"
+              target="never-active"
+              amount={neverActiveAmount}
+              type="secondary"
+            />
           </>
         )}
 
         {marketSection === LenderMarketDashboardSections.OTHER && (
           <>
-            {!!selfOnboardAmount && (
-              <MobileSwitcherButton
-                label="Self Onboarded"
-                target="self-onboard"
-                amount={selfOnboardAmount}
-                type="secondary"
-              />
-            )}
+            <MobileSwitcherButton
+              label="Self Onboarded"
+              target="self-onboard"
+              amount={selfOnboardAmount}
+              type="secondary"
+            />
 
-            {!!manualAmount && (
-              <MobileSwitcherButton
-                label="Onboarded by Borrower"
-                target="manual"
-                amount={manualAmount}
-                type="secondary"
-              />
-            )}
+            <MobileSwitcherButton
+              label="Onboarded by Borrower"
+              target="manual"
+              amount={manualAmount}
+              type="secondary"
+            />
           </>
         )}
       </Box>

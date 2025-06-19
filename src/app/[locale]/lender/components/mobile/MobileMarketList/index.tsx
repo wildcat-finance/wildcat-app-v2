@@ -57,6 +57,30 @@ export const MobileMarketList = ({
 
   const paginationItems = getPaginationRange(page, totalPages)
 
+  if (markets.length === 0)
+    return (
+      <Box
+        sx={{
+          width: "100%",
+          height: "155px",
+          backgroundColor: COLORS.white,
+          padding: "12px",
+          borderRadius: "14px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "4px",
+          marginTop: "4px",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="mobH3">No Markets Here</Typography>
+        <Typography variant="mobText3" color={COLORS.santasGrey}>
+          Change selected filters or check other sections
+        </Typography>
+      </Box>
+    )
+
   return (
     <Box
       sx={{
