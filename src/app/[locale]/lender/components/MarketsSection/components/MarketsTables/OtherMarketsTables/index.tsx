@@ -19,15 +19,16 @@ import {
   BorrowerWithName,
   useBorrowerNames,
 } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import { MobileMarketCard } from "@/app/[locale]/lender/components/mobile/MobileMarketCard"
+import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
-import { OtherMarketsCard } from "@/components/Mobile/Card/OtherMarketsCard"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { TablePagination } from "@/components/TablePagination"
-import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { LenderMarketDashboardSections } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { COLORS } from "@/theme/colors"
 import { theme } from "@/theme/theme"
@@ -85,13 +86,15 @@ export const OtherMarketsTables = ({
   const manualRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (scrollTargetId === "self-onboard" && selfOnboardRef.current) {
-      selfOnboardRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
-    }
-    if (scrollTargetId === "manual" && manualRef.current) {
-      manualRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
+    if (!isMobile) {
+      if (scrollTargetId === "self-onboard" && selfOnboardRef.current) {
+        selfOnboardRef.current.scrollIntoView({ behavior: "smooth" })
+        dispatch(setScrollTarget(null))
+      }
+      if (scrollTargetId === "manual" && manualRef.current) {
+        manualRef.current.scrollIntoView({ behavior: "smooth" })
+        dispatch(setScrollTarget(null))
+      }
     }
   }, [scrollTargetId])
 
@@ -402,6 +405,16 @@ export const OtherMarketsTables = ({
     setManualPaginationModel((prevState) => ({ ...prevState, page: 0 }))
   }, [assetFilter, statusFilter, nameFilter])
 
+  if (isMobile)
+    return (
+      <>
+        {scrollTargetId === "self-onboard" && (
+          <MobileMarketList markets={selfOnboard} />
+        )}
+        {scrollTargetId === "manual" && <MobileMarketList markets={manual} />}
+      </>
+    )
+
   return (
     <Box
       sx={{
@@ -429,56 +442,10 @@ export const OtherMarketsTables = ({
         >
           {isMobile ? (
             <Box display="flex" flexDirection="column">
-              {selfOnboard.map((row) => (
-                <OtherMarketsCard
-                  key={row.id}
-                  status={<MarketStatusChip status={row.status} />}
-                  apr={`${formatBps(row.apr)}%`}
-                  aprIcon={<TooltipButton value=" APR" />}
-                  term={<MarketTypeChip {...row.term} />}
-                  name={row.name}
-                  capacityLeft={
-                    row.capacityLeft && row.capacityLeft.gt(0)
-                      ? formatTokenWithCommas(row.capacityLeft, {
-                          withSymbol: false,
-                          fractionDigits: 2,
-                        })
-                      : "0"
-                  }
-                  asset={row.asset}
-                  borrower={row.borrower || ""}
-                  leftButton={
-                    <Link
-                      href={`${ROUTES.lender.market}/${row.id}`}
-                      passHref
-                      legacyBehavior
-                    >
-                      <Button
-                        component="a"
-                        variant="outlined"
-                        size="small"
-                        color="secondary"
-                        sx={{ textTransform: "none" }}
-                      >
-                        <Typography variant="text4" color={COLORS.blackRock}>
-                          More
-                        </Typography>
-                      </Button>
-                    </Link>
-                  }
-                  rightButton={
-                    <Link
-                      href={`${ROUTES.lender.market}/${row.id}`}
-                      passHref
-                      legacyBehavior
-                    >
-                      <Button variant="contained" size="small" color="primary">
-                        <Typography variant="text4" color={COLORS.white}>
-                          Onboard
-                        </Typography>
-                      </Button>
-                    </Link>
-                  }
+              {selfOnboard.map((marketItem) => (
+                <MobileMarketCard
+                  marketItem={marketItem}
+                  buttonText="Onboard"
                 />
               ))}
             </Box>
@@ -517,64 +484,10 @@ export const OtherMarketsTables = ({
         >
           {isMobile ? (
             <Box display="flex" flexDirection="column">
-              {manual.map((row) => (
-                <OtherMarketsCard
-                  key={row.id}
-                  status={<MarketStatusChip status={row.status} />}
-                  apr={<>{formatBps(row.apr)}%</>}
-                  aprIcon={<TooltipButton value="APR" size="small" />}
-                  term={<MarketTypeChip {...row.term} />}
-                  name={row.name}
-                  capacityLeft={
-                    row.capacityLeft && row.capacityLeft.gt(0)
-                      ? formatTokenWithCommas(row.capacityLeft, {
-                          withSymbol: false,
-                          fractionDigits: 2,
-                        })
-                      : "0"
-                  }
-                  asset={row.asset}
-                  borrower={row.borrower || ""}
-                  totalDebt={
-                    row.debt
-                      ? formatTokenWithCommas(row.debt, {
-                          withSymbol: false,
-                          fractionDigits: 2,
-                        })
-                      : "0"
-                  }
-                  leftButton={
-                    <Link
-                      href={`${ROUTES.lender.market}/${row.id}`}
-                      passHref
-                      legacyBehavior
-                    >
-                      <Button
-                        component="a"
-                        variant="outlined"
-                        size="small"
-                        color="secondary"
-                        sx={{ textTransform: "none" }}
-                      >
-                        <Typography variant="text4" color={COLORS.blackRock}>
-                          More
-                        </Typography>
-                      </Button>
-                    </Link>
-                  }
-                  rightButton={
-                    <Link
-                      href={`${ROUTES.lender.market}/${row.id}`}
-                      passHref
-                      legacyBehavior
-                    >
-                      <Button variant="contained" size="small" color="primary">
-                        <Typography variant="text4" color={COLORS.white}>
-                          Request
-                        </Typography>
-                      </Button>
-                    </Link>
-                  }
+              {manual.map((marketItem) => (
+                <MobileMarketCard
+                  marketItem={marketItem}
+                  buttonText="Request"
                 />
               ))}
             </Box>

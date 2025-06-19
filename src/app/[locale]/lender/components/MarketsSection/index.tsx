@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Typography, useMediaQuery } from "@mui/material"
 import {
   DepositStatus,
   LenderRole,
@@ -16,6 +16,7 @@ import { LenderMarketSectionSwitcher } from "@/app/[locale]/lender/components/Ma
 import { LenderActiveMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/LenderActiveMarketsTables"
 import { LenderTerminatedMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/LenderTerminatedMarketsTables"
 import { OtherMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/OtherMarketsTables"
+import { MobileMarketSectionHeader } from "@/app/[locale]/lender/components/MarketsSection/components/MobileMarketSectionSwitcher"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { FilterTextField } from "@/components/FilterTextfield"
 import {
@@ -36,11 +37,14 @@ import {
   setShowFullFunctionality,
 } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { COLORS } from "@/theme/colors"
+import { theme } from "@/theme/theme"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
 
 export const MarketsSection = () => {
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+
   const marketSection = useAppSelector(
     (state) => state.lenderDashboard.marketSection,
   )
@@ -246,98 +250,102 @@ export const MarketsSection = () => {
         width: "100%",
       }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          padding: "0 24px",
-        }}
-      >
+      {!isMobile && (
         <Box
           sx={{
-            width: "100%",
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            flexDirection: "column",
+            padding: "0 24px",
           }}
         >
-          <Typography variant="title2" sx={{ marginBottom: "6px" }}>
-            {t("dashboard.markets.title")}
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="title2" sx={{ marginBottom: "6px" }}>
+              {t("dashboard.markets.title")}
+            </Typography>
+
+            {!(marketSection === LenderMarketDashboardSections.OTHER) &&
+              !isLoading && (
+                <Button
+                  variant="contained"
+                  size="small"
+                  disabled={isWrongNetwork}
+                  sx={{
+                    paddingTop: "8px",
+                    paddingBottom: "8px",
+                    minWidth: "100px",
+                  }}
+                  onClick={() =>
+                    dispatch(
+                      setMarketSection(LenderMarketDashboardSections.OTHER),
+                    )
+                  }
+                >
+                  {t("dashboard.markets.lenderTitleButton")}
+                </Button>
+              )}
+          </Box>
+          <Typography
+            variant="text3"
+            color={COLORS.santasGrey}
+            sx={{ marginBottom: "24px" }}
+          >
+            {t("dashboard.markets.lenderSubtitle")}{" "}
+            <Link
+              href="https://docs.wildcat.finance/using-wildcat/day-to-day-usage/lenders"
+              style={{ color: COLORS.santasGrey }}
+              target="_blank"
+            >
+              {t("dashboard.markets.docsLink")}
+            </Link>
           </Typography>
 
-          {!(marketSection === LenderMarketDashboardSections.OTHER) &&
-            !isLoading && (
-              <Button
-                variant="contained"
-                size="small"
-                disabled={isWrongNetwork}
-                sx={{
-                  paddingTop: "8px",
-                  paddingBottom: "8px",
-                  minWidth: "100px",
-                }}
-                onClick={() =>
-                  dispatch(
-                    setMarketSection(LenderMarketDashboardSections.OTHER),
-                  )
-                }
-              >
-                {t("dashboard.markets.lenderTitleButton")}
-              </Button>
-            )}
-        </Box>
-        <Typography
-          variant="text3"
-          color={COLORS.santasGrey}
-          sx={{ marginBottom: "24px" }}
-        >
-          {t("dashboard.markets.lenderSubtitle")}{" "}
-          <Link
-            href="https://docs.wildcat.finance/using-wildcat/day-to-day-usage/lenders"
-            style={{ color: COLORS.santasGrey }}
-            target="_blank"
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "space-between",
+            }}
           >
-            {t("dashboard.markets.docsLink")}
-          </Link>
-        </Typography>
+            {!noMarketsAtAll && <LenderMarketSectionSwitcher />}
 
-        <Box
-          sx={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "space-between",
-          }}
-        >
-          {!noMarketsAtAll && <LenderMarketSectionSwitcher />}
+            <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
+              <FilterTextField
+                value={marketSearch}
+                setValue={setMarketSearch}
+                placeholder={t("dashboard.markets.filters.name")}
+              />
 
-          <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
-            <FilterTextField
-              value={marketSearch}
-              setValue={setMarketSearch}
-              placeholder={t("dashboard.markets.filters.name")}
-            />
+              <SmallFilterSelect
+                placeholder={t("dashboard.markets.filters.assets")}
+                options={
+                  tokens?.map((token) => ({
+                    id: token.address,
+                    name: token.symbol,
+                  })) ?? []
+                }
+                selected={marketAssets}
+                setSelected={setMarketAssets}
+              />
 
-            <SmallFilterSelect
-              placeholder={t("dashboard.markets.filters.assets")}
-              options={
-                tokens?.map((token) => ({
-                  id: token.address,
-                  name: token.symbol,
-                })) ?? []
-              }
-              selected={marketAssets}
-              setSelected={setMarketAssets}
-            />
-
-            <SmallFilterSelect
-              placeholder={t("dashboard.markets.filters.statuses")}
-              options={marketStatusesMock}
-              selected={marketStatuses}
-              setSelected={setMarketStatuses}
-            />
+              <SmallFilterSelect
+                placeholder={t("dashboard.markets.filters.statuses")}
+                options={marketStatusesMock}
+                selected={marketStatuses}
+                setSelected={setMarketStatuses}
+              />
+            </Box>
           </Box>
         </Box>
-      </Box>
+      )}
+
+      {isMobile && <MobileMarketSectionHeader />}
 
       {marketSection === LenderMarketDashboardSections.ACTIVE &&
         !noActiveMarkets &&

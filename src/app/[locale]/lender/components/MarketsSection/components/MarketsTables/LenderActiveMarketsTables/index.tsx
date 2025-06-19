@@ -2,37 +2,24 @@ import * as React from "react"
 import { useEffect, useRef } from "react"
 
 import { Box, Button, Typography, useMediaQuery } from "@mui/material"
-import {
-  DataGrid,
-  GridColDef,
-  GridRenderCellParams,
-  GridRowsProp,
-} from "@mui/x-data-grid"
-import {
-  DepositStatus,
-  Market,
-  MarketAccount,
-  MarketVersion,
-  TokenAmount,
-} from "@wildcatfi/wildcat-sdk"
+import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
+import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import {
-  MarketsTablesProps,
-  TypeSafeColDef,
-} from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
+import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import { MobileMarketCard } from "@/app/[locale]/lender/components/mobile/MobileMarketCard"
+import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
-import { OtherMarketsCard } from "@/components/Mobile/Card/OtherMarketsCard"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
-import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { LenderMarketDashboardSections } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { COLORS } from "@/theme/colors"
 import { theme } from "@/theme/theme"
@@ -79,10 +66,9 @@ export const LenderActiveMarketsTables = ({
     statusFilter: MarketStatus[]
   }
 }) => {
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
   )
@@ -91,13 +77,15 @@ export const LenderActiveMarketsTables = ({
   const nonDepositedRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (scrollTargetId === "deposited" && depositedRef.current) {
-      depositedRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
-    }
-    if (scrollTargetId === "non-deposited" && nonDepositedRef.current) {
-      nonDepositedRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
+    if (!isMobile) {
+      if (scrollTargetId === "deposited" && depositedRef.current) {
+        depositedRef.current.scrollIntoView({ behavior: "smooth" })
+        dispatch(setScrollTarget(null))
+      }
+      if (scrollTargetId === "non-deposited" && nonDepositedRef.current) {
+        nonDepositedRef.current.scrollIntoView({ behavior: "smooth" })
+        dispatch(setScrollTarget(null))
+      }
     }
   }, [scrollTargetId])
 
@@ -384,6 +372,18 @@ export const LenderActiveMarketsTables = ({
     },
   ]
 
+  if (isMobile)
+    return (
+      <>
+        {scrollTargetId === "deposited" && (
+          <MobileMarketList markets={depositedMarkets} />
+        )}
+        {scrollTargetId === "non-deposited" && (
+          <MobileMarketList markets={nonDepositedMarkets} />
+        )}
+      </>
+    )
+
   return (
     <Box
       sx={{
@@ -415,59 +415,11 @@ export const LenderActiveMarketsTables = ({
         >
           {isMobile ? (
             <Box display="flex" flexDirection="column">
-              {depositedMarkets.map((row) => (
-                <OtherMarketsCard
-                  key={row.id}
-                  status={<MarketStatusChip status={row.status} />}
-                  apr={`${formatBps(row.apr)}%`}
-                  aprIcon={<TooltipButton value=" APR" />}
-                  term={<MarketTypeChip {...row.term} />}
-                  name={row.name}
-                  capacityLeft={formatTokenWithCommas(row.capacityLeft, {
-                    fractionDigits: 2,
-                  })}
-                  asset={row.asset}
-                  borrower={row.borrower}
-                  loan={
-                    row.loan
-                      ? formatTokenWithCommas(row.loan, {
-                          fractionDigits: 2,
-                        })
-                      : "0"
-                  }
-                  bottomLeftTextColor={COLORS.blackRock}
-                  leftButton={
-                    <Link
-                      href={`${ROUTES.lender.market}/${row.id}`}
-                      passHref
-                      legacyBehavior
-                    >
-                      <Button
-                        component="a"
-                        variant="outlined"
-                        size="small"
-                        color="secondary"
-                        sx={{ textTransform: "none" }}
-                      >
-                        <Typography variant="text4" color={COLORS.blackRock}>
-                          More
-                        </Typography>
-                      </Button>
-                    </Link>
-                  }
-                  rightButton={
-                    <Link
-                      href={`${ROUTES.lender.market}/${row.id}`}
-                      passHref
-                      legacyBehavior
-                    >
-                      <Button variant="contained" size="small" color="primary">
-                        <Typography variant="text4" color={COLORS.white}>
-                          Deposit
-                        </Typography>
-                      </Button>
-                    </Link>
-                  }
+              {depositedMarkets.map((marketItem) => (
+                <MobileMarketCard
+                  marketItem={marketItem}
+                  buttonText="Deposit"
+                  buttonIcon
                 />
               ))}
             </Box>
@@ -505,58 +457,11 @@ export const LenderActiveMarketsTables = ({
         >
           {isMobile ? (
             <Box display="flex" flexDirection="column">
-              {nonDepositedMarkets.map((row) => (
-                <OtherMarketsCard
-                  key={row.id}
-                  status={<MarketStatusChip status={row.status} />}
-                  apr={`${formatBps(row.apr)}%`}
-                  aprIcon={<TooltipButton value=" APR" />}
-                  term={<MarketTypeChip {...row.term} />}
-                  name={row.name}
-                  capacityLeft={formatTokenWithCommas(row.capacityLeft, {
-                    fractionDigits: 2,
-                  })}
-                  asset={row.asset}
-                  borrower={row.borrower}
-                  loan={
-                    row.loan
-                      ? formatTokenWithCommas(row.loan, {
-                          fractionDigits: 2,
-                        })
-                      : "0"
-                  }
-                  leftButton={
-                    <Link
-                      href={`${ROUTES.lender.market}/${row.id}`}
-                      passHref
-                      legacyBehavior
-                    >
-                      <Button
-                        component="a"
-                        variant="outlined"
-                        size="small"
-                        color="secondary"
-                        sx={{ textTransform: "none" }}
-                      >
-                        <Typography variant="text4" color={COLORS.blackRock}>
-                          More
-                        </Typography>
-                      </Button>
-                    </Link>
-                  }
-                  rightButton={
-                    <Link
-                      href={`${ROUTES.lender.market}/${row.id}`}
-                      passHref
-                      legacyBehavior
-                    >
-                      <Button variant="contained" size="small" color="primary">
-                        <Typography variant="text4" color={COLORS.white}>
-                          Deposit
-                        </Typography>
-                      </Button>
-                    </Link>
-                  }
+              {nonDepositedMarkets.map((marketItem) => (
+                <MobileMarketCard
+                  marketItem={marketItem}
+                  buttonText="Deposit"
+                  buttonIcon
                 />
               ))}
             </Box>
