@@ -1,23 +1,23 @@
 "use client"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Divider, Typography, useMediaQuery } from "@mui/material"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { COLORS } from "@/theme/colors"
+import { theme } from "@/theme/theme"
 import { dayjs } from "@/utils/dayjs"
 
 import {
   ContentContainer,
   DownloadIcon,
-  CommitHashLinkSx,
   DeployInfoSx,
 } from "./style"
 
 const DEPLOY_DATE_FORMAT = "DD.MM.YYYY HH:mm"
 
-const getCommitInfo = () => {
+const getCommitInfo = (isMobile: boolean) => {
   if (
     process.env.NODE_ENV !== "production" ||
     !process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
@@ -25,30 +25,74 @@ const getCommitInfo = () => {
     return null
 
   return (
-    <Box sx={DeployInfoSx}>
+    <Box
+      sx={
+        isMobile
+          ? {
+              display: "flex",
+              flexDirection: "column",
+              gap: "4px",
+            }
+          : DeployInfoSx
+      }
+    >
       <Link
         href={`${process.env.NEXT_PUBLIC_GIT_WILDCAT_URL}/${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA}`}
         target="_blank"
-        style={CommitHashLinkSx}
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          color: isMobile ? COLORS.white06 : COLORS.santasGrey,
+        }}
       >
-        <Typography variant="text4" color={COLORS.santasGrey}>
+        <Typography
+          variant="text4"
+          color={isMobile ? COLORS.white06 : COLORS.santasGrey}
+        >
           {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA}
         </Typography>
       </Link>
 
-      <Typography variant="text4" color={COLORS.santasGrey}>
+      <Typography
+        variant="text4"
+        textAlign={isMobile ? "center" : "left"}
+        color={isMobile ? COLORS.white06 : COLORS.santasGrey}
+      >
         {dayjs(process.env.BUILD_TIME).format(DEPLOY_DATE_FORMAT)}
       </Typography>
     </Box>
   )
 }
 
-const COMMIT_INFO = getCommitInfo()
+const COMMIT_INFO = getCommitInfo(false)
 
 export const Footer = () => {
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const { t } = useTranslation()
   const pathname = usePathname()
   const showFooter = pathname !== "/agreement"
+
+  if (isMobile)
+    return (
+      <Box>
+        <Divider sx={{ borderColor: COLORS.white06 }} />
+
+        <Box
+          sx={{
+            padding: "24px 20px 20px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "4px",
+          }}
+        >
+          <Typography variant="text4" textAlign="center" color={COLORS.white06}>
+            {t("footer.rights")}
+          </Typography>
+
+          {COMMIT_INFO}
+        </Box>
+      </Box>
+    )
 
   return (
     <Box sx={ContentContainer}>

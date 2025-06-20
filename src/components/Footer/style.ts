@@ -16,10 +16,6 @@ export const DeployInfoSx = {
   flexDirection: "column",
 }
 
-export const CommitHashLinkSx = {
-  color: COLORS.santasGrey,
-}
-
 export const DownloadIcon = {
   rotate: "270deg",
   marginLeft: "2px",

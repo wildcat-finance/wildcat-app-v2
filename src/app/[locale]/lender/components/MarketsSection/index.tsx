@@ -20,6 +20,7 @@ import { MobileMarketSectionHeader } from "@/app/[locale]/lender/components/Mark
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { FilterTextField } from "@/components/FilterTextfield"
 import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
+import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
 import {
   SmallFilterSelect,
   SmallFilterSelectItem,
@@ -347,7 +348,7 @@ export const MarketsSection = () => {
 
       {isMobile && (
         <MobileMarketSectionHeader>
-          <Box>
+          <Box sx={{ display: "flex", gap: "4px" }}>
             <MobileFilterButton
               assetsOptions={
                 tokens?.map((token) => ({
@@ -361,6 +362,8 @@ export const MarketsSection = () => {
               setMarketAssets={setMarketAssets}
               setMarketStatuses={setMarketStatuses}
             />
+
+            <MobileSearchButton />
           </Box>
         </MobileMarketSectionHeader>
       )}
