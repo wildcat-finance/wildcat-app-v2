@@ -4,6 +4,7 @@ import { Box, useTheme, useMediaQuery } from "@mui/material"
 
 import { WithdrawalsBarChart } from "@/app/[locale]/lender/market/[address]/components/BarCharts/WithdrawalsBarChart"
 import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
 import { CapacityBarChart } from "./CapacityBarChart"
@@ -19,7 +20,7 @@ export const BarCharts = ({
   isLender: boolean
 }) => {
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
 
   return (
     <Box

@@ -26,6 +26,7 @@ import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { TablePagination } from "@/components/TablePagination"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { LenderMarketDashboardSections } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
@@ -76,7 +77,7 @@ export const OtherMarketsTables = ({
 }) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
 
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,

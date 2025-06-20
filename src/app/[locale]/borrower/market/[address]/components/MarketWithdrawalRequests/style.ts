@@ -7,7 +7,7 @@ export const TotalAccordionSummary = (theme: Theme): SxProps<Theme> => ({
   alignItems: "center",
   justifyContent: "space-between",
   padding: "8px 8px 8px 16px",
-  [theme.breakpoints.down("sm")]: {
+  [theme.breakpoints.down("md")]: {
     borderRadius: "10px",
     textWrap: "nowrap",
     backgroundColor: COLORS.whiteSmoke,
@@ -26,7 +26,7 @@ export const MarketWithdrawalRequestsContainer = (
 ): SxProps<Theme> => ({
   display: "flex",
   flexDirection: "column",
-  [theme.breakpoints.down("sm")]: {
+  [theme.breakpoints.down("md")]: {
     flexDirection: "column",
     backgroundColor: COLORS.white,
     borderRadius: "14px",

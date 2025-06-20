@@ -12,6 +12,7 @@ import LogoWhite from "@/assets/icons/airdrop_logo_new.svg"
 import Logo from "@/assets/icons/logo_white.svg"
 import LogoBlack from "@/assets/icons/sale_logo_black.svg"
 import { contentContainer, NavContainer } from "@/components/Header/style"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setTab } from "@/store/slices/borrowerOverviewSlice/borrowerOverviewSlice"
@@ -24,7 +25,7 @@ import { MobileMenu } from "./MobileMenu"
 export default function Header() {
   const { t } = useTranslation()
   const theme = useTheme()
-  const isMobile = useMediaQuery("(max-width:600px)")
+  const isMobile = useMobileResolution()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false)
 
   const router = useRouter()

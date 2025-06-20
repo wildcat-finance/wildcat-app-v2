@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
 import { WithdrawalsMobileTableItem } from "@/components/Mobile/WithdrawalsMobileTableItem"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 import {
@@ -31,7 +32,7 @@ export const OutstandingTable = ({
 }: OngoingTableProps) => {
   const { t } = useTranslation()
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
   const [isOutstandingOpen, setIsOutstandingOpen] = useState(false)
 
   const outstandingRows: WithdrawalTxRow[] = withdrawalBatches.flatMap(

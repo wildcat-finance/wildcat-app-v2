@@ -29,7 +29,6 @@ export const DetailsAccordion = ({
     setIsOpen(!isOpen)
   }
   const theme = useTheme()
-  const isMobile = useMediaQuery("(max-width:600px)")
   return (
     <>
       <Box

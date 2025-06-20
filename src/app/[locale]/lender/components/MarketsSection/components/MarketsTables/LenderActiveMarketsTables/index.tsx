@@ -17,6 +17,7 @@ import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { LenderMarketDashboardSections } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
@@ -66,7 +67,7 @@ export const LenderActiveMarketsTables = ({
     statusFilter: MarketStatus[]
   }
 }) => {
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const scrollTargetId = useAppSelector(

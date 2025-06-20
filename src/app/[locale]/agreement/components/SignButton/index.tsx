@@ -38,7 +38,7 @@ export const SignButton = () => {
       sx={{
         width: "169",
         height: "44px",
-        [theme.breakpoints.down("sm")]: {
+        [theme.breakpoints.down("md")]: {
           width: "100%",
         },
       }}

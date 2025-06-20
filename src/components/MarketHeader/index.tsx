@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next"
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 
@@ -26,7 +27,7 @@ import {
 
 export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
 
   const [remainingTime, setRemainingTime] = React.useState<string | undefined>(
     "",

@@ -10,7 +10,7 @@ export default function Lender() {
   return (
     <Box
       sx={{
-        paddingTop: { xs: "0px", sm: "32px" },
+        paddingTop: { xs: "0px", md: "32px" },
         overflow: "hidden",
       }}
     >

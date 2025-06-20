@@ -9,6 +9,7 @@ import { DataGridCells } from "@/app/[locale]/borrower/market/[address]/componen
 import { TableProps } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests/interface"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
 import { WithdrawalsMobileTableItem } from "@/components/Mobile/WithdrawalsMobileTableItem"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import {
   formatTokenWithCommas,
@@ -23,7 +24,7 @@ export const OutstandingTable = ({
   const { t } = useTranslation()
   const [isOutstandingOpen, setIsOutstandingOpen] = useState(false)
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
 
   const outstandingRows = withdrawals.flatMap((status) =>
     status.requests

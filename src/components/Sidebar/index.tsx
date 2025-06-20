@@ -39,7 +39,7 @@ export const Sidebar = () => {
         borderRight: `1px solid ${COLORS.blackRock006}`,
         overflow: "hidden",
         overflowY: "auto",
-        [theme.breakpoints.down("sm")]: {
+        [theme.breakpoints.down("md")]: {
           display: "none",
         },
       }}

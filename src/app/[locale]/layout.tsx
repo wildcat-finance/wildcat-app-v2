@@ -79,7 +79,7 @@ export default async function RootLayout({
                           <Box
                             width="calc(100vw - 267px)"
                             sx={{
-                              "@media (max-width: 600px)": {
+                              "@media (max-width: 1000px)": {
                                 width: "100%",
                               },
                             }}

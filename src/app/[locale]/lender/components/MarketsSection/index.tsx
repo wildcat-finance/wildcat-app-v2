@@ -29,6 +29,7 @@ import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
 import { TargetChainId } from "@/config/network"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { marketStatusesMock } from "@/mocks/mocks"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setLendersSectionAmount } from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
@@ -44,7 +45,7 @@ import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
 
 export const MarketsSection = () => {
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
 
   const marketSection = useAppSelector(
     (state) => state.lenderDashboard.marketSection,

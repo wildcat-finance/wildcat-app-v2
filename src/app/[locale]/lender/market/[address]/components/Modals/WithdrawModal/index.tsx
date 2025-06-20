@@ -27,6 +27,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
@@ -39,7 +40,7 @@ export const WithdrawModal = ({
   setIsMobileOpen,
 }: WithdrawModalProps) => {
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
 
   const { t } = useTranslation()
   const { market } = marketAccount

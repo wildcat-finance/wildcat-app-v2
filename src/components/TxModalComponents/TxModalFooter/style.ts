@@ -15,7 +15,7 @@ export const TxModalFooterContainer = (theme: Theme): SxProps<Theme> => ({
   padding: "0 24px",
   display: "flex",
   gap: "8px",
-  [theme.breakpoints.down("sm")]: {
+  [theme.breakpoints.down("md")]: {
     padding: "0 20px",
     gap: "4px",
   },

@@ -5,15 +5,12 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { theme } from "@/theme/theme"
 import { dayjs } from "@/utils/dayjs"
 
-import {
-  ContentContainer,
-  DownloadIcon,
-  DeployInfoSx,
-} from "./style"
+import { ContentContainer, DownloadIcon, DeployInfoSx } from "./style"
 
 const DEPLOY_DATE_FORMAT = "DD.MM.YYYY HH:mm"
 
@@ -67,7 +64,7 @@ const getCommitInfo = (isMobile: boolean) => {
 const COMMIT_INFO = getCommitInfo(false)
 
 export const Footer = () => {
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const pathname = usePathname()
   const showFooter = pathname !== "/agreement"

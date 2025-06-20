@@ -12,13 +12,14 @@ import { ProfileDialog } from "@/components/Header/HeaderButton/ProfileDialog"
 import { ConnectButton } from "@/components/Header/HeaderButton/style"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { trimAddress } from "@/utils/formatters"
 
 export const HeaderButton = () => {
   const { t } = useTranslation()
   const { address, isConnected } = useAccount()
   const { data } = useGetBorrowerProfile(address)
-  const isMobile = useMediaQuery("(max-width:600px)")
+  const isMobile = useMobileResolution()
 
   const { isWrongNetwork } = useCurrentNetwork()
 

@@ -2,6 +2,7 @@ import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { BarItem } from "@/components/BarChart/BarItem"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -14,7 +15,7 @@ import { BarChartProps } from "../interface"
 export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
   const { t } = useTranslation()
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
   const barRawData = useGenerateDebtsBarData(marketAccount)
   const barOrders = MARKET_BAR_ORDER.healthyBarchartOrder
   const legendItemsOrder = MARKET_BAR_ORDER.healthyLegendOrder

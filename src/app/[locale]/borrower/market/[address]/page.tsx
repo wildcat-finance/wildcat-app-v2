@@ -16,6 +16,7 @@ import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecords
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import {
@@ -48,7 +49,7 @@ export default function MarketDetails({
   const { address: walletAddress } = useAccount()
   const theme = useTheme()
   const breakpoint = theme.breakpoints
-  const isMobile = useMediaQuery(breakpoint.down("sm"))
+  const isMobile = useMobileResolution()
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 

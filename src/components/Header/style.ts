@@ -10,7 +10,7 @@ export const contentContainer = (theme: Theme): SxProps<Theme> => ({
   margin: "16px 16px 16px 8px",
   background: "transparent",
 
-  [theme.breakpoints.down("sm")]: {
+  [theme.breakpoints.down("md")]: {
     position: "fixed",
     top: "0px",
     width: "calc(100vw - 8px)",

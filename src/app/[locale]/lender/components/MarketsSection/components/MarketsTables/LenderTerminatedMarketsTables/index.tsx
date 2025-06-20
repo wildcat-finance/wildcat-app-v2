@@ -15,6 +15,7 @@ import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/Mobile
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
@@ -61,7 +62,7 @@ export const LenderTerminatedMarketsTables = ({
     statusFilter: MarketStatus[]
   }
 }) => {
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const scrollTargetId = useAppSelector(

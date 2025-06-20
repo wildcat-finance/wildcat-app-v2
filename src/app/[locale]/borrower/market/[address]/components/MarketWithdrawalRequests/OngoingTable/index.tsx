@@ -10,6 +10,7 @@ import { WithdrawalTxRow } from "@/app/[locale]/borrower/market/[address]/compon
 import { DataGridCells } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/style"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
 import { WithdrawalsMobileTableItem } from "@/components/Mobile/WithdrawalsMobileTableItem"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import {
   formatTokenWithCommas,
@@ -30,7 +31,7 @@ export const OngoingTable = ({
   const { t } = useTranslation()
   const [isOngoingOpen, setIsOngoingOpen] = useState(false)
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
 
   const ongoingRows: WithdrawalTxRow[] = withdrawalBatches.flatMap((batch) =>
     batch.requests.map((withdrawal) => ({

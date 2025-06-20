@@ -32,7 +32,7 @@
   column-gap: 8px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 1000px) {
   .barchart__legend-item {
     height: fit-content;
     display: flex;

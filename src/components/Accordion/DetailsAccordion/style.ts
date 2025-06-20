@@ -5,7 +5,7 @@ export const SummaryContainer = (theme: Theme): SxProps<Theme> => ({
   alignItems: "center",
   gap: "12px",
   padding: "8px 8px 8px 16px",
-  [theme.breakpoints.down("sm")]: {
+  [theme.breakpoints.down("md")]: {
     paddingTop: "10px",
     paddingBottom: "10px",
     paddingRight: "0px",

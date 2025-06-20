@@ -15,6 +15,7 @@ import {
 import { LinkGroup } from "@/components/LinkComponent"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { EtherscanBaseUrl } from "@/config/network"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas, trimAddress } from "@/utils/formatters"
 
@@ -25,7 +26,7 @@ export const WithdrawalRequests = ({
 }: WithdrawalRequestsProps) => {
   const { t } = useTranslation()
   const theme = useTheme()
-  const isMobile = useMediaQuery("(max-width:600px)")
+  const isMobile = useMobileResolution()
 
   const expiredTotalAmount = withdrawals.expiredTotalPendingAmount
   const activeTotalAmount = withdrawals.activeTotalPendingAmount

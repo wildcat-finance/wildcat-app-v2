@@ -16,6 +16,7 @@ import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/component
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { useClaim } from "@/app/[locale]/lender/market/[address]/hooks/useClaim"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -25,7 +26,7 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
   const { t } = useTranslation()
 
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
 
   const [isOpen, setIsOpen] = useState(false)
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)

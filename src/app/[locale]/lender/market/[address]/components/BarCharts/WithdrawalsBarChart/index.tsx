@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 
 import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
 import { BarItem } from "@/components/BarChart/BarItem"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -18,7 +19,7 @@ export const WithdrawalsBarChart = ({
 }: BarChartProps & { withdrawals: LenderWithdrawalsForMarketResult }) => {
   const { t } = useTranslation()
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
   const { barData: barRawData, total } = useGenerateWithdrawalsBarData({
     market: marketAccount.market,
     lenderWithdrawals: withdrawals,

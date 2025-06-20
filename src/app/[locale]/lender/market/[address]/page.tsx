@@ -30,6 +30,7 @@ import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecords
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketMla } from "@/hooks/useMarketMla"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   LenderMarketSections,
@@ -110,7 +111,7 @@ export default function LenderMarketDetails({
     [],
   )
 
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
 
   const { data: mla, isLoading: mlaLoading } = useMarketMla(market?.address)
 

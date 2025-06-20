@@ -16,7 +16,7 @@
   margin-top: 24px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 1000px) {
   .barchart__container {
     display: flex;
     gap: 0 2px;

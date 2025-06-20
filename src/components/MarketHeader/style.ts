@@ -8,7 +8,7 @@ export const MarketHeaderUpperContainer = {
   justifyContent: "space-between",
   marginBottom: "20px",
   padding: "52px 32.3% 0 44px",
-  "@media (max-width: 600px)": {
+  "@media (max-width: 1000px)": {
     background: "white",
     flexDirection: "column-reverse",
     borderRadius: "14px",
@@ -24,7 +24,7 @@ export const MarketHeaderStatusContainer = (theme: Theme): SxProps<Theme> => ({
   display: "flex",
   columnGap: "12px",
 
-  [theme.breakpoints.down("sm")]: {
+  [theme.breakpoints.down("md")]: {
     padding: "12px 0",
     columnGap: "0px",
     justifyContent: "space-between",

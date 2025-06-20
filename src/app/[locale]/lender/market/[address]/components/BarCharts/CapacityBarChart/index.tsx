@@ -6,6 +6,7 @@ import { useGenerateCapacityBarData } from "@/app/[locale]/lender/market/[addres
 import { LenderLegendItem } from "@/app/[locale]/lender/market/[address]/components/BarCharts/components/LenderLegendItem"
 import { BarItem } from "@/components/BarChart/BarItem"
 import { LegendItem } from "@/components/BarChart/LegendItem"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -19,7 +20,7 @@ export const CapacityBarChart = ({
 }: BarChartProps & { legendType?: "big" | "small"; isLender?: boolean }) => {
   const { t } = useTranslation()
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
 
   const barRawData = useGenerateCapacityBarData(marketAccount)
 

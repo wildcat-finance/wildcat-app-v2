@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
 import { EtherscanBaseUrl } from "@/config/network"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
 import {
@@ -36,7 +37,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
   const isLocalHost = window.location.hostname === "localhost"
   const { t } = useTranslation()
   const theme = useTheme()
-  const isMobile = useMediaQuery("(max-width:600px)")
+  const isMobile = useMobileResolution()
   const [state, copyToClipboard] = useCopyToClipboard()
   const { timeDelinquent, delinquencyGracePeriod } = market
 

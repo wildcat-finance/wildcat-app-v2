@@ -25,6 +25,7 @@ import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/s
 import { LinkGroup } from "@/components/LinkComponent"
 import { WithdrawalsMobileTableItem } from "@/components/Mobile/WithdrawalsMobileTableItem"
 import { EtherscanBaseUrl } from "@/config/network"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import {
   formatTokenWithCommas,
@@ -159,7 +160,7 @@ export const ClaimableTable = ({ withdrawals, totalAmount }: TableProps) => {
   const { t } = useTranslation()
   const [isClaimableOpen, setIsClaimableOpen] = useState(false)
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMobile = useMobileResolution()
 
   const expiredPendingWithdrawals: {
     [key: string]: LenderWithdrawalStatus[]

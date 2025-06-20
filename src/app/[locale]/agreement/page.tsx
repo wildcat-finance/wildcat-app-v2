@@ -20,7 +20,7 @@ export default function Agreement() {
         width: "100%",
         display: "flex",
         justifyContent: "center",
-        [theme.breakpoints.down("sm")]: {
+        [theme.breakpoints.down("md")]: {
           padding: "32px 12px 12px",
           background: "white",
           borderRadius: "14px",
@@ -35,7 +35,7 @@ export default function Agreement() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          [theme.breakpoints.down("sm")]: {
+          [theme.breakpoints.down("md")]: {
             justifyContent: "start",
           },
         }}
@@ -45,7 +45,7 @@ export default function Agreement() {
           fontWeight={600}
           sx={{
             marginBottom: "24px",
-            [theme.breakpoints.down("sm")]: {
+            [theme.breakpoints.down("md")]: {
               marginBottom: "16px",
             },
           }}
@@ -64,7 +64,7 @@ export default function Agreement() {
             backgroundImage:
               "linear-gradient(3deg, #FFFFFF 40%, #FFFFFF00 73%)",
             pointerEvents: "none",
-            [theme.breakpoints.down("sm")]: {
+            [theme.breakpoints.down("md")]: {
               width: "calc(100% - 8px)",
               paddingX: "6px",
               borderRadius: "14px",
@@ -82,7 +82,7 @@ export default function Agreement() {
           paddingBottom: "44px",
           display: "flex",
           gap: "16px",
-          [theme.breakpoints.down("sm")]: {
+          [theme.breakpoints.down("md")]: {
             paddingBottom: "12px",
             paddingX: "12px",
             gap: "6px",
@@ -100,7 +100,7 @@ export default function Agreement() {
           sx={{
             width: "168.63px",
             height: "44px",
-            [theme.breakpoints.down("sm")]: {
+            [theme.breakpoints.down("md")]: {
               width: "100%",
             },
           }}
