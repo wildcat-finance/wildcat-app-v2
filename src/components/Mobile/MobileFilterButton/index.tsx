@@ -149,8 +149,9 @@ export const MobileFilterButton = ({
         sx={{
           backdropFilter: "blur(10px)",
           "& .MuiDialog-paper": {
-            height: "100%",
+            height: "fit-content",
             width: "100%",
+            maxWidth: "100%",
             border: "none",
             borderRadius: "14px",
             padding: "12px 0px",

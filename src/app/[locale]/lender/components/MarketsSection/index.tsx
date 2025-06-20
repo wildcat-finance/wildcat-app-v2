@@ -364,7 +364,11 @@ export const MarketsSection = () => {
               setMarketStatuses={setMarketStatuses}
             />
 
-            <MobileSearchButton />
+            <MobileSearchButton
+              marketAccounts={filteredMarketAccounts ?? []}
+              marketSearch={marketSearch}
+              setMarketSearch={setMarketSearch}
+            />
           </Box>
         </MobileMarketSectionHeader>
       )}
