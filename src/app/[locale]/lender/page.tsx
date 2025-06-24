@@ -9,7 +9,7 @@ export default function Lender() {
   return (
     <Box
       sx={{
-        minHeight: { xs: "calc(100vh - 64px)", md: "auto" },
+        minHeight: { xs: "calc(100dvh - 64px)", md: "auto" },
         display: "flex",
         flexDirection: "column",
         paddingTop: { xs: "0px", md: "32px" },

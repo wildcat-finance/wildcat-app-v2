@@ -52,8 +52,10 @@ const getCommitInfo = (isMobile: boolean) => {
 
       <Typography
         variant="text4"
-        textAlign={isMobile ? "center" : "left"}
-        color={isMobile ? COLORS.white06 : COLORS.santasGrey}
+        sx={{
+          textAlign: { xs: "center", md: "left" },
+          color: { xs: COLORS.white06, md: COLORS.santasGrey },
+        }}
       >
         {dayjs(process.env.BUILD_TIME).format(DEPLOY_DATE_FORMAT)}
       </Typography>
