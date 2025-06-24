@@ -1,12 +1,6 @@
 import * as React from "react"
 
-import {
-  Box,
-  Button,
-  Tooltip,
-  Typography,
-  useTheme,
-} from "@mui/material"
+import { Box, Button, Tooltip, Typography, useTheme } from "@mui/material"
 import humanizeDuration from "humanize-duration"
 
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
