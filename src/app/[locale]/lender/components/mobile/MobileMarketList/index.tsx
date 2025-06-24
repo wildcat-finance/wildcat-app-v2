@@ -57,7 +57,7 @@ export const MobileMarketList = ({
 
   const paginationItems = getPaginationRange(page, totalPages)
 
-  if (markets.length === 0)
+  if (!markets.length)
     return (
       <Box
         sx={{

@@ -107,146 +107,135 @@ export const MobileMarketActions = ({
   }
 
   return (
-    <>
-      <Box
-        sx={{
-          width: "100%",
-          height: mlaRequiredAndUnsigned ? "148px" : "126px",
-        }}
-      />
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: mlaRequiredAndUnsigned ? "column" : "row",
+        gap: mlaRequiredAndUnsigned ? 0 : "8px",
+        padding: "12px",
+        backgroundColor: COLORS.bunker,
+        borderRadius: "14px",
 
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: mlaRequiredAndUnsigned ? "column" : "row",
-          gap: mlaRequiredAndUnsigned ? 0 : "8px",
-          padding: "12px",
-          backgroundColor: COLORS.bunker,
-          borderRadius: "14px",
+        position: "sticky",
+        bottom: "4px",
+        width: "calc(100vw - 8px)",
+      }}
+    >
+      {mlaRequiredAndUnsigned && (
+        <>
+          <Typography
+            variant="title3"
+            fontSize="20px"
+            lineHeight="24px"
+            color={COLORS.white}
+            textAlign="center"
+            marginTop="12px"
+          >
+            Master Loan Agreement
+          </Typography>
 
-          position: "fixed",
-          bottom: "4px",
-          width: "calc(100vw - 8px)",
-        }}
-      >
-        {mlaRequiredAndUnsigned && (
-          <>
-            <Typography
-              variant="title3"
-              fontSize="20px"
-              lineHeight="24px"
-              color={COLORS.white}
-              textAlign="center"
-              marginTop="12px"
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              gap: "4px",
+              justifyContent: "center",
+              alignItems: "center",
+              marginTop: "8px",
+            }}
+          >
+            <SvgIcon
+              sx={{ fontSize: "12px", "& path": { fill: COLORS.white06 } }}
             >
-              Master Loan Agreement
+              <Clock />
+            </SvgIcon>
+            <Typography variant="text3" color={COLORS.white06}>
+              Waiting for sign, issued to sign
             </Typography>
+          </Box>
 
-            <Box
-              sx={{
-                width: "100%",
-                display: "flex",
-                gap: "4px",
-                justifyContent: "center",
-                alignItems: "center",
-                marginTop: "8px",
-              }}
-            >
-              <SvgIcon
-                sx={{ fontSize: "12px", "& path": { fill: COLORS.white06 } }}
-              >
-                <Clock />
-              </SvgIcon>
-              <Typography variant="text3" color={COLORS.white06}>
-                Waiting for sign, issued to sign
-              </Typography>
-            </Box>
+          <Button
+            onClick={handleClickToggleMLA}
+            variant="contained"
+            color="secondary"
+            size="large"
+            sx={{
+              marginTop: "24px",
+              padding: "8px 12px",
+              borderRadius: "10px",
+              fontSize: "13px",
+              fontWeight: 600,
+              lineHeight: "20px",
+            }}
+          >
+            {t("lenderMarketDetails.buttons.viewMla")}
+          </Button>
+        </>
+      )}
+
+      {!mlaRequiredAndUnsigned && (
+        <>
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+            }}
+          >
+            <MobileMarketTransactionItem
+              // title={t("lenderMarketDetails.transactions.withdraw.title")}
+              title="Available To Withdraw"
+              tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
+              amount={formatTokenWithCommas(marketAccount.marketBalance)}
+              asset={market.underlyingToken.symbol}
+            />
 
             <Button
-              onClick={handleClickToggleMLA}
               variant="contained"
               color="secondary"
               size="large"
-              sx={{
-                marginTop: "24px",
-                padding: "8px 12px",
-                borderRadius: "10px",
-                fontSize: "13px",
-                fontWeight: 600,
-                lineHeight: "20px",
-              }}
+              fullWidth
+              onClick={() => setIsMobileWithdrawalOpen(!isMobileWithdrawalOpen)}
+              disabled={notMature}
+              sx={{ padding: "10px 20px", marginTop: "16px" }}
             >
-              {t("lenderMarketDetails.buttons.viewMla")}
+              ↑{" "}
+              {notMature
+                ? t("lenderMarketDetails.transactions.withdraw.buttonLocked")
+                : t("lenderMarketDetails.transactions.withdraw.button")}
             </Button>
-          </>
-        )}
+          </Box>
 
-        {!mlaRequiredAndUnsigned && (
-          <>
-            <Box
-              sx={{
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-start",
-              }}
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+            }}
+          >
+            <MobileMarketTransactionItem
+              title={t("lenderMarketDetails.transactions.deposit.title")}
+              tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
+              amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
+              asset={market.underlyingToken.symbol}
+            />
+
+            <Button
+              onClick={() => setIsMobileDepositOpen(!isMobileDepositOpen)}
+              variant="contained"
+              color="secondary"
+              size="large"
+              fullWidth
+              disabled={marketAccount.maximumDeposit.raw.isZero()}
+              sx={{ padding: "10px 20px", marginTop: "16px" }}
             >
-              <MobileMarketTransactionItem
-                // title={t("lenderMarketDetails.transactions.withdraw.title")}
-                title="Available To Withdraw"
-                tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
-                amount={formatTokenWithCommas(marketAccount.marketBalance)}
-                asset={market.underlyingToken.symbol}
-              />
-
-              <Button
-                variant="contained"
-                color="secondary"
-                size="large"
-                fullWidth
-                onClick={() =>
-                  setIsMobileWithdrawalOpen(!isMobileWithdrawalOpen)
-                }
-                disabled={notMature}
-                sx={{ padding: "10px 20px", marginTop: "16px" }}
-              >
-                ↑{" "}
-                {notMature
-                  ? t("lenderMarketDetails.transactions.withdraw.buttonLocked")
-                  : t("lenderMarketDetails.transactions.withdraw.button")}
-              </Button>
-            </Box>
-
-            <Box
-              sx={{
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-end",
-              }}
-            >
-              <MobileMarketTransactionItem
-                title={t("lenderMarketDetails.transactions.deposit.title")}
-                tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
-                amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
-                asset={market.underlyingToken.symbol}
-              />
-
-              <Button
-                onClick={() => setIsMobileDepositOpen(!isMobileDepositOpen)}
-                variant="contained"
-                color="secondary"
-                size="large"
-                fullWidth
-                disabled={marketAccount.maximumDeposit.raw.isZero()}
-                sx={{ padding: "10px 20px", marginTop: "16px" }}
-              >
-                ↓ {t("lenderMarketDetails.transactions.deposit.button")}
-              </Button>
-            </Box>
-          </>
-        )}
-      </Box>
-    </>
+              ↓ {t("lenderMarketDetails.transactions.deposit.button")}
+            </Button>
+          </Box>
+        </>
+      )}
+    </Box>
   )
 }

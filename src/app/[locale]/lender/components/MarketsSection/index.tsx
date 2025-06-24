@@ -412,14 +412,19 @@ export const MarketsSection = () => {
         !isLoading &&
         !noMarketsAtAll &&
         marketSection === LenderMarketDashboardSections.ACTIVE && (
-          <Box sx={{ width: "100%", padding: "0 24px", marginTop: "24px" }}>
+          <Box
+            sx={{
+              width: "100%",
+              padding: { xs: "4px 0 0", md: "24px 24px 0px" },
+            }}
+          >
             <Box
               sx={{
                 width: "100%",
                 padding: "40px 24px",
                 display: "flex",
                 flexDirection: "column",
-                backgroundColor: COLORS.hintOfRed,
+                backgroundColor: { xs: COLORS.white, md: COLORS.hintOfRed },
                 borderRadius: "16px",
               }}
             >

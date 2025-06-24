@@ -5,15 +5,14 @@ import {
   Button,
   Tooltip,
   Typography,
-  useMediaQuery,
   useTheme,
 } from "@mui/material"
 import humanizeDuration from "humanize-duration"
-import { useTranslation } from "react-i18next"
 
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
+import { MobileMoreButton } from "@/components/Mobile/MobileMoreButton"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { getMarketStatusChip } from "@/utils/marketStatus"
@@ -32,7 +31,6 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
   const [remainingTime, setRemainingTime] = React.useState<string | undefined>(
     "",
   )
-  const { t } = useTranslation()
 
   const { market } = marketAccount
 
@@ -94,21 +92,33 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
           )}
         </Box>
 
-        <Box sx={MarketHeaderTitleContainer} marginBottom="20px">
-          <Typography
-            variant="title2"
-            sx={{
-              maxWidth: remainingTime ? "430px" : "550px",
-              whiteSpace: "nowrap",
-              textOverflow: "ellipsis",
-              overflow: "hidden",
-            }}
-          >
-            {market.name}
-          </Typography>
-          <Typography variant="text4">
-            {market.underlyingToken.symbol}
-          </Typography>
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "20px",
+          }}
+        >
+          <Box sx={MarketHeaderTitleContainer}>
+            <Typography
+              variant="title2"
+              sx={{
+                maxWidth: "280px",
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
+                overflow: "hidden",
+              }}
+            >
+              {market.name}
+            </Typography>
+            <Typography variant="text4">
+              {market.underlyingToken.symbol}
+            </Typography>
+          </Box>
+
+          <MobileMoreButton marketAccount={marketAccount} />
         </Box>
 
         <Box

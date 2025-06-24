@@ -24,6 +24,7 @@ import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Mo
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
+import { Footer } from "@/components/Footer"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
@@ -190,13 +191,12 @@ export default function LenderMarketDetails({
 
   if (isMobile)
     return (
-      <Box>
+      <>
         <Box
           sx={{
             display: "flex",
             flexDirection: "column",
             gap: "4px",
-            paddingBottom: "4px",
           }}
         >
           <MarketHeader marketAccount={marketAccount} />
@@ -240,7 +240,9 @@ export default function LenderMarketDetails({
             />
           )}
         </Box>
-      </Box>
+
+        <Footer showFooter={false} />
+      </>
     )
 
   return (

@@ -63,15 +63,15 @@ const getCommitInfo = (isMobile: boolean) => {
 
 const COMMIT_INFO = getCommitInfo(false)
 
-export const Footer = () => {
+export const Footer = ({ showFooter = true }: { showFooter?: boolean }) => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const pathname = usePathname()
-  const showFooter = pathname !== "/agreement"
+  const showFooterOnPage = pathname !== "/agreement"
 
   if (isMobile)
     return (
-      <Box>
+      <Box marginTop="4px">
         <Divider sx={{ borderColor: COLORS.white06 }} />
 
         <Box
@@ -91,41 +91,44 @@ export const Footer = () => {
       </Box>
     )
 
-  return (
-    <Box sx={ContentContainer}>
-      {showFooter && (
-        <Link
-          href="/pdf/Wildcat_Terms_of_Use.pdf"
-          target="_blank"
-          style={{ width: "fit-content", marginBottom: "8px" }}
-        >
-          <Button
-            variant="text"
-            size="small"
-            sx={{
-              padding: 0,
-              color: COLORS.blackRock,
-              "&:hover": {
-                background: "transparent",
-                color: COLORS.blackRock,
-                boxShadow: "none",
-              },
-            }}
+  if (!isMobile && showFooter)
+    return (
+      <Box sx={ContentContainer}>
+        {showFooterOnPage && (
+          <Link
+            href="/pdf/Wildcat_Terms_of_Use.pdf"
+            target="_blank"
+            style={{ width: "fit-content", marginBottom: "8px" }}
           >
-            {t("footer.agreement")}
-            <Box sx={DownloadIcon}>⇤</Box>
-          </Button>
-        </Link>
-      )}
-      <Typography
-        variant="text4"
-        color={COLORS.santasGrey}
-        sx={{ marginBottom: COMMIT_INFO ? "8px" : 0 }}
-      >
-        {t("footer.rights")}
-      </Typography>
+            <Button
+              variant="text"
+              size="small"
+              sx={{
+                padding: 0,
+                color: COLORS.blackRock,
+                "&:hover": {
+                  background: "transparent",
+                  color: COLORS.blackRock,
+                  boxShadow: "none",
+                },
+              }}
+            >
+              {t("footer.agreement")}
+              <Box sx={DownloadIcon}>⇤</Box>
+            </Button>
+          </Link>
+        )}
+        <Typography
+          variant="text4"
+          color={COLORS.santasGrey}
+          sx={{ marginBottom: COMMIT_INFO ? "8px" : 0 }}
+        >
+          {t("footer.rights")}
+        </Typography>
 
-      {COMMIT_INFO}
-    </Box>
-  )
+        {COMMIT_INFO}
+      </Box>
+    )
+
+  return null
 }

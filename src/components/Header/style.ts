@@ -3,12 +3,11 @@ import { Theme, SxProps } from "@mui/material"
 import { COLORS } from "@/theme/colors"
 
 export const contentContainer = (theme: Theme): SxProps<Theme> => ({
-  height: "66px",
+  height: "82px",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  margin: "16px 16px 16px 8px",
-  background: "transparent",
+  padding: "16px 16px 16px 8px",
 
   [theme.breakpoints.down("md")]: {
     position: "fixed",
@@ -19,7 +18,7 @@ export const contentContainer = (theme: Theme): SxProps<Theme> => ({
     background: COLORS.white,
     borderRadius: "14px",
     height: "56px",
-    paddingRight: "12px",
+    padding: "0 12px 0 0",
     zIndex: 5,
   },
 })
