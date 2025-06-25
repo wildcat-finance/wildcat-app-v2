@@ -53,6 +53,10 @@ export const toMainnetToken = <T extends Token | TokenAmount>(token: T): T => {
   const testnetToken = token instanceof Token ? token : token.token
   const tokenInfo = CommonTokensMap[testnetToken.symbol.toUpperCase()]
 
+  if (!tokenInfo) {
+    return token
+  }
+
   const mainnetToken = new Token(
     testnetToken.chainId,
     tokenInfo.address,
