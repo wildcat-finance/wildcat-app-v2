@@ -24,12 +24,12 @@ const MyPopper = (props: JSX.IntrinsicAttributes & PopperProps) => (
       "& .MuiAutocomplete-listbox": {
         padding: 0,
         margin: 0,
+        maxHeight: "300px",
       },
       "& .MuiPaper-root": {
         fontFamily: "inherit",
         padding: "8px",
         marginTop: "2px",
-        maxHeight: "300px",
       },
       "& .MuiAutocomplete-noOptions": {
         padding: "6px 12px",
