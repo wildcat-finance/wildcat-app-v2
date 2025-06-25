@@ -106,12 +106,17 @@ export default function LenderMarketDetails({
     {
       title: "Collateral Contract",
       description:
-        "Rules defining loan type (open or fixed) and access requirements.",
+        "Contract holding secondary collateral assets which can be liquidated to repay debts when a market is in penalised delinquency.",
+    },
+    {
+      title: "Reclaim",
+      description:
+        "Reclaim assets you have deposited to the collateral contract. This can only be accessed when the underlying market is terminated.",
     },
     {
       title: "Liquidate",
       description:
-        "Rules defining loan type (open or fixed) and access requirements.",
+        "Liquidate assets in the collateral contract through Bebop. This can only be accessed when the underlying market is in penalised delinquency, and can only be triggered by approved liquidators.",
     },
   ]
 
