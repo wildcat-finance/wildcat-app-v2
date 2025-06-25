@@ -7,11 +7,10 @@ import { Box, Divider, Skeleton } from "@mui/material"
 import { MarketVersion } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
-import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
-import { MarketCollateralContract } from "@/app/[locale]/borrower/market/[address]/components/MarketCollateralContract"
 import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart"
 import { CommonGlossarySidebar } from "@/components/CommonGlossarySidebar"
 import { LeadBanner } from "@/components/LeadBanner"
+import { MarketCollateralContract } from "@/components/MarketCollateralContract"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
@@ -71,25 +70,21 @@ export default function MarketDetails({
     [],
   )
 
-  // for collateral contract test ui
-  const [tokenCollateralAsset, setTokenCollateralAsset] = useState<string>("")
-  const [hasContract, setHasContract] = useState<boolean>(false)
-
   const glossary = [
     {
       title: "Collateral Contract",
       description:
-        "Rules defining loan type (open or fixed) and access requirements.",
+        "Contract holding secondary collateral assets which can be liquidated to repay debts when a market is in penalised delinquency.",
     },
     {
       title: "Reclaim",
       description:
-        "This can only be accessed when the underlying market is terminated.",
+        "Reclaim assets you have deposited to the collateral contract. This can only be accessed when the underlying market is terminated.",
     },
     {
       title: "Liquidate",
       description:
-        "Rules defining loan type (open or fixed) and access requirements.",
+        "Liquidate assets in the collateral contract through Bebop. This can only be accessed when the underlying market is in penalised delinquency, and can only be triggered by approved liquidators.",
     },
   ]
 
@@ -316,13 +311,7 @@ export default function MarketDetails({
 
             {checked === 7 && (
               <Box sx={SlideContentContainer} marginTop="12px">
-                <MarketCollateralContract
-                  market={market}
-                  tokenCollateralAsset={tokenCollateralAsset}
-                  setTokenCollateralAsset={setTokenCollateralAsset}
-                  hasContract={hasContract}
-                  setHasContract={setHasContract}
-                />
+                <MarketCollateralContract marketAccount={marketAccount} />
               </Box>
             )}
           </Box>
@@ -330,7 +319,7 @@ export default function MarketDetails({
 
         <CommonGlossarySidebar
           glossaryArray={glossary}
-          hideGlossary={!(checked === 7) || !hasContract}
+          hideGlossary={!(checked === 7)}
         />
       </Box>
     </Box>
