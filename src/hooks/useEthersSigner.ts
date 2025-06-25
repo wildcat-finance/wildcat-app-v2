@@ -1,5 +1,6 @@
 import { useMemo } from "react"
 
+import { JsonRpcSigner } from "@ethersproject/providers"
 import { Signer } from "@wildcatfi/wildcat-sdk"
 import { providers } from "ethers"
 import type {
@@ -14,7 +15,9 @@ import { useWalletClient, usePublicClient } from "wagmi"
 
 import { NETWORKS, TargetChainId } from "@/config/network"
 
-export function clientToSigner(client: Client<Transport, Chain, Account>) {
+export function clientToSigner(
+  client: Client<Transport, Chain, Account>,
+): JsonRpcSigner & { chainId: number } {
   const { account, chain, transport } = client
   const network = {
     chainId: chain.id,
@@ -23,7 +26,11 @@ export function clientToSigner(client: Client<Transport, Chain, Account>) {
   }
   const provider = new providers.Web3Provider(transport, network)
 
-  return provider.getSigner(account.address)
+  const signer = provider.getSigner(account.address)
+  if (!("chainId" in signer)) {
+    Object.assign(signer, { chainId: chain.id })
+  }
+  return signer as JsonRpcSigner & { chainId: number }
 }
 
 /** Hook to convert a Viem Client to an ethers.js Signer. */
