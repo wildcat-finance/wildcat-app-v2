@@ -14,7 +14,6 @@ import { useTranslation } from "react-i18next"
 
 import { TokenInfo } from "@/app/api/tokens-list/interface"
 
-import { useTokensList } from "./hooks/useTokensList"
 import { TokenSelectorProps } from "./interface"
 
 const MyPopper = (props: JSX.IntrinsicAttributes & PopperProps) => (
