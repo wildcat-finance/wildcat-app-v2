@@ -294,7 +294,7 @@ export const LiquidateCollateralModal = ({
                 )}
                 {quote && quote.buyTokenAmount.gt(collateral.maxRepayment) && (
                   <Typography
-                    variant="title3"
+                    variant="text2"
                     marginBottom="4px"
                     color={COLORS.dullRed}
                   >
