@@ -94,17 +94,24 @@ export const MARKET_PARAMS_DECIMALS: Partial<{
   withdrawalBatchDuration: 1,
 }
 
-export const localize = (
-  tokenAmount: TokenAmount,
-  decimals = TOKEN_FORMAT_DECIMALS,
-  withSymbol = false,
-) => {
-  const text = tokenAmount.format(decimals)
+export const localize = (n: number | string) => {
+  const text = typeof n === "number" ? n.toString() : n
   const [beforeDecimal, afterDecimal] = text.split(".")
   const beforeDecimalWithCommas = Number(beforeDecimal).toLocaleString("en-US")
   return [
     beforeDecimalWithCommas,
     ...(afterDecimal !== undefined ? [".", afterDecimal] : []),
+  ].join("")
+}
+
+export const localizeTokenAmount = (
+  tokenAmount: TokenAmount,
+  decimals = TOKEN_FORMAT_DECIMALS,
+  withSymbol = false,
+) => {
+  const text = tokenAmount.format(decimals)
+  return [
+    localize(text),
     ...(withSymbol ? [" ", tokenAmount.symbol] : []),
   ].join("")
 }
@@ -114,7 +121,7 @@ export const toTokenAmountProps = (
   defaultText = "-",
 ) => ({
   value: tokenAmount
-    ? localize(tokenAmount, TOKEN_FORMAT_DECIMALS, true)
+    ? localizeTokenAmount(tokenAmount, TOKEN_FORMAT_DECIMALS, true)
     : defaultText,
   valueTooltip: tokenAmount?.format(tokenAmount.decimals, true),
 })
