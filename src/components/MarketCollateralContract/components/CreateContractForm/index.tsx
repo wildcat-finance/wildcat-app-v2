@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
 import { Market, MarketCollateralV1 } from "@wildcatfi/wildcat-sdk"
@@ -92,6 +92,8 @@ export const CreateContractForm = ({
     excludedTokens.map((token) => token.address.toLowerCase()),
   )
 
+  const tokenSelectorFormProps = useRef<HTMLInputElement>(null)
+
   return (
     <>
       <Box
@@ -141,7 +143,12 @@ export const CreateContractForm = ({
         {showForm && (
           <Box sx={{ width: "100%" }}>
             <Box
-              sx={{ width: "100%", display: "flex", flexDirection: "column" }}
+              sx={{
+                width: "100%",
+                display: "flex",
+                flexDirection: "column",
+                padding: "0 24px",
+              }}
             >
               <Typography variant="title3" marginBottom="4px">
                 {t("collateral.create.title")}
@@ -158,6 +165,7 @@ export const CreateContractForm = ({
                 <Box sx={{ width: "300px" }}>
                   <UnderlyingAssetSelect
                     handleTokenSelect={handleTokenSelect}
+                    ref={tokenSelectorFormProps}
                     tokens={tokens.filter(
                       (token) =>
                         // Exclude tokens that already have collateral contracts or are the market's underlying token
