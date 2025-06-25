@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { useEffect } from "react"
 
 import { Box, Divider } from "@mui/material"
 
@@ -14,6 +13,7 @@ import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/use
 import { trimAddress } from "@/utils/formatters"
 
 import { BorrowerProfileDetailsProps } from "./interface"
+import { useGetTokenPrices } from "@/hooks/useGetTokenPrices"
 
 export function BorrowerProfileDetails({
   address,
@@ -27,6 +27,23 @@ export function BorrowerProfileDetails({
 
   const marketsAmount = borrowerMarkets?.filter((market) => !market.isClosed)
     .length
+
+  const {data: tokenPrices, isLoading: isLoadingTokenPrices} = useGetTokenPrices(borrowerMarkets?.map((market) => market.underlyingToken) ?? [])
+
+  const {totalDebtValue, sources} = React.useMemo(() => {
+    if (!tokenPrices || !borrowerMarkets) return { totalDebtValue: 0, sources: []}
+    return borrowerMarkets.reduce((acc, market) => {
+      const totalDebt = +market.totalDebts.format()
+      const priceData = tokenPrices[market.underlyingToken.address.toLowerCase()]
+      if (!priceData) return acc
+      const value = totalDebt * priceData.usdPrice
+      if (!acc.sources.includes(priceData.source)) {
+        acc.sources.push(priceData.source)
+      }
+      acc.totalDebtValue += value
+      return acc
+    }, { totalDebtValue: 0, sources: [] as string[]})
+  }, [borrowerMarkets, tokenPrices])
 
   const isLoading = isMarketsLoading || isProfileLoading
 
@@ -44,8 +61,9 @@ export function BorrowerProfileDetails({
       <OverallSection
         {...profileData}
         marketsAmount={marketsAmount}
-        // totalBorrowedAmount="0"
-        // defaults="0"
+        isLoadingTotalValue={isLoadingTokenPrices}
+        totalDebtValue={totalDebtValue}
+        priceSources={sources}
       />
 
       <Divider sx={{ margin: "32px 0" }} />

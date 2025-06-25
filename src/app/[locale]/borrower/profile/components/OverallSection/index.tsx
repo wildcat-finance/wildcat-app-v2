@@ -13,7 +13,7 @@ import { MarketParametersItem } from "@/components/MarketParameters/components/M
 import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import { EtherscanBaseUrl } from "@/config/network"
-import { trimAddress } from "@/utils/formatters"
+import { localize, trimAddress } from "@/utils/formatters"
 
 import { OverallSectionProps } from "./interface"
 
@@ -28,6 +28,9 @@ export const OverallSection = ({
   jurisdiction,
   defaults,
   entityKind,
+  isLoadingTotalValue,
+  totalDebtValue,
+  priceSources,
 }: OverallSectionProps) => {
   const { t } = useTranslation()
   const [state, copyToClipboard] = useCopyToClipboard()
@@ -137,11 +140,14 @@ export const OverallSection = ({
             </Box>
           )}
 
-          {totalBorrowedAmount !== undefined && (
+          {(isLoadingTotalValue || (totalDebtValue !== undefined && totalDebtValue.toFixed(0) !== "0")) && (
             <Box>
               <MarketParametersItem
                 title={t("borrowerProfile.profile.overallInfo.borrowed")}
-                value="[Coming Soon]"
+                value={isLoadingTotalValue ? "Loading..." : totalDebtValue ? `$${localize(totalDebtValue.toFixed(0))}` : "[Coming Soon]"}
+                tooltipText={
+                  (!isLoadingTotalValue && priceSources && totalDebtValue) ?  t("borrowerProfile.profile.overallInfo.borrowedTooltip", { priceSources: priceSources.join(", ") }) : undefined
+                }
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
