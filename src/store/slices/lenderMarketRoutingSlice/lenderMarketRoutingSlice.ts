@@ -13,12 +13,14 @@ export type LenderMarketRoutingSliceType = {
   currentSection: LenderMarketSections
   isLoading: boolean
   isLender: boolean
+  hasCollateralContract: boolean
 }
 
 const initialState: LenderMarketRoutingSliceType = {
   currentSection: LenderMarketSections.TRANSACTIONS,
   isLoading: true,
   isLender: false,
+  hasCollateralContract: false,
 }
 
 const lenderMarketRoutingSlice = createSlice({
@@ -34,11 +36,14 @@ const lenderMarketRoutingSlice = createSlice({
     setIsLender: (state, action: PayloadAction<boolean>) => {
       state.isLender = action.payload
     },
+    setHasCollateralContract: (state, action: PayloadAction<boolean>) => {
+      state.hasCollateralContract = action.payload
+    },
     resetPageState: () => initialState,
   },
 })
 
-export const { setSection, setIsLoading, setIsLender, resetPageState } =
+export const { setSection, setIsLoading, setIsLender, setHasCollateralContract, resetPageState } =
   lenderMarketRoutingSlice.actions
 
 export default lenderMarketRoutingSlice.reducer
