@@ -1181,6 +1181,7 @@
         "markets": "Markets",
         "address": "Borrower Address",
         "borrowed": "Total Amount Borrowed",
+        "borrowedTooltip": "Represents total amount loaned to borrower across all markets. Prices sourced from {{priceSources}}",
         "country": "Country",
         "jurisdiction": "Jurisdiction",
         "entityKind": "Entity Legal Form",
