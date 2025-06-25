@@ -139,7 +139,7 @@ export const DepositModalContract = ({
   )
 
   const disableCollateralDeposit =
-    marketAccount.market.isClosed || isApproving || isPending
+    marketAccount.market.isClosed || isApproving || isPending || amount === "" || amount === "0"
 
   const handleConfirm = () => {
     setTxHash("")
@@ -172,7 +172,7 @@ export const DepositModalContract = ({
       if (isPending) return t("collateral.deposit.approving")
       return t("collateral.deposit.resetAllowance")
     }
-    return t("collateral.deposit.loading")
+    return t("collateral.deposit.deposit")
   }, [isPending, isApproving, depositStatus, t])
 
   const handleTryAgain = () => {
@@ -229,20 +229,18 @@ export const DepositModalContract = ({
               }
             />
 
-            {!marketAccount.isBorrower && (
-              <Box
-                sx={{
-                  width: "100%",
-                  maxWidth: "100%",
-                  marginTop: "12px",
-                  marginBottom: "4px",
-                }}
-              >
-                <Typography variant="text1">
-                  <Trans i18nKey="collateral.deposit.disclaimer" />
-                </Typography>
-              </Box>
-            )}
+            <Box
+              sx={{
+                width: "100%",
+                maxWidth: "100%",
+                marginTop: "12px",
+                marginBottom: "4px",
+              }}
+            >
+              <Typography variant="text1">
+                <Trans i18nKey="collateral.deposit.disclaimer" />
+              </Typography>
+            </Box>
           </Box>
         )}
         {isPending && <LoadingModal txHash={txHash} />}
