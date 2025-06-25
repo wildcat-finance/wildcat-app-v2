@@ -58,7 +58,9 @@ export async function fetchMoralisTokenPrices(
       })),
     }),
   })
-  const data = (await response.json()) as MoralisTokenPriceResponse[] | { message: string }
+  const data = (await response.json()) as
+    | MoralisTokenPriceResponse[]
+    | { message: string }
   if ("message" in data) {
     throw new Error(data.message)
   }

@@ -139,7 +139,11 @@ export const DepositModalContract = ({
   )
 
   const disableCollateralDeposit =
-    marketAccount.market.isClosed || isApproving || isPending || amount === "" || amount === "0"
+    marketAccount.market.isClosed ||
+    isApproving ||
+    isPending ||
+    amount === "" ||
+    amount === "0"
 
   const handleConfirm = () => {
     setTxHash("")

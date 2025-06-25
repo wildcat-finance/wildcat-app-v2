@@ -82,7 +82,9 @@ export default function LenderMarketDetails({
   }, [isLoading])
 
   useEffect(() => {
-    dispatch(setHasCollateralContract((market?.numCollateralContracts ?? 0) > 0))
+    dispatch(
+      setHasCollateralContract((market?.numCollateralContracts ?? 0) > 0),
+    )
   }, [market])
 
   useEffect(() => {

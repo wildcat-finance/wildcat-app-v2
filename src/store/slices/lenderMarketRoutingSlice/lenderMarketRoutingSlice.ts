@@ -43,7 +43,12 @@ const lenderMarketRoutingSlice = createSlice({
   },
 })
 
-export const { setSection, setIsLoading, setIsLender, setHasCollateralContract, resetPageState } =
-  lenderMarketRoutingSlice.actions
+export const {
+  setSection,
+  setIsLoading,
+  setIsLender,
+  setHasCollateralContract,
+  resetPageState,
+} = lenderMarketRoutingSlice.actions
 
 export default lenderMarketRoutingSlice.reducer

@@ -140,13 +140,26 @@ export const OverallSection = ({
             </Box>
           )}
 
-          {(isLoadingTotalValue || (totalDebtValue !== undefined && totalDebtValue.toFixed(0) !== "0")) && (
+          {(isLoadingTotalValue ||
+            (totalDebtValue !== undefined &&
+              totalDebtValue.toFixed(0) !== "0")) && (
             <Box>
               <MarketParametersItem
                 title={t("borrowerProfile.profile.overallInfo.borrowed")}
-                value={isLoadingTotalValue ? "Loading..." : totalDebtValue ? `$${localize(totalDebtValue.toFixed(0))}` : "[Coming Soon]"}
+                value={
+                  // eslint-disable-next-line no-nested-ternary
+                  isLoadingTotalValue
+                    ? "Loading..."
+                    : totalDebtValue
+                      ? `$${localize(totalDebtValue.toFixed(0))}`
+                      : "[Coming Soon]"
+                }
                 tooltipText={
-                  (!isLoadingTotalValue && priceSources && totalDebtValue) ?  t("borrowerProfile.profile.overallInfo.borrowedTooltip", { priceSources: priceSources.join(", ") }) : undefined
+                  !isLoadingTotalValue && priceSources && totalDebtValue
+                    ? t("borrowerProfile.profile.overallInfo.borrowedTooltip", {
+                        priceSources: priceSources.join(", "),
+                      })
+                    : undefined
                 }
               />
               <Divider sx={MarketParametersRowsDivider} />

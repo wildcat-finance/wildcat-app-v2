@@ -3,9 +3,7 @@ import { Dispatch } from "react"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { Web3TransactionReceiptObject } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import {
-  MarketCollateralV1
-} from "@wildcatfi/wildcat-sdk"
+import { MarketCollateralV1 } from "@wildcatfi/wildcat-sdk"
 
 import { toastRequest } from "@/components/Toasts"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
