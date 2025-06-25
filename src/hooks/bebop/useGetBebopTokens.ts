@@ -66,7 +66,8 @@ export async function fetchBebopTokens(
     .filter(
       (token) =>
         token.chainId === chainId &&
-        (!onlyCanSell || token.availability.canSell),
+        (!onlyCanSell || token.availability.canSell) &&
+        token.address !== "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
     )
     .map((token) =>
       Object.assign(
