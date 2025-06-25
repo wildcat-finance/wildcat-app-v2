@@ -28,6 +28,10 @@ export const LenderMarketSidebar = () => {
 
   const isLender = useAppSelector((state) => state.lenderMarketRouting.isLender)
 
+  const hasCollateralContract = useAppSelector(
+    (state) => state.lenderMarketRouting.hasCollateralContract,
+  )
+
   const handleChangeSection = (newSection: LenderMarketSections) => {
     dispatch(setSection(newSection))
   }
@@ -155,7 +159,7 @@ export const LenderMarketSidebar = () => {
               </Button>
             )}
 
-            <Button
+            {hasCollateralContract && <Button
               variant="text"
               size="medium"
               onClick={() =>
@@ -170,7 +174,7 @@ export const LenderMarketSidebar = () => {
               }}
             >
               Collateral Contract
-            </Button>
+            </Button>}
           </Box>
         )}
       </Box>
