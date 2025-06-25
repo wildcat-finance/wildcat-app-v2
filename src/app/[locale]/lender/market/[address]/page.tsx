@@ -10,9 +10,9 @@ import { useAccount } from "wagmi"
 
 import { BorrowerProfileDetails } from "@/app/[locale]/borrower/profile/components/BorrowerProfileDetails"
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
-import { MarketCollateralContract } from "@/app/[locale]/lender/market/[address]/components/MarketCollateralContract"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
 import { CommonGlossarySidebar } from "@/components/CommonGlossarySidebar"
+import { MarketCollateralContract } from "@/components/MarketCollateralContract"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
@@ -25,6 +25,7 @@ import {
   setIsLoading,
   setSection,
   resetPageState,
+  setHasCollateralContract,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import { COLORS } from "@/theme/colors"
 
@@ -79,6 +80,10 @@ export default function LenderMarketDetails({
   useEffect(() => {
     dispatch(setIsLoading(isLoading))
   }, [isLoading])
+
+  useEffect(() => {
+    dispatch(setHasCollateralContract((market?.numCollateralContracts ?? 0) > 0))
+  }, [market])
 
   useEffect(() => {
     if (!authorizedInMarket) {
@@ -202,7 +207,7 @@ export default function LenderMarketDetails({
             </Box>
           )}
           {currentSection === LenderMarketSections.COLLATERAL_CONTRACT && (
-            <MarketCollateralContract market={market} />
+            <MarketCollateralContract marketAccount={marketAccount} />
           )}
         </Box>
       </Box>
