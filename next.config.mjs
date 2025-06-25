@@ -106,6 +106,18 @@ const nextConfig = {
         hostname: '*.supabase.co',
         port: '',
       },
+      {
+        protocol: 'https',
+        pathname: '/**',
+        hostname: 'assets.coingecko.com',
+        port: '',
+      },
+      {
+        protocol: 'https',
+        pathname: '/**',
+        hostname: '*.amazonaws.com',
+        port: '',
+      },
     ],
   },
 
