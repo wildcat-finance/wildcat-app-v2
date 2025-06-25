@@ -42,6 +42,10 @@ export async function fetchMoralisTokenPrices(
   if (tokens.length === 0) {
     return {}
   }
+  if (tokens.length > 100) {
+    // @todo: chunk the tokens into batches of 100 and fetch the prices in parallel
+    throw new Error("Moralis API only supports up to 100 tokens")
+  }
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -54,8 +58,10 @@ export async function fetchMoralisTokenPrices(
       })),
     }),
   })
-  const data = (await response.json()) as MoralisTokenPriceResponse[]
-  console.log(`Moralis token prices: ${JSON.stringify(data, null, 2)}`)
+  const data = (await response.json()) as MoralisTokenPriceResponse[] | { message: string }
+  if ("message" in data) {
+    throw new Error(data.message)
+  }
   return data.reduce((acc, curr) => {
     acc[curr.tokenAddress.toLowerCase()] = {
       usdPrice: curr.usdPrice,
