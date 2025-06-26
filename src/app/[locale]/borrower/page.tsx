@@ -6,7 +6,6 @@ import { Box, Button, Typography } from "@mui/material"
 import { GridRowsProp } from "@mui/x-data-grid"
 import { HooksKind } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
-import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { LendersSection } from "@/app/[locale]/borrower/components/LendersSection"

@@ -2,12 +2,7 @@ import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
 
 import { Box, Button, Dialog, Tooltip, Typography } from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import {
-  DepositStatus,
-  Signer,
-  HooksKind,
-  SupportedChainId,
-} from "@wildcatfi/wildcat-sdk"
+import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
@@ -478,36 +473,38 @@ export const DepositModal = ({
   if (!isMobile)
     return (
       <>
-          {marketAccount.maximumDeposit.raw.isZero() || underlyingBalanceIsZero ? (
-              <Tooltip title={tooltip} placement="right">
-                  <Box sx={{ display: "flex" }}>
-                      <Button
-                          onClick={modal.handleOpenModal}
-                          variant="contained"
-                          size="large"
-                          sx={{ width: "152px" }}
-                          disabled={
-                              marketAccount.maximumDeposit.raw.isZero() ||
-                              underlyingBalanceIsZero
-                          }
-                      >
-                          {t("lenderMarketDetails.transactions.deposit.button")}
-                      </Button>
-                  </Box>
-              </Tooltip>
-          ) : (
+        {marketAccount.maximumDeposit.raw.isZero() ||
+        underlyingBalanceIsZero ? (
+          <Tooltip title={tooltip} placement="right">
+            <Box sx={{ display: "flex" }}>
               <Button
-                  onClick={modal.handleOpenModal}
-                  variant="contained"
-                  size="large"
-                  sx={{ width: "152px" }}
-                  disabled={
-                      marketAccount.maximumDeposit.raw.isZero() || underlyingBalanceIsZero
-                  }
+                onClick={modal.handleOpenModal}
+                variant="contained"
+                size="large"
+                sx={{ width: "152px" }}
+                disabled={
+                  marketAccount.maximumDeposit.raw.isZero() ||
+                  underlyingBalanceIsZero
+                }
               >
-                  {t("lenderMarketDetails.transactions.deposit.button")}
+                {t("lenderMarketDetails.transactions.deposit.button")}
               </Button>
-          )}
+            </Box>
+          </Tooltip>
+        ) : (
+          <Button
+            onClick={modal.handleOpenModal}
+            variant="contained"
+            size="large"
+            sx={{ width: "152px" }}
+            disabled={
+              marketAccount.maximumDeposit.raw.isZero() ||
+              underlyingBalanceIsZero
+            }
+          >
+            {t("lenderMarketDetails.transactions.deposit.button")}
+          </Button>
+        )}
 
         <Dialog
           open={modal.isModalOpen}

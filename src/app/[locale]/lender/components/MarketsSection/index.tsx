@@ -266,11 +266,7 @@ export const MarketsSection = () => {
   if (isLoading) return null
 
   return (
-    <Box
-      sx={{
-        width: "100%",
-      }}
-    >
+    <Box sx={{ width: "100%" }}>
       {!isMobile && (
         <Box
           sx={{
@@ -291,7 +287,7 @@ export const MarketsSection = () => {
               {t("dashboard.markets.title")}
             </Typography>
 
-            {!(marketSection === LenderMarketDashboardSections.OTHER) &&
+            {marketSection !== LenderMarketDashboardSections.OTHER &&
               !isLoading && (
                 <Button
                   variant="contained"
@@ -312,6 +308,7 @@ export const MarketsSection = () => {
                 </Button>
               )}
           </Box>
+
           <Typography
             variant="text3"
             color={COLORS.santasGrey}
@@ -322,6 +319,7 @@ export const MarketsSection = () => {
               href="https://docs.wildcat.finance/using-wildcat/day-to-day-usage/lenders"
               style={{ color: COLORS.santasGrey }}
               target="_blank"
+              rel="noreferrer"
             >
               {t("dashboard.markets.docsLink")}
             </Link>
@@ -336,41 +334,42 @@ export const MarketsSection = () => {
           >
             {!noMarketsAtAll && <LenderMarketSectionSwitcher />}
 
-          <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
-            <FilterTextField
-              value={marketSearch}
-              setValue={setMarketSearch}
-              placeholder={t("dashboard.markets.filters.name")}
-              width="165px"
-            />
+            <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
+              <FilterTextField
+                value={marketSearch}
+                setValue={setMarketSearch}
+                placeholder={t("dashboard.markets.filters.name")}
+                width="165px"
+              />
 
-            <FilterTextField
-              value={borrowerSearch}
-              setValue={setBorrowerSearch}
-              placeholder={t("dashboard.markets.filters.borrower")}
-              width="175px"
-            />
+              <FilterTextField
+                value={borrowerSearch}
+                setValue={setBorrowerSearch}
+                placeholder={t("dashboard.markets.filters.borrower")}
+                width="175px"
+              />
 
-            <SmallFilterSelect
-              placeholder={t("dashboard.markets.filters.assets")}
-              options={
-                tokens?.map((token) => ({
-                  id: token.address,
-                  name: token.symbol,
-                })) ?? []
-              }
-              selected={marketAssets}
-              setSelected={setMarketAssets}
-              width="140px"
-            />
+              <SmallFilterSelect
+                placeholder={t("dashboard.markets.filters.assets")}
+                options={
+                  tokens?.map((token) => ({
+                    id: token.address,
+                    name: token.symbol,
+                  })) ?? []
+                }
+                selected={marketAssets}
+                setSelected={setMarketAssets}
+                width="140px"
+              />
 
-            <SmallFilterSelect
-              placeholder={t("dashboard.markets.filters.statuses")}
-              options={marketStatusesMock}
-              selected={marketStatuses}
-              setSelected={setMarketStatuses}
-              width="150px"
-            />
+              <SmallFilterSelect
+                placeholder={t("dashboard.markets.filters.statuses")}
+                options={marketStatusesMock}
+                selected={marketStatuses}
+                setSelected={setMarketStatuses}
+                width="150px"
+              />
+            </Box>
           </Box>
         </Box>
       )}

@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useEffect } from "react"
 
-import { Box, Divider, Skeleton, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Divider, Skeleton } from "@mui/material"
 import { MarketVersion } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
@@ -15,7 +15,6 @@ import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecords
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
-import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import {
@@ -35,7 +34,6 @@ import {
   SkeletonContainer,
   SkeletonStyle,
 } from "./style"
-import { MobilePage } from "../MobilePage/MobilePage"
 
 export default function MarketDetails({
   params: { address },
@@ -46,9 +44,6 @@ export default function MarketDetails({
   const { data: market } = useGetMarket({ address })
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
   const { address: walletAddress } = useAccount()
-  const theme = useTheme()
-  const breakpoint = theme.breakpoints
-  const isMobile = useMobileResolution()
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 
@@ -71,10 +66,6 @@ export default function MarketDetails({
     },
     [],
   )
-  if (isMobile) {
-    if (!market || !marketAccount) return null
-    return <MobilePage marketAccount={marketAccount} isHoldingMarket />
-  }
 
   if (!market || !marketAccount)
     return (
