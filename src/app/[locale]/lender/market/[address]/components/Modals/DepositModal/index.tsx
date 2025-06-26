@@ -1,16 +1,13 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
 
-import {
-  Box,
-  Button,
-  Dialog,
-  Tooltip,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material"
+import { Box, Button, Dialog, Tooltip, Typography } from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  Signer,
+  HooksKind,
+  SupportedChainId,
+} from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
@@ -28,7 +25,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
-import { EtherscanBaseUrl } from "@/config/network"
+import { EtherscanBaseUrl, TargetChainId } from "@/config/network"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
@@ -44,7 +41,6 @@ export const DepositModal = ({
   isMobileOpen,
   setIsMobileOpen,
 }: DepositModalProps) => {
-  const theme = useTheme()
   const isMobile = useMobileResolution()
 
   const { t } = useTranslation()
@@ -190,6 +186,12 @@ export const DepositModal = ({
       : false
 
   const showForm = !(isDepositing || showSuccessPopup || showErrorPopup)
+
+  const underlyingBalanceIsZero = marketAccount.underlyingBalance.raw.isZero()
+
+  const tooltip = underlyingBalanceIsZero
+    ? "Underlying token balance is zero"
+    : "Market is at full capacity"
 
   useEffect(() => {
     if (isDepositError) {
@@ -476,31 +478,36 @@ export const DepositModal = ({
   if (!isMobile)
     return (
       <>
-        {marketAccount.maximumDeposit.raw.isZero() ? (
-          <Tooltip title="Market is at full capacity" placement="right">
-            <Box sx={{ display: "flex" }}>
+          {marketAccount.maximumDeposit.raw.isZero() || underlyingBalanceIsZero ? (
+              <Tooltip title={tooltip} placement="right">
+                  <Box sx={{ display: "flex" }}>
+                      <Button
+                          onClick={modal.handleOpenModal}
+                          variant="contained"
+                          size="large"
+                          sx={{ width: "152px" }}
+                          disabled={
+                              marketAccount.maximumDeposit.raw.isZero() ||
+                              underlyingBalanceIsZero
+                          }
+                      >
+                          {t("lenderMarketDetails.transactions.deposit.button")}
+                      </Button>
+                  </Box>
+              </Tooltip>
+          ) : (
               <Button
-                onClick={modal.handleOpenModal}
-                variant="contained"
-                size="large"
-                sx={{ width: "152px" }}
-                disabled={marketAccount.maximumDeposit.raw.isZero()}
+                  onClick={modal.handleOpenModal}
+                  variant="contained"
+                  size="large"
+                  sx={{ width: "152px" }}
+                  disabled={
+                      marketAccount.maximumDeposit.raw.isZero() || underlyingBalanceIsZero
+                  }
               >
-                {t("lenderMarketDetails.transactions.deposit.button")}
+                  {t("lenderMarketDetails.transactions.deposit.button")}
               </Button>
-            </Box>
-          </Tooltip>
-        ) : (
-          <Button
-            onClick={modal.handleOpenModal}
-            variant="contained"
-            size="large"
-            sx={{ width: "152px" }}
-            disabled={marketAccount.maximumDeposit.raw.isZero()}
-          >
-            {t("lenderMarketDetails.transactions.deposit.button")}
-          </Button>
-        )}
+          )}
 
         <Dialog
           open={modal.isModalOpen}

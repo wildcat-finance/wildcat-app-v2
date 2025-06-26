@@ -347,22 +347,21 @@ export const OtherMarketsTables = ({
 
   const [selfOnboardPaginationModel, setSelfOnboardPaginationModel] =
     React.useState({
-      pageSize: 20,
+      pageSize: 50,
       page: 0,
     })
 
   const [manualPaginationModel, setManualPaginationModel] = React.useState({
-    pageSize: 20,
+    pageSize: 50,
     page: 0,
   })
 
   const { assetFilter, statusFilter, nameFilter } = filters
 
-  // TODO: check why dont work
-  // useEffect(() => {
-  //   setSelfOnboardPaginationModel((prevState) => ({ ...prevState, page: 0 }))
-  //   setManualPaginationModel((prevState) => ({ ...prevState, page: 0 }))
-  // }, [assetFilter, statusFilter, nameFilter])
+  useEffect(() => {
+    setSelfOnboardPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+    setManualPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+  }, [assetFilter, statusFilter, nameFilter])
 
   return (
     <Box

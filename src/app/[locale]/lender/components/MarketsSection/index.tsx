@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react"
 
-import { Box, Button, Typography, useMediaQuery } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 import {
   DepositStatus,
   LenderRole,
@@ -32,6 +32,7 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { marketStatusesMock } from "@/mocks/mocks"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import { setLendersSectionAmount } from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import {
   LenderMarketDashboardSections,
@@ -39,7 +40,6 @@ import {
   setShowFullFunctionality,
 } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { COLORS } from "@/theme/colors"
-import { theme } from "@/theme/theme"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
@@ -52,6 +52,7 @@ export const MarketsSection = () => {
   )
 
   const [marketSearch, setMarketSearch] = useState<string>("")
+  const [borrowerSearch, setBorrowerSearch] = useState<string>("")
   const [marketAssets, setMarketAssets] = useState<SmallFilterSelectItem[]>([])
   const [marketStatuses, setMarketStatuses] = useState<SmallFilterSelectItem[]>(
     [],
@@ -72,6 +73,7 @@ export const MarketsSection = () => {
   const dispatch = useAppDispatch()
 
   const { isWrongNetwork } = useCurrentNetwork()
+  const { data: borrowers } = useBorrowerNames()
 
   const {
     data: marketAccounts,
@@ -81,16 +83,31 @@ export const MarketsSection = () => {
 
   const isLoading = isLoadingInitial || isLoadingUpdate
 
-  const filteredMarketAccounts = useMemo(
-    () =>
-      filterMarketAccounts(
-        marketAccounts,
-        marketSearch,
-        marketStatuses,
-        marketAssets,
-      ),
-    [marketAccounts, marketSearch, marketStatuses, marketAssets],
-  )
+  const filteredMarketAccounts = useMemo(() => {
+    const borrowersSearch = borrowers
+      ?.filter(
+        (b) =>
+          b.name?.toLowerCase().includes(borrowerSearch.toLowerCase()) ||
+          b.alias?.toLowerCase().includes(borrowerSearch.toLowerCase()) ||
+          b.address?.toLowerCase().includes(borrowerSearch.toLowerCase()),
+      )
+      .map((b) => b.address)
+
+    return filterMarketAccounts(
+      marketAccounts,
+      marketSearch,
+      marketStatuses,
+      marketAssets,
+      borrowersSearch,
+    )
+  }, [
+    marketAccounts,
+    marketSearch,
+    marketStatuses,
+    marketAssets,
+    borrowerSearch,
+    borrowers,
+  ])
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
   const tokens = useMemo(() => {
@@ -131,8 +148,6 @@ export const MarketsSection = () => {
       ),
     [filteredMarketAccounts],
   )
-
-  const { data: borrowers } = useBorrowerNames()
 
   const lenderMarkets = marketAccounts
     .filter(
@@ -321,32 +336,41 @@ export const MarketsSection = () => {
           >
             {!noMarketsAtAll && <LenderMarketSectionSwitcher />}
 
-            <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
-              <FilterTextField
-                value={marketSearch}
-                setValue={setMarketSearch}
-                placeholder={t("dashboard.markets.filters.name")}
-              />
+          <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
+            <FilterTextField
+              value={marketSearch}
+              setValue={setMarketSearch}
+              placeholder={t("dashboard.markets.filters.name")}
+              width="165px"
+            />
 
-              <SmallFilterSelect
-                placeholder={t("dashboard.markets.filters.assets")}
-                options={
-                  tokens?.map((token) => ({
-                    id: token.address,
-                    name: token.symbol,
-                  })) ?? []
-                }
-                selected={marketAssets}
-                setSelected={setMarketAssets}
-              />
+            <FilterTextField
+              value={borrowerSearch}
+              setValue={setBorrowerSearch}
+              placeholder={t("dashboard.markets.filters.borrower")}
+              width="175px"
+            />
 
-              <SmallFilterSelect
-                placeholder={t("dashboard.markets.filters.statuses")}
-                options={marketStatusesMock}
-                selected={marketStatuses}
-                setSelected={setMarketStatuses}
-              />
-            </Box>
+            <SmallFilterSelect
+              placeholder={t("dashboard.markets.filters.assets")}
+              options={
+                tokens?.map((token) => ({
+                  id: token.address,
+                  name: token.symbol,
+                })) ?? []
+              }
+              selected={marketAssets}
+              setSelected={setMarketAssets}
+              width="140px"
+            />
+
+            <SmallFilterSelect
+              placeholder={t("dashboard.markets.filters.statuses")}
+              options={marketStatusesMock}
+              selected={marketStatuses}
+              setSelected={setMarketStatuses}
+              width="150px"
+            />
           </Box>
         </Box>
       )}

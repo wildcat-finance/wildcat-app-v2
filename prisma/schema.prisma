@@ -166,6 +166,7 @@ model Borrower {
   jurisdiction      String?
   physicalAddress   String?
   entityKind        String?
+  additionalUrls    Json?
   registeredOnChain Boolean
 
   invitation                BorrowerInvitation?                @relation("BorrowerToInvitation")
@@ -196,6 +197,7 @@ model BorrowerProfileUpdateRequest {
   jurisdiction    String?
   physicalAddress String?
   entityKind      String?
+  additionalUrls  Json?
 
   acceptedAt     DateTime?
   rejectedAt     DateTime?

@@ -4,9 +4,9 @@ type Link = {
 }
 
 export type BannerProps = {
-  title: string | undefined
-  text: string | undefined
-  buttonText: string | undefined
-  buttonLink: Link | undefined
+  title?: string
+  text?: string
+  buttonText?: string
+  buttonLink?: Link
   onClick?: () => void
 }

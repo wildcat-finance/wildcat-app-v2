@@ -15,7 +15,10 @@ import {
   MasterLoanAgreementResponse,
   MlaSignatureResponse,
 } from "@/app/api/mla/interface"
-import { BorrowerProfile } from "@/app/api/profiles/interface"
+import {
+  BorrowerAdditionalUrl,
+  BorrowerProfile,
+} from "@/app/api/profiles/interface"
 import { BorrowerProfileUpdate } from "@/app/api/profiles/updates/interface"
 import { TargetChainId } from "@/config/network"
 
@@ -142,6 +145,7 @@ export async function findBorrowersWithPendingInvitations(): Promise<
         physicalAddress: invitation.physicalAddress || undefined,
         entityKind: invitation.entityKind || undefined,
         timeSigned: timeSigned || undefined,
+        additionalUrls: profile.additionalUrls || undefined,
         registeredOnChain: profile.registeredOnChain,
       }
     })
@@ -214,7 +218,7 @@ export async function getBorrowerProfileUpdates(
       rejectedAt,
       rejectedReason,
       id,
-
+      additionalUrls,
       name,
       alias,
       description,
@@ -245,6 +249,9 @@ export async function getBorrowerProfileUpdates(
         twitter: twitter || undefined,
         linkedin: linkedin || undefined,
         email: email || undefined,
+        additionalUrls: (additionalUrls || undefined) as
+          | BorrowerAdditionalUrl[]
+          | undefined,
       },
     }),
   )
@@ -335,5 +342,8 @@ export async function getBorrowerProfile(
     physicalAddress: borrower.physicalAddress || undefined,
     entityKind: borrower.entityKind || undefined,
     avatar: borrower.avatar || undefined,
+    additionalUrls: (borrower.additionalUrls || undefined) as
+      | BorrowerAdditionalUrl[]
+      | undefined,
   }
 }

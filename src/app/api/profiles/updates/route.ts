@@ -1,7 +1,10 @@
 import { Prisma } from "@prisma/client"
 import { NextRequest, NextResponse } from "next/server"
 
-import { BorrowerProfileInput } from "@/app/api/profiles/interface"
+import {
+  BorrowerAdditionalUrl,
+  BorrowerProfileInput,
+} from "@/app/api/profiles/interface"
 import { TargetChainId } from "@/config/network"
 import { getBorrowerProfileUpdates, prisma } from "@/lib/db"
 import { uploadProfilePicture } from "@/lib/upload-profile-picture"
@@ -66,6 +69,7 @@ export async function POST(request: NextRequest) {
     jurisdiction,
     physicalAddress,
     entityKind,
+    additionalUrls,
   } = data
 
   const address = data.address.toLowerCase()
@@ -110,6 +114,7 @@ export async function POST(request: NextRequest) {
         jurisdiction,
         physicalAddress,
         entityKind,
+        additionalUrls,
       },
     }),
   ])
@@ -140,10 +145,23 @@ export async function POST(request: NextRequest) {
     "linkedin",
     "email",
     "telegram",
+    "additionalUrls",
   ] as const
   keys.forEach((key) => {
     if (key in data) {
-      newData[key] = data[key] || null
+      if (key === "additionalUrls") {
+        // If the url has a protocol, ensure it is HTTPS. If it doesn't, add https://.
+        data[key]?.forEach((link) => {
+          if (link.url.startsWith("http://")) {
+            link.url = link.url.replace("http://", "https://")
+          } else if (!link.url.startsWith("https://")) {
+            link.url = `https://${link.url}`
+          }
+        })
+        newData[key] = data[key] || undefined
+      } else {
+        newData[key] = data[key] || null
+      }
     }
   })
   await Promise.all([
@@ -154,7 +172,9 @@ export async function POST(request: NextRequest) {
           chainId: updateRequest.chainId,
         },
       },
-      data: newData,
+      data: newData as Omit<typeof newData, "additionalUrls"> & {
+        additionalUrls?: ReadonlyArray<BorrowerAdditionalUrl>
+      },
     }),
     prisma.borrowerProfileUpdateRequest.update({
       where: {
@@ -228,10 +248,16 @@ export async function PUT(request: NextRequest) {
       "jurisdiction",
       "physicalAddress",
       "entityKind",
+      "additionalUrls",
     ] as const
     keys.forEach((key) => {
       if (updateRequest[key] !== null) {
-        newData[key] = updateRequest[key] || undefined
+        if (key === "additionalUrls") {
+          newData[key] =
+            (updateRequest[key] as BorrowerAdditionalUrl[]) || undefined
+        } else {
+          newData[key] = updateRequest[key] || undefined
+        }
       }
     })
     proms.push(
