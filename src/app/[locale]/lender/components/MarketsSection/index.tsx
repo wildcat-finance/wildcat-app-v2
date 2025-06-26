@@ -246,6 +246,10 @@ export const MarketsSection = () => {
     }
   }, [noMarketsAtAll])
 
+  console.log(isMobile, "isMobile")
+
+  if (isLoading) return null
+
   return (
     <Box
       sx={{

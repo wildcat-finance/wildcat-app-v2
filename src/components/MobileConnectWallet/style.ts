@@ -3,16 +3,15 @@ import { COLORS } from "@/theme/colors"
 export const DialogContainer = {
   marginTop: "auto",
   zIndex: 9999,
-  // height: "100vh",
 
   "& .MuiPaper-root.MuiDialog-paper": {
     margin: "auto 4px 4px",
+    maxWidth: "100%",
     width: "100%",
     padding: "24px 12px 20px",
   },
   "& .MuiBackdrop-root": {
     marginTop: "auto",
-    // height: "calc(100vh - 68px)",
     backgroundColor: "transparent",
     backdropFilter: "blur(20px)",
   },

@@ -23,6 +23,7 @@ import Avatar from "@/assets/icons/avatar_icon.svg"
 import Avatarmob from "@/assets/icons/avatarmob_icon.png"
 import Menu from "@/assets/icons/burgerMenu_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
+import UpArrow from "@/assets/icons/upArrow_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { EtherscanBaseUrl } from "@/config/network"
@@ -58,8 +59,8 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   }
 
   const [openConnect, setOpenConnect] = useState<boolean>(false)
-  const handleCloseConnect = () => {
-    setOpenConnect(false)
+  const handleToggleConnect = () => {
+    setOpenConnect(!openConnect)
   }
 
   const handleClickDisconnect = () => {
@@ -67,30 +68,19 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
     handleToggleModal()
   }
 
-  const handleSwitchAccount = async () => {
-    try {
-      if (typeof window.ethereum !== "undefined") {
-        await window.ethereum.request({
-          method: "wallet_requestPermissions",
-          params: [{ eth_accounts: {} }],
-        })
-      }
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
   return (
     <>
       <Box sx={{ display: "flex", alignItems: "center" }}>
         {isConnected && address && !open && (
           <Box
+            onClick={handleToggleConnect}
             sx={{
+              cursor: "pointer",
               display: "flex",
               alignItems: "center",
               backgroundColor: COLORS.whiteSmoke,
               borderRadius: "20px",
-              padding: "2px 12px 2px 2px",
+              padding: "2px 6px 2px 2px",
               gap: "4px",
             }}
           >
@@ -110,6 +100,16 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
             <Typography variant="text3">
               {trimAddress(address as string)}
             </Typography>
+            <SvgIcon
+              sx={{
+                fontSize: "16px",
+                "& path": {
+                  fill: COLORS.santasGrey,
+                },
+              }}
+            >
+              <UpArrow />
+            </SvgIcon>
           </Box>
         )}
 
@@ -150,6 +150,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
             border: "none",
             margin: "0 4px auto",
             width: "100%",
+            maxWidth: "100%",
             padding: "8px",
           },
           "& .MuiBackdrop-root": {
@@ -230,7 +231,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
             <Button
               fullWidth
               size="large"
-              onClick={handleSwitchAccount}
+              onClick={() => setOpenConnect(true)}
               sx={{
                 marginTop: "6px",
                 borderRadius: "10px",
@@ -253,7 +254,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
         ) : (
           <Button
             size="large"
-            onClick={() => setOpenConnect(true)}
+            onClick={handleToggleConnect}
             sx={{
               borderRadius: "10px",
               marginTop: "6px",
@@ -268,12 +269,12 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
             Connect
           </Button>
         )}
-
-        <MobileConnectWallet
-          open={openConnect}
-          handleClose={handleCloseConnect}
-        />
       </Dialog>
+
+      <MobileConnectWallet
+        open={openConnect}
+        handleClose={handleToggleConnect}
+      />
     </>
   )
 }
