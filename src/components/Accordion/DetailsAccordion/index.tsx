@@ -10,6 +10,7 @@ import UpArrow from "@/assets/icons/upArrow_icon.svg"
 import { DetailsAccordionProps } from "@/components/Accordion/DetailsAccordion/interface"
 import { SummaryContainer } from "@/components/Accordion/DetailsAccordion/style"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 
 export const DetailsAccordion = ({
   isOpen,
@@ -29,6 +30,7 @@ export const DetailsAccordion = ({
     setIsOpen(!isOpen)
   }
   const theme = useTheme()
+  const isMobile = useMobileResolution()
   return (
     <>
       <Box
@@ -40,7 +42,9 @@ export const DetailsAccordion = ({
       >
         {summaryContent || (
           <>
-            <Typography variant="text2">{summaryText}</Typography>
+            <Typography variant={isMobile ? "mobText3" : "text2"}>
+              {summaryText}
+            </Typography>
             <Box
               sx={{
                 width: "100%",
@@ -49,8 +53,8 @@ export const DetailsAccordion = ({
               }}
             >
               <SvgIcon
-                fontSize="medium"
                 sx={{
+                  fontSize: isMobile ? "12px" : "16px",
                   "& path": {
                     fill: `${iconColor}`,
                   },
@@ -62,6 +66,7 @@ export const DetailsAccordion = ({
             </Box>
             {chipValue && (
               <TextfieldChip
+                variant={isMobile ? "mobText3" : "text3"}
                 text={chipValue}
                 color={chipColor}
                 textColor={chipValueColor}

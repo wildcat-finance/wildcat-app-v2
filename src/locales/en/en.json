@@ -1038,7 +1038,7 @@
       "total": "Total",
       "ongoing": "Ongoing",
       "claimable": "Claimable",
-      "outstanding": "Outstanding From Past Cycles",
+      "outstanding": "Outstanding",
       "tableColumns": {
         "lender": "Lender",
         "txID": "Transaction ID",

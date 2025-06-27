@@ -56,13 +56,7 @@ export const MobileMlaAlert = ({
           padding: "12px 16px",
         }}
       >
-        <Typography
-          variant="title3"
-          fontSize="20px"
-          lineHeight="24px"
-          textAlign="center"
-          marginTop="12px"
-        >
+        <Typography variant="mobH3" textAlign="center" marginTop="12px">
           Master Loan Agreement
         </Typography>
 
@@ -81,7 +75,7 @@ export const MobileMlaAlert = ({
           >
             <Check />
           </SvgIcon>
-          <Typography variant="text3" color={COLORS.santasGrey}>
+          <Typography variant="mobText3" color={COLORS.santasGrey}>
             Signed: {formatDate(signedMla.timeSigned)}
           </Typography>
         </Box>

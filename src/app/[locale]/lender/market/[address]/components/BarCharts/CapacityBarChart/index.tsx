@@ -19,7 +19,6 @@ export const CapacityBarChart = ({
   isLender,
 }: BarChartProps & { legendType?: "big" | "small"; isLender?: boolean }) => {
   const { t } = useTranslation()
-  const theme = useTheme()
   const isMobile = useMobileResolution()
 
   const barRawData = useGenerateCapacityBarData(marketAccount)
@@ -63,7 +62,7 @@ export const CapacityBarChart = ({
               justifyContent: "space-between",
             }}
           >
-            <Typography variant="title3">
+            <Typography variant={isMobile ? "mobH3" : "title3"}>
               {t("lenderMarketDetails.barchart.capacity.title")}
             </Typography>
 
@@ -74,10 +73,10 @@ export const CapacityBarChart = ({
                 gap: "4px",
               }}
             >
-              <Typography variant="title3">
+              <Typography variant={isMobile ? "mobH3" : "title3"}>
                 {formatTokenWithCommas(marketCapacity)}
               </Typography>
-              <Typography variant="text4">
+              <Typography variant={isMobile ? "mobText4" : "text3"}>
                 {marketAccount.market.underlyingToken.symbol}
               </Typography>
             </Box>

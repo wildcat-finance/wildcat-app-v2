@@ -2,7 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react"
 
-import { Box, Switch, Typography, useMediaQuery, useTheme } from "@mui/material"
+import {
+  Box,
+  Skeleton,
+  Switch,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
@@ -23,6 +30,9 @@ import { HeaderButton } from "./HeaderButton"
 import { MobileMenu } from "./MobileMenu"
 
 export default function Header() {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
   const { t } = useTranslation()
   const theme = useTheme()
   const isMobile = useMobileResolution()
@@ -66,6 +76,34 @@ export default function Header() {
   )
 
   const mobileLogo = side ? <LogoBlack /> : <LogoWhite />
+
+  if (!mounted)
+    return (
+      <Box
+        sx={{
+          width: "100%",
+          padding: {
+            xs: "4px",
+            md: 0,
+          },
+        }}
+      >
+        <Skeleton
+          sx={{
+            height: {
+              xs: "56px",
+              md: "82px",
+            },
+            width: "100%",
+            borderRadius: "14px",
+            backgroundColor: {
+              xs: COLORS.white06,
+              md: "transparent",
+            },
+          }}
+        />
+      </Box>
+    )
 
   return (
     <>

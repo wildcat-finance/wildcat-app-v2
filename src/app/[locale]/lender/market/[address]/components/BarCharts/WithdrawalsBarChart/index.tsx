@@ -18,7 +18,6 @@ export const WithdrawalsBarChart = ({
   withdrawals,
 }: BarChartProps & { withdrawals: LenderWithdrawalsForMarketResult }) => {
   const { t } = useTranslation()
-  const theme = useTheme()
   const isMobile = useMobileResolution()
   const { barData: barRawData, total } = useGenerateWithdrawalsBarData({
     market: marketAccount.market,
@@ -43,6 +42,8 @@ export const WithdrawalsBarChart = ({
     .filter((barId) => barRawData[barId] !== undefined)
     .map((barId) => barRawData[barId])
 
+  if (total.lte(0)) return null
+
   return (
     <Box marginTop="12px">
       <Box
@@ -60,7 +61,7 @@ export const WithdrawalsBarChart = ({
           }}
         >
           <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-            <Typography variant="title3">
+            <Typography variant={isMobile ? "mobH3" : "title3"}>
               {t("lenderMarketDetails.barchart.withdrawals.title")}
             </Typography>
 
@@ -71,10 +72,10 @@ export const WithdrawalsBarChart = ({
                 gap: "4px",
               }}
             >
-              <Typography variant="title3">
+              <Typography variant={isMobile ? "mobH3" : "title3"}>
                 {formatTokenWithCommas(total)}
               </Typography>
-              <Typography variant="text4">
+              <Typography variant={isMobile ? "mobText4" : "text3"}>
                 {marketAccount.market.underlyingToken.symbol}
               </Typography>
             </Box>

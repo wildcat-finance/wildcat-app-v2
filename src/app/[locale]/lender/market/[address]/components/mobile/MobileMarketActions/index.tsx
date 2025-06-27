@@ -9,6 +9,7 @@ import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
 import Clock from "@/assets/icons/clock_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
 import { useMarketMla } from "@/hooks/useMarketMla"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -44,7 +45,7 @@ const MobileMarketTransactionItem = ({
         marginBottom: "2px",
       }}
     >
-      <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
+      <Typography variant="mobText3" sx={{ color: COLORS.santasGrey }}>
         {title}
       </Typography>
       <TooltipButton value={tooltip} />
@@ -58,7 +59,7 @@ const MobileMarketTransactionItem = ({
       }}
     >
       <Typography
-        variant="title3"
+        variant="mobH3"
         sx={{ fontSize: "18px", lineHeight: "24px" }}
         color={COLORS.white}
       >
@@ -66,7 +67,7 @@ const MobileMarketTransactionItem = ({
       </Typography>
       <Typography
         color={COLORS.white}
-        variant="text4"
+        variant="mobText4"
         sx={{
           marginTop: "1px",
         }}
@@ -124,9 +125,7 @@ export const MobileMarketActions = ({
       {mlaRequiredAndUnsigned && (
         <>
           <Typography
-            variant="title3"
-            fontSize="20px"
-            lineHeight="24px"
+            variant="mobH3"
             color={COLORS.white}
             textAlign="center"
             marginTop="12px"
@@ -149,8 +148,8 @@ export const MobileMarketActions = ({
             >
               <Clock />
             </SvgIcon>
-            <Typography variant="text3" color={COLORS.white06}>
-              Waiting for sign, issued to sign
+            <Typography variant="mobText3" color={COLORS.white06}>
+              Waiting for sign
             </Typography>
           </Box>
 

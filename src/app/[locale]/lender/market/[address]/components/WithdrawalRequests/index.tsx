@@ -96,16 +96,17 @@ export const WithdrawalRequests = ({
           marginTop: isMobile ? "12px" : 0,
         }}
       >
-        <Typography variant="title3">
+        <Typography variant={isMobile ? "mobH3" : "title3"}>
           {t("lenderMarketDetails.requests.title")}
         </Typography>
 
         <Box sx={TotalAccordionSummary(theme)}>
-          <Typography variant="text2">
+          <Typography variant={isMobile ? "mobText3" : "text2"}>
             {t("lenderMarketDetails.requests.total")}
           </Typography>
 
           <TextfieldChip
+            variant={isMobile ? "mobText3" : "text3"}
             text={formatTokenWithCommas(totalAmount, { withSymbol: true })}
             color={COLORS.whiteSmoke}
             textColor={COLORS.blackRock}

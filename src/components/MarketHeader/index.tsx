@@ -64,6 +64,7 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
   }, [data, market.withdrawalBatchDuration, cycleStart])
 
   const marketStatus = getMarketStatusChip(market)
+
   if (isMobile)
     return (
       <Box
@@ -97,7 +98,7 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
         >
           <Box sx={MarketHeaderTitleContainer}>
             <Typography
-              variant="title2"
+              variant="mobH2"
               sx={{
                 maxWidth: "280px",
                 whiteSpace: "nowrap",
@@ -107,7 +108,7 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
             >
               {market.name}
             </Typography>
-            <Typography variant="text4">
+            <Typography variant="mobText4">
               {market.underlyingToken.symbol}
             </Typography>
           </Box>
@@ -127,7 +128,15 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
           <Button
             variant="text"
             size="small"
-            sx={{ padding: "6px 8px", flexShrink: 0 }}
+            sx={{
+              minWidth: "fit-content",
+              padding: "6px 8px",
+              flexShrink: 0,
+              fontSize: 10,
+              fontWeight: 600,
+              lineHeight: "16px",
+              backgroundColor: COLORS.hintOfRed,
+            }}
             component="a"
             href="#status"
           >
@@ -136,7 +145,15 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
           <Button
             variant="text"
             size="small"
-            sx={{ padding: "6px 8px", flexShrink: 0 }}
+            sx={{
+              minWidth: "fit-content",
+              padding: "6px 8px",
+              flexShrink: 0,
+              fontSize: 10,
+              fontWeight: 600,
+              lineHeight: "16px",
+              backgroundColor: COLORS.hintOfRed,
+            }}
             component="a"
             href="#requests"
           >
@@ -145,7 +162,15 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
           <Button
             variant="text"
             size="small"
-            sx={{ padding: "6px 8px", flexShrink: 0 }}
+            sx={{
+              minWidth: "fit-content",
+              padding: "6px 8px",
+              flexShrink: 0,
+              fontSize: 10,
+              fontWeight: 600,
+              lineHeight: "16px",
+              backgroundColor: COLORS.hintOfRed,
+            }}
             component="a"
             href="#mla"
           >

@@ -26,33 +26,50 @@ export const WithdrawalsMobileTableItem = ({
 }: OutstandingRowProps) => (
   <Box>
     <Box
-      display="flex"
-      justifyContent="space-between"
-      alignItems="center"
       sx={{
-        paddingTop: "12px",
-        paddingRight: "10px",
-        paddingBottom: "12px",
-        marginLeft: "4px",
-        marginRight: "4px",
+        display: "flex",
+        flexDirection: "column",
+        padding: "12px 10px 12px 0",
+        marginX: "4px",
       }}
     >
-      <Box display="flex" flexDirection="column">
+      <Box
+        sx={{ display: "flex", width: "100%", justifyContent: "space-between" }}
+      >
         <Box display="flex" alignItems="center" gap="4px">
-          <Typography
-            variant="text3"
-            sx={{
-              color: COLORS.blackRock,
-            }}
-          >
-            {lender ? trimAddress(lender) : ""}
-          </Typography>
+          <Typography variant="mobText3">{trimAddress(lender)}</Typography>
           <IconButton disableRipple sx={ButtonStyle}>
-            <SvgIcon fontSize="medium">
+            <SvgIcon fontSize="small">
               <LinkIcon />
             </SvgIcon>
           </IconButton>
         </Box>
+
+        <Typography variant="mobText3">{amount}</Typography>
+      </Box>
+
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: "4px",
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
+          {dateSubmitted}
+        </Typography>
+
+        <Box
+          sx={{
+            width: "4px",
+            height: "4px",
+            borderRadius: "50%",
+            backgroundColor: COLORS.santasGrey,
+          }}
+        />
+
         <Box display="flex" alignItems="center" gap="4px">
           <Typography variant="text4">{trimAddress(transactionId)}</Typography>
           <LinkGroup
@@ -62,14 +79,6 @@ export const WithdrawalsMobileTableItem = ({
             iconSize="12px"
           />
         </Box>
-      </Box>
-      <Box textAlign="right" display="flex" flexDirection="column">
-        <Typography variant="text3" sx={{ color: COLORS.blackRock }}>
-          {amount}
-        </Typography>
-        <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          {dateSubmitted}
-        </Typography>
       </Box>
     </Box>
     {!isLast && <Divider sx={{ mb: 1 }} />}

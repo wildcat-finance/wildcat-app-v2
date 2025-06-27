@@ -73,7 +73,8 @@ export const MobileMoreButton = ({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "22px",
+            marginBottom: "16px",
+            padding: "6px 0",
           }}
         >
           <Box sx={{ width: "20px" }} />

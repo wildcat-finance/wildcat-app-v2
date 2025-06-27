@@ -6,11 +6,9 @@ export const SummaryContainer = (theme: Theme): SxProps<Theme> => ({
   gap: "12px",
   padding: "8px 8px 8px 16px",
   [theme.breakpoints.down("md")]: {
-    paddingTop: "10px",
-    paddingBottom: "10px",
-    paddingRight: "0px",
-    paddingLeft: "0px",
+    padding: "10px 0px",
     margin: "0 4px",
+    gap: "8px",
   },
   borderRadius: "12px",
 

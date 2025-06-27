@@ -315,10 +315,10 @@ export const LenderTerminatedMarketsTables = ({
     return (
       <>
         {scrollTargetId === "prev-active" && (
-          <MobileMarketList markets={prevActive} />
+          <MobileMarketList markets={prevActive} isLoading={isLoading} />
         )}
         {scrollTargetId === "never-active" && (
-          <MobileMarketList markets={neverActive} />
+          <MobileMarketList markets={neverActive} isLoading={isLoading} />
         )}
       </>
     )

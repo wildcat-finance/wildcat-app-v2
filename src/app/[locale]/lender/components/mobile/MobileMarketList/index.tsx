@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Skeleton, Typography } from "@mui/material"
 
 import {
   LenderMobileMarketItem,
@@ -43,8 +43,10 @@ const getPaginationRange = (page: number, totalPages: number) => {
 
 export const MobileMarketList = ({
   markets,
+  isLoading,
 }: {
   markets: LenderMobileMarketItem[]
+  isLoading: boolean
 }) => {
   const [page, setPage] = useState(0)
 
@@ -57,7 +59,7 @@ export const MobileMarketList = ({
 
   const paginationItems = getPaginationRange(page, totalPages)
 
-  if (!markets.length)
+  if (!markets.length && !isLoading)
     return (
       <Box
         sx={{
@@ -98,17 +100,46 @@ export const MobileMarketList = ({
           gap: "4px",
         }}
       >
-        {currentItems.map((marketItem) => (
-          <MobileMarketCard
-            key={marketItem.id}
-            marketItem={marketItem}
-            buttonText="Deposit"
-            buttonIcon
-          />
-        ))}
+        {!isLoading &&
+          currentItems.map((marketItem) => (
+            <MobileMarketCard
+              key={marketItem.id}
+              marketItem={marketItem}
+              buttonText="Deposit"
+              buttonIcon
+            />
+          ))}
+        {isLoading && (
+          <>
+            <Skeleton
+              sx={{
+                width: "100%",
+                height: "155px",
+                backgroundColor: COLORS.white06,
+                borderRadius: "14px",
+              }}
+            />
+            <Skeleton
+              sx={{
+                width: "100%",
+                height: "155px",
+                backgroundColor: COLORS.white06,
+                borderRadius: "14px",
+              }}
+            />
+            <Skeleton
+              sx={{
+                width: "100%",
+                height: "155px",
+                backgroundColor: COLORS.white06,
+                borderRadius: "14px",
+              }}
+            />
+          </>
+        )}
       </Box>
 
-      {ITEMS_PER_PAGE < markets.length && (
+      {!isLoading && ITEMS_PER_PAGE < markets.length && (
         <Box
           sx={{
             display: "flex",

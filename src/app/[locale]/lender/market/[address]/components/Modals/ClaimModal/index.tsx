@@ -25,7 +25,6 @@ import { ClaimModalProps } from "./interface"
 export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
   const { t } = useTranslation()
 
-  const theme = useTheme()
   const isMobile = useMobileResolution()
 
   const [isOpen, setIsOpen] = useState(false)
@@ -69,8 +68,6 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
 
   const hideClaim = withdrawals.totalClaimableAmount.raw.isZero()
 
-  console.log(isLoading, "isLoading")
-
   if (isMobile)
     return (
       <>
@@ -85,13 +82,13 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
               padding: "12px 16px",
             }}
           >
-            <Typography variant="title3" margin="12px 0 8px" textAlign="center">
+            <Typography variant="mobH3" margin="12px 0 8px" textAlign="center">
               {formatTokenWithCommas(withdrawals.totalClaimableAmount)}{" "}
               {market.underlyingToken.symbol} to Claim
             </Typography>
 
             <Typography
-              variant="text2"
+              variant="mobText2"
               color={COLORS.santasGrey}
               marginBottom="20px"
               textAlign="center"

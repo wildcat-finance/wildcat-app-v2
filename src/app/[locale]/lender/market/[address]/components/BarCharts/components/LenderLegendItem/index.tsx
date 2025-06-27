@@ -20,7 +20,6 @@ export const LenderLegendItem = ({
   onClick?: () => void
   withDivider?: boolean
 }) => {
-  const theme = useTheme()
   const isMobile = useMobileResolution()
 
   if (isMobile) {
@@ -50,7 +49,7 @@ export const LenderLegendItem = ({
           onClick={onClick}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <Typography variant="text3">{label}</Typography>
+            <Typography variant="mobText3">{label}</Typography>
             <Box
               className={cn("barchart__legend-dot", legendDotClassName)}
               sx={{
@@ -61,7 +60,7 @@ export const LenderLegendItem = ({
               }}
             />
           </Box>
-          <Typography variant="text3">
+          <Typography variant="mobText3">
             {formatTokenWithCommas(value)} {asset}
           </Typography>
         </Box>

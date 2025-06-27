@@ -84,10 +84,6 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
       ).add(market.totalBaseInterestAccrued ?? 0)
     : undefined
 
-  const handleCopy = (text: string) => {
-    copyToClipboard(text)
-  }
-
   const { hooksConfig } = market
   const depositAccess =
     hooksConfig?.depositRequiresAccess === false ? "open" : "restricted"
@@ -155,7 +151,10 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
         padding: isMobile ? "12px 16px 24px" : "0px",
       }}
     >
-      <Typography variant="title3" sx={isMobile ? { marginTop: "12px" } : {}}>
+      <Typography
+        variant={isMobile ? "mobH3" : "title3"}
+        sx={{ marginTop: { xs: "12px", md: 0 } }}
+      >
         {t("borrowerMarketDetails.header.parameters")}
       </Typography>
       <Box sx={MarketParametersContainer(theme)}>

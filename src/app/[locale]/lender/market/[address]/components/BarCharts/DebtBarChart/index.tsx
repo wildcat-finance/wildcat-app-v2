@@ -31,6 +31,8 @@ export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
 
   const { totalSupply } = marketAccount.market
 
+  if (totalSupply.lte(0)) return null
+
   return (
     <Box marginTop="12px">
       <Box
@@ -48,7 +50,7 @@ export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
           }}
         >
           <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-            <Typography variant="title3">
+            <Typography variant={isMobile ? "mobH3" : "title3"}>
               {t("lenderMarketDetails.barchart.debts.title")}
             </Typography>
 
@@ -59,10 +61,10 @@ export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
                 gap: "4px",
               }}
             >
-              <Typography variant="title3">
+              <Typography variant={isMobile ? "mobH3" : "title3"}>
                 {formatTokenWithCommas(totalSupply)}
               </Typography>
-              <Typography variant="text4">
+              <Typography variant={isMobile ? "mobText4" : "text3"}>
                 {marketAccount.market.underlyingToken.symbol}
               </Typography>
             </Box>

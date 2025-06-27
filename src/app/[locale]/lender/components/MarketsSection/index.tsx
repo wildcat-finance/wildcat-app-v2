@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Skeleton, Typography } from "@mui/material"
 import {
   DepositStatus,
   LenderRole,
@@ -46,6 +46,8 @@ import { MarketStatus } from "@/utils/marketStatus"
 
 export const MarketsSection = () => {
   const isMobile = useMobileResolution()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   const marketSection = useAppSelector(
     (state) => state.lenderDashboard.marketSection,
@@ -81,7 +83,7 @@ export const MarketsSection = () => {
     isLoadingUpdate,
   } = useLendersMarkets()
 
-  const isLoading = isLoadingInitial || isLoadingUpdate
+  const isLoading = false
 
   const filteredMarketAccounts = useMemo(() => {
     const borrowersSearch = borrowers
@@ -260,6 +262,24 @@ export const MarketsSection = () => {
       dispatch(setMarketSection(LenderMarketDashboardSections.ACTIVE))
     }
   }, [noMarketsAtAll])
+
+  if (!mounted)
+    return (
+      <Skeleton
+        sx={{
+          width: "100%",
+          height: {
+            xs: "153px",
+            md: "162px",
+          },
+          borderRadius: "14px",
+          backgroundColor: {
+            xs: COLORS.white06,
+            md: "transparent",
+          },
+        }}
+      />
+    )
 
   return (
     <Box sx={{ width: "100%" }}>

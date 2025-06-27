@@ -19,7 +19,6 @@ export const BarCharts = ({
   withdrawals: LenderWithdrawalsForMarketResult
   isLender: boolean
 }) => {
-  const theme = useTheme()
   const isMobile = useMobileResolution()
 
   return (

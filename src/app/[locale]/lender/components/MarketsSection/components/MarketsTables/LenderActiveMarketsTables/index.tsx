@@ -377,10 +377,13 @@ export const LenderActiveMarketsTables = ({
     return (
       <>
         {scrollTargetId === "deposited" && (
-          <MobileMarketList markets={depositedMarkets} />
+          <MobileMarketList markets={depositedMarkets} isLoading={isLoading} />
         )}
         {scrollTargetId === "non-deposited" && (
-          <MobileMarketList markets={nonDepositedMarkets} />
+          <MobileMarketList
+            markets={nonDepositedMarkets}
+            isLoading={isLoading}
+          />
         )}
       </>
     )

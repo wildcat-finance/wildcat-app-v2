@@ -410,9 +410,11 @@ export const OtherMarketsTables = ({
     return (
       <>
         {scrollTargetId === "self-onboard" && (
-          <MobileMarketList markets={selfOnboard} />
+          <MobileMarketList markets={selfOnboard} isLoading={isLoading} />
         )}
-        {scrollTargetId === "manual" && <MobileMarketList markets={manual} />}
+        {scrollTargetId === "manual" && (
+          <MobileMarketList markets={manual} isLoading={isLoading} />
+        )}
       </>
     )
 

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 import {
   Box,
@@ -121,7 +121,43 @@ export default function LenderMarketDetails({
     React.useState(false)
   const [isMobileMLAOpen, setIsMobileMLAOpen] = React.useState(false)
 
-  if (isLoading)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
+  if (!mounted) return null
+
+  if (isLoading && isMobile)
+    return (
+      <Box
+        sx={{
+          height: "100%",
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+        }}
+      >
+        <Skeleton
+          sx={{
+            width: "100%",
+            height: "156px",
+            backgroundColor: COLORS.white06,
+            borderRadius: "14px",
+          }}
+        />
+
+        <Skeleton
+          sx={{
+            width: "100%",
+            height: "126px",
+            backgroundColor: COLORS.white06,
+            borderRadius: "14px",
+          }}
+        />
+      </Box>
+    )
+
+  if (isLoading && !isMobile)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>
@@ -207,7 +243,7 @@ export default function LenderMarketDetails({
             <BarCharts
               marketAccount={marketAccount}
               withdrawals={withdrawals}
-              isLender={authorizedInMarket}
+              isLender={authorizedInMarket as boolean}
             />
           </Box>
 
@@ -272,7 +308,7 @@ export default function LenderMarketDetails({
               <BarCharts
                 marketAccount={marketAccount}
                 withdrawals={withdrawals}
-                isLender={authorizedInMarket}
+                isLender={authorizedInMarket as boolean}
               />
               <Divider sx={{ margin: "40px 0 44px" }} />
               <MarketParameters market={market} />
