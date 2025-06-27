@@ -256,7 +256,7 @@ export const WithdrawModal = ({
 
             "& .MuiDialog-paper": {
               height: "353px",
-              width: "367px",
+              width: "100%",
               border: "none",
               borderRadius: "20px",
               padding: "24px 0",
