@@ -1,49 +1,34 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
 
 import { Dialog, Box, Typography, Button } from "@mui/material"
 import Cookies from "js-cookie"
 
 import { COLORS } from "@/theme/colors"
-import { HotjarFn } from "@/types/hotjar"
-
-const HOTJAR_ID = Number(process.env.NEXT_PUBLIC_HOTJAR_ID ?? 0)
 
 export default function CookieBanner() {
   const [open, setOpen] = useState(false)
 
-  const loadHotjar = () => {
-    if (typeof window === "undefined" || window.hj) return
-
-    const hjStub: HotjarFn = (...args: unknown[]) => {
-      ;(hjStub.q = hjStub.q || []).push(args)
-    }
-
-    window.hj = hjStub
-    // eslint-disable-next-line no-underscore-dangle
-    window._hjSettings = { hjid: HOTJAR_ID, hjsv: 6 }
-
-    const s = document.createElement("script")
-    s.async = true
-    s.src = `https://static.hotjar.com/c/hotjar-${HOTJAR_ID}.js?sv=6`
-    document.head.appendChild(s)
-  }
-
   useEffect(() => {
-    const consent = Cookies.get("tracking_consent")
-    if (!consent) setOpen(true)
-    if (consent === "accepted") loadHotjar()
+    if (!Cookies.get("tracking_consent")) setOpen(true)
   }, [])
 
   const accept = () => {
-    Cookies.set("tracking_consent", "accepted", { expires: 365 })
+    Cookies.set("tracking_consent", "accepted", {
+      expires: 365,
+      sameSite: "strict",
+      secure: true,
+    })
     setOpen(false)
-    loadHotjar()
   }
 
   const decline = () => {
-    Cookies.set("tracking_consent", "declined", { expires: 365 })
+    Cookies.set("tracking_consent", "declined", {
+      expires: 365,
+      sameSite: "strict",
+      secure: true,
+    })
     setOpen(false)
   }
 
