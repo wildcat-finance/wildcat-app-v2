@@ -71,7 +71,7 @@ export default async function RootLayout({
                   {/* <PollingRegistration /> */}
                   <ThemeRegistry>
                     <Box sx={BackgroundContainer} />
-                    <Box position="relative" zIndex="1">
+                    <Box position="relative">
                       <Header />
                       <Box sx={PageContainer}>
                         <Box sx={ContentContainer}>
