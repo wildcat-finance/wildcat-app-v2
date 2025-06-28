@@ -6,63 +6,57 @@ import { Dialog, Box, Typography, Button } from "@mui/material"
 import Cookies from "js-cookie"
 
 import { COLORS } from "@/theme/colors"
+import { HotjarFn } from "@/types/hotjar"
 
-declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    _mtm: Array<{ [key: string]: any }>
-  }
-}
+const HOTJAR_ID = Number(process.env.NEXT_PUBLIC_HOTJAR_ID ?? 0)
 
 export default function CookieBanner() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [open, setOpen] = useState(false)
 
-  const loadMatomo = () => {
-    if (typeof window === "undefined") return
-    // eslint-disable-next-line no-underscore-dangle, no-multi-assign
-    const _mtm = (window._mtm = window._mtm || [])
-    _mtm.push({ "mtm.startTime": new Date().getTime(), event: "mtm.Start" })
-    const d = document
-    const g = d.createElement("script")
-    const s = d.getElementsByTagName("script")[0]
-    g.async = true
-    g.src =
-      "https://cdn.matomo.cloud/wildcatfinance.matomo.cloud/container_jeDotXew.js"
-    s.parentNode?.insertBefore(g, s)
+  const loadHotjar = () => {
+    if (typeof window === "undefined" || window.hj) return
+
+    const hjStub: HotjarFn = (...args: unknown[]) => {
+      ;(hjStub.q = hjStub.q || []).push(args)
+    }
+
+    window.hj = hjStub
+    // eslint-disable-next-line no-underscore-dangle
+    window._hjSettings = { hjid: HOTJAR_ID, hjsv: 6 }
+
+    const s = document.createElement("script")
+    s.async = true
+    s.src = `https://static.hotjar.com/c/hotjar-${HOTJAR_ID}.js?sv=6`
+    document.head.appendChild(s)
   }
 
-  // useEffect(() => {
-  //   const consent = Cookies.get("tracking_consent")
-  //
-  //   if (!consent) {
-  //     setIsVisible(true)
-  //   } else if (consent === "accepted") {
-  //     loadMatomo()
-  //   }
-  // }, [])
+  useEffect(() => {
+    const consent = Cookies.get("tracking_consent")
+    if (!consent) setOpen(true)
+    if (consent === "accepted") loadHotjar()
+  }, [])
 
-  const handleAccept = () => {
+  const accept = () => {
     Cookies.set("tracking_consent", "accepted", { expires: 365 })
-    setIsVisible(false)
-    loadMatomo()
+    setOpen(false)
+    loadHotjar()
   }
 
-  const handleDecline = () => {
+  const decline = () => {
     Cookies.set("tracking_consent", "declined", { expires: 365 })
-    setIsVisible(false)
+    setOpen(false)
   }
 
   return (
     <Dialog
-      open={isVisible}
-      onClose={handleDecline}
+      open={open}
+      onClose={decline}
       PaperProps={{
         sx: {
           position: "fixed",
           bottom: 16,
           left: 16,
           right: 16,
-          m: 0,
           p: 2,
           bgcolor: COLORS.white,
           color: COLORS.blackRock,
@@ -71,24 +65,15 @@ export default function CookieBanner() {
         },
       }}
     >
-      <Typography variant="body1" sx={{ mb: 2 }}>
-        We use Matomo for anonymous analytics. Allow tracking?
+      <Typography sx={{ mb: 2 }}>
+        We use Hotjar for anonymous analytics. Allow tracking?
       </Typography>
+
       <Box sx={{ display: "flex", gap: 1 }}>
-        <Button
-          onClick={handleAccept}
-          variant="contained"
-          color="success"
-          sx={{ px: 2, py: 1 }}
-        >
+        <Button onClick={accept} variant="contained" color="success">
           Allow
         </Button>
-        <Button
-          onClick={handleDecline}
-          variant="contained"
-          color="error"
-          sx={{ px: 2, py: 1 }}
-        >
+        <Button onClick={decline} variant="contained" color="error">
           Decline
         </Button>
       </Box>
