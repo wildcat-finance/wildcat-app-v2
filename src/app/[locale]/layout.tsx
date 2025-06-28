@@ -19,7 +19,6 @@ import initTranslations from "@/app/i18n"
 import CookieBanner from "@/components/CookieBanner"
 import { Footer } from "@/components/Footer"
 import Header from "@/components/Header"
-import { HotjarProvider } from "../../components/HotjarProvider"
 import PollingRegistration from "@/components/PollingRegistration"
 import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
@@ -31,6 +30,7 @@ import { SafeProvider } from "@/providers/SafeProvider"
 import { WagmiQueryProviders } from "@/providers/WagmiQueryProviders"
 
 import i18nConfig from "../../../i18nConfig"
+import { HotjarProvider } from "../../components/HotjarProvider"
 
 const i18nNamespaces = ["en"]
 
