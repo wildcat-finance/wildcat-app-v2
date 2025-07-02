@@ -534,49 +534,7 @@ export default function EditProfileForm({
       )}
 
       <Box sx={FieldsContainer}>
-        {/* Temporarily disabling anything but registered legal entities */}
-        {/*  <SelectProfileItem
-          title={t("borrowerProfile.edit.private.nature.title")}
-          tooltip={t("borrowerProfile.edit.private.nature.tooltip")}
-          form={privateForm}
-          field="entityCategory"
-          isLoading={isLoading}
-        >
-          <FormControl fullWidth>
-            <InputLabel className="test">
-              {t("borrowerProfile.edit.private.nature.placeholder")}
-            </InputLabel>
-            <Select
-              ref={selectRef}
-              onOpen={onOpen}
-              onClose={onClose}
-              onChange={handleNatureSelect}
-              value={privateWatch("entityCategory") || ""}
-              MenuProps={{
-                sx: SelectStyles,
-                anchorOrigin: {
-                  vertical: "bottom",
-                  horizontal: "left",
-                },
-                transformOrigin: {
-                  vertical: "top",
-                  horizontal: "left",
-                },
-              }}
-            >
-              {entityCategoryOptions.map((option) => (
-                <MenuItem
-                  key={option.id}
-                  value={option.value}
-                  disabled={option.value !== "Registered Legal Entity"}
-                  sx={{ width: "100%" }}
-                >
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </SelectProfileItem> */}
+        {/* Temporarily disabling anything but registered legal entities and DAOs */}
         {entityCategory !== "Decentralised Autonomous Organisation" && (
           <>
             <EditProfileItem
