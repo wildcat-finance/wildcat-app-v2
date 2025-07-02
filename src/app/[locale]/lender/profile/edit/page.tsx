@@ -3,10 +3,9 @@
 import { useRouter } from "next/navigation"
 import { useAccount } from "wagmi"
 
+import EditProfileForm from "@/app/[locale]/borrower/profile/edit/components/EditProfileForm"
 import { EditPageContainer } from "@/app/[locale]/borrower/profile/edit/style"
 import { ROUTES } from "@/routes"
-
-import EditProfileForm from "./components/EditProfileForm"
 
 export default function EditProfile() {
   const router = useRouter()

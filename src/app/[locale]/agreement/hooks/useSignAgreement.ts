@@ -18,7 +18,7 @@ export type SignAgreementProps = {
   timeSigned: number | undefined
 }
 
-export async function submitSignature(input: SignatureSubmissionProps) {
+async function submitSignature(input: SignatureSubmissionProps) {
   const network = TargetNetwork.stringID
 
   const result = await fetch(`/api/sla`, {
