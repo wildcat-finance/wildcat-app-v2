@@ -3,7 +3,6 @@ import { useEffect } from "react"
 import { Box, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
-import { endDecorator } from "@/app/[locale]/borrower/(new-market)/components/NewMarketForm/style"
 import { InputLabel } from "@/components/InputLabel"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
@@ -18,7 +17,7 @@ import { COLORS } from "@/theme/colors"
 
 import { FinancialFormProps } from "./interface"
 import { FormFooter } from "../../FormFooter"
-import { FormContainer, SectionGrid } from "../style"
+import { FormContainer, SectionGrid, endDecorator } from "../style"
 
 export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
   const { t } = useTranslation()
