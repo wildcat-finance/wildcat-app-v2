@@ -28,6 +28,7 @@ import { COLORS } from "@/theme/colors"
 
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
 import { MarketActions } from "./components/MarketActions"
+import { MarketSummary } from "./components/MarketSummary"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
@@ -149,6 +150,7 @@ export default function LenderMarketDetails({
                   withdrawals={withdrawals}
                 />
               )}
+              <MarketSummary marketAddress={market.address} />
               <CapacityBarChart
                 marketAccount={marketAccount}
                 legendType="big"
