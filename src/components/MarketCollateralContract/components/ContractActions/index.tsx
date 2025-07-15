@@ -21,18 +21,20 @@ export type ContractActionsType = {
   marketAccount: MarketAccount
   collateralContract: MarketCollateralV1
   handleBackClick: () => void
+  hideDeposit?: boolean
 }
 
 export const ContractActions = ({
   marketAccount,
   collateralContract: inputCollateralContract,
   handleBackClick,
+  hideDeposit,
 }: ContractActionsType) => {
   const { market } = marketAccount
   const { t } = useTranslation()
   const { collateral: collateralContract, depositor } =
     useUpdatedCollateralContract(inputCollateralContract)
-  const showDeposit = !market.isClosed
+  const showDeposit = !market.isClosed && !hideDeposit
   const showLiquidate =
     market.isIncurringPenalties && collateralContract.availableCollateral.gt(0)
   const showReclaim =

@@ -214,7 +214,10 @@ export default function LenderMarketDetails({
             </Box>
           )}
           {currentSection === LenderMarketSections.COLLATERAL_CONTRACT && (
-            <MarketCollateralContract marketAccount={marketAccount} />
+            <MarketCollateralContract
+              marketAccount={marketAccount}
+              hideDeposit
+            />
           )}
         </Box>
       </Box>

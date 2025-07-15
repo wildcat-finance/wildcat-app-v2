@@ -25,6 +25,7 @@ export function useGetCollateralContracts(market: Market) {
     queryKey: [GET_COLLATERAL_CONTRACTS_QUERY_KEY, market.address],
     enabled: !!provider,
     refetchInterval: POLLING_INTERVAL,
+    placeholderData: keepPreviousData,
     queryFn: () =>
       getCollateralContractsForMarketFromSubgraph(
         SubgraphClient,

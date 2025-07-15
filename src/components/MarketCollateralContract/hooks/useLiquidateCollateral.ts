@@ -7,7 +7,10 @@ import { MarketCollateralV1 } from "@wildcatfi/wildcat-sdk"
 
 import { BebopPMMQuote } from "@/hooks/bebop/useGetBebopPMMQuote"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { GET_UPDATED_COLLATERAL_CONTRACT_QUERY_KEY } from "@/hooks/useGetCollateralContracts"
+import {
+  GET_COLLATERAL_CONTRACTS_QUERY_KEY,
+  GET_UPDATED_COLLATERAL_CONTRACT_QUERY_KEY,
+} from "@/hooks/useGetCollateralContracts"
 
 export const useLiquidateCollateral = (
   collateral: MarketCollateralV1,
@@ -87,6 +90,9 @@ export const useLiquidateCollateral = (
           GET_UPDATED_COLLATERAL_CONTRACT_QUERY_KEY,
           collateral.address,
         ],
+      })
+      client.invalidateQueries({
+        queryKey: [GET_COLLATERAL_CONTRACTS_QUERY_KEY, collateral.address],
       })
     },
     onError(error) {

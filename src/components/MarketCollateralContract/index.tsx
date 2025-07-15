@@ -22,13 +22,15 @@ export type TypeSafeColDef<
   field: keyof R | "action" | F
 }
 
-export type MarketCollateralContractType = {
+export type MarketCollateralContractProps = {
   marketAccount: MarketAccount
+  hideDeposit?: boolean
 }
 
 export const MarketCollateralContract = ({
   marketAccount,
-}: MarketCollateralContractType) => {
+  hideDeposit,
+}: MarketCollateralContractProps) => {
   const { market } = marketAccount
   const { data: collateralContracts, isLoading } =
     useGetCollateralContracts(market)
@@ -90,6 +92,7 @@ export const MarketCollateralContract = ({
           marketAccount={marketAccount}
           collateralContract={selectedCollateralContract}
           handleBackClick={() => setSelectedCollateralContract(undefined)}
+          hideDeposit={hideDeposit}
         />
       )}
     </Box>

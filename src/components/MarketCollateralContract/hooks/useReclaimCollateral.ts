@@ -7,7 +7,10 @@ import { MarketCollateralV1 } from "@wildcatfi/wildcat-sdk"
 
 import { toastRequest } from "@/components/Toasts"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { GET_UPDATED_COLLATERAL_CONTRACT_QUERY_KEY } from "@/hooks/useGetCollateralContracts"
+import {
+  GET_COLLATERAL_CONTRACTS_QUERY_KEY,
+  GET_UPDATED_COLLATERAL_CONTRACT_QUERY_KEY,
+} from "@/hooks/useGetCollateralContracts"
 
 export const useReclaimCollateral = (
   collateralContract: MarketCollateralV1,
@@ -77,6 +80,12 @@ export const useReclaimCollateral = (
       client.invalidateQueries({
         queryKey: [
           GET_UPDATED_COLLATERAL_CONTRACT_QUERY_KEY,
+          collateralContract.address,
+        ],
+      })
+      client.invalidateQueries({
+        queryKey: [
+          GET_COLLATERAL_CONTRACTS_QUERY_KEY,
           collateralContract.address,
         ],
       })
