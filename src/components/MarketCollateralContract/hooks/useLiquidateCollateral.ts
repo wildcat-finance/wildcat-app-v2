@@ -5,12 +5,17 @@ import { Web3TransactionReceiptObject } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketCollateralV1 } from "@wildcatfi/wildcat-sdk"
 
+import { GET_WITHDRAWALS_KEY } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { BebopPMMQuote } from "@/hooks/bebop/useGetBebopPMMQuote"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import {
   GET_COLLATERAL_CONTRACTS_QUERY_KEY,
   GET_UPDATED_COLLATERAL_CONTRACT_QUERY_KEY,
 } from "@/hooks/useGetCollateralContracts"
+import {
+  GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY,
+  GET_MARKET_ACCOUNT_KEY,
+} from "@/hooks/useGetMarketAccount"
 
 export const useLiquidateCollateral = (
   collateral: MarketCollateralV1,
@@ -93,6 +98,14 @@ export const useLiquidateCollateral = (
       })
       client.invalidateQueries({
         queryKey: [GET_COLLATERAL_CONTRACTS_QUERY_KEY, collateral.address],
+      })
+      client.invalidateQueries({
+        queryKey: [GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY],
+      })
+      client.invalidateQueries({ queryKey: [GET_MARKET_ACCOUNT_KEY] })
+
+      client.invalidateQueries({
+        queryKey: [GET_WITHDRAWALS_KEY],
       })
     },
     onError(error) {
