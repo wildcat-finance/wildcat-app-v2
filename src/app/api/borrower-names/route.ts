@@ -3,6 +3,8 @@ import { NextResponse } from "next/server"
 import { TargetChainId } from "@/config/network"
 import { prisma } from "@/lib/db"
 
+export const dynamic = "force-dynamic"
+
 export async function GET() {
   const names = (
     await prisma.borrower.findMany({
