@@ -78,7 +78,7 @@ export const MarketCollateralContract = ({
             setSelectedCollateralContract={setSelectedCollateralContract}
           />
 
-          {marketAccount.isBorrower && (
+          {marketAccount.isBorrower && !market.isClosed && (
             <CreateContractForm
               market={market}
               existingCollateralContracts={collateralContracts || []}
