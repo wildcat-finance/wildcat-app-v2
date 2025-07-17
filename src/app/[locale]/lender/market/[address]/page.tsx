@@ -161,6 +161,16 @@ export default function LenderMarketDetails({
 
           {currentSection === LenderMarketSections.STATUS && (
             <Box marginTop="12px">
+              {
+                /* If the lender is not authorized, they will get auto-redirected to the status section.
+                 * Show the market summary here instead of actions section in that case.  */
+                !authorizedInMarket && (
+                  <>
+                    <Divider sx={{ margin: "40px 0 44px" }} />
+                    <MarketSummary marketAddress={market.address} />
+                  </>
+                )
+              }
               <BarCharts
                 marketAccount={marketAccount}
                 withdrawals={withdrawals}
