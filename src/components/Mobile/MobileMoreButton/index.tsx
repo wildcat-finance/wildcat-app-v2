@@ -24,9 +24,8 @@ export const MobileMoreButton = ({
   const { t } = useTranslation()
   const { market } = marketAccount
 
-  const [open, setOpen] = useState<boolean>(false)
-
-  const handleToggleOpen = () => setOpen((prev) => !prev)
+  const [open, setOpen] = useState(false)
+  const toggleOpen = () => setOpen((prev) => !prev)
 
   const { canAddToken, handleAddToken, isAddingToken } = useAddToken(
     market?.marketToken,
@@ -35,82 +34,71 @@ export const MobileMoreButton = ({
   return (
     <>
       <Button
-        onClick={handleToggleOpen}
+        onClick={toggleOpen}
         variant="contained"
         color="secondary"
         sx={{
-          width: "25px",
-          minWidth: "28px",
-          height: "28px",
-          padding: "0px",
+          width: 28,
+          minWidth: 28,
+          height: 28,
+          p: 0,
           borderRadius: "50%",
         }}
       >
-        <Typography variant="text4" sx={{ marginBottom: "6px" }}>
+        <Typography variant="text4" sx={{ mb: "6px" }}>
           ...
         </Typography>
       </Button>
 
       <Dialog
         open={open}
-        onClose={handleToggleOpen}
+        onClose={toggleOpen}
         sx={{
           backdropFilter: "blur(10px)",
           "& .MuiDialog-paper": {
-            height: "fit-content",
             width: "100%",
             maxWidth: "100%",
-            border: "none",
             borderRadius: "14px",
-            padding: "8px",
-            margin: "auto 4px 4px",
+            p: "8px",
+            m: "auto 4px 4px",
+            border: 0,
+            height: "fit-content",
           },
         }}
       >
         <Box
           sx={{
-            width: "100%",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "16px",
-            padding: "6px 0",
+            mb: "16px",
+            p: "6px 0",
           }}
         >
-          <Box sx={{ width: "20px" }} />
-
+          <Box sx={{ width: 20 }} />
           <Typography variant="mobText2">Wallet Actions</Typography>
-
-          <IconButton
-            onClick={handleToggleOpen}
-            sx={{ width: "20px", height: "20px" }}
-          >
+          <IconButton onClick={toggleOpen} sx={{ width: 20, height: 20 }}>
             <SvgIcon
-              sx={{ fontSize: "20px", "& path": { fill: COLORS.santasGrey } }}
+              sx={{ fontSize: 20, "& path": { fill: COLORS.santasGrey } }}
             >
               <Cross />
             </SvgIcon>
           </IconButton>
         </Box>
 
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+        {canAddToken && (
           <Button
             variant="contained"
             color="secondary"
             size="medium"
             onClick={() => handleAddToken()}
-            disabled={isAddingToken && canAddToken}
+            disabled={isAddingToken}
           >
             <Typography variant="mobText3SemiBold">
               {t("lenderMarketDetails.buttons.addToken")}
             </Typography>
           </Button>
-          {/* <Button variant="contained" color="secondary" size="medium"> */}
-          {/*  <Typography variant="mobText3SemiBold"> */}
-          {/*    Download Statement */}
-          {/*  </Typography> */}
-          {/* </Button> */}
-        </Box>
+        )}
       </Dialog>
     </>
   )
