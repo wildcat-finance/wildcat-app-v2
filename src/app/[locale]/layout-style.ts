@@ -14,6 +14,10 @@ export const BackgroundContainer = {
   backgroundSize: "100% 100%",
 
   zIndex: "-1",
+
+  "@media (max-width: 1000px)": {
+    height: "100dvh",
+  },
 }
 
 export const PageContainer = {

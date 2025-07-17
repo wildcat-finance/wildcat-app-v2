@@ -57,7 +57,7 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} dir={dir(locale)}>
-      <body className={inter.className}>
+      <body className={inter.className} style={{ height: "100dvh" }}>
         <Toaster position="bottom-center" />
         <WagmiQueryProviders initialState={initialState}>
           <SafeProvider>

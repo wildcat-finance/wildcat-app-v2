@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next"
 
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import Cross from "@/assets/icons/cross_icon.svg"
+import { LinkGroup } from "@/components/LinkComponent"
 import { COLORS } from "@/theme/colors"
 
 export const MobileMoreButton = ({
@@ -27,7 +28,7 @@ export const MobileMoreButton = ({
   const [open, setOpen] = useState(false)
   const toggleOpen = () => setOpen((prev) => !prev)
 
-  const { canAddToken, handleAddToken, isAddingToken } = useAddToken(
+  const { handleAddToken, isAddingToken, canAddToken } = useAddToken(
     market?.marketToken,
   )
 
@@ -86,7 +87,7 @@ export const MobileMoreButton = ({
           </IconButton>
         </Box>
 
-        {canAddToken && (
+        {canAddToken ? (
           <Button
             variant="contained"
             color="secondary"
@@ -98,6 +99,28 @@ export const MobileMoreButton = ({
               {t("lenderMarketDetails.buttons.addToken")}
             </Typography>
           </Button>
+        ) : (
+          <Box
+            sx={{
+              paddingY: "12px",
+              marginX: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: "4px",
+            }}
+          >
+            <Box sx={{ display: "flex", gap: "6px" }}>
+              <Typography variant="mobText2">
+                {marketAccount.market.marketToken.address}
+              </Typography>
+              <LinkGroup copyValue={marketAccount.market.marketToken.address} />
+            </Box>
+
+            <Typography variant="mobText4" color={COLORS.santasGrey}>
+              To add debt token to wallet please copy the token address and add
+              it manually.
+            </Typography>
+          </Box>
         )}
       </Dialog>
     </>
