@@ -75,12 +75,13 @@ export const RepayModal = ({
 
   const { market } = marketAccount
 
+  const smallestTokenAmountValue = market.underlyingToken.parseAmount(
+    "0.00001".replace(/,/g, ""),
+  )
+
   const isTooSmallOutstandingDebt: boolean =
-    Number(
-      formatTokenWithCommas(market.outstandingDebt, {
-        fractionDigits: market.outstandingDebt.decimals,
-      }),
-    ) < 0.00001 && !market.outstandingDebt.raw.isZero()
+    market.outstandingDebt.lt(smallestTokenAmountValue) &&
+    !market.outstandingDebt.raw.isZero()
 
   const {
     mutate: repay,
