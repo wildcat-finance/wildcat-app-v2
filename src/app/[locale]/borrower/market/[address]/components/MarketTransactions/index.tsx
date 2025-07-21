@@ -48,6 +48,21 @@ export const MarketTransactions = ({
     market.version === MarketVersion.V2 &&
     market.hooksConfig?.flags.useOnDeposit
 
+  console.log(
+    Number(
+      formatTokenWithCommas(market.outstandingDebt, {
+        fractionDigits: market.outstandingDebt.decimals,
+      }),
+    ),
+  )
+
+  const isTooSmallOutstandingDebt: boolean =
+    Number(
+      formatTokenWithCommas(market.outstandingDebt, {
+        fractionDigits: market.outstandingDebt.decimals,
+      }),
+    ) < 0.00001 && !market.outstandingDebt.raw.isZero()
+
   return (
     <>
       {holdTheMarket && (
@@ -75,7 +90,11 @@ export const MarketTransactions = ({
         <TransactionBlock
           title={t("borrowerMarketDetails.transactions.toRepay.title")}
           tooltip={t("borrowerMarketDetails.transactions.toRepay.tooltip")}
-          amount={formatTokenWithCommas(market.outstandingDebt)}
+          amount={
+            isTooSmallOutstandingDebt
+              ? "< 0.00001"
+              : formatTokenWithCommas(market.outstandingDebt)
+          }
           asset={market.underlyingToken.symbol}
           warning={market.isIncurringPenalties || market.isDelinquent}
         >
