@@ -1,6 +1,6 @@
 import "./globals.css"
 
-import { ReactNode } from "react"
+import { ReactNode, Suspense } from "react"
 
 import { Box } from "@mui/material"
 import { dir } from "i18next"
@@ -20,6 +20,7 @@ import initTranslations from "@/app/i18n"
 import CookieBanner from "@/components/CookieBanner"
 import { Footer } from "@/components/Footer"
 import Header from "@/components/Header"
+import HotjarAnalytics from "@/components/HotjarAnalytics"
 import PollingRegistration from "@/components/PollingRegistration"
 import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
@@ -101,6 +102,9 @@ export default async function RootLayout({
                           <Box width="calc(100vw - 267px)">{children}</Box>
                           {/* <HotjarProvider /> */}
                           {/* <CookieBanner /> */}
+                          <Suspense>
+                            <HotjarAnalytics />
+                          </Suspense>
                         </Box>
                         {/* <Footer /> */}
                       </Box>
