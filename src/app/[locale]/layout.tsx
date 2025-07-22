@@ -32,7 +32,6 @@ import { SafeProvider } from "@/providers/SafeProvider"
 import { WagmiQueryProviders } from "@/providers/WagmiQueryProviders"
 
 import i18nConfig from "../../../i18nConfig"
-import { HotjarProvider } from "../../components/HotjarProvider"
 
 const i18nNamespaces = ["en"]
 
@@ -61,25 +60,6 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} dir={dir(locale)}>
-      <head>
-        <Script
-          id="hotjar-init"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-      (function(h,o,t,j,a,r){
-        h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
-        h._hjSettings={hjid:${process.env.NEXT_PUBLIC_HOTJAR_ID},hjsv:${process.env.NEXT_PUBLIC_HOTJAR_VERSION}};
-        a=o.getElementsByTagName('head')[0];
-        r=o.createElement('script');r.async=1;
-        r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
-        a.appendChild(r);
-      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
-    `,
-          }}
-        />
-      </head>
-
       <body className={inter.className}>
         <Toaster position="bottom-center" />
         <WagmiQueryProviders initialState={initialState}>
@@ -100,7 +80,6 @@ export default async function RootLayout({
                         <Box sx={ContentContainer}>
                           <Sidebar />
                           <Box width="calc(100vw - 267px)">{children}</Box>
-                          {/* <HotjarProvider /> */}
                           {/* <CookieBanner /> */}
                           <Suspense>
                             <HotjarAnalytics />
