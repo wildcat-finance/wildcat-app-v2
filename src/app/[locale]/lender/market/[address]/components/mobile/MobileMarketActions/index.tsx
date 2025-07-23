@@ -2,12 +2,19 @@ import { Dispatch, SetStateAction } from "react"
 import * as React from "react"
 
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
-import { HooksKind, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  HooksKind,
+  MarketAccount,
+  SupportedChainId,
+} from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
+import { useFaucet } from "@/app/[locale]/lender/market/[address]/hooks/useFaucet"
 import Clock from "@/assets/icons/clock_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
+import { TargetChainId } from "@/config/network"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
@@ -78,6 +85,34 @@ const MobileMarketTransactionItem = ({
   </>
 )
 
+export const MobileFaucetButton = ({
+  marketAccount,
+}: {
+  marketAccount: MarketAccount
+}) => {
+  const {
+    mutate: faucet,
+    isPending: isFauceting,
+    isSuccess,
+  } = useFaucet(marketAccount)
+
+  if (isSuccess) return null
+
+  return (
+    <Button
+      onClick={() => faucet()}
+      variant="contained"
+      color="secondary"
+      size="large"
+      fullWidth
+      disabled={isFauceting}
+      sx={{ padding: "10px 20px", marginTop: "16px" }}
+    >
+      {isFauceting ? "Requesting Tokens..." : "Faucet"}
+    </Button>
+  )
+}
+
 export const MobileMarketActions = ({
   marketAccount,
   isMobileWithdrawalOpen,
@@ -95,6 +130,17 @@ export const MobileMarketActions = ({
     market.hooksConfig?.kind === HooksKind.FixedTerm &&
     market.hooksConfig?.fixedTermEndTime !== undefined &&
     market.hooksConfig.fixedTermEndTime * 1000 >= Date.now()
+
+  const hideDeposit =
+    market.isClosed ||
+    marketAccount.maximumDeposit.raw.isZero() ||
+    marketAccount.depositAvailability !== DepositStatus.Ready
+
+  const showFaucet =
+    hideDeposit &&
+    TargetChainId === SupportedChainId.Sepolia &&
+    market.underlyingToken.isMock &&
+    marketAccount.underlyingBalance.raw.isZero()
 
   const { data: mla, isLoading: mlaLoading } = useMarketMla(market.address)
   const mlaResponse = mla && "noMLA" in mla ? null : mla
@@ -221,17 +267,21 @@ export const MobileMarketActions = ({
               asset={market.underlyingToken.symbol}
             />
 
-            <Button
-              onClick={() => setIsMobileDepositOpen(!isMobileDepositOpen)}
-              variant="contained"
-              color="secondary"
-              size="large"
-              fullWidth
-              disabled={marketAccount.maximumDeposit.raw.isZero()}
-              sx={{ padding: "10px 20px", marginTop: "16px" }}
-            >
-              ↓ {t("lenderMarketDetails.transactions.deposit.button")}
-            </Button>
+            {showFaucet ? (
+              <MobileFaucetButton marketAccount={marketAccount} />
+            ) : (
+              <Button
+                onClick={() => setIsMobileDepositOpen(!isMobileDepositOpen)}
+                variant="contained"
+                color="secondary"
+                size="large"
+                fullWidth
+                disabled={marketAccount.maximumDeposit.raw.isZero()}
+                sx={{ padding: "10px 20px", marginTop: "16px" }}
+              >
+                ↓ {t("lenderMarketDetails.transactions.deposit.button")}
+              </Button>
+            )}
           </Box>
         </>
       )}
