@@ -22,7 +22,11 @@ import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { ClaimModalProps } from "./interface"
 
-export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
+export const ClaimModal = ({
+  market,
+  withdrawals,
+  hideClaim,
+}: ClaimModalProps) => {
   const { t } = useTranslation()
 
   const isMobile = useMobileResolution()
@@ -65,8 +69,6 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
       setShowSuccessPopup(true)
     }
   }, [isError, isSuccess])
-
-  const hideClaim = withdrawals.totalClaimableAmount.raw.isZero()
 
   if (isMobile)
     return (

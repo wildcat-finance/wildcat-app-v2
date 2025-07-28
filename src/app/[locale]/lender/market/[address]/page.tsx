@@ -124,6 +124,10 @@ export default function LenderMarketDetails({
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
+  const hideClaim =
+    withdrawals.totalClaimableAmount &&
+    withdrawals.totalClaimableAmount.raw.isZero()
+
   if (!mounted) return null
 
   if (isLoading && isMobile)
@@ -237,7 +241,11 @@ export default function LenderMarketDetails({
         >
           <MarketHeader marketAccount={marketAccount} />
 
-          <ClaimModal market={market} withdrawals={withdrawals} />
+          <ClaimModal
+            market={market}
+            withdrawals={withdrawals}
+            hideClaim={hideClaim}
+          />
 
           <Box id="depositWithdraw">
             <BarCharts
