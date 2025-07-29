@@ -83,6 +83,12 @@ export const RepayModal = ({
     market.outstandingDebt.lt(smallestTokenAmountValue) &&
     !market.outstandingDebt.raw.isZero()
 
+  const handleClickTooSmallTextfield = () => {
+    if (isTooSmallOutstandingDebt && maxRepayAmount) {
+      setMaxRepayAmount(undefined)
+    }
+  }
+
   const {
     mutate: repay,
     isPending: isRepaying,
@@ -430,6 +436,11 @@ export const RepayModal = ({
                   style={{ width: "100%", marginTop: "20px" }}
                   value={amountInputValue}
                   onChange={amountInputOnChange}
+                  onClick={
+                    isTooSmallOutstandingDebt
+                      ? handleClickTooSmallTextfield
+                      : undefined
+                  }
                   endAdornment={amountInputAdornment}
                   disabled={isApproving}
                   max={type === "days" ? 100000000 : undefined}
