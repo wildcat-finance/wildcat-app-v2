@@ -11,6 +11,7 @@ import { OverallSection } from "@/app/[locale]/borrower/profile/components/Overa
 import { ProfileSkeleton } from "@/app/[locale]/borrower/profile/components/ProfileSkeleton"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { MarketsSection } from "@/app/[locale]/lender/profile/components/MarketsSection"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 
 import { ContentContainer, MainContainer } from "./style"
 

@@ -53,6 +53,7 @@ export type LenderOtherMarketsTableModel = {
   term: ReturnType<typeof getMarketTypeChip>
   name: string
   borrower: string | undefined
+  borrowerAddress: string | undefined
   asset: string
   debt: TokenAmount | undefined
   apr: number

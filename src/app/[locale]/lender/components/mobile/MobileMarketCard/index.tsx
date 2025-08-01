@@ -23,6 +23,7 @@ export type LenderMobileMarketItem = {
   name: string
   capacityLeft?: TokenAmount
   borrower: string | undefined
+  borrowerAddress: string | undefined
   loan?: TokenAmount | undefined
   asset: string
   isSelfOnboard?: boolean
@@ -110,7 +111,12 @@ export const MobileMarketCard = ({
         marginBottom: "14px",
       }}
     >
-      <Typography variant="mobText4">{marketItem.borrower}</Typography>
+      <Link
+        href={`${ROUTES.lender.profile}/${marketItem.borrowerAddress}`}
+        style={{ display: "flex", textDecoration: "none" }}
+      >
+        <Typography variant="mobText4">{marketItem.borrower}</Typography>
+      </Link>
 
       <Typography variant="mobText4" color={COLORS.santasGrey}>
         available to lend
