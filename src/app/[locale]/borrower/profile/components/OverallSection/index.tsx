@@ -74,7 +74,7 @@ export const OverallSection = ({
           height: "100%",
           backgroundColor: COLORS.white,
           borderRadius: "14px",
-          padding: "12px 16px",
+          padding: "12px 16px 24px",
           marginTop: "4px",
         }}
       >
