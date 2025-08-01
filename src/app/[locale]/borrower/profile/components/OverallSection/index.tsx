@@ -13,6 +13,8 @@ import { MarketParametersItem } from "@/components/MarketParameters/components/M
 import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import { EtherscanBaseUrl } from "@/config/network"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
 import { OverallSectionProps } from "./interface"
@@ -30,6 +32,7 @@ export const OverallSection = ({
   entityKind,
   additionalUrls,
 }: OverallSectionProps) => {
+  const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const [state, copyToClipboard] = useCopyToClipboard()
 
@@ -60,6 +63,120 @@ export const OverallSection = ({
   const leftSideColumns = additionalUrls?.slice(
     Math.ceil(additionalUrls.length / 2),
   )
+
+  if (isMobile)
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          backgroundColor: COLORS.white,
+          borderRadius: "14px",
+          padding: "12px 16px",
+          marginTop: "4px",
+        }}
+      >
+        <Typography variant="mobH3" marginTop="12px">
+          Overall Info
+        </Typography>
+
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            marginTop: "20px",
+          }}
+        >
+          {name && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.name")}
+                value={name}
+              />
+              <Divider sx={{ marginTop: "10px" }} />
+            </Box>
+          )}
+
+          {alias && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.alias")}
+                value={alias}
+              />
+              {jurisdictionText && <Divider sx={{ marginTop: "10px" }} />}
+            </Box>
+          )}
+
+          {jurisdictionText && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.headquarters")}
+                value={jurisdictionText}
+              />
+              {entityKindText && <Divider sx={{ marginTop: "10px" }} />}
+            </Box>
+          )}
+
+          {entityKindText && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.entityKind")}
+                value={entityKindText}
+              />
+              {founded && <Divider sx={{ marginTop: "10px" }} />}
+            </Box>
+          )}
+
+          {founded && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.founded")}
+                value={founded ?? ""}
+              />
+              {marketsAmount && <Divider sx={{ marginTop: "10px" }} />}
+            </Box>
+          )}
+
+          {marketsAmount && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.markets")}
+                value={marketsAmount || 0}
+              />
+              {totalBorrowedAmount !== undefined && (
+                <Divider sx={{ marginTop: "10px" }} />
+              )}
+            </Box>
+          )}
+
+          {totalBorrowedAmount !== undefined && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.borrowed")}
+                value="[Coming Soon]"
+              />
+              <Divider sx={{ marginTop: "10px" }} />
+            </Box>
+          )}
+
+          {defaults !== undefined && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.defaults.title")}
+                value={defaults || ""}
+                tooltipText={t(
+                  "borrowerProfile.profile.overallInfo.defaults.tooltip",
+                )}
+              />
+              <Divider sx={{ marginTop: "10px" }} />
+            </Box>
+          )}
+        </Box>
+      </Box>
+    )
 
   return (
     <Box>

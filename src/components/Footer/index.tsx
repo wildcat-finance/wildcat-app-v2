@@ -65,7 +65,13 @@ const getCommitInfo = (isMobile: boolean) => {
 
 const COMMIT_INFO = getCommitInfo(false)
 
-export const Footer = ({ showFooter = true }: { showFooter?: boolean }) => {
+export const Footer = ({
+  showFooter = true,
+  showDivider = true,
+}: {
+  showFooter?: boolean
+  showDivider?: boolean
+}) => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const pathname = usePathname()
@@ -74,7 +80,7 @@ export const Footer = ({ showFooter = true }: { showFooter?: boolean }) => {
   if (isMobile)
     return (
       <Box marginTop="4px">
-        <Divider sx={{ borderColor: COLORS.white06 }} />
+        {showDivider && <Divider sx={{ borderColor: COLORS.white06 }} />}
 
         <Box
           sx={{
