@@ -28,6 +28,7 @@ import { COLORS } from "@/theme/colors"
 
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
 import { MarketActions } from "./components/MarketActions"
+import { MarketSummary } from "./components/MarketSummary"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
@@ -149,6 +150,7 @@ export default function LenderMarketDetails({
                   withdrawals={withdrawals}
                 />
               )}
+              <MarketSummary marketAddress={market.address} />
               <CapacityBarChart
                 marketAccount={marketAccount}
                 legendType="big"
@@ -159,6 +161,13 @@ export default function LenderMarketDetails({
 
           {currentSection === LenderMarketSections.STATUS && (
             <Box marginTop="12px">
+              {
+                /* If the lender is not authorized, they will get auto-redirected to the status section.
+                 * Show the market summary here instead of actions section in that case.  */
+                !authorizedInMarket && (
+                  <MarketSummary marketAddress={market.address} />
+                )
+              }
               <BarCharts
                 marketAccount={marketAccount}
                 withdrawals={withdrawals}

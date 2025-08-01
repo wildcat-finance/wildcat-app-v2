@@ -1,0 +1,72 @@
+.prose-rendered {
+  min-width: 0;
+
+  & code {
+    @apply text-secondary-text bg-neutral-bgSubtle px-1;
+
+    &:before,
+    &:after {
+      content: none;
+      @apply text-accent-text;
+    }
+  }
+
+  & a {
+    @apply text-accent-text;
+    text-decoration: none;
+  }
+
+  /* reset the prose borders */
+  table {
+    table-layout: fixed;
+    border-collapse: collapse;
+
+    th,
+    td {
+      border: 1px solid black;
+      padding: 0 .2em;
+    }
+
+    & td {
+      vertical-align: middle;
+    }
+
+    & > thead,
+    & > tfoot,
+    & > tbody > tr {
+      border: 0;
+    }
+  }
+
+  & pre[class*="language-"] {
+    overflow-x: auto;
+  }
+
+  & pre[class*="language-"],
+  & code[class*="language-"] {
+    @apply font-mono;
+    font-size: inherit;
+  }
+
+  & pre[class*="language-"] > code {
+    @apply text-sm;
+    display: block;
+  }
+
+  .cm-content {
+    @apply font-mono;
+    @apply text-xs;
+  }
+
+  & li[role="checkbox"] {
+    text-indent: 1.2rem;
+  }
+
+  & li[role="checkbox"]::before {
+    transform: translate(6px, 6px);
+  }
+
+  & li[role="checkbox"]::after {
+    transform: translate(6px, 6px) rotate(45deg);
+  }
+}

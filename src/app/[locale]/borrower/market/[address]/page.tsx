@@ -24,6 +24,7 @@ import {
 import { COLORS } from "@/theme/colors"
 import { pageCalcHeights } from "@/utils/constants"
 
+import { BorrowerMarketSummary } from "./components/BorrowerMarketSummary"
 import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
 import { MarketMLA } from "./components/MarketMLA"
 import { MarketTransactions } from "./components/MarketTransactions"
@@ -158,6 +159,12 @@ export default function MarketDetails({
                   holdTheMarket={holdTheMarket}
                 />
               )}
+
+              <Divider sx={{ margin: "32px 0" }} />
+              <BorrowerMarketSummary
+                marketAddress={market.address}
+                isBorrower={holdTheMarket}
+              />
               {holdTheMarket && <Divider sx={{ margin: "32px 0" }} />}
               <MarketStatusChart market={market} />
             </Box>
