@@ -21,6 +21,7 @@ import {
 import { useApprove } from "@/app/[locale]/borrower/market/[address]/hooks/useGetApproval"
 import { LinkGroup } from "@/components/LinkComponent"
 import { NumberTextField } from "@/components/NumberTextfield"
+import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
@@ -101,6 +102,13 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
     setAmount(value)
+  }
+
+  const handleMaxClick = () => {
+    const maxDeposit = marketAccount.maximumDeposit
+    const userBalance = marketAccount.underlyingBalance
+    const maxAmount = maxDeposit.lt(userBalance) ? maxDeposit : userBalance
+    setAmount(maxAmount.format(market.underlyingToken.decimals, false))
   }
 
   const handleDeposit = () => {
@@ -302,10 +310,16 @@ export const DepositModal = ({ marketAccount }: DepositModalProps) => {
                     value={amount}
                     onChange={handleAmountChange}
                     endAdornment={
-                      <TextfieldChip
-                        text={market.underlyingToken.symbol}
-                        size="small"
-                      />
+                      <>
+                        <TextfieldButton
+                          buttonText="Max"
+                          onClick={handleMaxClick}
+                        />
+                        <TextfieldChip
+                          text={market.underlyingToken.symbol}
+                          size="small"
+                        />
+                      </>
                     }
                     disabled={isApproving}
                     error={!!depositError}
