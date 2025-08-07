@@ -17,16 +17,10 @@ import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/component
 import { useClaim } from "@/app/[locale]/lender/market/[address]/hooks/useClaim"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { COLORS } from "@/theme/colors"
-import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { ClaimModalProps } from "./interface"
 
-export const ClaimModal = ({
-  market,
-  withdrawals,
-  hideClaim,
-}: ClaimModalProps) => {
+export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
   const { t } = useTranslation()
 
   const isMobile = useMobileResolution()
@@ -73,43 +67,17 @@ export const ClaimModal = ({
   if (isMobile)
     return (
       <>
-        {!hideClaim && (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              width: "100%",
-              backgroundColor: COLORS.white,
-              borderRadius: "14px",
-              padding: "12px 16px",
-            }}
-          >
-            <Typography variant="mobH3" margin="12px 0 8px" textAlign="center">
-              {formatTokenWithCommas(withdrawals.totalClaimableAmount)}{" "}
-              {market.underlyingToken.symbol} to Claim
-            </Typography>
-
-            <Typography
-              variant="mobText2"
-              color={COLORS.santasGrey}
-              marginBottom="20px"
-              textAlign="center"
-            >
-              You have funds available for taking out
-            </Typography>
-
-            <Button
-              variant="contained"
-              size="large"
-              fullWidth
-              onClick={handleClaim}
-              disabled={!signer}
-              sx={{ padding: "10px 20px" }}
-            >
-              {t("lenderMarketDetails.transactions.claim.button")}
-            </Button>
-          </Box>
-        )}
+        <Button
+          onClick={handleClaim}
+          variant="contained"
+          color="secondary"
+          size="large"
+          fullWidth
+          disabled={withdrawals.totalClaimableAmount.raw.isZero() || !signer}
+          sx={{ padding: "10px 20px", width: "fit-content" }}
+        >
+          {t("lenderMarketDetails.transactions.claim.button")}
+        </Button>
 
         <Dialog
           open={isLoading || showErrorPopup || showSuccessPopup}

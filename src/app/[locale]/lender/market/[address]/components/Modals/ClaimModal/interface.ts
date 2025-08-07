@@ -5,5 +5,4 @@ import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[
 export type ClaimModalProps = {
   market: Market
   withdrawals: LenderWithdrawalsForMarketResult
-  hideClaim?: boolean
 }
