@@ -6,6 +6,8 @@ import Hotjar from "@hotjar/browser"
 import { Dialog, Typography, Box, Button } from "@mui/material"
 import Cookies from "js-cookie"
 
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
 import { COLORS } from "@/theme/colors"
 
 const CONSENT_KEY = "tracking_consent" as const
@@ -13,6 +15,8 @@ const CONSENT_KEY = "tracking_consent" as const
 type ConsentType = "accepted" | "declined" | null
 
 export default function HotjarConsent() {
+  const dispatch = useAppDispatch()
+
   const [consent, setConsent] = useState<ConsentType>(() => {
     if (typeof window === "undefined") return null
     return (Cookies.get(CONSENT_KEY) as ConsentType) ?? null
@@ -54,22 +58,34 @@ export default function HotjarConsent() {
     }
   }, [consent])
 
+  const handleCloseCookiesModal = () => {
+    dispatch(setIsVisible(false))
+  }
+
   const handleAccept = useCallback(() => {
     Cookies.set(CONSENT_KEY, "accepted", { expires: 365 })
     setConsent("accepted")
+    handleCloseCookiesModal()
   }, [])
 
   const handleDecline = useCallback(() => {
     Cookies.set(CONSENT_KEY, "declined", { expires: 365 })
     setConsent("declined")
+    handleCloseCookiesModal()
   }, [])
 
-  const isVisible = consent === null
+  const isVisible = useAppSelector((state) => state.cookieBanner.isVisible)
+
+  useEffect(() => {
+    if (consent === null) {
+      dispatch(setIsVisible(true))
+    }
+  }, [])
 
   return (
     <Dialog
       open={isVisible}
-      onClose={handleDecline}
+      onClose={handleCloseCookiesModal}
       PaperProps={{
         sx: {
           position: "fixed",

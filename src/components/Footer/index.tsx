@@ -5,6 +5,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
+import { useAppDispatch } from "@/store/hooks"
+import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 
@@ -46,9 +48,15 @@ const getCommitInfo = () => {
 const COMMIT_INFO = getCommitInfo()
 
 export const Footer = () => {
+  const dispatch = useAppDispatch()
+
   const { t } = useTranslation()
   const pathname = usePathname()
   const showFooter = pathname !== "/agreement"
+
+  const handleOpenCookiesModal = () => {
+    dispatch(setIsVisible(true))
+  }
 
   return (
     <Box sx={ContentContainer}>
@@ -56,7 +64,7 @@ export const Footer = () => {
         <Link
           href="/pdf/Wildcat_Terms_of_Use.pdf"
           target="_blank"
-          style={{ width: "fit-content", marginBottom: "8px" }}
+          style={{ width: "fit-content", marginBottom: "2px" }}
         >
           <Button
             variant="text"
@@ -76,6 +84,18 @@ export const Footer = () => {
           </Button>
         </Link>
       )}
+
+      <Typography
+        variant="text4"
+        onClick={handleOpenCookiesModal}
+        sx={{
+          cursor: "pointer",
+          marginBottom: "8px",
+        }}
+      >
+        Cookies Settings
+      </Typography>
+
       <Typography
         variant="text4"
         color={COLORS.santasGrey}
