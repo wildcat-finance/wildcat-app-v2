@@ -202,7 +202,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
 
         <Box sx={{ padding: "0 6px" }}>
           <Link
-            href="https://x.com/functi0nZer0"
+            href="https://t.me/+93oOPZh5tDI1ZDdk"
             style={{ display: "flex", textDecoration: "none" }}
           >
             <Button size="large" fullWidth sx={TextButtonStyles}>
