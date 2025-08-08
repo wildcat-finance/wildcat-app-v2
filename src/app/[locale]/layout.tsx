@@ -1,6 +1,6 @@
 import "./globals.css"
 
-import { ReactNode } from "react"
+import { ReactNode, Suspense } from "react"
 
 import { Box } from "@mui/material"
 import { dir } from "i18next"
@@ -18,6 +18,8 @@ import {
 import initTranslations from "@/app/i18n"
 import CookieBanner from "@/components/CookieBanner"
 import Header from "@/components/Header"
+import HotjarAnalytics from "@/components/HotjarAnalytics"
+import HotjarConsent from "@/components/HotjarConsent"
 import PollingRegistration from "@/components/PollingRegistration"
 import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
@@ -76,16 +78,19 @@ export default async function RootLayout({
                       <Box sx={PageContainer}>
                         <Box sx={ContentContainer}>
                           <Sidebar />
-                          <Box
-                            width="calc(100vw - 267px)"
-                            sx={{
-                              "@media (max-width: 1000px)": {
-                                width: "100%",
-                              },
-                            }}
-                          >
-                            {children}
-                          </Box>
+                            <Box
+                                width="calc(100vw - 267px)"
+                                sx={{
+                                    "@media (max-width: 1000px)": {
+                                        width: "100%",
+                                    },
+                                }}
+                            >
+                                {children}
+                            </Box>
+                            <Suspense>
+                                <HotjarConsent />
+                            </Suspense>
                         </Box>
                       </Box>
                     </Box>

@@ -88,6 +88,14 @@ export const MarketActions = ({
     : `${formatTokenWithCommas(withdrawals.totalClaimableAmount)} 
               ${market.underlyingToken.symbol}`
 
+  const smallestTokenAmountValue = market.underlyingToken.parseAmount(
+    "0.00001".replace(/,/g, ""),
+  )
+
+  const isTooSmallMarketBalance: boolean =
+    marketAccount.marketBalance.lt(smallestTokenAmountValue) &&
+    !marketAccount.marketBalance.raw.isZero()
+
   return (
     <>
       <Box display="flex" columnGap="6px">
@@ -144,7 +152,11 @@ export const MarketActions = ({
               <TransactionBlock
                 title={t("lenderMarketDetails.transactions.withdraw.title")}
                 tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
-                amount={formatTokenWithCommas(marketAccount.marketBalance)}
+                amount={
+                  isTooSmallMarketBalance
+                    ? `< 0.00001`
+                    : formatTokenWithCommas(marketAccount.marketBalance)
+                }
                 asset={market.underlyingToken.symbol}
               >
                 {!hideWithdraw && (

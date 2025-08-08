@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import { RepayStatus, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
@@ -75,6 +75,20 @@ export const RepayModal = ({
 
   const { market } = marketAccount
 
+  const smallestTokenAmountValue = market.underlyingToken.parseAmount(
+    "0.00001".replace(/,/g, ""),
+  )
+
+  const isTooSmallOutstandingDebt: boolean =
+    market.outstandingDebt.lt(smallestTokenAmountValue) &&
+    !market.outstandingDebt.raw.isZero()
+
+  const handleClickTooSmallTextfield = () => {
+    if (isTooSmallOutstandingDebt && maxRepayAmount) {
+      setMaxRepayAmount(undefined)
+    }
+  }
+
   const {
     mutate: repay,
     isPending: isRepaying,
@@ -93,6 +107,7 @@ export const RepayModal = ({
   ) => {
     setType(newType)
     setAmount("")
+    setMaxRepayAmount(undefined)
     setDays("")
   }
 
@@ -281,6 +296,12 @@ export const RepayModal = ({
     setRepayError(SDK_ERRORS_MAPPING.repay[repayStep])
   }, [repayStep, amount])
 
+  const { open, closedModalStep } = modal
+
+  useEffect(() => {
+    setMaxRepayAmount(undefined)
+  }, [open, closedModalStep])
+
   return (
     <>
       {buttonType === "marketHeader" && (
@@ -364,7 +385,9 @@ export const RepayModal = ({
                   {t("borrowerMarketDetails.modals.repay.repaySum")}
                 </Typography>
                 <Typography variant="text3">
-                  {formatTokenWithCommas(repayAmount)}{" "}
+                  {isTooSmallOutstandingDebt
+                    ? "< 0.00001"
+                    : formatTokenWithCommas(repayAmount)}{" "}
                   {market.underlyingToken.symbol}
                 </Typography>
               </Box>
@@ -381,40 +404,68 @@ export const RepayModal = ({
                   t("borrowerMarketDetails.modals.repay.afterTransaction")}
               </Typography>
               <Typography variant="text3">
-                {formatTokenWithCommas(
-                  (() => {
-                    if (modal.approvedStep) {
-                      if (repayTokenAmount.raw >= market.outstandingDebt.raw) {
-                        return new TokenAmount(
-                          BigNumber.from(0),
-                          market.underlyingToken,
-                        )
-                      }
-                      return market.outstandingDebt.sub(
-                        maxRepayAmount || repayTokenAmount,
-                      )
-                    }
-                    return market.outstandingDebt
-                  })(),
-                  { withSymbol: true },
-                )}
+                {isTooSmallOutstandingDebt
+                  ? `< 0.00001 ${market.underlyingToken.symbol}`
+                  : formatTokenWithCommas(
+                      (() => {
+                        if (modal.approvedStep) {
+                          if (
+                            repayTokenAmount.raw >= market.outstandingDebt.raw
+                          ) {
+                            return new TokenAmount(
+                              BigNumber.from(0),
+                              market.underlyingToken,
+                            )
+                          }
+                          return market.outstandingDebt.sub(
+                            maxRepayAmount || repayTokenAmount,
+                          )
+                        }
+                        return market.outstandingDebt
+                      })(),
+                      { withSymbol: true },
+                    )}
               </Typography>
             </Box>
 
             {modal.gettingValueStep && (
-              <NumberTextField
-                label={amountInputLabel}
-                size="medium"
-                style={{ width: "100%", marginTop: "20px" }}
-                value={amountInputValue}
-                onChange={amountInputOnChange}
-                endAdornment={amountInputAdornment}
-                disabled={isApproving}
-                max={type === "days" ? 100000000 : undefined}
-                // decimalScale={2}
-                error={!!repayError}
-                helperText={repayError}
-              />
+              <Box>
+                <NumberTextField
+                  label={amountInputLabel}
+                  size="medium"
+                  style={{ width: "100%", marginTop: "20px" }}
+                  value={amountInputValue}
+                  onChange={amountInputOnChange}
+                  onClick={
+                    isTooSmallOutstandingDebt
+                      ? handleClickTooSmallTextfield
+                      : undefined
+                  }
+                  endAdornment={amountInputAdornment}
+                  disabled={isApproving}
+                  max={type === "days" ? 100000000 : undefined}
+                  // decimalScale={2}
+                  error={!!repayError}
+                  helperText={repayError}
+                />
+
+                {isTooSmallOutstandingDebt &&
+                  !!maxRepayAmount &&
+                  !isRepayByDays && (
+                    <Box
+                      sx={{
+                        width: "fit-content",
+                        backgroundColor: COLORS.white,
+                        padding: "2px",
+                        position: "relative",
+                        bottom: "36.7px",
+                        left: "14px",
+                      }}
+                    >
+                      <Typography variant="text2">{"< 0.00001"}</Typography>
+                    </Box>
+                  )}
+              </Box>
             )}
           </Box>
         )}

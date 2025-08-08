@@ -1,6 +1,7 @@
 import { ChangeEvent, useEffect, useMemo, useState } from "react"
 import * as React from "react"
 
+import { HooksKind, MarketVersion, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import {
   Box,
   Button,
@@ -95,6 +96,14 @@ export const WithdrawModal = ({
     setShowErrorPopup(false)
   }
 
+  const smallestTokenAmountValue = market.underlyingToken.parseAmount(
+    "0.00001".replace(/,/g, ""),
+  )
+
+  const isTooSmallMarketBalance: boolean =
+    marketAccount.marketBalance.lt(smallestTokenAmountValue) &&
+    !marketAccount.marketBalance.raw.isZero()
+
   const underlyingWithdrawAmount = useMemo(
     () =>
       marketAccount.market.underlyingToken.parseAmount(
@@ -102,6 +111,12 @@ export const WithdrawModal = ({
       ),
     [amount],
   )
+
+  const handleClickTooSmallTextfield = () => {
+    if (isTooSmallMarketBalance && maxAmount) {
+      setMaxAmount(undefined)
+    }
+  }
 
   const withdrawAmount = maxAmount || underlyingWithdrawAmount
 
@@ -133,6 +148,13 @@ export const WithdrawModal = ({
 
     setError(SDK_ERRORS_MAPPING.queueWithdrawal[withdrawStep])
   }, [amount, withdrawStep])
+
+
+    const { open, closedModalStep } = modal
+
+    useEffect(() => {
+        setMaxAmount(undefined)
+    }, [open, closedModalStep])
 
   useEffect(() => {
     if (isMobileOpen) {
@@ -317,32 +339,58 @@ export const WithdrawModal = ({
                 title={t(
                   "lenderMarketDetails.transactions.withdraw.modal.available",
                 )}
-                value={`${formatTokenWithCommas(marketAccount.marketBalance)} ${
-                  market.underlyingToken.symbol
-                }`}
+                value={
+                  isTooSmallMarketBalance
+                    ? `< 0.00001 ${market.underlyingToken.symbol}`
+                    : `${formatTokenWithCommas(marketAccount.marketBalance)} ${
+                        market.underlyingToken.symbol
+                      }`
+                }
                 containerSx={{
                   padding: "0 12px",
                   margin: "16px 0 20px",
                 }}
               />
 
-              <NumberTextField
-                label={`Up to ${formatTokenWithCommas(
-                  marketAccount.marketBalance,
-                )} ${market.underlyingToken.symbol}`}
-                size="medium"
-                style={{ width: "100%" }}
-                value={amount}
-                onChange={handleAmountChange}
-                endAdornment={
-                  <TextfieldButton
-                    buttonText="Max"
-                    onClick={handleClickMaxAmount}
-                  />
-                }
-                error={!!error}
-                helperText={error}
-              />
+              <Box>
+                <NumberTextField
+                  label={`Up to ${formatTokenWithCommas(
+                    marketAccount.marketBalance,
+                  )} ${market.underlyingToken.symbol}`}
+                  size="medium"
+                  style={{ width: "100%" }}
+                  value={amount}
+                  onChange={handleAmountChange}
+                  onClick={
+                    isTooSmallMarketBalance
+                      ? handleClickTooSmallTextfield
+                      : undefined
+                  }
+                  endAdornment={
+                    <TextfieldButton
+                      buttonText="Max"
+                      onClick={handleClickMaxAmount}
+                    />
+                  }
+                  error={!!error}
+                  helperText={error}
+                />
+
+                {isTooSmallMarketBalance && !!maxAmount && (
+                  <Box
+                    sx={{
+                      width: "fit-content",
+                      backgroundColor: COLORS.white,
+                      padding: "2px",
+                      position: "relative",
+                      bottom: "36.7px",
+                      left: "14px",
+                    }}
+                  >
+                    <Typography variant="text2">{"< 0.00001"}</Typography>
+                  </Box>
+                )}
+              </Box>
             </Box>
           </>
         )}
