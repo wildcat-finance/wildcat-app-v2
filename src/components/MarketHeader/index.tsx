@@ -4,6 +4,7 @@ import { Box, Button, Tooltip, Typography, useTheme } from "@mui/material"
 import humanizeDuration from "humanize-duration"
 
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
+import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
 import { MobileMoreButton } from "@/components/Mobile/MobileMoreButton"
@@ -18,7 +19,7 @@ import {
   MarketHeaderUpperContainer,
 } from "./style"
 
-export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
+export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
   const theme = useTheme()
   const isMobile = useMobileResolution()
 
@@ -159,23 +160,25 @@ export const MarketHeader = ({ marketAccount }: MarketHeaderProps) => {
           >
             Withdrawal Requests
           </Button>
-          <Button
-            variant="text"
-            size="small"
-            sx={{
-              minWidth: "fit-content",
-              padding: "6px 8px",
-              flexShrink: 0,
-              fontSize: 10,
-              fontWeight: 600,
-              lineHeight: "16px",
-              backgroundColor: COLORS.hintOfRed,
-            }}
-            component="a"
-            href="#mla"
-          >
-            MLA
-          </Button>
+          {mla && !("noMLA" in mla) && (
+            <Button
+              variant="text"
+              size="small"
+              sx={{
+                minWidth: "fit-content",
+                padding: "6px 8px",
+                flexShrink: 0,
+                fontSize: 10,
+                fontWeight: 600,
+                lineHeight: "16px",
+                backgroundColor: COLORS.hintOfRed,
+              }}
+              component="a"
+              href="#mla"
+            >
+              MLA
+            </Button>
+          )}
         </Box>
       </Box>
     )

@@ -235,7 +235,7 @@ export default function LenderMarketDetails({
             gap: "4px",
           }}
         >
-          <MarketHeader marketAccount={marketAccount} />
+          <MarketHeader marketAccount={marketAccount} mla={mla} />
 
           <Box id="depositWithdraw">
             <BarCharts
