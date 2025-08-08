@@ -78,19 +78,19 @@ export default async function RootLayout({
                       <Box sx={PageContainer}>
                         <Box sx={ContentContainer}>
                           <Sidebar />
-                            <Box
-                                width="calc(100vw - 267px)"
-                                sx={{
-                                    "@media (max-width: 1000px)": {
-                                        width: "100%",
-                                    },
-                                }}
-                            >
-                                {children}
-                            </Box>
-                            <Suspense>
-                                <HotjarConsent />
-                            </Suspense>
+                          <Box
+                            width="calc(100vw - 267px)"
+                            sx={{
+                              "@media (max-width: 1000px)": {
+                                width: "100%",
+                              },
+                            }}
+                          >
+                            {children}
+                          </Box>
+                          <Suspense>
+                            <HotjarConsent />
+                          </Suspense>
                         </Box>
                       </Box>
                     </Box>

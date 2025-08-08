@@ -68,96 +68,118 @@ const getCommitInfo = (isMobile: boolean) => {
 const COMMIT_INFO = getCommitInfo(false)
 
 export const Footer = ({
-                           showFooter = true,
-                           showDivider = true,
-                       }: {
-    showFooter?: boolean
-    showDivider?: boolean
+  showFooter = true,
+  showDivider = true,
+}: {
+  showFooter?: boolean
+  showDivider?: boolean
 }) => {
-    const dispatch = useAppDispatch()
-    const isMobile = useMobileResolution()
+  const dispatch = useAppDispatch()
+  const isMobile = useMobileResolution()
 
-
-    const { t } = useTranslation()
+  const { t } = useTranslation()
   const pathname = usePathname()
   const showFooterOnPage = pathname !== "/agreement"
 
-    const handleOpenCookiesModal = () => {
-        dispatch(setIsVisible(true))
-    }
+  const handleOpenCookiesModal = () => {
+    dispatch(setIsVisible(true))
+  }
 
-    if (isMobile)
-        return (
-            <Box marginTop="4px">
-                {showDivider && <Divider sx={{ borderColor: COLORS.white06 }} />}
+  if (isMobile)
+    return (
+      <Box marginTop="4px">
+        {showDivider && <Divider sx={{ borderColor: COLORS.white06 }} />}
 
-                <Box
-                    sx={{
-                        padding: "24px 20px 20px",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                    }}
-                >
-                    <Typography variant="text4" textAlign="center" color={COLORS.white06}>
-                        {t("footer.rights")}
-                    </Typography>
+        <Box
+          sx={{
+            padding: "24px 20px 20px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "4px",
+          }}
+        >
+          <Button
+            size="small"
+            variant="contained"
+            color="secondary"
+            sx={{
+              width: "fit-content",
+              borderRadius: "8px",
+              marginBottom: "4px",
 
-                    {COMMIT_INFO}
-                </Box>
-            </Box>
-        )
+              color: COLORS.white,
+              bgcolor: COLORS.white03,
 
-    if (!isMobile && showFooter)
-        return (
-            <Box sx={ContentContainer}>
-                {showFooterOnPage && (
-                    <Link
-                        href="/pdf/Wildcat_Terms_of_Use.pdf"
-                        target="_blank"
-                        style={{ width: "fit-content", marginBottom: "2px" }}
-                    >
-                        <Button
-                            variant="text"
-                            size="small"
-                            sx={{
-                                padding: 0,
-                                color: COLORS.blackRock,
-                                "&:hover": {
-                                    background: "transparent",
-                                    color: COLORS.blackRock,
-                                    boxShadow: "none",
-                                },
-                            }}
-                        >
-                            {t("footer.agreement")}
-                            <Box sx={DownloadIcon}>⇤</Box>
-                        </Button>
-                    </Link>
-                )}
+              "&:hover": {
+                color: COLORS.white,
+                bgcolor: COLORS.white03,
+              },
+            }}
+            onClick={handleOpenCookiesModal}
+          >
+            Cookies Settings
+          </Button>
 
-                <Typography
-                    variant="text4"
-                    onClick={handleOpenCookiesModal}
-                    sx={{
-                        cursor: "pointer",
-                        marginBottom: "8px",
-                    }}
-                >
-                    Cookies Settings
-                </Typography>
+          <Typography variant="text4" textAlign="center" color={COLORS.white06}>
+            {t("footer.rights")}
+          </Typography>
 
-                <Typography
-                    variant="text4"
-                    color={COLORS.santasGrey}
-                    sx={{ marginBottom: COMMIT_INFO ? "8px" : 0 }}
-                >
-                    {t("footer.rights")}
-                </Typography>
+          {COMMIT_INFO}
+        </Box>
+      </Box>
+    )
 
-                {COMMIT_INFO}
-            </Box>
-        )
+  if (!isMobile && showFooter)
+    return (
+      <Box sx={ContentContainer}>
+        {showFooterOnPage && (
+          <Link
+            href="/pdf/Wildcat_Terms_of_Use.pdf"
+            target="_blank"
+            style={{ width: "fit-content", marginBottom: "2px" }}
+          >
+            <Button
+              variant="text"
+              size="small"
+              sx={{
+                padding: 0,
+                color: COLORS.blackRock,
+                "&:hover": {
+                  background: "transparent",
+                  color: COLORS.blackRock,
+                  boxShadow: "none",
+                },
+              }}
+            >
+              {t("footer.agreement")}
+              <Box sx={DownloadIcon}>⇤</Box>
+            </Button>
+          </Link>
+        )}
 
-    return null
+        <Typography
+          variant="text4"
+          onClick={handleOpenCookiesModal}
+          sx={{
+            cursor: "pointer",
+            marginBottom: "8px",
+          }}
+        >
+          Cookies Settings
+        </Typography>
+
+        <Typography
+          variant="text4"
+          color={COLORS.santasGrey}
+          sx={{ marginBottom: COMMIT_INFO ? "8px" : 0 }}
+        >
+          {t("footer.rights")}
+        </Typography>
+
+        {COMMIT_INFO}
+      </Box>
+    )
+
+  return null
 }

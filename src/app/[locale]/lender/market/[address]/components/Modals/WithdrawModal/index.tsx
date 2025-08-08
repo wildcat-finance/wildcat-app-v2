@@ -1,7 +1,6 @@
 import { ChangeEvent, useEffect, useMemo, useState } from "react"
 import * as React from "react"
 
-import { HooksKind, MarketVersion, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import {
   Box,
   Button,
@@ -10,7 +9,7 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material"
-import { HooksKind, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { HooksKind, MarketVersion, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
@@ -149,12 +148,11 @@ export const WithdrawModal = ({
     setError(SDK_ERRORS_MAPPING.queueWithdrawal[withdrawStep])
   }, [amount, withdrawStep])
 
+  const { open, closedModalStep } = modal
 
-    const { open, closedModalStep } = modal
-
-    useEffect(() => {
-        setMaxAmount(undefined)
-    }, [open, closedModalStep])
+  useEffect(() => {
+    setMaxAmount(undefined)
+  }, [open, closedModalStep])
 
   useEffect(() => {
     if (isMobileOpen) {
@@ -232,33 +230,56 @@ export const WithdrawModal = ({
                 lineHeight="24px"
                 color={COLORS.ultramarineBlue}
               >
-                {`${formatTokenWithCommas(marketAccount.marketBalance)} ${
-                  market.underlyingToken.symbol
-                }`}
+                {isTooSmallMarketBalance
+                  ? `< 0.00001 ${market.underlyingToken.symbol}`
+                  : `${formatTokenWithCommas(marketAccount.marketBalance)} ${
+                      market.underlyingToken.symbol
+                    }`}
               </Typography>
             </Typography>
 
-            <NumberTextField
-              label={`Up to ${formatTokenWithCommas(
-                marketAccount.marketBalance,
-              )} ${market.underlyingToken.symbol}`}
-              size="medium"
-              style={{
-                width: "100%",
-                marginTop: "12px",
-                marginBottom: "24px",
-              }}
-              value={amount}
-              onChange={handleAmountChange}
-              endAdornment={
-                <TextfieldButton
-                  buttonText="Max"
-                  onClick={handleClickMaxAmount}
-                />
-              }
-              error={!!error}
-              helperText={error}
-            />
+            <Box>
+              <NumberTextField
+                label={`Up to ${formatTokenWithCommas(
+                  marketAccount.marketBalance,
+                )} ${market.underlyingToken.symbol}`}
+                size="medium"
+                style={{
+                  width: "100%",
+                  marginTop: "12px",
+                  marginBottom: "24px",
+                }}
+                value={amount}
+                onChange={handleAmountChange}
+                onClick={
+                  isTooSmallMarketBalance
+                    ? handleClickTooSmallTextfield
+                    : undefined
+                }
+                endAdornment={
+                  <TextfieldButton
+                    buttonText="Max"
+                    onClick={handleClickMaxAmount}
+                  />
+                }
+                error={!!error}
+                helperText={error}
+              />
+              {isTooSmallMarketBalance && !!maxAmount && (
+                <Box
+                  sx={{
+                    width: "fit-content",
+                    backgroundColor: COLORS.white,
+                    padding: "2px",
+                    position: "relative",
+                    bottom: "36.7px",
+                    left: "14px",
+                  }}
+                >
+                  <Typography variant="text2">{"< 0.00001"}</Typography>
+                </Box>
+              )}
+            </Box>
           </Box>
 
           <TxModalFooter
