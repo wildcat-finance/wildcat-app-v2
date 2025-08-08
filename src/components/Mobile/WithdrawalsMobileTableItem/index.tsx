@@ -39,11 +39,11 @@ export const WithdrawalsMobileTableItem = ({
       >
         <Box display="flex" alignItems="center" gap="4px">
           <Typography variant="mobText3">{trimAddress(lender)}</Typography>
-          <IconButton disableRipple sx={ButtonStyle}>
-            <SvgIcon fontSize="small">
-              <LinkIcon />
-            </SvgIcon>
-          </IconButton>
+          <LinkGroup
+            type="withCopy"
+            linkValue={`${EtherscanBaseUrl}/address/${lender}`}
+            iconSize="16px"
+          />
         </Box>
 
         <Typography variant="mobText3">{amount}</Typography>
