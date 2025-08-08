@@ -1,11 +1,13 @@
 import React, { useState } from "react"
 
 import { Box, Button, Skeleton, Typography } from "@mui/material"
+import { usePathname } from "next/navigation"
 
 import {
   LenderMobileMarketItem,
   MobileMarketCard,
 } from "@/app/[locale]/lender/components/mobile/MobileMarketCard"
+import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
 const ITEMS_PER_PAGE = 6
@@ -49,6 +51,9 @@ export const MobileMarketList = ({
   isLoading: boolean
 }) => {
   const [page, setPage] = useState(0)
+  const pathname = usePathname()
+
+  const showBorrowerInCard = !pathname.includes(ROUTES.lender.profile)
 
   const totalPages = Math.ceil(markets.length / ITEMS_PER_PAGE)
   const startIndex = page * ITEMS_PER_PAGE
@@ -107,6 +112,7 @@ export const MobileMarketList = ({
               marketItem={marketItem}
               buttonText="Deposit"
               buttonIcon
+              showBorrower={showBorrowerInCard}
             />
           ))}
         {isLoading && (

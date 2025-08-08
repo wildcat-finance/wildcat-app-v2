@@ -2,14 +2,18 @@ import * as React from "react"
 
 import { Box, Button, Tooltip, Typography, useTheme } from "@mui/material"
 import humanizeDuration from "humanize-duration"
+import Link from "next/link"
 
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
+import { useGetBorrowerProfile } from "@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
 import { MobileMoreButton } from "@/components/Mobile/MobileMoreButton"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { trimAddress } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 
 import { MarketHeaderProps } from "./interface"
@@ -66,6 +70,17 @@ export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
 
   const marketStatus = getMarketStatusChip(market)
 
+  const { data: profileData, isLoading: isProfileLoading } =
+    useGetBorrowerProfile(market.borrower as `0x${string}`)
+
+  const getBorrowerName = () => {
+    if (profileData) {
+      return profileData.alias ?? profileData.name
+    }
+
+    return trimAddress(market.borrower)
+  }
+
   if (isMobile)
     return (
       <Box
@@ -92,29 +107,85 @@ export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
           sx={{
             width: "100%",
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            flexDirection: "column",
+            gap: "8px",
+            alignItems: "flex-start",
             marginBottom: "20px",
           }}
         >
-          <Box sx={MarketHeaderTitleContainer}>
-            <Typography
-              variant="mobH2"
-              sx={{
-                maxWidth: "280px",
-                whiteSpace: "nowrap",
-                textOverflow: "ellipsis",
-                overflow: "hidden",
-              }}
-            >
-              {market.name}
-            </Typography>
-            <Typography variant="mobText4">
-              {market.underlyingToken.symbol}
-            </Typography>
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              gap: "8px",
+            }}
+          >
+            <Box sx={{ display: "flex", gap: "4px" }}>
+              <Typography
+                variant="mobH2"
+                sx={{
+                  maxWidth: "280px",
+                  whiteSpace: "nowrap",
+                  textOverflow: "ellipsis",
+                  overflow: "hidden",
+                }}
+              >
+                {market.name}
+              </Typography>
+              <Typography variant="mobText4">
+                {market.underlyingToken.symbol}
+              </Typography>
+            </Box>
+
+            <MobileMoreButton marketAccount={marketAccount} />
           </Box>
 
-          <MobileMoreButton marketAccount={marketAccount} />
+          <Link
+            href={`${ROUTES.lender.profile}/${market.borrower}`}
+            style={{ display: "flex", textDecoration: "none" }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                gap: "6px",
+                alignItems: "center",
+                padding: "2px 10px 2px 4px",
+                borderRadius: "12px",
+                bgcolor: COLORS.whiteSmoke,
+                marginTop: "2px",
+              }}
+            >
+              {profileData && (
+                <Box
+                  sx={{
+                    width: "16px",
+                    height: "16px",
+                    borderRadius: "50%",
+                    bgcolor: "#4CA6D9",
+
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Typography
+                    variant="mobText4"
+                    sx={{
+                      fontSize: "8px",
+                      lineHeight: "8px",
+                      color: COLORS.white,
+                    }}
+                  >
+                    {String(getBorrowerName())[0]}
+                  </Typography>
+                </Box>
+              )}
+
+              <Typography variant="mobText3">{getBorrowerName()}</Typography>
+            </Box>
+          </Link>
         </Box>
 
         <Box

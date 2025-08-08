@@ -45,159 +45,222 @@ export const MobileMarketCard = ({
   marketItem,
   buttonText,
   buttonIcon,
+  showBorrower = true,
 }: {
   marketItem: LenderMobileMarketItem
   buttonText?: string
   buttonIcon?: boolean
-}) => (
-  <Box
-    sx={{
-      width: "100%",
-      backgroundColor: COLORS.white,
-      padding: "12px",
-      borderRadius: "14px",
-      display: "flex",
-      flexDirection: "column",
-    }}
-  >
+  showBorrower?: boolean
+}) => {
+  const getDepositLine = () => {
+    if (marketItem.loan) {
+      if (marketItem.loan?.raw.isZero()) {
+        return "0"
+      }
+      if (
+        Number(
+          formatTokenWithCommas(marketItem.loan, {
+            fractionDigits: 2,
+          }),
+        ) < 0.00001
+      ) {
+        return "< 0.00001"
+      }
+      return formatTokenWithCommas(marketItem.loan, {
+        fractionDigits: 2,
+      })
+    }
+
+    return "0"
+  }
+
+  return (
     <Box
       sx={{
         width: "100%",
+        backgroundColor: COLORS.white,
+        padding: "12px",
+        borderRadius: "14px",
         display: "flex",
-        justifyContent: "space-between",
-        marginBottom: "14px",
+        flexDirection: "column",
       }}
     >
-      <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
-        <MarketStatusChip status={marketItem.status} withPeriod={false} />
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: "14px",
+        }}
+      >
+        <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
+          <MarketStatusChip status={marketItem.status} withPeriod={false} />
 
-        <Box sx={{ display: "flex", gap: "4px", alignItems: "center" }}>
           <Typography variant="mobText4">{`${formatBps(
             marketItem.apr,
           )}%`}</Typography>
-          <TooltipButton value="TST" size="small" />
         </Box>
+
+        <MarketTypeChip {...marketItem.term} />
       </Box>
 
-      <MarketTypeChip {...marketItem.term} />
-    </Box>
-
-    <Box
-      sx={{
-        width: "100%",
-        display: "flex",
-        justifyContent: "space-between",
-        marginBottom: "2px",
-      }}
-    >
-      <Typography variant="mobText2">{marketItem.name}</Typography>
-
-      <Typography variant="mobText2">
-        {marketItem.capacityLeft && marketItem.capacityLeft.gt(0)
-          ? formatTokenWithCommas(marketItem.capacityLeft, {
-              withSymbol: false,
-              fractionDigits: 2,
-            })
-          : "0"}{" "}
-        {marketItem.asset}
-      </Typography>
-    </Box>
-
-    <Box
-      sx={{
-        width: "100%",
-        display: "flex",
-        justifyContent: "space-between",
-        marginBottom: "14px",
-      }}
-    >
-      <Link
-        href={`${ROUTES.lender.profile}/${marketItem.borrowerAddress}`}
-        style={{ display: "flex", textDecoration: "none" }}
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: "2px",
+        }}
       >
-        <Typography variant="mobText4">{marketItem.borrower}</Typography>
-      </Link>
+        <Typography variant="mobText2">{marketItem.name}</Typography>
 
-      <Typography variant="mobText4" color={COLORS.santasGrey}>
-        available to lend
-      </Typography>
-    </Box>
-
-    <Divider />
-
-    <Box
-      sx={{
-        width: "100%",
-        display: "flex",
-        justifyContent: "space-between",
-        marginTop: "14px",
-      }}
-    >
-      <Box sx={{ display: "flex", gap: "2px", alignItems: "center" }}>
-        {marketItem.loan && (
-          <SvgIcon
-            sx={{
-              fontSize: "10px",
-              "& path": { fill: COLORS.santasGrey },
-            }}
-          >
-            <Profile />
-          </SvgIcon>
-        )}
-
-        <Typography variant="mobText4" color={COLORS.santasGrey}>
-          {marketItem.loan
-            ? formatTokenWithCommas(marketItem.loan, {
+        <Typography variant="mobText2">
+          {marketItem.capacityLeft && marketItem.capacityLeft.gt(0)
+            ? formatTokenWithCommas(marketItem.capacityLeft, {
                 withSymbol: false,
                 fractionDigits: 2,
               })
             : "0"}{" "}
-          {marketItem.asset} deposited
+          {marketItem.asset}
         </Typography>
       </Box>
 
-      <Box sx={{ display: "flex", gap: "6px" }}>
-        <Link
-          href={`${ROUTES.lender.market}/${marketItem.id}`}
-          style={{ textDecoration: "none" }}
-        >
-          <Button
-            variant="outlined"
-            size="small"
-            color="secondary"
-            sx={{
-              borderRadius: "8px",
-              padding: "6px 14px",
-              minWidth: "fit-content !important",
-            }}
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: "14px",
+        }}
+      >
+        {showBorrower && (
+          <Link
+            href={`${ROUTES.lender.profile}/${marketItem.borrowerAddress}`}
+            style={{ display: "flex", textDecoration: "none" }}
           >
-            More
-          </Button>
-        </Link>
-        {buttonText && (
+            <Box
+              sx={{
+                display: "flex",
+                gap: "6px",
+                alignItems: "center",
+                padding: "2px 8px 2px 6px",
+                borderRadius: "12px",
+                bgcolor: COLORS.whiteSmoke,
+                marginTop: "2px",
+              }}
+            >
+              <Box
+                sx={{
+                  width: "12px",
+                  height: "12px",
+                  borderRadius: "50%",
+                  bgcolor: "#4CA6D9",
+
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Typography
+                  variant="mobText4"
+                  sx={{
+                    fontSize: "6px",
+                    lineHeight: "6px",
+                    color: COLORS.white,
+                  }}
+                >
+                  {marketItem.borrower && marketItem.borrower[0]}
+                </Typography>
+              </Box>
+
+              <Typography variant="mobText4">{marketItem.borrower}</Typography>
+            </Box>
+          </Link>
+        )}
+
+        <Typography variant="mobText4" color={COLORS.santasGrey}>
+          available to lend
+        </Typography>
+      </Box>
+
+      <Divider />
+
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          marginTop: "14px",
+        }}
+      >
+        <Box sx={{ display: "flex", gap: "2px", alignItems: "center" }}>
+          {/* {marketItem.loan && ( */}
+          {/*  <SvgIcon */}
+          {/*    sx={{ */}
+          {/*      fontSize: "10px", */}
+          {/*      "& path": { fill: COLORS.santasGrey }, */}
+          {/*    }} */}
+          {/*  > */}
+          {/*    <Profile /> */}
+          {/*  </SvgIcon> */}
+          {/* )} */}
+
+          <Typography
+            variant="mobText4"
+            color={
+              marketItem.loan && !marketItem.loan.raw.isZero()
+                ? COLORS.blackRock
+                : COLORS.santasGrey
+            }
+          >
+            {/* eslint-disable-next-line no-nested-ternary */}
+            {getDepositLine()} {marketItem.asset} deposited
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: "flex", gap: "6px" }}>
           <Link
             href={`${ROUTES.lender.market}/${marketItem.id}`}
             style={{ textDecoration: "none" }}
           >
             <Button
-              variant="contained"
+              variant="outlined"
               size="small"
+              color="secondary"
               sx={{
-                minWidth: "fit-content !important",
-                height: "100%",
-                display: "flex",
-                gap: "2px",
                 borderRadius: "8px",
                 padding: "6px 14px",
+                minWidth: "fit-content !important",
               }}
             >
-              {buttonText}
-
-              {buttonIcon && <DepositArrow />}
+              More
             </Button>
           </Link>
-        )}
+          {buttonText && (
+            <Link
+              href={`${ROUTES.lender.market}/${marketItem.id}`}
+              style={{ textDecoration: "none" }}
+            >
+              <Button
+                variant="contained"
+                size="small"
+                sx={{
+                  minWidth: "fit-content !important",
+                  height: "100%",
+                  display: "flex",
+                  gap: "2px",
+                  borderRadius: "8px",
+                  padding: "6px 14px",
+                }}
+              >
+                {buttonText}
+
+                {buttonIcon && <DepositArrow />}
+              </Button>
+            </Link>
+          )}
+        </Box>
       </Box>
     </Box>
-  </Box>
-)
+  )
+}
