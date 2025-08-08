@@ -29,6 +29,7 @@ export const WithdrawalsMobileTableItem = ({
       sx={{
         display: "flex",
         flexDirection: "column",
+        gap: "4px",
         padding: "12px 10px 12px 0",
         marginX: "4px",
       }}
@@ -52,8 +53,7 @@ export const WithdrawalsMobileTableItem = ({
         sx={{
           width: "100%",
           display: "flex",
-          justifyContent: "flex-end",
-          gap: "4px",
+          justifyContent: "space-between",
           alignItems: "center",
         }}
       >
@@ -63,19 +63,19 @@ export const WithdrawalsMobileTableItem = ({
 
         <Box
           sx={{
-            width: "4px",
-            height: "4px",
-            borderRadius: "50%",
-            backgroundColor: COLORS.santasGrey,
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+            padding: "2px 6px 2px 8px",
+            borderRadius: "6px",
+            bgcolor: COLORS.whiteSmoke,
           }}
-        />
-
-        <Box display="flex" alignItems="center" gap="4px">
+        >
           <Typography variant="text4">{trimAddress(transactionId)}</Typography>
           <LinkGroup
             type="withCopy"
             copyValue={transactionId}
-            linkValue={`${EtherscanBaseUrl}/address/${transactionId}`}
+            linkValue={`${EtherscanBaseUrl}/tx/${transactionId}`}
             iconSize="12px"
           />
         </Box>
