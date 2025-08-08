@@ -1,6 +1,13 @@
 import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
 
-import { Box, Button, Dialog, Tooltip, Typography } from "@mui/material"
+import {
+  Box,
+  Button,
+  Dialog,
+  SvgIcon,
+  Tooltip,
+  Typography,
+} from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
@@ -14,6 +21,9 @@ import {
   useApprovalModal,
 } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
 import { useApprove } from "@/app/[locale]/borrower/market/[address]/hooks/useGetApproval"
+import Alert from "@/assets/icons/circledAlert_icon.svg"
+import Clock from "@/assets/icons/clock_icon.svg"
+import { DepositAlert } from "@/components/DepositAlert"
 import { LinkGroup } from "@/components/LinkComponent"
 import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
 import { NumberTextField } from "@/components/NumberTextfield"
@@ -334,68 +344,6 @@ export const DepositModal = ({
               </>
             )}
 
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "4px",
-              }}
-            >
-              {isFixedTerm && (
-                <Typography
-                  variant="text3"
-                  lineHeight="24px"
-                  color={COLORS.dullRed}
-                >
-                  {`‣ This is currently a fixed-term market: deposited funds will be unavailable to withdraw until ${formatDate(
-                    fixedTermMaturity,
-                  )}.`}
-                </Typography>
-              )}
-
-              {isFixedTerm && earlyTermination && (
-                <Typography
-                  variant="text3"
-                  lineHeight="24px"
-                  color={COLORS.dullRed}
-                >
-                  ‣ This market also has a flag set that allows the borrower to
-                  terminate it before maturity by repaying all debt.
-                </Typography>
-              )}
-
-              {isFixedTerm && earlyMaturity && (
-                <Typography
-                  variant="text3"
-                  lineHeight="24px"
-                  color={COLORS.dullRed}
-                >
-                  ‣ This market also has a flag set that allows the borrower to
-                  bring the maturity closer to the present day.
-                </Typography>
-              )}
-
-              {mustResetAllowance && (
-                <Typography
-                  variant="text3"
-                  lineHeight="24px"
-                  color={COLORS.dullRed}
-                >
-                  ‣ You have an existing allowance of{" "}
-                  {market.underlyingToken
-                    .getAmount(marketAccount.underlyingApproval)
-                    .format(market.underlyingToken.decimals, true)}{" "}
-                  for this market.
-                  <br />
-                  {market.underlyingToken.symbol} requires that allowances be
-                  reset to zero prior to being increased.
-                  <br />
-                  You will be prompted to execute two approval transactions to
-                  first reset and then increase the allowance for this market.
-                </Typography>
-              )}
-            </Box>
-
             {modal.approvedStep && (
               <ModalDataItem
                 title={t(
@@ -410,6 +358,113 @@ export const DepositModal = ({
                 }}
               />
             )}
+
+            <Box
+              sx={{
+                marginTop: modal.approvedStep ? "16px" : "0px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "4px",
+              }}
+            >
+              {isFixedTerm && (
+                <DepositAlert
+                  text={
+                    <Typography variant="mobText3">
+                      This is a fixed-term market: funds are locked until{" "}
+                      <span style={{ textDecoration: "underline" }}>
+                        {formatDate(fixedTermMaturity || 0)}
+                      </span>{" "}
+                    </Typography>
+                  }
+                  icon={
+                    <SvgIcon
+                      sx={{
+                        fontSize: "16px",
+                        "& path": { fill: COLORS.greySuit },
+                        mt: "1px",
+                      }}
+                    >
+                      <Clock />
+                    </SvgIcon>
+                  }
+                />
+              )}
+
+              {isFixedTerm && earlyTermination && (
+                <DepositAlert
+                  text={
+                    <Typography variant="mobText3">
+                      The market can be repaid early to close
+                    </Typography>
+                  }
+                  icon={
+                    <SvgIcon
+                      sx={{
+                        fontSize: "16px",
+                        "& path": { fill: COLORS.white },
+                        mt: "1px",
+                      }}
+                    >
+                      <Alert />
+                    </SvgIcon>
+                  }
+                />
+              )}
+
+              {isFixedTerm && earlyMaturity && (
+                <DepositAlert
+                  text={
+                    <Typography variant="mobText3">
+                      The market’s duration can be shorten
+                    </Typography>
+                  }
+                  icon={
+                    <SvgIcon
+                      sx={{
+                        fontSize: "16px",
+                        "& path": { fill: COLORS.white },
+                        mt: "1px",
+                      }}
+                    >
+                      <Alert />
+                    </SvgIcon>
+                  }
+                />
+              )}
+
+              {mustResetAllowance && (
+                <DepositAlert
+                  text={
+                    <Typography variant="mobText3">
+                      You have an existing allowance of{" "}
+                      {market.underlyingToken
+                        .getAmount(marketAccount.underlyingApproval)
+                        .format(market.underlyingToken.decimals, true)}{" "}
+                      for this market.
+                      <br />
+                      {market.underlyingToken.symbol} requires that allowances
+                      be reset to zero prior to being increased.
+                      <br />
+                      You will be prompted to execute two approval transactions
+                      to first reset and then increase the allowance for this
+                      market.
+                    </Typography>
+                  }
+                  icon={
+                    <SvgIcon
+                      sx={{
+                        fontSize: "16px",
+                        "& path": { fill: COLORS.white },
+                        mt: "1px",
+                      }}
+                    >
+                      <Alert />
+                    </SvgIcon>
+                  }
+                />
+              )}
+            </Box>
           </Box>
 
           {txHash !== "" && showForm && (
@@ -536,104 +591,51 @@ export const DepositModal = ({
                 }
               />
 
-              <Box width="100%" height="100%" padding="0 24px">
-                {modal.gettingValueStep && (
-                  <>
+              {modal.gettingValueStep && (
+                <Box width="100%" height="100%" padding="0 24px">
+                  <ModalDataItem
+                    title={t(
+                      "lenderMarketDetails.transactions.deposit.modal.available",
+                    )}
+                    value={formatTokenWithCommas(marketAccount.maximumDeposit, {
+                      withSymbol: true,
+                    })}
+                    containerSx={{
+                      padding: "0 12px",
+                      marginTop: "16px",
+                      marginBottom: minimumDeposit ? "8px" : "20px",
+                    }}
+                  />
+
+                  {minimumDeposit && (
                     <ModalDataItem
-                      title={t(
-                        "lenderMarketDetails.transactions.deposit.modal.available",
-                      )}
-                      value={formatTokenWithCommas(
-                        marketAccount.maximumDeposit,
-                        {
-                          withSymbol: true,
-                        },
-                      )}
+                      title="Minimum Deposit"
+                      value={formatTokenWithCommas(minimumDeposit, {
+                        withSymbol: true,
+                      })}
                       containerSx={{
                         padding: "0 12px",
-                        marginTop: "16px",
-                        marginBottom: minimumDeposit ? "8px" : "20px",
+                        marginBottom: "20px",
                       }}
                     />
+                  )}
 
-                    {minimumDeposit && (
-                      <ModalDataItem
-                        title="Minimum Deposit"
-                        value={formatTokenWithCommas(minimumDeposit, {
-                          withSymbol: true,
-                        })}
-                        containerSx={{
-                          padding: "0 12px",
-                          marginBottom: "20px",
-                        }}
+                  <NumberTextField
+                    label={formatTokenWithCommas(marketAccount.maximumDeposit)}
+                    size="medium"
+                    style={{ width: "100%" }}
+                    value={amount}
+                    onChange={handleAmountChange}
+                    endAdornment={
+                      <TextfieldChip
+                        text={market.underlyingToken.symbol}
+                        size="small"
                       />
-                    )}
-
-                    <NumberTextField
-                      label={formatTokenWithCommas(
-                        marketAccount.maximumDeposit,
-                      )}
-                      size="medium"
-                      style={{ width: "100%" }}
-                      value={amount}
-                      onChange={handleAmountChange}
-                      endAdornment={
-                        <TextfieldChip
-                          text={market.underlyingToken.symbol}
-                          size="small"
-                        />
-                      }
-                      disabled={isApproving}
-                      error={!!depositError}
-                      helperText={depositError}
-                    />
-                  </>
-                )}
-              </Box>
-
-              <Box width="100%" height="100%" padding="24px">
-                {isFixedTerm && (
-                  <Typography variant="text3" color={COLORS.dullRed}>
-                    {`This is currently a fixed-term market: deposited funds will be unavailable to withdraw until ${formatDate(
-                      fixedTermMaturity,
-                    )}.`}
-                  </Typography>
-                )}
-              </Box>
-
-              <Box width="100%" height="100%" padding="0 24px">
-                {isFixedTerm && earlyTermination && (
-                  <Typography variant="text3" color={COLORS.dullRed}>
-                    This market also has a flag set that allows the borrower to
-                    terminate it before maturity by repaying all debt.
-                  </Typography>
-                )}
-              </Box>
-
-              <Box width="100%" height="100%" padding="0 24px">
-                {isFixedTerm && earlyMaturity && (
-                  <Typography variant="text3" color={COLORS.dullRed}>
-                    This market also has a flag set that allows the borrower to
-                    bring the maturity closer to the present day.
-                  </Typography>
-                )}
-              </Box>
-
-              {mustResetAllowance && (
-                <Box width="100%" height="100%" padding="0 24px">
-                  <Typography variant="text3" color={COLORS.dullRed}>
-                    You have an existing allowance of{" "}
-                    {market.underlyingToken
-                      .getAmount(marketAccount.underlyingApproval)
-                      .format(market.underlyingToken.decimals, true)}{" "}
-                    for this market.
-                    <br />
-                    {market.underlyingToken.symbol} requires that allowances be
-                    reset to zero prior to being increased.
-                    <br />
-                    You will be prompted to execute two approval transactions to
-                    first reset and then increase the allowance for this market.
-                  </Typography>
+                    }
+                    disabled={isApproving}
+                    error={!!depositError}
+                    helperText={depositError}
+                  />
                 </Box>
               )}
 
@@ -650,6 +652,113 @@ export const DepositModal = ({
                       padding: "0 12px",
                       margin: "16px 0 20px",
                     }}
+                  />
+                )}
+              </Box>
+
+              <Box
+                sx={{
+                  marginTop: "16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "4px",
+                }}
+              >
+                {isFixedTerm && (
+                  <DepositAlert
+                    text={
+                      <Typography variant="mobText3">
+                        This is a fixed-term market: funds are locked until{" "}
+                        <span style={{ textDecoration: "underline" }}>
+                          {formatDate(fixedTermMaturity || 0)}
+                        </span>{" "}
+                      </Typography>
+                    }
+                    icon={
+                      <SvgIcon
+                        sx={{
+                          fontSize: "16px",
+                          "& path": { fill: COLORS.greySuit },
+                          mt: "1px",
+                        }}
+                      >
+                        <Clock />
+                      </SvgIcon>
+                    }
+                  />
+                )}
+
+                {isFixedTerm && earlyTermination && (
+                  <DepositAlert
+                    text={
+                      <Typography variant="mobText3">
+                        The market can be repaid early to close
+                      </Typography>
+                    }
+                    icon={
+                      <SvgIcon
+                        sx={{
+                          fontSize: "16px",
+                          "& path": { fill: COLORS.white },
+                          mt: "1px",
+                        }}
+                      >
+                        <Alert />
+                      </SvgIcon>
+                    }
+                  />
+                )}
+
+                {isFixedTerm && earlyMaturity && (
+                  <DepositAlert
+                    text={
+                      <Typography variant="mobText3">
+                        The market’s duration can be shorten
+                      </Typography>
+                    }
+                    icon={
+                      <SvgIcon
+                        sx={{
+                          fontSize: "16px",
+                          "& path": { fill: COLORS.white },
+                          mt: "1px",
+                        }}
+                      >
+                        <Alert />
+                      </SvgIcon>
+                    }
+                  />
+                )}
+
+                {mustResetAllowance && (
+                  <DepositAlert
+                    text={
+                      <Typography variant="mobText3">
+                        You have an existing allowance of{" "}
+                        {market.underlyingToken
+                          .getAmount(marketAccount.underlyingApproval)
+                          .format(market.underlyingToken.decimals, true)}{" "}
+                        for this market.
+                        <br />
+                        {market.underlyingToken.symbol} requires that allowances
+                        be reset to zero prior to being increased.
+                        <br />
+                        You will be prompted to execute two approval
+                        transactions to first reset and then increase the
+                        allowance for this market.
+                      </Typography>
+                    }
+                    icon={
+                      <SvgIcon
+                        sx={{
+                          fontSize: "16px",
+                          "& path": { fill: COLORS.white },
+                          mt: "1px",
+                        }}
+                      >
+                        <Alert />
+                      </SvgIcon>
+                    }
                   />
                 )}
               </Box>
