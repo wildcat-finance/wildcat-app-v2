@@ -334,34 +334,35 @@ export const MarketsSection = () => {
           >
             {!noMarketsAtAll && <LenderMarketSectionSwitcher />}
 
-          <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
-            <FilterTextField
-              value={marketSearch}
-              setValue={setMarketSearch}
-              placeholder={t("dashboard.markets.filters.name")}
-              width="180px"
-            />
+            <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
+              <FilterTextField
+                value={marketSearch}
+                setValue={setMarketSearch}
+                placeholder={t("dashboard.markets.filters.name")}
+                width="180px"
+              />
 
-            <SmallFilterSelect
-              placeholder={t("dashboard.markets.filters.assets")}
-              options={
-                tokens?.map((token) => ({
-                  id: token.address,
-                  name: token.symbol,
-                })) ?? []
-              }
-              selected={marketAssets}
-              setSelected={setMarketAssets}
-              width="180px"
-            />
+              <SmallFilterSelect
+                placeholder={t("dashboard.markets.filters.assets")}
+                options={
+                  tokens?.map((token) => ({
+                    id: token.address,
+                    name: token.symbol,
+                  })) ?? []
+                }
+                selected={marketAssets}
+                setSelected={setMarketAssets}
+                width="180px"
+              />
 
-            <SmallFilterSelect
-              placeholder={t("dashboard.markets.filters.statuses")}
-              options={marketStatusesMock}
-              selected={marketStatuses}
-              setSelected={setMarketStatuses}
-              width="180px"
-            />
+              <SmallFilterSelect
+                placeholder={t("dashboard.markets.filters.statuses")}
+                options={marketStatusesMock}
+                selected={marketStatuses}
+                setSelected={setMarketStatuses}
+                width="180px"
+              />
+            </Box>
           </Box>
         </Box>
       )}

@@ -9,9 +9,7 @@ export const ContentContainer = {
 }
 
 export const DeployInfoSx = {
-  fontSize: "8px",
   gap: "4px",
-  color: COLORS.santasGrey,
   display: "flex",
   flexDirection: "row",
   alignItems: "center",

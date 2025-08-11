@@ -1,6 +1,6 @@
 "use client"
 
-import { Box, Button, Divider, Typography, useMediaQuery } from "@mui/material"
+import { Box, Button, Divider, Typography } from "@mui/material"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
@@ -11,7 +11,7 @@ import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 
-import { ContentContainer, DownloadIcon, DeployInfoSx } from "./style"
+import { ContentContainer, DeployInfoSx } from "./style"
 
 const DEPLOY_DATE_FORMAT = "DD.MM.YYYY HH:mm"
 
@@ -23,17 +23,7 @@ const getCommitInfo = (isMobile: boolean) => {
     return null
 
   return (
-    <Box
-      sx={
-        isMobile
-          ? {
-              display: "flex",
-              flexDirection: "column",
-              gap: "4px",
-            }
-          : DeployInfoSx
-      }
-    >
+    <Box sx={DeployInfoSx}>
       <Link
         href={`${process.env.NEXT_PUBLIC_GIT_WILDCAT_URL}/${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA}`}
         target="_blank"
@@ -56,7 +46,7 @@ const getCommitInfo = (isMobile: boolean) => {
           width: "2px",
           height: "2px",
           borderRadius: "50%",
-          bgcolor: COLORS.santasGrey,
+          bgcolor: { xs: COLORS.white06, md: COLORS.santasGrey },
         }}
       />
 
@@ -73,15 +63,12 @@ const getCommitInfo = (isMobile: boolean) => {
   )
 }
 
-const COMMIT_INFO = getCommitInfo(false)
+type FooterProps = { showFooter?: boolean; showDivider?: boolean }
 
 export const Footer = ({
   showFooter = true,
   showDivider = true,
-}: {
-  showFooter?: boolean
-  showDivider?: boolean
-}) => {
+}: FooterProps) => {
   const dispatch = useAppDispatch()
   const isMobile = useMobileResolution()
 
@@ -89,11 +76,11 @@ export const Footer = ({
   const pathname = usePathname()
   const showFooterOnPage = pathname !== "/agreement"
 
-  const handleOpenCookiesModal = () => {
-    dispatch(setIsVisible(true))
-  }
+  const handleOpenCookiesModal = () => dispatch(setIsVisible(true))
 
-  if (isMobile)
+  const COMMIT_INFO = getCommitInfo(isMobile)
+
+  if (isMobile) {
     return (
       <Box marginTop="4px">
         {showDivider && <Divider sx={{ borderColor: COLORS.white06 }} />}
@@ -112,17 +99,11 @@ export const Footer = ({
             variant="contained"
             color="secondary"
             sx={{
-              width: "fit-content",
               borderRadius: "8px",
               marginBottom: "4px",
-
               color: COLORS.white,
               bgcolor: COLORS.white03,
-
-              "&:hover": {
-                color: COLORS.white,
-                bgcolor: COLORS.white03,
-              },
+              "&:hover": { color: COLORS.white, bgcolor: COLORS.white03 },
             }}
             onClick={handleOpenCookiesModal}
           >
@@ -137,101 +118,66 @@ export const Footer = ({
         </Box>
       </Box>
     )
+  }
 
-  if (!isMobile && showFooter)
+  if (showFooter) {
     return (
       <Box sx={ContentContainer}>
         {showFooterOnPage && (
-          <Link
-            href="/pdf/Wildcat_Terms_of_Use.pdf"
-            target="_blank"
-            style={{ width: "fit-content", marginBottom: "2px" }}
-          >
+          <>
             <Button
-              variant="text"
               size="small"
+              variant="contained"
+              color="secondary"
               sx={{
-                padding: 0,
-                color: COLORS.blackRock,
-                "&:hover": {
-                  background: "transparent",
-                  color: COLORS.blackRock,
-                  boxShadow: "none",
-                },
+                borderRadius: "8px",
+                marginBottom: "8px",
+              }}
+              onClick={handleOpenCookiesModal}
+            >
+              Cookies Settings
+            </Button>
+
+            <Link
+              href="/pdf/Wildcat_Terms_of_Use.pdf"
+              target="_blank"
+              style={{
+                display: "flex",
+                textDecoration: "none",
+                marginBottom: "4px",
               }}
             >
-              {t("footer.agreement")}
-              <Box sx={DownloadIcon}>⇤</Box>
-            </Button>
-          </Link>
+              <Typography variant="text4" sx={{ display: "flex", gap: "2px" }}>
+                {t("footer.agreement")} <Box sx={{ rotate: "270deg" }}>⇤</Box>
+              </Typography>
+            </Link>
+
+            <Link
+              href="https://docs.wildcat.finance/legal/protocol-ui-privacy-policy"
+              target="_blank"
+              style={{
+                display: "flex",
+                textDecoration: "none",
+                marginBottom: "8px",
+              }}
+            >
+              <Typography variant="text4">Privacy Policy</Typography>
+            </Link>
+          </>
         )}
 
         <Typography
           variant="text4"
-          onClick={handleOpenCookiesModal}
-          sx={{
-            cursor: "pointer",
-            marginBottom: "8px",
-          }}
+          color={COLORS.santasGrey}
+          sx={{ marginBottom: COMMIT_INFO ? "2px" : 0 }}
         >
-          Cookies Settings
+          {t("footer.rights")}
         </Typography>
-  return (
-    <Box sx={ContentContainer}>
-      {showFooter && (
-        <>
-          <Button
-            size="small"
-            variant="contained"
-            color="secondary"
-            sx={{
-              borderRadius: "8px",
-              marginBottom: "8px",
-            }}
-            onClick={handleOpenCookiesModal}
-          >
-            Cookies Settings
-          </Button>
-
-          <Link
-            href="/pdf/Wildcat_Terms_of_Use.pdf"
-            target="_blank"
-            style={{
-              display: "flex",
-              textDecoration: "none",
-              marginBottom: "4px",
-            }}
-          >
-            <Typography variant="text4" sx={{ display: "flex", gap: "2px" }}>
-              {t("footer.agreement")} <Box sx={{ rotate: "270deg" }}>⇤</Box>
-            </Typography>
-          </Link>
-
-          <Link
-            href="https://docs.wildcat.finance/legal/protocol-ui-privacy-policy"
-            target="_blank"
-            style={{
-              display: "flex",
-              textDecoration: "none",
-              marginBottom: "8px",
-            }}
-          >
-            <Typography variant="text4">Privacy Policy</Typography>
-          </Link>
-        </>
-      )}
-
-      <Typography
-        variant="text4"
-        color={COLORS.santasGrey}
-        sx={{ marginBottom: COMMIT_INFO ? "2px" : 0 }}
-      >
-        {t("footer.rights")}
-      </Typography>
 
         {COMMIT_INFO}
       </Box>
     )
+  }
 
   return null
 }
