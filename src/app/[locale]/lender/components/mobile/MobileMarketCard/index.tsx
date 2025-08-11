@@ -5,10 +5,9 @@ import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
-import Profile from "@/assets/icons/profile_icon.svg"
+import Avatar from "@/assets/icons/avatar_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
-import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
@@ -149,29 +148,41 @@ export const MobileMarketCard = ({
                 marginTop: "2px",
               }}
             >
-              <Box
-                sx={{
-                  width: "12px",
-                  height: "12px",
-                  borderRadius: "50%",
-                  bgcolor: "#4CA6D9",
-
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Typography
-                  variant="mobText4"
+              {marketItem.borrower && marketItem.borrower[0].startsWith("0") ? (
+                <SvgIcon
                   sx={{
-                    fontSize: "6px",
-                    lineHeight: "6px",
-                    color: COLORS.white,
+                    fontSize: "12px",
+                    "& circle": { fill: "#4CA6D9", opacity: 1 },
+                    "& path": { fill: COLORS.white },
                   }}
                 >
-                  {marketItem.borrower && marketItem.borrower[0]}
-                </Typography>
-              </Box>
+                  <Avatar />
+                </SvgIcon>
+              ) : (
+                <Box
+                  sx={{
+                    width: "12px",
+                    height: "12px",
+                    borderRadius: "50%",
+                    bgcolor: "#4CA6D9",
+
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Typography
+                    variant="mobText4"
+                    sx={{
+                      fontSize: "6px",
+                      lineHeight: "6px",
+                      color: COLORS.white,
+                    }}
+                  >
+                    {marketItem.borrower && marketItem.borrower[0]}
+                  </Typography>
+                </Box>
+              )}
 
               <Typography variant="mobText4">{marketItem.borrower}</Typography>
             </Box>

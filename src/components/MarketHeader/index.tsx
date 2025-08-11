@@ -1,12 +1,20 @@
 import * as React from "react"
 
-import { Box, Button, Tooltip, Typography, useTheme } from "@mui/material"
+import {
+  Box,
+  Button,
+  SvgIcon,
+  Tooltip,
+  Typography,
+  useTheme,
+} from "@mui/material"
 import humanizeDuration from "humanize-duration"
 import Link from "next/link"
 
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
 import { useGetBorrowerProfile } from "@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile"
+import Avatar from "@/assets/icons/avatar_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
 import { MobileMoreButton } from "@/components/Mobile/MobileMoreButton"
@@ -157,7 +165,7 @@ export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
                 marginTop: "2px",
               }}
             >
-              {profileData && (
+              {profileData ? (
                 <Box
                   sx={{
                     width: "16px",
@@ -181,6 +189,16 @@ export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
                     {String(getBorrowerName())[0]}
                   </Typography>
                 </Box>
+              ) : (
+                <SvgIcon
+                  sx={{
+                    fontSize: "16px",
+                    "& circle": { fill: "#4CA6D9", opacity: 1 },
+                    "& path": { fill: COLORS.white },
+                  }}
+                >
+                  <Avatar />
+                </SvgIcon>
               )}
 
               <Typography variant="mobText3">{getBorrowerName()}</Typography>
