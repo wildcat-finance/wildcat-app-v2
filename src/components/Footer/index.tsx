@@ -34,7 +34,7 @@ const getCommitInfo = () => {
         style={CommitHashLinkSx}
       >
         <Typography variant="text4" color={COLORS.santasGrey}>
-          {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA[6]}
+          {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.slice(0, 7)}
         </Typography>
       </Link>
 
