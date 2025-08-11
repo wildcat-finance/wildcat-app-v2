@@ -16,9 +16,7 @@ import {
   PageContainer,
 } from "@/app/[locale]/layout-style"
 import initTranslations from "@/app/i18n"
-import CookieBanner from "@/components/CookieBanner"
 import Header from "@/components/Header"
-import HotjarAnalytics from "@/components/HotjarAnalytics"
 import HotjarConsent from "@/components/HotjarConsent"
 import PollingRegistration from "@/components/PollingRegistration"
 import { Sidebar } from "@/components/Sidebar"

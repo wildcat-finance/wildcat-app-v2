@@ -45,7 +45,7 @@ export const Sidebar = () => {
       }}
     >
       <Box
-        sx={{ height: `calc(100% - ${showCommitHash ? "130px" : "106px"})` }}
+        sx={{ height: `calc(100% - ${showCommitHash ? "156px" : "136px"})` }}
       >
         {pathname === ROUTES.lender.root && <LenderDashboardSidebar />}
         {pathname === ROUTES.borrower.root && <BorrowerDashboardSidebar />}
