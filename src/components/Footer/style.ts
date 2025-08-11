@@ -10,10 +10,11 @@ export const ContentContainer = {
 
 export const DeployInfoSx = {
   fontSize: "8px",
-  gap: "2px",
+  gap: "4px",
   color: COLORS.santasGrey,
   display: "flex",
-  flexDirection: "column",
+  flexDirection: "row",
+  alignItems: "center",
 }
 
 export const CommitHashLinkSx = {
