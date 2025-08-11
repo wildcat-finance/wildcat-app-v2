@@ -34,9 +34,18 @@ const getCommitInfo = () => {
         style={CommitHashLinkSx}
       >
         <Typography variant="text4" color={COLORS.santasGrey}>
-          {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA}
+          {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA[6]}
         </Typography>
       </Link>
+
+      <Box
+        sx={{
+          width: "2px",
+          height: "2px",
+          borderRadius: "50%",
+          bgcolor: COLORS.santasGrey,
+        }}
+      />
 
       <Typography variant="text4" color={COLORS.santasGrey}>
         {dayjs(process.env.BUILD_TIME).format(DEPLOY_DATE_FORMAT)}
@@ -61,45 +70,52 @@ export const Footer = () => {
   return (
     <Box sx={ContentContainer}>
       {showFooter && (
-        <Link
-          href="/pdf/Wildcat_Terms_of_Use.pdf"
-          target="_blank"
-          style={{ width: "fit-content", marginBottom: "2px" }}
-        >
+        <>
           <Button
-            variant="text"
             size="small"
+            variant="contained"
+            color="secondary"
             sx={{
-              padding: 0,
-              color: COLORS.blackRock,
-              "&:hover": {
-                background: "transparent",
-                color: COLORS.blackRock,
-                boxShadow: "none",
-              },
+              borderRadius: "8px",
+              marginBottom: "8px",
+            }}
+            onClick={handleOpenCookiesModal}
+          >
+            Cookies Settings
+          </Button>
+
+          <Link
+            href="/pdf/Wildcat_Terms_of_Use.pdf"
+            target="_blank"
+            style={{
+              display: "flex",
+              textDecoration: "none",
+              marginBottom: "4px",
             }}
           >
-            {t("footer.agreement")}
-            <Box sx={DownloadIcon}>⇤</Box>
-          </Button>
-        </Link>
+            <Typography variant="text4" sx={{ display: "flex", gap: "2px" }}>
+              {t("footer.agreement")} <Box sx={{ rotate: "270deg" }}>⇤</Box>
+            </Typography>
+          </Link>
+
+          <Link
+            href="https://docs.wildcat.finance/legal/protocol-ui-privacy-policy"
+            target="_blank"
+            style={{
+              display: "flex",
+              textDecoration: "none",
+              marginBottom: "8px",
+            }}
+          >
+            <Typography variant="text4">Privacy Policy</Typography>
+          </Link>
+        </>
       )}
 
       <Typography
         variant="text4"
-        onClick={handleOpenCookiesModal}
-        sx={{
-          cursor: "pointer",
-          marginBottom: "8px",
-        }}
-      >
-        Cookies Settings
-      </Typography>
-
-      <Typography
-        variant="text4"
         color={COLORS.santasGrey}
-        sx={{ marginBottom: COMMIT_INFO ? "8px" : 0 }}
+        sx={{ marginBottom: COMMIT_INFO ? "2px" : 0 }}
       >
         {t("footer.rights")}
       </Typography>

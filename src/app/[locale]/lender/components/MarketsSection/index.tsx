@@ -28,7 +28,6 @@ import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { marketStatusesMock } from "@/mocks/mocks"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import { setLendersSectionAmount } from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import {
   LenderMarketDashboardSections,
@@ -46,7 +45,6 @@ export const MarketsSection = () => {
   )
 
   const [marketSearch, setMarketSearch] = useState<string>("")
-  const [borrowerSearch, setBorrowerSearch] = useState<string>("")
   const [marketAssets, setMarketAssets] = useState<SmallFilterSelectItem[]>([])
   const [marketStatuses, setMarketStatuses] = useState<SmallFilterSelectItem[]>(
     [],
@@ -77,31 +75,17 @@ export const MarketsSection = () => {
 
   const isLoading = isLoadingInitial || isLoadingUpdate
 
-  const filteredMarketAccounts = useMemo(() => {
-    const borrowersSearch = borrowers
-      ?.filter(
-        (b) =>
-          b.name?.toLowerCase().includes(borrowerSearch.toLowerCase()) ||
-          b.alias?.toLowerCase().includes(borrowerSearch.toLowerCase()) ||
-          b.address?.toLowerCase().includes(borrowerSearch.toLowerCase()),
-      )
-      .map((b) => b.address)
-
-    return filterMarketAccounts(
-      marketAccounts,
-      marketSearch,
-      marketStatuses,
-      marketAssets,
-      borrowersSearch,
-    )
-  }, [
-    marketAccounts,
-    marketSearch,
-    marketStatuses,
-    marketAssets,
-    borrowerSearch,
-    borrowers,
-  ])
+  const filteredMarketAccounts = useMemo(
+    () =>
+      filterMarketAccounts(
+        marketAccounts,
+        marketSearch,
+        marketStatuses,
+        marketAssets,
+        borrowers,
+      ),
+    [marketAccounts, marketSearch, marketStatuses, marketAssets, borrowers],
+  )
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
   const tokens = useMemo(() => {
@@ -330,14 +314,7 @@ export const MarketsSection = () => {
               value={marketSearch}
               setValue={setMarketSearch}
               placeholder={t("dashboard.markets.filters.name")}
-              width="165px"
-            />
-
-            <FilterTextField
-              value={borrowerSearch}
-              setValue={setBorrowerSearch}
-              placeholder={t("dashboard.markets.filters.borrower")}
-              width="175px"
+              width="180px"
             />
 
             <SmallFilterSelect
@@ -350,7 +327,7 @@ export const MarketsSection = () => {
               }
               selected={marketAssets}
               setSelected={setMarketAssets}
-              width="140px"
+              width="180px"
             />
 
             <SmallFilterSelect
@@ -358,7 +335,7 @@ export const MarketsSection = () => {
               options={marketStatusesMock}
               selected={marketStatuses}
               setSelected={setMarketStatuses}
-              width="150px"
+              width="180px"
             />
           </Box>
         </Box>

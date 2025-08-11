@@ -16,10 +16,7 @@ import {
   PageContainer,
 } from "@/app/[locale]/layout-style"
 import initTranslations from "@/app/i18n"
-import CookieBanner from "@/components/CookieBanner"
-import { Footer } from "@/components/Footer"
 import Header from "@/components/Header"
-import HotjarAnalytics from "@/components/HotjarAnalytics"
 import HotjarConsent from "@/components/HotjarConsent"
 import PollingRegistration from "@/components/PollingRegistration"
 import { Sidebar } from "@/components/Sidebar"
@@ -80,12 +77,10 @@ export default async function RootLayout({
                         <Box sx={ContentContainer}>
                           <Sidebar />
                           <Box width="calc(100vw - 267px)">{children}</Box>
-                          {/* <CookieBanner /> */}
                           <Suspense>
                             <HotjarConsent />
                           </Suspense>
                         </Box>
-                        {/* <Footer /> */}
                       </Box>
                     </Box>
                   </ThemeRegistry>
