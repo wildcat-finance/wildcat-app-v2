@@ -12,6 +12,7 @@ import { COLORS } from "@/theme/colors"
 export const TooltipButton = ({
   value,
   size = "small",
+  color = COLORS.greySuit,
 }: TooltipButtonProps) => {
   const isMobile = useMobileResolution()
   const [open, setOpen] = React.useState(false)
@@ -59,7 +60,7 @@ export const TooltipButton = ({
               onClick={handleTooltipOpen}
               fontSize={size}
               sx={{
-                "& path": { fill: `${COLORS.greySuit}` },
+                "& path": { fill: `${color}` },
               }}
             >
               <Question />
@@ -74,7 +75,7 @@ export const TooltipButton = ({
       <SvgIcon
         fontSize={size}
         sx={{
-          "& path": { fill: `${COLORS.greySuit}` },
+          "& path": { fill: `${color}` },
         }}
       >
         <Question />

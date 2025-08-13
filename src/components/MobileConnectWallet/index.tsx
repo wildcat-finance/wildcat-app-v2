@@ -7,7 +7,9 @@ import {
   IconButton,
   Typography,
   SvgIcon,
+  Link as MuiLink,
 } from "@mui/material"
+import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { Connector, CreateConnectorFn, useConnect } from "wagmi"
 
@@ -20,6 +22,7 @@ import Rabby from "@/assets/icons/rabby_icon.svg"
 import Rainbow from "@/assets/icons/rainbow_icon.svg"
 import Safe from "@/assets/icons/safe.svg"
 import WalletConnect from "@/assets/icons/walletConnect_icon.svg"
+import { COLORS } from "@/theme/colors"
 
 import {
   Buttons,
@@ -115,7 +118,17 @@ export const MobileConnectWallet = ({
         ))}
       </Box>
       <Typography variant="text3" sx={Terms}>
-        {t("header.modal.note")}
+        By connecting your wallet, you consent to the{" "}
+        <MuiLink
+          component={Link}
+          href="https://docs.wildcat.finance/legal/protocol-ui-privacy-policy"
+          variant="inherit"
+          underline="always"
+          color="inherit"
+        >
+          Wildcat Privacy Policy
+        </MuiLink>
+        .
       </Typography>
     </Dialog>
   )

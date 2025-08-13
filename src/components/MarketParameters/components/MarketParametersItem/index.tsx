@@ -1,8 +1,7 @@
 import * as React from "react"
 
-import { Box, SvgIcon, Tooltip, Typography } from "@mui/material"
+import { Box, Tooltip, Typography } from "@mui/material"
 
-import Question from "@/assets/icons/circledQuestion_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { TooltipButton } from "@/components/TooltipButton"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -72,16 +71,7 @@ export const MarketParametersItem = ({
         )}
 
         {valueTooltipText && (
-          <Tooltip title={valueTooltipText} placement="right">
-            <SvgIcon
-              fontSize="small"
-              sx={{
-                "& path": { fill: `${COLORS.galliano}` },
-              }}
-            >
-              <Question />
-            </SvgIcon>
-          </Tooltip>
+          <TooltipButton value={valueTooltipText} color={COLORS.galliano} />
         )}
 
         <LinkGroup linkValue={link} copyValue={copy} />

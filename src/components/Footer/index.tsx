@@ -91,7 +91,7 @@ export const Footer = ({
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: "4px",
+            gap: "8px",
           }}
         >
           <Button
@@ -100,7 +100,6 @@ export const Footer = ({
             color="secondary"
             sx={{
               borderRadius: "8px",
-              marginBottom: "4px",
               color: COLORS.white,
               bgcolor: COLORS.white03,
               "&:hover": { color: COLORS.white, bgcolor: COLORS.white03 },
@@ -109,6 +108,23 @@ export const Footer = ({
           >
             Cookies Settings
           </Button>
+
+          <Link
+            href="https://docs.wildcat.finance/legal/protocol-ui-privacy-policy"
+            target="_blank"
+            style={{
+              display: "flex",
+              textDecoration: "none",
+            }}
+          >
+            <Typography
+              variant="text4"
+              color={COLORS.white06}
+              sx={{ textDecoration: "underline" }}
+            >
+              Privacy Policy
+            </Typography>
+          </Link>
 
           <Typography variant="text4" textAlign="center" color={COLORS.white06}>
             {t("footer.rights")}
