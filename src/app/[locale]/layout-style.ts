@@ -14,6 +14,10 @@ export const BackgroundContainer = {
   backgroundSize: "100% 100%",
 
   zIndex: "-1",
+
+  "@media (max-width: 1000px)": {
+    height: "100dvh",
+  },
 }
 
 export const PageContainer = {
@@ -22,6 +26,11 @@ export const PageContainer = {
 
   display: "flex",
   flexDirection: "column",
+
+  "@media (max-width: 1000px)": {
+    backgroundColor: "transparent",
+    borderRadius: "0px",
+  },
 }
 
 export const ContentContainer = {
@@ -29,4 +38,10 @@ export const ContentContainer = {
   width: "100%",
   display: "flex",
   flexDirection: "row",
+
+  "@media (max-width: 1000px)": {
+    height: "calc(100dvh - 68px)",
+    paddingX: "4px",
+    paddingBottom: "4px",
+  },
 }

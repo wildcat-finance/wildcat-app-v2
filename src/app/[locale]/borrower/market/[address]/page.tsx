@@ -50,7 +50,6 @@ export default function MarketDetails({
   const { checked } = useScrollHandler()
 
   const prevURL = sessionStorage.getItem("previousPageUrl")
-
   const { data: marketMla, isLoading: isLoadingMarketMla } = useMarketMla(
     marketAccount?.market.address,
   )

@@ -1,13 +1,17 @@
 "use client"
 
-import { Box, Button, Typography } from "@mui/material"
-import Link from "next/link"
+import { Box, Button, Typography, useTheme } from "@mui/material"
 import { Trans } from "react-i18next"
 
 import { AgreementText } from "./components/AgreementText"
 import { SignButton } from "./components/SignButton"
 
 export default function Agreement() {
+  const theme = useTheme()
+
+  const handleDownload = () => {
+    window.open(`/pdf/Wildcat_Terms_of_Use.pdf`, "_blank")
+  }
   return (
     <Box
       className="text"
@@ -16,6 +20,12 @@ export default function Agreement() {
         width: "100%",
         display: "flex",
         justifyContent: "center",
+        [theme.breakpoints.down("md")]: {
+          padding: "32px 12px 12px",
+          background: "white",
+          borderRadius: "14px",
+          height: "calc(100vh - 72px)",
+        },
       }}
     >
       <Box
@@ -25,9 +35,21 @@ export default function Agreement() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
+          [theme.breakpoints.down("md")]: {
+            justifyContent: "start",
+          },
         }}
       >
-        <Typography variant="title2" fontWeight={600} marginBottom="24px">
+        <Typography
+          variant="title2"
+          fontWeight={600}
+          sx={{
+            marginBottom: "24px",
+            [theme.breakpoints.down("md")]: {
+              marginBottom: "16px",
+            },
+          }}
+        >
           <Trans i18nKey="agreement.page.title" />
         </Typography>
 
@@ -42,6 +64,11 @@ export default function Agreement() {
             backgroundImage:
               "linear-gradient(3deg, #FFFFFF 40%, #FFFFFF00 73%)",
             pointerEvents: "none",
+            [theme.breakpoints.down("md")]: {
+              width: "calc(100% - 8px)",
+              paddingX: "6px",
+              borderRadius: "14px",
+            },
           }}
         />
       </Box>
@@ -55,20 +82,31 @@ export default function Agreement() {
           paddingBottom: "44px",
           display: "flex",
           gap: "16px",
+          [theme.breakpoints.down("md")]: {
+            paddingBottom: "12px",
+            paddingX: "12px",
+            gap: "6px",
+            width: "100%",
+          },
         }}
       >
         <SignButton />
 
-        <Link href="/pdf/Wildcat_Terms_of_Use.pdf" target="_blank" download>
-          <Button
-            variant="contained"
-            color="secondary"
-            size="large"
-            sx={{ width: "168.63px", height: "44px" }}
-          >
-            <Trans i18nKey="agreement.page.download" />
-          </Button>
-        </Link>
+        <Button
+          variant="contained"
+          color="secondary"
+          size="large"
+          onClick={handleDownload}
+          sx={{
+            width: "168.63px",
+            height: "44px",
+            [theme.breakpoints.down("md")]: {
+              width: "100%",
+            },
+          }}
+        >
+          <Trans i18nKey="agreement.page.download" />
+        </Button>
       </Box>
     </Box>
   )

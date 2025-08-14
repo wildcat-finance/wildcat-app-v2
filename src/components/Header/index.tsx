@@ -2,13 +2,24 @@
 
 import { useEffect, useMemo, useState } from "react"
 
-import { Box, Switch, Typography } from "@mui/material"
+import {
+  Box,
+  Skeleton,
+  Switch,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
+import LogoWhite from "@/assets/icons/airdrop_logo_new.svg"
 import Logo from "@/assets/icons/logo_white.svg"
-import { ContentContainer, NavContainer } from "@/components/Header/style"
+import LogoBlack from "@/assets/icons/sale_logo_black.svg"
+import { contentContainer, NavContainer } from "@/components/Header/style"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setTab } from "@/store/slices/borrowerOverviewSlice/borrowerOverviewSlice"
@@ -16,10 +27,16 @@ import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/inter
 import { COLORS } from "@/theme/colors"
 
 import { HeaderButton } from "./HeaderButton"
-import { NotificationButton } from "./NotificationButton"
+import { MobileMenu } from "./MobileMenu"
 
 export default function Header() {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
   const { t } = useTranslation()
+  const theme = useTheme()
+  const isMobile = useMobileResolution()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false)
 
   const router = useRouter()
   const pathname = usePathname()
@@ -58,54 +75,97 @@ export default function Header() {
     [side],
   )
 
-  return (
-    <Box sx={ContentContainer}>
-      <Link onClick={handleResetTab} href={homeUrl} style={{ height: "50px" }}>
-        <Logo />
-      </Link>
-      <Box sx={NavContainer}>
-        {/* Lender on the left */}
-        <Link href={ROUTES.lender.root} style={{ textDecoration: "none" }}>
-          <Typography
-            variant="text2Highlighted"
-            sx={{ color: COLORS.white, cursor: "pointer" }}
-          >
-            {t("header.role.lender")}
-          </Typography>
-        </Link>
-        <Switch
+  const mobileLogo = side ? <LogoBlack /> : <LogoWhite />
+
+  if (!mounted)
+    return (
+      <Box
+        sx={{
+          width: "100%",
+          padding: {
+            xs: "4px",
+            md: 0,
+          },
+        }}
+      >
+        <Skeleton
           sx={{
-            "& .MuiSwitch-switchBase": {
-              "&.Mui-checked": {
-                "& + .MuiSwitch-track": {
+            height: {
+              xs: "56px",
+              md: "82px",
+            },
+            width: "100%",
+            borderRadius: "14px",
+            backgroundColor: {
+              xs: COLORS.white06,
+              md: "transparent",
+            },
+          }}
+        />
+      </Box>
+    )
+
+  return (
+    <>
+      {isMobile && <Box sx={{ width: "100%", height: "64px" }} />}
+
+      <Box sx={contentContainer(theme)}>
+        <Link
+          onClick={handleResetTab}
+          href={homeUrl}
+          style={{ height: isMobile ? "32px" : "50px" }}
+        >
+          {!isMobile ? <Logo /> : mobileLogo}
+        </Link>
+        {!isMobile && (
+          <Box sx={NavContainer}>
+            {/* Lender on the left */}
+            <Link href={ROUTES.lender.root} style={{ textDecoration: "none" }}>
+              <Typography
+                variant="text2Highlighted"
+                sx={{ color: COLORS.white, cursor: "pointer" }}
+              >
+                {t("header.role.lender")}
+              </Typography>
+            </Link>
+            <Switch
+              sx={{
+                "& .MuiSwitch-switchBase": {
+                  "&.Mui-checked": {
+                    "& + .MuiSwitch-track": {
+                      opacity: 0.3,
+                      backgroundColor: COLORS.white,
+                    },
+                  },
+                },
+                "& .MuiSwitch-track": {
                   opacity: 0.3,
                   backgroundColor: COLORS.white,
                 },
-              },
-            },
-            "& .MuiSwitch-track": {
-              opacity: 0.3,
-              backgroundColor: COLORS.white,
-            },
-          }}
-          onClick={handleToggleSide}
-          checked={side === "borrower"}
-        />
-        <Link
-          onClick={handleResetTab}
-          href={ROUTES.borrower.root}
-          style={{ textDecoration: "none" }}
-        >
-          <Typography
-            variant="text2Highlighted"
-            sx={{ color: COLORS.white, cursor: "pointer" }}
-          >
-            {t("header.role.borrower")}
-          </Typography>
-        </Link>
+              }}
+              onClick={handleToggleSide}
+              checked={side === "borrower"}
+            />
+            <Link
+              onClick={handleResetTab}
+              href={ROUTES.borrower.root}
+              style={{ textDecoration: "none" }}
+            >
+              <Typography
+                variant="text2Highlighted"
+                sx={{ color: COLORS.white, cursor: "pointer" }}
+              >
+                {t("header.role.borrower")}
+              </Typography>
+            </Link>
+          </Box>
+        )}
+        {/* <NotificationButton /> */}
+        {!isMobile && <HeaderButton />}
+        {isMobile && (
+          <MobileMenu open={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
+        )}
       </Box>
-      {/* <NotificationButton /> */}
-      <HeaderButton />
-    </Box>
+    </>
   )
 }

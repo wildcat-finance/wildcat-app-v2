@@ -5,4 +5,5 @@ export type LinkGroupProps = {
   copyValue?: string
   linkValue?: string
   groupSX?: SxProps<Theme>
+  iconSize?: string
 }

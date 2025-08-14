@@ -1,6 +1,13 @@
 import * as React from "react"
 
-import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
+import {
+  Box,
+  IconButton,
+  SvgIcon,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
@@ -15,6 +22,7 @@ import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/s
 import { LinkGroup } from "@/components/LinkComponent"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { EtherscanBaseUrl } from "@/config/network"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas, trimAddress } from "@/utils/formatters"
 
@@ -33,7 +41,8 @@ export const MarketWithdrawalRequests = ({
 
   const { t } = useTranslation()
   const { data } = useGetWithdrawals(market)
-
+  const theme = useTheme()
+  const isMobile = useMobileResolution()
   const expiredTotalAmount = data.expiredWithdrawalsTotalOwed
   const activeTotalAmount = data.activeWithdrawalsTotalOwed
   const claimableTotalAmount = data.claimableWithdrawalsAmount
@@ -110,7 +119,7 @@ export const MarketWithdrawalRequests = ({
   ]
 
   return (
-    <Box sx={MarketWithdrawalRequestsContainer} id="withdrawals">
+    <Box sx={MarketWithdrawalRequestsContainer(theme)} id="withdrawals">
       <Box
         sx={{
           display: "flex",
@@ -118,7 +127,7 @@ export const MarketWithdrawalRequests = ({
           alignItems: "center",
         }}
       >
-        <Typography variant="title3">
+        <Typography variant="title3" sx={isMobile ? { marginTop: "12px" } : {}}>
           {t("marketWithdrawalRequests.openWithdrawals")}
         </Typography>
         {(market.isDelinquent || market.isIncurringPenalties) &&
@@ -130,7 +139,7 @@ export const MarketWithdrawalRequests = ({
           )}
       </Box>
 
-      <Box sx={TotalAccordionSummary}>
+      <Box sx={TotalAccordionSummary(theme)}>
         <Typography variant="text2">
           {t("marketWithdrawalRequests.total")}
         </Typography>

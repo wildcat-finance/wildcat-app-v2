@@ -1,12 +1,14 @@
 import { useState } from "react"
 import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { TokenAmount, WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
+import { WithdrawalsMobileTableItem } from "@/components/Mobile/WithdrawalsMobileTableItem"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 import {
@@ -29,6 +31,8 @@ export const OutstandingTable = ({
   columns,
 }: OngoingTableProps) => {
   const { t } = useTranslation()
+  const theme = useTheme()
+  const isMobile = useMobileResolution()
   const [isOutstandingOpen, setIsOutstandingOpen] = useState(false)
 
   const outstandingRows: WithdrawalTxRow[] = withdrawalBatches.flatMap(
@@ -47,6 +51,52 @@ export const OutstandingTable = ({
         })),
   )
 
+  const renderContent = () => {
+    if (!outstandingRows.length) {
+      return (
+        <Box
+          display="flex"
+          flexDirection="column"
+          padding={isMobile ? "0 4px" : "0 16px"}
+          marginBottom={isMobile ? "0px" : "10px"}
+        >
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            {t("marketWithdrawalRequests.noOutstanding")}
+          </Typography>
+        </Box>
+      )
+    }
+
+    if (isMobile) {
+      return (
+        <Box>
+          {outstandingRows.map(
+            ({ id, lender, transactionId, amount, dateSubmitted }, index) => (
+              <WithdrawalsMobileTableItem
+                key={id}
+                lender={lender}
+                transactionId={transactionId}
+                amount={amount}
+                dateSubmitted={dateSubmitted}
+                isLast={index === outstandingRows.length - 1}
+              />
+            ),
+          )}
+        </Box>
+      )
+    }
+
+    return (
+      <DataGrid
+        sx={DataGridCells}
+        rows={outstandingRows}
+        columns={columns}
+        columnHeaderHeight={40}
+        autoHeight
+      />
+    )
+  }
+
   return (
     <DetailsAccordion
       isOpen={isOutstandingOpen}
@@ -54,34 +104,14 @@ export const OutstandingTable = ({
       summaryText="Outstanding From Past Cycles"
       summarySx={{
         borderRadius: "0px",
-        borderBottom: isOutstandingOpen ? "none" : `1px solid`,
+        borderBottom: isOutstandingOpen || isMobile ? "none" : `1px solid`,
         borderColor: COLORS.athensGrey,
       }}
-      chipValue={formatTokenWithCommas(totalAmount, {
-        withSymbol: true,
-      })}
+      chipValue={formatTokenWithCommas(totalAmount, { withSymbol: true })}
       chipColor={COLORS.whiteSmoke}
       chipValueColor={COLORS.blackRock}
     >
-      {outstandingRows.length ? (
-        <DataGrid
-          sx={DataGridCells}
-          rows={outstandingRows}
-          columns={columns}
-          columnHeaderHeight={40}
-        />
-      ) : (
-        <Box
-          display="flex"
-          flexDirection="column"
-          padding="0 16px"
-          marginBottom="10px"
-        >
-          <Typography variant="text3" color={COLORS.santasGrey}>
-            {t("marketWithdrawalRequests.noOutstanding")}
-          </Typography>
-        </Box>
-      )}
+      {renderContent()}
     </DetailsAccordion>
   )
 }

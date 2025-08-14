@@ -1,6 +1,6 @@
 "use client"
 
-import { Box } from "@mui/material"
+import { Box, useTheme } from "@mui/material"
 import { usePathname } from "next/navigation"
 
 import { Footer } from "@/components/Footer"
@@ -25,6 +25,7 @@ import { EditPolicySidebar } from "./EditPolicySidebar"
 
 export const Sidebar = () => {
   const pathname = usePathname()
+  const theme = useTheme()
   const step = useAppSelector((state) => state.borrowerOverview.tab)
 
   const showCommitHash =
@@ -38,6 +39,9 @@ export const Sidebar = () => {
         borderRight: `1px solid ${COLORS.blackRock006}`,
         overflow: "hidden",
         overflowY: "auto",
+        [theme.breakpoints.down("md")]: {
+          display: "none",
+        },
       }}
     >
       <Box

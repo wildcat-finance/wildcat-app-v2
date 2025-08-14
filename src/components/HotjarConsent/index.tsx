@@ -6,6 +6,7 @@ import Hotjar from "@hotjar/browser"
 import { Dialog, Typography, Box, Button } from "@mui/material"
 import Cookies, { CookieAttributes } from "js-cookie"
 
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
 import { COLORS } from "@/theme/colors"
@@ -29,6 +30,7 @@ const getCookieOptions = (): CookieAttributes => ({
 
 export default function HotjarConsent() {
   const dispatch = useAppDispatch()
+  const isMobile = useMobileResolution()
   const isVisible = useAppSelector((state) => state.cookieBanner.isVisible)
 
   const [consent, setConsent] = useState<ConsentType>(() => {
@@ -132,7 +134,7 @@ export default function HotjarConsent() {
           padding: "20px 32px 20px 20px",
           bgcolor: COLORS.white,
           color: COLORS.blackRock,
-          borderRadius: "10px",
+          borderRadius: isMobile ? "16px" : "10px",
           boxShadow: 3,
         },
       }}
