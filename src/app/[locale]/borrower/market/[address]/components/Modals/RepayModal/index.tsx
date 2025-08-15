@@ -197,9 +197,6 @@ export const RepayModal = ({
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
     setAmount(value)
-    // eslint-disable-next-line no-console
-    console.log(repayStep)
-
     setMaxRepayAmount(undefined)
   }
 

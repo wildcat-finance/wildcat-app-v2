@@ -88,7 +88,6 @@ export const DepositModal = ({
     () => marketAccount.market.underlyingToken.parseAmount(amount || "0"),
     [amount],
   )
-  console.log(depositTokenAmount.raw)
   const minimumDeposit = market.hooksConfig?.minimumDeposit
 
   // TODO: remove after fixing previewDeposit in wildcat.ts
