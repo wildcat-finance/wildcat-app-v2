@@ -171,17 +171,23 @@ export const RepayModal = ({
       ) {
         approve(repayAmount.token.getAmount(0)).then(() => {
           approve(repayAmount).then(() => {
-            setAmount("")
-            setDays("")
-            setFinalRepayAmount(undefined)
+            // only clear amount if approving more than balance
+            if (repayAmount.gt(marketAccount.underlyingBalance)) {
+              setAmount("")
+              setDays("")
+              setFinalRepayAmount(undefined)
+            }
             modal.setFlowStep(ModalSteps.gettingValues)
           })
         })
       } else {
         approve(repayAmount).then(() => {
-          setAmount("")
-          setDays("")
-          setFinalRepayAmount(undefined)
+          // only clear amount if approving more than balance
+          if (repayAmount.gt(marketAccount.underlyingBalance)) {
+            setAmount("")
+            setDays("")
+            setFinalRepayAmount(undefined)
+          }
           modal.setFlowStep(ModalSteps.gettingValues)
         })
       }

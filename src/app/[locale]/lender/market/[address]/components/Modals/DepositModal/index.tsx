@@ -133,13 +133,19 @@ export const DepositModal = ({
       ) {
         approve(depositTokenAmount.token.getAmount(0)).then(() => {
           approve(depositTokenAmount).then(() => {
-            setAmount("")
+            // only clear amount if approving more than balance
+            if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
+              setAmount("")
+            }
             modal.setFlowStep(ModalSteps.gettingValues)
           })
         })
       } else {
         approve(depositTokenAmount).then(() => {
-          setAmount("")
+          // only clear amount if approving more than balance
+          if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
+            setAmount("")
+          }
           modal.setFlowStep(ModalSteps.gettingValues)
         })
       }
