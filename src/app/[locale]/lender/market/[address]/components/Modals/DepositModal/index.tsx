@@ -9,7 +9,12 @@ import {
   Typography,
 } from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  Signer,
+  HooksKind,
+  TokenAmount,
+} from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
@@ -60,6 +65,7 @@ export const DepositModal = ({
 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
+  const [justApprovedAmount, setJustApprovedAmount] = useState<TokenAmount>()
 
   const [txHash, setTxHash] = useState<string | undefined>("")
 
@@ -111,7 +117,9 @@ export const DepositModal = ({
 
   const depositStep = getDepositStatus().status
 
-  const isAllowanceSufficient = marketAccount.isApprovedFor(depositTokenAmount)
+  const isAllowanceSufficient =
+    marketAccount.isApprovedFor(depositTokenAmount) ||
+    (justApprovedAmount && justApprovedAmount.gte(depositTokenAmount))
 
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
@@ -133,6 +141,8 @@ export const DepositModal = ({
       ) {
         approve(depositTokenAmount.token.getAmount(0)).then(() => {
           approve(depositTokenAmount).then(() => {
+            // track that we just approved this amount
+            setJustApprovedAmount(depositTokenAmount)
             // only clear amount if approving more than balance
             if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
               setAmount("")
@@ -142,6 +152,8 @@ export const DepositModal = ({
         })
       } else {
         approve(depositTokenAmount).then(() => {
+          // track that we just approved this amount
+          setJustApprovedAmount(depositTokenAmount)
           // only clear amount if approving more than balance
           if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
             setAmount("")
@@ -251,6 +263,23 @@ export const DepositModal = ({
       modal.setFlowStep(ModalSteps.gettingValues)
     }
   }, [isMobileOpen])
+
+  // clear optimistic approval when modal opens fresh
+  useEffect(() => {
+    if (!modal.isModalOpen) {
+      setJustApprovedAmount(undefined)
+    }
+  }, [modal.isModalOpen])
+
+  // clear optimistic approval when real approval data catches up
+  useEffect(() => {
+    if (
+      justApprovedAmount &&
+      marketAccount.underlyingApproval.gte(justApprovedAmount.raw)
+    ) {
+      setJustApprovedAmount(undefined)
+    }
+  }, [marketAccount.underlyingApproval, justApprovedAmount])
 
   const handleModalArrowClick = () => {
     if (modal.gettingValueStep && !!setIsMobileOpen) {

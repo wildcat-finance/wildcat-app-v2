@@ -65,6 +65,7 @@ export const RepayModal = ({
 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
+  const [justApprovedAmount, setJustApprovedAmount] = useState<TokenAmount>()
 
   const [txHash, setTxHash] = useState<string | undefined>("")
 
@@ -117,6 +118,7 @@ export const RepayModal = ({
     setType("sum")
     setDays("")
     setFinalRepayAmount(undefined)
+    setJustApprovedAmount(undefined)
     modal.handleOpenModal()
   }
 
@@ -139,7 +141,9 @@ export const RepayModal = ({
     finalRepayAmount || repayAmount,
   ).status
 
-  const isAllowanceSufficient = marketAccount.isApprovedFor(repayAmount)
+  const isAllowanceSufficient =
+    marketAccount.isApprovedFor(repayAmount) ||
+    (justApprovedAmount && justApprovedAmount.gte(repayAmount))
 
   // const getRepayStep = (inputAmount: TokenAmount) => {
   //   if (market.isClosed) return { status: RepayStatus.MarketClosed }
@@ -171,6 +175,8 @@ export const RepayModal = ({
       ) {
         approve(repayAmount.token.getAmount(0)).then(() => {
           approve(repayAmount).then(() => {
+            // track that we just approved this amount
+            setJustApprovedAmount(repayAmount)
             // only clear amount if approving more than balance
             if (repayAmount.gt(marketAccount.underlyingBalance)) {
               setAmount("")
@@ -182,6 +188,8 @@ export const RepayModal = ({
         })
       } else {
         approve(repayAmount).then(() => {
+          // track that we just approved this amount
+          setJustApprovedAmount(repayAmount)
           // only clear amount if approving more than balance
           if (repayAmount.gt(marketAccount.underlyingBalance)) {
             setAmount("")
@@ -347,6 +355,16 @@ export const RepayModal = ({
   useEffect(() => {
     setMaxRepayAmount(undefined)
   }, [open, closedModalStep])
+
+  // clear optimistic approval when real approval data catches up
+  useEffect(() => {
+    if (
+      justApprovedAmount &&
+      marketAccount.underlyingApproval.gte(justApprovedAmount.raw)
+    ) {
+      setJustApprovedAmount(undefined)
+    }
+  }, [marketAccount.underlyingApproval, justApprovedAmount])
 
   return (
     <>
