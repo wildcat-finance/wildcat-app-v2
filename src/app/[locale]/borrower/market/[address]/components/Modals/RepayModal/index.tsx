@@ -45,6 +45,8 @@ import { RepayModalProps } from "./interface"
 import { DaysSubtitle, PenaltyRepayBtn, PenaltyRepayBtnIcon } from "./style"
 
 const SECONDS_IN_DAY = 24 * 60 * 60
+const EXCEEDS_BALANCE_MESSAGE =
+  "Amount exceeds wallet balance. You can still approve for future use"
 
 export const RepayModal = ({
   buttonType = "marketHeader",
@@ -137,6 +139,8 @@ export const RepayModal = ({
     finalRepayAmount || repayAmount,
   ).status
 
+  const isAllowanceSufficient = marketAccount.isApprovedFor(repayAmount)
+
   // const getRepayStep = (inputAmount: TokenAmount) => {
   //   if (market.isClosed) return { status: RepayStatus.MarketClosed }
   //   if (inputAmount.gt(marketAccount.underlyingBalance)) {
@@ -160,21 +164,25 @@ export const RepayModal = ({
 
   const handleApprove = () => {
     setTxHash("")
-    if (repayStep === "InsufficientAllowance") {
+    if (!isAllowanceSufficient) {
       if (
         marketAccount.underlyingApproval.gt(0) &&
         isUSDTLikeToken(market.underlyingToken.address)
       ) {
         approve(repayAmount.token.getAmount(0)).then(() => {
           approve(repayAmount).then(() => {
-            setFinalRepayAmount(repayAmount)
-            modal.setFlowStep(ModalSteps.approved)
+            setAmount("")
+            setDays("")
+            setFinalRepayAmount(undefined)
+            modal.setFlowStep(ModalSteps.gettingValues)
           })
         })
       } else {
         approve(repayAmount).then(() => {
-          setFinalRepayAmount(repayAmount)
-          modal.setFlowStep(ModalSteps.approved)
+          setAmount("")
+          setDays("")
+          setFinalRepayAmount(undefined)
+          modal.setFlowStep(ModalSteps.gettingValues)
         })
       }
     }
@@ -189,6 +197,9 @@ export const RepayModal = ({
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
     setAmount(value)
+    // eslint-disable-next-line no-console
+    console.log(repayStep)
+
     setMaxRepayAmount(undefined)
   }
 
@@ -211,7 +222,7 @@ export const RepayModal = ({
     market.isClosed ||
     repayAmount.raw.isZero() ||
     repayStep === "Ready" ||
-    repayStep === "InsufficientBalance" ||
+    isAllowanceSufficient ||
     isApproving
 
   const disableRepay =
@@ -222,7 +233,7 @@ export const RepayModal = ({
     isApproving
 
   const isApprovedButton =
-    repayStep === "Ready" && !repayAmount.raw.isZero() && !isApproving
+    isAllowanceSufficient && !repayAmount.raw.isZero() && !isApproving
 
   const showForm = !(isRepaying || showSuccessPopup || showErrorPopup)
 
@@ -291,10 +302,42 @@ export const RepayModal = ({
       return
     }
 
+    if (repayStep === "InsufficientAllowance") {
+      // warn approval is larger than balance
+      if (repayAmount.gt(marketAccount.underlyingBalance)) {
+        setRepayError(EXCEEDS_BALANCE_MESSAGE)
+      } else {
+        // amount is within balance, just needs approval
+        setRepayError(undefined)
+      }
+      return
+    }
+
+    // when amount > outstanding debt, also check allowance
+    if (repayStep === "InsufficientBalance") {
+      if (!isAllowanceSufficient) {
+        // needs approval - friendly message
+        setRepayError(EXCEEDS_BALANCE_MESSAGE)
+      } else {
+        // has approval but truly insufficient balance
+        setRepayError(SDK_ERRORS_MAPPING.repay[repayStep])
+      }
+      return
+    }
+
+    // can do better later?
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
     setRepayError(SDK_ERRORS_MAPPING.repay[repayStep])
-  }, [repayStep, amount])
+  }, [
+    repayStep,
+    amount,
+    days,
+    isRepayByDays,
+    isAllowanceSufficient,
+    repayAmount,
+    marketAccount.underlyingBalance,
+  ])
 
   const { open, closedModalStep } = modal
 
@@ -430,6 +473,32 @@ export const RepayModal = ({
 
             {modal.gettingValueStep && (
               <Box>
+                {/* 
+                  // these are helpful for debugging and will show balance / approvals
+                  <Box sx={TxModalInfoItem} padding="0 16px" marginBottom="8px">
+                  <Typography variant="text3" sx={TxModalInfoTitle}>
+                    Current balance
+                  </Typography>
+                  <Typography variant="text3">
+                    {formatTokenWithCommas(marketAccount.underlyingBalance, {
+                      withSymbol: true,
+                    })}
+                  </Typography>
+                </Box>
+                <Box sx={TxModalInfoItem} padding="0 16px" marginBottom="20px">
+                  <Typography variant="text3" sx={TxModalInfoTitle}>
+                    Current allowance
+                  </Typography>
+                  <Typography variant="text3">
+                    {formatTokenWithCommas(
+                      market.underlyingToken.getAmount(
+                        marketAccount.underlyingApproval,
+                      ),
+                      { withSymbol: true },
+                    )}
+                  </Typography>
+                </Box> */}
+
                 <NumberTextField
                   label={amountInputLabel}
                   size="medium"
@@ -445,7 +514,11 @@ export const RepayModal = ({
                   disabled={isApproving}
                   max={type === "days" ? 100000000 : undefined}
                   // decimalScale={2}
-                  error={!!repayError}
+                  error={
+                    !!repayError &&
+                    (repayStep !== "InsufficientBalance" ||
+                      isAllowanceSufficient)
+                  }
                   helperText={repayError}
                 />
 
