@@ -219,8 +219,27 @@ export const DepositModal = ({
       return
     }
 
+    if (depositStep === "InsufficientBalance") {
+      if (isAllowanceSufficient) {
+        // approval is sufficient but balance too low to deposit this amount
+        setDepositError(SDK_ERRORS_MAPPING.deposit[depositStep])
+      } else {
+        // warn that this is above balance but you can approve if you want to
+        setDepositError(
+          "Amount exceeds wallet balance. You can still approve for future use",
+        )
+      }
+      return
+    }
+
     setDepositError(SDK_ERRORS_MAPPING.deposit[depositStep])
-  }, [depositStep, amount])
+  }, [
+    depositStep,
+    amount,
+    isAllowanceSufficient,
+    marketAccount.underlyingBalance,
+    market.underlyingToken.symbol,
+  ])
 
   useEffect(() => {
     if (isMobileOpen) {
@@ -343,7 +362,11 @@ export const DepositModal = ({
                     />
                   }
                   disabled={isApproving}
-                  error={!!depositError}
+                  error={
+                    !!depositError &&
+                    (depositStep !== "InsufficientBalance" ||
+                      isAllowanceSufficient)
+                  }
                   helperText={depositError}
                 />
               </>
