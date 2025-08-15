@@ -83,11 +83,12 @@ export const DepositModal = ({
     setTxHash,
   )
 
+  // user inputted amount
   const depositTokenAmount = useMemo(
     () => marketAccount.market.underlyingToken.parseAmount(amount || "0"),
     [amount],
   )
-
+  console.log(depositTokenAmount.raw)
   const minimumDeposit = market.hooksConfig?.minimumDeposit
 
   // TODO: remove after fixing previewDeposit in wildcat.ts
@@ -111,6 +112,8 @@ export const DepositModal = ({
 
   const depositStep = getDepositStatus().status
 
+  const isAllowanceSufficient = marketAccount.isApprovedFor(depositTokenAmount)
+
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
     setAmount(value)
@@ -124,19 +127,21 @@ export const DepositModal = ({
   const handleApprove = () => {
     setTxHash("")
 
-    if (depositStep === "InsufficientAllowance") {
+    if (!isAllowanceSufficient) {
       if (
         marketAccount.underlyingApproval.gt(0) &&
         isUSDTLikeToken(market.underlyingToken.address)
       ) {
         approve(depositTokenAmount.token.getAmount(0)).then(() => {
           approve(depositTokenAmount).then(() => {
-            modal.setFlowStep(ModalSteps.approved)
+            setAmount("")
+            modal.setFlowStep(ModalSteps.gettingValues)
           })
         })
       } else {
         approve(depositTokenAmount).then(() => {
-          modal.setFlowStep(ModalSteps.approved)
+          setAmount("")
+          modal.setFlowStep(ModalSteps.gettingValues)
         })
       }
     }
@@ -149,17 +154,17 @@ export const DepositModal = ({
   }
 
   const mustResetAllowance =
-    depositStep === "InsufficientAllowance" &&
+    !isAllowanceSufficient &&
     marketAccount.underlyingApproval.gt(0) &&
     isUSDTLikeToken(market.underlyingToken.address)
 
   const disableApprove =
-    !!depositError ||
     market.isClosed ||
     depositTokenAmount.raw.isZero() ||
     depositTokenAmount.raw.gt(market.maximumDeposit.raw) ||
+    !!isAllowanceSufficient ||
     depositStep === "Ready" ||
-    depositStep === "InsufficientBalance" ||
+    // depositStep === "InsufficientBalance" ||
     modal.approvedStep ||
     isApproving ||
     !(market.provider instanceof Signer)
@@ -174,7 +179,7 @@ export const DepositModal = ({
     isApproving
 
   const isApprovedButton =
-    depositStep === "Ready" && !depositTokenAmount.raw.isZero() && !isApproving
+    isAllowanceSufficient && !depositTokenAmount.raw.isZero() && !isApproving
 
   const isFixedTerm = market.isInFixedTerm
   const fixedTermMaturity =
