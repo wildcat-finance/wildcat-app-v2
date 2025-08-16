@@ -65,7 +65,7 @@ export const RepayModal = ({
 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
-  const [justApprovedAmount, setJustApprovedAmount] = useState<TokenAmount>()
+  const [showAsApproved, setShowAsApproved] = useState(false)
 
   const [txHash, setTxHash] = useState<string | undefined>("")
 
@@ -118,7 +118,7 @@ export const RepayModal = ({
     setType("sum")
     setDays("")
     setFinalRepayAmount(undefined)
-    setJustApprovedAmount(undefined)
+    setShowAsApproved(false)
     modal.handleOpenModal()
   }
 
@@ -141,9 +141,7 @@ export const RepayModal = ({
     finalRepayAmount || repayAmount,
   ).status
 
-  const isAllowanceSufficient =
-    marketAccount.isApprovedFor(repayAmount) ||
-    (justApprovedAmount && justApprovedAmount.gte(repayAmount))
+  const isAllowanceSufficient = marketAccount.isApprovedFor(repayAmount)
 
   // const getRepayStep = (inputAmount: TokenAmount) => {
   //   if (market.isClosed) return { status: RepayStatus.MarketClosed }
@@ -175,26 +173,24 @@ export const RepayModal = ({
       ) {
         approve(repayAmount.token.getAmount(0)).then(() => {
           approve(repayAmount).then(() => {
-            // track that we just approved this amount
-            setJustApprovedAmount(repayAmount)
             // only clear amount if approving more than balance
             if (repayAmount.gt(marketAccount.underlyingBalance)) {
               setAmount("")
               setDays("")
               setFinalRepayAmount(undefined)
+              setShowAsApproved(true)
             }
             modal.setFlowStep(ModalSteps.gettingValues)
           })
         })
       } else {
         approve(repayAmount).then(() => {
-          // track that we just approved this amount
-          setJustApprovedAmount(repayAmount)
           // only clear amount if approving more than balance
           if (repayAmount.gt(marketAccount.underlyingBalance)) {
             setAmount("")
             setDays("")
             setFinalRepayAmount(undefined)
+            setShowAsApproved(true)
           }
           modal.setFlowStep(ModalSteps.gettingValues)
         })
@@ -212,6 +208,7 @@ export const RepayModal = ({
     const { value } = evt.target
     setAmount(value)
     setMaxRepayAmount(undefined)
+    setShowAsApproved(false)
   }
 
   const handleClickMaxAmount = () => {
@@ -244,7 +241,8 @@ export const RepayModal = ({
     isApproving
 
   const isApprovedButton =
-    isAllowanceSufficient && !repayAmount.raw.isZero() && !isApproving
+    (isAllowanceSufficient && !repayAmount.raw.isZero() && !isApproving) ||
+    (showAsApproved && repayAmount.raw.isZero())
 
   const showForm = !(isRepaying || showSuccessPopup || showErrorPopup)
 
@@ -356,15 +354,12 @@ export const RepayModal = ({
     setMaxRepayAmount(undefined)
   }, [open, closedModalStep])
 
-  // clear optimistic approval when real approval data catches up
+  // clear approved state when modal closes
   useEffect(() => {
-    if (
-      justApprovedAmount &&
-      marketAccount.underlyingApproval.gte(justApprovedAmount.raw)
-    ) {
-      setJustApprovedAmount(undefined)
+    if (!modal.isModalOpen) {
+      setShowAsApproved(false)
     }
-  }, [marketAccount.underlyingApproval, justApprovedAmount])
+  }, [modal.isModalOpen])
 
   return (
     <>

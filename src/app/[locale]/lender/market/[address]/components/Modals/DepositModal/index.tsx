@@ -65,7 +65,7 @@ export const DepositModal = ({
 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
-  const [justApprovedAmount, setJustApprovedAmount] = useState<TokenAmount>()
+  const [showAsApproved, setShowAsApproved] = useState(false)
 
   const [txHash, setTxHash] = useState<string | undefined>("")
 
@@ -117,13 +117,12 @@ export const DepositModal = ({
 
   const depositStep = getDepositStatus().status
 
-  const isAllowanceSufficient =
-    marketAccount.isApprovedFor(depositTokenAmount) ||
-    (justApprovedAmount && justApprovedAmount.gte(depositTokenAmount))
+  const isAllowanceSufficient = marketAccount.isApprovedFor(depositTokenAmount)
 
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
     setAmount(value)
+    setShowAsApproved(false)
   }
 
   const handleDeposit = () => {
@@ -141,22 +140,20 @@ export const DepositModal = ({
       ) {
         approve(depositTokenAmount.token.getAmount(0)).then(() => {
           approve(depositTokenAmount).then(() => {
-            // track that we just approved this amount
-            setJustApprovedAmount(depositTokenAmount)
             // only clear amount if approving more than balance
             if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
               setAmount("")
+              setShowAsApproved(true)
             }
             modal.setFlowStep(ModalSteps.gettingValues)
           })
         })
       } else {
         approve(depositTokenAmount).then(() => {
-          // track that we just approved this amount
-          setJustApprovedAmount(depositTokenAmount)
           // only clear amount if approving more than balance
           if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
             setAmount("")
+            setShowAsApproved(true)
           }
           modal.setFlowStep(ModalSteps.gettingValues)
         })
@@ -196,7 +193,10 @@ export const DepositModal = ({
     isApproving
 
   const isApprovedButton =
-    isAllowanceSufficient && !depositTokenAmount.raw.isZero() && !isApproving
+    (isAllowanceSufficient &&
+      !depositTokenAmount.raw.isZero() &&
+      !isApproving) ||
+    (showAsApproved && depositTokenAmount.raw.isZero())
 
   const isFixedTerm = market.isInFixedTerm
   const fixedTermMaturity =
@@ -264,22 +264,12 @@ export const DepositModal = ({
     }
   }, [isMobileOpen])
 
-  // clear optimistic approval when modal opens fresh
+  // clear approved flag state when modal closes
   useEffect(() => {
     if (!modal.isModalOpen) {
-      setJustApprovedAmount(undefined)
+      setShowAsApproved(false)
     }
   }, [modal.isModalOpen])
-
-  // clear optimistic approval when real approval data catches up
-  useEffect(() => {
-    if (
-      justApprovedAmount &&
-      marketAccount.underlyingApproval.gte(justApprovedAmount.raw)
-    ) {
-      setJustApprovedAmount(undefined)
-    }
-  }, [marketAccount.underlyingApproval, justApprovedAmount])
 
   const handleModalArrowClick = () => {
     if (modal.gettingValueStep && !!setIsMobileOpen) {
