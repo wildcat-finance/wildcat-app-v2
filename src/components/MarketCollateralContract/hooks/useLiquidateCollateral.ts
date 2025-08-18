@@ -74,6 +74,7 @@ export const useLiquidateCollateral = (
       const tx = await collateral.contract
         .connect(signer)
         .liquidateCollateral(
+          quote.tx.to,
           quote.tx!.data,
           lengthWithdrawalQueue,
           quote.sellTokenAmount.raw,
