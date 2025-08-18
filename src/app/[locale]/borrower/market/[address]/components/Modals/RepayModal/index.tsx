@@ -15,9 +15,6 @@ import { BigNumber } from "ethers"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
-import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
-import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
-import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import {
   ModalSteps,
   useApprovalModal,
@@ -63,15 +60,13 @@ export const RepayModal = ({
   const [maxRepayAmount, setMaxRepayAmount] = useState<TokenAmount>()
   const [finalRepayAmount, setFinalRepayAmount] = useState<TokenAmount>()
 
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false)
-  const [showErrorPopup, setShowErrorPopup] = useState(false)
   const [justApprovedAmount, setJustApprovedAmount] = useState<TokenAmount>()
 
   const [txHash, setTxHash] = useState<string | undefined>("")
 
   const modal = useApprovalModal(
-    setShowSuccessPopup,
-    setShowErrorPopup,
+    () => {},
+    () => {},
     setAmount,
     setTxHash,
   )
@@ -92,12 +87,7 @@ export const RepayModal = ({
     }
   }
 
-  const {
-    mutate: repay,
-    isPending: isRepaying,
-    isSuccess: isRepaid,
-    isError: isRepayError,
-  } = useRepay(marketAccount, setTxHash, true)
+  const { repay, isPending: isRepaying } = useRepay(marketAccount, true)
   const { mutateAsync: approve, isPending: isApproving } = useApprove(
     market.underlyingToken,
     market,
@@ -161,9 +151,12 @@ export const RepayModal = ({
   //
   // const repayStep = getRepayStep(finalRepayAmount || repayAmount).status
 
-  const handleRepay = () => {
-    setTxHash("")
-    repay(finalRepayAmount || repayAmount)
+  const handleRepay = async () => {
+    await repay(finalRepayAmount || repayAmount)
+    modal.handleCloseModal()
+    setAmount("")
+    setDays("")
+    setFinalRepayAmount(undefined)
   }
 
   const handleApprove = () => {
@@ -203,9 +196,7 @@ export const RepayModal = ({
   }
 
   const handleTryAgain = () => {
-    setTxHash("")
     handleRepay()
-    setShowErrorPopup(false)
   }
 
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
@@ -246,7 +237,7 @@ export const RepayModal = ({
   const isApprovedButton =
     isAllowanceSufficient && !repayAmount.raw.isZero() && !isApproving
 
-  const showForm = !(isRepaying || showSuccessPopup || showErrorPopup)
+  const showForm = !isRepaying
 
   const remainingInterest =
     market.totalDebts.gt(0) && !market.isClosed
@@ -284,15 +275,6 @@ export const RepayModal = ({
   ) : (
     <TextfieldButton buttonText="Max" onClick={handleClickMaxAmount} />
   )
-
-  useEffect(() => {
-    if (isRepayError) {
-      setShowErrorPopup(true)
-    }
-    if (isRepaid) {
-      setShowSuccessPopup(true)
-    }
-  }, [isRepayError, isRepaid])
 
   const [repayError, setRepayError] = useState<string | undefined>()
 
@@ -562,18 +544,6 @@ export const RepayModal = ({
               </Box>
             )}
           </Box>
-        )}
-
-        {isRepaying && <LoadingModal txHash={txHash} />}
-        {showErrorPopup && (
-          <ErrorModal
-            onTryAgain={handleTryAgain}
-            onClose={modal.handleCloseModal}
-            txHash={txHash}
-          />
-        )}
-        {showSuccessPopup && (
-          <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
         )}
 
         {txHash !== "" && showForm && (

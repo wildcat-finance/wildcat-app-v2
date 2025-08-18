@@ -1,5 +1,3 @@
-import { Dispatch } from "react"
-
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import {
   BaseTransaction,
@@ -9,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
 import { GET_WITHDRAWALS_KEY } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
+import { toastRequest } from "@/components/Toasts"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import {
   GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY,
@@ -18,7 +17,6 @@ import { isUSDTLikeToken } from "@/utils/constants"
 
 export const useRepay = (
   marketAccount: MarketAccount,
-  setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
   processUnpaidWithdrawalsIfAny?: boolean,
 ) => {
   const signer = useEthersSigner()
@@ -37,10 +35,10 @@ export const useRepay = (
     })
   }
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async (amount: TokenAmount) => {
       if (!marketAccount || !signer) {
-        return
+        throw Error("Market account or signer not available")
       }
 
       const step = marketAccount.previewRepay(amount)
@@ -76,7 +74,6 @@ export const useRepay = (
               const transactionBySafeHash =
                 await sdk.txs.getBySafeTxHash(safeTxHash)
               if (transactionBySafeHash?.txHash) {
-                setTxHash(transactionBySafeHash.txHash)
                 const receipt = await waitForTransaction(safeTxHash)
                 console.log(
                   `Got gnosis transaction receipt:\n\ttxHash: ${receipt.transactionHash}`,
@@ -115,8 +112,6 @@ export const useRepay = (
             maxBatches,
           )
 
-        if (!safeConnected) setTxHash(tx.hash)
-
         if (safeConnected) {
           return checkTransaction(tx.hash)
         }
@@ -139,7 +134,26 @@ export const useRepay = (
       }
     },
     onError(error) {
-      console.log(error)
+      console.error("Repay failed:", error)
     },
   })
+
+  const repayWithToast = async (amount: TokenAmount) => {
+    await toastRequest(mutation.mutateAsync(amount), {
+      pending: `Repaying ${amount.format()} ${
+        marketAccount.market.underlyingToken.symbol
+      }...`,
+      success: `Successfully repaid ${amount.format()} ${
+        marketAccount.market.underlyingToken.symbol
+      }`,
+      error: "Failed to repay",
+    })
+  }
+
+  return {
+    repay: repayWithToast,
+    isPending: mutation.isPending,
+    isSuccess: mutation.isSuccess,
+    isError: mutation.isError,
+  }
 }

@@ -18,9 +18,6 @@ import {
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
-import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
-import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
-import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import {
   ModalSteps,
   useApprovalModal,
@@ -63,18 +60,11 @@ export const DepositModal = ({
 
   const { connected: isConnectedToSafe } = useSafeAppsSDK()
 
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false)
-  const [showErrorPopup, setShowErrorPopup] = useState(false)
   const [justApprovedAmount, setJustApprovedAmount] = useState<TokenAmount>()
 
   const [txHash, setTxHash] = useState<string | undefined>("")
 
-  const {
-    mutate: deposit,
-    isPending: isDepositing,
-    isSuccess: isDeposed,
-    isError: isDepositError,
-  } = useDeposit(marketAccount, setTxHash)
+  const { deposit, isPending: isDepositing } = useDeposit(marketAccount)
 
   const { mutateAsync: approve, isPending: isApproving } = useApprove(
     market.underlyingToken,
@@ -83,8 +73,8 @@ export const DepositModal = ({
   )
 
   const modal = useApprovalModal(
-    setShowSuccessPopup,
-    setShowErrorPopup,
+    () => {},
+    () => {},
     setAmount,
     setTxHash,
   )
@@ -126,9 +116,10 @@ export const DepositModal = ({
     setAmount(value)
   }
 
-  const handleDeposit = () => {
-    setTxHash("")
-    deposit(depositTokenAmount)
+  const handleDeposit = async () => {
+    await deposit(depositTokenAmount)
+    modal.handleCloseModal()
+    setAmount("")
   }
 
   const handleApprove = () => {
@@ -162,12 +153,6 @@ export const DepositModal = ({
         })
       }
     }
-  }
-
-  const handleTryAgain = () => {
-    setTxHash("")
-    handleDeposit()
-    setShowErrorPopup(false)
   }
 
   const mustResetAllowance =
@@ -212,23 +197,13 @@ export const DepositModal = ({
       ? market.hooksConfig.allowTermReduction
       : false
 
-  const showForm = !(isDepositing || showSuccessPopup || showErrorPopup)
+  const showForm = !isDepositing
 
   const underlyingBalanceIsZero = marketAccount.underlyingBalance.raw.isZero()
 
   const tooltip = underlyingBalanceIsZero
     ? "Underlying token balance is zero"
     : "Market is at full capacity"
-
-  useEffect(() => {
-    if (isDepositError) {
-      setShowErrorPopup(true)
-    }
-    if (isDeposed) {
-      setShowSuccessPopup(true)
-      setShowErrorPopup(false)
-    }
-  }, [isDepositError, isDeposed])
 
   useEffect(() => {
     if (amount === "" || amount === "0" || depositStep === "Ready") {
@@ -298,7 +273,7 @@ export const DepositModal = ({
   const progressAmount = () => {
     if (modal.gettingValueStep) return 33
     if (modal.approvedStep) return 66
-    if (showSuccessPopup) return 100
+    if (isDepositing) return 100
 
     return 0
   }
@@ -558,7 +533,7 @@ export const DepositModal = ({
         </Box>
 
         <Dialog
-          open={isDepositing || showErrorPopup || showSuccessPopup}
+          open={false}
           sx={{
             backdropFilter: "blur(10px)",
 
@@ -571,19 +546,7 @@ export const DepositModal = ({
               margin: "auto 0 4px",
             },
           }}
-        >
-          {isDepositing && <LoadingModal txHash={txHash} />}
-          {showErrorPopup && (
-            <ErrorModal
-              onTryAgain={handleTryAgain}
-              onClose={handleCloseMobileModal}
-              txHash={txHash}
-            />
-          )}
-          {showSuccessPopup && (
-            <SuccessModal onClose={handleCloseMobileModal} txHash={txHash} />
-          )}
-        </Dialog>
+        />
       </>
     )
 
@@ -695,7 +658,11 @@ export const DepositModal = ({
                       />
                     }
                     disabled={isApproving}
-                    error={!!depositError}
+                    error={
+                      !!depositError &&
+                      (depositStep !== "InsufficientBalance" ||
+                        isAllowanceSufficient)
+                    }
                     helperText={depositError}
                   />
                 </Box>
@@ -825,18 +792,6 @@ export const DepositModal = ({
                 )}
               </Box>
             </>
-          )}
-
-          {isDepositing && <LoadingModal txHash={txHash} />}
-          {showErrorPopup && (
-            <ErrorModal
-              onTryAgain={handleTryAgain}
-              onClose={modal.handleCloseModal}
-              txHash={txHash}
-            />
-          )}
-          {showSuccessPopup && (
-            <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
           )}
 
           {txHash !== "" && showForm && (
