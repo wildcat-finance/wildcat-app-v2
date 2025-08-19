@@ -558,7 +558,7 @@ export const DepositModal = ({
         </Box>
 
         <Dialog
-          open={false}
+          open={isDepositing || showErrorPopup || showSuccessPopup}
           sx={{
             backdropFilter: "blur(10px)",
 
