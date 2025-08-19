@@ -16,10 +16,7 @@ import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/componen
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
-import {
-  ModalSteps,
-  useApprovalModal,
-} from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
+import { useApprovalModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
 import { useApprove } from "@/app/[locale]/borrower/market/[address]/hooks/useGetApproval"
 import Alert from "@/assets/icons/circledAlert_icon.svg"
 import Clock from "@/assets/icons/clock_icon.svg"
@@ -164,7 +161,6 @@ export const DepositModal = ({
     depositTokenAmount.raw.isZero() ||
     depositTokenAmount.raw.gt(market.maximumDeposit.raw) ||
     isAllowanceSufficient ||
-    modal.approvedStep ||
     isApproving ||
     !(market.provider instanceof Signer)
 
@@ -254,15 +250,18 @@ export const DepositModal = ({
   }
 
   const handleCloseMobileModal = () => {
+    setShowSuccessPopup(false)
+    setShowErrorPopup(false)
+    resetDeposit()
+    modal.handleCloseModal()
     if (setIsMobileOpen) {
-      modal.handleCloseModal()
       setIsMobileOpen(false)
     }
   }
 
   const progressAmount = () => {
     if (modal.gettingValueStep) return 33
-    if (modal.approvedStep) return 66
+    if (isDepositing) return 66
     if (showSuccessPopup) return 100
 
     return 0
@@ -371,24 +370,9 @@ export const DepositModal = ({
               </>
             )}
 
-            {modal.approvedStep && (
-              <ModalDataItem
-                title={t(
-                  "lenderMarketDetails.transactions.deposit.modal.confirm",
-                )}
-                value={formatTokenWithCommas(depositTokenAmount, {
-                  withSymbol: true,
-                })}
-                containerSx={{
-                  padding: "0 12px",
-                  margin: "0",
-                }}
-              />
-            )}
-
             <Box
               sx={{
-                marginTop: modal.approvedStep ? "16px" : "0px",
+                marginTop: "0px",
                 display: "flex",
                 flexDirection: "column",
                 gap: "4px",
@@ -523,7 +507,7 @@ export const DepositModal = ({
         </Box>
 
         <Dialog
-          open={isDepositing || isDepositError || isDeposed}
+          open={isDepositing || showErrorPopup || showSuccessPopup}
           sx={{
             backdropFilter: "blur(10px)",
 
@@ -541,12 +525,25 @@ export const DepositModal = ({
           {showErrorPopup && (
             <ErrorModal
               onTryAgain={handleTryAgain}
-              onClose={handleCloseMobileModal}
+              onClose={() => {
+                setShowErrorPopup(false)
+                resetDeposit()
+                modal.handleCloseModal()
+                if (setIsMobileOpen) setIsMobileOpen(false)
+              }}
               txHash={txHash}
             />
           )}
           {showSuccessPopup && (
-            <SuccessModal onClose={handleCloseMobileModal} txHash={txHash} />
+            <SuccessModal
+              onClose={() => {
+                setShowSuccessPopup(false)
+                resetDeposit()
+                modal.handleCloseModal()
+                if (setIsMobileOpen) setIsMobileOpen(false)
+              }}
+              txHash={txHash}
+            />
           )}
         </Dialog>
       </>
@@ -670,23 +667,6 @@ export const DepositModal = ({
                 </Box>
               )}
 
-              <Box width="100%" height="100%" padding="0 24px">
-                {modal.approvedStep && (
-                  <ModalDataItem
-                    title={t(
-                      "lenderMarketDetails.transactions.deposit.modal.confirm",
-                    )}
-                    value={formatTokenWithCommas(depositTokenAmount, {
-                      withSymbol: true,
-                    })}
-                    containerSx={{
-                      padding: "0 12px",
-                      margin: "16px 0 20px",
-                    }}
-                  />
-                )}
-              </Box>
-
               <Box
                 sx={{
                   marginTop: "16px",
@@ -800,7 +780,11 @@ export const DepositModal = ({
           {showErrorPopup && (
             <ErrorModal
               onTryAgain={handleTryAgain}
-              onClose={modal.handleCloseModal}
+              onClose={() => {
+                setShowErrorPopup(false)
+                resetDeposit()
+                modal.handleCloseModal()
+              }}
               txHash={txHash}
             />
           )}
