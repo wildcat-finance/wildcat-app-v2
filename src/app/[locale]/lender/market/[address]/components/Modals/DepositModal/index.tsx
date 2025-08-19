@@ -264,10 +264,12 @@ export const DepositModal = ({
     }
   }, [isMobileOpen])
 
-  // clear optimistic approval when modal opens fresh
+  // clear optimistic approval and success/error states when modal opens fresh
   useEffect(() => {
     if (!modal.isModalOpen) {
       setJustApprovedAmount(undefined)
+      setShowSuccessPopup(false)
+      setShowErrorPopup(false)
     }
   }, [modal.isModalOpen])
 
