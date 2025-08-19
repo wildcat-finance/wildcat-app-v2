@@ -1,0 +1,31 @@
+name: Purge Vercel Сaches (CDN + Data)
+
+on:
+  schedule:
+    - cron: "30 3 */3 * *"
+  workflow_dispatch: {}
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Pull project settings
+        run: vercel pull --yes --environment=production \
+             --project wildcat-app-v2 \
+             --scope ${{ secrets.VERCEL_TEAM }} \
+             --token ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Purge CDN cache
+        run: vercel cache purge --type=cdn --yes \
+             --scope ${{ secrets.VERCEL_TEAM }} \
+             --token ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Purge Data cache
+        run: vercel cache purge --type=data --yes \
+             --scope ${{ secrets.VERCEL_TEAM }} \
+             --token ${{ secrets.VERCEL_TOKEN }}
