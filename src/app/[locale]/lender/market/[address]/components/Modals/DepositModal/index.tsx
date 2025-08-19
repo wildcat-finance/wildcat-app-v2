@@ -9,12 +9,7 @@ import {
   Typography,
 } from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import {
-  DepositStatus,
-  Signer,
-  HooksKind,
-  TokenAmount,
-} from "@wildcatfi/wildcat-sdk"
+import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
@@ -65,7 +60,6 @@ export const DepositModal = ({
 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
-  const [justApprovedAmount, setJustApprovedAmount] = useState<TokenAmount>()
 
   const [txHash, setTxHash] = useState<string | undefined>("")
 
@@ -74,6 +68,7 @@ export const DepositModal = ({
     isPending: isDepositing,
     isSuccess: isDeposed,
     isError: isDepositError,
+    reset: resetDeposit,
   } = useDeposit(marketAccount, setTxHash)
 
   const { mutateAsync: approve, isPending: isApproving } = useApprove(
@@ -83,8 +78,8 @@ export const DepositModal = ({
   )
 
   const modal = useApprovalModal(
-    () => {},
-    () => {},
+    setShowSuccessPopup,
+    setShowErrorPopup,
     setAmount,
     setTxHash,
   )
@@ -117,9 +112,7 @@ export const DepositModal = ({
 
   const depositStep = getDepositStatus().status
 
-  const isAllowanceSufficient =
-    marketAccount.isApprovedFor(depositTokenAmount) ||
-    (justApprovedAmount && justApprovedAmount.gte(depositTokenAmount))
+  const isAllowanceSufficient = marketAccount.isApprovedFor(depositTokenAmount)
 
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
@@ -134,7 +127,6 @@ export const DepositModal = ({
   const handleTryAgain = () => {
     setTxHash("")
     handleDeposit()
-    setShowErrorPopup(false)
   }
 
   const handleApprove = () => {
@@ -147,24 +139,16 @@ export const DepositModal = ({
       ) {
         approve(depositTokenAmount.token.getAmount(0)).then(() => {
           approve(depositTokenAmount).then(() => {
-            // track that we just approved this amount
-            setJustApprovedAmount(depositTokenAmount)
-            // only clear amount if approving more than balance
             if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
               setAmount("")
             }
-            modal.setFlowStep(ModalSteps.gettingValues)
           })
         })
       } else {
         approve(depositTokenAmount).then(() => {
-          // track that we just approved this amount
-          setJustApprovedAmount(depositTokenAmount)
-          // only clear amount if approving more than balance
           if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
             setAmount("")
           }
-          modal.setFlowStep(ModalSteps.gettingValues)
         })
       }
     }
@@ -179,9 +163,7 @@ export const DepositModal = ({
     market.isClosed ||
     depositTokenAmount.raw.isZero() ||
     depositTokenAmount.raw.gt(market.maximumDeposit.raw) ||
-    !!isAllowanceSufficient ||
-    depositStep === "Ready" ||
-    // depositStep === "InsufficientBalance" ||
+    isAllowanceSufficient ||
     modal.approvedStep ||
     isApproving ||
     !(market.provider instanceof Signer)
@@ -221,16 +203,6 @@ export const DepositModal = ({
     : "Market is at full capacity"
 
   useEffect(() => {
-    if (isDepositError) {
-      setShowErrorPopup(true)
-    }
-    if (isDeposed) {
-      setShowSuccessPopup(true)
-      setShowErrorPopup(false)
-    }
-  }, [isDepositError, isDeposed])
-
-  useEffect(() => {
     if (amount === "" || amount === "0" || depositStep === "Ready") {
       setDepositError(undefined)
       return
@@ -260,28 +232,19 @@ export const DepositModal = ({
 
   useEffect(() => {
     if (isMobileOpen) {
-      modal.setFlowStep(ModalSteps.gettingValues)
+      modal.handleOpenModal()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobileOpen])
 
-  // clear optimistic approval and success/error states when modal opens fresh
   useEffect(() => {
-    if (!modal.isModalOpen) {
-      setJustApprovedAmount(undefined)
-      setShowSuccessPopup(false)
-      setShowErrorPopup(false)
+    if (isDepositError) {
+      setShowErrorPopup(true)
     }
-  }, [modal.isModalOpen])
-
-  // clear optimistic approval when real approval data catches up
-  useEffect(() => {
-    if (
-      justApprovedAmount &&
-      marketAccount.underlyingApproval.gte(justApprovedAmount.raw)
-    ) {
-      setJustApprovedAmount(undefined)
+    if (isDeposed) {
+      setShowSuccessPopup(true)
     }
-  }, [marketAccount.underlyingApproval, justApprovedAmount])
+  }, [isDepositError, isDeposed])
 
   const handleModalArrowClick = () => {
     if (modal.gettingValueStep && !!setIsMobileOpen) {
@@ -300,7 +263,7 @@ export const DepositModal = ({
   const progressAmount = () => {
     if (modal.gettingValueStep) return 33
     if (modal.approvedStep) return 66
-    if (isDepositing) return 100
+    if (showSuccessPopup) return 100
 
     return 0
   }
@@ -560,7 +523,7 @@ export const DepositModal = ({
         </Box>
 
         <Dialog
-          open={isDepositing || showErrorPopup || showSuccessPopup}
+          open={isDepositing || isDepositError || isDeposed}
           sx={{
             backdropFilter: "blur(10px)",
 
