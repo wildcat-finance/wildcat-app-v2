@@ -18,6 +18,9 @@ import {
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
+import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
+import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
+import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import {
   ModalSteps,
   useApprovalModal,
@@ -32,7 +35,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
-import { EtherscanBaseUrl, TargetChainId } from "@/config/network"
+import { EtherscanBaseUrl } from "@/config/network"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
@@ -60,11 +63,18 @@ export const DepositModal = ({
 
   const { connected: isConnectedToSafe } = useSafeAppsSDK()
 
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false)
+  const [showErrorPopup, setShowErrorPopup] = useState(false)
   const [justApprovedAmount, setJustApprovedAmount] = useState<TokenAmount>()
 
   const [txHash, setTxHash] = useState<string | undefined>("")
 
-  const { deposit, isPending: isDepositing } = useDeposit(marketAccount)
+  const {
+    mutate: deposit,
+    isPending: isDepositing,
+    isSuccess: isDeposed,
+    isError: isDepositError,
+  } = useDeposit(marketAccount, setTxHash)
 
   const { mutateAsync: approve, isPending: isApproving } = useApprove(
     market.underlyingToken,
@@ -116,10 +126,15 @@ export const DepositModal = ({
     setAmount(value)
   }
 
-  const handleDeposit = async () => {
-    await deposit(depositTokenAmount)
-    modal.handleCloseModal()
-    setAmount("")
+  const handleDeposit = () => {
+    setTxHash("")
+    deposit(depositTokenAmount)
+  }
+
+  const handleTryAgain = () => {
+    setTxHash("")
+    handleDeposit()
+    setShowErrorPopup(false)
   }
 
   const handleApprove = () => {
@@ -197,13 +212,23 @@ export const DepositModal = ({
       ? market.hooksConfig.allowTermReduction
       : false
 
-  const showForm = !isDepositing
+  const showForm = !(isDepositing || showSuccessPopup || showErrorPopup)
 
   const underlyingBalanceIsZero = marketAccount.underlyingBalance.raw.isZero()
 
   const tooltip = underlyingBalanceIsZero
     ? "Underlying token balance is zero"
     : "Market is at full capacity"
+
+  useEffect(() => {
+    if (isDepositError) {
+      setShowErrorPopup(true)
+    }
+    if (isDeposed) {
+      setShowSuccessPopup(true)
+      setShowErrorPopup(false)
+    }
+  }, [isDepositError, isDeposed])
 
   useEffect(() => {
     if (amount === "" || amount === "0" || depositStep === "Ready") {
@@ -546,7 +571,19 @@ export const DepositModal = ({
               margin: "auto 0 4px",
             },
           }}
-        />
+        >
+          {isDepositing && <LoadingModal txHash={txHash} />}
+          {showErrorPopup && (
+            <ErrorModal
+              onTryAgain={handleTryAgain}
+              onClose={handleCloseMobileModal}
+              txHash={txHash}
+            />
+          )}
+          {showSuccessPopup && (
+            <SuccessModal onClose={handleCloseMobileModal} txHash={txHash} />
+          )}
+        </Dialog>
       </>
     )
 
@@ -792,6 +829,18 @@ export const DepositModal = ({
                 )}
               </Box>
             </>
+          )}
+
+          {isDepositing && <LoadingModal txHash={txHash} />}
+          {showErrorPopup && (
+            <ErrorModal
+              onTryAgain={handleTryAgain}
+              onClose={modal.handleCloseModal}
+              txHash={txHash}
+            />
+          )}
+          {showSuccessPopup && (
+            <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
           )}
 
           {txHash !== "" && showForm && (

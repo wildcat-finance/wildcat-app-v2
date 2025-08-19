@@ -1,3 +1,5 @@
+import { Dispatch } from "react"
+
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import {
   BaseTransaction,
@@ -6,13 +8,15 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
-import { toastRequest } from "@/components/Toasts"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { GET_MARKET_KEY } from "@/hooks/useGetMarket"
 import { GET_MARKET_ACCOUNT_KEY } from "@/hooks/useGetMarketAccount"
 import { isUSDTLikeToken } from "@/utils/constants"
 
-export const useDeposit = (marketAccount: MarketAccount) => {
+export const useDeposit = (
+  marketAccount: MarketAccount,
+  setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
+) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
@@ -29,10 +33,9 @@ export const useDeposit = (marketAccount: MarketAccount) => {
     })
   }
 
-  const mutation = useMutation({
+  return useMutation({
     mutationFn: async (tokenAmount: TokenAmount) => {
-      if (!marketAccount || !signer)
-        throw Error("Market account or signer not available")
+      if (!marketAccount || !signer) throw Error()
 
       const step = marketAccount.previewDeposit(tokenAmount)
 
@@ -69,6 +72,7 @@ export const useDeposit = (marketAccount: MarketAccount) => {
               const transactionBySafeHash =
                 await sdk.txs.getBySafeTxHash(safeTxHash)
               if (transactionBySafeHash?.txHash) {
+                setTxHash(transactionBySafeHash.txHash)
                 const receipt = await waitForTransaction(safeTxHash)
                 console.log(
                   `Got gnosis transaction receipt:\n\ttxHash: ${receipt.transactionHash}`,
@@ -104,6 +108,8 @@ export const useDeposit = (marketAccount: MarketAccount) => {
 
         const tx = await marketAccount.deposit(tokenAmount)
 
+        if (!safeConnected) setTxHash(tx.hash)
+
         if (safeConnected) {
           return checkTransaction(tx.hash)
         }
@@ -118,26 +124,7 @@ export const useDeposit = (marketAccount: MarketAccount) => {
       client.invalidateQueries({ queryKey: [GET_MARKET_ACCOUNT_KEY] })
     },
     onError(error) {
-      console.error("Deposit failed:", error)
+      console.log(error)
     },
   })
-
-  const depositWithToast = async (tokenAmount: TokenAmount) => {
-    await toastRequest(mutation.mutateAsync(tokenAmount), {
-      pending: `Depositing ${tokenAmount.format()} ${
-        marketAccount.market.underlyingToken.symbol
-      }...`,
-      success: `Successfully deposited ${tokenAmount.format()} ${
-        marketAccount.market.underlyingToken.symbol
-      }`,
-      error: "Failed to deposit",
-    })
-  }
-
-  return {
-    deposit: depositWithToast,
-    isPending: mutation.isPending,
-    isSuccess: mutation.isSuccess,
-    isError: mutation.isError,
-  }
 }
