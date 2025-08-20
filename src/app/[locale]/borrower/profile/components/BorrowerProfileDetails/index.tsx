@@ -68,13 +68,13 @@ export function BorrowerProfileDetails({
           marketsAmount={marketsAmount}
         />
 
-      <OverallSection
-        {...profileData}
-        marketsAmount={marketsAmount}
-        isLoadingTotalValue={isLoadingTokenPrices}
-        totalDebtValue={totalDebtValue}
-        priceSources={sources}
-      />
+        <OverallSection
+          {...profileData}
+          marketsAmount={marketsAmount}
+          isLoadingTotalValue={isLoadingTokenPrices}
+          totalDebtValue={totalDebtValue}
+          priceSources={sources}
+        />
 
         <Divider sx={{ margin: "32px 0", borderColor: "transparent" }} />
 

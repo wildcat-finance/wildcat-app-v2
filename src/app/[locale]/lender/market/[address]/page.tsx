@@ -25,8 +25,8 @@ import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
 import { CommonGlossarySidebar } from "@/components/CommonGlossarySidebar"
-import { MarketCollateralContract } from "@/components/MarketCollateralContract"
 import { Footer } from "@/components/Footer"
+import { MarketCollateralContract } from "@/components/MarketCollateralContract"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
@@ -139,7 +139,6 @@ export default function LenderMarketDetails({
     },
   ]
 
-  if (isLoading)
   const isMobile = useMobileResolution()
 
   const { data: mla, isLoading: mlaLoading } = useMarketMla(market?.address)

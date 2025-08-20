@@ -13,9 +13,9 @@ import { MarketParametersItem } from "@/components/MarketParameters/components/M
 import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import { EtherscanBaseUrl } from "@/config/network"
-import { localize, trimAddress } from "@/utils/formatters"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
+import { localize, trimAddress } from "@/utils/formatters"
 
 import { OverallSectionProps } from "./interface"
 
