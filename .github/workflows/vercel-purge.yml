@@ -1,4 +1,4 @@
-name: Purge Vercel Сaches (CDN + Data)
+name: Purge Vercel Caches (CDN + Data)
 
 on:
   schedule:
