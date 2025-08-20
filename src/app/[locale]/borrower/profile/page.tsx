@@ -12,7 +12,7 @@ import { OverallSection } from "@/app/[locale]/borrower/profile/components/Overa
 import { ProfileSkeleton } from "@/app/[locale]/borrower/profile/components/ProfileSkeleton"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 
-import { ContentContainer } from "./style"
+import { ContentContainer, MainContainer } from "./style"
 
 export default function UserBorrowerProfile() {
   const { data: borrowerMarkets, isLoading: isMarketsLoading } =
@@ -32,18 +32,20 @@ export default function UserBorrowerProfile() {
 
   return (
     <Box sx={ContentContainer}>
-      <NameSection type="user" {...profileData} />
+      <Box sx={MainContainer}>
+        <NameSection type="user" {...profileData} />
 
-      <OverallSection
-        {...profileData}
-        marketsAmount={marketsAmount}
-        totalBorrowedAmount="0"
-        defaults="0"
-      />
+        <OverallSection
+          {...profileData}
+          marketsAmount={marketsAmount}
+          totalBorrowedAmount="0"
+          defaults="0"
+        />
 
-      <Divider sx={{ margin: "32px 0" }} />
+        <Divider sx={{ margin: "32px 0", borderColor: "transparent" }} />
 
-      {marketsAmount !== 0 && <MarketsSection markets={borrowerMarkets} />}
+        {marketsAmount !== 0 && <MarketsSection markets={borrowerMarkets} />}
+      </Box>
     </Box>
   )
 }

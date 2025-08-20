@@ -2,10 +2,10 @@
 
 import React, { useEffect } from "react"
 
-import { Box } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 import { GridRowsProp } from "@mui/x-data-grid"
 import { HooksKind } from "@wildcatfi/wildcat-sdk"
-import { useTranslation } from "react-i18next"
+import Link from "next/link"
 import { useAccount } from "wagmi"
 
 import { LendersSection } from "@/app/[locale]/borrower/components/LendersSection"
@@ -13,18 +13,22 @@ import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHo
 import { useGetBorrowerHooksDataWithSubgraph } from "@/app/[locale]/borrower/hooks/useGetBorrowerHooksData"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetController } from "@/hooks/useGetController"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import {
   BorrowerDashboardSections,
   setShowFullFunctionality,
 } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
+import { COLORS } from "@/theme/colors"
 
 import { MarketsSection } from "./components/MarketsSection"
 import { PoliciesSection, PolicyDataT } from "./components/PoliciesSection"
 
 export default function BorrowerPage() {
   const dispatch = useAppDispatch()
+  const isMobile = useMobileResolution()
 
   const section = useAppSelector((state) => state.borrowerDashboard.section)
 
@@ -86,6 +90,44 @@ export default function BorrowerPage() {
   useEffect(() => {
     dispatch(setSectionAmount({ name: "policies", value: policiesAmount }))
   }, [policiesAmount])
+
+  if (isMobile)
+    return (
+      <Box
+        sx={{
+          width: "100%",
+          backgroundColor: COLORS.white,
+          padding: "20px",
+          borderRadius: "14px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "4px",
+          marginTop: "4px",
+          justifyContent: "center",
+        }}
+      >
+        <Typography variant="mobH3">
+          The Borrower UI is not configured for mobile, sorry!
+        </Typography>
+        <Typography variant="mobText3" color={COLORS.santasGrey}>
+          Hop on a desktop or laptop instead: we are aiming to sort this out in
+          time.
+        </Typography>
+        <Link
+          href={ROUTES.lender.root}
+          style={{
+            textDecoration: "none",
+            marginTop: "14px",
+            display: "flex",
+            width: "fit-content",
+          }}
+        >
+          <Button variant="contained" size="medium" color="secondary">
+            Switch to the Lenders
+          </Button>
+        </Link>
+      </Box>
+    )
 
   return (
     <Box

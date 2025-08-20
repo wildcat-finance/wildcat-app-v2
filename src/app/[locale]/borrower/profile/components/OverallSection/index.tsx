@@ -14,6 +14,8 @@ import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import { EtherscanBaseUrl } from "@/config/network"
 import { localize, trimAddress } from "@/utils/formatters"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { COLORS } from "@/theme/colors"
 
 import { OverallSectionProps } from "./interface"
 
@@ -28,10 +30,12 @@ export const OverallSection = ({
   jurisdiction,
   defaults,
   entityKind,
+  additionalUrls,
   isLoadingTotalValue,
   totalDebtValue,
   priceSources,
 }: OverallSectionProps) => {
+  const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const [state, copyToClipboard] = useCopyToClipboard()
 
@@ -51,6 +55,131 @@ export const OverallSection = ({
           jurisdictionObj.countryCode as keyof typeof ELFsByCountry
         ].find((elf) => elf.elfCode === entityKind)?.name
       : undefined
+
+  // Split the additionalUrls into two arrays, the left column and the right column.
+  // The left column should have one less of the additionalUrls than the right column, as the right
+  // column has 1 less value in the default layout.
+  const rightSideColumns = additionalUrls?.slice(
+    0,
+    Math.ceil(additionalUrls.length / 2),
+  )
+  const leftSideColumns = additionalUrls?.slice(
+    Math.ceil(additionalUrls.length / 2),
+  )
+
+  if (isMobile)
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          backgroundColor: COLORS.white,
+          borderRadius: "14px",
+          padding: "12px 16px 24px",
+          marginTop: "4px",
+        }}
+      >
+        <Typography variant="mobH3" marginTop="12px">
+          Overall Info
+        </Typography>
+
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            marginTop: "20px",
+          }}
+        >
+          {name && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.name")}
+                value={name}
+              />
+              <Divider sx={{ marginTop: "10px" }} />
+            </Box>
+          )}
+
+          {alias && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.alias")}
+                value={alias}
+              />
+              {jurisdictionText && <Divider sx={{ marginTop: "10px" }} />}
+            </Box>
+          )}
+
+          {jurisdictionText && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.headquarters")}
+                value={jurisdictionText}
+              />
+              {entityKindText && <Divider sx={{ marginTop: "10px" }} />}
+            </Box>
+          )}
+
+          {entityKindText && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.entityKind")}
+                value={entityKindText}
+              />
+              {founded && <Divider sx={{ marginTop: "10px" }} />}
+            </Box>
+          )}
+
+          {founded && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.founded")}
+                value={founded ?? ""}
+              />
+              {marketsAmount && <Divider sx={{ marginTop: "10px" }} />}
+            </Box>
+          )}
+
+          {marketsAmount && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.markets")}
+                value={marketsAmount || 0}
+              />
+              {totalBorrowedAmount !== undefined && (
+                <Divider sx={{ marginTop: "10px" }} />
+              )}
+            </Box>
+          )}
+
+          {totalBorrowedAmount !== undefined && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.borrowed")}
+                value="[Coming Soon]"
+              />
+              <Divider sx={{ marginTop: "10px" }} />
+            </Box>
+          )}
+
+          {defaults !== undefined && (
+            <Box>
+              <MarketParametersItem
+                title={t("borrowerProfile.profile.overallInfo.defaults.title")}
+                value={defaults || ""}
+                tooltipText={t(
+                  "borrowerProfile.profile.overallInfo.defaults.tooltip",
+                )}
+              />
+              <Divider sx={{ marginTop: "10px" }} />
+            </Box>
+          )}
+        </Box>
+      </Box>
+    )
 
   return (
     <Box>
@@ -115,6 +244,17 @@ export const OverallSection = ({
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
           )}
+
+          {leftSideColumns?.map((column) => (
+            <Box>
+              <MarketParametersItem
+                title={column.label}
+                value={column.url}
+                link={column.url}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          ))}
         </Box>
 
         <Box sx={MarketParametersColumn}>
@@ -178,6 +318,17 @@ export const OverallSection = ({
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
           )}
+
+          {rightSideColumns?.map((column) => (
+            <Box>
+              <MarketParametersItem
+                title={column.label}
+                value={column.url}
+                link={column.url}
+              />
+              <Divider sx={MarketParametersRowsDivider} />
+            </Box>
+          ))}
         </Box>
       </Box>
     </Box>

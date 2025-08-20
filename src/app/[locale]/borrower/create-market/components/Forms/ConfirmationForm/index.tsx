@@ -480,7 +480,7 @@ export const ConfirmationForm = ({
       </Box>
 
       {isReductionAllowed && (
-        <Box sx={AlertContainer}>
+        <Box sx={{ ...AlertContainer, marginTop: "12px" }}>
           <SvgIcon
             sx={{ fontSize: "18px", "& path": { fill: COLORS.greySuit } }}
           >

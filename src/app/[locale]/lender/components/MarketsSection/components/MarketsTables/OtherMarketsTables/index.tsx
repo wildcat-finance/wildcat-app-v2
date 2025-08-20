@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Typography, useMediaQuery, Tooltip } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import {
   DepositStatus,
@@ -19,15 +19,20 @@ import {
   BorrowerWithName,
   useBorrowerNames,
 } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import { MobileMarketCard } from "@/app/[locale]/lender/components/mobile/MobileMarketCard"
+import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { TablePagination } from "@/components/TablePagination"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { LenderMarketDashboardSections } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { COLORS } from "@/theme/colors"
+import { theme } from "@/theme/theme"
 import {
   statusComparator,
   tokenAmountComparator,
@@ -48,6 +53,7 @@ export type LenderOtherMarketsTableModel = {
   term: ReturnType<typeof getMarketTypeChip>
   name: string
   borrower: string | undefined
+  borrowerAddress: string | undefined
   asset: string
   debt: TokenAmount | undefined
   apr: number
@@ -72,6 +78,7 @@ export const OtherMarketsTables = ({
 }) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const isMobile = useMobileResolution()
 
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
@@ -81,13 +88,15 @@ export const OtherMarketsTables = ({
   const manualRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (scrollTargetId === "self-onboard" && selfOnboardRef.current) {
-      selfOnboardRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
-    }
-    if (scrollTargetId === "manual" && manualRef.current) {
-      manualRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
+    if (!isMobile) {
+      if (scrollTargetId === "self-onboard" && selfOnboardRef.current) {
+        selfOnboardRef.current.scrollIntoView({ behavior: "smooth" })
+        dispatch(setScrollTarget(null))
+      }
+      if (scrollTargetId === "manual" && manualRef.current) {
+        manualRef.current.scrollIntoView({ behavior: "smooth" })
+        dispatch(setScrollTarget(null))
+      }
     }
   }, [scrollTargetId])
 
@@ -239,7 +248,7 @@ export const OtherMarketsTables = ({
             href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
             style={{
               textDecoration: "underline",
-              width: "fit-content",
+              width: "100%",
               height: "fit-content",
             }}
           >
@@ -252,8 +261,13 @@ export const OtherMarketsTables = ({
                 color: "#00008B",
                 lineHeight: "20px",
                 fontWeight: 500,
-                minWidth: "fit-content",
-                width: "fit-content",
+                minWidth: "calc(100% - 1px)",
+                width: "calc(100% - 1px)",
+                textAlign: "left",
+                textOverflow: "ellipsis",
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                display: "inline-block",
               }}
             >
               {params.value}
@@ -377,12 +391,12 @@ export const OtherMarketsTables = ({
 
   const [selfOnboardPaginationModel, setSelfOnboardPaginationModel] =
     React.useState({
-      pageSize: 20,
+      pageSize: 50,
       page: 0,
     })
 
   const [manualPaginationModel, setManualPaginationModel] = React.useState({
-    pageSize: 20,
+    pageSize: 50,
     page: 0,
   })
 
@@ -392,6 +406,18 @@ export const OtherMarketsTables = ({
     setSelfOnboardPaginationModel((prevState) => ({ ...prevState, page: 0 }))
     setManualPaginationModel((prevState) => ({ ...prevState, page: 0 }))
   }, [assetFilter, statusFilter, nameFilter])
+
+  if (isMobile)
+    return (
+      <>
+        {scrollTargetId === "self-onboard" && (
+          <MobileMarketList markets={selfOnboard} isLoading={isLoading} />
+        )}
+        {scrollTargetId === "manual" && (
+          <MobileMarketList markets={manual} isLoading={isLoading} />
+        )}
+      </>
+    )
 
   return (
     <Box
@@ -418,27 +444,37 @@ export const OtherMarketsTables = ({
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
         >
-          <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
-            }}
-            rows={selfOnboard}
-            columns={columns}
-            columnHeaderHeight={40}
-            paginationModel={selfOnboardPaginationModel}
-            onPaginationModelChange={setSelfOnboardPaginationModel}
-            slots={{
-              pagination: TablePagination,
-            }}
-            hideFooter={false}
-          />
+          {isMobile ? (
+            <Box display="flex" flexDirection="column">
+              {selfOnboard.map((marketItem) => (
+                <MobileMarketCard
+                  marketItem={marketItem}
+                  buttonText="Onboard"
+                />
+              ))}
+            </Box>
+          ) : (
+            <DataGrid
+              sx={{
+                overflow: "auto",
+                maxWidth: "calc(100vw - 267px)",
+                padding: "0 16px",
+                "& .MuiDataGrid-columnHeader": { padding: 0 },
+                "& .MuiDataGrid-cell": { padding: "0px" },
+              }}
+              rows={selfOnboard}
+              columns={columns}
+              columnHeaderHeight={40}
+              paginationModel={selfOnboardPaginationModel}
+              onPaginationModelChange={setSelfOnboardPaginationModel}
+              slots={{
+                pagination: TablePagination,
+              }}
+              hideFooter={false}
+            />
+          )}
         </MarketsTableAccordion>
       </Box>
-
       <Box id="manual" ref={manualRef}>
         <MarketsTableAccordion
           label={t("dashboard.markets.tables.other.manual")}
@@ -450,24 +486,35 @@ export const OtherMarketsTables = ({
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
         >
-          <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
-            }}
-            rows={manual}
-            columns={columns}
-            columnHeaderHeight={40}
-            paginationModel={manualPaginationModel}
-            onPaginationModelChange={setManualPaginationModel}
-            slots={{
-              pagination: TablePagination,
-            }}
-            hideFooter={false}
-          />
+          {isMobile ? (
+            <Box display="flex" flexDirection="column">
+              {manual.map((marketItem) => (
+                <MobileMarketCard
+                  marketItem={marketItem}
+                  buttonText="Request"
+                />
+              ))}
+            </Box>
+          ) : (
+            <DataGrid
+              sx={{
+                overflow: "auto",
+                maxWidth: "calc(100vw - 267px)",
+                padding: "0 16px",
+                "& .MuiDataGrid-columnHeader": { padding: 0 },
+                "& .MuiDataGrid-cell": { padding: "0px" },
+              }}
+              rows={manual}
+              columns={columns}
+              columnHeaderHeight={40}
+              paginationModel={manualPaginationModel}
+              onPaginationModelChange={setManualPaginationModel}
+              slots={{
+                pagination: TablePagination,
+              }}
+              hideFooter={false}
+            />
+          )}
         </MarketsTableAccordion>
       </Box>
     </Box>

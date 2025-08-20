@@ -14,6 +14,7 @@ import { useGetTokenPrices } from "@/hooks/useGetTokenPrices"
 import { trimAddress } from "@/utils/formatters"
 
 import { BorrowerProfileDetailsProps } from "./interface"
+import { MainContainer } from "./style"
 
 export function BorrowerProfileDetails({
   address,
@@ -59,12 +60,13 @@ export function BorrowerProfileDetails({
 
   return (
     <Box sx={sx}>
-      <NameSection
-        type="external"
-        {...profileData}
-        name={profileData?.name || trimAddress(address)}
-        marketsAmount={marketsAmount}
-      />
+      <Box sx={MainContainer}>
+        <NameSection
+          type="external"
+          {...profileData}
+          name={profileData?.name || trimAddress(address)}
+          marketsAmount={marketsAmount}
+        />
 
       <OverallSection
         {...profileData}
@@ -74,11 +76,12 @@ export function BorrowerProfileDetails({
         priceSources={sources}
       />
 
-      <Divider sx={{ margin: "32px 0" }} />
+        <Divider sx={{ margin: "32px 0", borderColor: "transparent" }} />
 
-      {!hideMarkets && marketsAmount !== 0 && (
-        <MarketsSection markets={borrowerMarkets} />
-      )}
+        {!hideMarkets && marketsAmount !== 0 && (
+          <MarketsSection markets={borrowerMarkets} />
+        )}
+      </Box>
     </Box>
   )
 }

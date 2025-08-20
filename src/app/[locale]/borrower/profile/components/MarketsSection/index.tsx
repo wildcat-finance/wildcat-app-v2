@@ -6,8 +6,10 @@ import { Market } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
+import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import {
   capacityComparator,
@@ -20,14 +22,28 @@ import { getMarketTypeChip } from "@/utils/marketType"
 
 import { LinkCell } from "./styles"
 
-export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
+export const MarketsSection = ({
+  markets,
+  isLoading,
+}: {
+  markets?: Market[]
+  isLoading?: boolean
+}) => {
   const { t } = useTranslation()
+  const isMobile = useMobileResolution()
 
   const rows: GridRowsProp = (markets ?? [])
     .filter((market) => !market.isClosed)
     .map((market) => {
-      const { address, name, underlyingToken, annualInterestBips, totalDebts } =
-        market
+      const {
+        address,
+        name,
+        underlyingToken,
+        annualInterestBips,
+        totalDebts,
+        maxTotalSupply,
+        totalSupply,
+      } = market
 
       const marketStatus = getMarketStatusChip(market)
 
@@ -36,9 +52,10 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
         name,
         status: marketStatus,
         asset: underlyingToken.symbol,
-        lenderAPR: annualInterestBips,
+        apr: annualInterestBips,
         term: getMarketTypeChip(market),
         debt: totalDebts,
+        capacityLeft: maxTotalSupply.sub(totalSupply),
       }
     })
 
@@ -131,7 +148,7 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
       ),
     },
     {
-      field: "lenderAPR",
+      field: "apr",
       headerName: t("borrowerProfile.profile.activeMarkets.table.apr"),
       minWidth: 95,
       headerAlign: "right",
@@ -169,6 +186,12 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
       ),
     },
   ]
+
+  if (isMobile) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    return <MobileMarketList markets={rows} isLoading={isLoading} />
+  }
 
   return (
     <Box marginBottom="44px">

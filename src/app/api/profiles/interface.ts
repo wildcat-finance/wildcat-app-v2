@@ -1,3 +1,8 @@
+export type BorrowerAdditionalUrl = {
+  label: string
+  url: string
+}
+
 export interface BorrowerProfile {
   chainId: number
   address: string
@@ -18,6 +23,7 @@ export interface BorrowerProfile {
   entityKind?: string
   physicalAddress?: string
   email?: string
+  additionalUrls?: BorrowerAdditionalUrl[]
   registeredOnChain: boolean
 }
 

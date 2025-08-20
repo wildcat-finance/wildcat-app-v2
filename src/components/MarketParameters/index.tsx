@@ -1,13 +1,21 @@
 import { useMemo } from "react"
 
-import { Box, Divider, Typography } from "@mui/material"
+import {
+  Box,
+  Divider,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material"
 import { MarketVersion, HooksKind } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
 import { EtherscanBaseUrl } from "@/config/network"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
+import { COLORS } from "@/theme/colors"
 import {
   formatBps,
   formatRayAsPercentage,
@@ -28,6 +36,8 @@ import {
 export const MarketParameters = ({ market }: MarketParametersProps) => {
   const isLocalHost = window.location.hostname === "localhost"
   const { t } = useTranslation()
+  const theme = useTheme()
+  const isMobile = useMobileResolution()
   const [state, copyToClipboard] = useCopyToClipboard()
   const { timeDelinquent, delinquencyGracePeriod } = market
 
@@ -73,10 +83,6 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
         market.underlyingToken.getAmount(0)
       ).add(market.totalBaseInterestAccrued ?? 0)
     : undefined
-
-  const handleCopy = (text: string) => {
-    copyToClipboard(text)
-  }
 
   const { hooksConfig } = market
   const depositAccess =
@@ -138,15 +144,21 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
       sx={{
         display: "flex",
         flexDirection: "column",
-        gap: "24px",
+        gap: isMobile ? "20px" : "24px",
         width: "100%",
+        backgroundColor: isMobile ? COLORS.white : "transparent",
+        borderRadius: isMobile ? "14px" : 0,
+        padding: isMobile ? "12px 16px 24px" : "0px",
       }}
     >
-      <Typography variant="title3">
+      <Typography
+        variant={isMobile ? "mobH3" : "title3"}
+        sx={{ marginTop: { xs: "12px", md: 0 } }}
+      >
         {t("borrowerMarketDetails.header.parameters")}
       </Typography>
-      <Box sx={MarketParametersContainer}>
-        <Box sx={MarketParametersContainerColumn}>
+      <Box sx={MarketParametersContainer(theme)}>
+        <Box sx={MarketParametersContainerColumn(theme)}>
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.marketAddress")}
             value={trimAddress(market.address)}
@@ -247,6 +259,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               `borrowerMarketDetails.parameters.withdrawalAccess.${withdrawalAccess}.tooltip`,
             )}
           />
+
           {hooksConfig && market.version === MarketVersion.V2 && (
             <>
               <Divider sx={{ margin: "12px 0 12px" }} />
@@ -258,8 +271,9 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               />
             </>
           )}
+          {isMobile && <Divider sx={{ margin: "12px 0 12px" }} />}
         </Box>
-        <Box sx={MarketParametersContainerColumn}>
+        <Box sx={MarketParametersContainerColumn(theme)}>
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.minimumReserveRatio")}
             value={`${formatBps(
@@ -377,8 +391,8 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
           <Typography variant="title3">
             {t("borrowerMarketDetails.hooks.title")}
           </Typography>
-          <Box sx={MarketParametersContainer}>
-            <Box sx={MarketParametersContainerColumn}>
+          <Box sx={MarketParametersContainer(theme)}>
+            <Box sx={MarketParametersContainerColumn(theme)}>
               <MarketParametersItem
                 title={t("borrowerMarketDetails.hooks.hooksAddress")}
                 value={trimAddress(hooksConfig.hooksAddress)}
@@ -400,7 +414,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
                 />
               ))}
             </Box>
-            <Box sx={MarketParametersContainerColumn}>
+            <Box sx={MarketParametersContainerColumn(theme)}>
               {(
                 [
                   "useOnRepay",

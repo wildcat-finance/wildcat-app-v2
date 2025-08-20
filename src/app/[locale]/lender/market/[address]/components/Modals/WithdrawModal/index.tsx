@@ -1,7 +1,14 @@
 import { ChangeEvent, useEffect, useMemo, useState } from "react"
 import * as React from "react"
 
-import { Box, Button, Dialog } from "@mui/material"
+import {
+  Box,
+  Button,
+  Dialog,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material"
 import { HooksKind, MarketVersion, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
@@ -9,19 +16,32 @@ import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/componen
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
-import { useApprovalModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
+import {
+  ModalSteps,
+  useApprovalModal,
+} from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
 import { TxModalDialog } from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
 import { useWithdraw } from "@/app/[locale]/lender/market/[address]/hooks/useWithdraw"
+import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { COLORS } from "@/theme/colors"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { WithdrawModalProps } from "./interface"
 
-export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
+export const WithdrawModal = ({
+  marketAccount,
+  isMobileOpen,
+  setIsMobileOpen,
+}: WithdrawModalProps) => {
+  const theme = useTheme()
+  const isMobile = useMobileResolution()
+
   const { t } = useTranslation()
   const { market } = marketAccount
 
@@ -75,6 +95,14 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
     setShowErrorPopup(false)
   }
 
+  const smallestTokenAmountValue = market.underlyingToken.parseAmount(
+    "0.00001".replace(/,/g, ""),
+  )
+
+  const isTooSmallMarketBalance: boolean =
+    marketAccount.marketBalance.lt(smallestTokenAmountValue) &&
+    !marketAccount.marketBalance.raw.isZero()
+
   const underlyingWithdrawAmount = useMemo(
     () =>
       marketAccount.market.underlyingToken.parseAmount(
@@ -82,6 +110,12 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
       ),
     [amount],
   )
+
+  const handleClickTooSmallTextfield = () => {
+    if (isTooSmallMarketBalance && maxAmount) {
+      setMaxAmount(undefined)
+    }
+  }
 
   const withdrawAmount = maxAmount || underlyingWithdrawAmount
 
@@ -113,6 +147,180 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
 
     setError(SDK_ERRORS_MAPPING.queueWithdrawal[withdrawStep])
   }, [amount, withdrawStep])
+
+  const { open, closedModalStep } = modal
+
+  useEffect(() => {
+    setMaxAmount(undefined)
+  }, [open, closedModalStep])
+
+  useEffect(() => {
+    if (isMobileOpen) {
+      modal.setFlowStep(ModalSteps.gettingValues)
+    }
+  }, [isMobileOpen])
+
+  const handleModalArrowClick = () => {
+    if (modal.gettingValueStep && !!setIsMobileOpen) {
+      setIsMobileOpen(false)
+    }
+    modal.handleClickBack()
+  }
+
+  const handleCloseMobileModal = () => {
+    if (setIsMobileOpen) {
+      modal.handleCloseModal()
+      setIsMobileOpen(false)
+    }
+  }
+
+  const progressAmount = () => {
+    if (modal.gettingValueStep) return 50
+    if (showSuccessPopup) return 100
+
+    return 0
+  }
+
+  if (isMobile && isMobileOpen)
+    return (
+      <>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            flex: 1,
+            width: "100%",
+            height: "100%",
+            backgroundColor: COLORS.white,
+            borderRadius: "14px",
+            paddingBottom: "12px",
+          }}
+        >
+          <TransactionHeader
+            label={t("lenderMarketDetails.transactions.withdraw.modal.title")}
+            arrowOnClick={
+              modal.hideArrowButton || !showForm ? null : handleModalArrowClick
+            }
+            crossOnClick={handleCloseMobileModal}
+            progress={progressAmount()}
+          />
+
+          <Box
+            sx={{
+              padding: "32px 20px 0",
+              width: "100%",
+              height: "100%",
+              backgroundColor: COLORS.white,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <Typography variant="text2" lineHeight="24px">
+              Choose amount of tokens
+            </Typography>
+
+            <Typography
+              color={COLORS.santasGrey}
+              variant="text3"
+              lineHeight="24px"
+            >
+              Available to withdraw{" "}
+              <Typography
+                variant="text3"
+                lineHeight="24px"
+                color={COLORS.ultramarineBlue}
+              >
+                {isTooSmallMarketBalance
+                  ? `< 0.00001 ${market.underlyingToken.symbol}`
+                  : `${formatTokenWithCommas(marketAccount.marketBalance)} ${
+                      market.underlyingToken.symbol
+                    }`}
+              </Typography>
+            </Typography>
+
+            <Box>
+              <NumberTextField
+                label={`Up to ${formatTokenWithCommas(
+                  marketAccount.marketBalance,
+                )} ${market.underlyingToken.symbol}`}
+                size="medium"
+                style={{
+                  width: "100%",
+                  marginTop: "12px",
+                  marginBottom: "24px",
+                }}
+                value={amount}
+                onChange={handleAmountChange}
+                onClick={
+                  isTooSmallMarketBalance
+                    ? handleClickTooSmallTextfield
+                    : undefined
+                }
+                endAdornment={
+                  <TextfieldButton
+                    buttonText="Max"
+                    onClick={handleClickMaxAmount}
+                  />
+                }
+                error={!!error}
+                helperText={error}
+              />
+              {isTooSmallMarketBalance && !!maxAmount && (
+                <Box
+                  sx={{
+                    width: "fit-content",
+                    backgroundColor: COLORS.white,
+                    padding: "2px",
+                    position: "relative",
+                    bottom: "36.7px",
+                    left: "14px",
+                  }}
+                >
+                  <Typography variant="text2">{"< 0.00001"}</Typography>
+                </Box>
+              )}
+            </Box>
+          </Box>
+
+          <TxModalFooter
+            mainBtnText={t(
+              "lenderMarketDetails.transactions.withdraw.modal.buttons.confirm",
+            )}
+            mainBtnOnClick={handleWithdraw}
+            disableMainBtn={disableWithdraw}
+            hideButtons={!showForm}
+          />
+        </Box>
+
+        <Dialog
+          open={isPending || showErrorPopup || showSuccessPopup}
+          sx={{
+            backdropFilter: "blur(10px)",
+
+            "& .MuiDialog-paper": {
+              height: "353px",
+              width: "100%",
+              border: "none",
+              borderRadius: "20px",
+              padding: "24px 0",
+              margin: "auto 0 4px",
+            },
+          }}
+        >
+          {isPending && <LoadingModal txHash={txHash} />}
+          {showErrorPopup && (
+            <ErrorModal
+              onTryAgain={handleTryAgain}
+              onClose={handleCloseMobileModal}
+              txHash={txHash}
+            />
+          )}
+          {showSuccessPopup && (
+            <SuccessModal onClose={handleCloseMobileModal} txHash={txHash} />
+          )}
+        </Dialog>
+      </>
+    )
 
   return (
     <>
@@ -152,32 +360,58 @@ export const WithdrawModal = ({ marketAccount }: WithdrawModalProps) => {
                 title={t(
                   "lenderMarketDetails.transactions.withdraw.modal.available",
                 )}
-                value={`${formatTokenWithCommas(marketAccount.marketBalance)} ${
-                  market.underlyingToken.symbol
-                }`}
+                value={
+                  isTooSmallMarketBalance
+                    ? `< 0.00001 ${market.underlyingToken.symbol}`
+                    : `${formatTokenWithCommas(marketAccount.marketBalance)} ${
+                        market.underlyingToken.symbol
+                      }`
+                }
                 containerSx={{
                   padding: "0 12px",
                   margin: "16px 0 20px",
                 }}
               />
 
-              <NumberTextField
-                label={`Up to ${formatTokenWithCommas(
-                  marketAccount.marketBalance,
-                )} ${market.underlyingToken.symbol}`}
-                size="medium"
-                style={{ width: "100%" }}
-                value={amount}
-                onChange={handleAmountChange}
-                endAdornment={
-                  <TextfieldButton
-                    buttonText="Max"
-                    onClick={handleClickMaxAmount}
-                  />
-                }
-                error={!!error}
-                helperText={error}
-              />
+              <Box>
+                <NumberTextField
+                  label={`Up to ${formatTokenWithCommas(
+                    marketAccount.marketBalance,
+                  )} ${market.underlyingToken.symbol}`}
+                  size="medium"
+                  style={{ width: "100%" }}
+                  value={amount}
+                  onChange={handleAmountChange}
+                  onClick={
+                    isTooSmallMarketBalance
+                      ? handleClickTooSmallTextfield
+                      : undefined
+                  }
+                  endAdornment={
+                    <TextfieldButton
+                      buttonText="Max"
+                      onClick={handleClickMaxAmount}
+                    />
+                  }
+                  error={!!error}
+                  helperText={error}
+                />
+
+                {isTooSmallMarketBalance && !!maxAmount && (
+                  <Box
+                    sx={{
+                      width: "fit-content",
+                      backgroundColor: COLORS.white,
+                      padding: "2px",
+                      position: "relative",
+                      bottom: "36.7px",
+                      left: "14px",
+                    }}
+                  >
+                    <Typography variant="text2">{"< 0.00001"}</Typography>
+                  </Box>
+                )}
+              </Box>
             </Box>
           </>
         )}

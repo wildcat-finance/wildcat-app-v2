@@ -12,4 +12,5 @@ export type DetailsAccordionProps = {
   chipValueColor?: string
   bodySx?: object
   children: ReactNode
+  summaryContent?: ReactNode
 }

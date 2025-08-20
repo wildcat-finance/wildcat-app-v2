@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import { useTranslation } from "react-i18next"
 
@@ -8,12 +8,14 @@ import { ClaimableTable } from "@/app/[locale]/lender/market/[address]/component
 import { WithdrawalRequestsProps } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests/interface"
 import { OutstandingTable } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests/OutstandingTable"
 import {
+  MarketWithdrawalRequestsContainer,
   MarketWithdrawalRequetstCell,
   TotalAccordionSummary,
 } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests/style"
 import { LinkGroup } from "@/components/LinkComponent"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { EtherscanBaseUrl } from "@/config/network"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas, trimAddress } from "@/utils/formatters"
 
@@ -23,6 +25,8 @@ export const WithdrawalRequests = ({
   withdrawals,
 }: WithdrawalRequestsProps) => {
   const { t } = useTranslation()
+  const theme = useTheme()
+  const isMobile = useMobileResolution()
 
   const expiredTotalAmount = withdrawals.expiredTotalPendingAmount
   const activeTotalAmount = withdrawals.activeTotalPendingAmount
@@ -84,41 +88,50 @@ export const WithdrawalRequests = ({
   ]
 
   return (
-    <Box>
-      <Typography variant="title3">
-        {t("lenderMarketDetails.requests.title")}
-      </Typography>
-
-      <Box sx={TotalAccordionSummary}>
-        <Typography variant="text2">
-          {t("lenderMarketDetails.requests.total")}
+    <Box sx={MarketWithdrawalRequestsContainer(theme)}>
+      <Box
+        sx={{
+          backgroundColor: isMobile ? COLORS.white : "transparent",
+          borderRadius: isMobile ? "14px" : 0,
+          marginTop: isMobile ? "12px" : 0,
+        }}
+      >
+        <Typography variant={isMobile ? "mobH3" : "title3"}>
+          {t("lenderMarketDetails.requests.title")}
         </Typography>
 
-        <TextfieldChip
-          text={formatTokenWithCommas(totalAmount, { withSymbol: true })}
-          color={COLORS.whiteSmoke}
-          textColor={COLORS.blackRock}
+        <Box sx={TotalAccordionSummary(theme)}>
+          <Typography variant={isMobile ? "mobText3" : "text2"}>
+            {t("lenderMarketDetails.requests.total")}
+          </Typography>
+
+          <TextfieldChip
+            variant={isMobile ? "mobText3" : "text3"}
+            text={formatTokenWithCommas(totalAmount, { withSymbol: true })}
+            color={COLORS.whiteSmoke}
+            textColor={COLORS.blackRock}
+          />
+        </Box>
+
+        <OngoingTable
+          withdrawals={
+            withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
+          }
+          totalAmount={activeTotalAmount}
+          columns={columns}
+        />
+
+        <ClaimableTable
+          withdrawals={withdrawals.expiredPendingWithdrawals}
+          totalAmount={claimableTotalAmount}
+        />
+
+        <OutstandingTable
+          totalAmount={expiredTotalAmount}
+          withdrawals={withdrawals?.expiredPendingWithdrawals ?? []}
+          columns={columns}
         />
       </Box>
-
-      <OngoingTable
-        withdrawals={
-          withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
-        }
-        totalAmount={activeTotalAmount}
-        columns={columns}
-      />
-
-      <ClaimableTable
-        withdrawals={withdrawals.expiredPendingWithdrawals}
-        totalAmount={claimableTotalAmount}
-      />
-
-      <OutstandingTable
-        totalAmount={expiredTotalAmount}
-        withdrawals={withdrawals?.expiredPendingWithdrawals ?? []}
-        columns={columns}
-      />
     </Box>
   )
 }

@@ -26,6 +26,7 @@ export type SmallFilterSelectProps = {
   options: SmallFilterSelectItem[]
   selected: SmallFilterSelectItem[]
   setSelected: Dispatch<SetStateAction<SmallFilterSelectItem[]>>
+  width?: string
 }
 
 export const SmallFilterSelect = ({
@@ -33,6 +34,7 @@ export const SmallFilterSelect = ({
   options,
   selected,
   setSelected,
+  width,
 }: SmallFilterSelectProps) => {
   const [search, setSearch] = useState("")
 
@@ -174,7 +176,7 @@ export const SmallFilterSelect = ({
           },
         }}
         sx={{
-          width: "180px",
+          width: width || "180px",
           height: "32px",
           "& .MuiSelect-icon": {
             display: "block",

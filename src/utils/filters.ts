@@ -5,6 +5,7 @@ import {
   SubgraphMarket_Filter,
 } from "@wildcatfi/wildcat-sdk"
 
+import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { getMarketStatus } from "@/utils/marketStatus"
 
@@ -36,9 +37,10 @@ export const combineFilters = (
 
 export const filterMarketAccounts = (
   marketAccounts: MarketAccount[] | undefined,
-  name: string,
+  search: string,
   statuses: SmallFilterSelectItem[],
   assets: SmallFilterSelectItem[],
+  borrowers: BorrowerWithName[] | undefined,
 ) => {
   if (!marketAccounts) return []
 
@@ -46,10 +48,36 @@ export const filterMarketAccounts = (
 
   const assetsNames = assets.map((asset) => asset.name)
 
-  if (filteredMarkets && name !== "") {
-    filteredMarkets = filteredMarkets.filter(({ market }) =>
-      market.name.toLowerCase().includes(name.toLowerCase()),
-    )
+  if (filteredMarkets && search !== "") {
+    const searchString = search.toLowerCase()
+
+    filteredMarkets = filteredMarkets.filter(({ market }) => {
+      const matchMarket =
+        market.name.toLowerCase().includes(searchString) ||
+        market.address.toLowerCase().includes(searchString)
+
+      let matchBorrower = false
+      if (borrowers) {
+        const borrower = borrowers.find(
+          (b) => b.address.toLowerCase() === market.borrower.toLowerCase(),
+        )
+
+        const norm = (s?: string) => (s ?? "").toLowerCase()
+
+        if (borrower) {
+          const a = norm(borrower.address)
+          const n = norm(borrower.name)
+          const al = norm(borrower.alias)
+
+          matchBorrower =
+            a.includes(searchString) ||
+            n.includes(searchString) ||
+            al.includes(searchString)
+        }
+      }
+
+      return matchMarket || matchBorrower
+    })
   }
 
   if (filteredMarkets && statuses.length > 0) {

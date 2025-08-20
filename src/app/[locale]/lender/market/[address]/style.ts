@@ -1,3 +1,5 @@
+import { Theme, SxProps } from "@mui/material"
+
 import { COLORS } from "@/theme/colors"
 import { pageCalcHeights } from "@/utils/constants"
 
@@ -13,10 +15,15 @@ export const SkeletonStyle = {
   borderRadius: "12px",
 }
 
-export const SectionContainer = {
+export const SectionContainer = (theme: Theme): SxProps<Theme> => ({
   width: "100%",
   overflow: "hidden",
   overflowY: "visible",
   height: `calc(100vh - ${pageCalcHeights.market})`,
-  padding: "0 36px 24px 44px",
-}
+    padding: "0 36px 24px 44px",
+
+  [theme.breakpoints.down("md")]: {
+    padding: "12px 0px 0px",
+    height: "auto",
+  },
+})
