@@ -103,10 +103,12 @@ export const CreateContractForm = ({
 
   if (existingCollateralContracts.length === 0)
     return (
-      <Box sx={{ display: "flex", flexDirection: "column" }}>
-        <Typography variant="title3">Collateral Contract</Typography>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+        <Typography variant="title3">
+          {t("collateral.actions.title")}
+        </Typography>
         <Typography variant="text2" color={COLORS.santasGrey}>
-          Firstly, select an asset to create a contract
+          {t("collateral.actions.firstContractDesc")}
         </Typography>
 
         <Box sx={{ display: "flex", gap: "12px", mt: "24px" }}>
@@ -156,11 +158,13 @@ export const CreateContractForm = ({
           mb: "26px",
         }}
       >
-        <Box sx={{ display: "flex", flexDirection: "column" }}>
-          <Typography variant="title3">Collateral Contract</Typography>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+          <Typography variant="title3">
+            {t("collateral.actions.title")}
+          </Typography>
 
           <Typography variant="text3" color={COLORS.santasGrey}>
-            This function is useful not to get delinquent.{" "}
+            {t("collateral.actions.description")}{" "}
             <MuiLink
               component={Link}
               href="https://docs.wildcat.finance"
@@ -169,7 +173,7 @@ export const CreateContractForm = ({
               color="inherit"
               target="_blank"
             >
-              Learn more
+              {t("collateral.actions.learnMore")}
             </MuiLink>
           </Typography>
         </Box>

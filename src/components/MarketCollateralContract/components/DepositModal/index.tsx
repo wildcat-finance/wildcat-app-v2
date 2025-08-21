@@ -1,13 +1,21 @@
 import * as React from "react"
 import { ChangeEvent, useEffect, useState } from "react"
 
-import { Box, Button, Dialog, Typography } from "@mui/material"
+import {
+  Box,
+  Button,
+  Dialog,
+  Link as MuiLink,
+  SvgIcon,
+  Typography,
+} from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
 import {
   MarketAccount,
   MarketCollateralV1,
   Token,
 } from "@wildcatfi/wildcat-sdk"
+import Link from "next/link"
 import { Trans, useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
@@ -17,11 +25,14 @@ import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/component
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { useApprovalModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
 import { TxModalDialog } from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
+import Alert from "@/assets/icons/circledAlert_icon.svg"
+import { DepositAlert } from "@/components/DepositAlert"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { COLORS } from "@/theme/colors"
 import { isUSDTLikeToken } from "@/utils/constants"
 import { formatTokenAmount } from "@/utils/formatters"
 
@@ -145,9 +156,43 @@ export const DepositModalContract = ({
     amount === "" ||
     amount === "0"
 
+  const amountToDeposit = amount
+    ? collateralAsset.parseAmount(amount)
+    : collateralAsset.parseAmount(0)
+
+  const disableApprove =
+    marketAccount.market.isClosed ||
+    amountToDeposit.raw.isZero() ||
+    depositStatus === "Approved" ||
+    depositStatus === "InsufficientBalance" ||
+    isApproving
+
+  const disableDeposit =
+    marketAccount.market.isClosed ||
+    amountToDeposit.raw.isZero() ||
+    depositStatus === "InsufficientBalance" ||
+    depositStatus === "InsufficientAllowance" ||
+    depositStatus === "RequiresResetAllowance" ||
+    isApproving
+
+  const handleAprrove = () => {
+    setTxHash("")
+    if (depositStatus === "RequiresResetAllowance") {
+      approve(collateralAsset.parseAmount(0)).then(() => {
+        approve(amountToDeposit)
+      })
+      return
+    }
+    if (depositStatus === "InsufficientAllowance") approve(amountToDeposit)
+  }
+
+  const handleDeposit = () => {
+    depositCollateral(amountToDeposit)
+  }
+
   const handleConfirm = () => {
     setTxHash("")
-    const amountToDeposit = collateralAsset.parseAmount(amount)
+
     if (depositStatus === "RequiresResetAllowance") {
       approve(collateralAsset.parseAmount(0)).then(() => {
         approve(amountToDeposit)
@@ -160,23 +205,20 @@ export const DepositModalContract = ({
     }
   }
 
-  const buttonText = React.useMemo(() => {
-    if (depositStatus === "InsufficientAllowance") {
-      if (isApproving) return t("collateral.deposit.approving")
-      return t("collateral.deposit.approve")
+  const approveButtonText = React.useMemo(() => {
+    if (isApproving || isPending) {
+      return t("collateral.deposit.approving")
     }
-    if (depositStatus === "InsufficientBalance") {
-      return t("collateral.deposit.insufficientBalance")
-    }
-    if (depositStatus === "Approved") {
-      if (isPending) return t("collateral.deposit.depositing")
-      return t("collateral.deposit.deposit")
-    }
+
     if (depositStatus === "RequiresResetAllowance") {
-      if (isPending) return t("collateral.deposit.approving")
       return t("collateral.deposit.resetAllowance")
     }
-    return t("collateral.deposit.deposit")
+
+    if (depositStatus === "Approved") {
+      return "Approved"
+    }
+
+    return t("collateral.deposit.approve")
   }, [isPending, isApproving, depositStatus, t])
 
   const handleTryAgain = () => {
@@ -199,33 +241,63 @@ export const DepositModalContract = ({
       <Dialog
         open={modal.isModalOpen}
         onClose={isPending ? undefined : modal.handleCloseModal}
-        sx={TxModalDialog}
+        sx={{
+          "& .MuiDialog-paper": {
+            height: "560px",
+            width: "500px",
+            border: "none",
+            borderRadius: "20px",
+            margin: 0,
+            padding: "24px 0",
+          },
+        }}
       >
         {showForm && (
           <TxModalHeader
             title={`Deposit for ${marketAccount.market.name}`}
             arrowOnClick={modal.handleCloseModal}
             crossOnClick={null}
-          />
+          >
+            <Typography variant="text3" color={COLORS.santasGrey}>
+              It’s been already update lately.{" "}
+              <MuiLink
+                component={Link}
+                href="https://docs.wildcat.finance"
+                variant="inherit"
+                underline="none"
+                color={COLORS.ultramarineBlue}
+                target="_blank"
+              >
+                {t("collateral.actions.learnMore")}
+              </MuiLink>
+            </Typography>
+          </TxModalHeader>
         )}
 
         {showForm && (
-          <Box sx={{ width: "100%", height: "100%", padding: "12px 24px" }}>
-            <ModalDataItem
-              title={t("collateral.deposit.balance")}
-              value={`${formatTokenAmount(
-                tokenBalance?.toBigInt() ?? BigInt(0),
-                collateralAsset.decimals,
-              )} ${collateralAsset.symbol}`}
-              containerSx={{
-                marginBottom: "14px",
-              }}
-            />
+          <Box width="100%" height="100%" padding="12px 24px">
+            <Box padding="0 8px 0 12px">
+              <ModalDataItem
+                title={t("collateral.deposit.balance")}
+                value={`${formatTokenAmount(
+                  tokenBalance?.toBigInt() ?? BigInt(0),
+                  collateralAsset.decimals,
+                )} ${collateralAsset.symbol}`}
+                containerSx={{
+                  marginBottom: "14px",
+                }}
+              />
+            </Box>
 
             <NumberTextField
-              label="0.0"
+              label={`${formatTokenAmount(
+                tokenBalance?.toBigInt() ?? BigInt(0),
+                collateralAsset.decimals,
+              )}`}
               size="medium"
-              style={{ width: "100%" }}
+              sx={{
+                width: "100%",
+              }}
               value={amount}
               onChange={handleAmountChange}
               endAdornment={
@@ -235,19 +307,96 @@ export const DepositModalContract = ({
 
             <Box
               sx={{
-                width: "100%",
-                maxWidth: "100%",
-                marginTop: "12px",
-                marginBottom: "4px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "4px",
+                mt: "20px",
               }}
             >
-              <Typography variant="text1">
-                <Trans i18nKey="collateral.deposit.disclaimer" />
-              </Typography>
+              <DepositAlert
+                text={
+                  <Typography variant="text3" maxWidth="375px">
+                    Collateral cannot be reclaimed until the underlying market
+                    is terminated.
+                  </Typography>
+                }
+                icon={
+                  <SvgIcon
+                    sx={{
+                      fontSize: "16px",
+                      "& path": { fill: COLORS.white },
+                      mt: "1px",
+                    }}
+                  >
+                    <Alert />
+                  </SvgIcon>
+                }
+              />
+
+              <DepositAlert
+                text={
+                  <Typography variant="text3" maxWidth="375px">
+                    At present, there is no reward for providing collateral.
+                  </Typography>
+                }
+                icon={
+                  <SvgIcon
+                    sx={{
+                      fontSize: "16px",
+                      "& path": { fill: COLORS.white },
+                      mt: "1px",
+                    }}
+                  >
+                    <Alert />
+                  </SvgIcon>
+                }
+              />
+
+              <DepositAlert
+                text={
+                  <Typography variant="text3" maxWidth="375px">
+                    Depositors receive shares representing ownership of the
+                    collateral assets.
+                  </Typography>
+                }
+                icon={
+                  <SvgIcon
+                    sx={{
+                      fontSize: "16px",
+                      "& path": { fill: COLORS.white },
+                      mt: "1px",
+                    }}
+                  >
+                    <Alert />
+                  </SvgIcon>
+                }
+              />
+
+              <DepositAlert
+                text={
+                  <Typography variant="text3" maxWidth="375px">
+                    Shares lose value as collateral is liquidated, and future
+                    deposits do not increase the value of existing shares.
+                  </Typography>
+                }
+                icon={
+                  <SvgIcon
+                    sx={{
+                      fontSize: "16px",
+                      "& path": { fill: COLORS.white },
+                      mt: "1px",
+                    }}
+                  >
+                    <Alert />
+                  </SvgIcon>
+                }
+              />
             </Box>
           </Box>
         )}
+
         {isPending && <LoadingModal txHash={txHash} />}
+
         {showErrorPopup && (
           <ErrorModal
             onTryAgain={handleTryAgain}
@@ -255,14 +404,19 @@ export const DepositModalContract = ({
             txHash={txHash}
           />
         )}
+
         {showSuccessPopup && (
           <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
         )}
 
         <TxModalFooter
-          mainBtnText={buttonText}
-          mainBtnOnClick={handleConfirm}
-          disableMainBtn={disableCollateralDeposit}
+          mainBtnText={t("collateral.deposit.deposit")}
+          mainBtnOnClick={handleDeposit}
+          disableMainBtn={disableDeposit}
+          secondBtnText={approveButtonText}
+          secondBtnOnClick={handleAprrove}
+          disableSecondBtn={disableApprove}
+          secondBtnIcon={depositStatus === "Approved"}
           hideButtons={!showForm}
         />
       </Dialog>

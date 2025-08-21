@@ -1,9 +1,16 @@
-import { Box, Button, SvgIcon, Typography } from "@mui/material"
+import {
+  Box,
+  Button,
+  IconButton,
+  Link as MuiLink,
+  SvgIcon,
+  Typography,
+} from "@mui/material"
 import { MarketAccount, MarketCollateralV1 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
+import BackArrow from "@/assets/icons/backArrow_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { DepositModalContract } from "@/components/MarketCollateralContract/components/DepositModal"
 import { LiquidateCollateralModal } from "@/components/MarketCollateralContract/components/LiquidateModal"
@@ -62,36 +69,42 @@ export const ContractActions = ({
         flexDirection: "column",
       }}
     >
-      <Button
-        size="large"
-        variant="text"
-        sx={{ justifyContent: "flex-start", borderRadius: "12px" }}
-        onClick={handleBackClick}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "4px",
+          mb: "28px",
+        }}
       >
-        <SvgIcon
-          fontSize="medium"
-          sx={{
-            marginRight: "4px",
-            "& path": { fill: `${COLORS.bunker}` },
-          }}
-        >
-          <BackArrow />
-        </SvgIcon>
-        {t("collateral.actions.back")}
-      </Button>
-      <Typography variant="title3" marginBottom="4px">
-        {t("collateral.actions.title")}
-      </Typography>
-      <Typography variant="text3" color={COLORS.santasGrey} marginBottom="24px">
-        {t("collateral.actions.description")}{" "}
-        <Link
-          href="https://docs.wildcat.finance/"
-          style={{ color: COLORS.santasGrey }}
-          target="_blank"
-        >
-          {t("collateral.actions.learnMore")}
-        </Link>
-      </Typography>
+        <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <IconButton onClick={handleBackClick}>
+            <SvgIcon
+              sx={{ fontSize: "16px", "& path": { fill: COLORS.santasGrey } }}
+            >
+              <BackArrow />
+            </SvgIcon>
+          </IconButton>
+
+          <Typography variant="title3">
+            {t("collateral.actions.title")}
+          </Typography>
+        </Box>
+
+        <Typography variant="text3" color={COLORS.santasGrey}>
+          {t("collateral.actions.description")}{" "}
+          <MuiLink
+            component={Link}
+            href="https://docs.wildcat.finance"
+            variant="inherit"
+            underline="always"
+            color="inherit"
+            target="_blank"
+          >
+            {t("collateral.actions.learnMore")}
+          </MuiLink>
+        </Typography>
+      </Box>
 
       <Box
         sx={{
@@ -99,7 +112,7 @@ export const ContractActions = ({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: "24px",
+          marginBottom: "28px",
         }}
       >
         <Typography variant="text2">
@@ -112,7 +125,7 @@ export const ContractActions = ({
             display: "flex",
             alignItems: "center",
             gap: "4px",
-            padding: "4px 16px",
+            padding: "0 16px",
           }}
         >
           <Typography variant="text2">
@@ -125,6 +138,7 @@ export const ContractActions = ({
           />
         </Box>
       </Box>
+
       <Box
         sx={{
           width: "100%",
@@ -142,7 +156,7 @@ export const ContractActions = ({
             display: "flex",
             alignItems: "center",
             gap: "4px",
-            padding: "4px 16px",
+            padding: "0 16px",
           }}
         >
           <Typography variant="text2">
@@ -159,9 +173,10 @@ export const ContractActions = ({
       <CollateralActionsItem
         amount={market.delinquentDebt.format(TOKEN_FORMAT_DECIMALS)}
         label={t("collateral.actions.delinquentDebt")}
+        tooltip="TBD"
         asset={market.underlyingToken.symbol}
         convertedAmount={`0 ${collateralContract.collateralAsset.symbol}`}
-        marginBottom="10px"
+        marginBottom="8px"
       >
         {showLiquidate && (
           <LiquidateCollateralModal collateral={collateralContract} />
@@ -173,11 +188,12 @@ export const ContractActions = ({
           TOKEN_FORMAT_DECIMALS,
         )}
         label={t("collateral.actions.availableCollateral")}
+        tooltip="TBD"
         asset={collateralContract.collateralAsset.symbol}
         convertedAmount={
           collateralValue !== undefined ? `$${collateralValue.toFixed(2)}` : "0"
         }
-        marginBottom="10px"
+        marginBottom="8px"
       >
         {showDeposit && (
           <DepositModalContract
@@ -186,6 +202,7 @@ export const ContractActions = ({
           />
         )}
       </CollateralActionsItem>
+
       {depositor && depositor.sharesValue.gt(0) && (
         <CollateralActionsItem
           amount={`${collateralContract.collateralAsset
@@ -209,10 +226,6 @@ export const ContractActions = ({
           )}
         </CollateralActionsItem>
       )}
-
-      <Typography variant="text3" color={COLORS.santasGrey} marginBottom="24px">
-        {t("collateral.actions.disclaimer")}
-      </Typography>
     </Box>
   )
 }

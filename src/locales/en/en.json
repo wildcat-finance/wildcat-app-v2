@@ -500,10 +500,11 @@
   },
   "collateral": {
     "actions": {
-      "description": "In the event that this market enters penalised delinquency, backing assets - if present - can be liquidated to repay the debt.",
-      "learnMore": "Learn More.",
-      "back": "Back to All Collateral",
       "title": "Collateral Contract",
+      "firstContractDesc": "Firstly, select an asset to create a contract",
+      "description": "This function is useful not to get delinquent.",
+      "learnMore": "Learn More",
+      "back": "Back to All Collateral",
       "address": "Collateral Contract Address",
       "asset": "Collateral Asset",
       "delinquentDebt": "Market Delinquent Debt",
