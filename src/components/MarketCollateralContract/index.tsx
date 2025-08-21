@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-import { Box, Skeleton } from "@mui/material"
+import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { DataGrid, GridColDef, GridValidRowModel } from "@mui/x-data-grid"
 import {
   Market,
@@ -73,28 +73,28 @@ export const MarketCollateralContract = ({
     <Box sx={{ width: "100%" }}>
       {!selectedCollateralContract && (
         <>
-          <CollateralContractsTable
-            collateralContracts={collateralContracts || []}
-            setSelectedCollateralContract={setSelectedCollateralContract}
-          />
-
           {marketAccount.isBorrower && !market.isClosed && (
             <CreateContractForm
               market={market}
               existingCollateralContracts={collateralContracts || []}
             />
           )}
+
+          <CollateralContractsTable
+            collateralContracts={collateralContracts || []}
+            setSelectedCollateralContract={setSelectedCollateralContract}
+          />
         </>
       )}
 
-      {selectedCollateralContract && (
-        <ContractActions
-          marketAccount={marketAccount}
-          collateralContract={selectedCollateralContract}
-          handleBackClick={() => setSelectedCollateralContract(undefined)}
-          hideDeposit={hideDeposit}
-        />
-      )}
+      {/* {selectedCollateralContract && ( */}
+      {/*  <ContractActions */}
+      {/*    marketAccount={marketAccount} */}
+      {/*    collateralContract={selectedCollateralContract} */}
+      {/*    handleBackClick={() => setSelectedCollateralContract(undefined)} */}
+      {/*    hideDeposit={hideDeposit} */}
+      {/*  /> */}
+      {/* )} */}
     </Box>
   )
 }

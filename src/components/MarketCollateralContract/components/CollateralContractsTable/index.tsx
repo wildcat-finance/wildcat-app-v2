@@ -161,22 +161,7 @@ export const CollateralContractsTable = ({
     },
   ]
 
-  if (collateralContracts.length === 0) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100%",
-        }}
-      >
-        <Typography variant="text1" color={COLORS.dullRed}>
-          No collateral contracts found for this market
-        </Typography>
-      </Box>
-    )
-  }
+  if (collateralContracts.length === 0) return null
 
   return (
     <DataGrid

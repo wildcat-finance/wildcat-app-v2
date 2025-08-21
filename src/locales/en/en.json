@@ -530,10 +530,10 @@
     },
     "create": {
       "title": "Add Collateral Asset",
-      "addNew": "Add New Collateral Asset",
+      "addNew": "New Asset",
       "addFirst": "Create Collateral Contract",
       "selectAsset": "Select an asset to back your market with",
-      "button": "Create"
+      "button": "Create a Contract"
     },
     "list": {
       "totalDeposited": "Total Deposited",

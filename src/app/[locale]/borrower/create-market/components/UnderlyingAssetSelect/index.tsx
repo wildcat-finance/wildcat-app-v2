@@ -58,6 +58,7 @@ type xprops = {
 export const UnderlyingAssetSelect = forwardRef(
   (
     {
+      size = "regular",
       error,
       errorText,
       handleTokenSelect,
@@ -87,6 +88,7 @@ export const UnderlyingAssetSelect = forwardRef(
       <div>
         <Autocomplete
           PopperComponent={MyPopper}
+          size={size}
           filterOptions={filterOptions}
           noOptionsText={
             isLoading
@@ -98,6 +100,7 @@ export const UnderlyingAssetSelect = forwardRef(
           renderInput={(params) => (
             <TextField
               {...params}
+              size={size}
               value={query}
               onChange={handleChange}
               label={t("createNewMarket.basic.asset.placeholder")}

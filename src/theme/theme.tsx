@@ -75,6 +75,14 @@ declare module "@mui/material/TextField" {
   }
 }
 
+declare module "@mui/material/Autocomplete" {
+  interface AutocompletePropsSizeOverrides {
+    regular: true
+    medium: true
+    small: true
+  }
+}
+
 declare module "@mui/material/styles" {
   interface TypographyVariants {
     title1Highlighted: React.CSSProperties
@@ -471,6 +479,56 @@ export const theme = createTheme({
             padding: "0px",
           },
         },
+      },
+    },
+    MuiAutocomplete: {
+      variants: [
+        {
+          props: { size: "regular" },
+          style: {
+            height: "52px",
+          },
+        },
+        {
+          props: { size: "medium" },
+          style: {
+            height: "44px",
+          },
+        },
+        {
+          props: { size: "small" },
+          style: {
+            height: "32px",
+          },
+        },
+      ],
+      styleOverrides: {
+        root: ({ ownerState }) => ({
+          "& .MuiAutocomplete-popper": {
+            border: "1px solid red",
+          },
+          "& .MuiAutocomplete-inputRoot": {
+            padding: "8px 11px !important",
+          },
+
+          ...(ownerState.size === "small" && {
+            "& .MuiInputBase-root": {
+              height: "32px",
+            },
+          }),
+
+          ...(ownerState.size === "medium" && {
+            "& .MuiInputBase-root": {
+              height: "44px",
+            },
+          }),
+
+          ...(ownerState.size === "regular" && {
+            "& .MuiInputBase-root": {
+              height: "52px",
+            },
+          }),
+        }),
       },
     },
     MuiTextField: {
@@ -1035,18 +1093,6 @@ export const theme = createTheme({
           "&:hover": {
             background: "transparent",
             cursor: "pointer",
-          },
-        },
-      },
-    },
-    MuiAutocomplete: {
-      styleOverrides: {
-        root: {
-          "& .MuiAutocomplete-popper": {
-            border: "1px solid red",
-          },
-          "& .MuiAutocomplete-inputRoot": {
-            padding: "8px 11px !important",
           },
         },
       },

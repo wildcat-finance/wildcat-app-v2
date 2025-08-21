@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 
-import { Box, Button, Dialog, Typography } from "@mui/material"
+import { Box, Button, Dialog, Typography, Link as MuiLink } from "@mui/material"
 import { Market, MarketCollateralV1 } from "@wildcatfi/wildcat-sdk"
+import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { UnderlyingAssetSelect } from "@/app/[locale]/borrower/create-market/components/UnderlyingAssetSelect"
@@ -10,6 +11,7 @@ import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/component
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { TxModalDialog } from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
 import { TokenInfo } from "@/app/api/tokens-list/interface"
+import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { COLORS } from "@/theme/colors"
@@ -94,28 +96,95 @@ export const CreateContractForm = ({
 
   const tokenSelectorFormProps = useRef<HTMLInputElement>(null)
 
+  useEffect(() => {
+    setCollateralAsset("")
+    setQuery("")
+  }, [isModalOpen])
+
+  if (existingCollateralContracts.length === 0)
+    return (
+      <Box sx={{ display: "flex", flexDirection: "column" }}>
+        <Typography variant="title3">Collateral Contract</Typography>
+        <Typography variant="text2" color={COLORS.santasGrey}>
+          Firstly, select an asset to create a contract
+        </Typography>
+
+        <Box sx={{ display: "flex", gap: "12px", mt: "24px" }}>
+          <Box sx={{ width: "300px" }}>
+            <UnderlyingAssetSelect
+              size="medium"
+              handleTokenSelect={handleTokenSelect}
+              ref={tokenSelectorFormProps}
+              tokens={tokens.filter(
+                (token) =>
+                  // Exclude tokens that already have collateral contracts or are the market's underlying token
+                  !(
+                    excludeTokenAddresses.has(token.address.toLowerCase()) ||
+                    excludeTokenSymbols.has(token.symbol.toLowerCase())
+                  ),
+              )}
+              isLoading={isLoading}
+              setQuery={setQuery}
+              query={query}
+              handleSelect={handleSelect}
+              value={collateralAsset}
+              handleChange={handleChange}
+            />
+          </Box>
+
+          <Button
+            variant="contained"
+            size="large"
+            sx={{ width: "140px" }}
+            disabled={!selectedToken || isPending}
+            onClick={handleClickConfirm}
+          >
+            {t("collateral.create.button")}
+          </Button>
+        </Box>
+      </Box>
+    )
+
   return (
     <>
       <Box
         sx={{
+          width: "100%",
           display: "flex",
-          justifyContent: "center",
+          justifyContent: "space-between",
           alignItems: "center",
-          height: "100%",
+          mb: "26px",
         }}
       >
+        <Box sx={{ display: "flex", flexDirection: "column" }}>
+          <Typography variant="title3">Collateral Contract</Typography>
+
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            This function is useful not to get delinquent.{" "}
+            <MuiLink
+              component={Link}
+              href="https://docs.wildcat.finance"
+              variant="inherit"
+              underline="always"
+              color="inherit"
+              target="_blank"
+            >
+              Learn more
+            </MuiLink>
+          </Typography>
+        </Box>
+
         <Button
           variant="contained"
           color="primary"
-          size="medium"
-          sx={{ marginTop: "24px" }}
+          size="small"
+          sx={{ paddingY: "8px !important" }}
           onClick={handleOpenModal}
         >
-          {existingCollateralContracts.length > 0
-            ? t("collateral.create.addNew")
-            : t("collateral.create.addFirst")}
+          {t("collateral.create.addNew")}
         </Button>
       </Box>
+
       <Dialog
         open={isModalOpen}
         onClose={isPending ? undefined : handleCloseModal}
@@ -126,12 +195,45 @@ export const CreateContractForm = ({
             title={t("collateral.create.title")}
             arrowOnClick={handleCloseModal}
             crossOnClick={null}
-          />
+          >
+            <Typography variant="text3" color={COLORS.santasGrey}>
+              Select an asset to back your market with
+            </Typography>
+          </TxModalHeader>
         )}
+
+        {showForm && (
+          <Box width="100%" height="100%" padding="0 24px">
+            <Box>
+              <UnderlyingAssetSelect
+                size="medium"
+                handleTokenSelect={handleTokenSelect}
+                ref={tokenSelectorFormProps}
+                tokens={tokens.filter(
+                  (token) =>
+                    // Exclude tokens that already have collateral contracts or are the market's underlying token
+                    !(
+                      excludeTokenAddresses.has(token.address.toLowerCase()) ||
+                      excludeTokenSymbols.has(token.symbol.toLowerCase())
+                    ),
+                )}
+                isLoading={isLoading}
+                setQuery={setQuery}
+                query={query}
+                handleSelect={handleSelect}
+                value={collateralAsset}
+                handleChange={handleChange}
+              />
+            </Box>
+          </Box>
+        )}
+
         {isPending && <LoadingModal txHash={txHash} />}
+
         {showSuccessPopup && !isPending && (
           <SuccessModal onClose={handleCloseModal} txHash={txHash} />
         )}
+
         {showErrorPopup && !isPending && (
           <ErrorModal
             onTryAgain={handleClickConfirm}
@@ -141,62 +243,11 @@ export const CreateContractForm = ({
         )}
 
         {showForm && (
-          <Box sx={{ width: "100%" }}>
-            <Box
-              sx={{
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                padding: "0 24px",
-              }}
-            >
-              <Typography variant="title3" marginBottom="4px">
-                {t("collateral.create.title")}
-              </Typography>
-              <Typography
-                variant="text3"
-                color={COLORS.santasGrey}
-                marginBottom="24px"
-              >
-                {t("collateral.create.selectAsset")}:
-              </Typography>
-
-              <Box sx={{ display: "flex", gap: "10px" }}>
-                <Box sx={{ width: "300px" }}>
-                  <UnderlyingAssetSelect
-                    handleTokenSelect={handleTokenSelect}
-                    ref={tokenSelectorFormProps}
-                    tokens={tokens.filter(
-                      (token) =>
-                        // Exclude tokens that already have collateral contracts or are the market's underlying token
-                        !(
-                          excludeTokenAddresses.has(
-                            token.address.toLowerCase(),
-                          ) ||
-                          excludeTokenSymbols.has(token.symbol.toLowerCase())
-                        ),
-                    )}
-                    isLoading={isLoading}
-                    setQuery={setQuery}
-                    query={query}
-                    handleSelect={handleSelect}
-                    value={collateralAsset}
-                    handleChange={handleChange}
-                  />
-                </Box>
-
-                <Button
-                  variant="contained"
-                  size="large"
-                  sx={{ width: "140px" }}
-                  disabled={!selectedToken || isPending}
-                  onClick={handleClickConfirm}
-                >
-                  {t("collateral.create.button")}
-                </Button>
-              </Box>
-            </Box>
-          </Box>
+          <TxModalFooter
+            mainBtnText={t("collateral.create.button")}
+            mainBtnOnClick={handleClickConfirm}
+            disableMainBtn={!selectedToken || isPending}
+          />
         )}
       </Dialog>
     </>
