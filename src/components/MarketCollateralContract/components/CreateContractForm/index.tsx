@@ -139,7 +139,7 @@ export const CreateContractForm = ({
             disabled={!selectedToken || isPending}
             onClick={handleClickConfirm}
           >
-            {t("collateral.create.button")}
+            {t("collateral.create.addFirst")}
           </Button>
         </Box>
       </Box>

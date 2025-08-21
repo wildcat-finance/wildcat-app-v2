@@ -87,14 +87,14 @@ export const MarketCollateralContract = ({
         </>
       )}
 
-      {/* {selectedCollateralContract && ( */}
-      {/*  <ContractActions */}
-      {/*    marketAccount={marketAccount} */}
-      {/*    collateralContract={selectedCollateralContract} */}
-      {/*    handleBackClick={() => setSelectedCollateralContract(undefined)} */}
-      {/*    hideDeposit={hideDeposit} */}
-      {/*  /> */}
-      {/* )} */}
+      {selectedCollateralContract && (
+        <ContractActions
+          marketAccount={marketAccount}
+          collateralContract={selectedCollateralContract}
+          handleBackClick={() => setSelectedCollateralContract(undefined)}
+          hideDeposit={hideDeposit}
+        />
+      )}
     </Box>
   )
 }

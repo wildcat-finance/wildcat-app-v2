@@ -531,7 +531,7 @@
     "create": {
       "title": "Add Collateral Asset",
       "addNew": "New Asset",
-      "addFirst": "Create Collateral Contract",
+      "addFirst": "Create",
       "selectAsset": "Select an asset to back your market with",
       "button": "Create a Contract"
     },

@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next"
 import { MarketWithdrawalRequetstCell } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/style"
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
+import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
 import { useGetTokenPrices } from "@/hooks/useGetTokenPrices"
 import { COLORS } from "@/theme/colors"
@@ -64,29 +65,30 @@ export const CollateralContractsTable = ({
       sortable: false,
       field: "collateralAsset",
       headerName: t("collateral.list.asset"),
-      minWidth: 176,
+      flex: 1.5,
+      minWidth: 200,
       headerAlign: "left",
       align: "left",
       renderCell: ({ value: collateralAsset }) => (
-        <Box sx={MarketWithdrawalRequetstCell}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: "4px",
+          }}
+        >
           <Typography variant="text3">{collateralAsset.name}</Typography>
-          <Link
-            href={`${EtherscanBaseUrl}/address/${collateralAsset.address}`}
-            target="_blank"
-            style={{ display: "flex", justifyContent: "center" }}
-          >
-            <IconButton disableRipple sx={AddressButtons}>
-              <SvgIcon fontSize="medium">
-                <LinkIcon />
-              </SvgIcon>
-            </IconButton>
-          </Link>
+
+          <LinkGroup
+            linkValue={`${EtherscanBaseUrl}/address/${collateralAsset.address}`}
+            copyValue={collateralAsset.address}
+          />
         </Box>
       ),
     },
     {
       field: "availableCollateral",
       headerName: t("collateral.list.availableCollateral"),
+      flex: 1,
       minWidth: 176,
       headerAlign: "right",
       align: "right",
@@ -104,6 +106,7 @@ export const CollateralContractsTable = ({
     {
       field: "totalDeposited",
       headerName: t("collateral.list.totalDeposited"),
+      flex: 1,
       minWidth: 176,
       headerAlign: "right",
       align: "right",
@@ -145,13 +148,14 @@ export const CollateralContractsTable = ({
       field: "contract",
       sortable: false,
       headerName: "",
-      minWidth: 176,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       renderCell: ({ row }) => (
         <Button
           variant="contained"
-          color="primary"
+          color="secondary"
           size="small"
           onClick={() => setSelectedCollateralContract(row)}
         >
@@ -168,8 +172,20 @@ export const CollateralContractsTable = ({
       sx={{
         overflow: "auto",
         maxWidth: "calc(100vw - 267px)",
+        paddingRight: "16px",
+
+        "& .MuiDataGrid-row": {
+          "&:hover": {
+            bgcolor: "transparent",
+          },
+        },
+
+        "& .MuiDataGrid-columnHeader": {
+          padding: 0,
+        },
 
         "& .MuiDataGrid-cell": {
+          padding: 0,
           minHeight: "52px",
           height: "auto",
           cursor: "default",
