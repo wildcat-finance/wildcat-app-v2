@@ -1,4 +1,5 @@
 name: Purge Vercel caches (CDN + Data)
+
 on:
   schedule:
     - cron: "30 3 */3 * *"
@@ -8,32 +9,36 @@ jobs:
   purge:
     runs-on: ubuntu-latest
     env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_TOKEN:      ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID:     ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
     steps:
       - uses: actions/checkout@v4
       - run: npm i -g vercel@latest
 
+      - name: Sanity check env
+        run: |
+          [ -n "$VERCEL_TOKEN" ]      || { echo "VERCEL_TOKEN is empty"; exit 1; }
+          [ -n "$VERCEL_ORG_ID" ]     || { echo "VERCEL_ORG_ID is empty"; exit 1; }
+          [ -n "$VERCEL_PROJECT_ID" ] || { echo "VERCEL_PROJECT_ID is empty"; exit 1; }
+          echo "Env OK"
+
       - name: Who am I
         run: vercel whoami --token "$VERCEL_TOKEN"
 
-      - name: Purge CDN cache
+      - name: Write .vercel/project.json
         run: |
-          vercel cache purge --type=cdn --yes \
-            --token "$VERCEL_TOKEN" \
-            --scope the-wildcat-protocol \
-            --project wildcat-app-v2 \
-          || vercel cache purge --type=cdn --yes \
-            --token "$VERCEL_TOKEN" \
-            --scope "${{ secrets.VERCEL_ORG_ID }}" \
-            --project "${{ secrets.VERCEL_PROJECT_ID }}"
+          mkdir -p .vercel
+          cat > .vercel/project.json <<EOF
+          { "orgId": "$VERCEL_ORG_ID", "projectId": "$VERCEL_PROJECT_ID" }
+          EOF
+
+      - name: Pull project settings (prod)
+        run: vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
+
+      - name: Purge CDN cache
+        run: vercel cache purge --type=cdn --yes --token "$VERCEL_TOKEN"
 
       - name: Purge Data cache
-        run: |
-          vercel cache purge --type=data --yes \
-            --token "$VERCEL_TOKEN" \
-            --scope the-wildcat-protocol \
-            --project wildcat-app-v2 \
-          || vercel cache purge --type=data --yes \
-            --token "$VERCEL_TOKEN" \
-            --scope "${{ secrets.VERCEL_ORG_ID }}" \
-            --project "${{ secrets.VERCEL_PROJECT_ID }}"
+        run: vercel cache purge --type=data --yes --token "$VERCEL_TOKEN"
