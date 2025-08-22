@@ -1,4 +1,9 @@
-name: Purge Vercel Caches (CDN + Data)
+name: Purge Vercel caches (CDN + Data)
+
+env:
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 on:
   schedule:
@@ -8,24 +13,14 @@ on:
 jobs:
   purge:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Vercel CLI
-        run: npm i -g vercel@latest
-
-      - name: Pull project settings
-        run: vercel pull --yes --environment=production \
-             --project wildcat-app-v2 \
-             --scope ${{ secrets.VERCEL_TEAM }} \
-             --token ${{ secrets.VERCEL_TOKEN }}
+      - run: npm i -g vercel@latest
 
       - name: Purge CDN cache
-        run: vercel cache purge --type=cdn --yes \
-             --scope ${{ secrets.VERCEL_TEAM }} \
-             --token ${{ secrets.VERCEL_TOKEN }}
+        run: vercel cache purge --type=cdn --yes
 
       - name: Purge Data cache
-        run: vercel cache purge --type=data --yes \
-             --scope ${{ secrets.VERCEL_TEAM }} \
-             --token ${{ secrets.VERCEL_TOKEN }}
+        run: vercel cache purge --type=data --yes
+
