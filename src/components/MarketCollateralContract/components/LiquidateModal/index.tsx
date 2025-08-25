@@ -166,7 +166,7 @@ export const LiquidateCollateralModal = ({
         onClose={isPending ? undefined : handleCloseModal}
         sx={{
           "& .MuiDialog-paper": {
-            minHeight: "560px",
+            height: "595px",
             width: "500px",
             border: "none",
             borderRadius: "20px",
@@ -195,16 +195,8 @@ export const LiquidateCollateralModal = ({
         )}
 
         {showForm && (
-          <Box
-            sx={{
-              width: "100%",
-              display: "flex",
-              flexDirection: "column",
-              padding: "0 24px",
-              marginBottom: "auto",
-            }}
-          >
-            <Typography variant="text2" marginBottom="10px" marginTop="12px">
+          <Box width="100%" height="100%" padding="12px 24px">
+            <Typography variant="text2">
               {t("collateral.liquidate.amount")}
             </Typography>
 
@@ -215,6 +207,7 @@ export const LiquidateCollateralModal = ({
                 width: "100%",
                 flexDirection: "column",
                 height: "100%",
+                marginTop: "10px",
               }}
             >
               <Box
@@ -376,17 +369,16 @@ export const LiquidateCollateralModal = ({
           />
         )}
 
-        <Box sx={{ width: "100%", pt: "12px" }}>
-          <TxModalFooter
-            mainBtnText={t("collateral.liquidate.liquidate")}
-            mainBtnOnClick={handleClickConfirm}
-            disableMainBtn={
-              !isLiquidator ||
-              !quote ||
-              quote.buyTokenAmount.gt(collateral.maxRepayment)
-            }
-          />
-        </Box>
+        <TxModalFooter
+          hideButtons={!showForm}
+          mainBtnText={t("collateral.liquidate.liquidate")}
+          mainBtnOnClick={handleClickConfirm}
+          disableMainBtn={
+            !isLiquidator ||
+            !quote ||
+            quote.buyTokenAmount.gt(collateral.maxRepayment)
+          }
+        />
       </Dialog>
     </>
   )

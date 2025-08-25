@@ -550,7 +550,7 @@
       "liquidate": "Liquidate",
       "previewButton": "Preview Liquidate",
       "maxRepayment": "Maximum repayment",
-      "notLiquidator": "This is only a preview of the liquidation.<br/>You must be an approved liquidator to liquidate assets.",
+      "notLiquidator": "This is a preview. You must be approved to liquidate assets.",
       "checkingLiquidator": "Checking liquidator status...",
       "price": {
         "loading": "Fetching token prices...",
