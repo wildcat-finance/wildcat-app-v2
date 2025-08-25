@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material"
+import { Box, Skeleton, Typography } from "@mui/material"
 
 import { COLORS } from "@/theme/colors"
 
@@ -11,6 +11,7 @@ export const ModalDataItem = ({
   containerSx,
   valueColor,
   children,
+  isLoading = false,
 }: ModalDataItemProps) => (
   <Box
     sx={{
@@ -22,12 +23,16 @@ export const ModalDataItem = ({
       {title}
     </Typography>
 
-    <Box sx={ValueContainer}>
-      <Typography variant="text3" color={valueColor}>
-        {value}
-      </Typography>
+    {isLoading ? (
+      <Skeleton height="20px" width="40px" sx={{ borderRadius: "6px" }} />
+    ) : (
+      <Box sx={ValueContainer}>
+        <Typography variant="text3" color={valueColor}>
+          {value}
+        </Typography>
 
-      {children}
-    </Box>
+        {children}
+      </Box>
+    )}
   </Box>
 )

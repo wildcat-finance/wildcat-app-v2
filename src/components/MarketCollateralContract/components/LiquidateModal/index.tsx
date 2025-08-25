@@ -1,6 +1,14 @@
 import { ChangeEvent, useEffect, useState } from "react"
+import * as React from "react"
 
-import { Box, Button, Dialog, Divider, Typography } from "@mui/material"
+import {
+  Box,
+  Button,
+  Dialog,
+  Divider,
+  SvgIcon,
+  Typography,
+} from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
 import {
   getCollateralFactoryContract,
@@ -14,8 +22,11 @@ import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { TxModalDialog } from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
+import Alert from "@/assets/icons/circledAlert_icon.svg"
+import { DepositAlert } from "@/components/DepositAlert"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
+import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useGetBebopPMMQuote } from "@/hooks/bebop/useGetBebopPMMQuote"
 import { useGetTokenPrices } from "@/hooks/useGetTokenPrices"
@@ -86,6 +97,7 @@ export const LiquidateCollateralModal = ({
     }
   }
   const handleOpenModal = () => {
+    setLiquidateAmount("")
     setShowSuccessPopup(false)
     setShowErrorPopup(false)
     setIsModalOpen(true)
@@ -105,25 +117,61 @@ export const LiquidateCollateralModal = ({
     }
   }, [isError, isSuccess])
 
+  const notEmptyOrZeroAmount =
+    liquidateAmount && liquidateAmount !== "" && liquidateAmount !== "0"
+
+  const getInputValueString = () => {
+    if (tokenPrices && notEmptyOrZeroAmount) {
+      if (tokenPrices[collateral.collateralAsset.address]) {
+        return `$${+(
+          tokenPrices[collateral.collateralAsset.address].usdPrice *
+          +liquidateAmount
+        ).toFixed(0)}`
+      }
+      return t("collateral.liquidate.price.failedCollateral")
+    }
+
+    return "$0"
+  }
+
+  const getBebopValueString = () => {
+    if (tokenPrices && quote) {
+      if (tokenPrices[quote.buyTokenAmount.token.address]) {
+        return `$${+(
+          tokenPrices[quote.buyTokenAmount.token.address].usdPrice *
+          +quote.buyTokenAmount.format()
+        ).toFixed(0)}`
+      }
+      return t("collateral.liquidate.price.failedOutput")
+    }
+
+    return "-"
+  }
+
   return (
     <>
       <Button
         onClick={handleOpenModal}
         variant="contained"
         size="small"
-        sx={{ height: "fit-content", width: "90px" }}
+        sx={{ height: "fit-content", minWidth: "90px" }}
       >
         {!isLoadingLiquidator && !isLiquidator
           ? t("collateral.liquidate.previewButton")
           : t("collateral.liquidate.liquidate")}
       </Button>
+
       <Dialog
         open={isModalOpen}
         onClose={isPending ? undefined : handleCloseModal}
         sx={{
           "& .MuiDialog-paper": {
-            ...TxModalDialog["& .MuiDialog-paper"],
-            ...(quote ? { height: "600px" } : {}),
+            minHeight: "560px",
+            width: "500px",
+            border: "none",
+            borderRadius: "20px",
+            margin: 0,
+            padding: "24px 0",
           },
         }}
       >
@@ -132,18 +180,18 @@ export const LiquidateCollateralModal = ({
             title={t("collateral.liquidate.title")}
             arrowOnClick={handleCloseModal}
             crossOnClick={null}
-          />
-        )}
-        {isPending && <LoadingModal txHash={txHash} />}
-        {showSuccessPopup && !isPending && (
-          <SuccessModal onClose={handleCloseModal} txHash={txHash} />
-        )}
-        {showErrorPopup && !isPending && (
-          <ErrorModal
-            onTryAgain={handleClickConfirm}
-            onClose={handleCloseModal}
-            txHash={txHash}
-          />
+          >
+            {!isLoadingLiquidator && !isLiquidator && (
+              <Typography
+                variant="text3"
+                color={COLORS.santasGrey}
+                marginBottom="4px"
+                align="center"
+              >
+                <Trans i18nKey="collateral.liquidate.notLiquidator" />
+              </Typography>
+            )}
+          </TxModalHeader>
         )}
 
         {showForm && (
@@ -152,11 +200,11 @@ export const LiquidateCollateralModal = ({
               width: "100%",
               display: "flex",
               flexDirection: "column",
-              paddingLeft: "16px",
-              paddingRight: "16px",
+              padding: "0 24px",
+              marginBottom: "auto",
             }}
           >
-            <Typography variant="title2" marginBottom="4px">
+            <Typography variant="text2" marginBottom="10px" marginTop="12px">
               {t("collateral.liquidate.amount")}
             </Typography>
 
@@ -171,7 +219,6 @@ export const LiquidateCollateralModal = ({
             >
               <Box
                 sx={{
-                  width: "300px",
                   flexDirection: "column",
                   display: "flex",
                 }}
@@ -182,6 +229,15 @@ export const LiquidateCollateralModal = ({
                     collateral.availableCollateral.raw.toBigInt(),
                     collateral.collateralAsset.decimals,
                   )} ${collateral.collateralAsset.symbol}`}
+                  containerSx={{
+                    marginBottom: "10px",
+                  }}
+                />
+
+                <ModalDataItem
+                  title={t("collateral.liquidate.price.inputValue")}
+                  value={getInputValueString()}
+                  isLoading={isLoadingTokenPrices}
                   containerSx={{
                     marginBottom: "14px",
                   }}
@@ -205,142 +261,132 @@ export const LiquidateCollateralModal = ({
                     />
                   }
                 />
-                {isLoadingTokenPrices && (
-                  <Typography variant="text1" marginBottom="4px">
-                    {t("collateral.liquidate.price.loading")}
-                  </Typography>
-                )}
-                {tokenPrices &&
-                  liquidateAmount &&
-                  liquidateAmount !== "" &&
-                  liquidateAmount !== "0" &&
-                  (tokenPrices[collateral.collateralAsset.address] ? (
-                    <>
-                      <Typography variant="text1" marginBottom="4px">
-                        {t("collateral.liquidate.price.inputValue")}
-                        {": "}
-                        {`$${+(
-                          tokenPrices[collateral.collateralAsset.address]
-                            .usdPrice * +liquidateAmount
-                        ).toFixed(0)}`}
-                      </Typography>
-                      <Typography variant="text2" marginBottom="4px">
-                        {t("collateral.liquidate.price.source")}
-                        {": "}
-                        {tokenPrices[collateral.collateralAsset.address].source}
-                      </Typography>
-                    </>
-                  ) : (
-                    <Typography variant="text1" marginBottom="4px">
-                      {t("collateral.liquidate.price.failedCollateral")}
-                    </Typography>
-                  ))}
-              </Box>
 
-              {(quote || isLoadingQuote) && (
-                <Divider sx={{ margin: "16px 0" }} />
-              )}
-              {/* Display the quote */}
-              <Box
-                sx={{
-                  width: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                {isLoadingQuote && (
-                  <Typography variant="text1" marginBottom="4px">
-                    {t("collateral.liquidate.bebopQuote.fetching")}
-                  </Typography>
-                )}
-                {quote && (
+                <Typography
+                  variant="text3"
+                  color={COLORS.santasGrey}
+                  align="right"
+                  marginTop="22px"
+                >
+                  {t("collateral.liquidate.price.source")}:{" "}
+                  {quote && tokenPrices
+                    ? `${
+                        tokenPrices[collateral.collateralAsset.address].source
+                      }`
+                    : "-"}
+                </Typography>
+
+                <Divider sx={{ mt: "12px" }} />
+
+                {!quote && notEmptyOrZeroAmount && !isLoadingQuote ? (
+                  <Box width="100%" marginTop="12px">
+                    <DepositAlert
+                      text={
+                        <Typography variant="text3">
+                          This token is not supported.
+                        </Typography>
+                      }
+                      icon={
+                        <SvgIcon
+                          sx={{
+                            fontSize: "16px",
+                            "& path": { fill: COLORS.white },
+                            "& circle": { fill: COLORS.dullRed },
+                            mt: "1px",
+                          }}
+                        >
+                          <Alert />
+                        </SvgIcon>
+                      }
+                    />
+                  </Box>
+                ) : (
                   <>
-                    <Typography variant="title2" marginBottom="4px">
+                    <Typography
+                      variant="text2"
+                      marginTop="24px"
+                      marginBottom="10px"
+                    >
                       {t("collateral.liquidate.bebopQuote.title")}
                     </Typography>
-                    <Typography variant="text1" marginBottom="4px">
-                      {t("collateral.liquidate.bebopQuote.output")}:{" "}
-                      {quote.buyTokenAmount.format(18, true)}
+
+                    <ModalDataItem
+                      title={t("collateral.liquidate.bebopQuote.output")}
+                      value={
+                        quote ? quote.buyTokenAmount.format(18, true) : `-`
+                      }
+                      isLoading={isLoadingQuote}
+                      containerSx={{
+                        mb: "10px",
+                      }}
+                    />
+
+                    <ModalDataItem
+                      title={t("collateral.liquidate.price.value")}
+                      value={getBebopValueString()}
+                      isLoading={isLoadingTokenPrices || isLoadingQuote}
+                    />
+
+                    {quote &&
+                      quote.buyTokenAmount.gt(collateral.maxRepayment) && (
+                        <ModalDataItem
+                          title={t("collateral.liquidate.maxRepayment")}
+                          value={collateral.maxRepayment.format(
+                            collateral.maxRepayment.token.decimals,
+                            true,
+                          )}
+                          isLoading={isLoadingQuote}
+                          valueColor={COLORS.dullRed}
+                          containerSx={{
+                            mt: "10px",
+                          }}
+                        />
+                      )}
+
+                    <Typography
+                      variant="text3"
+                      color={COLORS.santasGrey}
+                      align="right"
+                      marginTop="22px"
+                    >
+                      {t("collateral.liquidate.price.source")}:{" "}
+                      {quote && tokenPrices
+                        ? `${
+                            tokenPrices[collateral.collateralAsset.address]
+                              .source
+                          }`
+                        : "-"}
                     </Typography>
-                    {isLoadingTokenPrices && (
-                      <Typography variant="text1" marginBottom="4px">
-                        {t("collateral.liquidate.price.loading")}
-                      </Typography>
-                    )}
-                    {tokenPrices &&
-                      (tokenPrices[quote.buyTokenAmount.token.address] ? (
-                        <>
-                          <Typography variant="text1" marginBottom="4px">
-                            {t("collateral.liquidate.price.value")}:{" "}
-                            {`$${+(
-                              tokenPrices[quote.buyTokenAmount.token.address]
-                                .usdPrice * +quote.buyTokenAmount.format()
-                            ).toFixed(0)}`}
-                          </Typography>
-                          <Typography variant="text2" marginBottom="4px">
-                            {t("collateral.liquidate.price.source")}:{" "}
-                            {
-                              tokenPrices[quote.buyTokenAmount.token.address]
-                                .source
-                            }
-                          </Typography>
-                        </>
-                      ) : (
-                        <Typography variant="text1" marginBottom="4px">
-                          {t("collateral.liquidate.price.failedOutput")}
-                        </Typography>
-                      ))}
                   </>
                 )}
-                {quote && quote.buyTokenAmount.gt(collateral.maxRepayment) && (
-                  <Typography
-                    variant="text2"
-                    marginBottom="4px"
-                    color={COLORS.dullRed}
-                  >
-                    {t("collateral.liquidate.maxRepayment")}{" "}
-                    {collateral.maxRepayment.format(
-                      collateral.maxRepayment.token.decimals,
-                      true,
-                    )}
-                  </Typography>
-                )}
               </Box>
-
-              {quote && (
-                <>
-                  <Divider sx={{ margin: "16px 0" }} />
-
-                  {isLoadingLiquidator && (
-                    <Typography variant="text1" marginBottom="4px">
-                      {t("collateral.liquidate.checkingLiquidator")}
-                    </Typography>
-                  )}
-                  {/* Only allow liquidation if the user is a liquidator */}
-                  {!isLoadingLiquidator && !isLiquidator && (
-                    <Typography variant="text1" marginBottom="4px">
-                      <Trans i18nKey="collateral.liquidate.notLiquidator" />
-                    </Typography>
-                  )}
-                  {isLiquidator && (
-                    <Button
-                      variant="contained"
-                      size="large"
-                      sx={{ width: "140px" }}
-                      disabled={
-                        !quote ||
-                        quote.buyTokenAmount.gt(collateral.maxRepayment)
-                      }
-                      onClick={handleClickConfirm}
-                    >
-                      {t("collateral.liquidate.liquidate")}
-                    </Button>
-                  )}
-                </>
-              )}
             </Box>
           </Box>
         )}
+
+        {isPending && <LoadingModal txHash={txHash} />}
+        {showSuccessPopup && !isPending && (
+          <SuccessModal onClose={handleCloseModal} txHash={txHash} />
+        )}
+        {showErrorPopup && !isPending && (
+          <ErrorModal
+            onTryAgain={handleClickConfirm}
+            onClose={handleCloseModal}
+            txHash={txHash}
+          />
+        )}
+
+        <Box sx={{ width: "100%", pt: "12px" }}>
+          <TxModalFooter
+            mainBtnText={t("collateral.liquidate.liquidate")}
+            mainBtnOnClick={handleClickConfirm}
+            disableMainBtn={
+              !isLiquidator ||
+              !quote ||
+              quote.buyTokenAmount.gt(collateral.maxRepayment)
+            }
+          />
+        </Box>
       </Dialog>
     </>
   )

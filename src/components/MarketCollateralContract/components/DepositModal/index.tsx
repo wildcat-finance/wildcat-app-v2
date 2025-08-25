@@ -23,7 +23,10 @@ import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/componen
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
-import { useApprovalModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
+import {
+  ModalSteps,
+  useApprovalModal,
+} from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
 import { TxModalDialog } from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
 import Alert from "@/assets/icons/circledAlert_icon.svg"
 import { DepositAlert } from "@/components/DepositAlert"
@@ -34,7 +37,7 @@ import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { COLORS } from "@/theme/colors"
 import { isUSDTLikeToken } from "@/utils/constants"
-import { formatTokenAmount } from "@/utils/formatters"
+import { formatTokenAmount, formatTokenWithCommas } from "@/utils/formatters"
 
 import { useApprove } from "../../../../app/[locale]/borrower/market/[address]/hooks/useGetApproval"
 import { useDepositCollateral } from "../../hooks/useDepositCollateral"
@@ -149,13 +152,6 @@ export const DepositModalContract = ({
     [[TOKEN_BALANCE_AND_ALLOWANCE_QUERY_KEY]],
   )
 
-  const disableCollateralDeposit =
-    marketAccount.market.isClosed ||
-    isApproving ||
-    isPending ||
-    amount === "" ||
-    amount === "0"
-
   const amountToDeposit = amount
     ? collateralAsset.parseAmount(amount)
     : collateralAsset.parseAmount(0)
@@ -175,34 +171,25 @@ export const DepositModalContract = ({
     depositStatus === "RequiresResetAllowance" ||
     isApproving
 
-  const handleAprrove = () => {
+  const handleApprove = () => {
     setTxHash("")
     if (depositStatus === "RequiresResetAllowance") {
       approve(collateralAsset.parseAmount(0)).then(() => {
-        approve(amountToDeposit)
+        approve(amountToDeposit).then(() => {
+          modal.setFlowStep(ModalSteps.approved)
+        })
       })
       return
     }
-    if (depositStatus === "InsufficientAllowance") approve(amountToDeposit)
+    if (depositStatus === "InsufficientAllowance")
+      approve(amountToDeposit).then(() => {
+        modal.setFlowStep(ModalSteps.approved)
+      })
   }
 
   const handleDeposit = () => {
-    depositCollateral(amountToDeposit)
-  }
-
-  const handleConfirm = () => {
     setTxHash("")
-
-    if (depositStatus === "RequiresResetAllowance") {
-      approve(collateralAsset.parseAmount(0)).then(() => {
-        approve(amountToDeposit)
-      })
-      return
-    }
-    if (depositStatus === "InsufficientAllowance") approve(amountToDeposit)
-    if (depositStatus === "Approved") {
-      depositCollateral(amountToDeposit)
-    }
+    depositCollateral(amountToDeposit)
   }
 
   const approveButtonText = React.useMemo(() => {
@@ -222,7 +209,7 @@ export const DepositModalContract = ({
   }, [isPending, isApproving, depositStatus, t])
 
   const handleTryAgain = () => {
-    handleConfirm()
+    handleDeposit()
     setShowErrorPopup(false)
     setShowSuccessPopup(false)
   }
@@ -284,26 +271,40 @@ export const DepositModalContract = ({
                   collateralAsset.decimals,
                 )} ${collateralAsset.symbol}`}
                 containerSx={{
-                  marginBottom: "14px",
+                  marginBottom: modal.approvedStep ? "20px" : "14px",
                 }}
               />
+
+              {modal.approvedStep && (
+                <ModalDataItem
+                  title="Amount to Deposit"
+                  value={`${formatTokenWithCommas(amountToDeposit, {
+                    fractionDigits: collateralAsset.decimals,
+                  })} ${collateralAsset.symbol}`}
+                  containerSx={{
+                    marginBottom: "18px",
+                  }}
+                />
+              )}
             </Box>
 
-            <NumberTextField
-              label={`${formatTokenAmount(
-                tokenBalance?.toBigInt() ?? BigInt(0),
-                collateralAsset.decimals,
-              )}`}
-              size="medium"
-              sx={{
-                width: "100%",
-              }}
-              value={amount}
-              onChange={handleAmountChange}
-              endAdornment={
-                <TextfieldChip text={collateralAsset.symbol} size="small" />
-              }
-            />
+            {modal.gettingValueStep && (
+              <NumberTextField
+                label={`${formatTokenAmount(
+                  tokenBalance?.toBigInt() ?? BigInt(0),
+                  collateralAsset.decimals,
+                )}`}
+                size="medium"
+                sx={{
+                  width: "100%",
+                }}
+                value={amount}
+                onChange={handleAmountChange}
+                endAdornment={
+                  <TextfieldChip text={collateralAsset.symbol} size="small" />
+                }
+              />
+            )}
 
             <Box
               sx={{
@@ -414,7 +415,7 @@ export const DepositModalContract = ({
           mainBtnOnClick={handleDeposit}
           disableMainBtn={disableDeposit}
           secondBtnText={approveButtonText}
-          secondBtnOnClick={handleAprrove}
+          secondBtnOnClick={handleApprove}
           disableSecondBtn={disableApprove}
           secondBtnIcon={depositStatus === "Approved"}
           hideButtons={!showForm}

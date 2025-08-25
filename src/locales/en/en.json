@@ -549,14 +549,14 @@
       "shares": "Shares",
       "liquidate": "Liquidate",
       "previewButton": "Preview Liquidate",
-      "maxRepayment": "Maximum repayment is",
+      "maxRepayment": "Maximum repayment",
       "notLiquidator": "This is only a preview of the liquidation.<br/>You must be an approved liquidator to liquidate assets.",
       "checkingLiquidator": "Checking liquidator status...",
       "price": {
         "loading": "Fetching token prices...",
         "failedCollateral": "Failed to fetch price of collateral asset",
         "failedOutput": "Failed to fetch price of output asset",
-        "inputValue": "Input value",
+        "inputValue": "Input Value",
         "source": "Source",
         "value": "Value"
       },
