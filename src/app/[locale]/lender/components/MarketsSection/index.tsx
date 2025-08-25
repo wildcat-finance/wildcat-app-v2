@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState, useCallback } from "react"
 
 import { Box, Button, Skeleton, Typography } from "@mui/material"
 import {
@@ -38,6 +38,7 @@ import {
   setMarketSection,
   setShowFullFunctionality,
 } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
+import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFiltersSlice"
 import { COLORS } from "@/theme/colors"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { filterMarketAccounts } from "@/utils/filters"
@@ -52,10 +53,65 @@ export const MarketsSection = () => {
     (state) => state.lenderDashboard.marketSection,
   )
 
-  const [marketSearch, setMarketSearch] = useState<string>("")
-  const [marketAssets, setMarketAssets] = useState<SmallFilterSelectItem[]>([])
-  const [marketStatuses, setMarketStatuses] = useState<SmallFilterSelectItem[]>(
-    [],
+  const dispatch = useAppDispatch()
+
+  // moved filter state to redux so it survives route unmounts
+  // (going from market overview <-> details etc) instead of resetting every time
+  const marketFilters = useAppSelector((s) => s.marketFilters.lender)
+  const {
+    search: marketSearch,
+    assets: marketAssets,
+    statuses: marketStatuses,
+  } = marketFilters
+
+  const setMarketSearch: React.Dispatch<React.SetStateAction<string>> =
+    useCallback(
+      (value) => {
+        const next =
+          typeof value === "function"
+            ? (value as (prev: string) => string)(marketSearch)
+            : value
+        dispatch(
+          setMarketFilters({ role: "lender", filters: { search: next } }),
+        )
+      },
+      [dispatch, marketSearch],
+    )
+
+  const setMarketAssets: React.Dispatch<
+    React.SetStateAction<SmallFilterSelectItem[]>
+  > = useCallback(
+    (value) => {
+      const next =
+        typeof value === "function"
+          ? (
+              value as (
+                prev: SmallFilterSelectItem[],
+              ) => SmallFilterSelectItem[]
+            )(marketAssets)
+          : value
+      dispatch(setMarketFilters({ role: "lender", filters: { assets: next } }))
+    },
+    [dispatch, marketAssets],
+  )
+
+  const setMarketStatuses: React.Dispatch<
+    React.SetStateAction<SmallFilterSelectItem[]>
+  > = useCallback(
+    (value) => {
+      const next =
+        typeof value === "function"
+          ? (
+              value as (
+                prev: SmallFilterSelectItem[],
+              ) => SmallFilterSelectItem[]
+            )(marketStatuses)
+          : value
+      dispatch(
+        setMarketFilters({ role: "lender", filters: { statuses: next } }),
+      )
+    },
+    [dispatch, marketStatuses],
   )
 
   const filters = useMemo(
@@ -68,9 +124,9 @@ export const MarketsSection = () => {
     }),
     [marketSearch, marketAssets, marketStatuses],
   )
+  // rerender consumer when filters change now
 
   const { t } = useTranslation()
-  const dispatch = useAppDispatch()
 
   const { isWrongNetwork } = useCurrentNetwork()
   const { data: borrowers } = useBorrowerNames()
@@ -230,6 +286,7 @@ export const MarketsSection = () => {
     selfOnboardAmount,
     manualAmount,
     isWrongNetwork,
+    dispatch,
   ])
 
   const noMarketsAtAll = lenderMarkets.length === 0
@@ -245,7 +302,7 @@ export const MarketsSection = () => {
     } else {
       dispatch(setMarketSection(LenderMarketDashboardSections.ACTIVE))
     }
-  }, [noMarketsAtAll])
+  }, [noMarketsAtAll, dispatch])
 
   if (!mounted)
     return (
