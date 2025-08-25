@@ -104,14 +104,7 @@ export const CreateContractForm = ({
   if (existingCollateralContracts.length === 0)
     return (
       <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-        <Typography variant="title3">
-          {t("collateral.actions.title")}
-        </Typography>
-        <Typography variant="text2" color={COLORS.santasGrey}>
-          {t("collateral.actions.firstContractDesc")}
-        </Typography>
-
-        <Box sx={{ display: "flex", gap: "12px", mt: "24px" }}>
+        <Box sx={{ display: "flex", gap: "12px" }}>
           <Box sx={{ width: "300px" }}>
             <UnderlyingAssetSelect
               size="medium"
@@ -149,45 +142,15 @@ export const CreateContractForm = ({
 
   return (
     <>
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: "26px",
-        }}
+      <Button
+        variant="contained"
+        color="primary"
+        size="small"
+        sx={{ paddingY: "8px !important" }}
+        onClick={handleOpenModal}
       >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <Typography variant="title3">
-            {t("collateral.actions.title")}
-          </Typography>
-
-          <Typography variant="text3" color={COLORS.santasGrey}>
-            {t("collateral.actions.description")}{" "}
-            <MuiLink
-              component={Link}
-              href="https://docs.wildcat.finance"
-              variant="inherit"
-              underline="always"
-              color="inherit"
-              target="_blank"
-            >
-              {t("collateral.actions.learnMore")}
-            </MuiLink>
-          </Typography>
-        </Box>
-
-        <Button
-          variant="contained"
-          color="primary"
-          size="small"
-          sx={{ paddingY: "8px !important" }}
-          onClick={handleOpenModal}
-        >
-          {t("collateral.create.addNew")}
-        </Button>
-      </Box>
+        {t("collateral.create.addNew")}
+      </Button>
 
       <Dialog
         open={isModalOpen}

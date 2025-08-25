@@ -1,13 +1,10 @@
 import { useState } from "react"
 
-import { Box, Button, Skeleton, Typography } from "@mui/material"
-import { DataGrid, GridColDef, GridValidRowModel } from "@mui/x-data-grid"
-import {
-  Market,
-  MarketAccount,
-  MarketCollateralV1,
-} from "@wildcatfi/wildcat-sdk"
+import { Box, Skeleton } from "@mui/material"
+import { GridColDef, GridValidRowModel } from "@mui/x-data-grid"
+import { MarketAccount, MarketCollateralV1 } from "@wildcatfi/wildcat-sdk"
 
+import { CollateralHeader } from "@/components/MarketCollateralContract/components/CollateralHeader"
 import { ContractActions } from "@/components/MarketCollateralContract/components/ContractActions"
 import { CreateContractForm } from "@/components/MarketCollateralContract/components/CreateContractForm"
 import { useGetCollateralContracts } from "@/hooks/useGetCollateralContracts"
@@ -37,6 +34,8 @@ export const MarketCollateralContract = ({
 
   const [selectedCollateralContract, setSelectedCollateralContract] =
     useState<MarketCollateralV1>()
+
+  const contractName = selectedCollateralContract?.collateralAsset.name
 
   if (isLoading)
     return (
@@ -71,20 +70,37 @@ export const MarketCollateralContract = ({
 
   return (
     <Box sx={{ width: "100%" }}>
-      {!selectedCollateralContract && (
-        <>
-          {marketAccount.isBorrower && !market.isClosed && (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: collateralContracts?.length === 0 ? "column" : "row",
+          justifyContent: "space-between",
+          alignItems:
+            collateralContracts?.length === 0 ? "flex-start" : "center",
+        }}
+      >
+        <CollateralHeader
+          contractName={contractName}
+          contractsNumber={collateralContracts?.length}
+          handleBackClick={() => setSelectedCollateralContract(undefined)}
+          isBorrower={marketAccount.isBorrower}
+        />
+
+        {!selectedCollateralContract &&
+          marketAccount.isBorrower &&
+          !market.isClosed && (
             <CreateContractForm
               market={market}
               existingCollateralContracts={collateralContracts || []}
             />
           )}
+      </Box>
 
-          <CollateralContractsTable
-            collateralContracts={collateralContracts || []}
-            setSelectedCollateralContract={setSelectedCollateralContract}
-          />
-        </>
+      {!selectedCollateralContract && (
+        <CollateralContractsTable
+          collateralContracts={collateralContracts || []}
+          setSelectedCollateralContract={setSelectedCollateralContract}
+        />
       )}
 
       {selectedCollateralContract && (

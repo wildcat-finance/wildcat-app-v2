@@ -71,43 +71,6 @@ export const ContractActions = ({
     >
       <Box
         sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "4px",
-          mb: "28px",
-        }}
-      >
-        <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          <IconButton onClick={handleBackClick}>
-            <SvgIcon
-              sx={{ fontSize: "16px", "& path": { fill: COLORS.santasGrey } }}
-            >
-              <BackArrow />
-            </SvgIcon>
-          </IconButton>
-
-          <Typography variant="title3">
-            {t("collateral.actions.title")}
-          </Typography>
-        </Box>
-
-        <Typography variant="text3" color={COLORS.santasGrey}>
-          {t("collateral.actions.description")}{" "}
-          <MuiLink
-            component={Link}
-            href="https://docs.wildcat.finance"
-            variant="inherit"
-            underline="always"
-            color="inherit"
-            target="_blank"
-          >
-            {t("collateral.actions.learnMore")}
-          </MuiLink>
-        </Typography>
-      </Box>
-
-      <Box
-        sx={{
           width: "100%",
           display: "flex",
           justifyContent: "space-between",
