@@ -977,7 +977,7 @@
     "noDataAvailable": "No Data Available",
     "sidebar": {
       "actions": "Deposit & Withdraw",
-      "status": "Status",
+      "status": "Status and Details",
       "requests": "Withdrawal Requests",
       "marketHistory": "Market History",
       "borrowerProfile": "About Borrower"
