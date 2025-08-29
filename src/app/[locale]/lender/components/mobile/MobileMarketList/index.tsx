@@ -10,7 +10,7 @@ import {
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
-const ITEMS_PER_PAGE = 6
+const ITEMS_PER_PAGE = 20
 
 const getPaginationRange = (page: number, totalPages: number) => {
   const range: (number | "...")[] = []
