@@ -113,6 +113,28 @@ export const LenderMarketSidebar = () => {
               {t("lenderMarketDetails.sidebar.status")}
             </Button>
 
+            {isLender && (
+              <Button
+                variant="text"
+                size="medium"
+                onClick={() =>
+                  handleChangeSection(LenderMarketSections.REQUESTS)
+                }
+                sx={{
+                  ...MenuItemButton,
+                  backgroundColor:
+                    currentSection === LenderMarketSections.REQUESTS
+                      ? COLORS.whiteSmoke
+                      : "transparent",
+                }}
+              >
+                <SvgIcon sx={{ marginRight: "10px" }}>
+                  <WithdrawalAndRequestsIcon />
+                </SvgIcon>
+                {t("lenderMarketDetails.sidebar.requests")}
+              </Button>
+            )}
+
             <Button
               variant="text"
               size="medium"
@@ -152,28 +174,6 @@ export const LenderMarketSidebar = () => {
               </SvgIcon>
               {t("lenderMarketDetails.sidebar.marketHistory")}
             </Button>
-
-            {isLender && (
-              <Button
-                variant="text"
-                size="medium"
-                onClick={() =>
-                  handleChangeSection(LenderMarketSections.REQUESTS)
-                }
-                sx={{
-                  ...MenuItemButton,
-                  backgroundColor:
-                    currentSection === LenderMarketSections.REQUESTS
-                      ? COLORS.whiteSmoke
-                      : "transparent",
-                }}
-              >
-                <SvgIcon sx={{ marginRight: "10px" }}>
-                  <WithdrawalAndRequestsIcon />
-                </SvgIcon>
-                {t("lenderMarketDetails.sidebar.requests")}
-              </Button>
-            )}
           </Box>
         )}
       </Box>
