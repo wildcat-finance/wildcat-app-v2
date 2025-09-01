@@ -23,7 +23,6 @@ import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/component
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { TxModalDialog } from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
 import Alert from "@/assets/icons/circledAlert_icon.svg"
-import { DepositAlert } from "@/components/DepositAlert"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
@@ -34,6 +33,7 @@ import { COLORS } from "@/theme/colors"
 import { formatTokenAmount } from "@/utils/formatters"
 
 import { LiquidateModalProps } from "./interface"
+import { ModalAlertItem } from "../../../ModalAlertItem"
 import { useLiquidateCollateral } from "../../hooks/useLiquidateCollateral"
 
 const useIsLiquidator = (collateral: MarketCollateralV1) => {
@@ -96,8 +96,22 @@ export const LiquidateCollateralModal = ({
       liquidateCollateral(quote)
     }
   }
+
+  const setLiquidationValue = () => {
+    if (!isLiquidator) {
+      setLiquidateAmount(
+        formatTokenAmount(
+          collateral.availableCollateral.raw.toBigInt(),
+          collateral.collateralAsset.decimals,
+        ),
+      )
+    } else {
+      setLiquidateAmount("")
+    }
+  }
+
   const handleOpenModal = () => {
-    setLiquidateAmount("")
+    setLiquidationValue()
     setShowSuccessPopup(false)
     setShowErrorPopup(false)
     setIsModalOpen(true)
@@ -120,6 +134,10 @@ export const LiquidateCollateralModal = ({
   const notEmptyOrZeroAmount =
     liquidateAmount && liquidateAmount !== "" && liquidateAmount !== "0"
 
+  const failedInputString = t("collateral.liquidate.price.failedCollateral")
+
+  const isNotSupportedToken = !quote && notEmptyOrZeroAmount && !isLoadingQuote
+
   const getInputValueString = () => {
     if (tokenPrices && notEmptyOrZeroAmount) {
       if (tokenPrices[collateral.collateralAsset.address]) {
@@ -128,7 +146,7 @@ export const LiquidateCollateralModal = ({
           +liquidateAmount
         ).toFixed(0)}`
       }
-      return t("collateral.liquidate.price.failedCollateral")
+      return failedInputString
     }
 
     return "$0"
@@ -166,7 +184,7 @@ export const LiquidateCollateralModal = ({
         onClose={isPending ? undefined : handleCloseModal}
         sx={{
           "& .MuiDialog-paper": {
-            height: "595px",
+            height: "560px",
             width: "500px",
             border: "none",
             borderRadius: "20px",
@@ -180,18 +198,7 @@ export const LiquidateCollateralModal = ({
             title={t("collateral.liquidate.title")}
             arrowOnClick={handleCloseModal}
             crossOnClick={null}
-          >
-            {!isLoadingLiquidator && !isLiquidator && (
-              <Typography
-                variant="text3"
-                color={COLORS.santasGrey}
-                marginBottom="4px"
-                align="center"
-              >
-                <Trans i18nKey="collateral.liquidate.notLiquidator" />
-              </Typography>
-            )}
-          </TxModalHeader>
+          />
         )}
 
         {showForm && (
@@ -229,6 +236,11 @@ export const LiquidateCollateralModal = ({
 
                 <ModalDataItem
                   title={t("collateral.liquidate.price.inputValue")}
+                  valueColor={
+                    getInputValueString() === failedInputString
+                      ? COLORS.dullRed
+                      : COLORS.bunker
+                  }
                   value={getInputValueString()}
                   isLoading={isLoadingTokenPrices}
                   containerSx={{
@@ -236,24 +248,26 @@ export const LiquidateCollateralModal = ({
                   }}
                 />
 
-                <NumberTextField
-                  label="0.0"
-                  size="medium"
-                  style={{ width: "100%" }}
-                  max={
-                    +collateral.availableCollateral.format(
-                      collateral.collateralAsset.decimals,
-                    ) || 0
-                  }
-                  value={liquidateAmount}
-                  onChange={handleAmountChange}
-                  endAdornment={
-                    <TextfieldChip
-                      text={collateral.collateralAsset.symbol}
-                      size="small"
-                    />
-                  }
-                />
+                {isLiquidator && (
+                  <NumberTextField
+                    label="0.0"
+                    size="medium"
+                    style={{ width: "100%" }}
+                    max={
+                      +collateral.availableCollateral.format(
+                        collateral.collateralAsset.decimals,
+                      ) || 0
+                    }
+                    value={liquidateAmount}
+                    onChange={handleAmountChange}
+                    endAdornment={
+                      <TextfieldChip
+                        text={collateral.collateralAsset.symbol}
+                        size="small"
+                      />
+                    }
+                  />
+                )}
 
                 <Typography
                   variant="text3"
@@ -271,11 +285,12 @@ export const LiquidateCollateralModal = ({
 
                 <Divider sx={{ mt: "12px" }} />
 
-                {!quote && notEmptyOrZeroAmount && !isLoadingQuote ? (
+                {isNotSupportedToken ? (
                   <Box width="100%" marginTop="12px">
-                    <DepositAlert
+                    <ModalAlertItem
+                      bgcolor={COLORS.remy}
                       text={
-                        <Typography variant="text3">
+                        <Typography variant="text3" color={COLORS.dullRed}>
                           This token is not supported.
                         </Typography>
                       }
@@ -352,6 +367,33 @@ export const LiquidateCollateralModal = ({
                     </Typography>
                   </>
                 )}
+
+                {!isLiquidator && (
+                  <Box
+                    width="100%"
+                    marginTop={isNotSupportedToken ? "12px" : "24px"}
+                  >
+                    <ModalAlertItem
+                      text={
+                        <Typography variant="text3" color={COLORS.santasGrey}>
+                          This in not your market to liquidate
+                        </Typography>
+                      }
+                      icon={
+                        <SvgIcon
+                          sx={{
+                            fontSize: "16px",
+                            "& path": { fill: COLORS.white },
+                            "& circle": { fill: "#FFBB00" },
+                            mt: "1px",
+                          }}
+                        >
+                          <Alert />
+                        </SvgIcon>
+                      }
+                    />
+                  </Box>
+                )}
               </Box>
             </Box>
           </Box>
@@ -370,7 +412,7 @@ export const LiquidateCollateralModal = ({
         )}
 
         <TxModalFooter
-          hideButtons={!showForm}
+          hideButtons={!showForm || !isLiquidator}
           mainBtnText={t("collateral.liquidate.liquidate")}
           mainBtnOnClick={handleClickConfirm}
           disableMainBtn={

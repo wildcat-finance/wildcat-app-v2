@@ -23,7 +23,6 @@ import {
 import { useApprove } from "@/app/[locale]/borrower/market/[address]/hooks/useGetApproval"
 import Alert from "@/assets/icons/circledAlert_icon.svg"
 import Clock from "@/assets/icons/clock_icon.svg"
-import { DepositAlert } from "@/components/DepositAlert"
 import { LinkGroup } from "@/components/LinkComponent"
 import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
 import { NumberTextField } from "@/components/NumberTextfield"
@@ -39,6 +38,7 @@ import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { DepositModalProps } from "./interface"
+import { ModalAlertItem } from "../../../../../../../../components/ModalAlertItem"
 import { useDeposit } from "../../../hooks/useDeposit"
 
 export const DepositModal = ({
@@ -368,7 +368,7 @@ export const DepositModal = ({
               }}
             >
               {isFixedTerm && (
-                <DepositAlert
+                <ModalAlertItem
                   text={
                     <Typography variant="mobText3">
                       This is a fixed-term market: funds are locked until{" "}
@@ -392,7 +392,7 @@ export const DepositModal = ({
               )}
 
               {isFixedTerm && earlyTermination && (
-                <DepositAlert
+                <ModalAlertItem
                   text={
                     <Typography variant="mobText3">
                       The market can be repaid early to close
@@ -413,7 +413,7 @@ export const DepositModal = ({
               )}
 
               {isFixedTerm && earlyMaturity && (
-                <DepositAlert
+                <ModalAlertItem
                   text={
                     <Typography variant="mobText3">
                       The market’s duration can be shorten
@@ -434,7 +434,7 @@ export const DepositModal = ({
               )}
 
               {mustResetAllowance && (
-                <DepositAlert
+                <ModalAlertItem
                   text={
                     <Typography variant="mobText3">
                       You have an existing allowance of{" "}
@@ -665,7 +665,7 @@ export const DepositModal = ({
                 }}
               >
                 {isFixedTerm && (
-                  <DepositAlert
+                  <ModalAlertItem
                     text={
                       <Typography variant="mobText3">
                         This is a fixed-term market: funds are locked until{" "}
@@ -689,7 +689,7 @@ export const DepositModal = ({
                 )}
 
                 {isFixedTerm && earlyTermination && (
-                  <DepositAlert
+                  <ModalAlertItem
                     text={
                       <Typography variant="mobText3">
                         The market can be repaid early to close
@@ -710,7 +710,7 @@ export const DepositModal = ({
                 )}
 
                 {isFixedTerm && earlyMaturity && (
-                  <DepositAlert
+                  <ModalAlertItem
                     text={
                       <Typography variant="mobText3">
                         The market’s duration can be shorten
@@ -731,7 +731,7 @@ export const DepositModal = ({
                 )}
 
                 {mustResetAllowance && (
-                  <DepositAlert
+                  <ModalAlertItem
                     text={
                       <Typography variant="mobText3">
                         You have an existing allowance of{" "}

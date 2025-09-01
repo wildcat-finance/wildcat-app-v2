@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   IconButton,
+  LinearProgress,
   Link as MuiLink,
   SvgIcon,
   Typography,
@@ -14,6 +15,7 @@ import BackArrow from "@/assets/icons/backArrow_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { DepositModalContract } from "@/components/MarketCollateralContract/components/DepositModal"
 import { LiquidateCollateralModal } from "@/components/MarketCollateralContract/components/LiquidateModal"
+import { TooltipButton } from "@/components/TooltipButton"
 import { EtherscanBaseUrl } from "@/config/network"
 import { useGetBebopTokens } from "@/hooks/bebop/useGetBebopTokens"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -27,25 +29,18 @@ import { ReclaimModalContract } from "../ReclaimModal"
 export type ContractActionsType = {
   marketAccount: MarketAccount
   collateralContract: MarketCollateralV1
-  handleBackClick: () => void
-  hideDeposit?: boolean
+  hideActions?: boolean
 }
 
 export const ContractActions = ({
   marketAccount,
   collateralContract: inputCollateralContract,
-  handleBackClick,
-  hideDeposit,
+  hideActions,
 }: ContractActionsType) => {
   const { market } = marketAccount
   const { t } = useTranslation()
   const { collateral: collateralContract, depositor } =
     useUpdatedCollateralContract(inputCollateralContract)
-  const showDeposit = !market.isClosed && !hideDeposit
-  const showLiquidate =
-    market.isIncurringPenalties && collateralContract.availableCollateral.gt(0)
-  const showReclaim =
-    market.isClosed && depositor && depositor.sharesValue.gt(0)
   const { isTestnet } = useCurrentNetwork()
   const { data: bebopTokens } = useGetBebopTokens()
   const collateralTokenFromBebop = bebopTokens?.find(
@@ -55,6 +50,16 @@ export const ContractActions = ({
         token.symbol.toLowerCase() ===
           collateralContract.collateralAsset.symbol.toLowerCase()),
   )
+
+  const showDeposit = !market.isClosed && !hideActions
+
+  const showLiquidate =
+    market.isIncurringPenalties &&
+    collateralContract.availableCollateral.gt(0) &&
+    !hideActions
+
+  const showReclaim =
+    market.isClosed && depositor && depositor.sharesValue.gt(0) && !hideActions
 
   const collateralValue =
     collateralTokenFromBebop &&
@@ -144,6 +149,13 @@ export const ContractActions = ({
         {showLiquidate && (
           <LiquidateCollateralModal collateral={collateralContract} />
         )}
+        {showReclaim && (
+          <ReclaimModalContract
+            market={market}
+            collateralContract={collateralContract}
+            depositor={depositor}
+          />
+        )}
       </CollateralActionsItem>
 
       <CollateralActionsItem
@@ -166,29 +178,85 @@ export const ContractActions = ({
         )}
       </CollateralActionsItem>
 
-      {depositor && depositor.sharesValue.gt(0) && (
-        <CollateralActionsItem
-          amount={`${collateralContract.collateralAsset
-            .getAmount(depositor.shares)
-            .format()} shares of ${collateralContract.collateralAsset
-            .getAmount(collateralContract.totalShares)
-            .format()} total`}
-          label={t("collateral.actions.yourShares")}
-          asset={undefined}
-          convertedAmount={depositor.sharesValue.format(
-            depositor.sharesValue.token.decimals,
-            true,
-          )}
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+        }}
+      >
+        <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
+          <Typography variant="text2">
+            {t("collateral.actions.yourShares")}
+          </Typography>
+          <TooltipButton value="TBD" />
+        </Box>
+
+        <Box
+          sx={{
+            width: "50%",
+            padding: "12px 16px",
+            backgroundColor: COLORS.hintOfRed,
+            borderRadius: "12px",
+            display: "flex",
+            flexDirection: "column",
+          }}
         >
-          {showReclaim && (
-            <ReclaimModalContract
-              market={market}
-              collateralContract={collateralContract}
-              depositor={depositor}
-            />
-          )}
-        </CollateralActionsItem>
-      )}
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+            }}
+          >
+            <Typography variant="text2">
+              20 <span style={{ color: COLORS.santasGrey }}>/ 50 shares</span>
+            </Typography>
+            <Typography variant="text4" color={COLORS.santasGrey}>
+              0 USDC
+            </Typography>
+          </Box>
+
+          <LinearProgress
+            variant="determinate"
+            value={40}
+            sx={{
+              marginTop: "20px",
+              height: "3px",
+              backgroundColor: COLORS.whiteLilac,
+              borderRadius: "50px",
+              "& .MuiLinearProgress-bar1Determinate": {
+                backgroundColor: COLORS.ultramarineBlue,
+              },
+            }}
+          />
+        </Box>
+      </Box>
+
+      {/* {depositor && depositor.sharesValue.gt(0) && ( */}
+      {/*  <CollateralActionsItem */}
+      {/*    amount={`${collateralContract.collateralAsset */}
+      {/*      .getAmount(depositor.shares) */}
+      {/*      .format()} shares of ${collateralContract.collateralAsset */}
+      {/*      .getAmount(collateralContract.totalShares) */}
+      {/*      .format()} total`} */}
+      {/*    label={t("collateral.actions.yourShares")} */}
+      {/*    asset={undefined} */}
+      {/*    convertedAmount={depositor.sharesValue.format( */}
+      {/*      depositor.sharesValue.token.decimals, */}
+      {/*      true, */}
+      {/*    )} */}
+      {/*  > */}
+      {/*    {showReclaim && ( */}
+      {/*      <ReclaimModalContract */}
+      {/*        market={market} */}
+      {/*        collateralContract={collateralContract} */}
+      {/*        depositor={depositor} */}
+      {/*      /> */}
+      {/*    )} */}
+      {/*  </CollateralActionsItem> */}
+      {/* )} */}
     </Box>
   )
 }

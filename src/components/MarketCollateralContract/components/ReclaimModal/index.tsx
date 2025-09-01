@@ -99,7 +99,7 @@ export const ReclaimModalContract = ({
         sx={{
           "& .MuiDialog-paper": {
             height: "404px",
-            width: "440px",
+            minWidth: "440px",
             border: "none",
             borderRadius: "20px",
             margin: 0,

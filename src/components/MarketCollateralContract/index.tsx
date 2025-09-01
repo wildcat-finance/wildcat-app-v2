@@ -1,9 +1,11 @@
 import { useState } from "react"
+import * as React from "react"
 
-import { Box, Skeleton } from "@mui/material"
+import { Box, Skeleton, SvgIcon, Typography } from "@mui/material"
 import { GridColDef, GridValidRowModel } from "@mui/x-data-grid"
 import { MarketAccount, MarketCollateralV1 } from "@wildcatfi/wildcat-sdk"
 
+import Coins from "@/assets/icons/coins_icon.svg"
 import { CollateralHeader } from "@/components/MarketCollateralContract/components/CollateralHeader"
 import { ContractActions } from "@/components/MarketCollateralContract/components/ContractActions"
 import { CreateContractForm } from "@/components/MarketCollateralContract/components/CreateContractForm"
@@ -21,12 +23,12 @@ export type TypeSafeColDef<
 
 export type MarketCollateralContractProps = {
   marketAccount: MarketAccount
-  hideDeposit?: boolean
+  hideActions?: boolean
 }
 
 export const MarketCollateralContract = ({
   marketAccount,
-  hideDeposit,
+  hideActions,
 }: MarketCollateralContractProps) => {
   const { market } = marketAccount
   const { data: collateralContracts, isLoading } =
@@ -70,6 +72,27 @@ export const MarketCollateralContract = ({
 
   return (
     <Box sx={{ width: "100%" }}>
+      {selectedCollateralContract && (
+        <Box
+          sx={{
+            backgroundColor: COLORS.oasis,
+            padding: "12px 16px",
+            borderRadius: "12px",
+            marginBottom: "24px",
+
+            display: "flex",
+            alignItems: "center",
+            gap: "16px",
+          }}
+        >
+          <Coins />
+          <Typography variant="text3" color={COLORS.butteredRum}>
+            Collateral cannot be reclaimed until the underlying market is
+            terminated.
+          </Typography>
+        </Box>
+      )}
+
       <Box
         sx={{
           display: "flex",
@@ -107,8 +130,7 @@ export const MarketCollateralContract = ({
         <ContractActions
           marketAccount={marketAccount}
           collateralContract={selectedCollateralContract}
-          handleBackClick={() => setSelectedCollateralContract(undefined)}
-          hideDeposit={hideDeposit}
+          hideActions={hideActions}
         />
       )}
     </Box>

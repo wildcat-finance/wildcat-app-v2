@@ -29,7 +29,6 @@ import {
 } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
 import { TxModalDialog } from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
 import Alert from "@/assets/icons/circledAlert_icon.svg"
-import { DepositAlert } from "@/components/DepositAlert"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
@@ -40,6 +39,7 @@ import { isUSDTLikeToken } from "@/utils/constants"
 import { formatTokenAmount, formatTokenWithCommas } from "@/utils/formatters"
 
 import { useApprove } from "../../../../app/[locale]/borrower/market/[address]/hooks/useGetApproval"
+import { ModalAlertItem } from "../../../ModalAlertItem"
 import { useDepositCollateral } from "../../hooks/useDepositCollateral"
 
 export type DepositModalProps = {
@@ -314,7 +314,7 @@ export const DepositModalContract = ({
                 mt: "20px",
               }}
             >
-              <DepositAlert
+              <ModalAlertItem
                 text={
                   <Typography variant="text3" maxWidth="375px">
                     Collateral cannot be reclaimed until the underlying market
@@ -334,7 +334,7 @@ export const DepositModalContract = ({
                 }
               />
 
-              <DepositAlert
+              <ModalAlertItem
                 text={
                   <Typography variant="text3" maxWidth="375px">
                     At present, there is no reward for providing collateral.
@@ -353,7 +353,7 @@ export const DepositModalContract = ({
                 }
               />
 
-              <DepositAlert
+              <ModalAlertItem
                 text={
                   <Typography variant="text3" maxWidth="375px">
                     Depositors receive shares representing ownership of the
@@ -373,7 +373,7 @@ export const DepositModalContract = ({
                 }
               />
 
-              <DepositAlert
+              <ModalAlertItem
                 text={
                   <Typography variant="text3" maxWidth="375px">
                     Shares lose value as collateral is liquidated, and future

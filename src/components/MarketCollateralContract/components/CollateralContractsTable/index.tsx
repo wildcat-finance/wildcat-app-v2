@@ -51,15 +51,21 @@ export const CollateralContractsTable = ({
     [collateralContracts],
   )
   const { data: tokenPrices } = useGetTokenPrices(allTokens)
+
   const getTokenValueSuffix = (amount: TokenAmount) => {
     if (amount.gt(0) && tokenPrices) {
       const tokenPrice = tokenPrices[amount.token.address.toLowerCase()]
       if (tokenPrice) {
-        return `  ($${+(+amount.format() * tokenPrice.usdPrice).toFixed(0)})`
+        const value = +amount.format() * tokenPrice.usdPrice
+        return `$${new Intl.NumberFormat("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(value)}`
       }
     }
     return ""
   }
+
   const columns: TypeSafeColDef<MarketCollateralV1>[] = [
     {
       sortable: false,
@@ -95,12 +101,17 @@ export const CollateralContractsTable = ({
       sortComparator: (a: TokenAmount, b: TokenAmount) =>
         tokenAmountComparator(a, b),
       renderCell: ({ value: availableCollateral }) => (
-        <Typography variant="text3">
-          {formatTokenWithCommas(availableCollateral, {
-            withSymbol: true,
-          })}
-          {getTokenValueSuffix(availableCollateral)}
-        </Typography>
+        <Box display="flex" flexDirection="column">
+          <Typography variant="text3">
+            {formatTokenWithCommas(availableCollateral, {
+              withSymbol: true,
+            })}
+          </Typography>
+
+          <Typography variant="text4" color={COLORS.santasGrey}>
+            {getTokenValueSuffix(availableCollateral) || "$0"}
+          </Typography>
+        </Box>
       ),
     },
     {
@@ -112,17 +123,19 @@ export const CollateralContractsTable = ({
       align: "right",
       sortComparator: (a: TokenAmount, b: TokenAmount) =>
         !a || !b ? 0 : tokenAmountComparator(a, b),
-      renderCell: ({ value: totalDeposited }) =>
-        totalDeposited ? (
+      renderCell: ({ value: totalDeposited }) => (
+        <Box display="flex" flexDirection="column">
           <Typography variant="text3">
             {formatTokenWithCommas(totalDeposited, {
               withSymbol: true,
             })}
-            {getTokenValueSuffix(totalDeposited)}
           </Typography>
-        ) : (
-          ""
-        ),
+
+          <Typography variant="text4" color={COLORS.santasGrey}>
+            {getTokenValueSuffix(totalDeposited) || "$0"}
+          </Typography>
+        </Box>
+      ),
     },
     {
       field: "totalLiquidated",
@@ -132,17 +145,19 @@ export const CollateralContractsTable = ({
       align: "right",
       sortComparator: (a: TokenAmount, b: TokenAmount) =>
         !a || !b ? 0 : tokenAmountComparator(a, b),
-      renderCell: ({ value: totalLiquidated }) =>
-        totalLiquidated ? (
+      renderCell: ({ value: totalLiquidated }) => (
+        <Box display="flex" flexDirection="column">
           <Typography variant="text3">
             {formatTokenWithCommas(totalLiquidated, {
               withSymbol: true,
             })}
-            {getTokenValueSuffix(totalLiquidated)}
           </Typography>
-        ) : (
-          ""
-        ),
+
+          <Typography variant="text4" color={COLORS.santasGrey}>
+            {getTokenValueSuffix(totalLiquidated) || "$0"}
+          </Typography>
+        </Box>
+      ),
     },
     {
       field: "contract",

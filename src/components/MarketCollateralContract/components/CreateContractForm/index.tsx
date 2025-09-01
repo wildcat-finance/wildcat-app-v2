@@ -160,6 +160,7 @@ export const CreateContractForm = ({
         {showForm && (
           <TxModalHeader
             title={t("collateral.create.title")}
+            divider={false}
             arrowOnClick={handleCloseModal}
             crossOnClick={null}
           >
