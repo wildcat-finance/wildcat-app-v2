@@ -14,7 +14,7 @@ import { EtherscanBaseUrl } from "@/config/network"
 import { useGetTokenPrices } from "@/hooks/useGetTokenPrices"
 import { COLORS } from "@/theme/colors"
 import { tokenAmountComparator } from "@/utils/comparators"
-import { formatTokenWithCommas } from "@/utils/formatters"
+import { formatTokenWithCommas, getTokenValueSuffix } from "@/utils/formatters"
 
 export type CollateralContractsTableProps = {
   collateralContracts: MarketCollateralV1[]
@@ -51,20 +51,6 @@ export const CollateralContractsTable = ({
     [collateralContracts],
   )
   const { data: tokenPrices } = useGetTokenPrices(allTokens)
-
-  const getTokenValueSuffix = (amount: TokenAmount) => {
-    if (amount.gt(0) && tokenPrices) {
-      const tokenPrice = tokenPrices[amount.token.address.toLowerCase()]
-      if (tokenPrice) {
-        const value = +amount.format() * tokenPrice.usdPrice
-        return `$${new Intl.NumberFormat("en-US", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }).format(value)}`
-      }
-    }
-    return ""
-  }
 
   const columns: TypeSafeColDef<MarketCollateralV1>[] = [
     {
@@ -109,7 +95,7 @@ export const CollateralContractsTable = ({
           </Typography>
 
           <Typography variant="text4" color={COLORS.santasGrey}>
-            {getTokenValueSuffix(availableCollateral) || "$0"}
+            {getTokenValueSuffix(availableCollateral, tokenPrices) || "$0"}
           </Typography>
         </Box>
       ),
@@ -132,7 +118,7 @@ export const CollateralContractsTable = ({
           </Typography>
 
           <Typography variant="text4" color={COLORS.santasGrey}>
-            {getTokenValueSuffix(totalDeposited) || "$0"}
+            {getTokenValueSuffix(totalDeposited, tokenPrices) || "$0"}
           </Typography>
         </Box>
       ),
@@ -154,7 +140,7 @@ export const CollateralContractsTable = ({
           </Typography>
 
           <Typography variant="text4" color={COLORS.santasGrey}>
-            {getTokenValueSuffix(totalLiquidated) || "$0"}
+            {getTokenValueSuffix(totalLiquidated, tokenPrices) || "$0"}
           </Typography>
         </Box>
       ),

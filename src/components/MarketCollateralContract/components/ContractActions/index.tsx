@@ -1,17 +1,9 @@
-import {
-  Box,
-  Button,
-  IconButton,
-  LinearProgress,
-  Link as MuiLink,
-  SvgIcon,
-  Typography,
-} from "@mui/material"
+import * as React from "react"
+
+import { Box, LinearProgress, Skeleton, Typography } from "@mui/material"
 import { MarketAccount, MarketCollateralV1 } from "@wildcatfi/wildcat-sdk"
-import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import BackArrow from "@/assets/icons/backArrow_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { DepositModalContract } from "@/components/MarketCollateralContract/components/DepositModal"
 import { LiquidateCollateralModal } from "@/components/MarketCollateralContract/components/LiquidateModal"
@@ -20,8 +12,14 @@ import { EtherscanBaseUrl } from "@/config/network"
 import { useGetBebopTokens } from "@/hooks/bebop/useGetBebopTokens"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useUpdatedCollateralContract } from "@/hooks/useGetCollateralContracts"
+import { useGetTokenPrices } from "@/hooks/useGetTokenPrices"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
-import { TOKEN_FORMAT_DECIMALS, trimAddress } from "@/utils/formatters"
+import {
+  getTokenValueSuffix,
+  TOKEN_FORMAT_DECIMALS,
+  trimAddress,
+} from "@/utils/formatters"
 
 import { CollateralActionsItem } from "../CollateralActionsItem"
 import { ReclaimModalContract } from "../ReclaimModal"
@@ -37,6 +35,7 @@ export const ContractActions = ({
   collateralContract: inputCollateralContract,
   hideActions,
 }: ContractActionsType) => {
+  const isMobile = useMobileResolution()
   const { market } = marketAccount
   const { t } = useTranslation()
   const { collateral: collateralContract, depositor } =
@@ -50,6 +49,11 @@ export const ContractActions = ({
         token.symbol.toLowerCase() ===
           collateralContract.collateralAsset.symbol.toLowerCase()),
   )
+
+  const { data: tokenPrices, isPending } = useGetTokenPrices([
+    market.underlyingToken,
+    collateralContract.collateralAsset,
+  ])
 
   const showDeposit = !market.isClosed && !hideActions
 
@@ -65,6 +69,119 @@ export const ContractActions = ({
     collateralTokenFromBebop &&
     +collateralContract.availableCollateral.format() *
       (collateralTokenFromBebop.priceUsd ?? 0)
+
+  if (isMobile)
+    return (
+      <>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="flex-start"
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              marginBottom: "2px",
+            }}
+          >
+            <Typography variant="mobText3">
+              {t("collateral.actions.delinquentDebt")}
+            </Typography>
+            <TooltipButton value="TBD" color={COLORS.bunker} />
+          </Box>
+
+          <Box display="flex" flexDirection="column" alignItems="flex-end">
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "4px",
+              }}
+            >
+              <Typography
+                variant="mobH3"
+                sx={{ fontSize: "18px", lineHeight: "24px" }}
+              >
+                {market.delinquentDebt.format(TOKEN_FORMAT_DECIMALS)}
+              </Typography>
+              <Typography
+                variant="mobText4"
+                sx={{
+                  marginTop: "1px",
+                }}
+              >
+                {market.underlyingToken.symbol}
+              </Typography>
+            </Box>
+
+            {isPending ? (
+              <Skeleton
+                sx={{ height: "16px", width: "42px", borderRadius: "6px" }}
+              />
+            ) : (
+              <Typography variant="mobText4" color={COLORS.santasGrey}>
+                {getTokenValueSuffix(market.delinquentDebt, tokenPrices)}
+              </Typography>
+            )}
+          </Box>
+        </Box>
+
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="flex-start"
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              marginBottom: "2px",
+            }}
+          >
+            <Typography variant="mobText3">
+              {t("collateral.actions.availableCollateral")}
+            </Typography>
+            <TooltipButton value="TBD" color={COLORS.bunker} />
+          </Box>
+
+          <Box display="flex" flexDirection="column" alignItems="flex-end">
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "4px",
+              }}
+            >
+              <Typography
+                variant="mobH3"
+                sx={{ fontSize: "18px", lineHeight: "24px" }}
+              >
+                {collateralContract.availableCollateral.format(
+                  TOKEN_FORMAT_DECIMALS,
+                )}
+              </Typography>
+              <Typography
+                variant="mobText4"
+                sx={{
+                  marginTop: "1px",
+                }}
+              >
+                {collateralContract.collateralAsset.symbol}
+              </Typography>
+            </Box>
+
+            <Typography variant="mobText4" color={COLORS.santasGrey}>
+              {collateralValue !== undefined
+                ? `$${collateralValue.toFixed(2)}`
+                : "0"}
+            </Typography>
+          </Box>
+        </Box>
+      </>
+    )
 
   return (
     <Box

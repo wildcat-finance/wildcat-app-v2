@@ -8,6 +8,7 @@ import duration from "dayjs/plugin/duration"
 import { BigNumber } from "ethers"
 import { formatUnits } from "ethers/lib/utils"
 
+import { TokenPrices } from "@/app/api/token-price/interface"
 import { dayjs } from "@/utils/dayjs"
 
 // <---- TIMESTAMP TO DATE FORMATTERS ---->
@@ -182,6 +183,23 @@ export const formatTokenAmount = (
   return formatDecimalsLimit
     ? Number(formattedAmount).toFixed(formatDecimalsLimit)
     : formattedAmount
+}
+
+export const getTokenValueSuffix = (
+  amount: TokenAmount,
+  tokenPrices: TokenPrices | undefined,
+) => {
+  if (amount.gt(0) && tokenPrices) {
+    const tokenPrice = tokenPrices[amount.token.address.toLowerCase()]
+    if (tokenPrice) {
+      const value = +amount.format() * tokenPrice.usdPrice
+      return `$${new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value)}`
+    }
+  }
+  return ""
 }
 
 export const formatBlockTimestamp = (

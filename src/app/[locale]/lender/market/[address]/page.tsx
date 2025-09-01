@@ -289,6 +289,8 @@ export default function LenderMarketDetails({
             />
           </Box>
 
+          <MarketCollateralContract marketAccount={marketAccount} hideActions />
+
           {authorizedInMarket && (
             <MobileMarketActions
               marketAccount={marketAccount}
