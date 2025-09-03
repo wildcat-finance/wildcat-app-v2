@@ -29,6 +29,76 @@ export type SmallFilterSelectProps = {
   width?: string
 }
 
+const CollapsedChips = ({
+  items,
+  onDelete,
+}: {
+  items: SmallFilterSelectItem[]
+  onDelete: (item: SmallFilterSelectItem) => void
+}) => {
+  const ref = useRef<HTMLDivElement | null>(null)
+  const first = items[0]
+  const showAll = items.length <= 1
+
+  return (
+    <Box
+      ref={ref}
+      sx={{
+        height: "20px",
+        display: "flex",
+        flexWrap: "nowrap",
+        overflow: "hidden",
+        gap: 0.5,
+        alignItems: "center",
+        width: "100%",
+        "& > *": { flexShrink: 0 },
+      }}
+    >
+      {showAll &&
+        items.map((m) => (
+          <LendersMarketChip
+            key={m.id}
+            type="new"
+            marketName={m.name}
+            withButton
+            width="auto"
+            onClick={() => onDelete(m)}
+          />
+        ))}
+      {!showAll && first && (
+        <>
+          <LendersMarketChip
+            key={first.id}
+            type="new"
+            marketName={first.name}
+            withButton
+            width="auto"
+            onClick={() => onDelete(first)}
+          />
+          <Box
+            sx={{
+              height: "20px",
+              display: "flex",
+              alignItems: "center",
+              paddingLeft: "4px",
+              fontSize: "12px",
+              lineHeight: 1,
+              color: COLORS.ultramarineBlue,
+              userSelect: "none",
+            }}
+            title={items
+              .slice(1)
+              .map((i) => i.name)
+              .join(", ")}
+          >
+            …
+          </Box>
+        </>
+      )}
+    </Box>
+  )
+}
+
 export const SmallFilterSelect = ({
   placeholder,
   options,
@@ -136,25 +206,7 @@ export const SmallFilterSelect = ({
           </SvgIcon>
         }
         renderValue={(selectedMarkets) => (
-          <Box
-            sx={{
-              height: "20px",
-              display: "flex",
-              flexWrap: "wrap",
-              overflow: "hidden",
-              gap: 0.5,
-            }}
-          >
-            {selectedMarkets.map((market) => (
-              <LendersMarketChip
-                key={market.id}
-                marketName={market.name}
-                withButton
-                width={market.name.length > 15 ? "100%" : "fit-content"}
-                onClick={() => handleDeleteItem(market)}
-              />
-            ))}
-          </Box>
+          <CollapsedChips items={selectedMarkets} onDelete={handleDeleteItem} />
         )}
         MenuProps={{
           sx: {
