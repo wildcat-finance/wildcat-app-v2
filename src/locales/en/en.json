@@ -526,7 +526,7 @@
     "reclaim": {
       "shares": "Shares",
       "sharesValue": "Shares Value",
-      "title": "Reclaim Collateral from {{marketName}}",
+      "title": "Reclaim Collateral",
       "button": "Reclaim"
     },
     "create": {

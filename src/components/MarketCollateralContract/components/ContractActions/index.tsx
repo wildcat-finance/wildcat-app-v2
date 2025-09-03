@@ -16,6 +16,7 @@ import { useGetTokenPrices } from "@/hooks/useGetTokenPrices"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import {
+  formatTokenWithCommas,
   getTokenValueSuffix,
   TOKEN_FORMAT_DECIMALS,
   trimAddress,
@@ -69,6 +70,18 @@ export const ContractActions = ({
     collateralTokenFromBebop &&
     +collateralContract.availableCollateral.format() *
       (collateralTokenFromBebop.priceUsd ?? 0)
+
+  const totalSharesNumber = Number(
+    collateralContract.collateralAsset
+      .getAmount(collateralContract.totalShares)
+      .format(),
+  )
+
+  const depositorSharesNumber = depositor
+    ? Number(
+        collateralContract.collateralAsset.getAmount(depositor.shares).format(),
+      )
+    : 0
 
   if (isMobile)
     return (
@@ -295,85 +308,97 @@ export const ContractActions = ({
         )}
       </CollateralActionsItem>
 
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
-          <Typography variant="text2">
-            {t("collateral.actions.yourShares")}
-          </Typography>
-          <TooltipButton value="TBD" />
-        </Box>
-
+      {collateralContract.collateralAsset
+        .getAmount(collateralContract.totalShares)
+        .gt(0) && (
         <Box
           sx={{
-            width: "50%",
-            padding: "12px 16px",
-            backgroundColor: COLORS.hintOfRed,
-            borderRadius: "12px",
+            width: "100%",
             display: "flex",
-            flexDirection: "column",
+            justifyContent: "space-between",
           }}
         >
-          <Box
-            sx={{
-              width: "100%",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-            }}
-          >
+          <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
             <Typography variant="text2">
-              20 <span style={{ color: COLORS.santasGrey }}>/ 50 shares</span>
+              {t("collateral.actions.yourShares")}
             </Typography>
-            <Typography variant="text4" color={COLORS.santasGrey}>
-              0 USDC
-            </Typography>
+            <TooltipButton value="TBD" />
           </Box>
 
-          <LinearProgress
-            variant="determinate"
-            value={40}
+          <Box
             sx={{
-              marginTop: "20px",
-              height: "3px",
-              backgroundColor: COLORS.whiteLilac,
-              borderRadius: "50px",
-              "& .MuiLinearProgress-bar1Determinate": {
-                backgroundColor: COLORS.ultramarineBlue,
-              },
+              width: "50%",
+              padding: "12px 16px",
+              backgroundColor: COLORS.hintOfRed,
+              borderRadius: "12px",
+              display: "flex",
+              flexDirection: "column",
             }}
-          />
-        </Box>
-      </Box>
+          >
+            <Box
+              sx={{
+                width: "100%",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+              }}
+            >
+              <Typography variant="text2">
+                {depositorSharesNumber}{" "}
+                <span style={{ color: COLORS.santasGrey }}>
+                  / {totalSharesNumber} shares
+                </span>
+              </Typography>
+              {depositor && (
+                <Typography variant="text4" color={COLORS.santasGrey}>
+                  {depositor.sharesValue.format(
+                    depositor.sharesValue.token.decimals,
+                    true,
+                  )}
+                </Typography>
+              )}
+            </Box>
 
-      {/* {depositor && depositor.sharesValue.gt(0) && ( */}
-      {/*  <CollateralActionsItem */}
-      {/*    amount={`${collateralContract.collateralAsset */}
-      {/*      .getAmount(depositor.shares) */}
-      {/*      .format()} shares of ${collateralContract.collateralAsset */}
-      {/*      .getAmount(collateralContract.totalShares) */}
-      {/*      .format()} total`} */}
-      {/*    label={t("collateral.actions.yourShares")} */}
-      {/*    asset={undefined} */}
-      {/*    convertedAmount={depositor.sharesValue.format( */}
-      {/*      depositor.sharesValue.token.decimals, */}
-      {/*      true, */}
-      {/*    )} */}
-      {/*  > */}
-      {/*    {showReclaim && ( */}
-      {/*      <ReclaimModalContract */}
-      {/*        market={market} */}
-      {/*        collateralContract={collateralContract} */}
-      {/*        depositor={depositor} */}
-      {/*      /> */}
-      {/*    )} */}
-      {/*  </CollateralActionsItem> */}
-      {/* )} */}
+            <LinearProgress
+              variant="determinate"
+              value={(depositorSharesNumber * 100) / totalSharesNumber}
+              sx={{
+                marginTop: "20px",
+                height: "3px",
+                backgroundColor: COLORS.whiteLilac,
+                borderRadius: "50px",
+                "& .MuiLinearProgress-bar1Determinate": {
+                  backgroundColor: COLORS.ultramarineBlue,
+                },
+              }}
+            />
+          </Box>
+        </Box>
+      )}
+
+      {depositor && depositor.sharesValue.gt(0) && (
+        <CollateralActionsItem
+          amount={`${collateralContract.collateralAsset
+            .getAmount(depositor.shares)
+            .format()} shares of ${collateralContract.collateralAsset
+            .getAmount(collateralContract.totalShares)
+            .format()} total`}
+          label={t("collateral.actions.yourShares")}
+          asset={undefined}
+          convertedAmount={depositor.sharesValue.format(
+            depositor.sharesValue.token.decimals,
+            true,
+          )}
+        >
+          {showReclaim && (
+            <ReclaimModalContract
+              market={market}
+              collateralContract={collateralContract}
+              depositor={depositor}
+            />
+          )}
+        </CollateralActionsItem>
+      )}
     </Box>
   )
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-import { Box, Button, Dialog } from "@mui/material"
+import { Box, Button, Dialog, Typography } from "@mui/material"
 import { Market, MarketCollateralV1 } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
@@ -99,7 +99,7 @@ export const ReclaimModalContract = ({
         sx={{
           "& .MuiDialog-paper": {
             height: "404px",
-            minWidth: "440px",
+            width: "440px",
             border: "none",
             borderRadius: "20px",
             margin: 0,
@@ -109,12 +109,24 @@ export const ReclaimModalContract = ({
       >
         {showForm && (
           <TxModalHeader
-            title={t("collateral.reclaim.title", {
-              marketName: market.name,
-            })}
+            title=""
             arrowOnClick={handleCloseModal}
             crossOnClick={null}
-          />
+          >
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "2px",
+                alignItems: "center",
+              }}
+            >
+              <Typography variant="text3">{market.name}</Typography>
+              <Typography variant="title3">
+                {t("collateral.reclaim.title")}
+              </Typography>
+            </Box>
+          </TxModalHeader>
         )}
 
         {showForm && (
