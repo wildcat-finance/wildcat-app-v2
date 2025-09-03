@@ -159,24 +159,23 @@ export const LenderMarketSidebar = () => {
               </Button>
             )}
 
-            {hasCollateralContract && (
-              <Button
-                variant="text"
-                size="medium"
-                onClick={() =>
-                  handleChangeSection(LenderMarketSections.COLLATERAL_CONTRACT)
-                }
-                sx={{
-                  ...MenuItemButton,
-                  backgroundColor:
-                    currentSection === LenderMarketSections.COLLATERAL_CONTRACT
-                      ? COLORS.whiteSmoke
-                      : "transparent",
-                }}
-              >
-                Collateral Contract
-              </Button>
-            )}
+            <Button
+              disabled={!hasCollateralContract}
+              variant="text"
+              size="medium"
+              onClick={() =>
+                handleChangeSection(LenderMarketSections.COLLATERAL_CONTRACT)
+              }
+              sx={{
+                ...MenuItemButton,
+                backgroundColor:
+                  currentSection === LenderMarketSections.COLLATERAL_CONTRACT
+                    ? COLORS.whiteSmoke
+                    : "transparent",
+              }}
+            >
+              Collateral Contract
+            </Button>
           </Box>
         )}
       </Box>

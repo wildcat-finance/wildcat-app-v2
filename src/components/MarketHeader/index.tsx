@@ -20,6 +20,7 @@ import { MarketCycleChip } from "@/components/MarketCycleChip"
 import { MobileMoreButton } from "@/components/Mobile/MobileMoreButton"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
+import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
@@ -88,6 +89,10 @@ export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
 
     return trimAddress(market.borrower)
   }
+
+  const hasCollateralContract = useAppSelector(
+    (state) => state.lenderMarketRouting.hasCollateralContract,
+  )
 
   if (isMobile)
     return (
@@ -266,6 +271,26 @@ export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
               href="#mla"
             >
               MLA
+            </Button>
+          )}
+
+          {hasCollateralContract && (
+            <Button
+              variant="text"
+              size="small"
+              sx={{
+                minWidth: "fit-content",
+                padding: "6px 8px",
+                flexShrink: 0,
+                fontSize: 10,
+                fontWeight: 600,
+                lineHeight: "16px",
+                backgroundColor: COLORS.hintOfRed,
+              }}
+              component="a"
+              href="#collateral"
+            >
+              Collateral Contract
             </Button>
           )}
         </Box>

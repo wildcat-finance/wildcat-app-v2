@@ -151,6 +151,10 @@ export default function LenderMarketDetails({
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
+  const hasCollateralContract = useAppSelector(
+    (state) => state.lenderMarketRouting.hasCollateralContract,
+  )
+
   if (!mounted) return null
 
   if (isLoading && isMobile)
@@ -280,16 +284,19 @@ export default function LenderMarketDetails({
             <WithdrawalRequests withdrawals={withdrawals} />
           </Box>
 
-          <Box id="mla">
-            <MobileMlaAlert
-              mla={mla}
-              isLoading={mlaLoading}
-              isMLAOpen={isMobileMLAOpen}
-              setIsMLAOpen={setIsMobileMLAOpen}
-            />
-          </Box>
+          <MobileMlaAlert
+            mla={mla}
+            isLoading={mlaLoading}
+            isMLAOpen={isMobileMLAOpen}
+            setIsMLAOpen={setIsMobileMLAOpen}
+          />
 
-          <MarketCollateralContract marketAccount={marketAccount} hideActions />
+          {hasCollateralContract && (
+            <MarketCollateralContract
+              marketAccount={marketAccount}
+              hideActions
+            />
+          )}
 
           {authorizedInMarket && (
             <MobileMarketActions

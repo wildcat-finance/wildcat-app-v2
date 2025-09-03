@@ -73,6 +73,7 @@ export const MarketCollateralContract = ({
   )
     return (
       <Box
+        id="collateral"
         sx={{
           display: "flex",
           flexDirection: "column",
@@ -106,11 +107,13 @@ export const MarketCollateralContract = ({
           </Typography>
         </Box>
 
-        <MobileCollateralSelect
-          collateralContracts={collateralContracts}
-          selectedContract={selectedCollateralContract}
-          setSelectedContract={setSelectedCollateralContract}
-        />
+        {collateralContracts && collateralContracts?.length > 1 && (
+          <MobileCollateralSelect
+            collateralContracts={collateralContracts}
+            selectedContract={selectedCollateralContract}
+            setSelectedContract={setSelectedCollateralContract}
+          />
+        )}
 
         <Box
           sx={{
