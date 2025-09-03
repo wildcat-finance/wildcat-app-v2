@@ -1,4 +1,13 @@
-import { ChangeEvent, Dispatch, SetStateAction, useRef, useState } from "react"
+import {
+  ChangeEvent,
+  Dispatch,
+  SetStateAction,
+  useRef,
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+} from "react"
 import * as React from "react"
 
 import {
@@ -36,26 +45,82 @@ const CollapsedChips = ({
   items: SmallFilterSelectItem[]
   onDelete: (item: SmallFilterSelectItem) => void
 }) => {
-  const ref = useRef<HTMLDivElement | null>(null)
-  const first = items[0]
-  const showAll = items.length <= 1
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const measureRef = useRef<HTMLDivElement | null>(null)
+  const ellipsisRef = useRef<HTMLDivElement | null>(null)
+  const [visibleCount, setVisibleCount] = useState(items.length)
+
+  // calculate a 'fake' row consisting of all assets selected + ... width
+  // eg ((USDC) (DAI) (WETH) ...)
+  // then do a one-shot pass adding chips until we have to use ...
+  const recompute = useCallback(() => {
+    const container = containerRef.current
+    const measure = measureRef.current
+    if (!container || !measure) return
+    const allChips = Array.from(
+      measure.querySelectorAll('[data-chip="true"]'),
+    ) as HTMLElement[]
+    if (allChips.length === 0) {
+      setVisibleCount(0)
+      return
+    }
+    const ellipsisWidth = ellipsisRef.current?.offsetWidth || 12
+    const containerWidth = container.clientWidth
+    if (!containerWidth) return
+
+    const widths = allChips.map((c) => c.offsetWidth)
+    let acc = 0
+    let count = 0
+    for (let i = 0; i < widths.length; i += 1) {
+      const w = widths[i]
+      const remainingAfter = widths.length - (i + 1)
+      const needEllipsis = remainingAfter > 0
+      const needed = acc + w + (needEllipsis ? ellipsisWidth : 0)
+      if (needed <= containerWidth) {
+        acc += w
+        count = i + 1
+      } else {
+        break
+      }
+    }
+    if (count === 0) count = 1 // always show at least one
+    setVisibleCount(count)
+  }, [])
+
+  // re-run when the set of items change
+  useLayoutEffect(() => {
+    setVisibleCount(items.length)
+    recompute()
+  }, [items, recompute])
+
+  useEffect(() => {
+    const onResize = () => {
+      recompute()
+    }
+    window.addEventListener("resize", onResize)
+    return () => window.removeEventListener("resize", onResize)
+  }, [recompute])
+
+  const visible = items.slice(0, visibleCount)
+  const hidden = items.slice(visibleCount)
+  const showAll = hidden.length === 0
 
   return (
-    <Box
-      ref={ref}
-      sx={{
-        height: "20px",
-        display: "flex",
-        flexWrap: "nowrap",
-        overflow: "hidden",
-        gap: 0.5,
-        alignItems: "center",
-        width: "100%",
-        "& > *": { flexShrink: 0 },
-      }}
-    >
-      {showAll &&
-        items.map((m) => (
+    <>
+      <Box
+        ref={containerRef}
+        sx={{
+          height: "20px",
+          display: "flex",
+          flexWrap: "nowrap",
+          overflow: "hidden",
+          gap: 0.5,
+          alignItems: "center",
+          width: "100%",
+          "& > *": { flexShrink: 0 },
+        }}
+      >
+        {visible.map((m) => (
           <LendersMarketChip
             key={m.id}
             type="new"
@@ -65,16 +130,7 @@ const CollapsedChips = ({
             onClick={() => onDelete(m)}
           />
         ))}
-      {!showAll && first && (
-        <>
-          <LendersMarketChip
-            key={first.id}
-            type="new"
-            marketName={first.name}
-            withButton
-            width="auto"
-            onClick={() => onDelete(first)}
-          />
+        {!showAll && (
           <Box
             sx={{
               height: "20px",
@@ -86,16 +142,51 @@ const CollapsedChips = ({
               color: COLORS.ultramarineBlue,
               userSelect: "none",
             }}
-            title={items
-              .slice(1)
-              .map((i) => i.name)
-              .join(", ")}
+            title={hidden.map((i) => i.name).join(", ")}
           >
             …
           </Box>
-        </>
-      )}
-    </Box>
+        )}
+      </Box>
+      {/* measurement layer */}
+      <Box
+        ref={measureRef}
+        sx={{
+          position: "absolute",
+          visibility: "hidden",
+          pointerEvents: "none",
+          height: 0,
+          overflow: "hidden",
+          display: "flex",
+          gap: 0.5,
+        }}
+      >
+        {items.map((m) => (
+          <Box key={m.id} data-chip="true">
+            <LendersMarketChip
+              type="new"
+              marketName={m.name}
+              withButton
+              width="auto"
+            />
+          </Box>
+        ))}
+        <Box
+          ref={ellipsisRef}
+          sx={{
+            height: "20px",
+            display: "flex",
+            alignItems: "center",
+            paddingLeft: "4px",
+            fontSize: "12px",
+            lineHeight: 1,
+            color: COLORS.ultramarineBlue,
+          }}
+        >
+          …
+        </Box>
+      </Box>
+    </>
   )
 }
 
