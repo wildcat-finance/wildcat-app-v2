@@ -117,7 +117,6 @@ const CollapsedChips = ({
           gap: 0.5,
           alignItems: "center",
           width: "100%",
-          "& > *": { flexShrink: 0 },
         }}
       >
         {visible.map((m) => (
@@ -126,7 +125,7 @@ const CollapsedChips = ({
             type="new"
             marketName={m.name}
             withButton
-            width="auto"
+            width={m.name.length > 15 ? "100%" : "fit-content"}
             onClick={() => onDelete(m)}
           />
         ))}
@@ -167,7 +166,7 @@ const CollapsedChips = ({
               type="new"
               marketName={m.name}
               withButton
-              width="auto"
+              width={m.name.length > 15 ? "100%" : "fit-content"}
             />
           </Box>
         ))}
