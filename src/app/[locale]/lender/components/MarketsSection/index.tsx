@@ -288,7 +288,17 @@ export const MarketsSection = () => {
             </Typography>
 
             {marketSection !== LenderMarketDashboardSections.OTHER &&
-              !isLoading && (
+              (isLoading ? (
+                <Skeleton
+                  variant="rounded"
+                  sx={{
+                    width: "100px",
+                    height: "32px",
+                    borderRadius: "8px",
+                    bgcolor: COLORS.athensGrey,
+                  }}
+                />
+              ) : (
                 <Button
                   variant="contained"
                   size="small"
@@ -306,7 +316,7 @@ export const MarketsSection = () => {
                 >
                   {t("dashboard.markets.lenderTitleButton")}
                 </Button>
-              )}
+              ))}
           </Box>
 
           <Typography
@@ -332,7 +342,43 @@ export const MarketsSection = () => {
               justifyContent: "space-between",
             }}
           >
-            {!noMarketsAtAll && <LenderMarketSectionSwitcher />}
+            {isLoading ? (
+              <Box
+                role="status"
+                aria-label="Loading market section tabs"
+                sx={{ display: "flex", gap: "8px", height: "32px" }}
+              >
+                <Skeleton
+                  variant="rounded"
+                  sx={{
+                    width: "140px",
+                    height: "32px",
+                    borderRadius: "16px",
+                    bgcolor: COLORS.athensGrey,
+                  }}
+                />
+                <Skeleton
+                  variant="rounded"
+                  sx={{
+                    width: "190px",
+                    height: "32px",
+                    borderRadius: "16px",
+                    bgcolor: COLORS.athensGrey,
+                  }}
+                />
+                <Skeleton
+                  variant="rounded"
+                  sx={{
+                    width: "150px",
+                    height: "32px",
+                    borderRadius: "16px",
+                    bgcolor: COLORS.athensGrey,
+                  }}
+                />
+              </Box>
+            ) : (
+              !noMarketsAtAll && <LenderMarketSectionSwitcher />
+            )}
 
             <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
               <FilterTextField
