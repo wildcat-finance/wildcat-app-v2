@@ -55,6 +55,15 @@ jobs:
           echo "tag=$tag" >> $GITHUB_OUTPUT
           echo "title=$title" >> $GITHUB_OUTPUT
 
+      - name: Set identity to PR merger
+        id: ident
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LOGIN='${{ github.event.pull_request.merged_by.login }}'
+          if [ -z "$LOGIN" ] || [ "$LOGIN" = "null" ]; then LOGIN='${{ github.actor }}'; fi
+          NAME=$(gh api users/$LOGIN -q '.name')
+
       - name: Create annotated test tag
         run: |
           tag='${{ steps.testtag.outputs.tag }}'
