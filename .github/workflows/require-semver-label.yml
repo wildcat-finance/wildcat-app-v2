@@ -1,0 +1,18 @@
+name: Require SemVer Label (playground)
+
+on:
+  pull_request:
+    types: [opened, edited, ready_for_review, reopened, synchronize, labeled, unlabeled]
+    branches: [release-playground]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate SemVer label presence
+        run: |
+          names="${{ join(github.event.pull_request.labels.*.name, ' ') }}"
+          echo "$names" | grep -iqE 'semver:(major|minor|patch)' || { echo "Missing required semver label"; exit 1; }

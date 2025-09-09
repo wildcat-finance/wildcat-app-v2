@@ -1,0 +1,134 @@
+name: Test Tag & Changelog on Merge (playground)
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [release-playground]
+
+permissions:
+  contents: write
+  pull-requests: read
+  models: read
+
+concurrency:
+  group: tag-release-playground
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'release-playground'
+    runs-on: ubuntu-latest
+
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_TITLE: ${{ github.event.pull_request.title }}
+      REPO: ${{ github.repository }}
+
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install jq
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y jq
+
+      - name: Resolve target SHA
+        id: target
+        run: |
+          sha='${{ github.event.pull_request.merge_commit_sha }}'
+          if [ -z "$sha" ]; then git fetch origin release-playground --prune; sha=$(git rev-parse origin/release-playground); fi
+          echo "sha=$sha" >> $GITHUB_OUTPUT
+          short=${sha:0:7}
+          echo "short=$short" >> $GITHUB_OUTPUT
+
+      - name: Compute test tag
+        id: testtag
+        run: |
+          ts=$(date -u +%Y%m%d-%H%M)
+          pr='${{ env.PR_NUMBER }}'
+          short='${{ steps.target.outputs.short }}'
+          tag="test-${ts}-pr${pr}-${short}"
+          title="[TEST] ${ts} PR#${pr}"
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+          echo "title=$title" >> $GITHUB_OUTPUT
+
+      - name: Create annotated test tag
+        run: |
+          tag='${{ steps.testtag.outputs.tag }}'
+          sha='${{ steps.target.outputs.sha }}'
+          git tag -a "$tag" -m "[TEST] ${{ env.PR_TITLE }} (#${{ env.PR_NUMBER }})" "$sha"
+          git push origin "$tag"
+
+      - name: Install gh-models
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh extension install https://github.com/github/gh-models || true
+
+      - name: Build PR context
+        id: prctx
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr view "$PR_NUMBER" --json number,title,body,author,mergedAt,url,labels > pr.json
+          gh api repos/${{ env.REPO }}/pulls/$PR_NUMBER/files > files.json
+          gh api repos/${{ env.REPO }}/pulls/$PR_NUMBER/commits > commits.json
+          jq -s '{
+            pr: .[0],
+            files: ([.[1][]?.filename] | sort | unique | .[:80]),
+            commits: ([.[2][]? | {sha, message: .commit.message}] | .[:100])
+          }' pr.json files.json commits.json > context.json
+
+      - name: Ask model for release notes
+        id: ainotes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh models run openai/gpt-4.1 --json-input -f prompts/release-notes.prompt.yml < context.json > ai_raw.json
+          jq -r '.message[].content[0].text? // .choices[0].message.content? // .output_text? // .response? // empty' ai_raw.json > ai_notes.md
+          if [ ! -s ai_notes.md ]; then echo "FALLBACK" > ai_notes.md; fi
+
+      - name: Create GitHub Pre-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sha='${{ steps.target.outputs.sha }}'
+          tag='${{ steps.testtag.outputs.tag }}'
+          title='${{ steps.testtag.outputs.title }}'
+          if grep -q "FALLBACK" ai_notes.md; then
+            gh release create "$tag" --target "$sha" --title "$title" --generate-notes --prerelease
+          else
+            gh release create "$tag" --target "$sha" --title "$title" --notes-file ai_notes.md --prerelease
+          fi
+
+      - name: Update CHANGELOG.md in playground branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag='${{ steps.testtag.outputs.tag }}'
+          body=$(gh api repos/${{ env.REPO }}/releases/tags/"$tag" -q '.body' || echo "")
+          date=$(date +%F)
+          if [ -z "$body" ] || [ "$body" = "null" ]; then
+            last=$(git describe --tags --match 'test-*' --abbrev=0 2>/dev/null || echo "")
+            if [ -n "$last" ]; then
+              body=$(git log --no-merges --pretty="* %h %s (%an)" "$last".."$tag")
+            else
+              body="(no details)"
+            fi
+          fi
+          {
+            echo "## $tag - $date"
+            echo
+            echo "$body"
+            echo
+            [ -f CHANGELOG.md ] && cat CHANGELOG.md
+          } > CHANGELOG.tmp
+          mv CHANGELOG.tmp CHANGELOG.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          git commit -m "chore: update CHANGELOG for $tag [skip ci]" || true
+          git push origin HEAD:release-playground
