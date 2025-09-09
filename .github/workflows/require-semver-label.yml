@@ -1,4 +1,4 @@
-name: Require SemVer Label (playground; test change for PR)
+name: Require SemVer Label (playground)
 
 on:
   pull_request:
