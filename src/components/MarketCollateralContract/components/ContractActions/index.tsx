@@ -308,7 +308,7 @@ export const ContractActions = ({
         )}
       </CollateralActionsItem>
 
-      {collateralContract.collateralAsset
+      {/* {collateralContract.collateralAsset
         .getAmount(collateralContract.totalShares)
         .gt(0) && (
         <Box
@@ -374,9 +374,9 @@ export const ContractActions = ({
             />
           </Box>
         </Box>
-      )}
+      )} */}
 
-      {depositor && depositor.sharesValue.gt(0) && (
+      {/* {depositor && depositor.sharesValue.gt(0) && (
         <CollateralActionsItem
           amount={`${collateralContract.collateralAsset
             .getAmount(depositor.shares)
@@ -398,7 +398,7 @@ export const ContractActions = ({
             />
           )}
         </CollateralActionsItem>
-      )}
+      )} */}
     </Box>
   )
 }
