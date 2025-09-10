@@ -42,7 +42,7 @@ export const GET_UPDATED_COLLATERAL_CONTRACT_QUERY_KEY =
 export type CollateralDepositor = {
   allowanceCollateralAsset: TokenAmount
   balanceCollateralAsset: TokenAmount
-  lastFullLiquidationIndex: number
+  lastFullLiquidationIndex: BigNumber
   shares: BigNumber
   sharesValue: TokenAmount
 }
@@ -78,7 +78,7 @@ export function useUpdatedCollateralContract(collateral: MarketCollateralV1) {
           depositorData.balanceCollateralAsset,
         ),
         lastFullLiquidationIndex:
-          depositorData.lastFullLiquidationIndex.toNumber(),
+          depositorData.lastFullLiquidationIndex,
         shares: depositorData.shares,
         sharesValue,
       }
@@ -92,7 +92,7 @@ export function useUpdatedCollateralContract(collateral: MarketCollateralV1) {
   const { data, ...result } = useQuery({
     queryKey: [GET_UPDATED_COLLATERAL_CONTRACT_QUERY_KEY, collateral?.address],
     queryFn: updateCollateralContract,
-    enabled: !!collateral,
+    enabled: !!collateral?.address,
     refetchInterval: POLLING_INTERVAL,
     placeholderData: keepPreviousData,
   })

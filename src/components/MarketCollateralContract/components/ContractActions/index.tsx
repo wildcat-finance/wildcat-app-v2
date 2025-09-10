@@ -1,3 +1,4 @@
+"use client"
 import * as React from "react"
 
 import { Box, LinearProgress, Skeleton, Typography } from "@mui/material"
@@ -64,7 +65,7 @@ export const ContractActions = ({
     !hideActions
 
   const showReclaim =
-    market.isClosed && depositor && depositor.sharesValue.gt(0) && !hideActions
+    market.isClosed && depositor && depositor.lastFullLiquidationIndex.gt(0) && !hideActions
 
   const collateralValue =
     collateralTokenFromBebop &&
@@ -79,9 +80,11 @@ export const ContractActions = ({
 
   const depositorSharesNumber = depositor
     ? Number(
-        collateralContract.collateralAsset.getAmount(depositor.shares).format(),
+        collateralContract.collateralAsset.getAmount(depositor.lastFullLiquidationIndex).format(),
       )
     : 0
+  
+  const depositorSharesNumberFormatted = depositorSharesNumber + " " + (depositor?.sharesValue.token.symbol || "")
 
   if (isMobile)
     return (
@@ -308,7 +311,7 @@ export const ContractActions = ({
         )}
       </CollateralActionsItem>
 
-      {/* {collateralContract.collateralAsset
+      {collateralContract.collateralAsset
         .getAmount(collateralContract.totalShares)
         .gt(0) && (
         <Box
@@ -351,10 +354,7 @@ export const ContractActions = ({
               </Typography>
               {depositor && (
                 <Typography variant="text4" color={COLORS.santasGrey}>
-                  {depositor.sharesValue.format(
-                    depositor.sharesValue.token.decimals,
-                    true,
-                  )}
+                  {depositorSharesNumberFormatted}
                 </Typography>
               )}
             </Box>
@@ -374,7 +374,7 @@ export const ContractActions = ({
             />
           </Box>
         </Box>
-      )} */}
+      )}
 
       {/* {depositor && depositor.sharesValue.gt(0) && (
         <CollateralActionsItem

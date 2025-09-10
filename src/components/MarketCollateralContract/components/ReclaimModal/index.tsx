@@ -134,7 +134,7 @@ export const ReclaimModalContract = ({
             <ModalDataItem
               title={t("collateral.reclaim.shares")}
               value={collateralAsset
-                .getAmount(depositor.shares)
+                .getAmount(depositor.lastFullLiquidationIndex)
                 .format(collateralAsset.decimals, true)}
               containerSx={{
                 marginBottom: "10px",
@@ -142,10 +142,9 @@ export const ReclaimModalContract = ({
             />
             <ModalDataItem
               title={t("collateral.reclaim.sharesValue")}
-              value={depositor.sharesValue.format(
-                collateralAsset.decimals,
-                true,
-              )}
+              value={collateralAsset
+                .getAmount(depositor.lastFullLiquidationIndex)
+                .format(collateralAsset.decimals, true)}
             />
           </Box>
         )}
