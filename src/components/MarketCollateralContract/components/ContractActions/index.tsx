@@ -1,4 +1,5 @@
 "use client"
+
 import * as React from "react"
 
 import { Box, LinearProgress, Skeleton, Typography } from "@mui/material"
@@ -65,7 +66,10 @@ export const ContractActions = ({
     !hideActions
 
   const showReclaim =
-    market.isClosed && depositor && depositor.lastFullLiquidationIndex.gt(0) && !hideActions
+    market.isClosed &&
+    depositor &&
+    depositor.lastFullLiquidationIndex.gt(0) &&
+    !hideActions
 
   const collateralValue =
     collateralTokenFromBebop &&
@@ -80,11 +84,15 @@ export const ContractActions = ({
 
   const depositorSharesNumber = depositor
     ? Number(
-        collateralContract.collateralAsset.getAmount(depositor.lastFullLiquidationIndex).format(),
+        collateralContract.collateralAsset
+          .getAmount(depositor.lastFullLiquidationIndex)
+          .format(),
       )
     : 0
-  
-  const depositorSharesNumberFormatted = depositorSharesNumber + " " + (depositor?.sharesValue.token.symbol || "")
+
+  const depositorSharesNumberFormatted = `${depositorSharesNumber} ${
+    depositor?.sharesValue.token.symbol || ""
+  }`
 
   if (isMobile)
     return (

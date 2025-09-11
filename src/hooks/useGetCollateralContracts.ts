@@ -77,8 +77,7 @@ export function useUpdatedCollateralContract(collateral: MarketCollateralV1) {
         balanceCollateralAsset: collateral.collateralAsset.getAmount(
           depositorData.balanceCollateralAsset,
         ),
-        lastFullLiquidationIndex:
-          depositorData.lastFullLiquidationIndex,
+        lastFullLiquidationIndex: depositorData.lastFullLiquidationIndex,
         shares: depositorData.shares,
         sharesValue,
       }
