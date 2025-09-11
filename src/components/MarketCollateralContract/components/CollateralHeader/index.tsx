@@ -59,7 +59,7 @@ export const CollateralHeader = ({
             >
               <BackArrow />
             </SvgIcon>
-            All Сollateral Contracts
+            {t("collateral.actions.back")}
           </Button>
 
           <Typography variant="title3" marginTop="12px">

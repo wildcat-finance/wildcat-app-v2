@@ -165,7 +165,7 @@ export const CreateContractForm = ({
             crossOnClick={null}
           >
             <Typography variant="text3" color={COLORS.santasGrey}>
-              Select an asset to back your market with
+              {t("collateral.create.selectAsset")}
             </Typography>
           </TxModalHeader>
         )}

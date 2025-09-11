@@ -383,30 +383,6 @@ export const ContractActions = ({
           </Box>
         </Box>
       )}
-
-      {/* {depositor && depositor.sharesValue.gt(0) && (
-        <CollateralActionsItem
-          amount={`${collateralContract.collateralAsset
-            .getAmount(depositor.shares)
-            .format()} shares of ${collateralContract.collateralAsset
-            .getAmount(collateralContract.totalShares)
-            .format()} total`}
-          label={t("collateral.actions.yourShares")}
-          asset={undefined}
-          convertedAmount={depositor.sharesValue.format(
-            depositor.sharesValue.token.decimals,
-            true,
-          )}
-        >
-          {showReclaim && (
-            <ReclaimModalContract
-              market={market}
-              collateralContract={collateralContract}
-              depositor={depositor}
-            />
-          )}
-        </CollateralActionsItem>
-      )} */}
     </Box>
   )
 }

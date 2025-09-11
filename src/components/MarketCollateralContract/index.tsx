@@ -204,8 +204,7 @@ export const MarketCollateralContract = ({
           >
             <Coins />
             <Typography variant="text3" color={COLORS.butteredRum}>
-              Collateral cannot be reclaimed until the underlying market is
-              terminated.
+              {t("collateral.actions.disclaimer")}
             </Typography>
           </Box>
         )}
