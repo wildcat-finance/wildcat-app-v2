@@ -9,7 +9,7 @@ import { LoginInputDTO } from "./dto"
 import { LoginInput } from "./interface"
 import { createApiToken } from "../verify-header"
 
-export const MAX_SIGNATURE_AGE = 3_600 // 1 hour
+const MAX_SIGNATURE_AGE = 3_600 // 1 hour
 
 export async function POST(request: NextRequest) {
   let body: LoginInput
