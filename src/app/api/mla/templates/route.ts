@@ -35,8 +35,11 @@ export async function GET() {
 /// Admin-only endpoint.
 export async function POST(request: NextRequest) {
   const token = await verifyApiToken(request)
-  if (!token?.isAdmin) {
+  if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  if (!token.isAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   let body: CreateMlaTemplateInput
   try {
