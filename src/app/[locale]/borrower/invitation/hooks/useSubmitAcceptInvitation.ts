@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { SignAgreementProps } from "@/app/[locale]/agreement/hooks/useSignAgreement"
 import { toastRequest } from "@/components/Toasts"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
-import { useAuthToken } from "@/hooks/useApiAuth"
+import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { ROUTES } from "@/routes"
 import { formatUnixMsAsDate } from "@/utils/formatters"
@@ -21,6 +21,7 @@ export const useSubmitAcceptInvitation = () => {
   const client = useQueryClient()
   const { replace } = useRouter()
   const token = useAuthToken()
+  const { mutate: removeBadToken } = useRemoveBadApiToken()
 
   return useMutation({
     mutationFn: async ({ address, name, timeSigned }: SignAgreementProps) => {
@@ -99,6 +100,10 @@ export const useSubmitAcceptInvitation = () => {
           Authorization: `Bearer ${token.token}`,
         },
       })
+      if (response.status === 401) {
+        removeBadToken()
+        throw Error("Failed to accept invitation")
+      }
       const data = await response.json()
       if (!data.success) {
         throw Error("Failed to accept invitation")

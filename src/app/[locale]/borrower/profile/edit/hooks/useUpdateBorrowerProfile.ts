@@ -5,7 +5,7 @@ import { GET_ALL_BORROWER_PROFILES_KEY } from "@/app/[locale]/admin/hooks/useAll
 import { BORROWER_PROFILE_KEY } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { BorrowerProfileInput } from "@/app/api/profiles/interface"
 import { toastRequest } from "@/components/Toasts"
-import { useAuthToken } from "@/hooks/useApiAuth"
+import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 
 import { USE_REGISTERED_BORROWERS_KEY } from "../../../hooks/useBorrowerNames"
 
@@ -29,6 +29,7 @@ export const useUpdateBorrowerProfile = () => {
   const queryClient = useQueryClient()
   const { address } = useAccount()
   const token = useAuthToken()
+  const { mutate: removeBadToken } = useRemoveBadApiToken()
 
   const updateBorrowerProfile = async (profile: BorrowerProfileInput) => {
     if (!token.token) {
@@ -43,6 +44,9 @@ export const useUpdateBorrowerProfile = () => {
       },
     })
 
+    if (response.status === 401) {
+      removeBadToken()
+    }
     if (!response.ok) {
       throw new Error("Failed to update profile")
     }
