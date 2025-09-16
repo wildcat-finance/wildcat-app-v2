@@ -89,6 +89,7 @@ export const useSubmitAcceptInvitation = () => {
       const response = await fetch("/api/invite", {
         method: "PUT",
         body: JSON.stringify({
+          chainId: signer.chainId,
           signature: result.signature ?? "0x",
           name,
           timeSigned,

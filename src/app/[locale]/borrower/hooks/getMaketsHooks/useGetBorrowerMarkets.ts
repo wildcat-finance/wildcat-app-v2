@@ -11,9 +11,10 @@ import { useAccount } from "wagmi"
 
 import { updateMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/updateMarkets"
 import { POLLING_INTERVAL } from "@/config/polling"
-import { SubgraphClient } from "@/config/subgraph"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
 
@@ -31,7 +32,8 @@ export function useGetBorrowerMarketsQuery({
   ...variables
 }: GetMarketsProps) {
   const { address: userAddress } = useAccount()
-
+  const subgraphClient = useSubgraphClient()
+  const network = useSelectedNetwork()
   const address = borrowerAddress ?? userAddress
 
   async function queryBorrowerMarkets() {
@@ -46,7 +48,7 @@ export function useGetBorrowerMarketsQuery({
       ...(address ? [{ borrower: address.toLowerCase() }] : []),
     ]) ?? {}) as SubgraphMarket_Filter
 
-    return getMarketsForBorrower(SubgraphClient, {
+    return getMarketsForBorrower(subgraphClient, {
       borrower: address as string,
       chainId: chainId as SupportedChainId,
       signerOrProvider: provider as SignerOrProvider,
@@ -60,7 +62,7 @@ export function useGetBorrowerMarketsQuery({
   async function getBorrowerMarkets() {
     try {
       const subgraphMarkets = await queryBorrowerMarkets()
-      return updateMarkets(subgraphMarkets, provider)
+      return updateMarkets(subgraphMarkets, provider, network)
     } catch (error) {
       console.log("Error fetching borrower markets", error)
       throw error

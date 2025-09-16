@@ -8,9 +8,8 @@ import {
   MarketAccount,
 } from "@wildcatfi/wildcat-sdk"
 
-import { TargetChainId } from "@/config/network"
-import { SubgraphClient } from "@/config/subgraph"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 export const GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY =
   "get-borrower-market-account-legacy"
@@ -20,11 +19,13 @@ export const GET_MARKET_ACCOUNT_KEY = "get-market-account"
 export const useGetMarketAccountForBorrowerLegacy = (
   market: Market | undefined,
 ) => {
-  const { provider, signer, isWrongNetwork, address } = useEthersProvider()
+  const subgraphClient = useSubgraphClient()
+  const { provider, signer, isWrongNetwork, address, chainId } =
+    useEthersProvider()
   const signerOrProvider = signer ?? provider
 
   async function getMarketAccountFn() {
-    return getLenderAccountForMarket(SubgraphClient, {
+    return getLenderAccountForMarket(subgraphClient, {
       market: market as Market,
       lender: address as string,
       fetchPolicy: "network-only",
@@ -32,9 +33,10 @@ export const useGetMarketAccountForBorrowerLegacy = (
   }
 
   async function updateMarket(marketAccount: MarketAccount) {
-    if (!marketAccount || !address || !signerOrProvider) throw Error()
+    if (!marketAccount || !address || !signerOrProvider || !chainId)
+      throw Error()
     if (marketAccount.market.version === MarketVersion.V1) {
-      const lens = getLensContract(TargetChainId, signerOrProvider)
+      const lens = getLensContract(chainId, signerOrProvider)
       const update = await lens.getMarketDataWithLenderStatus(
         address,
         marketAccount.market.address,
@@ -42,7 +44,7 @@ export const useGetMarketAccountForBorrowerLegacy = (
       marketAccount.market.updateWith(update.market)
       marketAccount.updateWith(update.lenderStatus)
     } else {
-      const lens = getLensV2Contract(TargetChainId, signerOrProvider)
+      const lens = getLensV2Contract(chainId, signerOrProvider)
       const update = await lens.getMarketDataWithLenderStatus(
         address,
         marketAccount.market.address,

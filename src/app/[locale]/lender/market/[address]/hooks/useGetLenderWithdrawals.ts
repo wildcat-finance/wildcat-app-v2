@@ -19,9 +19,8 @@ import {
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { useAccount } from "wagmi"
 
-import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
-import { SubgraphClient } from "@/config/subgraph"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type LenderWithdrawalsForMarketResult = {
@@ -38,13 +37,14 @@ export const GET_LENDER_WITHDRAWALS_KEY = "get_lender_withdrawals"
 export function useGetLenderWithdrawals(
   market: Market | undefined,
 ): TwoStepQueryHookResult<LenderWithdrawalsForMarketResult> {
+  const subgraphClient = useSubgraphClient()
   const { address } = useAccount()
   const lender = address?.toLowerCase()
   const marketAddress = market?.address.toLowerCase()
   async function queryLenderWithdrawals() {
     if (!lender || !market || !marketAddress) throw Error()
     logger.debug(`Getting lender withdrawals...`)
-    const result = await SubgraphClient.query<
+    const result = await subgraphClient.query<
       SubgraphGetLenderWithdrawalsForMarketQuery,
       SubgraphGetLenderWithdrawalsForMarketQueryVariables
     >({
@@ -153,7 +153,7 @@ export function useGetLenderWithdrawals(
   async function updateWithdrawals() {
     console.log(`Updating withdrawals...`)
     if (!lender || !market || !marketAddress) throw Error()
-    const lens = getLensContract(TargetChainId, market.provider)
+    const lens = getLensContract(market.chainId, market.provider)
     const incompleteWithdrawals = [
       ...(withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []),
       ...(withdrawals.expiredPendingWithdrawals ?? []),

@@ -1,14 +1,21 @@
+import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { providers } from "ethers"
 import { createPublicClient, http } from "viem"
 import { mainnet, sepolia } from "viem/chains"
 
-import { NETWORKS } from "@/config/network"
+const ALCHEMY_NETWORK_BY_ID = {
+  [SupportedChainId.Sepolia]: "eth-sepolia",
+  [SupportedChainId.Mainnet]: "eth-mainnet",
+}
 
-export const getProviderForServer = () => {
-  const [chain, alchemyId] =
-    process.env.NEXT_PUBLIC_TARGET_NETWORK === NETWORKS.Sepolia.name
-      ? [sepolia, "eth-sepolia"]
-      : [mainnet, "eth-mainnet"]
+const VIEM_CHAIN_BY_ID = {
+  [SupportedChainId.Sepolia]: sepolia,
+  [SupportedChainId.Mainnet]: mainnet,
+}
+
+export const getProviderForServer = (chainId: SupportedChainId) => {
+  const chain = VIEM_CHAIN_BY_ID[chainId]
+  const alchemyId = ALCHEMY_NETWORK_BY_ID[chainId]
   const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY
   const rpcUrl = alchemyKey
     ? `https://${alchemyId}.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`

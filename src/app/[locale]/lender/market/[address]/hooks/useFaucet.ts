@@ -3,22 +3,19 @@ import { Dispatch } from "react"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { BaseTransaction } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import {
-  MarketAccount,
-  SupportedChainId,
-  TokenAmount,
-} from "@wildcatfi/wildcat-sdk"
+import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { toastRequest } from "@/components/Toasts"
-import { TargetChainId } from "@/config/network"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { GET_MARKET_KEY } from "@/hooks/useGetMarket"
 import { GET_MARKET_ACCOUNT_KEY } from "@/hooks/useGetMarketAccount"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export const useFaucet = (marketAccount: MarketAccount) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
+  const { isTestnet } = useSelectedNetwork()
 
   return useMutation({
     mutationFn: async () => {
@@ -26,7 +23,7 @@ export const useFaucet = (marketAccount: MarketAccount) => {
         !marketAccount ||
         !signer ||
         !marketAccount.market.underlyingToken.isMock ||
-        TargetChainId !== SupportedChainId.Sepolia
+        isTestnet
       )
         throw Error()
 

@@ -13,10 +13,9 @@ import {
   SubgraphGetMarketQueryVariables,
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 
-import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
-import { SubgraphClient } from "@/config/subgraph"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 export const GET_MARKET_KEY = "get-market"
 
@@ -25,15 +24,16 @@ export type UseMarketProps = {
 } & Partial<Omit<SubgraphGetMarketQueryVariables, "market">>
 
 export function useGetMarket({ address, ...filters }: UseMarketProps) {
-  const { signer, provider, isWrongNetwork } = useEthersProvider()
+  const subgraphClient = useSubgraphClient()
+  const { signer, provider, isWrongNetwork, chainId } = useEthersProvider()
   const marketAddressFormatted = address?.toLowerCase()
   // since we still need to have an address and have the correct network, it means we need to have a connected wallet, so we only need a signer
   const signerOrProvider = signer || provider
 
   async function queryMarket() {
-    if (!marketAddressFormatted || !signerOrProvider) throw Error()
+    if (!marketAddressFormatted || !signerOrProvider || !chainId) throw Error()
 
-    const result = await SubgraphClient.query<
+    const result = await subgraphClient.query<
       SubgraphGetMarketQuery,
       SubgraphGetMarketQueryVariables
     >({
@@ -45,20 +45,20 @@ export function useGetMarket({ address, ...filters }: UseMarketProps) {
     })
 
     return Market.fromSubgraphMarketData(
-      TargetChainId,
+      chainId,
       signerOrProvider,
       result.data.market!,
     )
   }
 
   async function updateMarket(market: Market | undefined) {
-    if (!market || !signerOrProvider) throw Error()
+    if (!market || !signerOrProvider || !chainId) throw Error()
     if (market.version === MarketVersion.V1) {
-      const lens = getLensContract(TargetChainId, signerOrProvider)
+      const lens = getLensContract(chainId, signerOrProvider)
       const update = await lens.getMarketData(market.address)
       market.updateWith(update)
     } else {
-      const lens = getLensV2Contract(TargetChainId, signerOrProvider)
+      const lens = getLensV2Contract(chainId, signerOrProvider)
       const update = await lens.getMarketData(market.address)
       market.updateWith(update)
     }

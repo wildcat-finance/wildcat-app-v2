@@ -1,14 +1,16 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 import { BorrowerProfile } from "@/app/api/profiles/interface"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export const BORROWER_PROFILE_KEY = "borrower-profile-key"
 
 const fetchBorrowerProfile = async (
   address: `0x${string}` | undefined,
+  chainId: number,
 ): Promise<BorrowerProfile | undefined> => {
   if (!address) return undefined
-  const response = await fetch(`/api/profiles/${address}`, {
+  const response = await fetch(`/api/profiles/${address}?chainId=${chainId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -28,13 +30,15 @@ const fetchBorrowerProfile = async (
   return data.profile as BorrowerProfile
 }
 
-export const useGetBorrowerProfile = (address: `0x${string}` | undefined) =>
-  useQuery<BorrowerProfile | undefined>({
+export const useGetBorrowerProfile = (address: `0x${string}` | undefined) => {
+  const { chainId } = useSelectedNetwork()
+  return useQuery<BorrowerProfile | undefined>({
     queryKey: [BORROWER_PROFILE_KEY, address],
-    queryFn: () => fetchBorrowerProfile(address),
+    queryFn: () => fetchBorrowerProfile(address, chainId),
     enabled: !!address,
     refetchOnMount: false,
   })
+}
 
 export const useInvalidateBorrowerProfile = (
   address: `0x${string}` | undefined,

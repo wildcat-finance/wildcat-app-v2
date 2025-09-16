@@ -14,8 +14,9 @@ import { UseFormReturn } from "react-hook-form"
 
 import { lastSlaUpdateTime, MlaTemplate } from "@/app/api/mla/interface"
 import { BorrowerProfile } from "@/app/api/profiles/interface"
-import { TargetChainId, TargetNetwork } from "@/config/network"
+import { NetworkInfo } from "@/config/network"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import {
   BasicBorrowerInfo,
   fillInMlaForLender,
@@ -34,8 +35,8 @@ export function getFieldValuesForBorrowerFromForm(
   borrowerTimeSigned: number,
   marketAddress: string,
   asset: Token,
+  networkData: NetworkInfo,
 ) {
-  const networkData = TargetNetwork
   // eslint-disable-next-line no-nested-ternary
   const transferAccess = marketParams.disableTransfers
     ? TransferAccess.Disabled
@@ -88,7 +89,7 @@ export function getFieldValuesForBorrowerFromForm(
     asset,
     timeSigned: borrowerTimeSigned,
     lastSlaUpdateTime: +lastSlaUpdateTime,
-    networkData: TargetNetwork,
+    networkData,
   }
   return getFieldValuesForBorrower(params)
 }
@@ -101,8 +102,12 @@ export async function getMlaFromForm(
   borrowerProfile: BorrowerProfile,
   asset: Token,
   salt: string,
+  networkData: NetworkInfo,
 ) {
-  const hooksFactoryContract = getHooksFactoryContract(TargetChainId, provider)
+  const hooksFactoryContract = getHooksFactoryContract(
+    networkData.chainId,
+    provider,
+  )
   const marketAddress = await hooksFactoryContract.computeMarketAddress(salt)
 
   const mlaTemplate = await fetch(`/api/mla/templates/${mlaTemplateId}`).then(
@@ -115,6 +120,7 @@ export async function getMlaFromForm(
     timeSigned,
     marketAddress,
     asset,
+    networkData,
   )
 
   const { html, plaintext, message } = fillInMlaTemplate(
@@ -154,6 +160,7 @@ export const usePreviewMlaFromForm = (
 ) => {
   const { provider } = useEthersProvider()
   const { data: marketAddress } = useCalculateMarketAddress(salt)
+  const selectedNetwork = useSelectedNetwork()
   return useQuery({
     refetchOnMount: true,
     queryKey: [PREVIEW_MLA_KEY, marketAddress, borrowerProfile, asset],
@@ -172,6 +179,7 @@ export const usePreviewMlaFromForm = (
         borrowerProfile,
         asset,
         salt,
+        selectedNetwork,
       )
     },
   })
@@ -181,9 +189,15 @@ export const usePreviewMla = (
   mlaTemplateId: number | undefined,
   timeSigned: number,
   borrowerProfile: BorrowerProfile | undefined,
-) =>
-  useQuery({
-    enabled: !!mlaTemplateId && !!borrowerProfile && !!timeSigned,
+) => {
+  const selectedNetwork = useSelectedNetwork()
+  return useQuery({
+    enabled:
+      !!mlaTemplateId &&
+      !!borrowerProfile &&
+      !!timeSigned &&
+      market.chainId === selectedNetwork.chainId &&
+      borrowerProfile.chainId === selectedNetwork.chainId,
     queryKey: [
       PREVIEW_MLA_KEY,
       market.borrower,
@@ -202,7 +216,7 @@ export const usePreviewMla = (
       const borrowerValues = getFieldValuesForBorrower({
         market,
         borrowerInfo: borrowerProfile as BasicBorrowerInfo,
-        networkData: TargetNetwork,
+        networkData: selectedNetwork,
         timeSigned,
         lastSlaUpdateTime: +lastSlaUpdateTime,
         asset: market.underlyingToken,
@@ -230,3 +244,4 @@ export const usePreviewMla = (
       }
     },
   })
+}

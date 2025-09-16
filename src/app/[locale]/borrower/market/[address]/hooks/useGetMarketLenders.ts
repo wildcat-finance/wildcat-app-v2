@@ -6,7 +6,6 @@ import {
   getActiveLendersByMarket,
   getLensV2Contract,
   getPolicyMarketsAndLenders,
-  LenderRole,
   Market,
   MarketVersion,
   SignerOrProvider,
@@ -15,37 +14,37 @@ import {
 import { BigNumber } from "ethers"
 import { useAccount } from "wagmi"
 
-import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
-import { SubgraphClient } from "@/config/subgraph"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 export const GET_MARKET_LENDERS_KEY = `GET_MARKET_LENDERS_KEY`
 
 export const useGetMarketLenders = (market?: Market) => {
-  const { chainId } = useCurrentNetwork()
-  const { isWrongNetwork, signer, provider } = useEthersProvider()
+  const { isWrongNetwork, signer, provider, chainId } = useEthersProvider()
+  const subgraphClient = useSubgraphClient()
   const { address } = useAccount()
   const signerOrProvider = signer ?? provider
 
   async function getMarketLenders() {
     if (!market) throw new Error("Market undefined")
     if (!signerOrProvider) throw new Error("Signer or provider undefined")
+    if (!chainId) throw new Error("Chain ID undefined") // Should never happen
     const policy =
       market.version === MarketVersion.V2
         ? market.hooksConfig?.hooksAddress
         : market.controller
     assert(policy !== undefined, `Policy undefined ${policy}`)
     const [{ lenders: policyLenders }, activeLenders] = await Promise.all([
-      getPolicyMarketsAndLenders(SubgraphClient, {
+      getPolicyMarketsAndLenders(subgraphClient, {
         fetchPolicy: "network-only",
         contractAddress: policy?.toLowerCase(),
         chainId: chainId as SupportedChainId,
         signerOrProvider: signerOrProvider as SignerOrProvider,
         numMarkets: 1,
       }),
-      getActiveLendersByMarket(SubgraphClient, {
+      getActiveLendersByMarket(subgraphClient, {
         fetchPolicy: "network-only",
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         market: market as any,
@@ -77,7 +76,7 @@ export const useGetMarketLenders = (market?: Market) => {
       ),
     ]
     if (market.version === MarketVersion.V2) {
-      const lens = getLensV2Contract(TargetChainId, signerOrProvider)
+      const lens = getLensV2Contract(chainId, signerOrProvider)
       const updates = await lens.getLenderAccountsData(
         market.address,
         allLenders.map((x) => x.address),

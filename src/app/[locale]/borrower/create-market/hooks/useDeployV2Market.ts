@@ -24,7 +24,6 @@ import { MarketDeployedEvent } from "@wildcatfi/wildcat-sdk/dist/typechain/Hooks
 import { parseUnits } from "ethers/lib/utils"
 
 import { toastError, toastRequest } from "@/components/Toasts"
-import { TargetChainId } from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { GET_BASIC_BORROWER_DATA_KEY } from "@/hooks/useGetBasicBorrowerData"
@@ -61,7 +60,7 @@ export type DeployNewV2MarketParams = (
 export const useDeployV2Market = () => {
   const signer = useEthersSigner()
   const client = useQueryClient()
-  const { isTestnet } = useCurrentNetwork()
+  const { isTestnet, targetChainId } = useCurrentNetwork()
   const { connected: isConnectedToSafe, sdk: gnosisSafeSDK } = useSafeAppsSDK()
 
   const waitForTransaction = async (txHash: string) => {
@@ -132,7 +131,7 @@ export const useDeployV2Market = () => {
           } else {
             asset = await toastRequest(
               deployToken(
-                TargetChainId,
+                targetChainId,
                 signer,
                 assetData.name,
                 assetData.symbol,
@@ -294,6 +293,7 @@ export const useDeployV2Market = () => {
             {
               method: "POST",
               body: JSON.stringify({
+                chainId: targetChainId,
                 signature: mlaSignature,
                 timeSigned,
               }),
@@ -311,6 +311,7 @@ export const useDeployV2Market = () => {
               mlaTemplate: mlaTemplateId,
               signature: mlaSignature,
               timeSigned,
+              chainId: targetChainId,
             }),
           },
         )

@@ -17,11 +17,10 @@ import {
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { BigNumber, constants } from "ethers"
 
-import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
-import { SubgraphClient } from "@/config/subgraph"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
 import { TwoStepQueryHookResult } from "@/utils/types"
@@ -69,7 +68,8 @@ export function useLendersMarkets(
   filters: LenderMarketsQueryProps = {},
 ): TwoStepQueryHookResult<MarketAccount[]> {
   const { isWrongNetwork, provider, signer, address } = useEthersProvider()
-  const { chainId } = useCurrentNetwork()
+  const { chainId, targetChainId } = useCurrentNetwork()
+  const subgraphClient = useSubgraphClient()
   const signerOrProvider = signer ?? provider
 
   const lender = address?.toLowerCase()
@@ -84,7 +84,7 @@ export function useLendersMarkets(
       ...EXCLUDED_MARKETS_FILTER,
     ]) as SubgraphMarket_Filter
     const lenderAccounts = await getLenderAccountsForAllMarkets(
-      SubgraphClient,
+      subgraphClient,
       {
         ...otherFilters,
         lender: lender ?? constants.AddressZero,
@@ -110,6 +110,7 @@ export function useLendersMarkets(
     failureReason: errorInitial,
   } = useQuery({
     queryKey: [
+      targetChainId,
       GET_LENDERS_ACCOUNTS_KEY,
       "initial",
       JSON.stringify(filters),
@@ -123,20 +124,20 @@ export function useLendersMarkets(
 
   const accounts = data ?? []
 
-  const CHUNK_SIZE = TargetChainId === 1 ? 5 : 50
+  const CHUNK_SIZE = targetChainId === 1 ? 5 : 50
 
   async function getLenderUpdates() {
     logger.debug(`Getting lender updates...`)
     const lens = getLensContract(
-      TargetChainId,
+      targetChainId,
       signerOrProvider as SignerOrProvider,
     )
     const lensV2 = getLensV2Contract(
-      TargetChainId,
+      targetChainId,
       signerOrProvider as SignerOrProvider,
     )
 
-    const { v1Chunks, v2Chunks } = getChunks(TargetChainId, accounts)
+    const { v1Chunks, v2Chunks } = getChunks(targetChainId, accounts)
     await Promise.all([
       ...v1Chunks.map(async (accountsChunk) => {
         const updates = await lens.getMarketsDataWithLenderStatus(
@@ -209,7 +210,7 @@ export function useLendersMarkets(
     isError: isErrorUpdate,
     failureReason: errorUpdate,
   } = useQuery({
-    queryKey: [GET_LENDERS_ACCOUNTS_KEY, "update", updateQueryKeys],
+    queryKey: [targetChainId, GET_LENDERS_ACCOUNTS_KEY, "update", updateQueryKeys],
     queryFn: getLenderUpdates,
     enabled: !!data,
     refetchOnMount: false,

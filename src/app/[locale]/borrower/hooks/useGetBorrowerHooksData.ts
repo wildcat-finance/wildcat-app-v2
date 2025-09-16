@@ -15,9 +15,9 @@ import {
 import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
-import { SubgraphClient } from "@/config/subgraph"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 export const GET_BORROWER_HOOKS_DATA = "get-borrower-hooks-data"
 export const GET_BORROWER_HOOKS_DATA_WITH_SUBGRAPH =
@@ -112,8 +112,9 @@ export function useGetBorrowerHooksDataWithSubgraphQuery({
   chainId,
 }: GetBorrowerHooksDataProps) {
   const { address } = useAccount()
+  const subgraphClient = useSubgraphClient()
   async function getBorrowerHooksData() {
-    const result = await getAllHooksDataForBorrower(SubgraphClient, {
+    const result = await getAllHooksDataForBorrower(subgraphClient, {
       borrower: address as string,
       chainId: chainId as SupportedChainId,
       fetchPolicy: "network-only",

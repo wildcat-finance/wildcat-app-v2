@@ -1,6 +1,6 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Market, Token } from "@wildcatfi/wildcat-sdk"
+import { Market, SupportedChainId, Token } from "@wildcatfi/wildcat-sdk"
 import { getAddress } from "ethers/lib/utils"
 import { useRouter } from "next/navigation"
 import { UseFormReturn } from "react-hook-form"
@@ -12,9 +12,10 @@ import {
 } from "@/app/api/profiles/interface"
 import { toastRequest } from "@/components/Toasts"
 import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
-import { TargetNetwork } from "@/config/network"
+import { NETWORKS_BY_ID } from "@/config/network"
 import { useEthersProvider, useEthersSigner } from "@/hooks/useEthersSigner"
 import { GET_MARKET_MLA_KEY } from "@/hooks/useMarketMla"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import {
   BasicBorrowerInfo,
   fillInMlaTemplate,
@@ -23,22 +24,21 @@ import {
 } from "@/lib/mla"
 
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
-import {
-  getMlaFromForm,
-  PREVIEW_MLA_KEY,
-  usePreviewMlaFromForm,
-} from "./usePreviewMla"
+import { getMlaFromForm, PREVIEW_MLA_KEY } from "./usePreviewMla"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
 
 const GET_BORROWER_PROFILE_KEY = "GET_BORROWER_PROFILE"
 
 export const useBorrowerProfileTmp = (address: string | undefined) => {
+  const { chainId } = useSelectedNetwork()
   const { data, ...result } = useQuery({
     queryKey: [GET_BORROWER_PROFILE_KEY, address],
     enabled: !!address,
     queryFn: async () => {
       if (!address) return undefined
-      const response = await fetch(`/api/profiles/${address.toLowerCase()}`)
+      const response = await fetch(
+        `/api/profiles/${address.toLowerCase()}?chainId=${chainId}`,
+      )
       if (response.status === 404) return null
 
       return response
@@ -71,7 +71,7 @@ export const useSetMarketMLA = () => {
       const values = getFieldValuesForBorrower({
         market,
         borrowerInfo: profile,
-        networkData: TargetNetwork,
+        networkData: NETWORKS_BY_ID[market.chainId],
         timeSigned,
         lastSlaUpdateTime: +lastSlaUpdateTime,
         asset: market.underlyingToken,
@@ -129,6 +129,7 @@ export const useSetMarketMLA = () => {
             {
               method: "POST",
               body: JSON.stringify({
+                chainId: market.chainId,
                 signature,
                 timeSigned,
               }),
@@ -142,6 +143,7 @@ export const useSetMarketMLA = () => {
           {
             method: "POST",
             body: JSON.stringify({
+              chainId: market.chainId,
               mlaTemplate: template.id,
               signature,
               timeSigned,
@@ -233,6 +235,7 @@ export const useSignMla = (salt: string) => {
           borrowerProfile,
           asset,
           salt,
+          NETWORKS_BY_ID[signer.chainId as SupportedChainId],
         )
         message = mlaData.message
         console.log("message", message)

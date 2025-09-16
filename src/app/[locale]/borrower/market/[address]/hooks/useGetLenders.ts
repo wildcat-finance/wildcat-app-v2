@@ -7,17 +7,18 @@ import {
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 
-import { SubgraphClient } from "@/config/subgraph"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 export const GET_LENDERS_BY_MARKET_KEY = "get-authorised-lenders-by-market"
 
 export const useGetAuthorisedLendersByMarket = (market: Market | undefined) => {
+  const subgraphClient = useSubgraphClient()
   const getAuthorisedLendersByMarket = async () => {
     if (!market) throw Error()
 
     logger.debug(`Getting authorised lenders batches...`)
 
-    const res = await SubgraphClient.query<
+    const res = await subgraphClient.query<
       SubgraphGetAuthorizedLendersByMarketQuery,
       SubgraphGetAuthorizedLendersByMarketQueryVariables
     >({

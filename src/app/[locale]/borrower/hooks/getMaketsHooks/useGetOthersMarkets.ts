@@ -1,7 +1,6 @@
 /* eslint-disable camelcase */
 import { useQuery } from "@tanstack/react-query"
 import {
-  Market,
   SignerOrProvider,
   SubgraphGetMarketsWithEventsQueryVariables,
   getMarketsWithEvents,
@@ -12,9 +11,10 @@ import { useAccount } from "wagmi"
 
 import { updateMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/updateMarkets"
 import { POLLING_INTERVAL } from "@/config/polling"
-import { SubgraphClient } from "@/config/subgraph"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
 
@@ -31,6 +31,8 @@ export function useGetOthersMarketsQuery({
   ...variables
 }: GetMarketsProps) {
   const { address } = useAccount()
+  const subgraphClient = useSubgraphClient()
+  const network = useSelectedNetwork()
 
   async function queryAllMarkets() {
     const filter = combineFilters([
@@ -38,7 +40,7 @@ export function useGetOthersMarketsQuery({
       address ? { borrower_not: address.toLowerCase() } : {},
       ...EXCLUDED_MARKETS_FILTER,
     ]) as SubgraphMarket_Filter
-    const result = await getMarketsWithEvents(SubgraphClient, {
+    const result = await getMarketsWithEvents(subgraphClient, {
       chainId: chainId as SupportedChainId,
       fetchPolicy: "network-only",
       signerOrProvider: provider as SignerOrProvider,
@@ -51,7 +53,7 @@ export function useGetOthersMarketsQuery({
 
   async function getAllMarkets() {
     const subgraphMarkets = await queryAllMarkets()
-    return updateMarkets(subgraphMarkets, provider)
+    return updateMarkets(subgraphMarkets, provider, network)
   }
 
   return useQuery({

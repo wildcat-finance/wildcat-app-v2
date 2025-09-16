@@ -30,8 +30,8 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
-import { EtherscanBaseUrl, TargetChainId } from "@/config/network"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
 import { isUSDTLikeToken } from "@/utils/constants"
@@ -49,6 +49,7 @@ export const DepositModal = ({
   const isMobile = useMobileResolution()
 
   const { t } = useTranslation()
+  const { etherscanUrl } = useSelectedNetwork()
 
   const { market } = marketAccount
 
@@ -470,7 +471,7 @@ export const DepositModal = ({
           {txHash !== "" && showForm && (
             <LinkGroup
               type="etherscan"
-              linkValue={`${EtherscanBaseUrl}/tx/${txHash}`}
+              linkValue={`${etherscanUrl}/tx/${txHash}`}
               groupSX={{ padding: "8px", marginBottom: "8px" }}
             />
           )}
@@ -780,7 +781,7 @@ export const DepositModal = ({
           {txHash !== "" && showForm && (
             <LinkGroup
               type="etherscan"
-              linkValue={`${EtherscanBaseUrl}/tx/${txHash}`}
+              linkValue={`${etherscanUrl}/tx/${txHash}`}
               groupSX={{ padding: "8px", marginBottom: "8px" }}
             />
           )}

@@ -15,11 +15,12 @@ type Response = {
 const fetchSLARedirectStatus = async (
   address: `0x${string}` | undefined,
   pathname: string,
-  chainId: SupportedChainId | undefined,
+  targetChainId: SupportedChainId,
+  currentChainId: SupportedChainId | undefined,
 ) => {
   let isSignedResult = false
   if (address) {
-    const { isSigned }: Response = await fetch(`/api/sla/${address}`).then(
+    const { isSigned }: Response = await fetch(`/api/sla/${address}?chainId=${targetChainId}`).then(
       (res) => res.json(),
     )
 
@@ -30,18 +31,20 @@ const fetchSLARedirectStatus = async (
     connectedAddress: address,
     pathname,
     isSignedSA: isSignedResult,
-    currentChainId: chainId,
+    currentChainId,
+    targetChainId,
   })
 }
 
 export const useShouldRedirect = () => {
   const { address, isReconnecting, isConnecting } = useAccount()
-  const { chainId } = useCurrentNetwork()
+  const { chainId, targetChainId } = useCurrentNetwork()
   const pathname = usePathname()
 
   return useQuery({
     queryKey: [SHOULD_REDIRECT_KEY, address, pathname, chainId],
     enabled: !isReconnecting && !isConnecting,
-    queryFn: () => fetchSLARedirectStatus(address, pathname, chainId),
+    queryFn: () =>
+      fetchSLARedirectStatus(address, pathname, targetChainId, chainId),
   })
 }

@@ -24,9 +24,11 @@ import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setTab } from "@/store/slices/borrowerOverviewSlice/borrowerOverviewSlice"
 import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
+import { setSelectedNetwork } from "@/store/slices/selectedNetworkSlice/selectedNetworkSlice"
 import { COLORS } from "@/theme/colors"
 
 import { HeaderButton } from "./HeaderButton"
+import { HeaderNetworkButton } from "./HeaderNetworkButton"
 import { MobileMenu } from "./MobileMenu"
 
 export default function Header() {
@@ -162,6 +164,7 @@ export default function Header() {
         )}
         {/* <NotificationButton /> */}
         {!isMobile && <HeaderButton />}
+        {!isMobile && <HeaderNetworkButton />}
         {isMobile && (
           <MobileMenu open={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
         )}

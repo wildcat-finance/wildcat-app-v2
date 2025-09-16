@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { findBorrowerWithPendingInvitation } from "@/lib/db"
+import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 import { verifyApiToken } from "../../auth/verify-header"
-import { BorrowerInvitation } from "../interface"
 
-/// GET /api/invite/[address]
+/// GET /api/invite/[address]?chainId=<chainId>
 /// Route to get an invitation for a borrower.
 ///
 /// Only returns invitations for the current chain ID and where the
@@ -16,12 +16,16 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { address: `0x${string}` } },
 ) {
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   const address = params.address.toLowerCase()
   const token = await verifyApiToken(request)
   if (!token?.isAdmin && token?.address.toLowerCase() !== address) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  const invitation = await findBorrowerWithPendingInvitation(address)
+  const invitation = await findBorrowerWithPendingInvitation(address, chainId)
   if (invitation) {
     return NextResponse.json({
       invitation,
@@ -30,7 +34,7 @@ export async function GET(
   return NextResponse.json({ invitation: null }, { status: 404 })
 }
 
-/// HEAD /api/invite/[address]
+/// HEAD /api/invite/[address]?chainId=<chainId>
 /// Route to check whether an invitation exists for a borrower.
 ///
 /// Unauthenticated.
@@ -38,7 +42,14 @@ export async function HEAD(
   request: NextRequest,
   { params }: { params: { address: `0x${string}` } },
 ) {
-  const invitation = await findBorrowerWithPendingInvitation(params.address)
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
+  const invitation = await findBorrowerWithPendingInvitation(
+    params.address,
+    chainId,
+  )
   if (!invitation || invitation.registeredOnChain) {
     return new NextResponse(null, {
       status: 404,

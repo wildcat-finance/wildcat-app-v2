@@ -1,19 +1,23 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { TargetChainId } from "@/config/network"
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
 import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
 import { launchPuppeteer } from "@/lib/puppeteer"
+import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
-/// GET /api/mla/[market]
+/// GET /api/mla/[market]?chainId=<chainId>
 /// Route to get the MLA for a given market.
 export async function GET(
   request: NextRequest,
   { params }: { params: { market: string; lender: string } },
 ) {
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   const market = params.market.toLowerCase()
   const lenderAddress = params.lender.toLowerCase()
-  const mla = await getSignedMasterLoanAgreement(market)
+  const mla = await getSignedMasterLoanAgreement(market, chainId)
 
   if (!mla) {
     return new NextResponse(null, { status: 404 })
@@ -25,7 +29,7 @@ export async function GET(
 
   const mlaSignature = await prisma.mlaSignature.findFirst({
     where: {
-      chainId: TargetChainId,
+      chainId,
       address: lenderAddress,
       market,
     },

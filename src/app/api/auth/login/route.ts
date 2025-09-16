@@ -1,3 +1,4 @@
+import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import { getLoginSignatureMessage } from "@/config/api"
@@ -14,13 +15,19 @@ export async function POST(request: NextRequest) {
   try {
     const input = await request.json()
     body = LoginInputDTO.parse(input)
+    if (!isSupportedChainId(body.chainId)) {
+      return NextResponse.json(
+        { error: "Chain ID not supported" },
+        { status: 400 },
+      )
+    }
   } catch (error) {
     return getZodParseError(error)
   }
   const address = body.address.toLowerCase()
   const { signature, timeSigned } = body
   const LoginMessage = getLoginSignatureMessage(address, timeSigned)
-  const provider = getProviderForServer()
+  const provider = getProviderForServer(body.chainId)
   const result = await verifyAndDescribeSignature({
     provider,
     signature,

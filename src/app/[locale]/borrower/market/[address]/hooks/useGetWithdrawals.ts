@@ -14,9 +14,9 @@ import {
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 
-import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
-import { SubgraphClient } from "@/config/subgraph"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type BorrowerWithdrawalsForMarketResult = {
@@ -79,10 +79,12 @@ export function useGetWithdrawals(
   market: Market | undefined,
 ): TwoStepQueryHookResult<BorrowerWithdrawalsForMarketResult> {
   const address = market?.address.toLowerCase()
+  const { chainId } = useSelectedNetwork()
+  const subgraphClient = useSubgraphClient()
   async function getAllPendingWithdrawalBatches(): Promise<BorrowerWithdrawalsForMarketResult> {
     if (!address || !market) throw Error()
     logger.debug(`Getting withdrawal batches...`)
-    const result = await SubgraphClient.query<
+    const result = await subgraphClient.query<
       SubgraphGetIncompleteWithdrawalsForMarketQuery,
       SubgraphGetIncompleteWithdrawalsForMarketQueryVariables
     >({
@@ -139,7 +141,7 @@ export function useGetWithdrawals(
   async function getUpdatedBatches(): Promise<BorrowerWithdrawalsForMarketResult> {
     if (!address || !market) throw Error()
     logger.debug(`Getting batch updates...`)
-    const lens = getLensContract(TargetChainId, market.provider)
+    const lens = getLensContract(chainId, market.provider)
     const batchUpdates = await lens.getWithdrawalBatchesData(
       address,
       withdrawals.incompleteBatches.map((x) => x.expiry),

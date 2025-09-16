@@ -1,13 +1,14 @@
 import { useQuery } from "@tanstack/react-query"
 import { getAllTokensWithMarkets } from "@wildcatfi/wildcat-sdk"
 
-import { SubgraphClient } from "@/config/subgraph"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 export const GET_ALL_TOKENS_WITH_MARKETS_KEY = "get-all-tokens-with-markets"
 
 export const useAllTokensWithMarkets = () => {
+  const subgraphClient = useSubgraphClient()
   async function getTokens() {
-    const data = await getAllTokensWithMarkets(SubgraphClient)
+    const data = await getAllTokensWithMarkets(subgraphClient)
     return data
   }
   return useQuery({

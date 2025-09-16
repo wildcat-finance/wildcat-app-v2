@@ -11,13 +11,22 @@ export const NETWORKS = {
     stringID: "sepolia",
     name: "Sepolia",
     etherscanUrl: "https://sepolia.etherscan.io",
+    isTestnet: true,
   },
   Mainnet: {
     chainId: 1,
     stringID: "mainnet",
     name: "Mainnet",
     etherscanUrl: "https://etherscan.io",
+    isTestnet: false,
   },
+}
+export type NetworkInfo = (typeof NETWORKS)[keyof typeof NETWORKS]
+
+export const NETWORKS_BY_ID = Object.fromEntries(
+  Object.values(NETWORKS).map((network) => [network.chainId, network]),
+) as {
+  [key in SupportedChainId]: NetworkInfo
 }
 
 const TARGET_NETWORK = process.env.NEXT_PUBLIC_TARGET_NETWORK

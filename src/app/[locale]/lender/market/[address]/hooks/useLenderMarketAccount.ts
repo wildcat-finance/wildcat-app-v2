@@ -11,10 +11,9 @@ import {
 import { SubgraphGetMarketQueryVariables } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { constants } from "ethers"
 
-import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
-import { SubgraphClient } from "@/config/subgraph"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export const GET_LENDER_MARKET_ACCOUNT_KEY = "get-lender-market-account"
@@ -33,11 +32,12 @@ export function useLenderMarketAccountQuery({
   enabled,
   ...filters
 }: UseLenderProps): TwoStepQueryHookResult<MarketAccount | undefined> {
+  const subgraphClient = useSubgraphClient()
   const marketAddress = market?.address.toLowerCase()
   const lenderAddress = lender?.toLowerCase()
 
   async function queryMarketAccount() {
-    const result = await getLenderAccountForMarket(SubgraphClient, {
+    const result = await getLenderAccountForMarket(subgraphClient, {
       market: market as Market,
       lender: lenderAddress as string,
       fetchPolicy: "network-only",
@@ -67,9 +67,9 @@ export function useLenderMarketAccountQuery({
   })
 
   async function updateMarketAccount() {
-    if (!data || !provider) throw Error()
+    if (!data || !provider || !market) throw Error()
     if (data.market.version === MarketVersion.V1) {
-      const lens = getLensContract(TargetChainId, provider)
+      const lens = getLensContract(market.chainId, provider)
       const update = await lens.getMarketDataWithLenderStatus(
         lenderAddress as string,
         marketAddress as string,
@@ -77,7 +77,7 @@ export function useLenderMarketAccountQuery({
       data.updateWith(update.lenderStatus)
       data.market.updateWith(update.market)
     } else {
-      const lens = getLensV2Contract(TargetChainId, provider)
+      const lens = getLensV2Contract(market.chainId, provider)
       const update = await lens.getMarketDataWithLenderStatus(
         lenderAddress as string,
         marketAddress as string,

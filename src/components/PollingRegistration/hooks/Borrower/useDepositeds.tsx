@@ -10,7 +10,7 @@ import { useDispatch } from "react-redux"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { EtherscanBaseUrl } from "@/config/network"
-import { SubgraphClient } from "@/config/subgraph"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
@@ -21,6 +21,7 @@ type MarketRecords = {
 }
 
 export const useDepositeds = (address?: `0x${string}`) => {
+  const subgraphClient = useSubgraphClient()
   const [marketRecords, setMarketRecords] = useState<MarketRecords[]>([])
 
   const dispatch = useDispatch()
@@ -60,7 +61,7 @@ export const useDepositeds = (address?: `0x${string}`) => {
   return () => {
     if (!address || !markets || isLoading) return
     markets.forEach((market) => {
-      getMarketRecords(SubgraphClient, {
+      getMarketRecords(subgraphClient, {
         market,
         kinds: ["Deposit"],
         additionalFilter: {

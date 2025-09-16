@@ -12,10 +12,8 @@ import { useDispatch } from "react-redux"
 
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { EtherscanBaseUrl } from "@/config/network"
-import { SubgraphClient } from "@/config/subgraph"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
-import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
 export const useLenderTokensAvailables = (address?: `0x${string}`) => {
   const [withdrawalBatches, setWithdrawalBatches] = useState<WithdrawalBatch[]>(

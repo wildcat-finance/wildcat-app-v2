@@ -9,9 +9,10 @@ import {
 import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
-import { SubgraphClient } from "@/config/subgraph"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 import { updateMarkets } from "./getMaketsHooks/updateMarkets"
 
@@ -25,16 +26,18 @@ export type GetPolicyArgs = Omit<
 }
 
 export const useGetPolicy = ({ policy, ...variables }: GetPolicyArgs) => {
-  const { chainId } = useCurrentNetwork()
+  const network = useSelectedNetwork()
+  const { chainId } = network
   const { isWrongNetwork, provider, signer } = useEthersProvider()
   const { address } = useAccount()
 
   const signerOrProvider = signer ?? provider
+  const subgraphClient = useSubgraphClient()
 
   async function getPolicy() {
     assert(policy !== undefined, `Policy undefined ${policy}`)
     const { markets, lenders, hooksInstance, controller } =
-      await getPolicyMarketsAndLenders(SubgraphClient, {
+      await getPolicyMarketsAndLenders(subgraphClient, {
         fetchPolicy: "network-only",
         contractAddress: policy?.toLowerCase(),
         chainId: chainId as SupportedChainId,
@@ -42,7 +45,7 @@ export const useGetPolicy = ({ policy, ...variables }: GetPolicyArgs) => {
         ...variables,
       })
 
-    await updateMarkets(markets, provider)
+    await updateMarkets(markets, provider, network)
     return { markets, lenders, hooksInstance, controller }
   }
 

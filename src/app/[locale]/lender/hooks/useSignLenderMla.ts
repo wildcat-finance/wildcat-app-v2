@@ -8,11 +8,13 @@ import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
 
 import { GET_SIGNED_MLA_KEY } from "./useSignMla"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export const useSignLenderMLA = () => {
   const { sdk, connected: safeConnected } = useSafeAppsSDK()
   const signer = useEthersSigner()
   const client = useQueryClient()
+  const { chainId: targetChainId } = useSelectedNetwork()
 
   return useMutation({
     mutationFn: async ({
@@ -63,6 +65,7 @@ export const useSignLenderMLA = () => {
         const response = await fetch(`/api/mla/lender-signature`, {
           method: "POST",
           body: JSON.stringify({
+            chainId: signer.chainId,
             market: mla.market,
             address: lenderAddress,
             signature,
@@ -80,7 +83,7 @@ export const useSignLenderMLA = () => {
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: [GET_SIGNED_MLA_KEY],
+        queryKey: [targetChainId, GET_SIGNED_MLA_KEY],
       })
     },
   })

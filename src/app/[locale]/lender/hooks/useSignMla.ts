@@ -8,20 +8,22 @@ import {
   MlaSignatureResponse,
 } from "@/app/api/mla/interface"
 import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export const GET_SIGNED_MLA_KEY = "GET_SIGNED_MLA_KEY"
 
 export const useGetSignedMla = (
   mla: MasterLoanAgreementResponse | null | undefined,
 ) => {
-  const { address } = useAccount()
+  const { address, chainId } = useAccount()
+  const { chainId: targetChainId } = useSelectedNetwork()
 
   const getSignedMla = async () => {
     if (!mla) return undefined
     const marketAddress = mla.market
     if (!marketAddress) return undefined
     const res = await fetch(
-      `/api/mla/${marketAddress.toLowerCase()}/${address?.toLowerCase()}`,
+      `/api/mla/${marketAddress.toLowerCase()}/${address?.toLowerCase()}?chainId=${chainId}`,
     )
     if (res.status === 200) {
       const signed = (await res.json()) as MlaSignatureResponse
@@ -42,7 +44,7 @@ export const useGetSignedMla = (
   }
 
   return useQuery({
-    queryKey: [GET_SIGNED_MLA_KEY, mla?.market, address],
+    queryKey: [targetChainId, GET_SIGNED_MLA_KEY, mla?.market, address],
     queryFn: getSignedMla,
     enabled: !!mla?.market && !!address,
   })

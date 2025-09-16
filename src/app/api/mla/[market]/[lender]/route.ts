@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { TargetChainId } from "@/config/network"
 import { prisma } from "@/lib/db"
+import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 import { MlaSignatureResponse } from "../../interface"
 
+/// GET /api/mla/[market]/[lender]?chainId=<chainId>
 export async function GET(
   request: NextRequest,
   { params }: { params: { market: string; lender: string } },
 ) {
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   const lenderAddress = params.lender.toLowerCase()
   const marketAddress = params.market.toLowerCase()
   if (!lenderAddress || !marketAddress) {
@@ -19,7 +24,7 @@ export async function GET(
   }
   const mlaSignature = await prisma.mlaSignature.findFirst({
     where: {
-      chainId: TargetChainId,
+      chainId,
       address: lenderAddress,
       market: marketAddress,
     },
