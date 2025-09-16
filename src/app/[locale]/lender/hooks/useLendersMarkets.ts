@@ -210,7 +210,12 @@ export function useLendersMarkets(
     isError: isErrorUpdate,
     failureReason: errorUpdate,
   } = useQuery({
-    queryKey: [targetChainId, GET_LENDERS_ACCOUNTS_KEY, "update", updateQueryKeys],
+    queryKey: [
+      targetChainId,
+      GET_LENDERS_ACCOUNTS_KEY,
+      "update",
+      updateQueryKeys,
+    ],
     queryFn: getLenderUpdates,
     enabled: !!data,
     refetchOnMount: false,

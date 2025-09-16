@@ -20,9 +20,9 @@ const fetchSLARedirectStatus = async (
 ) => {
   let isSignedResult = false
   if (address) {
-    const { isSigned }: Response = await fetch(`/api/sla/${address}?chainId=${targetChainId}`).then(
-      (res) => res.json(),
-    )
+    const { isSigned }: Response = await fetch(
+      `/api/sla/${address}?chainId=${targetChainId}`,
+    ).then((res) => res.json())
 
     isSignedResult = isSigned
   }

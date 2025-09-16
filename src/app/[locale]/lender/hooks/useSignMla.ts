@@ -7,8 +7,8 @@ import {
   MasterLoanAgreementResponse,
   MlaSignatureResponse,
 } from "@/app/api/mla/interface"
-import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
 
 export const GET_SIGNED_MLA_KEY = "GET_SIGNED_MLA_KEY"
 

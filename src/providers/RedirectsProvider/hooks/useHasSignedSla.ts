@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
+
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export const HAS_SIGNED_SLA_KEY = "has-signed-sla"
@@ -13,9 +14,9 @@ export const useHasSignedSla = (address: `0x${string}` | undefined) => {
     queryKey: [HAS_SIGNED_SLA_KEY, address],
     enabled: false,
     queryFn: async () => {
-      const { isSigned }: Response = await fetch(`/api/sla/${address}?chainId=${targetChainId}`).then(
-        (res) => res.json(),
-      )
+      const { isSigned }: Response = await fetch(
+        `/api/sla/${address}?chainId=${targetChainId}`,
+      ).then((res) => res.json())
 
       return { isSigned }
     },
