@@ -7,6 +7,7 @@ import { BarItem } from "@/components/BarChart/BarItem"
 import { MarketBarChartItem } from "@/components/BarChart/BarItem/interface"
 import { LegendItem } from "@/components/BarChart/LegendItem"
 import { COLORS } from "@/theme/colors"
+import { computeSecondsBefore } from "@/utils/computeSecondsBefore"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { CollateralObligationsData } from "./CollateralObligations/CollateralObligationsData"
@@ -56,7 +57,7 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
 
   const remainingInterest =
     market.totalDebts.gt(0) && !market.isClosed
-      ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
+      ? humanizeDuration(computeSecondsBefore(market) * 1000, {
           round: true,
           largest: 1,
         })

@@ -37,6 +37,7 @@ import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { EtherscanBaseUrl } from "@/config/network"
 import { COLORS } from "@/theme/colors"
+import { computeSecondsBefore } from "@/utils/computeSecondsBefore"
 import { isUSDTLikeToken } from "@/utils/constants"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
@@ -250,7 +251,7 @@ export const RepayModal = ({
 
   const remainingInterest =
     market.totalDebts.gt(0) && !market.isClosed
-      ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
+      ? humanizeDuration(computeSecondsBefore(market) * 1000, {
           round: true,
           largest: 1,
         })
