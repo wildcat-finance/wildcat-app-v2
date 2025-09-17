@@ -302,9 +302,9 @@ export const MarketsSection = () => {
                 <Skeleton
                   variant="rounded"
                   sx={{
-                    width: "100px",
+                    width: "152.17px",
                     height: "32px",
-                    borderRadius: "8px",
+                    borderRadius: "10px",
                     bgcolor: COLORS.athensGrey,
                   }}
                 />
@@ -364,7 +364,7 @@ export const MarketsSection = () => {
                     sx={{
                       width: "140px",
                       height: "32px",
-                      borderRadius: "16px",
+                      borderRadius: "10px",
                       bgcolor: COLORS.athensGrey,
                     }}
                   />
@@ -373,7 +373,7 @@ export const MarketsSection = () => {
                     sx={{
                       width: "190px",
                       height: "32px",
-                      borderRadius: "16px",
+                      borderRadius: "10px",
                       bgcolor: COLORS.athensGrey,
                     }}
                   />
@@ -382,7 +382,7 @@ export const MarketsSection = () => {
                     sx={{
                       width: "150px",
                       height: "32px",
-                      borderRadius: "16px",
+                      borderRadius: "10px",
                       bgcolor: COLORS.athensGrey,
                     }}
                   />
