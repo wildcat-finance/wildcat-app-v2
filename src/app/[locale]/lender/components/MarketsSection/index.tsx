@@ -10,6 +10,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { LenderMarketSectionSwitcher } from "@/app/[locale]/lender/components/MarketsSection/components/LenderMarketSectionSwitcher"
@@ -129,6 +130,7 @@ export const MarketsSection = () => {
   const { t } = useTranslation()
 
   const { isWrongNetwork } = useCurrentNetwork()
+  const { isConnected } = useAccount()
   const { data: borrowers } = useBorrowerNames()
 
   const {
@@ -304,6 +306,12 @@ export const MarketsSection = () => {
     }
   }, [noMarketsAtAll, dispatch])
 
+  useEffect(() => {
+    if (!isConnected) {
+      dispatch(setMarketSection(LenderMarketDashboardSections.OTHER))
+    }
+  }, [isConnected, dispatch])
+
   if (!mounted)
     return (
       <Skeleton
@@ -344,8 +352,19 @@ export const MarketsSection = () => {
               {t("dashboard.markets.title")}
             </Typography>
 
-            {marketSection !== LenderMarketDashboardSections.OTHER &&
-              !isLoading && (
+            {isConnected &&
+              marketSection !== LenderMarketDashboardSections.OTHER &&
+              (isLoading ? (
+                <Skeleton
+                  variant="rounded"
+                  sx={{
+                    width: "152.17px",
+                    height: "32px",
+                    borderRadius: "10px",
+                    bgcolor: COLORS.athensGrey,
+                  }}
+                />
+              ) : (
                 <Button
                   variant="contained"
                   size="small"
@@ -363,7 +382,7 @@ export const MarketsSection = () => {
                 >
                   {t("dashboard.markets.lenderTitleButton")}
                 </Button>
-              )}
+              ))}
           </Box>
 
           <Typography
@@ -389,7 +408,44 @@ export const MarketsSection = () => {
               justifyContent: "space-between",
             }}
           >
-            {!noMarketsAtAll && <LenderMarketSectionSwitcher />}
+            {isConnected &&
+              (isLoading ? (
+                <Box
+                  role="status"
+                  aria-label="Loading market section tabs"
+                  sx={{ display: "flex", gap: "8px", height: "32px" }}
+                >
+                  <Skeleton
+                    variant="rounded"
+                    sx={{
+                      width: "140px",
+                      height: "32px",
+                      borderRadius: "10px",
+                      bgcolor: COLORS.athensGrey,
+                    }}
+                  />
+                  <Skeleton
+                    variant="rounded"
+                    sx={{
+                      width: "190px",
+                      height: "32px",
+                      borderRadius: "10px",
+                      bgcolor: COLORS.athensGrey,
+                    }}
+                  />
+                  <Skeleton
+                    variant="rounded"
+                    sx={{
+                      width: "150px",
+                      height: "32px",
+                      borderRadius: "10px",
+                      bgcolor: COLORS.athensGrey,
+                    }}
+                  />
+                </Box>
+              ) : (
+                !noMarketsAtAll && <LenderMarketSectionSwitcher />
+              ))}
 
             <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
               <FilterTextField
@@ -451,6 +507,7 @@ export const MarketsSection = () => {
       )}
 
       {marketSection === LenderMarketDashboardSections.ACTIVE &&
+        isConnected &&
         !noActiveMarkets &&
         !noMarketsAtAll &&
         !isWrongNetwork && (
@@ -463,6 +520,7 @@ export const MarketsSection = () => {
         )}
 
       {marketSection === LenderMarketDashboardSections.TERMINATED &&
+        isConnected &&
         !noMarketsAtAll &&
         !isWrongNetwork && (
           <LenderTerminatedMarketsTables

@@ -3,12 +3,13 @@
 import { useQuery } from "@tanstack/react-query"
 
 import { BorrowerInvitationForAdminView } from "@/app/api/invite/interface"
-import { useAuthToken } from "@/hooks/useApiAuth"
+import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 
 export const GET_ALL_BORROWER_INVITATIONS_KEY = "GET_ALL_BORROWER_INVITATIONS"
 
 export const useAllBorrowerInvitations = () => {
   const token = useAuthToken()
+  const { mutate: removeBadToken } = useRemoveBadApiToken()
   return useQuery({
     queryKey: [
       GET_ALL_BORROWER_INVITATIONS_KEY,
@@ -21,6 +22,10 @@ export const useAllBorrowerInvitations = () => {
           Authorization: `Bearer ${token.token}`,
         },
       })
+      if (response.status === 401) {
+        removeBadToken()
+        throw Error("Failed to fetch borrower invitations")
+      }
       const invitations = (await response.json()).map(
         (x: BorrowerInvitationForAdminView) => ({
           ...x,

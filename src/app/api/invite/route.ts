@@ -28,8 +28,11 @@ import { verifyApiToken } from "../auth/verify-header"
 /// Admin-only endpoint.
 export async function GET(request: NextRequest) {
   const token = await verifyApiToken(request)
-  if (!token?.isAdmin) {
+  if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  if (!token.isAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   /* const onlyPendingInvitations = request.nextUrl.searchParams.get(
     "onlyPendingInvitations",
@@ -50,7 +53,10 @@ export async function GET(request: NextRequest) {
 /// Admin-only endpoint.
 export async function POST(request: NextRequest) {
   const token = await verifyApiToken(request)
-  if (!token?.isAdmin) {
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  if (!token.isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   let body: BorrowerInvitationInput
@@ -219,8 +225,11 @@ export async function POST(request: NextRequest) {
 /// Admin-only endpoint.
 export async function DELETE(request: NextRequest) {
   const token = await verifyApiToken(request)
-  if (!token?.isAdmin) {
+  if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  if (!token.isAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   const address = request.nextUrl.searchParams.get("address")
   if (!address) {
