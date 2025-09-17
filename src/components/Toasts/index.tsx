@@ -55,12 +55,7 @@ export const toastInfo = (message: string, style: object = {}) =>
   })
 
 export const toastError = (message: string, style: object = {}) =>
-  toast(message, {
-    icon: (
-      <SvgIcon fontSize="small" sx={Icon}>
-        <Check />
-      </SvgIcon>
-    ),
+  toast.error(message, {
     style: {
       ...defaultStyle,
       ...style,
