@@ -50,13 +50,12 @@ export const RepayAndTerminateFlow = ({
   const isModalOpen = isOpen && !modal.closedModalStep
 
   const { market } = marketAccount
-  const { data: withdrawals } = useGetWithdrawals(market)
 
   const {
     mutateAsync: approve,
     isPending: isApproving,
     isError: isApproveError,
-  } = useApprove(market.underlyingToken, market.address, setApproveTxHash)
+  } = useApprove(market.underlyingToken, market.address, market, setRepayTxHash)
 
   const {
     mutateAsync: repayAndProcess,

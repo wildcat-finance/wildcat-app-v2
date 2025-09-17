@@ -178,24 +178,6 @@ export const LenderMarketSidebar = () => {
               </SvgIcon>
               {t("lenderMarketDetails.sidebar.marketHistory")}
             </Button>
-            {isLender && (
-              <Button
-                variant="text"
-                size="medium"
-                onClick={() =>
-                  handleChangeSection(LenderMarketSections.REQUESTS)
-                }
-                sx={{
-                  ...MenuItemButton,
-                  backgroundColor:
-                    currentSection === LenderMarketSections.REQUESTS
-                      ? COLORS.whiteSmoke
-                      : "transparent",
-                }}
-              >
-                {t("lenderMarketDetails.sidebar.requests")}
-              </Button>
-            )}
 
             <Button
               disabled={!hasCollateralContract}

@@ -101,6 +101,7 @@ export const RepayModal = ({
   const { mutateAsync: approve, isPending: isApproving } = useApprove(
     market.underlyingToken,
     market.address,
+    market,
     setTxHash,
   )
 

@@ -148,6 +148,7 @@ export const DepositModalContract = ({
   const { mutateAsync: approve, isPending: isApproving } = useApprove(
     collateralAsset,
     collateralContract.address,
+    collateralContract.market,
     setTxHash,
     [[TOKEN_BALANCE_AND_ALLOWANCE_QUERY_KEY]],
   )

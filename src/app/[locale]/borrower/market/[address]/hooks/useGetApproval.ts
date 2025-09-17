@@ -14,8 +14,8 @@ export const useApprove = (
   market: Market,
   setTxHash?: (hash: string) => void,
   queryKeysToInvalidate: QueryKey[] = [
-      [GET_MARKET_ACCOUNT_KEY],
-      [GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY],
+    [GET_MARKET_ACCOUNT_KEY],
+    [GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY],
   ],
 ) => {
   const client = useQueryClient()
