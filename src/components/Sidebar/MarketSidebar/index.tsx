@@ -9,6 +9,7 @@ import CollateralContractIcon from "@/assets/icons/collateralContract_icon.svg"
 import LenderBorrowerIcon from "@/assets/icons/lenderBorrower_icon.svg"
 import MarketEventsIcon from "@/assets/icons/marketEvents_icon.svg"
 import StatusAndDetailsIcon from "@/assets/icons/statusAndDetails_icon.svg"
+import SummaryIcon from "@/assets/icons/summary_icon.svg"
 import WithdrawalAndRequestsIcon from "@/assets/icons/withdrawalAndRequests_icon.svg"
 import { BackButton } from "@/components/BackButton"
 import {
@@ -134,6 +135,9 @@ export const MarketSidebar = () => {
               )
             }}
           >
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <SummaryIcon />
+            </SvgIcon>
             Market Description
           </Button>
           <Button
