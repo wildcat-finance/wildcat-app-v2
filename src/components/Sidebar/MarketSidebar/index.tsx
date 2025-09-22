@@ -61,8 +61,11 @@ export const MarketSidebar = () => {
                 setSidebarHighlightState({
                   borrowRepay: true,
                   statusDetails: false,
+                  marketSummary: false,
                   withdrawals: false,
                   lenders: false,
+                  mla: false,
+                  marketHistory: false,
                 }),
               )
             }}
@@ -84,9 +87,11 @@ export const MarketSidebar = () => {
                 setSidebarHighlightState({
                   borrowRepay: false,
                   statusDetails: true,
+                  marketSummary: false,
                   withdrawals: false,
                   lenders: false,
                   mla: false,
+                  marketHistory: false,
                 }),
               )
             }}
@@ -98,7 +103,7 @@ export const MarketSidebar = () => {
             size="medium"
             sx={{
               ...MenuItemButton,
-              backgroundColor: sidebarState.withdrawals
+              backgroundColor: sidebarState.marketSummary
                 ? COLORS.whiteSmoke
                 : "transparent",
             }}
@@ -108,9 +113,37 @@ export const MarketSidebar = () => {
                 setSidebarHighlightState({
                   borrowRepay: false,
                   statusDetails: false,
+                  marketSummary: true,
+                  withdrawals: false,
+                  lenders: false,
+                  mla: false,
+                  marketHistory: false,
+                }),
+              )
+            }}
+          >
+            Market Description
+          </Button>
+          <Button
+            variant="text"
+            size="medium"
+            sx={{
+              ...MenuItemButton,
+              backgroundColor: sidebarState.withdrawals
+                ? COLORS.whiteSmoke
+                : "transparent",
+            }}
+            onClick={() => {
+              dispatch(setCheckBlock(4))
+              dispatch(
+                setSidebarHighlightState({
+                  borrowRepay: false,
+                  statusDetails: false,
+                  marketSummary: false,
                   withdrawals: true,
                   lenders: false,
                   mla: false,
+                  marketHistory: false,
                 }),
               )
             }}
@@ -127,14 +160,16 @@ export const MarketSidebar = () => {
                 : "transparent",
             }}
             onClick={() => {
-              dispatch(setCheckBlock(4))
+              dispatch(setCheckBlock(5))
               dispatch(
                 setSidebarHighlightState({
                   borrowRepay: false,
                   statusDetails: false,
+                  marketSummary: false,
                   withdrawals: false,
                   lenders: true,
                   mla: false,
+                  marketHistory: false,
                 }),
               )
             }}
@@ -151,14 +186,16 @@ export const MarketSidebar = () => {
                 : "transparent",
             }}
             onClick={() => {
-              dispatch(setCheckBlock(5))
+              dispatch(setCheckBlock(6))
               dispatch(
                 setSidebarHighlightState({
                   borrowRepay: false,
                   statusDetails: false,
+                  marketSummary: false,
                   withdrawals: false,
                   lenders: false,
                   mla: true,
+                  marketHistory: false,
                 }),
               )
             }}
@@ -176,14 +213,15 @@ export const MarketSidebar = () => {
                 : "transparent",
             }}
             onClick={() => {
-              dispatch(setCheckBlock(6))
+              dispatch(setCheckBlock(7))
               dispatch(
                 setSidebarHighlightState({
                   borrowRepay: false,
                   statusDetails: false,
+                  marketSummary: false,
                   withdrawals: false,
                   lenders: false,
-                  mla: false,
+                  mla: true,
                   marketHistory: true,
                 }),
               )

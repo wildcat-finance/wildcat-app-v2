@@ -159,12 +159,6 @@ export default function MarketDetails({
                   holdTheMarket={holdTheMarket}
                 />
               )}
-
-              <Divider sx={{ margin: "32px 0" }} />
-              <BorrowerMarketSummary
-                marketAddress={market.address}
-                isBorrower={holdTheMarket}
-              />
               {holdTheMarket && <Divider sx={{ margin: "32px 0" }} />}
               <MarketStatusChart market={market} />
             </Box>
@@ -188,6 +182,15 @@ export default function MarketDetails({
               <MarketParameters market={market} />
             </Box>
           )}
+
+          {checked === 3 && (
+            <Box sx={SlideContentContainer} marginTop="12px">
+              <BorrowerMarketSummary
+                marketAddress={market.address}
+                isBorrower={holdTheMarket}
+              />
+            </Box>
+          )}
           {/* <Slide */}
           {/*  direction={direction} */}
           {/*  container={scrollContainer.current} */}
@@ -198,7 +201,7 @@ export default function MarketDetails({
           {/*    <MarketWithdrawalRequests marketAccount={marketAccount} /> */}
           {/*  </Box> */}
           {/* </Slide> */}
-          {checked === 3 && (
+          {checked === 4 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketWithdrawalRequests
                 marketAccount={marketAccount}
@@ -216,7 +219,7 @@ export default function MarketDetails({
           {/*    <MarketAuthorisedLenders market={market} /> */}
           {/*  </Box> */}
           {/* </Slide> */}
-          {checked === 4 && (
+          {checked === 5 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketAuthorisedLenders
                 market={market}
@@ -225,12 +228,12 @@ export default function MarketDetails({
             </Box>
           )}
 
-          {checked === 5 && (
+          {checked === 6 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketMLA marketAccount={marketAccount} />
             </Box>
           )}
-          {checked === 6 && (
+          {checked === 7 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <PaginatedMarketRecordsTable market={market} />
             </Box>

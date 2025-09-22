@@ -231,15 +231,15 @@
   }
 }
 
-.full-demo-mdxeditor [role="toolbar"] {
-  top: 74px;
-}
+/*.full-demo-mdxeditor [role="toolbar"] {*/
+/*  top: 74px;*/
+/*}*/
 
-@media (max-width: 768px) {
-  .full-demo-mdxeditor [role="toolbar"] {
-    top: 196px;
-  }
-}
+/*@media (max-width: 768px) {*/
+/*  .full-demo-mdxeditor [role="toolbar"] {*/
+/*    top: 196px;*/
+/*  }*/
+/*}*/
 
 .full-demo-mdxeditor[class*="popupContainer"] {
   z-index: 20;

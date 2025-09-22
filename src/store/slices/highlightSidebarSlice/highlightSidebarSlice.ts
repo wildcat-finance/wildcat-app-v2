@@ -7,6 +7,7 @@ const initialState: THighLightSidebar = {
   sidebarState: {
     borrowRepay: true,
     statusDetails: false,
+    marketSummary: false,
     withdrawals: false,
     lenders: false,
     mla: false,

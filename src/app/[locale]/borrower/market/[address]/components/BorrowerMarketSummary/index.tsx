@@ -41,28 +41,27 @@ const InnerMarketSummaryEditor = ({
   }
 
   return (
-    <Box width="100%" padding="24px">
-      <AuthWrapper>
-        <MarkdownEditor
-          markdown={markdown}
-          onChange={(md) => {
-            setMarkdown(md)
-          }}
-        />
-        <Box sx={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
-          <Button variant="contained" color="primary" onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSave}
-            disabled={isPending}
-          >
-            {isPending ? "Saving..." : "Save"}
-          </Button>
-        </Box>
-      </AuthWrapper>
+    <Box width="100%">
+      <MarkdownEditor
+        markdown={markdown}
+        onChange={(md) => {
+          setMarkdown(md)
+        }}
+      />
+
+      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+        <Button variant="contained" color="primary" onClick={handleClose}>
+          Cancel
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSave}
+          disabled={isPending}
+        >
+          {isPending ? "Saving..." : "Save"}
+        </Button>
+      </Box>
     </Box>
   )
 }
@@ -79,7 +78,7 @@ export const BorrowerMarketSummary = ({
 
   if (isLoading) {
     return (
-      <Typography variant="text3" color={COLORS.santasGrey}>
+      <Typography variant="text2" color={COLORS.santasGrey}>
         Loading market summary...
       </Typography>
     )
@@ -91,28 +90,50 @@ export const BorrowerMarketSummary = ({
 
   return (
     <>
-      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="title2">Market Summary</Typography>
-        {isBorrower && (
-          <Button
-            variant="outlined"
-            color="secondary"
-            size="medium"
-            onClick={() => setOpen(true)}
-          >
-            {marketSummary ? "Edit Market Summary" : "Add Market Summary"}
-          </Button>
+      {isBorrower && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="title3">Market Summary</Typography>
+
+          <AuthWrapper buttonText="Log in to change the summary">
+            <Button
+              variant="outlined"
+              color="secondary"
+              size="small"
+              onClick={() => setOpen(true)}
+            >
+              {marketSummary ? "Edit" : "Add"}
+            </Button>
+          </AuthWrapper>
+        </Box>
+      )}
+
+      <Box
+        sx={{
+          marginTop: isBorrower ? "16px" : "0",
+          padding: "20px",
+          borderRadius: "14px",
+          border:
+            open || (marketSummary && marketSummary.description !== "")
+              ? `1px solid ${COLORS.athensGrey}`
+              : "none",
+        }}
+      >
+        {open ? (
+          <InnerMarketSummaryEditor
+            marketAddress={marketAddress}
+            handleClose={() => setOpen(false)}
+            marketSummary={marketSummary?.description || ""}
+          />
+        ) : (
+          <Markdown markdown={marketSummary?.description || ""} />
         )}
       </Box>
-      {open ? (
-        <InnerMarketSummaryEditor
-          marketAddress={marketAddress}
-          handleClose={() => setOpen(false)}
-          marketSummary={marketSummary?.description || ""}
-        />
-      ) : (
-        <Markdown markdown={marketSummary?.description || ""} />
-      )}
     </>
   )
 }
