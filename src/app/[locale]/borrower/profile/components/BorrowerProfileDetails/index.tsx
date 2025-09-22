@@ -33,6 +33,8 @@ export function BorrowerProfileDetails({
 
   if (isLoading) return <ProfileSkeleton type="external" rootSx={sx} />
 
+  console.log(profileData?.name)
+
   return (
     <Box sx={sx}>
       <Box sx={MainContainer}>

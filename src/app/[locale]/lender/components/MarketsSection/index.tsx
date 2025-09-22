@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState, useCallback } from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Skeleton, Typography } from "@mui/material"
 import {
   DepositStatus,
   LenderRole,
@@ -10,14 +10,18 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { LenderMarketSectionSwitcher } from "@/app/[locale]/lender/components/MarketsSection/components/LenderMarketSectionSwitcher"
 import { LenderActiveMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/LenderActiveMarketsTables"
 import { LenderTerminatedMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/LenderTerminatedMarketsTables"
 import { OtherMarketsTables } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/OtherMarketsTables"
+import { MobileMarketSectionHeader } from "@/app/[locale]/lender/components/MarketsSection/components/MobileMarketSectionSwitcher"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { FilterTextField } from "@/components/FilterTextfield"
+import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
+import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
 import {
   SmallFilterSelect,
   SmallFilterSelectItem,
@@ -26,30 +30,89 @@ import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
 import { TargetChainId } from "@/config/network"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { marketStatusesMock } from "@/mocks/mocks"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import { setLendersSectionAmount } from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import {
   LenderMarketDashboardSections,
   setMarketSection,
   setShowFullFunctionality,
 } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
+import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFiltersSlice"
 import { COLORS } from "@/theme/colors"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
 
 export const MarketsSection = () => {
+  const isMobile = useMobileResolution()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
   const marketSection = useAppSelector(
     (state) => state.lenderDashboard.marketSection,
   )
 
-  const [marketSearch, setMarketSearch] = useState<string>("")
-  const [borrowerSearch, setBorrowerSearch] = useState<string>("")
-  const [marketAssets, setMarketAssets] = useState<SmallFilterSelectItem[]>([])
-  const [marketStatuses, setMarketStatuses] = useState<SmallFilterSelectItem[]>(
-    [],
+  const dispatch = useAppDispatch()
+
+  // moved filter state to redux so it survives route unmounts
+  // (going from market overview <-> details etc) instead of resetting every time
+  const marketFilters = useAppSelector((s) => s.marketFilters.lender)
+  const {
+    search: marketSearch,
+    assets: marketAssets,
+    statuses: marketStatuses,
+  } = marketFilters
+
+  const setMarketSearch: React.Dispatch<React.SetStateAction<string>> =
+    useCallback(
+      (value) => {
+        const next =
+          typeof value === "function"
+            ? (value as (prev: string) => string)(marketSearch)
+            : value
+        dispatch(
+          setMarketFilters({ role: "lender", filters: { search: next } }),
+        )
+      },
+      [dispatch, marketSearch],
+    )
+
+  const setMarketAssets: React.Dispatch<
+    React.SetStateAction<SmallFilterSelectItem[]>
+  > = useCallback(
+    (value) => {
+      const next =
+        typeof value === "function"
+          ? (
+              value as (
+                prev: SmallFilterSelectItem[],
+              ) => SmallFilterSelectItem[]
+            )(marketAssets)
+          : value
+      dispatch(setMarketFilters({ role: "lender", filters: { assets: next } }))
+    },
+    [dispatch, marketAssets],
+  )
+
+  const setMarketStatuses: React.Dispatch<
+    React.SetStateAction<SmallFilterSelectItem[]>
+  > = useCallback(
+    (value) => {
+      const next =
+        typeof value === "function"
+          ? (
+              value as (
+                prev: SmallFilterSelectItem[],
+              ) => SmallFilterSelectItem[]
+            )(marketStatuses)
+          : value
+      dispatch(
+        setMarketFilters({ role: "lender", filters: { statuses: next } }),
+      )
+    },
+    [dispatch, marketStatuses],
   )
 
   const filters = useMemo(
@@ -62,11 +125,12 @@ export const MarketsSection = () => {
     }),
     [marketSearch, marketAssets, marketStatuses],
   )
+  // rerender consumer when filters change now
 
   const { t } = useTranslation()
-  const dispatch = useAppDispatch()
 
   const { isWrongNetwork } = useCurrentNetwork()
+  const { isConnected } = useAccount()
   const { data: borrowers } = useBorrowerNames()
 
   const {
@@ -77,31 +141,17 @@ export const MarketsSection = () => {
 
   const isLoading = isLoadingInitial || isLoadingUpdate
 
-  const filteredMarketAccounts = useMemo(() => {
-    const borrowersSearch = borrowers
-      ?.filter(
-        (b) =>
-          b.name?.toLowerCase().includes(borrowerSearch.toLowerCase()) ||
-          b.alias?.toLowerCase().includes(borrowerSearch.toLowerCase()) ||
-          b.address?.toLowerCase().includes(borrowerSearch.toLowerCase()),
-      )
-      .map((b) => b.address)
-
-    return filterMarketAccounts(
-      marketAccounts,
-      marketSearch,
-      marketStatuses,
-      marketAssets,
-      borrowersSearch,
-    )
-  }, [
-    marketAccounts,
-    marketSearch,
-    marketStatuses,
-    marketAssets,
-    borrowerSearch,
-    borrowers,
-  ])
+  const filteredMarketAccounts = useMemo(
+    () =>
+      filterMarketAccounts(
+        marketAccounts,
+        marketSearch,
+        marketStatuses,
+        marketAssets,
+        borrowers,
+      ),
+    [marketAccounts, marketSearch, marketStatuses, marketAssets, borrowers],
+  )
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
   const tokens = useMemo(() => {
@@ -238,6 +288,7 @@ export const MarketsSection = () => {
     selfOnboardAmount,
     manualAmount,
     isWrongNetwork,
+    dispatch,
   ])
 
   const noMarketsAtAll = lenderMarkets.length === 0
@@ -253,118 +304,210 @@ export const MarketsSection = () => {
     } else {
       dispatch(setMarketSection(LenderMarketDashboardSections.ACTIVE))
     }
-  }, [noMarketsAtAll])
+  }, [noMarketsAtAll, dispatch])
+
+  useEffect(() => {
+    if (!isConnected) {
+      dispatch(setMarketSection(LenderMarketDashboardSections.OTHER))
+    }
+  }, [isConnected, dispatch])
+
+  if (!mounted)
+    return (
+      <Skeleton
+        sx={{
+          width: "100%",
+          height: {
+            xs: "153px",
+            md: "162px",
+          },
+          borderRadius: "14px",
+          backgroundColor: {
+            xs: COLORS.white06,
+            md: "transparent",
+          },
+        }}
+      />
+    )
 
   return (
-    <Box
-      sx={{
-        width: "100%",
-      }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          padding: "0 24px",
-        }}
-      >
+    <Box sx={{ width: "100%" }}>
+      {!isMobile && (
         <Box
           sx={{
-            width: "100%",
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            flexDirection: "column",
+            padding: "0 24px",
           }}
         >
-          <Typography variant="title2" sx={{ marginBottom: "6px" }}>
-            {t("dashboard.markets.title")}
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="title2" sx={{ marginBottom: "6px" }}>
+              {t("dashboard.markets.title")}
+            </Typography>
+
+            {isConnected &&
+              marketSection !== LenderMarketDashboardSections.OTHER &&
+              (isLoading ? (
+                <Skeleton
+                  variant="rounded"
+                  sx={{
+                    width: "152.17px",
+                    height: "32px",
+                    borderRadius: "10px",
+                    bgcolor: COLORS.athensGrey,
+                  }}
+                />
+              ) : (
+                <Button
+                  variant="contained"
+                  size="small"
+                  disabled={isWrongNetwork}
+                  sx={{
+                    paddingTop: "8px",
+                    paddingBottom: "8px",
+                    minWidth: "100px",
+                  }}
+                  onClick={() =>
+                    dispatch(
+                      setMarketSection(LenderMarketDashboardSections.OTHER),
+                    )
+                  }
+                >
+                  {t("dashboard.markets.lenderTitleButton")}
+                </Button>
+              ))}
+          </Box>
+
+          <Typography
+            variant="text3"
+            color={COLORS.santasGrey}
+            sx={{ marginBottom: "24px" }}
+          >
+            {t("dashboard.markets.lenderSubtitle")}{" "}
+            <Link
+              href="https://docs.wildcat.finance/using-wildcat/day-to-day-usage/lenders"
+              style={{ color: COLORS.santasGrey }}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {t("dashboard.markets.docsLink")}
+            </Link>
           </Typography>
 
-          {!(marketSection === LenderMarketDashboardSections.OTHER) &&
-            !isLoading && (
-              <Button
-                variant="contained"
-                size="small"
-                disabled={isWrongNetwork}
-                sx={{
-                  paddingTop: "8px",
-                  paddingBottom: "8px",
-                  minWidth: "100px",
-                }}
-                onClick={() =>
-                  dispatch(
-                    setMarketSection(LenderMarketDashboardSections.OTHER),
-                  )
-                }
-              >
-                {t("dashboard.markets.lenderTitleButton")}
-              </Button>
-            )}
-        </Box>
-        <Typography
-          variant="text3"
-          color={COLORS.santasGrey}
-          sx={{ marginBottom: "24px" }}
-        >
-          {t("dashboard.markets.lenderSubtitle")}{" "}
-          <Link
-            href="https://docs.wildcat.finance/using-wildcat/day-to-day-usage/lenders"
-            style={{ color: COLORS.santasGrey }}
-            target="_blank"
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "space-between",
+            }}
           >
-            {t("dashboard.markets.docsLink")}
-          </Link>
-        </Typography>
+            {isConnected &&
+              (isLoading ? (
+                <Box
+                  role="status"
+                  aria-label="Loading market section tabs"
+                  sx={{ display: "flex", gap: "8px", height: "32px" }}
+                >
+                  <Skeleton
+                    variant="rounded"
+                    sx={{
+                      width: "140px",
+                      height: "32px",
+                      borderRadius: "10px",
+                      bgcolor: COLORS.athensGrey,
+                    }}
+                  />
+                  <Skeleton
+                    variant="rounded"
+                    sx={{
+                      width: "190px",
+                      height: "32px",
+                      borderRadius: "10px",
+                      bgcolor: COLORS.athensGrey,
+                    }}
+                  />
+                  <Skeleton
+                    variant="rounded"
+                    sx={{
+                      width: "150px",
+                      height: "32px",
+                      borderRadius: "10px",
+                      bgcolor: COLORS.athensGrey,
+                    }}
+                  />
+                </Box>
+              ) : (
+                !noMarketsAtAll && <LenderMarketSectionSwitcher />
+              ))}
 
-        <Box
-          sx={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "space-between",
-          }}
-        >
-          {!noMarketsAtAll && <LenderMarketSectionSwitcher />}
+            <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
+              <FilterTextField
+                value={marketSearch}
+                setValue={setMarketSearch}
+                placeholder={t("dashboard.markets.filters.name")}
+                width="180px"
+              />
 
-          <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
-            <FilterTextField
-              value={marketSearch}
-              setValue={setMarketSearch}
-              placeholder={t("dashboard.markets.filters.name")}
-              width="165px"
-            />
+              <SmallFilterSelect
+                placeholder={t("dashboard.markets.filters.assets")}
+                options={
+                  tokens?.map((token) => ({
+                    id: token.address,
+                    name: token.symbol,
+                  })) ?? []
+                }
+                selected={marketAssets}
+                setSelected={setMarketAssets}
+                width="180px"
+              />
 
-            <FilterTextField
-              value={borrowerSearch}
-              setValue={setBorrowerSearch}
-              placeholder={t("dashboard.markets.filters.borrower")}
-              width="175px"
-            />
+              <SmallFilterSelect
+                placeholder={t("dashboard.markets.filters.statuses")}
+                options={marketStatusesMock}
+                selected={marketStatuses}
+                setSelected={setMarketStatuses}
+                width="180px"
+              />
+            </Box>
+          </Box>
+        </Box>
+      )}
 
-            <SmallFilterSelect
-              placeholder={t("dashboard.markets.filters.assets")}
-              options={
+      {isMobile && (
+        <MobileMarketSectionHeader>
+          <Box sx={{ display: "flex", gap: "4px" }}>
+            <MobileFilterButton
+              assetsOptions={
                 tokens?.map((token) => ({
                   id: token.address,
                   name: token.symbol,
                 })) ?? []
               }
-              selected={marketAssets}
-              setSelected={setMarketAssets}
-              width="140px"
+              statusesOptions={marketStatusesMock}
+              marketAssets={marketAssets}
+              marketStatuses={marketStatuses}
+              setMarketAssets={setMarketAssets}
+              setMarketStatuses={setMarketStatuses}
             />
 
-            <SmallFilterSelect
-              placeholder={t("dashboard.markets.filters.statuses")}
-              options={marketStatusesMock}
-              selected={marketStatuses}
-              setSelected={setMarketStatuses}
-              width="150px"
+            <MobileSearchButton
+              marketAccounts={filteredMarketAccounts ?? []}
+              marketSearch={marketSearch}
+              setMarketSearch={setMarketSearch}
             />
           </Box>
-        </Box>
-      </Box>
+        </MobileMarketSectionHeader>
+      )}
 
       {marketSection === LenderMarketDashboardSections.ACTIVE &&
+        isConnected &&
         !noActiveMarkets &&
         !noMarketsAtAll &&
         !isWrongNetwork && (
@@ -377,6 +520,7 @@ export const MarketsSection = () => {
         )}
 
       {marketSection === LenderMarketDashboardSections.TERMINATED &&
+        isConnected &&
         !noMarketsAtAll &&
         !isWrongNetwork && (
           <LenderTerminatedMarketsTables
@@ -403,14 +547,19 @@ export const MarketsSection = () => {
         !isLoading &&
         !noMarketsAtAll &&
         marketSection === LenderMarketDashboardSections.ACTIVE && (
-          <Box sx={{ width: "100%", padding: "0 24px", marginTop: "24px" }}>
+          <Box
+            sx={{
+              width: "100%",
+              padding: { xs: "4px 0 0", md: "24px 24px 0px" },
+            }}
+          >
             <Box
               sx={{
                 width: "100%",
                 padding: "40px 24px",
                 display: "flex",
                 flexDirection: "column",
-                backgroundColor: COLORS.hintOfRed,
+                backgroundColor: { xs: COLORS.white, md: COLORS.hintOfRed },
                 borderRadius: "16px",
               }}
             >

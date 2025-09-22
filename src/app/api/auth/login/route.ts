@@ -9,6 +9,8 @@ import { LoginInputDTO } from "./dto"
 import { LoginInput } from "./interface"
 import { createApiToken } from "../verify-header"
 
+const MAX_SIGNATURE_AGE = 3_600 // 1 hour
+
 export async function POST(request: NextRequest) {
   let body: LoginInput
   try {
@@ -19,6 +21,11 @@ export async function POST(request: NextRequest) {
   }
   const address = body.address.toLowerCase()
   const { signature, timeSigned } = body
+  // Check if the signature is too old
+  const unixTime = Date.now() / 1000
+  if (timeSigned > unixTime || timeSigned < unixTime - MAX_SIGNATURE_AGE) {
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
+  }
   const LoginMessage = getLoginSignatureMessage(address, timeSigned)
   const provider = getProviderForServer()
   const result = await verifyAndDescribeSignature({

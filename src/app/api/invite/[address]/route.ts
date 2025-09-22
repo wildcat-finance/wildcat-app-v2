@@ -18,8 +18,11 @@ export async function GET(
 ) {
   const address = params.address.toLowerCase()
   const token = await verifyApiToken(request)
-  if (!token?.isAdmin && token?.address.toLowerCase() !== address) {
+  if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  if (!token.isAdmin && token.address.toLowerCase() !== address) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   const invitation = await findBorrowerWithPendingInvitation(address)
   if (invitation) {

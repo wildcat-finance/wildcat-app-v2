@@ -3,6 +3,7 @@ import { persistStore } from "redux-persist"
 
 import borrowerDashboardAmountsSlice from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import borrowerDashboardSlice from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
+import cookieBannerSlice from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
 import createMarketSidebarSlice from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import lenderDashboardAmountsSlice from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import lenderDashboardSlice from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
@@ -16,6 +17,7 @@ import editPolicySlice from "./slices/editPolicySlice/editPolicySlice"
 import highlightSidebarSlice from "./slices/highlightSidebarSlice/highlightSidebarSlice"
 import lenderMarketRoutingSlice from "./slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import lenderMlaSignaturesSlice from "./slices/lenderMlaSignaturesSlice/mlaSignaturesSlice"
+import marketFiltersSlice from "./slices/marketFiltersSlice/marketFiltersSlice"
 import marketsOverviewSidebarSlice from "./slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import notificationsSidebarSlice from "./slices/notificationsSidebarSlice/notificationsSidebarSlice"
 import notificationsSlice from "./slices/notificationsSlice/notificationsSlice"
@@ -42,6 +44,8 @@ export const makeStore = () => {
       notificationsSidebar: notificationsSidebarSlice,
       borrowerLendersTabSidebar: borrowerLendersTabSidebarSlice,
       lenderMlaSignatures: lenderMlaSignaturesSlice,
+      cookieBanner: cookieBannerSlice,
+      marketFilters: marketFiltersSlice,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({

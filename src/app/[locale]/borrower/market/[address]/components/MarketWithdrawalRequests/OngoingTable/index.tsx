@@ -1,7 +1,7 @@
 import { useState } from "react"
 import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { TokenAmount, WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
@@ -9,6 +9,8 @@ import { useTranslation } from "react-i18next"
 import { WithdrawalTxRow } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/interface"
 import { DataGridCells } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/style"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
+import { WithdrawalsMobileTableItem } from "@/components/Mobile/WithdrawalsMobileTableItem"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import {
   formatTokenWithCommas,
@@ -28,6 +30,8 @@ export const OngoingTable = ({
 }: OngoingTableProps) => {
   const { t } = useTranslation()
   const [isOngoingOpen, setIsOngoingOpen] = useState(false)
+  const theme = useTheme()
+  const isMobile = useMobileResolution()
 
   const ongoingRows: WithdrawalTxRow[] = withdrawalBatches.flatMap((batch) =>
     batch.requests.map((withdrawal) => ({
@@ -43,6 +47,53 @@ export const OngoingTable = ({
       ),
     })),
   )
+
+  const renderContent = () => {
+    if (!ongoingRows.length) {
+      return (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            padding: isMobile ? "0px 4px" : "0px 16px",
+            marginBottom: isMobile ? "0px" : "10px",
+          }}
+        >
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            {t("marketWithdrawalRequests.noOngoing")}
+          </Typography>
+        </Box>
+      )
+    }
+
+    if (isMobile) {
+      return (
+        <Box>
+          {ongoingRows.map(
+            ({ id, lender, transactionId, amount, dateSubmitted }, index) => (
+              <WithdrawalsMobileTableItem
+                key={id}
+                lender={lender}
+                transactionId={transactionId}
+                amount={amount}
+                dateSubmitted={dateSubmitted}
+                isLast={index === ongoingRows.length - 1}
+              />
+            ),
+          )}
+        </Box>
+      )
+    }
+
+    return (
+      <DataGrid
+        sx={DataGridCells}
+        rows={ongoingRows}
+        columns={columns}
+        columnHeaderHeight={40}
+      />
+    )
+  }
 
   return (
     <DetailsAccordion
@@ -60,25 +111,7 @@ export const OngoingTable = ({
       chipColor={COLORS.whiteSmoke}
       chipValueColor={COLORS.blackRock}
     >
-      {ongoingRows.length ? (
-        <DataGrid
-          sx={DataGridCells}
-          rows={ongoingRows}
-          columns={columns}
-          columnHeaderHeight={40}
-        />
-      ) : (
-        <Box
-          display="flex"
-          flexDirection="column"
-          padding="0 16px"
-          marginBottom="10px"
-        >
-          <Typography variant="text3" color={COLORS.santasGrey}>
-            {t("marketWithdrawalRequests.noOngoing")}
-          </Typography>
-        </Box>
-      )}
+      {renderContent()}
     </DetailsAccordion>
   )
 }

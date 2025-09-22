@@ -87,8 +87,8 @@
       "borrowerTitleButton": "+ Create New Market",
       "lenderTitleButton": "+ Observe New Markets",
       "filters": {
-        "name": "Search by Name",
-        "borrower": "Search by Borrower",
+        "name": "Search",
+        "borrower": "Search",
         "assets": "Asset",
         "statuses": "Status"
       },
@@ -977,7 +977,7 @@
     "noDataAvailable": "No Data Available",
     "sidebar": {
       "actions": "Deposit & Withdraw",
-      "status": "Status",
+      "status": "Status and Details",
       "requests": "Withdrawal Requests",
       "marketHistory": "Market History",
       "borrowerProfile": "About Borrower"
@@ -1038,7 +1038,7 @@
       "total": "Total",
       "ongoing": "Ongoing",
       "claimable": "Claimable",
-      "outstanding": "Outstanding From Past Cycles",
+      "outstanding": "Outstanding",
       "tableColumns": {
         "lender": "Lender",
         "txID": "Transaction ID",

@@ -1,9 +1,15 @@
-import { Box, Button } from "@mui/material"
+import { Box, Button, SvgIcon } from "@mui/material"
 import { useParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { TerminateMarket } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateMarket"
+import BorrowAndRepayIcon from "@/assets/icons/borrowAndRepay_icon.svg"
+import CollateralContractIcon from "@/assets/icons/collateralContract_icon.svg"
+import LenderBorrowerIcon from "@/assets/icons/lenderBorrower_icon.svg"
+import MarketEventsIcon from "@/assets/icons/marketEvents_icon.svg"
+import StatusAndDetailsIcon from "@/assets/icons/statusAndDetails_icon.svg"
+import WithdrawalAndRequestsIcon from "@/assets/icons/withdrawalAndRequests_icon.svg"
 import { BackButton } from "@/components/BackButton"
 import {
   ContentContainer,
@@ -70,6 +76,9 @@ export const MarketSidebar = () => {
               )
             }}
           >
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <BorrowAndRepayIcon />
+            </SvgIcon>
             {t("borrowerMarketDetails.sidebar.borrowRepay")}
           </Button>
           <Button
@@ -96,6 +105,9 @@ export const MarketSidebar = () => {
               )
             }}
           >
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <StatusAndDetailsIcon />
+            </SvgIcon>
             {t("borrowerMarketDetails.sidebar.statusDetails")}
           </Button>
           <Button
@@ -148,6 +160,9 @@ export const MarketSidebar = () => {
               )
             }}
           >
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <WithdrawalAndRequestsIcon />
+            </SvgIcon>
             {t("borrowerMarketDetails.sidebar.withdrawalRequests")}
           </Button>
           <Button
@@ -174,6 +189,9 @@ export const MarketSidebar = () => {
               )
             }}
           >
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <LenderBorrowerIcon />
+            </SvgIcon>
             {t("borrowerMarketDetails.sidebar.authorisedLenders")}
           </Button>
           <Button
@@ -200,6 +218,9 @@ export const MarketSidebar = () => {
               )
             }}
           >
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <CollateralContractIcon />
+            </SvgIcon>
             {t("borrowerMarketDetails.sidebar.mla")}
           </Button>
 
@@ -227,6 +248,9 @@ export const MarketSidebar = () => {
               )
             }}
           >
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <MarketEventsIcon />
+            </SvgIcon>
             {t("borrowerMarketDetails.sidebar.marketHistory")}
           </Button>
         </Box>

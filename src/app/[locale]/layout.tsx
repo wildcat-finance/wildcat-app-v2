@@ -1,6 +1,6 @@
 import "./globals.css"
 
-import { ReactNode } from "react"
+import { ReactNode, Suspense } from "react"
 
 import { Box } from "@mui/material"
 import { dir } from "i18next"
@@ -16,9 +16,8 @@ import {
   PageContainer,
 } from "@/app/[locale]/layout-style"
 import initTranslations from "@/app/i18n"
-import CookieBanner from "@/components/CookieBanner"
-import { Footer } from "@/components/Footer"
 import Header from "@/components/Header"
+import HotjarConsent from "@/components/HotjarConsent"
 import PollingRegistration from "@/components/PollingRegistration"
 import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
@@ -58,7 +57,7 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} dir={dir(locale)}>
-      <body className={inter.className}>
+      <body className={inter.className} style={{ height: "100dvh" }}>
         <Toaster position="bottom-center" />
         <WagmiQueryProviders initialState={initialState}>
           <SafeProvider>
@@ -72,15 +71,25 @@ export default async function RootLayout({
                   {/* <PollingRegistration /> */}
                   <ThemeRegistry>
                     <Box sx={BackgroundContainer} />
-                    <Box position="relative" zIndex="1">
+                    <Box position="relative">
                       <Header />
                       <Box sx={PageContainer}>
                         <Box sx={ContentContainer}>
                           <Sidebar />
-                          <Box width="calc(100vw - 267px)">{children}</Box>
-                          {/* <CookieBanner /> */}
+                          <Box
+                            width="calc(100vw - 267px)"
+                            sx={{
+                              "@media (max-width: 1000px)": {
+                                width: "100%",
+                              },
+                            }}
+                          >
+                            {children}
+                          </Box>
+                          <Suspense>
+                            <HotjarConsent />
+                          </Suspense>
                         </Box>
-                        {/* <Footer /> */}
                       </Box>
                     </Box>
                   </ThemeRegistry>

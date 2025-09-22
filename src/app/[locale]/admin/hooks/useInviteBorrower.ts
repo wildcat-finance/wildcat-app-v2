@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 import { BorrowerInvitationInput } from "@/app/api/invite/interface"
-import { useAuthToken } from "@/hooks/useApiAuth"
+import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 
 import { GET_ALL_BORROWER_INVITATIONS_KEY } from "./useAllBorrowerInvitations"
 import { BORROWER_PROFILE_KEY } from "../../borrower/profile/hooks/useGetBorrowerProfile"
@@ -9,6 +9,7 @@ import { BORROWER_PROFILE_KEY } from "../../borrower/profile/hooks/useGetBorrowe
 export const useInviteBorrower = (address?: string) => {
   const token = useAuthToken()
   const client = useQueryClient()
+  const { mutate: removeBadToken } = useRemoveBadApiToken()
   return useMutation({
     mutationKey: ["inviteBorrower", address],
     mutationFn: async (data: BorrowerInvitationInput) => {
@@ -18,8 +19,13 @@ export const useInviteBorrower = (address?: string) => {
         headers: {
           Authorization: `Bearer ${token.token}`,
         },
-      }).then((res) => res.json())
-      if (!response.success) {
+      })
+      if (response.status === 401) {
+        removeBadToken()
+        throw Error("Failed to invite borrower")
+      }
+      const result = await response.json()
+      if (!result.success) {
         throw new Error("Failed to invite borrower")
       }
     },

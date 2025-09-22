@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState, useCallback } from "react"
 
 import { Box, Button, Typography } from "@mui/material"
 import {
@@ -32,6 +32,7 @@ import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import { BorrowerMarketDashboardSections } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
+import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFiltersSlice"
 import { COLORS } from "@/theme/colors"
 import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
@@ -49,11 +50,64 @@ export const MarketsSection = () => {
     (state) => state.borrowerDashboard.showFullFunctionality,
   )
 
-  const [marketSearch, setMarketSearch] = useState<string>("")
-  const [borrowerSearch, setBorrowerSearch] = useState<string>("")
-  const [marketAssets, setMarketAssets] = useState<SmallFilterSelectItem[]>([])
-  const [marketStatuses, setMarketStatuses] = useState<SmallFilterSelectItem[]>(
-    [],
+  // filter state lives in redux now
+  const marketFilters = useAppSelector((s) => s.marketFilters.borrower)
+  const {
+    search: marketSearch,
+    assets: marketAssets,
+    statuses: marketStatuses,
+  } = marketFilters
+
+  const setMarketSearch: React.Dispatch<React.SetStateAction<string>> =
+    useCallback(
+      (value) => {
+        const next =
+          typeof value === "function"
+            ? (value as (prev: string) => string)(marketSearch)
+            : value
+        dispatch(
+          setMarketFilters({ role: "borrower", filters: { search: next } }),
+        )
+      },
+      [dispatch, marketSearch],
+    )
+
+  const setMarketAssets: React.Dispatch<
+    React.SetStateAction<SmallFilterSelectItem[]>
+  > = useCallback(
+    (value) => {
+      const next =
+        typeof value === "function"
+          ? (
+              value as (
+                prev: SmallFilterSelectItem[],
+              ) => SmallFilterSelectItem[]
+            )(marketAssets)
+          : value
+      dispatch(
+        setMarketFilters({ role: "borrower", filters: { assets: next } }),
+      )
+    },
+    [dispatch, marketAssets],
+  )
+
+  const setMarketStatuses: React.Dispatch<
+    React.SetStateAction<SmallFilterSelectItem[]>
+  > = useCallback(
+    (value) => {
+      const next =
+        typeof value === "function"
+          ? (
+              value as (
+                prev: SmallFilterSelectItem[],
+              ) => SmallFilterSelectItem[]
+            )(marketStatuses)
+          : value
+      dispatch(
+        setMarketFilters({ role: "borrower", filters: { statuses: next } }),
+      )
+    },
+    [dispatch, marketStatuses],
   )
 
   const filters = useMemo(
@@ -66,6 +120,7 @@ export const MarketsSection = () => {
     }),
     [marketSearch, marketAssets, marketStatuses],
   )
+  // tables use this derived object; stable and only changes when inputs change
 
   const { t } = useTranslation()
 
@@ -100,31 +155,24 @@ export const MarketsSection = () => {
       account.market.borrower.toLowerCase() === address?.toLowerCase(),
   )
 
-  const filteredMarketAccounts = useMemo(() => {
-    const borrowersSearch = borrowers
-      ?.filter(
-        (b) =>
-          b.name?.toLowerCase().includes(borrowerSearch.toLowerCase()) ||
-          b.alias?.toLowerCase().includes(borrowerSearch.toLowerCase()) ||
-          b.address?.toLowerCase().includes(borrowerSearch.toLowerCase()),
-      )
-      .map((b) => b.address)
-
-    return filterMarketAccounts(
+  const filteredMarketAccounts = useMemo(
+    () =>
+      filterMarketAccounts(
+        marketAccounts,
+        marketSearch,
+        marketStatuses,
+        marketAssets,
+        borrowers,
+      ),
+    [
       marketAccounts,
       marketSearch,
       marketStatuses,
       marketAssets,
-      borrowersSearch,
-    )
-  }, [
-    marketAccounts,
-    marketSearch,
-    marketStatuses,
-    marketAssets,
-    borrowerSearch,
-    borrowers,
-  ])
+      borrowers,
+      address,
+    ],
+  )
 
   const {
     active: filteredActiveBorrowerMarkets,
@@ -247,6 +295,7 @@ export const MarketsSection = () => {
     selfOnboardAmount,
     manualAmount,
     isWrongNetwork,
+    dispatch,
   ])
 
   return (
@@ -319,17 +368,8 @@ export const MarketsSection = () => {
               value={marketSearch}
               setValue={setMarketSearch}
               placeholder={t("dashboard.markets.filters.name")}
-              width="165px"
+              width="180px"
             />
-
-            {marketSection === BorrowerMarketDashboardSections.OTHER && (
-              <FilterTextField
-                value={borrowerSearch}
-                setValue={setBorrowerSearch}
-                placeholder={t("dashboard.markets.filters.borrower")}
-                width="175px"
-              />
-            )}
 
             <SmallFilterSelect
               placeholder={t("dashboard.markets.filters.assets")}
@@ -341,7 +381,7 @@ export const MarketsSection = () => {
               }
               selected={marketAssets}
               setSelected={setMarketAssets}
-              width="140px"
+              width="180px"
             />
 
             <SmallFilterSelect
@@ -349,7 +389,7 @@ export const MarketsSection = () => {
               options={marketStatusesMock}
               selected={marketStatuses}
               setSelected={setMarketStatuses}
-              width="150px"
+              width="180px"
             />
           </Box>
         </Box>

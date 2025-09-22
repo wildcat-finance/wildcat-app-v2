@@ -13,6 +13,7 @@ import { MarketStatusChipProps } from "./type"
 
 export const MarketStatusChip = ({
   variant = "filled",
+  withPeriod = true,
   status,
 }: MarketStatusChipProps) => {
   let chipConfig
@@ -69,7 +70,12 @@ export const MarketStatusChip = ({
     )
 
   if (status.status === MarketStatus.HEALTHY)
-    return <HealthyStatusChip msLeft={status.healthyPeriod} />
+    return (
+      <HealthyStatusChip
+        withPeriod={withPeriod}
+        msLeft={status.healthyPeriod}
+      />
+    )
 
   switch (variant) {
     case "filled": {
