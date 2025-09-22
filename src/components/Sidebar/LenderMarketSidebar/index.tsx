@@ -7,6 +7,7 @@ import BorrowAndRepayIcon from "@/assets/icons/borrowAndRepay_icon.svg"
 import LenderBorrowerIcon from "@/assets/icons/lenderBorrower_icon.svg"
 import MarketEventsIcon from "@/assets/icons/marketEvents_icon.svg"
 import StatusAndDetailsIcon from "@/assets/icons/statusAndDetails_icon.svg"
+import SummaryIcon from "@/assets/icons/summary_icon.svg"
 import WithdrawalAndRequestsIcon from "@/assets/icons/withdrawalAndRequests_icon.svg"
 import { BackButton } from "@/components/BackButton"
 import { MenuItemButton } from "@/components/Sidebar/MarketSidebar/style"
@@ -111,6 +112,24 @@ export const LenderMarketSidebar = () => {
                 <StatusAndDetailsIcon />
               </SvgIcon>
               {t("lenderMarketDetails.sidebar.status")}
+            </Button>
+
+            <Button
+              variant="text"
+              size="medium"
+              onClick={() => handleChangeSection(LenderMarketSections.SUMMARY)}
+              sx={{
+                ...MenuItemButton,
+                backgroundColor:
+                  currentSection === LenderMarketSections.SUMMARY
+                    ? COLORS.whiteSmoke
+                    : "transparent",
+              }}
+            >
+              <SvgIcon sx={{ marginRight: "10px" }}>
+                <SummaryIcon />
+              </SvgIcon>
+              Market Description
             </Button>
 
             {isLender && (

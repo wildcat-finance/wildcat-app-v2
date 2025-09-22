@@ -84,8 +84,15 @@ export const BorrowerMarketSummary = ({
     )
   }
 
-  if (!isBorrower && !marketSummary) {
-    return null
+  if (
+    !isBorrower &&
+    (!marketSummary?.description || marketSummary?.description === "")
+  ) {
+    return (
+      <Typography variant="text2" color={COLORS.santasGrey}>
+        No market summary found.
+      </Typography>
+    )
   }
 
   return (

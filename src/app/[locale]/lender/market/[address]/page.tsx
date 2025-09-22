@@ -295,7 +295,6 @@ export default function LenderMarketDetails({
                   withdrawals={withdrawals}
                 />
               )}
-              <MarketSummary marketAddress={market.address} />
               <CapacityBarChart
                 marketAccount={marketAccount}
                 legendType="big"
@@ -306,13 +305,6 @@ export default function LenderMarketDetails({
 
           {currentSection === LenderMarketSections.STATUS && (
             <Box marginTop="12px">
-              {
-                /* If the lender is not authorized, they will get auto-redirected to the status section.
-                 * Show the market summary here instead of actions section in that case.  */
-                !authorizedInMarket && (
-                  <MarketSummary marketAddress={market.address} />
-                )
-              }
               <BarCharts
                 marketAccount={marketAccount}
                 withdrawals={withdrawals}
@@ -321,6 +313,10 @@ export default function LenderMarketDetails({
               <Divider sx={{ margin: "40px 0 44px" }} />
               <MarketParameters market={market} />
             </Box>
+          )}
+
+          {currentSection === LenderMarketSections.SUMMARY && (
+            <MarketSummary marketAddress={market.address} />
           )}
 
           {currentSection === LenderMarketSections.BORROWER_PROFILE && (
