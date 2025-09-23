@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 
 import { Box, Button, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import AuthWrapper from "@/components/AuthWrapper"
 import { Markdown } from "@/components/Markdown"
@@ -21,6 +22,8 @@ const InnerMarketSummaryEditor = ({
   marketSummary: string
   handleClose: () => void
 }) => {
+  const { t } = useTranslation()
+
   const [markdown, setMarkdown] = useState(marketSummary || "")
   const { mutate: updateMarketSummary, isPending } =
     useUpdateMarketSummary(marketAddress)
@@ -51,7 +54,7 @@ const InnerMarketSummaryEditor = ({
 
       <Box sx={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
         <Button variant="contained" color="primary" onClick={handleClose}>
-          Cancel
+          {t("borrowerMarketDetails.description.buttons.cancel")}
         </Button>
         <Button
           variant="contained"
@@ -59,7 +62,9 @@ const InnerMarketSummaryEditor = ({
           onClick={handleSave}
           disabled={isPending}
         >
-          {isPending ? "Saving..." : "Save"}
+          {isPending
+            ? t("borrowerMarketDetails.description.buttons.pending")
+            : t("borrowerMarketDetails.description.buttons.save")}
         </Button>
       </Box>
     </Box>
@@ -73,13 +78,14 @@ export const BorrowerMarketSummary = ({
   marketAddress: string
   isBorrower: boolean
 }) => {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const { data: marketSummary, isLoading } = useMarketSummary(marketAddress)
 
   if (isLoading) {
     return (
       <Typography variant="text2" color={COLORS.santasGrey}>
-        Loading market summary...
+        {t("borrowerMarketDetails.description.states.loading")}
       </Typography>
     )
   }
@@ -90,7 +96,7 @@ export const BorrowerMarketSummary = ({
   ) {
     return (
       <Typography variant="text2" color={COLORS.santasGrey}>
-        No market summary found.
+        {t("borrowerMarketDetails.description.states.noDescription")}
       </Typography>
     )
   }
@@ -105,16 +111,22 @@ export const BorrowerMarketSummary = ({
             alignItems: "center",
           }}
         >
-          <Typography variant="title3">Market Summary</Typography>
+          <Typography variant="title3">
+            {t("borrowerMarketDetails.description.title")}
+          </Typography>
 
-          <AuthWrapper buttonText="Log in to change the summary">
+          <AuthWrapper
+            buttonText={t("borrowerMarketDetails.description.buttons.login")}
+          >
             <Button
               variant="outlined"
               color="secondary"
               size="small"
               onClick={() => setOpen(true)}
             >
-              {marketSummary ? "Edit" : "Add"}
+              {marketSummary
+                ? t("borrowerMarketDetails.description.buttons.edit")
+                : t("borrowerMarketDetails.description.buttons.add")}
             </Button>
           </AuthWrapper>
         </Box>

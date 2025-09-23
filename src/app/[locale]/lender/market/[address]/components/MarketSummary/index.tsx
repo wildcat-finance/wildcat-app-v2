@@ -1,6 +1,7 @@
 "use client"
 
 import { Box, Divider, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { Markdown } from "@/components/Markdown"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
@@ -8,11 +9,12 @@ import { COLORS } from "@/theme/colors"
 
 export const MarketSummary = ({ marketAddress }: { marketAddress: string }) => {
   const { data: marketSummary, isLoading } = useMarketSummary(marketAddress)
+  const { t } = useTranslation()
 
   if (isLoading) {
     return (
       <Typography variant="text2" color={COLORS.santasGrey}>
-        Loading market summary...
+        {t("lenderMarketDetails.description.states.loading")}
       </Typography>
     )
   }
@@ -20,7 +22,7 @@ export const MarketSummary = ({ marketAddress }: { marketAddress: string }) => {
   if (!marketSummary?.description || marketSummary?.description === "") {
     return (
       <Typography variant="text2" color={COLORS.santasGrey}>
-        No market summary found.
+        {t("lenderMarketDetails.description.states.noDescription")}
       </Typography>
     )
   }

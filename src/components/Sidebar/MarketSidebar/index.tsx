@@ -138,7 +138,7 @@ export const MarketSidebar = () => {
             <SvgIcon sx={{ marginRight: "10px" }}>
               <SummaryIcon />
             </SvgIcon>
-            Market Description
+            {t("borrowerMarketDetails.description.title")}
           </Button>
           <Button
             variant="text"
