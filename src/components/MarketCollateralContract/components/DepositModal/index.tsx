@@ -247,10 +247,9 @@ export const DepositModalContract = ({
             crossOnClick={null}
           >
             <Typography variant="text3" color={COLORS.santasGrey}>
-              It’s been already update lately.{" "}
               <MuiLink
                 component={Link}
-                href="https://docs.wildcat.finance"
+                href="https://docs.wildcat.finance/using-wildcat/day-to-day-usage/optional-collateral-contracts"
                 variant="inherit"
                 underline="none"
                 color={COLORS.ultramarineBlue}

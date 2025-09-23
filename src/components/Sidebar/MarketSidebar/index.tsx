@@ -1,3 +1,5 @@
+import * as React from "react"
+
 import { Box, Button, SvgIcon } from "@mui/material"
 import { useParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
@@ -5,9 +7,10 @@ import { useAccount } from "wagmi"
 
 import { TerminateMarket } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateMarket"
 import BorrowAndRepayIcon from "@/assets/icons/borrowAndRepay_icon.svg"
-import CollateralContractIcon from "@/assets/icons/collateralContract_icon.svg"
+import ContractIcon from "@/assets/icons/contract_icon.svg"
 import LenderBorrowerIcon from "@/assets/icons/lenderBorrower_icon.svg"
 import MarketEventsIcon from "@/assets/icons/marketEvents_icon.svg"
+import MLAIcon from "@/assets/icons/mla_icon.svg"
 import StatusAndDetailsIcon from "@/assets/icons/statusAndDetails_icon.svg"
 import WithdrawalAndRequestsIcon from "@/assets/icons/withdrawalAndRequests_icon.svg"
 import { BackButton } from "@/components/BackButton"
@@ -182,7 +185,7 @@ export const MarketSidebar = () => {
             }}
           >
             <SvgIcon sx={{ marginRight: "10px" }}>
-              <CollateralContractIcon />
+              <MLAIcon />
             </SvgIcon>
             {t("borrowerMarketDetails.sidebar.mla")}
           </Button>
@@ -240,7 +243,10 @@ export const MarketSidebar = () => {
               )
             }}
           >
-            Collateral Contract
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <ContractIcon />
+            </SvgIcon>
+            {t("collateral.actions.title")}
           </Button>
         </Box>
 

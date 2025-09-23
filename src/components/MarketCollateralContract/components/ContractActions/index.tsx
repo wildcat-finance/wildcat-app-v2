@@ -58,7 +58,8 @@ export const ContractActions = ({
     collateralContract.collateralAsset,
   ])
 
-  const showDeposit = !market.isClosed && !hideActions
+  const showDeposit =
+    !market.isClosed && !hideActions && marketAccount.isBorrower
 
   const showLiquidate =
     market.isIncurringPenalties &&
@@ -113,7 +114,10 @@ export const ContractActions = ({
             <Typography variant="mobText3">
               {t("collateral.actions.delinquentDebt")}
             </Typography>
-            <TooltipButton value="TBD" color={COLORS.bunker} />
+            <TooltipButton
+              value={t("collateral.actions.tooltips.debt")}
+              color={COLORS.bunker}
+            />
           </Box>
 
           <Box display="flex" flexDirection="column" alignItems="flex-end">
@@ -168,7 +172,10 @@ export const ContractActions = ({
             <Typography variant="mobText3">
               {t("collateral.actions.availableCollateral")}
             </Typography>
-            <TooltipButton value="TBD" color={COLORS.bunker} />
+            <TooltipButton
+              value={t("collateral.actions.tooltips.assets")}
+              color={COLORS.bunker}
+            />
           </Box>
 
           <Box display="flex" flexDirection="column" alignItems="flex-end">
@@ -282,7 +289,7 @@ export const ContractActions = ({
       <CollateralActionsItem
         amount={market.delinquentDebt.format(TOKEN_FORMAT_DECIMALS)}
         label={t("collateral.actions.delinquentDebt")}
-        tooltip="TBD"
+        tooltip={t("collateral.actions.tooltips.debt")}
         asset={market.underlyingToken.symbol}
         convertedAmount={`0 ${collateralContract.collateralAsset.symbol}`}
         marginBottom="8px"
@@ -304,7 +311,7 @@ export const ContractActions = ({
           TOKEN_FORMAT_DECIMALS,
         )}
         label={t("collateral.actions.availableCollateral")}
-        tooltip="TBD"
+        tooltip={t("collateral.actions.tooltips.assets")}
         asset={collateralContract.collateralAsset.symbol}
         convertedAmount={
           collateralValue !== undefined ? `$${collateralValue.toFixed(2)}` : "0"
@@ -333,7 +340,7 @@ export const ContractActions = ({
             <Typography variant="text2">
               {t("collateral.actions.yourShares")}
             </Typography>
-            <TooltipButton value="TBD" />
+            <TooltipButton value={t("collateral.actions.tooltips.shares")} />
           </Box>
 
           <Box

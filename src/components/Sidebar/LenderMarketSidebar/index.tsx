@@ -4,8 +4,10 @@ import { Box, Button, Skeleton, SvgIcon } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import BorrowAndRepayIcon from "@/assets/icons/borrowAndRepay_icon.svg"
+import ContractIcon from "@/assets/icons/contract_icon.svg"
 import LenderBorrowerIcon from "@/assets/icons/lenderBorrower_icon.svg"
 import MarketEventsIcon from "@/assets/icons/marketEvents_icon.svg"
+import MLAIcon from "@/assets/icons/mla_icon.svg"
 import StatusAndDetailsIcon from "@/assets/icons/statusAndDetails_icon.svg"
 import WithdrawalAndRequestsIcon from "@/assets/icons/withdrawalAndRequests_icon.svg"
 import { BackButton } from "@/components/BackButton"
@@ -194,7 +196,10 @@ export const LenderMarketSidebar = () => {
                     : "transparent",
               }}
             >
-              Collateral Contract
+              <SvgIcon sx={{ marginRight: "10px" }}>
+                <ContractIcon />
+              </SvgIcon>
+              {t("collateral.actions.title")}
             </Button>
           </Box>
         )}
