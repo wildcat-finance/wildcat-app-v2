@@ -249,8 +249,12 @@ export const RepayModal = ({
 
   const showForm = !(isRepaying || showSuccessPopup || showErrorPopup)
 
+  const displayableSeconds =
+    market.secondsBeforeDelinquency > 0 &&
+    market.secondsBeforeDelinquency < Number.MAX_SAFE_INTEGER
+
   const remainingInterest =
-    market.totalDebts.gt(0) && !market.isClosed
+    market.totalDebts.gt(0) && !market.isClosed && displayableSeconds
       ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
           round: true,
           largest: 1,
@@ -258,9 +262,9 @@ export const RepayModal = ({
       : ""
 
   const amountInputLabel = isRepayByDays
-    ? `${t(
-        "borrowerMarketDetails.modals.repay.interestRemaining",
-      )} ${remainingInterest}`
+    ? `${t("borrowerMarketDetails.modals.repay.interestRemaining")}${
+        remainingInterest ? ` ${remainingInterest}` : ""
+      }`
     : `${t("borrowerMarketDetails.modals.repay.upTo")} ${formatTokenWithCommas(
         market.outstandingDebt,
         {
