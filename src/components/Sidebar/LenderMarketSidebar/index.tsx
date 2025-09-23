@@ -38,7 +38,7 @@ export const LenderMarketSidebar = () => {
     dispatch(setSection(newSection))
   }
 
-  const disableDescriptionSection = useAppSelector(
+  const hideDescriptionSection = useAppSelector(
     (state) => state.hideMarketSections.description,
   )
 
@@ -118,29 +118,31 @@ export const LenderMarketSidebar = () => {
               {t("lenderMarketDetails.sidebar.status")}
             </Button>
 
-            <Button
-              variant="text"
-              size="medium"
-              onClick={() => handleChangeSection(LenderMarketSections.SUMMARY)}
-              disabled={disableDescriptionSection}
-              sx={{
-                ...MenuItemButton,
-                backgroundColor:
-                  currentSection === LenderMarketSections.SUMMARY
-                    ? COLORS.whiteSmoke
-                    : "transparent",
-              }}
-            >
-              <SvgIcon
+            {!hideDescriptionSection && (
+              <Button
+                variant="text"
+                size="medium"
+                onClick={() =>
+                  handleChangeSection(LenderMarketSections.SUMMARY)
+                }
                 sx={{
-                  marginRight: "10px",
-                  opacity: disableDescriptionSection ? 0.3 : 1,
+                  ...MenuItemButton,
+                  backgroundColor:
+                    currentSection === LenderMarketSections.SUMMARY
+                      ? COLORS.whiteSmoke
+                      : "transparent",
                 }}
               >
-                <SummaryIcon />
-              </SvgIcon>
-              {t("lenderMarketDetails.description.title")}
-            </Button>
+                <SvgIcon
+                  sx={{
+                    marginRight: "10px",
+                  }}
+                >
+                  <SummaryIcon />
+                </SvgIcon>
+                {t("lenderMarketDetails.description.title")}
+              </Button>
+            )}
 
             {isLender && (
               <Button

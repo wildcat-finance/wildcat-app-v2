@@ -44,7 +44,7 @@ export const MarketSidebar = () => {
     (state) => state.highlightSidebar.sidebarState,
   )
 
-  const disableDescriptionSection = useAppSelector(
+  const hideDescriptionSection = useAppSelector(
     (state) => state.hideMarketSections.description,
   )
 
@@ -115,41 +115,41 @@ export const MarketSidebar = () => {
             </SvgIcon>
             {t("borrowerMarketDetails.sidebar.statusDetails")}
           </Button>
-          <Button
-            variant="text"
-            size="medium"
-            sx={{
-              ...MenuItemButton,
-              backgroundColor: sidebarState.marketSummary
-                ? COLORS.whiteSmoke
-                : "transparent",
-            }}
-            disabled={disableDescriptionSection}
-            onClick={() => {
-              dispatch(setCheckBlock(3))
-              dispatch(
-                setSidebarHighlightState({
-                  borrowRepay: false,
-                  statusDetails: false,
-                  marketSummary: true,
-                  withdrawals: false,
-                  lenders: false,
-                  mla: false,
-                  marketHistory: false,
-                }),
-              )
-            }}
-          >
-            <SvgIcon
+          {!hideDescriptionSection && (
+            <Button
+              variant="text"
+              size="medium"
               sx={{
-                marginRight: "10px",
-                opacity: disableDescriptionSection ? 0.3 : 1,
+                ...MenuItemButton,
+                backgroundColor: sidebarState.marketSummary
+                  ? COLORS.whiteSmoke
+                  : "transparent",
+              }}
+              onClick={() => {
+                dispatch(setCheckBlock(3))
+                dispatch(
+                  setSidebarHighlightState({
+                    borrowRepay: false,
+                    statusDetails: false,
+                    marketSummary: true,
+                    withdrawals: false,
+                    lenders: false,
+                    mla: false,
+                    marketHistory: false,
+                  }),
+                )
               }}
             >
-              <SummaryIcon />
-            </SvgIcon>
-            {t("borrowerMarketDetails.description.title")}
-          </Button>
+              <SvgIcon
+                sx={{
+                  marginRight: "10px",
+                }}
+              >
+                <SummaryIcon />
+              </SvgIcon>
+              {t("borrowerMarketDetails.description.title")}
+            </Button>
+          )}
           <Button
             variant="text"
             size="medium"
