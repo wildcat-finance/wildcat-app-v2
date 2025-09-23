@@ -1,14 +1,23 @@
 "use client"
 
-import { Box, Divider, Typography } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { Markdown } from "@/components/Markdown"
-import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { COLORS } from "@/theme/colors"
 
-export const MarketSummary = ({ marketAddress }: { marketAddress: string }) => {
-  const { data: marketSummary, isLoading } = useMarketSummary(marketAddress)
+export const MarketSummary = ({
+  marketSummary,
+  isLoading,
+}: {
+  marketSummary:
+    | {
+        marketAddress: string
+        description: string
+      }
+    | undefined
+  isLoading: boolean
+}) => {
   const { t } = useTranslation()
 
   if (isLoading) {

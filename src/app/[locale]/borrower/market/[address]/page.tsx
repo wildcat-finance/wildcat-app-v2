@@ -15,8 +15,10 @@ import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecords
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
+import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
+import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import {
   resetPageState,
   setCheckBlock,
@@ -44,6 +46,9 @@ export default function MarketDetails({
   const dispatch = useAppDispatch()
   const { data: market } = useGetMarket({ address })
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
+  const { data: marketSummary, isLoading: isSummaryLoading } = useMarketSummary(
+    address.toLowerCase(),
+  )
   const { address: walletAddress } = useAccount()
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
@@ -60,6 +65,17 @@ export default function MarketDetails({
       dispatch(setCheckBlock(4))
     }
   }, [])
+
+  useEffect(() => {
+    if (
+      (!marketSummary || marketSummary!.description === "") &&
+      !holdTheMarket
+    ) {
+      dispatch(hideDescriptionSection(true))
+    } else {
+      dispatch(hideDescriptionSection(false))
+    }
+  }, [marketSummary, holdTheMarket, walletAddress])
 
   useEffect(
     () => () => {
@@ -187,6 +203,8 @@ export default function MarketDetails({
               <BorrowerMarketSummary
                 marketAddress={market.address}
                 isBorrower={holdTheMarket}
+                marketSummary={marketSummary}
+                isLoading={isSummaryLoading}
               />
             </Box>
           )}

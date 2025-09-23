@@ -31,8 +31,10 @@ import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecords
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketMla } from "@/hooks/useMarketMla"
+import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import {
   LenderMarketSections,
   setIsLender,
@@ -73,6 +75,9 @@ export default function LenderMarketDetails({
     useLenderMarketAccount(market)
   const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
     useGetLenderWithdrawals(market)
+  const { data: marketSummary, isLoading: isLoadingSummary } = useMarketSummary(
+    address.toLowerCase(),
+  )
 
   const authorizedInMarket =
     marketAccount &&
@@ -124,6 +129,14 @@ export default function LenderMarketDetails({
 
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
+
+  useEffect(() => {
+    if (!marketSummary || marketSummary!.description === "") {
+      dispatch(hideDescriptionSection(true))
+    } else {
+      dispatch(hideDescriptionSection(false))
+    }
+  }, [marketSummary])
 
   if (!mounted) return null
 
@@ -316,7 +329,10 @@ export default function LenderMarketDetails({
           )}
 
           {currentSection === LenderMarketSections.SUMMARY && (
-            <MarketSummary marketAddress={market.address} />
+            <MarketSummary
+              marketSummary={marketSummary}
+              isLoading={isLoadingSummary}
+            />
           )}
 
           {currentSection === LenderMarketSections.BORROWER_PROFILE && (

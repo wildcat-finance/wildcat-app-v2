@@ -44,6 +44,10 @@ export const MarketSidebar = () => {
     (state) => state.highlightSidebar.sidebarState,
   )
 
+  const disableDescriptionSection = useAppSelector(
+    (state) => state.hideMarketSections.description,
+  )
+
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 
@@ -120,6 +124,7 @@ export const MarketSidebar = () => {
                 ? COLORS.whiteSmoke
                 : "transparent",
             }}
+            disabled={disableDescriptionSection}
             onClick={() => {
               dispatch(setCheckBlock(3))
               dispatch(
@@ -135,7 +140,12 @@ export const MarketSidebar = () => {
               )
             }}
           >
-            <SvgIcon sx={{ marginRight: "10px" }}>
+            <SvgIcon
+              sx={{
+                marginRight: "10px",
+                opacity: disableDescriptionSection ? 0.3 : 1,
+              }}
+            >
               <SummaryIcon />
             </SvgIcon>
             {t("borrowerMarketDetails.description.title")}

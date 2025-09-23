@@ -38,6 +38,10 @@ export const LenderMarketSidebar = () => {
     dispatch(setSection(newSection))
   }
 
+  const disableDescriptionSection = useAppSelector(
+    (state) => state.hideMarketSections.description,
+  )
+
   return (
     <Box
       sx={{
@@ -118,6 +122,7 @@ export const LenderMarketSidebar = () => {
               variant="text"
               size="medium"
               onClick={() => handleChangeSection(LenderMarketSections.SUMMARY)}
+              disabled={disableDescriptionSection}
               sx={{
                 ...MenuItemButton,
                 backgroundColor:
@@ -126,7 +131,12 @@ export const LenderMarketSidebar = () => {
                     : "transparent",
               }}
             >
-              <SvgIcon sx={{ marginRight: "10px" }}>
+              <SvgIcon
+                sx={{
+                  marginRight: "10px",
+                  opacity: disableDescriptionSection ? 0.3 : 1,
+                }}
+              >
                 <SummaryIcon />
               </SvgIcon>
               {t("lenderMarketDetails.description.title")}

@@ -74,13 +74,21 @@ const InnerMarketSummaryEditor = ({
 export const BorrowerMarketSummary = ({
   marketAddress,
   isBorrower,
+  marketSummary,
+  isLoading,
 }: {
   marketAddress: string
   isBorrower: boolean
+  marketSummary:
+    | {
+        marketAddress: string
+        description: string
+      }
+    | undefined
+  isLoading: boolean
 }) => {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
-  const { data: marketSummary, isLoading } = useMarketSummary(marketAddress)
 
   if (isLoading) {
     return (
