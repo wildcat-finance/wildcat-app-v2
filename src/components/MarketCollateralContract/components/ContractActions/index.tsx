@@ -328,68 +328,69 @@ export const ContractActions = ({
 
       {collateralContract.collateralAsset
         .getAmount(collateralContract.totalShares)
-        .gt(0) && (
-        <Box
-          sx={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "space-between",
-          }}
-        >
-          <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
-            <Typography variant="text2">
-              {t("collateral.actions.yourShares")}
-            </Typography>
-            <TooltipButton value={t("collateral.actions.tooltips.shares")} />
-          </Box>
-
+        .gt(0) &&
+        !market.isClosed && (
           <Box
             sx={{
-              width: "50%",
-              padding: "12px 16px",
-              backgroundColor: COLORS.hintOfRed,
-              borderRadius: "12px",
+              width: "100%",
               display: "flex",
-              flexDirection: "column",
+              justifyContent: "space-between",
             }}
           >
-            <Box
-              sx={{
-                width: "100%",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-              }}
-            >
+            <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
               <Typography variant="text2">
-                {depositorSharesNumber}{" "}
-                <span style={{ color: COLORS.santasGrey }}>
-                  / {totalSharesNumber} shares
-                </span>
+                {t("collateral.actions.yourShares")}
               </Typography>
-              {depositor && (
-                <Typography variant="text4" color={COLORS.santasGrey}>
-                  {depositorSharesNumberFormatted}
-                </Typography>
-              )}
+              <TooltipButton value={t("collateral.actions.tooltips.shares")} />
             </Box>
 
-            <LinearProgress
-              variant="determinate"
-              value={(depositorSharesNumber * 100) / totalSharesNumber}
+            <Box
               sx={{
-                marginTop: "20px",
-                height: "3px",
-                backgroundColor: COLORS.whiteLilac,
-                borderRadius: "50px",
-                "& .MuiLinearProgress-bar1Determinate": {
-                  backgroundColor: COLORS.ultramarineBlue,
-                },
+                width: "50%",
+                padding: "12px 16px",
+                backgroundColor: COLORS.hintOfRed,
+                borderRadius: "12px",
+                display: "flex",
+                flexDirection: "column",
               }}
-            />
+            >
+              <Box
+                sx={{
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                }}
+              >
+                <Typography variant="text2">
+                  {depositorSharesNumber}{" "}
+                  <span style={{ color: COLORS.santasGrey }}>
+                    / {totalSharesNumber} shares
+                  </span>
+                </Typography>
+                {depositor && (
+                  <Typography variant="text4" color={COLORS.santasGrey}>
+                    {depositorSharesNumberFormatted}
+                  </Typography>
+                )}
+              </Box>
+
+              <LinearProgress
+                variant="determinate"
+                value={(depositorSharesNumber * 100) / totalSharesNumber}
+                sx={{
+                  marginTop: "20px",
+                  height: "3px",
+                  backgroundColor: COLORS.whiteLilac,
+                  borderRadius: "50px",
+                  "& .MuiLinearProgress-bar1Determinate": {
+                    backgroundColor: COLORS.ultramarineBlue,
+                  },
+                }}
+              />
+            </Box>
           </Box>
-        </Box>
-      )}
+        )}
     </Box>
   )
 }

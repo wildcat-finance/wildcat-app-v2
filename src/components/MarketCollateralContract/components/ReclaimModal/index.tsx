@@ -165,7 +165,9 @@ export const ReclaimModalContract = ({
           mainBtnText={t("collateral.reclaim.button")}
           mainBtnOnClick={handleConfirm}
           disableMainBtn={
-            !market.isClosed || isPending || depositor.sharesValue.eq(0)
+            !market.isClosed ||
+            isPending ||
+            depositor.lastFullLiquidationIndex.eq(0)
           }
           hideButtons={!showForm}
         />
