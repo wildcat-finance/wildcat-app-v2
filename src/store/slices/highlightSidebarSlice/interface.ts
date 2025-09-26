@@ -3,6 +3,7 @@ export type THighLightSidebar = {
   sidebarState: {
     borrowRepay: boolean
     statusDetails: boolean
+    marketSummary: boolean
     withdrawals: boolean
     lenders: boolean
     mla: boolean

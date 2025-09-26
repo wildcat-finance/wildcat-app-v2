@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 export enum LenderMarketSections {
   TRANSACTIONS = "transactions",
   STATUS = "status",
+  SUMMARY = "summary",
   REQUESTS = "requests",
   MARKET_HISTORY = "marketHistory",
   BORROWER_PROFILE = "borrowerProfile",
