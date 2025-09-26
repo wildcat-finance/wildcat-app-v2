@@ -8,6 +8,7 @@ import duration from "dayjs/plugin/duration"
 import { BigNumber } from "ethers"
 import { formatUnits } from "ethers/lib/utils"
 
+import { TokenPrices } from "@/app/api/token-price/interface"
 import { dayjs } from "@/utils/dayjs"
 
 // <---- TIMESTAMP TO DATE FORMATTERS ---->
@@ -104,17 +105,24 @@ export const MARKET_PARAMS_DECIMALS: Partial<{
   withdrawalBatchDuration: 1,
 }
 
-export const localize = (
-  tokenAmount: TokenAmount,
-  decimals = TOKEN_FORMAT_DECIMALS,
-  withSymbol = false,
-) => {
-  const text = tokenAmount.format(decimals)
+export const localize = (n: number | string) => {
+  const text = typeof n === "number" ? n.toString() : n
   const [beforeDecimal, afterDecimal] = text.split(".")
   const beforeDecimalWithCommas = Number(beforeDecimal).toLocaleString("en-US")
   return [
     beforeDecimalWithCommas,
     ...(afterDecimal !== undefined ? [".", afterDecimal] : []),
+  ].join("")
+}
+
+export const localizeTokenAmount = (
+  tokenAmount: TokenAmount,
+  decimals = TOKEN_FORMAT_DECIMALS,
+  withSymbol = false,
+) => {
+  const text = tokenAmount.format(decimals)
+  return [
+    localize(text),
     ...(withSymbol ? [" ", tokenAmount.symbol] : []),
   ].join("")
 }
@@ -124,7 +132,7 @@ export const toTokenAmountProps = (
   defaultText = "-",
 ) => ({
   value: tokenAmount
-    ? localize(tokenAmount, TOKEN_FORMAT_DECIMALS, true)
+    ? localizeTokenAmount(tokenAmount, TOKEN_FORMAT_DECIMALS, true)
     : defaultText,
   valueTooltip: tokenAmount?.format(tokenAmount.decimals, true),
 })
@@ -175,6 +183,23 @@ export const formatTokenAmount = (
   return formatDecimalsLimit
     ? Number(formattedAmount).toFixed(formatDecimalsLimit)
     : formattedAmount
+}
+
+export const getTokenValueSuffix = (
+  amount: TokenAmount,
+  tokenPrices: TokenPrices | undefined,
+) => {
+  if (amount.gt(0) && tokenPrices) {
+    const tokenPrice = tokenPrices[amount.token.address.toLowerCase()]
+    if (tokenPrice) {
+      const value = +amount.format() * tokenPrice.usdPrice
+      return `$${new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value)}`
+    }
+  }
+  return ""
 }
 
 export const formatBlockTimestamp = (

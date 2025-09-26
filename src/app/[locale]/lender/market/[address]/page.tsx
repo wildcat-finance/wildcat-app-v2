@@ -24,7 +24,9 @@ import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Mo
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
+import { CommonGlossarySidebar } from "@/components/CommonGlossarySidebar"
 import { Footer } from "@/components/Footer"
+import { MarketCollateralContract } from "@/components/MarketCollateralContract"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
@@ -39,6 +41,7 @@ import {
   setIsLoading,
   setSection,
   resetPageState,
+  setHasCollateralContract,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import { COLORS } from "@/theme/colors"
 
@@ -96,6 +99,12 @@ export default function LenderMarketDetails({
   }, [isLoading])
 
   useEffect(() => {
+    dispatch(
+      setHasCollateralContract((market?.numCollateralContracts ?? 0) > 0),
+    )
+  }, [market])
+
+  useEffect(() => {
     if (!authorizedInMarket) {
       dispatch(setIsLender(!!authorizedInMarket))
       dispatch(setSection(LenderMarketSections.STATUS))
@@ -112,6 +121,24 @@ export default function LenderMarketDetails({
     [],
   )
 
+  const glossary = [
+    {
+      title: "Collateral Contract",
+      description:
+        "Contract holding secondary collateral assets which can be liquidated to repay debts when a market is in penalised delinquency.",
+    },
+    {
+      title: "Reclaim",
+      description:
+        "Reclaim assets you have deposited to the collateral contract. This can only be accessed when the underlying market is terminated.",
+    },
+    {
+      title: "Liquidate",
+      description:
+        "Liquidate assets in the collateral contract through Bebop. This can only be accessed when the underlying market is in penalised delinquency, and can only be triggered by approved liquidators.",
+    },
+  ]
+
   const isMobile = useMobileResolution()
 
   const { data: mla, isLoading: mlaLoading } = useMarketMla(market?.address)
@@ -123,6 +150,10 @@ export default function LenderMarketDetails({
 
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
+
+  const hasCollateralContract = useAppSelector(
+    (state) => state.lenderMarketRouting.hasCollateralContract,
+  )
 
   if (!mounted) return null
 
@@ -253,14 +284,19 @@ export default function LenderMarketDetails({
             <WithdrawalRequests withdrawals={withdrawals} />
           </Box>
 
-          <Box id="mla">
-            <MobileMlaAlert
-              mla={mla}
-              isLoading={mlaLoading}
-              isMLAOpen={isMobileMLAOpen}
-              setIsMLAOpen={setIsMobileMLAOpen}
+          <MobileMlaAlert
+            mla={mla}
+            isLoading={mlaLoading}
+            isMLAOpen={isMobileMLAOpen}
+            setIsMLAOpen={setIsMobileMLAOpen}
+          />
+
+          {hasCollateralContract && (
+            <MarketCollateralContract
+              marketAccount={marketAccount}
+              hideActions
             />
-          </Box>
+          )}
 
           {authorizedInMarket && (
             <MobileMarketActions
@@ -281,8 +317,8 @@ export default function LenderMarketDetails({
     )
 
   return (
-    <Box>
-      <Box>
+    <Box sx={{ width: "100%", display: "flex" }}>
+      <Box sx={{ width: "100%" }}>
         <MarketHeader marketAccount={marketAccount} />
 
         <Box sx={SectionContainer(theme)}>
@@ -331,8 +367,21 @@ export default function LenderMarketDetails({
               <PaginatedMarketRecordsTable market={market} />
             </Box>
           )}
+          {currentSection === LenderMarketSections.COLLATERAL_CONTRACT && (
+            <MarketCollateralContract
+              marketAccount={marketAccount}
+              hideActions
+            />
+          )}
         </Box>
       </Box>
+
+      <CommonGlossarySidebar
+        glossaryArray={glossary}
+        hideGlossary={
+          currentSection !== LenderMarketSections.COLLATERAL_CONTRACT
+        }
+      />
     </Box>
   )
 }

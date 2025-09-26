@@ -1,0 +1,177 @@
+import { useEffect, useState } from "react"
+
+import { Box, Button, Dialog, Typography } from "@mui/material"
+import { Market, MarketCollateralV1 } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
+
+import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
+import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
+import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
+import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
+import { TxModalDialog } from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
+import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
+import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { CollateralDepositor } from "@/hooks/useGetCollateralContracts"
+
+import { useReclaimCollateral } from "../../hooks/useReclaimCollateral"
+
+export type ReclaimModalProps = {
+  market: Market
+  collateralContract: MarketCollateralV1
+  depositor: CollateralDepositor
+}
+
+export const ReclaimModalContract = ({
+  market,
+  collateralContract,
+  depositor,
+}: ReclaimModalProps) => {
+  const { t } = useTranslation()
+  const signer = useEthersSigner()
+  const [txHash, setTxHash] = useState<string | undefined>("")
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false)
+  const [showErrorPopup, setShowErrorPopup] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const { collateralAsset } = collateralContract
+  const {
+    mutate: reclaimCollateral,
+    isPending,
+    isError,
+    isSuccess,
+  } = useReclaimCollateral(collateralContract, setTxHash)
+
+  useEffect(() => {
+    if (signer && collateralContract.provider !== signer) {
+      collateralContract.provider = signer
+    }
+    if (signer && collateralAsset.provider !== signer) {
+      collateralAsset.provider = signer
+    }
+  }, [signer, collateralContract, collateralAsset])
+
+  const showForm = !(isPending || showSuccessPopup || showErrorPopup)
+
+  useEffect(() => {
+    if (isError) {
+      setShowErrorPopup(true)
+    }
+    if (isSuccess) {
+      setShowSuccessPopup(true)
+    }
+  }, [isError, isSuccess])
+
+  const handleConfirm = () => {
+    setTxHash("")
+    reclaimCollateral()
+  }
+
+  const handleTryAgain = () => {
+    handleConfirm()
+    setShowErrorPopup(false)
+    setShowSuccessPopup(false)
+  }
+
+  const handleOpenModal = () => {
+    setShowSuccessPopup(false)
+    setShowErrorPopup(false)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+  }
+
+  return (
+    <>
+      <Button
+        variant="contained"
+        size="small"
+        onClick={handleOpenModal}
+        sx={{ height: "fit-content", width: "90px" }}
+      >
+        {t("collateral.reclaim.button")}
+      </Button>
+
+      <Dialog
+        open={isModalOpen}
+        onClose={isPending ? undefined : handleCloseModal}
+        sx={{
+          "& .MuiDialog-paper": {
+            height: "404px",
+            width: "440px",
+            border: "none",
+            borderRadius: "20px",
+            margin: 0,
+            padding: "24px 0",
+          },
+        }}
+      >
+        {showForm && (
+          <TxModalHeader
+            title=""
+            arrowOnClick={handleCloseModal}
+            crossOnClick={null}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "2px",
+                alignItems: "center",
+              }}
+            >
+              <Typography variant="text3">{market.name}</Typography>
+              <Typography variant="title3">
+                {t("collateral.reclaim.title")}
+              </Typography>
+            </Box>
+          </TxModalHeader>
+        )}
+
+        {showForm && (
+          <Box sx={{ width: "100%", height: "100%", padding: "12px 24px" }}>
+            <ModalDataItem
+              title={t("collateral.reclaim.shares")}
+              value={collateralAsset
+                .getAmount(depositor.lastFullLiquidationIndex)
+                .format(collateralAsset.decimals)}
+              containerSx={{
+                marginBottom: "10px",
+              }}
+            />
+            <ModalDataItem
+              title={t("collateral.reclaim.sharesValue")}
+              value={collateralAsset
+                .getAmount(depositor.lastFullLiquidationIndex)
+                .format(collateralAsset.decimals, true)}
+            />
+          </Box>
+        )}
+
+        {isPending && <LoadingModal txHash={txHash} />}
+        {showErrorPopup && (
+          <ErrorModal
+            onTryAgain={handleTryAgain}
+            onClose={handleCloseModal}
+            txHash={txHash}
+          />
+        )}
+        {showSuccessPopup && (
+          <SuccessModal onClose={handleCloseModal} txHash={txHash} />
+        )}
+
+        <TxModalFooter
+          mainBtnText={t("collateral.reclaim.button")}
+          mainBtnOnClick={handleConfirm}
+          disableMainBtn={
+            !market.isClosed ||
+            isPending ||
+            depositor.lastFullLiquidationIndex.eq(0)
+          }
+          hideButtons={!showForm}
+        />
+      </Dialog>
+    </>
+  )
+}

@@ -15,7 +15,7 @@ import Jurisdictions from "@/config/jurisdictions.json"
 import { EtherscanBaseUrl } from "@/config/network"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
-import { trimAddress } from "@/utils/formatters"
+import { localize, trimAddress } from "@/utils/formatters"
 
 import { OverallSectionProps } from "./interface"
 
@@ -31,6 +31,9 @@ export const OverallSection = ({
   defaults,
   entityKind,
   additionalUrls,
+  isLoadingTotalValue,
+  totalDebtValue,
+  priceSources,
 }: OverallSectionProps) => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
@@ -277,11 +280,27 @@ export const OverallSection = ({
             </Box>
           )}
 
-          {totalBorrowedAmount !== undefined && (
+          {(isLoadingTotalValue ||
+            (totalDebtValue !== undefined &&
+              totalDebtValue.toFixed(0) !== "0")) && (
             <Box>
               <MarketParametersItem
                 title={t("borrowerProfile.profile.overallInfo.borrowed")}
-                value="[Coming Soon]"
+                value={
+                  // eslint-disable-next-line no-nested-ternary
+                  isLoadingTotalValue
+                    ? "Loading..."
+                    : totalDebtValue
+                      ? `$${localize(totalDebtValue.toFixed(0))}`
+                      : "[Coming Soon]"
+                }
+                tooltipText={
+                  !isLoadingTotalValue && priceSources && totalDebtValue
+                    ? t("borrowerProfile.profile.overallInfo.borrowedTooltip", {
+                        priceSources: priceSources.join(", "),
+                      })
+                    : undefined
+                }
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>

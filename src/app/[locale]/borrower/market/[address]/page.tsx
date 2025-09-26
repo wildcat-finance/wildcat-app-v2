@@ -1,14 +1,16 @@
 "use client"
 
 import * as React from "react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 import { Box, Divider, Skeleton } from "@mui/material"
 import { MarketVersion } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart"
+import { CommonGlossarySidebar } from "@/components/CommonGlossarySidebar"
 import { LeadBanner } from "@/components/LeadBanner"
+import { MarketCollateralContract } from "@/components/MarketCollateralContract"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
@@ -67,6 +69,24 @@ export default function MarketDetails({
     [],
   )
 
+  const glossary = [
+    {
+      title: "Collateral Contract",
+      description:
+        "Contract holding secondary collateral assets which can be liquidated to repay debts when a market is in penalised delinquency.",
+    },
+    {
+      title: "Reclaim",
+      description:
+        "Reclaim assets you have deposited to the collateral contract. This can only be accessed when the underlying market is terminated.",
+    },
+    {
+      title: "Liquidate",
+      description:
+        "Liquidate assets in the collateral contract through Bebop. This can only be accessed when the underlying market is in penalised delinquency, and can only be triggered by approved liquidators.",
+    },
+  ]
+
   if (!market || !marketAccount)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
@@ -118,116 +138,87 @@ export default function MarketDetails({
 
   return (
     <Box>
-      <Box>
-        <MarketHeader marketAccount={marketAccount} />
+      <Box sx={{ width: "100%", display: "flex" }}>
         <Box
-          // ref={scrollContainer}
           sx={{
             width: "100%",
-            overflow: "hidden",
-            overflowY: "visible",
-            padding: "0 32.3% 24px 44px",
-            height: `calc(100vh - ${pageCalcHeights.market})`,
           }}
         >
-          {/* <Slide */}
-          {/*  direction={direction} */}
-          {/*  container={scrollContainer.current} */}
-          {/*  unmountOnExit */}
-          {/*  in={checked === 1} */}
-          {/* > */}
-          {/*  <Box sx={SlideContentContainer}> */}
-          {/*    {holdTheMarket && ( */}
-          {/*      <MarketTransactions */}
-          {/*        market={market} */}
-          {/*        marketAccount={marketAccount} */}
-          {/*        holdTheMarket={holdTheMarket} */}
-          {/*      /> */}
-          {/*    )} */}
-          {/*    {holdTheMarket && <Divider sx={{ margin: "32px 0 44px" }} />} */}
-          {/*    <MarketStatusChart market={market} /> */}
-          {/*  </Box> */}
-          {/* </Slide> */}
-          {checked === 1 && (
-            <Box sx={SlideContentContainer}>
-              {holdTheMarket && (
-                <MarketTransactions
+          <MarketHeader marketAccount={marketAccount} />
+
+          <Box
+            sx={{
+              width: "100%",
+              overflow: "hidden",
+              overflowY: "visible",
+              padding: "0 36px 24px 44px",
+              height: `calc(100vh - ${pageCalcHeights.market})`,
+            }}
+          >
+            {checked === 1 && (
+              <Box sx={SlideContentContainer}>
+                {holdTheMarket && (
+                  <MarketTransactions
+                    market={market}
+                    marketAccount={marketAccount}
+                    holdTheMarket={holdTheMarket}
+                  />
+                )}
+                {holdTheMarket && <Divider sx={{ margin: "32px 0" }} />}
+                <MarketStatusChart market={market} />
+              </Box>
+            )}
+
+            {checked === 2 && (
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <MarketStatusChart market={market} />
+                <Divider sx={{ margin: "32px 0 44px" }} />
+                <MarketParameters market={market} />
+              </Box>
+            )}
+
+            {checked === 3 && (
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <MarketWithdrawalRequests
+                  marketAccount={marketAccount}
+                  isHoldingMarket={holdTheMarket}
+                />
+              </Box>
+            )}
+
+            {checked === 4 && (
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <MarketAuthorisedLenders
                   market={market}
                   marketAccount={marketAccount}
-                  holdTheMarket={holdTheMarket}
                 />
-              )}
-              {holdTheMarket && <Divider sx={{ margin: "32px 0" }} />}
-              <MarketStatusChart market={market} />
-            </Box>
-          )}
-          {/* <Slide */}
-          {/*  direction={direction} */}
-          {/*  container={scrollContainer.current} */}
-          {/*  unmountOnExit */}
-          {/*  in={checked === 2} */}
-          {/* > */}
-          {/*  <Box sx={SlideContentContainer} marginTop="12px"> */}
-          {/*    <MarketStatusChart market={market} /> */}
-          {/*    <Divider sx={{ margin: "32px 0 44px" }} /> */}
-          {/*    <MarketParameters market={market} /> */}
-          {/*  </Box> */}
-          {/* </Slide> */}
-          {checked === 2 && (
-            <Box sx={SlideContentContainer} marginTop="12px">
-              <MarketStatusChart market={market} />
-              <Divider sx={{ margin: "32px 0 44px" }} />
-              <MarketParameters market={market} />
-            </Box>
-          )}
-          {/* <Slide */}
-          {/*  direction={direction} */}
-          {/*  container={scrollContainer.current} */}
-          {/*  unmountOnExit */}
-          {/*  in={checked === 3} */}
-          {/* > */}
-          {/*  <Box sx={SlideContentContainer} marginTop="12px"> */}
-          {/*    <MarketWithdrawalRequests marketAccount={marketAccount} /> */}
-          {/*  </Box> */}
-          {/* </Slide> */}
-          {checked === 3 && (
-            <Box sx={SlideContentContainer} marginTop="12px">
-              <MarketWithdrawalRequests
-                marketAccount={marketAccount}
-                isHoldingMarket={holdTheMarket}
-              />
-            </Box>
-          )}
-          {/* <Slide */}
-          {/*  direction={direction} */}
-          {/*  container={scrollContainer.current} */}
-          {/*  unmountOnExit */}
-          {/*  in={checked === 4} */}
-          {/* > */}
-          {/*  <Box sx={SlideContentContainer} marginTop="12px"> */}
-          {/*    <MarketAuthorisedLenders market={market} /> */}
-          {/*  </Box> */}
-          {/* </Slide> */}
-          {checked === 4 && (
-            <Box sx={SlideContentContainer} marginTop="12px">
-              <MarketAuthorisedLenders
-                market={market}
-                marketAccount={marketAccount}
-              />
-            </Box>
-          )}
+              </Box>
+            )}
 
-          {checked === 5 && (
-            <Box sx={SlideContentContainer} marginTop="12px">
-              <MarketMLA marketAccount={marketAccount} />
-            </Box>
-          )}
-          {checked === 6 && (
-            <Box sx={SlideContentContainer} marginTop="12px">
-              <PaginatedMarketRecordsTable market={market} />
-            </Box>
-          )}
+            {checked === 5 && (
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <MarketMLA marketAccount={marketAccount} />
+              </Box>
+            )}
+
+            {checked === 6 && (
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <PaginatedMarketRecordsTable market={market} />
+              </Box>
+            )}
+
+            {checked === 7 && (
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <MarketCollateralContract marketAccount={marketAccount} />
+              </Box>
+            )}
+          </Box>
         </Box>
+
+        <CommonGlossarySidebar
+          glossaryArray={glossary}
+          hideGlossary={!(checked === 7)}
+        />
       </Box>
     </Box>
   )

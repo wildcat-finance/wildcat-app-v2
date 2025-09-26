@@ -8,4 +8,5 @@ export type ModalDataItemProps = {
   containerSx?: SxProps<Theme>
   valueColor?: string
   children?: ReactNode
+  isLoading?: boolean
 }

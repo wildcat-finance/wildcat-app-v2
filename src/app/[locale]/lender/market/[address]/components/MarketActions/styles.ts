@@ -1,6 +1,7 @@
 export const TransactionsContainer = {
   width: "100%",
-  maxWidth: "807px",
+  // maxWidth: "807px",
   display: "flex",
-  justifyContent: "space-between",
+  gap: "16px",
+  // justifyContent: "space-between",
 }

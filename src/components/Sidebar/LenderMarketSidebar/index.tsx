@@ -4,8 +4,10 @@ import { Box, Button, Skeleton, SvgIcon } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import BorrowAndRepayIcon from "@/assets/icons/borrowAndRepay_icon.svg"
+import ContractIcon from "@/assets/icons/contract_icon.svg"
 import LenderBorrowerIcon from "@/assets/icons/lenderBorrower_icon.svg"
 import MarketEventsIcon from "@/assets/icons/marketEvents_icon.svg"
+import MLAIcon from "@/assets/icons/mla_icon.svg"
 import StatusAndDetailsIcon from "@/assets/icons/statusAndDetails_icon.svg"
 import WithdrawalAndRequestsIcon from "@/assets/icons/withdrawalAndRequests_icon.svg"
 import { BackButton } from "@/components/BackButton"
@@ -32,6 +34,10 @@ export const LenderMarketSidebar = () => {
   )
 
   const isLender = useAppSelector((state) => state.lenderMarketRouting.isLender)
+
+  const hasCollateralContract = useAppSelector(
+    (state) => state.lenderMarketRouting.hasCollateralContract,
+  )
 
   const handleChangeSection = (newSection: LenderMarketSections) => {
     dispatch(setSection(newSection))
@@ -173,6 +179,27 @@ export const LenderMarketSidebar = () => {
                 <MarketEventsIcon />
               </SvgIcon>
               {t("lenderMarketDetails.sidebar.marketHistory")}
+            </Button>
+
+            <Button
+              disabled={!hasCollateralContract}
+              variant="text"
+              size="medium"
+              onClick={() =>
+                handleChangeSection(LenderMarketSections.COLLATERAL_CONTRACT)
+              }
+              sx={{
+                ...MenuItemButton,
+                backgroundColor:
+                  currentSection === LenderMarketSections.COLLATERAL_CONTRACT
+                    ? COLORS.whiteSmoke
+                    : "transparent",
+              }}
+            >
+              <SvgIcon sx={{ marginRight: "10px" }}>
+                <ContractIcon />
+              </SvgIcon>
+              {t("collateral.actions.title")}
             </Button>
           </Box>
         )}

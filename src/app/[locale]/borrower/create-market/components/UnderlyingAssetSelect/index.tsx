@@ -14,7 +14,6 @@ import { useTranslation } from "react-i18next"
 
 import { TokenInfo } from "@/app/api/tokens-list/interface"
 
-import { useTokensList } from "./hooks/useTokensList"
 import { TokenSelectorProps } from "./interface"
 
 const MyPopper = (props: JSX.IntrinsicAttributes & PopperProps) => (
@@ -24,12 +23,12 @@ const MyPopper = (props: JSX.IntrinsicAttributes & PopperProps) => (
       "& .MuiAutocomplete-listbox": {
         padding: 0,
         margin: 0,
+        maxHeight: "300px",
       },
       "& .MuiPaper-root": {
         fontFamily: "inherit",
         padding: "8px",
         marginTop: "2px",
-        maxHeight: "300px",
       },
       "& .MuiAutocomplete-noOptions": {
         padding: "6px 12px",
@@ -59,6 +58,7 @@ type xprops = {
 export const UnderlyingAssetSelect = forwardRef(
   (
     {
+      size = "regular",
       error,
       errorText,
       handleTokenSelect,
@@ -88,6 +88,7 @@ export const UnderlyingAssetSelect = forwardRef(
       <div>
         <Autocomplete
           PopperComponent={MyPopper}
+          size={size}
           filterOptions={filterOptions}
           noOptionsText={
             isLoading
@@ -99,6 +100,7 @@ export const UnderlyingAssetSelect = forwardRef(
           renderInput={(params) => (
             <TextField
               {...params}
+              size={size}
               value={query}
               onChange={handleChange}
               label={t("createNewMarket.basic.asset.placeholder")}

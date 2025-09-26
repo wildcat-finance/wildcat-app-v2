@@ -6,6 +6,7 @@ import { UseFormRegisterReturn } from "react-hook-form"
 import { TokenInfo } from "@/app/api/tokens-list/interface"
 
 export type TokenSelectorProps = {
+  size?: "small" | "medium" | "regular"
   error?: boolean
   errorText?: string
   onBlur?: UseFormRegisterReturn["onBlur"]

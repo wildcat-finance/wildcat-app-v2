@@ -16,6 +16,9 @@ const useSidebarHighlight = (checked: number) => {
             statusDetails: false,
             withdrawals: false,
             lenders: false,
+            mla: false,
+            marketHistory: false,
+            collateralContract: false,
           }),
         )
         break
@@ -26,6 +29,9 @@ const useSidebarHighlight = (checked: number) => {
             statusDetails: true,
             withdrawals: false,
             lenders: false,
+            mla: false,
+            marketHistory: false,
+            collateralContract: false,
           }),
         )
         break
@@ -36,6 +42,9 @@ const useSidebarHighlight = (checked: number) => {
             statusDetails: false,
             withdrawals: true,
             lenders: false,
+            mla: false,
+            marketHistory: false,
+            collateralContract: false,
           }),
         )
         break
@@ -46,6 +55,48 @@ const useSidebarHighlight = (checked: number) => {
             statusDetails: false,
             withdrawals: false,
             lenders: true,
+            mla: false,
+            marketHistory: false,
+            collateralContract: false,
+          }),
+        )
+        break
+      case 5:
+        dispatch(
+          setSidebarHighlightState({
+            borrowRepay: false,
+            statusDetails: false,
+            withdrawals: false,
+            lenders: false,
+            mla: true,
+            marketHistory: false,
+            collateralContract: false,
+          }),
+        )
+        break
+      case 6:
+        dispatch(
+          setSidebarHighlightState({
+            borrowRepay: false,
+            statusDetails: false,
+            withdrawals: false,
+            lenders: false,
+            mla: false,
+            marketHistory: true,
+            collateralContract: false,
+          }),
+        )
+        break
+      case 7:
+        dispatch(
+          setSidebarHighlightState({
+            borrowRepay: false,
+            statusDetails: false,
+            withdrawals: false,
+            lenders: false,
+            mla: false,
+            marketHistory: false,
+            collateralContract: true,
           }),
         )
         break

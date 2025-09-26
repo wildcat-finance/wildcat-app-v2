@@ -13,6 +13,7 @@ export const TxModalHeader = ({
   title,
   children,
   tooltip,
+  divider = true,
   arrowOnClick,
   crossOnClick,
 }: TxModalHeaderProps) => (
@@ -21,6 +22,7 @@ export const TxModalHeader = ({
       sx={{
         ...TxModalHeaderContainer,
         alignItems: children ? "flex-start" : "center",
+        marginBottom: divider ? "0px" : "20px",
       }}
     >
       {arrowOnClick ? (
@@ -43,6 +45,7 @@ export const TxModalHeader = ({
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
+          marginX: "20px",
         }}
       >
         <Box display="flex" alignItems="center" gap="8px">
@@ -64,6 +67,6 @@ export const TxModalHeader = ({
       )}
     </Box>
 
-    <Divider sx={TxModalHeaderDivider} />
+    {divider && <Divider sx={TxModalHeaderDivider} />}
   </>
 )

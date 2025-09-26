@@ -7,15 +7,16 @@ import { COLORS } from "@/theme/colors"
 export type DepositAlertProps = {
   text: ReactNode
   icon?: ReactNode
+  bgcolor?: string
 }
 
-export const DepositAlert = ({ text, icon }: DepositAlertProps) => (
+export const ModalAlertItem = ({ text, icon, bgcolor }: DepositAlertProps) => (
   <Box
     sx={{
       width: "100%",
       padding: "12px",
       borderRadius: "8px",
-      bgcolor: COLORS.whiteSmoke,
+      bgcolor: bgcolor || COLORS.whiteSmoke,
       display: "flex",
       gap: "10px",
       alignItems: "flex-start",

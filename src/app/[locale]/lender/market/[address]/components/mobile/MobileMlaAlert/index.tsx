@@ -47,6 +47,7 @@ export const MobileMlaAlert = ({
   if (!mlaRequiredAndUnsigned && !!signedMla)
     return (
       <Box
+        id="mla"
         sx={{
           display: "flex",
           flexDirection: "column",

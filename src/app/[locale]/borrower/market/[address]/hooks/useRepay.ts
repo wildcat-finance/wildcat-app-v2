@@ -89,7 +89,7 @@ export const useRepay = (
             doCheckTransaction()
           })
         const maxBatches =
-          marketAccount.market.unpaidWithdrawalBatchExpiries.length
+          marketAccount.market.unpaidWithdrawalBatchExpiries.length || 3
         if (gnosisTransactions.length) {
           gnosisTransactions.push(
             await marketAccount.market.populateRepayAndProcessUnpaidWithdrawalBatches(

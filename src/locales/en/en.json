@@ -498,6 +498,81 @@
       }
     }
   },
+  "collateral": {
+    "actions": {
+      "title": "Collateral Contract",
+      "firstContractDesc": "Firstly, select an asset to create a contract",
+      "description": "This function is useful not to get delinquent.",
+      "learnMore": "More Information",
+      "back": "All Collateral Contracts",
+      "address": "Collateral Contract Address",
+      "asset": "Collateral Asset",
+      "delinquentDebt": "Market Delinquent Debt",
+      "availableCollateral": "Collateral Assets Available",
+      "yourShares": "Your Shares",
+      "disclaimer": "Collateral cannot be reclaimed until the underlying market is terminated.",
+      "tooltips": {
+        "debt": "Overdue debt in the underlying market that collateral can repay.",
+        "assets": "Collateral held here and available to liquidators to cover delinquency.",
+        "shares": "Your pro-rata claim on this collateral pool (claimable when the market terminates)."
+      }
+    },
+    "deposit": {
+      "balance": "Balance",
+      "deposit": "Deposit",
+      "depositing": "Depositing...",
+      "loading": "Loading...",
+      "approve": "Approve",
+      "approving": "Approving...",
+      "insufficientBalance": "Insufficient Balance",
+      "resetAllowance": "Reset Allowance",
+      "disclaimer": "Collateral cannot be reclaimed until the underlying market is terminated.<br/>At present, there is no reward for providing collateral.<br/>Depositors receive shares representing ownership of the collateral assets.<br/>Shares lose value as collateral is liquidated, and future deposits<br/>do not increase the value of existing shares."
+    },
+    "reclaim": {
+      "shares": "Shares",
+      "sharesValue": "Shares Value",
+      "title": "Reclaim Collateral",
+      "button": "Reclaim"
+    },
+    "create": {
+      "title": "Add Collateral Asset",
+      "addNew": "New Asset",
+      "addFirst": "Create",
+      "selectAsset": "Select an asset to back your market with",
+      "button": "Create a Contract"
+    },
+    "list": {
+      "totalDeposited": "Total Deposited",
+      "totalLiquidated": "Total Liquidated",
+      "availableCollateral": "Available Collateral",
+      "asset": "Asset"
+    },
+    "liquidate": {
+      "title": "Liquidate Collateral",
+      "amount": "Amount to liquidate",
+      "availableCollateral": "Available Collateral",
+      "shares": "Shares",
+      "liquidate": "Liquidate",
+      "previewButton": "Preview Liquidate",
+      "maxRepayment": "Maximum repayment",
+      "notLiquidator": "This is a preview. You must be approved to liquidate assets.",
+      "checkingLiquidator": "Checking liquidator status...",
+      "price": {
+        "loading": "Fetching token prices...",
+        "failedCollateral": "Failed to fetch price of collateral asset",
+        "failedOutput": "Failed to fetch price of output asset",
+        "inputValue": "Input Value",
+        "source": "Source",
+        "value": "Value"
+      },
+      "bebopQuote": {
+        "title": "Bebop Quote",
+        "output": "Output",
+        "fetching": "Fetching Bebop quote..."
+      },
+      "confirm": "Confirm"
+    }
+  },
   "createMarket": {
     "forms": {
       "marketDescription": {
@@ -1113,6 +1188,7 @@
         "markets": "Markets",
         "address": "Borrower Address",
         "borrowed": "Total Amount Borrowed",
+        "borrowedTooltip": "Represents total amount loaned to borrower across all markets. Prices sourced from {{priceSources}}",
         "country": "Country",
         "jurisdiction": "Jurisdiction",
         "entityKind": "Entity Legal Form",

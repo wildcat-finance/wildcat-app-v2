@@ -4,4 +4,7 @@ export type OverallSectionProps = Partial<BorrowerProfile> & {
   marketsAmount?: number
   totalBorrowedAmount?: string
   defaults?: string
+  isLoadingTotalValue?: boolean
+  totalDebtValue?: number
+  priceSources?: string[]
 }
