@@ -135,7 +135,7 @@ export const ReclaimModalContract = ({
               title={t("collateral.reclaim.shares")}
               value={collateralAsset
                 .getAmount(depositor.lastFullLiquidationIndex)
-                .format(collateralAsset.decimals, true)}
+                .format(collateralAsset.decimals)}
               containerSx={{
                 marginBottom: "10px",
               }}
