@@ -4,7 +4,7 @@ import { MarketSummary } from "@/app/api/market-summary/[market]/dto"
 
 export const useMarketSummaryExists = (market: string) =>
   useQuery({
-    queryKey: ["market-summary", market],
+    queryKey: ["market-summary", market.toLowerCase()],
     queryFn: () =>
       fetch(`/api/market-summary/${market}`, {
         method: "HEAD",
