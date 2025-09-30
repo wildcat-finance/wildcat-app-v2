@@ -6,9 +6,11 @@ import { useAccount } from "wagmi"
 import { useAuthToken, useLogin } from "@/hooks/useApiAuth"
 
 export default function AuthWrapper({
+  buttonText = "Login",
   children,
   requiresAdmin,
 }: {
+  buttonText?: string
   children: React.ReactNode | React.ReactNode[]
   requiresAdmin?: boolean
 }) {
@@ -22,8 +24,13 @@ export default function AuthWrapper({
   // If no token, give user button to login
   if (!token) {
     return (
-      <Button variant="outlined" size="small" onClick={() => login(address)}>
-        Login
+      <Button
+        variant="outlined"
+        color="secondary"
+        size="small"
+        onClick={() => login(address)}
+      >
+        {buttonText}
       </Button>
     )
   }

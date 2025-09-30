@@ -5,6 +5,7 @@ import borrowerDashboardAmountsSlice from "@/store/slices/borrowerDashboardAmoun
 import borrowerDashboardSlice from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 import cookieBannerSlice from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
 import createMarketSidebarSlice from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
+import hideMarketSectionsSlice from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import lenderDashboardAmountsSlice from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import lenderDashboardSlice from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import policyLendersSlice from "@/store/slices/policyLendersSlice/policyLendersSlice"
@@ -26,6 +27,7 @@ import routingSlice from "./slices/routingSlice/routingSlice"
 export const makeStore = () => {
   const store = configureStore({
     reducer: {
+      hideMarketSections: hideMarketSectionsSlice,
       apiTokens: apiTokensSlice,
       routing: routingSlice,
       createMarketSidebar: createMarketSidebarSlice,

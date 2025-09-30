@@ -207,3 +207,11 @@ model BorrowerProfileUpdateRequest {
 
   @@index([chainId, address])
 }
+
+model MarketDescription {
+  chainId Int
+  marketAddress String
+  description String
+
+  @@unique([chainId, marketAddress])
+}
