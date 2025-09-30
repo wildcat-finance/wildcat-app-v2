@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.3.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.2.0...v2.3.0) (2025-09-30)
+
+
+### Features
+
+* **market details:** add market description ([a2f5cee](https://github.com/wildcat-finance/wildcat-app-v2/commit/a2f5cee065d6c02b339f8e71cd35aca18959ef9f))
+* **market-details:** add Markdown market descriptions and summary visibility ([7cafd9b](https://github.com/wildcat-finance/wildcat-app-v2/commit/7cafd9b4eaaff4030347224bc5b9e1a835499083))
+* **market-details:** add Markdown market descriptions and summary visibility ([7cafd9b](https://github.com/wildcat-finance/wildcat-app-v2/commit/7cafd9b4eaaff4030347224bc5b9e1a835499083))
+
+
+### Bug Fixes
+
+* **stale-symbols:** update queries to scope for specific markets/addresses ([6e601c3](https://github.com/wildcat-finance/wildcat-app-v2/commit/6e601c34094148073d44fe71edeee12db2fcdbec))
+
 ## [2.2.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.1.0...v2.2.0) (2025-09-18)
 
 
