@@ -22,6 +22,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { computeSecondsBefore } from "@/utils/computeSecondsBefore"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { BorrowModalProps } from "./interface"
@@ -73,25 +74,21 @@ export const BorrowModal = ({
 
   const leftBorrowAmount = market.borrowableAssets.sub(underlyingBorrowAmount)
 
+  // using shared util computeSecondsBefore(market, borrowAmount?)
+  const remainingSeconds = computeSecondsBefore(market, undefined)
   const remainingInterest =
     market.totalDebts.gt(0) && !market.isClosed
-      ? humanizeDuration(market.secondsBeforeDelinquency * 1_000, {
-          largest: 1,
-        })
+      ? humanizeDuration(remainingSeconds * 1_000, { largest: 1 })
       : ""
 
   const millisecondsBeforeDelinquency =
-    market.getSecondsBeforeDelinquencyForBorrowedAmount(
-      underlyingBorrowAmount,
-    ) * 1_000
+    computeSecondsBefore(market, underlyingBorrowAmount) * 1_000
 
   const remainingInterestAfterTx =
     market.totalDebts.gt(0) &&
     !market.isClosed &&
     underlyingBorrowAmount.lt(market.borrowableAssets)
-      ? humanizeDuration(millisecondsBeforeDelinquency, {
-          largest: 1,
-        })
+      ? humanizeDuration(millisecondsBeforeDelinquency, { largest: 1 })
       : ""
 
   const showForm = !(isPending || showSuccessPopup || showErrorPopup)
