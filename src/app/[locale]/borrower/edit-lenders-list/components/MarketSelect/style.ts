@@ -1,4 +1,5 @@
 import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 
 export const MarketSelectStyles = {
   width: "fit-content !important",
@@ -12,8 +13,8 @@ export const MarketSelectStyles = {
     paddingRight: "35px !important",
 
     "& .MuiTypography-root": {
-      fontSize: "24px",
-      lineHeight: "32px",
+      fontSize: pxToRem(24),
+      lineHeight: lh(32, 24),
       fontWeight: 500,
     },
   },
