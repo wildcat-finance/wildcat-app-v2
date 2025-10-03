@@ -12,13 +12,31 @@ export const NETWORKS = {
     name: "Sepolia",
     etherscanUrl: "https://sepolia.etherscan.io",
     isTestnet: true,
+    hasV1Deployment: true,
   },
   Mainnet: {
     chainId: 1,
     stringID: "mainnet",
-    name: "Mainnet",
+    name: "Ethereum Mainnet",
     etherscanUrl: "https://etherscan.io",
     isTestnet: false,
+    hasV1Deployment: true,
+  },
+  PlasmaTestnet: {
+    chainId: 9746,
+    stringID: "plasma-testnet",
+    name: "Plasma Testnet",
+    etherscanUrl: "https://testnet.plasmascan.to",
+    isTestnet: true,
+    hasV1Deployment: false,
+  },
+  PlasmaMainnet: {
+    chainId: 9745,
+    stringID: "plasma-mainnet",
+    name: "Plasma",
+    etherscanUrl: "https://plasmascan.to",
+    isTestnet: false,
+    hasV1Deployment: false,
   },
 }
 export type NetworkInfo = (typeof NETWORKS)[keyof typeof NETWORKS]
