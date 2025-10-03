@@ -1,6 +1,7 @@
 import {
   getLensContract,
   getLensV2Contract,
+  hasDeploymentAddress,
   logger,
   Market,
   MarketVersion,
@@ -15,10 +16,10 @@ export async function updateMarkets(
   provider: SignerOrProvider | undefined,
   networkData: NetworkInfo,
 ) {
-  const lens = getLensContract(
-    networkData.chainId,
-    provider as SignerOrProvider,
-  )
+  const hasV1Lens = hasDeploymentAddress(networkData.chainId, "MarketLens")
+  const lens = hasV1Lens
+    ? getLensContract(networkData.chainId, provider as SignerOrProvider)
+    : undefined
   const lensV2 = getLensV2Contract(
     networkData.chainId,
     provider as SignerOrProvider,
@@ -52,18 +53,20 @@ export async function updateMarkets(
   }
 
   await Promise.all([
-    ...v1Chunks.map(async (marketsChunk) => {
-      try {
-        const updates = await lens.getMarketsData(
-          marketsChunk.map((m) => m.address),
-        )
-        marketsChunk.forEach((market, i) => {
-          market.updateWith(updates[i])
+    ...(lens
+      ? v1Chunks.map(async (marketsChunk) => {
+          try {
+            const updates = await lens.getMarketsData(
+              marketsChunk.map((m) => m.address),
+            )
+            marketsChunk.forEach((market, i) => {
+              market.updateWith(updates[i])
+            })
+          } catch (err) {
+            console.log("Wrong underlying network detected", err)
+          }
         })
-      } catch (err) {
-        console.log("Wrong underlying network detected", err)
-      }
-    }),
+      : []),
     ...v2Chunks.map(async (marketsChunk) => {
       try {
         const updates = await lensV2.getMarketsData(

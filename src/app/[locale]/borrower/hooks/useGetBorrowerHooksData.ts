@@ -14,6 +14,7 @@ import {
 } from "@wildcatfi/wildcat-sdk/dist/access"
 import { useAccount } from "wagmi"
 
+import { NETWORKS_BY_ID } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
@@ -38,12 +39,16 @@ export function useGetBorrowerHooksDataQuery({
   async function getBorrowerHooksData(): Promise<GetAllHooksDataForBorrowerResult> {
     const chain = chainId! as SupportedChainId
     const signerOrProvider = provider! as SignerOrProvider
+    const supportsV1 =
+      NETWORKS_BY_ID[chainId as SupportedChainId].hasV1Deployment
     const borrower = address as string
     const lens = getLensV2Contract(chain, signerOrProvider)
     const [{ isRegisteredBorrower, ...result }, controller] = await Promise.all(
       [
         lens.getHooksDataForBorrower(borrower),
-        getController(chain, signerOrProvider, borrower),
+        supportsV1
+          ? getController(chain, signerOrProvider, borrower)
+          : undefined,
       ],
     )
     console.log("result", result)
@@ -80,7 +85,7 @@ export function useGetBorrowerHooksDataQuery({
       hooksInstances,
       hooksTemplates,
       isRegisteredBorrower,
-      controller: controller.isDeployed ? controller : undefined,
+      controller: controller?.isDeployed ? controller : undefined,
     }
   }
 
