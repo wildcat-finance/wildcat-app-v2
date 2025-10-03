@@ -3,7 +3,7 @@ import { useMemo } from "react"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   Market,
-  getLensContract,
+  getLensV2Contract,
   WithdrawalBatch,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
@@ -141,7 +141,7 @@ export function useGetWithdrawals(
   async function getUpdatedBatches(): Promise<BorrowerWithdrawalsForMarketResult> {
     if (!address || !market) throw Error()
     logger.debug(`Getting batch updates...`)
-    const lens = getLensContract(chainId, market.provider)
+    const lens = getLensV2Contract(chainId, market.provider)
     const batchUpdates = await lens.getWithdrawalBatchesData(
       address,
       withdrawals.incompleteBatches.map((x) => x.expiry),
