@@ -46,7 +46,12 @@ jobs:
           BEFORE="${{ github.event.before }}"
           SHA="${{ github.sha }}"
 
-          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || [ -z "$BEFORE" ]; then
+          has_before_commit=true
+          if ! git rev-parse --verify "$BEFORE^{commit}" >/dev/null 2>&1; then
+            has_before_commit=false
+          fi
+
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || [ -z "$BEFORE" ] || [ "$has_before_commit" = "false" ]; then
             RANGE=$(git rev-list --max-count=100 "$SHA" --not --remotes)
             if [ -z "$RANGE" ]; then
               RANGE=$(git rev-list -n 20 "$SHA")
