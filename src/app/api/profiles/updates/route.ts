@@ -33,21 +33,20 @@ export async function POST(request: NextRequest) {
     const {
       address: inputAddress,
       avatar: base64Avatar,
-      chainId: inputChainId,
       ...input
     } = await request.json()
     // Admin can update profiles for any address
     const address = inputAddress && token.isAdmin ? inputAddress : token.address
-    if (!inputChainId || !isSupportedChainId(inputChainId)) {
+    data = {
+      ...BorrowerProfileInputDTO.parse(input),
+      address,
+    }
+
+    if (!data.chainId || !isSupportedChainId(data.chainId)) {
       return NextResponse.json(
         { error: "Chain ID is required" },
         { status: 400 },
       )
-    }
-    data = {
-      ...BorrowerProfileInputDTO.parse(input),
-      address,
-      chainId: inputChainId,
     }
     if (base64Avatar) {
       const avatar = await uploadProfilePicture(base64Avatar, address)
