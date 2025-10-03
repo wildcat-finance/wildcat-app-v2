@@ -71,7 +71,11 @@ export const MarketsSection = () => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
-  const { isWrongNetwork, chainId: targetChainId } = useCurrentNetwork()
+  const {
+    isWrongNetwork,
+    chainId: targetChainId,
+    isTestnet,
+  } = useCurrentNetwork()
   const { data: borrowers } = useBorrowerNames()
 
   const {
@@ -96,7 +100,7 @@ export const MarketsSection = () => {
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
   const tokens = useMemo(() => {
-    if (targetChainId === SupportedChainId.Sepolia) {
+    if (isTestnet) {
       /// Only take first token with a given symbol
       return tokensRaw?.filter(
         (token, index, self) =>
