@@ -14,7 +14,7 @@ const fetchTokensList = async (
   chainId: number,
 ) => {
   const tokensList: TokenInfo[] = await fetch(
-    `/api/tokens-list?search=${query}`,
+    `/api/tokens-list?search=${query}&chainId=${chainId}`,
   ).then((res) => res.json())
 
   // Try to fetch token info by address
