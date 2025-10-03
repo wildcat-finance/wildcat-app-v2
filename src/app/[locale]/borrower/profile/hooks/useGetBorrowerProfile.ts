@@ -33,9 +33,9 @@ const fetchBorrowerProfile = async (
 export const useGetBorrowerProfile = (address: `0x${string}` | undefined) => {
   const { chainId } = useSelectedNetwork()
   return useQuery<BorrowerProfile | undefined>({
-    queryKey: [BORROWER_PROFILE_KEY, address],
+    queryKey: [BORROWER_PROFILE_KEY, address, chainId],
     queryFn: () => fetchBorrowerProfile(address, chainId),
-    enabled: !!address,
+    enabled: !!address && !!chainId,
     refetchOnMount: false,
   })
 }

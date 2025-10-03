@@ -125,7 +125,9 @@ export const useSetMarketMLA = () => {
         if (template === "noMLA") {
           console.log("submitting decline mla")
           const response = await fetch(
-            `/api/mla/${market.address.toLowerCase()}/decline`,
+            `/api/mla/${market.address.toLowerCase()}/decline?chainId=${
+              market.chainId
+            }`,
             {
               method: "POST",
               body: JSON.stringify({
@@ -139,7 +141,7 @@ export const useSetMarketMLA = () => {
           return true
         }
         const response = await fetch(
-          `/api/mla/${market.address.toLowerCase()}`,
+          `/api/mla/${market.address.toLowerCase()}?chainId=${market.chainId}`,
           {
             method: "POST",
             body: JSON.stringify({

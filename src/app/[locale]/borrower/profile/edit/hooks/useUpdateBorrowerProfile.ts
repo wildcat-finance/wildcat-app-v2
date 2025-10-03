@@ -27,16 +27,19 @@ const formatDateForMessage = (date: Date): string => {
 
 export const useUpdateBorrowerProfile = () => {
   const queryClient = useQueryClient()
-  const { address } = useAccount()
+  const { address, chainId } = useAccount()
   const token = useAuthToken()
 
   const updateBorrowerProfile = async (profile: BorrowerProfileInput) => {
     if (!token.token) {
       throw new Error("No token available. Make sure you are logged in.")
     }
+    if (!chainId) {
+      throw new Error("No chain ID available. Make sure wallet is connected.")
+    }
     const response = await fetch(`/api/profiles/updates`, {
       method: "POST",
-      body: JSON.stringify({ ...profile }),
+      body: JSON.stringify({ ...profile, chainId }),
       headers: {
         Authorization: `Bearer ${token.token}`,
         "Content-Type": "application/json",

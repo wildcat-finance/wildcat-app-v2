@@ -8,11 +8,13 @@ import { useAuthToken } from "./useApiAuth"
 export const GET_MARKET_MLA_KEY = "get-market-mla"
 
 export const useMarketMla = (marketAddress: string | undefined) => {
-  const { address } = useAccount()
+  const { address, chainId } = useAccount()
   const token = useAuthToken()
   const getMarketMla = async () => {
-    if (!marketAddress) return undefined
-    const res = await fetch(`/api/mla/${marketAddress.toLowerCase()}`)
+    if (!marketAddress || !chainId) return undefined
+    const res = await fetch(
+      `/api/mla/${marketAddress.toLowerCase()}?chainId=${chainId}`,
+    )
     if (res.status === 200) {
       const data = await res.json()
       if (data.noMLA) {
@@ -27,7 +29,7 @@ export const useMarketMla = (marketAddress: string | undefined) => {
     throw new Error("Failed to fetch MLA")
   }
   return useQuery({
-    enabled: !!marketAddress,
+    enabled: !!marketAddress && !!chainId,
     queryKey: [GET_MARKET_MLA_KEY, marketAddress, address, token?.token],
     queryFn: getMarketMla,
     refetchOnMount: false,
