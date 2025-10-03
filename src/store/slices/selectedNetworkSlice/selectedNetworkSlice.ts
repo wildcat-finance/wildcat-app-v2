@@ -1,7 +1,14 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { isSupportedChainId, SupportedChainId } from "@wildcatfi/wildcat-sdk"
+import { persistReducer } from "redux-persist"
+import storage from "redux-persist/lib/storage"
 
 import { NETWORKS, NETWORKS_BY_ID } from "@/config/network"
+
+const persistConfig = {
+  key: "selectedNetwork",
+  storage,
+}
 
 export type SelectedChainType = {
   chainId: SupportedChainId
@@ -9,6 +16,7 @@ export type SelectedChainType = {
   name: string
   etherscanUrl: string
   isTestnet: boolean
+  hasV1Deployment: boolean
 }
 
 const isValidNetwork = (network: string): network is keyof typeof NETWORKS =>
@@ -46,4 +54,4 @@ const selectedNetworkSlice = createSlice({
 export const { setSelectedNetwork, resetSelectedNetwork } =
   selectedNetworkSlice.actions
 
-export default selectedNetworkSlice.reducer
+export default persistReducer(persistConfig, selectedNetworkSlice.reducer)
