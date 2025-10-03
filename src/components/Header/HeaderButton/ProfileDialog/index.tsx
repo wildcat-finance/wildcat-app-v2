@@ -27,6 +27,7 @@ import { ProfileDialogProps } from "@/components/Header/HeaderButton/ProfileDial
 import { LinkGroup } from "@/components/LinkComponent"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetController } from "@/hooks/useGetController"
+import { useGetIsRegisteredBorrower } from "@/hooks/useIsRegisteredBorrower"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -52,8 +53,7 @@ export const ProfileDialog = ({
     handleClose()
   }
 
-  const { data: controller } = useGetController()
-  const isRegisteredBorrower = controller?.isRegisteredBorrower
+  const { data: isRegisteredBorrower } = useGetIsRegisteredBorrower()
 
   return (
     <Dialog open={open} onClose={handleClose} sx={DialogContainer}>

@@ -2,18 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react"
 
-import {
-  Box,
-  Skeleton,
-  Switch,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material"
+import { Box, Skeleton, Switch, Typography, useTheme } from "@mui/material"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
-import { useAccount } from "wagmi"
 
 import LogoWhite from "@/assets/icons/airdrop_logo_new.svg"
 import Logo from "@/assets/icons/logo_white.svg"
@@ -24,7 +16,6 @@ import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setTab } from "@/store/slices/borrowerOverviewSlice/borrowerOverviewSlice"
 import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
-import { setSelectedNetwork } from "@/store/slices/selectedNetworkSlice/selectedNetworkSlice"
 import { COLORS } from "@/theme/colors"
 
 import { HeaderButton } from "./HeaderButton"
@@ -163,8 +154,12 @@ export default function Header() {
           </Box>
         )}
         {/* <NotificationButton /> */}
-        {!isMobile && <HeaderButton />}
-        {!isMobile && <HeaderNetworkButton />}
+        {!isMobile && (
+          <div style={{ display: "flex", gap: "8px" }}>
+            <HeaderButton />
+            <HeaderNetworkButton />
+          </div>
+        )}
         {isMobile && (
           <MobileMenu open={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
         )}
