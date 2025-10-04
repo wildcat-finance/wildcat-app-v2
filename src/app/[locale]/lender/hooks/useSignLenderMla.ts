@@ -5,10 +5,10 @@ import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
 import { LenderMlaSignatureInput } from "@/app/api/mla/lender-signature/interface"
 import { toastRequest } from "@/components/Toasts"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
 
 import { GET_SIGNED_MLA_KEY } from "./useSignMla"
-import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export const useSignLenderMLA = () => {
   const { sdk, connected: safeConnected } = useSafeAppsSDK()
