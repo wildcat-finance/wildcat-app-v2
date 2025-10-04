@@ -1,9 +1,7 @@
 import { Box, Button, Dialog, SvgIcon, Typography } from "@mui/material"
-import { useMutation } from "@tanstack/react-query"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { useAccount, useSwitchChain } from "wagmi"
 
-import Cross from "@/assets/icons/cross_icon.svg"
 import {
   ContentContainer,
   DialogContainer,
@@ -11,7 +9,6 @@ import {
 import { NetworkIcon } from "@/components/NetworkIcon"
 import { NETWORKS } from "@/config/network"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { config, getAddEthereumChainParameter } from "@/lib/config"
 import { useAppDispatch } from "@/store/hooks"
 import { setSelectedNetwork } from "@/store/slices/selectedNetworkSlice/selectedNetworkSlice"
 import { COLORS } from "@/theme/colors"
@@ -64,7 +61,10 @@ export const NetworkSelectDialog = ({
               variant="text2"
               sx={{ width: "100%", fontWeight: 600, textAlign: "left" }}
             >
-              {network.name} {network.isTestnet && !network.name.toLowerCase().includes("testnet") && "(Testnet)"}
+              {network.name}{" "}
+              {network.isTestnet &&
+                !network.name.toLowerCase().includes("testnet") &&
+                "(Testnet)"}
             </Typography>
           </Button>
         ))}
