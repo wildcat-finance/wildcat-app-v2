@@ -17,6 +17,7 @@
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
+    "@ethersproject/providers": "^5.8.0",
     "@hookform/resolvers": "^3.3.4",
     "@hotjar/browser": "^1.0.9",
     "@mui/material": "^5.15.1",
