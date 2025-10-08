@@ -3,25 +3,30 @@ import { Signer, Token } from "@wildcatfi/wildcat-sdk"
 import { isAddress } from "viem"
 
 import { TokenInfo } from "@/app/api/tokens-list/interface"
+import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-import { useEthersSigner } from "@/hooks/useEthersSigner"
-
-export const TOKEN_LIST_SEARCH_KEY = "tokens-list-search"
+import {
+  JsonRpcSignerWithChainId,
+  useEthersSigner,
+} from "@/hooks/useEthersSigner"
 
 const fetchTokensList = async (
   query: string,
-  signer: Signer,
-  chainId: number,
+  signer: JsonRpcSignerWithChainId,
+  targetChainId: number,
 ) => {
+  if (signer.chainId !== targetChainId) {
+    throw Error("Signer chainId does not match targetChainId")
+  }
   const tokensList: TokenInfo[] = await fetch(
-    `/api/tokens-list?search=${query}&chainId=${chainId}`,
+    `/api/tokens-list?search=${query}&chainId=${targetChainId}`,
   ).then((res) => res.json())
 
   // Try to fetch token info by address
   if (!tokensList?.length && isAddress(query)) {
     try {
       const tokenInfo = await Token.getTokenData(
-        chainId,
+        targetChainId,
         query,
         signer as Signer,
       )
@@ -37,11 +42,12 @@ const fetchTokensList = async (
 
 export const useGetTokensList = (query: string) => {
   const signer = useEthersSigner()
-  const { chainId } = useCurrentNetwork()
+  const { targetChainId } = useCurrentNetwork()
 
   return useQuery({
-    queryKey: [TOKEN_LIST_SEARCH_KEY, query],
+    queryKey: QueryKeys.Token.TOKEN_LIST_SEARCH(targetChainId, query),
     enabled: false,
-    queryFn: () => fetchTokensList(query, signer as Signer, chainId as number),
+    queryFn: () =>
+      fetchTokensList(query, signer as JsonRpcSignerWithChainId, targetChainId),
   })
 }

@@ -6,16 +6,16 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { toastRequest } from "@/components/Toasts"
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { GET_MARKET_KEY } from "@/hooks/useGetMarket"
-import { GET_MARKET_ACCOUNT_KEY } from "@/hooks/useGetMarketAccount"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export const useFaucet = (marketAccount: MarketAccount) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
-  const { isTestnet } = useSelectedNetwork()
+  const { isTestnet, chainId: targetChainId } = useSelectedNetwork()
 
   return useMutation({
     mutationFn: async () => {
@@ -40,7 +40,9 @@ export const useFaucet = (marketAccount: MarketAccount) => {
     },
     onSuccess() {
       client.invalidateQueries({ queryKey: [GET_MARKET_KEY] })
-      client.invalidateQueries({ queryKey: [GET_MARKET_ACCOUNT_KEY] })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(targetChainId),
+      })
     },
     onError(error) {
       console.log(error)

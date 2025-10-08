@@ -2,13 +2,11 @@ import { Dispatch } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { MarketAccount, Signer, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
 import { GET_WITHDRAWALS_KEY } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
-import {
-  GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY,
-  GET_MARKET_ACCOUNT_KEY,
-} from "@/hooks/useGetMarketAccount"
+import { QueryKeys } from "@/config/query-keys"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 
 export const useProcessUnpaidWithdrawalBatch = (
   marketAccount: MarketAccount,
@@ -16,6 +14,7 @@ export const useProcessUnpaidWithdrawalBatch = (
 ) => {
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
+  const { targetChainId } = useCurrentNetwork()
 
   return useMutation({
     mutationFn: async ({
@@ -25,8 +24,15 @@ export const useProcessUnpaidWithdrawalBatch = (
       tokenAmount: TokenAmount
       maxBatches: number
     }) => {
-      if (!marketAccount) {
+      if (!marketAccount || !Signer.isSigner(marketAccount.market.provider)) {
         return
+      }
+      if (targetChainId !== marketAccount.market.chainId) {
+        throw Error(
+          `Target chainId does not match market chainId:` +
+            ` Market ${marketAccount.market.chainId},` +
+            ` Target ${targetChainId}`,
+        )
       }
 
       const processWithdrawalBatch = async () => {
@@ -55,9 +61,18 @@ export const useProcessUnpaidWithdrawalBatch = (
       await processWithdrawalBatch()
     },
     onSuccess() {
-      client.invalidateQueries({ queryKey: [GET_MARKET_ACCOUNT_KEY] })
       client.invalidateQueries({
-        queryKey: [GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY],
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
+          marketAccount.market.chainId,
+          marketAccount.market.address,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
+          marketAccount.market.chainId,
+          marketAccount.market.borrower,
+          marketAccount.market.address,
+        ),
       })
       client.invalidateQueries({
         queryKey: [GET_WITHDRAWALS_KEY],

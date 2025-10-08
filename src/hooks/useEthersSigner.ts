@@ -45,7 +45,7 @@ export function useEthersSigner({ chainId }: { chainId?: number } = {}) {
 
 export function clientToWalletInfo(
   client: WalletClient | (PublicClient & { account?: undefined }),
-  targetChainId?: number,
+  targetChainId: number,
 ) {
   const { account, chain, transport } = client
 
@@ -64,13 +64,17 @@ export function clientToWalletInfo(
     provider instanceof providers.JsonRpcProvider && account
       ? provider.getSigner(account.address)
       : undefined
+
+  if (signer && (!("chainId" in signer) || signer.chainId !== chain.id)) {
+    Object.assign(signer, { chainId: chain.id })
+  }
   const networkInfo = isSupportedChainId(chain.id)
     ? (NETWORKS_BY_ID[chain.id as keyof typeof NETWORKS_BY_ID] as NetworkInfo)
     : undefined
 
   return {
     provider,
-    signer,
+    signer: signer as JsonRpcSignerWithChainId,
     isTestnet: networkInfo?.isTestnet,
     isWrongNetwork: chain?.id !== targetChainId,
     address: account?.address,
@@ -83,13 +87,13 @@ export function clientToWalletInfo(
 
 type UseEthersProviderResult = {
   provider?: providers.Provider
-  signer?: Signer
+  signer?: JsonRpcSignerWithChainId
   address?: string
   isTestnet?: boolean
   isWrongNetwork?: boolean
   chain?: Chain
   chainId?: number
-  targetChainId?: number
+  targetChainId: number
   hasV1Deployment?: boolean
 }
 
@@ -109,7 +113,8 @@ export function useEthersProvider({
   const client = walletClient ?? publicClient
 
   return useMemo(
-    () => (client ? clientToWalletInfo(client, targetChainId) : {}),
+    () =>
+      client ? clientToWalletInfo(client, targetChainId) : { targetChainId },
     [client],
   )
 }

@@ -3,17 +3,18 @@ import { Dispatch } from "react"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Market, Token, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { useAccount } from "wagmi"
 
-import {
-  GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY,
-  GET_MARKET_ACCOUNT_KEY,
-} from "@/hooks/useGetMarketAccount"
+import { QueryKeys } from "@/config/query-keys"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 
 export const useApprove = (
   token: Token,
   market: Market,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
 ) => {
+  const { targetChainId } = useCurrentNetwork()
+  const { address } = useAccount()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
@@ -21,6 +22,13 @@ export const useApprove = (
     mutationFn: async (tokenAmount: TokenAmount) => {
       if (!market) {
         return
+      }
+      if (market.chainId !== targetChainId) {
+        throw Error(
+          `Market chainId does not match target chainId:` +
+            ` Market ${market.chainId},` +
+            ` Target ${targetChainId}`,
+        )
       }
 
       const approve = async () => {
@@ -50,9 +58,18 @@ export const useApprove = (
       await approve()
     },
     onSuccess() {
-      client.invalidateQueries({ queryKey: [GET_MARKET_ACCOUNT_KEY] })
       client.invalidateQueries({
-        queryKey: [GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY],
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
+          market.chainId,
+          market.address,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
+          market.chainId,
+          address,
+          market.address,
+        ),
       })
     },
   })

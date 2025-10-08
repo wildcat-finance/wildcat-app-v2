@@ -27,7 +27,6 @@ import { formatTokenWithCommas } from "@/utils/formatters"
 import { BorrowModalProps } from "./interface"
 
 export const BorrowModal = ({
-  market,
   marketAccount,
   disableBorrowBtn,
 }: BorrowModalProps) => {
@@ -43,6 +42,8 @@ export const BorrowModal = ({
     setAmount,
     setTxHash,
   )
+
+  const { market } = marketAccount
 
   const { mutate, isSuccess, isError, isPending } = useBorrow(
     marketAccount,

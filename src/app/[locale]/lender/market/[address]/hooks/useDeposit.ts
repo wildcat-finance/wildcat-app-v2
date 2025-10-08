@@ -8,6 +8,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { GET_MARKET_KEY } from "@/hooks/useGetMarket"
 import { GET_MARKET_ACCOUNT_KEY } from "@/hooks/useGetMarketAccount"
@@ -121,7 +122,11 @@ export const useDeposit = (
     },
     onSuccess() {
       client.invalidateQueries({ queryKey: [GET_MARKET_KEY] })
-      client.invalidateQueries({ queryKey: [GET_MARKET_ACCOUNT_KEY] })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
+          marketAccount.market.chainId,
+        ),
+      })
     },
     onError(error) {
       console.log(error)

@@ -1,3 +1,5 @@
+import { useEffect } from "react"
+
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   Market,
@@ -12,11 +14,11 @@ import { SubgraphGetMarketQueryVariables } from "@wildcatfi/wildcat-sdk/dist/gql
 import { constants } from "ethers"
 
 import { POLLING_INTERVAL } from "@/config/polling"
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TwoStepQueryHookResult } from "@/utils/types"
-
-export const GET_LENDER_MARKET_ACCOUNT_KEY = "get-lender-market-account"
 
 export type UseLenderProps = {
   market: Market | undefined
@@ -35,8 +37,10 @@ export function useLenderMarketAccountQuery({
   const subgraphClient = useSubgraphClient()
   const marketAddress = market?.address.toLowerCase()
   const lenderAddress = lender?.toLowerCase()
+  const { chainId: targetChainId } = useSelectedNetwork()
 
   async function queryMarketAccount() {
+    if (!market || !lender || market.chainId !== targetChainId) throw Error()
     const result = await getLenderAccountForMarket(subgraphClient, {
       market: market as Market,
       lender: lenderAddress as string,
@@ -54,12 +58,12 @@ export function useLenderMarketAccountQuery({
     isError: isErrorInitial,
     failureReason: errorInitial,
   } = useQuery({
-    queryKey: [
-      GET_LENDER_MARKET_ACCOUNT_KEY,
-      "initial",
+    queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT(
+      targetChainId,
       marketAddress,
       lenderAddress,
-    ],
+      "initial",
+    ),
     refetchInterval: POLLING_INTERVAL,
     queryFn: queryMarketAccount,
     enabled,
@@ -67,7 +71,8 @@ export function useLenderMarketAccountQuery({
   })
 
   async function updateMarketAccount() {
-    if (!data || !provider || !market) throw Error()
+    if (!data || !provider || !market || market.chainId !== targetChainId)
+      throw Error()
     if (data.market.version === MarketVersion.V1) {
       const lens = getLensContract(market.chainId, provider)
       const update = await lens.getMarketDataWithLenderStatus(
@@ -85,6 +90,7 @@ export function useLenderMarketAccountQuery({
       data.updateWith(update.lenderStatus)
       data.market.updateWith(update.market)
     }
+    // @TODO Check chain id here
     if (market && market.provider !== provider) {
       market.provider = provider
     }
@@ -99,18 +105,29 @@ export function useLenderMarketAccountQuery({
     isError: isErrorUpdate,
     failureReason: errorUpdate,
   } = useQuery({
-    queryKey: [
-      GET_LENDER_MARKET_ACCOUNT_KEY,
-      "update",
+    queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT(
+      targetChainId,
       marketAddress,
       lenderAddress,
-    ],
+      "update",
+    ),
     queryFn: updateMarketAccount,
     refetchInterval: POLLING_INTERVAL,
     placeholderData: keepPreviousData,
     enabled: !!data,
     refetchOnMount: false,
   })
+
+  useEffect(() => {
+    if (
+      data &&
+      provider &&
+      data.market.provider &&
+      data.market.provider !== provider
+    ) {
+      data.market.provider = provider
+    }
+  }, [provider])
 
   return {
     data: updatedLender ?? data,

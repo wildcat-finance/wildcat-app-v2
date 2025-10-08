@@ -1,3 +1,5 @@
+import { useEffect } from "react"
+
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   getLenderAccountForMarket,
@@ -8,11 +10,9 @@ import {
   MarketAccount,
 } from "@wildcatfi/wildcat-sdk"
 
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
-
-export const GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY =
-  "get-borrower-market-account-legacy"
 
 export const GET_MARKET_ACCOUNT_KEY = "get-market-account"
 
@@ -20,7 +20,7 @@ export const useGetMarketAccountForBorrowerLegacy = (
   market: Market | undefined,
 ) => {
   const subgraphClient = useSubgraphClient()
-  const { provider, signer, isWrongNetwork, address, chainId } =
+  const { provider, signer, isWrongNetwork, address, chainId, targetChainId } =
     useEthersProvider()
   const signerOrProvider = signer ?? provider
 
@@ -33,8 +33,25 @@ export const useGetMarketAccountForBorrowerLegacy = (
   }
 
   async function updateMarket(marketAccount: MarketAccount) {
-    if (!marketAccount || !address || !signerOrProvider || !chainId)
+    if (
+      !marketAccount ||
+      !address ||
+      !signerOrProvider ||
+      !chainId ||
+      !targetChainId
+    ) {
+      console.log("updateMarket: missing required parameters")
       throw Error()
+    }
+    if (chainId !== marketAccount.market.chainId || chainId !== targetChainId) {
+      throw Error(
+        `Signer chainId does not match market or target chainId:` +
+          ` Market ${marketAccount.market.chainId},` +
+          ` Target ${targetChainId},` +
+          ` Signer ${chainId}`,
+      )
+    }
+
     if (marketAccount.market.version === MarketVersion.V1) {
       const lens = getLensContract(chainId, signerOrProvider)
       const update = await lens.getMarketDataWithLenderStatus(
@@ -65,8 +82,25 @@ export const useGetMarketAccountForBorrowerLegacy = (
     return updateMarket(marketFromSubgraph)
   }
 
+  // @todo is this needed?
+  useEffect(() => {
+    if (
+      market &&
+      signerOrProvider &&
+      market.provider &&
+      market.provider !== signerOrProvider
+    ) {
+      market.provider = signerOrProvider
+    }
+  }, [signerOrProvider])
+
   return useQuery({
-    queryKey: [GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY, address, market],
+    queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
+      targetChainId,
+      address,
+      market?.address,
+      market,
+    ),
     queryFn,
     enabled: !!market && !!signerOrProvider && !isWrongNetwork,
     refetchOnMount: false,

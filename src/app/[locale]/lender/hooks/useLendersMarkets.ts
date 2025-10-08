@@ -19,6 +19,7 @@ import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { BigNumber, constants } from "ethers"
 
 import { POLLING_INTERVAL } from "@/config/polling"
+import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
@@ -28,8 +29,6 @@ import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type LenderMarketsQueryProps =
   SubgraphGetAllMarketsForLenderViewQueryVariables
-
-export const GET_LENDERS_ACCOUNTS_KEY = "lenders_accounts_list"
 
 function getChunks<T extends Market | MarketAccount>(
   chainId: SupportedChainId,
@@ -110,13 +109,11 @@ export function useLendersMarkets(
     isError: isErrorInitial,
     failureReason: errorInitial,
   } = useQuery({
-    queryKey: [
+    queryKey: QueryKeys.Lender.GET_LENDER_ACCOUNTS.INITIAL(
       targetChainId,
-      GET_LENDERS_ACCOUNTS_KEY,
-      "initial",
-      JSON.stringify(filters),
       lender,
-    ],
+      JSON.stringify(filters),
+    ),
     queryFn: queryMarketsForLender,
     refetchInterval: POLLING_INTERVAL,
     enabled: !!signerOrProvider && !isWrongNetwork,
@@ -213,12 +210,11 @@ export function useLendersMarkets(
     isError: isErrorUpdate,
     failureReason: errorUpdate,
   } = useQuery({
-    queryKey: [
+    queryKey: QueryKeys.Lender.GET_LENDER_ACCOUNTS.UPDATE(
       targetChainId,
-      GET_LENDERS_ACCOUNTS_KEY,
-      "update",
+      lender,
       updateQueryKeys,
-    ],
+    ),
     queryFn: getLenderUpdates,
     enabled: !!data,
     refetchOnMount: false,

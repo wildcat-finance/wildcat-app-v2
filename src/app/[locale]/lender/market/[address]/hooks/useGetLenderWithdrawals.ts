@@ -20,6 +20,8 @@ import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
+import { QueryKeys } from "@/config/query-keys"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
@@ -32,17 +34,22 @@ export type LenderWithdrawalsForMarketResult = {
   totalClaimableAmount: TokenAmount
 }
 
-export const GET_LENDER_WITHDRAWALS_KEY = "get_lender_withdrawals"
-
 export function useGetLenderWithdrawals(
   market: Market | undefined,
 ): TwoStepQueryHookResult<LenderWithdrawalsForMarketResult> {
   const subgraphClient = useSubgraphClient()
   const { address } = useAccount()
+  const { chainId: targetChainId } = useSelectedNetwork()
   const lender = address?.toLowerCase()
   const marketAddress = market?.address.toLowerCase()
   async function queryLenderWithdrawals() {
-    if (!lender || !market || !marketAddress) throw Error()
+    if (
+      !lender ||
+      !market ||
+      !marketAddress ||
+      market.chainId !== targetChainId
+    )
+      throw Error()
     logger.debug(`Getting lender withdrawals...`)
     const result = await subgraphClient.query<
       SubgraphGetLenderWithdrawalsForMarketQuery,
@@ -133,7 +140,11 @@ export function useGetLenderWithdrawals(
     isError: isErrorInitial,
     failureReason: errorInitial,
   } = useQuery({
-    queryKey: [GET_LENDER_WITHDRAWALS_KEY, "initial", lender, market],
+    queryKey: QueryKeys.Lender.GET_WITHDRAWALS.INITIAL(
+      market?.chainId ?? targetChainId,
+      lender,
+      marketAddress,
+    ),
     queryFn: queryLenderWithdrawals,
     refetchInterval: POLLING_INTERVAL,
     placeholderData: keepPreviousData,
@@ -252,7 +263,12 @@ export function useGetLenderWithdrawals(
     isError: isErrorUpdate,
     failureReason: errorUpdate,
   } = useQuery({
-    queryKey: [GET_LENDER_WITHDRAWALS_KEY, "update", updateQueryKeys],
+    queryKey: QueryKeys.Lender.GET_WITHDRAWALS.UPDATE(
+      market?.chainId ?? targetChainId,
+      lender,
+      marketAddress,
+      updateQueryKeys,
+    ),
     queryFn: updateWithdrawals,
     placeholderData: keepPreviousData,
     enabled: !!data,

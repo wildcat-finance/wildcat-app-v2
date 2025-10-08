@@ -5,8 +5,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { LenderWithdrawalStatus, Market } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
+import { QueryKeys } from "@/config/query-keys"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { GET_MARKET_KEY } from "@/hooks/useGetMarket"
-import { GET_MARKET_ACCOUNT_KEY } from "@/hooks/useGetMarketAccount"
 
 export const useClaim = (
   market: Market,
@@ -15,6 +16,7 @@ export const useClaim = (
 ) => {
   const client = useQueryClient()
   const { address } = useAccount()
+  const { targetChainId } = useCurrentNetwork()
 
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
@@ -53,7 +55,9 @@ export const useClaim = (
     },
     onSuccess() {
       client.invalidateQueries({ queryKey: [GET_MARKET_KEY] })
-      client.invalidateQueries({ queryKey: [GET_MARKET_ACCOUNT_KEY] })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(targetChainId),
+      })
     },
     onError(error) {
       console.log(error)

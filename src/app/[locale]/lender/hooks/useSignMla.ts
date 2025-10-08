@@ -7,10 +7,9 @@ import {
   MasterLoanAgreementResponse,
   MlaSignatureResponse,
 } from "@/app/api/mla/interface"
+import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
-
-export const GET_SIGNED_MLA_KEY = "GET_SIGNED_MLA_KEY"
 
 export const useGetSignedMla = (
   mla: MasterLoanAgreementResponse | null | undefined,
@@ -44,7 +43,11 @@ export const useGetSignedMla = (
   }
 
   return useQuery({
-    queryKey: [targetChainId, GET_SIGNED_MLA_KEY, mla?.market, address],
+    queryKey: QueryKeys.Lender.GET_SIGNED_MLA(
+      targetChainId,
+      mla?.market,
+      address,
+    ),
     queryFn: getSignedMla,
     enabled: !!mla?.market && !!address,
   })
