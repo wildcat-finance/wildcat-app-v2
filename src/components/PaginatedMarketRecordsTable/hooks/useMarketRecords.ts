@@ -7,9 +7,8 @@ import {
   getMarketRecords,
 } from "@wildcatfi/wildcat-sdk"
 
+import { QueryKeys } from "@/config/query-keys"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
-
-const GET_MARKET_RECORDS_KEY = "get-market-records"
 
 export type UseMarketRecordsProps = {
   market: Market
@@ -74,7 +73,13 @@ export function useMarketRecords({
   }
 
   const { data, isLoading, error, isError } = useQuery({
-    queryKey: [GET_MARKET_RECORDS_KEY, market.address, page, pageSize, kinds],
+    queryKey: QueryKeys.Markets.GET_MARKET_RECORDS(
+      market.chainId,
+      market.address,
+      page,
+      pageSize,
+      kinds,
+    ),
     queryFn: getMarketRecordsInternal,
     enabled: true,
     refetchOnMount: false,

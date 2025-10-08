@@ -7,9 +7,8 @@ import {
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 
+import { QueryKeys } from "@/config/query-keys"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
-
-export const GET_LENDERS_BY_MARKET_KEY = "get-authorised-lenders-by-market"
 
 export const useGetAuthorisedLendersByMarket = (market: Market | undefined) => {
   const subgraphClient = useSubgraphClient()
@@ -35,9 +34,12 @@ export const useGetAuthorisedLendersByMarket = (market: Market | undefined) => {
   }
 
   return useQuery({
-    queryKey: [GET_LENDERS_BY_MARKET_KEY, market?.address],
+    queryKey: QueryKeys.Borrower.GET_LENDERS_BY_MARKET(
+      market?.chainId ?? 0,
+      market?.address,
+    ),
     queryFn: getAuthorisedLendersByMarket,
-    enabled: !!market,
+    enabled: !!market && !!market.chainId,
     refetchOnMount: false,
   })
 }

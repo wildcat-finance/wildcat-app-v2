@@ -14,8 +14,6 @@ import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
-export const GET_MARKET_ACCOUNT_KEY = "get-market-account"
-
 export const useGetMarketAccountForBorrowerLegacy = (
   market: Market | undefined,
 ) => {

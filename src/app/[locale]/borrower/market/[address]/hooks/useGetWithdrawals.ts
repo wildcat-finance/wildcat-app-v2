@@ -15,6 +15,7 @@ import {
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 
 import { POLLING_INTERVAL } from "@/config/polling"
+import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TwoStepQueryHookResult } from "@/utils/types"
@@ -73,8 +74,6 @@ function processIncompleteWithdrawals(
   }
 }
 
-export const GET_WITHDRAWALS_KEY = "get_market_withdrawals"
-
 export function useGetWithdrawals(
   market: Market | undefined,
 ): TwoStepQueryHookResult<BorrowerWithdrawalsForMarketResult> {
@@ -119,11 +118,11 @@ export function useGetWithdrawals(
     isError: isErrorInitial,
     failureReason: errorInitial,
   } = useQuery({
-    queryKey: [GET_WITHDRAWALS_KEY, "initial", address],
+    queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(chainId, "initial", address),
     queryFn: getAllPendingWithdrawalBatches,
     refetchInterval: POLLING_INTERVAL,
     placeholderData: keepPreviousData,
-    enabled: !!market,
+    enabled: !!market && !!chainId,
     refetchOnMount: false,
   })
 
@@ -233,10 +232,15 @@ export function useGetWithdrawals(
     isError: isErrorUpdate,
     failureReason: errorUpdate,
   } = useQuery({
-    queryKey: [GET_WITHDRAWALS_KEY, "update", updateQueryKeys],
+    queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+      chainId,
+      "update",
+      address,
+      updateQueryKeys,
+    ),
     queryFn: getUpdatedBatches,
     placeholderData: keepPreviousData,
-    enabled: !!data,
+    enabled: !!data && !!chainId,
     refetchOnMount: false,
   })
 

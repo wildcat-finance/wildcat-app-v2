@@ -8,8 +8,8 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
-import { GET_WITHDRAWALS_KEY } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { QueryKeys } from "@/config/query-keys"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { isUSDTLikeToken } from "@/utils/constants"
 
@@ -21,6 +21,7 @@ export const useRepay = (
   const signer = useEthersSigner()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
+  const { targetChainId } = useCurrentNetwork()
 
   const waitForTransaction = async (safeTxHash: string) => {
     if (!sdk) throw Error("No sdk found")
@@ -38,6 +39,13 @@ export const useRepay = (
     mutationFn: async (amount: TokenAmount) => {
       if (!marketAccount || !signer) {
         return
+      }
+      if (marketAccount.market.chainId !== targetChainId) {
+        throw Error(
+          `Market chainId does not match target chainId:` +
+            ` Market ${marketAccount.market.chainId},` +
+            ` Target ${targetChainId}`,
+        )
       }
 
       const step = marketAccount.previewRepay(amount)
@@ -140,7 +148,18 @@ export const useRepay = (
         })
 
         client.invalidateQueries({
-          queryKey: [GET_WITHDRAWALS_KEY],
+          queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+            marketAccount.market.chainId,
+            "initial",
+            marketAccount.market.address,
+          ),
+        })
+        client.invalidateQueries({
+          queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+            marketAccount.market.chainId,
+            "update",
+            marketAccount.market.address,
+          ),
         })
       }
     },

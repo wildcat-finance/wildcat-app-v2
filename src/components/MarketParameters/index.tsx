@@ -409,6 +409,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
                 ] as const
               ).map((x) => (
                 <MarketParametersItem
+                  key={x}
                   title={t(`borrowerMarketDetails.hooks.${x}`)}
                   value={hooksConfig.flags[x] ? "True" : "False"}
                 />
@@ -426,6 +427,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
                 ] as const
               ).map((x) => (
                 <MarketParametersItem
+                  key={x}
                   title={t(`borrowerMarketDetails.hooks.${x}`)}
                   value={hooksConfig.flags[x] ? "True" : "False"}
                 />

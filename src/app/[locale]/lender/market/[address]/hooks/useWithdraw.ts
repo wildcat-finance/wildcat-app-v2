@@ -6,8 +6,8 @@ import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { parseUnits } from "ethers/lib/utils"
 import { useAccount } from "wagmi"
 
-import { GET_WITHDRAWALS_KEY } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
-import { GET_MARKET_KEY } from "@/hooks/useGetMarket"
+import { QueryKeys } from "@/config/query-keys"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 
 export const useWithdraw = (
   marketAccount: MarketAccount,
@@ -16,6 +16,7 @@ export const useWithdraw = (
 ) => {
   const { address } = useAccount()
   const client = useQueryClient()
+  const { targetChainId } = useCurrentNetwork()
 
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
@@ -23,6 +24,13 @@ export const useWithdraw = (
     mutationFn: async (amount: string) => {
       if (!marketAccount || !address) {
         return
+      }
+      if (marketAccount.market.chainId !== targetChainId) {
+        throw Error(
+          `Market chainId does not match target chainId:` +
+            ` Market ${marketAccount.market.chainId},` +
+            ` Target ${targetChainId}`,
+        )
       }
 
       const tokenAmount = new TokenAmount(
@@ -58,8 +66,26 @@ export const useWithdraw = (
       await withdraw()
     },
     onSuccess() {
-      client.invalidateQueries({ queryKey: [GET_MARKET_KEY] })
-      client.invalidateQueries({ queryKey: [GET_WITHDRAWALS_KEY] })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET(
+          marketAccount.market.chainId,
+          marketAccount.market.address,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+          marketAccount.market.chainId,
+          "initial",
+          marketAccount.market.address,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+          marketAccount.market.chainId,
+          "update",
+          marketAccount.market.address,
+        ),
+      })
     },
     onError(error, amount) {
       console.log(error, amount)

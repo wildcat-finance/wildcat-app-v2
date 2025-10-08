@@ -8,7 +8,6 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { GET_MARKET_KEY } from "@/hooks/useGetMarket"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export const useFaucet = (marketAccount: MarketAccount) => {
@@ -23,9 +22,16 @@ export const useFaucet = (marketAccount: MarketAccount) => {
         !marketAccount ||
         !signer ||
         !marketAccount.market.underlyingToken.isMock ||
-        isTestnet
+        !isTestnet
       )
         throw Error()
+      if (marketAccount.market.chainId !== targetChainId) {
+        throw Error(
+          `Market chainId does not match target chainId:` +
+            ` Market ${marketAccount.market.chainId},` +
+            ` Target ${targetChainId}`,
+        )
+      }
 
       const faucet = async () => {
         const tx = await marketAccount.market.underlyingToken.faucet()
@@ -39,9 +45,17 @@ export const useFaucet = (marketAccount: MarketAccount) => {
       })
     },
     onSuccess() {
-      client.invalidateQueries({ queryKey: [GET_MARKET_KEY] })
       client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(targetChainId),
+        queryKey: QueryKeys.Markets.GET_MARKET(
+          marketAccount.market.chainId,
+          marketAccount.market.address,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
+          marketAccount.market.chainId,
+          marketAccount.market.address,
+        ),
       })
     },
     onError(error) {

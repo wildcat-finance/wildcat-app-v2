@@ -14,10 +14,9 @@ import {
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 
 import { POLLING_INTERVAL } from "@/config/polling"
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
-
-export const GET_MARKET_KEY = "get-market"
 
 export type UseMarketProps = {
   address: string | undefined
@@ -75,10 +74,17 @@ export function useGetMarket({ address, ...filters }: UseMarketProps) {
   }
 
   const { data, ...result } = useQuery({
-    queryKey: [GET_MARKET_KEY, address],
+    queryKey: QueryKeys.Markets.GET_MARKET(
+      chainId ?? 0,
+      marketAddressFormatted,
+    ),
     queryFn,
     refetchInterval: POLLING_INTERVAL,
-    enabled: !(!marketAddressFormatted || !signerOrProvider || isWrongNetwork),
+    enabled:
+      !!marketAddressFormatted &&
+      !!signerOrProvider &&
+      !!chainId &&
+      !isWrongNetwork,
     refetchOnMount: false,
   })
 

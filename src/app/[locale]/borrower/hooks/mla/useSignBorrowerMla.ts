@@ -13,8 +13,8 @@ import {
 import { toastRequest } from "@/components/Toasts"
 import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
 import { NETWORKS_BY_ID } from "@/config/network"
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider, useEthersSigner } from "@/hooks/useEthersSigner"
-import { GET_MARKET_MLA_KEY } from "@/hooks/useMarketMla"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import {
   BasicBorrowerInfo,
@@ -27,13 +27,14 @@ import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
 import { getMlaFromForm, PREVIEW_MLA_KEY } from "./usePreviewMla"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
 
-const GET_BORROWER_PROFILE_KEY = "GET_BORROWER_PROFILE"
-
 export const useBorrowerProfileTmp = (address: string | undefined) => {
   const { chainId } = useSelectedNetwork()
   const { data, ...result } = useQuery({
-    queryKey: [GET_BORROWER_PROFILE_KEY, address],
-    enabled: !!address,
+    queryKey: QueryKeys.Borrower.GET_BORROWER_PROFILE(
+      chainId,
+      address?.toLowerCase(),
+    ),
+    enabled: !!address && !!chainId,
     queryFn: async () => {
       if (!address) return undefined
       const response = await fetch(
@@ -178,12 +179,15 @@ export const useSetMarketMLA = () => {
         pending: "Setting MLA...",
       })
     },
-    onSuccess() {
+    onSuccess(_, variables) {
       client.invalidateQueries({
         queryKey: [PREVIEW_MLA_KEY],
       })
       client.invalidateQueries({
-        queryKey: [GET_MARKET_MLA_KEY],
+        queryKey: QueryKeys.Markets.GET_MARKET_MLA(
+          variables?.market.chainId,
+          variables?.market.address,
+        ),
       })
     },
   })
@@ -200,6 +204,7 @@ export const useSignMla = (salt: string) => {
   const { sdk, connected: safeConnected } = useSafeAppsSDK()
   const signer = useEthersSigner()
   const client = useQueryClient()
+  const { chainId } = useSelectedNetwork()
 
   const { data: marketAddress } = useCalculateMarketAddress(salt)
 
@@ -287,7 +292,7 @@ export const useSignMla = (salt: string) => {
         queryKey: [PREVIEW_MLA_KEY],
       })
       client.invalidateQueries({
-        queryKey: [GET_MARKET_MLA_KEY],
+        queryKey: QueryKeys.Markets.GET_MARKET_MLA(chainId, marketAddress),
       })
     },
   })
