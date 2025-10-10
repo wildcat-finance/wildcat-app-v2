@@ -4,4 +4,5 @@ export type BorrowerProfileDetailsProps = {
   address: string
   hideMarkets?: boolean
   sx?: SxProps<Theme> | undefined
+  isMarketPage?: boolean
 }

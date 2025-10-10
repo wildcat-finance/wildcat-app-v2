@@ -10,4 +10,5 @@ export type NameSectionProps = {
   marketsAmount?: number
 
   type: "user" | "external"
+  isMarketPage?: boolean
 }
