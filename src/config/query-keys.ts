@@ -1,8 +1,27 @@
-// Build query keys, trimming only trailing `undefined` items.
+import { getAddress, isAddress } from "viem"
+
+const normalizeKeyPart = (value: unknown): unknown => {
+  if (typeof value === "string" && isAddress(value)) {
+    try {
+      return getAddress(value).toLowerCase()
+    } catch {
+      return value.toLowerCase()
+    }
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(normalizeKeyPart)
+  }
+
+  return value
+}
+
+// Build query keys, trimming only trailing `undefined` items and normalising inputs.
 export const k = <T extends readonly unknown[]>(
   ...args: T
 ): readonly unknown[] => {
-  const arr = [...args]
+  const normalizedArgs = args.map(normalizeKeyPart)
+  const arr = [...normalizedArgs]
   while (arr.length && arr[arr.length - 1] === undefined) arr.pop()
   return arr
 }
@@ -153,11 +172,17 @@ const BORROWER_QUERY_KEYS = {
 
 const ADMIN_QUERY_KEYS = {
   // GET_ALL_BORROWER_INVITATIONS_KEY
-  GET_ALL_BORROWER_INVITATIONS: (chainId: number) =>
-    k(["admin", "GET_ALL_BORROWER_INVITATIONS", chainId]),
+  GET_ALL_BORROWER_INVITATIONS: (
+    chainId: number,
+    isAdmin?: boolean,
+    address?: string,
+  ) => k(["admin", "GET_ALL_BORROWER_INVITATIONS", chainId, isAdmin, address]),
   // GET_ALL_BORROWER_PROFILES_KEY
-  GET_ALL_BORROWER_PROFILES: (chainId: number) =>
-    k(["admin", "GET_ALL_BORROWER_PROFILES", chainId]),
+  GET_ALL_BORROWER_PROFILES: (
+    chainId: number,
+    isAdmin?: boolean,
+    address?: string,
+  ) => k(["admin", "GET_ALL_BORROWER_PROFILES", chainId, isAdmin, address]),
 } as const
 
 const USER_QUERY_KEYS = {

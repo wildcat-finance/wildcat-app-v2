@@ -1,14 +1,14 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { getArchControllerContract } from "@wildcatfi/wildcat-sdk"
 
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
-
-export const GET_IS_REGISTERED_BORROWER_KEY = "get-is-registered-borrower"
 
 export const useGetIsRegisteredBorrower = () => {
   const { provider, signer, isWrongNetwork, address, chainId } =
     useEthersProvider()
   const signerOrProvider = signer ?? provider
+  const chainKey = chainId ?? 0
 
   async function getIsRegisteredBorrower() {
     if (!signerOrProvider) throw Error(`Signer undefined`)
@@ -19,9 +19,9 @@ export const useGetIsRegisteredBorrower = () => {
   }
 
   return useQuery({
-    queryKey: [GET_IS_REGISTERED_BORROWER_KEY, address],
+    queryKey: QueryKeys.Borrower.GET_IS_REGISTERED_BORROWER(chainKey, address),
     queryFn: getIsRegisteredBorrower,
-    enabled: !!signerOrProvider && !isWrongNetwork && !!address,
+    enabled: !!signerOrProvider && !isWrongNetwork && !!address && !!chainId,
     refetchOnMount: false,
     placeholderData: keepPreviousData,
   })

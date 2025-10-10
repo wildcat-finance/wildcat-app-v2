@@ -163,7 +163,7 @@ export const DepositModal = ({
     depositStep === "InsufficientBalance" ||
     modal.approvedStep ||
     isApproving ||
-    !(market.provider instanceof Signer)
+    !Signer.isSigner(market.provider)
 
   const disableDeposit =
     !!depositError ||

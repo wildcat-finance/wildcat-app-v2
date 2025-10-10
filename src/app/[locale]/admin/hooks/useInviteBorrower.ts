@@ -1,14 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 import { BorrowerInvitationInput } from "@/app/api/invite/interface"
+import { QueryKeys } from "@/config/query-keys"
 import { useAuthToken } from "@/hooks/useApiAuth"
-
-import { GET_ALL_BORROWER_INVITATIONS_KEY } from "./useAllBorrowerInvitations"
-import { BORROWER_PROFILE_KEY } from "../../borrower/profile/hooks/useGetBorrowerProfile"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export const useInviteBorrower = (address?: string) => {
   const token = useAuthToken()
   const client = useQueryClient()
+  const { chainId } = useSelectedNetwork()
   return useMutation({
     mutationKey: ["inviteBorrower", address],
     mutationFn: async (data: BorrowerInvitationInput) => {
@@ -24,8 +24,19 @@ export const useInviteBorrower = (address?: string) => {
       }
     },
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: [GET_ALL_BORROWER_INVITATIONS_KEY] })
-      client.invalidateQueries({ queryKey: [BORROWER_PROFILE_KEY, address] })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Admin.GET_ALL_BORROWER_INVITATIONS(chainId),
+      })
+      const normalizedAddress = address?.toLowerCase()
+      client.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_PROFILE(chainId, normalizedAddress),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_BORROWER_PROFILE(
+          chainId,
+          normalizedAddress,
+        ),
+      })
     },
   })
 }

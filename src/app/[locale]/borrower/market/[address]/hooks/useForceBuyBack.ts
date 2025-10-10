@@ -8,8 +8,6 @@ import { parseUnits } from "ethers/lib/utils"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 
-import { GET_MARKET_LENDERS_KEY } from "./useGetMarketLenders"
-
 export const useForceBuyBack = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
@@ -76,7 +74,10 @@ export const useForceBuyBack = (
         ),
       })
       client.invalidateQueries({
-        queryKey: [GET_MARKET_LENDERS_KEY],
+        queryKey: QueryKeys.Markets.GET_MARKET_LENDERS(
+          marketAccount.market.chainId,
+          marketAccount.market.address,
+        ),
       })
     },
     onError(error) {

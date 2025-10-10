@@ -7,7 +7,6 @@ import { useAccount } from "wagmi"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-import { GET_MARKET_KEY } from "@/hooks/useGetMarket"
 
 export const useClaim = (
   market: Market,
@@ -22,6 +21,13 @@ export const useClaim = (
 
   return useMutation({
     mutationFn: async () => {
+      if (market.chainId !== targetChainId) {
+        throw Error(
+          `Market chainId does not match target chainId:` +
+            ` Market ${market.chainId},` +
+            ` Target ${targetChainId}`,
+        )
+      }
       const claimableWithdrawals = withdrawals.filter((w) =>
         w.availableWithdrawalAmount.gt(0),
       )
@@ -54,9 +60,14 @@ export const useClaim = (
       await claim()
     },
     onSuccess() {
-      client.invalidateQueries({ queryKey: [GET_MARKET_KEY] })
       client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(targetChainId),
+        queryKey: QueryKeys.Markets.GET_MARKET(market.chainId, market.address),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
+          market.chainId,
+          market.address,
+        ),
       })
     },
     onError(error) {

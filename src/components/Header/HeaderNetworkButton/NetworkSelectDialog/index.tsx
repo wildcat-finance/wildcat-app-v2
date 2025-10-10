@@ -45,6 +45,7 @@ export const NetworkSelectDialog = ({
       <Box sx={ContentContainer} className="test">
         {PrimaryNetworks.map((network) => (
           <Button
+            key={network.chainId}
             variant="text"
             fullWidth
             sx={{

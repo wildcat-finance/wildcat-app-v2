@@ -1,10 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useAccount } from "wagmi"
 
-import { GET_ALL_BORROWER_PROFILES_KEY } from "@/app/[locale]/admin/hooks/useAllBorrowerProfiles"
-import { BORROWER_PROFILE_KEY } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { BorrowerProfileInput } from "@/app/api/profiles/interface"
 import { toastRequest } from "@/components/Toasts"
+import { QueryKeys } from "@/config/query-keys"
 import { useAuthToken } from "@/hooks/useApiAuth"
 
 import { USE_REGISTERED_BORROWERS_KEY } from "../../../hooks/useBorrowerNames"
@@ -90,14 +89,32 @@ export const useUpdateBorrowerProfile = () => {
         },
       )
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [BORROWER_PROFILE_KEY] })
+    onSuccess: (_, profile) => {
+      if (chainId === undefined) {
+        return
+      }
+      const lowerAddress = token.isAdmin
+        ? profile.address.toLowerCase()
+        : address?.toLowerCase()
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_PROFILE(chainId, lowerAddress),
+      })
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_BORROWER_PROFILE(
+          chainId,
+          lowerAddress,
+        ),
+      })
       queryClient.invalidateQueries({
         queryKey: [USE_REGISTERED_BORROWERS_KEY],
       })
       if (token.isAdmin) {
         queryClient.invalidateQueries({
-          queryKey: [GET_ALL_BORROWER_PROFILES_KEY],
+          queryKey: QueryKeys.Admin.GET_ALL_BORROWER_PROFILES(
+            chainId,
+            token.isAdmin,
+            token.address,
+          ),
         })
       }
     },

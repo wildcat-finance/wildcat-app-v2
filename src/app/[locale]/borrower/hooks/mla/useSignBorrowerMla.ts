@@ -1,8 +1,7 @@
+/* eslint-disable no-console */
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Market, SupportedChainId, Token } from "@wildcatfi/wildcat-sdk"
-import { getAddress } from "ethers/lib/utils"
-import { useRouter } from "next/navigation"
 import { UseFormReturn } from "react-hook-form"
 
 import { lastSlaUpdateTime, MlaTemplate } from "@/app/api/mla/interface"
@@ -13,8 +12,8 @@ import {
 import { toastRequest } from "@/components/Toasts"
 import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
 import { NETWORKS_BY_ID } from "@/config/network"
-import { useEthersProvider, useEthersSigner } from "@/hooks/useEthersSigner"
-import { GET_MARKET_MLA_KEY } from "@/hooks/useMarketMla"
+import { QueryKeys } from "@/config/query-keys"
+import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import {
   BasicBorrowerInfo,
@@ -24,16 +23,17 @@ import {
 } from "@/lib/mla"
 
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
-import { getMlaFromForm, PREVIEW_MLA_KEY } from "./usePreviewMla"
+import { getMlaFromForm } from "./usePreviewMla"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
-
-const GET_BORROWER_PROFILE_KEY = "GET_BORROWER_PROFILE"
 
 export const useBorrowerProfileTmp = (address: string | undefined) => {
   const { chainId } = useSelectedNetwork()
   const { data, ...result } = useQuery({
-    queryKey: [GET_BORROWER_PROFILE_KEY, address],
-    enabled: !!address,
+    queryKey: QueryKeys.Borrower.GET_BORROWER_PROFILE(
+      chainId,
+      address?.toLowerCase(),
+    ),
+    enabled: !!address && !!chainId,
     queryFn: async () => {
       if (!address) return undefined
       const response = await fetch(
@@ -178,12 +178,18 @@ export const useSetMarketMLA = () => {
         pending: "Setting MLA...",
       })
     },
-    onSuccess() {
+    onSuccess(_, variables) {
       client.invalidateQueries({
-        queryKey: [PREVIEW_MLA_KEY],
+        queryKey: QueryKeys.Borrower.PREVIEW_MLA.FROM_MARKET(
+          variables?.market.chainId ?? 0,
+          variables?.market.address,
+        ),
       })
       client.invalidateQueries({
-        queryKey: [GET_MARKET_MLA_KEY],
+        queryKey: QueryKeys.Markets.GET_MARKET_MLA(
+          variables?.market.chainId,
+          variables?.market.address,
+        ),
       })
     },
   })
@@ -200,6 +206,7 @@ export const useSignMla = (salt: string) => {
   const { sdk, connected: safeConnected } = useSafeAppsSDK()
   const signer = useEthersSigner()
   const client = useQueryClient()
+  const { chainId } = useSelectedNetwork()
 
   const { data: marketAddress } = useCalculateMarketAddress(salt)
 
@@ -284,10 +291,13 @@ export const useSignMla = (salt: string) => {
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: [PREVIEW_MLA_KEY],
+        queryKey: QueryKeys.Borrower.PREVIEW_MLA.FROM_FORM(
+          chainId,
+          marketAddress,
+        ),
       })
       client.invalidateQueries({
-        queryKey: [GET_MARKET_MLA_KEY],
+        queryKey: QueryKeys.Markets.GET_MARKET_MLA(chainId, marketAddress),
       })
     },
   })

@@ -2,11 +2,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { getMockArchControllerOwnerContract } from "@wildcatfi/wildcat-sdk"
 
 import { toastRequest } from "@/components/Toasts"
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useAppSelector } from "@/store/hooks"
-
-import { GET_ALL_BORROWER_INVITATIONS_KEY } from "./useAllBorrowerInvitations"
-import { GET_ALL_BORROWER_PROFILES_KEY } from "./useAllBorrowerProfiles"
 
 export const useRegisterTestnetBorrower = () => {
   const signer = useEthersSigner()
@@ -30,8 +28,12 @@ export const useRegisterTestnetBorrower = () => {
       )
     },
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: [GET_ALL_BORROWER_INVITATIONS_KEY] })
-      client.invalidateQueries({ queryKey: [GET_ALL_BORROWER_PROFILES_KEY] })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Admin.GET_ALL_BORROWER_INVITATIONS(chainId),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Admin.GET_ALL_BORROWER_PROFILES(chainId),
+      })
     },
   })
 }

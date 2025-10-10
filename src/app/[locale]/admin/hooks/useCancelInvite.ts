@@ -1,9 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
+import { QueryKeys } from "@/config/query-keys"
 import { useAuthToken } from "@/hooks/useApiAuth"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-
-import { GET_ALL_BORROWER_INVITATIONS_KEY } from "./useAllBorrowerInvitations"
 
 export function useCancelInvite() {
   const token = useAuthToken()
@@ -25,7 +24,9 @@ export function useCancelInvite() {
       }
     },
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: [GET_ALL_BORROWER_INVITATIONS_KEY] })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Admin.GET_ALL_BORROWER_INVITATIONS(chainId),
+      })
     },
   })
 }

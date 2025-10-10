@@ -15,11 +15,10 @@ import { BigNumber } from "ethers"
 import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
+import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
-
-export const GET_MARKET_LENDERS_KEY = `GET_MARKET_LENDERS_KEY`
 
 export const useGetMarketLenders = (market?: Market) => {
   const { isWrongNetwork, signer, provider, chainId } = useEthersProvider()
@@ -94,10 +93,13 @@ export const useGetMarketLenders = (market?: Market) => {
   }
 
   return useQuery({
-    queryKey: [GET_MARKET_LENDERS_KEY, chainId, market?.address],
+    queryKey: QueryKeys.Markets.GET_MARKET_LENDERS(
+      chainId ?? 0,
+      market?.address,
+    ),
     queryFn: getMarketLenders,
     refetchInterval: POLLING_INTERVAL,
-    enabled: address && market && !isWrongNetwork,
+    enabled: address && market && !isWrongNetwork && !!chainId,
     refetchOnMount: false,
   })
 }

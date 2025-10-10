@@ -11,6 +11,7 @@ import { useAccount } from "wagmi"
 
 import { updateMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/updateMarkets"
 import { POLLING_INTERVAL } from "@/config/polling"
+import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
@@ -19,8 +20,6 @@ import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
 
 import { GetMarketsProps } from "./interface"
-
-export const GET_ALL_MARKETS = "get-all-markets"
 
 export function useGetOthersMarketsQuery({
   provider,
@@ -57,13 +56,12 @@ export function useGetOthersMarketsQuery({
   }
 
   return useQuery({
-    queryKey: [
-      GET_ALL_MARKETS,
-      chainId,
+    queryKey: QueryKeys.Borrower.GET_ALL_MARKETS(
+      network.chainId,
       JSON.stringify(marketFilter),
-      shouldSkipRecords,
+      shouldSkipRecords ?? true,
       variables,
-    ],
+    ),
     queryFn: getAllMarkets,
     refetchInterval: POLLING_INTERVAL,
     enabled,

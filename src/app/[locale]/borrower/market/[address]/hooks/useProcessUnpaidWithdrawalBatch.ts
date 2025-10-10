@@ -4,9 +4,10 @@ import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, Signer, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
-import { GET_WITHDRAWALS_KEY } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+
+import type { BorrowerWithdrawalsForMarketResult } from "./useGetWithdrawals"
 
 export const useProcessUnpaidWithdrawalBatch = (
   marketAccount: MarketAccount,
@@ -61,6 +62,17 @@ export const useProcessUnpaidWithdrawalBatch = (
       await processWithdrawalBatch()
     },
     onSuccess() {
+      const initialWithdrawalsKey = QueryKeys.Borrower.GET_WITHDRAWALS(
+        marketAccount.market.chainId,
+        "initial",
+        marketAccount.market.address,
+      )
+      const updateWithdrawalsKey = QueryKeys.Borrower.GET_WITHDRAWALS(
+        marketAccount.market.chainId,
+        "update",
+        marketAccount.market.address,
+      )
+
       client.invalidateQueries({
         queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
           marketAccount.market.chainId,
@@ -75,7 +87,10 @@ export const useProcessUnpaidWithdrawalBatch = (
         ),
       })
       client.invalidateQueries({
-        queryKey: [GET_WITHDRAWALS_KEY],
+        queryKey: initialWithdrawalsKey,
+      })
+      client.invalidateQueries({
+        queryKey: updateWithdrawalsKey,
       })
     },
   })

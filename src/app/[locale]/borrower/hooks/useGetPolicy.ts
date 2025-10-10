@@ -9,14 +9,13 @@ import {
 import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
+import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 import { updateMarkets } from "./getMaketsHooks/updateMarkets"
-
-export const GET_POLICY_KEY = "GET_POLICY"
 
 export type GetPolicyArgs = Omit<
   SubgraphGetMarketsAndLendersByHooksInstanceOrControllerQueryVariables,
@@ -50,7 +49,7 @@ export const useGetPolicy = ({ policy, ...variables }: GetPolicyArgs) => {
   }
 
   return useQuery({
-    queryKey: [GET_POLICY_KEY, chainId, policy],
+    queryKey: QueryKeys.Borrower.GET_POLICY(chainId, policy),
     queryFn: getPolicy,
     refetchInterval: POLLING_INTERVAL,
     enabled: address && !!policy && !isWrongNetwork && !!signerOrProvider,
