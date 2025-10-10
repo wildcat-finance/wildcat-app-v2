@@ -25,11 +25,7 @@ export const useInviteBorrower = (address?: string) => {
     },
     onSuccess: () => {
       client.invalidateQueries({
-        queryKey: QueryKeys.Admin.GET_ALL_BORROWER_INVITATIONS(
-          chainId,
-          token?.isAdmin,
-          token?.address,
-        ),
+        queryKey: QueryKeys.Admin.GET_ALL_BORROWER_INVITATIONS(chainId),
       })
       const normalizedAddress = address?.toLowerCase()
       client.invalidateQueries({

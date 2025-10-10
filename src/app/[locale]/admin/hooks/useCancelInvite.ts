@@ -25,11 +25,7 @@ export function useCancelInvite() {
     },
     onSuccess: () => {
       client.invalidateQueries({
-        queryKey: QueryKeys.Admin.GET_ALL_BORROWER_INVITATIONS(
-          chainId,
-          token?.isAdmin,
-          token?.address,
-        ),
+        queryKey: QueryKeys.Admin.GET_ALL_BORROWER_INVITATIONS(chainId),
       })
     },
   })

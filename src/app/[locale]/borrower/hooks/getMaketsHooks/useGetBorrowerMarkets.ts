@@ -11,6 +11,7 @@ import { useAccount } from "wagmi"
 
 import { updateMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/updateMarkets"
 import { POLLING_INTERVAL } from "@/config/polling"
+import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
@@ -19,8 +20,6 @@ import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
 
 import { GetMarketsProps } from "./interface"
-
-export const GET_BORROWER_MARKETS = "get-borrower-markets"
 
 export function useGetBorrowerMarketsQuery({
   borrowerAddress,
@@ -34,7 +33,7 @@ export function useGetBorrowerMarketsQuery({
   const { address: userAddress } = useAccount()
   const subgraphClient = useSubgraphClient()
   const network = useSelectedNetwork()
-  const address = borrowerAddress ?? userAddress
+  const address = (borrowerAddress ?? userAddress)?.toLowerCase()
 
   async function queryBorrowerMarkets() {
     console.log(`Running getMarketsForBorrower!`)
@@ -70,14 +69,13 @@ export function useGetBorrowerMarketsQuery({
   }
 
   return useQuery({
-    queryKey: [
-      GET_BORROWER_MARKETS,
+    queryKey: QueryKeys.Borrower.GET_OWN_MARKETS(
+      network.chainId,
       address,
-      chainId,
       JSON.stringify(marketFilter),
-      shouldSkipRecords,
+      shouldSkipRecords ?? true,
       variables,
-    ],
+    ),
     queryFn: getBorrowerMarkets,
     refetchInterval: POLLING_INTERVAL,
     enabled,

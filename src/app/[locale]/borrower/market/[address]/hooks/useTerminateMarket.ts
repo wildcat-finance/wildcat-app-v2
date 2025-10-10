@@ -7,9 +7,6 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 
-import { GET_BORROWER_MARKETS } from "../../../hooks/getMaketsHooks/useGetBorrowerMarkets"
-import { GET_ALL_MARKETS } from "../../../hooks/getMaketsHooks/useGetOthersMarkets"
-
 export const useTerminateMarket = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<SetStateAction<string | undefined>>,
@@ -56,10 +53,15 @@ export const useTerminateMarket = (
         ),
       })
       client.invalidateQueries({
-        queryKey: [GET_BORROWER_MARKETS],
+        queryKey: QueryKeys.Borrower.GET_OWN_MARKETS(
+          marketAccount.market.chainId,
+          marketAccount.account,
+        ),
       })
       client.invalidateQueries({
-        queryKey: [GET_ALL_MARKETS],
+        queryKey: QueryKeys.Borrower.GET_ALL_MARKETS(
+          marketAccount.market.chainId,
+        ),
       })
     },
     onError(error) {

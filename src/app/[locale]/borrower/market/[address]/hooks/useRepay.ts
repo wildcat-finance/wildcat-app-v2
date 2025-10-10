@@ -15,7 +15,6 @@ import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { isUSDTLikeToken } from "@/utils/constants"
 
 import type { BorrowerWithdrawalsForMarketResult } from "./useGetWithdrawals"
-import { buildBorrowerWithdrawalUpdateQueryKeys } from "./useGetWithdrawals"
 
 export const useRepay = (
   marketAccount: MarketAccount,
@@ -144,34 +143,25 @@ export const useRepay = (
         ),
       })
       if (processUnpaidWithdrawalsIfAny) {
-        const initialWithdrawalsKey = QueryKeys.Borrower.GET_WITHDRAWALS(
-          marketAccount.market.chainId,
-          "initial",
-          marketAccount.market.address,
-        )
-        const withdrawalsData =
-          client.getQueryData<BorrowerWithdrawalsForMarketResult>(
-            initialWithdrawalsKey,
-          )
-        const updateWithdrawalsKey = QueryKeys.Borrower.GET_WITHDRAWALS(
-          marketAccount.market.chainId,
-          "update",
-          marketAccount.market.address,
-          buildBorrowerWithdrawalUpdateQueryKeys(withdrawalsData),
-        )
-
         client.invalidateQueries({
           queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
             marketAccount.market.chainId,
             marketAccount.market.address,
           ),
         })
-
         client.invalidateQueries({
-          queryKey: initialWithdrawalsKey,
+          queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+            marketAccount.market.chainId,
+            "initial",
+            marketAccount.market.address,
+          ),
         })
         client.invalidateQueries({
-          queryKey: updateWithdrawalsKey,
+          queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+            marketAccount.market.chainId,
+            "update",
+            marketAccount.market.address,
+          ),
         })
       }
     },

@@ -28,9 +28,6 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 
-import { GET_BORROWER_MARKETS } from "../../hooks/getMaketsHooks/useGetBorrowerMarkets"
-import { GET_ALL_MARKETS } from "../../hooks/getMaketsHooks/useGetOthersMarkets"
-
 export type DeployNewV2MarketParams = (
   | (Omit<
       FixedTermMarketDeploymentArgs,
@@ -333,8 +330,15 @@ export const useDeployV2Market = () => {
           variables?.hooksTemplate?.signerAddress,
         ),
       })
-      client.invalidateQueries({ queryKey: [GET_BORROWER_MARKETS] })
-      client.invalidateQueries({ queryKey: [GET_ALL_MARKETS] })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_OWN_MARKETS(
+          targetChainId,
+          borrowerAddress,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_ALL_MARKETS(targetChainId),
+      })
       client.invalidateQueries({
         queryKey: QueryKeys.Borrower.GET_BASIC_BORROWER_DATA(
           targetChainId,

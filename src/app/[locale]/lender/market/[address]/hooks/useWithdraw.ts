@@ -11,7 +11,6 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 
 import type { BorrowerWithdrawalsForMarketResult } from "../../../../borrower/market/[address]/hooks/useGetWithdrawals"
-import { buildBorrowerWithdrawalUpdateQueryKeys } from "../../../../borrower/market/[address]/hooks/useGetWithdrawals"
 
 export const useWithdraw = (
   marketAccount: MarketAccount,
@@ -70,22 +69,6 @@ export const useWithdraw = (
       await withdraw()
     },
     onSuccess() {
-      const initialWithdrawalsKey = QueryKeys.Borrower.GET_WITHDRAWALS(
-        marketAccount.market.chainId,
-        "initial",
-        marketAccount.market.address,
-      )
-      const withdrawalsData =
-        client.getQueryData<BorrowerWithdrawalsForMarketResult>(
-          initialWithdrawalsKey,
-        )
-      const updateWithdrawalsKey = QueryKeys.Borrower.GET_WITHDRAWALS(
-        marketAccount.market.chainId,
-        "update",
-        marketAccount.market.address,
-        buildBorrowerWithdrawalUpdateQueryKeys(withdrawalsData),
-      )
-
       client.invalidateQueries({
         queryKey: QueryKeys.Markets.GET_MARKET(
           marketAccount.market.chainId,
@@ -93,10 +76,18 @@ export const useWithdraw = (
         ),
       })
       client.invalidateQueries({
-        queryKey: initialWithdrawalsKey,
+        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+          marketAccount.market.chainId,
+          "initial",
+          marketAccount.market.address,
+        ),
       })
       client.invalidateQueries({
-        queryKey: updateWithdrawalsKey,
+        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+          marketAccount.market.chainId,
+          "update",
+          marketAccount.market.address,
+        ),
       })
     },
     onError(error, amount) {

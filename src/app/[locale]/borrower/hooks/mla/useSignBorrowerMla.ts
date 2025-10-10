@@ -289,13 +289,11 @@ export const useSignMla = (salt: string) => {
       })
       return result
     },
-    onSuccess(_, variables) {
+    onSuccess() {
       client.invalidateQueries({
         queryKey: QueryKeys.Borrower.PREVIEW_MLA.FROM_FORM(
           chainId,
           marketAddress,
-          variables?.borrowerProfile,
-          variables?.asset,
         ),
       })
       client.invalidateQueries({
