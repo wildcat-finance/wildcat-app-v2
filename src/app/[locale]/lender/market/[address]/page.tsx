@@ -336,10 +336,15 @@ export default function LenderMarketDetails({
           )}
 
           {currentSection === LenderMarketSections.BORROWER_PROFILE && (
-            <BorrowerProfileDetails
-              address={marketAccount.market.borrower}
-              hideMarkets
-            />
+            <>
+              <Divider sx={{ paddingTop: "12px" }} />
+
+              <BorrowerProfileDetails
+                address={marketAccount.market.borrower}
+                isMarketPage
+                hideMarkets
+              />
+            </>
           )}
 
           {currentSection === LenderMarketSections.REQUESTS && (
