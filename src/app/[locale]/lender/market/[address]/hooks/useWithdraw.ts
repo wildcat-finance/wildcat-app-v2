@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Dispatch } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
@@ -8,6 +9,9 @@ import { useAccount } from "wagmi"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+
+import type { BorrowerWithdrawalsForMarketResult } from "../../../../borrower/market/[address]/hooks/useGetWithdrawals"
+import { buildBorrowerWithdrawalUpdateQueryKeys } from "../../../../borrower/market/[address]/hooks/useGetWithdrawals"
 
 export const useWithdraw = (
   marketAccount: MarketAccount,
@@ -66,6 +70,22 @@ export const useWithdraw = (
       await withdraw()
     },
     onSuccess() {
+      const initialWithdrawalsKey = QueryKeys.Borrower.GET_WITHDRAWALS(
+        marketAccount.market.chainId,
+        "initial",
+        marketAccount.market.address,
+      )
+      const withdrawalsData =
+        client.getQueryData<BorrowerWithdrawalsForMarketResult>(
+          initialWithdrawalsKey,
+        )
+      const updateWithdrawalsKey = QueryKeys.Borrower.GET_WITHDRAWALS(
+        marketAccount.market.chainId,
+        "update",
+        marketAccount.market.address,
+        buildBorrowerWithdrawalUpdateQueryKeys(withdrawalsData),
+      )
+
       client.invalidateQueries({
         queryKey: QueryKeys.Markets.GET_MARKET(
           marketAccount.market.chainId,
@@ -73,18 +93,10 @@ export const useWithdraw = (
         ),
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
-          marketAccount.market.chainId,
-          "initial",
-          marketAccount.market.address,
-        ),
+        queryKey: initialWithdrawalsKey,
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
-          marketAccount.market.chainId,
-          "update",
-          marketAccount.market.address,
-        ),
+        queryKey: updateWithdrawalsKey,
       })
     },
     onError(error, amount) {

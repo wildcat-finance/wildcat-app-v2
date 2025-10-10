@@ -7,6 +7,9 @@ import { MarketAccount, Signer, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 
+import type { BorrowerWithdrawalsForMarketResult } from "./useGetWithdrawals"
+import { buildBorrowerWithdrawalUpdateQueryKeys } from "./useGetWithdrawals"
+
 export const useProcessUnpaidWithdrawalBatch = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
@@ -60,6 +63,22 @@ export const useProcessUnpaidWithdrawalBatch = (
       await processWithdrawalBatch()
     },
     onSuccess() {
+      const initialWithdrawalsKey = QueryKeys.Borrower.GET_WITHDRAWALS(
+        marketAccount.market.chainId,
+        "initial",
+        marketAccount.market.address,
+      )
+      const withdrawalsData =
+        client.getQueryData<BorrowerWithdrawalsForMarketResult>(
+          initialWithdrawalsKey,
+        )
+      const updateWithdrawalsKey = QueryKeys.Borrower.GET_WITHDRAWALS(
+        marketAccount.market.chainId,
+        "update",
+        marketAccount.market.address,
+        buildBorrowerWithdrawalUpdateQueryKeys(withdrawalsData),
+      )
+
       client.invalidateQueries({
         queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
           marketAccount.market.chainId,
@@ -74,18 +93,10 @@ export const useProcessUnpaidWithdrawalBatch = (
         ),
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
-          marketAccount.market.chainId,
-          "initial",
-          marketAccount.market.address,
-        ),
+        queryKey: initialWithdrawalsKey,
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
-          marketAccount.market.chainId,
-          "update",
-          marketAccount.market.address,
-        ),
+        queryKey: updateWithdrawalsKey,
       })
     },
   })

@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import {
   DepositAccess,
-  getDeploymentAddress,
   getHooksFactoryContract,
   HooksKind,
   Market,
@@ -15,6 +14,7 @@ import { UseFormReturn } from "react-hook-form"
 import { lastSlaUpdateTime, MlaTemplate } from "@/app/api/mla/interface"
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import { NetworkInfo } from "@/config/network"
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import {
@@ -26,8 +26,6 @@ import {
 
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
-
-export const PREVIEW_MLA_KEY = "PREVIEW_MLA"
 
 export function getFieldValuesForBorrowerFromForm(
   marketParams: MarketValidationSchemaType,
@@ -163,7 +161,12 @@ export const usePreviewMlaFromForm = (
   const selectedNetwork = useSelectedNetwork()
   return useQuery({
     refetchOnMount: true,
-    queryKey: [PREVIEW_MLA_KEY, marketAddress, borrowerProfile, asset],
+    queryKey: QueryKeys.Borrower.PREVIEW_MLA.FROM_FORM(
+      selectedNetwork.chainId,
+      marketAddress,
+      borrowerProfile,
+      asset,
+    ),
     enabled: !!provider && !!borrowerProfile && !!asset && !!marketAddress,
     queryFn: async () => {
       if (!provider) throw new Error("Provider is required")
@@ -198,21 +201,19 @@ export const usePreviewMla = (
       !!timeSigned &&
       market.chainId === selectedNetwork.chainId &&
       borrowerProfile.chainId === selectedNetwork.chainId,
-    queryKey: [
-      PREVIEW_MLA_KEY,
-      market.borrower,
+    queryKey: QueryKeys.Borrower.PREVIEW_MLA.FROM_MARKET(
+      selectedNetwork.chainId,
+      market.address,
       !!borrowerProfile,
       mlaTemplateId,
       timeSigned,
-    ],
+    ),
     queryFn: async () => {
       if (!mlaTemplateId) throw new Error("MLA template ID is required")
       if (!borrowerProfile) throw new Error("Borrower profile is required")
       const mlaTemplate = await fetch(
         `/api/mla/templates/${mlaTemplateId}`,
       ).then((res) => res.json() as Promise<MlaTemplate>)
-      console.log(`borrowerProfile`)
-      console.log(borrowerProfile)
       const borrowerValues = getFieldValuesForBorrower({
         market,
         borrowerInfo: borrowerProfile as BasicBorrowerInfo,

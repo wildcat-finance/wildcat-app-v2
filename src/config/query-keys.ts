@@ -1,8 +1,27 @@
-// Build query keys, trimming only trailing `undefined` items.
+import { getAddress, isAddress } from "viem"
+
+const normalizeKeyPart = (value: unknown): unknown => {
+  if (typeof value === "string" && isAddress(value)) {
+    try {
+      return getAddress(value).toLowerCase()
+    } catch {
+      return value.toLowerCase()
+    }
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(normalizeKeyPart)
+  }
+
+  return value
+}
+
+// Build query keys, trimming only trailing `undefined` items and normalising inputs.
 export const k = <T extends readonly unknown[]>(
   ...args: T
 ): readonly unknown[] => {
-  const arr = [...args]
+  const normalizedArgs = args.map(normalizeKeyPart)
+  const arr = [...normalizedArgs]
   while (arr.length && arr[arr.length - 1] === undefined) arr.pop()
   return arr
 }

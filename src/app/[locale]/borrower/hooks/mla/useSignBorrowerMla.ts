@@ -1,8 +1,7 @@
+/* eslint-disable no-console */
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Market, SupportedChainId, Token } from "@wildcatfi/wildcat-sdk"
-import { getAddress } from "ethers/lib/utils"
-import { useRouter } from "next/navigation"
 import { UseFormReturn } from "react-hook-form"
 
 import { lastSlaUpdateTime, MlaTemplate } from "@/app/api/mla/interface"
@@ -14,7 +13,7 @@ import { toastRequest } from "@/components/Toasts"
 import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
 import { NETWORKS_BY_ID } from "@/config/network"
 import { QueryKeys } from "@/config/query-keys"
-import { useEthersProvider, useEthersSigner } from "@/hooks/useEthersSigner"
+import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import {
   BasicBorrowerInfo,
@@ -24,7 +23,7 @@ import {
 } from "@/lib/mla"
 
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
-import { getMlaFromForm, PREVIEW_MLA_KEY } from "./usePreviewMla"
+import { getMlaFromForm } from "./usePreviewMla"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
 
 export const useBorrowerProfileTmp = (address: string | undefined) => {
@@ -181,7 +180,10 @@ export const useSetMarketMLA = () => {
     },
     onSuccess(_, variables) {
       client.invalidateQueries({
-        queryKey: [PREVIEW_MLA_KEY],
+        queryKey: QueryKeys.Borrower.PREVIEW_MLA.FROM_MARKET(
+          variables?.market.chainId ?? 0,
+          variables?.market.address,
+        ),
       })
       client.invalidateQueries({
         queryKey: QueryKeys.Markets.GET_MARKET_MLA(
@@ -287,9 +289,14 @@ export const useSignMla = (salt: string) => {
       })
       return result
     },
-    onSuccess() {
+    onSuccess(_, variables) {
       client.invalidateQueries({
-        queryKey: [PREVIEW_MLA_KEY],
+        queryKey: QueryKeys.Borrower.PREVIEW_MLA.FROM_FORM(
+          chainId,
+          marketAddress,
+          variables?.borrowerProfile,
+          variables?.asset,
+        ),
       })
       client.invalidateQueries({
         queryKey: QueryKeys.Markets.GET_MARKET_MLA(chainId, marketAddress),

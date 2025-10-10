@@ -30,6 +30,21 @@ export type BorrowerWithdrawalsForMarketResult = {
   incompleteBatches: WithdrawalBatch[]
 }
 
+export const buildBorrowerWithdrawalUpdateQueryKeys = (
+  withdrawals: BorrowerWithdrawalsForMarketResult | undefined,
+) => {
+  if (!withdrawals) return []
+
+  const expiredBatches = withdrawals.expiredPendingWithdrawals ?? []
+
+  return [
+    ...(withdrawals.activeWithdrawal
+      ? [withdrawals.activeWithdrawal.expiry]
+      : []),
+    ...expiredBatches.map((batch) => [batch.expiry]),
+  ]
+}
+
 function processIncompleteWithdrawals(
   market: Market,
   incompleteBatches: WithdrawalBatch[],
@@ -215,13 +230,8 @@ export function useGetWithdrawals(
   }
 
   const updateQueryKeys = useMemo(
-    () => [
-      ...(withdrawals.activeWithdrawal
-        ? [withdrawals.activeWithdrawal.expiry]
-        : []),
-      ...(withdrawals.expiredPendingWithdrawals?.map((b) => [b.expiry]) ?? []),
-    ],
-    [withdrawals],
+    () => buildBorrowerWithdrawalUpdateQueryKeys(data),
+    [data],
   )
 
   const {

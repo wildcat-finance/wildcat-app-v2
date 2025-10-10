@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Dispatch } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
@@ -12,6 +13,9 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { isUSDTLikeToken } from "@/utils/constants"
+
+import type { BorrowerWithdrawalsForMarketResult } from "./useGetWithdrawals"
+import { buildBorrowerWithdrawalUpdateQueryKeys } from "./useGetWithdrawals"
 
 export const useRepay = (
   marketAccount: MarketAccount,
@@ -140,6 +144,22 @@ export const useRepay = (
         ),
       })
       if (processUnpaidWithdrawalsIfAny) {
+        const initialWithdrawalsKey = QueryKeys.Borrower.GET_WITHDRAWALS(
+          marketAccount.market.chainId,
+          "initial",
+          marketAccount.market.address,
+        )
+        const withdrawalsData =
+          client.getQueryData<BorrowerWithdrawalsForMarketResult>(
+            initialWithdrawalsKey,
+          )
+        const updateWithdrawalsKey = QueryKeys.Borrower.GET_WITHDRAWALS(
+          marketAccount.market.chainId,
+          "update",
+          marketAccount.market.address,
+          buildBorrowerWithdrawalUpdateQueryKeys(withdrawalsData),
+        )
+
         client.invalidateQueries({
           queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
             marketAccount.market.chainId,
@@ -148,18 +168,10 @@ export const useRepay = (
         })
 
         client.invalidateQueries({
-          queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
-            marketAccount.market.chainId,
-            "initial",
-            marketAccount.market.address,
-          ),
+          queryKey: initialWithdrawalsKey,
         })
         client.invalidateQueries({
-          queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
-            marketAccount.market.chainId,
-            "update",
-            marketAccount.market.address,
-          ),
+          queryKey: updateWithdrawalsKey,
         })
       }
     },

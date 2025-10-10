@@ -35,7 +35,7 @@
     "@types/humanize-duration": "^3.27.4",
     "@types/react-scroll": "^1.8.10",
     "@types/redux-mock-store": "^1.0.6",
-    "@wildcatfi/wildcat-sdk": "^3.0.52-beta",
+    "@wildcatfi/wildcat-sdk": "3.0.53-beta",
     "base64-arraybuffer": "^1.0.2",
     "classnames": "^2.5.1",
     "dayjs": "^1.11.10",
