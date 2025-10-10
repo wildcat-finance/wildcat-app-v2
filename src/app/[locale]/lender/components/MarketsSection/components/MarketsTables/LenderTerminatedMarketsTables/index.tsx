@@ -214,8 +214,6 @@ export const LenderTerminatedMarketsTables = ({
               sx={{
                 fontSize: "13px",
                 lineHeight: "20px",
-                textDecoration: "underline",
-                color: "#00008B",
                 fontWeight: 500,
                 minWidth: "calc(100% - 1px)",
                 width: "calc(100% - 1px)",
@@ -224,6 +222,12 @@ export const LenderTerminatedMarketsTables = ({
                 overflow: "hidden",
                 whiteSpace: "nowrap",
                 display: "inline-block",
+
+                "&:hover": {
+                  boxShadow: "none",
+                  backgroundColor: COLORS.alabaster,
+                  color: COLORS.blackRock,
+                },
               }}
             >
               {params.value}
