@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next"
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setPolicyLenders } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 import { COLORS } from "@/theme/colors"
@@ -33,6 +33,7 @@ export const EditLendersTable = ({
 }) => {
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
+  const { getAddressUrl } = useBlockExplorer()
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
   const [lenderToDelete, setLenderToDelete] = useState<string>("")
@@ -148,7 +149,7 @@ export const EditLendersTable = ({
           </Typography>
 
           <LinkGroup
-            linkValue={`${EtherscanBaseUrl}/address/${params.value}`}
+            linkValue={getAddressUrl(params.value)}
             copyValue={params.value}
           />
         </Box>

@@ -5,9 +5,9 @@ import { Box, Chip, Typography } from "@mui/material"
 import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
-import { EtherscanBaseUrl } from "@/config/network"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { RESERVE_RATIO_BIPS_UPDATEDS } from "@/graphql/queries"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { COLORS } from "@/theme/colors"
 import { formatBps, MARKET_PARAMS_DECIMALS } from "@/utils/formatters"
@@ -20,6 +20,7 @@ export const useReserveRatioBipsUpdateds = (
   address?: `0x${string}`,
 ) => {
   const dispatch = useDispatch()
+  const { getTxUrl } = useBlockExplorer()
 
   const [fetchReserveRatioBipsUpdateds, { data, error }] = useLazyQuery(
     RESERVE_RATIO_BIPS_UPDATEDS,
@@ -54,7 +55,7 @@ export const useReserveRatioBipsUpdateds = (
               category: "marketActivity",
               blockTimestamp: updated.blockTimestamp,
               unread: true,
-              etherscanUrl: `${EtherscanBaseUrl}/tx/${updated.transactionHash}`,
+              blockExplorerUrl: getTxUrl(updated.transactionHash),
               children: [
                 <Box sx={{ display: "flex", gap: "4px" }}>
                   <Typography variant="text3" color={COLORS.greySuit}>
@@ -81,7 +82,7 @@ export const useReserveRatioBipsUpdateds = (
         },
       )
     }
-  }, [data, dispatch])
+  }, [data, dispatch, getTxUrl])
 
   useEffect(() => {
     if (error) {

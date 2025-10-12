@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next"
 
 import { TableStyles } from "@/app/[locale]/borrower/edit-lenders-list/components/ConfirmLendersForm/style"
 import { useBorrowerNameOrAddress } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { COLORS } from "@/theme/colors"
 import {
   timestampToDateFormatted,
@@ -103,6 +103,7 @@ export function MarketRecordsTable({
   setPageSize,
   rowCount,
 }: MarketRecordsTableProps) {
+  const { getTxUrl } = useBlockExplorer()
   const name = useBorrowerNameOrAddress(market.borrower)
   const { t } = useTranslation()
 
@@ -125,7 +126,7 @@ export function MarketRecordsTable({
             {trimAddress(params.value, 10)}
           </Typography>
           <LinkGroup
-            linkValue={`${EtherscanBaseUrl}/tx/${params.value}`}
+            linkValue={getTxUrl(params.value)}
             copyValue={params.value}
           />
         </Box>

@@ -13,7 +13,7 @@ import {
   BorrowerProfileForAdminView,
 } from "@/app/api/profiles/interface"
 import { LinkGroup } from "@/components/LinkComponent"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { COLORS } from "@/theme/colors"
 import { timestampToDateFormatted, trimAddress } from "@/utils/formatters"
 
@@ -23,6 +23,7 @@ import { EditBorrowerModal } from "../EditBorrowerModal"
 
 export const BorrowersTable = () => {
   const { t } = useTranslation()
+  const { getAddressUrl } = useBlockExplorer()
 
   const { data: tableData, isLoading } = useAllBorrowerProfiles()
   const [selectedBorrower, setSelectedBorrower] =
@@ -109,10 +110,7 @@ export const BorrowersTable = () => {
             {trimAddress(value)}
           </Typography>
 
-          <LinkGroup
-            linkValue={`${EtherscanBaseUrl}/address/${value}`}
-            copyValue={value}
-          />
+          <LinkGroup linkValue={getAddressUrl(value)} copyValue={value} />
         </Box>
       ),
       flex: 1,

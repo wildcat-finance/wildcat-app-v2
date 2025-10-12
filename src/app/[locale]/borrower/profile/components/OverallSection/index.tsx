@@ -12,7 +12,7 @@ import {
 import { MarketParametersItem } from "@/components/MarketParameters/components/MarketParametersItem"
 import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
@@ -35,6 +35,7 @@ export const OverallSection = ({
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const [state, copyToClipboard] = useCopyToClipboard()
+  const { getAddressUrl } = useBlockExplorer()
 
   const handleCopy = (text: string) => {
     copyToClipboard(text)
@@ -261,7 +262,7 @@ export const OverallSection = ({
                 title={t("borrowerProfile.profile.overallInfo.address")}
                 value={trimAddress(address) ?? ""}
                 copy={address}
-                link={`${EtherscanBaseUrl}/address/${address}`}
+                link={getAddressUrl(address)}
               />
               <Divider sx={MarketParametersRowsDivider} />
             </Box>
