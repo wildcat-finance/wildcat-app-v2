@@ -1,38 +1,29 @@
 import * as React from "react"
 import { useEffect, useRef } from "react"
 
-import { Box, Button, Typography } from "@mui/material"
-import {
-  DataGrid,
-  GridColDef,
-  GridRenderCellParams,
-  GridRowsProp,
-} from "@mui/x-data-grid"
-import {
-  DepositStatus,
-  Market,
-  MarketAccount,
-  MarketVersion,
-  TokenAmount,
-} from "@wildcatfi/wildcat-sdk"
+import { Box, Button, Typography, useMediaQuery } from "@mui/material"
+import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
+import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import {
-  MarketsTablesProps,
-  TypeSafeColDef,
-} from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
+import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import { MobileMarketCard } from "@/app/[locale]/lender/components/mobile/MobileMarketCard"
+import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { LenderMarketDashboardSections } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { COLORS } from "@/theme/colors"
+import { theme } from "@/theme/theme"
 import {
   statusComparator,
   tokenAmountComparator,
@@ -53,6 +44,7 @@ export type LenderActiveMarketsTableModel = {
   term: ReturnType<typeof getMarketTypeChip>
   name: string
   borrower: string | undefined
+  borrowerAddress: string | undefined
   asset: string
   debt: TokenAmount | undefined
   loan: TokenAmount | undefined
@@ -76,9 +68,9 @@ export const LenderActiveMarketsTables = ({
     statusFilter: MarketStatus[]
   }
 }) => {
+  const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
   )
@@ -87,13 +79,15 @@ export const LenderActiveMarketsTables = ({
   const nonDepositedRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (scrollTargetId === "deposited" && depositedRef.current) {
-      depositedRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
-    }
-    if (scrollTargetId === "non-deposited" && nonDepositedRef.current) {
-      nonDepositedRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
+    if (!isMobile) {
+      if (scrollTargetId === "deposited" && depositedRef.current) {
+        depositedRef.current.scrollIntoView({ behavior: "smooth" })
+        dispatch(setScrollTarget(null))
+      }
+      if (scrollTargetId === "non-deposited" && nonDepositedRef.current) {
+        nonDepositedRef.current.scrollIntoView({ behavior: "smooth" })
+        dispatch(setScrollTarget(null))
+      }
     }
   }, [scrollTargetId])
 
@@ -240,7 +234,7 @@ export const LenderActiveMarketsTables = ({
             href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
             style={{
               textDecoration: "none",
-              width: "fit-content",
+              width: "100%",
               height: "fit-content",
             }}
           >
@@ -253,8 +247,13 @@ export const LenderActiveMarketsTables = ({
                 textDecoration: "underline",
                 color: "#00008B",
                 fontWeight: 500,
-                minWidth: "fit-content",
-                width: "fit-content",
+                minWidth: "calc(100% - 1px)",
+                width: "calc(100% - 1px)",
+                textAlign: "left",
+                textOverflow: "ellipsis",
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                display: "inline-block",
               }}
             >
               {params.value}
@@ -375,6 +374,21 @@ export const LenderActiveMarketsTables = ({
     },
   ]
 
+  if (isMobile)
+    return (
+      <>
+        {scrollTargetId === "deposited" && (
+          <MobileMarketList markets={depositedMarkets} isLoading={isLoading} />
+        )}
+        {scrollTargetId === "non-deposited" && (
+          <MobileMarketList
+            markets={nonDepositedMarkets}
+            isLoading={isLoading}
+          />
+        )}
+      </>
+    )
+
   return (
     <Box
       sx={{
@@ -404,18 +418,30 @@ export const LenderActiveMarketsTables = ({
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
         >
-          <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
-            }}
-            rows={depositedMarkets}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
+          {isMobile ? (
+            <Box display="flex" flexDirection="column">
+              {depositedMarkets.map((marketItem) => (
+                <MobileMarketCard
+                  marketItem={marketItem}
+                  buttonText="Deposit"
+                  buttonIcon
+                />
+              ))}
+            </Box>
+          ) : (
+            <DataGrid
+              sx={{
+                overflow: "auto",
+                maxWidth: "calc(100vw - 267px)",
+                padding: "0 16px",
+                "& .MuiDataGrid-columnHeader": { padding: 0 },
+                "& .MuiDataGrid-cell": { padding: "0px" },
+              }}
+              rows={depositedMarkets}
+              columns={columns}
+              columnHeaderHeight={40}
+            />
+          )}
         </MarketsTableAccordion>
       </Box>
 
@@ -434,18 +460,30 @@ export const LenderActiveMarketsTables = ({
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
         >
-          <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
-            }}
-            rows={nonDepositedMarkets}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
+          {isMobile ? (
+            <Box display="flex" flexDirection="column">
+              {nonDepositedMarkets.map((marketItem) => (
+                <MobileMarketCard
+                  marketItem={marketItem}
+                  buttonText="Deposit"
+                  buttonIcon
+                />
+              ))}
+            </Box>
+          ) : (
+            <DataGrid
+              sx={{
+                overflow: "auto",
+                maxWidth: "calc(100vw - 267px)",
+                padding: "0 16px",
+                "& .MuiDataGrid-columnHeader": { padding: 0 },
+                "& .MuiDataGrid-cell": { padding: "0px" },
+              }}
+              rows={nonDepositedMarkets}
+              columns={columns}
+              columnHeaderHeight={40}
+            />
+          )}
         </MarketsTableAccordion>
       </Box>
     </Box>

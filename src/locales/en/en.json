@@ -87,7 +87,8 @@
       "borrowerTitleButton": "+ Create New Market",
       "lenderTitleButton": "+ Observe New Markets",
       "filters": {
-        "name": "Search by Name",
+        "name": "Search",
+        "borrower": "Search",
         "assets": "Asset",
         "statuses": "Status"
       },
@@ -219,6 +220,21 @@
     }
   },
   "borrowerMarketDetails": {
+    "description": {
+      "title": "Market Description",
+      "buttons": {
+        "login": "Log in to change the description",
+        "add": "Add",
+        "edit": "Edit",
+        "save": "Save",
+        "pending": "Saving...",
+        "cancel": "Cancel"
+      },
+      "states": {
+        "loading": "Loading market description...",
+        "noDescription": "No market description found."
+      }
+    },
     "statusChart": {
       "totalDebt": "Total Debt",
       "sufficientReserves": "Sufficient Reserves For",
@@ -269,6 +285,7 @@
       "backToMarkets": "Back to My Markets",
       "borrowRepay": "Borrow and Repay",
       "statusDetails": "Status and Details",
+      "description": "Market Description",
       "withdrawalRequests": "Withdrawal Requests",
       "authorisedLenders": "Lenders",
       "terminateMarket": "Terminate Market",
@@ -976,10 +993,11 @@
     "noDataAvailable": "No Data Available",
     "sidebar": {
       "actions": "Deposit & Withdraw",
-      "status": "Status",
+      "status": "Status and Details",
       "requests": "Withdrawal Requests",
       "marketHistory": "Market History",
-      "borrowerProfile": "About Borrower"
+      "borrowerProfile": "About Borrower",
+      "description": "Market Description"
     },
     "buttons": {
       "addToken": "Add Debt Token To Wallet",
@@ -1037,12 +1055,19 @@
       "total": "Total",
       "ongoing": "Ongoing",
       "claimable": "Claimable",
-      "outstanding": "Outstanding From Past Cycles",
+      "outstanding": "Outstanding",
       "tableColumns": {
         "lender": "Lender",
         "txID": "Transaction ID",
         "date": "Date Submitted",
         "amount": "Amount"
+      }
+    },
+    "description": {
+      "title": "Market Description",
+      "states": {
+        "loading": "Loading market description...",
+        "noDescription": "No market description found."
       }
     }
   },
@@ -1115,9 +1140,6 @@
         "country": "Country",
         "jurisdiction": "Jurisdiction",
         "entityKind": "Entity Legal Form",
-        "infoLink1": "Informational Link #1",
-        "infoLink2": "Informational Link #2",
-        "infoLink3": "Informational Link #3",
         "defaults": {
           "title": "Defaults",
           "tooltip": "The number of markets owned by this borrower in which a penalty fee has applied for more than 90 days."
@@ -1140,6 +1162,13 @@
       "public": {
         "title": "Basic Profile Information",
         "subtitle": "Details Of Borrowing Entity",
+        "additionalUrls": {
+          "labelPlaceholder": "Label",
+          "urlPlaceholder": "URL",
+          "add": "Add URL",
+          "title": "Additional Links",
+          "subtitle": "Additional links that lenders may find useful."
+        },
         "avatar": {
           "title": "Avatar",
           "generated": "Automatically Generated",

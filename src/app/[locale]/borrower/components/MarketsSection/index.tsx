@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState, useCallback } from "react"
 
 import { Box, Button, Typography } from "@mui/material"
 import {
@@ -33,9 +33,12 @@ import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import { BorrowerMarketDashboardSections } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
+import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFiltersSlice"
 import { COLORS } from "@/theme/colors"
 import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
+
+import { useBorrowerNames } from "../../hooks/useBorrowerNames"
 
 export const MarketsSection = () => {
   const dispatch = useAppDispatch()
@@ -48,22 +51,83 @@ export const MarketsSection = () => {
     (state) => state.borrowerDashboard.showFullFunctionality,
   )
 
-  const [marketSearch, setMarketSearch] = useState<string>("")
-  const [marketAssets, setMarketAssets] = useState<SmallFilterSelectItem[]>([])
-  const [marketStatuses, setMarketStatuses] = useState<SmallFilterSelectItem[]>(
-    [],
+  // filter state lives in redux now
+  const marketFilters = useAppSelector((s) => s.marketFilters.borrower)
+  const {
+    search: marketSearch,
+    assets: marketAssets,
+    statuses: marketStatuses,
+  } = marketFilters
+
+  const setMarketSearch: React.Dispatch<React.SetStateAction<string>> =
+    useCallback(
+      (value) => {
+        const next =
+          typeof value === "function"
+            ? (value as (prev: string) => string)(marketSearch)
+            : value
+        dispatch(
+          setMarketFilters({ role: "borrower", filters: { search: next } }),
+        )
+      },
+      [dispatch, marketSearch],
+    )
+
+  const setMarketAssets: React.Dispatch<
+    React.SetStateAction<SmallFilterSelectItem[]>
+  > = useCallback(
+    (value) => {
+      const next =
+        typeof value === "function"
+          ? (
+              value as (
+                prev: SmallFilterSelectItem[],
+              ) => SmallFilterSelectItem[]
+            )(marketAssets)
+          : value
+      dispatch(
+        setMarketFilters({ role: "borrower", filters: { assets: next } }),
+      )
+    },
+    [dispatch, marketAssets],
   )
 
-  const filters = {
-    nameFilter: marketSearch,
-    assetFilter: marketAssets,
-    statusFilter: marketStatuses.map((status) => status.name) as MarketStatus[],
-  }
+  const setMarketStatuses: React.Dispatch<
+    React.SetStateAction<SmallFilterSelectItem[]>
+  > = useCallback(
+    (value) => {
+      const next =
+        typeof value === "function"
+          ? (
+              value as (
+                prev: SmallFilterSelectItem[],
+              ) => SmallFilterSelectItem[]
+            )(marketStatuses)
+          : value
+      dispatch(
+        setMarketFilters({ role: "borrower", filters: { statuses: next } }),
+      )
+    },
+    [dispatch, marketStatuses],
+  )
+
+  const filters = useMemo(
+    () => ({
+      nameFilter: marketSearch,
+      assetFilter: marketAssets,
+      statusFilter: marketStatuses.map(
+        (status) => status.name,
+      ) as MarketStatus[],
+    }),
+    [marketSearch, marketAssets, marketStatuses],
+  )
+  // tables use this derived object; stable and only changes when inputs change
 
   const { t } = useTranslation()
 
   const { address } = useAccount()
   const { isWrongNetwork } = useCurrentNetwork()
+  const { data: borrowers } = useBorrowerNames()
 
   const bannerDisplayConfig = useBorrowerInvitationRedirect()
 
@@ -78,8 +142,6 @@ export const MarketsSection = () => {
     }
     return tokensRaw
   }, [tokensRaw])
-
-  // TEST
 
   const {
     data: marketAccounts,
@@ -101,8 +163,16 @@ export const MarketsSection = () => {
         marketSearch,
         marketStatuses,
         marketAssets,
+        borrowers,
       ),
-    [marketAccounts, marketSearch, marketStatuses, marketAssets],
+    [
+      marketAccounts,
+      marketSearch,
+      marketStatuses,
+      marketAssets,
+      borrowers,
+      address,
+    ],
   )
 
   const {
@@ -226,6 +296,7 @@ export const MarketsSection = () => {
     selfOnboardAmount,
     manualAmount,
     isWrongNetwork,
+    dispatch,
   ])
 
   return (
@@ -252,7 +323,7 @@ export const MarketsSection = () => {
           <Typography variant="title2" sx={{ marginBottom: "6px" }}>
             {t("dashboard.markets.title")}
           </Typography>
-          {!bannerDisplayConfig.hideNewMarketButton && (
+          {!bannerDisplayConfig.hideCreateMarket && (
             <Link href={ROUTES.borrower.createMarket}>
               <Button
                 variant="contained"
@@ -298,6 +369,7 @@ export const MarketsSection = () => {
               value={marketSearch}
               setValue={setMarketSearch}
               placeholder={t("dashboard.markets.filters.name")}
+              width="180px"
             />
 
             <SmallFilterSelect
@@ -310,6 +382,7 @@ export const MarketsSection = () => {
               }
               selected={marketAssets}
               setSelected={setMarketAssets}
+              width="180px"
             />
 
             <SmallFilterSelect
@@ -317,6 +390,7 @@ export const MarketsSection = () => {
               options={marketStatusesMock}
               selected={marketStatuses}
               setSelected={setMarketStatuses}
+              width="180px"
             />
           </Box>
         </Box>
@@ -327,8 +401,8 @@ export const MarketsSection = () => {
           <Box padding="24px 24px 0">
             <LeadBanner
               title={bannerDisplayConfig.title}
-              text={bannerDisplayConfig.text}
-              buttonText={bannerDisplayConfig.buttonText}
+              text={bannerDisplayConfig.message}
+              buttonText={bannerDisplayConfig.button}
               buttonLink={bannerDisplayConfig.link}
             />
           </Box>

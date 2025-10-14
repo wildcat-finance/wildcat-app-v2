@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Typography, useMediaQuery } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
@@ -11,13 +11,19 @@ import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSectio
 import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
+import {
+  LenderMarketDashboardSections,
+  setScrollTarget,
+} from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { COLORS } from "@/theme/colors"
+import { theme } from "@/theme/theme"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
 import {
@@ -34,6 +40,7 @@ export type LenderTerminatedMarketsTableModel = {
   term: ReturnType<typeof getMarketTypeChip>
   name: string
   borrower: string | undefined
+  borrowerAddress: string | undefined
   asset: string
   debt: TokenAmount | undefined
   loan: TokenAmount | undefined
@@ -56,9 +63,9 @@ export const LenderTerminatedMarketsTables = ({
     statusFilter: MarketStatus[]
   }
 }) => {
+  const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
   )
@@ -67,13 +74,15 @@ export const LenderTerminatedMarketsTables = ({
   const neverActiveRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (scrollTargetId === "prev-active" && prevActiveRef.current) {
-      prevActiveRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
-    }
-    if (scrollTargetId === "never-active" && neverActiveRef.current) {
-      neverActiveRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
+    if (!isMobile) {
+      if (scrollTargetId === "prev-active" && prevActiveRef.current) {
+        prevActiveRef.current.scrollIntoView({ behavior: "smooth" })
+        dispatch(setScrollTarget(null))
+      }
+      if (scrollTargetId === "never-active" && neverActiveRef.current) {
+        neverActiveRef.current.scrollIntoView({ behavior: "smooth" })
+        dispatch(setScrollTarget(null))
+      }
     }
   }, [scrollTargetId])
 
@@ -195,7 +204,7 @@ export const LenderTerminatedMarketsTables = ({
             href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
             style={{
               textDecoration: "none",
-              width: "fit-content",
+              width: "100%",
               height: "fit-content",
             }}
           >
@@ -208,8 +217,13 @@ export const LenderTerminatedMarketsTables = ({
                 textDecoration: "underline",
                 color: "#00008B",
                 fontWeight: 500,
-                minWidth: "fit-content",
-                width: "fit-content",
+                minWidth: "calc(100% - 1px)",
+                width: "calc(100% - 1px)",
+                textAlign: "left",
+                textOverflow: "ellipsis",
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                display: "inline-block",
               }}
             >
               {params.value}
@@ -297,6 +311,18 @@ export const LenderTerminatedMarketsTables = ({
       ),
     },
   ]
+
+  if (isMobile)
+    return (
+      <>
+        {scrollTargetId === "prev-active" && (
+          <MobileMarketList markets={prevActive} isLoading={isLoading} />
+        )}
+        {scrollTargetId === "never-active" && (
+          <MobileMarketList markets={neverActive} isLoading={isLoading} />
+        )}
+      </>
+    )
 
   return (
     <Box

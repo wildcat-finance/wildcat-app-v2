@@ -1,29 +1,25 @@
 "use client"
 
-import React from "react"
-
 import { Box } from "@mui/material"
-import { useTranslation } from "react-i18next"
-import { useAccount } from "wagmi"
 
 import { MarketsSection } from "@/app/[locale]/lender/components/MarketsSection"
-import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { Footer } from "@/components/Footer"
 
 export default function Lender() {
-  const { t } = useTranslation()
-  const { isConnected } = useAccount()
-  const { isWrongNetwork } = useCurrentNetwork()
-
-  const showConnectedData = isConnected && !isWrongNetwork
-
   return (
     <Box
       sx={{
-        padding: "32px 0 0",
+        minHeight: { xs: "calc(100dvh - 64px)", md: "auto" },
+        display: "flex",
+        flexDirection: "column",
+        paddingTop: { xs: "0px", md: "32px" },
         overflow: "hidden",
       }}
     >
-      <MarketsSection />
+      <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <MarketsSection />
+      </Box>
+      <Footer showFooter={false} />
     </Box>
   )
 }

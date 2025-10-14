@@ -1,5 +1,6 @@
 export type TooltipButtonProps = {
   value: string | undefined
+  color?: string
   size?:
     | "inherit"
     | "colossal"

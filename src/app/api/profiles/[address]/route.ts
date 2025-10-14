@@ -72,8 +72,11 @@ export async function DELETE(
   { params: { address } }: { params: { address: string } },
 ) {
   const token = await verifyApiToken(request)
-  if (!token || !token.isAdmin || TargetChainId !== SupportedChainId.Sepolia) {
+  if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  if (!token.isAdmin || TargetChainId !== SupportedChainId.Sepolia) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   const borrower = address
   if (!borrower) {

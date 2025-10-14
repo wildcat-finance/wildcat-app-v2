@@ -87,19 +87,61 @@ declare module "@mui/material/styles" {
     text3: React.CSSProperties
     text4Highlighted: React.CSSProperties
     text4: React.CSSProperties
+
+    // Mobile-specific
+    mobH1: React.CSSProperties
+    mobH1Lib: React.CSSProperties
+    mobH1SemiBold: React.CSSProperties
+
+    mobH2: React.CSSProperties
+    mobH2Lib: React.CSSProperties
+    mobH2SemiBold: React.CSSProperties
+
+    mobH3: React.CSSProperties
+    mobH3Lib: React.CSSProperties
+    mobH3SemiBold: React.CSSProperties
+
+    mobText1: React.CSSProperties
+    mobText2: React.CSSProperties
+    mobText2SemiBold: React.CSSProperties
+    mobText3: React.CSSProperties
+    mobText3SemiBold: React.CSSProperties
+    mobText4: React.CSSProperties
+    mobText4SemiBold: React.CSSProperties
   }
 
   interface TypographyVariantsOptions {
-    title1Highlighted: React.CSSProperties
-    title1: React.CSSProperties
-    title2: React.CSSProperties
-    title3: React.CSSProperties
-    text1: React.CSSProperties
-    text2Highlighted: React.CSSProperties
-    text2: React.CSSProperties
-    text3: React.CSSProperties
-    text4Highlighted: React.CSSProperties
-    text4: React.CSSProperties
+    title1Highlighted?: React.CSSProperties
+    title1?: React.CSSProperties
+    title2?: React.CSSProperties
+    title3?: React.CSSProperties
+    text1?: React.CSSProperties
+    text2Highlighted?: React.CSSProperties
+    text2?: React.CSSProperties
+    text3?: React.CSSProperties
+    text4Highlighted?: React.CSSProperties
+    text4?: React.CSSProperties
+
+    // Mobile-specific
+    mobH1?: React.CSSProperties
+    mobH1Lib?: React.CSSProperties
+    mobH1SemiBold?: React.CSSProperties
+
+    mobH2?: React.CSSProperties
+    mobH2Lib?: React.CSSProperties
+    mobH2SemiBold?: React.CSSProperties
+
+    mobH3?: React.CSSProperties
+    mobH3Lib?: React.CSSProperties
+    mobH3SemiBold?: React.CSSProperties
+
+    mobText1?: React.CSSProperties
+    mobText2?: React.CSSProperties
+    mobText2SemiBold?: React.CSSProperties
+    mobText3?: React.CSSProperties
+    mobText3SemiBold?: React.CSSProperties
+    mobText4?: React.CSSProperties
+    mobText4SemiBold?: React.CSSProperties
   }
 }
 
@@ -115,10 +157,40 @@ declare module "@mui/material/Typography" {
     text3: true
     text4Highlighted: true
     text4: true
+
+    // Mobile-specific
+    mobH1: true
+    mobH1Lib: true
+    mobH1SemiBold: true
+
+    mobH2: true
+    mobH2Lib: true
+    mobH2SemiBold: true
+
+    mobH3: true
+    mobH3Lib: true
+    mobH3SemiBold: true
+
+    mobText1: true
+    mobText2: true
+    mobText2SemiBold: true
+    mobText3: true
+    mobText3SemiBold: true
+    mobText4: true
+    mobText4SemiBold: true
   }
 }
 
 export const theme = createTheme({
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 1000,
+      lg: 1200,
+      xl: 1536,
+    },
+  },
   palette: PALETTE,
   typography: TYPOGRAPHY,
   components: {

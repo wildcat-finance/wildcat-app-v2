@@ -39,6 +39,16 @@ export function remainingMillisecondsToDate(milliseconds: number): string {
   return `${day}/${month}/${year}`
 }
 
+export function formatDate(date: string | Date): string {
+  const d = typeof date === "string" ? new Date(date) : date
+
+  return (
+    `${d.getDate().toString().padStart(2, "0")}.` +
+    `${(d.getMonth() + 1).toString().padStart(2, "0")}.` +
+    `${d.getFullYear()}`
+  )
+}
+
 // <---- MARKET CONSTRAINTS ---->
 
 const CONSTRAINTS_IN_SECONDS: Array<keyof MarketParameterConstraints> = [
