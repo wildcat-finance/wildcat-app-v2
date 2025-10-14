@@ -300,7 +300,7 @@ export default function LenderMarketDetails({
       <Box>
         <MarketHeader marketAccount={marketAccount} />
 
-          <Box sx={SectionContainer(theme)}>
+        <Box sx={SectionContainer(theme)}>
           {match(currentSection)
             .with(LenderMarketSections.TRANSACTIONS, () => (
               <Box>
@@ -328,12 +328,12 @@ export default function LenderMarketDetails({
                 <MarketParameters market={market} />
               </Box>
             ))
-              .with(LenderMarketSections.SUMMARY, () => (
-                  <MarketSummary
-                      marketSummary={marketSummary}
-                      isLoading={isLoadingSummary}
-                  />
-              ))
+            .with(LenderMarketSections.SUMMARY, () => (
+              <MarketSummary
+                marketSummary={marketSummary}
+                isLoading={isLoadingSummary}
+              />
+            ))
             .with(LenderMarketSections.BORROWER_PROFILE, () => (
               <BorrowerProfileDetails
                 address={marketAccount.market.borrower}

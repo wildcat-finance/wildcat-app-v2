@@ -9,7 +9,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
-import { match, P } from "ts-pattern"
+import { match } from "ts-pattern"
 import { useAccount } from "wagmi"
 
 import { MarketSectionSwitcher } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketSectionSwitcher"

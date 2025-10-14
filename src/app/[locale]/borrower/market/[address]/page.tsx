@@ -220,63 +220,63 @@ export default function MarketDetails({
           {/* </Slide> */}
           {match(checked)
             .with(1, () => (
-                <Box sx={SlideContentContainer}>
-                    {holdTheMarket && (
-                        <MarketTransactions
-                            market={market}
-                            marketAccount={marketAccount}
-                            holdTheMarket={holdTheMarket}
-                        />
-                    )}
-                    {holdTheMarket && <Divider sx={{ margin: "32px 0" }} />}
-                    <MarketStatusChart market={market} />
-                </Box>
+              <Box sx={SlideContentContainer}>
+                {holdTheMarket && (
+                  <MarketTransactions
+                    market={market}
+                    marketAccount={marketAccount}
+                    holdTheMarket={holdTheMarket}
+                  />
+                )}
+                {holdTheMarket && <Divider sx={{ margin: "32px 0" }} />}
+                <MarketStatusChart market={market} />
+              </Box>
             ))
             .with(2, () => (
-                <Box sx={SlideContentContainer} marginTop="12px">
-                    <MarketStatusChart market={market} />
-                    <Divider sx={{ margin: "32px 0 44px" }} />
-                    <MarketParameters market={market} />
-                </Box>
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <MarketStatusChart market={market} />
+                <Divider sx={{ margin: "32px 0 44px" }} />
+                <MarketParameters market={market} />
+              </Box>
             ))
             .with(3, () => (
-                <Box sx={SlideContentContainer} marginTop="12px">
-                    <BorrowerMarketSummary
-                        marketAddress={market.address}
-                        isBorrower={holdTheMarket}
-                        marketSummary={marketSummary}
-                        isLoading={isSummaryLoading}
-                    />
-                </Box>
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <BorrowerMarketSummary
+                  marketAddress={market.address}
+                  isBorrower={holdTheMarket}
+                  marketSummary={marketSummary}
+                  isLoading={isSummaryLoading}
+                />
+              </Box>
             ))
             .with(4, () => (
-                <Box sx={SlideContentContainer} marginTop="12px">
-                    <BorrowerMarketSummary
-                        marketAddress={market.address}
-                        isBorrower={holdTheMarket}
-                        marketSummary={marketSummary}
-                        isLoading={isSummaryLoading}
-                    />
-                </Box>
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <BorrowerMarketSummary
+                  marketAddress={market.address}
+                  isBorrower={holdTheMarket}
+                  marketSummary={marketSummary}
+                  isLoading={isSummaryLoading}
+                />
+              </Box>
             ))
             .with(5, () => (
-                <Box sx={SlideContentContainer} marginTop="12px">
-                    <MarketAuthorisedLenders
-                        market={market}
-                        marketAccount={marketAccount}
-                    />
-                </Box>
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <MarketAuthorisedLenders
+                  market={market}
+                  marketAccount={marketAccount}
+                />
+              </Box>
             ))
             .with(6, () => (
-                <Box sx={SlideContentContainer} marginTop="12px">
-                    <MarketMLA marketAccount={marketAccount} />
-                </Box>
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <MarketMLA marketAccount={marketAccount} />
+              </Box>
             ))
-              .with(7, () => (
-                  <Box sx={SlideContentContainer} marginTop="12px">
-                      <PaginatedMarketRecordsTable market={market} />
-                  </Box>
-              ))
+            .with(7, () => (
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <PaginatedMarketRecordsTable market={market} />
+              </Box>
+            ))
             .otherwise(() => null)}
         </Box>
       </Box>
