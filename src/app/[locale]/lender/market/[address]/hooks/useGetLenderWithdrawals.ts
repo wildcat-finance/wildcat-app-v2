@@ -252,7 +252,13 @@ export function useGetLenderWithdrawals(
     isError: isErrorUpdate,
     failureReason: errorUpdate,
   } = useQuery({
-    queryKey: [GET_LENDER_WITHDRAWALS_KEY, "update", updateQueryKeys],
+    queryKey: [
+      GET_LENDER_WITHDRAWALS_KEY,
+      "update",
+      marketAddress,
+      lender,
+      updateQueryKeys,
+    ],
     queryFn: updateWithdrawals,
     placeholderData: keepPreviousData,
     enabled: !!data,
