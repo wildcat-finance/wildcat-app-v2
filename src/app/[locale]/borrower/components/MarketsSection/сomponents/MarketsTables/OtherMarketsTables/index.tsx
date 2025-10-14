@@ -250,7 +250,7 @@ export const OtherMarketsTables = ({
 
                 "&:hover": {
                   boxShadow: "none",
-                  backgroundColor: COLORS.alabaster,
+                  backgroundColor: COLORS.whiteSmoke,
                   color: COLORS.blackRock,
                 },
               }}

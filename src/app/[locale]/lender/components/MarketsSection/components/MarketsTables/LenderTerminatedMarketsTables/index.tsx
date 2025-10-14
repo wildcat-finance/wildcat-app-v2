@@ -225,7 +225,7 @@ export const LenderTerminatedMarketsTables = ({
 
                 "&:hover": {
                   boxShadow: "none",
-                  backgroundColor: COLORS.alabaster,
+                  backgroundColor: COLORS.whiteSmoke,
                   color: COLORS.blackRock,
                 },
               }}
