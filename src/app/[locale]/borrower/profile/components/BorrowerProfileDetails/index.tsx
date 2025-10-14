@@ -39,14 +39,6 @@ export function BorrowerProfileDetails({
       />
     )
 
-  if (isLoading)
-    return (
-      <ProfileSkeleton
-        type="external"
-        rootSx={getMainContainerStyle(isMarketPage)}
-      />
-    )
-
   return (
     <Box sx={sx}>
       <Box sx={getMainContainerStyle(isMarketPage)}>
