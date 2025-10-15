@@ -14,7 +14,7 @@ export type SelectedChainType = {
   chainId: SupportedChainId
   stringID: string
   name: string
-  etherscanUrl: string
+  blockExplorerUrl: string
   isTestnet: boolean
   hasV1Deployment: boolean
 }
@@ -43,7 +43,7 @@ const selectedNetworkSlice = createSlice({
         state.chainId = network.chainId
         state.stringID = network.stringID
         state.name = network.name
-        state.etherscanUrl = network.etherscanUrl
+        state.blockExplorerUrl = network.blockExplorerUrl
         state.isTestnet = network.isTestnet
       }
     },

@@ -28,7 +28,7 @@ import Copy from "@/assets/icons/copy_icon.svg"
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { Accordion } from "@/components/Accordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
@@ -68,6 +68,7 @@ export const MarketAuthorisedLenders = ({
   )
 
   const [state, copyToClipboard] = useCopyToClipboard()
+  const { getAddressUrl } = useBlockExplorer()
 
   const { data, isLoading } = useGetMarketLenders(market)
   const { t } = useTranslation()
@@ -198,7 +199,7 @@ export const MarketAuthorisedLenders = ({
             </SvgIcon>
           </IconButton>
           <Link
-            href={`${EtherscanBaseUrl}/address/${value}`}
+            href={getAddressUrl(value)}
             target="_blank"
             style={{ display: "flex", justifyContent: "center" }}
           >

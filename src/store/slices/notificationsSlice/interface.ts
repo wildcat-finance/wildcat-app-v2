@@ -8,7 +8,7 @@ export interface TNotification {
     label: string
     onClick: () => void
   }
-  etherscanUrl?: string
+  blockExplorerUrl?: string
   children?: React.ReactNode
 }
 

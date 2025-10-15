@@ -15,7 +15,7 @@ import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/
 import { MarketWithdrawalRequetstCell } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/style"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { LinkGroup } from "@/components/LinkComponent"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
@@ -32,6 +32,7 @@ export const LendersTable = ({
   isOpen,
   isLoading,
 }: LendersTableProps) => {
+  const { getAddressUrl } = useBlockExplorer()
   const getEditLendersLink = (lenderAddress: string) =>
     `${ROUTES.borrower.lendersList}?lenderAddress=${encodeURIComponent(
       lenderAddress,
@@ -74,10 +75,7 @@ export const LendersTable = ({
             {trimAddress(value)}
           </Typography>
 
-          <LinkGroup
-            linkValue={`${EtherscanBaseUrl}/address/${value}`}
-            copyValue={value}
-          />
+          <LinkGroup linkValue={getAddressUrl(value)} copyValue={value} />
         </Box>
       ),
       flex: 1,

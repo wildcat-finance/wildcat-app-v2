@@ -12,7 +12,7 @@ import { SubmitPolicyUpdatesInputs } from "@/app/[locale]/borrower/policy/hooks/
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import Coins from "@/assets/icons/coins_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
@@ -44,6 +44,7 @@ export const ConfirmModal = ({
   handleClickSubmit,
 }: ConfirmModalProps) => {
   const { t } = useTranslation()
+  const { getAddressUrl } = useBlockExplorer()
 
   const handleClose = () => {
     setIsOpen(false)
@@ -120,7 +121,7 @@ export const ConfirmModal = ({
           </Typography>
 
           <LinkGroup
-            linkValue={`${EtherscanBaseUrl}/address/${params.value}`}
+            linkValue={getAddressUrl(params.value)}
             copyValue={params.value}
           />
         </Box>

@@ -15,7 +15,7 @@ import {
 import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 
 export const SuccessModal = ({
   onClose,
@@ -27,44 +27,48 @@ export const SuccessModal = ({
   txHash?: string
   title?: string
   subtitle?: string
-}) => (
-  <>
-    <Box sx={FinalModalHeader}>
-      <Box width="20px" height="20px" />
-      <IconButton disableRipple onClick={onClose}>
-        <SvgIcon fontSize="big" sx={FinalModalCloseButton}>
-          <Cross />
-        </SvgIcon>
-      </IconButton>
-    </Box>
+}) => {
+  const { getTxUrl } = useBlockExplorer()
 
-    <Box padding="0 24px" sx={FinalModalContentContainer}>
-      <Box margin="auto" sx={FinalModalMainContainer}>
-        <SvgIcon fontSize="colossal">
-          <CircledCheckBlue />
-        </SvgIcon>
-
-        <Box sx={FinalModalTypoBox}>
-          <Typography variant="title3">
-            {title ?? (
-              <Trans i18nKey="borrowerMarketDetails.modals.success.title" />
-            )}
-          </Typography>
-          <Typography variant="text3" sx={FinalModalSubtitle}>
-            {subtitle ?? (
-              <Trans i18nKey="borrowerMarketDetails.modals.success.subtitle" />
-            )}
-          </Typography>
-        </Box>
+  return (
+    <>
+      <Box sx={FinalModalHeader}>
+        <Box width="20px" height="20px" />
+        <IconButton disableRipple onClick={onClose}>
+          <SvgIcon fontSize="big" sx={FinalModalCloseButton}>
+            <Cross />
+          </SvgIcon>
+        </IconButton>
       </Box>
 
-      {txHash !== "" && txHash !== undefined && (
-        <LinkGroup
-          type="etherscan"
-          linkValue={`${EtherscanBaseUrl}/tx/${txHash}`}
-          groupSX={{ padding: "8px" }}
-        />
-      )}
-    </Box>
-  </>
-)
+      <Box padding="0 24px" sx={FinalModalContentContainer}>
+        <Box margin="auto" sx={FinalModalMainContainer}>
+          <SvgIcon fontSize="colossal">
+            <CircledCheckBlue />
+          </SvgIcon>
+
+          <Box sx={FinalModalTypoBox}>
+            <Typography variant="title3">
+              {title ?? (
+                <Trans i18nKey="borrowerMarketDetails.modals.success.title" />
+              )}
+            </Typography>
+            <Typography variant="text3" sx={FinalModalSubtitle}>
+              {subtitle ?? (
+                <Trans i18nKey="borrowerMarketDetails.modals.success.subtitle" />
+              )}
+            </Typography>
+          </Box>
+        </Box>
+
+        {txHash !== "" && txHash !== undefined && (
+          <LinkGroup
+            type="etherscan"
+            linkValue={getTxUrl(txHash)}
+            groupSX={{ padding: "8px" }}
+          />
+        )}
+      </Box>
+    </>
+  )
+}

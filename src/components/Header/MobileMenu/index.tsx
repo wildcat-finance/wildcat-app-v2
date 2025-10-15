@@ -26,7 +26,7 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
@@ -62,6 +62,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   const handleToggleConnect = () => {
     setOpenConnect(!openConnect)
   }
+  const { getAddressUrl } = useBlockExplorer()
 
   const handleClickDisconnect = () => {
     disconnect()
@@ -193,7 +194,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
 
             <Box marginLeft="auto" paddingRight="8px">
               <LinkGroup
-                linkValue={`${EtherscanBaseUrl}/address/${address}`}
+                linkValue={getAddressUrl(address as string)}
                 copyValue={address}
               />
             </Box>

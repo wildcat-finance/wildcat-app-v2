@@ -11,7 +11,7 @@ import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
 
@@ -21,6 +21,7 @@ export const useLenderTokensAvailables = (address?: `0x${string}`) => {
   )
 
   const dispatch = useDispatch()
+  const { getTxUrl } = useBlockExplorer()
 
   const { data: marketAccounts, isLoadingInitial: isLoading } =
     useLendersMarkets()
@@ -47,13 +48,13 @@ export const useLenderTokensAvailables = (address?: `0x${string}`) => {
               category: "marketActivity",
               blockTimestamp: payment.blockTimestamp,
               unread: true,
-              etherscanUrl: `${EtherscanBaseUrl}/tx/${payment.transactionHash}`,
+              blockExplorerUrl: getTxUrl(payment.transactionHash),
             }),
           )
         })
       })
     }
-  }, [withdrawalBatches])
+  }, [withdrawalBatches, dispatch, getTxUrl])
 
   return () => {
     if (!address || !marketAccounts || isLoading) return

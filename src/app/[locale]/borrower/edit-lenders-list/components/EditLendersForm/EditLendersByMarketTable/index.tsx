@@ -10,7 +10,7 @@ import { EditLenderFlowStatuses } from "@/app/[locale]/borrower/edit-lenders-lis
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   resetFilters,
@@ -32,6 +32,7 @@ export const EditLendersByMarketTable = () => {
   const { t } = useTranslation()
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
   const [lenderToDelete, setLenderToDelete] = useState<string>("")
+  const { getAddressUrl } = useBlockExplorer()
 
   const dispatch = useAppDispatch()
 
@@ -238,7 +239,7 @@ export const EditLendersByMarketTable = () => {
           </Typography>
 
           <LinkGroup
-            linkValue={`${EtherscanBaseUrl}/address/${params.value}`}
+            linkValue={getAddressUrl(params.value)}
             copyValue={params.value}
           />
         </Box>

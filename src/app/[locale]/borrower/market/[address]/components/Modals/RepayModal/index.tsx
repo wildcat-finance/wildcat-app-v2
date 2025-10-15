@@ -35,7 +35,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { COLORS } from "@/theme/colors"
 import { isUSDTLikeToken } from "@/utils/constants"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
@@ -74,6 +74,7 @@ export const RepayModal = ({
   )
 
   const { market } = marketAccount
+  const { getTxUrl } = useBlockExplorer()
 
   const smallestTokenAmountValue = market.underlyingToken.parseAmount(
     "0.00001".replace(/,/g, ""),
@@ -485,7 +486,7 @@ export const RepayModal = ({
         {txHash !== "" && showForm && (
           <LinkGroup
             type="etherscan"
-            linkValue={`${EtherscanBaseUrl}/tx/${txHash}`}
+            linkValue={getTxUrl(txHash as string)}
             groupSX={{ padding: "8px", marginBottom: "8px" }}
           />
         )}

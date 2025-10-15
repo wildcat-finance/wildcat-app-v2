@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Typography, useTheme } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import { useTranslation } from "react-i18next"
 
@@ -14,7 +14,7 @@ import {
 } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests/style"
 import { LinkGroup } from "@/components/LinkComponent"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas, trimAddress } from "@/utils/formatters"
@@ -27,6 +27,7 @@ export const WithdrawalRequests = ({
   const { t } = useTranslation()
   const theme = useTheme()
   const isMobile = useMobileResolution()
+  const { getAddressUrl, getTxUrl } = useBlockExplorer()
 
   const expiredTotalAmount = withdrawals.expiredTotalPendingAmount
   const activeTotalAmount = withdrawals.activeTotalPendingAmount
@@ -46,7 +47,7 @@ export const WithdrawalRequests = ({
       renderCell: ({ value }) => (
         <Box sx={MarketWithdrawalRequetstCell}>
           <Typography variant="text3">{trimAddress(value)}</Typography>
-          <LinkGroup linkValue={`${EtherscanBaseUrl}/address/${value}`} />
+          <LinkGroup linkValue={getAddressUrl(value)} />
         </Box>
       ),
     },
@@ -69,10 +70,7 @@ export const WithdrawalRequests = ({
         <Box sx={MarketWithdrawalRequetstCell}>
           <Typography variant="text3">{trimAddress(value)}</Typography>
 
-          <LinkGroup
-            linkValue={`${EtherscanBaseUrl}/tx/${value}`}
-            copyValue={value}
-          />
+          <LinkGroup linkValue={getTxUrl(value)} copyValue={value} />
         </Box>
       ),
     },

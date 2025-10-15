@@ -34,7 +34,7 @@ const RegisterBorrowerButton = ({ address }: { address: string }) => {
 export const BorrowerInvitesTable = () => {
   const { t } = useTranslation()
 
-  const { etherscanUrl, isTestnet } = useAppSelector(
+  const { blockExplorerUrl, isTestnet } = useAppSelector(
     (state) => state.selectedNetwork,
   )
   const { data: tableData, isLoading } = useAllBorrowerInvitations()
@@ -127,7 +127,7 @@ export const BorrowerInvitesTable = () => {
           </Typography>
 
           <LinkGroup
-            linkValue={`${etherscanUrl}/address/${value}`}
+            linkValue={`${blockExplorerUrl}/address/${value}`}
             copyValue={value}
           />
         </Box>

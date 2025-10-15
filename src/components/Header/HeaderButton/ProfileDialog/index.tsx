@@ -25,6 +25,7 @@ import {
 } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { ProfileDialogProps } from "@/components/Header/HeaderButton/ProfileDialog/type"
 import { LinkGroup } from "@/components/LinkComponent"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetController } from "@/hooks/useGetController"
 import { useGetIsRegisteredBorrower } from "@/hooks/useIsRegisteredBorrower"
@@ -46,6 +47,7 @@ export const ProfileDialog = ({
   const { disconnect } = useDisconnect()
   const { isWrongNetwork } = useCurrentNetwork()
   const selectedNetwork = useSelectedNetwork()
+  const { getAddressUrl } = useBlockExplorer()
   const { switchChain } = useSwitchChain()
 
   const handleClickDisconnect = () => {
@@ -97,7 +99,7 @@ export const ProfileDialog = ({
                 <LinkGroup
                   groupSX={{ columnGap: "8px" }}
                   copyValue={address?.toString()}
-                  linkValue={`${selectedNetwork.etherscanUrl}/address/${address}`}
+                  linkValue={getAddressUrl(address as string)}
                 />
               </Box>
             )}
