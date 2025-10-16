@@ -18,7 +18,7 @@
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
-    "@ethersproject/providers": "5.7.2",
+    "@ethersproject/providers": "^5.7.2",
     "@hookform/resolvers": "^3.3.4",
     "@hotjar/browser": "^1.0.9",
     "@mdxeditor/editor": "^3.38.0",
