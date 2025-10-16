@@ -1,22 +1,114 @@
 "use client"
 
+import { useEffect } from "react"
+
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import { useMutation } from "@tanstack/react-query"
+import { useIsMutating, useMutation, useQuery } from "@tanstack/react-query"
+import { decode as decodeJWT } from "jsonwebtoken"
 import { useAccount } from "wagmi"
 
-import { toastRequest } from "@/components/Toasts"
+import { toastError, toastRequest } from "@/components/Toasts"
 import { getLoginSignatureMessage } from "@/config/api"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setApiToken } from "@/store/slices/apiTokensSlice/apiTokensSlice"
+import {
+  setApiToken,
+  removeApiToken,
+} from "@/store/slices/apiTokensSlice/apiTokensSlice"
 import { ApiToken } from "@/store/slices/apiTokensSlice/interface"
 import { dayjs } from "@/utils/dayjs"
 
 import { useEthersSigner } from "./useEthersSigner"
 
+export const useRefreshApiToken = () => {
+  const { address } = useAccount()
+  const dispatch = useAppDispatch()
+  const tokenKey = address?.toLowerCase() ?? ""
+  const token = useAppSelector((state) => state.apiTokens[tokenKey])
+
+  return useMutation({
+    mutationKey: ["refreshApiToken", tokenKey],
+    mutationFn: async () => {
+      console.log(`Refreshing token (mutate)`)
+      const response = await fetch("/api/auth/refresh", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token.token}`,
+        },
+      })
+      if (response.status === 401) {
+        toastError(`Session expired`)
+        throw Error(`Failed to refresh token! Invalid Credentials`)
+      } else if (response.status !== 200) {
+        throw Error(`Failed to refresh token! ${response.statusText}`)
+      }
+      const newToken = (await response.json()) as ApiToken
+      return newToken
+    },
+    onSuccess: (newToken: ApiToken) => {
+      console.log(`Token refreshed`)
+      dispatch(setApiToken(newToken))
+    },
+    onError(error) {
+      console.log(`Error refreshing token`)
+      dispatch(removeApiToken(tokenKey))
+    },
+  })
+}
+
+export const useRemoveBadApiToken = () => {
+  const dispatch = useAppDispatch()
+  const { address } = useAccount()
+  const tokenKey = address?.toLowerCase() ?? ""
+  return useMutation({
+    mutationKey: ["removeBadApiToken", tokenKey],
+    mutationFn: async () => {
+      dispatch(removeApiToken(tokenKey))
+      toastError(`Session expired`)
+    },
+  })
+}
+
 export const useAuthToken = () => {
   const { address } = useAccount()
   const tokenKey = address?.toLowerCase() ?? ""
   const token = useAppSelector((state) => state.apiTokens[tokenKey])
+  const { mutate: refreshToken, isPending: isRefreshing } = useRefreshApiToken()
+  const { mutate: removeBadToken, isPending: isRemovingBadToken } =
+    useRemoveBadApiToken()
+  const isRefreshingAnywhere = useIsMutating({
+    mutationKey: ["refreshApiToken", tokenKey],
+  })
+  const jwt = token?.token
+
+  useEffect(() => {
+    if (jwt && !isRefreshing && !isRefreshingAnywhere) {
+      console.log(`Checking token age`)
+      const decoded = decodeJWT(jwt, { json: true })
+      if (decoded) {
+        const now = dayjs().unix()
+        const age = now - (decoded.iat ?? 0)
+        const isExpired = (decoded.exp ?? 0) < now
+        const isTooFarAhead = (decoded.iat ?? 0) > now + 86_400 * 365
+        if (isExpired || isTooFarAhead) {
+          console.log(
+            `Removing bad token: ${isExpired ? "expired" : "too far ahead"}`,
+          )
+          removeBadToken()
+        } else if (age > 3_600) {
+          console.log(`Refreshing token`)
+          refreshToken()
+        }
+      }
+    }
+  }, [
+    jwt,
+    refreshToken,
+    isRefreshing,
+    isRefreshingAnywhere,
+    removeBadToken,
+    isRemovingBadToken,
+  ])
+
   return token
 }
 

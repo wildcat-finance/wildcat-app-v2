@@ -4,12 +4,13 @@ import { useQuery } from "@tanstack/react-query"
 
 import { BorrowerInvitationForAdminView } from "@/app/api/invite/interface"
 import { QueryKeys } from "@/config/query-keys"
-import { useAuthToken } from "@/hooks/useApiAuth"
+import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export const useAllBorrowerInvitations = () => {
   const token = useAuthToken()
   const { chainId } = useSelectedNetwork()
+  const { mutate: removeBadToken } = useRemoveBadApiToken()
   return useQuery({
     queryKey: QueryKeys.Admin.GET_ALL_BORROWER_INVITATIONS(
       chainId,
@@ -25,6 +26,10 @@ export const useAllBorrowerInvitations = () => {
           },
         },
       )
+      if (response.status === 401) {
+        removeBadToken()
+        throw Error("Failed to fetch borrower invitations")
+      }
       const invitations = (await response.json()).map(
         (x: BorrowerInvitationForAdminView) => ({
           ...x,

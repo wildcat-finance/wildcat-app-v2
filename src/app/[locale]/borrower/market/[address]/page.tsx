@@ -15,8 +15,11 @@ import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecords
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
+import { useMarketSummary } from "@/hooks/useMarketSummary"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
+import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import {
   resetPageState,
   setCheckBlock,
@@ -24,6 +27,7 @@ import {
 import { COLORS } from "@/theme/colors"
 import { pageCalcHeights } from "@/utils/constants"
 
+import { BorrowerMarketSummary } from "./components/BorrowerMarketSummary"
 import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
 import { MarketMLA } from "./components/MarketMLA"
 import { MarketTransactions } from "./components/MarketTransactions"
@@ -41,8 +45,13 @@ export default function MarketDetails({
   params: { address: string }
 }) {
   const dispatch = useAppDispatch()
+  const { chainId: targetChainId } = useSelectedNetwork()
   const { data: market } = useGetMarket({ address })
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
+  const { data: marketSummary, isLoading: isSummaryLoading } = useMarketSummary(
+    address.toLowerCase(),
+    market?.chainId ?? targetChainId,
+  )
   const { address: walletAddress } = useAccount()
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
@@ -59,6 +68,17 @@ export default function MarketDetails({
       dispatch(setCheckBlock(4))
     }
   }, [])
+
+  useEffect(() => {
+    if (
+      (!marketSummary || marketSummary!.description === "") &&
+      !holdTheMarket
+    ) {
+      dispatch(hideDescriptionSection(true))
+    } else {
+      dispatch(hideDescriptionSection(false))
+    }
+  }, [marketSummary, holdTheMarket, walletAddress])
 
   useEffect(
     () => () => {
@@ -180,6 +200,18 @@ export default function MarketDetails({
               <MarketParameters market={market} />
             </Box>
           )}
+
+          {checked === 3 && (
+            <Box sx={SlideContentContainer} marginTop="12px">
+              <BorrowerMarketSummary
+                marketAddress={market.address}
+                chainId={market.chainId}
+                isBorrower={holdTheMarket}
+                marketSummary={marketSummary}
+                isLoading={isSummaryLoading}
+              />
+            </Box>
+          )}
           {/* <Slide */}
           {/*  direction={direction} */}
           {/*  container={scrollContainer.current} */}
@@ -190,7 +222,7 @@ export default function MarketDetails({
           {/*    <MarketWithdrawalRequests marketAccount={marketAccount} /> */}
           {/*  </Box> */}
           {/* </Slide> */}
-          {checked === 3 && (
+          {checked === 4 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketWithdrawalRequests
                 marketAccount={marketAccount}
@@ -208,7 +240,7 @@ export default function MarketDetails({
           {/*    <MarketAuthorisedLenders market={market} /> */}
           {/*  </Box> */}
           {/* </Slide> */}
-          {checked === 4 && (
+          {checked === 5 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketAuthorisedLenders
                 market={market}
@@ -217,12 +249,12 @@ export default function MarketDetails({
             </Box>
           )}
 
-          {checked === 5 && (
+          {checked === 6 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketMLA marketAccount={marketAccount} />
             </Box>
           )}
-          {checked === 6 && (
+          {checked === 7 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <PaginatedMarketRecordsTable market={market} />
             </Box>

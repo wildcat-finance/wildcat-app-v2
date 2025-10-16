@@ -14,8 +14,11 @@ const useSidebarHighlight = (checked: number) => {
           setSidebarHighlightState({
             borrowRepay: true,
             statusDetails: false,
+            marketSummary: false,
             withdrawals: false,
             lenders: false,
+            mla: false,
+            marketHistory: false,
           }),
         )
         break
@@ -24,8 +27,11 @@ const useSidebarHighlight = (checked: number) => {
           setSidebarHighlightState({
             borrowRepay: false,
             statusDetails: true,
+            marketSummary: false,
             withdrawals: false,
             lenders: false,
+            mla: false,
+            marketHistory: false,
           }),
         )
         break
@@ -34,8 +40,11 @@ const useSidebarHighlight = (checked: number) => {
           setSidebarHighlightState({
             borrowRepay: false,
             statusDetails: false,
-            withdrawals: true,
+            marketSummary: true,
+            withdrawals: false,
             lenders: false,
+            mla: false,
+            marketHistory: false,
           }),
         )
         break
@@ -44,8 +53,50 @@ const useSidebarHighlight = (checked: number) => {
           setSidebarHighlightState({
             borrowRepay: false,
             statusDetails: false,
+            marketSummary: false,
+            withdrawals: true,
+            lenders: false,
+            mla: false,
+            marketHistory: false,
+          }),
+        )
+        break
+      case 5:
+        dispatch(
+          setSidebarHighlightState({
+            borrowRepay: false,
+            statusDetails: false,
+            marketSummary: false,
             withdrawals: false,
             lenders: true,
+            mla: false,
+            marketHistory: false,
+          }),
+        )
+        break
+      case 6:
+        dispatch(
+          setSidebarHighlightState({
+            borrowRepay: false,
+            statusDetails: false,
+            marketSummary: false,
+            withdrawals: false,
+            lenders: false,
+            mla: true,
+            marketHistory: false,
+          }),
+        )
+        break
+      case 7:
+        dispatch(
+          setSidebarHighlightState({
+            borrowRepay: false,
+            statusDetails: false,
+            marketSummary: false,
+            withdrawals: false,
+            lenders: false,
+            mla: false,
+            marketHistory: true,
           }),
         )
         break
@@ -54,8 +105,11 @@ const useSidebarHighlight = (checked: number) => {
           setSidebarHighlightState({
             borrowRepay: false,
             statusDetails: false,
+            marketSummary: false,
             withdrawals: false,
             lenders: false,
+            mla: true,
+            marketHistory: true,
           }),
         )
         break

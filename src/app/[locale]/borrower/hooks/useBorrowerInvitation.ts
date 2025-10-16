@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 
 import { BorrowerInvitation } from "@/app/api/invite/interface"
-import { useAuthToken } from "@/hooks/useApiAuth"
+import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export const USE_BORROWER_INVITE_KEY = "use-borrower-invite"
@@ -10,6 +10,7 @@ export const USE_BORROWER_INVITE_EXISTS_KEY = "use-borrower-invite-exists"
 export const useGetBorrowerInvitation = (address: string | undefined) => {
   const token = useAuthToken()
   const { chainId } = useSelectedNetwork()
+  const { mutate: removeBadToken } = useRemoveBadApiToken()
   const getInvitation = async () => {
     if (!address) return undefined
     const exists = await fetch(
@@ -20,7 +21,7 @@ export const useGetBorrowerInvitation = (address: string | undefined) => {
     ).then((res) => res.status === 200)
     let invitation: BorrowerInvitation | undefined
     if (exists && token) {
-      const result = await fetch(
+      const response = await fetch(
         `/api/invite/${address.toLowerCase()}?chainId=${chainId}`,
         {
           headers: {
@@ -28,8 +29,11 @@ export const useGetBorrowerInvitation = (address: string | undefined) => {
           },
         },
       )
-        .then((res) => res.json())
-        .catch(() => undefined)
+      if (response.status === 401) {
+        removeBadToken()
+        throw Error("Failed to get borrower invitation")
+      }
+      const result = await response.json().catch(() => undefined)
       invitation = result?.invitation
     }
     return {
@@ -86,10 +90,11 @@ export const useBorrowerInvitationExists = (address: string | undefined) => {
 export const useBorrowerInvitation = (address: string | undefined) => {
   const token = useAuthToken()
   const { chainId } = useSelectedNetwork()
+  const { mutate: removeBadToken } = useRemoveBadApiToken()
   const getInvites = async () => {
     if (!address) throw Error(`No address`)
     if (!token) throw Error(`No API token`)
-    const { invitation } = await fetch(
+    const response = await fetch(
       `/api/invite/${address.toLowerCase()}?chainId=${chainId}`,
       {
         headers: {
@@ -97,11 +102,14 @@ export const useBorrowerInvitation = (address: string | undefined) => {
         },
       },
     )
-      .then((res) => res.json())
-      .catch((err) => {
-        console.log(err)
-        return undefined
-      })
+    if (response.status === 401) {
+      removeBadToken()
+      throw Error("Failed to get borrower invitation")
+    }
+    const { invitation } = await response.json().catch((err) => {
+      console.log(err)
+      return undefined
+    })
     return invitation === undefined ? null : (invitation as BorrowerInvitation)
   }
   const { data, ...result } = useQuery({

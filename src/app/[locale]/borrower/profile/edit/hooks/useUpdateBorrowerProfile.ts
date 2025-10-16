@@ -4,7 +4,7 @@ import { useAccount } from "wagmi"
 import { BorrowerProfileInput } from "@/app/api/profiles/interface"
 import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
-import { useAuthToken } from "@/hooks/useApiAuth"
+import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 
 import { USE_REGISTERED_BORROWERS_KEY } from "../../../hooks/useBorrowerNames"
 
@@ -28,6 +28,7 @@ export const useUpdateBorrowerProfile = () => {
   const queryClient = useQueryClient()
   const { address, chainId } = useAccount()
   const token = useAuthToken()
+  const { mutate: removeBadToken } = useRemoveBadApiToken()
 
   const updateBorrowerProfile = async (profile: BorrowerProfileInput) => {
     if (!token.token) {
@@ -45,6 +46,9 @@ export const useUpdateBorrowerProfile = () => {
       },
     })
 
+    if (response.status === 401) {
+      removeBadToken()
+    }
     if (!response.ok) {
       throw new Error("Failed to update profile")
     }

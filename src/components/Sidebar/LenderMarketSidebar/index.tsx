@@ -1,8 +1,14 @@
 import * as React from "react"
 
-import { Box, Button, Skeleton } from "@mui/material"
+import { Box, Button, Skeleton, SvgIcon } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
+import BorrowAndRepayIcon from "@/assets/icons/borrowAndRepay_icon.svg"
+import LenderBorrowerIcon from "@/assets/icons/lenderBorrower_icon.svg"
+import MarketEventsIcon from "@/assets/icons/marketEvents_icon.svg"
+import StatusAndDetailsIcon from "@/assets/icons/statusAndDetails_icon.svg"
+import SummaryIcon from "@/assets/icons/summary_icon.svg"
+import WithdrawalAndRequestsIcon from "@/assets/icons/withdrawalAndRequests_icon.svg"
 import { BackButton } from "@/components/BackButton"
 import { MenuItemButton } from "@/components/Sidebar/MarketSidebar/style"
 import { ROUTES } from "@/routes"
@@ -31,6 +37,10 @@ export const LenderMarketSidebar = () => {
   const handleChangeSection = (newSection: LenderMarketSections) => {
     dispatch(setSection(newSection))
   }
+
+  const hideDescriptionSection = useAppSelector(
+    (state) => state.hideMarketSections.description,
+  )
 
   return (
     <Box
@@ -83,6 +93,9 @@ export const LenderMarketSidebar = () => {
                       : "transparent",
                 }}
               >
+                <SvgIcon sx={{ marginRight: "10px" }}>
+                  <BorrowAndRepayIcon />
+                </SvgIcon>
                 {t("lenderMarketDetails.sidebar.actions")}
               </Button>
             )}
@@ -99,8 +112,59 @@ export const LenderMarketSidebar = () => {
                     : "transparent",
               }}
             >
+              <SvgIcon sx={{ marginRight: "10px" }}>
+                <StatusAndDetailsIcon />
+              </SvgIcon>
               {t("lenderMarketDetails.sidebar.status")}
             </Button>
+
+            {!hideDescriptionSection && (
+              <Button
+                variant="text"
+                size="medium"
+                onClick={() =>
+                  handleChangeSection(LenderMarketSections.SUMMARY)
+                }
+                sx={{
+                  ...MenuItemButton,
+                  backgroundColor:
+                    currentSection === LenderMarketSections.SUMMARY
+                      ? COLORS.whiteSmoke
+                      : "transparent",
+                }}
+              >
+                <SvgIcon
+                  sx={{
+                    marginRight: "10px",
+                  }}
+                >
+                  <SummaryIcon />
+                </SvgIcon>
+                {t("lenderMarketDetails.description.title")}
+              </Button>
+            )}
+
+            {isLender && (
+              <Button
+                variant="text"
+                size="medium"
+                onClick={() =>
+                  handleChangeSection(LenderMarketSections.REQUESTS)
+                }
+                sx={{
+                  ...MenuItemButton,
+                  backgroundColor:
+                    currentSection === LenderMarketSections.REQUESTS
+                      ? COLORS.whiteSmoke
+                      : "transparent",
+                }}
+              >
+                <SvgIcon sx={{ marginRight: "10px" }}>
+                  <WithdrawalAndRequestsIcon />
+                </SvgIcon>
+                {t("lenderMarketDetails.sidebar.requests")}
+              </Button>
+            )}
 
             <Button
               variant="text"
@@ -116,6 +180,9 @@ export const LenderMarketSidebar = () => {
                     : "transparent",
               }}
             >
+              <SvgIcon sx={{ marginRight: "10px" }}>
+                <LenderBorrowerIcon />
+              </SvgIcon>
               {t("lenderMarketDetails.sidebar.borrowerProfile")}
             </Button>
 
@@ -133,27 +200,11 @@ export const LenderMarketSidebar = () => {
                     : "transparent",
               }}
             >
+              <SvgIcon sx={{ marginRight: "10px" }}>
+                <MarketEventsIcon />
+              </SvgIcon>
               {t("lenderMarketDetails.sidebar.marketHistory")}
             </Button>
-
-            {isLender && (
-              <Button
-                variant="text"
-                size="medium"
-                onClick={() =>
-                  handleChangeSection(LenderMarketSections.REQUESTS)
-                }
-                sx={{
-                  ...MenuItemButton,
-                  backgroundColor:
-                    currentSection === LenderMarketSections.REQUESTS
-                      ? COLORS.whiteSmoke
-                      : "transparent",
-                }}
-              >
-                {t("lenderMarketDetails.sidebar.requests")}
-              </Button>
-            )}
           </Box>
         )}
       </Box>

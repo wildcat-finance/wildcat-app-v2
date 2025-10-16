@@ -62,8 +62,11 @@ export async function DELETE(
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
   }
   const token = await verifyApiToken(request)
-  if (!token || !token.isAdmin || chainId !== SupportedChainId.Sepolia) {
+  if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  if (!token.isAdmin || chainId !== SupportedChainId.Sepolia) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   const borrower = address
   if (!borrower) {

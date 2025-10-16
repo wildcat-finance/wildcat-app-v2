@@ -5,6 +5,7 @@ import borrowerDashboardAmountsSlice from "@/store/slices/borrowerDashboardAmoun
 import borrowerDashboardSlice from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 import cookieBannerSlice from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
 import createMarketSidebarSlice from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
+import hideMarketSectionsSlice from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import lenderDashboardAmountsSlice from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import lenderDashboardSlice from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import policyLendersSlice from "@/store/slices/policyLendersSlice/policyLendersSlice"
@@ -17,6 +18,7 @@ import editPolicySlice from "./slices/editPolicySlice/editPolicySlice"
 import highlightSidebarSlice from "./slices/highlightSidebarSlice/highlightSidebarSlice"
 import lenderMarketRoutingSlice from "./slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import lenderMlaSignaturesSlice from "./slices/lenderMlaSignaturesSlice/mlaSignaturesSlice"
+import marketFiltersSlice from "./slices/marketFiltersSlice/marketFiltersSlice"
 import marketsOverviewSidebarSlice from "./slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import notificationsSidebarSlice from "./slices/notificationsSidebarSlice/notificationsSidebarSlice"
 import notificationsSlice from "./slices/notificationsSlice/notificationsSlice"
@@ -26,6 +28,7 @@ import selectedNetworkSlice from "./slices/selectedNetworkSlice/selectedNetworkS
 export const makeStore = () => {
   const store = configureStore({
     reducer: {
+      hideMarketSections: hideMarketSectionsSlice,
       apiTokens: apiTokensSlice,
       routing: routingSlice,
       createMarketSidebar: createMarketSidebarSlice,
@@ -46,6 +49,7 @@ export const makeStore = () => {
       lenderMlaSignatures: lenderMlaSignaturesSlice,
       cookieBanner: cookieBannerSlice,
       selectedNetwork: selectedNetworkSlice,
+      marketFilters: marketFiltersSlice,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
