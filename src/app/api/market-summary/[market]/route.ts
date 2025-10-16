@@ -45,7 +45,7 @@ export async function POST(
   // eslint-disable-next-line camelcase
   const borrower = await WildcatMarket__factory.connect(
     parsedBody.marketAddress,
-    getProviderForServer(),
+    getProviderForServer(TargetChainId),
   )
     .borrower()
     .then((t) => t.toLowerCase())
