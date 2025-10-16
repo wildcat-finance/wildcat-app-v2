@@ -24,5 +24,5 @@ const apiTokensSlice = createSlice({
   },
 })
 
-export const { setApiToken } = apiTokensSlice.actions
+export const { setApiToken, removeApiToken } = apiTokensSlice.actions
 export default persistReducer(persistConfig, apiTokensSlice.reducer)

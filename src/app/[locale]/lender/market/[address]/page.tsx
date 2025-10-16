@@ -31,8 +31,10 @@ import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecords
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketMla } from "@/hooks/useMarketMla"
+import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import {
   LenderMarketSections,
   setIsLender,
@@ -44,6 +46,7 @@ import { COLORS } from "@/theme/colors"
 
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
 import { MarketActions } from "./components/MarketActions"
+import { MarketSummary } from "./components/MarketSummary"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
@@ -72,6 +75,9 @@ export default function LenderMarketDetails({
     useLenderMarketAccount(market)
   const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
     useGetLenderWithdrawals(market)
+  const { data: marketSummary, isLoading: isLoadingSummary } = useMarketSummary(
+    address.toLowerCase(),
+  )
 
   const authorizedInMarket =
     marketAccount &&
@@ -123,6 +129,14 @@ export default function LenderMarketDetails({
 
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
+
+  useEffect(() => {
+    if (!marketSummary || marketSummary!.description === "") {
+      dispatch(hideDescriptionSection(true))
+    } else {
+      dispatch(hideDescriptionSection(false))
+    }
+  }, [marketSummary])
 
   if (!mounted) return null
 
@@ -312,6 +326,13 @@ export default function LenderMarketDetails({
               <Divider sx={{ margin: "40px 0 44px" }} />
               <MarketParameters market={market} />
             </Box>
+          )}
+
+          {currentSection === LenderMarketSections.SUMMARY && (
+            <MarketSummary
+              marketSummary={marketSummary}
+              isLoading={isLoadingSummary}
+            />
           )}
 
           {currentSection === LenderMarketSections.BORROWER_PROFILE && (

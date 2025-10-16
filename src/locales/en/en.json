@@ -220,6 +220,21 @@
     }
   },
   "borrowerMarketDetails": {
+    "description": {
+      "title": "Market Description",
+      "buttons": {
+        "login": "Log in to change the description",
+        "add": "Add",
+        "edit": "Edit",
+        "save": "Save",
+        "pending": "Saving...",
+        "cancel": "Cancel"
+      },
+      "states": {
+        "loading": "Loading market description...",
+        "noDescription": "No market description found."
+      }
+    },
     "statusChart": {
       "totalDebt": "Total Debt",
       "sufficientReserves": "Sufficient Reserves For",
@@ -270,6 +285,7 @@
       "backToMarkets": "Back to My Markets",
       "borrowRepay": "Borrow and Repay",
       "statusDetails": "Status and Details",
+      "description": "Market Description",
       "withdrawalRequests": "Withdrawal Requests",
       "authorisedLenders": "Lenders",
       "terminateMarket": "Terminate Market",
@@ -977,10 +993,11 @@
     "noDataAvailable": "No Data Available",
     "sidebar": {
       "actions": "Deposit & Withdraw",
-      "status": "Status",
+      "status": "Status and Details",
       "requests": "Withdrawal Requests",
       "marketHistory": "Market History",
-      "borrowerProfile": "About Borrower"
+      "borrowerProfile": "About Borrower",
+      "description": "Market Description"
     },
     "buttons": {
       "addToken": "Add Debt Token To Wallet",
@@ -1044,6 +1061,13 @@
         "txID": "Transaction ID",
         "date": "Date Submitted",
         "amount": "Amount"
+      }
+    },
+    "description": {
+      "title": "Market Description",
+      "states": {
+        "loading": "Loading market description...",
+        "noDescription": "No market description found."
       }
     }
   },

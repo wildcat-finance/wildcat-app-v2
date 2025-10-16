@@ -16,10 +16,7 @@ import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/componen
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
-import {
-  ModalSteps,
-  useApprovalModal,
-} from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
+import { useApprovalModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
 import { useApprove } from "@/app/[locale]/borrower/market/[address]/hooks/useGetApproval"
 import Alert from "@/assets/icons/circledAlert_icon.svg"
 import Clock from "@/assets/icons/clock_icon.svg"
@@ -69,6 +66,7 @@ export const DepositModal = ({
     isPending: isDepositing,
     isSuccess: isDeposed,
     isError: isDepositError,
+    reset: resetDeposit,
   } = useDeposit(marketAccount, setTxHash)
 
   const { mutateAsync: approve, isPending: isApproving } = useApprove(
@@ -84,11 +82,11 @@ export const DepositModal = ({
     setTxHash,
   )
 
+  // user inputted amount
   const depositTokenAmount = useMemo(
     () => marketAccount.market.underlyingToken.parseAmount(amount || "0"),
     [amount],
   )
-
   const minimumDeposit = market.hooksConfig?.minimumDeposit
 
   // TODO: remove after fixing previewDeposit in wildcat.ts
@@ -112,6 +110,8 @@ export const DepositModal = ({
 
   const depositStep = getDepositStatus().status
 
+  const isAllowanceSufficient = marketAccount.isApprovedFor(depositTokenAmount)
+
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
     setAmount(value)
@@ -122,46 +122,46 @@ export const DepositModal = ({
     deposit(depositTokenAmount)
   }
 
+  const handleTryAgain = () => {
+    setTxHash("")
+    handleDeposit()
+  }
+
   const handleApprove = () => {
     setTxHash("")
 
-    if (depositStep === "InsufficientAllowance") {
+    if (!isAllowanceSufficient) {
       if (
         marketAccount.underlyingApproval.gt(0) &&
         isUSDTLikeToken(market.underlyingToken.address)
       ) {
         approve(depositTokenAmount.token.getAmount(0)).then(() => {
           approve(depositTokenAmount).then(() => {
-            modal.setFlowStep(ModalSteps.approved)
+            if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
+              setAmount("")
+            }
           })
         })
       } else {
         approve(depositTokenAmount).then(() => {
-          modal.setFlowStep(ModalSteps.approved)
+          if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
+            setAmount("")
+          }
         })
       }
     }
   }
 
-  const handleTryAgain = () => {
-    setTxHash("")
-    handleDeposit()
-    setShowErrorPopup(false)
-  }
-
   const mustResetAllowance =
-    depositStep === "InsufficientAllowance" &&
+    !isAllowanceSufficient &&
     marketAccount.underlyingApproval.gt(0) &&
     isUSDTLikeToken(market.underlyingToken.address)
 
   const disableApprove =
-    !!depositError ||
     market.isClosed ||
     depositTokenAmount.raw.isZero() ||
     depositTokenAmount.raw.gt(market.maximumDeposit.raw) ||
-    depositStep === "Ready" ||
-    depositStep === "InsufficientBalance" ||
-    modal.approvedStep ||
+    isAllowanceSufficient ||
     isApproving ||
     !Signer.isSigner(market.provider)
 
@@ -175,7 +175,7 @@ export const DepositModal = ({
     isApproving
 
   const isApprovedButton =
-    depositStep === "Ready" && !depositTokenAmount.raw.isZero() && !isApproving
+    isAllowanceSufficient && !depositTokenAmount.raw.isZero() && !isApproving
 
   const isFixedTerm = market.isInFixedTerm
   const fixedTermMaturity =
@@ -200,29 +200,48 @@ export const DepositModal = ({
     : "Market is at full capacity"
 
   useEffect(() => {
-    if (isDepositError) {
-      setShowErrorPopup(true)
-    }
-    if (isDeposed) {
-      setShowSuccessPopup(true)
-      setShowErrorPopup(false)
-    }
-  }, [isDepositError, isDeposed])
-
-  useEffect(() => {
     if (amount === "" || amount === "0" || depositStep === "Ready") {
       setDepositError(undefined)
       return
     }
 
+    if (depositStep === "InsufficientBalance") {
+      if (isAllowanceSufficient) {
+        // approval is sufficient but balance too low to deposit this amount
+        setDepositError(SDK_ERRORS_MAPPING.deposit[depositStep])
+      } else {
+        // warn that this is above balance but you can approve if you want to
+        setDepositError(
+          "Amount exceeds wallet balance. You can still approve for future use",
+        )
+      }
+      return
+    }
+
     setDepositError(SDK_ERRORS_MAPPING.deposit[depositStep])
-  }, [depositStep, amount])
+  }, [
+    depositStep,
+    amount,
+    isAllowanceSufficient,
+    marketAccount.underlyingBalance,
+    market.underlyingToken.symbol,
+  ])
 
   useEffect(() => {
     if (isMobileOpen) {
-      modal.setFlowStep(ModalSteps.gettingValues)
+      modal.handleOpenModal()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobileOpen])
+
+  useEffect(() => {
+    if (isDepositError) {
+      setShowErrorPopup(true)
+    }
+    if (isDeposed) {
+      setShowSuccessPopup(true)
+    }
+  }, [isDepositError, isDeposed])
 
   const handleModalArrowClick = () => {
     if (modal.gettingValueStep && !!setIsMobileOpen) {
@@ -232,15 +251,18 @@ export const DepositModal = ({
   }
 
   const handleCloseMobileModal = () => {
+    setShowSuccessPopup(false)
+    setShowErrorPopup(false)
+    resetDeposit()
+    modal.handleCloseModal()
     if (setIsMobileOpen) {
-      modal.handleCloseModal()
       setIsMobileOpen(false)
     }
   }
 
   const progressAmount = () => {
     if (modal.gettingValueStep) return 33
-    if (modal.approvedStep) return 66
+    if (isDepositing) return 66
     if (showSuccessPopup) return 100
 
     return 0
@@ -339,30 +361,19 @@ export const DepositModal = ({
                     />
                   }
                   disabled={isApproving}
-                  error={!!depositError}
+                  error={
+                    !!depositError &&
+                    (depositStep !== "InsufficientBalance" ||
+                      isAllowanceSufficient)
+                  }
                   helperText={depositError}
                 />
               </>
             )}
 
-            {modal.approvedStep && (
-              <ModalDataItem
-                title={t(
-                  "lenderMarketDetails.transactions.deposit.modal.confirm",
-                )}
-                value={formatTokenWithCommas(depositTokenAmount, {
-                  withSymbol: true,
-                })}
-                containerSx={{
-                  padding: "0 12px",
-                  margin: "0",
-                }}
-              />
-            )}
-
             <Box
               sx={{
-                marginTop: modal.approvedStep ? "16px" : "0px",
+                marginTop: "0px",
                 display: "flex",
                 flexDirection: "column",
                 gap: "4px",
@@ -515,12 +526,25 @@ export const DepositModal = ({
           {showErrorPopup && (
             <ErrorModal
               onTryAgain={handleTryAgain}
-              onClose={handleCloseMobileModal}
+              onClose={() => {
+                setShowErrorPopup(false)
+                resetDeposit()
+                modal.handleCloseModal()
+                if (setIsMobileOpen) setIsMobileOpen(false)
+              }}
               txHash={txHash}
             />
           )}
           {showSuccessPopup && (
-            <SuccessModal onClose={handleCloseMobileModal} txHash={txHash} />
+            <SuccessModal
+              onClose={() => {
+                setShowSuccessPopup(false)
+                resetDeposit()
+                modal.handleCloseModal()
+                if (setIsMobileOpen) setIsMobileOpen(false)
+              }}
+              txHash={txHash}
+            />
           )}
         </Dialog>
       </>
@@ -634,28 +658,15 @@ export const DepositModal = ({
                       />
                     }
                     disabled={isApproving}
-                    error={!!depositError}
+                    error={
+                      !!depositError &&
+                      (depositStep !== "InsufficientBalance" ||
+                        isAllowanceSufficient)
+                    }
                     helperText={depositError}
                   />
                 </Box>
               )}
-
-              <Box width="100%" height="100%" padding="0 24px">
-                {modal.approvedStep && (
-                  <ModalDataItem
-                    title={t(
-                      "lenderMarketDetails.transactions.deposit.modal.confirm",
-                    )}
-                    value={formatTokenWithCommas(depositTokenAmount, {
-                      withSymbol: true,
-                    })}
-                    containerSx={{
-                      padding: "0 12px",
-                      margin: "16px 0 20px",
-                    }}
-                  />
-                )}
-              </Box>
 
               <Box
                 sx={{
@@ -770,7 +781,11 @@ export const DepositModal = ({
           {showErrorPopup && (
             <ErrorModal
               onTryAgain={handleTryAgain}
-              onClose={modal.handleCloseModal}
+              onClose={() => {
+                setShowErrorPopup(false)
+                resetDeposit()
+                modal.handleCloseModal()
+              }}
               txHash={txHash}
             />
           )}
