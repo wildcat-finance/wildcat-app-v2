@@ -156,8 +156,8 @@ export default function Header() {
         {/* <NotificationButton /> */}
         {!isMobile && (
           <div style={{ display: "flex", gap: "8px" }}>
-            <HeaderButton />
             <HeaderNetworkButton />
+            <HeaderButton />
           </div>
         )}
         {isMobile && (
