@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState, useCallback } from "react"
 
 import { Box, Button, Typography } from "@mui/material"
 import {
@@ -31,6 +31,7 @@ import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import { BorrowerMarketDashboardSections } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
+import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFiltersSlice"
 import { COLORS } from "@/theme/colors"
 import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
@@ -49,10 +50,64 @@ export const MarketsSection = () => {
     (state) => state.borrowerDashboard.showFullFunctionality,
   )
 
-  const [marketSearch, setMarketSearch] = useState<string>("")
-  const [marketAssets, setMarketAssets] = useState<SmallFilterSelectItem[]>([])
-  const [marketStatuses, setMarketStatuses] = useState<SmallFilterSelectItem[]>(
-    [],
+  // filter state lives in redux now
+  const marketFilters = useAppSelector((s) => s.marketFilters.borrower)
+  const {
+    search: marketSearch,
+    assets: marketAssets,
+    statuses: marketStatuses,
+  } = marketFilters
+
+  const setMarketSearch: React.Dispatch<React.SetStateAction<string>> =
+    useCallback(
+      (value) => {
+        const next =
+          typeof value === "function"
+            ? (value as (prev: string) => string)(marketSearch)
+            : value
+        dispatch(
+          setMarketFilters({ role: "borrower", filters: { search: next } }),
+        )
+      },
+      [dispatch, marketSearch],
+    )
+
+  const setMarketAssets: React.Dispatch<
+    React.SetStateAction<SmallFilterSelectItem[]>
+  > = useCallback(
+    (value) => {
+      const next =
+        typeof value === "function"
+          ? (
+              value as (
+                prev: SmallFilterSelectItem[],
+              ) => SmallFilterSelectItem[]
+            )(marketAssets)
+          : value
+      dispatch(
+        setMarketFilters({ role: "borrower", filters: { assets: next } }),
+      )
+    },
+    [dispatch, marketAssets],
+  )
+
+  const setMarketStatuses: React.Dispatch<
+    React.SetStateAction<SmallFilterSelectItem[]>
+  > = useCallback(
+    (value) => {
+      const next =
+        typeof value === "function"
+          ? (
+              value as (
+                prev: SmallFilterSelectItem[],
+              ) => SmallFilterSelectItem[]
+            )(marketStatuses)
+          : value
+      dispatch(
+        setMarketFilters({ role: "borrower", filters: { statuses: next } }),
+      )
+    },
+    [dispatch, marketStatuses],
   )
 
   const filters = useMemo(
@@ -65,6 +120,7 @@ export const MarketsSection = () => {
     }),
     [marketSearch, marketAssets, marketStatuses],
   )
+  // tables use this derived object; stable and only changes when inputs change
 
   const { t } = useTranslation()
 
@@ -108,7 +164,14 @@ export const MarketsSection = () => {
         marketAssets,
         borrowers,
       ),
-    [marketAccounts, marketSearch, marketStatuses, marketAssets, borrowers],
+    [
+      marketAccounts,
+      marketSearch,
+      marketStatuses,
+      marketAssets,
+      borrowers,
+      address,
+    ],
   )
 
   const {
@@ -232,6 +295,7 @@ export const MarketsSection = () => {
     selfOnboardAmount,
     manualAmount,
     isWrongNetwork,
+    dispatch,
   ])
 
   return (

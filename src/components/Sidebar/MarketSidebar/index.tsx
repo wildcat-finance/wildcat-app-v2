@@ -1,9 +1,16 @@
-import { Box, Button } from "@mui/material"
+import { Box, Button, SvgIcon } from "@mui/material"
 import { useParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { TerminateMarket } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateMarket"
+import BorrowAndRepayIcon from "@/assets/icons/borrowAndRepay_icon.svg"
+import CollateralContractIcon from "@/assets/icons/collateralContract_icon.svg"
+import LenderBorrowerIcon from "@/assets/icons/lenderBorrower_icon.svg"
+import MarketEventsIcon from "@/assets/icons/marketEvents_icon.svg"
+import StatusAndDetailsIcon from "@/assets/icons/statusAndDetails_icon.svg"
+import SummaryIcon from "@/assets/icons/summary_icon.svg"
+import WithdrawalAndRequestsIcon from "@/assets/icons/withdrawalAndRequests_icon.svg"
 import { BackButton } from "@/components/BackButton"
 import {
   ContentContainer,
@@ -37,6 +44,10 @@ export const MarketSidebar = () => {
     (state) => state.highlightSidebar.sidebarState,
   )
 
+  const hideDescriptionSection = useAppSelector(
+    (state) => state.hideMarketSections.description,
+  )
+
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 
@@ -61,12 +72,18 @@ export const MarketSidebar = () => {
                 setSidebarHighlightState({
                   borrowRepay: true,
                   statusDetails: false,
+                  marketSummary: false,
                   withdrawals: false,
                   lenders: false,
+                  mla: false,
+                  marketHistory: false,
                 }),
               )
             }}
           >
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <BorrowAndRepayIcon />
+            </SvgIcon>
             {t("borrowerMarketDetails.sidebar.borrowRepay")}
           </Button>
           <Button
@@ -84,15 +101,55 @@ export const MarketSidebar = () => {
                 setSidebarHighlightState({
                   borrowRepay: false,
                   statusDetails: true,
+                  marketSummary: false,
                   withdrawals: false,
                   lenders: false,
                   mla: false,
+                  marketHistory: false,
                 }),
               )
             }}
           >
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <StatusAndDetailsIcon />
+            </SvgIcon>
             {t("borrowerMarketDetails.sidebar.statusDetails")}
           </Button>
+          {!hideDescriptionSection && (
+            <Button
+              variant="text"
+              size="medium"
+              sx={{
+                ...MenuItemButton,
+                backgroundColor: sidebarState.marketSummary
+                  ? COLORS.whiteSmoke
+                  : "transparent",
+              }}
+              onClick={() => {
+                dispatch(setCheckBlock(3))
+                dispatch(
+                  setSidebarHighlightState({
+                    borrowRepay: false,
+                    statusDetails: false,
+                    marketSummary: true,
+                    withdrawals: false,
+                    lenders: false,
+                    mla: false,
+                    marketHistory: false,
+                  }),
+                )
+              }}
+            >
+              <SvgIcon
+                sx={{
+                  marginRight: "10px",
+                }}
+              >
+                <SummaryIcon />
+              </SvgIcon>
+              {t("borrowerMarketDetails.description.title")}
+            </Button>
+          )}
           <Button
             variant="text"
             size="medium"
@@ -103,18 +160,23 @@ export const MarketSidebar = () => {
                 : "transparent",
             }}
             onClick={() => {
-              dispatch(setCheckBlock(3))
+              dispatch(setCheckBlock(4))
               dispatch(
                 setSidebarHighlightState({
                   borrowRepay: false,
                   statusDetails: false,
+                  marketSummary: false,
                   withdrawals: true,
                   lenders: false,
                   mla: false,
+                  marketHistory: false,
                 }),
               )
             }}
           >
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <WithdrawalAndRequestsIcon />
+            </SvgIcon>
             {t("borrowerMarketDetails.sidebar.withdrawalRequests")}
           </Button>
           <Button
@@ -127,18 +189,23 @@ export const MarketSidebar = () => {
                 : "transparent",
             }}
             onClick={() => {
-              dispatch(setCheckBlock(4))
+              dispatch(setCheckBlock(5))
               dispatch(
                 setSidebarHighlightState({
                   borrowRepay: false,
                   statusDetails: false,
+                  marketSummary: false,
                   withdrawals: false,
                   lenders: true,
                   mla: false,
+                  marketHistory: false,
                 }),
               )
             }}
           >
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <LenderBorrowerIcon />
+            </SvgIcon>
             {t("borrowerMarketDetails.sidebar.authorisedLenders")}
           </Button>
           <Button
@@ -151,18 +218,23 @@ export const MarketSidebar = () => {
                 : "transparent",
             }}
             onClick={() => {
-              dispatch(setCheckBlock(5))
+              dispatch(setCheckBlock(6))
               dispatch(
                 setSidebarHighlightState({
                   borrowRepay: false,
                   statusDetails: false,
+                  marketSummary: false,
                   withdrawals: false,
                   lenders: false,
                   mla: true,
+                  marketHistory: false,
                 }),
               )
             }}
           >
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <CollateralContractIcon />
+            </SvgIcon>
             {t("borrowerMarketDetails.sidebar.mla")}
           </Button>
 
@@ -176,19 +248,23 @@ export const MarketSidebar = () => {
                 : "transparent",
             }}
             onClick={() => {
-              dispatch(setCheckBlock(6))
+              dispatch(setCheckBlock(7))
               dispatch(
                 setSidebarHighlightState({
                   borrowRepay: false,
                   statusDetails: false,
+                  marketSummary: false,
                   withdrawals: false,
                   lenders: false,
-                  mla: false,
+                  mla: true,
                   marketHistory: true,
                 }),
               )
             }}
           >
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <MarketEventsIcon />
+            </SvgIcon>
             {t("borrowerMarketDetails.sidebar.marketHistory")}
           </Button>
         </Box>

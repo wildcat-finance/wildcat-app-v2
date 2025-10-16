@@ -4,12 +4,13 @@ import { useQuery } from "@tanstack/react-query"
 
 import { BorrowerProfileForAdminView } from "@/app/api/profiles/interface"
 import { QueryKeys } from "@/config/query-keys"
-import { useAuthToken } from "@/hooks/useApiAuth"
+import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export const useAllBorrowerProfiles = () => {
   const token = useAuthToken()
   const { chainId } = useSelectedNetwork()
+  const { mutate: removeBadToken } = useRemoveBadApiToken()
   return useQuery({
     queryKey: QueryKeys.Admin.GET_ALL_BORROWER_PROFILES(
       chainId,
@@ -22,6 +23,10 @@ export const useAllBorrowerProfiles = () => {
           Authorization: `Bearer ${token.token}`,
         },
       })
+      if (response.status === 401) {
+        removeBadToken()
+        throw Error("Failed to fetch borrower profiles")
+      }
       return (await response.json()) as BorrowerProfileForAdminView[]
     },
     enabled: token?.isAdmin,

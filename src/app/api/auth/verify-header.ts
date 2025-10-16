@@ -5,6 +5,8 @@ import { prisma } from "@/lib/db"
 
 import { DataStoredInToken } from "./login/interface"
 
+const TOKEN_TTL = 604_800 // 1 week
+
 export const verifyApiToken = async (
   request: NextRequest,
 ): Promise<DataStoredInToken | undefined> => {
@@ -13,9 +15,13 @@ export const verifyApiToken = async (
     return undefined
   }
   const token = authHeader.replace("Bearer ", "")
-  const user = await verify(token, process.env.SECRET_KEY as string)
-  if (!user) return undefined
-  return user as DataStoredInToken
+  try {
+    const user = verify(token, process.env.SECRET_KEY as string)
+    if (!user) return undefined
+    return user as DataStoredInToken
+  } catch (err) {
+    return undefined
+  }
 }
 
 export const createApiToken = async (address: string) => {
@@ -32,7 +38,7 @@ export const createApiToken = async (address: string) => {
   }
   const secretKey = SECRET_KEY
   if (!secretKey) return undefined
-  const expiresIn = 86_400_000_000
+  const expiresIn = TOKEN_TTL // 1 week
   const token = sign(dataStoredInToken, secretKey, { expiresIn })
   return {
     token,

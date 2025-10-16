@@ -1,4 +1,13 @@
-import { ChangeEvent, Dispatch, SetStateAction, useRef, useState } from "react"
+import {
+  ChangeEvent,
+  Dispatch,
+  SetStateAction,
+  useRef,
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+} from "react"
 import * as React from "react"
 
 import {
@@ -27,6 +36,157 @@ export type SmallFilterSelectProps = {
   selected: SmallFilterSelectItem[]
   setSelected: Dispatch<SetStateAction<SmallFilterSelectItem[]>>
   width?: string
+}
+
+const CollapsedChips = ({
+  items,
+  onDelete,
+}: {
+  items: SmallFilterSelectItem[]
+  onDelete: (item: SmallFilterSelectItem) => void
+}) => {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const measureRef = useRef<HTMLDivElement | null>(null)
+  const ellipsisRef = useRef<HTMLDivElement | null>(null)
+  const [visibleCount, setVisibleCount] = useState(items.length)
+
+  // calculate a 'fake' row consisting of all assets selected + ... width
+  // eg ((USDC) (DAI) (WETH) ...)
+  // then do a one-shot pass adding chips until we have to use ...
+  const recompute = useCallback(() => {
+    const container = containerRef.current
+    const measure = measureRef.current
+    if (!container || !measure) return
+    const allChips = Array.from(
+      measure.querySelectorAll('[data-chip="true"]'),
+    ) as HTMLElement[]
+    if (allChips.length === 0) {
+      setVisibleCount(0)
+      return
+    }
+    const ellipsisWidth = ellipsisRef.current?.offsetWidth || 12
+    const containerWidth = container.clientWidth
+    if (!containerWidth) return
+
+    const widths = allChips.map((c) => c.offsetWidth)
+    let acc = 0
+    let count = 0
+    for (let i = 0; i < widths.length; i += 1) {
+      const w = widths[i]
+      const remainingAfter = widths.length - (i + 1)
+      const needEllipsis = remainingAfter > 0
+      const needed = acc + w + (needEllipsis ? ellipsisWidth : 0)
+      if (needed <= containerWidth) {
+        acc += w
+        count = i + 1
+      } else {
+        break
+      }
+    }
+    if (count === 0) count = 1 // always show at least one
+    setVisibleCount(count)
+  }, [])
+
+  // re-run when the set of items change
+  useLayoutEffect(() => {
+    setVisibleCount(items.length)
+    recompute()
+  }, [items, recompute])
+
+  useEffect(() => {
+    const onResize = () => {
+      recompute()
+    }
+    window.addEventListener("resize", onResize)
+    return () => window.removeEventListener("resize", onResize)
+  }, [recompute])
+
+  const visible = items.slice(0, visibleCount)
+  const hidden = items.slice(visibleCount)
+  const showAll = hidden.length === 0
+
+  return (
+    <>
+      <Box
+        ref={containerRef}
+        sx={{
+          height: "20px",
+          display: "flex",
+          flexWrap: "nowrap",
+          overflow: "hidden",
+          gap: 0.5,
+          alignItems: "center",
+          width: "100%",
+        }}
+      >
+        {visible.map((m) => (
+          <LendersMarketChip
+            key={m.id}
+            type="new"
+            marketName={m.name}
+            withButton
+            width={m.name.length > 15 ? "100%" : "fit-content"}
+            onClick={() => onDelete(m)}
+          />
+        ))}
+        {!showAll && (
+          <Box
+            sx={{
+              height: "20px",
+              display: "flex",
+              alignItems: "center",
+              paddingLeft: "4px",
+              fontSize: "12px",
+              lineHeight: 1,
+              color: COLORS.ultramarineBlue,
+              userSelect: "none",
+            }}
+            title={hidden.map((i) => i.name).join(", ")}
+          >
+            …
+          </Box>
+        )}
+      </Box>
+      {/* measurement layer */}
+      <Box
+        ref={measureRef}
+        sx={{
+          position: "absolute",
+          visibility: "hidden",
+          pointerEvents: "none",
+          height: 0,
+          overflow: "hidden",
+          display: "flex",
+          gap: 0.5,
+        }}
+      >
+        {items.map((m) => (
+          <Box key={m.id} data-chip="true">
+            <LendersMarketChip
+              type="new"
+              marketName={m.name}
+              withButton
+              width={m.name.length > 15 ? "100%" : "fit-content"}
+            />
+          </Box>
+        ))}
+        <Box
+          ref={ellipsisRef}
+          sx={{
+            height: "20px",
+            display: "flex",
+            alignItems: "center",
+            paddingLeft: "4px",
+            fontSize: "12px",
+            lineHeight: 1,
+            color: COLORS.ultramarineBlue,
+          }}
+        >
+          …
+        </Box>
+      </Box>
+    </>
+  )
 }
 
 export const SmallFilterSelect = ({
@@ -136,25 +296,7 @@ export const SmallFilterSelect = ({
           </SvgIcon>
         }
         renderValue={(selectedMarkets) => (
-          <Box
-            sx={{
-              height: "20px",
-              display: "flex",
-              flexWrap: "wrap",
-              overflow: "hidden",
-              gap: 0.5,
-            }}
-          >
-            {selectedMarkets.map((market) => (
-              <LendersMarketChip
-                key={market.id}
-                marketName={market.name}
-                withButton
-                width={market.name.length > 15 ? "100%" : "fit-content"}
-                onClick={() => handleDeleteItem(market)}
-              />
-            ))}
-          </Box>
+          <CollapsedChips items={selectedMarkets} onDelete={handleDeleteItem} />
         )}
         MenuProps={{
           sx: {
