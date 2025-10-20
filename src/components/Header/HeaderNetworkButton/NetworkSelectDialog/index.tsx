@@ -7,17 +7,19 @@ import {
   DialogContainer,
 } from "@/components/Header/HeaderNetworkButton/NetworkSelectDialog/style"
 import { NetworkIcon } from "@/components/NetworkIcon"
-import { NETWORKS } from "@/config/network"
+import { NETWORKS, showTestnets } from "@/config/network"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useAppDispatch } from "@/store/hooks"
 import { setSelectedNetwork } from "@/store/slices/selectedNetworkSlice/selectedNetworkSlice"
-import { COLORS } from "@/theme/colors"
 
 import { NetworkSelectDialogProps } from "./type"
 
 const PrimaryNetworks = Object.values(NETWORKS)
 // Sort networks: non-testnet first
-const sortedNetworks = PrimaryNetworks.sort((a, b) => {
+const sortedNetworks = PrimaryNetworks.filter((network) => {
+  if (network.isTestnet && !showTestnets) return false
+  return true
+}).sort((a, b) => {
   if (a.isTestnet && !b.isTestnet) return 1
   if (!a.isTestnet && b.isTestnet) return -1
   return 0
@@ -43,7 +45,7 @@ export const NetworkSelectDialog = ({
   return (
     <Dialog open={open} onClose={handleClose} sx={DialogContainer}>
       <Box sx={ContentContainer} className="test">
-        {PrimaryNetworks.map((network) => (
+        {sortedNetworks.map((network) => (
           <Button
             key={network.chainId}
             variant="text"

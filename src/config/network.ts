@@ -5,6 +5,8 @@ import {
   SupportedChainIds,
 } from "@wildcatfi/wildcat-sdk"
 
+export const showTestnets = process.env.NEXT_PUBLIC_HIDE_TESTNETS !== "true"
+
 export const NETWORKS = {
   Sepolia: {
     chainId: 11155111,

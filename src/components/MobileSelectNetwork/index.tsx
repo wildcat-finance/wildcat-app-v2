@@ -12,7 +12,7 @@ import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { useAccount, useSwitchChain } from "wagmi"
 
 import Cross from "@/assets/icons/cross_icon.svg"
-import { NETWORKS } from "@/config/network"
+import { NETWORKS, showTestnets } from "@/config/network"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useAppDispatch } from "@/store/hooks"
 import { setSelectedNetwork } from "@/store/slices/selectedNetworkSlice/selectedNetworkSlice"
@@ -29,7 +29,10 @@ import { NetworkIcon } from "../NetworkIcon"
 
 const PrimaryNetworks = Object.values(NETWORKS)
 // Sort networks: non-testnet first
-PrimaryNetworks.sort((a, b) => {
+const sortedNetworks = PrimaryNetworks.filter((network) => {
+  if (network.isTestnet && !showTestnets) return false
+  return true
+}).sort((a, b) => {
   if (a.isTestnet && !b.isTestnet) return 1
   if (!a.isTestnet && b.isTestnet) return -1
   return 0
@@ -81,7 +84,7 @@ export const MobileSelectNetwork = ({
             <Typography variant="text2">{connector.name}</Typography>
           </Button>
         ))} */}
-        {PrimaryNetworks.map((network) => (
+        {sortedNetworks.map((network) => (
           <Button
             key={network.chainId}
             variant="contained"
