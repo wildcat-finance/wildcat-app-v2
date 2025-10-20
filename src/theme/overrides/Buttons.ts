@@ -1,8 +1,9 @@
 import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 
 export const smallContainedButton = {
-  fontSize: 11,
-  lineHeight: "16px",
+  fontSize: pxToRem(11),
+  lineHeight: lh(16, 11),
   fontWeight: 600,
   color: COLORS.white,
 
@@ -21,8 +22,8 @@ export const smallContainedButton = {
   },
 }
 export const mediumContainedButton = {
-  fontSize: 13,
-  lineHeight: "12px",
+  fontSize: pxToRem(13),
+  lineHeight: lh(12, 13),
   fontWeight: 600,
   color: COLORS.white,
 
@@ -41,8 +42,8 @@ export const mediumContainedButton = {
   },
 }
 export const largeContainedButton = {
-  fontSize: 14,
-  lineHeight: "20px",
+  fontSize: pxToRem(14),
+  lineHeight: lh(20, 14),
   fontWeight: 600,
   color: COLORS.white,
 
@@ -62,8 +63,8 @@ export const largeContainedButton = {
 }
 
 export const smallContainedSecondaryButton = {
-  fontSize: 11,
-  lineHeight: "16px",
+  fontSize: pxToRem(11),
+  lineHeight: lh(16, 11),
   fontWeight: 600,
   color: COLORS.bunker,
 
@@ -82,8 +83,8 @@ export const smallContainedSecondaryButton = {
   },
 }
 export const mediumSecondaryContainedButton = {
-  fontSize: 13,
-  lineHeight: "12px",
+  fontSize: pxToRem(13),
+  lineHeight: lh(12, 13),
   fontWeight: 600,
   color: COLORS.bunker,
 
@@ -102,8 +103,8 @@ export const mediumSecondaryContainedButton = {
   },
 }
 export const largeSecondaryContainedButton = {
-  fontSize: 14,
-  lineHeight: "20px",
+  fontSize: pxToRem(14),
+  lineHeight: lh(20, 14),
   fontWeight: 600,
   color: COLORS.bunker,
 
@@ -123,8 +124,8 @@ export const largeSecondaryContainedButton = {
 }
 
 export const smallTextButton = {
-  fontSize: 11,
-  lineHeight: "16px",
+  fontSize: pxToRem(11),
+  lineHeight: lh(16, 11),
   fontWeight: 600,
   color: COLORS.bunker,
 
@@ -143,8 +144,8 @@ export const smallTextButton = {
   },
 }
 export const mediumTextButton = {
-  fontSize: 13,
-  lineHeight: "12px",
+  fontSize: pxToRem(13),
+  lineHeight: lh(12, 13),
   fontWeight: 600,
   color: COLORS.bunker,
 
@@ -163,8 +164,8 @@ export const mediumTextButton = {
   },
 }
 export const largeTextButton = {
-  fontSize: 14,
-  lineHeight: "20px",
+  fontSize: pxToRem(14),
+  lineHeight: lh(20, 14),
   fontWeight: 600,
   color: COLORS.bunker,
 
@@ -184,8 +185,8 @@ export const largeTextButton = {
 }
 
 export const smallOutlinedButton = {
-  fontSize: 11,
-  lineHeight: "16px",
+  fontSize: pxToRem(11),
+  lineHeight: lh(16, 11),
   fontWeight: 600,
   color: COLORS.bunker,
 
@@ -206,8 +207,8 @@ export const smallOutlinedButton = {
   },
 }
 export const mediumOutlinedButton = {
-  fontSize: 13,
-  lineHeight: "12px",
+  fontSize: pxToRem(13),
+  lineHeight: lh(12, 13),
   fontWeight: 600,
   color: COLORS.bunker,
 
@@ -228,8 +229,8 @@ export const mediumOutlinedButton = {
   },
 }
 export const largeOutlinedButton = {
-  fontSize: 14,
-  lineHeight: "20px",
+  fontSize: pxToRem(14),
+  lineHeight: lh(20, 14),
   fontWeight: 600,
   color: COLORS.bunker,
 
@@ -251,8 +252,8 @@ export const largeOutlinedButton = {
 }
 
 export const smallOutlinedSecondaryButton = {
-  fontSize: 11,
-  lineHeight: "16px",
+  fontSize: pxToRem(11),
+  lineHeight: lh(16, 11),
   fontWeight: 600,
   color: COLORS.bunker,
 
@@ -273,8 +274,8 @@ export const smallOutlinedSecondaryButton = {
   },
 }
 export const mediumOutlinedSecondaryButton = {
-  fontSize: 13,
-  lineHeight: "12px",
+  fontSize: pxToRem(13),
+  lineHeight: lh(12, 13),
   fontWeight: 600,
   color: COLORS.bunker,
 
@@ -295,8 +296,8 @@ export const mediumOutlinedSecondaryButton = {
   },
 }
 export const largeOutlinedSecondaryButton = {
-  fontSize: 14,
-  lineHeight: "20px",
+  fontSize: pxToRem(14),
+  lineHeight: lh(20, 14),
   fontWeight: 600,
   color: COLORS.bunker,
 

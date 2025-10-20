@@ -11,6 +11,7 @@ import {
 import { useTranslation } from "react-i18next"
 
 import countries from "@/config/countries.json"
+import { lh, pxToRem } from "@/theme/units"
 
 const MyPopper = (props: JSX.IntrinsicAttributes & PopperProps) => (
   <Popper
@@ -28,9 +29,9 @@ const MyPopper = (props: JSX.IntrinsicAttributes & PopperProps) => (
       },
       "& .MuiAutocomplete-noOptions": {
         padding: "6px 12px",
-        fontSize: 14,
+        fontSize: pxToRem(14),
+        lineHeight: lh(20, 14),
         fontWeight: 500,
-        lineHeight: "20px",
       },
     }}
     placement="bottom-start"

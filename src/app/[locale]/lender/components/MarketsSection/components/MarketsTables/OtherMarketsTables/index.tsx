@@ -33,6 +33,7 @@ import { LenderMarketDashboardSections } from "@/store/slices/lenderDashboardSli
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { COLORS } from "@/theme/colors"
 import { theme } from "@/theme/theme"
+import { lh, pxToRem } from "@/theme/units"
 import {
   statusComparator,
   tokenAmountComparator,
@@ -256,10 +257,10 @@ export const OtherMarketsTables = ({
               size="small"
               variant="text"
               sx={{
-                fontSize: "13px",
+                fontSize: pxToRem(13),
+                lineHeight: lh(20, 13),
                 textDecoration: "underline",
                 color: "#00008B",
-                lineHeight: "20px",
                 fontWeight: 500,
                 minWidth: "calc(100% - 1px)",
                 width: "calc(100% - 1px)",

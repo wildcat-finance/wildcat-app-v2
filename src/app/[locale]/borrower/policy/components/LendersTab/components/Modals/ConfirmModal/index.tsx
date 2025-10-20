@@ -15,6 +15,7 @@ import { LinkGroup } from "@/components/LinkComponent"
 import { EtherscanBaseUrl } from "@/config/network"
 import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 import { trimAddress } from "@/utils/formatters"
 
 import { EditLenderFlowStatuses } from "../../../interface"
@@ -152,8 +153,8 @@ export const ConfirmModal = ({
         sx={{
           height: "32px",
           width: "69px",
-          fontSize: "13px",
-          lineHeight: "16px",
+          fontSize: pxToRem(13),
+          lineHeight: lh(16, 13),
           fontWeight: 600,
         }}
       >

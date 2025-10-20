@@ -24,6 +24,7 @@ import {
 } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { COLORS } from "@/theme/colors"
 import { theme } from "@/theme/theme"
+import { lh, pxToRem } from "@/theme/units"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
 import {
@@ -212,8 +213,8 @@ export const LenderTerminatedMarketsTables = ({
               size="small"
               variant="text"
               sx={{
-                fontSize: "13px",
-                lineHeight: "20px",
+                fontSize: pxToRem(13),
+                lineHeight: lh(20, 13),
                 textDecoration: "underline",
                 color: "#00008B",
                 fontWeight: 500,
