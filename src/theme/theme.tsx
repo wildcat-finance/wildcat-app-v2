@@ -1085,6 +1085,22 @@ export const theme = createTheme({
 
             "& .MuiToolbar-root": {
               padding: "0 16px",
+
+              "& .MuiTablePagination-selectLabel": {
+                fontSize: pxToRem(13),
+                lineHeight: lh(20, 13),
+              },
+
+              "& .MuiTablePagination-input": {
+                margin: "0 10px",
+                fontSize: pxToRem(13),
+                lineHeight: lh(20, 13),
+              },
+
+              "& .MuiTablePagination-selectIcon": {
+                top: 0,
+                transform: "translate(-4px, 3.5px) scale(0.8)",
+              },
             },
 
             "& .MuiPagination-root": {
