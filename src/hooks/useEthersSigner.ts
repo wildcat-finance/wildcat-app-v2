@@ -110,11 +110,13 @@ export function useEthersProvider({
   const { data: walletClient } = useWalletClient({ chainId: targetChainId })
   const publicClient = usePublicClient({ chainId: targetChainId })
 
-  const client = walletClient ?? publicClient
+  const client = walletClient?.chain ? walletClient : publicClient
 
   return useMemo(
     () =>
-      client ? clientToWalletInfo(client, targetChainId) : { targetChainId },
+      client?.chain
+        ? clientToWalletInfo(client, targetChainId)
+        : { targetChainId },
     [client],
   )
 }
