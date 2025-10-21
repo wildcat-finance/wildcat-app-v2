@@ -200,20 +200,18 @@ export function useGetLenderWithdrawals(
       ...(withdrawals.completeWithdrawals ?? []),
       ...(withdrawals.expiredPendingWithdrawals ?? []),
     ]
-    const expiredPendingWithdrawals = allWithdrawals.filter(
-      (wd) =>
-        wd.expiry !== market.pendingWithdrawalExpiry &&
-        wd.expiry <= Math.floor(Date.now() / 1000) &&
-        wd.normalizedAmountOwed.gt(0),
-    )
-    const activeWithdrawal = allWithdrawals.find(
-      (wd) =>
-        wd.expiry === market.pendingWithdrawalExpiry &&
-        wd.status === BatchStatus.Pending,
-    )
-    const completeWithdrawals = allWithdrawals.filter(
-      (wd) => wd.status === BatchStatus.Complete,
-    )
+    const expiredPendingWithdrawals: LenderWithdrawalStatus[] = []
+    let activeWithdrawal: LenderWithdrawalStatus | undefined
+    const completeWithdrawals: LenderWithdrawalStatus[] = []
+    for (const wd of allWithdrawals) {
+      if (wd.status === BatchStatus.Pending) {
+        activeWithdrawal = wd
+      } else if (wd.status === BatchStatus.Complete && wd.isCompleted) {
+        completeWithdrawals.push(wd)
+      } else {
+        expiredPendingWithdrawals.push(wd)
+      }
+    }
 
     const activeTotalPendingAmount =
       activeWithdrawal?.requests.reduce(
