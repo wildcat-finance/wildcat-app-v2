@@ -31,6 +31,7 @@ import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/s
 import { EtherscanBaseUrl } from "@/config/network"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 import {
   DATE_FORMAT,
   formatBlockTimestamp,
@@ -460,7 +461,7 @@ export const MarketAuthorisedLenders = ({
                 padding: "0 8px",
               },
               "& .MuiDataGrid-columnHeaderTitle": {
-                fontSize: 11,
+                fontSize: pxToRem(11),
               },
             }}
             rows={authorizedRows}
@@ -495,7 +496,7 @@ export const MarketAuthorisedLenders = ({
                   padding: "0 8px",
                 },
                 "& .MuiDataGrid-columnHeaderTitle": {
-                  fontSize: 11,
+                  fontSize: pxToRem(11),
                 },
               }}
               rows={deauthorizedRows}

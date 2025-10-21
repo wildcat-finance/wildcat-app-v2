@@ -13,6 +13,7 @@ import Image from "next/image"
 import { useTranslation } from "react-i18next"
 
 import { TokenInfo } from "@/app/api/tokens-list/interface"
+import { lh, pxToRem } from "@/theme/units"
 
 import { useTokensList } from "./hooks/useTokensList"
 import { TokenSelectorProps } from "./interface"
@@ -33,9 +34,9 @@ const MyPopper = (props: JSX.IntrinsicAttributes & PopperProps) => (
       },
       "& .MuiAutocomplete-noOptions": {
         padding: "6px 12px",
-        fontSize: 14,
+        fontSize: pxToRem(14),
+        lineHeight: lh(20, 14),
         fontWeight: 500,
-        lineHeight: "20px",
       },
     }}
     placement="bottom-start"
