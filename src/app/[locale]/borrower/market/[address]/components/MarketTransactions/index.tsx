@@ -7,6 +7,11 @@ import { useTranslation } from "react-i18next"
 import { MaturityModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MaturityModal"
 import { MinimumDepositModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MinimumDepositModal"
 import { TransactionBlock } from "@/components/TransactionBlock"
+import { useAppDispatch } from "@/store/hooks"
+import {
+  setCheckBlock,
+  setSidebarHighlightState,
+} from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { MarketTransactionsProps } from "./interface"
@@ -23,6 +28,7 @@ export const MarketTransactions = ({
   holdTheMarket,
 }: MarketTransactionsProps) => {
   const { t } = useTranslation()
+  const dispatch = useAppDispatch()
 
   const disableRepay = market.isClosed
   const disableBorrow =
@@ -57,6 +63,21 @@ export const MarketTransactions = ({
   ).flatMap((batch) => batch.requests.map(() => ({}))).length
 
   const isOngoingWDsZero = ongoingWDs === 0
+
+  const handleClickWithdrawals = () => {
+    dispatch(setCheckBlock(4))
+    dispatch(
+      setSidebarHighlightState({
+        borrowRepay: false,
+        statusDetails: false,
+        marketSummary: false,
+        withdrawals: true,
+        lenders: false,
+        mla: false,
+        marketHistory: false,
+      }),
+    )
+  }
 
   return (
     <>
@@ -123,8 +144,9 @@ export const MarketTransactions = ({
 
           <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             <Typography variant="title3">
-              There are {ongoingWDs} active withdrawal requests from lenders in
-              this market.
+              {t("borrowerMarketDetails.transactions.ongoingWDs.title", {
+                ongoingWDs,
+              })}
             </Typography>
 
             <Button
@@ -132,9 +154,9 @@ export const MarketTransactions = ({
               color="secondary"
               size="small"
               sx={{ width: "fit-content" }}
-              // onClick={handleChangeSection}
+              onClick={handleClickWithdrawals}
             >
-              Go to Withdrawals
+              {t("borrowerMarketDetails.transactions.ongoingWDs.button")}
             </Button>
           </Box>
         </>

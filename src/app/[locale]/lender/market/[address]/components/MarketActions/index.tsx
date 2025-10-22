@@ -101,22 +101,32 @@ export const MarketActions = ({
 
   const getWithdrawalsStatus = () => {
     if (isOngoingWDsZero && isClaimableZero) {
-      return "You have nothing to claim right now."
+      return t("lenderMarketDetails.transactions.claim.title.claim", {
+        claim: "nothing",
+      })
     }
     if (!isOngoingWDsZero && isClaimableZero) {
-      return `You have ${ongoingWDs} active withdrawal request(s) currently processing.`
+      return t("lenderMarketDetails.transactions.claim.title.ongoingWDs", {
+        ongoingWDs,
+      })
     }
     if (isOngoingWDsZero && !isClaimableZero) {
-      return `You have ${formatTokenWithCommas(
-        withdrawals.totalClaimableAmount,
-      )} 
-              ${market.underlyingToken.symbol} to claim right now.`
+      return t("lenderMarketDetails.transactions.claim.title.claim", {
+        claim: `${formatTokenWithCommas(withdrawals.totalClaimableAmount)} ${
+          market.underlyingToken.symbol
+        }`,
+      })
     }
     if (!isOngoingWDsZero && !isClaimableZero) {
-      return `You have ${ongoingWDs} ongoing withdrawal request(s) and ${formatTokenWithCommas(
-        withdrawals.totalClaimableAmount,
-      )} 
-              ${market.underlyingToken.symbol} to claim right now.`
+      return t(
+        "lenderMarketDetails.transactions.claim.title.claimAndOngoingWDs",
+        {
+          ongoingWDs,
+          claim: `${formatTokenWithCommas(withdrawals.totalClaimableAmount)} ${
+            market.underlyingToken.symbol
+          }`,
+        },
+      )
     }
 
     return ""
@@ -229,7 +239,9 @@ export const MarketActions = ({
                 sx={{ width: "fit-content" }}
                 onClick={handleChangeSection}
               >
-                Go to Withdrawals
+                {t(
+                  "lenderMarketDetails.transactions.claim.buttons.withdrawals",
+                )}
               </Button>
             )}
 
