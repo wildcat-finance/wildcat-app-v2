@@ -62,6 +62,7 @@
     "react-toastify": "^10.0.5",
     "react-use": "^17.5.0",
     "redux-persist": "^6.0.0",
+    "ts-pattern": "^5.7.0",
     "rehype-raw": "^7.0.0",
     "rehype-sanitize": "^6.0.0",
     "remark-gfm": "^4.0.1",

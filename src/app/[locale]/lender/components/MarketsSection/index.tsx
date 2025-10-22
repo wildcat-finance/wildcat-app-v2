@@ -10,6 +10,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
+import { match } from "ts-pattern"
 import { useAccount } from "wagmi"
 
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
@@ -506,94 +507,112 @@ export const MarketsSection = () => {
         </MobileMarketSectionHeader>
       )}
 
-      {marketSection === LenderMarketDashboardSections.ACTIVE &&
-        isConnected &&
-        !noActiveMarkets &&
-        !noMarketsAtAll &&
-        !isWrongNetwork && (
-          <LenderActiveMarketsTables
-            marketAccounts={filteredActiveLenderMarketAccounts}
-            borrowers={borrowers ?? []}
-            isLoading={isLoading}
-            filters={filters}
-          />
-        )}
+      {match({
+        section: marketSection,
+        noActiveMarkets,
+        noMarketsAtAll,
+        isWrongNetwork,
+        isLoading,
+      })
+        .with(
+          {
+            section: LenderMarketDashboardSections.ACTIVE,
+            noActiveMarkets: false,
+            noMarketsAtAll: false,
+            isWrongNetwork: false,
+          },
+          () => (
+            <LenderActiveMarketsTables
+              marketAccounts={filteredActiveLenderMarketAccounts}
+              borrowers={borrowers ?? []}
+              isLoading={isLoading}
+              filters={filters}
+            />
+          ),
+        )
+        .with(
+          {
+            section: LenderMarketDashboardSections.TERMINATED,
+            noMarketsAtAll: false,
+            isWrongNetwork: false,
+          },
+          () => (
+            <LenderTerminatedMarketsTables
+              marketAccounts={filteredTerminatedMarketAccounts}
+              borrowers={borrowers ?? []}
+              isLoading={isLoading}
+              filters={filters}
+            />
+          ),
+        )
+        .with(
+          {
+            section: LenderMarketDashboardSections.OTHER,
+            isWrongNetwork: false,
+          },
+          () => (
+            <OtherMarketsTables
+              marketAccounts={filteredOtherMarketAccounts}
+              borrowers={borrowers ?? []}
+              isLoading={isLoading}
+              filters={filters}
+            />
+          ),
+        )
+        .with(
+          {
+            section: LenderMarketDashboardSections.ACTIVE,
+            noActiveMarkets: true,
+            noMarketsAtAll: false,
+            isLoading: false,
+          },
+          () => (
+            <Box sx={{ width: "100%", padding: "0 24px", marginTop: "24px" }}>
+              <Box
+                sx={{
+                  width: "100%",
+                  padding: "40px 24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  backgroundColor: COLORS.hintOfRed,
+                  borderRadius: "16px",
+                }}
+              >
+                <Typography variant="text1" marginBottom="6px">
+                  {t("dashboard.markets.noMarkets.lenderAlert.title")}
+                </Typography>
+                <Typography
+                  variant="text3"
+                  color={COLORS.santasGrey}
+                  marginBottom="24px"
+                >
+                  {t("dashboard.markets.noMarkets.lenderAlert.subtitle")}
+                </Typography>
 
-      {marketSection === LenderMarketDashboardSections.TERMINATED &&
-        isConnected &&
-        !noMarketsAtAll &&
-        !isWrongNetwork && (
-          <LenderTerminatedMarketsTables
-            marketAccounts={filteredTerminatedMarketAccounts}
-            borrowers={borrowers ?? []}
-            isLoading={isLoading}
-            filters={filters}
-          />
-        )}
-
-      {marketSection === LenderMarketDashboardSections.OTHER &&
-        !isWrongNetwork && (
-          <OtherMarketsTables
-            marketAccounts={filteredOtherMarketAccounts}
-            borrowers={borrowers ?? []}
-            isLoading={isLoading}
-            filters={filters}
-          />
-        )}
+                <Button
+                  variant="contained"
+                  sx={{ width: "fit-content", padding: "8px 12px" }}
+                  onClick={() =>
+                    dispatch(
+                      setMarketSection(LenderMarketDashboardSections.OTHER),
+                    )
+                  }
+                >
+                  <Typography
+                    variant="text4"
+                    color={COLORS.white}
+                    sx={{ fontWeight: 600 }}
+                  >
+                    {t("dashboard.markets.noMarkets.lenderAlert.button")}
+                  </Typography>
+                </Button>
+              </Box>
+            </Box>
+          ),
+        )
+        .otherwise(() => null)}
 
       {isWrongNetwork && <WrongNetworkAlert />}
-
-      {noActiveMarkets &&
-        !isLoading &&
-        !noMarketsAtAll &&
-        marketSection === LenderMarketDashboardSections.ACTIVE && (
-          <Box
-            sx={{
-              width: "100%",
-              padding: { xs: "4px 0 0", md: "24px 24px 0px" },
-            }}
-          >
-            <Box
-              sx={{
-                width: "100%",
-                padding: "40px 24px",
-                display: "flex",
-                flexDirection: "column",
-                backgroundColor: { xs: COLORS.white, md: COLORS.hintOfRed },
-                borderRadius: "16px",
-              }}
-            >
-              <Typography variant="text1" marginBottom="6px">
-                {t("dashboard.markets.noMarkets.lenderAlert.title")}
-              </Typography>
-              <Typography
-                variant="text3"
-                color={COLORS.santasGrey}
-                marginBottom="24px"
-              >
-                {t("dashboard.markets.noMarkets.lenderAlert.subtitle")}
-              </Typography>
-
-              <Button
-                variant="contained"
-                sx={{ width: "fit-content", padding: "8px 12px" }}
-                onClick={() =>
-                  dispatch(
-                    setMarketSection(LenderMarketDashboardSections.OTHER),
-                  )
-                }
-              >
-                <Typography
-                  variant="text4"
-                  color={COLORS.white}
-                  sx={{ fontWeight: 600 }}
-                >
-                  {t("dashboard.markets.noMarkets.lenderAlert.button")}
-                </Typography>
-              </Button>
-            </Box>
-          </Box>
-        )}
     </Box>
   )
 }

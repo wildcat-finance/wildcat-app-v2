@@ -1,24 +1,11 @@
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
+import { match } from "ts-pattern"
 
 import { checkIsWrongNetwork } from "@/hooks/useCurrentNetwork"
 import { ROUTES } from "@/routes"
+import { isNotPublicPath } from "@/utils/paths"
 
-// Undefined is for cases where should be no redirects
-export type RedirectToPath = typeof ROUTES.agreement | "/" | null
-
-const NO_WALLET_RESTRICTED_PATHS = [
-  ROUTES.agreement,
-  ROUTES.borrower.createMarket,
-  ROUTES.borrower.market,
-  ROUTES.borrower.lendersList,
-]
-
-const isNotPublicPath = (pathname: string) => {
-  if (pathname.startsWith(ROUTES.borrower.market)) {
-    return true
-  }
-  return NO_WALLET_RESTRICTED_PATHS.includes(pathname)
-}
+type RedirectToPath = string | null
 
 // Returns undefined when no redirect needed
 export const getRedirectPath = (params: {
@@ -30,28 +17,44 @@ export const getRedirectPath = (params: {
   const { connectedAddress, pathname, isSignedSA, currentChainId } = params
   const isWrongNetwork = checkIsWrongNetwork(currentChainId)
   const isAgreementPath = pathname === ROUTES.agreement
+  const isRestrictedPath = isNotPublicPath(pathname)
 
-  // If wallet is NOT CONNECTED or WRONG NETWORK
-  // Redirect from restricted pages to root
-  if ((!connectedAddress || isWrongNetwork) && isNotPublicPath(pathname)) {
-    return "/"
-  }
-
-  // If wallet CONNECTED and SIGNED SA
-  // Redirect from Agreement page to Root url
-  if (isAgreementPath && isSignedSA) {
-    return "/"
-  }
-
-  // If wallet CONNECTED and NOT SIGNED SA
-  // Redirect to Agreement page
-  if (!isAgreementPath && connectedAddress && !isSignedSA) {
-    if (isWrongNetwork) {
-      return "/"
-    }
-
-    return ROUTES.agreement
-  }
-
-  return null
+  return match({
+    hasWallet: !!connectedAddress,
+    isWrongNetwork,
+    isAgreementPath,
+    isSignedSA,
+    isRestrictedPath,
+  })
+    .with(
+      {
+        hasWallet: false,
+        isRestrictedPath: true,
+      },
+      () => "/" as const,
+    )
+    .with(
+      {
+        isWrongNetwork: true,
+        isRestrictedPath: true,
+      },
+      () => "/" as const,
+    )
+    .with(
+      {
+        isAgreementPath: true,
+        isSignedSA: true,
+      },
+      () => "/" as const,
+    )
+    .with(
+      {
+        hasWallet: true,
+        isAgreementPath: false,
+        isSignedSA: false,
+      },
+      ({ isWrongNetwork: wrongNetwork }) =>
+        wrongNetwork ? "/" : ROUTES.agreement,
+    )
+    .otherwise(() => null)
 }

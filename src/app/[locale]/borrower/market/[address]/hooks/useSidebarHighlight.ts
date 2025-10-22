@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 
 import { useDispatch } from "react-redux"
+import { match } from "ts-pattern"
 
 import { setSidebarHighlightState } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 
@@ -8,8 +9,8 @@ const useSidebarHighlight = (checked: number) => {
   const dispatch = useDispatch()
 
   useEffect(() => {
-    switch (checked) {
-      case 1:
+    match(checked)
+      .with(1, () => {
         dispatch(
           setSidebarHighlightState({
             borrowRepay: true,
@@ -21,8 +22,8 @@ const useSidebarHighlight = (checked: number) => {
             marketHistory: false,
           }),
         )
-        break
-      case 2:
+      })
+      .with(2, () => {
         dispatch(
           setSidebarHighlightState({
             borrowRepay: false,
@@ -34,8 +35,8 @@ const useSidebarHighlight = (checked: number) => {
             marketHistory: false,
           }),
         )
-        break
-      case 3:
+      })
+      .with(3, () => {
         dispatch(
           setSidebarHighlightState({
             borrowRepay: false,
@@ -47,8 +48,8 @@ const useSidebarHighlight = (checked: number) => {
             marketHistory: false,
           }),
         )
-        break
-      case 4:
+      })
+      .with(4, () => {
         dispatch(
           setSidebarHighlightState({
             borrowRepay: false,
@@ -60,8 +61,8 @@ const useSidebarHighlight = (checked: number) => {
             marketHistory: false,
           }),
         )
-        break
-      case 5:
+      })
+      .with(5, () => {
         dispatch(
           setSidebarHighlightState({
             borrowRepay: false,
@@ -73,8 +74,8 @@ const useSidebarHighlight = (checked: number) => {
             marketHistory: false,
           }),
         )
-        break
-      case 6:
+      })
+      .with(6, () => {
         dispatch(
           setSidebarHighlightState({
             borrowRepay: false,
@@ -86,8 +87,8 @@ const useSidebarHighlight = (checked: number) => {
             marketHistory: false,
           }),
         )
-        break
-      case 7:
+      })
+      .with(7, () => {
         dispatch(
           setSidebarHighlightState({
             borrowRepay: false,
@@ -99,21 +100,20 @@ const useSidebarHighlight = (checked: number) => {
             marketHistory: true,
           }),
         )
-        break
-      default:
+      })
+      .otherwise(() => {
         dispatch(
           setSidebarHighlightState({
-            borrowRepay: false,
+            borrowRepay: true,
             statusDetails: false,
             marketSummary: false,
             withdrawals: false,
             lenders: false,
-            mla: true,
-            marketHistory: true,
+            mla: false,
+            marketHistory: false,
           }),
         )
-        break
-    }
+      })
   }, [checked, dispatch])
 }
 
