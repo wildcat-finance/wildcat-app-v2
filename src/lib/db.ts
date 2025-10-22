@@ -20,7 +20,6 @@ import {
   BorrowerProfile,
 } from "@/app/api/profiles/interface"
 import { BorrowerProfileUpdate } from "@/app/api/profiles/updates/interface"
-import { TargetChainId } from "@/config/network"
 
 import { MlaTemplateField } from "./mla"
 import { getProviderForServer } from "./provider"
@@ -29,12 +28,13 @@ export const prisma = new PrismaClient()
 
 export async function findBorrowerWithPendingInvitation(
   address: string,
+  chainId: SupportedChainId,
 ): Promise<BorrowerInvitation | undefined> {
   address = address.toLowerCase()
   const profile = await prisma.borrower.findFirst({
     where: {
       address: address.toLowerCase(),
-      chainId: TargetChainId,
+      chainId,
       NOT: {
         invitation: null,
       },
@@ -52,14 +52,14 @@ export async function findBorrowerWithPendingInvitation(
   if (timeSigned) {
     if (registeredOnChain) return undefined
     const isRegistered = await getArchControllerContract(
-      TargetChainId,
-      getProviderForServer(),
+      chainId,
+      getProviderForServer(chainId),
     ).isRegisteredBorrower(address)
     if (isRegistered) {
       await prisma.borrower.update({
         where: {
           chainId_address: {
-            chainId: TargetChainId,
+            chainId,
             address,
           },
         },
@@ -91,6 +91,7 @@ export async function findBorrowerWithPendingInvitation(
 
 async function checkRegisteredBorrowers(
   provider: SignerOrProvider,
+  chainId: SupportedChainId,
   borrowers: string[],
 ): Promise<boolean[]> {
   // eslint-disable-next-line camelcase
@@ -98,10 +99,7 @@ async function checkRegisteredBorrowers(
     defaultAbiCoder
       .encode(
         ["address", "address[]"],
-        [
-          getDeploymentAddress(TargetChainId, "WildcatArchController"),
-          borrowers,
-        ],
+        [getDeploymentAddress(chainId, "WildcatArchController"), borrowers],
       )
       .slice(2),
   )
@@ -109,12 +107,12 @@ async function checkRegisteredBorrowers(
   return defaultAbiCoder.decode(["bool[]"], result)[0]
 }
 
-export async function findBorrowersWithPendingInvitations(): Promise<
-  BorrowerInvitation[]
-> {
+export async function findBorrowersWithPendingInvitations(
+  chainId: SupportedChainId,
+): Promise<BorrowerInvitation[]> {
   const profiles = await prisma.borrower.findMany({
     where: {
-      chainId: TargetChainId,
+      chainId,
       NOT: {
         invitation: null,
       },
@@ -152,12 +150,14 @@ export async function findBorrowersWithPendingInvitations(): Promise<
     .filter(Boolean) as BorrowerInvitation[]
 }
 
-export async function tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered() {
+export async function tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered(
+  chainId: SupportedChainId,
+) {
   // Find all borrowers that have an invitation, have signed the service agreement
   // but are not registered on chain
   const borrowerInvitations = await prisma.borrower.findMany({
     where: {
-      chainId: TargetChainId,
+      chainId,
       NOT: {
         invitation: null,
         serviceAgreementSignature: null,
@@ -175,7 +175,8 @@ export async function tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered(
     `Found ${borrowerAddresses.length} borrowers with pending invitations`,
   )
   const registeredBorrowers = await checkRegisteredBorrowers(
-    getProviderForServer(),
+    getProviderForServer(chainId),
+    chainId,
     borrowerAddresses,
   )
   const borrowersToUpdate = borrowerAddresses.filter(
@@ -186,7 +187,7 @@ export async function tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered(
     borrowersToUpdate.map((borrower) =>
       prisma.borrower.update({
         where: {
-          chainId_address: { chainId: TargetChainId, address: borrower },
+          chainId_address: { chainId, address: borrower },
         },
         data: { registeredOnChain: true },
       }),
@@ -195,13 +196,14 @@ export async function tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered(
 }
 
 export async function getBorrowerProfileUpdates(
+  chainId: SupportedChainId,
   address?: string,
   onlyPending = true,
 ): Promise<BorrowerProfileUpdate[]> {
   const data = await prisma.borrowerProfileUpdateRequest.findMany({
     where: {
       ...(address && { address: address.toLowerCase() }),
-      chainId: TargetChainId,
+      chainId,
       ...(onlyPending && {
         acceptedAt: null,
         rejectedAt: null,
@@ -229,7 +231,7 @@ export async function getBorrowerProfileUpdates(
       linkedin,
       email,
       address: profileAddress,
-      chainId,
+      chainId: accountChainId,
     }) => ({
       updateId: id,
       createdAt: createdAt.getTime(),
@@ -239,7 +241,7 @@ export async function getBorrowerProfileUpdates(
 
       update: {
         address: profileAddress,
-        chainId,
+        chainId: accountChainId,
         name: name || undefined,
         alias: alias || undefined,
         description: description || undefined,
@@ -259,6 +261,7 @@ export async function getBorrowerProfileUpdates(
 
 export async function getSignedMasterLoanAgreement(
   market: string,
+  chainId: SupportedChainId,
 ): Promise<
   MakeOptional<MasterLoanAgreementResponse, "borrowerSignature"> | undefined
 > {
@@ -269,7 +272,7 @@ export async function getSignedMasterLoanAgreement(
     .findUnique({
       where: {
         chainId_market: {
-          chainId: TargetChainId,
+          chainId,
           market,
         },
       },
@@ -295,7 +298,7 @@ export async function getSignedMasterLoanAgreement(
     await prisma.mlaSignature
       .findFirst({
         where: {
-          chainId: TargetChainId,
+          chainId,
           market,
           address: mla.borrower,
         },
@@ -316,11 +319,12 @@ export async function getSignedMasterLoanAgreement(
 
 export async function getBorrowerProfile(
   address: string,
+  chainId: SupportedChainId,
 ): Promise<BorrowerProfile | undefined> {
   const borrower = await prisma.borrower.findFirst({
     where: {
       address: address.toLowerCase(),
-      chainId: TargetChainId,
+      chainId,
     },
   })
   if (!borrower) return undefined

@@ -11,12 +11,11 @@ import { useAccount } from "wagmi"
 
 import { BorrowerMarketsTable } from "@/app/[locale]/borrower/components/MarketsTables/BorrowerMarketsTable"
 import { OthersMarketsTable } from "@/app/[locale]/borrower/components/MarketsTables/OthersMarketsTable"
-import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetOthersMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetOthersMarkets"
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketsTablesContainer } from "@/app/[locale]/borrower/page-style"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-import { useGetController } from "@/hooks/useGetController"
+import { useGetIsRegisteredBorrower } from "@/hooks/useIsRegisteredBorrower"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   setActiveAmount,
@@ -87,8 +86,7 @@ export const MarketsTables = ({
   const { isWrongNetwork } = useCurrentNetwork()
 
   const { data: borrowers } = useBorrowerNames()
-  const { data: controller } = useGetController()
-  const isRegisteredBorrower = controller?.isRegisteredBorrower
+  const { data: isRegisteredBorrower } = useGetIsRegisteredBorrower()
 
   const filterByMarketName = useAppSelector(
     (state) => state.marketsOverviewSidebar.marketName,

@@ -7,12 +7,11 @@ import {
   OpenTermHooks,
 } from "@wildcatfi/wildcat-sdk/dist/access"
 
+import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetPolicyLendersState } from "@/store/slices/policyLendersSlice/policyLendersSlice"
-
-import { GET_POLICY_KEY } from "../../hooks/useGetPolicy"
 
 export type SubmitPolicyUpdatesInputs = {
   addLenders?: string[]
@@ -24,7 +23,7 @@ export type SubmitPolicyUpdatesInputs = {
 export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
   const signer = useEthersSigner()
   const client = useQueryClient()
-  const { isTestnet } = useCurrentNetwork()
+  const { isTestnet, targetChainId } = useCurrentNetwork()
   const { connected: isConnectedToSafe, sdk: gnosisSafeSDK } = useSafeAppsSDK()
   const dispatch = useAppDispatch()
 
@@ -141,7 +140,9 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       await send()
     },
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: [GET_POLICY_KEY] })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_POLICY(targetChainId, policy?.address),
+      })
       dispatch(resetPolicyLendersState())
     },
     onError: (error) => console.log(error),

@@ -8,9 +8,9 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
+import { QueryKeys } from "@/config/query-keys"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { GET_MARKET_KEY } from "@/hooks/useGetMarket"
-import { GET_MARKET_ACCOUNT_KEY } from "@/hooks/useGetMarketAccount"
 import { isUSDTLikeToken } from "@/utils/constants"
 
 export const useDeposit = (
@@ -20,6 +20,7 @@ export const useDeposit = (
   const signer = useEthersSigner()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
+  const { targetChainId } = useCurrentNetwork()
 
   const waitForTransaction = async (safeTxHash: string) => {
     if (!sdk) throw Error("No sdk found")
@@ -36,6 +37,13 @@ export const useDeposit = (
   return useMutation({
     mutationFn: async (tokenAmount: TokenAmount) => {
       if (!marketAccount || !signer) throw Error()
+      if (marketAccount.market.chainId !== targetChainId) {
+        throw Error(
+          `Market chainId does not match target chainId:` +
+            ` Market ${marketAccount.market.chainId},` +
+            ` Target ${targetChainId}`,
+        )
+      }
 
       const step = marketAccount.previewDeposit(tokenAmount)
 
@@ -120,8 +128,18 @@ export const useDeposit = (
       await deposit()
     },
     onSuccess() {
-      client.invalidateQueries({ queryKey: [GET_MARKET_KEY] })
-      client.invalidateQueries({ queryKey: [GET_MARKET_ACCOUNT_KEY] })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET(
+          marketAccount.market.chainId,
+          marketAccount.market.address,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
+          marketAccount.market.chainId,
+          marketAccount.market.address,
+        ),
+      })
     },
     onError(error) {
       console.log(error)

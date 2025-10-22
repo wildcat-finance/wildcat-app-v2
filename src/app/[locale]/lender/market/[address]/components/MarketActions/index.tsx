@@ -5,7 +5,6 @@ import {
   DepositStatus,
   MarketAccount,
   QueueWithdrawalStatus,
-  SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
@@ -17,8 +16,8 @@ import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import { TransactionBlock } from "@/components/TransactionBlock"
-import { TargetChainId } from "@/config/network"
 import { useMarketMla } from "@/hooks/useMarketMla"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -53,6 +52,7 @@ export const MarketActions = ({
 }: MarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
+  const { isTestnet } = useSelectedNetwork()
 
   const { data: mla, isLoading: mlaLoading } = useMarketMla(market.address)
 
@@ -73,7 +73,7 @@ export const MarketActions = ({
 
   const showFaucet =
     hideDeposit &&
-    TargetChainId === SupportedChainId.Sepolia &&
+    isTestnet &&
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.raw.isZero()
 

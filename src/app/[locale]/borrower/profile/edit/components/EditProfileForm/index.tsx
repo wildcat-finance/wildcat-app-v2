@@ -37,8 +37,8 @@ import CountriesList from "@/config/countries.json"
 import ELFsByCountry from "@/config/elfs-by-country.json"
 import JurisdictionsByCountry from "@/config/jurisdictions-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
-import { TargetChainId } from "@/config/network"
 import { useAuthToken, useLogin } from "@/hooks/useApiAuth"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { mockedNaturesOptions } from "@/mocks/mocks"
 import { COLORS } from "@/theme/colors"
 
@@ -68,7 +68,7 @@ const ProfileKeys = [
   "physicalAddress",
   "email",
   "additionalUrls",
-] as (keyof BorrowerProfileInput)[]
+] as (keyof Omit<BorrowerProfileInput, "chainId">)[]
 
 export default function EditProfileForm({
   address,
@@ -81,6 +81,7 @@ export default function EditProfileForm({
   isAdmin,
   sx,
 }: EditProfileFormProps) {
+  const { chainId: targetChainId } = useSelectedNetwork()
   const { t } = useTranslation()
 
   const token = useAuthToken()
@@ -118,6 +119,7 @@ export default function EditProfileForm({
 
   const publicInfo: BorrowerProfileInput = {
     address: address as string,
+    chainId: targetChainId,
     avatar,
     name: getPublicValues().legalName,
     alias: getPublicValues().alias,
@@ -184,6 +186,7 @@ export default function EditProfileForm({
   const handleSendUpdate = () => {
     const changedValues: BorrowerProfileInput = {
       address: address as string,
+      chainId: targetChainId,
     }
     if (avatar && avatar !== publicData?.avatar) {
       changedValues.avatar = avatar
@@ -386,10 +389,10 @@ export default function EditProfileForm({
             placeholder={t("borrowerProfile.edit.public.name.placeholder")}
             error={Boolean(publicErrors.legalName)}
             disabled={!isAdmin}
-            // disabled={TargetChainId === SupportedChainId.Mainnet}
+            // disabled={targetChainId === SupportedChainId.Mainnet}
             helperText={
               publicErrors.legalName?.message ??
-              (TargetChainId === SupportedChainId.Mainnet
+              (targetChainId === SupportedChainId.Mainnet
                 ? t("borrowerProfile.edit.public.name.helperText")
                 : undefined)
             }
@@ -411,10 +414,10 @@ export default function EditProfileForm({
             placeholder={t("borrowerProfile.edit.public.alias.placeholder")}
             error={Boolean(publicErrors.alias)}
             disabled={!isAdmin}
-            // disabled={TargetChainId === SupportedChainId.Mainnet}
+            // disabled={targetChainId === SupportedChainId.Mainnet}
             helperText={
               publicErrors.alias?.message ??
-              (TargetChainId === SupportedChainId.Mainnet
+              (targetChainId === SupportedChainId.Mainnet
                 ? t("borrowerProfile.edit.public.alias.helperText")
                 : undefined)
             }

@@ -17,7 +17,6 @@ import { useAccount } from "wagmi"
 import Icon from "@/assets/icons/search_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { FilterSelect } from "@/components/FilterSelect"
-import { TargetChainId } from "@/config/network"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -64,7 +63,7 @@ export const MarketsTabSidebar = () => {
   const pathname = usePathname()
 
   const { isConnected } = useAccount()
-  const { isWrongNetwork } = useCurrentNetwork()
+  const { isWrongNetwork, isTestnet } = useCurrentNetwork()
   const showConnectedData = isConnected && !isWrongNetwork
 
   const [selectedAssets, setSelectedAssets] = useState<
@@ -73,7 +72,7 @@ export const MarketsTabSidebar = () => {
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
   const tokens = useMemo(() => {
-    if (TargetChainId === SupportedChainId.Sepolia) {
+    if (isTestnet) {
       /// Only take first token with a given symbol
       return tokensRaw?.filter(
         (token, index, self) =>
@@ -81,7 +80,7 @@ export const MarketsTabSidebar = () => {
       )
     }
     return tokensRaw
-  }, [tokensRaw])
+  }, [tokensRaw, isTestnet])
 
   const marketName = useAppSelector(
     (state) => state.marketsOverviewSidebar.marketName,

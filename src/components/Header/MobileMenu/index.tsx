@@ -26,7 +26,10 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
-import { EtherscanBaseUrl } from "@/config/network"
+import { MobileSelectNetwork } from "@/components/MobileSelectNetwork"
+import { NetworkIcon } from "@/components/NetworkIcon"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
@@ -57,11 +60,17 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   const handleToggleModal = () => {
     setIsOpen(!open)
   }
+  const selectedNetwork = useSelectedNetwork()
 
   const [openConnect, setOpenConnect] = useState<boolean>(false)
+  const [openSelectNetwork, setOpenSelectNetwork] = useState<boolean>(false)
   const handleToggleConnect = () => {
     setOpenConnect(!openConnect)
   }
+  const handleToggleSelectNetwork = () => {
+    setOpenSelectNetwork(!openSelectNetwork)
+  }
+  const { getAddressUrl } = useBlockExplorer()
 
   const handleClickDisconnect = () => {
     disconnect()
@@ -193,7 +202,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
 
             <Box marginLeft="auto" paddingRight="8px">
               <LinkGroup
-                linkValue={`${EtherscanBaseUrl}/address/${address}`}
+                linkValue={getAddressUrl(address as string)}
                 copyValue={address}
               />
             </Box>
@@ -224,6 +233,32 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
               App
             </Button>
           </Link>
+        </Box>
+
+        <Box sx={{ padding: "0 6px" }}>
+          <Button
+            size="large"
+            fullWidth
+            sx={{
+              borderRadius: "10px",
+              marginTop: "6px",
+              backgroundColor: COLORS.whiteSmoke,
+              color: COLORS.bunker,
+              gap: "4px",
+              "&:hover": {
+                backgroundColor: COLORS.blueRibbon,
+                color: COLORS.white,
+              },
+            }}
+            onClick={handleToggleSelectNetwork}
+          >
+            <NetworkIcon chainId={selectedNetwork.chainId} />
+            {selectedNetwork.name}
+
+            {selectedNetwork.isTestnet &&
+              !selectedNetwork.name.toLowerCase().includes("testnet") &&
+              "(Testnet)"}
+          </Button>
         </Box>
 
         {isConnected ? (
@@ -270,6 +305,11 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
           </Button>
         )}
       </Dialog>
+
+      <MobileSelectNetwork
+        open={openSelectNetwork}
+        handleClose={handleToggleSelectNetwork}
+      />
 
       <MobileConnectWallet
         open={openConnect}

@@ -7,6 +7,7 @@ import { toastRequest } from "@/components/Toasts"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
 import { formatUnixMsAsDate } from "@/utils/formatters"
 
@@ -21,6 +22,7 @@ export const useSubmitAcceptInvitation = () => {
   const client = useQueryClient()
   const { replace } = useRouter()
   const token = useAuthToken()
+  const { chainId } = useSelectedNetwork()
   const { mutate: removeBadToken } = useRemoveBadApiToken()
 
   return useMutation({
@@ -30,6 +32,7 @@ export const useSubmitAcceptInvitation = () => {
       if (!name) throw Error(`No organization name`)
       if (!timeSigned) throw Error(`No time signed`)
       if (!token) throw Error(`No token`)
+      if (!chainId) throw Error(`No chain ID selected`)
 
       const sign = async () => {
         const dateSigned = formatUnixMsAsDate(timeSigned)
@@ -90,6 +93,7 @@ export const useSubmitAcceptInvitation = () => {
       const response = await fetch("/api/invite", {
         method: "PUT",
         body: JSON.stringify({
+          chainId,
           signature: result.signature ?? "0x",
           name,
           timeSigned,

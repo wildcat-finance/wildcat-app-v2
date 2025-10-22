@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next"
 
 import { MarketWithdrawalRequetstCell } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/style"
 import { LinkGroup } from "@/components/LinkComponent"
-import { EtherscanBaseUrl, TargetChainId } from "@/config/network"
+import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 import { timestampToDateFormatted, trimAddress } from "@/utils/formatters"
@@ -34,20 +34,14 @@ const RegisterBorrowerButton = ({ address }: { address: string }) => {
 export const BorrowerInvitesTable = () => {
   const { t } = useTranslation()
 
+  const { blockExplorerUrl, isTestnet } = useAppSelector(
+    (state) => state.selectedNetwork,
+  )
   const { data: tableData, isLoading } = useAllBorrowerInvitations()
   const [selectedInvite, setSelectedInvite] = useState<{
     address: string
     name: string
   } | null>(null)
-  const rows = React.useMemo(
-    () =>
-      tableData?.map((row, index) => ({
-        ...row,
-        cancelColumn: `cancel-${index}`,
-        registerColumn: `register-${index}`,
-      })),
-    [tableData],
-  )
 
   const columns: TypeSafeColDef<
     BorrowerInvitationRow & {
@@ -133,7 +127,7 @@ export const BorrowerInvitesTable = () => {
           </Typography>
 
           <LinkGroup
-            linkValue={`${EtherscanBaseUrl}/address/${value}`}
+            linkValue={`${blockExplorerUrl}/address/${value}`}
             copyValue={value}
           />
         </Box>
@@ -178,7 +172,7 @@ export const BorrowerInvitesTable = () => {
       headerAlign: "center",
       renderCell: (params) => {
         if (params.row.timeSigned && !params.row.registeredOnChain) {
-          if (TargetChainId === SupportedChainId.Sepolia) {
+          if (isTestnet) {
             return <RegisterBorrowerButton address={params.row.address} />
           }
           return (

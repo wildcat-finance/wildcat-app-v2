@@ -12,7 +12,7 @@ import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
@@ -39,6 +39,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
   const theme = useTheme()
   const isMobile = useMobileResolution()
   const [state, copyToClipboard] = useCopyToClipboard()
+  const { getAddressUrl, getTokenUrl } = useBlockExplorer()
   const { timeDelinquent, delinquencyGracePeriod } = market
 
   const [gracePeriodLabel, gracePeriodTimer] =
@@ -163,7 +164,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             title={t("borrowerMarketDetails.parameters.marketAddress")}
             value={trimAddress(market.address)}
             copy={market.address}
-            link={`${EtherscanBaseUrl}/address/${market.address}`}
+            link={getAddressUrl(market.address)}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
@@ -173,14 +174,14 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             )})`}
             tooltipText="The ERC-20 token used for all transactions in the market, such as Wrapped Ether (WETH) or USDC."
             copy={market.underlyingToken.address}
-            link={`${EtherscanBaseUrl}/token/${market.underlyingToken.address}`}
+            link={getTokenUrl(market.underlyingToken.address)}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.marketTokenName")}
             value={market.marketToken.name}
-            copy={`${EtherscanBaseUrl}/token/${market.marketToken.address}`}
-            link={`${EtherscanBaseUrl}/token/${market.marketToken.address}`}
+            copy={getTokenUrl(market.marketToken.address)}
+            link={getTokenUrl(market.marketToken.address)}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
@@ -267,7 +268,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
                 title={t("borrowerMarketDetails.hooks.hooksAddress")}
                 value={trimAddress(hooksConfig.hooksAddress)}
                 copy={hooksConfig.hooksAddress}
-                link={`${EtherscanBaseUrl}/address/${hooksConfig.hooksAddress}`}
+                link={getAddressUrl(hooksConfig.hooksAddress)}
               />
             </>
           )}
@@ -397,7 +398,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
                 title={t("borrowerMarketDetails.hooks.hooksAddress")}
                 value={trimAddress(hooksConfig.hooksAddress)}
                 copy={hooksConfig.hooksAddress}
-                link={`${EtherscanBaseUrl}/address/${hooksConfig.hooksAddress}`}
+                link={getAddressUrl(hooksConfig.hooksAddress)}
               />
               {(
                 [
@@ -409,6 +410,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
                 ] as const
               ).map((x) => (
                 <MarketParametersItem
+                  key={x}
                   title={t(`borrowerMarketDetails.hooks.${x}`)}
                   value={hooksConfig.flags[x] ? "True" : "False"}
                 />
@@ -426,6 +428,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
                 ] as const
               ).map((x) => (
                 <MarketParametersItem
+                  key={x}
                   title={t(`borrowerMarketDetails.hooks.${x}`)}
                   value={hooksConfig.flags[x] ? "True" : "False"}
                 />

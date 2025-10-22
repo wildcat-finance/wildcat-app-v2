@@ -10,10 +10,9 @@ import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
-import { EtherscanBaseUrl } from "@/config/network"
-import { SubgraphClient } from "@/config/subgraph"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
-import { formatBps } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
 type MarketRecords = {
@@ -22,9 +21,11 @@ type MarketRecords = {
 }
 
 export const useMarketStatusChanges = (address?: `0x${string}`) => {
+  const subgraphClient = useSubgraphClient()
   const [marketRecords, setMarketRecords] = useState<MarketRecords[]>([])
 
   const dispatch = useDispatch()
+  const { getTxUrl } = useBlockExplorer()
 
   const { data: markets, isLoading } = useGetBorrowerMarkets()
 
@@ -51,18 +52,18 @@ export const useMarketStatusChanges = (address?: `0x${string}`) => {
               category: "marketActivity",
               blockTimestamp: record.blockTimestamp,
               unread: true,
-              etherscanUrl: `${EtherscanBaseUrl}/tx/${record.transactionHash}`,
+              blockExplorerUrl: getTxUrl(record.transactionHash),
             }),
           )
         })
       })
     }
-  }, [marketRecords])
+  }, [marketRecords, dispatch, getTxUrl])
 
   return () => {
     if (!address || !markets || isLoading) return
     markets.forEach((market: Market) => {
-      getMarketRecords(SubgraphClient, {
+      getMarketRecords(subgraphClient, {
         market,
         kinds: ["DelinquencyStatusChanged"],
         additionalFilter: {
