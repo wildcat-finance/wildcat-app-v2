@@ -9,6 +9,7 @@ import {
   InputLabel,
   Select,
   SvgIcon,
+  Typography,
 } from "@mui/material"
 import { Market, MarketRecordKind } from "@wildcatfi/wildcat-sdk"
 
@@ -283,11 +284,18 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
         rowCount={data?.totalRecords}
       />
 
-      <div className="h-9 flex justify-between items-center bg-tint-9 px-6">
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         {startEventIndex !== undefined && (
-          <div className="inline text-black text-xs font-bold">
+          <Typography variant="text3">
             Viewing records {startEventIndex} to {endEventIndex}
-          </div>
+          </Typography>
         )}
         {/*      <div className="flex gap-x-4 items-center flex-row">
           {page > 0 && (
@@ -304,7 +312,7 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
             />
           )}
         </div> */}
-      </div>
+      </Box>
     </>
   )
 }
