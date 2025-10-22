@@ -35,17 +35,17 @@ import {
 
 export const MarketWithdrawalRequests = ({
   marketAccount,
+  withdrawals,
   isHoldingMarket,
 }: MarketWithdrawalRequestsProps) => {
   const { market } = marketAccount
 
   const { t } = useTranslation()
-  const { data } = useGetWithdrawals(market)
   const theme = useTheme()
   const isMobile = useMobileResolution()
-  const expiredTotalAmount = data.expiredWithdrawalsTotalOwed
-  const activeTotalAmount = data.activeWithdrawalsTotalOwed
-  const claimableTotalAmount = data.claimableWithdrawalsAmount
+  const expiredTotalAmount = withdrawals.expiredWithdrawalsTotalOwed
+  const activeTotalAmount = withdrawals.activeWithdrawalsTotalOwed
+  const claimableTotalAmount = withdrawals.claimableWithdrawalsAmount
   const totalAmount = expiredTotalAmount
     .add(activeTotalAmount)
     .add(claimableTotalAmount)
@@ -153,21 +153,21 @@ export const MarketWithdrawalRequests = ({
 
       <OngoingTable
         withdrawalBatches={
-          data?.activeWithdrawal ? [data.activeWithdrawal] : []
+          withdrawals?.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
         }
         totalAmount={activeTotalAmount}
         columns={columns}
       />
 
       <ClaimableTable
-        withdrawalBatches={data.batchesWithClaimableWithdrawals ?? []}
-        totalAmount={data.claimableWithdrawalsAmount}
+        withdrawalBatches={withdrawals.batchesWithClaimableWithdrawals ?? []}
+        totalAmount={withdrawals.claimableWithdrawalsAmount}
       />
 
       <OutstandingTable
         columns={columns}
-        withdrawalBatches={data?.expiredPendingWithdrawals ?? []}
-        totalAmount={data.expiredWithdrawalsTotalOwed}
+        withdrawalBatches={withdrawals?.expiredPendingWithdrawals ?? []}
+        totalAmount={withdrawals.expiredWithdrawalsTotalOwed}
       />
     </Box>
   )

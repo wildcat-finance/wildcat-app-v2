@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Box, Divider } from "@mui/material"
+import { Box, Button, Divider, Typography } from "@mui/material"
 import { HooksKind, MarketVersion } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
@@ -19,14 +19,10 @@ import { RepayModal } from "../Modals/RepayModal"
 export const MarketTransactions = ({
   market,
   marketAccount,
+  withdrawals,
   holdTheMarket,
 }: MarketTransactionsProps) => {
   const { t } = useTranslation()
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
-  const [isOpen, setIsOpen] = React.useState(false)
-  const handleClose = () => {
-    setAnchorEl(null)
-  }
 
   const disableRepay = market.isClosed
   const disableBorrow =
@@ -55,6 +51,12 @@ export const MarketTransactions = ({
   const isTooSmallOutstandingDebt: boolean =
     market.outstandingDebt.lt(smallestTokenAmountValue) &&
     !market.outstandingDebt.raw.isZero()
+
+  const ongoingWDs = (
+    withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
+  ).flatMap((batch) => batch.requests.map(() => ({}))).length
+
+  const isOngoingWDsZero = ongoingWDs === 0
 
   return (
     <>
@@ -114,6 +116,29 @@ export const MarketTransactions = ({
           )}
         </TransactionBlock>
       </Box>
+
+      {!isOngoingWDsZero && (
+        <>
+          <Divider sx={{ margin: "32px 0 40px" }} />
+
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+            <Typography variant="title3">
+              There are {ongoingWDs} active withdrawal requests from lenders in
+              this market.
+            </Typography>
+
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              sx={{ width: "fit-content" }}
+              // onClick={handleChangeSection}
+            >
+              Go to Withdrawals
+            </Button>
+          </Box>
+        </>
+      )}
     </>
   )
 }
