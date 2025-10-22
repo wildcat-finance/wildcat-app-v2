@@ -31,14 +31,10 @@ export const OverallSection = ({
   defaults,
   entityKind,
   additionalUrls,
+  isMarketPage,
 }: OverallSectionProps) => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
-  const [state, copyToClipboard] = useCopyToClipboard()
-
-  const handleCopy = (text: string) => {
-    copyToClipboard(text)
-  }
 
   const jurisdictionObj =
     jurisdiction !== undefined
@@ -179,7 +175,11 @@ export const OverallSection = ({
     )
 
   return (
-    <Box>
+    <Box marginTop={isMarketPage ? "16px" : "32px"}>
+      <Typography variant={isMarketPage ? "text2Highlighted" : "title3"}>
+        Overall Info
+      </Typography>
+
       <Box sx={MarketParametersContainer}>
         <Box sx={MarketParametersColumn}>
           {name && (

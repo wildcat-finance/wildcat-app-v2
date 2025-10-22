@@ -53,6 +53,7 @@ export function BorrowerProfileDetails({
         <OverallSection
           {...profileData}
           marketsAmount={marketsAmount}
+          isMarketPage={isMarketPage}
           // totalBorrowedAmount="0"
           // defaults="0"
         />
