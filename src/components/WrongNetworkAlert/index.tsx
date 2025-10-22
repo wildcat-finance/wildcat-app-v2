@@ -4,16 +4,17 @@ import { Box, Button, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useSwitchChain } from "wagmi"
 
-import { TargetChainId, TargetNetwork } from "@/config/network"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 import { AlertContainer, ButtonStyle, PageContainer } from "./style"
 
 export const WrongNetworkAlert = () => {
   const { t } = useTranslation()
   const { switchChain } = useSwitchChain()
+  const { chainId, name } = useSelectedNetwork()
 
   const handleSwitchChain = () => {
-    switchChain({ chainId: TargetChainId })
+    switchChain({ chainId })
   }
 
   return (
@@ -28,8 +29,7 @@ export const WrongNetworkAlert = () => {
           color="#8A8C9F"
           sx={{ marginBottom: "24px" }}
         >
-          Switch to {TargetChainId === 1 ? "Ethereum" : "Sepolia"} to explore
-          the markets.
+          Switch to {name} to explore the markets.
         </Typography>
 
         <Button

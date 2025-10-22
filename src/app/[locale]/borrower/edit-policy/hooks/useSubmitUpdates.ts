@@ -8,12 +8,11 @@ import {
 } from "@wildcatfi/wildcat-sdk/dist/access"
 
 import { toastRequest, ToastRequestConfig } from "@/components/Toasts"
+import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetEditPolicyState } from "@/store/slices/editPolicySlice/editPolicySlice"
-
-import { GET_POLICY_KEY } from "../../hooks/useGetPolicy"
 
 export type SubmitPolicyUpdatesInputs = {
   addLenders?: string[]
@@ -26,7 +25,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
   // const { t } = useTranslation
   const signer = useEthersSigner()
   const client = useQueryClient()
-  const { isTestnet } = useCurrentNetwork()
+  const { isTestnet, targetChainId } = useCurrentNetwork()
   const { connected: isConnectedToSafe, sdk: gnosisSafeSDK } = useSafeAppsSDK()
   const dispatch = useAppDispatch()
 
@@ -162,7 +161,9 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       }
     },
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: [GET_POLICY_KEY] })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_POLICY(targetChainId, policy?.address),
+      })
       dispatch(resetEditPolicyState())
     },
     onError(error) {

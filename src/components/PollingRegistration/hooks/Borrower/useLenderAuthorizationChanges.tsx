@@ -5,7 +5,6 @@ import { Box, Chip, Typography } from "@mui/material"
 import { Trans, useTranslation } from "react-i18next"
 import { useDispatch } from "react-redux"
 
-import { EtherscanBaseUrl } from "@/config/network"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { AUTHORIZATION_CHANGES } from "@/graphql/queries"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"

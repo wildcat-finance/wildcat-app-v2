@@ -16,8 +16,8 @@ import { useFaucet } from "@/app/[locale]/lender/market/[address]/hooks/useFauce
 import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
 import Clock from "@/assets/icons/clock_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
-import { TargetChainId } from "@/config/network"
 import { useMarketMla } from "@/hooks/useMarketMla"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -127,6 +127,7 @@ export const MobileMarketActions = ({
 }: MobileMarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
+  const { isTestnet } = useSelectedNetwork()
 
   const notMature =
     market &&
@@ -141,7 +142,7 @@ export const MobileMarketActions = ({
 
   const showFaucet =
     hideDeposit &&
-    TargetChainId === SupportedChainId.Sepolia &&
+    isTestnet &&
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.raw.isZero()
 

@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import {
   DepositAccess,
-  getDeploymentAddress,
   getHooksFactoryContract,
   HooksKind,
   Market,
@@ -14,8 +13,10 @@ import { UseFormReturn } from "react-hook-form"
 
 import { lastSlaUpdateTime, MlaTemplate } from "@/app/api/mla/interface"
 import { BorrowerProfile } from "@/app/api/profiles/interface"
-import { TargetChainId, TargetNetwork } from "@/config/network"
+import { NetworkInfo } from "@/config/network"
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import {
   BasicBorrowerInfo,
   fillInMlaForLender,
@@ -26,16 +27,14 @@ import {
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
 
-export const PREVIEW_MLA_KEY = "PREVIEW_MLA"
-
 export function getFieldValuesForBorrowerFromForm(
   marketParams: MarketValidationSchemaType,
   borrowerInfo: BasicBorrowerInfo,
   borrowerTimeSigned: number,
   marketAddress: string,
   asset: Token,
+  networkData: NetworkInfo,
 ) {
-  const networkData = TargetNetwork
   // eslint-disable-next-line no-nested-ternary
   const transferAccess = marketParams.disableTransfers
     ? TransferAccess.Disabled
@@ -88,7 +87,7 @@ export function getFieldValuesForBorrowerFromForm(
     asset,
     timeSigned: borrowerTimeSigned,
     lastSlaUpdateTime: +lastSlaUpdateTime,
-    networkData: TargetNetwork,
+    networkData,
   }
   return getFieldValuesForBorrower(params)
 }
@@ -101,8 +100,12 @@ export async function getMlaFromForm(
   borrowerProfile: BorrowerProfile,
   asset: Token,
   salt: string,
+  networkData: NetworkInfo,
 ) {
-  const hooksFactoryContract = getHooksFactoryContract(TargetChainId, provider)
+  const hooksFactoryContract = getHooksFactoryContract(
+    networkData.chainId,
+    provider,
+  )
   const marketAddress = await hooksFactoryContract.computeMarketAddress(salt)
 
   const mlaTemplate = await fetch(`/api/mla/templates/${mlaTemplateId}`).then(
@@ -115,6 +118,7 @@ export async function getMlaFromForm(
     timeSigned,
     marketAddress,
     asset,
+    networkData,
   )
 
   const { html, plaintext, message } = fillInMlaTemplate(
@@ -154,9 +158,15 @@ export const usePreviewMlaFromForm = (
 ) => {
   const { provider } = useEthersProvider()
   const { data: marketAddress } = useCalculateMarketAddress(salt)
+  const selectedNetwork = useSelectedNetwork()
   return useQuery({
     refetchOnMount: true,
-    queryKey: [PREVIEW_MLA_KEY, marketAddress, borrowerProfile, asset],
+    queryKey: QueryKeys.Borrower.PREVIEW_MLA.FROM_FORM(
+      selectedNetwork.chainId,
+      marketAddress,
+      borrowerProfile,
+      asset,
+    ),
     enabled: !!provider && !!borrowerProfile && !!asset && !!marketAddress,
     queryFn: async () => {
       if (!provider) throw new Error("Provider is required")
@@ -172,6 +182,7 @@ export const usePreviewMlaFromForm = (
         borrowerProfile,
         asset,
         salt,
+        selectedNetwork,
       )
     },
   })
@@ -181,28 +192,32 @@ export const usePreviewMla = (
   mlaTemplateId: number | undefined,
   timeSigned: number,
   borrowerProfile: BorrowerProfile | undefined,
-) =>
-  useQuery({
-    enabled: !!mlaTemplateId && !!borrowerProfile && !!timeSigned,
-    queryKey: [
-      PREVIEW_MLA_KEY,
-      market.borrower,
+) => {
+  const selectedNetwork = useSelectedNetwork()
+  return useQuery({
+    enabled:
+      !!mlaTemplateId &&
+      !!borrowerProfile &&
+      !!timeSigned &&
+      market.chainId === selectedNetwork.chainId &&
+      borrowerProfile.chainId === selectedNetwork.chainId,
+    queryKey: QueryKeys.Borrower.PREVIEW_MLA.FROM_MARKET(
+      selectedNetwork.chainId,
+      market.address,
       !!borrowerProfile,
       mlaTemplateId,
       timeSigned,
-    ],
+    ),
     queryFn: async () => {
       if (!mlaTemplateId) throw new Error("MLA template ID is required")
       if (!borrowerProfile) throw new Error("Borrower profile is required")
       const mlaTemplate = await fetch(
         `/api/mla/templates/${mlaTemplateId}`,
       ).then((res) => res.json() as Promise<MlaTemplate>)
-      console.log(`borrowerProfile`)
-      console.log(borrowerProfile)
       const borrowerValues = getFieldValuesForBorrower({
         market,
         borrowerInfo: borrowerProfile as BasicBorrowerInfo,
-        networkData: TargetNetwork,
+        networkData: selectedNetwork,
         timeSigned,
         lastSlaUpdateTime: +lastSlaUpdateTime,
         asset: market.underlyingToken,
@@ -230,3 +245,4 @@ export const usePreviewMla = (
       }
     },
   })
+}

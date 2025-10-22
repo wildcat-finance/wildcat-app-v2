@@ -4,9 +4,9 @@ import { useLazyQuery } from "@apollo/client"
 import { useTranslation } from "react-i18next"
 import { useDispatch } from "react-redux"
 
-import { EtherscanBaseUrl } from "@/config/network"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { BORROWER_REGISTRATION_CHANGES } from "@/graphql/queries"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
@@ -15,6 +15,7 @@ import { TBorrowerRegistrationChange } from "../../interface"
 export const useBorrowerRegistrationChanges = (address?: `0x${string}`) => {
   const dispatch = useDispatch()
   const { t } = useTranslation()
+  const { getTxUrl } = useBlockExplorer()
 
   const [fetchBorrowerRegistrationChanges, { data, error }] = useLazyQuery(
     BORROWER_REGISTRATION_CHANGES,
@@ -36,13 +37,13 @@ export const useBorrowerRegistrationChanges = (address?: `0x${string}`) => {
               category: "marketActivity",
               blockTimestamp: change.blockTimestamp,
               unread: true,
-              etherscanUrl: `${EtherscanBaseUrl}/tx/${change.transactionHash}`,
+              blockExplorerUrl: getTxUrl(change.transactionHash),
             }),
           )
         },
       )
     }
-  }, [data, dispatch])
+  }, [data, dispatch, getTxUrl, t])
 
   useEffect(() => {
     if (error) {

@@ -17,7 +17,7 @@ import { useProcessUnpaidWithdrawalBatch } from "@/app/[locale]/borrower/market/
 import { LinkGroup } from "@/components/LinkComponent"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -46,6 +46,7 @@ export const RepayAndTerminateFlow = ({
   const [approveTxHash, setApproveTxHash] = useState<string | undefined>("")
   const [repayTxHash, setRepayTxHash] = useState<string | undefined>("")
   const modal = useTerminateModal()
+  const { getTxUrl } = useBlockExplorer()
 
   const isModalOpen = isOpen && !modal.closedModalStep
 
@@ -370,7 +371,7 @@ export const RepayAndTerminateFlow = ({
           {repayTxHash !== "" && modal.repayedStep && (
             <LinkGroup
               type="etherscan"
-              linkValue={`${EtherscanBaseUrl}/tx/${repayTxHash}`}
+              linkValue={getTxUrl(repayTxHash as string)}
               groupSX={{ padding: "8px", marginBottom: "8px" }}
             />
           )}
@@ -404,7 +405,7 @@ export const RepayAndTerminateFlow = ({
       {approveTxHash !== "" && modal.approvedStep && (
         <LinkGroup
           type="etherscan"
-          linkValue={`${EtherscanBaseUrl}/tx/${approveTxHash}`}
+          linkValue={getTxUrl(approveTxHash as string)}
           groupSX={{ padding: "8px", marginBottom: "8px" }}
         />
       )}

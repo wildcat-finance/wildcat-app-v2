@@ -1,8 +1,11 @@
-import { getLensV2Contract, Market } from "@wildcatfi/wildcat-sdk"
+import {
+  getLensV2Contract,
+  isSupportedChainId,
+  Market,
+} from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
-import { TargetChainId } from "@/config/network"
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
 import { formatDate } from "@/lib/mla"
 import { getProviderForServer } from "@/lib/provider"
@@ -21,30 +24,31 @@ export const POST = async (
   try {
     const input = await request.json()
     body = DeclineMlaRequestDTO.parse(input)
+    if (!isSupportedChainId(body.chainId)) {
+      return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+    }
   } catch (error) {
     return getZodParseError(error)
   }
-
+  const { chainId } = body
   const marketAddress = params.params.market.toLowerCase()
-  const provider = getProviderForServer()
+  const provider = getProviderForServer(chainId)
 
-  const mla = await getSignedMasterLoanAgreement(marketAddress)
+  const mla = await getSignedMasterLoanAgreement(marketAddress, chainId)
   if (mla) {
     return NextResponse.json({ error: "MLA already exists" }, { status: 400 })
   }
 
-  const market = await Market.getMarket(
-    TargetChainId,
-    marketAddress,
-    provider,
-  ).catch(async () => {
-    const lens = getLensV2Contract(TargetChainId, provider)
-    return Market.fromMarketDataV2(
-      TargetChainId,
-      provider,
-      await lens.getMarketData(marketAddress),
-    )
-  })
+  const market = await Market.getMarket(chainId, marketAddress, provider).catch(
+    async () => {
+      const lens = getLensV2Contract(chainId, provider)
+      return Market.fromMarketDataV2(
+        chainId,
+        provider,
+        await lens.getMarketData(marketAddress),
+      )
+    },
+  )
   const address = market.borrower.toLowerCase()
 
   const message = DECLINE_MLA_ASSIGNMENT_MESSAGE.replace(
@@ -64,7 +68,7 @@ export const POST = async (
   }
   await prisma.refusalToAssignMla.create({
     data: {
-      chainId: TargetChainId,
+      chainId,
       market: marketAddress,
       address,
       signer: signature.address,

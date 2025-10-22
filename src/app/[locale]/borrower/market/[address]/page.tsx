@@ -16,6 +16,7 @@ import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
@@ -44,10 +45,12 @@ export default function MarketDetails({
   params: { address: string }
 }) {
   const dispatch = useAppDispatch()
+  const { chainId: targetChainId } = useSelectedNetwork()
   const { data: market } = useGetMarket({ address })
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
   const { data: marketSummary, isLoading: isSummaryLoading } = useMarketSummary(
     address.toLowerCase(),
+    market?.chainId ?? targetChainId,
   )
   const { address: walletAddress } = useAccount()
   const holdTheMarket =
@@ -202,6 +205,7 @@ export default function MarketDetails({
             <Box sx={SlideContentContainer} marginTop="12px">
               <BorrowerMarketSummary
                 marketAddress={market.address}
+                chainId={market.chainId}
                 isBorrower={holdTheMarket}
                 marketSummary={marketSummary}
                 isLoading={isSummaryLoading}

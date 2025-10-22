@@ -9,8 +9,11 @@ import {
 import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
-import { SubgraphClient } from "@/config/subgraph"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import {
+  SubgraphClientType,
+  useSubgraphClient,
+} from "@/providers/SubgraphProvider"
 
 export const GET_ALL_LENDERS = "GET_ALL_LENDERS"
 
@@ -39,8 +42,11 @@ export type AllLendersData = {
   }
 }
 
-export const getAllLenders = async (address: string) => {
-  const { data } = await SubgraphClient.query<
+export const getAllLenders = async (
+  subgraphClient: SubgraphClientType,
+  address: string,
+) => {
+  const { data } = await subgraphClient.query<
     SubgraphGetAllAuthorizedLendersQuery,
     SubgraphGetAllAuthorizedLendersQueryVariables
   >({
@@ -97,10 +103,11 @@ export const getAllLenders = async (address: string) => {
 export const useGetAllLenders = () => {
   const { chainId, isWrongNetwork } = useCurrentNetwork()
   const { address } = useAccount()
+  const subgraphClient = useSubgraphClient()
 
   return useQuery({
     queryKey: [GET_ALL_LENDERS, chainId],
-    queryFn: () => getAllLenders(address!),
+    queryFn: () => getAllLenders(subgraphClient, address!),
     refetchInterval: POLLING_INTERVAL,
     enabled: address && !isWrongNetwork,
   })
