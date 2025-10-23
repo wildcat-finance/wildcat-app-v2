@@ -7,6 +7,7 @@ import {
   FormControl,
   FormControlLabel,
   InputLabel,
+  Popover,
   Select,
   SvgIcon,
   Typography,
@@ -53,32 +54,6 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
   const [selectedFilters, setSelectedFilters] = useState<MarketRecordKind[]>(
     MarketRecordFilters.map((f) => f.value),
   )
-
-  const [searchFilter, setSearchFilter] = useState("")
-
-  const selectRef = useRef<HTMLElement>(null)
-
-  const onOpen = () => {
-    if (selectRef.current) {
-      selectRef.current.classList.add("Mui-focused")
-
-      const previousElement = selectRef.current
-        .previousSibling as Element | null
-      previousElement?.classList.add("Mui-focused")
-    }
-
-    setSearchFilter("")
-  }
-
-  const onClose = () => {
-    if (selectRef.current) {
-      selectRef.current.classList.remove("Mui-focused")
-
-      const previousElement = selectRef.current
-        .previousSibling as Element | null
-      previousElement?.classList.remove("Mui-focused")
-    }
-  }
 
   useEffect(() => {
     setPage(0)
@@ -128,150 +103,147 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
     return [start, end]
   }, [data, page, pageSize])
 
+  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+
+  const open = Boolean(anchorEl)
+  const id = open ? "filters-popover" : undefined
+
   return (
     <>
-      {/* <FilterTextField */}
-      {/*  value={searchFilter} */}
-      {/*  setValue={setSearchFilter} */}
-      {/*  placeholder="Search" */}
-      {/*  width="180px" */}
-      {/* /> */}
-
-      <FormControl sx={{ marginLeft: "4px" }}>
-        <InputLabel
-          sx={{
-            fontSize: "13px",
-            fontWeight: 500,
-            lineHeight: "20px",
-            color: COLORS.santasGrey,
-            transform: "translate(33px, 6px)",
-            pointerEvents: "none",
-
-            "&.MuiInputLabel-shrink": {
-              display: "block",
-
-              "&.Mui-focused": {
-                transform: "translate(33px, 6px)",
-              },
-            },
-          }}
-        >
-          Filter by type
-        </InputLabel>
-
-        <Select
-          value={selectedFilters}
-          ref={selectRef}
-          onOpen={onOpen}
-          onClose={onClose}
+      <Box sx={{ position: "relative", display: "inline-flex" }}>
+        <Button
+          aria-describedby={id}
+          variant="contained"
+          color="secondary"
           size="small"
-          multiple
-          startAdornment={
-            <SvgIcon
-              fontSize="big"
-              sx={{
-                "& path": {
-                  stroke: `${COLORS.greySuit}`,
-                },
-              }}
-            >
-              <Filter />
-            </SvgIcon>
-          }
-          MenuProps={{
-            sx: {
-              "& .MuiPaper-root": {
-                width: "294px",
-                height: "fit-content",
-                fontFamily: "inherit",
-                padding: "12px",
-                marginTop: "2px",
-              },
-            },
-            anchorOrigin: {
-              vertical: "bottom",
-              horizontal: "left",
-            },
-            transformOrigin: {
-              vertical: "top",
-              horizontal: "left",
-            },
-          }}
           sx={{
-            width: "180px",
-            height: "32px",
-            "& .MuiSelect-icon": {
-              display: "block",
-              top: "5px",
-              transform: "translate(3.5px, 0px) scale(0.7)",
-              "&.MuiSelect-iconOpen": {
-                transform: "translate(3.5px, 0px) scale(0.7) rotate(180deg)",
-              },
-
-              "& path": { fill: `${COLORS.santasGrey}` },
+            gap: "6px",
+            color: isIndeterminate ? COLORS.ultramarineBlue : COLORS.bunker,
+            backgroundColor: isIndeterminate ? "#E4EBFEB2" : COLORS.whiteSmoke,
+            "&:hover": {
+              backgroundColor: isIndeterminate
+                ? "rgba(228,235,254,0.5)"
+                : COLORS.athensGrey,
             },
           }}
+          onClick={handleClick}
         >
-          <Box sx={{ padding: "6px 0 6px 10px" }}>
-            <FormControlLabel
-              label="All types"
-              control={
-                <ExtendedCheckbox
-                  checked={allSelected}
-                  indeterminate={isIndeterminate}
-                  onChange={(event) => handleToggleAll(event.target.checked)}
-                  sx={{
-                    "& ::before": {
-                      transform: "translate(-3px, -3px) scale(0.75)",
-                    },
-                  }}
-                />
-              }
-            />
-          </Box>
-          <Box
+          <SvgIcon
+            fontSize="big"
             sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "6px",
-              padding: "0 10px 0 26px",
+              "& path": {
+                stroke: isIndeterminate
+                  ? COLORS.ultramarineBlue
+                  : COLORS.bunker,
+                transition: "stroke 0.2s",
+              },
             }}
           >
-            {options.map((o) => (
-              <Box sx={{ padding: "2px 0", display: "flex", align: "center" }}>
-                <FormControlLabel
-                  key={o.id}
-                  label={o.label}
-                  control={
-                    <ExtendedCheckbox
-                      value={o.value}
-                      onChange={(event) =>
-                        handleChange(o, event.target.checked)
-                      }
-                      checked={selectedFilters.includes(o.value)}
-                      sx={{
-                        "& ::before": {
-                          transform: "translate(-3px, -3px) scale(0.75)",
-                        },
-                      }}
-                    />
-                  }
-                />
-              </Box>
-            ))}
-          </Box>
+            <Filter />
+          </SvgIcon>
+          Filter by type
+        </Button>
 
-          <Button
-            onClick={handleClear}
-            size="medium"
-            variant="contained"
-            color="secondary"
-            sx={{ width: "100%", marginTop: "12px" }}
-          >
-            Reset
-          </Button>
-        </Select>
-      </FormControl>
+        {isIndeterminate && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: "-2px",
+              right: "-2px",
+              width: "7.5px",
+              height: "7.5px",
+              borderRadius: "50%",
+              border: "1px solid white",
+              backgroundColor: COLORS.ultramarineBlue,
+            }}
+          />
+        )}
+      </Box>
+
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+        sx={{
+          "& .MuiPaper-root": {
+            width: "294px",
+            height: "fit-content",
+            fontFamily: "inherit",
+            padding: "12px",
+            marginTop: "2px",
+          },
+        }}
+      >
+        <Box sx={{ padding: "6px 0 6px 10px" }}>
+          <FormControlLabel
+            label="All types"
+            control={
+              <ExtendedCheckbox
+                checked={allSelected}
+                indeterminate={isIndeterminate}
+                onChange={(event) => handleToggleAll(event.target.checked)}
+                sx={{
+                  "& ::before": {
+                    transform: "translate(-3px, -3px) scale(0.75)",
+                  },
+                }}
+              />
+            }
+          />
+        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "6px",
+            padding: "0 10px 0 26px",
+          }}
+        >
+          {options.map((o) => (
+            <Box sx={{ padding: "2px 0", display: "flex", align: "center" }}>
+              <FormControlLabel
+                key={o.id}
+                label={o.label}
+                control={
+                  <ExtendedCheckbox
+                    value={o.value}
+                    onChange={(event) => handleChange(o, event.target.checked)}
+                    checked={selectedFilters.includes(o.value)}
+                    sx={{
+                      "& ::before": {
+                        transform: "translate(-3px, -3px) scale(0.75)",
+                      },
+                    }}
+                  />
+                }
+              />
+            </Box>
+          ))}
+        </Box>
+
+        <Button
+          onClick={handleClear}
+          size="medium"
+          variant="contained"
+          color="secondary"
+          sx={{ width: "100%", marginTop: "12px" }}
+        >
+          Reset
+        </Button>
+      </Popover>
 
       <MarketRecordsTable
         market={market}
