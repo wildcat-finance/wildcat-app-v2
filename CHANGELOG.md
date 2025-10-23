@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.4.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.3.0...v2.4.0) (2025-10-23)
+
+
+### Features
+
+* **multichain:** Support multichain functionality ([#128](https://github.com/wildcat-finance/wildcat-app-v2/issues/128)) ([#154](https://github.com/wildcat-finance/wildcat-app-v2/issues/154)) ([5bba342](https://github.com/wildcat-finance/wildcat-app-v2/commit/5bba342fd8e3169fa00e0e67873e0c0ac0195a62))
+
+
+### Bug Fixes
+
+* **ui:** hotfix for MLA bugs ([#157](https://github.com/wildcat-finance/wildcat-app-v2/issues/157)) ([3e59502](https://github.com/wildcat-finance/wildcat-app-v2/commit/3e59502632976a4df348356bfe0c6a386ff9c9dc))
+
 ## [2.3.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.2.0...v2.3.0) (2025-09-30)
 
 
