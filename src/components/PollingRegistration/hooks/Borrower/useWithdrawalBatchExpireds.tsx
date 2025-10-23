@@ -5,9 +5,9 @@ import { Chip } from "@mui/material"
 import { Trans, useTranslation } from "react-i18next"
 import { useDispatch } from "react-redux"
 
-import { EtherscanBaseUrl } from "@/config/network"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { WITHDRAWAL_BATCH_EXPIREDS } from "@/graphql/queries"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { COLORS } from "@/theme/colors"
 import { formatTokenAmount } from "@/utils/formatters"
@@ -21,6 +21,7 @@ export const useWithdrawalBatchExpireds = (
 ) => {
   const dispatch = useDispatch()
   const { t } = useTranslation()
+  const { getTxUrl } = useBlockExplorer()
 
   const [fetchWithdrawalBatchExpireds, { data, error }] = useLazyQuery(
     WITHDRAWAL_BATCH_EXPIREDS,
@@ -55,7 +56,9 @@ export const useWithdrawalBatchExpireds = (
                   category: "marketActivity",
                   blockTimestamp: withdrawalBatchExpired.blockTimestamp,
                   unread: true,
-                  etherscanUrl: `${EtherscanBaseUrl}/tx/${withdrawalBatchExpired.transactionHash}`,
+                  blockExplorerUrl: getTxUrl(
+                    withdrawalBatchExpired.transactionHash,
+                  ),
                 }),
               )
             } else {
@@ -74,7 +77,9 @@ export const useWithdrawalBatchExpireds = (
                   blockTimestamp: withdrawalBatchExpired.blockTimestamp,
                   unread: true,
                   error: true,
-                  etherscanUrl: `${EtherscanBaseUrl}/tx/${withdrawalBatchExpired.transactionHash}`,
+                  blockExplorerUrl: getTxUrl(
+                    withdrawalBatchExpired.transactionHash,
+                  ),
                   children: [
                     <Chip
                       sx={{
@@ -96,7 +101,7 @@ export const useWithdrawalBatchExpireds = (
         },
       )
     }
-  }, [data, dispatch])
+  }, [data, dispatch, getTxUrl, t])
 
   useEffect(() => {
     if (error) {

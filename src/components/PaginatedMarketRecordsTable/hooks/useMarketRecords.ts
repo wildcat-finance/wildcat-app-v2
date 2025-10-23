@@ -7,9 +7,8 @@ import {
   getMarketRecords,
 } from "@wildcatfi/wildcat-sdk"
 
-import { SubgraphClient } from "@/config/subgraph"
-
-const GET_MARKET_RECORDS_KEY = "get-market-records"
+import { QueryKeys } from "@/config/query-keys"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 export type UseMarketRecordsProps = {
   market: Market
@@ -25,6 +24,7 @@ export function useMarketRecords({
   kinds,
 }: UseMarketRecordsProps) {
   const [finalEventIndex, setFinalEventIndex] = useState(market.eventIndex)
+  const subgraphClient = useSubgraphClient()
 
   const getMarketRecordsInternal = async () => {
     if (finalEventIndex === undefined) {
@@ -42,7 +42,7 @@ export function useMarketRecords({
     console.log(kinds)
     console.log(`Page Size: ${pageSize}`)
 
-    const records = await getMarketRecords(SubgraphClient, {
+    const records = await getMarketRecords(subgraphClient, {
       market,
       fetchPolicy: "network-only",
       endEventIndex: finalEventIndex,
@@ -73,7 +73,13 @@ export function useMarketRecords({
   }
 
   const { data, isLoading, error, isError } = useQuery({
-    queryKey: [GET_MARKET_RECORDS_KEY, market.address, page, pageSize, kinds],
+    queryKey: QueryKeys.Markets.GET_MARKET_RECORDS(
+      market.chainId,
+      market.address,
+      page,
+      pageSize,
+      kinds,
+    ),
     queryFn: getMarketRecordsInternal,
     enabled: true,
     refetchOnMount: false,

@@ -29,10 +29,9 @@ import { TablePagination } from "@/components/TablePagination"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { LenderMarketDashboardSections } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { COLORS } from "@/theme/colors"
-import { theme } from "@/theme/theme"
+import { lh, pxToRem } from "@/theme/units"
 import {
   statusComparator,
   tokenAmountComparator,
@@ -256,8 +255,8 @@ export const OtherMarketsTables = ({
               size="small"
               variant="text"
               sx={{
-                fontSize: "13px",
-                lineHeight: "20px",
+                fontSize: pxToRem(13),
+                lineHeight: lh(20, 13),
                 fontWeight: 500,
                 minWidth: "calc(100% - 1px)",
                 width: "calc(100% - 1px)",

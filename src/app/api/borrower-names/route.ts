@@ -1,13 +1,18 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
-import { TargetChainId } from "@/config/network"
 import { prisma } from "@/lib/db"
+import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
-export async function GET() {
+/// GET /api/borrower-names?chainId=1
+export async function GET(request: NextRequest) {
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   const names = (
     await prisma.borrower.findMany({
       where: {
-        chainId: TargetChainId,
+        chainId,
       },
       select: {
         name: true,

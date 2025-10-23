@@ -69,7 +69,7 @@ export default function LenderMarketDetails({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const { isConnected } = useAccount()
-  const { isWrongNetwork } = useCurrentNetwork()
+  const { isWrongNetwork, targetChainId } = useCurrentNetwork()
   const { data: market, isLoading: isMarketLoading } = useGetMarket({ address })
   const { data: marketAccount, isLoadingInitial: isMarketAccountLoading } =
     useLenderMarketAccount(market)
@@ -77,6 +77,7 @@ export default function LenderMarketDetails({
     useGetLenderWithdrawals(market)
   const { data: marketSummary, isLoading: isLoadingSummary } = useMarketSummary(
     address.toLowerCase(),
+    market?.chainId ?? targetChainId,
   )
 
   const authorizedInMarket =

@@ -1,9 +1,10 @@
 import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 
 export const InputLabelStyle = {
-  fontSize: "14px",
+  fontSize: pxToRem(14),
+  lineHeight: lh(20, 14),
   fontWeight: 500,
-  lineHeight: "20px",
   color: COLORS.santasGrey,
   transform: "translate(17px, 12px)",
   pointerEvents: "none",

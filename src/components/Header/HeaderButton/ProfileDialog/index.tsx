@@ -25,13 +25,11 @@ import {
 } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { ProfileDialogProps } from "@/components/Header/HeaderButton/ProfileDialog/type"
 import { LinkGroup } from "@/components/LinkComponent"
-import {
-  EtherscanBaseUrl,
-  TargetChainId,
-  TargetNetwork,
-} from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetController } from "@/hooks/useGetController"
+import { useGetIsRegisteredBorrower } from "@/hooks/useIsRegisteredBorrower"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
@@ -48,6 +46,8 @@ export const ProfileDialog = ({
   const { address, isConnected, connector } = useAccount()
   const { disconnect } = useDisconnect()
   const { isWrongNetwork } = useCurrentNetwork()
+  const selectedNetwork = useSelectedNetwork()
+  const { getAddressUrl } = useBlockExplorer()
   const { switchChain } = useSwitchChain()
 
   const handleClickDisconnect = () => {
@@ -55,8 +55,7 @@ export const ProfileDialog = ({
     handleClose()
   }
 
-  const { data: controller } = useGetController()
-  const isRegisteredBorrower = controller?.isRegisteredBorrower
+  const { data: isRegisteredBorrower } = useGetIsRegisteredBorrower()
 
   return (
     <Dialog open={open} onClose={handleClose} sx={DialogContainer}>
@@ -70,9 +69,9 @@ export const ProfileDialog = ({
               variant="outlined"
               size="small"
               sx={WrongNetworkButton}
-              onClick={() => switchChain({ chainId: TargetChainId })}
+              onClick={() => switchChain({ chainId: selectedNetwork.chainId })}
             >
-              {t("header.button.switchNetwork")} {TargetNetwork.name}
+              {t("header.button.switchNetwork")} {selectedNetwork.name}
             </Button>
           </Box>
         )}
@@ -100,7 +99,7 @@ export const ProfileDialog = ({
                 <LinkGroup
                   groupSX={{ columnGap: "8px" }}
                   copyValue={address?.toString()}
-                  linkValue={`${EtherscanBaseUrl}/address/${address}`}
+                  linkValue={getAddressUrl(address as string)}
                 />
               </Box>
             )}

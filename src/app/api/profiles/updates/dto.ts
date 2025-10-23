@@ -1,6 +1,7 @@
 import { z } from "zod"
 
 export const BorrowerProfileInputDTO = z.object({
+  chainId: z.number(),
   name: z.string().min(0).max(64).optional(),
   avatar: z.string().optional(),
   alias: z.string().min(0).max(64).optional(),

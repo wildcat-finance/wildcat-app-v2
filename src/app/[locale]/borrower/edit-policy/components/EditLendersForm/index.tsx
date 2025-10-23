@@ -23,6 +23,7 @@ import {
   setPolicyLenderFilter,
 } from "@/store/slices/editPolicySlice/editPolicySlice"
 import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 
 import { EditLendersTable } from "./EditLendersTable"
 
@@ -202,8 +203,8 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
             sx={{
               height: "32px",
               width: "69px",
-              fontSize: "13px",
-              lineHeight: "16px",
+              fontSize: pxToRem(13),
+              lineHeight: lh(16, 13),
               fontWeight: 600,
             }}
           >

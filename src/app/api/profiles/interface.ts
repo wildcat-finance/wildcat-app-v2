@@ -32,7 +32,4 @@ export type BorrowerProfileForAdminView = BorrowerProfile & {
   timeSigned?: Date
 }
 
-export type BorrowerProfileInput = Omit<
-  BorrowerProfile,
-  "registeredOnChain" | "chainId"
->
+export type BorrowerProfileInput = Omit<BorrowerProfile, "registeredOnChain">

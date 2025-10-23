@@ -3,7 +3,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 
 import { toastError, toastRequest } from "@/components/Toasts"
-import { TargetNetwork } from "@/config/network"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { HAS_SIGNED_SLA_KEY } from "@/providers/RedirectsProvider/hooks/useHasSignedSla"
@@ -19,13 +18,11 @@ export type SignAgreementProps = {
 }
 
 export async function submitSignature(input: SignatureSubmissionProps) {
-  const network = TargetNetwork.stringID
-
   const result = await fetch(`/api/sla`, {
     method: "POST",
     body: JSON.stringify({
       ...input,
-      network,
+      chainId: input.chainId,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -111,6 +108,7 @@ export const useSignAgreement = () => {
         name,
         timeSigned,
         address,
+        chainId: signer.chainId,
       }).catch((error) => {
         toastError("Failed to submit TOU signature.")
         throw error

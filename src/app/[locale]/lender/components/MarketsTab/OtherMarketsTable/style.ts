@@ -1,4 +1,5 @@
 import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 
 export const TabsStyles = {
   marginTop: "16px",
@@ -11,9 +12,9 @@ export const TabsStyles = {
 }
 
 export const TabStyle = {
-  fontSize: "13px",
+  fontSize: pxToRem(13),
+  lineHeight: lh(20, 13),
   fontWeight: 500,
-  lineHeight: "20px",
   height: "24px",
   minHeight: "24px",
   minWidth: "fit-content",

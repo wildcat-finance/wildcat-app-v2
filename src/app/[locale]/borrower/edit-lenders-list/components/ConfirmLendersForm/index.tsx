@@ -12,7 +12,7 @@ import {
 import Coins from "@/assets/icons/coins_icon.svg"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { LinkGroup } from "@/components/LinkComponent"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setEditStep } from "@/store/slices/editLendersListSlice/editLendersListSlice"
 import { COLORS } from "@/theme/colors"
@@ -30,6 +30,7 @@ import {
 export const ConfirmLendersForm = () => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const { getAddressUrl } = useBlockExplorer()
 
   const initialLendersTableData = useAppSelector(
     (state) => state.editLendersList.initialLendersTableData,
@@ -105,7 +106,7 @@ export const ConfirmLendersForm = () => {
           </Typography>
 
           <LinkGroup
-            linkValue={`${EtherscanBaseUrl}/address/${params.value}`}
+            linkValue={getAddressUrl(params.value)}
             copyValue={params.value}
           />
         </Box>

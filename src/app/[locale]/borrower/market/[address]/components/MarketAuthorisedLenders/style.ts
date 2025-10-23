@@ -1,4 +1,5 @@
 import { COLORS } from "@/theme/colors"
+import { pxToRem } from "@/theme/units"
 
 export const MarketWithdrawalRequetstCell = {
   display: "flex",
@@ -12,7 +13,7 @@ export const MarketLendersMLA = {
 }
 
 export const MLATableButton = {
-  fontSize: 11,
+  fontSize: pxToRem(11),
   margin: "0",
   padding: "0",
   minWidth: "0px",

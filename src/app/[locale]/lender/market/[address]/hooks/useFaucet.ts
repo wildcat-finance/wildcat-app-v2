@@ -3,22 +3,18 @@ import { Dispatch } from "react"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { BaseTransaction } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import {
-  MarketAccount,
-  SupportedChainId,
-  TokenAmount,
-} from "@wildcatfi/wildcat-sdk"
+import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { toastRequest } from "@/components/Toasts"
-import { TargetChainId } from "@/config/network"
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { GET_MARKET_KEY } from "@/hooks/useGetMarket"
-import { GET_MARKET_ACCOUNT_KEY } from "@/hooks/useGetMarketAccount"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export const useFaucet = (marketAccount: MarketAccount) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
+  const { isTestnet, chainId: targetChainId } = useSelectedNetwork()
 
   return useMutation({
     mutationFn: async () => {
@@ -26,9 +22,16 @@ export const useFaucet = (marketAccount: MarketAccount) => {
         !marketAccount ||
         !signer ||
         !marketAccount.market.underlyingToken.isMock ||
-        TargetChainId !== SupportedChainId.Sepolia
+        !isTestnet
       )
         throw Error()
+      if (marketAccount.market.chainId !== targetChainId) {
+        throw Error(
+          `Market chainId does not match target chainId:` +
+            ` Market ${marketAccount.market.chainId},` +
+            ` Target ${targetChainId}`,
+        )
+      }
 
       const faucet = async () => {
         const tx = await marketAccount.market.underlyingToken.faucet()
@@ -42,8 +45,18 @@ export const useFaucet = (marketAccount: MarketAccount) => {
       })
     },
     onSuccess() {
-      client.invalidateQueries({ queryKey: [GET_MARKET_KEY] })
-      client.invalidateQueries({ queryKey: [GET_MARKET_ACCOUNT_KEY] })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET(
+          marketAccount.market.chainId,
+          marketAccount.market.address,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
+          marketAccount.market.chainId,
+          marketAccount.market.address,
+        ),
+      })
     },
     onError(error) {
       console.log(error)

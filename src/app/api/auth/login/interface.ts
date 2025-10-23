@@ -1,7 +1,10 @@
+import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
+
 export interface LoginInput {
   address: string
   signature: string
   timeSigned: number
+  chainId: SupportedChainId
 }
 
 export interface DataStoredInToken {

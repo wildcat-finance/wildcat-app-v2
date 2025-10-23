@@ -1,7 +1,11 @@
+import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
+
 import { MlaTemplateField } from "@/lib/mla"
 import { VerifiedSignature } from "@/lib/signatures/interface"
 
 export interface SetMasterLoanAgreementInput {
+  /* The chain ID */
+  chainId: SupportedChainId
   /* The MLA template ID */
   mlaTemplate: number
   /* Time the MLA was signed */

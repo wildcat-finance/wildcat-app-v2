@@ -4,9 +4,9 @@ import { useLazyQuery } from "@apollo/client"
 import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
-import { EtherscanBaseUrl } from "@/config/network"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { BORROWS } from "@/graphql/queries"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { formatTokenAmount } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
@@ -15,6 +15,7 @@ import { TBorrow } from "../../interface"
 
 export const useBorrows = (marketIds: string[], address?: `0x${string}`) => {
   const dispatch = useDispatch()
+  const { getTxUrl } = useBlockExplorer()
 
   const [fetchBorrows, { data, error }] = useLazyQuery(
     BORROWS,
@@ -45,12 +46,12 @@ export const useBorrows = (marketIds: string[], address?: `0x${string}`) => {
             category: "marketActivity",
             blockTimestamp: borrow.blockTimestamp,
             unread: true,
-            etherscanUrl: `${EtherscanBaseUrl}/tx/${borrow.transactionHash}`,
+            blockExplorerUrl: getTxUrl(borrow.transactionHash),
           }),
         )
       })
     }
-  }, [data, dispatch])
+  }, [data, dispatch, getTxUrl])
 
   useEffect(() => {
     if (error) {

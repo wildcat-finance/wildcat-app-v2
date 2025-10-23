@@ -16,6 +16,7 @@ import Edit from "@/assets/icons/edit_icon.svg"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 
 import { NameSectionProps } from "./interface"
 import { EmptyAlert } from "../EmptyAlert"
@@ -50,7 +51,7 @@ export const NameSection = ({
         {avatar ? (
           <Image src={avatar} alt="avatar" width={42} height={42} />
         ) : (
-          <SvgIcon sx={{ fontSize: "42px", marginBottom: "12px" }}>
+          <SvgIcon sx={{ fontSize: pxToRem(42), marginBottom: "12px" }}>
             <Avatar />
           </SvgIcon>
         )}
@@ -170,9 +171,9 @@ export const NameSection = ({
         {avatar ? (
           <Image src={avatar} alt="avatar" width={48} height={48} />
         ) : (
-          <SvgIcon sx={{ fontSize: "48px" }}>
-            <Avatar />
-          </SvgIcon>
+            <SvgIcon sx={{ fontSize: pxToRem(48), marginBottom: "24px" }}>
+                <Avatar />
+            </SvgIcon>
         )}
 
         <Typography variant={isMarketPage ? "title3" : "title1"}>

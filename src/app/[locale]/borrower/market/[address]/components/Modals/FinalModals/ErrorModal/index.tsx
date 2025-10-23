@@ -15,7 +15,7 @@ import {
 import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 
 export const ErrorModal = ({
   onTryAgain,
@@ -29,49 +29,58 @@ export const ErrorModal = ({
   txHash?: string
   title?: string
   subtitle?: string
-}) => (
-  <>
-    <Box sx={FinalModalHeader}>
-      <Box width="20px" height="20px" />
-      <IconButton disableRipple onClick={onClose}>
-        <SvgIcon fontSize="big" sx={FinalModalCloseButton}>
-          <Cross />
-        </SvgIcon>
-      </IconButton>
-    </Box>
-    <Box padding="0 24px" sx={FinalModalContentContainer}>
-      <Box margin="auto" sx={FinalModalMainContainer}>
-        <SvgIcon fontSize="colossal">
-          <CircledCrossRed />
-        </SvgIcon>
+}) => {
+  const { getTxUrl } = useBlockExplorer()
 
-        <Box sx={FinalModalTypoBox}>
-          <Typography variant="title3">
-            {title ?? (
-              <Trans i18nKey="borrowerMarketDetails.modals.error.wait" />
-            )}
-          </Typography>
-          <Typography variant="text3" sx={FinalModalSubtitle}>
-            {subtitle ?? (
-              <Trans i18nKey="borrowerMarketDetails.modals.error.subtitle" />
-            )}
-          </Typography>
-        </Box>
+  return (
+    <>
+      <Box sx={FinalModalHeader}>
+        <Box width="20px" height="20px" />
+        <IconButton disableRipple onClick={onClose}>
+          <SvgIcon fontSize="big" sx={FinalModalCloseButton}>
+            <Cross />
+          </SvgIcon>
+        </IconButton>
       </Box>
+      <Box padding="0 24px" sx={FinalModalContentContainer}>
+        <Box margin="auto" sx={FinalModalMainContainer}>
+          <SvgIcon fontSize="colossal">
+            <CircledCrossRed />
+          </SvgIcon>
 
-      {txHash !== "" && txHash !== undefined && (
-        <LinkGroup
-          type="etherscan"
-          linkValue={`${EtherscanBaseUrl}/tx/${txHash}`}
-          groupSX={{ marginBottom: "16px" }}
-        />
-      )}
+          <Box sx={FinalModalTypoBox}>
+            <Typography variant="title3">
+              {title ?? (
+                <Trans i18nKey="borrowerMarketDetails.modals.error.wait" />
+              )}
+            </Typography>
+            <Typography variant="text3" sx={FinalModalSubtitle}>
+              {subtitle ?? (
+                <Trans i18nKey="borrowerMarketDetails.modals.error.subtitle" />
+              )}
+            </Typography>
+          </Box>
+        </Box>
 
-      {onTryAgain && (
-        <Button variant="contained" size="large" onClick={onTryAgain} fullWidth>
-          <Trans i18nKey="borrowerMarketDetails.modals.error.tryAgain" />
-        </Button>
-      )}
-    </Box>
-  </>
-)
+        {txHash !== "" && txHash !== undefined && (
+          <LinkGroup
+            type="etherscan"
+            linkValue={getTxUrl(txHash)}
+            groupSX={{ marginBottom: "16px" }}
+          />
+        )}
+
+        {onTryAgain && (
+          <Button
+            variant="contained"
+            size="large"
+            onClick={onTryAgain}
+            fullWidth
+          >
+            <Trans i18nKey="borrowerMarketDetails.modals.error.tryAgain" />
+          </Button>
+        )}
+      </Box>
+    </>
+  )
+}
