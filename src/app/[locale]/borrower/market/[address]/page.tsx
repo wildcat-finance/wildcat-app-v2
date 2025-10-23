@@ -119,7 +119,7 @@ export default function MarketDetails({
   if (
     !isLoadingMarketMla &&
     marketMla === null &&
-    checked !== 5 &&
+    checked !== 6 &&
     market.version === MarketVersion.V2
   )
     return (
