@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useEffect } from "react"
 
 import { Box, Button, Divider, Typography } from "@mui/material"
 import {
@@ -21,6 +22,7 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useAppDispatch } from "@/store/hooks"
 import {
   LenderMarketSections,
+  setOngoingAmount,
   setSection,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import { COLORS } from "@/theme/colors"
@@ -139,6 +141,10 @@ export const MarketActions = ({
   const isTooSmallMarketBalance: boolean =
     marketAccount.marketBalance.lt(smallestTokenAmountValue) &&
     !marketAccount.marketBalance.raw.isZero()
+
+  useEffect(() => {
+    dispatch(setOngoingAmount(ongoingWDs))
+  }, [ongoingWDs])
 
   return (
     <>

@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Box, Button, Skeleton, SvgIcon } from "@mui/material"
+import { Box, Button, Skeleton, SvgIcon, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import BorrowAndRepayIcon from "@/assets/icons/borrowAndRepay_icon.svg"
@@ -33,6 +33,10 @@ export const LenderMarketSidebar = () => {
   )
 
   const isLender = useAppSelector((state) => state.lenderMarketRouting.isLender)
+
+  const ongoingAmount = useAppSelector(
+    (state) => state.lenderMarketRouting.ongoingAmount,
+  )
 
   const handleChangeSection = (newSection: LenderMarketSections) => {
     dispatch(setSection(newSection))
@@ -163,6 +167,29 @@ export const LenderMarketSidebar = () => {
                   <WithdrawalAndRequestsIcon />
                 </SvgIcon>
                 {t("lenderMarketDetails.sidebar.requests")}
+                {!!ongoingAmount && (
+                  <Box
+                    sx={{
+                      width: "20px",
+                      height: "20px",
+                      borderRadius: "4px",
+                      bgcolor: COLORS.blueRibbon01,
+
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+
+                      marginLeft: "auto",
+                    }}
+                  >
+                    <Typography
+                      variant="text4Highlighted"
+                      color={COLORS.ultramarineBlue}
+                    >
+                      {ongoingAmount}
+                    </Typography>
+                  </Box>
+                )}
               </Button>
             )}
 
