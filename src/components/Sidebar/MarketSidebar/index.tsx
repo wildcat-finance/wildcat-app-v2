@@ -1,4 +1,6 @@
-import { Box, Button, SvgIcon } from "@mui/material"
+import * as React from "react"
+
+import { Box, Button, SvgIcon, Typography } from "@mui/material"
 import { useParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -42,6 +44,10 @@ export const MarketSidebar = () => {
 
   const sidebarState = useAppSelector(
     (state) => state.highlightSidebar.sidebarState,
+  )
+
+  const ongoingAmount = useAppSelector(
+    (state) => state.highlightSidebar.ongoingAmount,
   )
 
   const hideDescriptionSection = useAppSelector(
@@ -178,6 +184,30 @@ export const MarketSidebar = () => {
               <WithdrawalAndRequestsIcon />
             </SvgIcon>
             {t("borrowerMarketDetails.sidebar.withdrawalRequests")}
+
+            {!!ongoingAmount && (
+              <Box
+                sx={{
+                  width: "20px",
+                  height: "20px",
+                  borderRadius: "4px",
+                  bgcolor: COLORS.blueRibbon01,
+
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+
+                  marginLeft: "auto",
+                }}
+              >
+                <Typography
+                  variant="text4Highlighted"
+                  color={COLORS.ultramarineBlue}
+                >
+                  {ongoingAmount}
+                </Typography>
+              </Box>
+            )}
           </Button>
           <Button
             variant="text"

@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useEffect } from "react"
 
 import { Box, Button, Divider, Typography } from "@mui/material"
 import { HooksKind, MarketVersion } from "@wildcatfi/wildcat-sdk"
@@ -10,6 +11,7 @@ import { TransactionBlock } from "@/components/TransactionBlock"
 import { useAppDispatch } from "@/store/hooks"
 import {
   setCheckBlock,
+  setOngoingAmount,
   setSidebarHighlightState,
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { formatTokenWithCommas } from "@/utils/formatters"
@@ -78,6 +80,10 @@ export const MarketTransactions = ({
       }),
     )
   }
+
+  useEffect(() => {
+    dispatch(setOngoingAmount(ongoingWDs))
+  }, [ongoingWDs])
 
   return (
     <>

@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit"
+import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
 import { THighLightSidebar } from "@/store/slices/highlightSidebarSlice/interface"
 
@@ -13,6 +13,7 @@ const initialState: THighLightSidebar = {
     mla: false,
     marketHistory: false,
   },
+  ongoingAmount: 0,
 }
 
 const highlightSidebarSlice = createSlice({
@@ -25,11 +26,18 @@ const highlightSidebarSlice = createSlice({
     setCheckBlock: (state, action) => {
       state.checked = action.payload
     },
+    setOngoingAmount: (state, action: PayloadAction<number>) => {
+      state.ongoingAmount = action.payload
+    },
     resetPageState: () => initialState,
   },
 })
 
-export const { setSidebarHighlightState, setCheckBlock, resetPageState } =
-  highlightSidebarSlice.actions
+export const {
+  setSidebarHighlightState,
+  setCheckBlock,
+  setOngoingAmount,
+  resetPageState,
+} = highlightSidebarSlice.actions
 
 export default highlightSidebarSlice.reducer
