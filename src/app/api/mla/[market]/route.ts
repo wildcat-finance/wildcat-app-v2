@@ -1,10 +1,11 @@
-import { writeFileSync } from "fs"
-import path from "path"
-
-import { getLensV2Contract, Market } from "@wildcatfi/wildcat-sdk"
+import {
+  getLensV2Contract,
+  isSupportedChainId,
+  Market,
+} from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
-import { TargetChainId, TargetNetwork } from "@/config/network"
+import { NETWORKS_BY_ID } from "@/config/network"
 import {
   getBorrowerProfile,
   getSignedMasterLoanAgreement,
@@ -13,6 +14,7 @@ import {
 import { fillInMlaTemplate, getFieldValuesForBorrower } from "@/lib/mla"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
+import { validateChainIdParam } from "@/lib/validateChainIdParam"
 import { getZodParseError } from "@/lib/zod-error"
 
 import { SetMasterLoanAgreementInputDTO } from "./dto"
@@ -23,18 +25,22 @@ import {
   SetMasterLoanAgreementInput,
 } from "../interface"
 
-/// GET /api/mla/[market]
+/// GET /api/mla/[market]?chainId=<chainId>
 /// Route to get the MLA for a given market.
 export async function GET(
   request: NextRequest,
   { params }: { params: { market: string } },
 ) {
   const market = params.market.toLowerCase()
-  const mla = await getSignedMasterLoanAgreement(market)
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
+  const mla = await getSignedMasterLoanAgreement(market, chainId)
   if (!mla) {
     const refusal = await prisma.refusalToAssignMla.findFirst({
       where: {
-        chainId: TargetChainId,
+        chainId,
         market,
       },
     })
@@ -66,18 +72,22 @@ export async function POST(
   try {
     const input = await request.json()
     body = SetMasterLoanAgreementInputDTO.parse(input)
+    if (!isSupportedChainId(body.chainId)) {
+      return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+    }
   } catch (error) {
     return getZodParseError(error)
   }
   const marketAddress = params.market.toLowerCase()
-  const provider = getProviderForServer()
+  const provider = getProviderForServer(body.chainId)
   const codeSize = (await provider.getCode(marketAddress)).length
+  const { chainId } = body
   console.log(`Code size for market ${marketAddress}: ${codeSize}`)
   console.log(body.timeSigned)
 
   const refusal = await prisma.refusalToAssignMla.findFirst({
     where: {
-      chainId: TargetChainId,
+      chainId,
       market: marketAddress,
     },
   })
@@ -88,24 +98,22 @@ export async function POST(
     )
   }
 
-  const market = await Market.getMarket(
-    TargetChainId,
-    marketAddress,
-    provider,
-  ).catch(async () => {
-    const lens = getLensV2Contract(TargetChainId, provider)
-    return Market.fromMarketDataV2(
-      TargetChainId,
-      provider,
-      await lens.getMarketData(marketAddress),
-    )
-  })
+  const market = await Market.getMarket(chainId, marketAddress, provider).catch(
+    async () => {
+      const lens = getLensV2Contract(chainId, provider)
+      return Market.fromMarketDataV2(
+        chainId,
+        provider,
+        await lens.getMarketData(marketAddress),
+      )
+    },
+  )
   const address = market.borrower.toLowerCase()
 
   if (
     await prisma.masterLoanAgreement.count({
       where: {
-        chainId: TargetChainId,
+        chainId,
         market: marketAddress,
       },
     })
@@ -136,7 +144,7 @@ export async function POST(
       { status: 400 },
     )
   }
-  const borrowerProfile = await getBorrowerProfile(address)
+  const borrowerProfile = await getBorrowerProfile(address, chainId)
   if (!borrowerProfile) {
     return NextResponse.json(
       { error: "Borrower profile not found" },
@@ -147,7 +155,7 @@ export async function POST(
   const values = getFieldValuesForBorrower({
     market,
     borrowerInfo: borrowerProfile,
-    networkData: TargetNetwork,
+    networkData: NETWORKS_BY_ID[chainId],
     timeSigned: body.timeSigned,
     lastSlaUpdateTime: +lastSlaUpdateTime,
     asset: market.underlyingToken,
@@ -168,7 +176,7 @@ export async function POST(
   await prisma.$transaction([
     prisma.masterLoanAgreement.create({
       data: {
-        chainId: TargetChainId,
+        chainId,
         market: marketAddress,
         templateId: mlaTemplate.id,
         borrower: address,
@@ -179,7 +187,7 @@ export async function POST(
     }),
     prisma.mlaSignature.create({
       data: {
-        chainId: TargetChainId,
+        chainId,
         market: marketAddress,
         address,
         signer: address,

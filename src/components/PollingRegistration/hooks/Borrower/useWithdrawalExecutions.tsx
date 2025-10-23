@@ -5,9 +5,9 @@ import { Chip } from "@mui/material"
 import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
-import { EtherscanBaseUrl } from "@/config/network"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { WITHDRAWAL_EXECUTIONS } from "@/graphql/queries"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { COLORS } from "@/theme/colors"
 import { formatTokenAmount } from "@/utils/formatters"
@@ -20,6 +20,7 @@ export const useWithdrawalExecutions = (
   address?: `0x${string}`,
 ) => {
   const dispatch = useDispatch()
+  const { getTxUrl } = useBlockExplorer()
 
   const [fetchWithdrawalExecutions, { data, error }] = useLazyQuery(
     WITHDRAWAL_EXECUTIONS,
@@ -50,7 +51,7 @@ export const useWithdrawalExecutions = (
                 category: "marketActivity",
                 blockTimestamp: withdrawalExecution.blockTimestamp,
                 unread: true,
-                etherscanUrl: `${EtherscanBaseUrl}/tx/${withdrawalExecution.transactionHash}`,
+                blockExplorerUrl: getTxUrl(withdrawalExecution.transactionHash),
                 children: [
                   <Chip
                     sx={{
@@ -71,7 +72,7 @@ export const useWithdrawalExecutions = (
         },
       )
     }
-  }, [data, dispatch])
+  }, [data, dispatch, getTxUrl])
 
   useEffect(() => {
     if (error) {

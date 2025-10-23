@@ -4,9 +4,9 @@ import { useLazyQuery } from "@apollo/client"
 import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
-import { EtherscanBaseUrl } from "@/config/network"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { DEBT_REPAIDS } from "@/graphql/queries"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { formatTokenAmount } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
@@ -18,6 +18,7 @@ export const useDebtRepaids = (
   address?: `0x${string}`,
 ) => {
   const dispatch = useDispatch()
+  const { getTxUrl } = useBlockExplorer()
 
   const [fetchDebtRepaids, { data, error }] = useLazyQuery(
     DEBT_REPAIDS,
@@ -48,12 +49,12 @@ export const useDebtRepaids = (
             category: "marketActivity",
             blockTimestamp: debtRepaid.blockTimestamp,
             unread: true,
-            etherscanUrl: `${EtherscanBaseUrl}/tx/${debtRepaid.transactionHash}`,
+            blockExplorerUrl: getTxUrl(debtRepaid.transactionHash),
           }),
         )
       })
     }
-  }, [data, dispatch])
+  }, [data, dispatch, getTxUrl])
 
   useEffect(() => {
     if (error) {

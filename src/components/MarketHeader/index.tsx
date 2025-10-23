@@ -79,7 +79,7 @@ export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
   const marketStatus = getMarketStatusChip(market)
 
   const { data: profileData, isLoading: isProfileLoading } =
-    useGetBorrowerProfile(market.borrower as `0x${string}`)
+    useGetBorrowerProfile(market.chainId, market.borrower as `0x${string}`)
 
   const getBorrowerName = () => {
     if (profileData) {

@@ -12,7 +12,7 @@ import { Trans } from "react-i18next"
 import Check from "@/assets/icons/check_icon.svg"
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { MiniLoader } from "@/components/Loader"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { COLORS } from "@/theme/colors"
 
 import { TxModalFooterProps } from "./interface"
@@ -31,12 +31,13 @@ export const TxModalFooter = ({
   secondBtnIcon,
 }: TxModalFooterProps) => {
   const theme = useTheme()
+  const { getAddressUrl } = useBlockExplorer()
 
   return (
     <>
       {link && (
         <Link
-          href={`${EtherscanBaseUrl}/address/${link}`}
+          href={getAddressUrl(link)}
           target="_blank"
           style={TxModalFooterLink}
         >

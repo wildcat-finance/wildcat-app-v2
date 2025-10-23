@@ -1,5 +1,7 @@
 /// Borrower invitation.
 
+import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
+
 export type BorrowerInvitation = {
   id: number
   inviter: string
@@ -20,6 +22,7 @@ export type BorrowerInvitation = {
 
 /// Input for inviting a borrower.
 export interface BorrowerInvitationInput {
+  chainId: SupportedChainId
   address: string
   name: string
   alias?: string
@@ -33,6 +36,7 @@ export interface BorrowerInvitationInput {
 
 /// Input for accepting an invitation.
 export interface AcceptInvitationInput {
+  chainId: SupportedChainId
   address: string
   name: string
   alias?: string

@@ -2,17 +2,19 @@ import { useQuery } from "@tanstack/react-query"
 import { useAccount } from "wagmi"
 
 import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
+import { QueryKeys } from "@/config/query-keys"
 
 import { useAuthToken } from "./useApiAuth"
 
-export const GET_MARKET_MLA_KEY = "get-market-mla"
-
 export const useMarketMla = (marketAddress: string | undefined) => {
-  const { address } = useAccount()
+  const { address, chainId } = useAccount()
   const token = useAuthToken()
+  const chainKey = chainId ?? 0
   const getMarketMla = async () => {
-    if (!marketAddress) return undefined
-    const res = await fetch(`/api/mla/${marketAddress.toLowerCase()}`)
+    if (!marketAddress || !chainId) return undefined
+    const res = await fetch(
+      `/api/mla/${marketAddress.toLowerCase()}?chainId=${chainId}`,
+    )
     if (res.status === 200) {
       const data = await res.json()
       if (data.noMLA) {
@@ -27,8 +29,13 @@ export const useMarketMla = (marketAddress: string | undefined) => {
     throw new Error("Failed to fetch MLA")
   }
   return useQuery({
-    enabled: !!marketAddress,
-    queryKey: [GET_MARKET_MLA_KEY, marketAddress, address, token?.token],
+    enabled: !!marketAddress && !!chainId,
+    queryKey: QueryKeys.Markets.GET_MARKET_MLA(
+      chainKey,
+      marketAddress,
+      address,
+      token?.token,
+    ),
     queryFn: getMarketMla,
     refetchOnMount: false,
   })

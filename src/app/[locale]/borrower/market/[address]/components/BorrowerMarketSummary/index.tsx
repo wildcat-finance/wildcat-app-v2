@@ -8,25 +8,28 @@ import { useTranslation } from "react-i18next"
 import AuthWrapper from "@/components/AuthWrapper"
 import { Markdown } from "@/components/Markdown"
 import { MarkdownEditor } from "@/components/MarkdownEditor"
-import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { COLORS } from "@/theme/colors"
 
 import { useUpdateMarketSummary } from "../../hooks/useUpdateMarketSummary"
 
 const InnerMarketSummaryEditor = ({
   marketAddress,
+  chainId,
   handleClose,
   marketSummary,
 }: {
   marketAddress: string
+  chainId: number
   marketSummary: string
   handleClose: () => void
 }) => {
   const { t } = useTranslation()
 
   const [markdown, setMarkdown] = useState(marketSummary || "")
-  const { mutate: updateMarketSummary, isPending } =
-    useUpdateMarketSummary(marketAddress)
+  const { mutate: updateMarketSummary, isPending } = useUpdateMarketSummary(
+    marketAddress,
+    chainId,
+  )
 
   useEffect(() => {
     setMarkdown(marketSummary)
@@ -73,11 +76,13 @@ const InnerMarketSummaryEditor = ({
 
 export const BorrowerMarketSummary = ({
   marketAddress,
+  chainId,
   isBorrower,
   marketSummary,
   isLoading,
 }: {
   marketAddress: string
+  chainId: number
   isBorrower: boolean
   marketSummary:
     | {
@@ -154,6 +159,7 @@ export const BorrowerMarketSummary = ({
         {open ? (
           <InnerMarketSummaryEditor
             marketAddress={marketAddress}
+            chainId={chainId}
             handleClose={() => setOpen(false)}
             marketSummary={marketSummary?.description || ""}
           />

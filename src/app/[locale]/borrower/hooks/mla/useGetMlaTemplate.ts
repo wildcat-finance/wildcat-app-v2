@@ -3,14 +3,17 @@
 import { useQuery } from "@tanstack/react-query"
 
 import { MlaTemplate } from "@/app/api/mla/interface"
+import { QueryKeys } from "@/config/query-keys"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
-export const GET_MLA_TEMPLATE_KEY = "GET_MLA_TEMPLATE"
-
-export const useGetMlaTemplate = (id: number) =>
-  useQuery({
-    queryKey: [GET_MLA_TEMPLATE_KEY, id],
+export const useGetMlaTemplate = (id: number) => {
+  const { chainId } = useSelectedNetwork()
+  return useQuery({
+    queryKey: QueryKeys.Borrower.GET_MLA_TEMPLATE(chainId, id),
     queryFn: async () => {
       const response = await fetch(`/api/mla/templates/${id}`)
       return response.json() as Promise<MlaTemplate>
     },
+    enabled: !!chainId && id !== undefined,
   })
+}

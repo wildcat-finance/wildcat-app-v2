@@ -1,13 +1,14 @@
 import { Prisma } from "@prisma/client"
+import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import {
   BorrowerAdditionalUrl,
   BorrowerProfileInput,
 } from "@/app/api/profiles/interface"
-import { TargetChainId } from "@/config/network"
 import { getBorrowerProfileUpdates, prisma } from "@/lib/db"
 import { uploadProfilePicture } from "@/lib/upload-profile-picture"
+import { validateChainIdParam } from "@/lib/validateChainIdParam"
 import { getZodParseError } from "@/lib/zod-error"
 
 import {
@@ -40,6 +41,13 @@ export async function POST(request: NextRequest) {
       ...BorrowerProfileInputDTO.parse(input),
       address,
     }
+
+    if (!data.chainId || !isSupportedChainId(data.chainId)) {
+      return NextResponse.json(
+        { error: "Chain ID is required" },
+        { status: 400 },
+      )
+    }
     if (base64Avatar) {
       const avatar = await uploadProfilePicture(base64Avatar, address)
       if (!avatar) {
@@ -56,6 +64,7 @@ export async function POST(request: NextRequest) {
 
   const {
     name,
+    chainId,
     alias,
     avatar,
     description,
@@ -73,7 +82,6 @@ export async function POST(request: NextRequest) {
   } = data
 
   const address = data.address.toLowerCase()
-  const chainId = TargetChainId
   const existingBorrower = await prisma.borrower.findFirst({
     where: {
       chainId,
@@ -172,7 +180,7 @@ export async function POST(request: NextRequest) {
           chainId: updateRequest.chainId,
         },
       },
-      data: newData as Omit<typeof newData, "additionalUrls"> & {
+      data: newData as Omit<typeof newData, "additionalUrls" | "chainId"> & {
         additionalUrls?: ReadonlyArray<BorrowerAdditionalUrl>
       },
     }),
@@ -189,14 +197,22 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ success: true, updateId: updateRequest.id })
 }
 
-/// GET /api/profiles/updates?borrower=<borrower>&pending=<bool>
+/// GET /api/profiles/updates?borrower=<borrower>&pending=<bool>&chainId=<chainId>
 /// Get all pending updates for a borrower, or for all borrowers if none is provided
 /// If pending is false, return all updates
 export async function GET(request: NextRequest) {
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   const borrower = request.nextUrl.searchParams.get("borrower") || undefined
   const pendingStr = request.nextUrl.searchParams.get("pending")
   const onlyPending = pendingStr === null || pendingStr === "true"
-  const updates = await getBorrowerProfileUpdates(borrower, onlyPending)
+  const updates = await getBorrowerProfileUpdates(
+    chainId,
+    borrower,
+    onlyPending,
+  )
   return NextResponse.json(updates)
 }
 
@@ -233,7 +249,7 @@ export async function PUT(request: NextRequest) {
 
   const proms: Prisma.PrismaPromise<unknown>[] = []
   if (accept) {
-    const newData: Omit<BorrowerProfileInput, "address"> = {}
+    const newData: Omit<BorrowerProfileInput, "address" | "chainId"> = {}
     const keys = [
       "name",
       "alias",
@@ -297,9 +313,13 @@ export async function PUT(request: NextRequest) {
   return NextResponse.json({ success: true })
 }
 
-// DELETE /api/profiles/updates?borrower=<borrower>
+// DELETE /api/profiles/updates?borrower=<borrower>&chainId=<chainId>
 // Test function only
 export async function DELETE(request: NextRequest) {
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   const borrower = request.nextUrl.searchParams.get("borrower")
   if (!borrower) {
     return NextResponse.json(
@@ -310,7 +330,7 @@ export async function DELETE(request: NextRequest) {
 
   const result = await prisma.borrowerProfileUpdateRequest.deleteMany({
     where: {
-      chainId: TargetChainId,
+      chainId,
       ...(borrower && { address: borrower }),
     },
   })

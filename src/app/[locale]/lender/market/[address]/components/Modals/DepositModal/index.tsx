@@ -27,7 +27,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
@@ -46,6 +46,7 @@ export const DepositModal = ({
   const isMobile = useMobileResolution()
 
   const { t } = useTranslation()
+  const { getTxUrl } = useBlockExplorer()
 
   const { market } = marketAccount
 
@@ -162,7 +163,7 @@ export const DepositModal = ({
     depositTokenAmount.raw.gt(market.maximumDeposit.raw) ||
     isAllowanceSufficient ||
     isApproving ||
-    !(market.provider instanceof Signer)
+    !Signer.isSigner(market.provider)
 
   const disableDeposit =
     !!depositError ||
@@ -481,7 +482,7 @@ export const DepositModal = ({
           {txHash !== "" && showForm && (
             <LinkGroup
               type="etherscan"
-              linkValue={`${EtherscanBaseUrl}/tx/${txHash}`}
+              linkValue={getTxUrl(txHash as string)}
               groupSX={{ padding: "8px", marginBottom: "8px" }}
             />
           )}
@@ -795,7 +796,7 @@ export const DepositModal = ({
           {txHash !== "" && showForm && (
             <LinkGroup
               type="etherscan"
-              linkValue={`${EtherscanBaseUrl}/tx/${txHash}`}
+              linkValue={getTxUrl(txHash as string)}
               groupSX={{ padding: "8px", marginBottom: "8px" }}
             />
           )}

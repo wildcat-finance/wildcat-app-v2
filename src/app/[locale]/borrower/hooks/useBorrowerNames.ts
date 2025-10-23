@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 
-import { TargetNetwork } from "@/config/network"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { trimAddress } from "@/utils/formatters"
 
 export const USE_REGISTERED_BORROWERS_KEY = "use-borrower-names"
@@ -12,8 +12,9 @@ export type BorrowerWithName = {
 }
 
 export const useBorrowerNames = () => {
+  const { chainId } = useSelectedNetwork()
   const getBorrowers = async () => {
-    const data = await fetch(`/api/borrower-names`)
+    const data = await fetch(`/api/borrower-names?chainId=${chainId}`)
       .then(async (res) => {
         const result = (await res.json()) as BorrowerWithName[]
         console.log(`GOT ${result.length} BORROWERS`)

@@ -4,15 +4,16 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
 import { LenderMlaSignatureInput } from "@/app/api/mla/lender-signature/interface"
 import { toastRequest } from "@/components/Toasts"
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
-
-import { GET_SIGNED_MLA_KEY } from "./useSignMla"
 
 export const useSignLenderMLA = () => {
   const { sdk, connected: safeConnected } = useSafeAppsSDK()
   const signer = useEthersSigner()
   const client = useQueryClient()
+  const { chainId: targetChainId } = useSelectedNetwork()
 
   return useMutation({
     mutationFn: async ({
@@ -63,6 +64,7 @@ export const useSignLenderMLA = () => {
         const response = await fetch(`/api/mla/lender-signature`, {
           method: "POST",
           body: JSON.stringify({
+            chainId: signer.chainId,
             market: mla.market,
             address: lenderAddress,
             signature,
@@ -80,7 +82,7 @@ export const useSignLenderMLA = () => {
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: [GET_SIGNED_MLA_KEY],
+        queryKey: QueryKeys.Lender.GET_SIGNED_MLA(targetChainId),
       })
     },
   })

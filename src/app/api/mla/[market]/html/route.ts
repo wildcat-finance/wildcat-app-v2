@@ -6,15 +6,20 @@ import {
   MlaFieldValueKey,
   MlaTemplateField,
 } from "@/lib/mla"
+import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
-/// GET /api/mla/[market]
+/// GET /api/mla/[market]?chainId=<chainId>
 /// Route to get the MLA for a given market.
 export async function GET(
   request: NextRequest,
   { params }: { params: { market: string } },
 ) {
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   const market = params.market.toLowerCase()
-  const mla = await getSignedMasterLoanAgreement(market)
+  const mla = await getSignedMasterLoanAgreement(market, chainId)
   const template = await prisma.mlaTemplate.findFirst({
     where: {
       id: mla?.templateId,

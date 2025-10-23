@@ -23,6 +23,7 @@ import marketsOverviewSidebarSlice from "./slices/marketsOverviewSidebarSlice/ma
 import notificationsSidebarSlice from "./slices/notificationsSidebarSlice/notificationsSidebarSlice"
 import notificationsSlice from "./slices/notificationsSlice/notificationsSlice"
 import routingSlice from "./slices/routingSlice/routingSlice"
+import selectedNetworkSlice from "./slices/selectedNetworkSlice/selectedNetworkSlice"
 
 export const makeStore = () => {
   const store = configureStore({
@@ -47,6 +48,7 @@ export const makeStore = () => {
       borrowerLendersTabSidebar: borrowerLendersTabSidebarSlice,
       lenderMlaSignatures: lenderMlaSignaturesSlice,
       cookieBanner: cookieBannerSlice,
+      selectedNetwork: selectedNetworkSlice,
       marketFilters: marketFiltersSlice,
     },
     middleware: (getDefaultMiddleware) =>

@@ -4,11 +4,8 @@ import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY } from "@/hooks/useGetMarketAccount"
-
-import { GET_BORROWER_MARKETS } from "../../../hooks/getMaketsHooks/useGetBorrowerMarkets"
-import { GET_ALL_MARKETS } from "../../../hooks/getMaketsHooks/useGetOthersMarkets"
 
 export const useTerminateMarket = (
   marketAccount: MarketAccount,
@@ -49,13 +46,22 @@ export const useTerminateMarket = (
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: [GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY],
+        queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
+          marketAccount.market.chainId,
+          marketAccount.account,
+          marketAccount.market.address,
+        ),
       })
       client.invalidateQueries({
-        queryKey: [GET_BORROWER_MARKETS],
+        queryKey: QueryKeys.Borrower.GET_OWN_MARKETS(
+          marketAccount.market.chainId,
+          marketAccount.account,
+        ),
       })
       client.invalidateQueries({
-        queryKey: [GET_ALL_MARKETS],
+        queryKey: QueryKeys.Borrower.GET_ALL_MARKETS(
+          marketAccount.market.chainId,
+        ),
       })
     },
     onError(error) {

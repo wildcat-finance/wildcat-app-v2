@@ -5,19 +5,48 @@ import {
   SupportedChainIds,
 } from "@wildcatfi/wildcat-sdk"
 
+export const showTestnets = process.env.NEXT_PUBLIC_HIDE_TESTNETS !== "true"
+
 export const NETWORKS = {
   Sepolia: {
     chainId: 11155111,
     stringID: "sepolia",
     name: "Sepolia",
-    etherscanUrl: "https://sepolia.etherscan.io",
+    blockExplorerUrl: "https://sepolia.etherscan.io",
+    isTestnet: true,
+    hasV1Deployment: true,
   },
   Mainnet: {
     chainId: 1,
     stringID: "mainnet",
-    name: "Mainnet",
-    etherscanUrl: "https://etherscan.io",
+    name: "Ethereum Mainnet",
+    blockExplorerUrl: "https://etherscan.io",
+    isTestnet: false,
+    hasV1Deployment: true,
   },
+  PlasmaTestnet: {
+    chainId: 9746,
+    stringID: "plasma-testnet",
+    name: "Plasma Testnet",
+    blockExplorerUrl: "https://testnet.plasmascan.to",
+    isTestnet: true,
+    hasV1Deployment: false,
+  },
+  PlasmaMainnet: {
+    chainId: 9745,
+    stringID: "plasma-mainnet",
+    name: "Plasma",
+    blockExplorerUrl: "https://plasmascan.to",
+    isTestnet: false,
+    hasV1Deployment: false,
+  },
+}
+export type NetworkInfo = (typeof NETWORKS)[keyof typeof NETWORKS]
+
+export const NETWORKS_BY_ID = Object.fromEntries(
+  Object.values(NETWORKS).map((network) => [network.chainId, network]),
+) as {
+  [key in SupportedChainId]: NetworkInfo
 }
 
 const TARGET_NETWORK = process.env.NEXT_PUBLIC_TARGET_NETWORK
@@ -44,4 +73,12 @@ assert(
 
 export const TargetChainId: SupportedChainId = targetChainId
 
-export const EtherscanBaseUrl = TargetNetwork.etherscanUrl
+export const BlockExplorerBaseUrl = TargetNetwork.blockExplorerUrl
+
+export const getBlockExplorerBaseUrl = (chainId?: SupportedChainId): string => {
+  if (chainId && chainId in NETWORKS_BY_ID) {
+    return NETWORKS_BY_ID[chainId].blockExplorerUrl
+  }
+
+  return BlockExplorerBaseUrl
+}

@@ -1,17 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
+import { QueryKeys } from "@/config/query-keys"
 import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
-
-import { GET_ALL_BORROWER_INVITATIONS_KEY } from "./useAllBorrowerInvitations"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export function useCancelInvite() {
   const token = useAuthToken()
   const client = useQueryClient()
+  const { chainId } = useSelectedNetwork()
   const { mutate: removeBadToken } = useRemoveBadApiToken()
   return useMutation({
     mutationFn: async (address: string) => {
       const response = await fetch(
-        `/api/invite?address=${address.toLowerCase()}`,
+        `/api/invite?address=${address.toLowerCase()}&chainId=${chainId}`,
         {
           method: "DELETE",
           headers: {
@@ -29,7 +30,9 @@ export function useCancelInvite() {
       }
     },
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: [GET_ALL_BORROWER_INVITATIONS_KEY] })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Admin.GET_ALL_BORROWER_INVITATIONS(chainId),
+      })
     },
   })
 }

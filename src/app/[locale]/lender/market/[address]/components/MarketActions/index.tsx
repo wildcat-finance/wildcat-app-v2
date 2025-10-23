@@ -24,6 +24,7 @@ import {
   LenderMarketSections,
   setSection,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -58,6 +59,7 @@ export const MarketActions = ({
 }: MarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
+  const { isTestnet } = useSelectedNetwork()
 
   const { data: mla, isLoading: mlaLoading } = useMarketMla(market.address)
 
@@ -78,7 +80,7 @@ export const MarketActions = ({
 
   const showFaucet =
     hideDeposit &&
-    TargetChainId === SupportedChainId.Sepolia &&
+    isTestnet &&
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.raw.isZero()
 
