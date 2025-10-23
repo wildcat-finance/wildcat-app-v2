@@ -5,7 +5,6 @@ import {
   DepositStatus,
   MarketAccount,
   QueueWithdrawalStatus,
-  SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
@@ -17,14 +16,13 @@ import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import { TransactionBlock } from "@/components/TransactionBlock"
-import { TargetChainId } from "@/config/network"
 import { useMarketMla } from "@/hooks/useMarketMla"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useAppDispatch } from "@/store/hooks"
 import {
   LenderMarketSections,
   setSection,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
-import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
