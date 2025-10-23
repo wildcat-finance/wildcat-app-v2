@@ -243,8 +243,8 @@ export const LenderActiveMarketsTables = ({
               size="small"
               variant="text"
               sx={{
-                  fontSize: pxToRem(13),
-                  lineHeight: lh(20, 13),
+                fontSize: pxToRem(13),
+                lineHeight: lh(20, 13),
                 fontWeight: 500,
                 minWidth: "calc(100% - 1px)",
                 width: "calc(100% - 1px)",

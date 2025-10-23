@@ -171,9 +171,9 @@ export const NameSection = ({
         {avatar ? (
           <Image src={avatar} alt="avatar" width={48} height={48} />
         ) : (
-            <SvgIcon sx={{ fontSize: pxToRem(48), marginBottom: "24px" }}>
-                <Avatar />
-            </SvgIcon>
+          <SvgIcon sx={{ fontSize: pxToRem(48), marginBottom: "24px" }}>
+            <Avatar />
+          </SvgIcon>
         )}
 
         <Typography variant={isMarketPage ? "title3" : "title1"}>
