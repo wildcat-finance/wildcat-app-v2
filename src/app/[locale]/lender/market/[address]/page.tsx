@@ -3,14 +3,7 @@
 import * as React from "react"
 import { useEffect, useState } from "react"
 
-import {
-  Box,
-  Divider,
-  Skeleton,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material"
+import { Box, Divider, Skeleton, Typography, useTheme } from "@mui/material"
 import { redirect } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -20,7 +13,6 @@ import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/Bar
 import { MobileMarketActions } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMarketActions"
 import { MobileMlaAlert } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaAlert"
 import { MobileMlaModal } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaModal/MobileMlaModal"
-import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
@@ -41,6 +33,7 @@ import {
   setIsLoading,
   setSection,
   resetPageState,
+  setWithdrawalsCount,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import { COLORS } from "@/theme/colors"
 
@@ -111,6 +104,28 @@ export default function LenderMarketDetails({
       dispatch(setSection(LenderMarketSections.TRANSACTIONS))
     }
   }, [authorizedInMarket])
+
+  const ongoingCount = (
+    withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
+  ).flatMap((b) => b.requests).length
+
+  const claimableCount = new Set(
+    (withdrawals.expiredPendingWithdrawals ?? [])
+      .filter((b) => !b.availableWithdrawalAmount.raw.isZero())
+      .flatMap((b) => b.requests.map((r) => r.transactionHash)),
+  ).size
+
+  const outstandingCount = (
+    withdrawals?.expiredPendingWithdrawals ?? []
+  ).flatMap((b) =>
+    b.requests.filter((wd) => wd.getNormalizedAmountOwed(b.batch).gt(0)),
+  ).length
+
+  const totalWithdrawalsCount = ongoingCount + claimableCount + outstandingCount
+
+  useEffect(() => {
+    dispatch(setWithdrawalsCount(totalWithdrawalsCount))
+  }, [totalWithdrawalsCount])
 
   useEffect(
     () => () => {

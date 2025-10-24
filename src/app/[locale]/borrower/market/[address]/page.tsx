@@ -8,6 +8,7 @@ import { MarketVersion } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart"
+import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
@@ -23,6 +24,7 @@ import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/h
 import {
   resetPageState,
   setCheckBlock,
+  setWithdrawalsCount,
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
 import { pageCalcHeights } from "@/utils/constants"
@@ -47,6 +49,7 @@ export default function MarketDetails({
   const dispatch = useAppDispatch()
   const { chainId: targetChainId } = useSelectedNetwork()
   const { data: market } = useGetMarket({ address })
+  const { data: withdrawals } = useGetWithdrawals(market)
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
   const { data: marketSummary, isLoading: isSummaryLoading } = useMarketSummary(
     address.toLowerCase(),
@@ -86,6 +89,27 @@ export default function MarketDetails({
     },
     [],
   )
+
+  const ongoingCount = withdrawals.activeWithdrawal?.requests.length ?? 0
+
+  const claimableCount = withdrawals.batchesWithClaimableWithdrawals?.flatMap(
+    (batch) =>
+      batch.withdrawals.flatMap((withdrawal) =>
+        withdrawal.requests.map((request) => request.transactionHash),
+      ),
+  ).length
+
+  const outstandingCount = (
+    withdrawals?.expiredPendingWithdrawals ?? []
+  ).flatMap((batch) =>
+    batch.requests.filter((w) => w.getNormalizedAmountOwed(batch).gt(0)),
+  ).length
+
+  const totalWithdrawalsCount = ongoingCount + claimableCount + outstandingCount
+
+  useEffect(() => {
+    dispatch(setWithdrawalsCount(totalWithdrawalsCount))
+  }, [totalWithdrawalsCount])
 
   if (!market || !marketAccount)
     return (
@@ -174,6 +198,7 @@ export default function MarketDetails({
                 <MarketTransactions
                   market={market}
                   marketAccount={marketAccount}
+                  withdrawals={withdrawals}
                   holdTheMarket={holdTheMarket}
                 />
               )}
@@ -226,6 +251,7 @@ export default function MarketDetails({
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketWithdrawalRequests
                 marketAccount={marketAccount}
+                withdrawals={withdrawals}
                 isHoldingMarket={holdTheMarket}
               />
             </Box>

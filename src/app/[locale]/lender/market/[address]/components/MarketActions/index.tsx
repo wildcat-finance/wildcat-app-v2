@@ -18,6 +18,11 @@ import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAdd
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { useAppDispatch } from "@/store/hooks"
+import {
+  LenderMarketSections,
+  setSection,
+} from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -81,12 +86,51 @@ export const MarketActions = ({
     marketAccount.marketBalance.raw.isZero() ||
     marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
 
-  const hideClaim = withdrawals.totalClaimableAmount.raw.isZero()
+  const ongoingCount = (
+    withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
+  ).flatMap((b) => b.requests).length
 
-  const claimAmountString = hideClaim
-    ? "nothing"
-    : `${formatTokenWithCommas(withdrawals.totalClaimableAmount)} 
-              ${market.underlyingToken.symbol}`
+  const isClaimableZero = withdrawals.totalClaimableAmount.raw.isZero()
+
+  const isOngoingWDsZero = ongoingCount === 0
+
+  const dispatch = useAppDispatch()
+  const handleChangeSection = () => {
+    dispatch(setSection(LenderMarketSections.REQUESTS))
+  }
+
+  const getWithdrawalsStatus = () => {
+    if (isOngoingWDsZero && isClaimableZero) {
+      return t("lenderMarketDetails.transactions.claim.title.claim", {
+        claim: "nothing",
+      })
+    }
+    if (!isOngoingWDsZero && isClaimableZero) {
+      return t("lenderMarketDetails.transactions.claim.title.ongoingWDs", {
+        ongoingCount,
+      })
+    }
+    if (isOngoingWDsZero && !isClaimableZero) {
+      return t("lenderMarketDetails.transactions.claim.title.claim", {
+        claim: `${formatTokenWithCommas(withdrawals.totalClaimableAmount)} ${
+          market.underlyingToken.symbol
+        }`,
+      })
+    }
+    if (!isOngoingWDsZero && !isClaimableZero) {
+      return t(
+        "lenderMarketDetails.transactions.claim.title.claimAndOngoingWDs",
+        {
+          ongoingCount,
+          claim: `${formatTokenWithCommas(withdrawals.totalClaimableAmount)} ${
+            market.underlyingToken.symbol
+          }`,
+        },
+      )
+    }
+
+    return ""
+  }
 
   const smallestTokenAmountValue = market.underlyingToken.parseAmount(
     "0.00001".replace(/,/g, ""),
@@ -128,7 +172,7 @@ export const MarketActions = ({
                 </Typography>
                 <Typography
                   variant="text3"
-                  sx={{ marginBottom: hideClaim ? "0" : "24px" }}
+                  sx={{ marginBottom: isClaimableZero ? "0" : "24px" }}
                   color={COLORS.santasGrey}
                 >
                   You need to sign the MLA before you can access this market.
@@ -171,21 +215,41 @@ export const MarketActions = ({
       <Divider sx={{ margin: "32px 0 40px" }} />
 
       <Box width="100%" display="flex" flexDirection="column">
-        <Typography variant="title3" sx={{ marginBottom: "8px" }}>
-          {t("lenderMarketDetails.transactions.claim.title.beginning")}{" "}
-          {claimAmountString}{" "}
-          {t("lenderMarketDetails.transactions.claim.title.ending")}
-        </Typography>
-        {claimAmountString === "nothing" && (
-          <Typography
-            variant="text3"
-            sx={{ marginBottom: hideClaim ? "0" : "24px" }}
-            color={COLORS.santasGrey}
-          >
+        <Typography variant="title3">{getWithdrawalsStatus()}</Typography>
+        {isClaimableZero && (
+          <Typography variant="text3" color={COLORS.santasGrey} marginTop="8px">
             {t("lenderMarketDetails.transactions.claim.subtitle")}
           </Typography>
         )}
-        {!hideClaim && <ClaimModal market={market} withdrawals={withdrawals} />}
+
+        {(!isOngoingWDsZero || !isClaimableZero) && (
+          <Box
+            sx={{
+              height: "27.95px",
+              display: "flex",
+              gap: "6px",
+              marginTop: "24px",
+            }}
+          >
+            {!isOngoingWDsZero && (
+              <Button
+                variant="contained"
+                color="secondary"
+                size="small"
+                sx={{ width: "fit-content" }}
+                onClick={handleChangeSection}
+              >
+                {t(
+                  "lenderMarketDetails.transactions.claim.buttons.withdrawals",
+                )}
+              </Button>
+            )}
+
+            {!isClaimableZero && (
+              <ClaimModal market={market} withdrawals={withdrawals} />
+            )}
+          </Box>
+        )}
       </Box>
 
       <Divider sx={{ margin: "40px 0 32px" }} />
