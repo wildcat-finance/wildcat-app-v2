@@ -710,6 +710,7 @@ export const theme = createTheme({
                 fontFamily: "inherit",
                 fontSize: pxToRem(13),
                 lineHeight: lh(20, 13),
+                fontWeight: 500,
                 paddingLeft: "8px",
                 color: COLORS.blackRock,
 
@@ -1089,17 +1090,27 @@ export const theme = createTheme({
               "& .MuiTablePagination-selectLabel": {
                 fontSize: pxToRem(13),
                 lineHeight: lh(20, 13),
+                fontWeight: 500,
               },
 
               "& .MuiTablePagination-input": {
-                margin: "0 10px",
+                margin: 0,
                 fontSize: pxToRem(13),
                 lineHeight: lh(20, 13),
+                fontWeight: 500,
+
+                "& .MuiTablePagination-select": {
+                  padding: "4px 22px 4px 7px",
+
+                  "&:focus": {
+                    backgroundColor: "transparent",
+                  },
+                },
               },
 
               "& .MuiTablePagination-selectIcon": {
                 top: 0,
-                transform: "translate(-4px, 3.5px) scale(0.8)",
+                transform: "translate(-4px, 3.5px) scale(0.6)",
               },
             },
 

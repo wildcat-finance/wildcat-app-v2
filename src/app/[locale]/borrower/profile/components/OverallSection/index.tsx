@@ -2,7 +2,6 @@ import * as React from "react"
 
 import { Box, Divider, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
-import { useCopyToClipboard } from "react-use"
 
 import {
   MarketParametersColumn,
@@ -31,15 +30,11 @@ export const OverallSection = ({
   defaults,
   entityKind,
   additionalUrls,
+  isMarketPage,
 }: OverallSectionProps) => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
-  const [state, copyToClipboard] = useCopyToClipboard()
   const { getAddressUrl } = useBlockExplorer()
-
-  const handleCopy = (text: string) => {
-    copyToClipboard(text)
-  }
 
   const jurisdictionObj =
     jurisdiction !== undefined
@@ -180,7 +175,11 @@ export const OverallSection = ({
     )
 
   return (
-    <Box>
+    <Box marginTop="32px">
+      <Typography variant={isMarketPage ? "text2Highlighted" : "title3"}>
+        Overall Info
+      </Typography>
+
       <Box sx={MarketParametersContainer}>
         <Box sx={MarketParametersColumn}>
           {name && (
