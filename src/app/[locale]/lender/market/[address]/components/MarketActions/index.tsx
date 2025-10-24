@@ -1,5 +1,4 @@
 import * as React from "react"
-import { useEffect } from "react"
 
 import { Box, Button, Divider, Typography } from "@mui/material"
 import {
@@ -22,7 +21,6 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useAppDispatch } from "@/store/hooks"
 import {
   LenderMarketSections,
-  setWithdrawalsCount,
   setSection,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import { COLORS } from "@/theme/colors"
@@ -88,13 +86,13 @@ export const MarketActions = ({
     marketAccount.marketBalance.raw.isZero() ||
     marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
 
-  const ongoingWDs = (
+  const ongoingCount = (
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
-  ).flatMap((batch) => batch.requests.map(() => ({}))).length
+  ).flatMap((b) => b.requests).length
 
   const isClaimableZero = withdrawals.totalClaimableAmount.raw.isZero()
 
-  const isOngoingWDsZero = ongoingWDs === 0
+  const isOngoingWDsZero = ongoingCount === 0
 
   const dispatch = useAppDispatch()
   const handleChangeSection = () => {
@@ -109,7 +107,7 @@ export const MarketActions = ({
     }
     if (!isOngoingWDsZero && isClaimableZero) {
       return t("lenderMarketDetails.transactions.claim.title.ongoingWDs", {
-        ongoingWDs,
+        ongoingCount,
       })
     }
     if (isOngoingWDsZero && !isClaimableZero) {
@@ -123,7 +121,7 @@ export const MarketActions = ({
       return t(
         "lenderMarketDetails.transactions.claim.title.claimAndOngoingWDs",
         {
-          ongoingWDs,
+          ongoingCount,
           claim: `${formatTokenWithCommas(withdrawals.totalClaimableAmount)} ${
             market.underlyingToken.symbol
           }`,

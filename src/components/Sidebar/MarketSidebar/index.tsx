@@ -46,8 +46,8 @@ export const MarketSidebar = () => {
     (state) => state.highlightSidebar.sidebarState,
   )
 
-  const withdrawalsAmount = useAppSelector(
-    (state) => state.highlightSidebar.withdrawalsAmount,
+  const withdrawalsCount = useAppSelector(
+    (state) => state.highlightSidebar.withdrawalsCount,
   )
 
   const hideDescriptionSection = useAppSelector(
@@ -185,7 +185,7 @@ export const MarketSidebar = () => {
             </SvgIcon>
             {t("borrowerMarketDetails.sidebar.withdrawalRequests")}
 
-            {!!withdrawalsAmount && (
+            {!!withdrawalsCount && (
               <Box
                 sx={{
                   width: "20px",
@@ -204,7 +204,7 @@ export const MarketSidebar = () => {
                   variant="text4Highlighted"
                   color={COLORS.santasGrey}
                 >
-                  {withdrawalsAmount}
+                  {withdrawalsCount}
                 </Typography>
               </Box>
             )}

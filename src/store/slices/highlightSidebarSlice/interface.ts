@@ -9,5 +9,5 @@ export type THighLightSidebar = {
     mla: boolean
     marketHistory: boolean
   }
-  withdrawalsAmount: number
+  withdrawalsCount: number
 }

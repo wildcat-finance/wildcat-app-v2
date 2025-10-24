@@ -13,7 +13,7 @@ const initialState: THighLightSidebar = {
     mla: false,
     marketHistory: false,
   },
-  withdrawalsAmount: 0,
+  withdrawalsCount: 0,
 }
 
 const highlightSidebarSlice = createSlice({
@@ -26,8 +26,8 @@ const highlightSidebarSlice = createSlice({
     setCheckBlock: (state, action) => {
       state.checked = action.payload
     },
-    setWithdrawalsAmount: (state, action: PayloadAction<number>) => {
-      state.withdrawalsAmount = action.payload
+    setWithdrawalsCount: (state, action: PayloadAction<number>) => {
+      state.withdrawalsCount = action.payload
     },
     resetPageState: () => initialState,
   },
@@ -36,7 +36,7 @@ const highlightSidebarSlice = createSlice({
 export const {
   setSidebarHighlightState,
   setCheckBlock,
-  setWithdrawalsAmount,
+  setWithdrawalsCount,
   resetPageState,
 } = highlightSidebarSlice.actions
 
