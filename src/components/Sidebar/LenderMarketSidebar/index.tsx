@@ -34,8 +34,8 @@ export const LenderMarketSidebar = () => {
 
   const isLender = useAppSelector((state) => state.lenderMarketRouting.isLender)
 
-  const ongoingAmount = useAppSelector(
-    (state) => state.lenderMarketRouting.ongoingAmount,
+  const withdrawalsCount = useAppSelector(
+    (state) => state.lenderMarketRouting.withdrawalsCount,
   )
 
   const handleChangeSection = (newSection: LenderMarketSections) => {
@@ -167,13 +167,13 @@ export const LenderMarketSidebar = () => {
                   <WithdrawalAndRequestsIcon />
                 </SvgIcon>
                 {t("lenderMarketDetails.sidebar.requests")}
-                {!!ongoingAmount && (
+                {!!withdrawalsCount && (
                   <Box
                     sx={{
                       width: "20px",
                       height: "20px",
                       borderRadius: "4px",
-                      bgcolor: COLORS.blueRibbon01,
+                      bgcolor: COLORS.whiteSmoke,
 
                       display: "flex",
                       justifyContent: "center",
@@ -184,9 +184,9 @@ export const LenderMarketSidebar = () => {
                   >
                     <Typography
                       variant="text4Highlighted"
-                      color={COLORS.ultramarineBlue}
+                      color={COLORS.santasGrey}
                     >
-                      {ongoingAmount}
+                      {withdrawalsCount}
                     </Typography>
                   </Box>
                 )}

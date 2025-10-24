@@ -13,14 +13,14 @@ export type LenderMarketRoutingSliceType = {
   currentSection: LenderMarketSections
   isLoading: boolean
   isLender: boolean
-  ongoingAmount: number
+  withdrawalsCount: number
 }
 
 const initialState: LenderMarketRoutingSliceType = {
   currentSection: LenderMarketSections.TRANSACTIONS,
   isLoading: true,
   isLender: false,
-  ongoingAmount: 0,
+  withdrawalsCount: 0,
 }
 
 const lenderMarketRoutingSlice = createSlice({
@@ -36,8 +36,8 @@ const lenderMarketRoutingSlice = createSlice({
     setIsLender: (state, action: PayloadAction<boolean>) => {
       state.isLender = action.payload
     },
-    setOngoingAmount: (state, action: PayloadAction<number>) => {
-      state.ongoingAmount = action.payload
+    setWithdrawalsCount: (state, action: PayloadAction<number>) => {
+      state.withdrawalsCount = action.payload
     },
     resetPageState: () => initialState,
   },
@@ -47,7 +47,7 @@ export const {
   setSection,
   setIsLoading,
   setIsLender,
-  setOngoingAmount,
+  setWithdrawalsCount,
   resetPageState,
 } = lenderMarketRoutingSlice.actions
 

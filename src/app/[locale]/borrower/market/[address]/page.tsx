@@ -28,10 +28,6 @@ import {
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
 import { pageCalcHeights } from "@/utils/constants"
-import {
-  formatTokenWithCommas,
-  timestampToDateFormatted,
-} from "@/utils/formatters"
 
 import { BorrowerMarketSummary } from "./components/BorrowerMarketSummary"
 import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
