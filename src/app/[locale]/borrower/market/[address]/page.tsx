@@ -24,9 +24,14 @@ import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/h
 import {
   resetPageState,
   setCheckBlock,
+  setWithdrawalsAmount,
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
 import { pageCalcHeights } from "@/utils/constants"
+import {
+  formatTokenWithCommas,
+  timestampToDateFormatted,
+} from "@/utils/formatters"
 
 import { BorrowerMarketSummary } from "./components/BorrowerMarketSummary"
 import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
@@ -88,6 +93,26 @@ export default function MarketDetails({
     },
     [],
   )
+
+  const ongoingWDs = withdrawals.activeWithdrawal?.requests.length ?? 0
+
+  const outstandingWDs = (withdrawals?.expiredPendingWithdrawals ?? []).flatMap(
+    (batch) =>
+      batch.requests.filter((w) => w.getNormalizedAmountOwed(batch).gt(0)),
+  ).length
+
+  const claimableWDs = withdrawals.batchesWithClaimableWithdrawals?.flatMap(
+    (batch) =>
+      batch.withdrawals.flatMap((withdrawal) =>
+        withdrawal.requests.map((request) => request.transactionHash),
+      ),
+  ).length
+
+  const allWithdrawalsAmount = ongoingWDs + outstandingWDs + claimableWDs
+
+  useEffect(() => {
+    dispatch(setWithdrawalsAmount(allWithdrawalsAmount))
+  }, [allWithdrawalsAmount])
 
   if (!market || !marketAccount)
     return (
