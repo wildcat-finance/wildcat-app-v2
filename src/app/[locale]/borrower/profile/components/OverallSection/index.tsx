@@ -175,7 +175,7 @@ export const OverallSection = ({
     )
 
   return (
-    <Box marginTop={isMarketPage ? "16px" : "32px"}>
+    <Box marginTop="32px">
       <Typography variant={isMarketPage ? "text2Highlighted" : "title3"}>
         Overall Info
       </Typography>
