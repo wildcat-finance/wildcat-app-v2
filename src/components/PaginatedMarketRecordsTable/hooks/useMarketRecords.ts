@@ -15,6 +15,7 @@ export type UseMarketRecordsProps = {
   page: number
   pageSize: number
   kinds?: MarketRecordKind[]
+  search?: string
 }
 
 export function useMarketRecords({
@@ -22,6 +23,7 @@ export function useMarketRecords({
   page,
   pageSize,
   kinds,
+  search,
 }: UseMarketRecordsProps) {
   const [finalEventIndex, setFinalEventIndex] = useState(market.eventIndex)
   const subgraphClient = useSubgraphClient()
@@ -63,12 +65,24 @@ export function useMarketRecords({
     }
     records.sort((a, b) => b.eventIndex - a.eventIndex)
 
+    const q = search?.trim().toLowerCase()
+
+    const filtered = q
+      ? records.filter((r) => {
+          const haystack = [r.transactionHash, String(r.eventIndex)]
+            .filter(Boolean)
+            .map((x) => String(x).toLowerCase())
+
+          return haystack.some((s) => s.includes(q))
+        })
+      : records
+
     const startIndex = page * pageSize
     const endIndex = startIndex + pageSize
 
     return {
-      records: records.slice(startIndex, endIndex),
-      totalRecords: records.length,
+      records: filtered.slice(startIndex, endIndex),
+      totalRecords: filtered.length,
     }
   }
 
@@ -79,6 +93,7 @@ export function useMarketRecords({
       page,
       pageSize,
       kinds,
+      search ?? "",
     ),
     queryFn: getMarketRecordsInternal,
     enabled: true,

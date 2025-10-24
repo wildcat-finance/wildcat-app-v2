@@ -1,14 +1,11 @@
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import * as React from "react"
 
 import {
   Box,
   Button,
-  FormControl,
   FormControlLabel,
-  InputLabel,
   Popover,
-  Select,
   SvgIcon,
   Typography,
 } from "@mui/material"
@@ -21,7 +18,6 @@ import { COLORS } from "@/theme/colors"
 import { useMarketRecords } from "./hooks/useMarketRecords"
 import { MarketRecordsTable } from "./MarketRecordsTable"
 import ExtendedCheckbox from "../@extended/ExtendedСheckbox"
-import { TablePagination } from "../TablePagination"
 
 type CheckboxOption<T> = {
   id: string
@@ -54,16 +50,22 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
   const [selectedFilters, setSelectedFilters] = useState<MarketRecordKind[]>(
     MarketRecordFilters.map((f) => f.value),
   )
+  const [search, setSearch] = useState("")
 
   useEffect(() => {
     setPage(0)
   }, [selectedFilters])
+
+  useEffect(() => {
+    setPage(0)
+  }, [search])
 
   const { data, isLoading, pagesCount, finalEventIndex } = useMarketRecords({
     market,
     page,
     pageSize,
     kinds: selectedFilters as MarketRecordKind[],
+    search,
   })
   const options = MarketRecordFilters
 
@@ -81,7 +83,7 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
   }
 
   const handleClear = () => {
-    setSelectedFilters([])
+    setSelectedFilters(ALL_KINDS)
   }
 
   const handleToggleAll = (checked: boolean) => {
@@ -118,17 +120,26 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
 
   return (
     <>
-      <Box sx={{ position: "relative", display: "inline-flex" }}>
+      <Box
+        sx={{
+          position: "relative",
+          display: "inline-flex",
+          marginRight: "6px",
+        }}
+      >
         <Button
           aria-describedby={id}
-          variant="contained"
+          variant="text"
           color="secondary"
           size="small"
           sx={{
             gap: "6px",
+            padding: "6px",
+            minWidth: "fit-content",
             color: isIndeterminate ? COLORS.ultramarineBlue : COLORS.bunker,
             backgroundColor: isIndeterminate ? "#E4EBFEB2" : COLORS.whiteSmoke,
             "&:hover": {
+              color: isIndeterminate ? COLORS.ultramarineBlue : COLORS.bunker,
               backgroundColor: isIndeterminate
                 ? "rgba(228,235,254,0.5)"
                 : COLORS.athensGrey,
@@ -149,7 +160,6 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
           >
             <Filter />
           </SvgIcon>
-          Filter by type
         </Button>
 
         {isIndeterminate && (
@@ -244,6 +254,13 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
           Reset
         </Button>
       </Popover>
+
+      <FilterTextField
+        value={search}
+        setValue={setSearch}
+        placeholder="Search by ID"
+        width="180px"
+      />
 
       <MarketRecordsTable
         market={market}
