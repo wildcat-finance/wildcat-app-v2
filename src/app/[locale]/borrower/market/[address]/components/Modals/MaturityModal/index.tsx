@@ -26,6 +26,7 @@ import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 import {
   formatTokenWithCommas,
   remainingMillisecondsToDate,
@@ -239,9 +240,9 @@ export const MaturityModal = ({
 
                       "& .MuiInputBase-root.MuiFilledInput-root": {
                         fontFamily: "inherit",
-                        fontSize: 14,
+                        fontSize: pxToRem(14),
+                        lineHeight: lh(20, 14),
                         fontWeight: 500,
-                        lineHeight: "20px",
                         backgroundColor: "transparent",
 
                         "&:before, &:after": {
@@ -259,9 +260,9 @@ export const MaturityModal = ({
                     FormHelperTextProps: {
                       sx: {
                         color: "wildWatermelon",
-                        fontSize: "11px",
+                        fontSize: pxToRem(11),
+                        lineHeight: lh(16, 11),
                         letterSpacing: "normal",
-                        lineHeight: "16px",
                       },
                     },
                   },

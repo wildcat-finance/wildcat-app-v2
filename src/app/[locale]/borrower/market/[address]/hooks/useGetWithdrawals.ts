@@ -3,7 +3,7 @@ import { useMemo } from "react"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   Market,
-  getLensContract,
+  getLensV2Contract,
   WithdrawalBatch,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
@@ -14,9 +14,10 @@ import {
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 
-import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
-import { SubgraphClient } from "@/config/subgraph"
+import { QueryKeys } from "@/config/query-keys"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type BorrowerWithdrawalsForMarketResult = {
@@ -27,6 +28,21 @@ export type BorrowerWithdrawalsForMarketResult = {
   activeWithdrawalsTotalOwed: TokenAmount
   claimableWithdrawalsAmount: TokenAmount
   incompleteBatches: WithdrawalBatch[]
+}
+
+export const buildBorrowerWithdrawalUpdateQueryKeys = (
+  withdrawals: BorrowerWithdrawalsForMarketResult | undefined,
+) => {
+  if (!withdrawals) return []
+
+  const expiredBatches = withdrawals.expiredPendingWithdrawals ?? []
+
+  return [
+    ...(withdrawals.activeWithdrawal
+      ? [withdrawals.activeWithdrawal.expiry]
+      : []),
+    ...expiredBatches.map((batch) => [batch.expiry]),
+  ]
 }
 
 function processIncompleteWithdrawals(
@@ -73,16 +89,16 @@ function processIncompleteWithdrawals(
   }
 }
 
-export const GET_WITHDRAWALS_KEY = "get_market_withdrawals"
-
 export function useGetWithdrawals(
   market: Market | undefined,
 ): TwoStepQueryHookResult<BorrowerWithdrawalsForMarketResult> {
   const address = market?.address.toLowerCase()
+  const { chainId } = useSelectedNetwork()
+  const subgraphClient = useSubgraphClient()
   async function getAllPendingWithdrawalBatches(): Promise<BorrowerWithdrawalsForMarketResult> {
     if (!address || !market) throw Error()
     logger.debug(`Getting withdrawal batches...`)
-    const result = await SubgraphClient.query<
+    const result = await subgraphClient.query<
       SubgraphGetIncompleteWithdrawalsForMarketQuery,
       SubgraphGetIncompleteWithdrawalsForMarketQueryVariables
     >({
@@ -117,11 +133,11 @@ export function useGetWithdrawals(
     isError: isErrorInitial,
     failureReason: errorInitial,
   } = useQuery({
-    queryKey: [GET_WITHDRAWALS_KEY, "initial", address],
+    queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(chainId, "initial", address),
     queryFn: getAllPendingWithdrawalBatches,
     refetchInterval: POLLING_INTERVAL,
     placeholderData: keepPreviousData,
-    enabled: !!market,
+    enabled: !!market && !!chainId,
     refetchOnMount: false,
   })
 
@@ -139,7 +155,7 @@ export function useGetWithdrawals(
   async function getUpdatedBatches(): Promise<BorrowerWithdrawalsForMarketResult> {
     if (!address || !market) throw Error()
     logger.debug(`Getting batch updates...`)
-    const lens = getLensContract(TargetChainId, market.provider)
+    const lens = getLensV2Contract(chainId, market.provider)
     const batchUpdates = await lens.getWithdrawalBatchesData(
       address,
       withdrawals.incompleteBatches.map((x) => x.expiry),
@@ -214,13 +230,8 @@ export function useGetWithdrawals(
   }
 
   const updateQueryKeys = useMemo(
-    () => [
-      ...(withdrawals.activeWithdrawal
-        ? [withdrawals.activeWithdrawal.expiry]
-        : []),
-      ...(withdrawals.expiredPendingWithdrawals?.map((b) => [b.expiry]) ?? []),
-    ],
-    [withdrawals],
+    () => buildBorrowerWithdrawalUpdateQueryKeys(data),
+    [data],
   )
 
   const {
@@ -231,10 +242,15 @@ export function useGetWithdrawals(
     isError: isErrorUpdate,
     failureReason: errorUpdate,
   } = useQuery({
-    queryKey: [GET_WITHDRAWALS_KEY, "update", address, updateQueryKeys],
+    queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+      chainId,
+      "update",
+      address,
+      updateQueryKeys,
+    ),
     queryFn: getUpdatedBatches,
     placeholderData: keepPreviousData,
-    enabled: !!data,
+    enabled: !!data && !!chainId,
     refetchOnMount: false,
   })
 

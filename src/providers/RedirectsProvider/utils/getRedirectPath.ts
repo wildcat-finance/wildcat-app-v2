@@ -1,7 +1,6 @@
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { match } from "ts-pattern"
 
-import { checkIsWrongNetwork } from "@/hooks/useCurrentNetwork"
 import { ROUTES } from "@/routes"
 import { isNotPublicPath } from "@/utils/paths"
 
@@ -12,10 +11,17 @@ export const getRedirectPath = (params: {
   connectedAddress: `0x${string}` | undefined
   pathname: string
   isSignedSA: boolean
+  targetChainId: SupportedChainId
   currentChainId: SupportedChainId | undefined
 }): RedirectToPath => {
-  const { connectedAddress, pathname, isSignedSA, currentChainId } = params
-  const isWrongNetwork = checkIsWrongNetwork(currentChainId)
+  const {
+    connectedAddress,
+    pathname,
+    isSignedSA,
+    targetChainId,
+    currentChainId,
+  } = params
+  const isWrongNetwork = currentChainId !== targetChainId
   const isAgreementPath = pathname === ROUTES.agreement
   const isRestrictedPath = isNotPublicPath(pathname)
 

@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { useEffect } from "react"
 
 import { Box, Divider } from "@mui/material"
 
@@ -14,12 +13,13 @@ import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/use
 import { trimAddress } from "@/utils/formatters"
 
 import { BorrowerProfileDetailsProps } from "./interface"
-import { MainContainer } from "./style"
+import { getMainContainerStyle } from "./style"
 
 export function BorrowerProfileDetails({
   address,
   hideMarkets,
   sx,
+  isMarketPage,
 }: BorrowerProfileDetailsProps) {
   const { data: profileData, isLoading: isProfileLoading } =
     useGetBorrowerProfile(address as `0x${string}`)
@@ -31,16 +31,21 @@ export function BorrowerProfileDetails({
 
   const isLoading = isMarketsLoading || isProfileLoading
 
-  if (isLoading) return <ProfileSkeleton type="external" rootSx={sx} />
-
-  console.log(profileData?.name)
+  if (isLoading)
+    return (
+      <ProfileSkeleton
+        type="external"
+        rootSx={getMainContainerStyle(isMarketPage)}
+      />
+    )
 
   return (
     <Box sx={sx}>
-      <Box sx={MainContainer}>
+      <Box sx={getMainContainerStyle(isMarketPage)}>
         <NameSection
-          type="external"
           {...profileData}
+          isMarketPage={isMarketPage}
+          type="external"
           name={profileData?.name || trimAddress(address)}
           marketsAmount={marketsAmount}
         />
@@ -48,6 +53,7 @@ export function BorrowerProfileDetails({
         <OverallSection
           {...profileData}
           marketsAmount={marketsAmount}
+          isMarketPage={isMarketPage}
           // totalBorrowedAmount="0"
           // defaults="0"
         />

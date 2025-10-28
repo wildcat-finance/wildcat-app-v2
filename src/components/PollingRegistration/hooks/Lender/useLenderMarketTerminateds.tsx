@@ -4,9 +4,9 @@ import { useLazyQuery } from "@apollo/client"
 import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
-import { EtherscanBaseUrl } from "@/config/network"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { MARKET_TERMINATEDS } from "@/graphql/queries"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
@@ -17,6 +17,7 @@ export const useLenderMarketTerminateds = (
   address?: `0x${string}`,
 ) => {
   const dispatch = useDispatch()
+  const { getTxUrl } = useBlockExplorer()
 
   const [fetchTerminateds, { data, error }] = useLazyQuery(
     MARKET_TERMINATEDS,
@@ -39,12 +40,12 @@ export const useLenderMarketTerminateds = (
             category: "marketActivity",
             blockTimestamp: terminated.blockTimestamp,
             unread: true,
-            etherscanUrl: `${EtherscanBaseUrl}/tx/${terminated.transactionHash}`,
+            blockExplorerUrl: getTxUrl(terminated.transactionHash),
           }),
         )
       })
     }
-  }, [data, dispatch])
+  }, [data, dispatch, getTxUrl])
 
   useEffect(() => {
     if (error) {

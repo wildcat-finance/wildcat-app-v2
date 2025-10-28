@@ -9,6 +9,7 @@ import { match } from "ts-pattern"
 import { useAccount } from "wagmi"
 
 import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart"
+import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
@@ -17,12 +18,14 @@ import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import {
   resetPageState,
   setCheckBlock,
+  setWithdrawalsCount,
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
 import { pageCalcHeights } from "@/utils/constants"
@@ -45,10 +48,13 @@ export default function MarketDetails({
   params: { address: string }
 }) {
   const dispatch = useAppDispatch()
+  const { chainId: targetChainId } = useSelectedNetwork()
   const { data: market } = useGetMarket({ address })
+  const { data: withdrawals } = useGetWithdrawals(market)
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
   const { data: marketSummary, isLoading: isSummaryLoading } = useMarketSummary(
     address.toLowerCase(),
+    market?.chainId ?? targetChainId,
   )
   const { address: walletAddress } = useAccount()
   const holdTheMarket =
@@ -85,6 +91,27 @@ export default function MarketDetails({
     [],
   )
 
+  const ongoingCount = withdrawals.activeWithdrawal?.requests.length ?? 0
+
+  const claimableCount = withdrawals.batchesWithClaimableWithdrawals?.flatMap(
+    (batch) =>
+      batch.withdrawals.flatMap((withdrawal) =>
+        withdrawal.requests.map((request) => request.transactionHash),
+      ),
+  ).length
+
+  const outstandingCount = (
+    withdrawals?.expiredPendingWithdrawals ?? []
+  ).flatMap((batch) =>
+    batch.requests.filter((w) => w.getNormalizedAmountOwed(batch).gt(0)),
+  ).length
+
+  const totalWithdrawalsCount = ongoingCount + claimableCount + outstandingCount
+
+  useEffect(() => {
+    dispatch(setWithdrawalsCount(totalWithdrawalsCount))
+  }, [totalWithdrawalsCount])
+
   if (!market || !marketAccount)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
@@ -117,7 +144,7 @@ export default function MarketDetails({
   if (
     !isLoadingMarketMla &&
     marketMla === null &&
-    checked !== 5 &&
+    checked !== 6 &&
     market.version === MarketVersion.V2
   )
     return (
@@ -220,62 +247,63 @@ export default function MarketDetails({
           {/* </Slide> */}
           {match(checked)
             .with(1, () => (
-              <Box sx={SlideContentContainer}>
-                {holdTheMarket && (
-                  <MarketTransactions
-                    market={market}
-                    marketAccount={marketAccount}
-                    holdTheMarket={holdTheMarket}
-                  />
-                )}
-                {holdTheMarket && <Divider sx={{ margin: "32px 0" }} />}
-                <MarketStatusChart market={market} />
-              </Box>
+                <Box sx={SlideContentContainer}>
+                    {holdTheMarket && (
+                        <MarketTransactions
+                            market={market}
+                            marketAccount={marketAccount}
+                            withdrawals={withdrawals}
+                            holdTheMarket={holdTheMarket}
+                        />
+                    )}
+                    {holdTheMarket && <Divider sx={{ margin: "32px 0" }} />}
+                    <MarketStatusChart market={market} />
+                </Box>
             ))
             .with(2, () => (
-              <Box sx={SlideContentContainer} marginTop="12px">
-                <MarketStatusChart market={market} />
-                <Divider sx={{ margin: "32px 0 44px" }} />
-                <MarketParameters market={market} />
-              </Box>
+                <Box sx={SlideContentContainer} marginTop="12px">
+                    <MarketStatusChart market={market} />
+                    <Divider sx={{ margin: "32px 0 44px" }} />
+                    <MarketParameters market={market} />
+                </Box>
             ))
             .with(3, () => (
-              <Box sx={SlideContentContainer} marginTop="12px">
-                <BorrowerMarketSummary
-                  marketAddress={market.address}
-                  isBorrower={holdTheMarket}
-                  marketSummary={marketSummary}
-                  isLoading={isSummaryLoading}
-                />
-              </Box>
+                <Box sx={SlideContentContainer} marginTop="12px">
+                    <BorrowerMarketSummary
+                        marketAddress={market.address}
+                        chainId={market.chainId}
+                        isBorrower={holdTheMarket}
+                        marketSummary={marketSummary}
+                        isLoading={isSummaryLoading}
+                    />
+                </Box>
             ))
             .with(4, () => (
-              <Box sx={SlideContentContainer} marginTop="12px">
-                <BorrowerMarketSummary
-                  marketAddress={market.address}
-                  isBorrower={holdTheMarket}
-                  marketSummary={marketSummary}
-                  isLoading={isSummaryLoading}
-                />
-              </Box>
+                <Box sx={SlideContentContainer} marginTop="12px">
+                    <MarketWithdrawalRequests
+                        marketAccount={marketAccount}
+                        withdrawals={withdrawals}
+                        isHoldingMarket={holdTheMarket}
+                    />
+                </Box>
             ))
             .with(5, () => (
-              <Box sx={SlideContentContainer} marginTop="12px">
-                <MarketAuthorisedLenders
-                  market={market}
-                  marketAccount={marketAccount}
-                />
-              </Box>
+                <Box sx={SlideContentContainer} marginTop="12px">
+                    <MarketAuthorisedLenders
+                        market={market}
+                        marketAccount={marketAccount}
+                    />
+                </Box>
             ))
             .with(6, () => (
               <Box sx={SlideContentContainer} marginTop="12px">
                 <MarketMLA marketAccount={marketAccount} />
-              </Box>
+                </Box>
             ))
             .with(7, () => (
-              <Box sx={SlideContentContainer} marginTop="12px">
-                <PaginatedMarketRecordsTable market={market} />
-              </Box>
+                <Box sx={SlideContentContainer} marginTop="12px">
+                    <PaginatedMarketRecordsTable market={market} />
+                </Box>
             ))
             .otherwise(() => null)}
         </Box>

@@ -28,9 +28,10 @@ import Copy from "@/assets/icons/copy_icon.svg"
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { Accordion } from "@/components/Accordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 import {
   DATE_FORMAT,
   formatBlockTimestamp,
@@ -68,6 +69,7 @@ export const MarketAuthorisedLenders = ({
   )
 
   const [state, copyToClipboard] = useCopyToClipboard()
+  const { getAddressUrl } = useBlockExplorer()
 
   const { data, isLoading } = useGetMarketLenders(market)
   const { t } = useTranslation()
@@ -198,7 +200,7 @@ export const MarketAuthorisedLenders = ({
             </SvgIcon>
           </IconButton>
           <Link
-            href={`${EtherscanBaseUrl}/address/${value}`}
+            href={getAddressUrl(value)}
             target="_blank"
             style={{ display: "flex", justifyContent: "center" }}
           >
@@ -218,10 +220,18 @@ export const MarketAuthorisedLenders = ({
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.balance",
       ),
-      minWidth: 124,
+      renderHeader: () => (
+        <Typography variant="text4" color={COLORS.santasGrey}>
+          {t("borrowerMarketDetails.authorisedLenders.tableHeaders.balance")},{" "}
+          <span style={{ color: COLORS.ultramarineBlue }}>
+            {market.underlyingToken.symbol}
+          </span>
+        </Typography>
+      ),
+      minWidth: 142,
       headerAlign: "left",
       align: "left",
-      flex: 1.5,
+      flex: 2,
       renderCell: ({ value }) => {
         const number = parseFloat(value.split(" ")[0].replace(/,/g, "")) || 0
         return (
@@ -242,12 +252,88 @@ export const MarketAuthorisedLenders = ({
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.accessLevel",
       ),
-      minWidth: 124,
+      minWidth: 104,
       headerAlign: "left",
       align: "left",
-      flex: 1.5,
+      flex: 1,
       renderCell: ({ value }) => (
-        <span style={{ width: "100%", whiteSpace: "normal" }}>{value}</span>
+        <Box
+          sx={{
+            height: "60px",
+            display: "flex",
+            padding: "6px 0",
+            gap: "2px",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "flex-start",
+          }}
+        >
+          {value === "Deposit & Withdraw" && (
+            <Box
+              sx={{
+                width: "fit-content",
+                height: "fit-content",
+                padding: "2px 6px",
+                borderRadius: "6px",
+                bgcolor: COLORS.blackHaze,
+              }}
+            >
+              <Typography variant="text4">Deposit</Typography>
+            </Box>
+          )}
+          {value === ("Deposit & Withdraw" || "Withdraw Only") && (
+            <Box
+              sx={{
+                width: "fit-content",
+                height: "fit-content",
+                padding: "2px 6px",
+                borderRadius: "6px",
+                bgcolor: COLORS.blackHaze,
+              }}
+            >
+              <Typography variant="text4">Withdraw</Typography>
+            </Box>
+          )}
+          {value === "Blocked From Deposits" && (
+            <Box
+              sx={{
+                width: "fit-content",
+                height: "fit-content",
+                padding: "2px 6px",
+                borderRadius: "6px",
+                bgcolor: COLORS.blackHaze,
+              }}
+            >
+              <Typography variant="text4">Blocked From Deposits</Typography>
+            </Box>
+          )}
+          {value === "Credential Expired" && (
+            <Box
+              sx={{
+                width: "fit-content",
+                height: "fit-content",
+                padding: "2px 6px",
+                borderRadius: "6px",
+                bgcolor: COLORS.blackHaze,
+              }}
+            >
+              <Typography variant="text4">Credential Expired</Typography>
+            </Box>
+          )}
+          {value === "Provider Removed" && (
+            <Box
+              sx={{
+                width: "fit-content",
+                height: "fit-content",
+                padding: "2px 6px",
+                borderRadius: "6px",
+                bgcolor: COLORS.blackHaze,
+              }}
+            >
+              <Typography variant="text4">Provider Removed</Typography>
+            </Box>
+          )}
+        </Box>
       ),
     },
     {
@@ -259,7 +345,7 @@ export const MarketAuthorisedLenders = ({
       minWidth: 110,
       headerAlign: "left",
       align: "left",
-      flex: 1,
+      flex: 0.5,
     },
     {
       sortable: false,
@@ -267,10 +353,10 @@ export const MarketAuthorisedLenders = ({
       headerName: t(
         "borrowerMarketDetails.authorisedLenders.tableHeaders.dateAdded",
       ),
-      minWidth: 124,
+      minWidth: 110,
       headerAlign: hasMLA ? "left" : "right",
       align: hasMLA ? "left" : "right",
-      flex: 1.5,
+      flex: 1,
     },
   ]
 
@@ -460,9 +546,10 @@ export const MarketAuthorisedLenders = ({
                 padding: "0 8px",
               },
               "& .MuiDataGrid-columnHeaderTitle": {
-                fontSize: 11,
+                fontSize: pxToRem(11),
               },
             }}
+            getRowHeight={() => "auto"}
             rows={authorizedRows}
             columns={columns}
             columnHeaderHeight={40}
@@ -495,12 +582,13 @@ export const MarketAuthorisedLenders = ({
                   padding: "0 8px",
                 },
                 "& .MuiDataGrid-columnHeaderTitle": {
-                  fontSize: 11,
+                  fontSize: pxToRem(11),
                 },
               }}
               rows={deauthorizedRows}
               columns={columns}
               columnHeaderHeight={authorizedRows.length === 0 ? 40 : 0}
+              getRowHeight={() => "auto"}
             />
           </Accordion>
         </>

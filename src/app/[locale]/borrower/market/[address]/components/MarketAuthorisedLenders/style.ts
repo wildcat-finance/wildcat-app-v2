@@ -1,4 +1,5 @@
 import { COLORS } from "@/theme/colors"
+import { pxToRem } from "@/theme/units"
 
 export const MarketWithdrawalRequetstCell = {
   display: "flex",
@@ -12,7 +13,7 @@ export const MarketLendersMLA = {
 }
 
 export const MLATableButton = {
-  fontSize: 11,
+  fontSize: pxToRem(11),
   margin: "0",
   padding: "0",
   minWidth: "0px",
@@ -25,7 +26,12 @@ export const MarketWithdrawalRequestsContainer = {
   flexDirection: "column",
 }
 export const DataGridCells = {
-  "& .MuiDataGrid-cell": { padding: "0px 8px", cursor: "default" },
+  "& .MuiDataGrid-cell": {
+    padding: "0px 8px",
+    cursor: "default",
+    minHeight: "60px",
+    height: "auto",
+  },
   "& .MuiDataGrid-columnHeader": { padding: "0px 8px" },
 }
 

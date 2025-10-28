@@ -54,8 +54,13 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
     return "default"
   }
 
+  // when sdk returns 0 seconds or int.MAX it means there is no countdown to delinquency
+  const displayableSeconds =
+    market.secondsBeforeDelinquency > 0 &&
+    market.secondsBeforeDelinquency < Number.MAX_SAFE_INTEGER
+
   const remainingInterest =
-    market.totalDebts.gt(0) && !market.isClosed
+    market.totalDebts.gt(0) && !market.isClosed && displayableSeconds
       ? humanizeDuration(market.secondsBeforeDelinquency * 1000, {
           round: true,
           largest: 1,
@@ -89,7 +94,8 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
       {!isDelinquent &&
         !market.isClosed &&
         !market.isIncurringPenalties &&
-        market.outstandingTotalSupply.gt(0) && (
+        market.outstandingTotalSupply.gt(0) &&
+        remainingInterest && (
           <Box sx={{ display: "flex", columnGap: "3px", marginBottom: "24px" }}>
             <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
               {t("borrowerMarketDetails.statusChart.sufficientReserves")}

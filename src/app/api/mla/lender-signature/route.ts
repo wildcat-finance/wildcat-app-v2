@@ -1,22 +1,23 @@
+import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
-import { TargetChainId } from "@/config/network"
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
-import {
-  fillInMlaForLender,
-  fillInMlaTemplate,
-  getFieldValuesForLender,
-  MlaTemplateField,
-} from "@/lib/mla"
+import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
+import { validateChainIdParam } from "@/lib/validateChainIdParam"
 import { getZodParseError } from "@/lib/zod-error"
 
 import { LenderMlaSignatureInputDTO } from "./dto"
 import { LenderMlaSignatureInput } from "./interface"
-import { MasterLoanAgreementResponse, MlaSignatureResponse } from "../interface"
+import { MlaSignatureResponse } from "../interface"
 
+/// GET /api/mla/lender-signature?chainId=<chainId>
 export async function GET(request: NextRequest) {
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   const lenderAddress = request.nextUrl.searchParams
     .get("lenderAddress")
     ?.toLowerCase()
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
   const mlaSignatures = (
     await prisma.mlaSignature.findMany({
       where: {
-        chainId: TargetChainId,
+        chainId,
         address: lenderAddress,
       },
     })
@@ -50,16 +51,19 @@ export async function POST(request: NextRequest) {
   try {
     const input = await request.json()
     body = LenderMlaSignatureInputDTO.parse(input)
+    if (!isSupportedChainId(body.chainId)) {
+      return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+    }
   } catch (error) {
     return getZodParseError(error)
   }
   const marketAddress = body.market.toLowerCase()
   const lenderAddress = body.address.toLowerCase()
-  const { timeSigned, signature } = body
+  const { timeSigned, signature, chainId } = body
 
   const signatureExists = await prisma.mlaSignature.findFirst({
     where: {
-      chainId: TargetChainId,
+      chainId,
       address: lenderAddress,
       market: marketAddress,
     },
@@ -71,7 +75,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const mla = await getSignedMasterLoanAgreement(marketAddress)
+  const mla = await getSignedMasterLoanAgreement(marketAddress, chainId)
   if (!mla) {
     return NextResponse.json({ error: "MLA not found" }, { status: 404 })
   }
@@ -84,7 +88,7 @@ export async function POST(request: NextRequest) {
   }
   const values = getFieldValuesForLender(lenderAddress, timeSigned)
   const { plaintext, message } = fillInMlaForLender(mla, values, marketAddress)
-  const provider = getProviderForServer()
+  const provider = getProviderForServer(chainId)
   const verifiedSignature = await verifyAndDescribeSignature({
     provider,
     address: lenderAddress,
@@ -99,7 +103,7 @@ export async function POST(request: NextRequest) {
   }
   await prisma.mlaSignature.create({
     data: {
-      chainId: TargetChainId,
+      chainId,
       address: lenderAddress,
       market: marketAddress,
       signature,

@@ -3,20 +3,25 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { verifyApiToken } from "@/app/api/auth/verify-header"
-import { TargetChainId } from "@/config/network"
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
+import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
+/// GET /api/mla/[market]/lenders?chainId=<chainId>
 /// Route to get the lenders who have signed the MLA for a given market.
 export async function GET(
   request: NextRequest,
   { params }: { params: { market: string } },
 ) {
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   const token = await verifyApiToken(request)
   if (!token) {
     return new NextResponse(null, { status: 401 })
   }
   const market = params.market.toLowerCase()
-  const mla = await getSignedMasterLoanAgreement(market)
+  const mla = await getSignedMasterLoanAgreement(market, chainId)
   if (!mla) {
     return new NextResponse(null, { status: 404 })
   }
@@ -25,7 +30,7 @@ export async function GET(
   }
   const mlaSignatures = await prisma.mlaSignature.findMany({
     where: {
-      chainId: TargetChainId,
+      chainId,
       market,
     },
     select: {

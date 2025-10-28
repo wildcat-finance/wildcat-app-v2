@@ -4,14 +4,14 @@ import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
-import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY } from "@/hooks/useGetMarketAccount"
+import { QueryKeys } from "@/config/query-keys"
+import { useEthersProvider, useEthersSigner } from "@/hooks/useEthersSigner"
 
 export const useAdjustAPR = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
 ) => {
-  const signer = useEthersSigner()
+  const { signer, address, targetChainId } = useEthersProvider()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
@@ -19,6 +19,13 @@ export const useAdjustAPR = (
     mutationFn: async (amount: number) => {
       if (!marketAccount || !signer) {
         return
+      }
+      if (marketAccount.chainId !== targetChainId) {
+        throw Error(
+          `Market chainId does not match target chainId:` +
+            ` Market ${marketAccount.market.chainId},` +
+            ` Target ${targetChainId}`,
+        )
       }
 
       const setApr = async () => {
@@ -46,7 +53,11 @@ export const useAdjustAPR = (
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: [GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY],
+        queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
+          marketAccount.market.chainId,
+          address,
+          marketAccount.market.address,
+        ),
       })
     },
     onError(error) {

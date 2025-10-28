@@ -18,6 +18,7 @@ import { Footer } from "@/components/Footer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { pageCalcHeights } from "@/utils/constants"
 import { trimAddress } from "@/utils/formatters"
 
 import { BorrowerProfileDetailsProps } from "./interface"
@@ -60,7 +61,18 @@ export function BorrowerProfileDetails({
   }, [marketsAmount])
 
   if (isLoading && !isMobile)
-    return <ProfileSkeleton type="external" rootSx={sx} />
+    return (
+      <ProfileSkeleton
+        type="external"
+        rootSx={{
+          width: "69.88%",
+          margin: "0 auto 0 0",
+          padding: "52px 20px 24px 44px",
+          overflow: "scroll",
+          height: `calc(100vh - ${pageCalcHeights.page})`,
+        }}
+      />
+    )
 
   if (isMobile)
     return (

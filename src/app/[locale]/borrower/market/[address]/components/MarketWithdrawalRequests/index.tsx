@@ -1,13 +1,6 @@
 import * as React from "react"
 
-import {
-  Box,
-  IconButton,
-  SvgIcon,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material"
+import { Box, IconButton, SvgIcon, Typography, useTheme } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
@@ -21,7 +14,7 @@ import LinkIcon from "@/assets/icons/link_icon.svg"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { LinkGroup } from "@/components/LinkComponent"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas, trimAddress } from "@/utils/formatters"
@@ -35,17 +28,18 @@ import {
 
 export const MarketWithdrawalRequests = ({
   marketAccount,
+  withdrawals,
   isHoldingMarket,
 }: MarketWithdrawalRequestsProps) => {
   const { market } = marketAccount
 
   const { t } = useTranslation()
-  const { data } = useGetWithdrawals(market)
   const theme = useTheme()
   const isMobile = useMobileResolution()
-  const expiredTotalAmount = data.expiredWithdrawalsTotalOwed
-  const activeTotalAmount = data.activeWithdrawalsTotalOwed
-  const claimableTotalAmount = data.claimableWithdrawalsAmount
+  const expiredTotalAmount = withdrawals.expiredWithdrawalsTotalOwed
+  const activeTotalAmount = withdrawals.activeWithdrawalsTotalOwed
+  const claimableTotalAmount = withdrawals.claimableWithdrawalsAmount
+  const { getAddressUrl, getTxUrl } = useBlockExplorer()
   const totalAmount = expiredTotalAmount
     .add(activeTotalAmount)
     .add(claimableTotalAmount)
@@ -68,7 +62,7 @@ export const MarketWithdrawalRequests = ({
             {lendersName[value] || trimAddress(value)}
           </Typography>
           <Link
-            href={`${EtherscanBaseUrl}/address/${value}`}
+            href={getAddressUrl(value)}
             target="_blank"
             style={{ display: "flex", justifyContent: "center" }}
           >
@@ -100,10 +94,7 @@ export const MarketWithdrawalRequests = ({
         <Box sx={MarketWithdrawalRequetstCell}>
           <Typography variant="text3">{trimAddress(value)}</Typography>
 
-          <LinkGroup
-            linkValue={`${EtherscanBaseUrl}/tx/${value}`}
-            copyValue={value}
-          />
+          <LinkGroup linkValue={getTxUrl(value)} copyValue={value} />
         </Box>
       ),
     },
@@ -153,21 +144,21 @@ export const MarketWithdrawalRequests = ({
 
       <OngoingTable
         withdrawalBatches={
-          data?.activeWithdrawal ? [data.activeWithdrawal] : []
+          withdrawals?.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
         }
         totalAmount={activeTotalAmount}
         columns={columns}
       />
 
       <ClaimableTable
-        withdrawalBatches={data.batchesWithClaimableWithdrawals ?? []}
-        totalAmount={data.claimableWithdrawalsAmount}
+        withdrawalBatches={withdrawals.batchesWithClaimableWithdrawals ?? []}
+        totalAmount={withdrawals.claimableWithdrawalsAmount}
       />
 
       <OutstandingTable
         columns={columns}
-        withdrawalBatches={data?.expiredPendingWithdrawals ?? []}
-        totalAmount={data.expiredWithdrawalsTotalOwed}
+        withdrawalBatches={withdrawals?.expiredPendingWithdrawals ?? []}
+        totalAmount={withdrawals.expiredWithdrawalsTotalOwed}
       />
     </Box>
   )

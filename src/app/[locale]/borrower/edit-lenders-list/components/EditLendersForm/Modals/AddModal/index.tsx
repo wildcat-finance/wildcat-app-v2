@@ -13,6 +13,7 @@ import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setLendersTableData } from "@/store/slices/editLendersListSlice/editLendersListSlice"
 import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 
 import { useAddLenderForm } from "./useAddLenderForm"
 
@@ -168,8 +169,8 @@ export const AddModal = () => {
         size="small"
         sx={{
           height: "32px",
-          fontSize: "13px",
-          lineHeight: "16px",
+          fontSize: pxToRem(13),
+          lineHeight: lh(16, 13),
           fontWeight: 600,
         }}
       >

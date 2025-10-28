@@ -13,23 +13,22 @@ import {
   SubgraphGetAllMarketsForLenderViewQueryVariables,
   getLenderAccountsForAllMarkets,
   SubgraphMarket_Filter,
+  hasDeploymentAddress,
 } from "@wildcatfi/wildcat-sdk"
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { BigNumber, constants } from "ethers"
 
-import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
-import { SubgraphClient } from "@/config/subgraph"
+import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type LenderMarketsQueryProps =
   SubgraphGetAllMarketsForLenderViewQueryVariables
-
-export const GET_LENDERS_ACCOUNTS_KEY = "lenders_accounts_list"
 
 function getChunks<T extends Market | MarketAccount>(
   chainId: SupportedChainId,
@@ -69,7 +68,8 @@ export function useLendersMarkets(
   filters: LenderMarketsQueryProps = {},
 ): TwoStepQueryHookResult<MarketAccount[]> {
   const { isWrongNetwork, provider, signer, address } = useEthersProvider()
-  const { chainId } = useCurrentNetwork()
+  const { chainId, targetChainId } = useCurrentNetwork()
+  const subgraphClient = useSubgraphClient()
   const signerOrProvider = signer ?? provider
 
   const lender = address?.toLowerCase()
@@ -84,7 +84,7 @@ export function useLendersMarkets(
       ...EXCLUDED_MARKETS_FILTER,
     ]) as SubgraphMarket_Filter
     const lenderAccounts = await getLenderAccountsForAllMarkets(
-      SubgraphClient,
+      subgraphClient,
       {
         ...otherFilters,
         lender: lender ?? constants.AddressZero,
@@ -109,12 +109,11 @@ export function useLendersMarkets(
     isError: isErrorInitial,
     failureReason: errorInitial,
   } = useQuery({
-    queryKey: [
-      GET_LENDERS_ACCOUNTS_KEY,
-      "initial",
-      JSON.stringify(filters),
+    queryKey: QueryKeys.Lender.GET_LENDER_ACCOUNTS.INITIAL(
+      targetChainId,
       lender,
-    ],
+      JSON.stringify(filters),
+    ),
     queryFn: queryMarketsForLender,
     refetchInterval: POLLING_INTERVAL,
     enabled: !!signerOrProvider && !isWrongNetwork,
@@ -123,46 +122,48 @@ export function useLendersMarkets(
 
   const accounts = data ?? []
 
-  const CHUNK_SIZE = TargetChainId === 1 ? 5 : 50
+  const CHUNK_SIZE = targetChainId === 1 ? 5 : 50
 
   async function getLenderUpdates() {
     logger.debug(`Getting lender updates...`)
-    const lens = getLensContract(
-      TargetChainId,
-      signerOrProvider as SignerOrProvider,
-    )
+    const hasV1Lens = hasDeploymentAddress(targetChainId, "MarketLens")
+    const lens = hasV1Lens
+      ? getLensContract(targetChainId, signerOrProvider as SignerOrProvider)
+      : undefined
     const lensV2 = getLensV2Contract(
-      TargetChainId,
+      targetChainId,
       signerOrProvider as SignerOrProvider,
     )
 
-    const { v1Chunks, v2Chunks } = getChunks(TargetChainId, accounts)
+    const { v1Chunks, v2Chunks } = getChunks(targetChainId, accounts)
     await Promise.all([
-      ...v1Chunks.map(async (accountsChunk) => {
-        const updates = await lens.getMarketsDataWithLenderStatus(
-          lender ?? constants.AddressZero,
-          accountsChunk.map((m) => m.market.address),
-        )
-        accountsChunk.forEach((account, i) => {
-          let update = updates[i]
-          account.market.updateWith(update.market)
-          // If the lender account is not set, set the balances to 0 but still use
-          // the credential, as that will tell us whether the market is open access.
-          if (!lender) {
-            update = {
-              ...update,
-              lenderStatus: {
-                ...update.lenderStatus,
-                normalizedBalance: BigNumber.from(0),
-                scaledBalance: BigNumber.from(0),
-                underlyingBalance: BigNumber.from(0),
-                underlyingApproval: BigNumber.from(0),
-              },
-            }
-          }
-          account.updateWith(update.lenderStatus)
-        })
-      }),
+      ...(lens
+        ? v1Chunks.map(async (accountsChunk) => {
+            const updates = await lens.getMarketsDataWithLenderStatus(
+              lender ?? constants.AddressZero,
+              accountsChunk.map((m) => m.market.address),
+            )
+            accountsChunk.forEach((account, i) => {
+              let update = updates[i]
+              account.market.updateWith(update.market)
+              // If the lender account is not set, set the balances to 0 but still use
+              // the credential, as that will tell us whether the market is open access.
+              if (!lender) {
+                update = {
+                  ...update,
+                  lenderStatus: {
+                    ...update.lenderStatus,
+                    normalizedBalance: BigNumber.from(0),
+                    scaledBalance: BigNumber.from(0),
+                    underlyingBalance: BigNumber.from(0),
+                    underlyingApproval: BigNumber.from(0),
+                  },
+                }
+              }
+              account.updateWith(update.lenderStatus)
+            })
+          })
+        : []),
       ...v2Chunks.map(async (accountsChunk) => {
         const updates = await lensV2.getMarketsDataWithLenderStatus(
           lender ?? constants.AddressZero,
@@ -209,7 +210,11 @@ export function useLendersMarkets(
     isError: isErrorUpdate,
     failureReason: errorUpdate,
   } = useQuery({
-    queryKey: [GET_LENDERS_ACCOUNTS_KEY, "update", updateQueryKeys],
+    queryKey: QueryKeys.Lender.GET_LENDER_ACCOUNTS.UPDATE(
+      targetChainId,
+      lender,
+      updateQueryKeys,
+    ),
     queryFn: getLenderUpdates,
     enabled: !!data,
     refetchOnMount: false,

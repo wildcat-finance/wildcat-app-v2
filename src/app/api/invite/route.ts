@@ -1,8 +1,10 @@
-import { getArchControllerContract } from "@wildcatfi/wildcat-sdk"
+import {
+  getArchControllerContract,
+  isSupportedChainId,
+} from "@wildcatfi/wildcat-sdk"
 import { keccak256, toUtf8Bytes } from "ethers/lib/utils"
 import { NextRequest, NextResponse } from "next/server"
 
-import { TargetChainId } from "@/config/network"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import {
   findBorrowersWithPendingInvitations,
@@ -12,6 +14,7 @@ import {
 } from "@/lib/db"
 import { getProviderForServer } from "@/lib/provider"
 import { verifySignature } from "@/lib/signatures"
+import { validateChainIdParam } from "@/lib/validateChainIdParam"
 import { getZodParseError } from "@/lib/zod-error"
 import { formatUnixMsAsDate } from "@/utils/formatters"
 
@@ -27,6 +30,10 @@ import { verifyApiToken } from "../auth/verify-header"
 /// Route to get borrower invitations.
 /// Admin-only endpoint.
 export async function GET(request: NextRequest) {
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   const token = await verifyApiToken(request)
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -37,14 +44,14 @@ export async function GET(request: NextRequest) {
   /* const onlyPendingInvitations = request.nextUrl.searchParams.get(
     "onlyPendingInvitations",
   ) */
-  await tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered()
-  const allInvitations = (await findBorrowersWithPendingInvitations()).map(
-    ({ timeSigned, ...rest }) => ({
-      ...rest,
-      hasSignedServiceAgreement: !!timeSigned,
-      timeSigned,
-    }),
-  ) as BorrowerInvitationForAdminView[]
+  await tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered(chainId)
+  const allInvitations = (
+    await findBorrowersWithPendingInvitations(chainId)
+  ).map(({ timeSigned, ...rest }) => ({
+    ...rest,
+    hasSignedServiceAgreement: !!timeSigned,
+    timeSigned,
+  })) as BorrowerInvitationForAdminView[]
   return NextResponse.json(allInvitations)
 }
 
@@ -63,13 +70,16 @@ export async function POST(request: NextRequest) {
   try {
     const input = await request.json()
     body = BorrowerInvitationInputDTO.parse(input)
+    if (!isSupportedChainId(body.chainId)) {
+      return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+    }
   } catch (error) {
     return getZodParseError(error)
   }
   const address = body.address.toLowerCase()
-  const chainId = TargetChainId
   const {
     name,
+    chainId,
     alias,
     description,
     entityKind,
@@ -86,7 +96,7 @@ export async function POST(request: NextRequest) {
     },
   })
 
-  const provider = getProviderForServer()
+  const provider = getProviderForServer(chainId)
   const archController = getArchControllerContract(chainId, provider)
 
   if (!existingBorrower) {
@@ -220,7 +230,7 @@ export async function POST(request: NextRequest) {
       ),
     ]) */
 
-/// DELETE /api/invite?address=<address>
+/// DELETE /api/invite?address=<address>&chainId=<chainId>
 /// Route to delete an invitation for a borrower.
 /// Admin-only endpoint.
 export async function DELETE(request: NextRequest) {
@@ -232,14 +242,17 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   const address = request.nextUrl.searchParams.get("address")
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   if (!address) {
     return NextResponse.json(
       { success: false, message: "No address provided" },
       { status: 400 },
     )
   }
-  const chainId = TargetChainId
-  const borrower = await findBorrowerWithPendingInvitation(address)
+  const borrower = await findBorrowerWithPendingInvitation(address, chainId)
   await prisma.borrowerInvitation.delete({
     where: {
       chainId_address: {
@@ -279,12 +292,15 @@ export async function PUT(request: NextRequest) {
   try {
     const input = await request.json()
     body = AcceptInvitationInputDTO.parse(input)
+    if (!isSupportedChainId(body.chainId)) {
+      return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+    }
   } catch (error) {
     return getZodParseError(error)
   }
   const address = token.address.toLowerCase()
-  const chainId = TargetChainId
   const {
+    chainId,
     name,
     description,
     entityKind,
@@ -308,7 +324,10 @@ export async function PUT(request: NextRequest) {
     address,
   })
 
-  const borrowerInvitation = await findBorrowerWithPendingInvitation(address)
+  const borrowerInvitation = await findBorrowerWithPendingInvitation(
+    address,
+    chainId,
+  )
   if (!borrowerInvitation || borrowerInvitation.timeSigned) {
     return NextResponse.json(
       { error: `Pending borrower invitation not found for ${address}` },
@@ -321,7 +340,7 @@ export async function PUT(request: NextRequest) {
     agreementText = `${agreementText}\n\nDate: ${dateSigned}`
   }
   agreementText = `${agreementText}\n\nOrganization Name: ${name}`
-  const provider = getProviderForServer()
+  const provider = getProviderForServer(chainId)
 
   const result = await verifySignature({
     provider,

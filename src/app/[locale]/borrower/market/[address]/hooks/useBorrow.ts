@@ -5,8 +5,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount, Signer, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { parseUnits } from "ethers/lib/utils"
 
-import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY } from "@/hooks/useGetMarketAccount"
+import { QueryKeys } from "@/config/query-keys"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useEthersProvider, useEthersSigner } from "@/hooks/useEthersSigner"
 
 export const useBorrow = (
   marketAccount: MarketAccount,
@@ -15,6 +16,7 @@ export const useBorrow = (
   const signer = useEthersSigner()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
+  const { targetChainId } = useCurrentNetwork()
 
   return useMutation({
     mutationFn: async (amount: string) => {
@@ -24,6 +26,17 @@ export const useBorrow = (
         !Signer.isSigner(marketAccount.market.provider)
       ) {
         return
+      }
+      if (
+        signer.chainId !== marketAccount.market.chainId ||
+        signer.chainId !== targetChainId
+      ) {
+        throw Error(
+          `Signer chainId does not match market or target chainId:` +
+            ` Market ${marketAccount.market.chainId},` +
+            ` Target ${targetChainId},` +
+            ` Signer ${signer.chainId}`,
+        )
       }
 
       const tokenAmount = new TokenAmount(
@@ -56,7 +69,11 @@ export const useBorrow = (
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: [GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY],
+        queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
+          marketAccount.market.chainId,
+          marketAccount.account,
+          marketAccount.market.address,
+        ),
       })
     },
     onError(error) {

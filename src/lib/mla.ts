@@ -16,7 +16,7 @@ import { BorrowerProfile } from "@/app/api/profiles/interface"
 import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import { ACCEPT_MLA_MESSAGE } from "@/config/mla-acceptance"
-import { TargetChainId } from "@/config/network"
+import { NETWORKS_BY_ID } from "@/config/network"
 import { dayjs } from "@/utils/dayjs"
 import { formatBps, formatUnixMsAsDate } from "@/utils/formatters"
 
@@ -342,6 +342,7 @@ export function getFieldValuesForBorrower({
     jurisdictionText =
       jurisdictionObj?.subDivisionName || jurisdictionObj?.countryName
   }
+  const networkInfo = NETWORKS_BY_ID[asset.chainId]
 
   const entityKindText =
     entityKind !== undefined && jurisdictionObj
@@ -386,7 +387,7 @@ export function getFieldValuesForBorrower({
     /// instead of the address.
     [
       "asset.address",
-      TargetChainId === 1 ? formatAddress(asset?.address) : asset?.name,
+      networkInfo.isTestnet ? asset?.name : formatAddress(asset?.address),
     ],
     ["market.address", formatAddress(market.address)],
     ["borrower.address", formatAddress(borrowerInfo.address)],
@@ -394,13 +395,17 @@ export function getFieldValuesForBorrower({
     [
       /* @todo should be Chainalysis */
       "chainalysisOracle.address",
-      TargetChainId === 1
-        ? formatAddress(getDeploymentAddress(TargetChainId, "Chainalysis"))
-        : formatAddress(getDeploymentAddress(TargetChainId, "MockChainalysis")),
+      networkInfo.isTestnet
+        ? formatAddress(
+            getDeploymentAddress(networkInfo.chainId, "MockChainalysis"),
+          )
+        : formatAddress(
+            getDeploymentAddress(networkInfo.chainId, "Chainalysis"),
+          ),
     ],
     [
       "hooksFactory.address",
-      formatAddress(getDeploymentAddress(TargetChainId, "HooksFactory")),
+      formatAddress(getDeploymentAddress(networkInfo.chainId, "HooksFactory")),
     ],
     // token amount
     [

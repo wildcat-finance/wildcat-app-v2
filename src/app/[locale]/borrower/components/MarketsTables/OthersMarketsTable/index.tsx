@@ -21,6 +21,7 @@ import { TablePagination } from "@/components/TablePagination"
 import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 import {
   statusComparator,
   tokenAmountComparator,
@@ -159,8 +160,8 @@ export const OthersMarketsTable = ({
               size="small"
               variant="text"
               sx={{
-                fontSize: "13px",
-                lineHeight: "20px",
+                fontSize: pxToRem(13),
+                lineHeight: lh(20, 13),
                 fontWeight: 500,
                 minWidth: "fit-content",
                 width: "fit-content",

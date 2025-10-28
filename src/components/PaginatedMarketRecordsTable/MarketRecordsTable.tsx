@@ -1,15 +1,15 @@
 /* eslint-disable no-underscore-dangle */
-import { useMemo, useState } from "react"
 import * as React from "react"
 
-import { Box, Skeleton, TablePagination, Typography } from "@mui/material"
+import { Box, Skeleton, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { MarketRecord } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { TableStyles } from "@/app/[locale]/borrower/edit-lenders-list/components/ConfirmLendersForm/style"
 import { useBorrowerNameOrAddress } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
-import { EtherscanBaseUrl } from "@/config/network"
+import { TablePagination } from "@/components/TablePagination"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { COLORS } from "@/theme/colors"
 import {
   timestampToDateFormatted,
@@ -103,6 +103,7 @@ export function MarketRecordsTable({
   setPageSize,
   rowCount,
 }: MarketRecordsTableProps) {
+  const { getTxUrl } = useBlockExplorer()
   const name = useBorrowerNameOrAddress(market.borrower)
   const { t } = useTranslation()
 
@@ -114,9 +115,8 @@ export function MarketRecordsTable({
     {
       field: "transactionHash",
       headerName: t("marketRecords.table.header.transactionHash"),
-      maxWidth: 300,
-      minWidth: 300,
-      flex: 2,
+      minWidth: 180,
+      flex: 1,
       headerAlign: "left",
       align: "left",
       renderCell: (params) => (
@@ -125,7 +125,7 @@ export function MarketRecordsTable({
             {trimAddress(params.value, 10)}
           </Typography>
           <LinkGroup
-            linkValue={`${EtherscanBaseUrl}/tx/${params.value}`}
+            linkValue={getTxUrl(params.value)}
             copyValue={params.value}
           />
         </Box>
@@ -134,9 +134,8 @@ export function MarketRecordsTable({
     {
       field: "blockTimestamp",
       headerName: t("marketRecords.table.header.time"),
-      flex: 3.35,
+      flex: 1,
       minWidth: 160,
-      maxWidth: 160,
       headerAlign: "left",
       align: "left",
       renderCell: (params) => (
@@ -226,21 +225,27 @@ export function MarketRecordsTable({
         ...TableStyles,
         overflow: "auto",
         maxWidth: "calc(100vw - 267px)",
-        padding: "16px 0px",
+        padding: "16px 0 0 0",
       }}
       getRowHeight={() => "auto"}
       rows={rows || []}
       columns={columns}
-      // {...(paginationProps as any)}
-      // rowCount={rowCount}
-      hideFooter={false}
+      paginationMode="server"
+      paginationModel={{ page, pageSize }}
+      onPaginationModelChange={(model) => {
+        if (model.page !== page) setPage(model.page)
+        if (model.pageSize !== pageSize) setPageSize(model.pageSize)
+      }}
+      rowCount={rowCount}
+      pageSizeOptions={[10, 25, 50]}
       slots={{
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        pagination: TablePagination as any,
+        pagination: TablePagination,
       }}
       slotProps={{
         pagination: {
           count: rowCount,
+          labelDisplayedRows: ({ from, to, count }) =>
+            `${from}–${to} of ${count}`,
           page,
           rowsPerPage: pageSize,
           onPageChange: (event, newPage) => {
@@ -251,6 +256,7 @@ export function MarketRecordsTable({
           },
         },
       }}
+      hideFooter={false}
     />
   )
 }

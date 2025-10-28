@@ -1,6 +1,7 @@
 import { z, ZodObject, ZodRawShape, ZodTypeAny } from "zod"
 
 export const AcceptInvitationInputDTO = z.object({
+  chainId: z.number(),
   address: z.string().min(2).max(42),
   name: z.string().min(1).max(64),
   alias: z.string().min(0).max(64).optional(),
@@ -15,6 +16,7 @@ export const AcceptInvitationInputDTO = z.object({
 })
 
 export const BorrowerInvitationInputDTO = z.object({
+  chainId: z.number(),
   address: z.string().min(2).max(42),
   name: z.string().min(1).max(64),
   alias: z.string().min(0).max(64).optional(),

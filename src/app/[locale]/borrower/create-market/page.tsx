@@ -25,7 +25,6 @@ import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { Loader } from "@/components/Loader"
-import { TargetChainId } from "@/config/network"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
@@ -66,6 +65,9 @@ export default function CreateMarketPage() {
   const router = useRouter()
   const dispatch = useAppDispatch()
   const { address } = useAccount()
+  const { chainId: targetChainId } = useAppSelector(
+    (state) => state.selectedNetwork,
+  )
 
   const currentStep = useAppSelector(
     (state) => state.createMarketSidebar.currentStep,
@@ -195,7 +197,7 @@ export default function CreateMarketPage() {
             ? [
                 {
                   providerAddress: getDeploymentAddress(
-                    TargetChainId,
+                    targetChainId,
                     "OpenAccessRoleProvider",
                   ),
                   timeToLive: 90 * 86_400,

@@ -41,15 +41,17 @@ export default function BorrowerPage() {
     isLoading: isBorrowerMarketsLoading,
   } = useGetBorrowerMarkets(undefined)
 
-  const { data: controller } = useGetController()
-  const isRegisteredBorrower = controller?.isRegisteredBorrower
-
   const { isWrongNetwork } = useCurrentNetwork()
-
-  const showTables = !isWrongNetwork && isConnected && isRegisteredBorrower
 
   const { data: hooksData, isLoading: isPoliciesLoading } =
     useGetBorrowerHooksDataWithSubgraph()
+  const isRegisteredBorrower = hooksData?.isRegisteredBorrower
+
+  const showTables = !isWrongNetwork && isConnected && isRegisteredBorrower
+
+  console.log(
+    `Right Network: ${!isWrongNetwork} | Connected: ${isConnected} | Registered: ${isRegisteredBorrower}`,
+  )
 
   const policies: GridRowsProp<PolicyDataT> = [
     ...(hooksData?.hooksInstances.map((policy) => ({

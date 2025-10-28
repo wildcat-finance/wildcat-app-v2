@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next"
 import EditProfileForm from "@/app/[locale]/borrower/profile/edit/components/EditProfileForm"
 import { BorrowerProfileInput } from "@/app/api/profiles/interface"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { COLORS } from "@/theme/colors"
 
 import { ErrorModal } from "../../../borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
@@ -16,6 +17,7 @@ import { useInviteBorrower } from "../../hooks/useInviteBorrower"
 
 export const InviteBorrowerModal = () => {
   const { t } = useTranslation()
+  const { chainId } = useSelectedNetwork()
   const [isOpen, setIsOpen] = useState(false)
   const [address, setAddress] = useState("")
   const [addressError, setAddressError] = useState("")
@@ -30,6 +32,7 @@ export const InviteBorrowerModal = () => {
 
   const handleSubmit = (data: BorrowerProfileInput) => {
     mutate({
+      chainId,
       address,
       name: data.name as string,
       alias: data.alias,

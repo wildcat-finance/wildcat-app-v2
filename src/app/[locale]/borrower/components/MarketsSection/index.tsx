@@ -25,7 +25,6 @@ import {
   SmallFilterSelectItem,
 } from "@/components/SmallFilterSelect"
 import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
-import { TargetChainId } from "@/config/network"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { marketStatusesMock } from "@/mocks/mocks"
@@ -42,6 +41,7 @@ import { useBorrowerNames } from "../../hooks/useBorrowerNames"
 
 export const MarketsSection = () => {
   const dispatch = useAppDispatch()
+  const { isTestnet } = useAppSelector((state) => state.selectedNetwork)
 
   const marketSection = useAppSelector(
     (state) => state.borrowerDashboard.marketSection,
@@ -133,7 +133,7 @@ export const MarketsSection = () => {
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
   const tokens = useMemo(() => {
-    if (TargetChainId === SupportedChainId.Sepolia) {
+    if (isTestnet) {
       /// Only take first token with a given symbol
       return tokensRaw?.filter(
         (token, index, self) =>
@@ -203,7 +203,7 @@ export const MarketsSection = () => {
           other: [] as MarketAccount[],
         },
       ),
-    [filteredMarketAccounts],
+    [filteredMarketAccounts, address],
   )
 
   const noMarkets = borrowerMarketAccounts.length === 0

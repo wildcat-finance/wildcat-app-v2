@@ -1,14 +1,7 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import * as React from "react"
 
-import {
-  Box,
-  IconButton,
-  SvgIcon,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material"
+import { Box, IconButton, SvgIcon, Typography, useTheme } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { LenderWithdrawalStatus } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
@@ -24,7 +17,7 @@ import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { LinkGroup } from "@/components/LinkComponent"
 import { WithdrawalsMobileTableItem } from "@/components/Mobile/WithdrawalsMobileTableItem"
-import { EtherscanBaseUrl } from "@/config/network"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import {
@@ -33,134 +26,135 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 
-const claimableColumns: GridColDef[] = [
-  {
-    sortable: false,
-    field: "lender",
-    headerName: "Lender",
-    minWidth: 176,
-    headerAlign: "left",
-    align: "left",
-    renderCell: ({ value }) => (
-      <Box
-        sx={{
-          height: "100%",
-          padding: "16px 0",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "flex-start",
-        }}
-      >
-        <Box sx={MarketWithdrawalRequetstCell}>
-          <Typography variant="text3">{trimAddress(value)}</Typography>
-          <Link
-            href={`${EtherscanBaseUrl}/address/${value}`}
-            target="_blank"
-            style={{ display: "flex", justifyContent: "center" }}
-          >
-            <IconButton disableRipple sx={AddressButtons}>
-              <SvgIcon fontSize="medium">
-                <LinkIcon />
-              </SvgIcon>
-            </IconButton>
-          </Link>
-        </Box>
-      </Box>
-    ),
-  },
-  {
-    sortable: false,
-    field: "dateSubmitted",
-    headerName: "Date Submitted",
-    minWidth: 216,
-    headerAlign: "left",
-    align: "left",
-    renderCell: ({ value }) => (
-      <Box
-        sx={{
-          height: "100%",
-          padding: "16px 0",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "flex-start",
-        }}
-      >
-        {value
-          .filter(
-            (date: string, index: number, self: string[]) =>
-              self.indexOf(date) === index,
-          )
-          .map((date: string) => (
-            <Typography variant="text3" key={date}>
-              {date}
-            </Typography>
-          ))}
-      </Box>
-    ),
-  },
-  {
-    sortable: false,
-    field: "transactionId",
-    headerName: "Transaction ID",
-    minWidth: 216,
-    headerAlign: "left",
-    align: "left",
-    renderCell: ({ value }) => (
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          flexWrap: "wrap",
-          gap: "20px",
-          padding: "16px 0",
-        }}
-      >
-        {value.map((txID: string) => (
-          <Box sx={MarketWithdrawalRequetstCell}>
-            <Typography variant="text3">{trimAddress(txID)}</Typography>
-
-            <LinkGroup
-              linkValue={`${EtherscanBaseUrl}/tx/${txID}`}
-              copyValue={txID}
-            />
-          </Box>
-        ))}
-      </Box>
-    ),
-  },
-  {
-    sortable: false,
-    field: "amount",
-    headerName: "Amount",
-    minWidth: 120,
-    flex: 1,
-    headerAlign: "right",
-    align: "right",
-    renderCell: ({ value }) => (
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          flexWrap: "wrap",
-          gap: "20px",
-          padding: "16px 0",
-        }}
-      >
-        {value.map((amount: string) => (
-          <Box sx={MarketWithdrawalRequetstCell}>
-            <Typography variant="text3">{amount}</Typography>
-          </Box>
-        ))}
-      </Box>
-    ),
-  },
-]
-
 export const ClaimableTable = ({ withdrawals, totalAmount }: TableProps) => {
   const { t } = useTranslation()
   const [isClaimableOpen, setIsClaimableOpen] = useState(false)
   const theme = useTheme()
   const isMobile = useMobileResolution()
+  const { getAddressUrl, getTxUrl } = useBlockExplorer()
+
+  const claimableColumns: GridColDef[] = useMemo(
+    () => [
+      {
+        sortable: false,
+        field: "lender",
+        headerName: "Lender",
+        minWidth: 176,
+        headerAlign: "left",
+        align: "left",
+        renderCell: ({ value }) => (
+          <Box
+            sx={{
+              height: "100%",
+              padding: "16px 0",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "flex-start",
+            }}
+          >
+            <Box sx={MarketWithdrawalRequetstCell}>
+              <Typography variant="text3">{trimAddress(value)}</Typography>
+              <Link
+                href={getAddressUrl(value)}
+                target="_blank"
+                style={{ display: "flex", justifyContent: "center" }}
+              >
+                <IconButton disableRipple sx={AddressButtons}>
+                  <SvgIcon fontSize="medium">
+                    <LinkIcon />
+                  </SvgIcon>
+                </IconButton>
+              </Link>
+            </Box>
+          </Box>
+        ),
+      },
+      {
+        sortable: false,
+        field: "dateSubmitted",
+        headerName: "Date Submitted",
+        minWidth: 216,
+        headerAlign: "left",
+        align: "left",
+        renderCell: ({ value }) => (
+          <Box
+            sx={{
+              height: "100%",
+              padding: "16px 0",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "flex-start",
+            }}
+          >
+            {value
+              .filter(
+                (date: string, index: number, self: string[]) =>
+                  self.indexOf(date) === index,
+              )
+              .map((date: string) => (
+                <Typography variant="text3" key={date}>
+                  {date}
+                </Typography>
+              ))}
+          </Box>
+        ),
+      },
+      {
+        sortable: false,
+        field: "transactionId",
+        headerName: "Transaction ID",
+        minWidth: 216,
+        headerAlign: "left",
+        align: "left",
+        renderCell: ({ value }) => (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              flexWrap: "wrap",
+              gap: "20px",
+              padding: "16px 0",
+            }}
+          >
+            {value.map((txID: string) => (
+              <Box sx={MarketWithdrawalRequetstCell}>
+                <Typography variant="text3">{trimAddress(txID)}</Typography>
+
+                <LinkGroup linkValue={getTxUrl(txID)} copyValue={txID} />
+              </Box>
+            ))}
+          </Box>
+        ),
+      },
+      {
+        sortable: false,
+        field: "amount",
+        headerName: "Amount",
+        minWidth: 120,
+        flex: 1,
+        headerAlign: "right",
+        align: "right",
+        renderCell: ({ value }) => (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              flexWrap: "wrap",
+              gap: "20px",
+              padding: "16px 0",
+            }}
+          >
+            {value.map((amount: string) => (
+              <Box sx={MarketWithdrawalRequetstCell}>
+                <Typography variant="text3">{amount}</Typography>
+              </Box>
+            ))}
+          </Box>
+        ),
+      },
+    ],
+    [getAddressUrl, getTxUrl],
+  )
 
   const expiredPendingWithdrawals: {
     [key: string]: LenderWithdrawalStatus[]
@@ -193,7 +187,7 @@ export const ClaimableTable = ({ withdrawals, totalAmount }: TableProps) => {
   const claimableRows = Object.keys(expiredPendingWithdrawals).flatMap(
     (lender) =>
       expiredPendingWithdrawals[lender].map((withdrawal, index) => ({
-        id: `${withdrawal.lender}-${withdrawal.scaledAmount}-${index}`, // Уникальный id
+        id: `${withdrawal.lender}-${withdrawal.scaledAmount}-${index}`,
         lender: withdrawal.lender,
         transactionId: withdrawal.requests.map(
           (request) => request.transactionHash,

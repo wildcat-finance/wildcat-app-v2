@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { TargetChainId } from "@/config/network"
 import { prisma } from "@/lib/db"
 import { getProviderForServer } from "@/lib/provider"
+import { validateChainIdParam } from "@/lib/validateChainIdParam"
 import { getZodParseError } from "@/lib/zod-error"
 
 import { MarketSummary, MarketSummaryDTO } from "./dto"
@@ -15,8 +16,12 @@ export async function GET(
   { params }: { params: { market: string } },
 ) {
   const market = params.market.toLowerCase()
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   const marketDescription = await prisma.marketDescription.findFirst({
-    where: { marketAddress: market },
+    where: { marketAddress: market, chainId },
   })
   if (!marketDescription) {
     return NextResponse.json(
@@ -31,6 +36,10 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { market: string } },
 ) {
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   const body = await request.json()
   let parsedBody: MarketSummary
   try {
@@ -45,7 +54,7 @@ export async function POST(
   // eslint-disable-next-line camelcase
   const borrower = await WildcatMarket__factory.connect(
     parsedBody.marketAddress,
-    getProviderForServer(),
+    getProviderForServer(chainId),
   )
     .borrower()
     .then((t) => t.toLowerCase())
@@ -73,7 +82,7 @@ export async function POST(
   return NextResponse.json({ success: true })
 }
 
-/// HEAD /api/market-summary/[market]
+/// HEAD /api/market-summary/[market]?chainId=<chainId>
 /// Route to check if the market description exists.
 ///
 /// Unauthenticated.
@@ -82,9 +91,13 @@ export async function HEAD(
   { params }: { params: { market: string } },
 ) {
   const market = params.market.toLowerCase()
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   const marketDescriptionExists =
     (await prisma.marketDescription.count({
-      where: { marketAddress: market },
+      where: { marketAddress: market, chainId },
     })) > 0
   // Return 200 if the market description exists, 404 otherwise
   return new NextResponse(null, {

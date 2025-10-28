@@ -1,18 +1,23 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
-import { TargetChainId } from "@/config/network"
 import {
   prisma,
   tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered,
 } from "@/lib/db"
+import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 import { BorrowerProfileForAdminView } from "./interface"
 
-export async function GET() {
-  await tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered()
+/// GET /api/profiles?chainId=<chainId>
+export async function GET(request: NextRequest) {
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
+  await tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered(chainId)
   const data = await prisma.borrower.findMany({
     where: {
-      chainId: TargetChainId,
+      chainId,
       registeredOnChain: true,
       NOT: {
         serviceAgreementSignature: null,

@@ -30,7 +30,6 @@ export const OngoingTable = ({
 }: OngoingTableProps) => {
   const { t } = useTranslation()
   const [isOngoingOpen, setIsOngoingOpen] = useState(false)
-  const theme = useTheme()
   const isMobile = useMobileResolution()
 
   const ongoingRows: WithdrawalTxRow[] = withdrawalBatches.flatMap((batch) =>

@@ -16,7 +16,7 @@ export const MarketParametersContainer = {
   width: "100%",
   display: "flex",
   columnGap: "24px",
-  marginTop: "24px",
+  marginTop: "16px",
 }
 
 export const MarketParametersColumn = {

@@ -27,6 +27,7 @@ import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 import {
   statusComparator,
   tokenAmountComparator,
@@ -237,10 +238,8 @@ export const OtherMarketsTables = ({
               size="small"
               variant="text"
               sx={{
-                fontSize: "13px",
-                textDecoration: "underline",
-                color: "#00008B",
-                lineHeight: "20px",
+                fontSize: pxToRem(13),
+                lineHeight: lh(20, 13),
                 fontWeight: 500,
                 minWidth: "calc(100% - 1px)",
                 width: "calc(100% - 1px)",
@@ -249,6 +248,12 @@ export const OtherMarketsTables = ({
                 overflow: "hidden",
                 whiteSpace: "nowrap",
                 display: "inline-block",
+
+                "&:hover": {
+                  boxShadow: "none",
+                  backgroundColor: COLORS.whiteSmoke,
+                  color: COLORS.blackRock,
+                },
               }}
             >
               {params.value}

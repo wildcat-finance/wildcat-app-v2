@@ -28,7 +28,6 @@ import {
   SmallFilterSelectItem,
 } from "@/components/SmallFilterSelect"
 import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
-import { TargetChainId } from "@/config/network"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -130,7 +129,11 @@ export const MarketsSection = () => {
 
   const { t } = useTranslation()
 
-  const { isWrongNetwork } = useCurrentNetwork()
+  const {
+    isWrongNetwork,
+    chainId: targetChainId,
+    isTestnet,
+  } = useCurrentNetwork()
   const { isConnected } = useAccount()
   const { data: borrowers } = useBorrowerNames()
 
@@ -156,7 +159,7 @@ export const MarketsSection = () => {
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
   const tokens = useMemo(() => {
-    if (TargetChainId === SupportedChainId.Sepolia) {
+    if (isTestnet) {
       /// Only take first token with a given symbol
       return tokensRaw?.filter(
         (token, index, self) =>
@@ -164,7 +167,7 @@ export const MarketsSection = () => {
       )
     }
     return tokensRaw
-  }, [tokensRaw])
+  }, [tokensRaw, targetChainId])
 
   const {
     active: filteredActiveLenderMarketAccounts,

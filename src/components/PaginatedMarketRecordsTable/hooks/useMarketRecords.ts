@@ -7,15 +7,15 @@ import {
   getMarketRecords,
 } from "@wildcatfi/wildcat-sdk"
 
-import { SubgraphClient } from "@/config/subgraph"
-
-const GET_MARKET_RECORDS_KEY = "get-market-records"
+import { QueryKeys } from "@/config/query-keys"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 export type UseMarketRecordsProps = {
   market: Market
   page: number
   pageSize: number
   kinds?: MarketRecordKind[]
+  search?: string
 }
 
 export function useMarketRecords({
@@ -23,8 +23,10 @@ export function useMarketRecords({
   page,
   pageSize,
   kinds,
+  search,
 }: UseMarketRecordsProps) {
   const [finalEventIndex, setFinalEventIndex] = useState(market.eventIndex)
+  const subgraphClient = useSubgraphClient()
 
   const getMarketRecordsInternal = async () => {
     if (finalEventIndex === undefined) {
@@ -42,7 +44,7 @@ export function useMarketRecords({
     console.log(kinds)
     console.log(`Page Size: ${pageSize}`)
 
-    const records = await getMarketRecords(SubgraphClient, {
+    const records = await getMarketRecords(subgraphClient, {
       market,
       fetchPolicy: "network-only",
       endEventIndex: finalEventIndex,
@@ -63,17 +65,36 @@ export function useMarketRecords({
     }
     records.sort((a, b) => b.eventIndex - a.eventIndex)
 
+    const q = search?.trim().toLowerCase()
+
+    const filtered = q
+      ? records.filter((r) => {
+          const haystack = [r.transactionHash, String(r.eventIndex)]
+            .filter(Boolean)
+            .map((x) => String(x).toLowerCase())
+
+          return haystack.some((s) => s.includes(q))
+        })
+      : records
+
     const startIndex = page * pageSize
     const endIndex = startIndex + pageSize
 
     return {
-      records: records.slice(startIndex, endIndex),
-      totalRecords: records.length,
+      records: filtered.slice(startIndex, endIndex),
+      totalRecords: filtered.length,
     }
   }
 
   const { data, isLoading, error, isError } = useQuery({
-    queryKey: [GET_MARKET_RECORDS_KEY, market.address, page, pageSize, kinds],
+    queryKey: QueryKeys.Markets.GET_MARKET_RECORDS(
+      market.chainId,
+      market.address,
+      page,
+      pageSize,
+      kinds,
+      search ?? "",
+    ),
     queryFn: getMarketRecordsInternal,
     enabled: true,
     refetchOnMount: false,
