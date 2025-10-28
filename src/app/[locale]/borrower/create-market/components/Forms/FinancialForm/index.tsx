@@ -3,7 +3,6 @@ import { useEffect } from "react"
 import { Box, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
-import { endDecorator } from "@/app/[locale]/borrower/(new-market)/components/NewMarketForm/style"
 import { InputLabel } from "@/components/InputLabel"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
@@ -17,6 +16,7 @@ import {
 import { COLORS } from "@/theme/colors"
 
 import { FinancialFormProps } from "./interface"
+import { endDecorator } from "./style"
 import { FormFooter } from "../../FormFooter"
 import { FormContainer, SectionGrid } from "../style"
 

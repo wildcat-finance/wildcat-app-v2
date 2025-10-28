@@ -29,14 +29,15 @@ import {
   setPolicyLenders,
 } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 import { pageCalcHeights } from "@/utils/constants"
 
 import { SmallFilterSelectItem } from "../../../../components/SmallFilterSelect"
 
 const TabStyle = {
-  fontSize: "13px",
+  fontSize: pxToRem(13),
+  lineHeight: lh(20, 13),
   fontWeight: 500,
-  lineHeight: "20px",
   height: "41px",
   minHeight: "41px",
   minWidth: "fit-content",

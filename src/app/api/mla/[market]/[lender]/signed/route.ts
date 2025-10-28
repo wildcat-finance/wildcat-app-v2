@@ -1,11 +1,8 @@
-import { SignatureKind } from "@prisma/client"
 import { toUtf8Bytes, keccak256 } from "ethers/lib/utils"
 import JSZip from "jszip"
 import { NextRequest, NextResponse } from "next/server"
-import puppeteer from "puppeteer"
 
 import { ACCEPT_MLA_MESSAGE } from "@/config/mla-acceptance"
-import { TargetChainId } from "@/config/network"
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
 import {
   fillInMlaForLender,
@@ -14,6 +11,7 @@ import {
 } from "@/lib/mla"
 import { formatSignatureText } from "@/lib/signatures"
 import { VerifiedSignature } from "@/lib/signatures/interface"
+import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 const getReadmeFile = ({
   market,
@@ -57,15 +55,19 @@ For the lender, the signed message (after replacing "{{hash}}") is:
 
 ${formatSignatureText(lenderSignature)}`
 
-/// GET /api/mla/[market]
+/// GET /api/mla/[market]?chainId=<chainId>
 /// Route to get the MLA for a given market.
 export async function GET(
   request: NextRequest,
   { params }: { params: { market: string; lender: string } },
 ) {
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   const market = params.market.toLowerCase()
   const lenderAddress = params.lender.toLowerCase()
-  const mla = await getSignedMasterLoanAgreement(market)
+  const mla = await getSignedMasterLoanAgreement(market, chainId)
 
   if (!mla) {
     return new NextResponse(null, { status: 404 })
@@ -77,7 +79,7 @@ export async function GET(
 
   const mlaSignature = await prisma.mlaSignature.findFirst({
     where: {
-      chainId: TargetChainId,
+      chainId,
       address: lenderAddress,
       market,
     },

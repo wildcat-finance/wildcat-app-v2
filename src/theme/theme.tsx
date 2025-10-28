@@ -30,6 +30,7 @@ import {
 } from "@/theme/overrides/Buttons"
 import { PALETTE } from "@/theme/palette"
 import { TYPOGRAPHY } from "@/theme/typography"
+import { lh, pxToRem } from "@/theme/units"
 
 declare module "@mui/material/styles" {
   interface Palette {
@@ -249,8 +250,8 @@ export const theme = createTheme({
             "& .MuiChip-label": {
               position: "relative",
               top: "0.7px",
-              fontSize: "11px",
-              lineHeight: "16px",
+              fontSize: pxToRem(11),
+              lineHeight: lh(16, 11),
               fontWeight: 500,
 
               padding: 0,
@@ -263,8 +264,8 @@ export const theme = createTheme({
             border: "none",
             padding: 0,
             "& .MuiChip-label": {
-              fontSize: "11px",
-              lineHeight: "16px",
+              fontSize: pxToRem(11),
+              lineHeight: lh(16, 11),
               fontWeight: 500,
 
               padding: 0,
@@ -401,9 +402,9 @@ export const theme = createTheme({
             border: "none",
             borderRadius: "8px",
 
-            fontSize: 11,
+            fontSize: pxToRem(11),
+            lineHeight: lh(16, 11),
             fontWeight: 500,
-            lineHeight: "16px",
             letterSpacing: "0.2px",
             color: COLORS.white,
             backgroundColor: COLORS.blackRock,
@@ -420,9 +421,9 @@ export const theme = createTheme({
               border: "none",
               borderRadius: "6px",
 
-              fontSize: 11,
+              fontSize: pxToRem(11),
+              lineHeight: lh(16, 11),
               fontWeight: 500,
-              lineHeight: "16px",
               letterSpacing: "0.2px",
               color: COLORS.white,
               backgroundColor: COLORS.bunker08,
@@ -518,9 +519,9 @@ export const theme = createTheme({
               },
               "& .MuiInputBase-root": {
                 fontFamily: "inherit",
-                fontSize: 14,
+                fontSize: pxToRem(14),
+                lineHeight: lh(20, 14),
                 fontWeight: 500,
-                lineHeight: "20px",
                 color: COLORS.blackRock,
 
                 backgroundColor: "transparent",
@@ -552,8 +553,8 @@ export const theme = createTheme({
 
               "& .MuiFormHelperText-root": {
                 fontFamily: "inherit",
-                fontSize: "11px",
-                lineHeight: "16px",
+                fontSize: pxToRem(11),
+                lineHeight: lh(16, 11),
                 fontWeight: 500,
                 letterSpacing: 0,
                 margin: "4px 0 0",
@@ -568,9 +569,9 @@ export const theme = createTheme({
 
               "& .MuiFormLabel-root": {
                 fontFamily: "inherit",
-                fontSize: 14,
+                fontSize: pxToRem(14),
+                lineHeight: lh(20, 14),
                 fontWeight: 500,
-                lineHeight: "20px",
                 color: COLORS.santasGrey,
                 letterSpacing: "0.2px",
                 transform: "translate(16px, 16px) scale(1)",
@@ -612,9 +613,9 @@ export const theme = createTheme({
 
               "& .MuiInputBase-root": {
                 fontFamily: "inherit",
-                fontSize: 14,
+                fontSize: pxToRem(14),
+                lineHeight: lh(20, 14),
                 fontWeight: 500,
-                lineHeight: "20px",
                 color: COLORS.blackRock,
 
                 backgroundColor: "transparent",
@@ -645,9 +646,9 @@ export const theme = createTheme({
 
               "& .MuiFormHelperText-root": {
                 fontFamily: "inherit",
-                fontSize: "11px",
+                fontSize: pxToRem(11),
+                lineHeight: lh(16, 11),
                 fontWeight: 500,
-                lineHeight: "16px",
                 letterSpacing: 0,
                 margin: "4px 0 0",
                 "&.Mui-error": {
@@ -662,9 +663,9 @@ export const theme = createTheme({
 
               "& .MuiFormLabel-root": {
                 fontFamily: "inherit",
-                fontSize: 14,
+                fontSize: pxToRem(14),
+                lineHeight: lh(20, 14),
                 fontWeight: 500,
-                lineHeight: "20px",
                 color: COLORS.santasGrey,
                 letterSpacing: "0.2px",
 
@@ -677,9 +678,9 @@ export const theme = createTheme({
                 },
 
                 "&.MuiInputLabel-shrink": {
-                  fontSize: 11,
+                  fontSize: pxToRem(11),
+                  lineHeight: lh(16, 11),
                   fontWeight: 500,
-                  lineHeight: "16px",
 
                   transform: "translate(17px, 7px) scale(0.8)",
                   color: COLORS.santasGrey,
@@ -707,9 +708,8 @@ export const theme = createTheme({
 
               "& .MuiInputBase-root": {
                 fontFamily: "inherit",
-                fontSize: 13,
-                fontWeight: 500,
-                lineHeight: "20px",
+                fontSize: pxToRem(13),
+                lineHeight: lh(20, 13),
                 paddingLeft: "8px",
                 color: COLORS.blackRock,
 
@@ -750,9 +750,9 @@ export const theme = createTheme({
 
               "& .MuiFormLabel-root": {
                 fontFamily: "inherit",
-                fontSize: 13,
+                fontSize: pxToRem(13),
+                lineHeight: lh(20, 13),
                 fontWeight: 500,
-                lineHeight: "20px",
                 color: COLORS.santasGrey,
                 letterSpacing: "0.2px",
 
@@ -793,9 +793,9 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           fontFamily: "inherit",
-          fontSize: 14,
+          fontSize: pxToRem(14),
+          lineHeight: lh(20, 14),
           fontWeight: 500,
-          lineHeight: "20px",
           color: COLORS.santasGrey,
           letterSpacing: "0.2px",
 
@@ -841,9 +841,9 @@ export const theme = createTheme({
               "&.MuiInputBase-root": {
                 height: "52px",
 
-                fontSize: 14,
+                fontSize: pxToRem(14),
+                lineHeight: lh(20, 14),
                 fontWeight: 500,
-                lineHeight: "20px",
 
                 backgroundColor: "transparent",
                 borderRadius: 12,
@@ -872,9 +872,9 @@ export const theme = createTheme({
 
               "& .MuiSelect-select": {
                 fontFamily: "inherit",
-                fontSize: 14,
+                fontSize: pxToRem(14),
+                lineHeight: lh(20, 14),
                 fontWeight: 500,
-                lineHeight: "20px",
 
                 padding: "16px",
 
@@ -900,9 +900,9 @@ export const theme = createTheme({
               "&.MuiInputBase-root": {
                 // height: "32px",
 
-                fontSize: 13,
+                fontSize: pxToRem(13),
+                lineHeight: lh(20, 13),
                 fontWeight: 500,
-                lineHeight: "20px",
                 paddingLeft: "8px",
                 backgroundColor: "transparent",
                 borderRadius: 8,
@@ -929,9 +929,9 @@ export const theme = createTheme({
               },
 
               "& .MuiSelect-select": {
-                fontSize: 11,
+                fontSize: pxToRem(11),
+                lineHeight: lh(16, 11),
                 fontWeight: 500,
-                lineHeight: "16px",
 
                 padding: "6px 24px 6px 4px",
                 paddingRight: "24px",
@@ -975,9 +975,9 @@ export const theme = createTheme({
         root: {
           fontFamily: "inherit",
           padding: "6px 12px",
-          fontSize: 14,
+          fontSize: pxToRem(14),
+          lineHeight: lh(20, 14),
           fontWeight: 500,
-          lineHeight: "20px",
           borderRadius: "8px",
           "&:hover": {
             background: COLORS.hintOfRed,
@@ -1015,8 +1015,8 @@ export const theme = createTheme({
 
           "& .MuiTypography-root": {
             fontFamily: "inherit",
-            fontSize: 13,
-            lineHeight: "20px",
+            fontSize: pxToRem(13),
+            lineHeight: lh(20, 13),
             fontWeight: 500,
           },
         },
@@ -1085,6 +1085,22 @@ export const theme = createTheme({
 
             "& .MuiToolbar-root": {
               padding: "0 16px",
+
+              "& .MuiTablePagination-selectLabel": {
+                fontSize: pxToRem(13),
+                lineHeight: lh(20, 13),
+              },
+
+              "& .MuiTablePagination-input": {
+                margin: "0 10px",
+                fontSize: pxToRem(13),
+                lineHeight: lh(20, 13),
+              },
+
+              "& .MuiTablePagination-selectIcon": {
+                top: 0,
+                transform: "translate(-4px, 3.5px) scale(0.8)",
+              },
             },
 
             "& .MuiPagination-root": {
@@ -1104,8 +1120,8 @@ export const theme = createTheme({
                 fontFamily: "inherit",
                 letterSpacing: 0,
 
-                fontSize: "13px",
-                lineHeight: "20px",
+                fontSize: pxToRem(13),
+                lineHeight: lh(20, 13),
                 fontWeight: 500,
                 color: COLORS.blackRock,
 
@@ -1167,8 +1183,8 @@ export const theme = createTheme({
           "& .MuiDataGrid-columnHeader": {
             padding: "0 16px",
 
-            fontSize: "11px",
-            lineHeight: "12px",
+            fontSize: pxToRem(11),
+            lineHeight: lh(12, 11),
             fontWeight: 500,
             letterSpacing: 0,
             color: COLORS.santasGrey,
@@ -1205,8 +1221,8 @@ export const theme = createTheme({
             padding: "0 16px",
             borderColor: COLORS.athensGrey,
 
-            fontSize: "13px",
-            lineHeight: "20px",
+            fontSize: pxToRem(13),
+            lineHeight: lh(20, 13),
             fontWeight: 500,
             letterSpacing: 0,
             color: COLORS.blackRock,
@@ -1255,8 +1271,8 @@ export const theme = createTheme({
 
           "& .MuiAccordionSummary-content": {
             fontFamily: "inherit",
-            fontSize: "13px",
-            lineHeight: "20px",
+            fontSize: pxToRem(13),
+            lineHeight: lh(20, 13),
             fontWeight: 500,
             letterSpacing: 0,
             alignItems: "center",
@@ -1286,9 +1302,9 @@ export const theme = createTheme({
           minHeight: "36px",
 
           fontFamily: "inherit",
-          fontSize: "20px",
+          fontSize: pxToRem(20),
+          lineHeight: lh(32, 20),
           fontWeight: 500,
-          lineHeight: "32px",
           textTransform: "none",
           color: COLORS.santasGrey,
           letterSpacing: 0,
@@ -1307,9 +1323,9 @@ export const theme = createTheme({
             minHeight: "32px",
 
             fontFamily: "inherit",
-            fontSize: "13px",
+            fontSize: pxToRem(13),
+            lineHeight: lh(20, 13),
             fontWeight: 600,
-            lineHeight: "20px",
             textTransform: "none",
             color: COLORS.santasGrey,
             letterSpacing: 0,
@@ -1407,7 +1423,7 @@ export const theme = createTheme({
           },
 
           "& .MuiPickersCalendarHeader-label": {
-            fontSize: 13,
+            fontSize: pxToRem(13),
             marginRight: "0px",
           },
           "& .MuiPickersArrowSwitcher-spacer": {
@@ -1419,9 +1435,9 @@ export const theme = createTheme({
           },
           "& .MuiDayCalendar-weekDayLabel": {
             fontFamily: "inherit",
-            fontSize: "11px",
+            fontSize: pxToRem(11),
+            lineHeight: lh(16, 11),
             fontWeight: 500,
-            lineHeight: "16px",
             color: COLORS.greySuit,
 
             width: "20px",
@@ -1452,9 +1468,9 @@ export const theme = createTheme({
           },
           "& .MuiPickersYear-yearButton": {
             fontFamily: "inherit",
-            fontSize: "13px",
+            fontSize: pxToRem(13),
+            lineHeight: lh(20, 13),
             fontWeight: 500,
-            lineHeight: "20px",
 
             width: "48px",
             height: "20px",

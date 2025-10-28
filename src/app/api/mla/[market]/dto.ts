@@ -8,6 +8,7 @@ export const MlaTemplateFieldDTO = z.object({
 })
 
 export const SetMasterLoanAgreementInputDTO = z.object({
+  chainId: z.number(),
   mlaTemplate: z.number(),
   timeSigned: z.number(),
   signature: z.string(),

@@ -1,13 +1,11 @@
 // eslint-disable-next-line camelcase
 import { unstable_cache } from "next/cache"
 
-import { NETWORKS } from "@/config/network"
+import { NETWORKS, NETWORKS_BY_ID } from "@/config/network"
 
 import { TokenInfo, TokenList } from "./interface"
+import { PLASMA_TESTNET_TOKENS } from "./tokens-list/plasma-testnet"
 import { SEPOLIA_TOKENS } from "./tokens-list/sepolia"
-
-const TARGET_NETWORK = process.env
-  .NEXT_PUBLIC_TARGET_NETWORK as keyof typeof NETWORKS
 
 const REVALIDATE_TOKENS_LIST_TIMEOUT = 60 * 60 * 24 * 3
 export const TOKENS_LIST_KEY = "tokens_list"
@@ -29,9 +27,12 @@ const filterByQueryType = (searchQuery: string, tokensList: TokenInfo[]) => {
   )
 }
 
-const fetchTokensFn = async () => {
-  if (NETWORKS[TARGET_NETWORK].chainId === NETWORKS.Sepolia.chainId) {
+const fetchTokensFn = async (chainId: number) => {
+  if (chainId === NETWORKS.Sepolia.chainId) {
     return SEPOLIA_TOKENS
+  }
+  if (chainId === NETWORKS.PlasmaTestnet.chainId) {
+    return PLASMA_TESTNET_TOKENS
   }
 
   if (!process.env.NEXT_PUBLIC_TOKENS_LIST_URL) {
@@ -42,8 +43,14 @@ const fetchTokensFn = async () => {
     const response = await fetch(`${process.env.NEXT_PUBLIC_TOKENS_LIST_URL}`)
     const tokenInfo: TokenList = await response.json()
 
-    // Filter tokens with chainId === 1
-    return (tokenInfo?.tokens || []).filter((token) => token.chainId === 1)
+    // For testnets, return all mainnet ETH tokens since they will be redeployed anyways
+    // Otherwise, filter tokens with matching chainId
+    if (NETWORKS_BY_ID[chainId as keyof typeof NETWORKS_BY_ID].isTestnet) {
+      return (tokenInfo?.tokens || []).filter((token) => token.chainId === 1)
+    }
+    return (tokenInfo?.tokens || []).filter(
+      (token) => token.chainId === chainId,
+    )
   } catch (error) {
     console.log(error)
   }
@@ -55,11 +62,11 @@ const fetchTokensFnCached = unstable_cache(fetchTokensFn, [TOKENS_LIST_KEY], {
   revalidate: REVALIDATE_TOKENS_LIST_TIMEOUT,
 })
 
-export async function fetchTokensList(searchQuery: string) {
+export async function fetchTokensList(searchQuery: string, chainId: number) {
   let tokensList: TokenInfo[] = []
 
   try {
-    tokensList = await fetchTokensFnCached()
+    tokensList = await fetchTokensFnCached(chainId)
   } catch (error) {
     console.log(error)
   }

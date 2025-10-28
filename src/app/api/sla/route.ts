@@ -1,7 +1,7 @@
+import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { keccak256, toUtf8Bytes } from "ethers/lib/utils"
 import { NextRequest, NextResponse } from "next/server"
 
-import { TargetChainId } from "@/config/network"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { prisma } from "@/lib/db"
 import { getProviderForServer } from "@/lib/provider"
@@ -19,6 +19,12 @@ export async function POST(request: NextRequest) {
   try {
     const input = await request.json()
     body = ServiceAgreementSignatureInputDTO.parse(input)
+    if (!isSupportedChainId(body.chainId)) {
+      return NextResponse.json(
+        { error: "Chain ID not supported" },
+        { status: 400 },
+      )
+    }
   } catch (error) {
     return getZodParseError(error)
   }
@@ -26,7 +32,7 @@ export async function POST(request: NextRequest) {
   const address = body.address.toLowerCase()
   const dateSigned = formatUnixMsAsDate(timeSigned)
   const agreementText = `${AgreementText}\n\nDate: ${dateSigned}`
-  const provider = getProviderForServer()
+  const provider = getProviderForServer(body.chainId)
   const result = await verifySignature({
     provider,
     signature,
@@ -39,7 +45,7 @@ export async function POST(request: NextRequest) {
   }
   await prisma.lenderServiceAgreementSignature.create({
     data: {
-      chainId: TargetChainId,
+      chainId: body.chainId,
       signer: address,
       signature,
       timeSigned: new Date(timeSigned).toISOString(),

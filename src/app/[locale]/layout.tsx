@@ -26,6 +26,7 @@ import TranslationsProvider from "@/components/TranslationsProvider"
 import { config } from "@/lib/config"
 import { RedirectsProvider } from "@/providers/RedirectsProvider"
 import { SafeProvider } from "@/providers/SafeProvider"
+import { SubgraphProvider } from "@/providers/SubgraphProvider"
 import { WagmiQueryProviders } from "@/providers/WagmiQueryProviders"
 
 import i18nConfig from "../../../i18nConfig"
@@ -61,41 +62,43 @@ export default async function RootLayout({
         <Toaster position="bottom-center" />
         <WagmiQueryProviders initialState={initialState}>
           <SafeProvider>
-            <RedirectsProvider>
-              <StoreProvider>
-                <TranslationsProvider
-                  namespaces={i18nNamespaces}
-                  locale={locale}
-                  resources={resources}
-                >
-                  {/* <PollingRegistration /> */}
-                  <ThemeRegistry>
-                    <Box sx={BackgroundContainer} />
-                    <Box position="relative">
-                      <Header />
-                      <Box sx={PageContainer}>
-                        <Box sx={ContentContainer}>
-                          <Sidebar />
-                          <Box
-                            width="calc(100vw - 267px)"
-                            sx={{
-                              "@media (max-width: 1000px)": {
-                                width: "100%",
-                              },
-                            }}
-                          >
-                            {children}
+            <StoreProvider>
+              <RedirectsProvider>
+                <SubgraphProvider>
+                  <TranslationsProvider
+                    namespaces={i18nNamespaces}
+                    locale={locale}
+                    resources={resources}
+                  >
+                    {/* <PollingRegistration /> */}
+                    <ThemeRegistry>
+                      <Box sx={BackgroundContainer} />
+                      <Box position="relative">
+                        <Header />
+                        <Box sx={PageContainer}>
+                          <Box sx={ContentContainer}>
+                            <Sidebar />
+                            <Box
+                              width="calc(100vw - 267px)"
+                              sx={{
+                                "@media (max-width: 1000px)": {
+                                  width: "100%",
+                                },
+                              }}
+                            >
+                              {children}
+                            </Box>
+                            <Suspense>
+                              <HotjarConsent />
+                            </Suspense>
                           </Box>
-                          <Suspense>
-                            <HotjarConsent />
-                          </Suspense>
                         </Box>
                       </Box>
-                    </Box>
-                  </ThemeRegistry>
-                </TranslationsProvider>
-              </StoreProvider>
-            </RedirectsProvider>
+                    </ThemeRegistry>
+                  </TranslationsProvider>
+                </SubgraphProvider>
+              </RedirectsProvider>
+            </StoreProvider>
           </SafeProvider>
         </WagmiQueryProviders>
       </body>

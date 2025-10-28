@@ -37,6 +37,7 @@ import {
   setIsValid,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 import { dayjs } from "@/utils/dayjs"
 
 import { MarketPolicyFormProps } from "./interface"
@@ -290,9 +291,9 @@ export const MarketPolicyForm = ({
 
                         "& .MuiInputBase-root.MuiFilledInput-root": {
                           fontFamily: "inherit",
-                          fontSize: 14,
+                          fontSize: pxToRem(14),
+                          lineHeight: lh(20, 14),
                           fontWeight: 500,
-                          lineHeight: "20px",
                           backgroundColor: "transparent",
 
                           "&:before, &:after": {
@@ -310,9 +311,9 @@ export const MarketPolicyForm = ({
                       FormHelperTextProps: {
                         sx: {
                           color: "wildWatermelon",
-                          fontSize: "11px",
+                          fontSize: pxToRem(11),
+                          lineHeight: lh(16, 11),
                           letterSpacing: "normal",
-                          lineHeight: "16px",
                         },
                       },
                     },

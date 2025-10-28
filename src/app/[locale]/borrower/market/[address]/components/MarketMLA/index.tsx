@@ -172,8 +172,8 @@ const ShowExistingMla = ({
       isLoading={false}
       onSign={() => {}}
       showSignButton
-      downloadPdfUrl={`/api/mla/${marketAccount.market.address}/pdf`}
-      downloadSignedUrl={`/api/mla/${marketAccount.market.address}/signed`}
+      downloadPdfUrl={`/api/mla/${marketAccount.market.address}/pdf?chainId=${marketAccount.market.chainId}`}
+      downloadSignedUrl={`/api/mla/${marketAccount.market.address}/signed?chainId=${marketAccount.market.chainId}`}
     />
   </Box>
 )

@@ -174,6 +174,7 @@ export const useLogin = () => {
             signature: result.signature ?? "0x",
             timeSigned,
             address,
+            chainId: signer.chainId,
           }),
         })
         if (response.status !== 200)

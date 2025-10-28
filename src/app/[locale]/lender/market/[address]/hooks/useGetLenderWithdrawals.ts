@@ -5,7 +5,7 @@ import { useMemo } from "react"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   Market,
-  getLensContract,
+  getLensV2Contract,
   WithdrawalBatch,
   LenderWithdrawalStatus,
   TokenAmount,
@@ -19,9 +19,10 @@ import {
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { useAccount } from "wagmi"
 
-import { TargetChainId } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
-import { SubgraphClient } from "@/config/subgraph"
+import { QueryKeys } from "@/config/query-keys"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type LenderWithdrawalsForMarketResult = {
@@ -33,18 +34,24 @@ export type LenderWithdrawalsForMarketResult = {
   totalClaimableAmount: TokenAmount
 }
 
-export const GET_LENDER_WITHDRAWALS_KEY = "get_lender_withdrawals"
-
 export function useGetLenderWithdrawals(
   market: Market | undefined,
 ): TwoStepQueryHookResult<LenderWithdrawalsForMarketResult> {
+  const subgraphClient = useSubgraphClient()
   const { address } = useAccount()
+  const { chainId: targetChainId } = useSelectedNetwork()
   const lender = address?.toLowerCase()
   const marketAddress = market?.address.toLowerCase()
   async function queryLenderWithdrawals() {
-    if (!lender || !market || !marketAddress) throw Error()
+    if (
+      !lender ||
+      !market ||
+      !marketAddress ||
+      market.chainId !== targetChainId
+    )
+      throw Error()
     logger.debug(`Getting lender withdrawals...`)
-    const result = await SubgraphClient.query<
+    const result = await subgraphClient.query<
       SubgraphGetLenderWithdrawalsForMarketQuery,
       SubgraphGetLenderWithdrawalsForMarketQueryVariables
     >({
@@ -133,7 +140,11 @@ export function useGetLenderWithdrawals(
     isError: isErrorInitial,
     failureReason: errorInitial,
   } = useQuery({
-    queryKey: [GET_LENDER_WITHDRAWALS_KEY, "initial", lender, market],
+    queryKey: QueryKeys.Lender.GET_WITHDRAWALS.INITIAL(
+      market?.chainId ?? targetChainId,
+      lender,
+      marketAddress,
+    ),
     queryFn: queryLenderWithdrawals,
     refetchInterval: POLLING_INTERVAL,
     placeholderData: keepPreviousData,
@@ -153,7 +164,7 @@ export function useGetLenderWithdrawals(
   async function updateWithdrawals() {
     console.log(`Updating withdrawals...`)
     if (!lender || !market || !marketAddress) throw Error()
-    const lens = getLensContract(TargetChainId, market.provider)
+    const lens = getLensV2Contract(market.chainId, market.provider)
     const incompleteWithdrawals = [
       ...(withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []),
       ...(withdrawals.expiredPendingWithdrawals ?? []),
@@ -189,20 +200,18 @@ export function useGetLenderWithdrawals(
       ...(withdrawals.completeWithdrawals ?? []),
       ...(withdrawals.expiredPendingWithdrawals ?? []),
     ]
-    const expiredPendingWithdrawals = allWithdrawals.filter(
-      (wd) =>
-        wd.expiry !== market.pendingWithdrawalExpiry &&
-        wd.expiry <= Math.floor(Date.now() / 1000) &&
-        wd.normalizedAmountOwed.gt(0),
-    )
-    const activeWithdrawal = allWithdrawals.find(
-      (wd) =>
-        wd.expiry === market.pendingWithdrawalExpiry &&
-        wd.status === BatchStatus.Pending,
-    )
-    const completeWithdrawals = allWithdrawals.filter(
-      (wd) => wd.status === BatchStatus.Complete,
-    )
+    const expiredPendingWithdrawals: LenderWithdrawalStatus[] = []
+    let activeWithdrawal: LenderWithdrawalStatus | undefined
+    const completeWithdrawals: LenderWithdrawalStatus[] = []
+    for (const wd of allWithdrawals) {
+      if (wd.status === BatchStatus.Pending) {
+        activeWithdrawal = wd
+      } else if (wd.status === BatchStatus.Complete && wd.isCompleted) {
+        completeWithdrawals.push(wd)
+      } else {
+        expiredPendingWithdrawals.push(wd)
+      }
+    }
 
     const activeTotalPendingAmount =
       activeWithdrawal?.requests.reduce(
@@ -252,7 +261,12 @@ export function useGetLenderWithdrawals(
     isError: isErrorUpdate,
     failureReason: errorUpdate,
   } = useQuery({
-    queryKey: [GET_LENDER_WITHDRAWALS_KEY, "update", updateQueryKeys],
+    queryKey: QueryKeys.Lender.GET_WITHDRAWALS.UPDATE(
+      market?.chainId ?? targetChainId,
+      lender,
+      marketAddress,
+      updateQueryKeys,
+    ),
     queryFn: updateWithdrawals,
     placeholderData: keepPreviousData,
     enabled: !!data,

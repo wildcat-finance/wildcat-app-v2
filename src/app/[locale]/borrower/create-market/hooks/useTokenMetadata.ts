@@ -1,23 +1,24 @@
 import { useQuery } from "@tanstack/react-query"
-import { Token, Signer } from "@wildcatfi/wildcat-sdk"
+import { Token, Signer, getLensV2Contract } from "@wildcatfi/wildcat-sdk"
 
-import { TargetChainId } from "@/config/network"
-import { useEthersSigner } from "@/hooks/useEthersSigner"
-
-const TOKEN_METADATA_KEY = "tokenMetadata"
+import { QueryKeys } from "@/config/query-keys"
+import { useEthersProvider } from "@/hooks/useEthersSigner"
 
 export function useTokenMetadata({ address }: { address: string | undefined }) {
-  const signer = useEthersSigner()
+  const { signer, targetChainId } = useEthersProvider()
 
   async function getToken() {
     if (
       address !== undefined &&
       signer !== undefined &&
-      address.length === 42
+      address.length === 42 &&
+      signer.chainId === targetChainId
     ) {
-      const token = await Token.getTokenData(
-        TargetChainId,
-        address,
+      const lens = getLensV2Contract(signer.chainId, signer as Signer)
+      const metadata = await lens.getTokenInfo(address)
+      const token = Token.fromTokenMetadata(
+        signer.chainId,
+        metadata,
         signer as Signer,
       )
       return token
@@ -26,7 +27,7 @@ export function useTokenMetadata({ address }: { address: string | undefined }) {
   }
 
   return useQuery({
-    queryKey: [TOKEN_METADATA_KEY, address],
+    queryKey: QueryKeys.Token.TOKEN_METADATA(targetChainId, address),
     queryFn: getToken,
     enabled:
       address !== undefined && signer !== undefined && address.length === 42,

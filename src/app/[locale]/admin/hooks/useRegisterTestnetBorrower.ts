@@ -1,25 +1,23 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import {
-  getMockArchControllerOwnerContract,
-  SupportedChainId,
-} from "@wildcatfi/wildcat-sdk"
+import { getMockArchControllerOwnerContract } from "@wildcatfi/wildcat-sdk"
 
 import { toastRequest } from "@/components/Toasts"
-import { TargetChainId } from "@/config/network"
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-
-import { GET_ALL_BORROWER_INVITATIONS_KEY } from "./useAllBorrowerInvitations"
-import { GET_ALL_BORROWER_PROFILES_KEY } from "./useAllBorrowerProfiles"
+import { useAppSelector } from "@/store/hooks"
 
 export const useRegisterTestnetBorrower = () => {
   const signer = useEthersSigner()
   const client = useQueryClient()
+  const { chainId, isTestnet } = useAppSelector(
+    (state) => state.selectedNetwork,
+  )
   return useMutation({
     mutationFn: async (borrower: string) => {
-      if (!signer || TargetChainId !== SupportedChainId.Sepolia) {
+      if (!signer || !isTestnet) {
         throw new Error("Invalid chain or signer")
       }
-      const owner = getMockArchControllerOwnerContract(TargetChainId, signer)
+      const owner = getMockArchControllerOwnerContract(chainId, signer)
       await toastRequest(
         owner.registerBorrower(borrower).then((tx) => tx.wait()),
         {
@@ -30,8 +28,12 @@ export const useRegisterTestnetBorrower = () => {
       )
     },
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: [GET_ALL_BORROWER_INVITATIONS_KEY] })
-      client.invalidateQueries({ queryKey: [GET_ALL_BORROWER_PROFILES_KEY] })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Admin.GET_ALL_BORROWER_INVITATIONS(chainId),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Admin.GET_ALL_BORROWER_PROFILES(chainId),
+      })
     },
   })
 }

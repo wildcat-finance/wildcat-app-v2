@@ -27,7 +27,6 @@ import { formatTokenWithCommas } from "@/utils/formatters"
 import { BorrowModalProps } from "./interface"
 
 export const BorrowModal = ({
-  market,
   marketAccount,
   disableBorrowBtn,
 }: BorrowModalProps) => {
@@ -43,6 +42,8 @@ export const BorrowModal = ({
     setAmount,
     setTxHash,
   )
+
+  const { market } = marketAccount
 
   const { mutate, isSuccess, isError, isPending } = useBorrow(
     marketAccount,
@@ -73,22 +74,29 @@ export const BorrowModal = ({
 
   const leftBorrowAmount = market.borrowableAssets.sub(underlyingBorrowAmount)
 
+  const displayableSeconds =
+    market.secondsBeforeDelinquency > 0 &&
+    market.secondsBeforeDelinquency < Number.MAX_SAFE_INTEGER
+
   const remainingInterest =
-    market.totalDebts.gt(0) && !market.isClosed
+    market.totalDebts.gt(0) && !market.isClosed && displayableSeconds
       ? humanizeDuration(market.secondsBeforeDelinquency * 1_000, {
           largest: 1,
         })
       : ""
 
-  const millisecondsBeforeDelinquency =
-    market.getSecondsBeforeDelinquencyForBorrowedAmount(
-      underlyingBorrowAmount,
-    ) * 1_000
+  const secondsBeforeDelinquencyAfterTx =
+    market.getSecondsBeforeDelinquencyForBorrowedAmount(underlyingBorrowAmount)
+  const displayableSecondsAfterTx =
+    secondsBeforeDelinquencyAfterTx > 0 &&
+    secondsBeforeDelinquencyAfterTx < Number.MAX_SAFE_INTEGER
+  const millisecondsBeforeDelinquency = secondsBeforeDelinquencyAfterTx * 1_000
 
   const remainingInterestAfterTx =
     market.totalDebts.gt(0) &&
     !market.isClosed &&
-    underlyingBorrowAmount.lt(market.borrowableAssets)
+    underlyingBorrowAmount.lt(market.borrowableAssets) &&
+    displayableSecondsAfterTx
       ? humanizeDuration(millisecondsBeforeDelinquency, {
           largest: 1,
         })
@@ -169,18 +177,22 @@ export const BorrowModal = ({
               </Typography>
             </Box>
 
-            <Box sx={TxModalInfoItem} marginBottom="20px">
-              <Typography variant="text3" sx={TxModalInfoTitle}>
-                {t("borrowerMarketDetails.modals.borrow.interestRemaining")}
-                {modal.approvedStep &&
-                  t("borrowerMarketDetails.modals.borrow.afterTransaction")}
-              </Typography>
-              <Typography variant="text3">
-                {modal.approvedStep
-                  ? remainingInterestAfterTx
-                  : remainingInterest}
-              </Typography>
-            </Box>
+            {(modal.approvedStep
+              ? !!remainingInterestAfterTx
+              : !!remainingInterest) && (
+              <Box sx={TxModalInfoItem} marginBottom="20px">
+                <Typography variant="text3" sx={TxModalInfoTitle}>
+                  {t("borrowerMarketDetails.modals.borrow.interestRemaining")}
+                  {modal.approvedStep &&
+                    t("borrowerMarketDetails.modals.borrow.afterTransaction")}
+                </Typography>
+                <Typography variant="text3">
+                  {modal.approvedStep
+                    ? remainingInterestAfterTx
+                    : remainingInterest}
+                </Typography>
+              </Box>
+            )}
 
             {!modal.approvedStep && (
               <NumberTextField

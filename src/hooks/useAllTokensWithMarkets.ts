@@ -1,17 +1,20 @@
 import { useQuery } from "@tanstack/react-query"
 import { getAllTokensWithMarkets } from "@wildcatfi/wildcat-sdk"
 
-import { SubgraphClient } from "@/config/subgraph"
+import { QueryKeys } from "@/config/query-keys"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
-export const GET_ALL_TOKENS_WITH_MARKETS_KEY = "get-all-tokens-with-markets"
+import { useSelectedNetwork } from "./useSelectedNetwork"
 
 export const useAllTokensWithMarkets = () => {
+  const subgraphClient = useSubgraphClient()
+  const { chainId: targetChainId } = useSelectedNetwork()
   async function getTokens() {
-    const data = await getAllTokensWithMarkets(SubgraphClient)
+    const data = await getAllTokensWithMarkets(subgraphClient)
     return data
   }
   return useQuery({
-    queryKey: [GET_ALL_TOKENS_WITH_MARKETS_KEY],
+    queryKey: QueryKeys.Markets.GET_ALL_TOKENS_WITH_MARKETS(targetChainId),
     queryFn: getTokens,
   })
 }

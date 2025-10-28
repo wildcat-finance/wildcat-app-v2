@@ -24,7 +24,7 @@ export const Notification = ({
   unread,
   error,
   blockTimestamp,
-  etherscanUrl,
+  blockExplorerUrl,
   action,
 }: TNotification) => {
   const { t } = useTranslation()
@@ -65,8 +65,8 @@ export const Notification = ({
               {action.label}
             </Button>
           )}
-          {etherscanUrl && (
-            <Link target="_blank" href={etherscanUrl}>
+          {blockExplorerUrl && (
+            <Link target="_blank" href={blockExplorerUrl}>
               <Button size="small" variant="text" sx={linkButtonStyle}>
                 <SvgIcon fontSize="small" sx={{ margin: "auto" }}>
                   <LinkIcon />

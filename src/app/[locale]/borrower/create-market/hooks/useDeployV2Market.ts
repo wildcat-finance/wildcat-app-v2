@@ -24,14 +24,9 @@ import { MarketDeployedEvent } from "@wildcatfi/wildcat-sdk/dist/typechain/Hooks
 import { parseUnits } from "ethers/lib/utils"
 
 import { toastError, toastRequest } from "@/components/Toasts"
-import { TargetChainId } from "@/config/network"
+import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { GET_BASIC_BORROWER_DATA_KEY } from "@/hooks/useGetBasicBorrowerData"
-import { GET_CONTROLLER_KEY } from "@/hooks/useGetController"
-
-import { GET_BORROWER_MARKETS } from "../../hooks/getMaketsHooks/useGetBorrowerMarkets"
-import { GET_ALL_MARKETS } from "../../hooks/getMaketsHooks/useGetOthersMarkets"
 
 export type DeployNewV2MarketParams = (
   | (Omit<
@@ -61,7 +56,7 @@ export type DeployNewV2MarketParams = (
 export const useDeployV2Market = () => {
   const signer = useEthersSigner()
   const client = useQueryClient()
-  const { isTestnet } = useCurrentNetwork()
+  const { isTestnet, targetChainId } = useCurrentNetwork()
   const { connected: isConnectedToSafe, sdk: gnosisSafeSDK } = useSafeAppsSDK()
 
   const waitForTransaction = async (txHash: string) => {
@@ -132,7 +127,7 @@ export const useDeployV2Market = () => {
           } else {
             asset = await toastRequest(
               deployToken(
-                TargetChainId,
+                targetChainId,
                 signer,
                 assetData.name,
                 assetData.symbol,
@@ -294,6 +289,7 @@ export const useDeployV2Market = () => {
             {
               method: "POST",
               body: JSON.stringify({
+                chainId: targetChainId,
                 signature: mlaSignature,
                 timeSigned,
               }),
@@ -311,6 +307,7 @@ export const useDeployV2Market = () => {
               mlaTemplate: mlaTemplateId,
               signature: mlaSignature,
               timeSigned,
+              chainId: targetChainId,
             }),
           },
         )
@@ -323,11 +320,31 @@ export const useDeployV2Market = () => {
         pending: "Uploading MLA selection...",
       })
     },
-    onSuccess: () => {
-      client.invalidateQueries({ queryKey: [GET_CONTROLLER_KEY] })
-      client.invalidateQueries({ queryKey: [GET_BORROWER_MARKETS] })
-      client.invalidateQueries({ queryKey: [GET_ALL_MARKETS] })
-      client.invalidateQueries({ queryKey: [GET_BASIC_BORROWER_DATA_KEY] })
+    onSuccess: (_, variables) => {
+      const borrowerAddress =
+        variables?.hooksTemplate?.signerAddress?.toLowerCase()
+
+      client.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_CONTROLLER(
+          targetChainId,
+          variables?.hooksTemplate?.signerAddress,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_OWN_MARKETS(
+          targetChainId,
+          borrowerAddress,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_ALL_MARKETS(targetChainId),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_BASIC_BORROWER_DATA(
+          targetChainId,
+          borrowerAddress,
+        ),
+      })
     },
     onError(error) {
       console.log(error)

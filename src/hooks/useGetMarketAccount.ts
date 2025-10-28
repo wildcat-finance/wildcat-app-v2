@@ -1,3 +1,5 @@
+import { useEffect } from "react"
+
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   getLenderAccountForMarket,
@@ -8,23 +10,20 @@ import {
   MarketAccount,
 } from "@wildcatfi/wildcat-sdk"
 
-import { TargetChainId } from "@/config/network"
-import { SubgraphClient } from "@/config/subgraph"
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
-
-export const GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY =
-  "get-borrower-market-account-legacy"
-
-export const GET_MARKET_ACCOUNT_KEY = "get-market-account"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 export const useGetMarketAccountForBorrowerLegacy = (
   market: Market | undefined,
 ) => {
-  const { provider, signer, isWrongNetwork, address } = useEthersProvider()
+  const subgraphClient = useSubgraphClient()
+  const { provider, signer, isWrongNetwork, address, chainId, targetChainId } =
+    useEthersProvider()
   const signerOrProvider = signer ?? provider
 
   async function getMarketAccountFn() {
-    return getLenderAccountForMarket(SubgraphClient, {
+    return getLenderAccountForMarket(subgraphClient, {
       market: market as Market,
       lender: address as string,
       fetchPolicy: "network-only",
@@ -32,9 +31,27 @@ export const useGetMarketAccountForBorrowerLegacy = (
   }
 
   async function updateMarket(marketAccount: MarketAccount) {
-    if (!marketAccount || !address || !signerOrProvider) throw Error()
+    if (
+      !marketAccount ||
+      !address ||
+      !signerOrProvider ||
+      !chainId ||
+      !targetChainId
+    ) {
+      console.log("updateMarket: missing required parameters")
+      throw Error()
+    }
+    if (chainId !== marketAccount.market.chainId || chainId !== targetChainId) {
+      throw Error(
+        `Signer chainId does not match market or target chainId:` +
+          ` Market ${marketAccount.market.chainId},` +
+          ` Target ${targetChainId},` +
+          ` Signer ${chainId}`,
+      )
+    }
+
     if (marketAccount.market.version === MarketVersion.V1) {
-      const lens = getLensContract(TargetChainId, signerOrProvider)
+      const lens = getLensContract(chainId, signerOrProvider)
       const update = await lens.getMarketDataWithLenderStatus(
         address,
         marketAccount.market.address,
@@ -42,7 +59,7 @@ export const useGetMarketAccountForBorrowerLegacy = (
       marketAccount.market.updateWith(update.market)
       marketAccount.updateWith(update.lenderStatus)
     } else {
-      const lens = getLensV2Contract(TargetChainId, signerOrProvider)
+      const lens = getLensV2Contract(chainId, signerOrProvider)
       const update = await lens.getMarketDataWithLenderStatus(
         address,
         marketAccount.market.address,
@@ -63,8 +80,25 @@ export const useGetMarketAccountForBorrowerLegacy = (
     return updateMarket(marketFromSubgraph)
   }
 
+  // @todo is this needed?
+  useEffect(() => {
+    if (
+      market &&
+      signerOrProvider &&
+      market.provider &&
+      market.provider !== signerOrProvider
+    ) {
+      market.provider = signerOrProvider
+    }
+  }, [signerOrProvider])
+
   return useQuery({
-    queryKey: [GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY, address, market],
+    queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
+      targetChainId,
+      address,
+      market?.address,
+      market,
+    ),
     queryFn,
     enabled: !!market && !!signerOrProvider && !isWrongNetwork,
     refetchOnMount: false,

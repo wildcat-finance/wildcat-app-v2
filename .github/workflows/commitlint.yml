@@ -1,0 +1,63 @@
+name: commitlint
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: ['**']
+  push:
+    branches: ['**']
+    tags-ignore: ['**']
+
+permissions:
+  contents: read
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps (skip install scripts)
+        run: npm ci --ignore-scripts
+        env:
+          HUSKY: '0'
+
+      - name: Lint commits in PR
+        if: ${{ github.event_name == 'pull_request' }}
+        run: >
+          npx commitlint
+          --from ${{ github.event.pull_request.base.sha }}
+          --to   ${{ github.event.pull_request.head.sha }}
+          --verbose
+
+      - name: Lint commits in push (all branches)
+        if: ${{ github.event_name == 'push' }}
+        shell: bash
+        run: |
+          BEFORE="${{ github.event.before }}"
+          SHA="${{ github.sha }}"
+
+          has_before_commit=true
+          if ! git rev-parse --verify "$BEFORE^{commit}" >/dev/null 2>&1; then
+            has_before_commit=false
+          fi
+
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || [ -z "$BEFORE" ] || [ "$has_before_commit" = "false" ]; then
+            RANGE=$(git rev-list --max-count=100 "$SHA" --not --remotes)
+            if [ -z "$RANGE" ]; then
+              RANGE=$(git rev-list -n 20 "$SHA")
+            fi
+            FIRST=$(echo "$RANGE" | tail -n 1)
+            npx commitlint --from "$FIRST^" --to "$SHA" --verbose
+          else
+            npx commitlint --from "$BEFORE" --to "$SHA" --verbose
+          fi

@@ -5,7 +5,7 @@ import { useEffect } from "react"
 import { useSubscription } from "@apollo/client"
 import { useDispatch } from "react-redux"
 
-import { SubgraphClient } from "@/config/subgraph"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TNotification } from "@/store/slices/notificationsSlice/interface"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { BORROWER_REGISTRATION_CHANGE_SUBSCRIPTION } from "@/utils/subscriptions"
@@ -20,10 +20,11 @@ const formatter = new Intl.DateTimeFormat("en-GB", {
 
 const BorrowerRegistrationListener = () => {
   const dispatch = useDispatch()
+  const subgraphClient = useSubgraphClient()
   const { data, error } = useSubscription(
     BORROWER_REGISTRATION_CHANGE_SUBSCRIPTION,
     {
-      client: SubgraphClient,
+      client: subgraphClient,
       variables: {},
     },
   )

@@ -4,9 +4,9 @@ import { useLazyQuery } from "@apollo/client"
 import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
-import { EtherscanBaseUrl } from "@/config/network"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { WITHDRAWAL_BATCH_EXPIREDS } from "@/graphql/queries"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
@@ -17,6 +17,7 @@ export const useLenderWithdrawalResults = (
   address?: `0x${string}`,
 ) => {
   const dispatch = useDispatch()
+  const { getTxUrl } = useBlockExplorer()
 
   const [fetchWithdrawalBatchExpireds, { data, error }] = useLazyQuery(
     WITHDRAWAL_BATCH_EXPIREDS,
@@ -52,14 +53,16 @@ export const useLenderWithdrawalResults = (
                 category: "marketActivity",
                 blockTimestamp: withdrawalBatchExpired.blockTimestamp,
                 unread: true,
-                etherscanUrl: `${EtherscanBaseUrl}/tx/${withdrawalBatchExpired.transactionHash}`,
+                blockExplorerUrl: getTxUrl(
+                  withdrawalBatchExpired.transactionHash,
+                ),
               }),
             )
           }
         },
       )
     }
-  }, [data, dispatch])
+  }, [data, dispatch, getTxUrl])
 
   useEffect(() => {
     if (error) {
