@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.4.0...v2.5.0) (2025-10-28)
+
+
+### Features
+
+* **withdrawals:** show active withdrawal batches ([d0c525b](https://github.com/wildcat-finance/wildcat-app-v2/commit/d0c525b512527ac9c3d1822b658f10fa8e49f4b9))
+
 ## [2.4.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.3.0...v2.4.0) (2025-10-23)
 
 
