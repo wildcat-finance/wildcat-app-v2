@@ -1,12 +1,17 @@
 import * as React from "react"
 
-import { Box, Divider } from "@mui/material"
+import { Box, Button, Divider, Typography } from "@mui/material"
 import { HooksKind, MarketVersion } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { MaturityModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MaturityModal"
 import { MinimumDepositModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MinimumDepositModal"
 import { TransactionBlock } from "@/components/TransactionBlock"
+import { useAppDispatch } from "@/store/hooks"
+import {
+  setCheckBlock,
+  setSidebarHighlightState,
+} from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { MarketTransactionsProps } from "./interface"
@@ -19,14 +24,11 @@ import { RepayModal } from "../Modals/RepayModal"
 export const MarketTransactions = ({
   market,
   marketAccount,
+  withdrawals,
   holdTheMarket,
 }: MarketTransactionsProps) => {
   const { t } = useTranslation()
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
-  const [isOpen, setIsOpen] = React.useState(false)
-  const handleClose = () => {
-    setAnchorEl(null)
-  }
+  const dispatch = useAppDispatch()
 
   const disableRepay = market.isClosed
   const disableBorrow =
@@ -55,6 +57,25 @@ export const MarketTransactions = ({
   const isTooSmallOutstandingDebt: boolean =
     market.outstandingDebt.lt(smallestTokenAmountValue) &&
     !market.outstandingDebt.raw.isZero()
+
+  const ongoingWDs = withdrawals.activeWithdrawal?.requests.length ?? 0
+
+  const isOngoingWDsZero = ongoingWDs === 0
+
+  const handleClickWithdrawals = () => {
+    dispatch(setCheckBlock(4))
+    dispatch(
+      setSidebarHighlightState({
+        borrowRepay: false,
+        statusDetails: false,
+        marketSummary: false,
+        withdrawals: true,
+        lenders: false,
+        mla: false,
+        marketHistory: false,
+      }),
+    )
+  }
 
   return (
     <>
@@ -114,6 +135,30 @@ export const MarketTransactions = ({
           )}
         </TransactionBlock>
       </Box>
+
+      {!isOngoingWDsZero && (
+        <>
+          <Divider sx={{ margin: "32px 0 40px" }} />
+
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+            <Typography variant="title3">
+              {t("borrowerMarketDetails.transactions.ongoingWDs.title", {
+                ongoingWDs,
+              })}
+            </Typography>
+
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              sx={{ width: "fit-content" }}
+              onClick={handleClickWithdrawals}
+            >
+              {t("borrowerMarketDetails.transactions.ongoingWDs.button")}
+            </Button>
+          </Box>
+        </>
+      )}
     </>
   )
 }

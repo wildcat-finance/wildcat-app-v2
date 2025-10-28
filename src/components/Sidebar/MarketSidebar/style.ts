@@ -1,4 +1,4 @@
-import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 
 export const ContentContainer = {
   minWidth: "267px",
@@ -9,8 +9,9 @@ export const ContentContainer = {
 
 export const MenuItemButton = {
   width: "100%",
-  fontSize: "14px",
-  lineHeight: "20px",
+  fontSize: pxToRem(14),
+  lineHeight: lh(20, 14),
   fontWeight: "500",
   justifyContent: "flex-start",
+  alignItems: "center",
 }

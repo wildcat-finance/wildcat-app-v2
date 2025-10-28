@@ -187,7 +187,7 @@ export const ClaimableTable = ({ withdrawals, totalAmount }: TableProps) => {
   const claimableRows = Object.keys(expiredPendingWithdrawals).flatMap(
     (lender) =>
       expiredPendingWithdrawals[lender].map((withdrawal, index) => ({
-        id: `${withdrawal.lender}-${withdrawal.scaledAmount}-${index}`, // Уникальный id
+        id: `${withdrawal.lender}-${withdrawal.scaledAmount}-${index}`,
         lender: withdrawal.lender,
         transactionId: withdrawal.requests.map(
           (request) => request.transactionHash,
