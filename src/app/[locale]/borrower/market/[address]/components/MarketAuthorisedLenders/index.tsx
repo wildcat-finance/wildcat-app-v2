@@ -261,9 +261,11 @@ export const MarketAuthorisedLenders = ({
           sx={{
             height: "60px",
             display: "flex",
-            padding: "12px 0",
+            padding: "6px 0",
             gap: "2px",
             flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "flex-start",
           }}
         >
           {value === "Deposit & Withdraw" && (
@@ -343,7 +345,7 @@ export const MarketAuthorisedLenders = ({
       minWidth: 110,
       headerAlign: "left",
       align: "left",
-      flex: 1,
+      flex: 0.5,
     },
     {
       sortable: false,
