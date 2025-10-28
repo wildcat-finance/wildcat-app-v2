@@ -1,5 +1,6 @@
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
+import { match } from "ts-pattern"
 
 import Check from "@/assets/icons/check_icon.svg"
 import { BackButton } from "@/components/BackButton"
@@ -30,38 +31,18 @@ export const CreateMarketSidebarButton = ({
 }: CreateMarketSidebarButtonProps) => {
   const { t } = useTranslation()
 
-  let buttonConfig: {
-    numberColor: string
-    titleColor: string
-    backgroundColor: string
-  }
-
-  switch (state) {
-    case "active": {
-      buttonConfig = {
-        numberColor: COLORS.ultramarineBlue,
-        titleColor: COLORS.ultramarineBlue,
-        backgroundColor: COLORS.blueRibbon01,
-      }
-      break
-    }
-    case "opened": {
-      buttonConfig = {
-        numberColor: COLORS.greySuit,
-        titleColor: COLORS.blackRock,
-        backgroundColor: "transparent",
-      }
-      break
-    }
-    default: {
-      buttonConfig = {
-        numberColor: COLORS.greySuit,
-        titleColor: COLORS.blackRock,
-        backgroundColor: "transparent",
-      }
-      break
-    }
-  }
+  const buttonConfig = match(state)
+    .with("active", () => ({
+      numberColor: COLORS.ultramarineBlue,
+      titleColor: COLORS.ultramarineBlue,
+      backgroundColor: COLORS.blueRibbon01,
+    }))
+    .with("opened", () => ({
+      numberColor: COLORS.greySuit,
+      titleColor: COLORS.blackRock,
+      backgroundColor: "transparent",
+    }))
+    .exhaustive()
 
   return (
     <Button

@@ -1,5 +1,6 @@
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import Image, { ImageProps } from "next/image"
+import { match, P } from "ts-pattern"
 
 import EthereumIcon from "@/assets/pictures/ethereum-icon.webp"
 import PlasmaIcon from "@/assets/pictures/plasma-icon.png"
@@ -11,22 +12,20 @@ export const NetworkIcon = ({
   ...props
 }: {
   chainId: SupportedChainId
-} & Omit<ImageProps, "src" | "alt">) => {
-  switch (chainId) {
-    case SupportedChainId.Mainnet:
-    case SupportedChainId.Sepolia:
-      return (
-        <Image
-          src={EthereumIcon.src}
-          alt="Ethereum"
-          width={width}
-          height={height}
-          {...props}
-        />
-      )
-    case SupportedChainId.PlasmaTestnet:
-    case SupportedChainId.PlasmaMainnet:
-      return (
+} & Omit<ImageProps, "src" | "alt">) =>
+  match(chainId)
+    .with(P.union(SupportedChainId.Mainnet, SupportedChainId.Sepolia), () => (
+      <Image
+        src={EthereumIcon.src}
+        alt="Ethereum"
+        width={width}
+        height={height}
+        {...props}
+      />
+    ))
+    .with(
+      P.union(SupportedChainId.PlasmaTestnet, SupportedChainId.PlasmaMainnet),
+      () => (
         <Image
           src={PlasmaIcon.src}
           alt="Plasma"
@@ -34,8 +33,8 @@ export const NetworkIcon = ({
           height={height}
           {...props}
         />
-      )
-    default:
+      ),
+    )
+    .otherwise(() => {
       throw Error(`Network icon not found for chainId: ${chainId}`)
-  }
-}
+    })

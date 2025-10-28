@@ -1,5 +1,3 @@
-/* eslint-disable no-nested-ternary */
-
 "use client"
 
 import * as React from "react"
@@ -18,6 +16,7 @@ import { LenderRole, MarketVersion } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
+import { match, P } from "ts-pattern"
 
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import {
@@ -93,20 +92,27 @@ export const MarketAuthorisedLenders = ({
           //   lender.role !== LenderRole.DepositAndWithdraw) ||
           // (lender.credentialExpiry !== undefined &&
           //   !lender.hasValidCredential),
-          accessLevel:
-            lender.inferredRole === LenderRole.DepositAndWithdraw
-              ? "Deposit & Withdraw"
-              : lender.inferredRole === LenderRole.WithdrawOnly
-                ? "Withdraw Only"
-                : lender.inferredRole === LenderRole.Blocked
-                  ? "Blocked From Deposits"
-                  : lender.credential !== undefined
-                    ? !lender.hasValidCredential &&
-                      lender.credentialExpiry !== undefined &&
-                      lender.credentialExpiry < Date.now()
-                      ? "Credential Expired"
-                      : "Provider Removed"
-                    : "Unknown", // @todo
+          accessLevel: match(lender)
+            .with(
+              { inferredRole: LenderRole.DepositAndWithdraw },
+              () => "Deposit & Withdraw",
+            )
+            .with(
+              { inferredRole: LenderRole.WithdrawOnly },
+              () => "Withdraw Only",
+            )
+            .with(
+              { inferredRole: LenderRole.Blocked },
+              () => "Blocked From Deposits",
+            )
+            .with({ credential: P.not(undefined) }, (l) =>
+              !l.hasValidCredential &&
+              l.credentialExpiry !== undefined &&
+              l.credentialExpiry < Date.now()
+                ? "Credential Expired"
+                : "Provider Removed",
+            )
+            .otherwise(() => "Unknown"), // @todo
 
           accessExpiry: lender.credentialExpiry
             ? formatBlockTimestamp(lender.credentialExpiry, {
@@ -281,7 +287,7 @@ export const MarketAuthorisedLenders = ({
               <Typography variant="text4">Deposit</Typography>
             </Box>
           )}
-          {value === ("Deposit & Withdraw" || "Withdraw Only") && (
+          {["Deposit & Withdraw", "Withdraw Only"].includes(value) && (
             <Box
               sx={{
                 width: "fit-content",
