@@ -300,6 +300,10 @@
       "toBorrow": {
         "title": "Available To Borrow",
         "tooltip": "The portion of the market borrowing capacity that is still available for use."
+      },
+      "ongoingWDs": {
+        "title": "There are {{ongoingWDs}} active withdrawal request(s) from lenders in this market.",
+        "button": "Go to Withdrawals"
       }
     },
     "hooks": {
@@ -1032,11 +1036,16 @@
       },
       "claim": {
         "title": {
-          "beginning": "You have",
-          "ending": "to claim right now."
+          "claim": "You have {{claim}} to claim right now.",
+          "ongoingWDs": "You have {{ongoingWDs}} active withdrawal request(s) currently processing.",
+          "claimAndOngoingWDs": "You have {{ongoingWDs}} ongoing withdrawal request(s) and {{claim}} to claim right now."
         },
         "subtitle": "No assets available to claim from this market.",
-        "button": "Claim Assets"
+        "buttons": {
+          "claim": "Claim Assets",
+          "withdrawals": "Go to Withdrawals"
+        }
+
       }
     },
     "barchart": {
