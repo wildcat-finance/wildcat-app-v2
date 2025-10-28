@@ -32,6 +32,7 @@ export const NameSection = ({
   telegram,
   marketsAmount,
   type,
+  isMarketPage,
 }: NameSectionProps) => {
   const { t } = useTranslation()
 
@@ -156,18 +157,29 @@ export const NameSection = ({
     <Box
       sx={{
         ...ComponentContainer,
-        alignItems: type === "user" ? "flex-start" : "center",
+        alignItems: type === "user" || isMarketPage ? "flex-start" : "center",
       }}
     >
-      {avatar ? (
-        <Image src={avatar} alt="avatar" width={48} height={48} />
-      ) : (
-        <SvgIcon sx={{ fontSize: pxToRem(48), marginBottom: "24px" }}>
-          <Avatar />
-        </SvgIcon>
-      )}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: isMarketPage ? "row" : "column",
+          alignItems: "center",
+          gap: isMarketPage ? "16px" : "24px",
+        }}
+      >
+        {avatar ? (
+          <Image src={avatar} alt="avatar" width={48} height={48} />
+        ) : (
+          <SvgIcon sx={{ fontSize: pxToRem(48), marginBottom: "24px" }}>
+            <Avatar />
+          </SvgIcon>
+        )}
 
-      <Typography variant="title1">{alias || name}</Typography>
+        <Typography variant={isMarketPage ? "title3" : "title1"}>
+          {alias || name}
+        </Typography>
+      </Box>
 
       {type === "user" &&
         !(description || website || twitter || linkedin || telegram) && (
@@ -176,9 +188,9 @@ export const NameSection = ({
 
       {description && (
         <Typography
-          variant="text2"
-          textAlign={type === "user" ? "left" : "center"}
-          color={COLORS.santasGrey}
+          variant="text1"
+          textAlign={type === "user" || isMarketPage ? "left" : "center"}
+          color={COLORS.blackRock}
           sx={DescriptionContainer}
         >
           {description}
@@ -188,7 +200,9 @@ export const NameSection = ({
       <Box
         sx={{
           ...LinksContainer,
-          justifyContent: type === "user" ? "space-between" : "center",
+          marginTop: !(website || twitter || linkedin || telegram) ? 0 : "22px",
+          justifyContent:
+            type === "user" || isMarketPage ? "space-between" : "center",
         }}
       >
         <Box display="flex" gap="6px">
