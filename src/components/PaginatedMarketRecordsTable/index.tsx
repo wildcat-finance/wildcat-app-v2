@@ -1,12 +1,23 @@
 import { useEffect, useMemo, useState } from "react"
+import * as React from "react"
 
-import { Box, FormControlLabel } from "@mui/material"
+import {
+  Box,
+  Button,
+  FormControlLabel,
+  Popover,
+  SvgIcon,
+  Typography,
+} from "@mui/material"
 import { Market, MarketRecordKind } from "@wildcatfi/wildcat-sdk"
+
+import Filter from "@/assets/icons/filter_icon.svg"
+import { FilterTextField } from "@/components/FilterTextfield"
+import { COLORS } from "@/theme/colors"
 
 import { useMarketRecords } from "./hooks/useMarketRecords"
 import { MarketRecordsTable } from "./MarketRecordsTable"
 import ExtendedCheckbox from "../@extended/ExtendedСheckbox"
-import { TablePagination } from "../TablePagination"
 
 type CheckboxOption<T> = {
   id: string
@@ -31,22 +42,30 @@ const MarketRecordFilters: CheckboxOption<MarketRecordKind>[] = (
   ] as [MarketRecordKind, string][]
 ).map(([value, label]) => ({ id: `check-filter-${value}`, value, label }))
 
+const ALL_KINDS: MarketRecordKind[] = MarketRecordFilters.map((f) => f.value)
+
 export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
   const [page, setPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)
   const [selectedFilters, setSelectedFilters] = useState<MarketRecordKind[]>(
     MarketRecordFilters.map((f) => f.value),
   )
+  const [search, setSearch] = useState("")
 
   useEffect(() => {
     setPage(0)
   }, [selectedFilters])
+
+  useEffect(() => {
+    setPage(0)
+  }, [search])
 
   const { data, isLoading, pagesCount, finalEventIndex } = useMarketRecords({
     market,
     page,
     pageSize,
     kinds: selectedFilters as MarketRecordKind[],
+    search,
   })
   const options = MarketRecordFilters
 
@@ -63,6 +82,18 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
     }
   }
 
+  const handleClear = () => {
+    setSelectedFilters(ALL_KINDS)
+  }
+
+  const handleToggleAll = (checked: boolean) => {
+    setSelectedFilters(checked ? ALL_KINDS : [])
+  }
+
+  const allSelected = selectedFilters.length === ALL_KINDS.length
+  const isIndeterminate =
+    selectedFilters.length > 0 && selectedFilters.length < ALL_KINDS.length
+
   const [startEventIndex, endEventIndex] = useMemo(() => {
     if (!data?.records.length || data.totalRecords === undefined) {
       return [undefined, undefined]
@@ -74,34 +105,106 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
     return [start, end]
   }, [data, page, pageSize])
 
+  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+
+  const open = Boolean(anchorEl)
+  const id = open ? "filters-popover" : undefined
+
   return (
     <>
-      {/* <CheckboxGrid
-        onChange={handleChange}
-        selected={selectedFilters}
-        options={options}
-      /> */}
-
       <Box
         sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)", // 4 columns
-          gridTemplateRows: "repeat(3, auto)", // 3 rows
-          gap: "10px",
-          marginTop: "10px",
-          justifyContent: "center",
-          alignItems: "center",
+          position: "relative",
+          display: "inline-flex",
+          marginRight: "6px",
         }}
       >
-        {options.map((o) => (
+        <Button
+          aria-describedby={id}
+          variant="text"
+          color="secondary"
+          size="small"
+          sx={{
+            gap: "6px",
+            padding: "6px",
+            minWidth: "fit-content",
+            color: isIndeterminate ? COLORS.ultramarineBlue : COLORS.bunker,
+            backgroundColor: isIndeterminate ? "#E4EBFEB2" : COLORS.whiteSmoke,
+            "&:hover": {
+              color: isIndeterminate ? COLORS.ultramarineBlue : COLORS.bunker,
+              backgroundColor: isIndeterminate
+                ? "rgba(228,235,254,0.5)"
+                : COLORS.athensGrey,
+            },
+          }}
+          onClick={handleClick}
+        >
+          <SvgIcon
+            fontSize="big"
+            sx={{
+              "& path": {
+                stroke: isIndeterminate
+                  ? COLORS.ultramarineBlue
+                  : COLORS.bunker,
+                transition: "stroke 0.2s",
+              },
+            }}
+          >
+            <Filter />
+          </SvgIcon>
+        </Button>
+
+        {isIndeterminate && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: "-2px",
+              right: "-2px",
+              width: "7.5px",
+              height: "7.5px",
+              borderRadius: "50%",
+              border: "1px solid white",
+              backgroundColor: COLORS.ultramarineBlue,
+            }}
+          />
+        )}
+      </Box>
+
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+        sx={{
+          "& .MuiPaper-root": {
+            width: "294px",
+            height: "fit-content",
+            fontFamily: "inherit",
+            padding: "12px",
+            marginTop: "2px",
+          },
+        }}
+      >
+        <Box sx={{ padding: "6px 0 6px 10px" }}>
           <FormControlLabel
-            key={o.id}
-            label={o.label}
+            label="All types"
             control={
               <ExtendedCheckbox
-                value={o.value}
-                onChange={(event) => handleChange(o, event.target.checked)}
-                checked={selectedFilters.includes(o.value)}
+                checked={allSelected}
+                indeterminate={isIndeterminate}
+                onChange={(event) => handleToggleAll(event.target.checked)}
                 sx={{
                   "& ::before": {
                     transform: "translate(-3px, -3px) scale(0.75)",
@@ -110,8 +213,55 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
               />
             }
           />
-        ))}
-      </Box>
+        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "6px",
+            padding: "0 10px 0 26px",
+          }}
+        >
+          {options.map((o) => (
+            <Box sx={{ padding: "2px 0", display: "flex", align: "center" }}>
+              <FormControlLabel
+                key={o.id}
+                label={o.label}
+                control={
+                  <ExtendedCheckbox
+                    value={o.value}
+                    onChange={(event) => handleChange(o, event.target.checked)}
+                    checked={selectedFilters.includes(o.value)}
+                    sx={{
+                      "& ::before": {
+                        transform: "translate(-3px, -3px) scale(0.75)",
+                      },
+                    }}
+                  />
+                }
+              />
+            </Box>
+          ))}
+        </Box>
+
+        <Button
+          onClick={handleClear}
+          size="medium"
+          variant="contained"
+          color="secondary"
+          sx={{ width: "100%", marginTop: "12px" }}
+        >
+          Reset
+        </Button>
+      </Popover>
+
+      <FilterTextField
+        value={search}
+        setValue={setSearch}
+        placeholder="Search by ID"
+        width="180px"
+      />
+
       <MarketRecordsTable
         market={market}
         records={data?.records}
@@ -123,11 +273,18 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
         rowCount={data?.totalRecords}
       />
 
-      <div className="h-9 flex justify-between items-center bg-tint-9 px-6">
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         {startEventIndex !== undefined && (
-          <div className="inline text-black text-xs font-bold">
+          <Typography variant="text3">
             Viewing records {startEventIndex} to {endEventIndex}
-          </div>
+          </Typography>
         )}
         {/*      <div className="flex gap-x-4 items-center flex-row">
           {page > 0 && (
@@ -144,7 +301,7 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
             />
           )}
         </div> */}
-      </div>
+      </Box>
     </>
   )
 }

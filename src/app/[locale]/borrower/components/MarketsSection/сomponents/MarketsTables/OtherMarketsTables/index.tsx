@@ -240,8 +240,6 @@ export const OtherMarketsTables = ({
               sx={{
                 fontSize: pxToRem(13),
                 lineHeight: lh(20, 13),
-                textDecoration: "underline",
-                color: "#00008B",
                 fontWeight: 500,
                 minWidth: "calc(100% - 1px)",
                 width: "calc(100% - 1px)",
@@ -250,6 +248,12 @@ export const OtherMarketsTables = ({
                 overflow: "hidden",
                 whiteSpace: "nowrap",
                 display: "inline-block",
+
+                "&:hover": {
+                  boxShadow: "none",
+                  backgroundColor: COLORS.whiteSmoke,
+                  color: COLORS.blackRock,
+                },
               }}
             >
               {params.value}
