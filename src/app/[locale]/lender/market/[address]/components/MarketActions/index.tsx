@@ -107,7 +107,7 @@ export const MarketActions = ({
     }
     if (!isOngoingWDsZero && isClaimableZero) {
       return t("lenderMarketDetails.transactions.claim.title.ongoingWDs", {
-        ongoingCount,
+        ongoingWDs: ongoingCount,
       })
     }
     if (isOngoingWDsZero && !isClaimableZero) {
@@ -121,7 +121,7 @@ export const MarketActions = ({
       return t(
         "lenderMarketDetails.transactions.claim.title.claimAndOngoingWDs",
         {
-          ongoingCount,
+          ongoingWDs: ongoingCount,
           claim: `${formatTokenWithCommas(withdrawals.totalClaimableAmount)} ${
             market.underlyingToken.symbol
           }`,
