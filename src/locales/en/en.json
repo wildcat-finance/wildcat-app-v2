@@ -1034,11 +1034,14 @@
           }
         }
       },
-      "claim": {
+      "withdrawalsAlert": {
         "title": {
-          "claim": "You have {{claim}} to claim right now.",
-          "ongoingWDs": "You have {{ongoingWDs}} active withdrawal request(s) currently processing.",
-          "claimAndOngoingWDs": "You have {{ongoingWDs}} ongoing withdrawal request(s) and {{claim}} to claim right now."
+          "ongoing_one": "{{count}} withdrawal in progress",
+          "ongoing_other": "{{count}} withdrawals in progress",
+          "outstanding_one": "{{count}} withdrawal outstanding",
+          "outstanding_other": "{{count}} withdrawals outstanding",
+          "claim": "{{claimableAmount}} ready to claim",
+          "noClaim": "You have nothing to claim right now."
         },
         "subtitle": "No assets available to claim from this market.",
         "buttons": {

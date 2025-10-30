@@ -76,7 +76,7 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
           disabled={withdrawals.totalClaimableAmount.raw.isZero() || !signer}
           sx={{ padding: "10px 20px", width: "fit-content" }}
         >
-          {t("lenderMarketDetails.transactions.claim.buttons.claim")}
+          {t("lenderMarketDetails.transactions.withdrawalsAlert.buttons.claim")}
         </Button>
 
         <Dialog
@@ -120,7 +120,7 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
           onClick={handleClaim}
           disabled={!signer}
         >
-          {t("lenderMarketDetails.transactions.claim.buttons.claim")}
+          {t("lenderMarketDetails.transactions.withdrawalsAlert.buttons.claim")}
         </Button>
 
         <Dialog
