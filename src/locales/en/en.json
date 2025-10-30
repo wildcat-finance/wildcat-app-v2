@@ -302,7 +302,8 @@
         "tooltip": "The portion of the market borrowing capacity that is still available for use."
       },
       "ongoingWDs": {
-        "title": "There are {{ongoingWDs}} active withdrawal request(s) from lenders in this market.",
+        "title_one": "There are {{count}} active withdrawal request from lenders in this market.",
+        "title_other": "There are {{count}} active withdrawal requests from lenders in this market.",
         "button": "Go to Withdrawals"
       }
     },
