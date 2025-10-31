@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.5.2](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.5.1...v2.5.2) (2025-10-31)
+
+
+### Bug Fixes
+
+* **withdrawals-indication:** change wordings for withdrawals alert ([877f8d1](https://github.com/wildcat-finance/wildcat-app-v2/commit/877f8d1b1f87c602b267f8e46e7a752bae6ca825))
+* **withdrawals-indication:** change wordings for withdrawals alert ([#163](https://github.com/wildcat-finance/wildcat-app-v2/issues/163)) ([272349c](https://github.com/wildcat-finance/wildcat-app-v2/commit/272349c39d454c7b538c79b67433a1fbd6563585))
+
 ## [2.5.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.5.0...v2.5.1) (2025-10-28)
 
 
