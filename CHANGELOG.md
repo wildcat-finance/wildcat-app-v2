@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.5.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.5.0...v2.5.1) (2025-10-28)
+
+
+### Bug Fixes
+
+* **ui:** ui-bugfix [#634](https://github.com/wildcat-finance/wildcat-app-v2/issues/634) ([3f3c090](https://github.com/wildcat-finance/wildcat-app-v2/commit/3f3c0908a8d9a73020d99f3731e787be2cf72318))
+* **ui:** ui-bugfix [#634](https://github.com/wildcat-finance/wildcat-app-v2/issues/634) ([1dc02a0](https://github.com/wildcat-finance/wildcat-app-v2/commit/1dc02a01861c193dcfe81ed83546c671df2cb855))
+
 ## [2.5.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.4.0...v2.5.0) (2025-10-28)
 
 
