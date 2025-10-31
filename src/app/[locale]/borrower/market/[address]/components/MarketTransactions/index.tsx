@@ -143,7 +143,7 @@ export const MarketTransactions = ({
           <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             <Typography variant="title3">
               {t("borrowerMarketDetails.transactions.ongoingWDs.title", {
-                ongoingWDs,
+                count: ongoingWDs,
               })}
             </Typography>
 

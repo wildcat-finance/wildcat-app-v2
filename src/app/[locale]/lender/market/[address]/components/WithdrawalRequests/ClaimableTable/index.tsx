@@ -76,26 +76,24 @@ export const ClaimableTable = ({ withdrawals, totalAmount }: TableProps) => {
         minWidth: 216,
         headerAlign: "left",
         align: "left",
-        renderCell: ({ value }) => (
+        renderCell: ({ value, row }) => (
           <Box
             sx={{
-              height: "100%",
-              padding: "16px 0",
               display: "flex",
-              justifyContent: "center",
-              alignItems: "flex-start",
+              flexDirection: "column",
+              flexWrap: "wrap",
+              gap: "20px",
+              padding: "16px 0",
             }}
           >
-            {value
-              .filter(
-                (date: string, index: number, self: string[]) =>
-                  self.indexOf(date) === index,
-              )
-              .map((date: string) => (
-                <Typography variant="text3" key={date}>
-                  {date}
-                </Typography>
-              ))}
+            {value.map((date: string, index: number) => (
+              <Box
+                sx={MarketWithdrawalRequetstCell}
+                key={row.transactionId?.[index] ?? `${date}-${index}`}
+              >
+                <Typography variant="text3">{date}</Typography>
+              </Box>
+            ))}
           </Box>
         ),
       },

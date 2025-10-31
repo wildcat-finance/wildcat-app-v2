@@ -94,42 +94,61 @@ export const MarketActions = ({
 
   const isOngoingWDsZero = ongoingCount === 0
 
+  const outstandingCount = (
+    withdrawals?.expiredPendingWithdrawals ?? []
+  ).flatMap((b) =>
+    b.requests.filter((wd) => wd.getNormalizedAmountOwed(b.batch).gt(0)),
+  ).length
+
+  const isOutstandingZero = outstandingCount === 0
+
   const dispatch = useAppDispatch()
   const handleChangeSection = () => {
     dispatch(setSection(LenderMarketSections.REQUESTS))
   }
 
   const getWithdrawalsStatus = () => {
-    if (isOngoingWDsZero && isClaimableZero) {
-      return t("lenderMarketDetails.transactions.claim.title.claim", {
-        claim: "nothing",
-      })
+    const parts: string[] = []
+
+    if (!isOngoingWDsZero) {
+      parts.push(
+        t("lenderMarketDetails.transactions.withdrawalsAlert.title.ongoing", {
+          count: ongoingCount,
+        }),
+      )
     }
-    if (!isOngoingWDsZero && isClaimableZero) {
-      return t("lenderMarketDetails.transactions.claim.title.ongoingWDs", {
-        ongoingCount,
-      })
+
+    if (!isOutstandingZero) {
+      parts.push(
+        t(
+          "lenderMarketDetails.transactions.withdrawalsAlert.title.outstanding",
+          {
+            count: outstandingCount,
+          },
+        ),
+      )
     }
-    if (isOngoingWDsZero && !isClaimableZero) {
-      return t("lenderMarketDetails.transactions.claim.title.claim", {
-        claim: `${formatTokenWithCommas(withdrawals.totalClaimableAmount)} ${
-          market.underlyingToken.symbol
-        }`,
-      })
+
+    if (!isClaimableZero) {
+      parts.push(
+        t("lenderMarketDetails.transactions.withdrawalsAlert.title.claim", {
+          claimableAmount: `${formatTokenWithCommas(
+            withdrawals.totalClaimableAmount,
+          )} ${market.underlyingToken.symbol}`,
+        }),
+      )
     }
-    if (!isOngoingWDsZero && !isClaimableZero) {
+
+    if (parts.length === 0) {
       return t(
-        "lenderMarketDetails.transactions.claim.title.claimAndOngoingWDs",
+        "lenderMarketDetails.transactions.withdrawalsAlert.title.noClaim",
         {
-          ongoingCount,
-          claim: `${formatTokenWithCommas(withdrawals.totalClaimableAmount)} ${
-            market.underlyingToken.symbol
-          }`,
+          claim: "nothing",
         },
       )
     }
 
-    return ""
+    return parts.join(" · ")
   }
 
   const smallestTokenAmountValue = market.underlyingToken.parseAmount(
@@ -218,7 +237,7 @@ export const MarketActions = ({
         <Typography variant="title3">{getWithdrawalsStatus()}</Typography>
         {isClaimableZero && (
           <Typography variant="text3" color={COLORS.santasGrey} marginTop="8px">
-            {t("lenderMarketDetails.transactions.claim.subtitle")}
+            {t("lenderMarketDetails.transactions.withdrawalsAlert.subtitle")}
           </Typography>
         )}
 
@@ -240,7 +259,7 @@ export const MarketActions = ({
                 onClick={handleChangeSection}
               >
                 {t(
-                  "lenderMarketDetails.transactions.claim.buttons.withdrawals",
+                  "lenderMarketDetails.transactions.withdrawalsAlert.buttons.withdrawals",
                 )}
               </Button>
             )}
