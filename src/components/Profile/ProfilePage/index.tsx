@@ -13,6 +13,7 @@ import { MarketsSection } from "./components/MarketsSection"
 import { MobileNameSectionWrapper } from "./components/MobileNameSectionWrapper"
 import { NameSection } from "./components/NameSection"
 import { OverallSection } from "./components/OverallSection"
+import { ProfilePageSkeleton } from "./components/PageSkeleton"
 import { ProfilePageProps } from "./interface"
 import { PageContentContainer, MobileContentContainer } from "./style"
 
@@ -32,6 +33,9 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
 
   // Mobile
   const [section, setSection] = useState<"markets" | "info">("markets")
+
+  if (isLoading)
+    return <ProfilePageSkeleton isExternal={isExternal} isMobile={isMobile} />
 
   if (isMobile)
     return (
