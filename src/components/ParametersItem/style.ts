@@ -1,15 +1,15 @@
-export const MarketParametersItemContainer = {
+export const ParametersItemContainer = {
   display: "flex",
   flexDirection: "row",
   justifyContent: "space-between",
 }
-export const MarketParametersItemTitleContainer = {
+export const ParametersItemTitleContainer = {
   display: "flex",
   alignItems: "center",
   gap: "6px",
   marginBottom: "2px",
 }
-export const MarketParametersItemValueContainer = {
+export const ParametersItemValueContainer = {
   display: "flex",
   gap: "4px",
   alignItems: "center",

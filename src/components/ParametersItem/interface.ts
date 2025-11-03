@@ -1,4 +1,4 @@
-export type MarketParametersItemProps = {
+export type ParametersItemProps = {
   title: string
   value: string | number
   tooltipText?: string

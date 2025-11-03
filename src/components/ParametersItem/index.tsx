@@ -7,14 +7,14 @@ import { TooltipButton } from "@/components/TooltipButton"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
-import { MarketParametersItemProps } from "./interface"
+import { ParametersItemProps } from "./interface"
 import {
-  MarketParametersItemContainer,
-  MarketParametersItemTitleContainer,
-  MarketParametersItemValueContainer,
+  ParametersItemContainer,
+  ParametersItemTitleContainer,
+  ParametersItemValueContainer,
 } from "./style"
 
-export const MarketParametersItem = ({
+export const ParametersItem = ({
   title,
   value,
   tooltipText,
@@ -22,12 +22,12 @@ export const MarketParametersItem = ({
   alarmState,
   copy,
   link,
-}: MarketParametersItemProps) => {
+}: ParametersItemProps) => {
   const isMobile = useMobileResolution()
 
   return (
-    <Box sx={MarketParametersItemContainer}>
-      <Box sx={MarketParametersItemTitleContainer}>
+    <Box sx={ParametersItemContainer}>
+      <Box sx={ParametersItemTitleContainer}>
         <Typography
           variant={isMobile ? "mobText3" : "text3"}
           sx={{ color: COLORS.santasGrey }}
@@ -37,7 +37,7 @@ export const MarketParametersItem = ({
         {tooltipText && <TooltipButton value={tooltipText} />}
       </Box>
 
-      <Box sx={MarketParametersItemValueContainer}>
+      <Box sx={ParametersItemValueContainer}>
         {value.toString().length > 26 ? (
           <Tooltip title={value} placement="right">
             <Typography

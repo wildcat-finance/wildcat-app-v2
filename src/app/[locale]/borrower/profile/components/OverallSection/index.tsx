@@ -8,7 +8,7 @@ import {
   MarketParametersContainer,
   MarketParametersRowsDivider,
 } from "@/app/[locale]/borrower/profile/style"
-import { MarketParametersItem } from "@/components/MarketParameters/components/MarketParametersItem"
+import { ParametersItem } from "@/components/ParametersItem"
 import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
@@ -88,7 +88,7 @@ export const OverallSection = ({
         >
           {name && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.name")}
                 value={name}
               />
@@ -98,7 +98,7 @@ export const OverallSection = ({
 
           {alias && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.alias")}
                 value={alias}
               />
@@ -108,7 +108,7 @@ export const OverallSection = ({
 
           {jurisdictionText && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.headquarters")}
                 value={jurisdictionText}
               />
@@ -118,7 +118,7 @@ export const OverallSection = ({
 
           {entityKindText && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.entityKind")}
                 value={entityKindText}
               />
@@ -128,7 +128,7 @@ export const OverallSection = ({
 
           {founded && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.founded")}
                 value={founded ?? ""}
               />
@@ -138,7 +138,7 @@ export const OverallSection = ({
 
           {marketsAmount && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.markets")}
                 value={marketsAmount || 0}
               />
@@ -150,7 +150,7 @@ export const OverallSection = ({
 
           {totalBorrowedAmount !== undefined && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.borrowed")}
                 value="[Coming Soon]"
               />
@@ -160,7 +160,7 @@ export const OverallSection = ({
 
           {defaults !== undefined && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.defaults.title")}
                 value={defaults || ""}
                 tooltipText={t(
@@ -184,7 +184,7 @@ export const OverallSection = ({
         <Box sx={MarketParametersColumn}>
           {name && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.name")}
                 value={name}
               />
@@ -194,7 +194,7 @@ export const OverallSection = ({
 
           {alias && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.alias")}
                 value={alias}
               />
@@ -204,7 +204,7 @@ export const OverallSection = ({
 
           {jurisdictionText && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.headquarters")}
                 value={jurisdictionText}
               />
@@ -214,7 +214,7 @@ export const OverallSection = ({
 
           {entityKindText && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.entityKind")}
                 value={entityKindText}
               />
@@ -224,7 +224,7 @@ export const OverallSection = ({
 
           {founded && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.founded")}
                 value={founded ?? ""}
               />
@@ -234,7 +234,7 @@ export const OverallSection = ({
 
           {!(headquarters || founded) && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.markets")}
                 value={marketsAmount || 0}
               />
@@ -244,7 +244,7 @@ export const OverallSection = ({
 
           {leftSideColumns?.map((column) => (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={column.label}
                 value={column.url}
                 link={column.url}
@@ -257,7 +257,7 @@ export const OverallSection = ({
         <Box sx={MarketParametersColumn}>
           {address && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.address")}
                 value={trimAddress(address) ?? ""}
                 copy={address}
@@ -269,7 +269,7 @@ export const OverallSection = ({
 
           {(headquarters || founded) && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.markets")}
                 value={marketsAmount || 0}
               />
@@ -279,7 +279,7 @@ export const OverallSection = ({
 
           {totalBorrowedAmount !== undefined && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.borrowed")}
                 value="[Coming Soon]"
               />
@@ -289,7 +289,7 @@ export const OverallSection = ({
 
           {defaults !== undefined && (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={t("borrowerProfile.profile.overallInfo.defaults.title")}
                 value={defaults || ""}
                 tooltipText={t(
@@ -302,7 +302,7 @@ export const OverallSection = ({
 
           {rightSideColumns?.map((column) => (
             <Box>
-              <MarketParametersItem
+              <ParametersItem
                 title={column.label}
                 value={column.url}
                 link={column.url}
