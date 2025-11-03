@@ -6,6 +6,7 @@ import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHo
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 
+import { MarketsSection } from "./components/MarketsSection"
 import { NameSection } from "./components/NameSection"
 import { OverallSection } from "./components/OverallSection"
 import { ProfilePageProps } from "./interface"
@@ -37,6 +38,10 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
       <Divider sx={{ marginY: "32px" }} />
 
       <OverallSection {...profileData} marketsAmount={marketsAmount} />
+
+      {marketsAmount !== 0 && (
+        <MarketsSection markets={activeMarkets} isLoading={isLoading} />
+      )}
     </Box>
   )
 }
