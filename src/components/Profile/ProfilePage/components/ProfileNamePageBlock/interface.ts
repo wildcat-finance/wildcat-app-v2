@@ -1,4 +1,4 @@
-export type NameSectionProps = {
+export type ProfileNamePageBlockProps = {
   avatar?: string
   name?: string
   alias?: string

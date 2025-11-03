@@ -10,7 +10,7 @@ import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { trimAddress } from "@/utils/formatters"
 
-import { OverallSectionProps, ProfileItem } from "./interface"
+import { OverallBlockProps, ProfileItem } from "./interface"
 import {
   InfoColumn,
   InfoContainer,
@@ -36,7 +36,7 @@ const makeInformationItem = (
   copy: opts?.copy,
 })
 
-export const OverallSection = ({
+export const OverallBlock = ({
   address,
   name,
   alias,
@@ -47,7 +47,7 @@ export const OverallSection = ({
   marketsAmount,
   defaults,
   isPage,
-}: OverallSectionProps) => {
+}: OverallBlockProps) => {
   const { t } = useTranslation()
   const { getAddressUrl } = useBlockExplorer()
   const isMobile = useMobileResolution()

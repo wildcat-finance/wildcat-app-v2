@@ -20,10 +20,10 @@ import { formatTokenWithCommas } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
-import { MarketsSectionProps } from "./interface"
+import { MarketsBlockProps } from "./interface"
 import { LinkCell, TableStyle } from "./style"
 
-export const MarketsSection = ({ markets, isLoading }: MarketsSectionProps) => {
+export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
   const { t } = useTranslation()
   const isMobile = useMobileResolution()
 

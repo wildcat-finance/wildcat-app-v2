@@ -1,6 +1,6 @@
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 
-export type OverallSectionProps = Partial<BorrowerProfile> & {
+export type OverallBlockProps = Partial<BorrowerProfile> & {
   marketsAmount?: number
   defaults?: string
   isPage?: boolean

@@ -9,13 +9,13 @@ import { Footer } from "@/components/Footer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { trimAddress } from "@/utils/formatters"
 
-import { MarketsSection } from "./components/MarketsSection"
-import { MobileNameSectionWrapper } from "./components/MobileNameSectionWrapper"
-import { NameSection } from "./components/NameSection"
-import { OverallSection } from "./components/OverallSection"
+import { MarketsBlock } from "./components/MarketsBlock"
+import { MobileNamePageBlockWrapper } from "./components/MobileNamePageBlockWrapper"
 import { ProfilePageSkeleton } from "./components/PageSkeleton"
+import { ProfileNamePageBlock } from "./components/ProfileNamePageBlock"
 import { ProfilePageProps } from "./interface"
 import { PageContentContainer, MobileContentContainer } from "./style"
+import { OverallBlock } from "../components/OverallBlock"
 
 export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
   const { data: profileData, isLoading: isProfileLoading } =
@@ -40,26 +40,26 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
   if (isMobile)
     return (
       <Box sx={MobileContentContainer}>
-        <MobileNameSectionWrapper
+        <MobileNamePageBlockWrapper
           section={section}
           setSection={setSection}
           marketsAmount={marketsAmount}
         >
-          <NameSection
+          <ProfileNamePageBlock
             {...profileData}
             name={profileData?.name || trimAddress(profileAddress as string)}
             marketsAmount={marketsAmount}
             isExternal={isExternal}
             isMobile={isMobile}
           />
-        </MobileNameSectionWrapper>
+        </MobileNamePageBlockWrapper>
 
         {section === "markets" && (
-          <MarketsSection markets={borrowerMarkets} isLoading={isLoading} />
+          <MarketsBlock markets={borrowerMarkets} isLoading={isLoading} />
         )}
 
         {section === "info" && (
-          <OverallSection {...profileData} marketsAmount={marketsAmount} />
+          <OverallBlock {...profileData} marketsAmount={marketsAmount} />
         )}
 
         <Box sx={{ marginTop: "auto" }}>
@@ -70,7 +70,7 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
 
   return (
     <Box sx={PageContentContainer}>
-      <NameSection
+      <ProfileNamePageBlock
         {...profileData}
         marketsAmount={marketsAmount}
         isExternal={isExternal}
@@ -79,10 +79,10 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
 
       <Divider sx={{ marginY: "32px" }} />
 
-      <OverallSection {...profileData} marketsAmount={marketsAmount} />
+      <OverallBlock {...profileData} marketsAmount={marketsAmount} />
 
       {marketsAmount !== 0 && (
-        <MarketsSection markets={activeMarkets} isLoading={isLoading} />
+        <MarketsBlock markets={activeMarkets} isLoading={isLoading} />
       )}
     </Box>
   )

@@ -9,22 +9,22 @@ import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
-import { MobileNameSectionWrapperProps } from "./interface"
+import { MobileNamePageBlockWrapperProps } from "./interface"
 import {
   MobileBackButton,
   MobileBackButtonIcon,
   MobileDivider,
-  MobileNameSectionContainer,
+  MobileNameBlockContainer,
   MobileSwitchButton,
   MobileSwitchContainer,
 } from "./style"
 
-export const MobileNameSectionWrapper = ({
+export const MobileNamePageBlockWrapper = ({
   section,
   setSection,
   marketsAmount,
   children,
-}: MobileNameSectionWrapperProps) => {
+}: MobileNamePageBlockWrapperProps) => {
   const { t } = useTranslation()
 
   const pathname = usePathname()
@@ -37,7 +37,7 @@ export const MobileNameSectionWrapper = ({
   }
 
   return (
-    <Box sx={MobileNameSectionContainer}>
+    <Box sx={MobileNameBlockContainer}>
       <Link href={backLink} style={MobileBackButton}>
         <SvgIcon sx={MobileBackButtonIcon}>
           <Arrow />

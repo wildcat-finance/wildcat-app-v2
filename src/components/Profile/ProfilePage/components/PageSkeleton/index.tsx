@@ -8,22 +8,22 @@ import { useTranslation } from "react-i18next"
 
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import {
-  MobileBackButton,
-  MobileBackButtonIcon,
-  MobileDivider,
-  MobileNameSectionContainer,
-  MobileSwitchContainer,
-} from "@/components/Profile/ProfilePage/components/MobileNameSectionWrapper/style"
-import {
-  NameSectionButtonsContainer,
-  NameSectionContainer,
-  NameSectionLinksContainer,
-} from "@/components/Profile/ProfilePage/components/NameSection/style"
-import {
   InfoColumn,
   InfoContainer,
   InfoDivider,
-} from "@/components/Profile/ProfilePage/components/OverallSection/style"
+} from "@/components/Profile/components/OverallBlock/style"
+import {
+  MobileBackButton,
+  MobileBackButtonIcon,
+  MobileDivider,
+  MobileNameBlockContainer,
+  MobileSwitchContainer,
+} from "@/components/Profile/ProfilePage/components/MobileNamePageBlockWrapper/style"
+import {
+  ProfileNamePageBlockButtonsContainer,
+  ProfileNamePageBlockContainer,
+  ProfileNamePageBlockLinksContainer,
+} from "@/components/Profile/ProfilePage/components/ProfileNamePageBlock/style"
 import {
   MobileContentContainer,
   PageContentContainer,
@@ -75,14 +75,14 @@ export const ProfilePageSkeleton = ({
   if (isMobile)
     return (
       <Box sx={MobileContentContainer}>
-        <Box sx={MobileNameSectionContainer}>
+        <Box sx={MobileNameBlockContainer}>
           <Link href={backLink} style={MobileBackButton}>
             <SvgIcon sx={MobileBackButtonIcon}>
               <Arrow />
             </SvgIcon>
           </Link>
 
-          <Box sx={{ ...NameSectionContainer, alignItems: "center" }}>
+          <Box sx={{ ...ProfileNamePageBlockContainer, alignItems: "center" }}>
             <Skeleton
               sx={{
                 width: "42px",
@@ -98,7 +98,7 @@ export const ProfilePageSkeleton = ({
 
             <Box
               sx={{
-                ...NameSectionLinksContainer,
+                ...ProfileNamePageBlockLinksContainer,
                 marginBottom: "16px",
               }}
             >
@@ -138,7 +138,7 @@ export const ProfilePageSkeleton = ({
   return (
     <Box sx={PageContentContainer}>
       <Box
-        sx={NameSectionContainer}
+        sx={ProfileNamePageBlockContainer}
         alignItems={isExternal ? "center" : "flex-start"}
       >
         <Skeleton
@@ -161,12 +161,12 @@ export const ProfilePageSkeleton = ({
 
         <Box
           sx={{
-            ...NameSectionButtonsContainer,
+            ...ProfileNamePageBlockButtonsContainer,
             justifyContent: isExternal ? "center" : "space-between",
             marginTop: "22px",
           }}
         >
-          <Box sx={NameSectionLinksContainer}>
+          <Box sx={ProfileNamePageBlockLinksContainer}>
             <Skeleton
               sx={{ height: "28px", width: "70px", borderRadius: "8px" }}
             />

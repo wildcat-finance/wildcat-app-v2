@@ -1,6 +1,6 @@
 import { COLORS } from "@/theme/colors"
 
-export const MobileNameSectionContainer = {
+export const MobileNameBlockContainer = {
   display: "flex",
   flexDirection: "column",
   width: "100%",

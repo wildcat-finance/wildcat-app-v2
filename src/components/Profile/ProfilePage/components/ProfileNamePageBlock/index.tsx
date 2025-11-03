@@ -11,17 +11,17 @@ import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { pxToRem } from "@/theme/units"
 
-import { NameSectionProps } from "./interface"
+import { ProfileNamePageBlockProps } from "./interface"
 import {
-  NameSectionButtonsContainer,
-  NameSectionContainer,
-  NameSectionDescription,
-  NameSectionLinksContainer,
-  ProfileHeaderButton,
+  ProfileNamePageBlockButtonsContainer,
+  ProfileNamePageBlockContainer,
+  ProfileNamePageBlockDescription,
+  ProfileNamePageBlockLinksContainer,
+  ProfileNamePageBlockHeaderButton,
 } from "./style"
-import { EmptyAlert } from "../EmptyAlert"
+import { EmptyAlert } from "../../../components/EmptyAlert"
 
-export const NameSection = ({
+export const ProfileNamePageBlock = ({
   avatar,
   name,
   alias,
@@ -33,7 +33,7 @@ export const NameSection = ({
   marketsAmount,
   isExternal,
   isMobile,
-}: NameSectionProps) => {
+}: ProfileNamePageBlockProps) => {
   const { t } = useTranslation()
 
   const hasNoMarkets = marketsAmount === 0
@@ -68,7 +68,7 @@ export const NameSection = ({
 
   if (isMobile)
     return (
-      <Box sx={{ ...NameSectionContainer, alignItems: "center" }}>
+      <Box sx={{ ...ProfileNamePageBlockContainer, alignItems: "center" }}>
         {avatar ? (
           <Image src={avatar} alt="avatar" width={42} height={42} />
         ) : (
@@ -87,7 +87,7 @@ export const NameSection = ({
         {!hasNoLinks && (
           <Box
             sx={{
-              ...NameSectionLinksContainer,
+              ...ProfileNamePageBlockLinksContainer,
               marginBottom: description ? "16px" : "0px",
             }}
           >
@@ -100,7 +100,7 @@ export const NameSection = ({
                       size="small"
                       variant="outlined"
                       color="secondary"
-                      sx={ProfileHeaderButton}
+                      sx={ProfileNamePageBlockHeaderButton}
                     >
                       {link.name}
                     </Button>
@@ -127,7 +127,7 @@ export const NameSection = ({
 
   return (
     <Box
-      sx={NameSectionContainer}
+      sx={ProfileNamePageBlockContainer}
       alignItems={isExternal ? "center" : "flex-start"}
     >
       {avatar ? (
@@ -150,18 +150,18 @@ export const NameSection = ({
           variant="text1"
           color={COLORS.santasGrey}
           textAlign={isExternal ? "center" : "start"}
-          sx={NameSectionDescription}
+          sx={ProfileNamePageBlockDescription}
         >
           {description}
         </Typography>
       )}
 
       <Box
-        sx={NameSectionButtonsContainer}
+        sx={ProfileNamePageBlockButtonsContainer}
         justifyContent={isExternal ? "center" : "space-between"}
         marginTop={hasNoLinks ? "0px" : "22px"}
       >
-        <Box sx={NameSectionLinksContainer}>
+        <Box sx={ProfileNamePageBlockLinksContainer}>
           {links.map((link) => (
             // eslint-disable-next-line react/jsx-no-useless-fragment
             <Box key={link.url}>

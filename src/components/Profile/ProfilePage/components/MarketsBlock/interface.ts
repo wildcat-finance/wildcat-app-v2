@@ -1,6 +1,6 @@
 import { Market } from "@wildcatfi/wildcat-sdk"
 
-export type MarketsSectionProps = {
+export type MarketsBlockProps = {
   markets?: Market[]
   isLoading?: boolean
 }
