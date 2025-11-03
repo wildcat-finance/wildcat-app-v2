@@ -4,11 +4,9 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 
 import { Box, Divider, Skeleton, Typography, useTheme } from "@mui/material"
-import { redirect } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
-import { BorrowerProfileDetails } from "@/app/[locale]/borrower/profile/components/BorrowerProfileDetails"
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
 import { MobileMarketActions } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMarketActions"
 import { MobileMlaAlert } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaAlert"
@@ -20,6 +18,7 @@ import { Footer } from "@/components/Footer"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
+import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketMla } from "@/hooks/useMarketMla"
@@ -45,13 +44,6 @@ import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
 import { SectionContainer, SkeletonContainer, SkeletonStyle } from "./style"
 import { getEffectiveLenderRole } from "./utils"
-
-const BorrowerProfileRedirect = ({ address }: { address: string }) => {
-  useEffect(() => {
-    redirect(`/borrower/profile/${address}`)
-  }, [])
-  return null
-}
 
 export default function LenderMarketDetails({
   params: { address },
@@ -352,15 +344,9 @@ export default function LenderMarketDetails({
           )}
 
           {currentSection === LenderMarketSections.BORROWER_PROFILE && (
-            <>
-              <Divider sx={{ paddingTop: "12px" }} />
-
-              <BorrowerProfileDetails
-                address={marketAccount.market.borrower}
-                isMarketPage
-                hideMarkets
-              />
-            </>
+            <ProfileSection
+              profileAddress={marketAccount.market.borrower as `0x${string}`}
+            />
           )}
 
           {currentSection === LenderMarketSections.REQUESTS && (

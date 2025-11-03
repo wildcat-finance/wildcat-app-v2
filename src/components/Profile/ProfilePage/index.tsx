@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { Box, Divider } from "@mui/material"
 
@@ -33,6 +33,14 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
 
   // Mobile
   const [section, setSection] = useState<"markets" | "info">("markets")
+
+  useEffect(() => {
+    if (marketsAmount === 0) {
+      setSection("info")
+    } else {
+      setSection("markets")
+    }
+  }, [marketsAmount])
 
   if (isLoading)
     return <ProfilePageSkeleton isExternal={isExternal} isMobile={isMobile} />

@@ -66,6 +66,8 @@ export const ProfileNamePageBlock = ({
     },
   ]
 
+  const existingLinks = links.filter((link) => link.hasLink)
+
   if (isMobile)
     return (
       <Box sx={{ ...ProfileNamePageBlockContainer, alignItems: "center" }}>
@@ -91,7 +93,7 @@ export const ProfileNamePageBlock = ({
               marginBottom: description ? "16px" : "0px",
             }}
           >
-            {links.map((link) => (
+            {existingLinks.map((link) => (
               // eslint-disable-next-line react/jsx-no-useless-fragment
               <Box key={link.url}>
                 {link.hasLink && (
@@ -162,7 +164,7 @@ export const ProfileNamePageBlock = ({
         marginTop={hasNoLinks ? "0px" : "22px"}
       >
         <Box sx={ProfileNamePageBlockLinksContainer}>
-          {links.map((link) => (
+          {existingLinks.map((link) => (
             // eslint-disable-next-line react/jsx-no-useless-fragment
             <Box key={link.url}>
               {link.hasLink && (
