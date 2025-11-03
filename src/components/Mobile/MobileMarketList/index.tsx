@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation"
 import {
   LenderMobileMarketItem,
   MobileMarketCard,
-} from "@/app/[locale]/lender/components/mobile/MobileMarketCard"
+} from "@/components/Mobile/MobileMarketCard"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
