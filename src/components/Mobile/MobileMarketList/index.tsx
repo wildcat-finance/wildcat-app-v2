@@ -53,7 +53,10 @@ export const MobileMarketList = ({
   const [page, setPage] = useState(0)
   const pathname = usePathname()
 
-  const showBorrowerInCard = !pathname.includes(ROUTES.lender.profile)
+  const isBorrowerProfilePage = pathname.includes(ROUTES.borrower.profile)
+  const isLenderProfilePage = pathname.includes(ROUTES.lender.profile)
+
+  const showBorrowerInCard = !isBorrowerProfilePage && !isLenderProfilePage
 
   const totalPages = Math.ceil(markets.length / ITEMS_PER_PAGE)
   const startIndex = page * ITEMS_PER_PAGE
