@@ -7,6 +7,7 @@ import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/use
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 
 import { NameSection } from "./components/NameSection"
+import { OverallSection } from "./components/OverallSection"
 import { ProfilePageProps } from "./interface"
 import { PageContentContainer } from "./style"
 
@@ -34,6 +35,8 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
       />
 
       <Divider sx={{ marginY: "32px" }} />
+
+      <OverallSection {...profileData} marketsAmount={marketsAmount} />
     </Box>
   )
 }
