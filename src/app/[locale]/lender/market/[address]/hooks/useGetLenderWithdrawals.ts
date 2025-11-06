@@ -34,6 +34,56 @@ export type LenderWithdrawalsForMarketResult = {
   totalClaimableAmount: TokenAmount
 }
 
+const buildLenderWithdrawalsResult = (
+  market: Market,
+  {
+    activeWithdrawal,
+    expiredPendingWithdrawals,
+    completeWithdrawals,
+  }: {
+    activeWithdrawal: LenderWithdrawalStatus | undefined
+    expiredPendingWithdrawals: LenderWithdrawalStatus[]
+    completeWithdrawals: LenderWithdrawalStatus[]
+  },
+): LenderWithdrawalsForMarketResult => {
+  const zeroAmount = market.underlyingToken.getAmount(0)
+
+  let normalizedActive = activeWithdrawal
+  let normalizedExpired = [...expiredPendingWithdrawals]
+
+  const shouldConcludeActive =
+    normalizedActive &&
+    (market.isClosed || market.pendingWithdrawalExpiry === 0)
+
+  if (shouldConcludeActive) {
+    normalizedExpired = [normalizedActive!, ...normalizedExpired]
+    normalizedActive = undefined
+  }
+  const activeTotalPendingAmount = normalizedActive
+    ? normalizedActive.requests.reduce(
+        (acc, request) => acc.add(request.normalizedAmount),
+        zeroAmount,
+      )
+    : zeroAmount
+  const expiredTotalPendingAmount = normalizedExpired.reduce(
+    (acc, withdrawal) => acc.add(withdrawal.normalizedUnpaidAmount),
+    zeroAmount,
+  )
+  const totalClaimableAmount = normalizedExpired.reduce(
+    (acc, withdrawal) => acc.add(withdrawal.availableWithdrawalAmount),
+    zeroAmount,
+  )
+
+  return {
+    activeWithdrawal: normalizedActive,
+    completeWithdrawals,
+    expiredPendingWithdrawals: normalizedExpired,
+    activeTotalPendingAmount,
+    expiredTotalPendingAmount,
+    totalClaimableAmount,
+  }
+}
+
 export function useGetLenderWithdrawals(
   market: Market | undefined,
 ): TwoStepQueryHookResult<LenderWithdrawalsForMarketResult> {
@@ -91,46 +141,18 @@ export function useGetLenderWithdrawals(
     logger.debug(
       `Got ${incompleteWithdrawals.length} incomplete withdrawals...`,
     )
-    for (const withdrawal of incompleteWithdrawals) {
-      console.log(
-        `Withdrawal ${withdrawal.expiry} ${withdrawal.requests.length} requests`,
-      )
-    }
     const activeWithdrawal = incompleteWithdrawals.find(
       (w) => w.status === BatchStatus.Pending,
     )
-
-    // const activeTotalPendingAmount =
-    //   activeWithdrawal?.normalizedUnpaidAmount ??
-    //   market.underlyingToken.getAmount(0)
-
-    // TODO: check with Dillon difference
-
-    const activeTotalPendingAmount =
-      activeWithdrawal?.normalizedTotalAmount ??
-      market.underlyingToken.getAmount(0)
-
     const expiredPendingWithdrawals = incompleteWithdrawals.filter(
       (w) => w.status !== BatchStatus.Pending,
     )
 
-    const expiredTotalPendingAmount = expiredPendingWithdrawals.reduce(
-      (acc, w) => acc.add(w.normalizedUnpaidAmount),
-      market.underlyingToken.getAmount(0),
-    )
-    const totalClaimableAmount = expiredPendingWithdrawals.reduce(
-      (acc, w) => acc.add(w.availableWithdrawalAmount),
-      market.underlyingToken.getAmount(0),
-    )
-
-    return {
+    return buildLenderWithdrawalsResult(market, {
       activeWithdrawal,
       completeWithdrawals,
       expiredPendingWithdrawals,
-      activeTotalPendingAmount,
-      expiredTotalPendingAmount,
-      totalClaimableAmount,
-    }
+    })
   }
 
   const {
@@ -152,17 +174,20 @@ export function useGetLenderWithdrawals(
     // refetchOnMount: false,
   })
 
-  const withdrawals = data ?? {
-    completeWithdrawals: [],
-    expiredPendingWithdrawals: [],
-    activeWithdrawal: undefined,
-    expiredTotalPendingAmount: market?.underlyingToken.getAmount(0),
-    activeTotalPendingAmount: market?.underlyingToken.getAmount(0),
-    totalClaimableAmount: market?.underlyingToken.getAmount(0),
-  }
+  const withdrawals = useMemo(() => {
+    if (data) return data
+    return {
+      completeWithdrawals: [],
+      expiredPendingWithdrawals: [],
+      activeWithdrawal: undefined,
+      expiredTotalPendingAmount: market?.underlyingToken.getAmount(0),
+      activeTotalPendingAmount: market?.underlyingToken.getAmount(0),
+      totalClaimableAmount: market?.underlyingToken.getAmount(0),
+    }
+  }, [data, market])
 
   async function updateWithdrawals() {
-    console.log(`Updating withdrawals...`)
+    logger.debug(`Updating withdrawals...`)
     if (!lender || !market || !marketAddress) throw Error()
     const lens = getLensV2Contract(market.chainId, market.provider)
     const incompleteWithdrawals = [
@@ -213,33 +238,11 @@ export function useGetLenderWithdrawals(
       }
     }
 
-    const activeTotalPendingAmount =
-      activeWithdrawal?.requests.reduce(
-        (acc, req) => acc.add(req.normalizedAmount),
-        market.underlyingToken.getAmount(0),
-      ) ?? market.underlyingToken.getAmount(0)
-
-    const expiredTotalPendingAmount = expiredPendingWithdrawals
-      // .filter((w) => w.expiry !== market.pendingWithdrawalExpiry)
-      .reduce(
-        (acc, w) => acc.add(w.normalizedUnpaidAmount),
-        market.underlyingToken.getAmount(0),
-      )
-    const totalClaimableAmount = (
-      expiredPendingWithdrawals as LenderWithdrawalStatus[]
-    ).reduce(
-      (acc, w) => acc.add(w.availableWithdrawalAmount.raw),
-      market.underlyingToken.getAmount(0),
-    )
-
-    return {
+    return buildLenderWithdrawalsResult(market, {
       activeWithdrawal,
       completeWithdrawals,
       expiredPendingWithdrawals,
-      activeTotalPendingAmount,
-      expiredTotalPendingAmount,
-      totalClaimableAmount,
-    }
+    })
   }
 
   const updateQueryKeys = useMemo(
