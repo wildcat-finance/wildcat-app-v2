@@ -15,7 +15,7 @@ export const LenderMlaModal = ({
   isLoading,
 }: LenderMlaModalProps) => {
   const mla = mlaInput && "noMLA" in mlaInput ? undefined : mlaInput
-  const { address } = useAccount()
+  const { address, chainId } = useAccount()
   const { data: signedMla, isLoading: signedMlaLoading } = useGetSignedMla(mla)
   const [timeSigned, setTimeSigned] = useState(0)
   useEffect(() => {
@@ -30,15 +30,21 @@ export const LenderMlaModal = ({
     }
   }
   const downloadPdfUrl = useMemo(() => {
-    if (mla && signedMla && address)
-      return `/api/mla/${mla.market}/${address}/pdf`
+    if (mla && signedMla && address) {
+      const resolvedChainId = mla.chainId ?? chainId
+      if (!resolvedChainId) return null
+      return `/api/mla/${mla.market.toLowerCase()}/${address.toLowerCase()}/pdf?chainId=${resolvedChainId}`
+    }
     return null
-  }, [signedMla, address, mla])
+  }, [signedMla, address, mla, chainId])
   const downloadSignedUrl = useMemo(() => {
-    if (mla && signedMla && address)
-      return `/api/mla/${mla.market}/${address}/signed`
+    if (mla && signedMla && address) {
+      const resolvedChainId = mla.chainId ?? chainId
+      if (!resolvedChainId) return null
+      return `/api/mla/${mla.market.toLowerCase()}/${address.toLowerCase()}/signed?chainId=${resolvedChainId}`
+    }
     return null
-  }, [signedMla, address, mla])
+  }, [signedMla, address, mla, chainId])
 
   const buttonText =
     // eslint-disable-next-line no-nested-ternary
