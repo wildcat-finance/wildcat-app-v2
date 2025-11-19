@@ -248,6 +248,7 @@ export const ClaimableTable = ({ withdrawals, totalAmount }: TableProps) => {
         columns={claimableColumns}
         columnHeaderHeight={40}
         getRowHeight={() => "auto"}
+        autoHeight
       />
     )
   }

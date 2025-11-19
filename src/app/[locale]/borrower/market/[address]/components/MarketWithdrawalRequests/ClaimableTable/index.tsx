@@ -246,6 +246,7 @@ export const ClaimableTable = ({
         columns={claimableColumns}
         columnHeaderHeight={40}
         getRowHeight={() => "auto"}
+        autoHeight
       />
     )
   }
