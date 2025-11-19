@@ -170,41 +170,42 @@ export const ClaimableTable = ({ withdrawals, totalAmount }: TableProps) => {
     expiredPendingWithdrawals[batch.lender].push(batch)
   })
 
-  const claimableRows = Object.keys(expiredPendingWithdrawals).flatMap((lender) =>
-    expiredPendingWithdrawals[lender].flatMap((withdrawal, index) => {
-      const claimableAmount = withdrawal.availableWithdrawalAmount
-      const requests = withdrawal.requests
-        .map((request) => {
-          const amount = claimableAmount.mulDiv(
-            request.scaledAmount,
-            withdrawal.scaledAmount,
-          )
-          return {
-            ...request,
-            amount,
-          }
-        })
-        .filter((req) => req.amount.gt(0))
+  const claimableRows = Object.keys(expiredPendingWithdrawals).flatMap(
+    (lender) =>
+      expiredPendingWithdrawals[lender].flatMap((withdrawal, index) => {
+        const claimableAmount = withdrawal.availableWithdrawalAmount
+        const requests = withdrawal.requests
+          .map((request) => {
+            const amount = claimableAmount.mulDiv(
+              request.scaledAmount,
+              withdrawal.scaledAmount,
+            )
+            return {
+              ...request,
+              amount,
+            }
+          })
+          .filter((req) => req.amount.gt(0))
 
-      if (requests.length === 0) return []
+        if (requests.length === 0) return []
 
-      return [
-        {
-          id: `${withdrawal.lender}-${withdrawal.scaledAmount}-${index}`,
-          lender: withdrawal.lender,
-          transactionId: requests.map((request) => request.transactionHash),
-          dateSubmitted: requests.map((request) =>
-            timestampToDateFormatted(request.blockTimestamp),
-          ),
-          amount: requests.map((request) =>
-            formatTokenWithCommas(request.amount, {
-              withSymbol: true,
-              fractionDigits: request.amount.decimals,
-            }),
-          ),
-        },
-      ]
-    }),
+        return [
+          {
+            id: `${withdrawal.lender}-${withdrawal.scaledAmount}-${index}`,
+            lender: withdrawal.lender,
+            transactionId: requests.map((request) => request.transactionHash),
+            dateSubmitted: requests.map((request) =>
+              timestampToDateFormatted(request.blockTimestamp),
+            ),
+            amount: requests.map((request) =>
+              formatTokenWithCommas(request.amount, {
+                withSymbol: true,
+                fractionDigits: request.amount.decimals,
+              }),
+            ),
+          },
+        ]
+      }),
   )
 
   const renderContent = () => {
