@@ -321,7 +321,7 @@ export const LenderTerminatedMarketsTables = ({
     },
     {
       field: "withdrawalBatchDuration",
-      headerName: "Withdrawal",
+      headerName: t("dashboard.markets.tables.header.withdrawal"),
       minWidth: 110,
       flex: 1,
       headerAlign: "right",

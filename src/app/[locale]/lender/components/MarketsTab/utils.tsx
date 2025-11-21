@@ -10,8 +10,10 @@ import {
   MarketVersion,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
+import { TFunction } from "i18next"
 import Link from "next/link"
 
+import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import {
   MarketsTableModel,
@@ -82,6 +84,7 @@ export const filterMarketAccounts = (
 }
 
 export const getColumns = (
+  t: TFunction,
   otherMarketsTable?: boolean,
 ): TypeSafeColDef<MarketsTableModel>[] => {
   const commonColumns: TypeSafeColDef<MarketsTableModel>[] = [
@@ -253,7 +256,7 @@ export const getColumns = (
     },
     {
       field: "withdrawalBatchDuration",
-      headerName: "Withdrawal",
+      headerName: t("dashboard.markets.tables.header.withdrawal"),
       minWidth: 110,
       flex: 1,
       headerAlign: "right",
@@ -262,12 +265,7 @@ export const getColumns = (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{
-            textDecoration: "none",
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            color: "inherit",
+            ...LinkCell,
             justifyContent: "flex-end",
             textTransform: "capitalize",
           }}

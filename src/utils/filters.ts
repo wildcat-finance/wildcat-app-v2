@@ -102,11 +102,14 @@ export const filterMarketAccounts = (
   }
 
   if (filteredMarkets && withdrawalCycles.length > 0) {
-    const maxDuration = Math.max(
-      ...withdrawalCycles.map((cycle) => Number(cycle.id)),
-    )
-    filteredMarkets = filteredMarkets.filter(
-      ({ market }) => market.withdrawalBatchDuration <= maxDuration,
+    filteredMarkets = filteredMarkets.filter(({ market }) =>
+      withdrawalCycles.some((cycle) => {
+        const [min, max] = cycle.id.split("-").map(Number)
+        return (
+          market.withdrawalBatchDuration >= min &&
+          market.withdrawalBatchDuration <= max
+        )
+      }),
     )
   }
 
