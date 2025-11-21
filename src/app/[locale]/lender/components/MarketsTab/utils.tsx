@@ -26,6 +26,7 @@ import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import {
   formatBps,
+  formatSecsToHours,
   formatTokenWithCommas,
   timestampToDateFormatted,
   trimAddress,
@@ -88,8 +89,8 @@ export const getColumns = (
       field: "status",
       headerName: "Status",
       maxWidth: 146,
-      minWidth: 130,
-      flex: 2,
+      minWidth: 120,
+      flex: 0.7,
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
@@ -106,7 +107,7 @@ export const getColumns = (
             justifyContent: "flex-start",
           }}
         >
-          <Box width="130px">
+          <Box width="120px">
             <MarketStatusChip status={params.value} />
           </Box>
         </Link>
@@ -205,7 +206,7 @@ export const getColumns = (
       field: "asset",
       headerName: "Underlying Asset",
       minWidth: 131,
-      flex: 1,
+      flex: 0.6,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
@@ -219,6 +220,7 @@ export const getColumns = (
             alignItems: "center",
             color: "inherit",
             justifyContent: "flex-end",
+            paddingRight: "16px",
           }}
         >
           {params.value}
@@ -246,6 +248,31 @@ export const getColumns = (
           }}
         >
           {`${formatBps(params.value)}%`}
+        </Link>
+      ),
+    },
+    {
+      field: "withdrawalBatchDuration",
+      headerName: "Withdrawal",
+      minWidth: 110,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.lender.market}/${params.row.id}`}
+          style={{
+            textDecoration: "none",
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            color: "inherit",
+            justifyContent: "flex-end",
+            textTransform: "capitalize",
+          }}
+        >
+          {formatSecsToHours(params.value)}
         </Link>
       ),
     },
@@ -314,7 +341,7 @@ export const getColumns = (
     {
       field: "lend",
       headerName: "Capacity Left",
-      minWidth: 82,
+      minWidth: 110,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
@@ -384,7 +411,7 @@ export const getColumns = (
   const loanColumn: TypeSafeColDef<{ loan: TokenAmount }> = {
     field: "loan",
     headerName: "My Loan",
-    minWidth: 85,
+    minWidth: 120,
     headerAlign: "right",
     align: "right",
     sortComparator: tokenAmountComparator,
@@ -467,6 +494,7 @@ export const getRows = (
       maxTotalSupply,
       maximumDeposit,
       deployedEvent,
+      withdrawalBatchDuration,
     } = market
 
     const borrower = borrowers?.find(
@@ -487,6 +515,7 @@ export const getRows = (
       lenderAPR: annualInterestBips,
       crr: reserveRatioBips,
       maxCapacity: maxTotalSupply,
+      withdrawalBatchDuration,
       loan: marketBalance,
       lend: maximumDeposit,
       deploy: deployedEvent ? deployedEvent.blockTimestamp : 0,

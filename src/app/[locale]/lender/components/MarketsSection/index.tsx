@@ -62,6 +62,7 @@ export const MarketsSection = () => {
     search: marketSearch,
     assets: marketAssets,
     statuses: marketStatuses,
+    withdrawalCycles: marketWithdrawalCycles,
   } = marketFilters
 
   const setMarketSearch: React.Dispatch<React.SetStateAction<string>> =
@@ -114,6 +115,28 @@ export const MarketsSection = () => {
     [dispatch, marketStatuses],
   )
 
+  const setMarketWithdrawalCycles: React.Dispatch<
+    React.SetStateAction<SmallFilterSelectItem[]>
+  > = useCallback(
+    (value) => {
+      const next =
+        typeof value === "function"
+          ? (
+              value as (
+                prev: SmallFilterSelectItem[],
+              ) => SmallFilterSelectItem[]
+            )(marketWithdrawalCycles)
+          : value
+      dispatch(
+        setMarketFilters({
+          role: "lender",
+          filters: { withdrawalCycles: next },
+        }),
+      )
+    },
+    [dispatch, marketWithdrawalCycles],
+  )
+
   const filters = useMemo(
     () => ({
       nameFilter: marketSearch,
@@ -127,6 +150,12 @@ export const MarketsSection = () => {
   // rerender consumer when filters change now
 
   const { t } = useTranslation()
+
+  const withdrawalCycleOptions = [
+    { id: "86400", name: "≤ 24h" },
+    { id: "259200", name: "≤ 3 days" },
+    { id: "604800", name: "≤ 7 days" },
+  ]
 
   const {
     isWrongNetwork,
@@ -152,8 +181,16 @@ export const MarketsSection = () => {
         marketStatuses,
         marketAssets,
         borrowers,
+        marketWithdrawalCycles,
       ),
-    [marketAccounts, marketSearch, marketStatuses, marketAssets, borrowers],
+    [
+      marketAccounts,
+      marketSearch,
+      marketStatuses,
+      marketAssets,
+      borrowers,
+      marketWithdrawalCycles,
+    ],
   )
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
@@ -478,6 +515,14 @@ export const MarketsSection = () => {
                 setSelected={setMarketStatuses}
                 width="180px"
               />
+
+              <SmallFilterSelect
+                placeholder="Withdrawal Cycle"
+                options={withdrawalCycleOptions}
+                selected={marketWithdrawalCycles}
+                setSelected={setMarketWithdrawalCycles}
+                width="180px"
+              />
             </Box>
           </Box>
         </Box>
@@ -494,10 +539,13 @@ export const MarketsSection = () => {
                 })) ?? []
               }
               statusesOptions={marketStatusesMock}
+              withdrawalCycleOptions={withdrawalCycleOptions}
               marketAssets={marketAssets}
               marketStatuses={marketStatuses}
+              marketWithdrawalCycles={marketWithdrawalCycles}
               setMarketAssets={setMarketAssets}
               setMarketStatuses={setMarketStatuses}
+              setMarketWithdrawalCycles={setMarketWithdrawalCycles}
             />
 
             <MobileSearchButton
