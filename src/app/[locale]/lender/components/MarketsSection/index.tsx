@@ -152,9 +152,9 @@ export const MarketsSection = () => {
   const { t } = useTranslation()
 
   const withdrawalCycleOptions = [
-    { id: "86400", name: "≤ 24h" },
-    { id: "259200", name: "≤ 3 days" },
-    { id: "604800", name: "≤ 7 days" },
+    { id: "0-86400", name: "≤ 24h" },
+    { id: "86401-259200", name: "1 - 3 days" },
+    { id: "259201-604800", name: "3 - 7 days" },
   ]
 
   const {
