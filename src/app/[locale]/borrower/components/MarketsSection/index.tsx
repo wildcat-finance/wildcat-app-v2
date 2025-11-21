@@ -56,6 +56,7 @@ export const MarketsSection = () => {
     search: marketSearch,
     assets: marketAssets,
     statuses: marketStatuses,
+    withdrawalCycles: marketWithdrawalCycles,
   } = marketFilters
 
   const setMarketSearch: React.Dispatch<React.SetStateAction<string>> =
@@ -110,6 +111,28 @@ export const MarketsSection = () => {
     [dispatch, marketStatuses],
   )
 
+  const setMarketWithdrawalCycles: React.Dispatch<
+    React.SetStateAction<SmallFilterSelectItem[]>
+  > = useCallback(
+    (value) => {
+      const next =
+        typeof value === "function"
+          ? (
+              value as (
+                prev: SmallFilterSelectItem[],
+              ) => SmallFilterSelectItem[]
+            )(marketWithdrawalCycles)
+          : value
+      dispatch(
+        setMarketFilters({
+          role: "borrower",
+          filters: { withdrawalCycles: next },
+        }),
+      )
+    },
+    [dispatch, marketWithdrawalCycles],
+  )
+
   const filters = useMemo(
     () => ({
       nameFilter: marketSearch,
@@ -123,6 +146,12 @@ export const MarketsSection = () => {
   // tables use this derived object; stable and only changes when inputs change
 
   const { t } = useTranslation()
+
+  const withdrawalCycleOptions = [
+    { id: "86400", name: "≤ 24h" },
+    { id: "259200", name: "≤ 3 days" },
+    { id: "604800", name: "≤ 7 days" },
+  ]
 
   const { address } = useAccount()
   const { isWrongNetwork } = useCurrentNetwork()
@@ -163,6 +192,7 @@ export const MarketsSection = () => {
         marketStatuses,
         marketAssets,
         borrowers,
+        marketWithdrawalCycles,
       ),
     [
       marketAccounts,
@@ -171,6 +201,7 @@ export const MarketsSection = () => {
       marketAssets,
       borrowers,
       address,
+      marketWithdrawalCycles,
     ],
   )
 
@@ -392,6 +423,14 @@ export const MarketsSection = () => {
               options={marketStatusesMock}
               selected={marketStatuses}
               setSelected={setMarketStatuses}
+              width="180px"
+            />
+
+            <SmallFilterSelect
+              placeholder="Withdrawal Cycle"
+              options={withdrawalCycleOptions}
+              selected={marketWithdrawalCycles}
+              setSelected={setMarketWithdrawalCycles}
               width="180px"
             />
           </Box>
