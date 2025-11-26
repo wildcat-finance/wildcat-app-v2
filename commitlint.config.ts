@@ -67,6 +67,11 @@ module.exports = {
      */
     "body-leading-blank": [2, "always"],
     "footer-leading-blank": [2, "always"],
+
+    /**
+     * disable header-trim rule - trailing whitespace in headers is fine.
+     */
+    "header-trim": [0],
   },
 
   // Notes:
