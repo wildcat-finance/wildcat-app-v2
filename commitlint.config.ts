@@ -47,14 +47,9 @@ module.exports = {
     "header-max-length": [2, "always", 100],
 
     /**
-     * Do not enforce title-casing for the subject; allow lowercase, etc.
-     * (Disallow common title-case/upper-case variants.)
+     * disable subject-case rule - old commits in history have mixed casing
      */
-    "subject-case": [
-      2,
-      "never",
-      ["sentence-case", "start-case", "pascal-case", "upper-case"],
-    ],
+    "subject-case": [0],
 
     /**
      * A type must always be present (e.g., "feat:", "fix:", etc.).
