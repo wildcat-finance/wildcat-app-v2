@@ -11,6 +11,7 @@ import {
   defaultAbiCoder,
   getAddress,
   hexlify,
+  keccak256,
   toUtf8Bytes,
 } from "ethers/lib/utils"
 
@@ -70,14 +71,14 @@ async function check1271Signature(
 
 async function check1271SignatureBytes(
   safe: ISafe,
-  messageHash: string,
+  message: string,
   // eslint-disable-next-line default-param-last
   signature = "0x",
   overrides?: CallOverrides,
 ): Promise<boolean> {
   try {
     const response = await safe["isValidSignature(bytes,bytes)"](
-      messageHash,
+      message,
       signature,
       overrides,
     )
@@ -96,15 +97,26 @@ async function verifyGnosisSignature(
   overrides?: CallOverrides,
 ): Promise<boolean> {
   const safe = getSafe(address, provider)
+  // eip 1271 expects bytes32 digest
+  const messageBytes = message.startsWith("0x")
+    ? message
+    : hexlify(toUtf8Bytes(message))
+  const messageHash = keccak256(messageBytes)
   if (
-    await checkSafeSignature(provider, address, message, signature, overrides)
+    await checkSafeSignature(
+      provider,
+      address,
+      messageBytes,
+      signature,
+      overrides,
+    )
   ) {
     return true
   }
-  if (await check1271Signature(safe, message, signature, overrides)) {
+  if (await check1271Signature(safe, messageHash, signature, overrides)) {
     return true
   }
-  if (await check1271SignatureBytes(safe, message, signature, overrides)) {
+  if (await check1271SignatureBytes(safe, messageBytes, signature, overrides)) {
     return true
   }
   return false
@@ -152,6 +164,11 @@ async function getSignatureAddress(
         return address
       }
     }
+    if (description.kind === AccountKind.UnknownContract) {
+      if (await verifyGnosisSignature(address, provider, message, signature)) {
+        return address
+      }
+    }
   } catch (err) {
     console.log(`Bad Signature: ${signature}`)
   }
@@ -183,6 +200,9 @@ export async function verifySignature({
         console.log(`Not single owner signature: ${signature}`)
       }
     }
+    return verifyGnosisSignature(address, provider, message, signature)
+  }
+  if (description.kind === AccountKind.UnknownContract) {
     return verifyGnosisSignature(address, provider, message, signature)
   }
   // throw new HttpException(405, `Only EOA and Gnosis Safe accounts are supported.`);
