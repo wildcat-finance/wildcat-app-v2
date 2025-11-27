@@ -5,7 +5,6 @@ import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid"
 import { Market, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
-import { LinkCell } from "@/app/[locale]/borrower/profile/components/MarketsSection/styles"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { ROUTES } from "@/routes"
@@ -14,6 +13,8 @@ import { capacityComparator, statusComparator } from "@/utils/comparators"
 import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
+
+import { LinkCell } from "../../../components/MarketsTables/style"
 
 export type MarketsTabProps = {
   markets: Market[]

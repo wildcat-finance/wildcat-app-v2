@@ -19,11 +19,11 @@ import {
   BorrowerWithName,
   useBorrowerNames,
 } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
-import { MobileMarketCard } from "@/app/[locale]/lender/components/mobile/MobileMarketCard"
-import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
+import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
+import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { TablePagination } from "@/components/TablePagination"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
