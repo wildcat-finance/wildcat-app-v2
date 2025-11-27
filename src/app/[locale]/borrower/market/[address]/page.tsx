@@ -94,9 +94,16 @@ export default function MarketDetails({
 
   const claimableCount = withdrawals.batchesWithClaimableWithdrawals?.flatMap(
     (batch) =>
-      batch.withdrawals.flatMap((withdrawal) =>
-        withdrawal.requests.map((request) => request.transactionHash),
-      ),
+      batch.withdrawals.flatMap((withdrawal) => {
+        const claimableAmount = withdrawal.availableWithdrawalAmount
+        return withdrawal.requests.filter((request) => {
+          const amount = claimableAmount.mulDiv(
+            request.scaledAmount,
+            withdrawal.scaledAmount,
+          )
+          return amount.gt(0)
+        })
+      }),
   ).length
 
   const outstandingCount = (
