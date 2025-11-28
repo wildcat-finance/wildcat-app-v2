@@ -12,10 +12,12 @@ import {
   SubgraphGetMarketQuery,
   SubgraphGetMarketQueryVariables,
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
+import { useBlockNumber } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { usePageVisible } from "@/hooks/usePageVisible"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 export type UseMarketProps = {
@@ -25,9 +27,14 @@ export type UseMarketProps = {
 export function useGetMarket({ address, ...filters }: UseMarketProps) {
   const subgraphClient = useSubgraphClient()
   const { signer, provider, isWrongNetwork, chainId } = useEthersProvider()
+  const { data: blockNumber } = useBlockNumber({ watch: true })
+  const isVisible = usePageVisible()
   const marketAddressFormatted = address?.toLowerCase()
   // since we still need to have an address and have the correct network, it means we need to have a connected wallet, so we only need a signer
   const signerOrProvider = signer || provider
+  const isEnabled =
+    !!marketAddressFormatted && !!signerOrProvider && !!chainId && !isWrongNetwork
+  const refetchInterval = isVisible ? POLLING_INTERVAL : false
 
   async function queryMarket() {
     if (!marketAddressFormatted || !signerOrProvider || !chainId) throw Error()
@@ -73,18 +80,16 @@ export function useGetMarket({ address, ...filters }: UseMarketProps) {
     return updateMarket(marketFromSubgraph)
   }
 
-  const { data, ...result } = useQuery({
+  const { data, refetch, ...result } = useQuery({
     queryKey: QueryKeys.Markets.GET_MARKET(
       chainId ?? 0,
       marketAddressFormatted,
     ),
     queryFn,
-    refetchInterval: POLLING_INTERVAL,
-    enabled:
-      !!marketAddressFormatted &&
-      !!signerOrProvider &&
-      !!chainId &&
-      !isWrongNetwork,
+    refetchInterval,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
+    enabled: isEnabled,
     refetchOnMount: false,
   })
 
@@ -93,6 +98,11 @@ export function useGetMarket({ address, ...filters }: UseMarketProps) {
       data.provider = signerOrProvider
     }
   }, [signerOrProvider])
+
+  useEffect(() => {
+    if (!isEnabled || !isVisible || blockNumber === undefined) return
+    refetch()
+  }, [blockNumber, isEnabled, isVisible, refetch])
 
   return { ...result, data }
 }

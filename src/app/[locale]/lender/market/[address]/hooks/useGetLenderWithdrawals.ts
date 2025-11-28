@@ -1,6 +1,6 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable no-restricted-syntax */
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
@@ -17,10 +17,11 @@ import {
   SubgraphGetLenderWithdrawalsForMarketQueryVariables,
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
-import { useAccount } from "wagmi"
+import { useAccount, useBlockNumber } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
+import { usePageVisible } from "@/hooks/usePageVisible"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TwoStepQueryHookResult } from "@/utils/types"
@@ -40,8 +41,11 @@ export function useGetLenderWithdrawals(
   const subgraphClient = useSubgraphClient()
   const { address } = useAccount()
   const { chainId: targetChainId } = useSelectedNetwork()
+  const { data: blockNumber } = useBlockNumber({ watch: true })
+  const isVisible = usePageVisible()
   const lender = address?.toLowerCase()
   const marketAddress = market?.address.toLowerCase()
+  const refetchInterval = isVisible ? POLLING_INTERVAL : false
   async function queryLenderWithdrawals() {
     if (
       !lender ||
@@ -146,7 +150,9 @@ export function useGetLenderWithdrawals(
       marketAddress,
     ),
     queryFn: queryLenderWithdrawals,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
     placeholderData: keepPreviousData,
     enabled: !!lender && !!market,
     // refetchOnMount: false,
@@ -269,9 +275,17 @@ export function useGetLenderWithdrawals(
     ),
     queryFn: updateWithdrawals,
     placeholderData: keepPreviousData,
-    enabled: !!data,
+    enabled: !!data && isVisible,
+    refetchInterval,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
     // refetchOnMount: false,
   })
+
+  useEffect(() => {
+    if (!data || !isVisible || blockNumber === undefined) return
+    refetchUpdate()
+  }, [blockNumber, data, isVisible, refetchUpdate])
 
   return {
     data: (updatedWithdrawals ??

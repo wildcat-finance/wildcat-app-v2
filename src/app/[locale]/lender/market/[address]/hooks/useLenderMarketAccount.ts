@@ -12,10 +12,12 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { SubgraphGetMarketQueryVariables } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { constants } from "ethers"
+import { useBlockNumber } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { usePageVisible } from "@/hooks/usePageVisible"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TwoStepQueryHookResult } from "@/utils/types"
@@ -38,6 +40,9 @@ export function useLenderMarketAccountQuery({
   const marketAddress = market?.address.toLowerCase()
   const lenderAddress = lender?.toLowerCase()
   const { chainId: targetChainId } = useSelectedNetwork()
+  const { data: blockNumber } = useBlockNumber({ watch: true })
+  const isVisible = usePageVisible()
+  const refetchInterval = isVisible ? POLLING_INTERVAL : false
 
   async function queryMarketAccount() {
     if (!market || !lender || market.chainId !== targetChainId) throw Error()
@@ -64,7 +69,9 @@ export function useLenderMarketAccountQuery({
       lenderAddress,
       "initial",
     ),
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
     queryFn: queryMarketAccount,
     enabled,
     refetchOnMount: false,
@@ -112,9 +119,11 @@ export function useLenderMarketAccountQuery({
       "update",
     ),
     queryFn: updateMarketAccount,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
     placeholderData: keepPreviousData,
-    enabled: !!data,
+    enabled: !!data && isVisible,
     refetchOnMount: false,
   })
 
@@ -128,6 +137,11 @@ export function useLenderMarketAccountQuery({
       data.market.provider = provider
     }
   }, [provider])
+
+  useEffect(() => {
+    if (!data || !isVisible || blockNumber === undefined) return
+    refetchUpdate()
+  }, [blockNumber, data, isVisible, refetchUpdate])
 
   return {
     data: updatedLender ?? data,
