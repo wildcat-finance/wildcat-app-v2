@@ -67,7 +67,12 @@ export default function LenderMarketDetails({
   const { data: marketAccount, isLoadingInitial: isMarketAccountLoading } =
     useLenderMarketAccount(market)
   const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
-    useGetLenderWithdrawals(market)
+    useGetLenderWithdrawals(
+      market,
+      currentSection === LenderMarketSections.TRANSACTIONS ||
+        currentSection === LenderMarketSections.STATUS ||
+        currentSection === LenderMarketSections.REQUESTS,
+    )
   const { data: marketSummary, isLoading: isLoadingSummary } = useMarketSummary(
     address.toLowerCase(),
     market?.chainId ?? targetChainId,
@@ -372,7 +377,10 @@ export default function LenderMarketDetails({
           )}
           {currentSection === LenderMarketSections.MARKET_HISTORY && (
             <Box marginTop="12px">
-              <PaginatedMarketRecordsTable market={market} />
+              <PaginatedMarketRecordsTable
+                market={market}
+                enabled={currentSection === LenderMarketSections.MARKET_HISTORY}
+              />
             </Box>
           )}
         </Box>

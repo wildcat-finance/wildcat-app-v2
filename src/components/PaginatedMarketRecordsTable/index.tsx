@@ -44,7 +44,13 @@ const MarketRecordFilters: CheckboxOption<MarketRecordKind>[] = (
 
 const ALL_KINDS: MarketRecordKind[] = MarketRecordFilters.map((f) => f.value)
 
-export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
+export function PaginatedMarketRecordsTable({
+  market,
+  enabled = true,
+}: {
+  market: Market
+  enabled?: boolean
+}) {
   const [page, setPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)
   const [selectedFilters, setSelectedFilters] = useState<MarketRecordKind[]>(
@@ -66,6 +72,7 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
     pageSize,
     kinds: selectedFilters as MarketRecordKind[],
     search,
+    enabled,
   })
   const options = MarketRecordFilters
 

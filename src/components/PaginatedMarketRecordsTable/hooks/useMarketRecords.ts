@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-import { useQuery } from "@tanstack/react-query"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   Market,
   MarketRecordKind,
@@ -16,6 +16,7 @@ export type UseMarketRecordsProps = {
   pageSize: number
   kinds?: MarketRecordKind[]
   search?: string
+  enabled?: boolean
 }
 
 export function useMarketRecords({
@@ -24,6 +25,7 @@ export function useMarketRecords({
   pageSize,
   kinds,
   search,
+  enabled = true,
 }: UseMarketRecordsProps) {
   const [finalEventIndex, setFinalEventIndex] = useState(market.eventIndex)
   const subgraphClient = useSubgraphClient()
@@ -96,8 +98,9 @@ export function useMarketRecords({
       search ?? "",
     ),
     queryFn: getMarketRecordsInternal,
-    enabled: true,
+    enabled,
     refetchOnMount: false,
+    placeholderData: keepPreviousData,
   })
 
   return {

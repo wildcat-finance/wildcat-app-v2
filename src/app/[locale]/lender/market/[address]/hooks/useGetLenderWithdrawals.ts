@@ -37,6 +37,7 @@ export type LenderWithdrawalsForMarketResult = {
 
 export function useGetLenderWithdrawals(
   market: Market | undefined,
+  enabled: boolean = true,
 ): TwoStepQueryHookResult<LenderWithdrawalsForMarketResult> {
   const subgraphClient = useSubgraphClient()
   const { address } = useAccount()
@@ -154,7 +155,7 @@ export function useGetLenderWithdrawals(
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: false,
     placeholderData: keepPreviousData,
-    enabled: !!lender && !!market,
+    enabled: !!lender && !!market && enabled,
     // refetchOnMount: false,
   })
 
@@ -275,7 +276,7 @@ export function useGetLenderWithdrawals(
     ),
     queryFn: updateWithdrawals,
     placeholderData: keepPreviousData,
-    enabled: !!data && isVisible,
+    enabled: !!data && isVisible && enabled,
     refetchInterval,
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: false,
