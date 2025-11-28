@@ -128,18 +128,48 @@ export const useDeposit = (
       await deposit()
     },
     onSuccess() {
+      const chainId = marketAccount.market.chainId
+      const marketAddress = marketAccount.market.address
+      const lenderAddress = marketAccount.account?.toLowerCase()
+
       client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET(
-          marketAccount.market.chainId,
-          marketAccount.market.address,
-        ),
+        queryKey: QueryKeys.Markets.GET_MARKET(chainId, marketAddress),
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
-          marketAccount.market.chainId,
-          marketAccount.market.address,
-        ),
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(chainId, marketAddress),
       })
+      if (lenderAddress) {
+        client.invalidateQueries({
+          queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT(
+            chainId,
+            marketAddress,
+            lenderAddress,
+            "initial",
+          ),
+        })
+        client.invalidateQueries({
+          queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT(
+            chainId,
+            marketAddress,
+            lenderAddress,
+            "update",
+          ),
+        })
+        client.invalidateQueries({
+          queryKey: QueryKeys.Lender.GET_WITHDRAWALS.INITIAL(
+            chainId,
+            lenderAddress,
+            marketAddress,
+          ),
+        })
+        client.invalidateQueries({
+          queryKey: QueryKeys.Lender.GET_WITHDRAWALS.UPDATE(
+            chainId,
+            lenderAddress,
+            marketAddress,
+          ),
+        })
+      }
     },
     onError(error) {
       console.log(error)

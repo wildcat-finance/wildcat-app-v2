@@ -60,15 +60,48 @@ export const useClaim = (
       await claim()
     },
     onSuccess() {
+      const chainId = market.chainId
+      const marketAddress = market.address
+      const lenderAddress = address?.toLowerCase()
+
       client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET(market.chainId, market.address),
+        queryKey: QueryKeys.Markets.GET_MARKET(chainId, marketAddress),
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
-          market.chainId,
-          market.address,
-        ),
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(chainId, marketAddress),
       })
+      if (lenderAddress) {
+        client.invalidateQueries({
+          queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT(
+            chainId,
+            marketAddress,
+            lenderAddress,
+            "initial",
+          ),
+        })
+        client.invalidateQueries({
+          queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT(
+            chainId,
+            marketAddress,
+            lenderAddress,
+            "update",
+          ),
+        })
+        client.invalidateQueries({
+          queryKey: QueryKeys.Lender.GET_WITHDRAWALS.INITIAL(
+            chainId,
+            lenderAddress,
+            marketAddress,
+          ),
+        })
+        client.invalidateQueries({
+          queryKey: QueryKeys.Lender.GET_WITHDRAWALS.UPDATE(
+            chainId,
+            lenderAddress,
+            marketAddress,
+          ),
+        })
+      }
     },
     onError(error) {
       console.log(error)

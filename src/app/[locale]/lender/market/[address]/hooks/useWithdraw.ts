@@ -69,26 +69,48 @@ export const useWithdraw = (
       await withdraw()
     },
     onSuccess() {
+      const chainId = marketAccount.market.chainId
+      const marketAddress = marketAccount.market.address
+      const lenderAddress = address?.toLowerCase()
+
       client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET(
-          marketAccount.market.chainId,
-          marketAccount.market.address,
-        ),
+        queryKey: QueryKeys.Markets.GET_MARKET(chainId, marketAddress),
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
-          marketAccount.market.chainId,
-          "initial",
-          marketAccount.market.address,
-        ),
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(chainId, marketAddress),
       })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
-          marketAccount.market.chainId,
-          "update",
-          marketAccount.market.address,
-        ),
-      })
+      if (lenderAddress) {
+        client.invalidateQueries({
+          queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT(
+            chainId,
+            marketAddress,
+            lenderAddress,
+            "initial",
+          ),
+        })
+        client.invalidateQueries({
+          queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT(
+            chainId,
+            marketAddress,
+            lenderAddress,
+            "update",
+          ),
+        })
+        client.invalidateQueries({
+          queryKey: QueryKeys.Lender.GET_WITHDRAWALS.INITIAL(
+            chainId,
+            lenderAddress,
+            marketAddress,
+          ),
+        })
+        client.invalidateQueries({
+          queryKey: QueryKeys.Lender.GET_WITHDRAWALS.UPDATE(
+            chainId,
+            lenderAddress,
+            marketAddress,
+          ),
+        })
+      }
     },
     onError(error, amount) {
       console.log(error, amount)
