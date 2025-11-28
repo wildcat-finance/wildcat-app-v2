@@ -75,6 +75,7 @@ export function useLenderMarketAccountQuery({
     queryFn: queryMarketAccount,
     enabled,
     refetchOnMount: false,
+    placeholderData: keepPreviousData,
   })
 
   async function updateMarketAccount() {

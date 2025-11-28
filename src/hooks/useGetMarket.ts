@@ -91,6 +91,7 @@ export function useGetMarket({ address, ...filters }: UseMarketProps) {
     refetchOnWindowFocus: false,
     enabled: isEnabled,
     refetchOnMount: false,
+    placeholderData: keepPreviousData,
   })
 
   useEffect(() => {
