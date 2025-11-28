@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import { useMemo } from "react"
 
-import { useQuery } from "@tanstack/react-query"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   SignerOrProvider,
   Market,
@@ -118,6 +118,7 @@ export function useLendersMarkets(
     refetchInterval: POLLING_INTERVAL,
     enabled: !!signerOrProvider && !isWrongNetwork,
     refetchOnMount: false,
+    placeholderData: keepPreviousData,
   })
 
   const accounts = data ?? []
@@ -218,6 +219,7 @@ export function useLendersMarkets(
     queryFn: getLenderUpdates,
     enabled: !!data,
     refetchOnMount: false,
+    placeholderData: keepPreviousData,
   })
 
   return {

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   assert,
   getPolicyMarketsAndLenders,
@@ -54,5 +54,6 @@ export const useGetPolicy = ({ policy, ...variables }: GetPolicyArgs) => {
     refetchInterval: POLLING_INTERVAL,
     enabled: address && !!policy && !isWrongNetwork && !!signerOrProvider,
     refetchOnMount: false,
+    placeholderData: keepPreviousData,
   })
 }

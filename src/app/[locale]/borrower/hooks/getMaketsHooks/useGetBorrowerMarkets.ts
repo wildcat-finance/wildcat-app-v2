@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { useQuery } from "@tanstack/react-query"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   SignerOrProvider,
   SubgraphGetMarketsWithEventsQueryVariables,
@@ -80,6 +80,7 @@ export function useGetBorrowerMarketsQuery({
     refetchInterval: POLLING_INTERVAL,
     enabled,
     refetchOnMount: false,
+    placeholderData: keepPreviousData,
   })
 }
 

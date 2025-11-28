@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   GetAllAuthorizedLendersDocument,
   SubgraphGetAllAuthorizedLendersQuery,
@@ -110,5 +110,6 @@ export const useGetAllLenders = () => {
     queryFn: () => getAllLenders(subgraphClient, address!),
     refetchInterval: POLLING_INTERVAL,
     enabled: address && !isWrongNetwork,
+    placeholderData: keepPreviousData,
   })
 }

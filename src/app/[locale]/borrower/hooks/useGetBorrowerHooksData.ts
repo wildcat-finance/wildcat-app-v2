@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   getLensV2Contract,
   SignerOrProvider,
@@ -95,6 +95,7 @@ export function useGetBorrowerHooksDataQuery({
     refetchInterval: POLLING_INTERVAL,
     enabled,
     refetchOnMount: false,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -134,6 +135,7 @@ export function useGetBorrowerHooksDataWithSubgraphQuery({
     enabled: !!address && !!chainId && enabled,
     refetchInterval: POLLING_INTERVAL,
     refetchOnMount: false,
+    placeholderData: keepPreviousData,
   })
 }
 
