@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { Box, Divider, Skeleton, Typography, useTheme } from "@mui/material"
 import { redirect } from "next/navigation"
@@ -105,23 +105,25 @@ export default function LenderMarketDetails({
     }
   }, [authorizedInMarket])
 
-  const ongoingCount = (
-    withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
-  ).flatMap((b) => b.requests).length
+  const totalWithdrawalsCount = useMemo(() => {
+    const ongoingCount = (
+      withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
+    ).flatMap((b) => b.requests).length
 
-  const claimableCount = new Set(
-    (withdrawals.expiredPendingWithdrawals ?? [])
-      .filter((b) => !b.availableWithdrawalAmount.raw.isZero())
-      .flatMap((b) => b.requests.map((r) => r.transactionHash)),
-  ).size
+    const claimableCount = new Set(
+      (withdrawals.expiredPendingWithdrawals ?? [])
+        .filter((b) => !b.availableWithdrawalAmount.raw.isZero())
+        .flatMap((b) => b.requests.map((r) => r.transactionHash)),
+    ).size
 
-  const outstandingCount = (
-    withdrawals?.expiredPendingWithdrawals ?? []
-  ).flatMap((b) =>
-    b.requests.filter((wd) => wd.getNormalizedAmountOwed(b.batch).gt(0)),
-  ).length
+    const outstandingCount = (
+      withdrawals?.expiredPendingWithdrawals ?? []
+    ).flatMap((b) =>
+      b.requests.filter((wd) => wd.getNormalizedAmountOwed(b.batch).gt(0)),
+    ).length
 
-  const totalWithdrawalsCount = ongoingCount + claimableCount + outstandingCount
+    return ongoingCount + claimableCount + outstandingCount
+  }, [withdrawals])
 
   useEffect(() => {
     dispatch(setWithdrawalsCount(totalWithdrawalsCount))
