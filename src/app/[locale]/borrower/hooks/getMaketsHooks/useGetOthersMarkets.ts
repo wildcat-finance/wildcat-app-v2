@@ -41,7 +41,7 @@ export function useGetOthersMarketsQuery({
     ]) as SubgraphMarket_Filter
     const result = await getMarketsWithEvents(subgraphClient, {
       chainId: chainId as SupportedChainId,
-      fetchPolicy: "network-only",
+      fetchPolicy: "cache-and-network",
       signerOrProvider: provider as SignerOrProvider,
       marketFilter: filter,
       ...variables,

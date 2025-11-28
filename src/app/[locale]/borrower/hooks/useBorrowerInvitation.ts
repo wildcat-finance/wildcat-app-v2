@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 
 import { BorrowerInvitation } from "@/app/api/invite/interface"
 import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
@@ -44,9 +44,10 @@ export const useGetBorrowerInvitation = (address: string | undefined) => {
   }
   const { data, ...result } = useQuery({
     enabled: !!address,
-    queryKey: [USE_BORROWER_INVITE_KEY, address, !!token],
+    queryKey: [USE_BORROWER_INVITE_KEY, chainId, address, !!token],
     queryFn: getInvitation,
     refetchOnMount: false,
+    placeholderData: keepPreviousData,
   })
   return { ...data, ...result }
 }
@@ -78,8 +79,9 @@ export const useBorrowerInvitationExists = (address: string | undefined) => {
   }
   const { data, ...result } = useQuery({
     enabled: !!address,
-    queryKey: [USE_BORROWER_INVITE_EXISTS_KEY, address],
+    queryKey: [USE_BORROWER_INVITE_EXISTS_KEY, chainId, address],
     queryFn: getInvitationExists,
+    placeholderData: keepPreviousData,
   })
   return {
     data: data === null ? undefined : data,
@@ -114,9 +116,10 @@ export const useBorrowerInvitation = (address: string | undefined) => {
   }
   const { data, ...result } = useQuery({
     enabled: !!address && !!token,
-    queryKey: [USE_BORROWER_INVITE_KEY, address],
+    queryKey: [USE_BORROWER_INVITE_KEY, chainId, address],
     queryFn: getInvites,
     refetchOnMount: false,
+    placeholderData: keepPreviousData,
   })
   return {
     data: data === null ? undefined : data,

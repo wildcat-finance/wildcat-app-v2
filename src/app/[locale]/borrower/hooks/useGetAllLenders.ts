@@ -52,7 +52,7 @@ export const getAllLenders = async (
   >({
     query: GetAllAuthorizedLendersDocument,
     variables: { borrower: address },
-    fetchPolicy: "network-only",
+    fetchPolicy: "cache-and-network",
   })
 
   const allLenders: AllLendersData = {

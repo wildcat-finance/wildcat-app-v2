@@ -37,14 +37,14 @@ export const useGetMarketLenders = (market?: Market) => {
     assert(policy !== undefined, `Policy undefined ${policy}`)
     const [{ lenders: policyLenders }, activeLenders] = await Promise.all([
       getPolicyMarketsAndLenders(subgraphClient, {
-        fetchPolicy: "network-only",
+        fetchPolicy: "cache-and-network",
         contractAddress: policy?.toLowerCase(),
         chainId: chainId as SupportedChainId,
         signerOrProvider: signerOrProvider as SignerOrProvider,
         numMarkets: 1,
       }),
       getActiveLendersByMarket(subgraphClient, {
-        fetchPolicy: "network-only",
+        fetchPolicy: "cache-and-network",
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         market: market as any,
       }),

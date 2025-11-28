@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { useAccount } from "wagmi"
 
 import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
@@ -38,5 +38,6 @@ export const useMarketMla = (marketAddress: string | undefined) => {
     ),
     queryFn: getMarketMla,
     refetchOnMount: false,
+    placeholderData: keepPreviousData,
   })
 }

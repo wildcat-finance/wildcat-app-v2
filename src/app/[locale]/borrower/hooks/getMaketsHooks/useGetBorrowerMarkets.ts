@@ -51,7 +51,7 @@ export function useGetBorrowerMarketsQuery({
       borrower: address as string,
       chainId: chainId as SupportedChainId,
       signerOrProvider: provider as SignerOrProvider,
-      fetchPolicy: "network-only",
+      fetchPolicy: "cache-and-network",
       marketFilter: filter,
       ...variables,
       shouldSkipRecords,

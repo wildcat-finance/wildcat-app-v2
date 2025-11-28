@@ -26,7 +26,7 @@ export const useGetMarketAccountForBorrowerLegacy = (
     return getLenderAccountForMarket(subgraphClient, {
       market: market as Market,
       lender: address as string,
-      fetchPolicy: "network-only",
+      fetchPolicy: "cache-and-network",
     })
   }
 

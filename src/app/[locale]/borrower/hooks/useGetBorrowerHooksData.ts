@@ -123,7 +123,7 @@ export function useGetBorrowerHooksDataWithSubgraphQuery({
     const result = await getAllHooksDataForBorrower(subgraphClient, {
       borrower: address as string,
       chainId: chainId as SupportedChainId,
-      fetchPolicy: "network-only",
+      fetchPolicy: "cache-and-network",
       signerOrProvider: provider as SignerOrProvider,
     })
     return result

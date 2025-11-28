@@ -37,7 +37,7 @@ export const useGetPolicy = ({ policy, ...variables }: GetPolicyArgs) => {
     assert(policy !== undefined, `Policy undefined ${policy}`)
     const { markets, lenders, hooksInstance, controller } =
       await getPolicyMarketsAndLenders(subgraphClient, {
-        fetchPolicy: "network-only",
+        fetchPolicy: "cache-and-network",
         contractAddress: policy?.toLowerCase(),
         chainId: chainId as SupportedChainId,
         signerOrProvider: signerOrProvider as SignerOrProvider,

@@ -88,7 +88,7 @@ export function useLendersMarkets(
       {
         ...otherFilters,
         lender: lender ?? constants.AddressZero,
-        fetchPolicy: "network-only",
+        fetchPolicy: "cache-and-network",
         chainId,
         signerOrProvider,
         marketFilter: filter,

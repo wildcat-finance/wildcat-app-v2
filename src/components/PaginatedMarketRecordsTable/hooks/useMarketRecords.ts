@@ -48,7 +48,7 @@ export function useMarketRecords({
 
     const records = await getMarketRecords(subgraphClient, {
       market,
-      fetchPolicy: "network-only",
+      fetchPolicy: "cache-and-network",
       endEventIndex: finalEventIndex,
       limit: 500,
       kinds: kinds?.length ? kinds : undefined,

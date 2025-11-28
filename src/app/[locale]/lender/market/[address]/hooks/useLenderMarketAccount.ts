@@ -49,7 +49,7 @@ export function useLenderMarketAccountQuery({
     const result = await getLenderAccountForMarket(subgraphClient, {
       market: market as Market,
       lender: lenderAddress as string,
-      fetchPolicy: "network-only",
+      fetchPolicy: "cache-and-network",
       ...filters,
     })
 
