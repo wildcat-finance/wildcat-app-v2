@@ -24,10 +24,7 @@ import ArrowLeftIcon from "@/assets/icons/sharpArrow_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { HorizontalInputLabel } from "@/components/HorisontalInputLabel"
 import { InputLabel } from "@/components/InputLabel"
-import {
-  getMaxFixedTermDays,
-  getMaxFixedTermLabel,
-} from "@/config/market-duration"
+import { getMaxFixedTermDays } from "@/config/market-duration"
 import {
   mockedAccessControlOptions,
   mockedMarketTypesOptions,
@@ -104,30 +101,6 @@ export const MarketPolicyForm = ({
     policyWatch === "createNewPolicy" || policyWatch === ""
   )
 
-  const isFixedTermDateValid = (() => {
-    if (!fixedTermEndTimeWatch || Number.isNaN(fixedTermEndTimeWatch))
-      return false
-    const selectedDate = dayjs.unix(fixedTermEndTimeWatch)
-    if (!selectedDate.isValid()) return false
-    return (
-      selectedDate.isAfter(today) &&
-      selectedDate.isBefore(maxDate.add(1, "day"))
-    )
-  })()
-
-  const fixedTermDateError = (() => {
-    if (!fixedTermEndTimeWatch || Number.isNaN(fixedTermEndTimeWatch))
-      return undefined
-    const selectedDate = dayjs.unix(fixedTermEndTimeWatch)
-    if (!selectedDate.isValid()) return undefined
-    if (isFixedTermDateValid) return undefined
-    if (selectedDate.isBefore(tomorrow)) {
-      return "Loan maturity date must be in the future"
-    }
-    const maxLabel = getMaxFixedTermLabel(isTestnet)
-    return `Must be between tomorrow and ${maxLabel} from now`
-  })()
-
   const isStandardFormValid =
     !!policyWatch &&
     policyWatch.trim() !== "" &&
@@ -149,7 +122,6 @@ export const MarketPolicyForm = ({
     !!accessControlWatch &&
     accessControlWatch.trim() !== "" &&
     !!fixedTermEndTimeWatch &&
-    isFixedTermDateValid &&
     !errors.fixedTermEndTime
 
   const isFormValid = isFixedTerm ? isFixedFormValid : isStandardFormValid
@@ -346,11 +318,8 @@ export const MarketPolicyForm = ({
                           padding: "16px",
                         },
                       },
-                      helperText:
-                        fixedTermDateError || errors.fixedTermEndTime?.message,
-                      error: Boolean(
-                        fixedTermDateError || errors.fixedTermEndTime,
-                      ),
+                      helperText: errors.fixedTermEndTime?.message,
+                      error: Boolean(errors.fixedTermEndTime),
                       FormHelperTextProps: {
                         sx: {
                           color: "wildWatermelon",
