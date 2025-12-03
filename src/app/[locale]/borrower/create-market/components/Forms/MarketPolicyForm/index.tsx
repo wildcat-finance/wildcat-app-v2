@@ -25,6 +25,10 @@ import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { HorizontalInputLabel } from "@/components/HorisontalInputLabel"
 import { InputLabel } from "@/components/InputLabel"
 import {
+  getMaxFixedTermDays,
+  getMaxFixedTermLabel,
+} from "@/config/market-duration"
+import {
   mockedAccessControlOptions,
   mockedMarketTypesOptions,
 } from "@/mocks/mocks"
@@ -66,6 +70,7 @@ const DateCalendarArrowRight = () => (
 export const MarketPolicyForm = ({
   form,
   policyOptions,
+  isTestnet,
 }: MarketPolicyFormProps) => {
   const { t } = useTranslation()
   const theme = useTheme()
@@ -74,7 +79,8 @@ export const MarketPolicyForm = ({
 
   const today = dayjs.unix(Date.now() / 1_000).startOf("day")
   const tomorrow = today.add(1, "day")
-  const twoYearsFromNow = today.add(730, "days")
+  const maxDays = getMaxFixedTermDays(isTestnet)
+  const maxDate = today.add(maxDays, "days")
 
   const {
     setValue,
@@ -98,6 +104,30 @@ export const MarketPolicyForm = ({
     policyWatch === "createNewPolicy" || policyWatch === ""
   )
 
+  const isFixedTermDateValid = (() => {
+    if (!fixedTermEndTimeWatch || Number.isNaN(fixedTermEndTimeWatch))
+      return false
+    const selectedDate = dayjs.unix(fixedTermEndTimeWatch)
+    if (!selectedDate.isValid()) return false
+    return (
+      selectedDate.isAfter(today) &&
+      selectedDate.isBefore(maxDate.add(1, "day"))
+    )
+  })()
+
+  const fixedTermDateError = (() => {
+    if (!fixedTermEndTimeWatch || Number.isNaN(fixedTermEndTimeWatch))
+      return undefined
+    const selectedDate = dayjs.unix(fixedTermEndTimeWatch)
+    if (!selectedDate.isValid()) return undefined
+    if (isFixedTermDateValid) return undefined
+    if (selectedDate.isBefore(tomorrow)) {
+      return "Loan maturity date must be in the future"
+    }
+    const maxLabel = getMaxFixedTermLabel(isTestnet)
+    return `Must be between tomorrow and ${maxLabel} from now`
+  })()
+
   const isStandardFormValid =
     !!policyWatch &&
     policyWatch.trim() !== "" &&
@@ -119,6 +149,7 @@ export const MarketPolicyForm = ({
     !!accessControlWatch &&
     accessControlWatch.trim() !== "" &&
     !!fixedTermEndTimeWatch &&
+    isFixedTermDateValid &&
     !errors.fixedTermEndTime
 
   const isFormValid = isFixedTerm ? isFixedFormValid : isStandardFormValid
@@ -250,14 +281,23 @@ export const MarketPolicyForm = ({
                       : null
                   }
                   onChange={(v) => {
-                    setValue(
-                      "fixedTermEndTime",
-                      (v ? v.unix() : undefined) as number,
-                      { shouldTouch: true },
-                    )
+                    if (v && v.isValid()) {
+                      setValue("fixedTermEndTime", v.unix(), {
+                        shouldTouch: true,
+                        shouldValidate: true,
+                      })
+                    } else if (!v) {
+                      setValue(
+                        "fixedTermEndTime",
+                        undefined as unknown as number,
+                        {
+                          shouldTouch: true,
+                        },
+                      )
+                    }
                   }}
                   minDate={tomorrow}
-                  maxDate={twoYearsFromNow}
+                  maxDate={maxDate}
                   slots={{
                     leftArrowIcon: DateCalendarArrowLeft,
                     rightArrowIcon: DateCalendarArrowRight,
@@ -306,8 +346,11 @@ export const MarketPolicyForm = ({
                           padding: "16px",
                         },
                       },
-                      helperText: errors.fixedTermEndTime?.message,
-                      error: Boolean(errors.fixedTermEndTime),
+                      helperText:
+                        fixedTermDateError || errors.fixedTermEndTime?.message,
+                      error: Boolean(
+                        fixedTermDateError || errors.fixedTermEndTime,
+                      ),
                       FormHelperTextProps: {
                         sx: {
                           color: "wildWatermelon",
