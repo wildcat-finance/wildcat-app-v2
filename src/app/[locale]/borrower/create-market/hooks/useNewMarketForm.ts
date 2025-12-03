@@ -6,17 +6,13 @@ import {
   MarketParameterConstraints,
 } from "@wildcatfi/wildcat-sdk"
 import { useForm, UseFormReturn } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 
 import {
   MarketValidationSchemaType,
-  baseMarketSchemaFields,
-  createMarketValidationSchema,
+  createBaseMarketSchemaObject,
+  marketRefinementCallback,
 } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
-import {
-  getMaxFixedTermDays,
-  getMaxFixedTermLabel,
-} from "@/config/market-duration"
-import { dayjs } from "@/utils/dayjs"
 import { formatConstrainToNumber } from "@/utils/formatters"
 
 export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
@@ -49,39 +45,46 @@ export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
 function getValidationSchema(
   constraints: MarketParameterConstraints,
   isTestnet: boolean,
+  maxLabel: string,
 ) {
   const getFormattedConstrain = (key: keyof MarketParameterConstraints) =>
     formatConstrainToNumber(constraints, key)
 
-  const baseSchema = createMarketValidationSchema(isTestnet)
-  // eslint-disable-next-line no-underscore-dangle
-  const baseObjectSchema = baseSchema._def.schema
+  const baseObjectSchema = createBaseMarketSchemaObject(isTestnet, maxLabel)
 
-  return baseObjectSchema.extend({
-    delinquencyGracePeriod: baseObjectSchema.shape.delinquencyGracePeriod
-      .min(getFormattedConstrain("minimumDelinquencyGracePeriod"))
-      .max(getFormattedConstrain("maximumDelinquencyGracePeriod")),
-    reserveRatioBips: baseObjectSchema.shape.reserveRatioBips
-      .min(getFormattedConstrain("minimumReserveRatioBips"))
-      .max(getFormattedConstrain("maximumReserveRatioBips")),
-    delinquencyFeeBips: baseObjectSchema.shape.delinquencyFeeBips
-      .min(getFormattedConstrain("minimumDelinquencyFeeBips"))
-      .max(getFormattedConstrain("maximumDelinquencyFeeBips")),
-    withdrawalBatchDuration: baseObjectSchema.shape.withdrawalBatchDuration
-      .min(getFormattedConstrain("minimumWithdrawalBatchDuration"))
-      .max(getFormattedConstrain("maximumWithdrawalBatchDuration")),
-    annualInterestBips: baseObjectSchema.shape.annualInterestBips
-      .min(getFormattedConstrain("minimumAnnualInterestBips"))
-      .max(getFormattedConstrain("maximumAnnualInterestBips")),
-  })
+  return baseObjectSchema
+    .extend({
+      delinquencyGracePeriod: baseObjectSchema.shape.delinquencyGracePeriod
+        .min(getFormattedConstrain("minimumDelinquencyGracePeriod"))
+        .max(getFormattedConstrain("maximumDelinquencyGracePeriod")),
+      reserveRatioBips: baseObjectSchema.shape.reserveRatioBips
+        .min(getFormattedConstrain("minimumReserveRatioBips"))
+        .max(getFormattedConstrain("maximumReserveRatioBips")),
+      delinquencyFeeBips: baseObjectSchema.shape.delinquencyFeeBips
+        .min(getFormattedConstrain("minimumDelinquencyFeeBips"))
+        .max(getFormattedConstrain("maximumDelinquencyFeeBips")),
+      withdrawalBatchDuration: baseObjectSchema.shape.withdrawalBatchDuration
+        .min(getFormattedConstrain("minimumWithdrawalBatchDuration"))
+        .max(getFormattedConstrain("maximumWithdrawalBatchDuration")),
+      annualInterestBips: baseObjectSchema.shape.annualInterestBips
+        .min(getFormattedConstrain("minimumAnnualInterestBips"))
+        .max(getFormattedConstrain("maximumAnnualInterestBips")),
+    })
+    .superRefine(marketRefinementCallback)
 }
 
 export type NewMarketFormType = UseFormReturn<MarketValidationSchemaType>
 
 export const useNewMarketForm = (isTestnet: boolean): NewMarketFormType => {
+  const { t } = useTranslation()
+  const maxLabel = isTestnet
+    ? t("utils.time.oneYear")
+    : t("utils.time.twoYears")
+
   const validationSchemaAsync = useMemo(
-    () => getValidationSchema(DefaultV2ParameterConstraints, isTestnet),
-    [isTestnet],
+    () =>
+      getValidationSchema(DefaultV2ParameterConstraints, isTestnet, maxLabel),
+    [isTestnet, maxLabel],
   )
 
   const form = useForm<MarketValidationSchemaType>({
