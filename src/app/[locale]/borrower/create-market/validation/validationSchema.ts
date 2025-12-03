@@ -7,6 +7,10 @@ import { isAddress } from "viem"
 import { z } from "zod"
 
 import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
+import {
+  getMaxFixedTermDays,
+  getMaxFixedTermLabel,
+} from "@/config/market-duration"
 import { dayjs } from "@/utils/dayjs"
 import { isLetterNumber, isLetterNumberSpace } from "@/utils/validations"
 
@@ -70,70 +74,84 @@ export const selectDepositAccessOptions: ExtendedSelectOptionItem<
   },
 ]
 
-export const marketValidationSchema = z
-  .object({
-    marketName: z.string().min(1),
-    mla: z.string().optional(),
-    accessControl: z.string().min(1),
-    marketType: z.string().min(1),
-    asset: z.string().refine((value) => isAddress(value), {
-      message: "Invalid address: please ensure you have the correct token.",
-    }),
-    namePrefix: z
-      .string()
-      .min(3)
-      .refine(isLetterNumberSpace.validate, isLetterNumberSpace.message),
-    symbolPrefix: z
-      .string()
-      .min(3)
-      .refine(isLetterNumber.validate, isLetterNumber.message),
-    maxTotalSupply: z.coerce.number().gt(0),
-    annualInterestBips: z.coerce.number().gte(0),
-    delinquencyFeeBips: z.coerce.number().gte(0),
-    reserveRatioBips: z.coerce.number().gte(0),
-    minimumDeposit: z.coerce.number().optional(),
-    delinquencyGracePeriod: z.coerce.number().gt(0).lte(2160),
-    withdrawalBatchDuration: z.coerce.number().gt(0).lte(2160),
-    policy: z.string().min(1),
-    policyName: z.string(),
-    fixedTermEndTime: z.coerce
-      .number()
-      .optional()
-      .refine((value) => {
-        if (value !== undefined) {
-          const today = dayjs.unix(Date.now() / 1_000).startOf("day")
-          const tomorrow = today.add(1, "day")
-          const twoYearsFromNow = today.add(730, "days")
-          return value >= tomorrow.unix() && value <= twoYearsFromNow.unix()
+export const baseMarketSchemaFields = {
+  marketName: z.string().min(1),
+  mla: z.string().optional(),
+  accessControl: z.string().min(1),
+  marketType: z.string().min(1),
+  asset: z.string().refine((value) => isAddress(value), {
+    message: "Invalid address: please ensure you have the correct token.",
+  }),
+  namePrefix: z
+    .string()
+    .min(3)
+    .refine(isLetterNumberSpace.validate, isLetterNumberSpace.message),
+  symbolPrefix: z
+    .string()
+    .min(3)
+    .refine(isLetterNumber.validate, isLetterNumber.message),
+  maxTotalSupply: z.coerce.number().gt(0),
+  annualInterestBips: z.coerce.number().gte(0),
+  delinquencyFeeBips: z.coerce.number().gte(0),
+  reserveRatioBips: z.coerce.number().gte(0),
+  minimumDeposit: z.coerce.number().optional(),
+  delinquencyGracePeriod: z.coerce.number().gt(0).lte(2160),
+  withdrawalBatchDuration: z.coerce.number().gt(0).lte(2160),
+  policy: z.string().min(1),
+  policyName: z.string(),
+  // fixedTermEndTime validation is added dynamically based on network
+  fixedTermEndTime: z.coerce.number().optional(),
+  allowForceBuyBack: z.boolean(),
+  allowClosureBeforeTerm: z.boolean().optional(),
+  allowTermReduction: z.boolean().optional(),
+  disableTransfers: z.boolean(),
+  transferRequiresAccess: z.boolean(),
+  depositRequiresAccess: z.boolean(),
+  withdrawalRequiresAccess: z.boolean(),
+}
+
+export const createMarketValidationSchema = (isTestnet: boolean) => {
+  const maxDays = getMaxFixedTermDays(isTestnet)
+  const maxLabel = getMaxFixedTermLabel(isTestnet)
+
+  return z
+    .object({
+      ...baseMarketSchemaFields,
+      // overide fixedTermEndtime with network aware validation
+      fixedTermEndTime: z.coerce
+        .number()
+        .optional()
+        .refine((value) => {
+          if (value !== undefined) {
+            const today = dayjs.unix(Date.now() / 1_000).startOf("day")
+            const tomorrow = today.add(1, "day")
+            const maxDate = today.add(maxDays, "days")
+            return value >= tomorrow.unix() && value <= maxDate.unix()
+          }
+          return true
+        }, `Must be between tomorrow and ${maxLabel} from now`),
+    })
+    .superRefine((data, ctx) => {
+      if (data.marketType === "fixedTerm") {
+        const now = Math.floor(Date.now() / 1000)
+        if (data.fixedTermEndTime === undefined) {
+          ctx.addIssue({
+            message: "Loan maturity date must be set",
+            path: ["fixedTermEndTime"],
+            code: "custom",
+          })
+        } else if (data.fixedTermEndTime <= now) {
+          ctx.addIssue({
+            message: "Loan maturity date must be in the future",
+            path: ["fixedTermEndTime"],
+            code: "custom",
+          })
         }
-        return true
-      }, `Must be between tomorrow and two years from now`),
-    allowForceBuyBack: z.boolean(),
-    allowClosureBeforeTerm: z.boolean().optional(),
-    allowTermReduction: z.boolean().optional(),
-    disableTransfers: z.boolean(),
-    transferRequiresAccess: z.boolean(),
-    depositRequiresAccess: z.boolean(),
-    withdrawalRequiresAccess: z.boolean(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.marketType === "fixedTerm") {
-      const now = Math.floor(Date.now() / 1000) // Current time in seconds
-      if (data.fixedTermEndTime === undefined) {
-        ctx.addIssue({
-          message: "Loan maturity date must be set",
-          path: ["fixedTermEndTime"],
-          code: "custom",
-        })
-      } else if (data.fixedTermEndTime <= now) {
-        ctx.addIssue({
-          message: "Loan maturity date must be in the future",
-          path: ["fixedTermEndTime"],
-          code: "custom",
-        })
       }
-    }
-  })
+    })
+}
+
+export const marketValidationSchema = createMarketValidationSchema(false)
 // .refine(
 //   (data) => {
 //     if (data.marketType === "fixedTerm") {

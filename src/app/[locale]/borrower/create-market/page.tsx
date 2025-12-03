@@ -24,6 +24,7 @@ import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { Loader } from "@/components/Loader"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
@@ -64,6 +65,7 @@ export default function CreateMarketPage() {
   const router = useRouter()
   const dispatch = useAppDispatch()
   const { address } = useAccount()
+  const { isTestnet } = useCurrentNetwork()
   const { chainId: targetChainId } = useAppSelector(
     (state) => state.selectedNetwork,
   )
@@ -74,7 +76,7 @@ export default function CreateMarketPage() {
   const steps = useAppSelector((state) => state.createMarketSidebar.steps)
   const currentNumber = steps.find((step) => step.step === currentStep)?.number
 
-  const newMarketForm = useNewMarketForm()
+  const newMarketForm = useNewMarketForm(isTestnet ?? false)
 
   const { selectedHooksInstance, selectedHooksTemplate, hooksInstances } =
     useNewMarketHooksData(newMarketForm)
@@ -268,6 +270,7 @@ export default function CreateMarketPage() {
           <MarketPolicyForm
             form={newMarketForm}
             policyOptions={policyOptions}
+            isTestnet={isTestnet ?? false}
           />
         )}
 
