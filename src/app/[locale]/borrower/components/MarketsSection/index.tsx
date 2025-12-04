@@ -217,21 +217,24 @@ export const MarketsSection = () => {
       account.market.borrower.toLowerCase() !== address?.toLowerCase(),
   )
 
-  const depositedMarketsAmount = borrowerMarkets.filter(
-    (account) =>
+  const depositedMarketsAmount = borrowerMarkets.filter((account) => {
+    const { borrowed } = account.market.getTotalDebtBreakdown()
+    return (
       !account.market.isClosed &&
-      (!account.market.borrowableAssets.raw.isZero() ||
-        !account.market.totalBorrowed?.raw.isZero()),
-  ).length
+      (!account.market.borrowableAssets.raw.isZero() || !borrowed.raw.isZero())
+    )
+  }).length
 
-  const nonDepositedMarketsAmount = borrowerMarkets.filter(
-    (account) =>
+  const nonDepositedMarketsAmount = borrowerMarkets.filter((account) => {
+    const { borrowed } = account.market.getTotalDebtBreakdown()
+    return (
       account.market.borrowableAssets.raw.isZero() &&
-      account.market.totalBorrowed?.raw.isZero() &&
+      borrowed.raw.isZero() &&
       !account.market.isClosed &&
       !account.market.isIncurringPenalties &&
-      !account.market.isDelinquent,
-  ).length
+      !account.market.isDelinquent
+    )
+  }).length
 
   const prevActiveAmount = borrowerMarkets.filter(
     (account) => account.market.isClosed && account.hasEverInteracted,
