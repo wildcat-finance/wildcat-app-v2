@@ -30,6 +30,17 @@ export async function POST(request: NextRequest) {
   }
   const { signature, timeSigned } = body
   const address = body.address.toLowerCase()
+  const existingSignature =
+    await prisma.lenderServiceAgreementSignature.findFirst({
+      where: {
+        chainId: body.chainId,
+        signer: address,
+        serviceAgreementHash: ServiceAgreementVersion,
+      },
+    })
+  if (existingSignature) {
+    return NextResponse.json({ success: true })
+  }
   const dateSigned = formatUnixMsAsDate(timeSigned)
   const agreementText = `${AgreementText}\n\nDate: ${dateSigned}`
   const provider = getProviderForServer(body.chainId)
