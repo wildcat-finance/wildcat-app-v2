@@ -1,1 +1,1183 @@
-{"AG":[{"id":"AG","name":"Antigua and Barbuda","label":"Federal"}],"AR":[{"id":"AR","name":"Argentina","label":"Federal"}],"AW":[{"id":"AW","name":"Aruba","label":"Federal"}],"AU":[{"id":"AU","name":"Australia","label":"Federal"}],"AT":[{"id":"AT","name":"Austria","label":"Federal"}],"AZ":[{"id":"AZ","name":"Azerbaijan","label":"Federal"}],"BS":[{"id":"BS","name":"Bahamas","label":"Federal"}],"BH":[{"id":"BH","name":"Bahrain","label":"Federal"}],"BB":[{"id":"BB","name":"Barbados","label":"Federal"}],"BY":[{"id":"BY","name":"Belarus","label":"Federal"}],"BE":[{"id":"BE","name":"Belgium","label":"Federal"},{"id":"BE-VLG","name":"Flemish Region","label":"Flemish Region"}],"BZ":[{"id":"BZ","name":"Belize","label":"Federal"}],"BM":[{"id":"BM","name":"Bermuda","label":"Federal"}],"BO":[{"id":"BO","name":"Bolivia (Plurinational State of)","label":"Federal"}],"BQ":[{"id":"BQ","name":"Bonaire, Sint Eustatius and Saba","label":"Federal"}],"BW":[{"id":"BW","name":"Botswana","label":"Federal"}],"BR":[{"id":"BR","name":"Brazil","label":"Federal"}],"BN":[{"id":"BN","name":"Brunei Darussalam","label":"Federal"}],"BG":[{"id":"BG","name":"Bulgaria","label":"Federal"}],"KH":[{"id":"KH","name":"Cambodia","label":"Federal"}],"CA":[{"id":"CA-AB","name":"Alberta","label":"Alberta"},{"id":"CA-BC","name":"British Columbia","label":"British Columbia"},{"id":"CA","name":"Canada","label":"Canada"},{"id":"CA-MB","name":"Manitoba","label":"Manitoba"},{"id":"CA-NB","name":"New Brunswick","label":"New Brunswick"},{"id":"CA-NL","name":"Newfoundland and Labrador","label":"Newfoundland and Labrador"},{"id":"CA-NT","name":"Northwest Territories","label":"Northwest Territories"},{"id":"CA-NS","name":"Nova Scotia","label":"Nova Scotia"},{"id":"CA-ON","name":"Ontario","label":"Ontario"},{"id":"CA-PE","name":"Prince Edward Island","label":"Prince Edward Island"},{"id":"CA-QC","name":"Quebec","label":"Quebec"},{"id":"CA-SK","name":"Saskatchewan","label":"Saskatchewan"}],"KY":[{"id":"KY","name":"Cayman Islands","label":"Federal"}],"CL":[{"id":"CL","name":"Chile","label":"Federal"}],"CN":[{"id":"CN","name":"China","label":"Federal"}],"CO":[{"id":"CO","name":"Colombia","label":"Federal"}],"CK":[{"id":"CK","name":"Cook Islands","label":"Federal"}],"CR":[{"id":"CR","name":"Costa Rica","label":"Federal"}],"HR":[{"id":"HR","name":"Croatia","label":"Federal"}],"CW":[{"id":"CW","name":"Curaçao","label":"Federal"}],"CY":[{"id":"CY","name":"Cyprus","label":"Federal"}],"CZ":[{"id":"CZ","name":"Czechia","label":"Federal"}],"DK":[{"id":"DK","name":"Denmark","label":"Federal"}],"DO":[{"id":"DO","name":"Dominican Republic","label":"Federal"}],"EC":[{"id":"EC","name":"Ecuador","label":"Federal"}],"EE":[{"id":"EE","name":"Estonia","label":"Federal"}],"FI":[{"id":"FI","name":"Finland","label":"Federal"}],"FR":[{"id":"FR","name":"France","label":"Federal"}],"DE":[{"id":"DE","name":"Germany","label":"Federal"}],"GH":[{"id":"GH","name":"Ghana","label":"Federal"}],"GI":[{"id":"GI","name":"Gibraltar","label":"Federal"}],"GR":[{"id":"GR","name":"Greece","label":"Federal"}],"GU":[{"id":"GU","name":"Guam","label":"Federal"}],"GT":[{"id":"GT","name":"Guatemala","label":"Federal"}],"GG":[{"id":"GG","name":"Guernsey","label":"Alderney"}],"HN":[{"id":"HN","name":"Honduras","label":"Federal"}],"HK":[{"id":"HK","name":"Hong Kong","label":"Federal"}],"HU":[{"id":"HU","name":"Hungary","label":"Federal"}],"IS":[{"id":"IS","name":"Iceland","label":"Federal"}],"IN":[{"id":"IN","name":"India","label":"Federal"}],"ID":[{"id":"ID","name":"Indonesia","label":"Federal"}],"IE":[{"id":"IE","name":"Ireland","label":"Federal"}],"IM":[{"id":"IM","name":"Isle of Man","label":"Federal"}],"IT":[{"id":"IT","name":"Italy","label":"Federal"}],"JM":[{"id":"JM","name":"Jamaica","label":"Federal"}],"JP":[{"id":"JP","name":"Japan","label":"Federal"}],"JE":[{"id":"JE","name":"Jersey","label":"Federal"}],"JO":[{"id":"JO","name":"Jordan","label":"Federal"}],"KR":[{"id":"KR","name":"Korea (Republic of)","label":"Federal"}],"XK":[{"id":"XK","name":"Kosovo","label":"Federal"}],"KW":[{"id":"KW","name":"Kuwait","label":"Federal"}],"LV":[{"id":"LV","name":"Latvia","label":"Federal"}],"LS":[{"id":"LS","name":"Lesotho","label":"Federal"}],"LI":[{"id":"LI","name":"Liechtenstein","label":"Federal"}],"LT":[{"id":"LT","name":"Lithuania","label":"Federal"}],"LU":[{"id":"LU","name":"Luxembourg","label":"Federal"}],"MY":[{"id":"MY","name":"Malaysia","label":"Federal"},{"id":"MY-15","name":"Labuan","label":"Labuan"}],"MT":[{"id":"MT","name":"Malta","label":"Federal"}],"MH":[{"id":"MH","name":"Marshall Islands","label":"Federal"}],"MU":[{"id":"MU","name":"Mauritius","label":"Federal"}],"MX":[{"id":"MX","name":"Mexico","label":"Federal"}],"MC":[{"id":"MC","name":"Monaco","label":"Federal"}],"MM":[{"id":"MM","name":"Myanmar","label":"Federal"}],"NL":[{"id":"NL","name":"Netherlands","label":"Federal"}],"NZ":[{"id":"NZ","name":"New Zealand","label":"Federal"}],"MK":[{"id":"MK","name":"North Macedonia","label":"Federal"}],"NO":[{"id":"NO","name":"Norway","label":"Federal"}],"PK":[{"id":"PK","name":"Pakistan","label":"Federal"}],"PA":[{"id":"PA","name":"Panama","label":"Federal"}],"PG":[{"id":"PG","name":"Papua New Guinea","label":"Federal"}],"PY":[{"id":"PY","name":"Paraguay","label":"Federal"}],"PE":[{"id":"PE","name":"Peru","label":"Federal"}],"PH":[{"id":"PH","name":"Philippines","label":"Federal"}],"PL":[{"id":"PL","name":"Poland","label":"Federal"}],"PT":[{"id":"PT","name":"Portugal","label":"Federal"},{"id":"PT-30","name":"Madeira","label":"Madeira"}],"PR":[{"id":"PR","name":"Puerto Rico","label":"Federal"}],"QA":[{"id":"QA","name":"Qatar","label":"Federal"}],"RO":[{"id":"RO","name":"Romania","label":"Federal"}],"RU":[{"id":"RU","name":"Russian Federation","label":"Federal"}],"KN":[{"id":"KN","name":"Saint Kitts and Nevis","label":"Federal"},{"id":"KN-N","name":"Nevis","label":"Nevis"}],"VC":[{"id":"VC","name":"Saint Vincent and the Grenadines","label":"Federal"}],"WS":[{"id":"WS","name":"Samoa","label":"Federal"}],"SA":[{"id":"SA","name":"Saudi Arabia","label":"Federal"}],"RS":[{"id":"RS","name":"Serbia","label":"Federal"}],"SC":[{"id":"SC","name":"Seychelles","label":"Federal"}],"SG":[{"id":"SG","name":"Singapore","label":"Federal"}],"SX":[{"id":"SX","name":"Sint Maarten","label":"Federal"}],"SK":[{"id":"SK","name":"Slovakia","label":"Federal"}],"SI":[{"id":"SI","name":"Slovenia","label":"Federal"}],"SB":[{"id":"SB","name":"Solomon Islands","label":"Federal"}],"ZA":[{"id":"ZA","name":"South Africa","label":"Federal"}],"ES":[{"id":"ES","name":"Spain","label":"Federal"}],"SR":[{"id":"SR","name":"Suriname","label":"Federal"}],"SE":[{"id":"SE","name":"Sweden","label":"Federal"}],"CH":[{"id":"CH","name":"Switzerland","label":"Federal"}],"TW":[{"id":"TW","name":"Taiwan (Province of China)","label":"Federal"}],"TH":[{"id":"TH","name":"Thailand","label":"Federal"}],"TO":[{"id":"TO","name":"Tonga","label":"Federal"}],"TN":[{"id":"TN","name":"Tunisia","label":"Federal"}],"TR":[{"id":"TR","name":"Türkiye","label":"Federal"}],"TV":[{"id":"TV","name":"Tuvalu","label":"Federal"}],"AE":[{"id":"AE","name":"United Arab Emirates","label":"Federal"},{"id":"AE-AZ","name":"Abu Dhabi","label":"Abu Dhabi"},{"id":"AE-DU","name":"Dubai","label":"Dubai"},{"id":"AE-RK","name":"Ras Al Khaimah","label":"Ras Al Khaimah"}],"GB":[{"id":"GB","name":"United Kingdom of Great Britain and Northern Ireland","label":"Federal"},{"id":"GB-NIR","name":"Northern Ireland","label":"Northern Ireland"},{"id":"GB-SCT","name":"Scotland","label":"Scotland"}],"US":[{"id":"US","name":"United States of America","label":"Federal"},{"id":"US-AL","name":"Alabama","label":"Alabama"},{"id":"US-AK","name":"Alaska","label":"Alaska"},{"id":"US-AZ","name":"Arizona","label":"Arizona"},{"id":"US-AR","name":"Arkansas","label":"Arkansas"},{"id":"US-CA","name":"California","label":"California"},{"id":"US-CO","name":"Colorado","label":"Colorado"},{"id":"US-CT","name":"Connecticut","label":"Connecticut"},{"id":"US-DE","name":"Delaware","label":"Delaware"},{"id":"US-DC","name":"District of Columbia","label":"District of Columbia"},{"id":"US-FL","name":"Florida","label":"Florida"},{"id":"US-GA","name":"Georgia","label":"Georgia"},{"id":"US-HI","name":"Hawaii","label":"Hawaii"},{"id":"US-ID","name":"Idaho","label":"Idaho"},{"id":"US-IL","name":"Illinois","label":"Illinois"},{"id":"US-IN","name":"Indiana","label":"Indiana"},{"id":"US-IA","name":"Iowa","label":"Iowa"},{"id":"US-KS","name":"Kansas","label":"Kansas"},{"id":"US-KY","name":"Kentucky","label":"Kentucky"},{"id":"US-LA","name":"Louisiana","label":"Louisiana"},{"id":"US-ME","name":"Maine","label":"Maine"},{"id":"US-MD","name":"Maryland","label":"Maryland"},{"id":"US-MA","name":"Massachusetts","label":"Massachusetts"},{"id":"US-MI","name":"Michigan","label":"Michigan"},{"id":"US-MN","name":"Minnesota","label":"Minnesota"},{"id":"US-MS","name":"Mississippi","label":"Mississippi"},{"id":"US-MO","name":"Missouri","label":"Missouri"},{"id":"US-MT","name":"Montana","label":"Montana"},{"id":"US-NE","name":"Nebraska","label":"Nebraska"},{"id":"US-NV","name":"Nevada","label":"Nevada"},{"id":"US-NH","name":"New Hampshire","label":"New Hampshire"},{"id":"US-NJ","name":"New Jersey","label":"New Jersey"},{"id":"US-NM","name":"New Mexico","label":"New Mexico"},{"id":"US-NY","name":"New York","label":"New York"},{"id":"US-NC","name":"North Carolina","label":"North Carolina"},{"id":"US-ND","name":"North Dakota","label":"North Dakota"},{"id":"US-OH","name":"Ohio","label":"Ohio"},{"id":"US-OK","name":"Oklahoma","label":"Oklahoma"},{"id":"US-OR","name":"Oregon","label":"Oregon"},{"id":"US-PA","name":"Pennsylvania","label":"Pennsylvania"},{"id":"US-RI","name":"Rhode island","label":"Rhode island"},{"id":"US-SC","name":"South Carolina","label":"South Carolina"},{"id":"US-SD","name":"South Dakota","label":"South Dakota"},{"id":"US-TN","name":"Tennessee","label":"Tennessee"},{"id":"US-TX","name":"Texas","label":"Texas"},{"id":"US-UT","name":"Utah","label":"Utah"},{"id":"US-VT","name":"Vermont","label":"Vermont"},{"id":"US-VA","name":"Virginia","label":"Virginia"},{"id":"US-WA","name":"Washington","label":"Washington"},{"id":"US-WV","name":"West Virginia","label":"West Virginia"},{"id":"US-WI","name":"Wisconsin","label":"Wisconsin"},{"id":"US-WY","name":"Wyoming","label":"Wyoming"}],"VU":[{"id":"VU","name":"Vanuatu","label":"Federal"}],"VN":[{"id":"VN","name":"Viet Nam","label":"Federal"}],"VG":[{"id":"VG","name":"Virgin Islands (British)","label":"Federal"}],"VI":[{"id":"VI","name":"Virgin Islands (U.S.)","label":"Federal"}]}
+{
+    "AG": [
+        {
+            "id": "AG",
+            "name": "Antigua and Barbuda",
+            "label": "Federal"
+        }
+    ],
+    "AR": [
+        {
+            "id": "AR",
+            "name": "Argentina",
+            "label": "Federal"
+        }
+    ],
+    "AW": [
+        {
+            "id": "AW",
+            "name": "Aruba",
+            "label": "Federal"
+        }
+    ],
+    "AU": [
+        {
+            "id": "AU",
+            "name": "Australia",
+            "label": "Federal"
+        }
+    ],
+    "AT": [
+        {
+            "id": "AT",
+            "name": "Austria",
+            "label": "Federal"
+        }
+    ],
+    "AZ": [
+        {
+            "id": "AZ",
+            "name": "Azerbaijan",
+            "label": "Federal"
+        }
+    ],
+    "BS": [
+        {
+            "id": "BS",
+            "name": "Bahamas",
+            "label": "Federal"
+        }
+    ],
+    "BH": [
+        {
+            "id": "BH",
+            "name": "Bahrain",
+            "label": "Federal"
+        }
+    ],
+    "BB": [
+        {
+            "id": "BB",
+            "name": "Barbados",
+            "label": "Federal"
+        }
+    ],
+    "BY": [
+        {
+            "id": "BY",
+            "name": "Belarus",
+            "label": "Federal"
+        }
+    ],
+    "BE": [
+        {
+            "id": "BE",
+            "name": "Belgium",
+            "label": "Federal"
+        },
+        {
+            "id": "BE-VLG",
+            "name": "Flemish Region",
+            "label": "Flemish Region"
+        }
+    ],
+    "BZ": [
+        {
+            "id": "BZ",
+            "name": "Belize",
+            "label": "Federal"
+        }
+    ],
+    "BM": [
+        {
+            "id": "BM",
+            "name": "Bermuda",
+            "label": "Federal"
+        }
+    ],
+    "BO": [
+        {
+            "id": "BO",
+            "name": "Bolivia (Plurinational State of)",
+            "label": "Federal"
+        }
+    ],
+    "BQ": [
+        {
+            "id": "BQ",
+            "name": "Bonaire, Sint Eustatius and Saba",
+            "label": "Federal"
+        }
+    ],
+    "BW": [
+        {
+            "id": "BW",
+            "name": "Botswana",
+            "label": "Federal"
+        }
+    ],
+    "BR": [
+        {
+            "id": "BR",
+            "name": "Brazil",
+            "label": "Federal"
+        }
+    ],
+    "BN": [
+        {
+            "id": "BN",
+            "name": "Brunei Darussalam",
+            "label": "Federal"
+        }
+    ],
+    "BG": [
+        {
+            "id": "BG",
+            "name": "Bulgaria",
+            "label": "Federal"
+        }
+    ],
+    "KH": [
+        {
+            "id": "KH",
+            "name": "Cambodia",
+            "label": "Federal"
+        }
+    ],
+    "CA": [
+        {
+            "id": "CA-AB",
+            "name": "Alberta",
+            "label": "Alberta"
+        },
+        {
+            "id": "CA-BC",
+            "name": "British Columbia",
+            "label": "British Columbia"
+        },
+        {
+            "id": "CA",
+            "name": "Canada",
+            "label": "Canada"
+        },
+        {
+            "id": "CA-MB",
+            "name": "Manitoba",
+            "label": "Manitoba"
+        },
+        {
+            "id": "CA-NB",
+            "name": "New Brunswick",
+            "label": "New Brunswick"
+        },
+        {
+            "id": "CA-NL",
+            "name": "Newfoundland and Labrador",
+            "label": "Newfoundland and Labrador"
+        },
+        {
+            "id": "CA-NT",
+            "name": "Northwest Territories",
+            "label": "Northwest Territories"
+        },
+        {
+            "id": "CA-NS",
+            "name": "Nova Scotia",
+            "label": "Nova Scotia"
+        },
+        {
+            "id": "CA-ON",
+            "name": "Ontario",
+            "label": "Ontario"
+        },
+        {
+            "id": "CA-PE",
+            "name": "Prince Edward Island",
+            "label": "Prince Edward Island"
+        },
+        {
+            "id": "CA-QC",
+            "name": "Quebec",
+            "label": "Quebec"
+        },
+        {
+            "id": "CA-SK",
+            "name": "Saskatchewan",
+            "label": "Saskatchewan"
+        }
+    ],
+    "KY": [
+        {
+            "id": "KY",
+            "name": "Cayman Islands",
+            "label": "Federal"
+        }
+    ],
+    "CL": [
+        {
+            "id": "CL",
+            "name": "Chile",
+            "label": "Federal"
+        }
+    ],
+    "CN": [
+        {
+            "id": "CN",
+            "name": "China",
+            "label": "Federal"
+        }
+    ],
+    "CO": [
+        {
+            "id": "CO",
+            "name": "Colombia",
+            "label": "Federal"
+        }
+    ],
+    "CK": [
+        {
+            "id": "CK",
+            "name": "Cook Islands",
+            "label": "Federal"
+        }
+    ],
+    "CR": [
+        {
+            "id": "CR",
+            "name": "Costa Rica",
+            "label": "Federal"
+        }
+    ],
+    "HR": [
+        {
+            "id": "HR",
+            "name": "Croatia",
+            "label": "Federal"
+        }
+    ],
+    "CW": [
+        {
+            "id": "CW",
+            "name": "Curaçao",
+            "label": "Federal"
+        }
+    ],
+    "CY": [
+        {
+            "id": "CY",
+            "name": "Cyprus",
+            "label": "Federal"
+        }
+    ],
+    "CZ": [
+        {
+            "id": "CZ",
+            "name": "Czechia",
+            "label": "Federal"
+        }
+    ],
+    "DK": [
+        {
+            "id": "DK",
+            "name": "Denmark",
+            "label": "Federal"
+        }
+    ],
+    "DO": [
+        {
+            "id": "DO",
+            "name": "Dominican Republic",
+            "label": "Federal"
+        }
+    ],
+    "EC": [
+        {
+            "id": "EC",
+            "name": "Ecuador",
+            "label": "Federal"
+        }
+    ],
+    "EE": [
+        {
+            "id": "EE",
+            "name": "Estonia",
+            "label": "Federal"
+        }
+    ],
+    "FI": [
+        {
+            "id": "FI",
+            "name": "Finland",
+            "label": "Federal"
+        }
+    ],
+    "FR": [
+        {
+            "id": "FR",
+            "name": "France",
+            "label": "Federal"
+        }
+    ],
+    "DE": [
+        {
+            "id": "DE",
+            "name": "Germany",
+            "label": "Federal"
+        }
+    ],
+    "GH": [
+        {
+            "id": "GH",
+            "name": "Ghana",
+            "label": "Federal"
+        }
+    ],
+    "GI": [
+        {
+            "id": "GI",
+            "name": "Gibraltar",
+            "label": "Federal"
+        }
+    ],
+    "GR": [
+        {
+            "id": "GR",
+            "name": "Greece",
+            "label": "Federal"
+        }
+    ],
+    "GU": [
+        {
+            "id": "GU",
+            "name": "Guam",
+            "label": "Federal"
+        }
+    ],
+    "GT": [
+        {
+            "id": "GT",
+            "name": "Guatemala",
+            "label": "Federal"
+        }
+    ],
+    "GG": [
+        {
+            "id": "GG",
+            "name": "Guernsey",
+            "label": "Alderney"
+        }
+    ],
+    "HN": [
+        {
+            "id": "HN",
+            "name": "Honduras",
+            "label": "Federal"
+        }
+    ],
+    "HK": [
+        {
+            "id": "HK",
+            "name": "Hong Kong",
+            "label": "Federal"
+        }
+    ],
+    "HU": [
+        {
+            "id": "HU",
+            "name": "Hungary",
+            "label": "Federal"
+        }
+    ],
+    "IS": [
+        {
+            "id": "IS",
+            "name": "Iceland",
+            "label": "Federal"
+        }
+    ],
+    "IN": [
+        {
+            "id": "IN",
+            "name": "India",
+            "label": "Federal"
+        }
+    ],
+    "ID": [
+        {
+            "id": "ID",
+            "name": "Indonesia",
+            "label": "Federal"
+        }
+    ],
+    "IE": [
+        {
+            "id": "IE",
+            "name": "Ireland",
+            "label": "Federal"
+        }
+    ],
+    "IM": [
+        {
+            "id": "IM",
+            "name": "Isle of Man",
+            "label": "Federal"
+        }
+    ],
+    "IT": [
+        {
+            "id": "IT",
+            "name": "Italy",
+            "label": "Federal"
+        }
+    ],
+    "JM": [
+        {
+            "id": "JM",
+            "name": "Jamaica",
+            "label": "Federal"
+        }
+    ],
+    "JP": [
+        {
+            "id": "JP",
+            "name": "Japan",
+            "label": "Federal"
+        }
+    ],
+    "JE": [
+        {
+            "id": "JE",
+            "name": "Jersey",
+            "label": "Federal"
+        }
+    ],
+    "JO": [
+        {
+            "id": "JO",
+            "name": "Jordan",
+            "label": "Federal"
+        }
+    ],
+    "KR": [
+        {
+            "id": "KR",
+            "name": "Korea (Republic of)",
+            "label": "Federal"
+        }
+    ],
+    "XK": [
+        {
+            "id": "XK",
+            "name": "Kosovo",
+            "label": "Federal"
+        }
+    ],
+    "KW": [
+        {
+            "id": "KW",
+            "name": "Kuwait",
+            "label": "Federal"
+        }
+    ],
+    "LV": [
+        {
+            "id": "LV",
+            "name": "Latvia",
+            "label": "Federal"
+        }
+    ],
+    "LS": [
+        {
+            "id": "LS",
+            "name": "Lesotho",
+            "label": "Federal"
+        }
+    ],
+    "LI": [
+        {
+            "id": "LI",
+            "name": "Liechtenstein",
+            "label": "Federal"
+        }
+    ],
+    "LT": [
+        {
+            "id": "LT",
+            "name": "Lithuania",
+            "label": "Federal"
+        }
+    ],
+    "LU": [
+        {
+            "id": "LU",
+            "name": "Luxembourg",
+            "label": "Federal"
+        }
+    ],
+    "MY": [
+        {
+            "id": "MY",
+            "name": "Malaysia",
+            "label": "Federal"
+        },
+        {
+            "id": "MY-15",
+            "name": "Labuan",
+            "label": "Labuan"
+        }
+    ],
+    "MT": [
+        {
+            "id": "MT",
+            "name": "Malta",
+            "label": "Federal"
+        }
+    ],
+    "MH": [
+        {
+            "id": "MH",
+            "name": "Marshall Islands",
+            "label": "Federal"
+        }
+    ],
+    "MU": [
+        {
+            "id": "MU",
+            "name": "Mauritius",
+            "label": "Federal"
+        }
+    ],
+    "MX": [
+        {
+            "id": "MX",
+            "name": "Mexico",
+            "label": "Federal"
+        }
+    ],
+    "MC": [
+        {
+            "id": "MC",
+            "name": "Monaco",
+            "label": "Federal"
+        }
+    ],
+    "MM": [
+        {
+            "id": "MM",
+            "name": "Myanmar",
+            "label": "Federal"
+        }
+    ],
+    "NL": [
+        {
+            "id": "NL",
+            "name": "Netherlands",
+            "label": "Federal"
+        }
+    ],
+    "NZ": [
+        {
+            "id": "NZ",
+            "name": "New Zealand",
+            "label": "Federal"
+        }
+    ],
+    "MK": [
+        {
+            "id": "MK",
+            "name": "North Macedonia",
+            "label": "Federal"
+        }
+    ],
+    "NO": [
+        {
+            "id": "NO",
+            "name": "Norway",
+            "label": "Federal"
+        }
+    ],
+    "PK": [
+        {
+            "id": "PK",
+            "name": "Pakistan",
+            "label": "Federal"
+        }
+    ],
+    "PA": [
+        {
+            "id": "PA",
+            "name": "Panama",
+            "label": "Federal"
+        }
+    ],
+    "PG": [
+        {
+            "id": "PG",
+            "name": "Papua New Guinea",
+            "label": "Federal"
+        }
+    ],
+    "PY": [
+        {
+            "id": "PY",
+            "name": "Paraguay",
+            "label": "Federal"
+        }
+    ],
+    "PE": [
+        {
+            "id": "PE",
+            "name": "Peru",
+            "label": "Federal"
+        }
+    ],
+    "PH": [
+        {
+            "id": "PH",
+            "name": "Philippines",
+            "label": "Federal"
+        }
+    ],
+    "PL": [
+        {
+            "id": "PL",
+            "name": "Poland",
+            "label": "Federal"
+        }
+    ],
+    "PT": [
+        {
+            "id": "PT",
+            "name": "Portugal",
+            "label": "Federal"
+        },
+        {
+            "id": "PT-30",
+            "name": "Madeira",
+            "label": "Madeira"
+        }
+    ],
+    "PR": [
+        {
+            "id": "PR",
+            "name": "Puerto Rico",
+            "label": "Federal"
+        }
+    ],
+    "QA": [
+        {
+            "id": "QA",
+            "name": "Qatar",
+            "label": "Federal"
+        }
+    ],
+    "RO": [
+        {
+            "id": "RO",
+            "name": "Romania",
+            "label": "Federal"
+        }
+    ],
+    "RU": [
+        {
+            "id": "RU",
+            "name": "Russian Federation",
+            "label": "Federal"
+        }
+    ],
+    "KN": [
+        {
+            "id": "KN",
+            "name": "Saint Kitts and Nevis",
+            "label": "Federal"
+        },
+        {
+            "id": "KN-N",
+            "name": "Nevis",
+            "label": "Nevis"
+        }
+    ],
+    "VC": [
+        {
+            "id": "VC",
+            "name": "Saint Vincent and the Grenadines",
+            "label": "Federal"
+        }
+    ],
+    "WS": [
+        {
+            "id": "WS",
+            "name": "Samoa",
+            "label": "Federal"
+        }
+    ],
+    "SA": [
+        {
+            "id": "SA",
+            "name": "Saudi Arabia",
+            "label": "Federal"
+        }
+    ],
+    "RS": [
+        {
+            "id": "RS",
+            "name": "Serbia",
+            "label": "Federal"
+        }
+    ],
+    "SC": [
+        {
+            "id": "SC",
+            "name": "Seychelles",
+            "label": "Federal"
+        }
+    ],
+    "SG": [
+        {
+            "id": "SG",
+            "name": "Singapore",
+            "label": "Federal"
+        }
+    ],
+    "SX": [
+        {
+            "id": "SX",
+            "name": "Sint Maarten",
+            "label": "Federal"
+        }
+    ],
+    "SK": [
+        {
+            "id": "SK",
+            "name": "Slovakia",
+            "label": "Federal"
+        }
+    ],
+    "SI": [
+        {
+            "id": "SI",
+            "name": "Slovenia",
+            "label": "Federal"
+        }
+    ],
+    "SB": [
+        {
+            "id": "SB",
+            "name": "Solomon Islands",
+            "label": "Federal"
+        }
+    ],
+    "ZA": [
+        {
+            "id": "ZA",
+            "name": "South Africa",
+            "label": "Federal"
+        }
+    ],
+    "ES": [
+        {
+            "id": "ES",
+            "name": "Spain",
+            "label": "Federal"
+        }
+    ],
+    "SR": [
+        {
+            "id": "SR",
+            "name": "Suriname",
+            "label": "Federal"
+        }
+    ],
+    "SE": [
+        {
+            "id": "SE",
+            "name": "Sweden",
+            "label": "Federal"
+        }
+    ],
+    "CH": [
+        {
+            "id": "CH",
+            "name": "Switzerland",
+            "label": "Federal"
+        }
+    ],
+    "TW": [
+        {
+            "id": "TW",
+            "name": "Taiwan (Province of China)",
+            "label": "Federal"
+        }
+    ],
+    "TH": [
+        {
+            "id": "TH",
+            "name": "Thailand",
+            "label": "Federal"
+        }
+    ],
+    "TO": [
+        {
+            "id": "TO",
+            "name": "Tonga",
+            "label": "Federal"
+        }
+    ],
+    "TN": [
+        {
+            "id": "TN",
+            "name": "Tunisia",
+            "label": "Federal"
+        }
+    ],
+    "TR": [
+        {
+            "id": "TR",
+            "name": "Türkiye",
+            "label": "Federal"
+        }
+    ],
+    "TV": [
+        {
+            "id": "TV",
+            "name": "Tuvalu",
+            "label": "Federal"
+        }
+    ],
+    "AE": [
+        {
+            "id": "AE",
+            "name": "United Arab Emirates",
+            "label": "Federal"
+        },
+        {
+            "id": "AE-AZ",
+            "name": "Abu Dhabi",
+            "label": "Abu Dhabi"
+        },
+        {
+            "id": "AE-DU",
+            "name": "Dubai",
+            "label": "Dubai"
+        },
+        {
+            "id": "AE-RK",
+            "name": "Ras Al Khaimah",
+            "label": "Ras Al Khaimah"
+        }
+    ],
+    "GB": [
+        {
+            "id": "GB",
+            "name": "United Kingdom of Great Britain and Northern Ireland",
+            "label": "Federal"
+        },
+        {
+            "id": "GB-NIR",
+            "name": "Northern Ireland",
+            "label": "Northern Ireland"
+        },
+        {
+            "id": "GB-SCT",
+            "name": "Scotland",
+            "label": "Scotland"
+        }
+    ],
+    "US": [
+        {
+            "id": "US",
+            "name": "United States of America",
+            "label": "Federal"
+        },
+        {
+            "id": "US-AL",
+            "name": "Alabama",
+            "label": "Alabama"
+        },
+        {
+            "id": "US-AK",
+            "name": "Alaska",
+            "label": "Alaska"
+        },
+        {
+            "id": "US-AZ",
+            "name": "Arizona",
+            "label": "Arizona"
+        },
+        {
+            "id": "US-AR",
+            "name": "Arkansas",
+            "label": "Arkansas"
+        },
+        {
+            "id": "US-CA",
+            "name": "California",
+            "label": "California"
+        },
+        {
+            "id": "US-CO",
+            "name": "Colorado",
+            "label": "Colorado"
+        },
+        {
+            "id": "US-CT",
+            "name": "Connecticut",
+            "label": "Connecticut"
+        },
+        {
+            "id": "US-DE",
+            "name": "Delaware",
+            "label": "Delaware"
+        },
+        {
+            "id": "US-DC",
+            "name": "District of Columbia",
+            "label": "District of Columbia"
+        },
+        {
+            "id": "US-FL",
+            "name": "Florida",
+            "label": "Florida"
+        },
+        {
+            "id": "US-GA",
+            "name": "Georgia",
+            "label": "Georgia"
+        },
+        {
+            "id": "US-HI",
+            "name": "Hawaii",
+            "label": "Hawaii"
+        },
+        {
+            "id": "US-ID",
+            "name": "Idaho",
+            "label": "Idaho"
+        },
+        {
+            "id": "US-IL",
+            "name": "Illinois",
+            "label": "Illinois"
+        },
+        {
+            "id": "US-IN",
+            "name": "Indiana",
+            "label": "Indiana"
+        },
+        {
+            "id": "US-IA",
+            "name": "Iowa",
+            "label": "Iowa"
+        },
+        {
+            "id": "US-KS",
+            "name": "Kansas",
+            "label": "Kansas"
+        },
+        {
+            "id": "US-KY",
+            "name": "Kentucky",
+            "label": "Kentucky"
+        },
+        {
+            "id": "US-LA",
+            "name": "Louisiana",
+            "label": "Louisiana"
+        },
+        {
+            "id": "US-ME",
+            "name": "Maine",
+            "label": "Maine"
+        },
+        {
+            "id": "US-MD",
+            "name": "Maryland",
+            "label": "Maryland"
+        },
+        {
+            "id": "US-MA",
+            "name": "Massachusetts",
+            "label": "Massachusetts"
+        },
+        {
+            "id": "US-MI",
+            "name": "Michigan",
+            "label": "Michigan"
+        },
+        {
+            "id": "US-MN",
+            "name": "Minnesota",
+            "label": "Minnesota"
+        },
+        {
+            "id": "US-MS",
+            "name": "Mississippi",
+            "label": "Mississippi"
+        },
+        {
+            "id": "US-MO",
+            "name": "Missouri",
+            "label": "Missouri"
+        },
+        {
+            "id": "US-MT",
+            "name": "Montana",
+            "label": "Montana"
+        },
+        {
+            "id": "US-NE",
+            "name": "Nebraska",
+            "label": "Nebraska"
+        },
+        {
+            "id": "US-NV",
+            "name": "Nevada",
+            "label": "Nevada"
+        },
+        {
+            "id": "US-NH",
+            "name": "New Hampshire",
+            "label": "New Hampshire"
+        },
+        {
+            "id": "US-NJ",
+            "name": "New Jersey",
+            "label": "New Jersey"
+        },
+        {
+            "id": "US-NM",
+            "name": "New Mexico",
+            "label": "New Mexico"
+        },
+        {
+            "id": "US-NY",
+            "name": "New York",
+            "label": "New York"
+        },
+        {
+            "id": "US-NC",
+            "name": "North Carolina",
+            "label": "North Carolina"
+        },
+        {
+            "id": "US-ND",
+            "name": "North Dakota",
+            "label": "North Dakota"
+        },
+        {
+            "id": "US-OH",
+            "name": "Ohio",
+            "label": "Ohio"
+        },
+        {
+            "id": "US-OK",
+            "name": "Oklahoma",
+            "label": "Oklahoma"
+        },
+        {
+            "id": "US-OR",
+            "name": "Oregon",
+            "label": "Oregon"
+        },
+        {
+            "id": "US-PA",
+            "name": "Pennsylvania",
+            "label": "Pennsylvania"
+        },
+        {
+            "id": "US-RI",
+            "name": "Rhode island",
+            "label": "Rhode island"
+        },
+        {
+            "id": "US-SC",
+            "name": "South Carolina",
+            "label": "South Carolina"
+        },
+        {
+            "id": "US-SD",
+            "name": "South Dakota",
+            "label": "South Dakota"
+        },
+        {
+            "id": "US-TN",
+            "name": "Tennessee",
+            "label": "Tennessee"
+        },
+        {
+            "id": "US-TX",
+            "name": "Texas",
+            "label": "Texas"
+        },
+        {
+            "id": "US-UT",
+            "name": "Utah",
+            "label": "Utah"
+        },
+        {
+            "id": "US-VT",
+            "name": "Vermont",
+            "label": "Vermont"
+        },
+        {
+            "id": "US-VA",
+            "name": "Virginia",
+            "label": "Virginia"
+        },
+        {
+            "id": "US-WA",
+            "name": "Washington",
+            "label": "Washington"
+        },
+        {
+            "id": "US-WV",
+            "name": "West Virginia",
+            "label": "West Virginia"
+        },
+        {
+            "id": "US-WI",
+            "name": "Wisconsin",
+            "label": "Wisconsin"
+        },
+        {
+            "id": "US-WY",
+            "name": "Wyoming",
+            "label": "Wyoming"
+        }
+    ],
+    "VU": [
+        {
+            "id": "VU",
+            "name": "Vanuatu",
+            "label": "Federal"
+        }
+    ],
+    "VN": [
+        {
+            "id": "VN",
+            "name": "Viet Nam",
+            "label": "Federal"
+        }
+    ],
+    "VG": [
+        {
+            "id": "VG",
+            "name": "Virgin Islands (British)",
+            "label": "Federal"
+        }
+    ],
+    "VI": [
+        {
+            "id": "VI",
+            "name": "Virgin Islands (U.S.)",
+            "label": "Federal"
+        }
+    ],
+    "LK": [
+            {
+                "id": "LK",
+                "name": "Sri Lanka",
+                "label": "Federal"
+            }
+    ]
+}
