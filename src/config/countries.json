@@ -466,5 +466,9 @@
     {
         "id": "VI",
         "name": "Virgin Islands (U.S.)"
+    },
+    {
+        "id": "LK",
+        "name": "Sri Lanka"
     }
 ]
