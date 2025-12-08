@@ -211,7 +211,17 @@ export const RepayAndTerminateFlow = ({
     } else {
       modal.setFlowStep(TerminateModalSteps.closedModal)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen])
+
+  const handleHeaderBackClick = () => {
+    if (modal.flowStep <= TerminateModalSteps.gettingValues) {
+      onClose()
+      return
+    }
+
+    modal.handleClickBack()
+  }
 
   return (
     <Dialog
@@ -224,7 +234,7 @@ export const RepayAndTerminateFlow = ({
       {(showTerminateForm || showRepayedPopup) && (
         <TxModalHeader
           title="Terminate Market"
-          arrowOnClick={modal.hideArrowButton ? null : modal.handleClickBack}
+          arrowOnClick={modal.hideArrowButton ? null : handleHeaderBackClick}
           crossOnClick={modal.hideCrossButton ? null : onClose}
         />
       )}

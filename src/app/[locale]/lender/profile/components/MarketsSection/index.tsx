@@ -2,7 +2,8 @@ import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
 import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid"
-import { Market } from "@wildcatfi/wildcat-sdk"
+import { Market, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { BigNumber } from "ethers"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -26,13 +27,8 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
   const rows: GridRowsProp = (markets ?? [])
     .filter((market) => !market.isClosed)
     .map((market) => {
-      const {
-        address,
-        name,
-        underlyingToken,
-        annualInterestBips,
-        totalBorrowed,
-      } = market
+      const { address, name, underlyingToken, annualInterestBips } = market
+      const { borrowed } = market.getTotalDebtBreakdown()
 
       const marketStatus = getMarketStatusChip(market)
 
@@ -43,7 +39,9 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
         asset: underlyingToken.symbol,
         lenderAPR: annualInterestBips,
         term: getMarketTypeChip(market),
-        debt: totalBorrowed,
+        debt: borrowed.raw.lt(0)
+          ? new TokenAmount(BigNumber.from(0), underlyingToken)
+          : borrowed,
       }
     })
 

@@ -1,18 +1,13 @@
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react"
 import * as React from "react"
 
-import { Box, Button, SvgIcon } from "@mui/material"
-import { useTranslation } from "react-i18next"
+import { Box, Button } from "@mui/material"
 import { useAccount } from "wagmi"
 
 import { useSignLenderMLA } from "@/app/[locale]/lender/hooks/useSignLenderMla"
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
 import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
-import Check from "@/assets/icons/check_icon.svg"
-import { MiniLoader } from "@/components/Loader"
 import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
-import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
-import { TxModalFooterContainer } from "@/components/TxModalComponents/TxModalFooter/style"
 import { COLORS } from "@/theme/colors"
 
 export type MobileMlaModalProps = {
@@ -29,29 +24,35 @@ export const MobileMlaModal = ({
   setIsMobileOpen,
 }: MobileMlaModalProps) => {
   const mla = mlaInput && "noMLA" in mlaInput ? undefined : mlaInput
-  const { address } = useAccount()
+  const { address, chainId } = useAccount()
   const { data: signedMla, isLoading: signedMlaLoading } = useGetSignedMla(mla)
   const [timeSigned, setTimeSigned] = useState(0)
   useEffect(() => {
     setTimeSigned(Date.now())
   }, [])
   const { mutate: signMla, isPending } = useSignLenderMLA()
-  const { t } = useTranslation()
   const onSign = () => {
     if (mla && !signedMla && address) {
       signMla({ lenderAddress: address, mla, timeSigned })
     }
   }
+  const disableActions = isLoading || signedMlaLoading || isPending
   const downloadPdfUrl = useMemo(() => {
-    if (mla && signedMla && address)
-      return `/api/mla/${mla.market}/${address}/pdf`
+    if (mla && signedMla && address) {
+      const resolvedChainId = mla.chainId ?? chainId
+      if (!resolvedChainId) return null
+      return `/api/mla/${mla.market.toLowerCase()}/${address.toLowerCase()}/pdf?chainId=${resolvedChainId}`
+    }
     return null
-  }, [signedMla, address, mla])
+  }, [signedMla, address, mla, chainId])
   const downloadSignedUrl = useMemo(() => {
-    if (mla && signedMla && address)
-      return `/api/mla/${mla.market}/${address}/signed`
+    if (mla && signedMla && address) {
+      const resolvedChainId = mla.chainId ?? chainId
+      if (!resolvedChainId) return null
+      return `/api/mla/${mla.market.toLowerCase()}/${address.toLowerCase()}/signed?chainId=${resolvedChainId}`
+    }
     return null
-  }, [signedMla, address, mla])
+  }, [signedMla, address, mla, chainId])
 
   const htmlContent = `
   <html>
@@ -70,6 +71,8 @@ export const MobileMlaModal = ({
     </body>
   </html>
 `
+
+  if (!isMobileOpen) return null
 
   return (
     <Box
@@ -114,6 +117,7 @@ export const MobileMlaModal = ({
             size="large"
             color="secondary"
             onClick={() => window.open(downloadPdfUrl, "_blank")}
+            disabled={disableActions}
             fullWidth
           >
             Download PDF
@@ -126,6 +130,7 @@ export const MobileMlaModal = ({
             variant="contained"
             size="large"
             onClick={() => window.open(downloadSignedUrl, "_blank")}
+            disabled={disableActions}
             fullWidth
           >
             Download Signed MLA
@@ -138,7 +143,7 @@ export const MobileMlaModal = ({
             variant="contained"
             size="large"
             onClick={onSign}
-            disabled={isPending}
+            disabled={disableActions}
             fullWidth
           >
             {signedMlaLoading ? "Signing..." : "Sign MLA"}

@@ -34,10 +34,17 @@ export const useGenerateDebtsBarData = ({
     .add(market.lastAccruedProtocolFees)
   const locked = minTokenAmount(market.totalAssets, totalClaims)
   const liquid = market.totalAssets.sub(locked)
-  const borrowed = market.totalSupply.sub(market.totalAssets)
+
+  const rawBorrowed = market.totalSupply.sub(market.totalAssets)
+  const borrowed = rawBorrowed.raw.lt(0)
+    ? new TokenAmount(BigNumber.from(0), market.underlyingToken)
+    : rawBorrowed
+
   const asset = market.underlyingToken.symbol
 
-  const total = market.totalSupply
+  const total = market.totalSupply.gt(market.totalAssets)
+    ? market.totalSupply
+    : market.totalAssets
 
   const colorKey = !isDelinquent ? "healthyBgColor" : "delinquentBgColor"
 

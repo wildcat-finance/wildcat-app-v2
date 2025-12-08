@@ -68,7 +68,10 @@ export const useGenerateBarData = (
   } else {
     setBarData("availableToBorrow", breakdown.borrowable)
     setBarData("collateralObligations", breakdown.collateralObligation)
-    setBarData("borrowed", breakdown.borrowed)
+    const borrowed = breakdown.borrowed.raw.lt(0)
+      ? new TokenAmount(BigNumber.from(0), market.underlyingToken)
+      : breakdown.borrowed
+    setBarData("borrowed", borrowed)
   }
 
   return { barData, breakdown }
