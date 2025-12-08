@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.3](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.5.2...v2.5.3) (2025-12-08)
+
+
+### Bug Fixes
+
+* **main:** merge develop into main  ([b7426ca](https://github.com/wildcat-finance/wildcat-app-v2/commit/b7426caf36c75db3287ab286cc16f59891657f03))
+
 ## [2.5.2](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.5.1...v2.5.2) (2025-10-31)
 
 
