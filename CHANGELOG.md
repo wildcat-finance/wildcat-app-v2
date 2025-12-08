@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.5.3](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.5.2...v2.5.3) (2025-12-08)
+
+
+### Bug Fixes
+
+* **mla:** chainid missing from mla path  ([b7426ca](https://github.com/wildcat-finance/wildcat-app-v2/commit/b7426caf36c75db3287ab286cc16f59891657f03))
+* **calendar:** allow additional row to show  ([b7426ca](https://github.com/wildcat-finance/wildcat-app-v2/commit/b7426caf36c75db3287ab286cc16f59891657f03))
+* **terminate-modal:** terminate modal wasnt re-activatable  ([b7426ca](https://github.com/wildcat-finance/wildcat-app-v2/commit/b7426caf36c75db3287ab286cc16f59891657f03))
+* **tou:** fix tou signature check for smart wallets  ([b7426ca](https://github.com/wildcat-finance/wildcat-app-v2/commit/b7426caf36c75db3287ab286cc16f59891657f03))
+* **withdrawals:** fix claimables wds including already paid or claimed  ([b7426ca](https://github.com/wildcat-finance/wildcat-app-v2/commit/b7426caf36c75db3287ab286cc16f59891657f03))
+* **withdrawals:** outstanding clipping claimable wds  ([b7426ca](https://github.com/wildcat-finance/wildcat-app-v2/commit/b7426caf36c75db3287ab286cc16f59891657f03))
+* **withdrawals:** all lenders in a batch were included regardless of amount  ([b7426ca](https://github.com/wildcat-finance/wildcat-app-v2/commit/b7426caf36c75db3287ab286cc16f59891657f03))
+* **formatting:** formatting and count  ([b7426ca](https://github.com/wildcat-finance/wildcat-app-v2/commit/b7426caf36c75db3287ab286cc16f59891657f03))
+* **borrowed:** borrowed show negative when overcollateralized  ([b7426ca](https://github.com/wildcat-finance/wildcat-app-v2/commit/b7426caf36c75db3287ab286cc16f59891657f03))
+* **subgraph-hotfix:** update sdk to replace alchemy subgraph urls with goldsky  ([b7426ca](https://github.com/wildcat-finance/wildcat-app-v2/commit/b7426caf36c75db3287ab286cc16f59891657f03))
+
 ## [2.5.2](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.5.1...v2.5.2) (2025-10-31)
 
 
