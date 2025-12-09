@@ -20,10 +20,15 @@ import { COLORS } from "@/theme/colors"
 export type MobileFilterButtonProps = {
   assetsOptions: { id: string; name: string }[]
   statusesOptions: { id: string; name: string }[]
+  withdrawalCycleOptions: { id: string; name: string }[]
   marketAssets: SmallFilterSelectItem[]
   setMarketAssets: React.Dispatch<React.SetStateAction<SmallFilterSelectItem[]>>
   marketStatuses: SmallFilterSelectItem[]
   setMarketStatuses: React.Dispatch<
+    React.SetStateAction<SmallFilterSelectItem[]>
+  >
+  marketWithdrawalCycles: SmallFilterSelectItem[]
+  setMarketWithdrawalCycles: React.Dispatch<
     React.SetStateAction<SmallFilterSelectItem[]>
   >
 }
@@ -31,10 +36,13 @@ export type MobileFilterButtonProps = {
 export const MobileFilterButton = ({
   assetsOptions,
   statusesOptions,
+  withdrawalCycleOptions,
   marketAssets,
   setMarketAssets,
   marketStatuses,
   setMarketStatuses,
+  marketWithdrawalCycles,
+  setMarketWithdrawalCycles,
 }: MobileFilterButtonProps) => {
   const [open, setOpen] = useState<boolean>(false)
 
@@ -48,10 +56,18 @@ export const MobileFilterButton = ({
       marketStatuses.some((sel) => sel.id === opt.id),
     )
 
+  const allWithdrawalCyclesSelected =
+    withdrawalCycleOptions.length > 0 &&
+    withdrawalCycleOptions.every((opt) =>
+      marketWithdrawalCycles.some((sel) => sel.id === opt.id),
+    )
+
   const isFiltered =
     (marketAssets.length > 0 && marketAssets.length !== assetsOptions.length) ||
     (marketStatuses.length > 0 &&
-      marketStatuses.length !== statusesOptions.length)
+      marketStatuses.length !== statusesOptions.length) ||
+    (marketWithdrawalCycles.length > 0 &&
+      marketWithdrawalCycles.length !== withdrawalCycleOptions.length)
 
   const toggleAllAssets = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
@@ -70,6 +86,18 @@ export const MobileFilterButton = ({
       )
     } else {
       setMarketStatuses([])
+    }
+  }
+
+  const toggleAllWithdrawalCycles = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    if (event.target.checked) {
+      setMarketWithdrawalCycles(
+        withdrawalCycleOptions.map((opt) => ({ id: opt.id, name: opt.name })),
+      )
+    } else {
+      setMarketWithdrawalCycles([])
     }
   }
 
@@ -99,9 +127,25 @@ export const MobileFilterButton = ({
     }
   }
 
+  const handleChangeWithdrawalCycles = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    item: SmallFilterSelectItem,
+  ) => {
+    if (event.target.checked) {
+      setMarketWithdrawalCycles([...marketWithdrawalCycles, item])
+    } else {
+      setMarketWithdrawalCycles(
+        marketWithdrawalCycles.filter(
+          (existingItem) => existingItem.id !== item.id,
+        ),
+      )
+    }
+  }
+
   const handleReset = () => {
     setMarketAssets([])
     setMarketStatuses([])
+    setMarketWithdrawalCycles([])
   }
 
   const handleToggleOpen = () => setOpen((prev) => !prev)
@@ -239,6 +283,57 @@ export const MobileFilterButton = ({
                   value={item}
                   onChange={(event) => handleChangeStatuses(event, item)}
                   checked={marketStatuses.some(
+                    (selectedItem) => selectedItem.id === item.id,
+                  )}
+                  sx={{
+                    "& ::before": {
+                      transform: "translate(-3px, -3px) scale(0.75)",
+                    },
+                  }}
+                />
+              }
+            />
+          ))}
+
+          <FormControlLabel
+            label="Withdrawal Cycle"
+            control={
+              <ExtendedCheckbox
+                checked={allWithdrawalCyclesSelected}
+                indeterminate={
+                  marketWithdrawalCycles.length > 0 &&
+                  !allWithdrawalCyclesSelected
+                }
+                onChange={toggleAllWithdrawalCycles}
+                sx={{
+                  "& ::before": {
+                    transform: "translate(-3px, -3px) scale(0.75)",
+                  },
+                }}
+              />
+            }
+          />
+
+          {withdrawalCycleOptions.map((item) => (
+            <FormControlLabel
+              key={item.id}
+              label={item.name}
+              sx={{
+                marginLeft: "16px",
+                "& .MuiTypography-root": {
+                  maxWidth: "145px",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  overflowX: "hidden",
+                },
+              }}
+              control={
+                <ExtendedCheckbox
+                  value={item}
+                  onChange={(event) =>
+                    handleChangeWithdrawalCycles(event, item)
+                  }
+                  checked={marketWithdrawalCycles.some(
                     (selectedItem) => selectedItem.id === item.id,
                   )}
                   sx={{

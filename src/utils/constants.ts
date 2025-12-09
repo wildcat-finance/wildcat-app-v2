@@ -38,7 +38,7 @@ export const EXCLUDED_MARKETS_FILTER: SubgraphMarket_Filter[] =
       ]
 
 export const pageCalcHeights = {
-  dashboard: "256px",
+  dashboard: "320px",
   page: "82px",
   market: "194px",
 }

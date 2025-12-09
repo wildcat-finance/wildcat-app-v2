@@ -18,8 +18,12 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
-import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
-import { getMarketStatusChip } from "@/utils/marketStatus"
+import {
+  formatBps,
+  formatSecsToHours,
+  formatTokenWithCommas,
+} from "@/utils/formatters"
+import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 import { MarketsTableAccordion } from "../../../../../../../../components/MarketsTableAccordion"
@@ -33,6 +37,7 @@ export type BorrowerTerminatedMarketsTableModel = {
   apr: number
   debt: TokenAmount | undefined
   borrowable: TokenAmount
+  withdrawalBatchDuration: number
   hasEverInteracted: boolean
 }
 
@@ -73,6 +78,7 @@ export const BorrowerTerminatedMarketsTables = ({
         annualInterestBips,
         borrowableAssets,
         totalSupply,
+        withdrawalBatchDuration,
       } = market
 
       const marketStatus = getMarketStatusChip(market)
@@ -87,6 +93,7 @@ export const BorrowerTerminatedMarketsTables = ({
         apr: annualInterestBips,
         borrowable: borrowableAssets,
         debt: totalSupply,
+        withdrawalBatchDuration,
         hasEverInteracted: account.hasEverInteracted,
       }
     })
@@ -112,7 +119,7 @@ export const BorrowerTerminatedMarketsTables = ({
             justifyContent: "flex-start",
           }}
         >
-          <Box width="130px">
+          <Box width="120px">
             <MarketStatusChip status={params.value} />
           </Box>
         </Link>
@@ -143,11 +150,15 @@ export const BorrowerTerminatedMarketsTables = ({
       minWidth: 95,
       headerAlign: "right",
       align: "right",
-      flex: 1,
+      flex: 0.6,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+            paddingRight: "16px",
+          }}
         >
           {params.value}
         </Link>
@@ -156,7 +167,7 @@ export const BorrowerTerminatedMarketsTables = ({
     {
       field: "debt",
       headerName: t("dashboard.markets.tables.header.debt"),
-      minWidth: 110,
+      minWidth: 120,
       headerAlign: "right",
       align: "right",
       flex: 1.5,
@@ -188,6 +199,26 @@ export const BorrowerTerminatedMarketsTables = ({
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {`${formatBps(params.value)}%`}
+        </Link>
+      ),
+    },
+    {
+      field: "withdrawalBatchDuration",
+      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      minWidth: 110,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+            textTransform: "capitalize",
+          }}
+        >
+          {formatSecsToHours(params.value)}
         </Link>
       ),
     },

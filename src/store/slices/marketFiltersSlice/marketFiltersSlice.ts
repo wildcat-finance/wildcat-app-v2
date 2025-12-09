@@ -6,6 +6,7 @@ export type MarketFilters = {
   search: string
   assets: SmallFilterSelectItem[]
   statuses: SmallFilterSelectItem[]
+  withdrawalCycles: SmallFilterSelectItem[]
 }
 
 export type MarketFiltersRole = "borrower" | "lender"
@@ -15,7 +16,12 @@ export interface MarketFiltersState {
   lender: MarketFilters
 }
 
-const emptyFilters: MarketFilters = { search: "", assets: [], statuses: [] }
+const emptyFilters: MarketFilters = {
+  search: "",
+  assets: [],
+  statuses: [],
+  withdrawalCycles: [],
+}
 
 const initialState: MarketFiltersState = {
   borrower: emptyFilters,

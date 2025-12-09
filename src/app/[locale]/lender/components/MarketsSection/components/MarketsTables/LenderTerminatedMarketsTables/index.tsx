@@ -25,6 +25,7 @@ import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
 import {
   formatBps,
+  formatSecsToHours,
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
@@ -42,6 +43,7 @@ export type LenderTerminatedMarketsTableModel = {
   debt: TokenAmount | undefined
   loan: TokenAmount | undefined
   apr: number
+  withdrawalBatchDuration: number
   hasEverInteracted: boolean
 }
 
@@ -94,6 +96,7 @@ export const LenderTerminatedMarketsTables = ({
         underlyingToken,
         annualInterestBips,
         totalSupply,
+        withdrawalBatchDuration,
       } = market
 
       const borrower = borrowers?.find(
@@ -114,6 +117,7 @@ export const LenderTerminatedMarketsTables = ({
         borrowerAddress,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
+        withdrawalBatchDuration,
         loan: marketBalance,
         debt: totalSupply,
         hasEverInteracted: account.hasEverInteracted,
@@ -141,7 +145,7 @@ export const LenderTerminatedMarketsTables = ({
             justifyContent: "flex-start",
           }}
         >
-          <Box width="130px">
+          <Box width="120px">
             <MarketStatusChip status={params.value} />
           </Box>
         </Link>
@@ -239,11 +243,15 @@ export const LenderTerminatedMarketsTables = ({
       minWidth: 95,
       headerAlign: "right",
       align: "right",
-      flex: 1,
+      flex: 0.6,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+            paddingRight: "16px",
+          }}
         >
           {params.value}
         </Link>
@@ -252,7 +260,7 @@ export const LenderTerminatedMarketsTables = ({
     {
       field: "debt",
       headerName: t("dashboard.markets.tables.header.debt"),
-      minWidth: 110,
+      minWidth: 120,
       headerAlign: "right",
       align: "right",
       flex: 1.5,
@@ -274,7 +282,7 @@ export const LenderTerminatedMarketsTables = ({
     {
       field: "loan",
       headerName: t("dashboard.markets.tables.header.loan"),
-      minWidth: 106,
+      minWidth: 120,
       flex: 1.6,
       headerAlign: "right",
       align: "right",
@@ -308,6 +316,26 @@ export const LenderTerminatedMarketsTables = ({
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {`${formatBps(params.value)}%`}
+        </Link>
+      ),
+    },
+    {
+      field: "withdrawalBatchDuration",
+      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      minWidth: 110,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.lender.market}/${params.row.id}`}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+            textTransform: "capitalize",
+          }}
+        >
+          {formatSecsToHours(params.value)}
         </Link>
       ),
     },

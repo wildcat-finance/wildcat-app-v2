@@ -46,9 +46,9 @@ export const MenuTitleStyle = {
 }
 
 export const MenuBodyStyle = {
-    padding: "18px 16px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "18px",
-    borderBottom: `1px solid ${COLORS.athensGrey}`,
+  padding: "18px 16px",
+  display: "flex",
+  flexDirection: "column",
+  gap: "18px",
+  borderBottom: `1px solid ${COLORS.athensGrey}`,
 }

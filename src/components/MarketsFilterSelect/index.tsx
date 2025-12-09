@@ -10,7 +10,6 @@ import {
   Typography,
 } from "@mui/material"
 
-import Cross from "@/assets/icons/cross_icon.svg"
 import Filter from "@/assets/icons/filter_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
@@ -37,20 +36,12 @@ export const MarketsFilterSelect = ({
   const onOpen = () => {
     if (selectRef.current) {
       selectRef.current.classList.add("Mui-focused")
-
-      const previousElement = selectRef.current
-        .previousSibling as Element | null
-      previousElement?.classList.add("Mui-focused")
     }
   }
 
   const onClose = () => {
     if (selectRef.current) {
       selectRef.current.classList.remove("Mui-focused")
-
-      const previousElement = selectRef.current
-        .previousSibling as Element | null
-      previousElement?.classList.remove("Mui-focused")
     }
   }
 
@@ -73,34 +64,35 @@ export const MarketsFilterSelect = ({
 
   return (
     <Select
-      placeholder="pupka"
       ref={selectRef}
       onOpen={onOpen}
       onClose={onClose}
       value={selected}
       size="small"
       multiple
-      startAdornment={
+      displayEmpty
+      renderValue={(selectedOptions) => (
         <Box sx={StartAdornmentStyle}>
           <SvgIcon
             fontSize="big"
-            sx={{
-              "& path": { stroke: `${COLORS.santasGrey}` },
-            }}
+            sx={{ "& path": { stroke: `${COLORS.santasGrey}` } }}
           >
             <Filter />
           </SvgIcon>
-
-          <Typography variant="text3">{placeholder}</Typography>
+          <Typography variant="text3" sx={{ width: "max-content" }}>
+            {placeholder}
+          </Typography>
+          {!!selectedOptions.length && (
+            <Box onMouseDown={(e) => e.stopPropagation()}>
+              <LendersMarketChip
+                type="new"
+                marketName={selectedOptions.length.toString()}
+                withButton
+                onClick={() => handleClear()}
+              />
+            </Box>
+          )}
         </Box>
-      }
-      renderValue={(selectedOptions) => (
-        <LendersMarketChip
-          type="new"
-          marketName={selectedOptions.length.toString()}
-          withButton
-          onClick={() => handleClear()}
-        />
       )}
       MenuProps={{
         sx: MenuPropsStyle,
@@ -130,15 +122,6 @@ export const MarketsFilterSelect = ({
             {placeholder}
           </Typography>
         </Box>
-
-        <SvgIcon
-          sx={{
-            fontSize: "16px",
-            "& path": { fill: `${COLORS.greySuit}` },
-          }}
-        >
-          <Cross />
-        </SvgIcon>
       </Box>
 
       <Box sx={MenuBodyStyle}>
