@@ -6,4 +6,5 @@ import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/
 export type MarketPolicyFormProps = {
   form: UseFormReturn<MarketValidationSchemaType>
   policyOptions: ExtendedSelectOptionItem[]
+  isTestnet: boolean
 }

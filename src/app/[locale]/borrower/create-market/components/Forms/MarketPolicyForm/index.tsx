@@ -24,6 +24,7 @@ import ArrowLeftIcon from "@/assets/icons/sharpArrow_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { HorizontalInputLabel } from "@/components/HorisontalInputLabel"
 import { InputLabel } from "@/components/InputLabel"
+import { getMaxFixedTermDays } from "@/config/market-duration"
 import {
   mockedAccessControlOptions,
   mockedMarketTypesOptions,
@@ -66,6 +67,7 @@ const DateCalendarArrowRight = () => (
 export const MarketPolicyForm = ({
   form,
   policyOptions,
+  isTestnet,
 }: MarketPolicyFormProps) => {
   const { t } = useTranslation()
   const theme = useTheme()
@@ -74,7 +76,8 @@ export const MarketPolicyForm = ({
 
   const today = dayjs.unix(Date.now() / 1_000).startOf("day")
   const tomorrow = today.add(1, "day")
-  const twoYearsFromNow = today.add(730, "days")
+  const maxDays = getMaxFixedTermDays(isTestnet)
+  const maxDate = today.add(maxDays, "days")
 
   const {
     setValue,
@@ -250,14 +253,23 @@ export const MarketPolicyForm = ({
                       : null
                   }
                   onChange={(v) => {
-                    setValue(
-                      "fixedTermEndTime",
-                      (v ? v.unix() : undefined) as number,
-                      { shouldTouch: true },
-                    )
+                    if (v && v.isValid()) {
+                      setValue("fixedTermEndTime", v.unix(), {
+                        shouldTouch: true,
+                        shouldValidate: true,
+                      })
+                    } else if (!v) {
+                      setValue(
+                        "fixedTermEndTime",
+                        undefined as unknown as number,
+                        {
+                          shouldTouch: true,
+                        },
+                      )
+                    }
                   }}
                   minDate={tomorrow}
-                  maxDate={twoYearsFromNow}
+                  maxDate={maxDate}
                   slots={{
                     leftArrowIcon: DateCalendarArrowLeft,
                     rightArrowIcon: DateCalendarArrowRight,
