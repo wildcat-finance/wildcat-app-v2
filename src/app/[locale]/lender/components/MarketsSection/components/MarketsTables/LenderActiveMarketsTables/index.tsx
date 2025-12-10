@@ -13,17 +13,19 @@ import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MobileMarketCard } from "@/app/[locale]/lender/components/mobile/MobileMarketCard"
 import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
+import Ethena from "@/assets/companies-icons/ethena_icon.svg"
+import Ethereal from "@/assets/companies-icons/ethereal_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { AurosGlobal } from "@/components/AdsBanners/AurosGlobal"
+import { AprChip } from "@/components/AprChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { LenderMarketDashboardSections } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { COLORS } from "@/theme/colors"
-import { theme } from "@/theme/theme"
 import { lh, pxToRem } from "@/theme/units"
 import {
   statusComparator,
@@ -279,7 +281,18 @@ export const LenderActiveMarketsTables = ({
           href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {`${formatBps(params.value)}%`}
+          {params.row.id.toString().toLowerCase() ===
+          "0x8fa1b736a98631c2851c3a7fd684f2131dca423f".toLowerCase() ? (
+            <Box>
+              <AprChip
+                baseApr="10%"
+                icons={[<Ethena />, <Ethereal />]}
+                adsComponent={<AurosGlobal type="tooltip" />}
+              />
+            </Box>
+          ) : (
+            `${formatBps(params.value)}%`
+          )}
         </Link>
       ),
     },

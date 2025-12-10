@@ -4,10 +4,14 @@ import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
+import Ethena from "@/assets/companies-icons/ethena_icon.svg"
+import Ethereal from "@/assets/companies-icons/ethereal_icon.svg"
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import Avatar from "@/assets/icons/avatar_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { AurosGlobal } from "@/components/AdsBanners/AurosGlobal"
+import { AprChip } from "@/components/AprChip"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
@@ -95,9 +99,16 @@ export const MobileMarketCard = ({
         <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
           <MarketStatusChip status={marketItem.status} withPeriod={false} />
 
-          <Typography variant="mobText4">{`${formatBps(
-            marketItem.apr,
-          )}%`}</Typography>
+          {marketItem.id.toLowerCase() ===
+          "0x8fa1b736a98631c2851c3a7fd684f2131dca423f".toLowerCase() ? (
+            <Box>
+              <AprChip baseApr="10%" icons={[<Ethena />, <Ethereal />]} />
+            </Box>
+          ) : (
+            <Typography variant="mobText4">{`${formatBps(
+              marketItem.apr,
+            )}%`}</Typography>
+          )}
         </Box>
 
         <MarketTypeChip {...marketItem.term} />

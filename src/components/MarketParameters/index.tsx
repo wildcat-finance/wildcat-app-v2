@@ -12,6 +12,7 @@ import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
+import { AurosGlobal } from "@/components/AdsBanners/AurosGlobal"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
@@ -292,6 +293,11 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             )}%`}
             tooltipText="The fixed annual percentage rate (excluding any protocol fees) that borrowers pay to lenders for assets within the market."
           />
+          <Divider sx={{ margin: "12px 0 12px" }} />
+          {market.address.toLowerCase() ===
+            "0x8fa1b736a98631c2851c3a7fd684f2131dca423f".toLowerCase() && (
+            <AurosGlobal type="parameter" />
+          )}
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.protocolAPR")}

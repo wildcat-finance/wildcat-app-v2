@@ -21,8 +21,12 @@ import {
 } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MobileMarketCard } from "@/app/[locale]/lender/components/mobile/MobileMarketCard"
 import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
+import Ethena from "@/assets/companies-icons/ethena_icon.svg"
+import Ethereal from "@/assets/companies-icons/ethereal_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { AurosGlobal } from "@/components/AdsBanners/AurosGlobal"
+import { AprChip } from "@/components/AprChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { TablePagination } from "@/components/TablePagination"
@@ -291,7 +295,17 @@ export const OtherMarketsTables = ({
           href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {`${formatBps(params.value)}%`}
+          {params.row.id === "0x8fa1b736a98631c2851c3a7fd684f2131dca423f" ? (
+            <Box>
+              <AprChip
+                baseApr="10%"
+                icons={[<Ethena />, <Ethereal />]}
+                adsComponent={<AurosGlobal type="tooltip" />}
+              />
+            </Box>
+          ) : (
+            `${formatBps(params.value)}%`
+          )}
         </Link>
       ),
     },
