@@ -7,6 +7,7 @@ import { COLORS } from "@/theme/colors"
 
 type AprChipProps = {
   baseApr: string
+  isBonus?: boolean
   bonusApr?: string
   rightGap?: number
   icons?: JSX.Element[]
@@ -14,6 +15,7 @@ type AprChipProps = {
 }
 
 export const AprChip = ({
+  isBonus = false,
   baseApr,
   bonusApr,
   rightGap = 42.5,
@@ -21,6 +23,8 @@ export const AprChip = ({
   adsComponent,
 }: AprChipProps) => {
   const isMobile = useMobileResolution()
+
+  if (!isBonus) return `${baseApr}%`
 
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: "2px" }}>
@@ -35,14 +39,15 @@ export const AprChip = ({
           sx={{
             padding: bonusApr ? `0 ${rightGap}px 0 8px` : "0 8px",
             borderRadius: "12px",
-            border: `1px solid ${COLORS.athensGrey}`,
+            border: isMobile ? "none" : `1px solid ${COLORS.athensGrey}`,
+            backgroundColor: isMobile ? COLORS.whiteSmoke : "transparent",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
           <Typography variant={isMobile ? "text4" : "text3"}>
-            {baseApr}
+            {baseApr}%
           </Typography>
         </Box>
 

@@ -1,22 +1,19 @@
 import { useMemo } from "react"
 
-import {
-  Box,
-  Divider,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material"
+import { Box, Divider, Typography, useTheme } from "@mui/material"
 import { MarketVersion, HooksKind } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
-import { AurosGlobal } from "@/components/AdsBanners/AurosGlobal"
+import { AurosEthenaBanner } from "@/components/AdsBanners/AurosEthena/AurosEthenaBanner"
+import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/AurosEthenaProposalChip"
+import { ProposalMarketParameter } from "@/components/AdsBanners/Common/ProposalMarketParameter"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
+import { AUROS_ETHENA_ADDRESS } from "@/utils/constants"
 import {
   formatBps,
   formatRayAsPercentage,
@@ -140,6 +137,11 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
   } else {
     earlyMaturity = "no"
   }
+
+  const isAurosTestnet =
+    market.address.toLowerCase() === AUROS_ETHENA_ADDRESS.testnet.toLowerCase()
+  const isAurosMainnet =
+    market.address.toLowerCase() === AUROS_ETHENA_ADDRESS.mainnet.toLowerCase()
 
   return (
     <Box
@@ -294,10 +296,14 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             tooltipText="The fixed annual percentage rate (excluding any protocol fees) that borrowers pay to lenders for assets within the market."
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
-          {market.address.toLowerCase() ===
-            "0x8fa1b736a98631c2851c3a7fd684f2131dca423f".toLowerCase() && (
-            <AurosGlobal type="parameter" />
+
+          {(isAurosTestnet || isAurosMainnet) && (
+            <ProposalMarketParameter
+              proposal={<AurosEthenaProposalChip isTooltip={false} />}
+              banner={<AurosEthenaBanner maxWidth="100%" />}
+            />
           )}
+
           <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.protocolAPR")}

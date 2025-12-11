@@ -1,17 +1,14 @@
 import * as React from "react"
+import { ReactNode } from "react"
 
 import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
-import Ethena from "@/assets/companies-icons/ethena_icon.svg"
-import Ethereal from "@/assets/companies-icons/ethereal_icon.svg"
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import Avatar from "@/assets/icons/avatar_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
-import { AprChip } from "@/components/AprChip"
-import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
@@ -55,7 +52,7 @@ export const MobileMarketCard = ({
   buttonText?: string
   buttonIcon?: boolean
   showBorrower?: boolean
-  adsCard?: boolean
+  adsCard?: ReactNode
 }) => {
   const getDepositLine = () => {
     if (marketItem.loan) {
@@ -204,126 +201,7 @@ export const MobileMarketCard = ({
 
       <Divider />
 
-      {adsCard && (
-        <>
-          <Box sx={{ display: "flex", alignItems: "center", mt: "14px" }}>
-            <Typography variant="mobText4" sx={{ mr: "4px" }}>
-              Base APR
-            </Typography>
-
-            <Box
-              sx={{
-                padding: "0 6px",
-                borderRadius: "12px",
-                backgroundColor: COLORS.whiteSmoke,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Typography variant="text4">10%</Typography>
-            </Box>
-
-            <Typography variant="mobText4" sx={{ mr: "4px", ml: "10px" }}>
-              20x Multiplier
-            </Typography>
-
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                backgroundColor: COLORS.whiteSmoke,
-                padding: "2px 8px 2px 3px",
-                borderRadius: "20px",
-                mr: "4px",
-              }}
-            >
-              <SvgIcon>
-                <Ethena />
-              </SvgIcon>
-
-              <Typography variant="text4">Ethena Points</Typography>
-            </Box>
-
-            <TooltipButton
-              value="Lenders may receive additional incentives distributed by external
-            partners or protocol initiatives. These incentives are optional,
-            variable, and not part of the core lending terms. Wildcat does not
-            guarantee the program and accepts no liability."
-            />
-          </Box>
-
-          <Box
-            sx={{
-              marginTop: "14px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "4px",
-              padding: "10px",
-              borderRadius: "8px",
-              background:
-                "radial-gradient(74.21% 105.42% at 50.11% 14.6%, rgba(58, 58, 58, 0.70) 3.13%, rgba(28, 28, 28, 0.70) 100%), #111",
-            }}
-          >
-            <Box
-              sx={{
-                width: "100%",
-                display: "flex",
-                gap: "6px",
-              }}
-            >
-              <Typography
-                variant="mobText3"
-                fontWeight={600}
-                color={COLORS.white}
-              >
-                1 million weekly of
-              </Typography>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  backgroundColor: "#383737",
-                  padding: "2px 8px 2px 3px",
-                  borderRadius: "20px",
-                }}
-              >
-                <SvgIcon>
-                  <Ethereal />
-                </SvgIcon>
-
-                <Typography variant="mobText4" color={COLORS.white}>
-                  Ethereal Points
-                </Typography>
-              </Box>
-            </Box>
-
-            <Typography
-              variant="mobText3"
-              color={COLORS.white}
-              sx={{ opacity: 0.8 }}
-            >
-              Receive pro-rate share of 1 million Ethereal points
-            </Typography>
-          </Box>
-
-          {/* <Typography */}
-          {/*  variant="text4" */}
-          {/*  color={COLORS.santasGrey} */}
-          {/*  sx={{ px: "5px", marginTop: "8px", marginBottom: "14px" }} */}
-          {/* > */}
-          {/*  Lenders may receive additional incentives distributed by external */}
-          {/*  partners or protocol initiatives. These incentives are optional, */}
-          {/*  variable, and not part of the core lending terms. Wildcat does not */}
-          {/*  guarantee the program and accepts no liability. */}
-          {/* </Typography> */}
-
-          <Divider sx={{ marginTop: "14px" }} />
-        </>
-      )}
+      {adsCard}
 
       <Box
         sx={{

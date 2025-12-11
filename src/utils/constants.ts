@@ -50,3 +50,8 @@ export const USDT_LIKE_TOKENS = [
 
 export const isUSDTLikeToken = (address: string) =>
   USDT_LIKE_TOKENS.includes(address.toLowerCase())
+
+export const AUROS_ETHENA_ADDRESS = {
+  testnet: "0x8fa1b736a98631c2851c3a7fd684f2131dca423f",
+  mainnet: "0x18b3794b9f0ffd999442815e537fe603b67fa029",
+}
