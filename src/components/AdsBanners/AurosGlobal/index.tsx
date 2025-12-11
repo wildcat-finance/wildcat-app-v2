@@ -48,7 +48,12 @@ export const AurosGlobal = ({ type }: AurosGlobalProps) => {
               Rewards APR
             </Typography>
 
-            <TooltipButton value="TBD" />
+            <TooltipButton
+              value="Lenders may receive additional incentives distributed by external
+          partners or protocol initiatives. These incentives are optional,
+          variable, and not part of the core lending terms. Wildcat does not
+          guarantee the program and accepts no liability."
+            />
           </Box>
 
           <Box
@@ -143,12 +148,6 @@ export const AurosGlobal = ({ type }: AurosGlobalProps) => {
         </Box>
       </Box>
     )
-
-  // if (type === "tooltip" && isMobile) return (
-  //     <Box>
-  //
-  //     </Box>
-  // )
 
   if (type === "tooltip" && !isMobile)
     return (
@@ -309,6 +308,17 @@ export const AurosGlobal = ({ type }: AurosGlobalProps) => {
             Receive pro-rate share of 1 million Ethereal points
           </Typography>
         </Box>
+
+        <Typography
+          variant="text4"
+          color={COLORS.santasGrey}
+          sx={{ maxWidth: "294px", px: "5px" }}
+        >
+          Lenders may receive additional incentives distributed by external
+          partners or protocol initiatives. These incentives are optional,
+          variable, and not part of the core lending terms. Wildcat does not
+          guarantee the program and accepts no liability.
+        </Typography>
       </Paper>
     )
 

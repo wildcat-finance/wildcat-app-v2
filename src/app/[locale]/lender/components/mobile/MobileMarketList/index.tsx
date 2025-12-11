@@ -108,6 +108,10 @@ export const MobileMarketList = ({
         {!isLoading &&
           currentItems.map((marketItem) => (
             <MobileMarketCard
+              adsCard={
+                marketItem.id.toLowerCase() ===
+                "0x8fa1b736a98631c2851c3a7fd684f2131dca423f".toLowerCase()
+              }
               key={marketItem.id}
               marketItem={marketItem}
               buttonText="Deposit"
