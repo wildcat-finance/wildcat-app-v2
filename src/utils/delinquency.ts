@@ -40,7 +40,6 @@ export const getDelinquencyProjection = (
     projectedGraceRemaining,
     isIncurringPenalties:
       currentlyDelinquent &&
-      projectedTimeDelinquent > market.delinquencyGracePeriod &&
-      market.delinquencyFeeBips > 0,
+      projectedTimeDelinquent > market.delinquencyGracePeriod,
   }
 }
