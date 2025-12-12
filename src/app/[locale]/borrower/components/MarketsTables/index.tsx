@@ -24,6 +24,7 @@ import {
   setScrollTarget,
   setTerminatedAmount,
 } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
+import { getDelinquencyProjection } from "@/utils/delinquency"
 import { isNotExcludedMarket } from "@/utils/filters"
 import { getMarketStatus, MarketStatus } from "@/utils/marketStatus"
 
@@ -56,7 +57,7 @@ const getFilteredAndOrderedMarkets = (
         getMarketStatus(
           market.isClosed,
           market.isDelinquent || market.willBeDelinquent,
-          market.isIncurringPenalties,
+          getDelinquencyProjection(market).isIncurringPenalties,
         ),
       ),
     )

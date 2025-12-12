@@ -1,5 +1,6 @@
 import { Market } from "@wildcatfi/wildcat-sdk"
 
+import { getDelinquencyProjection } from "@/utils/delinquency"
 import { secondsToDays } from "@/utils/formatters"
 
 export enum MarketStatus {
@@ -21,17 +22,23 @@ export const getMarketStatus = (
 }
 
 export const getMarketStatusChip = (market: Market) => {
+  const { projectedTimeDelinquent, isIncurringPenalties } =
+    getDelinquencyProjection(market)
+
   const delinquencyPeriod =
-    market.timeDelinquent > market.delinquencyGracePeriod
+    projectedTimeDelinquent > market.delinquencyGracePeriod
       ? 0
-      : market.delinquencyGracePeriod - market.timeDelinquent
-  const penaltyPeriod = market.timeDelinquent - market.delinquencyGracePeriod
+      : market.delinquencyGracePeriod - projectedTimeDelinquent
+  const penaltyPeriod = Math.max(
+    0,
+    projectedTimeDelinquent - market.delinquencyGracePeriod,
+  )
 
   return {
     status: getMarketStatus(
       market.isClosed,
       market.isDelinquent || market.willBeDelinquent,
-      market.isIncurringPenalties,
+      isIncurringPenalties,
     ),
     healthyPeriod:
       market.totalDebts.gt(0) &&

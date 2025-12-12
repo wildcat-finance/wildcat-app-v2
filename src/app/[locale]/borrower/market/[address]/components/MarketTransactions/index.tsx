@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next"
 import { MaturityModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MaturityModal"
 import { MinimumDepositModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MinimumDepositModal"
 import { TransactionBlock } from "@/components/TransactionBlock"
+import { getDelinquencyProjection } from "@/utils/delinquency"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { MarketTransactionsProps } from "./interface"
@@ -27,6 +28,7 @@ export const MarketTransactions = ({
   const handleClose = () => {
     setAnchorEl(null)
   }
+  const { isIncurringPenalties } = getDelinquencyProjection(market)
 
   const disableRepay = market.isClosed
   const disableBorrow =
@@ -89,7 +91,7 @@ export const MarketTransactions = ({
               : formatTokenWithCommas(market.outstandingDebt)
           }
           asset={market.underlyingToken.symbol}
-          warning={market.isIncurringPenalties || market.isDelinquent}
+          warning={isIncurringPenalties || market.isDelinquent}
         >
           {!disableRepay && (
             <RepayModal

@@ -17,6 +17,7 @@ import { useUpdatedCollateralContract } from "@/hooks/useGetCollateralContracts"
 import { useGetTokenPrices } from "@/hooks/useGetTokenPrices"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
+import { getDelinquencyProjection } from "@/utils/delinquency"
 import {
   formatTokenWithCommas,
   getTokenValueSuffix,
@@ -57,12 +58,13 @@ export const ContractActions = ({
     market.underlyingToken,
     collateralContract.collateralAsset,
   ])
+  const { isIncurringPenalties } = getDelinquencyProjection(market)
 
   const showDeposit =
     !market.isClosed && !hideActions && marketAccount.isBorrower
 
   const showLiquidate =
-    market.isIncurringPenalties &&
+    isIncurringPenalties &&
     collateralContract.availableCollateral.gt(0) &&
     !hideActions
 

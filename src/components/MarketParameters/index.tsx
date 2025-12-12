@@ -25,6 +25,7 @@ import {
   toTokenAmountProps,
   trimAddress,
 } from "@/utils/formatters"
+import { getDelinquencyProjection } from "@/utils/delinquency"
 
 import { MarketParametersItem } from "./components/MarketParametersItem"
 import { MarketParametersProps } from "./interface"
@@ -39,20 +40,27 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
   const theme = useTheme()
   const isMobile = useMobileResolution()
   const [state, copyToClipboard] = useCopyToClipboard()
-  const { timeDelinquent, delinquencyGracePeriod } = market
+  const {
+    projectedTimeDelinquent,
+    projectedGraceRemaining,
+    isIncurringPenalties,
+  } = getDelinquencyProjection(market)
 
   const [gracePeriodLabel, gracePeriodTimer] =
-    timeDelinquent > delinquencyGracePeriod
+    isIncurringPenalties
       ? [
           t("borrowerMarketDetails.label.remainingTime"),
-          humanizeDuration((timeDelinquent - delinquencyGracePeriod) * 1000, {
-            round: true,
-            largest: 1,
-          }),
+          humanizeDuration(
+            (projectedTimeDelinquent - market.delinquencyGracePeriod) * 1000,
+            {
+              round: true,
+              largest: 1,
+            },
+          ),
         ]
       : [
           t("borrowerMarketDetails.label.availableGracePeriod"),
-          formatSecsToHours(delinquencyGracePeriod - timeDelinquent),
+          formatSecsToHours(projectedGraceRemaining),
         ]
 
   const gracePeriodTooltip = useMemo(() => {
@@ -63,7 +71,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
         // If the market is not currently delinquent but will be after the next update:
         return t("borrowerMarketDetails.tooltip.willBeDelinquent")
       }
-      if (timeDelinquent > delinquencyGracePeriod) {
+      if (isIncurringPenalties) {
         // If the market is not currently delinquent (on-chain) but is incurring penalties:
         return t("borrowerMarketDetails.tooltip.delinquencyFeesApply")
       }
@@ -75,7 +83,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
     }
     // If the market will continue to be delinquent after the next update:
     return t("borrowerMarketDetails.tooltip.delinquencyContinues")
-  }, [market])
+  }, [isIncurringPenalties, market, t])
 
   const totalInterestAccrued = market
     ? (
@@ -317,9 +325,9 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               MARKET_PARAMS_DECIMALS.delinquencyFeeBips,
             )}%`}
             tooltipText="An additional interest rate charged if the market remains delinquent—failing to maintain required reserves—after the grace period has elapsed."
-            alarmState={market.isIncurringPenalties}
+            alarmState={isIncurringPenalties}
             valueTooltipText={
-              market.isIncurringPenalties
+              isIncurringPenalties
                 ? `This market is incurring delinquency fees, leading to a total APR of ${formatRayAsPercentage(
                     market.effectiveLenderAPR,
                     MARKET_PARAMS_DECIMALS.annualInterestBips,
@@ -338,7 +346,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             title={gracePeriodLabel}
             value={gracePeriodTimer}
             tooltipText="The portion of the grace period left for borrowers to fix non-compliance issues, such as restoring reserves."
-            alarmState={timeDelinquent > delinquencyGracePeriod}
+            alarmState={isIncurringPenalties}
             valueTooltipText={gracePeriodTooltip}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />

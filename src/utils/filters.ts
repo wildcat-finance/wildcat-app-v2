@@ -7,6 +7,7 @@ import {
 
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
+import { getDelinquencyProjection } from "@/utils/delinquency"
 import { getMarketStatus } from "@/utils/marketStatus"
 
 import { EXCLUDED_MARKETS, EXCLUDED_BORROWERS } from "./constants"
@@ -88,7 +89,7 @@ export const filterMarketAccounts = (
         getMarketStatus(
           market.isClosed,
           market.isDelinquent || market.willBeDelinquent,
-          market.isIncurringPenalties,
+          getDelinquencyProjection(market).isIncurringPenalties,
         ),
       ),
     )

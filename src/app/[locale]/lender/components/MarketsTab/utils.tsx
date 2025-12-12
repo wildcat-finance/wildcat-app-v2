@@ -34,6 +34,7 @@ import {
   getMarketStatusChip,
   MarketStatus,
 } from "@/utils/marketStatus"
+import { getDelinquencyProjection } from "@/utils/delinquency"
 
 export const filterMarketAccounts = (
   marketAccounts: MarketAccount[] | undefined,
@@ -64,7 +65,7 @@ export const filterMarketAccounts = (
         getMarketStatus(
           market.isClosed,
           market.isDelinquent || market.willBeDelinquent,
-          market.isIncurringPenalties,
+          getDelinquencyProjection(market).isIncurringPenalties,
         ),
       ),
     )

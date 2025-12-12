@@ -24,6 +24,7 @@ import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { EtherscanBaseUrl } from "@/config/network"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
+import { getDelinquencyProjection } from "@/utils/delinquency"
 import { formatTokenWithCommas, trimAddress } from "@/utils/formatters"
 
 import { MarketWithdrawalRequestsProps } from "./interface"
@@ -38,6 +39,7 @@ export const MarketWithdrawalRequests = ({
   isHoldingMarket,
 }: MarketWithdrawalRequestsProps) => {
   const { market } = marketAccount
+  const { isIncurringPenalties } = getDelinquencyProjection(market)
 
   const { t } = useTranslation()
   const { data } = useGetWithdrawals(market)
@@ -130,13 +132,12 @@ export const MarketWithdrawalRequests = ({
         <Typography variant="title3" sx={isMobile ? { marginTop: "12px" } : {}}>
           {t("marketWithdrawalRequests.openWithdrawals")}
         </Typography>
-        {(market.isDelinquent || market.isIncurringPenalties) &&
-          isHoldingMarket && (
-            <RepayModal
-              marketAccount={marketAccount}
-              buttonType="withdrawalTable"
-            />
-          )}
+        {(market.isDelinquent || isIncurringPenalties) && isHoldingMarket && (
+          <RepayModal
+            marketAccount={marketAccount}
+            buttonType="withdrawalTable"
+          />
+        )}
       </Box>
 
       <Box sx={TotalAccordionSummary(theme)}>

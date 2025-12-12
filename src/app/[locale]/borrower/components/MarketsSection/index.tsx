@@ -34,6 +34,7 @@ import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/b
 import { BorrowerMarketDashboardSections } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFiltersSlice"
 import { COLORS } from "@/theme/colors"
+import { getDelinquencyProjection } from "@/utils/delinquency"
 import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
 
@@ -225,12 +226,16 @@ export const MarketsSection = () => {
   ).length
 
   const nonDepositedMarketsAmount = borrowerMarkets.filter(
-    (account) =>
-      account.market.borrowableAssets.raw.isZero() &&
-      account.market.totalBorrowed?.raw.isZero() &&
-      !account.market.isClosed &&
-      !account.market.isIncurringPenalties &&
-      !account.market.isDelinquent,
+    (account) => {
+      const { isIncurringPenalties } = getDelinquencyProjection(account.market)
+      return (
+        account.market.borrowableAssets.raw.isZero() &&
+        account.market.totalBorrowed?.raw.isZero() &&
+        !account.market.isClosed &&
+        !isIncurringPenalties &&
+        !account.market.isDelinquent
+      )
+    },
   ).length
 
   const prevActiveAmount = borrowerMarkets.filter(

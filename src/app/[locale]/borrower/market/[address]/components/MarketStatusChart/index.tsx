@@ -7,6 +7,7 @@ import { BarItem } from "@/components/BarChart/BarItem"
 import { MarketBarChartItem } from "@/components/BarChart/BarItem/interface"
 import { LegendItem } from "@/components/BarChart/LegendItem"
 import { COLORS } from "@/theme/colors"
+import { getDelinquencyProjection } from "@/utils/delinquency"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { CollateralObligationsData } from "./CollateralObligations/CollateralObligationsData"
@@ -21,6 +22,7 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
   const { data: withdrawals } = useGetWithdrawals(market)
   const { barData: barRawData, breakdown } = useGenerateBarData(market)
   const isDelinquent = breakdown.status === "delinquent"
+  const { isIncurringPenalties } = getDelinquencyProjection(market)
 
   const barOrders = isDelinquent
     ? MARKET_BAR_ORDER.delinquentBarsOrder
@@ -88,7 +90,7 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
 
       {!isDelinquent &&
         !market.isClosed &&
-        !market.isIncurringPenalties &&
+        !isIncurringPenalties &&
         market.outstandingTotalSupply.gt(0) && (
           <Box sx={{ display: "flex", columnGap: "3px", marginBottom: "24px" }}>
             <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
