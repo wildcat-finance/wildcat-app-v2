@@ -538,10 +538,9 @@ export const OtherMarketsTables = ({
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
-            textTransform: "capitalize",
           }}
         >
-          {formatSecsToHours(params.value)}
+          {formatSecsToHours(params.value, true)}
         </Link>
       ),
     },
