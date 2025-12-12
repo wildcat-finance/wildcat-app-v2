@@ -329,7 +329,7 @@ export const LenderActiveMarketsTables = ({
     },
     {
       field: "capacityLeft",
-      headerName: "Remaining Capacity",
+      headerName: "Remaining",
       minWidth: 110,
       headerAlign: "right",
       align: "right",

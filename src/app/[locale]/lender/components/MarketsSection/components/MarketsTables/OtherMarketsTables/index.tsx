@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box, Button, Typography, useMediaQuery, Tooltip } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import {
   DepositStatus,
@@ -23,6 +23,7 @@ import { MobileMarketCard } from "@/app/[locale]/lender/components/mobile/Mobile
 import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { TablePagination } from "@/components/TablePagination"
@@ -152,12 +153,323 @@ export const OtherMarketsTables = ({
   const selfOnboard = rows.filter((market) => market.isSelfOnboard)
   const manual = rows.filter((market) => !market.isSelfOnboard)
 
-  const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
+  // const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
+  //   {
+  //     field: "status",
+  //     headerName: t("dashboard.markets.tables.header.status"),
+  //     minWidth: 120,
+  //     flex: 0.7,
+  //     headerAlign: "left",
+  //     align: "left",
+  //     sortComparator: statusComparator,
+  //     renderCell: (params) => (
+  //       <Link
+  //         href={`${ROUTES.lender.market}/${params.row.id}`}
+  //         style={{
+  //           ...LinkCell,
+  //           justifyContent: "flex-start",
+  //         }}
+  //       >
+  //         <Box width="120px">
+  //           <MarketStatusChip status={params.value} />
+  //         </Box>
+  //       </Link>
+  //     ),
+  //   },
+  //   {
+  //     field: "term",
+  //     headerName: t("dashboard.markets.tables.header.term"),
+  //     minWidth: 170,
+  //     flex: 1,
+  //     headerAlign: "left",
+  //     align: "left",
+  //     sortComparator: typeComparator,
+  //     renderCell: (params) => (
+  //       <Link
+  //         href={`${ROUTES.lender.market}/${params.row.id}`}
+  //         style={{
+  //           ...LinkCell,
+  //           justifyContent: "flex-start",
+  //         }}
+  //       >
+  //         <Box minWidth="170px">
+  //           <MarketTypeChip {...params.value} />
+  //         </Box>
+  //       </Link>
+  //     ),
+  //   },
+  //   {
+  //     field: "name",
+  //     headerName: t("dashboard.markets.tables.header.name"),
+  //     flex: 3,
+  //     minWidth: 208,
+  //     headerAlign: "left",
+  //     align: "left",
+  //     renderCell: (params) => (
+  //       <Link
+  //         href={`${ROUTES.lender.market}/${params.row.id}`}
+  //         style={{
+  //           ...LinkCell,
+  //           justifyContent: "flex-start",
+  //         }}
+  //       >
+  //         {params.value}
+  //       </Link>
+  //     ),
+  //   },
+  //   {
+  //     field: "borrower",
+  //     minWidth: 134,
+  //     flex: 1.7,
+  //     headerAlign: "left",
+  //     align: "left",
+  //     renderHeader: () => (
+  //       <Typography
+  //         variant="text4"
+  //         sx={{
+  //           lineHeight: "10px",
+  //           color: COLORS.santasGrey,
+  //           padding: "0 12px",
+  //         }}
+  //       >
+  //         {t("dashboard.markets.tables.header.borrower")}
+  //       </Typography>
+  //     ),
+  //     renderCell: (params) => (
+  //       <Link
+  //         href={`${ROUTES.lender.market}/${params.row.id}`}
+  //         style={{
+  //           textDecoration: "none",
+  //           width: "100%",
+  //           height: "100%",
+  //           display: "flex",
+  //           alignItems: "center",
+  //           color: "inherit",
+  //           justifyContent: "flex-start",
+  //         }}
+  //       >
+  //         <Link
+  //           href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+  //           style={{
+  //             textDecoration: "none",
+  //             width: "100%",
+  //             height: "fit-content",
+  //           }}
+  //         >
+  //           <Button
+  //             size="small"
+  //             variant="text"
+  //             sx={{
+  //               fontSize: pxToRem(13),
+  //               lineHeight: lh(20, 13),
+  //               fontWeight: 500,
+  //               minWidth: "calc(100% - 1px)",
+  //               width: "calc(100% - 1px)",
+  //               textAlign: "left",
+  //               textOverflow: "ellipsis",
+  //               overflow: "hidden",
+  //               whiteSpace: "nowrap",
+  //               display: "inline-block",
+  //
+  //               "&:hover": {
+  //                 boxShadow: "none",
+  //                 backgroundColor: COLORS.whiteSmoke,
+  //                 color: COLORS.blackRock,
+  //               },
+  //             }}
+  //           >
+  //             {params.value}
+  //           </Button>
+  //         </Link>
+  //       </Link>
+  //     ),
+  //   },
+  //   {
+  //     field: "apr",
+  //     headerName: t("dashboard.markets.tables.header.apr"),
+  //     minWidth: 102,
+  //     flex: 1,
+  //     headerAlign: "right",
+  //     align: "right",
+  //     renderCell: (params) => (
+  //       <Link
+  //         href={`${ROUTES.lender.market}/${params.row.id}`}
+  //         style={{ ...LinkCell, justifyContent: "flex-end" }}
+  //       >
+  //         {`${formatBps(params.value)}%`}
+  //       </Link>
+  //     ),
+  //   },
+  //   {
+  //     field: "withdrawalBatchDuration",
+  //     headerName: t("dashboard.markets.tables.header.withdrawal"),
+  //     minWidth: 110,
+  //     flex: 1,
+  //     headerAlign: "right",
+  //     align: "right",
+  //     renderCell: (params) => (
+  //       <Link
+  //         href={`${ROUTES.lender.market}/${params.row.id}`}
+  //         style={{
+  //           ...LinkCell,
+  //           justifyContent: "flex-end",
+  //           textTransform: "capitalize",
+  //         }}
+  //       >
+  //         {formatSecsToHours(params.value)}
+  //       </Link>
+  //     ),
+  //   },
+  //   {
+  //     field: "asset",
+  //     headerName: t("dashboard.markets.tables.header.asset"),
+  //     minWidth: 95,
+  //     headerAlign: "right",
+  //     align: "right",
+  //     flex: 0.6,
+  //     renderCell: (params) => (
+  //       <Link
+  //         href={`${ROUTES.lender.market}/${params.row.id}`}
+  //         style={{
+  //           ...LinkCell,
+  //           justifyContent: "flex-end",
+  //           paddingRight: "16px",
+  //         }}
+  //       >
+  //         {params.value}
+  //       </Link>
+  //     ),
+  //   },
+  //   {
+  //     field: "capacityLeft",
+  //     headerName: t("dashboard.markets.tables.header.capacity"),
+  //     minWidth: 110,
+  //     headerAlign: "right",
+  //     align: "right",
+  //     sortComparator: tokenAmountComparator,
+  //     flex: 1.5,
+  //     renderCell: (
+  //       params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
+  //     ) => (
+  //       <Link
+  //         href={`${ROUTES.lender.market}/${params.row.id}`}
+  //         style={{
+  //           textDecoration: "none",
+  //           width: "100%",
+  //           height: "100%",
+  //           display: "flex",
+  //           alignItems: "center",
+  //           color: "inherit",
+  //           justifyContent: "flex-end",
+  //         }}
+  //       >
+  //         {params.value && params.value.gt(0)
+  //           ? formatTokenWithCommas(params.value, {
+  //               withSymbol: false,
+  //               fractionDigits: 2,
+  //             })
+  //           : "0"}
+  //       </Link>
+  //     ),
+  //   },
+  //   {
+  //     field: "debt",
+  //     headerName: t("dashboard.markets.tables.header.debt"),
+  //     minWidth: 120,
+  //     headerAlign: "right",
+  //     align: "right",
+  //     flex: 1.5,
+  //     sortComparator: tokenAmountComparator,
+  //     renderCell: (params) => (
+  //       <Link
+  //         href={`${ROUTES.lender.market}/${params.row.id}`}
+  //         style={{ ...LinkCell, justifyContent: "flex-end" }}
+  //       >
+  //         {params.value
+  //           ? formatTokenWithCommas(params.value, {
+  //               withSymbol: false,
+  //               fractionDigits: 2,
+  //             })
+  //           : "0"}
+  //       </Link>
+  //     ),
+  //   },
+  //   {
+  //     sortable: false,
+  //     field: "button",
+  //     headerName: "",
+  //     minWidth: 102,
+  //     flex: 1,
+  //     headerAlign: "right",
+  //     align: "right",
+  //     renderCell: (params) => (
+  //       <Link
+  //         href={
+  //           params.row.isSelfOnboard
+  //             ? `${ROUTES.lender.market}/${params.row.id}`
+  //             : `${ROUTES.lender.profile}/${params.row.borrowerAddress}`
+  //         }
+  //         style={{ ...LinkCell, justifyContent: "flex-end" }}
+  //       >
+  //         <Button size="small" variant="contained" color="secondary">
+  //           {params.row.isSelfOnboard
+  //             ? `${t("dashboard.markets.tables.other.depositBTN")}`
+  //             : `${t("dashboard.markets.tables.other.requestBTN")}`}
+  //         </Button>
+  //       </Link>
+  //     ),
+  //   },
+  // ]
+
+  const newColumns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
+    {
+      field: "name",
+      headerName: t("dashboard.markets.tables.header.name"),
+      flex: 1,
+      minWidth: 212,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.lender.market}/${params.row.id}`}
+          style={{
+            ...LinkCell,
+            paddingRight: "16px",
+            justifyContent: "center",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "6px",
+            minWidth: 0,
+          }}
+        >
+          <Typography
+            variant="text3"
+            sx={{
+              display: "block",
+              width: "100%",
+              minWidth: 0,
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {params.value}
+          </Typography>
+
+          <Link
+            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+            style={{ display: "flex", textDecoration: "none" }}
+          >
+            <BorrowerProfileChip borrower={params.row.borrower} />
+          </Link>
+        </Link>
+      ),
+    },
     {
       field: "status",
       headerName: t("dashboard.markets.tables.header.status"),
-      minWidth: 120,
-      flex: 0.7,
+      minWidth: 104,
+      flex: 0.4,
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
@@ -178,8 +490,8 @@ export const OtherMarketsTables = ({
     {
       field: "term",
       headerName: t("dashboard.markets.tables.header.term"),
-      minWidth: 170,
-      flex: 1,
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "left",
       align: "left",
       sortComparator: typeComparator,
@@ -192,102 +504,16 @@ export const OtherMarketsTables = ({
           }}
         >
           <Box minWidth="170px">
-            <MarketTypeChip {...params.value} />
+            <MarketTypeChip type="table" {...params.value} />
           </Box>
-        </Link>
-      ),
-    },
-    {
-      field: "name",
-      headerName: t("dashboard.markets.tables.header.name"),
-      flex: 3,
-      minWidth: 208,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
-          style={{
-            ...LinkCell,
-            justifyContent: "flex-start",
-          }}
-        >
-          {params.value}
-        </Link>
-      ),
-    },
-    {
-      field: "borrower",
-      minWidth: 134,
-      flex: 1.7,
-      headerAlign: "left",
-      align: "left",
-      renderHeader: () => (
-        <Typography
-          variant="text4"
-          sx={{
-            lineHeight: "10px",
-            color: COLORS.santasGrey,
-            padding: "0 12px",
-          }}
-        >
-          {t("dashboard.markets.tables.header.borrower")}
-        </Typography>
-      ),
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
-          style={{
-            textDecoration: "none",
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            color: "inherit",
-            justifyContent: "flex-start",
-          }}
-        >
-          <Link
-            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
-            style={{
-              textDecoration: "none",
-              width: "100%",
-              height: "fit-content",
-            }}
-          >
-            <Button
-              size="small"
-              variant="text"
-              sx={{
-                fontSize: pxToRem(13),
-                lineHeight: lh(20, 13),
-                fontWeight: 500,
-                minWidth: "calc(100% - 1px)",
-                width: "calc(100% - 1px)",
-                textAlign: "left",
-                textOverflow: "ellipsis",
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-                display: "inline-block",
-
-                "&:hover": {
-                  boxShadow: "none",
-                  backgroundColor: COLORS.whiteSmoke,
-                  color: COLORS.blackRock,
-                },
-              }}
-            >
-              {params.value}
-            </Button>
-          </Link>
         </Link>
       ),
     },
     {
       field: "apr",
       headerName: t("dashboard.markets.tables.header.apr"),
-      minWidth: 102,
-      flex: 1,
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
@@ -302,8 +528,8 @@ export const OtherMarketsTables = ({
     {
       field: "withdrawalBatchDuration",
       headerName: t("dashboard.markets.tables.header.withdrawal"),
-      minWidth: 110,
-      flex: 1,
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
@@ -322,17 +548,16 @@ export const OtherMarketsTables = ({
     {
       field: "asset",
       headerName: t("dashboard.markets.tables.header.asset"),
-      minWidth: 95,
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "right",
       align: "right",
-      flex: 0.6,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
-            paddingRight: "16px",
           }}
         >
           {params.value}
@@ -342,11 +567,11 @@ export const OtherMarketsTables = ({
     {
       field: "capacityLeft",
       headerName: t("dashboard.markets.tables.header.capacity"),
-      minWidth: 110,
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
-      flex: 1.5,
       renderCell: (
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
@@ -374,10 +599,10 @@ export const OtherMarketsTables = ({
     {
       field: "debt",
       headerName: t("dashboard.markets.tables.header.debt"),
-      minWidth: 120,
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "right",
       align: "right",
-      flex: 1.5,
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Link
@@ -397,8 +622,8 @@ export const OtherMarketsTables = ({
       sortable: false,
       field: "button",
       headerName: "",
-      minWidth: 102,
-      flex: 1,
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
@@ -491,10 +716,19 @@ export const OtherMarketsTables = ({
                 maxWidth: "calc(100vw - 267px)",
                 padding: "0 16px",
                 "& .MuiDataGrid-columnHeader": { padding: 0 },
-                "& .MuiDataGrid-cell": { padding: "0px" },
+                "& .MuiDataGrid-row": {
+                  minHeight: "66px !important",
+                  maxHeight: "66px !important",
+                },
+                "& .MuiDataGrid-cell": {
+                  padding: "0px",
+                  minHeight: "66px",
+                  height: "auto",
+                },
               }}
+              getRowHeight={() => "auto"}
               rows={selfOnboard}
-              columns={columns}
+              columns={newColumns}
               columnHeaderHeight={40}
               paginationModel={selfOnboardPaginationModel}
               onPaginationModelChange={setSelfOnboardPaginationModel}
@@ -533,10 +767,19 @@ export const OtherMarketsTables = ({
                 maxWidth: "calc(100vw - 267px)",
                 padding: "0 16px",
                 "& .MuiDataGrid-columnHeader": { padding: 0 },
-                "& .MuiDataGrid-cell": { padding: "0px" },
+                "& .MuiDataGrid-row": {
+                  minHeight: "66px !important",
+                  maxHeight: "66px !important",
+                },
+                "& .MuiDataGrid-cell": {
+                  padding: "0px",
+                  minHeight: "66px",
+                  height: "auto",
+                },
               }}
+              getRowHeight={() => "auto"}
               rows={manual}
-              columns={columns}
+              columns={newColumns}
               columnHeaderHeight={40}
               paginationModel={manualPaginationModel}
               onPaginationModelChange={setManualPaginationModel}

@@ -1,4 +1,4 @@
-import { Box, Chip } from "@mui/material"
+import { Box, Chip, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import { HooksKind } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
@@ -15,7 +15,11 @@ const ClockIcon = () => (
   </SvgIcon>
 )
 
-export const MarketTypeChip = ({ kind, fixedPeriod }: MarketTypeChipProps) => {
+export const MarketTypeChip = ({
+  type,
+  kind,
+  fixedPeriod,
+}: MarketTypeChipProps) => {
   const daysLeft = Number(
     humanizeDuration(Math.abs(fixedPeriod || 0), {
       round: false,
@@ -23,26 +27,53 @@ export const MarketTypeChip = ({ kind, fixedPeriod }: MarketTypeChipProps) => {
     }).replace(/[^\d.]/g, ""),
   )
 
+  const isOpenTerm = kind === HooksKind.OpenTerm
+  const suffix = fixedPeriod && fixedPeriod > 0 ? "left" : "ago"
+  const chipTimeLabel =
+    daysLeft > 7
+      ? remainingMillisecondsToDate(fixedPeriod || 0)
+      : `${humanizeDuration(fixedPeriod || 0, {
+          round: true,
+          largest: 1,
+        })} ${suffix}`
+
   let additionalChipConfig
 
   if (daysLeft > 7) {
     additionalChipConfig = {
-      label: `Maturity ${remainingMillisecondsToDate(fixedPeriod || 0)}`,
+      label: `Maturity ${chipTimeLabel}`,
       backgroundColor: COLORS.whiteSmoke,
       color: COLORS.santasGrey,
     }
   } else {
-    const suffix = fixedPeriod && fixedPeriod > 0 ? "left" : "ago"
     additionalChipConfig = {
-      label: `${humanizeDuration(fixedPeriod || 0, {
-        round: true,
-        largest: 1,
-      })} ${suffix}`,
+      label: chipTimeLabel,
       icon: <ClockIcon />,
       backgroundColor: COLORS.oasis,
       color: COLORS.butteredRum,
     }
   }
+
+  if (type === "table")
+    return (
+      <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        {!isOpenTerm && (
+          <SvgIcon
+            sx={{
+              fontSize: "11px",
+              mt: "-1px",
+              "& path": { fill: COLORS.santasGrey },
+            }}
+          >
+            <ClockIcon />
+          </SvgIcon>
+        )}
+
+        <Typography variant="text4">
+          {isOpenTerm ? "Open Term" : chipTimeLabel}
+        </Typography>
+      </Box>
+    )
 
   return (
     <Box sx={{ display: "flex", gap: "4px 2px", flexWrap: "wrap" }}>
