@@ -7,7 +7,7 @@ export type DelinquencyProjection = {
 }
 
 /**
- * timeDelinquent on-chain ohas a but when delinquent APR is 0.  timeDelinquent is
+ * timeDelinquent on-chain has a bug when delinquent APR is 0.  timeDelinquent is
  * not updated. This is a workaround to evaluate a penalty state on the front-end,
  * Project it using the last accrual timestamp and surface penalty states.
  */
@@ -17,14 +17,18 @@ export const getDelinquencyProjection = (
 ): DelinquencyProjection => {
   const nowSeconds = Math.floor(nowMs / 1000)
   const elapsed = Math.max(0, nowSeconds - market.lastInterestAccruedTimestamp)
-  // timeDelinquent is unreliable; isDelinquent is trustworthy.
   const currentlyDelinquent = market.isDelinquent
 
-  // If delinquent, treat elapsed time since last accrual as delinquency time.
-  // If not delinquent, assume timer winds down (but stays non-negative).
-  const projectedTimeDelinquent = currentlyDelinquent
-    ? elapsed
-    : Math.max(0, market.timeDelinquent - elapsed)
+  // If a penalty fee exists, trust the on-chain timer; otherwise (fee = 0) fall
+  // back to elapsed time while delinquent because timeDelinquent may not move.
+  const useOnChainTimer = market.delinquencyFeeBips > 0
+
+  let projectedTimeDelinquent: number
+  if (currentlyDelinquent) {
+    projectedTimeDelinquent = useOnChainTimer ? market.timeDelinquent : elapsed
+  } else {
+    projectedTimeDelinquent = Math.max(0, market.timeDelinquent - elapsed)
+  }
 
   const projectedGraceRemaining = Math.max(
     0,
@@ -36,6 +40,7 @@ export const getDelinquencyProjection = (
     projectedGraceRemaining,
     isIncurringPenalties:
       currentlyDelinquent &&
-      projectedTimeDelinquent > market.delinquencyGracePeriod,
+      projectedTimeDelinquent > market.delinquencyGracePeriod &&
+      market.delinquencyFeeBips > 0,
   }
 }
