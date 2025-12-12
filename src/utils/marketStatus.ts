@@ -1,7 +1,7 @@
-import { Market } from "@wildcatfi/wildcat-sdk"
+import { Market } from "@wildcatfi/wildcat-sdk";
 
-import { getDelinquencyProjection } from "@/utils/delinquency"
-import { secondsToDays } from "@/utils/formatters"
+import { getDelinquencyProjection } from "@/utils/delinquency";
+import { secondsToDays } from "@/utils/formatters";
 
 export enum MarketStatus {
   HEALTHY = "Healthy",
@@ -13,32 +13,32 @@ export enum MarketStatus {
 export const getMarketStatus = (
   isClosed: boolean,
   isDelinquent: boolean,
-  isIncurringPenalties: boolean,
+  isIncurringPenalties: boolean
 ): MarketStatus => {
-  if (isClosed) return MarketStatus.TERMINATED
-  if (isIncurringPenalties) return MarketStatus.PENALTY
-  if (isDelinquent) return MarketStatus.DELINQUENT
-  return MarketStatus.HEALTHY
-}
+  if (isClosed) return MarketStatus.TERMINATED;
+  if (isIncurringPenalties) return MarketStatus.PENALTY;
+  if (isDelinquent) return MarketStatus.DELINQUENT;
+  return MarketStatus.HEALTHY;
+};
 
 export const getMarketStatusChip = (market: Market) => {
   const { projectedTimeDelinquent, isIncurringPenalties } =
-    getDelinquencyProjection(market)
+    getDelinquencyProjection(market);
 
   const delinquencyPeriod =
     projectedTimeDelinquent > market.delinquencyGracePeriod
       ? 0
-      : market.delinquencyGracePeriod - projectedTimeDelinquent
+      : market.delinquencyGracePeriod - projectedTimeDelinquent;
   const penaltyPeriod = Math.max(
     0,
-    projectedTimeDelinquent - market.delinquencyGracePeriod,
-  )
+    projectedTimeDelinquent - market.delinquencyGracePeriod
+  );
 
   return {
     status: getMarketStatus(
       market.isClosed,
       market.isDelinquent || market.willBeDelinquent,
-      isIncurringPenalties,
+      isIncurringPenalties
     ),
     healthyPeriod:
       market.totalDebts.gt(0) &&
@@ -48,5 +48,5 @@ export const getMarketStatusChip = (market: Market) => {
         : null,
     penaltyPeriod: secondsToDays(penaltyPeriod),
     delinquencyPeriod: secondsToDays(delinquencyPeriod),
-  }
-}
+  };
+};

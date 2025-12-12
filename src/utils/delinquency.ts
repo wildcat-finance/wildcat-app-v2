@@ -19,13 +19,17 @@ export const getDelinquencyProjection = (
   const elapsed = Math.max(0, nowSeconds - market.lastInterestAccruedTimestamp)
   const currentlyDelinquent = market.isDelinquent
 
-  // If a penalty fee exists, trust the on-chain timer; otherwise (fee = 0) fall
-  // back to elapsed time while delinquent because timeDelinquent may not move.
-  const useOnChainTimer = market.delinquencyFeeBips > 0
-
   let projectedTimeDelinquent: number
   if (currentlyDelinquent) {
-    projectedTimeDelinquent = useOnChainTimer ? market.timeDelinquent : elapsed
+    projectedTimeDelinquent = market.timeDelinquent + elapsed
+
+
+    if (market.delinquencyFeeBips === 0) {
+      projectedTimeDelinquent = Math.max(
+        projectedTimeDelinquent,
+        market.delinquencyGracePeriod + 1,
+      )
+    }
   } else {
     projectedTimeDelinquent = Math.max(0, market.timeDelinquent - elapsed)
   }
