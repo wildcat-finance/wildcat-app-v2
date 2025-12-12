@@ -225,18 +225,16 @@ export const MarketsSection = () => {
         !account.market.totalBorrowed?.raw.isZero()),
   ).length
 
-  const nonDepositedMarketsAmount = borrowerMarkets.filter(
-    (account) => {
-      const { isIncurringPenalties } = getDelinquencyProjection(account.market)
-      return (
-        account.market.borrowableAssets.raw.isZero() &&
-        account.market.totalBorrowed?.raw.isZero() &&
-        !account.market.isClosed &&
-        !isIncurringPenalties &&
-        !account.market.isDelinquent
-      )
-    },
-  ).length
+  const nonDepositedMarketsAmount = borrowerMarkets.filter((account) => {
+    const { isIncurringPenalties } = getDelinquencyProjection(account.market)
+    return (
+      account.market.borrowableAssets.raw.isZero() &&
+      account.market.totalBorrowed?.raw.isZero() &&
+      !account.market.isClosed &&
+      !isIncurringPenalties &&
+      !account.market.isDelinquent
+    )
+  }).length
 
   const prevActiveAmount = borrowerMarkets.filter(
     (account) => account.market.isClosed && account.hasEverInteracted,

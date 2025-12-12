@@ -23,6 +23,7 @@ import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
+import { getDelinquencyProjection } from "@/utils/delinquency"
 import {
   formatBps,
   formatTokenWithCommas,
@@ -34,7 +35,6 @@ import {
   getMarketStatusChip,
   MarketStatus,
 } from "@/utils/marketStatus"
-import { getDelinquencyProjection } from "@/utils/delinquency"
 
 export const filterMarketAccounts = (
   marketAccounts: MarketAccount[] | undefined,

@@ -16,6 +16,7 @@ import { EtherscanBaseUrl } from "@/config/network"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
+import { getDelinquencyProjection } from "@/utils/delinquency"
 import {
   formatBps,
   formatRayAsPercentage,
@@ -25,7 +26,6 @@ import {
   toTokenAmountProps,
   trimAddress,
 } from "@/utils/formatters"
-import { getDelinquencyProjection } from "@/utils/delinquency"
 
 import { MarketParametersItem } from "./components/MarketParametersItem"
 import { MarketParametersProps } from "./interface"
@@ -46,22 +46,21 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
     isIncurringPenalties,
   } = getDelinquencyProjection(market)
 
-  const [gracePeriodLabel, gracePeriodTimer] =
-    isIncurringPenalties
-      ? [
-          t("borrowerMarketDetails.label.remainingTime"),
-          humanizeDuration(
-            (projectedTimeDelinquent - market.delinquencyGracePeriod) * 1000,
-            {
-              round: true,
-              largest: 1,
-            },
-          ),
-        ]
-      : [
-          t("borrowerMarketDetails.label.availableGracePeriod"),
-          formatSecsToHours(projectedGraceRemaining),
-        ]
+  const [gracePeriodLabel, gracePeriodTimer] = isIncurringPenalties
+    ? [
+        t("borrowerMarketDetails.label.remainingTime"),
+        humanizeDuration(
+          (projectedTimeDelinquent - market.delinquencyGracePeriod) * 1000,
+          {
+            round: true,
+            largest: 1,
+          },
+        ),
+      ]
+    : [
+        t("borrowerMarketDetails.label.availableGracePeriod"),
+        formatSecsToHours(projectedGraceRemaining),
+      ]
 
   const gracePeriodTooltip = useMemo(() => {
     const breakdown = market.getTotalDebtBreakdown()
