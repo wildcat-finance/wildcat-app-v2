@@ -17,10 +17,13 @@ export const getDelinquencyProjection = (
 ): DelinquencyProjection => {
   const nowSeconds = Math.floor(nowMs / 1000)
   const elapsed = Math.max(0, nowSeconds - market.lastInterestAccruedTimestamp)
-  const currentlyDelinquent = market.isDelinquent || market.willBeDelinquent
+  // timeDelinquent is unreliable; isDelinquent is trustworthy.
+  const currentlyDelinquent = market.isDelinquent
 
+  // If delinquent, treat elapsed time since last accrual as delinquency time.
+  // If not delinquent, assume timer winds down (but stays non-negative).
   const projectedTimeDelinquent = currentlyDelinquent
-    ? market.timeDelinquent + elapsed
+    ? elapsed
     : Math.max(0, market.timeDelinquent - elapsed)
 
   const projectedGraceRemaining = Math.max(
@@ -32,6 +35,7 @@ export const getDelinquencyProjection = (
     projectedTimeDelinquent,
     projectedGraceRemaining,
     isIncurringPenalties:
+      currentlyDelinquent &&
       projectedTimeDelinquent > market.delinquencyGracePeriod,
   }
 }
