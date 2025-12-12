@@ -23,7 +23,6 @@ export const getDelinquencyProjection = (
   if (currentlyDelinquent) {
     projectedTimeDelinquent = market.timeDelinquent + elapsed
 
-
     if (market.delinquencyFeeBips === 0) {
       projectedTimeDelinquent = Math.max(
         projectedTimeDelinquent,
