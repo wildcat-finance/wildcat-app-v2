@@ -286,23 +286,27 @@ export const LenderActiveMarketsTables = ({
           params.row.id.toLowerCase() ===
           AUROS_ETHENA_ADDRESS.mainnet.toLowerCase()
 
+        const isAuros = isAurosTestnet || isAurosMainnet
+
+        const adsComponent = isAuros ? (
+          <AprTooltip
+            baseAPR={formatBps(params.value)}
+            aprProposal={<AurosEthenaProposalChip isTooltip />}
+            banner={<AurosEthenaBanner />}
+            withdrawalAnyTime
+          />
+        ) : undefined
+
         return (
           <Link
             href={`${ROUTES.lender.market}/${params.row.id}`}
             style={{ ...LinkCell, justifyContent: "flex-end" }}
           >
             <AprChip
-              isBonus={isAurosTestnet || isAurosMainnet}
+              isBonus={isAuros}
               baseApr={formatBps(params.value)}
-              icons={[<Ethena />, <Ethereal />]}
-              adsComponent={
-                <AprTooltip
-                  baseAPR={formatBps(params.value)}
-                  aprProposal={<AurosEthenaProposalChip isTooltip />}
-                  banner={<AurosEthenaBanner />}
-                  withdrawalAnyTime
-                />
-              }
+              icons={isAuros ? [<Ethena />, <Ethereal />] : undefined}
+              adsComponent={adsComponent}
             />
           </Link>
         )

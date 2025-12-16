@@ -68,7 +68,11 @@ export const MobileMarketList = ({
   const paginationItems = getPaginationRange(page, totalPages)
 
   const getAdsContent = (marketItem: LenderMobileMarketItem) => {
-    if (marketItem.id.toLowerCase() === AUROS_ETHENA_ADDRESS.testnet) {
+    if (
+      marketItem.id.toLowerCase() ===
+        AUROS_ETHENA_ADDRESS.testnet.toLowerCase() ||
+      marketItem.id.toLowerCase() === AUROS_ETHENA_ADDRESS.mainnet.toLowerCase()
+    ) {
       return <AurosEthenaMobileCard baseAPR={formatBps(marketItem.apr)} />
     }
     return undefined

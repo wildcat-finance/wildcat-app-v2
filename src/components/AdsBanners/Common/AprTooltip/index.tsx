@@ -70,14 +70,15 @@ export const AprTooltip = ({
           gap: "6px",
         }}
       >
-        <SvgIcon
-          sx={{ opacity: 0.5, "& path": { fill: COLORS.ultramarineBlue } }}
-        >
-          <Withdrawal />
-        </SvgIcon>
+        {/* <SvgIcon */}
+        {/*  sx={{ opacity: 0.5, "& path": { fill: COLORS.ultramarineBlue } }} */}
+        {/* > */}
+        {/*  <Withdrawal /> */}
+        {/* </SvgIcon> */}
 
         <Typography variant="text3" color={COLORS.ultramarineBlue}>
-          Request withdrawal any time
+          Request withdrawal at any time - subject to each specific market
+          withdrawal cycle duration
         </Typography>
       </Box>
     )}

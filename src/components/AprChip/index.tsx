@@ -97,8 +97,10 @@ export const AprChip = ({
               },
             }}
           >
-            {icons.map((icon) => (
-              <SvgIcon className="stacked-icon">{icon}</SvgIcon>
+            {icons.map((icon, idx) => (
+              <SvgIcon key={icon.key ?? idx} className="stacked-icon">
+                {icon}
+              </SvgIcon>
             ))}
           </Box>
         </Tooltip>

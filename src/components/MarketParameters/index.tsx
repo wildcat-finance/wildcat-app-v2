@@ -298,13 +298,14 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
           <Divider sx={{ margin: "12px 0 12px" }} />
 
           {(isAurosTestnet || isAurosMainnet) && (
-            <ProposalMarketParameter
-              proposal={<AurosEthenaProposalChip isTooltip={false} />}
-              banner={<AurosEthenaBanner maxWidth="100%" />}
-            />
+            <>
+              <ProposalMarketParameter
+                proposal={<AurosEthenaProposalChip isTooltip={false} />}
+                banner={<AurosEthenaBanner maxWidth="100%" />}
+              />
+              <Divider sx={{ margin: "12px 0 12px" }} />
+            </>
           )}
-
-          <Divider sx={{ margin: "12px 0 12px" }} />
           <MarketParametersItem
             title={t("borrowerMarketDetails.parameters.protocolAPR")}
             value={`${formatBps(
