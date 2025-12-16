@@ -14,6 +14,7 @@ export type MarketsTableModel = {
   lenderAPR: number
   crr: number
   maxCapacity: TokenAmount
+  withdrawalBatchDuration: number
   loan?: TokenAmount
   lend: TokenAmount
   deploy: number
