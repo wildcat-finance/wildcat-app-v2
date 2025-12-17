@@ -1,6 +1,6 @@
 {
   "name": "wildcat-app-v2",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -48,7 +48,7 @@
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
     "jszip": "^3.10.1",
-    "next": "14.1.2",
+    "next": "14.2.35",
     "next-i18n-router": "^5.4.2",
     "puppeteer": "^23.10.3",
     "react": "^18",
