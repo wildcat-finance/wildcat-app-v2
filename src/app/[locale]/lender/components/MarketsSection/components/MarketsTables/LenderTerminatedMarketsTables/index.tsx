@@ -335,7 +335,7 @@ export const LenderTerminatedMarketsTables = ({
             textTransform: "capitalize",
           }}
         >
-          {formatSecsToHours(params.value)}
+          {formatSecsToHours(params.value, true)}
         </Link>
       ),
     },

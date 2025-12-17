@@ -210,7 +210,7 @@ export const BorrowerActiveMarketsTables = ({
             textTransform: "capitalize",
           }}
         >
-          {formatSecsToHours(params.value)}
+          {formatSecsToHours(params.value, true)}
         </Link>
       ),
     },
