@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box, Button, Typography, useMediaQuery, Tooltip } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import {
   DepositStatus,
@@ -21,8 +21,14 @@ import {
 } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MobileMarketCard } from "@/app/[locale]/lender/components/mobile/MobileMarketCard"
 import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
+import Ethena from "@/assets/companies-icons/ethena_icon.svg"
+import Ethereal from "@/assets/companies-icons/ethereal_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { AurosEthenaBanner } from "@/components/AdsBanners/AurosEthena/AurosEthenaBanner"
+import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/AurosEthenaProposalChip"
+import { AprTooltip } from "@/components/AdsBanners/Common/AprTooltip"
+import { AprChip } from "@/components/AprChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { TablePagination } from "@/components/TablePagination"
@@ -37,7 +43,7 @@ import {
   tokenAmountComparator,
   typeComparator,
 } from "@/utils/comparators"
-import { pageCalcHeights } from "@/utils/constants"
+import { AUROS_ETHENA_ADDRESS, pageCalcHeights } from "@/utils/constants"
 import {
   formatBps,
   formatTokenWithCommas,
@@ -286,14 +292,39 @@ export const OtherMarketsTables = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
-        >
-          {`${formatBps(params.value)}%`}
-        </Link>
-      ),
+      renderCell: (params) => {
+        const isAurosTestnet =
+          params.row.id.toLowerCase() ===
+          AUROS_ETHENA_ADDRESS.testnet.toLowerCase()
+        const isAurosMainnet =
+          params.row.id.toLowerCase() ===
+          AUROS_ETHENA_ADDRESS.mainnet.toLowerCase()
+
+        const isAuros = isAurosTestnet || isAurosMainnet
+
+        const adsComponent = isAuros ? (
+          <AprTooltip
+            baseAPR={formatBps(params.value)}
+            aprProposal={<AurosEthenaProposalChip isTooltip />}
+            banner={<AurosEthenaBanner />}
+            withdrawalAnyTime
+          />
+        ) : undefined
+
+        return (
+          <Link
+            href={`${ROUTES.lender.market}/${params.row.id}`}
+            style={{ ...LinkCell, justifyContent: "flex-end" }}
+          >
+            <AprChip
+              isBonus={isAuros}
+              baseApr={formatBps(params.value)}
+              icons={isAuros ? [<Ethena />, <Ethereal />] : undefined}
+              adsComponent={adsComponent}
+            />
+          </Link>
+        )
+      },
     },
     {
       field: "asset",
