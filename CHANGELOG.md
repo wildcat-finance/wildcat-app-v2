@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.6.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.5.3...v2.6.0) (2025-12-18)
+
+
+### Features
+
+* **apr:** add additional apr info ([30ba47b](https://github.com/wildcat-finance/wildcat-app-v2/commit/30ba47b220bb1e03e4e5abc9e998a27a3506d89f))
+* **apr:** add additional apr info ([30ba47b](https://github.com/wildcat-finance/wildcat-app-v2/commit/30ba47b220bb1e03e4e5abc9e998a27a3506d89f))
+* **apr:** add additional apr info ([e826950](https://github.com/wildcat-finance/wildcat-app-v2/commit/e8269500abaf172247d2f1d419bb551683a0641a))
+
 ## [2.5.3](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.5.2...v2.5.3) (2025-12-08)
 
 
