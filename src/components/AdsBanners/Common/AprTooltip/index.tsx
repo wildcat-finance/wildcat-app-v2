@@ -49,7 +49,7 @@ export const AprTooltip = ({
         </Typography>
 
         <Typography variant="text3" fontWeight={600}>
-          {baseAPR}
+          {baseAPR.includes("%") ? baseAPR : `${baseAPR}%`}
         </Typography>
       </Box>
 
@@ -66,20 +66,25 @@ export const AprTooltip = ({
           borderRadius: "8px",
           backgroundColor: COLORS.glitter,
           display: "flex",
-          alignItems: "center",
+          alignItems: "flex-start",
           gap: "6px",
         }}
       >
-        {/* <SvgIcon */}
-        {/*  sx={{ opacity: 0.5, "& path": { fill: COLORS.ultramarineBlue } }} */}
-        {/* > */}
-        {/*  <Withdrawal /> */}
-        {/* </SvgIcon> */}
+        <SvgIcon
+          sx={{ opacity: 0.5, "& path": { fill: COLORS.ultramarineBlue } }}
+        >
+          <Withdrawal />
+        </SvgIcon>
 
-        <Typography variant="text3" color={COLORS.ultramarineBlue}>
-          Request withdrawal at any time - subject to each specific market
-          withdrawal cycle duration
-        </Typography>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+          <Typography variant="text3" color={COLORS.ultramarineBlue}>
+            Request withdrawal at any time
+          </Typography>
+
+          <Typography variant="text4" color={COLORS.ultramarineBlue}>
+            Subject to each specific market withdrawal cycle duration
+          </Typography>
+        </Box>
       </Box>
     )}
 
