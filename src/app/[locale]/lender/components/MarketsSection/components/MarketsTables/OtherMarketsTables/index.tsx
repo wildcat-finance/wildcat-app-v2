@@ -522,39 +522,39 @@ export const OtherMarketsTables = ({
       flex: 0.5,
       headerAlign: "right",
       align: "right",
-        renderCell: (params) => {
-            const isAurosTestnet =
-                params.row.id.toLowerCase() ===
-                AUROS_ETHENA_ADDRESS.testnet.toLowerCase()
-            const isAurosMainnet =
-                params.row.id.toLowerCase() ===
-                AUROS_ETHENA_ADDRESS.mainnet.toLowerCase()
+      renderCell: (params) => {
+        const isAurosTestnet =
+          params.row.id.toLowerCase() ===
+          AUROS_ETHENA_ADDRESS.testnet.toLowerCase()
+        const isAurosMainnet =
+          params.row.id.toLowerCase() ===
+          AUROS_ETHENA_ADDRESS.mainnet.toLowerCase()
 
-            const isAuros = isAurosTestnet || isAurosMainnet
+        const isAuros = isAurosTestnet || isAurosMainnet
 
-            const adsComponent = isAuros ? (
-                <AprTooltip
-                    baseAPR={formatBps(params.value)}
-                    aprProposal={<AurosEthenaProposalChip isTooltip />}
-                    banner={<AurosEthenaBanner />}
-                    withdrawalAnyTime
-                />
-            ) : undefined
+        const adsComponent = isAuros ? (
+          <AprTooltip
+            baseAPR={formatBps(params.value)}
+            aprProposal={<AurosEthenaProposalChip isTooltip />}
+            banner={<AurosEthenaBanner />}
+            withdrawalAnyTime
+          />
+        ) : undefined
 
-            return (
-                <Link
-                    href={`${ROUTES.lender.market}/${params.row.id}`}
-                    style={{ ...LinkCell, justifyContent: "flex-end" }}
-                >
-                    <AprChip
-                        isBonus={isAuros}
-                        baseApr={formatBps(params.value)}
-                        icons={isAuros ? [<Ethena />, <Ethereal />] : undefined}
-                        adsComponent={adsComponent}
-                    />
-                </Link>
-            )
-        },
+        return (
+          <Link
+            href={`${ROUTES.lender.market}/${params.row.id}`}
+            style={{ ...LinkCell, justifyContent: "flex-end" }}
+          >
+            <AprChip
+              isBonus={isAuros}
+              baseApr={formatBps(params.value)}
+              icons={isAuros ? [<Ethena />, <Ethereal />] : undefined}
+              adsComponent={adsComponent}
+            />
+          </Link>
+        )
+      },
     },
     {
       field: "withdrawalBatchDuration",
