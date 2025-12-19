@@ -554,6 +554,8 @@
       "shares": "Shares",
       "liquidate": "Liquidate",
       "previewButton": "Preview Liquidate",
+      "autoMaxRepay": "Auto Max Repay",
+      "autoMaxRepayLoading": "Calculating...",
       "maxRepayment": "Maximum repayment",
       "notLiquidator": "This is a preview. You must be approved to liquidate assets.",
       "checkingLiquidator": "Checking liquidator status...",
