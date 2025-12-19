@@ -19,6 +19,7 @@ export const MarketTypeChip = ({
   type,
   kind,
   fixedPeriod,
+  isMobile,
 }: MarketTypeChipProps) => {
   const daysLeft = Number(
     humanizeDuration(Math.abs(fixedPeriod || 0), {
@@ -69,7 +70,7 @@ export const MarketTypeChip = ({
           </SvgIcon>
         )}
 
-        <Typography variant="text4">
+        <Typography variant={isMobile ? "mobText4" : "text3"}>
           {isOpenTerm ? "Open Term" : chipTimeLabel}
         </Typography>
       </Box>

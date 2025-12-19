@@ -6,12 +6,17 @@ import Avatar from "@/assets/icons/avatar_icon.svg"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
-export const BorrowerProfileChip = ({ borrower }: { borrower: string }) => {
+export const BorrowerProfileChip = ({
+  borrower,
+}: {
+  borrower: string | undefined
+}) => {
   const isMobile = useMobileResolution()
 
   return (
     <Box
       sx={{
+        width: "fit-content",
         display: "flex",
         gap: "6px",
         alignItems: "center",
@@ -38,26 +43,34 @@ export const BorrowerProfileChip = ({ borrower }: { borrower: string }) => {
             height: "12px",
             borderRadius: "50%",
             bgcolor: "#4CA6D9",
-
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            flex: "0 0 auto",
           }}
         >
           <Typography
             variant="mobText4"
             sx={{
               fontSize: "6px",
-              lineHeight: "6px",
+              lineHeight: "8px",
               color: COLORS.white,
+              textAlign: "center",
             }}
           >
-            {borrower && borrower[0]}
+            {borrower?.trim()?.[0]}
           </Typography>
         </Box>
       )}
 
-      <Typography variant={isMobile ? "mobText4" : "text4"}>
+      <Typography
+        variant={isMobile ? "mobText4" : "text4"}
+        sx={{
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
         {borrower}
       </Typography>
     </Box>

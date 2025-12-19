@@ -4,4 +4,5 @@ export type MarketTypeChipProps = {
   kind: HooksKind
   fixedPeriod?: number
   type?: "table" | "market"
+  isMobile?: boolean
 }
