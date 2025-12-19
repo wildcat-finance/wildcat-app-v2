@@ -22,6 +22,13 @@ export type BebopPMMQuoteOptions = {
   feeBips?: number
 }
 
+export type BebopPMMExactOutputQuoteOptions = {
+  sellToken: Token
+  buyTokenAmount: TokenAmount
+  takerAddress: string
+  feeBips?: number
+}
+
 export type BebopPMMQuoteToken = {
   amount: string
   decimals: number
@@ -208,7 +215,7 @@ export async function fetchBebopPMMQuote({
   return quote
 }
 
-const encodeMockExecute = (
+export const encodeMockExecute = (
   inputTokenAmount: TokenAmount,
   outputTokenAmount: TokenAmount,
 ) => {
@@ -223,6 +230,66 @@ const encodeMockExecute = (
     ],
   )
   return [`0x8df4504f`, inputData.replace("0x", "")].join("")
+}
+
+export async function fetchBebopPMMExactOutputQuote({
+  sellToken,
+  buyTokenAmount,
+  takerAddress,
+  feeBips,
+}: BebopPMMExactOutputQuoteOptions): Promise<BebopPMMQuote> {
+  if (!buyTokenAmount) {
+    throw Error("Buy token amount is required")
+  }
+  const fakeTakerAddress = "0x5Bad996643a924De21b6b2875c85C33F3c5bBcB6"
+  const params = [
+    `sell_tokens=${getAddress(sellToken.address)}`,
+    `buy_tokens=${getAddress(buyTokenAmount.token.address)}`,
+    `buy_amounts=${buyTokenAmount.raw.toString()}`,
+    `taker_address=${fakeTakerAddress}`,
+    `approval_type=Standard`,
+    `skip_validation=true`,
+    `skip_taker_checks=true`,
+    `gasless=false`,
+    `expiry_type=standard`,
+    `fee=${feeBips ?? 0}`,
+    `is_ui=false`,
+  ]
+
+  const url = [QUOTE_URL, "?", params.join("&")].join("")
+  console.log(`Querying Bebop Quote: `, url)
+  const result = await fetch(url)
+  const data = (await result.json()) as BebopPMMQuoteResponse
+  console.log(`Bebop Quote Response: `, data)
+  const buyTokens = Object.values(data.buyTokens)
+  const sellTokens = Object.values(data.sellTokens)
+  if (buyTokens.length !== 1) {
+    throw new Error(`Expected 1 buy token, got ${buyTokens.length}`)
+  }
+  if (sellTokens.length !== 1) {
+    throw new Error(`Expected 1 sell token, got ${sellTokens.length}`)
+  }
+  if (data.tx) {
+    data.tx.data = data.tx.data.replaceAll(
+      fakeTakerAddress.slice(2).toLowerCase(),
+      takerAddress.slice(2).toLowerCase(),
+    )
+  }
+  const quote: BebopPMMQuote = {
+    expiry: data.expiry,
+    slippage: data.slippage,
+    priceImpact: data.priceImpact,
+    buyTokenAmount: buyTokenAmount.token.getAmount(buyTokens[0].amount),
+    sellTokenAmount: sellToken.getAmount(sellTokens[0].amount),
+    tx: data.tx,
+    makers: data.makers,
+    warnings: data.warnings.map(
+      (w) => BebopPMMWarningCodes[w.code as keyof typeof BebopPMMWarningCodes],
+    ),
+    settlementAddress: data.settlementAddress,
+    approvalTarget: data.approvalTarget,
+  }
+  return quote
 }
 
 export function useGetBebopPMMQuote(options: BebopPMMQuoteOptions) {

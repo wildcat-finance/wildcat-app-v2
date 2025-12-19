@@ -3,7 +3,7 @@ import { Dispatch } from "react"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { Web3TransactionReceiptObject } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { MarketCollateralV1 } from "@wildcatfi/wildcat-sdk"
+import { MarketCollateralV1, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
 import { GET_WITHDRAWALS_KEY } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { BebopPMMQuote } from "@/hooks/bebop/useGetBebopPMMQuote"
@@ -20,6 +20,7 @@ import {
 export const useLiquidateCollateral = (
   collateral: MarketCollateralV1,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
+  maxRepaymentOverride?: TokenAmount,
 ) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
@@ -59,7 +60,8 @@ export const useLiquidateCollateral = (
   return useMutation({
     mutationFn: async (quote: BebopPMMQuote) => {
       if (!collateral || !signer) throw Error()
-      if (quote.buyTokenAmount.gt(collateral.maxRepayment)) {
+      const maxRepayment = maxRepaymentOverride ?? collateral.maxRepayment
+      if (quote.buyTokenAmount.gt(maxRepayment)) {
         throw Error("Exceeds max repayment")
       }
       if (quote.sellTokenAmount.gt(collateral.availableCollateral)) {
