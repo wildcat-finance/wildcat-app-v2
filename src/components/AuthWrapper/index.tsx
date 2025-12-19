@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useState } from "react"
+
 import { Button, Typography } from "@mui/material"
 import { useAccount } from "wagmi"
 
@@ -17,8 +19,14 @@ export default function AuthWrapper({
   const { address } = useAccount()
   const token = useAuthToken()
   const { mutate: login } = useLogin()
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   // If no address, tell user to connect wallet
-  if (!address) {
+  if (!isMounted || !address) {
     return <Typography variant="h6">Connect your wallet to continue</Typography>
   }
   // If no token, give user button to login
