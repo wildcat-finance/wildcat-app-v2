@@ -31,6 +31,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { POLLING_INTERVAL } from "@/config/polling"
 import {
   encodeMockExecute,
   BebopPMMQuote,
@@ -40,7 +41,6 @@ import {
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetTokenPrices } from "@/hooks/useGetTokenPrices"
 import { convertTokenAmount, toMainnetToken } from "@/lib/token-conversion"
-import { POLLING_INTERVAL } from "@/config/polling"
 import { COLORS } from "@/theme/colors"
 import { formatTokenAmount, localizeTokenAmount } from "@/utils/formatters"
 
@@ -99,7 +99,9 @@ export const LiquidateCollateralModal = ({
   const [isAutoCalculating, setIsAutoCalculating] = useState(false)
   const [autoQuote, setAutoQuote] = useState<BebopPMMQuote | undefined>()
   const maxRepayment = collateralLensData
-    ? collateral.market.underlyingToken.getAmount(collateralLensData.maxRepayment)
+    ? collateral.market.underlyingToken.getAmount(
+        collateralLensData.maxRepayment,
+      )
     : collateral.maxRepayment
   const delinquentDebt = collateralLensData
     ? collateral.market.underlyingToken.getAmount(
@@ -109,10 +111,7 @@ export const LiquidateCollateralModal = ({
   const nextLiquidationTrigger =
     collateralLensData?.nextLiquidationTrigger ??
     collateral.nextLiquidationTrigger
-  const autoLiquidateDecimals = Math.min(
-    8,
-    collateral.collateralAsset.decimals,
-  )
+  const autoLiquidateDecimals = Math.min(8, collateral.collateralAsset.decimals)
   const { data: quote, isLoading: isLoadingQuote } = useGetBebopPMMQuote({
     buyToken: collateral.market.underlyingToken,
     sellTokenAmount:
@@ -317,7 +316,7 @@ export const LiquidateCollateralModal = ({
           tokenPrices[activeQuote.buyTokenAmount.token.address].usdPrice *
           +activeQuote.buyTokenAmount.format()
         ).toFixed(0)}`
-      } 
+      }
       return t("collateral.liquidate.price.failedOutput")
     }
 
@@ -526,7 +525,8 @@ export const LiquidateCollateralModal = ({
                       isLoading={isLoadingTokenPrices || isActiveQuoteLoading}
                     />
 
-                    {activeQuote && activeQuote.buyTokenAmount.gt(maxRepayment) && (
+                    {activeQuote &&
+                      activeQuote.buyTokenAmount.gt(maxRepayment) && (
                         <ModalDataItem
                           title={t("collateral.liquidate.maxRepayment")}
                           value={maxRepayment.format(
