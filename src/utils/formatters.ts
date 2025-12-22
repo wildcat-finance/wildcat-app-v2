@@ -69,10 +69,18 @@ export function formatConstrainToNumber(
   return constraints[key] / 100
 }
 
-export const formatSecsToHours = (seconds: number) => {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const remainingSeconds = seconds % 60
+export const formatSecsToHours = (seconds: number, short?: boolean) => {
+  const s = Math.max(0, Math.floor(seconds))
+
+  const hours = Math.floor(s / 3600)
+  const minutes = Math.floor((s % 3600) / 60)
+  const remainingSeconds = s % 60
+
+  if (short) {
+    if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""}`
+    if (minutes > 0) return `${minutes} min`
+    return "<1 min"
+  }
 
   let timeString = ""
 

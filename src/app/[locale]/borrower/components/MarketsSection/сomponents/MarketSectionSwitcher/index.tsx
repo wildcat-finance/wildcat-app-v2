@@ -91,19 +91,24 @@ export const MarketSectionSwitcher = () => {
   const otherMarketsAmount = selfOnboardAmount + manualAmount
 
   return (
-    <Box sx={{ width: "fit-content", display: "flex", gap: "12px" }}>
+    <Box
+      sx={{
+        width: "fit-content",
+        display: "flex",
+        gap: "12px",
+        padding: "0 24px",
+      }}
+    >
       <SwitcherButton
         label={t("dashboard.markets.tables.borrower.active.title")}
         amount={activeMarketsAmount}
         section={BorrowerMarketDashboardSections.ACTIVE}
       />
-
       <SwitcherButton
         label={t("dashboard.markets.tables.borrower.closed.title")}
         amount={closedMarketsAmount}
         section={BorrowerMarketDashboardSections.TERMINATED}
       />
-
       <SwitcherButton
         label={t("dashboard.markets.tables.other.title")}
         amount={otherMarketsAmount}

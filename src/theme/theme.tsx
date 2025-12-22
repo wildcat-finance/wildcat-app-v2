@@ -1201,7 +1201,7 @@ export const theme = createTheme({
             color: COLORS.santasGrey,
 
             "& .MuiDataGrid-columnHeaderTitleContainer": {
-              gap: "8px",
+              gap: "4px",
               margin: "16px 0 8px",
             },
 

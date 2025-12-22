@@ -24,7 +24,7 @@ export const AurosEthenaProposalChip = ({
       }}
     >
       <Typography
-        variant={isMobile ? "mobText3" : "text3"}
+        variant={isMobile ? "mobText4" : "text3"}
         fontWeight={isTooltip ? 600 : 500}
       >
         20x Multiplier

@@ -11,6 +11,7 @@ export const COLORS = {
   blackRock03: "#30313E08",
   blackRock07: "#30313EB2",
   blackRock08: "#30313ECC",
+  manate: "#8A8C9F",
   santasGrey: "#A0A0B0",
   greySuit: "#BEBECE",
   iron: "#D6D6DE",
