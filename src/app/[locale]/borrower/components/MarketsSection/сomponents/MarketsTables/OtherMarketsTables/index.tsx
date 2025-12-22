@@ -20,8 +20,15 @@ import {
 import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import Ethena from "@/assets/companies-icons/ethena_icon.svg"
+import Ethereal from "@/assets/companies-icons/ethereal_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { AurosEthenaBanner } from "@/components/AdsBanners/AurosEthena/AurosEthenaBanner"
+import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/AurosEthenaProposalChip"
+import { AprTooltip } from "@/components/AdsBanners/Common/AprTooltip"
+import { AprChip } from "@/components/AprChip"
+import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { TablePagination } from "@/components/TablePagination"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -33,7 +40,7 @@ import {
   tokenAmountComparator,
   typeComparator,
 } from "@/utils/comparators"
-import { pageCalcHeights } from "@/utils/constants"
+import { AUROS_ETHENA_ADDRESS, pageCalcHeights } from "@/utils/constants"
 import {
   formatBps,
   formatSecsToHours,
@@ -57,6 +64,7 @@ export type OtherMarketsTableModel = {
   capacityLeft: TokenAmount
   withdrawalBatchDuration: number
   isSelfOnboard: boolean
+  borrowable: TokenAmount
 }
 
 export const OtherMarketsTables = ({
@@ -97,6 +105,7 @@ export const OtherMarketsTables = ({
         borrower: borrowerAddress,
         underlyingToken,
         annualInterestBips,
+        borrowableAssets,
         maxTotalSupply,
         totalSupply,
         withdrawalBatchDuration,
@@ -122,6 +131,7 @@ export const OtherMarketsTables = ({
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
         capacityLeft: maxTotalSupply.sub(totalSupply),
+        borrowable: borrowableAssets,
         debt: totalSupply,
         withdrawalBatchDuration,
         isSelfOnboard:
@@ -137,10 +147,53 @@ export const OtherMarketsTables = ({
 
   const columns: TypeSafeColDef<OtherMarketsTableModel>[] = [
     {
+      field: "name",
+      headerName: t("dashboard.markets.tables.header.name"),
+      flex: 1,
+      minWidth: 212,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{
+            ...LinkCell,
+            paddingRight: "16px",
+            justifyContent: "center",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "6px",
+            minWidth: 0,
+          }}
+        >
+          <Typography
+            variant="text3"
+            sx={{
+              display: "block",
+              width: "100%",
+              minWidth: 0,
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {params.value}
+          </Typography>
+
+          <Link
+            href={`${ROUTES.borrower.profile}/${params.row.borrowerAddress}`}
+            style={{ display: "flex", textDecoration: "none" }}
+          >
+            <BorrowerProfileChip borrower={params.row.borrower} />
+          </Link>
+        </Link>
+      ),
+    },
+    {
       field: "status",
       headerName: t("dashboard.markets.tables.header.status"),
-      minWidth: 120,
-      flex: 0.7,
+      minWidth: 104,
+      flex: 0.4,
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
@@ -161,8 +214,8 @@ export const OtherMarketsTables = ({
     {
       field: "term",
       headerName: t("dashboard.markets.tables.header.term"),
-      minWidth: 170,
-      flex: 1,
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "left",
       align: "left",
       sortComparator: typeComparator,
@@ -175,118 +228,57 @@ export const OtherMarketsTables = ({
           }}
         >
           <Box minWidth="170px">
-            <MarketTypeChip {...params.value} />
+            <MarketTypeChip type="table" {...params.value} />
           </Box>
-        </Link>
-      ),
-    },
-    {
-      field: "name",
-      headerName: t("dashboard.markets.tables.header.name"),
-      flex: 3,
-      minWidth: 208,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{
-            ...LinkCell,
-            justifyContent: "flex-start",
-          }}
-        >
-          {params.value}
-        </Link>
-      ),
-    },
-    {
-      field: "borrower",
-      minWidth: 134,
-      flex: 1.7,
-      headerAlign: "left",
-      align: "left",
-      renderHeader: () => (
-        <Typography
-          variant="text4"
-          sx={{
-            lineHeight: "10px",
-            color: COLORS.santasGrey,
-            padding: "0 12px",
-          }}
-        >
-          {t("dashboard.markets.tables.header.borrower")}
-        </Typography>
-      ),
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{
-            textDecoration: "none",
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            color: "inherit",
-            justifyContent: "flex-start",
-          }}
-        >
-          <Link
-            href={`${ROUTES.borrower.profile}/${params.row.borrowerAddress}`}
-            style={{
-              textDecoration: "none",
-              width: "100%",
-              height: "fit-content",
-            }}
-          >
-            <Button
-              size="small"
-              variant="text"
-              sx={{
-                fontSize: pxToRem(13),
-                lineHeight: lh(20, 13),
-                fontWeight: 500,
-                minWidth: "calc(100% - 1px)",
-                width: "calc(100% - 1px)",
-                textAlign: "left",
-                textOverflow: "ellipsis",
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-                display: "inline-block",
-
-                "&:hover": {
-                  boxShadow: "none",
-                  backgroundColor: COLORS.whiteSmoke,
-                  color: COLORS.blackRock,
-                },
-              }}
-            >
-              {params.value}
-            </Button>
-          </Link>
         </Link>
       ),
     },
     {
       field: "apr",
       headerName: t("dashboard.markets.tables.header.apr"),
-      minWidth: 102,
-      flex: 1,
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "right",
       align: "right",
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
-        >
-          {`${formatBps(params.value)}%`}
-        </Link>
-      ),
+      renderCell: (params) => {
+        const isAurosTestnet =
+          params.row.id.toLowerCase() ===
+          AUROS_ETHENA_ADDRESS.testnet.toLowerCase()
+        const isAurosMainnet =
+          params.row.id.toLowerCase() ===
+          AUROS_ETHENA_ADDRESS.mainnet.toLowerCase()
+
+        const isAuros = isAurosTestnet || isAurosMainnet
+
+        const adsComponent = isAuros ? (
+          <AprTooltip
+            baseAPR={formatBps(params.value)}
+            aprProposal={<AurosEthenaProposalChip isTooltip />}
+            banner={<AurosEthenaBanner />}
+            withdrawalAnyTime
+          />
+        ) : undefined
+
+        return (
+          <Link
+            href={`${ROUTES.borrower.market}/${params.row.id}`}
+            style={{ ...LinkCell, justifyContent: "flex-end" }}
+          >
+            <AprChip
+              isBonus={isAuros}
+              baseApr={formatBps(params.value)}
+              icons={isAuros ? [<Ethena />, <Ethereal />] : undefined}
+              adsComponent={adsComponent}
+            />
+          </Link>
+        )
+      },
     },
     {
-      field: "withdrawalBatchDuration",
-      headerName: t("dashboard.markets.tables.header.withdrawal"),
-      minWidth: 110,
-      flex: 1,
+      field: "asset",
+      headerName: t("dashboard.markets.tables.header.asset"),
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
@@ -295,7 +287,25 @@ export const OtherMarketsTables = ({
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
-            textTransform: "capitalize",
+          }}
+        >
+          {params.value}
+        </Link>
+      ),
+    },
+    {
+      field: "withdrawalBatchDuration",
+      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      minWidth: 112,
+      flex: 0.5,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
           }}
         >
           {formatSecsToHours(params.value, true)}
@@ -303,33 +313,37 @@ export const OtherMarketsTables = ({
       ),
     },
     {
-      field: "asset",
-      headerName: t("dashboard.markets.tables.header.asset"),
-      minWidth: 95,
+      field: "borrowable",
+      headerName: t("dashboard.markets.tables.header.borrowable"),
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "right",
       align: "right",
-      flex: 0.6,
-      renderCell: (params) => (
+      sortComparator: tokenAmountComparator,
+      renderCell: (
+        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
+      ) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{
-            ...LinkCell,
-            justifyContent: "flex-end",
-            paddingRight: "16px",
-          }}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {params.value}
+          {params.value
+            ? formatTokenWithCommas(params.value, {
+                withSymbol: false,
+                fractionDigits: 2,
+              })
+            : "0"}
         </Link>
       ),
     },
     {
       field: "capacityLeft",
       headerName: t("dashboard.markets.tables.header.capacity"),
-      minWidth: 110,
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
-      flex: 1.5,
       renderCell: (
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
@@ -357,10 +371,10 @@ export const OtherMarketsTables = ({
     {
       field: "debt",
       headerName: t("dashboard.markets.tables.header.debt"),
-      minWidth: 120,
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "right",
       align: "right",
-      flex: 1.5,
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Link
@@ -427,8 +441,17 @@ export const OtherMarketsTables = ({
               maxWidth: "calc(100vw - 267px)",
               padding: "0 16px",
               "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
+              "& .MuiDataGrid-row": {
+                minHeight: "66px !important",
+                maxHeight: "66px !important",
+              },
+              "& .MuiDataGrid-cell": {
+                padding: "0px",
+                minHeight: "66px",
+                height: "auto",
+              },
             }}
+            getRowHeight={() => "auto"}
             rows={selfOnboard}
             columns={columns}
             columnHeaderHeight={40}
@@ -459,8 +482,17 @@ export const OtherMarketsTables = ({
               maxWidth: "calc(100vw - 267px)",
               padding: "0 16px",
               "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
+              "& .MuiDataGrid-row": {
+                minHeight: "66px !important",
+                maxHeight: "66px !important",
+              },
+              "& .MuiDataGrid-cell": {
+                padding: "0px",
+                minHeight: "66px",
+                height: "auto",
+              },
             }}
+            getRowHeight={() => "auto"}
             rows={manual}
             columns={columns}
             columnHeaderHeight={40}

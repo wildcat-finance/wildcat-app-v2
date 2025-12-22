@@ -137,7 +137,7 @@ export const MobileMarketCard = ({
             {marketItem.asset}
           </Typography>
 
-          <Typography variant="mobText4" color={COLORS.santasGrey}>
+          <Typography variant="mobText4" color={COLORS.manate}>
             available to lend
           </Typography>
         </Box>
@@ -177,7 +177,7 @@ export const MobileMarketCard = ({
           color={
             marketItem.loan && !marketItem.loan.raw.isZero()
               ? COLORS.blackRock
-              : COLORS.santasGrey
+              : COLORS.manate
           }
         >
           {getDepositLine()} {marketItem.asset} deposited

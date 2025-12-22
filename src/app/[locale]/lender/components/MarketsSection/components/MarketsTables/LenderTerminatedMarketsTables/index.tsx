@@ -13,6 +13,7 @@ import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -45,6 +46,8 @@ export type LenderTerminatedMarketsTableModel = {
   apr: number
   withdrawalBatchDuration: number
   hasEverInteracted: boolean
+  button?: string
+  hasTokens?: boolean
 }
 
 export const LenderTerminatedMarketsTables = ({
@@ -130,10 +133,58 @@ export const LenderTerminatedMarketsTables = ({
 
   const columns: TypeSafeColDef<LenderTerminatedMarketsTableModel>[] = [
     {
+      field: "name",
+      headerName: t("dashboard.markets.tables.header.name"),
+      flex: 0.5,
+      minWidth: 196,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.lender.market}/${params.row.id}`}
+          style={{
+            ...LinkCell,
+            paddingRight: "16px",
+            justifyContent: "center",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "6px",
+            minWidth: 0,
+
+            borderLeft: params.row.loan.gt(0)
+              ? `2px solid ${COLORS.carminePink}`
+              : "none",
+            paddingLeft: params.row.loan.gt(0) ? "10px" : 0,
+          }}
+        >
+          <Typography
+            variant="text3"
+            sx={{
+              display: "block",
+              width: "100%",
+              minWidth: 0,
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {params.value}
+          </Typography>
+
+          <Link
+            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+            style={{ display: "flex", textDecoration: "none" }}
+          >
+            <BorrowerProfileChip borrower={params.row.borrower} />
+          </Link>
+        </Link>
+      ),
+    },
+    {
       field: "status",
       headerName: t("dashboard.markets.tables.header.status"),
-      minWidth: 120,
-      flex: 0.7,
+      minWidth: 104,
+      flex: 0.4,
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
@@ -152,105 +203,18 @@ export const LenderTerminatedMarketsTables = ({
       ),
     },
     {
-      field: "name",
-      headerName: t("dashboard.markets.tables.header.name"),
-      flex: 3,
-      minWidth: 208,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
-          style={{
-            ...LinkCell,
-            justifyContent: "flex-start",
-          }}
-        >
-          {params.value}
-        </Link>
-      ),
-    },
-    {
-      field: "borrower",
-      minWidth: 134,
-      flex: 1.7,
-      headerAlign: "left",
-      align: "left",
-      renderHeader: () => (
-        <Typography
-          variant="text4"
-          sx={{
-            lineHeight: "10px",
-            color: COLORS.santasGrey,
-            padding: "0 12px",
-          }}
-        >
-          {t("dashboard.markets.tables.header.borrower")}
-        </Typography>
-      ),
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
-          style={{
-            textDecoration: "none",
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            color: "inherit",
-            justifyContent: "flex-start",
-          }}
-        >
-          <Link
-            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
-            style={{
-              textDecoration: "none",
-              width: "100%",
-              height: "fit-content",
-            }}
-          >
-            <Button
-              size="small"
-              variant="text"
-              sx={{
-                fontSize: pxToRem(13),
-                lineHeight: lh(20, 13),
-                fontWeight: 500,
-                minWidth: "calc(100% - 1px)",
-                width: "calc(100% - 1px)",
-                textAlign: "left",
-                textOverflow: "ellipsis",
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-                display: "inline-block",
-
-                "&:hover": {
-                  boxShadow: "none",
-                  backgroundColor: COLORS.whiteSmoke,
-                  color: COLORS.blackRock,
-                },
-              }}
-            >
-              {params.value}
-            </Button>
-          </Link>
-        </Link>
-      ),
-    },
-    {
       field: "asset",
       headerName: t("dashboard.markets.tables.header.asset"),
-      minWidth: 95,
+      minWidth: 212,
+      flex: 1.7,
       headerAlign: "right",
       align: "right",
-      flex: 0.6,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
-            paddingRight: "16px",
           }}
         >
           {params.value}
@@ -260,10 +224,10 @@ export const LenderTerminatedMarketsTables = ({
     {
       field: "debt",
       headerName: t("dashboard.markets.tables.header.debt"),
-      minWidth: 120,
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "right",
       align: "right",
-      flex: 1.5,
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Link
@@ -282,8 +246,8 @@ export const LenderTerminatedMarketsTables = ({
     {
       field: "loan",
       headerName: t("dashboard.markets.tables.header.loan"),
-      minWidth: 120,
-      flex: 1.6,
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
@@ -304,26 +268,10 @@ export const LenderTerminatedMarketsTables = ({
       ),
     },
     {
-      field: "apr",
-      headerName: t("dashboard.markets.tables.header.apr"),
-      minWidth: 102,
-      flex: 1,
-      headerAlign: "right",
-      align: "right",
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
-        >
-          {`${formatBps(params.value)}%`}
-        </Link>
-      ),
-    },
-    {
       field: "withdrawalBatchDuration",
       headerName: t("dashboard.markets.tables.header.withdrawal"),
-      minWidth: 110,
-      flex: 1,
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
@@ -332,10 +280,33 @@ export const LenderTerminatedMarketsTables = ({
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
-            textTransform: "capitalize",
           }}
         >
           {formatSecsToHours(params.value, true)}
+        </Link>
+      ),
+    },
+    {
+      sortable: false,
+      field: "button",
+      headerName: "",
+      minWidth: 112,
+      flex: 0.5,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.lender.market}/${params.row.id}`}
+          style={{ ...LinkCell, justifyContent: "flex-end" }}
+        >
+          <Button
+            size="small"
+            variant="contained"
+            color="secondary"
+            disabled={!params.row.hasEverInteracted}
+          >
+            Withdraw
+          </Button>
         </Link>
       ),
     },
@@ -386,8 +357,17 @@ export const LenderTerminatedMarketsTables = ({
               maxWidth: "calc(100vw - 267px)",
               padding: "0 16px",
               "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
+              "& .MuiDataGrid-row": {
+                minHeight: "66px !important",
+                maxHeight: "66px !important",
+              },
+              "& .MuiDataGrid-cell": {
+                padding: "0px",
+                minHeight: "66px",
+                height: "auto",
+              },
             }}
+            getRowHeight={() => "auto"}
             rows={prevActive}
             columns={columns}
             columnHeaderHeight={40}
@@ -414,8 +394,17 @@ export const LenderTerminatedMarketsTables = ({
               maxWidth: "calc(100vw - 267px)",
               padding: "0 16px",
               "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
+              "& .MuiDataGrid-row": {
+                minHeight: "66px !important",
+                maxHeight: "66px !important",
+              },
+              "& .MuiDataGrid-cell": {
+                padding: "0px",
+                minHeight: "66px",
+                height: "auto",
+              },
             }}
+            getRowHeight={() => "auto"}
             rows={neverActive}
             columns={columns}
             columnHeaderHeight={40}

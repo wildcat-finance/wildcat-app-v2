@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
@@ -12,12 +12,18 @@ import {
   TypeSafeColDef,
 } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import Ethena from "@/assets/companies-icons/ethena_icon.svg"
+import Ethereal from "@/assets/companies-icons/ethereal_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { AurosEthenaBanner } from "@/components/AdsBanners/AurosEthena/AurosEthenaBanner"
+import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/AurosEthenaProposalChip"
+import { AprTooltip } from "@/components/AdsBanners/Common/AprTooltip"
+import { AprChip } from "@/components/AprChip"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
-import { pageCalcHeights } from "@/utils/constants"
+import { AUROS_ETHENA_ADDRESS, pageCalcHeights } from "@/utils/constants"
 import {
   formatBps,
   formatSecsToHours,
@@ -106,8 +112,8 @@ export const BorrowerTerminatedMarketsTables = ({
     {
       field: "status",
       headerName: t("dashboard.markets.tables.header.status"),
-      minWidth: 120,
-      flex: 0.7,
+      minWidth: 104,
+      flex: 0.4,
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
@@ -128,8 +134,8 @@ export const BorrowerTerminatedMarketsTables = ({
     {
       field: "name",
       headerName: t("dashboard.markets.tables.header.name"),
-      flex: 3,
-      minWidth: 208,
+      flex: 1,
+      minWidth: 212,
       headerAlign: "left",
       align: "left",
       renderCell: (params) => (
@@ -137,27 +143,84 @@ export const BorrowerTerminatedMarketsTables = ({
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{
             ...LinkCell,
-            justifyContent: "flex-start",
+            paddingRight: "16px",
+            justifyContent: "center",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "6px",
+            minWidth: 0,
           }}
         >
-          {params.value}
+          <Typography
+            variant="text3"
+            sx={{
+              display: "block",
+              width: "100%",
+              minWidth: 0,
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {params.value}
+          </Typography>
         </Link>
       ),
     },
     {
-      field: "asset",
-      headerName: t("dashboard.markets.tables.header.asset"),
-      minWidth: 95,
+      field: "apr",
+      headerName: t("dashboard.markets.tables.header.apr"),
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "right",
       align: "right",
-      flex: 0.6,
+      renderCell: (params) => {
+        const isAurosTestnet =
+          params.row.id.toLowerCase() ===
+          AUROS_ETHENA_ADDRESS.testnet.toLowerCase()
+        const isAurosMainnet =
+          params.row.id.toLowerCase() ===
+          AUROS_ETHENA_ADDRESS.mainnet.toLowerCase()
+
+        const isAuros = isAurosTestnet || isAurosMainnet
+
+        const adsComponent = isAuros ? (
+          <AprTooltip
+            baseAPR={formatBps(params.value)}
+            aprProposal={<AurosEthenaProposalChip isTooltip />}
+            banner={<AurosEthenaBanner />}
+            withdrawalAnyTime
+          />
+        ) : undefined
+
+        return (
+          <Link
+            href={`${ROUTES.borrower.market}/${params.row.id}`}
+            style={{ ...LinkCell, justifyContent: "flex-end" }}
+          >
+            <AprChip
+              isBonus={isAuros}
+              baseApr={formatBps(params.value)}
+              icons={isAuros ? [<Ethena />, <Ethereal />] : undefined}
+              adsComponent={adsComponent}
+            />
+          </Link>
+        )
+      },
+    },
+    {
+      field: "asset",
+      headerName: t("dashboard.markets.tables.header.asset"),
+      minWidth: 112,
+      flex: 0.5,
+      headerAlign: "right",
+      align: "right",
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
-            paddingRight: "16px",
           }}
         >
           {params.value}
@@ -165,12 +228,31 @@ export const BorrowerTerminatedMarketsTables = ({
       ),
     },
     {
-      field: "debt",
-      headerName: t("dashboard.markets.tables.header.debt"),
-      minWidth: 120,
+      field: "withdrawalBatchDuration",
+      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      minWidth: 112,
+      flex: 0.5,
       headerAlign: "right",
       align: "right",
-      flex: 1.5,
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+          }}
+        >
+          {formatSecsToHours(params.value, true)}
+        </Link>
+      ),
+    },
+    {
+      field: "debt",
+      headerName: t("dashboard.markets.tables.header.debt"),
+      minWidth: 112,
+      flex: 0.5,
+      headerAlign: "right",
+      align: "right",
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Link
@@ -183,42 +265,6 @@ export const BorrowerTerminatedMarketsTables = ({
                 fractionDigits: 2,
               })
             : "0"}
-        </Link>
-      ),
-    },
-    {
-      field: "apr",
-      headerName: t("dashboard.markets.tables.header.apr"),
-      minWidth: 102,
-      flex: 1,
-      headerAlign: "right",
-      align: "right",
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
-        >
-          {`${formatBps(params.value)}%`}
-        </Link>
-      ),
-    },
-    {
-      field: "withdrawalBatchDuration",
-      headerName: t("dashboard.markets.tables.header.withdrawal"),
-      minWidth: 110,
-      flex: 1,
-      headerAlign: "right",
-      align: "right",
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{
-            ...LinkCell,
-            justifyContent: "flex-end",
-            textTransform: "capitalize",
-          }}
-        >
-          {formatSecsToHours(params.value, true)}
         </Link>
       ),
     },
