@@ -19,9 +19,11 @@ import { AurosEthenaBanner } from "@/components/AdsBanners/AurosEthena/AurosEthe
 import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/AurosEthenaProposalChip"
 import { AprTooltip } from "@/components/AdsBanners/Common/AprTooltip"
 import { AprChip } from "@/components/AprChip"
+import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
+import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import { AUROS_ETHENA_ADDRESS, pageCalcHeights } from "@/utils/constants"
 import {
@@ -110,32 +112,10 @@ export const BorrowerTerminatedMarketsTables = ({
 
   const columns: TypeSafeColDef<BorrowerTerminatedMarketsTableModel>[] = [
     {
-      field: "status",
-      headerName: t("dashboard.markets.tables.header.status"),
-      minWidth: 104,
-      flex: 0.4,
-      headerAlign: "left",
-      align: "left",
-      sortComparator: statusComparator,
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{
-            ...LinkCell,
-            justifyContent: "flex-start",
-          }}
-        >
-          <Box width="120px">
-            <MarketStatusChip status={params.value} />
-          </Box>
-        </Link>
-      ),
-    },
-    {
       field: "name",
       headerName: t("dashboard.markets.tables.header.name"),
-      flex: 1,
-      minWidth: 212,
+      flex: 0.5,
+      minWidth: 196,
       headerAlign: "left",
       align: "left",
       renderCell: (params) => (
@@ -164,6 +144,47 @@ export const BorrowerTerminatedMarketsTables = ({
           >
             {params.value}
           </Typography>
+        </Link>
+      ),
+    },
+    {
+      field: "status",
+      headerName: t("dashboard.markets.tables.header.status"),
+      minWidth: 104,
+      flex: 0.4,
+      headerAlign: "left",
+      align: "left",
+      sortComparator: statusComparator,
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-start",
+          }}
+        >
+          <Box width="120px">
+            <MarketStatusChip status={params.value} />
+          </Box>
+        </Link>
+      ),
+    },
+    {
+      field: "asset",
+      headerName: t("dashboard.markets.tables.header.asset"),
+      minWidth: 212,
+      flex: 1.5,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+          }}
+        >
+          {params.value}
         </Link>
       ),
     },
@@ -207,25 +228,6 @@ export const BorrowerTerminatedMarketsTables = ({
           </Link>
         )
       },
-    },
-    {
-      field: "asset",
-      headerName: t("dashboard.markets.tables.header.asset"),
-      minWidth: 112,
-      flex: 0.5,
-      headerAlign: "right",
-      align: "right",
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{
-            ...LinkCell,
-            justifyContent: "flex-end",
-          }}
-        >
-          {params.value}
-        </Link>
-      ),
     },
     {
       field: "withdrawalBatchDuration",
