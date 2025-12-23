@@ -1,13 +1,22 @@
-export async function POST(req: Request) {
-  const raw = await req.text()
+const isPreview = process.env.VERCEL_ENV === "preview"
 
-  console.log("===== CSP REPORT START =====")
-  console.log(raw)
-  console.log("===== CSP REPORT END =====")
+export async function POST(req: Request) {
+  const text = await req.text()
+
+  try {
+    const data = JSON.parse(text)
+    if (isPreview) {
+      console.log("CSP report:", data)
+    } else {
+      console.log("A CSP violation was detected.")
+    }
+  } catch {
+    // ignore invalid JSON
+  }
 
   return new Response(null, { status: 204 })
 }
 
-export async function GET() {
-  return new Response("CSP report endpoint is alive", { status: 200 })
+export async function OPTIONS() {
+  return new Response(null, { status: 204 })
 }
