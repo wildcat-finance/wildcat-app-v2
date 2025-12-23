@@ -1,6 +1,15 @@
 /** @type {import('next').NextConfig} */
 import { buildTime } from './scripts/build.js'
 
+const CSP_REPORT_GROUP = 'csp-endpoint'
+const reportingEndpoints = `${CSP_REPORT_GROUP}="/api/csp-report"`
+
+const isPreview = process.env.VERCEL_ENV === "preview"
+
+const scriptSrc = [
+  ...(isPreview ? ["https://vercel.live"] : []),
+].join(" ")
+
 const connectSrc = [
   "https://eth-sepolia.g.alchemy.com",
   "https://eth-mainnet.g.alchemy.com",
@@ -21,22 +30,25 @@ const connectSrc = [
   "wss://*.hotjar.com",
 ].join(" ")
 
-const CSP_REPORT_GROUP = 'csp-endpoint'
-const reportingEndpoints = `${CSP_REPORT_GROUP}="/api/csp-report"`
+const frameSrc = [
+  ...(isPreview ? ["https://vercel.live"] : []),
+].join(" ")
 
 const contentSecurityPolicy = [
   // Default policy for all resource types that don't have an explicit directive.
   "default-src 'self'",
   // Restricts where scripts can be loaded from.
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline' ${scriptSrc}`,
   // Restricts where styles (CSS) can be loaded from.
   "style-src 'self' 'unsafe-inline'",
   // Controls which image sources are allowed.
   "img-src 'self' data: https:",
   // Controls which endpoints the app is allowed to connect to via fetch/XHR/WebSockets/etc.
   `connect-src 'self' ${connectSrc}`,
+  // Controls which sources *our page* is allowed to embed via <iframe>/<frame>.
+  `frame-src 'self'${frameSrc ? ` ${frameSrc}` : ""}`,
   // Controls who is allowed to embed *our* pages inside an <iframe>/<frame>/<object>.
-  "frame-ancestors 'self' https://app.safe.global https://gnosis-safe.io",
+  "frame-ancestors 'self' https://app.safe.global",
   // Restricts where the <base> element can point to.
   "base-uri 'self'",
   // Where to send violation reports.
