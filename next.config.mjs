@@ -5,14 +5,8 @@ const CSP_REPORT_GROUP = 'csp-endpoint'
 const reportingEndpoints = `${CSP_REPORT_GROUP}="/api/csp-report"`
 
 const vercelEnv = process.env.VERCEL_ENV
-const isPreview = vercelEnv === 'preview'
 const isProduction = vercelEnv === 'production'
 
-// Vercel preview tooling injects scripts from vercel.live
-const vercelLiveSrc = isPreview ? ['https://vercel.live'] : []
-
-const scriptSrcElem = ["'self'", ...vercelLiveSrc].join(' ')
-const frameSrc = ["'self'", ...vercelLiveSrc].join(' ')
 const connectSrc = [
   'https://eth-sepolia.g.alchemy.com',
   'https://eth-mainnet.g.alchemy.com',
@@ -38,7 +32,6 @@ const contentSecurityPolicy = [
   "default-src 'self'",
   // Restricts where scripts can be loaded from.
   "script-src 'self' 'unsafe-inline'",
-  `script-src-elem ${scriptSrcElem}`,
   // Restricts where styles (CSS) can be loaded from.
   "style-src 'self' 'unsafe-inline'",
   // Controls which image sources are allowed.
