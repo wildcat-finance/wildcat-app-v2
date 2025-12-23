@@ -2,75 +2,80 @@
 import { buildTime } from './scripts/build.js'
 
 const csp = [
-    // Default policy for all resource types that don't have an explicit directive.
+    // Default policy for all resource types that don't have an explicit directive
     "default-src 'self'",
-    // Restricts where scripts can be loaded from.
-    "script-src 'self'",
-    // Restricts where styles (CSS) can be loaded from.
+
+    // Scripts
+    "script-src 'self' 'report-sample'",
+    "script-src-elem 'self' 'report-sample'",
+    "script-src-attr 'none'",
+
+    // Styles (MUI/Emotion needs unsafe-inline,)
     "style-src 'self' 'unsafe-inline'",
-    // Controls which image sources are allowed.
+
+    // Images
     "img-src 'self' data: https:",
-    // Controls which endpoints the app is allowed to connect to via fetch/XHR/WebSockets/etc.
+
+    // Network endpoints (fetch/XHR/WebSockets/etc.)
     "connect-src 'self' https://eth-sepolia.g.alchemy.com https://eth-mainnet.g.alchemy.com https://testnet-rpc.plasma.to https://rpc.plasma.to https://api.goldsky.com https://relay.walletconnect.com wss://relay.walletconnect.com https://explorer-api.walletconnect.com https://images.walletconnect.com https://safe-client.safe.global https://cdn.matomo.cloud https://wildcatfinance.matomo.cloud https://static.hotjar.com https://script.hotjar.com https://api-eu.hotjar.com https://insights.hotjar.com wss://*.hotjar.com",
-    // Controls who is allowed to embed *our* pages inside an <iframe>/<frame>/<object>.
-    "frame-ancestors 'self'",
-    // Restricts where the <base> element can point to.
+
+    // Allow framing only by ourselves and Safe
+    "frame-ancestors 'self' https://app.safe.global https://gnosis-safe.io",
+
+    // Restrict <base>
     "base-uri 'self'",
-].join('; ')
+
+    // CSP violation reports
+    "report-uri /api/csp-report",
+].join("; ")
+
 
 
 const securityHeaders = [
     {
         // Enforce HTTPS via HTTP Strict Transport Security (HSTS).
-        key: 'Strict-Transport-Security',
-        value: 'max-age=63072000; includeSubDomains; preload',
-    },
-    {
-        // Legacy clickjacking protection: only allow this site to be framed by itself.
-        key: 'X-Frame-Options',
-        value: 'SAMEORIGIN',
+        key: "Strict-Transport-Security",
+        value: "max-age=63072000; includeSubDomains; preload",
     },
     {
         // Limit powerful browser features via Permissions-Policy (formerly Feature-Policy).
-        key: 'Permissions-Policy',
-        value: 'camera=(), microphone=(), geolocation=(), browsing-topics=()',
+        key: "Permissions-Policy",
+        value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
     },
     {
         // Disable MIME type sniffing.
-        key: 'X-Content-Type-Options',
-        value: 'nosniff',
+        key: "X-Content-Type-Options",
+        value: "nosniff",
     },
     {
         // Control how much referrer information is sent to other origins.
-        key: 'Referrer-Policy',
-        value: 'strict-origin-when-cross-origin',
+        key: "Referrer-Policy",
+        value: "strict-origin-when-cross-origin",
     },
     {
         // Content Security Policy in Report-Only mode.
-        key: 'Content-Security-Policy-Report-Only',
+        key: "Content-Security-Policy-Report-Only",
         value: csp,
     },
 ]
 
 
-const safeHeaders = [
+
+const manifestHeaders = [
     {
-        key: 'Access-Control-Allow-Origin',
-        value: 'https://app.safe.global',
+        key: "Access-Control-Allow-Origin",
+        value: "https://app.safe.global",
     },
     {
-        key: 'Access-Control-Allow-Methods',
-        value: 'GET',
+        key: "Access-Control-Allow-Methods",
+        value: "GET, OPTIONS",
     },
     {
-        key: 'Access-Control-Allow-Headers',
-        value: 'X-Requested-With, content-type, Authorization',
-    },
-    {
-        key: 'Content-Security-Policy',
-        value: 'frame-ancestors "self" https://app.safe.global;',
+        key: "Access-Control-Allow-Headers",
+        value: "X-Requested-With, content-type, Authorization",
     },
 ]
+
 
 
 const nextConfig = {
@@ -117,20 +122,22 @@ const nextConfig = {
     ]
   },
 
-  async headers() {
-    return [
-        {
-            source: '/:path*',
-            headers: securityHeaders,
-        },
-      {
-        source: '/manifest.json',
-        headers: safeHeaders,
-      },
-    ]
-  },
+    async headers() {
+        return [
+            // Apply security headers to everything EXCEPT /manifest.json
+            {
+                source: "/((?!manifest\\.json).*)",
+                headers: securityHeaders,
+            },
+            // Apply manifest-specific CORS headers only to /manifest.json
+            {
+                source: "/manifest.json",
+                headers: manifestHeaders,
+            },
+        ]
+    },
 
-  // Show HIT or MISS cache for GET requests
+    // Show HIT or MISS cache for GET requests
   logging: {
     fetches: {
       fullUrl: true,
