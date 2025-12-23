@@ -4,41 +4,41 @@ import { buildTime } from './scripts/build.js'
 const CSP_REPORT_GROUP = 'csp-endpoint'
 const reportingEndpoints = `${CSP_REPORT_GROUP}="/api/csp-report"`
 
-const isPreview = process.env.VERCEL_ENV === "preview"
+const vercelEnv = process.env.VERCEL_ENV
+const isPreview = vercelEnv === 'preview'
+const isProduction = vercelEnv === 'production'
 
-const scriptSrc = [
-  ...(isPreview ? ["https://vercel.live"] : []),
-].join(" ")
+// Vercel preview tooling injects scripts from vercel.live
+const vercelLiveSrc = isPreview ? ['https://vercel.live'] : []
+
+const scriptSrc = ["'self'", ...vercelLiveSrc].join(' ')
+const frameSrc = ["'self'", ...vercelLiveSrc].join(' ')
 
 const connectSrc = [
-  "https://eth-sepolia.g.alchemy.com",
-  "https://eth-mainnet.g.alchemy.com",
-  "https://testnet-rpc.plasma.to",
-  "https://rpc.plasma.to",
-  "https://api.goldsky.com",
-  "https://relay.walletconnect.com",
-  "wss://relay.walletconnect.com",
-  "https://explorer-api.walletconnect.com",
-  "https://images.walletconnect.com",
-  "https://safe-client.safe.global",
-  "https://cdn.matomo.cloud",
-  "https://wildcatfinance.matomo.cloud",
-  "https://static.hotjar.com",
-  "https://script.hotjar.com",
-  "https://api-eu.hotjar.com",
-  "https://insights.hotjar.com",
-  "wss://*.hotjar.com",
-].join(" ")
-
-const frameSrc = [
-  ...(isPreview ? ["https://vercel.live"] : []),
-].join(" ")
+  'https://eth-sepolia.g.alchemy.com',
+  'https://eth-mainnet.g.alchemy.com',
+  'https://testnet-rpc.plasma.to',
+  'https://rpc.plasma.to',
+  'https://api.goldsky.com',
+  'https://relay.walletconnect.com',
+  'wss://relay.walletconnect.com',
+  'https://explorer-api.walletconnect.com',
+  'https://images.walletconnect.com',
+  'https://safe-client.safe.global',
+  'https://cdn.matomo.cloud',
+  'https://wildcatfinance.matomo.cloud',
+  'https://static.hotjar.com',
+  'https://script.hotjar.com',
+  'https://api-eu.hotjar.com',
+  'https://insights.hotjar.com',
+  'wss://*.hotjar.com',
+].join(' ')
 
 const contentSecurityPolicy = [
   // Default policy for all resource types that don't have an explicit directive.
   "default-src 'self'",
   // Restricts where scripts can be loaded from.
-  `script-src 'self' 'unsafe-inline' ${scriptSrc}`,
+  `script-src ${scriptSrc}`,
   // Restricts where styles (CSS) can be loaded from.
   "style-src 'self' 'unsafe-inline'",
   // Controls which image sources are allowed.
@@ -46,21 +46,26 @@ const contentSecurityPolicy = [
   // Controls which endpoints the app is allowed to connect to via fetch/XHR/WebSockets/etc.
   `connect-src 'self' ${connectSrc}`,
   // Controls which sources *our page* is allowed to embed via <iframe>/<frame>.
-  `frame-src 'self'${frameSrc ? ` ${frameSrc}` : ""}`,
+  `frame-src ${frameSrc}`,
   // Controls who is allowed to embed *our* pages inside an <iframe>/<frame>/<object>.
-  "frame-ancestors 'self' https://app.safe.global",
+  "frame-ancestors 'self' https://app.safe.global https://gnosis-safe.io",
   // Restricts where the <base> element can point to.
   "base-uri 'self'",
   // Where to send violation reports.
   `report-to ${CSP_REPORT_GROUP}`,
+  // Legacy fallback (still useful in some browsers/tools).
+  'report-uri /api/csp-report',
 ].join('; ')
 
-const securityHeaders = [
-  {
-    // Enforce HTTPS via HTTP Strict Transport Security (HSTS).
-    key: 'Strict-Transport-Security',
-    value: 'max-age=63072000; includeSubDomains; preload',
-  },
+const baseSecurityHeaders = [
+  ...(isProduction
+      ? [
+        {
+          key: 'Strict-Transport-Security',
+          value: 'max-age=31536000',
+        },
+      ]
+      : []),
   {
     // Limit powerful browser features via Permissions-Policy (formerly Feature-Policy).
     key: 'Permissions-Policy',
@@ -76,8 +81,11 @@ const securityHeaders = [
     key: 'Referrer-Policy',
     value: 'strict-origin-when-cross-origin',
   },
-  // Define reporting endpoint group
+]
+
+const cspReportingHeaders = [
   {
+    // Define reporting endpoint group
     key: 'Reporting-Endpoints',
     value: reportingEndpoints,
   },
@@ -153,18 +161,28 @@ const nextConfig = {
 
   async headers() {
     return [
+      // Base security headers — apply to EVERYTHING
       {
         source: '/:path*',
-        headers: securityHeaders,
+        headers: baseSecurityHeaders,
       },
+
+      // CSP Report-Only + Reporting endpoints — apply ONLY to "pages" (exclude: /api/*, Next static/image assets, and common root files)
+      {
+        source:
+            '/((?!api/|_next/static/|_next/image/|_next/data/|favicon.ico$|robots.txt$|sitemap.xml$|manifest.json$).*)',
+        headers: cspReportingHeaders,
+      },
+
+      // manifest.json — needs CORS + enforced CSP + also keep base + reporting
       {
         source: '/manifest.json',
-        headers: [...securityHeaders, ...manifestHeaders],
+        headers: [...baseSecurityHeaders, ...cspReportingHeaders, ...manifestHeaders],
       },
     ]
   },
 
-    // Show HIT or MISS cache for GET requests
+  // Show HIT or MISS cache for GET requests
   logging: {
     fetches: {
       fullUrl: true,
