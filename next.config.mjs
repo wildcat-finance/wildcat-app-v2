@@ -1,6 +1,78 @@
 /** @type {import('next').NextConfig} */
 import { buildTime } from './scripts/build.js'
 
+const csp = [
+    // Default policy for all resource types that don't have an explicit directive.
+    "default-src 'self'",
+    // Restricts where scripts can be loaded from.
+    "script-src 'self'",
+    // Restricts where styles (CSS) can be loaded from.
+    "style-src 'self' 'unsafe-inline'",
+    // Controls which image sources are allowed.
+    "img-src 'self' data: https:",
+    // Controls which endpoints the app is allowed to connect to via fetch/XHR/WebSockets/etc.
+    "connect-src 'self' https://eth-sepolia.g.alchemy.com https://eth-mainnet.g.alchemy.com https://testnet-rpc.plasma.to https://rpc.plasma.to https://api.goldsky.com https://relay.walletconnect.com wss://relay.walletconnect.com https://explorer-api.walletconnect.com https://images.walletconnect.com https://safe-client.safe.global https://cdn.matomo.cloud https://wildcatfinance.matomo.cloud https://static.hotjar.com https://script.hotjar.com https://api-eu.hotjar.com https://insights.hotjar.com wss://*.hotjar.com",
+    // Controls who is allowed to embed *our* pages inside an <iframe>/<frame>/<object>.
+    "frame-ancestors 'self'",
+    // Restricts where the <base> element can point to.
+    "base-uri 'self'",
+].join('; ')
+
+
+const securityHeaders = [
+    {
+        // Enforce HTTPS via HTTP Strict Transport Security (HSTS).
+        key: 'Strict-Transport-Security',
+        value: 'max-age=63072000; includeSubDomains; preload',
+    },
+    {
+        // Legacy clickjacking protection: only allow this site to be framed by itself.
+        key: 'X-Frame-Options',
+        value: 'SAMEORIGIN',
+    },
+    {
+        // Limit powerful browser features via Permissions-Policy (formerly Feature-Policy).
+        key: 'Permissions-Policy',
+        value: 'camera=(), microphone=(), geolocation=(), browsing-topics=()',
+    },
+    {
+        // Disable MIME type sniffing.
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+    },
+    {
+        // Control how much referrer information is sent to other origins.
+        key: 'Referrer-Policy',
+        value: 'strict-origin-when-cross-origin',
+    },
+    {
+        // Content Security Policy in Report-Only mode.
+        key: 'Content-Security-Policy-Report-Only',
+        value: csp,
+    },
+]
+
+
+const safeHeaders = [
+    {
+        key: 'Access-Control-Allow-Origin',
+        value: 'https://app.safe.global',
+    },
+    {
+        key: 'Access-Control-Allow-Methods',
+        value: 'GET',
+    },
+    {
+        key: 'Access-Control-Allow-Headers',
+        value: 'X-Requested-With, content-type, Authorization',
+    },
+    {
+        key: 'Content-Security-Policy',
+        value: 'frame-ancestors "self" https://app.safe.global;',
+    },
+]
+
+
 const nextConfig = {
   productionBrowserSourceMaps: !!process.env.SOURCE_MAPS,
 
@@ -47,26 +119,13 @@ const nextConfig = {
 
   async headers() {
     return [
+        {
+            source: '/:path*',
+            headers: securityHeaders,
+        },
       {
         source: '/manifest.json',
-        headers: [
-          {
-            key: 'Access-Control-Allow-Origin',
-            value: 'https://app.safe.global',
-          },
-          {
-            key: 'Access-Control-Allow-Methods',
-            value: 'GET',
-          },
-          {
-            key: 'Access-Control-Allow-Headers',
-            value: 'X-Requested-With, content-type, Authorization',
-          },
-          {
-            key: 'Content-Security-Policy',
-            value: 'frame-ancestors "self" https://app.safe.global;',
-          },
-        ],
+        headers: safeHeaders,
       },
     ]
   },
