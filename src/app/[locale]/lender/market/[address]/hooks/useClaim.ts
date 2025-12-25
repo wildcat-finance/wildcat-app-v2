@@ -60,6 +60,9 @@ export const useClaim = (
       await claim()
     },
     onSuccess() {
+      const lender = address?.toLowerCase()
+      const marketAddress = market.address.toLowerCase()
+
       client.invalidateQueries({
         queryKey: QueryKeys.Markets.GET_MARKET(market.chainId, market.address),
       })
@@ -67,6 +70,13 @@ export const useClaim = (
         queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
           market.chainId,
           market.address,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Lender.GET_WITHDRAWALS.PREFIX(
+          market.chainId,
+          lender,
+          marketAddress,
         ),
       })
     },
