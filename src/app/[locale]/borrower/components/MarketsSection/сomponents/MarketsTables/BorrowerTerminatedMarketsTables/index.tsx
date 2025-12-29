@@ -114,8 +114,8 @@ export const BorrowerTerminatedMarketsTables = ({
     {
       field: "name",
       headerName: t("dashboard.markets.tables.header.name"),
-      flex: 0.5,
-      minWidth: 196,
+      flex: 1.35,
+      minWidth: 212,
       headerAlign: "left",
       align: "left",
       renderCell: (params) => (

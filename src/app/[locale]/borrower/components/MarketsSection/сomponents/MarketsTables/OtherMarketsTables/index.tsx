@@ -149,7 +149,7 @@ export const OtherMarketsTables = ({
     {
       field: "name",
       headerName: t("dashboard.markets.tables.header.name"),
-      flex: 1,
+      flex: 1.35,
       minWidth: 212,
       headerAlign: "left",
       align: "left",
@@ -214,8 +214,8 @@ export const OtherMarketsTables = ({
     {
       field: "term",
       headerName: t("dashboard.markets.tables.header.term"),
-      minWidth: 112,
-      flex: 0.5,
+      minWidth: 90,
+      flex: 0.3,
       headerAlign: "left",
       align: "left",
       sortComparator: typeComparator,
