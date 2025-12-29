@@ -7,7 +7,7 @@ import {
   LenderMobileMarketItem,
   MobileMarketCard,
 } from "@/app/[locale]/lender/components/mobile/MobileMarketCard"
-import { AurosEthenaMobileCard } from "@/components/AdsBanners/AurosEthena/AurosEthenaMobileCard"
+import { AurosEthenaMobileContent } from "@/components/AdsBanners/AurosEthena/AurosEthenaMobileContent"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { AUROS_ETHENA_ADDRESS } from "@/utils/constants"
@@ -73,7 +73,7 @@ export const MobileMarketList = ({
         AUROS_ETHENA_ADDRESS.testnet.toLowerCase() ||
       marketItem.id.toLowerCase() === AUROS_ETHENA_ADDRESS.mainnet.toLowerCase()
     ) {
-      return <AurosEthenaMobileCard baseAPR={formatBps(marketItem.apr)} />
+      return <AurosEthenaMobileContent baseAPR={formatBps(marketItem.apr)} />
     }
     return undefined
   }
@@ -122,7 +122,7 @@ export const MobileMarketList = ({
         {!isLoading &&
           currentItems.map((marketItem) => (
             <MobileMarketCard
-              adsCard={getAdsContent(marketItem)}
+              adsComponent={getAdsContent(marketItem)}
               key={marketItem.id}
               marketItem={marketItem}
               buttonText="Deposit"

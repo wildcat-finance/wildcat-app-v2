@@ -41,6 +41,7 @@ export const filterMarketAccounts = (
   statuses: SmallFilterSelectItem[],
   assets: SmallFilterSelectItem[],
   borrowers: BorrowerWithName[] | undefined,
+  withdrawalCycles: SmallFilterSelectItem[] = [],
 ) => {
   if (!marketAccounts) return []
 
@@ -97,6 +98,18 @@ export const filterMarketAccounts = (
   if (filteredMarkets && assets.length > 0) {
     filteredMarkets = filteredMarkets.filter(({ market }) =>
       assetsNames.includes(market.underlyingToken.symbol),
+    )
+  }
+
+  if (filteredMarkets && withdrawalCycles.length > 0) {
+    filteredMarkets = filteredMarkets.filter(({ market }) =>
+      withdrawalCycles.some((cycle) => {
+        const [min, max] = cycle.id.split("-").map(Number)
+        return (
+          market.withdrawalBatchDuration >= min &&
+          market.withdrawalBatchDuration <= max
+        )
+      }),
     )
   }
 
