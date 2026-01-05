@@ -46,6 +46,7 @@ import {
 import { AUROS_ETHENA_ADDRESS, pageCalcHeights } from "@/utils/constants"
 import {
   formatBps,
+  formatSecsToHours,
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
@@ -62,6 +63,7 @@ export type LenderOtherMarketsTableModel = {
   asset: string
   debt: TokenAmount | undefined
   apr: number
+  withdrawalBatchDuration: number
   isSelfOnboard: boolean
   button?: string
   capacityLeft: TokenAmount
@@ -119,6 +121,7 @@ export const OtherMarketsTables = ({
         annualInterestBips,
         maxTotalSupply,
         totalSupply,
+        withdrawalBatchDuration,
       } = market
 
       const borrower = (borrowers ?? []).find(
@@ -140,6 +143,7 @@ export const OtherMarketsTables = ({
         borrowerAddress,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
+        withdrawalBatchDuration,
         debt: totalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
         isSelfOnboard:
@@ -171,7 +175,7 @@ export const OtherMarketsTables = ({
             justifyContent: "flex-start",
           }}
         >
-          <Box width="130px">
+          <Box width="120px">
             <MarketStatusChip status={params.value} />
           </Box>
         </Link>
@@ -327,16 +331,40 @@ export const OtherMarketsTables = ({
       },
     },
     {
+      field: "withdrawalBatchDuration",
+      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      minWidth: 110,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.lender.market}/${params.row.id}`}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+            textTransform: "capitalize",
+          }}
+        >
+          {formatSecsToHours(params.value)}
+        </Link>
+      ),
+    },
+    {
       field: "asset",
       headerName: t("dashboard.markets.tables.header.asset"),
       minWidth: 95,
       headerAlign: "right",
       align: "right",
-      flex: 1,
+      flex: 0.6,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+            paddingRight: "16px",
+          }}
         >
           {params.value}
         </Link>
@@ -345,7 +373,7 @@ export const OtherMarketsTables = ({
     {
       field: "capacityLeft",
       headerName: t("dashboard.markets.tables.header.capacity"),
-      minWidth: 82,
+      minWidth: 110,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
@@ -377,7 +405,7 @@ export const OtherMarketsTables = ({
     {
       field: "debt",
       headerName: t("dashboard.markets.tables.header.debt"),
-      minWidth: 110,
+      minWidth: 120,
       headerAlign: "right",
       align: "right",
       flex: 1.5,

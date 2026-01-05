@@ -122,7 +122,8 @@
           "capacity": "Remaining Capacity",
           "borrowable": "Borrowable",
           "loan": "Your Loan",
-          "apr": "APR"
+          "apr": "APR",
+          "withdrawal": "Withdrawal"
         }
       },
       "noMarkets": {

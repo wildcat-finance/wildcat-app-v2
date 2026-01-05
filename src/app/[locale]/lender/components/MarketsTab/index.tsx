@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef } from "react"
 import { Box } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketsTableAccordion } from "@/app/[locale]/lender/components/MarketsTab/MarketsTableAccordion"
@@ -22,6 +23,7 @@ import { MarketsTabProps } from "./interface"
 import { filterMarketAccounts, getColumns, getRows } from "./utils"
 
 export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
   const scrollTargetId = useAppSelector(
@@ -178,7 +180,7 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
                       filteredActiveLenderMarketAccounts,
                       borrowers ?? [],
                     )}
-                    columns={getColumns()}
+                    columns={getColumns(t)}
                     columnHeaderHeight={40}
                   />
                 )}
@@ -209,7 +211,7 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
                     "& .MuiDataGrid-cell": { padding: "0px" },
                   }}
                   rows={getRows(terminatedMarketAccounts, borrowers ?? [])}
-                  columns={getColumns()}
+                  columns={getColumns(t)}
                   columnHeaderHeight={40}
                 />
               </MarketsTableAccordion>
@@ -221,7 +223,7 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
       <Box marginTop="16px" id="scroll-container-id" ref={otherMarketsRef}>
         <OtherMarketsTable
           isLoading={isLoading}
-          tableColumns={getColumns(true)}
+          tableColumns={getColumns(t, true)}
           tableRows={getRows(filteredOtherMarketAccounts, borrowers ?? [])}
           assetFilter={filterByAsset}
           statusFilter={filterByStatus}

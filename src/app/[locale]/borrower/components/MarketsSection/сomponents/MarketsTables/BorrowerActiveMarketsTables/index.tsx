@@ -25,7 +25,11 @@ import {
   typeComparator,
 } from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
-import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
+import {
+  formatBps,
+  formatSecsToHours,
+  formatTokenWithCommas,
+} from "@/utils/formatters"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -39,6 +43,7 @@ export type BorrowerActiveMarketsTableModel = {
   capacityLeft: TokenAmount
   debt: TokenAmount | undefined
   borrowable: TokenAmount
+  withdrawalBatchDuration: number
 }
 
 export const BorrowerActiveMarketsTables = ({
@@ -79,6 +84,7 @@ export const BorrowerActiveMarketsTables = ({
         borrowableAssets,
         maxTotalSupply,
         totalSupply,
+        withdrawalBatchDuration,
       } = market
 
       const marketStatus = getMarketStatusChip(market)
@@ -94,6 +100,7 @@ export const BorrowerActiveMarketsTables = ({
         borrowable: borrowableAssets,
         debt: totalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
+        withdrawalBatchDuration,
       }
     })
 
@@ -124,7 +131,7 @@ export const BorrowerActiveMarketsTables = ({
             justifyContent: "flex-start",
           }}
         >
-          <Box width="130px">
+          <Box width="120px">
             <MarketStatusChip status={params.value} />
           </Box>
         </Link>
@@ -188,16 +195,40 @@ export const BorrowerActiveMarketsTables = ({
       ),
     },
     {
+      field: "withdrawalBatchDuration",
+      headerName: "Withdrawal",
+      minWidth: 110,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+            textTransform: "capitalize",
+          }}
+        >
+          {formatSecsToHours(params.value)}
+        </Link>
+      ),
+    },
+    {
       field: "asset",
       headerName: t("dashboard.markets.tables.header.asset"),
       minWidth: 95,
       headerAlign: "right",
       align: "right",
-      flex: 1,
+      flex: 0.6,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+            paddingRight: "16px",
+          }}
         >
           {params.value}
         </Link>
@@ -206,7 +237,7 @@ export const BorrowerActiveMarketsTables = ({
     {
       field: "capacityLeft",
       headerName: t("dashboard.markets.tables.header.capacity"),
-      minWidth: 82,
+      minWidth: 110,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
@@ -238,7 +269,7 @@ export const BorrowerActiveMarketsTables = ({
     {
       field: "debt",
       headerName: t("dashboard.markets.tables.header.debt"),
-      minWidth: 110,
+      minWidth: 120,
       headerAlign: "right",
       align: "right",
       flex: 1.5,
@@ -260,7 +291,7 @@ export const BorrowerActiveMarketsTables = ({
     {
       field: "borrowable",
       headerName: t("dashboard.markets.tables.header.borrowable"),
-      minWidth: 106,
+      minWidth: 120,
       flex: 1.6,
       headerAlign: "right",
       align: "right",
