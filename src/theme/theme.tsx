@@ -1398,7 +1398,7 @@ export const theme = createTheme({
           maxWidth: "274px",
 
           "& .MuiPickersSlideTransition-root.MuiDayCalendar-slideTransition": {
-            minHeight: "127px",
+            minHeight: "186px", // allow six rows to render
             overflow: "hidden",
           },
 

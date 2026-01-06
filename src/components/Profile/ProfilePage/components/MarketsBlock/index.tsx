@@ -2,6 +2,8 @@ import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
 import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid"
+import { Market, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { BigNumber } from "ethers"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
@@ -46,6 +48,10 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       } = market
 
       const marketStatus = getMarketStatusChip(market)
+
+      // const test =         debt: borrowed.raw.lt(0)
+      //     ? new TokenAmount(BigNumber.from(0), underlyingToken)
+      //     : borrowed,
 
       return {
         id: address,

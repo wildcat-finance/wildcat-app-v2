@@ -101,11 +101,18 @@ export default function LenderMarketDetails({
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
   ).flatMap((b) => b.requests).length
 
-  const claimableCount = new Set(
-    (withdrawals.expiredPendingWithdrawals ?? [])
-      .filter((b) => !b.availableWithdrawalAmount.raw.isZero())
-      .flatMap((b) => b.requests.map((r) => r.transactionHash)),
-  ).size
+  const claimableCount = (withdrawals.expiredPendingWithdrawals ?? []).flatMap(
+    (withdrawal) => {
+      const claimableAmount = withdrawal.availableWithdrawalAmount
+      return withdrawal.requests.filter((request) => {
+        const amount = claimableAmount.mulDiv(
+          request.scaledAmount,
+          withdrawal.scaledAmount,
+        )
+        return amount.gt(0)
+      })
+    },
+  ).length
 
   const outstandingCount = (
     withdrawals?.expiredPendingWithdrawals ?? []

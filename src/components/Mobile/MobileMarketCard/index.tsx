@@ -1,4 +1,5 @@
 import * as React from "react"
+import { ReactNode } from "react"
 
 import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
@@ -45,11 +46,13 @@ export const MobileMarketCard = ({
   buttonText,
   buttonIcon,
   showBorrower = true,
+  adsCard,
 }: {
   marketItem: LenderMobileMarketItem
   buttonText?: string
   buttonIcon?: boolean
   showBorrower?: boolean
+  adsCard?: ReactNode
 }) => {
   const getDepositLine = () => {
     if (marketItem.loan) {
@@ -95,9 +98,11 @@ export const MobileMarketCard = ({
         <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
           <MarketStatusChip status={marketItem.status} withPeriod={false} />
 
-          <Typography variant="mobText4">{`${formatBps(
-            marketItem.apr,
-          )}%`}</Typography>
+          {!adsCard && (
+            <Typography variant="mobText4">{`${formatBps(
+              marketItem.apr,
+            )}%`}</Typography>
+          )}
         </Box>
 
         <MarketTypeChip {...marketItem.term} />
@@ -195,6 +200,8 @@ export const MobileMarketCard = ({
       </Box>
 
       <Divider />
+
+      {adsCard}
 
       <Box
         sx={{

@@ -12,7 +12,6 @@ import humanizeDuration from "humanize-duration"
 import Link from "next/link"
 
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
-import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
 import { useGetBorrowerProfile } from "@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile"
 import Avatar from "@/assets/icons/avatar_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
@@ -22,7 +21,7 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
-import { getMarketStatusChip } from "@/utils/marketStatus"
+import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 
 import { MarketHeaderProps } from "./interface"
 import {
@@ -35,9 +34,7 @@ export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
   const theme = useTheme()
   const isMobile = useMobileResolution()
 
-  const [remainingTime, setRemainingTime] = React.useState<string | undefined>(
-    "",
-  )
+  const [remainingTime, setRemainingTime] = React.useState<string>("")
 
   const { market } = marketAccount
 
@@ -62,7 +59,7 @@ export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
             }),
           )
         } else {
-          setRemainingTime(undefined)
+          setRemainingTime("")
         }
       }
 
@@ -77,9 +74,13 @@ export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
   }, [data, market.withdrawalBatchDuration, cycleStart])
 
   const marketStatus = getMarketStatusChip(market)
+  const shouldShowCycleChip =
+    Boolean(remainingTime) && marketStatus.status !== MarketStatus.TERMINATED
 
-  const { data: profileData, isLoading: isProfileLoading } =
-    useGetBorrowerProfile(market.chainId, market.borrower as `0x${string}`)
+  const { data: profileData } = useGetBorrowerProfile(
+    market.chainId,
+    market.borrower as `0x${string}`,
+  )
 
   const getBorrowerName = () => {
     if (profileData) {
@@ -103,7 +104,7 @@ export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
       >
         <Box sx={MarketHeaderStatusContainer(theme)}>
           <MarketStatusChip status={marketStatus} variant="filled" />
-          {remainingTime && (
+          {shouldShowCycleChip && (
             <MarketCycleChip
               status={marketStatus.status}
               time={remainingTime}
@@ -280,7 +281,7 @@ export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
             <Typography
               variant="title1"
               sx={{
-                maxWidth: remainingTime ? "430px" : "550px",
+                maxWidth: shouldShowCycleChip ? "430px" : "550px",
                 whiteSpace: "nowrap",
                 textOverflow: "ellipsis",
                 overflow: "hidden",
@@ -298,7 +299,7 @@ export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
           <Typography
             variant="title1"
             sx={{
-              maxWidth: remainingTime ? "430px" : "550px",
+              maxWidth: shouldShowCycleChip ? "430px" : "550px",
               whiteSpace: "nowrap",
               textOverflow: "ellipsis",
               overflow: "hidden",
@@ -313,7 +314,7 @@ export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
       )}
       <Box sx={MarketHeaderStatusContainer(theme)}>
         <MarketStatusChip status={marketStatus} variant="filled" />
-        {remainingTime && (
+        {shouldShowCycleChip && (
           <MarketCycleChip status={marketStatus.status} time={remainingTime} />
         )}
       </Box>

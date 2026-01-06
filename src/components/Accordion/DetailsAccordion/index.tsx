@@ -78,7 +78,7 @@ export const DetailsAccordion = ({
       <Box
         sx={{
           ...bodySx,
-          maxHeight: isOpen ? "2000px" : "0px",
+          maxHeight: isOpen ? "10000px" : "0px",
           overflow: isOpen ? "visible" : "hidden",
         }}
       >

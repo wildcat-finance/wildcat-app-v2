@@ -90,6 +90,7 @@ export const OngoingTable = ({
         rows={ongoingRows}
         columns={columns}
         columnHeaderHeight={40}
+        autoHeight
       />
     )
   }
