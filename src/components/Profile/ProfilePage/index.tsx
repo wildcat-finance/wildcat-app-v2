@@ -87,7 +87,7 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
 
       <Divider sx={{ marginY: "32px" }} />
 
-      <OverallBlock {...profileData} marketsAmount={marketsAmount} />
+      <OverallBlock {...profileData} marketsAmount={marketsAmount} isPage />
 
       {marketsAmount !== 0 && (
         <MarketsBlock markets={activeMarkets} isLoading={isLoading} />
