@@ -19,8 +19,6 @@ import {
   BorrowerWithName,
   useBorrowerNames,
 } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
-import { MobileMarketCard } from "@/app/[locale]/lender/components/mobile/MobileMarketCard"
-import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
 import Ethena from "@/assets/companies-icons/ethena_icon.svg"
 import Ethereal from "@/assets/companies-icons/ethereal_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
@@ -30,6 +28,8 @@ import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/Aur
 import { AprTooltip } from "@/components/AdsBanners/Common/AprTooltip"
 import { AprChip } from "@/components/AprChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
+import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
+import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { TablePagination } from "@/components/TablePagination"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
