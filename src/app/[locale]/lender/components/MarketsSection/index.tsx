@@ -39,6 +39,7 @@ import {
   setShowFullFunctionality,
 } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFiltersSlice"
+import { setSelectedNetwork } from "@/store/slices/selectedNetworkSlice/selectedNetworkSlice"
 import { COLORS } from "@/theme/colors"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { filterMarketAccounts } from "@/utils/filters"
@@ -133,8 +134,14 @@ export const MarketsSection = () => {
     chainId: targetChainId,
     isTestnet,
   } = useCurrentNetwork()
-  const { isConnected } = useAccount()
+  const { isConnected, chainId } = useAccount()
   const { data: borrowers } = useBorrowerNames()
+
+  useEffect(() => {
+    if (isWrongNetwork && chainId) {
+      dispatch(setSelectedNetwork(chainId))
+    }
+  }, [isWrongNetwork])
 
   const {
     data: marketAccounts,

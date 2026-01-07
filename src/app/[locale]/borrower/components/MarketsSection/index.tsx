@@ -32,6 +32,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import { BorrowerMarketDashboardSections } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFiltersSlice"
+import { setSelectedNetwork } from "@/store/slices/selectedNetworkSlice/selectedNetworkSlice"
 import { COLORS } from "@/theme/colors"
 import { filterMarketAccounts } from "@/utils/filters"
 import { MarketStatus } from "@/utils/marketStatus"
@@ -124,8 +125,15 @@ export const MarketsSection = () => {
 
   const { t } = useTranslation()
 
-  const { address } = useAccount()
+  const { address, chainId } = useAccount()
   const { isWrongNetwork } = useCurrentNetwork()
+
+  useEffect(() => {
+    if (isWrongNetwork && chainId) {
+      dispatch(setSelectedNetwork(chainId))
+    }
+  }, [isWrongNetwork])
+
   const { data: borrowers } = useBorrowerNames()
 
   const bannerDisplayConfig = useBorrowerInvitationRedirect()

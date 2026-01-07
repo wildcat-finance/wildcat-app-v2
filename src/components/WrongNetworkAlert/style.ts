@@ -2,7 +2,6 @@ import { COLORS } from "@/theme/colors"
 
 export const PageContainer = {
   width: "100%",
-  padding: { xs: "4px 0 0", md: "24px 24px 0 24px" },
 }
 
 export const AlertContainer = {

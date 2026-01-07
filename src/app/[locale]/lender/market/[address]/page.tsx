@@ -4,7 +4,7 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 
 import { Box, Divider, Skeleton, Typography, useTheme } from "@mui/material"
-import { redirect } from "next/navigation"
+import { redirect, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
@@ -20,6 +20,7 @@ import { Footer } from "@/components/Footer"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
+import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketMla } from "@/hooks/useMarketMla"
@@ -35,6 +36,7 @@ import {
   resetPageState,
   setWithdrawalsCount,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
+import { setSelectedNetwork } from "@/store/slices/selectedNetworkSlice/selectedNetworkSlice"
 import { COLORS } from "@/theme/colors"
 
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
@@ -90,6 +92,21 @@ export default function LenderMarketDetails({
   const currentSection = useAppSelector(
     (state) => state.lenderMarketRouting.currentSection,
   )
+
+  const searchParams = useSearchParams()
+
+  const desiredChainId = React.useMemo(() => {
+    const raw = searchParams.get("network")
+    if (!raw) return undefined
+    const n = Number(raw)
+    return Number.isFinite(n) ? n : undefined
+  }, [searchParams])
+
+  useEffect(() => {
+    if (desiredChainId && targetChainId && targetChainId !== desiredChainId) {
+      dispatch(setSelectedNetwork(desiredChainId))
+    }
+  }, [desiredChainId])
 
   useEffect(() => {
     dispatch(setIsLoading(isLoading))
@@ -321,6 +338,14 @@ export default function LenderMarketDetails({
     <Box>
       <Box>
         <MarketHeader marketAccount={marketAccount} />
+
+        {isWrongNetwork && (
+          <WrongNetworkAlert
+            title="Switch Account Network"
+            description="Currently, you can only view general information about the market. To interact with it, please change the network of your connected account."
+            padding="0 32.3% 12px 44px"
+          />
+        )}
 
         <Box sx={SectionContainer(theme)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (

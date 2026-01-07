@@ -140,6 +140,12 @@ export const LenderActiveMarketsTables = ({
 
   const nonDepositedMarkets = rows.filter((market) => !market.hasEverInteracted)
 
+  const currentNetwork = useAppSelector(
+    (state) => state.selectedNetwork,
+  ).chainId
+  const getMarketLink = (market: string) =>
+    `${ROUTES.lender.market}/${market}?network=${currentNetwork}`
+
   const columns: TypeSafeColDef<LenderActiveMarketsTableModel>[] = [
     {
       field: "status",
@@ -151,7 +157,7 @@ export const LenderActiveMarketsTables = ({
       sortComparator: statusComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={getMarketLink(params.row.id)}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -173,7 +179,7 @@ export const LenderActiveMarketsTables = ({
       sortComparator: typeComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={getMarketLink(params.row.id)}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -194,7 +200,7 @@ export const LenderActiveMarketsTables = ({
       align: "left",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={getMarketLink(params.row.id)}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -224,7 +230,7 @@ export const LenderActiveMarketsTables = ({
       ),
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={getMarketLink(params.row.id)}
           style={{
             textDecoration: "none",
             width: "100%",
@@ -299,7 +305,7 @@ export const LenderActiveMarketsTables = ({
 
         return (
           <Link
-            href={`${ROUTES.lender.market}/${params.row.id}`}
+            href={getMarketLink(params.row.id)}
             style={{ ...LinkCell, justifyContent: "flex-end" }}
           >
             <AprChip
@@ -321,7 +327,7 @@ export const LenderActiveMarketsTables = ({
       flex: 1,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={getMarketLink(params.row.id)}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value}
@@ -340,7 +346,7 @@ export const LenderActiveMarketsTables = ({
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={getMarketLink(params.row.id)}
           style={{
             textDecoration: "none",
             width: "100%",
@@ -370,7 +376,7 @@ export const LenderActiveMarketsTables = ({
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={getMarketLink(params.row.id)}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value
@@ -394,7 +400,7 @@ export const LenderActiveMarketsTables = ({
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={getMarketLink(params.row.id)}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value

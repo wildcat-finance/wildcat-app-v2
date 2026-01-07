@@ -48,11 +48,11 @@ export const RedirectsProvider = ({ children }: GenericProviderProps) => {
         activeChainId &&
         prev.activeChainId !== activeChainId)
 
-    if (networkChanged && isMarketRoute && role in MARKET_ROLE_TO_ROUTE) {
-      router.replace(
-        MARKET_ROLE_TO_ROUTE[role as keyof typeof MARKET_ROLE_TO_ROUTE],
-      )
-    }
+    // if (networkChanged && isMarketRoute && role in MARKET_ROLE_TO_ROUTE) {
+    //   router.replace(
+    //     MARKET_ROLE_TO_ROUTE[role as keyof typeof MARKET_ROLE_TO_ROUTE],
+    //   )
+    // }
 
     previousNetworkRef.current = { targetChainId, activeChainId }
   }, [activeChainId, targetChainId, isMarketRoute, role, router])

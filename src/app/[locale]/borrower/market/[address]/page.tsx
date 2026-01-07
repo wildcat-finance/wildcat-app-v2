@@ -5,6 +5,7 @@ import { useEffect } from "react"
 
 import { Box, Divider, Skeleton } from "@mui/material"
 import { MarketVersion } from "@wildcatfi/wildcat-sdk"
+import { useSearchParams } from "next/navigation"
 import { useAccount } from "wagmi"
 
 import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart"
@@ -13,6 +14,7 @@ import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
+import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
@@ -26,6 +28,7 @@ import {
   setCheckBlock,
   setWithdrawalsCount,
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
+import { setSelectedNetwork } from "@/store/slices/selectedNetworkSlice/selectedNetworkSlice"
 import { COLORS } from "@/theme/colors"
 import { pageCalcHeights } from "@/utils/constants"
 
@@ -118,6 +121,21 @@ export default function MarketDetails({
     dispatch(setWithdrawalsCount(totalWithdrawalsCount))
   }, [totalWithdrawalsCount])
 
+  const searchParams = useSearchParams()
+
+  const desiredChainId = React.useMemo(() => {
+    const raw = searchParams.get("network")
+    if (!raw) return undefined
+    const n = Number(raw)
+    return Number.isFinite(n) ? n : undefined
+  }, [searchParams])
+
+  useEffect(() => {
+    if (desiredChainId && targetChainId && targetChainId !== desiredChainId) {
+      dispatch(setSelectedNetwork(desiredChainId))
+    }
+  }, [desiredChainId])
+
   if (!market || !marketAccount)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
@@ -171,6 +189,13 @@ export default function MarketDetails({
     <Box>
       <Box>
         <MarketHeader marketAccount={marketAccount} />
+
+        <WrongNetworkAlert
+          title="Switch Account Network"
+          description="Currently, you can only view general information about the market. To interact with it, please change the network of your connected account."
+          padding="0 32.3% 12px 44px"
+        />
+
         <Box
           // ref={scrollContainer}
           sx={{
@@ -178,7 +203,7 @@ export default function MarketDetails({
             overflow: "hidden",
             overflowY: "visible",
             padding: "0 32.3% 24px 44px",
-            height: `calc(100vh - ${pageCalcHeights.market})`,
+            height: `calc(100vh - ${pageCalcHeights.market} — 186px)`,
           }}
         >
           {/* <Slide */}

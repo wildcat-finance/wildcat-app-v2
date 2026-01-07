@@ -131,6 +131,12 @@ export const OtherMarketsTables = ({
   const selfOnboard = rows.filter((market) => market.isSelfOnboard)
   const manual = rows.filter((market) => !market.isSelfOnboard)
 
+  const currentNetwork = useAppSelector(
+    (state) => state.selectedNetwork,
+  ).chainId
+  const getMarketLink = (market: string) =>
+    `${ROUTES.borrower.market}/${market}?network=${currentNetwork}`
+
   const columns: TypeSafeColDef<OtherMarketsTableModel>[] = [
     {
       field: "status",
@@ -142,7 +148,7 @@ export const OtherMarketsTables = ({
       sortComparator: statusComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={getMarketLink(params.row.id)}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -164,7 +170,7 @@ export const OtherMarketsTables = ({
       sortComparator: typeComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={getMarketLink(params.row.id)}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -185,7 +191,7 @@ export const OtherMarketsTables = ({
       align: "left",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={getMarketLink(params.row.id)}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -215,7 +221,7 @@ export const OtherMarketsTables = ({
       ),
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={getMarketLink(params.row.id)}
           style={{
             textDecoration: "none",
             width: "100%",
@@ -271,7 +277,7 @@ export const OtherMarketsTables = ({
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={getMarketLink(params.row.id)}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {`${formatBps(params.value)}%`}
@@ -287,7 +293,7 @@ export const OtherMarketsTables = ({
       flex: 1,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={getMarketLink(params.row.id)}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value}
@@ -306,7 +312,7 @@ export const OtherMarketsTables = ({
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={getMarketLink(params.row.id)}
           style={{
             textDecoration: "none",
             width: "100%",
@@ -336,7 +342,7 @@ export const OtherMarketsTables = ({
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={getMarketLink(params.row.id)}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value

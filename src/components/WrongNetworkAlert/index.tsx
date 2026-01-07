@@ -8,7 +8,17 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 import { AlertContainer, ButtonStyle, PageContainer } from "./style"
 
-export const WrongNetworkAlert = () => {
+export type WrongNetworkAlertType = {
+  title?: string
+  description?: string
+  padding?: string
+}
+
+export const WrongNetworkAlert = ({
+  title,
+  description,
+  padding,
+}: WrongNetworkAlertType) => {
   const { t } = useTranslation()
   const { switchChain } = useSwitchChain()
   const { chainId, name } = useSelectedNetwork()
@@ -18,10 +28,15 @@ export const WrongNetworkAlert = () => {
   }
 
   return (
-    <Box sx={PageContainer}>
+    <Box
+      sx={{
+        ...PageContainer,
+        padding: padding ?? { xs: "4px 0 0", md: "24px 24px 0 24px" },
+      }}
+    >
       <Box sx={AlertContainer}>
         <Typography variant="text1" sx={{ marginBottom: "6px" }}>
-          {t("dashboard.markets.noMarkets.wrongNetwork")}
+          {title ?? t("dashboard.markets.noMarkets.wrongNetwork")}
         </Typography>
 
         <Typography
@@ -29,7 +44,7 @@ export const WrongNetworkAlert = () => {
           color="#8A8C9F"
           sx={{ marginBottom: "24px" }}
         >
-          Switch to {name} to explore the markets.
+          {description ?? `Switch to ${name} to explore the markets.`}
         </Typography>
 
         <Button
