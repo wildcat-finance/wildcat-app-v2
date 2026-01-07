@@ -347,7 +347,7 @@ export default function LenderMarketDetails({
           />
         )}
 
-        <Box sx={SectionContainer(theme)}>
+        <Box sx={SectionContainer(theme, isWrongNetwork)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (
             <Box>
               {authorizedInMarket && (

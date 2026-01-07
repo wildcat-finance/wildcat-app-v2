@@ -190,12 +190,6 @@ export default function MarketDetails({
       <Box>
         <MarketHeader marketAccount={marketAccount} />
 
-        <WrongNetworkAlert
-          title="Switch Account Network"
-          description="Currently, you can only view general information about the market. To interact with it, please change the network of your connected account."
-          padding="0 32.3% 12px 44px"
-        />
-
         <Box
           // ref={scrollContainer}
           sx={{
