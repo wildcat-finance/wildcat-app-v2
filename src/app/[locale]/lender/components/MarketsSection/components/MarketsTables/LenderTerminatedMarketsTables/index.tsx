@@ -135,8 +135,8 @@ export const LenderTerminatedMarketsTables = ({
     {
       field: "name",
       headerName: t("dashboard.markets.tables.header.name"),
-      flex: 1.35,
-      minWidth: 212,
+      flex: 2,
+      minWidth: 200,
       headerAlign: "left",
       align: "left",
       renderCell: (params) => (
@@ -183,8 +183,8 @@ export const LenderTerminatedMarketsTables = ({
     {
       field: "status",
       headerName: t("dashboard.markets.tables.header.status"),
-      minWidth: 104,
-      flex: 0.4,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
@@ -205,8 +205,8 @@ export const LenderTerminatedMarketsTables = ({
     {
       field: "asset",
       headerName: t("dashboard.markets.tables.header.asset"),
-      minWidth: 212,
-      flex: 1.7,
+      minWidth: 200,
+      flex: 2,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
@@ -224,8 +224,8 @@ export const LenderTerminatedMarketsTables = ({
     {
       field: "debt",
       headerName: t("dashboard.markets.tables.header.debt"),
-      minWidth: 112,
-      flex: 0.5,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
@@ -246,8 +246,8 @@ export const LenderTerminatedMarketsTables = ({
     {
       field: "loan",
       headerName: t("dashboard.markets.tables.header.loan"),
-      minWidth: 112,
-      flex: 0.5,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
@@ -270,8 +270,8 @@ export const LenderTerminatedMarketsTables = ({
     {
       field: "withdrawalBatchDuration",
       headerName: t("dashboard.markets.tables.header.withdrawal"),
-      minWidth: 112,
-      flex: 0.5,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
@@ -290,8 +290,8 @@ export const LenderTerminatedMarketsTables = ({
       sortable: false,
       field: "button",
       headerName: "",
-      minWidth: 112,
-      flex: 0.5,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (

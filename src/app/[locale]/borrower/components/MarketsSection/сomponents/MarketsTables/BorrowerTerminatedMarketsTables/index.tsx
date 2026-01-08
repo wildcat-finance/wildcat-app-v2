@@ -114,8 +114,8 @@ export const BorrowerTerminatedMarketsTables = ({
     {
       field: "name",
       headerName: t("dashboard.markets.tables.header.name"),
-      flex: 1.35,
-      minWidth: 212,
+      flex: 2,
+      minWidth: 200,
       headerAlign: "left",
       align: "left",
       renderCell: (params) => (
@@ -150,8 +150,8 @@ export const BorrowerTerminatedMarketsTables = ({
     {
       field: "status",
       headerName: t("dashboard.markets.tables.header.status"),
-      minWidth: 104,
-      flex: 0.4,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
@@ -172,8 +172,8 @@ export const BorrowerTerminatedMarketsTables = ({
     {
       field: "asset",
       headerName: t("dashboard.markets.tables.header.asset"),
-      minWidth: 212,
-      flex: 1.5,
+      minWidth: 200,
+      flex: 2,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
@@ -191,8 +191,8 @@ export const BorrowerTerminatedMarketsTables = ({
     {
       field: "apr",
       headerName: t("dashboard.markets.tables.header.apr"),
-      minWidth: 112,
-      flex: 0.5,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => {
@@ -232,8 +232,8 @@ export const BorrowerTerminatedMarketsTables = ({
     {
       field: "withdrawalBatchDuration",
       headerName: t("dashboard.markets.tables.header.withdrawal"),
-      minWidth: 112,
-      flex: 0.5,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
@@ -251,8 +251,8 @@ export const BorrowerTerminatedMarketsTables = ({
     {
       field: "debt",
       headerName: t("dashboard.markets.tables.header.debt"),
-      minWidth: 112,
-      flex: 0.5,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,

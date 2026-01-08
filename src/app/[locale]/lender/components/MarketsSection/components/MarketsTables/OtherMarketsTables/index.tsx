@@ -161,8 +161,8 @@ export const OtherMarketsTables = ({
     {
       field: "name",
       headerName: t("dashboard.markets.tables.header.name"),
-      flex: 1.35,
-      minWidth: 212,
+      flex: 2.5,
+      minWidth: 200,
       headerAlign: "left",
       align: "left",
       renderCell: (params) => (
@@ -204,8 +204,8 @@ export const OtherMarketsTables = ({
     {
       field: "status",
       headerName: t("dashboard.markets.tables.header.status"),
-      minWidth: 104,
-      flex: 0.4,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
@@ -226,8 +226,8 @@ export const OtherMarketsTables = ({
     {
       field: "term",
       headerName: t("dashboard.markets.tables.header.term"),
-      minWidth: 90,
-      flex: 0.3,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "left",
       align: "left",
       sortComparator: typeComparator,
@@ -248,8 +248,8 @@ export const OtherMarketsTables = ({
     {
       field: "apr",
       headerName: t("dashboard.markets.tables.header.apr"),
-      minWidth: 112,
-      flex: 0.5,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => {
@@ -289,8 +289,8 @@ export const OtherMarketsTables = ({
     {
       field: "withdrawalBatchDuration",
       headerName: t("dashboard.markets.tables.header.withdrawal"),
-      minWidth: 112,
-      flex: 0.5,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
@@ -327,8 +327,8 @@ export const OtherMarketsTables = ({
     {
       field: "capacityLeft",
       headerName: t("dashboard.markets.tables.header.capacity"),
-      minWidth: 112,
-      flex: 0.5,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
@@ -359,8 +359,8 @@ export const OtherMarketsTables = ({
     {
       field: "debt",
       headerName: t("dashboard.markets.tables.header.debt"),
-      minWidth: 112,
-      flex: 0.5,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
@@ -382,8 +382,8 @@ export const OtherMarketsTables = ({
       sortable: false,
       field: "button",
       headerName: "",
-      minWidth: 112,
-      flex: 0.5,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
