@@ -1480,5 +1480,11 @@
         }
       }
     }
+  },
+  "utils": {
+    "time": {
+      "oneYear": "one year",
+      "twoYears": "two years"
+    }
   }
 }
