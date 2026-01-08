@@ -21,6 +21,7 @@ import { AurosEthenaBanner } from "@/components/AdsBanners/AurosEthena/AurosEthe
 import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/AurosEthenaProposalChip"
 import { AprTooltip } from "@/components/AdsBanners/Common/AprTooltip"
 import { AprChip } from "@/components/AprChip"
+import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -37,6 +38,7 @@ import {
 import { AUROS_ETHENA_ADDRESS, pageCalcHeights } from "@/utils/constants"
 import {
   formatBps,
+  formatSecsToHours,
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
@@ -54,6 +56,7 @@ export type LenderActiveMarketsTableModel = {
   debt: TokenAmount | undefined
   loan: TokenAmount | undefined
   apr: number
+  withdrawalBatchDuration: number
   capacityLeft: TokenAmount
   hasEverInteracted: boolean
 }
@@ -108,6 +111,7 @@ export const LenderActiveMarketsTables = ({
         annualInterestBips,
         maxTotalSupply,
         totalSupply,
+        withdrawalBatchDuration,
       } = market
 
       const borrower = borrowers?.find(
@@ -128,6 +132,7 @@ export const LenderActiveMarketsTables = ({
         borrowerAddress,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
+        withdrawalBatchDuration,
         loan: marketBalance,
         debt: totalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
@@ -142,10 +147,53 @@ export const LenderActiveMarketsTables = ({
 
   const columns: TypeSafeColDef<LenderActiveMarketsTableModel>[] = [
     {
+      field: "name",
+      headerName: t("dashboard.markets.tables.header.name"),
+      flex: 2,
+      minWidth: 200,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.lender.market}/${params.row.id}`}
+          style={{
+            ...LinkCell,
+            paddingRight: "16px",
+            justifyContent: "center",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "6px",
+            minWidth: 0,
+          }}
+        >
+          <Typography
+            variant="text3"
+            sx={{
+              display: "block",
+              width: "100%",
+              minWidth: 0,
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {params.value}
+          </Typography>
+
+          <Link
+            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+            style={{ display: "flex", textDecoration: "none" }}
+          >
+            <BorrowerProfileChip borrower={params.row.borrower} />
+          </Link>
+        </Link>
+      ),
+    },
+    {
       field: "status",
       headerName: t("dashboard.markets.tables.header.status"),
-      minWidth: 120,
-      flex: 0.7,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
@@ -157,7 +205,7 @@ export const LenderActiveMarketsTables = ({
             justifyContent: "flex-start",
           }}
         >
-          <Box width="130px">
+          <Box width="120px">
             <MarketStatusChip status={params.value} />
           </Box>
         </Link>
@@ -166,7 +214,7 @@ export const LenderActiveMarketsTables = ({
     {
       field: "term",
       headerName: t("dashboard.markets.tables.header.term"),
-      minWidth: 170,
+      minWidth: 100,
       flex: 1,
       headerAlign: "left",
       align: "left",
@@ -180,101 +228,15 @@ export const LenderActiveMarketsTables = ({
           }}
         >
           <Box minWidth="170px">
-            <MarketTypeChip {...params.value} />
+            <MarketTypeChip type="table" {...params.value} />
           </Box>
-        </Link>
-      ),
-    },
-    {
-      field: "name",
-      headerName: t("dashboard.markets.tables.header.name"),
-      flex: 3,
-      minWidth: 208,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
-          style={{
-            ...LinkCell,
-            justifyContent: "flex-start",
-          }}
-        >
-          {params.value}
-        </Link>
-      ),
-    },
-    {
-      field: "borrower",
-      minWidth: 134,
-      flex: 1.7,
-      headerAlign: "left",
-      align: "left",
-      renderHeader: () => (
-        <Typography
-          variant="text4"
-          sx={{
-            lineHeight: "10px",
-            color: COLORS.santasGrey,
-            padding: "0 12px",
-          }}
-        >
-          {t("dashboard.markets.tables.header.borrower")}
-        </Typography>
-      ),
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
-          style={{
-            textDecoration: "none",
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            color: "inherit",
-            justifyContent: "flex-start",
-          }}
-        >
-          <Link
-            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
-            style={{
-              textDecoration: "none",
-              width: "100%",
-              height: "fit-content",
-            }}
-          >
-            <Button
-              size="small"
-              variant="text"
-              sx={{
-                fontSize: pxToRem(13),
-                lineHeight: lh(20, 13),
-                fontWeight: 500,
-                minWidth: "calc(100% - 1px)",
-                width: "calc(100% - 1px)",
-                textAlign: "left",
-                textOverflow: "ellipsis",
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-                display: "inline-block",
-
-                "&:hover": {
-                  boxShadow: "none",
-                  backgroundColor: COLORS.whiteSmoke,
-                  color: COLORS.blackRock,
-                },
-              }}
-            >
-              {params.value}
-            </Button>
-          </Link>
         </Link>
       ),
     },
     {
       field: "apr",
       headerName: t("dashboard.markets.tables.header.apr"),
-      minWidth: 102,
+      minWidth: 100,
       flex: 1,
       headerAlign: "right",
       align: "right",
@@ -313,16 +275,38 @@ export const LenderActiveMarketsTables = ({
       },
     },
     {
-      field: "asset",
-      headerName: t("dashboard.markets.tables.header.asset"),
-      minWidth: 95,
+      field: "withdrawalBatchDuration",
+      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
-      flex: 1,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+          }}
+        >
+          {formatSecsToHours(params.value, true)}
+        </Link>
+      ),
+    },
+    {
+      field: "asset",
+      headerName: t("dashboard.markets.tables.header.asset"),
+      minWidth: 100,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.lender.market}/${params.row.id}`}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+          }}
         >
           {params.value}
         </Link>
@@ -330,12 +314,12 @@ export const LenderActiveMarketsTables = ({
     },
     {
       field: "capacityLeft",
-      headerName: "Remaining Capacity",
-      minWidth: 82,
+      headerName: t("dashboard.markets.tables.header.capacity"),
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
-      flex: 1.5,
       renderCell: (
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
@@ -363,10 +347,10 @@ export const LenderActiveMarketsTables = ({
     {
       field: "debt",
       headerName: t("dashboard.markets.tables.header.debt"),
-      minWidth: 110,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
-      flex: 1.5,
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Link
@@ -385,8 +369,8 @@ export const LenderActiveMarketsTables = ({
     {
       field: "loan",
       headerName: t("dashboard.markets.tables.header.loan"),
-      minWidth: 106,
-      flex: 1.6,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
@@ -469,8 +453,17 @@ export const LenderActiveMarketsTables = ({
                 maxWidth: "calc(100vw - 267px)",
                 padding: "0 16px",
                 "& .MuiDataGrid-columnHeader": { padding: 0 },
-                "& .MuiDataGrid-cell": { padding: "0px" },
+                "& .MuiDataGrid-row": {
+                  minHeight: "66px !important",
+                  maxHeight: "66px !important",
+                },
+                "& .MuiDataGrid-cell": {
+                  padding: "0px",
+                  minHeight: "66px",
+                  height: "auto",
+                },
               }}
+              getRowHeight={() => "auto"}
               rows={depositedMarkets}
               columns={columns}
               columnHeaderHeight={40}
@@ -511,8 +504,17 @@ export const LenderActiveMarketsTables = ({
                 maxWidth: "calc(100vw - 267px)",
                 padding: "0 16px",
                 "& .MuiDataGrid-columnHeader": { padding: 0 },
-                "& .MuiDataGrid-cell": { padding: "0px" },
+                "& .MuiDataGrid-row": {
+                  minHeight: "66px !important",
+                  maxHeight: "66px !important",
+                },
+                "& .MuiDataGrid-cell": {
+                  padding: "0px",
+                  minHeight: "66px",
+                  height: "auto",
+                },
               }}
+              getRowHeight={() => "auto"}
               rows={nonDepositedMarkets}
               columns={columns}
               columnHeaderHeight={40}
