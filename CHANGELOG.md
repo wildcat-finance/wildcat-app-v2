@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.6.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.6.0...v2.6.1) (2025-12-25)
+
+
+### Bug Fixes
+
+* **duration:** remaining duration still present after termination ([09b1bc9](https://github.com/wildcat-finance/wildcat-app-v2/commit/09b1bc9f07207f68c09668af7489f72de4b09a41))
+* **region:** add Sri lanka and Georgia as regions ([4bae252](https://github.com/wildcat-finance/wildcat-app-v2/commit/4bae2527ca110417c084c00fb8c6f560a6050dad))
+* **region:** add Sri lanka and Georgia as regions ([2ef9ec1](https://github.com/wildcat-finance/wildcat-app-v2/commit/2ef9ec10d0faf03acef5dc5f346054e6ac9a9f62))
+* **terminated-wds:** surface claims immediately when market terminates ([086f7b4](https://github.com/wildcat-finance/wildcat-app-v2/commit/086f7b4150dd57a27df3bb9568cccdd647edc910))
+* **terminated-wds:** surface claims immediately when market terminates ([086f7b4](https://github.com/wildcat-finance/wildcat-app-v2/commit/086f7b4150dd57a27df3bb9568cccdd647edc910))
+* **terminated-wds:** surface claims immediately when market terminates ([09b1bc9](https://github.com/wildcat-finance/wildcat-app-v2/commit/09b1bc9f07207f68c09668af7489f72de4b09a41))
+* **terminated-wds:** surface claims immediately when market terminates ([09b1bc9](https://github.com/wildcat-finance/wildcat-app-v2/commit/09b1bc9f07207f68c09668af7489f72de4b09a41))
+
 ## [2.6.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.5.3...v2.6.0) (2025-12-18)
 
 
