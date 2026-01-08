@@ -119,10 +119,11 @@
           "borrower": "Borrower Name",
           "asset": "Asset",
           "debt": "Total Debt",
-          "capacity": "Remaining Capacity",
+          "capacity": "Remaining",
           "borrowable": "Borrowable",
           "loan": "Your Loan",
-          "apr": "APR"
+          "apr": "APR",
+          "withdrawal": "Withdrawal"
         }
       },
       "noMarkets": {
