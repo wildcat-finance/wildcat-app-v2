@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react"
 
 import {
-  getMarketRecords,
-  MarketRecord,
   getWithdrawalBatch,
   WithdrawalBatch,
   WithdrawalPaymentRecord,
@@ -13,7 +11,7 @@ import { useDispatch } from "react-redux"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
-import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
+import { formatTokenWithCommas } from "@/utils/formatters"
 
 export const useLenderTokensAvailables = (address?: `0x${string}`) => {
   const [withdrawalBatches, setWithdrawalBatches] = useState<WithdrawalBatch[]>(

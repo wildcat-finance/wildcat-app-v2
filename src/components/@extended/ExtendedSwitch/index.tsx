@@ -1,14 +1,4 @@
-import {
-  Badge,
-  Box,
-  FormControl,
-  FormControlLabel,
-  InputLabel,
-  MenuItem,
-  Select,
-  Typography,
-} from "@mui/material"
-import SvgIcon from "@mui/material/SvgIcon"
+import { Box, FormControlLabel, Typography } from "@mui/material"
 import { FieldValues, useController } from "react-hook-form"
 
 import {
