@@ -1,7 +1,7 @@
 import { useState } from "react"
 import * as React from "react"
 
-import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { TokenAmount, WithdrawalBatch } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"

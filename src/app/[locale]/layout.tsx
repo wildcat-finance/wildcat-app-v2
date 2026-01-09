@@ -18,7 +18,6 @@ import {
 import initTranslations from "@/app/i18n"
 import Header from "@/components/Header"
 import HotjarConsent from "@/components/HotjarConsent"
-import PollingRegistration from "@/components/PollingRegistration"
 import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"

@@ -16,7 +16,7 @@ import Edit from "@/assets/icons/edit_icon.svg"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import { lh, pxToRem } from "@/theme/units"
+import { pxToRem } from "@/theme/units"
 
 import { NameSectionProps } from "./interface"
 import { EmptyAlert } from "../EmptyAlert"
