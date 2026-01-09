@@ -5,7 +5,6 @@ import { useState } from "react"
 
 import { Box, Skeleton, Typography, Button } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
-import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { MarketWithdrawalRequetstCell } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/style"

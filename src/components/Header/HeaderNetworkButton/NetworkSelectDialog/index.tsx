@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, SvgIcon, Typography } from "@mui/material"
+import { Box, Button, Dialog, Typography } from "@mui/material"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { useAccount, useSwitchChain } from "wagmi"
 

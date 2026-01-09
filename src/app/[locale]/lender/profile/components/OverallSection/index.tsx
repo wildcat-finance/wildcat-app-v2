@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Box, Divider, Typography } from "@mui/material"
+import { Box, Divider } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import {

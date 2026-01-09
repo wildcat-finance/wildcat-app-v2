@@ -1,4 +1,3 @@
-import { AddEthereumChainParameter } from "viem"
 import { http, createConfig, createStorage, cookieStorage } from "wagmi"
 import { mainnet, sepolia } from "wagmi/chains"
 import { safe, walletConnect } from "wagmi/connectors"

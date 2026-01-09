@@ -4,7 +4,6 @@ import { Box, Divider, Typography, useTheme } from "@mui/material"
 import { MarketVersion, HooksKind } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
-import { useCopyToClipboard } from "react-use"
 
 import { AurosEthenaBanner } from "@/components/AdsBanners/AurosEthena/AurosEthenaBanner"
 import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/AurosEthenaProposalChip"
@@ -36,7 +35,6 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
   const { t } = useTranslation()
   const theme = useTheme()
   const isMobile = useMobileResolution()
-  const [state, copyToClipboard] = useCopyToClipboard()
   const { getAddressUrl, getTokenUrl } = useBlockExplorer()
   const { timeDelinquent, delinquencyGracePeriod } = market
 

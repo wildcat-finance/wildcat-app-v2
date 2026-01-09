@@ -1,14 +1,6 @@
 import { useEffect, useState } from "react"
-import * as React from "react"
 
-import {
-  Box,
-  Button,
-  Dialog,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material"
+import { Button, Dialog } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"

@@ -11,8 +11,6 @@ import {
 } from "@/app/[locale]/borrower/profile/components/NameSection/style"
 import { ProfileHeaderButton } from "@/app/[locale]/borrower/profile/style"
 import Avatar from "@/assets/icons/avatar_icon.svg"
-import Edit from "@/assets/icons/edit_icon.svg"
-import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
 import { NameSectionProps } from "./interface"
