@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 
-import { Button, useMediaQuery } from "@mui/material"
+import { Button } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 

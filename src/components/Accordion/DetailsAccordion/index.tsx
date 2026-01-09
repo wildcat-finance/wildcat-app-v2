@@ -1,10 +1,4 @@
-import {
-  Box,
-  SvgIcon,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material"
+import { Box, SvgIcon, Typography, useTheme } from "@mui/material"
 
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
 import { DetailsAccordionProps } from "@/components/Accordion/DetailsAccordion/interface"

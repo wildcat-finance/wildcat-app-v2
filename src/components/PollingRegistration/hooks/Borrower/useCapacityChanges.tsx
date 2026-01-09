@@ -13,7 +13,7 @@ import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHo
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
-import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
+import { formatTokenWithCommas } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
 type MarketRecords = {

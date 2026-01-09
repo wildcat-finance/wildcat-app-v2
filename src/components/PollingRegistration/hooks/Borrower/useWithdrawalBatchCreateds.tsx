@@ -11,11 +11,7 @@ import { WITHDRAWAL_BATCH_CREATEDS } from "@/graphql/queries"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { COLORS } from "@/theme/colors"
-import {
-  formatBps,
-  MARKET_PARAMS_DECIMALS,
-  formatSecsToHours,
-} from "@/utils/formatters"
+import { formatSecsToHours } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
 import { TWithdrawalBatchCreated } from "../../interface"
