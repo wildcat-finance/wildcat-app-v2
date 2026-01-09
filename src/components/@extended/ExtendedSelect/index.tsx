@@ -23,7 +23,6 @@ export const ExtendedSelect = <TFieldValues extends FieldValues = FieldValues>({
   small,
   selectSX,
   optionSX,
-  badgeSX,
   name,
   control,
   ...rest

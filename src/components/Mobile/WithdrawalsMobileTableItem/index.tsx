@@ -2,9 +2,7 @@ import * as React from "react"
 
 import { Box, Typography, Divider } from "@mui/material"
 
-import LinkIcon from "@/assets/icons/link_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
-import { ButtonStyle } from "@/components/LinkComponent/style"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"

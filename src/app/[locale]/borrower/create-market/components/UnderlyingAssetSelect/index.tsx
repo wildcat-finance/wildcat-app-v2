@@ -1,4 +1,4 @@
-import { JSX, forwardRef, ForwardedRef, ChangeEvent } from "react"
+import { JSX, forwardRef, ForwardedRef } from "react"
 
 import {
   Autocomplete,
@@ -8,14 +8,12 @@ import {
   MenuItem,
   createFilterOptions,
 } from "@mui/material"
-import { Token } from "@wildcatfi/wildcat-sdk"
 import Image from "next/image"
 import { useTranslation } from "react-i18next"
 
 import { TokenInfo } from "@/app/api/tokens-list/interface"
 import { lh, pxToRem } from "@/theme/units"
 
-import { useTokensList } from "./hooks/useTokensList"
 import { TokenSelectorProps } from "./interface"
 
 const MyPopper = (props: JSX.IntrinsicAttributes & PopperProps) => (
@@ -47,15 +45,6 @@ const filterOptions = createFilterOptions({
   stringify: (option: TokenInfo) =>
     `${option.address}${option.name}${option.symbol}`,
 })
-
-type xprops = {
-  tokens: Token[] | TokenInfo[]
-  isLoading: boolean
-  setQuery: (query: string) => void
-  query: string
-  handleChange: (evt: ChangeEvent<HTMLInputElement>) => Promise<void>
-  handleSelect: (token: TokenInfo | null) => void
-}
 
 export const UnderlyingAssetSelect = forwardRef(
   (
