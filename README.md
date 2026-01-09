@@ -19,7 +19,6 @@
             .-+#@@@@+   +@@@@#+-.                   
                 .-+#@+ +@#+-.                       
                     .-@-.                           
-                                                                                                                                                  
 ```
 
 Wildcat is a protocol for undercollateralized on-chain lending. Wildcat allows borrowers to define credit markets based on their own parameters including apr, withdrawal cycle periods, reserve ratios, penalty apr and durations.
