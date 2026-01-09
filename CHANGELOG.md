@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.7.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.6.1...v2.7.0) (2026-01-08)
+
+
+### Features
+
+* market overview edits and reflection for maximum fixed terms for testnets ([9400b69](https://github.com/wildcat-finance/wildcat-app-v2/commit/9400b692ad4f5e554912c75b33c5b623f761043f))
+* **market-overview:** market overview edits ([f87a956](https://github.com/wildcat-finance/wildcat-app-v2/commit/f87a9566df5fef2dedcbbbb926c9745b9c90784d))
+
+
+### Bug Fixes
+
+* **fixed-term:** updated to reflect maximum fixed terms for testnets ([1a4a134](https://github.com/wildcat-finance/wildcat-app-v2/commit/1a4a134cc6725eb6d17b0b940e8a28a01f3522f1))
+* **fixed-term:** updated to reflect maximum fixed terms for testnets ([5e3c17e](https://github.com/wildcat-finance/wildcat-app-v2/commit/5e3c17e9d18988342e8ea69a3e412a6a89d13d5d))
+* **refactor:** remove some duplication and move durations to i18n ([06742f9](https://github.com/wildcat-finance/wildcat-app-v2/commit/06742f9b276c4eedf12cf5adef177c8938558135))
+
 ## [2.6.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.6.0...v2.6.1) (2025-12-25)
 
 
