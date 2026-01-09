@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Box, Typography, Divider, SvgIcon, IconButton } from "@mui/material"
+import { Box, Typography, Divider } from "@mui/material"
 
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"

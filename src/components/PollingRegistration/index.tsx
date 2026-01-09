@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import { useDispatch } from "react-redux"
 import { useAccount } from "wagmi"

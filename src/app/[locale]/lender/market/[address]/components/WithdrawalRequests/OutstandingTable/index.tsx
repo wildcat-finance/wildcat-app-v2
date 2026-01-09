@@ -1,7 +1,7 @@
 import { useState } from "react"
 import * as React from "react"
 
-import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { useTranslation } from "react-i18next"
 
@@ -23,7 +23,6 @@ export const OutstandingTable = ({
 }: TableProps) => {
   const { t } = useTranslation()
   const [isOutstandingOpen, setIsOutstandingOpen] = useState(false)
-  const theme = useTheme()
   const isMobile = useMobileResolution()
 
   const outstandingRows = withdrawals.flatMap((status) =>
