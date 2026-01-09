@@ -1,7 +1,5 @@
 import { SxProps, Theme } from "@mui/material"
 
-import { pageCalcHeights } from "@/utils/constants"
-
 export const MarketHeaderUpperContainer = {
   display: "flex",
   alignItems: "center",

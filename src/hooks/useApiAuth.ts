@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import { useIsMutating, useMutation, useQuery } from "@tanstack/react-query"
+import { useIsMutating, useMutation } from "@tanstack/react-query"
 import { decode as decodeJWT } from "jsonwebtoken"
 import { useAccount } from "wagmi"
 

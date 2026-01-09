@@ -3,7 +3,6 @@ import { useEffect, useState } from "react"
 import {
   getMarketRecords,
   MarketRecord,
-  AnnualInterestBipsUpdatedRecord,
   MarketClosedRecord,
   Market,
 } from "@wildcatfi/wildcat-sdk"
@@ -14,7 +13,6 @@ import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHo
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
-import { formatBps } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
 type MarketRecords = {

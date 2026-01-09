@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next"
 
 import Markets from "@/assets/icons/markets_icon.svg"
 import Policies from "@/assets/icons/policies_icon.svg"
-import Lenders from "@/assets/icons/profile_icon.svg"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   BorrowerDashboardSections,
@@ -13,7 +12,6 @@ import {
   setScrollTarget,
   setSection,
 } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
-import { COLORS } from "@/theme/colors"
 
 import {
   DashboardButton,

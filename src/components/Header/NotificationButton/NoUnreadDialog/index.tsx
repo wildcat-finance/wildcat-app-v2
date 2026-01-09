@@ -1,13 +1,4 @@
-import { useEffect, useState } from "react"
-
-import {
-  Box,
-  Button,
-  Dialog,
-  IconButton,
-  Typography,
-  SvgIcon,
-} from "@mui/material"
+import { Button, Dialog, IconButton, Typography } from "@mui/material"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
