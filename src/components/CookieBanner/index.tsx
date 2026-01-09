@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import { Dialog, Box, Typography, Button } from "@mui/material"
 import Cookies from "js-cookie"
