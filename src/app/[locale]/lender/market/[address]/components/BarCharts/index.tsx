@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Box, useTheme, useMediaQuery } from "@mui/material"
+import { Box } from "@mui/material"
 
 import { WithdrawalsBarChart } from "@/app/[locale]/lender/market/[address]/components/BarCharts/WithdrawalsBarChart"
 import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"

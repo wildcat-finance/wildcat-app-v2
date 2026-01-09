@@ -1,4 +1,4 @@
-import { z, ZodObject, ZodRawShape, ZodTypeAny } from "zod"
+import { z } from "zod"
 
 export const AcceptInvitationInputDTO = z.object({
   chainId: z.number(),
