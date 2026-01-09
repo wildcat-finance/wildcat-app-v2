@@ -1,4 +1,4 @@
-import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import cn from "classnames"
 
 import { useMobileResolution } from "@/hooks/useMobileResolution"

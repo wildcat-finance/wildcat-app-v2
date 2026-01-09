@@ -10,10 +10,7 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import {
-  resetPolicyFilters,
-  setPolicyLendersTableData,
-} from "@/store/slices/editPolicySlice/editPolicySlice"
+import { setPolicyLendersTableData } from "@/store/slices/editPolicySlice/editPolicySlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 

@@ -1,5 +1,3 @@
-import { maxWidth } from "@mui/system"
-
 import { COLORS } from "@/theme/colors"
 
 export const TxModalDialog = {
