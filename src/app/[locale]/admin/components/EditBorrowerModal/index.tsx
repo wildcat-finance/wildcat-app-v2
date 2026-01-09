@@ -1,18 +1,12 @@
 import * as React from "react"
 import { useState } from "react"
 
-import { Box, Button, Dialog, TextField, Typography } from "@mui/material"
+import { Box, Button, Dialog, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import EditProfileForm from "@/app/[locale]/borrower/profile/edit/components/EditProfileForm"
-import { BorrowerProfileInput } from "@/app/api/profiles/interface"
-import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { COLORS } from "@/theme/colors"
-
-import { ErrorModal } from "../../../borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
-import { LoadingModal } from "../../../borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
-import { SuccessModal } from "../../../borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 
 export const EditBorrowerModal = ({ address }: { address: `0x${string}` }) => {
   const { t } = useTranslation()
