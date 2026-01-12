@@ -50,6 +50,7 @@
     "jszip": "^3.10.1",
     "next": "14.2.35",
     "next-i18n-router": "^5.4.2",
+    "pino": "^10.1.1",
     "puppeteer": "^23.10.3",
     "react": "^18",
     "react-dom": "^18",
