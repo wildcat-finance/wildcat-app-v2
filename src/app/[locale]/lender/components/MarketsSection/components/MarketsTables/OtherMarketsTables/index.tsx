@@ -62,6 +62,7 @@ export const OtherMarketsTables = ({
   filters,
 }: LenderOtherMarketsTableProps) => {
   const { t } = useTranslation()
+  const router = useRouter()
   const dispatch = useAppDispatch()
   const isMobile = useMobileResolution()
 
