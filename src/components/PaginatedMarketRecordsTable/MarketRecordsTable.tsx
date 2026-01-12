@@ -10,6 +10,7 @@ import { TableStyles } from "@/app/[locale]/borrower/edit-lenders-list/component
 import { useBorrowerNameOrAddress } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { TablePagination } from "@/components/TablePagination"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { logger } from "@/lib/logging/client"
 import { COLORS } from "@/theme/colors"
 import {
   timestampToDateFormatted,
@@ -178,7 +179,7 @@ export function MarketRecordsTable({
   //   [page, pageSize],
   // )
 
-  console.log(`TOTAL ROWS: ${rowCount}`)
+  logger.debug({ rowCount }, "Market records total rows")
 
   if (isLoading) {
     return (

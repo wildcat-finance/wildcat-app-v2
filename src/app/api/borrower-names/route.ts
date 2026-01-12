@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { prisma } from "@/lib/db"
+import { logger } from "@/lib/logging/server"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 /// GET /api/borrower-names?chainId=1
@@ -9,6 +10,7 @@ export async function GET(request: NextRequest) {
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
   }
+  logger.info({ chainId }, "Borrower names request")
   const names = (
     await prisma.borrower.findMany({
       where: {

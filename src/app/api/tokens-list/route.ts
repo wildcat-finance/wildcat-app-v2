@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
+import { logger } from "@/lib/logging/server"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 import { fetchTokensList } from "./services"
@@ -13,6 +14,7 @@ export async function GET(request: NextRequest) {
   }
   const { searchParams } = request.nextUrl
   const searchQuery = searchParams.get(SEARCH_QUERY_FIELD) || ""
+  logger.info({ chainId, searchQuery }, "Token list request")
   const tokenList = await fetchTokensList(searchQuery, chainId)
 
   return NextResponse.json(tokenList)
