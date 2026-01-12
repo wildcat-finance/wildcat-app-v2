@@ -15,13 +15,13 @@ import {
   SubgraphMarket_Filter,
   hasDeploymentAddress,
 } from "@wildcatfi/wildcat-sdk"
-import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { BigNumber, constants } from "ethers"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { logger } from "@/lib/logging/client"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
@@ -75,7 +75,7 @@ export function useLendersMarkets(
   const lender = address?.toLowerCase()
 
   async function queryMarketsForLender() {
-    logger.debug(`Getting all markets...`)
+    logger.info({ lender }, "Getting all markets")
     if (!chainId) throw Error("No chainId")
     if (!signerOrProvider) throw Error(`no provider`)
     const { marketFilter, ...otherFilters } = filters
@@ -125,7 +125,7 @@ export function useLendersMarkets(
   const CHUNK_SIZE = targetChainId === 1 ? 5 : 50
 
   async function getLenderUpdates() {
-    logger.debug(`Getting lender updates...`)
+    logger.info({ lender }, "Getting lender updates")
     const hasV1Lens = hasDeploymentAddress(targetChainId, "MarketLens")
     const lens = hasV1Lens
       ? getLensContract(targetChainId, signerOrProvider as SignerOrProvider)
@@ -190,10 +190,10 @@ export function useLendersMarkets(
         })
       }),
     ]).catch((e) => {
-      console.log(e)
+      logger.error({ err: e }, "Failed to get lender updates")
       throw e
     })
-    console.log(`getLenderUpdates:: Got lender updates: ${accounts.length}`)
+    logger.info({ accountCount: accounts.length }, "Got lender updates")
     return accounts
   }
 

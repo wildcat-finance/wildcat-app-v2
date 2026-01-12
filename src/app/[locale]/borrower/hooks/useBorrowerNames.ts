@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { logger } from "@/lib/logging/client"
 import { trimAddress } from "@/utils/formatters"
 
 export const USE_REGISTERED_BORROWERS_KEY = "use-borrower-names"
@@ -17,12 +18,11 @@ export const useBorrowerNames = () => {
     const data = await fetch(`/api/borrower-names?chainId=${chainId}`)
       .then(async (res) => {
         const result = (await res.json()) as BorrowerWithName[]
-        console.log(`GOT ${result.length} BORROWERS`)
+        logger.info({ count: result.length }, "Got borrowers")
         return result
       })
       .catch((err) => {
-        console.log(err)
-        console.log(`ERROR RETRIEVING BORROWERS`)
+        logger.error({ err }, "Error retrieving borrowers")
         return undefined
       })
     return data === undefined ? null : (data as BorrowerWithName[])
