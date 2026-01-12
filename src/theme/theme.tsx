@@ -1,7 +1,6 @@
 import * as React from "react"
 
 import { createTheme, SvgIcon } from "@mui/material"
-
 import type {} from "@mui/x-data-grid/themeAugmentation"
 import type {} from "@mui/x-date-pickers/themeAugmentation"
 
@@ -31,6 +30,25 @@ import {
 import { PALETTE } from "@/theme/palette"
 import { TYPOGRAPHY } from "@/theme/typography"
 import { lh, pxToRem } from "@/theme/units"
+// wrapper components to filter out sortingOrder prop that MUI DataGrid passes
+const SortAscIcon = ({
+  sortingOrder,
+  ...props
+}: { sortingOrder?: string[] } & React.SVGProps<SVGSVGElement>) => (
+  <AscIcon {...props} />
+)
+const SortDescIcon = ({
+  sortingOrder,
+  ...props
+}: { sortingOrder?: string[] } & React.SVGProps<SVGSVGElement>) => (
+  <DescIcon {...props} />
+)
+const SortUnsortedIcon = ({
+  sortingOrder,
+  ...props
+}: { sortingOrder?: string[] } & React.SVGProps<SVGSVGElement>) => (
+  <UnsortedIcon {...props} />
+)
 
 declare module "@mui/material/styles" {
   interface Palette {
@@ -1069,9 +1087,9 @@ export const theme = createTheme({
         disableColumnSelector: true,
         hideFooter: true,
         slots: {
-          columnSortedDescendingIcon: DescIcon,
-          columnSortedAscendingIcon: AscIcon,
-          columnUnsortedIcon: UnsortedIcon,
+          columnSortedDescendingIcon: SortDescIcon,
+          columnSortedAscendingIcon: SortAscIcon,
+          columnUnsortedIcon: SortUnsortedIcon,
         },
       },
       styleOverrides: {

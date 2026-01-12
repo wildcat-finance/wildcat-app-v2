@@ -5,6 +5,7 @@ import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
@@ -56,6 +57,7 @@ export const LenderActiveMarketsTables = ({
 }: LenderActiveMarketsTableProps) => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
+  const router = useRouter()
   const dispatch = useAppDispatch()
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
@@ -160,12 +162,19 @@ export const LenderActiveMarketsTables = ({
             {params.value}
           </Typography>
 
-          <Link
-            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
-            style={{ display: "flex", textDecoration: "none" }}
+          <Box
+            component="span"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              router.push(
+                `${ROUTES.lender.profile}/${params.row.borrowerAddress}`,
+              )
+            }}
+            sx={{ display: "flex", cursor: "pointer" }}
           >
             <BorrowerProfileChip borrower={params.row.borrower} />
-          </Link>
+          </Box>
         </Link>
       ),
     },
