@@ -133,6 +133,7 @@ export const CreateMarketSidebar = () => {
       <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
         {steps.map((step) => (
           <CreateMarketSidebarButton
+            key={step.step}
             number={step.number}
             title={step.title}
             state={step.step === currentStep ? "active" : "opened"}
