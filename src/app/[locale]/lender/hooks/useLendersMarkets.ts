@@ -17,7 +17,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { BigNumber, constants } from "ethers"
 
-import { POLLING_INTERVAL } from "@/config/polling"
+import { POLLING_INTERVALS } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
@@ -115,7 +115,7 @@ export function useLendersMarkets(
       JSON.stringify(filters),
     ),
     queryFn: queryMarketsForLender,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
     enabled: !!signerOrProvider && !isWrongNetwork,
     refetchOnMount: false,
   })
