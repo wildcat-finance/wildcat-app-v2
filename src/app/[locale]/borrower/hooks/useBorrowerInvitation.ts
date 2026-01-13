@@ -72,7 +72,7 @@ export const useBorrowerInvitationExists = (address: string | undefined) => {
         method: "HEAD",
       },
     )
-    if (res.status === 404) return undefined
+    if (res.status === 404) return null
     if (res.headers.get("Signed") === "true")
       return BorrowerInvitationStatus.PendingRegistration
     return BorrowerInvitationStatus.PendingSignature
