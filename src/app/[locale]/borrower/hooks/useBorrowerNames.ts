@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 
+import { POLLING_INTERVALS } from "@/config/polling"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { logger } from "@/lib/logging/client"
 import { trimAddress } from "@/utils/formatters"
@@ -32,7 +33,7 @@ export const useBorrowerNames = () => {
     queryKey: [USE_REGISTERED_BORROWERS_KEY],
     queryFn: getBorrowers,
     refetchOnMount: false,
-    refetchInterval: 20_000,
+    refetchInterval: POLLING_INTERVALS.default,
   })
   return {
     data: data === null ? undefined : data,

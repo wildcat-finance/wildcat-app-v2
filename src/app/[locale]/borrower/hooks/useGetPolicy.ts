@@ -8,7 +8,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
-import { POLLING_INTERVAL } from "@/config/polling"
+import { POLLING_INTERVALS } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
@@ -50,7 +50,7 @@ export const useGetPolicy = ({ policy, ...variables }: GetPolicyArgs) => {
   return useQuery({
     queryKey: QueryKeys.Borrower.GET_POLICY(chainId, policy),
     queryFn: getPolicy,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
     enabled: address && !!policy && !isWrongNetwork && !!signerOrProvider,
     refetchOnMount: false,
   })
