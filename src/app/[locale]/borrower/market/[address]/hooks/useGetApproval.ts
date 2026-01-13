@@ -6,6 +6,7 @@ import { useAccount } from "wagmi"
 import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { logger } from "@/lib/logging/client"
 
 export const useApprove = (
   token: Token,
@@ -84,7 +85,9 @@ export const useApprove = (
   return {
     mutateAsync: approveWithToast,
     mutate: (tokenAmount: TokenAmount) => {
-      approveWithToast(tokenAmount).catch(console.error)
+      approveWithToast(tokenAmount).catch((error) => {
+        logger.error({ err: error }, "Approval request failed")
+      })
     },
     isPending: mutation.isPending,
     isSuccess: mutation.isSuccess,

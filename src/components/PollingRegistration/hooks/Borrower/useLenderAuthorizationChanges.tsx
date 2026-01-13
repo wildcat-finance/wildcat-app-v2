@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux"
 
 import { lazyQueryOptions } from "@/config/subgraph"
 import { AUTHORIZATION_CHANGES } from "@/graphql/queries"
+import { logger } from "@/lib/logging/client"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { trimAddress } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
@@ -89,7 +90,10 @@ export const useLenderAuthorizationChanges = (
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching lender authorization changes: ", error)
+      logger.error(
+        { err: error },
+        "Error fetching lender authorization changes",
+      )
     }
   }, [error])
 

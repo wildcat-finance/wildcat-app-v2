@@ -321,8 +321,6 @@ export function getFieldValuesForBorrower({
 }) {
   const market =
     marketInput instanceof Market ? getMarketParams(marketInput) : marketInput
-  // console.log(`Min Deposit: ${hooksConfig?.minimumDeposit}`)
-
   const { jurisdiction, entityKind } = borrowerInfo
 
   const jurisdictionObj =

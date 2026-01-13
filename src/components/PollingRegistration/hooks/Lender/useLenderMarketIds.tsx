@@ -4,6 +4,7 @@ import { useLazyQuery } from "@apollo/client"
 
 import { lazyQueryOptions } from "@/config/subgraph"
 import { LENDER_MARKETS } from "@/graphql/queries"
+import { logger } from "@/lib/logging/client"
 
 export const useLenderMarketIds = (
   setMarketIds: (ids: string[]) => void,
@@ -23,7 +24,7 @@ export const useLenderMarketIds = (
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching lender market IDs: ", error)
+      logger.error({ err: error }, "Error fetching lender market IDs")
     }
   }, [error])
 

@@ -7,6 +7,7 @@ import { parseUnits } from "ethers/lib/utils"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { logger } from "@/lib/logging/client"
 
 export const useSetMaxTotalSupply = (
   marketAccount: MarketAccount,
@@ -70,7 +71,10 @@ export const useSetMaxTotalSupply = (
       })
     },
     onError(error) {
-      console.log(error)
+      logger.error(
+        { err: error, market: marketAccount.market.address },
+        "Failed to set max total supply",
+      )
     },
   })
 }

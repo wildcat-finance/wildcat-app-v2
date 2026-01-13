@@ -9,6 +9,7 @@ import { useAccount } from "wagmi"
 
 import { toastError, toastRequest } from "@/components/Toasts"
 import { getLoginSignatureMessage } from "@/config/api"
+import { logger } from "@/lib/logging/client"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   setApiToken,
@@ -28,7 +29,7 @@ export const useRefreshApiToken = () => {
   return useMutation({
     mutationKey: ["refreshApiToken", tokenKey],
     mutationFn: async () => {
-      console.log(`Refreshing token (mutate)`)
+      logger.info({ tokenKey }, "Refreshing token")
       const response = await fetch("/api/auth/refresh", {
         method: "POST",
         headers: {
@@ -45,11 +46,11 @@ export const useRefreshApiToken = () => {
       return newToken
     },
     onSuccess: (newToken: ApiToken) => {
-      console.log(`Token refreshed`)
+      logger.info({ tokenKey }, "Token refreshed")
       dispatch(setApiToken(newToken))
     },
     onError(error) {
-      console.log(`Error refreshing token`)
+      logger.error({ err: error, tokenKey }, "Error refreshing token")
       dispatch(removeApiToken(tokenKey))
     },
   })
@@ -82,7 +83,7 @@ export const useAuthToken = () => {
 
   useEffect(() => {
     if (jwt && !isRefreshing && !isRefreshingAnywhere) {
-      console.log(`Checking token age`)
+      logger.debug({ tokenKey }, "Checking token age")
       const decoded = decodeJWT(jwt, { json: true })
       if (decoded) {
         const now = dayjs().unix()
@@ -90,12 +91,16 @@ export const useAuthToken = () => {
         const isExpired = (decoded.exp ?? 0) < now
         const isTooFarAhead = (decoded.iat ?? 0) > now + 86_400 * 365
         if (isExpired || isTooFarAhead) {
-          console.log(
-            `Removing bad token: ${isExpired ? "expired" : "too far ahead"}`,
+          logger.info(
+            {
+              tokenKey,
+              reason: isExpired ? "expired" : "too far ahead",
+            },
+            "Removing bad token",
           )
           removeBadToken()
         } else if (age > 3_600) {
-          console.log(`Refreshing token`)
+          logger.info({ tokenKey }, "Refreshing token")
           refreshToken()
         }
       }
@@ -129,13 +134,12 @@ export const useLogin = () => {
         const LoginMessage = getLoginSignatureMessage(address, timeSigned)
 
         if (sdk && safeConnected) {
-          console.log(
-            `Set safe settings: ${await sdk.eth.setSafeSettings([
-              {
-                offChainSigning: true,
-              },
-            ])}`,
-          )
+          const settingsResult = await sdk.eth.setSafeSettings([
+            {
+              offChainSigning: true,
+            },
+          ])
+          logger.info({ settingsResult }, "Set safe settings")
 
           const result = await sdk.txs.signMessage(LoginMessage)
 
@@ -152,7 +156,7 @@ export const useLogin = () => {
             }
           }
         }
-        console.log(`Signing message with EOA`)
+        logger.info({ address }, "Signing message with EOA")
         const signatureResult = await signer.signMessage(LoginMessage)
         return { signature: signatureResult }
       }
@@ -192,13 +196,13 @@ export const useLogin = () => {
     onSuccess: (token) => {
       if (token) {
         dispatch(setApiToken(token))
-        console.log(`Login successful`)
+        logger.info({ address: token.address }, "Login successful")
       } else {
         throw Error(`Login failed`)
       }
     },
     onError(error) {
-      console.log(error)
+      logger.error({ err: error }, "Login failed")
     },
   })
 }

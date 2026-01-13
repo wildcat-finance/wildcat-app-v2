@@ -10,6 +10,7 @@ import { useDispatch } from "react-redux"
 
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { logger } from "@/lib/logging/client"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { formatTokenWithCommas } from "@/utils/formatters"
@@ -32,7 +33,7 @@ export const useLenderCapacityChanges = (address?: `0x${string}`) => {
 
   useEffect(() => {
     if (marketRecords) {
-      console.dir(marketRecords)
+      logger.debug({ marketRecords }, "Lender capacity changes")
       marketRecords.forEach((data: MarketRecords) => {
         data.records.forEach((record: MaxTotalSupplyUpdatedRecord) => {
           dispatch(
@@ -83,7 +84,7 @@ export const useLenderCapacityChanges = (address?: `0x${string}`) => {
           ])
         })
         .catch((err) => {
-          console.log(err)
+          logger.error({ err }, "Failed to fetch capacity changes")
           return undefined
         })
     })
