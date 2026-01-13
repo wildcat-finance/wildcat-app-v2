@@ -14,6 +14,7 @@ import { useGetBorrowerHooksDataWithSubgraph } from "@/app/[locale]/borrower/hoo
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetController } from "@/hooks/useGetController"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { logger } from "@/lib/logging/client"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
@@ -47,8 +48,13 @@ export default function BorrowerPage() {
 
   const showTables = !isWrongNetwork && isConnected && isRegisteredBorrower
 
-  console.log(
-    `Right Network: ${!isWrongNetwork} | Connected: ${isConnected} | Registered: ${isRegisteredBorrower}`,
+  logger.debug(
+    {
+      isRightNetwork: !isWrongNetwork,
+      isConnected,
+      isRegisteredBorrower,
+    },
+    "Borrower dashboard status",
   )
 
   const policies: GridRowsProp<PolicyDataT> = [

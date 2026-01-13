@@ -2,6 +2,7 @@
 import { unstable_cache } from "next/cache"
 
 import { NETWORKS, NETWORKS_BY_ID } from "@/config/network"
+import { logger } from "@/lib/logging/server"
 
 import { TokenInfo, TokenList } from "./interface"
 import { PLASMA_TESTNET_TOKENS } from "./tokens-list/plasma-testnet"
@@ -52,7 +53,7 @@ const fetchTokensFn = async (chainId: number) => {
       (token) => token.chainId === chainId,
     )
   } catch (error) {
-    console.log(error)
+    logger.error({ err: error, chainId }, "Failed to fetch tokens list")
   }
 
   return []
@@ -68,7 +69,10 @@ export async function fetchTokensList(searchQuery: string, chainId: number) {
   try {
     tokensList = await fetchTokensFnCached(chainId)
   } catch (error) {
-    console.log(error)
+    logger.error(
+      { err: error, chainId, searchQuery },
+      "Failed to load cached tokens list",
+    )
   }
 
   return filterByQueryType(searchQuery, tokensList)

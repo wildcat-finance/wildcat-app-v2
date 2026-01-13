@@ -7,6 +7,7 @@ import { Dialog, Typography, Box, Button } from "@mui/material"
 import Cookies, { CookieAttributes } from "js-cookie"
 
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { logger } from "@/lib/logging/client"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
 import { COLORS } from "@/theme/colors"
@@ -53,10 +54,10 @@ export default function HotjarConsent() {
       try {
         Hotjar.init(siteId, hotjarVersion)
         if (process.env.NODE_ENV === "development") {
-          console.log("Hotjar initiated")
+          logger.info("Hotjar initiated")
         }
       } catch (error) {
-        console.error("Failed to initialize Hotjar:", error)
+        logger.error({ err: error }, "Failed to initialize Hotjar")
       }
     }
 

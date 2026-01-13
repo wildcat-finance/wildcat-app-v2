@@ -6,6 +6,7 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider, useEthersSigner } from "@/hooks/useEthersSigner"
+import { logger } from "@/lib/logging/client"
 
 export const useAdjustAPR = (
   marketAccount: MarketAccount,
@@ -61,7 +62,10 @@ export const useAdjustAPR = (
       })
     },
     onError(error) {
-      console.log(error)
+      logger.error(
+        { err: error, market: marketAccount.market.address },
+        "Failed to adjust APR",
+      )
     },
   })
 }

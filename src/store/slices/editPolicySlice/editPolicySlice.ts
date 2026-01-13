@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
 import { PolicyLenderTableDataType } from "@/app/[locale]/borrower/edit-policy/interface"
+import { logger } from "@/lib/logging/client"
 import { EditPolicyLendersListType } from "@/store/slices/editPolicySlice/interface"
 
 const initialState: EditPolicyLendersListType = {
@@ -20,7 +21,7 @@ const editPolicySlice = createSlice({
       state.lenderFilter = action.payload
     },
     setEditStep: (state, action: PayloadAction<"edit" | "confirm">) => {
-      console.log("setEditStep", action.payload)
+      logger.debug({ step: action.payload }, "Set edit step")
       state.step = action.payload
     },
     setPolicyName: (state, action: PayloadAction<string>) => {

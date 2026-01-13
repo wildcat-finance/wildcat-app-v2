@@ -7,6 +7,7 @@ import { useAccount } from "wagmi"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { logger } from "@/lib/logging/client"
 
 export const useClaim = (
   market: Market,
@@ -81,7 +82,10 @@ export const useClaim = (
       })
     },
     onError(error) {
-      console.log(error)
+      logger.error(
+        { err: error, market: market.address },
+        "Failed to claim withdrawals",
+      )
     },
   })
 }

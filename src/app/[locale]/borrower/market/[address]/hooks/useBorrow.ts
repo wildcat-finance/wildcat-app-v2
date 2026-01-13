@@ -8,6 +8,7 @@ import { parseUnits } from "ethers/lib/utils"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider, useEthersSigner } from "@/hooks/useEthersSigner"
+import { logger } from "@/lib/logging/client"
 
 export const useBorrow = (
   marketAccount: MarketAccount,
@@ -77,7 +78,10 @@ export const useBorrow = (
       })
     },
     onError(error) {
-      console.log(error)
+      logger.error(
+        { err: error, market: marketAccount.market.address },
+        "Failed to borrow",
+      )
     },
   })
 }

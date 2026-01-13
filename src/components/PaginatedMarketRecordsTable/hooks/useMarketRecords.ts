@@ -8,6 +8,8 @@ import {
 
 import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { logger } from "@/lib/logging/client"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 export type UseMarketRecordsProps = {
   market: Market
