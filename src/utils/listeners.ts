@@ -5,6 +5,7 @@ import { useEffect } from "react"
 import { useSubscription } from "@apollo/client"
 import { useDispatch } from "react-redux"
 
+import { logger } from "@/lib/logging/client"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TNotification } from "@/store/slices/notificationsSlice/interface"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
@@ -45,9 +46,9 @@ const BorrowerRegistrationListener = () => {
     }
 
     if (error) {
-      console.error(
-        "Error subscribing to borrower registration changes:",
-        error,
+      logger.error(
+        { err: error },
+        "Error subscribing to borrower registration changes",
       )
     }
   }, [data, error, dispatch])

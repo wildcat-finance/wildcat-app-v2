@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux"
 
 import { lazyQueryOptions } from "@/config/subgraph"
 import { LENDER_AUTHORIZATION_CHANGES } from "@/graphql/queries"
+import { logger } from "@/lib/logging/client"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { trimAddress } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
@@ -74,7 +75,7 @@ export const useAuthorizationChanges = (
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching cycle endeds: ", error)
+      logger.error({ err: error }, "Error fetching cycle endeds")
     }
   }, [error])
 

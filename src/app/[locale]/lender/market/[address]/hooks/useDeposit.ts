@@ -11,6 +11,7 @@ import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { logger } from "@/lib/logging/client"
 import { isUSDTLikeToken } from "@/utils/constants"
 
 export const useDeposit = (
@@ -82,8 +83,9 @@ export const useDeposit = (
               if (transactionBySafeHash?.txHash) {
                 setTxHash(transactionBySafeHash.txHash)
                 const receipt = await waitForTransaction(safeTxHash)
-                console.log(
-                  `Got gnosis transaction receipt:\n\ttxHash: ${receipt.transactionHash}`,
+                logger.info(
+                  { txHash: receipt.transactionHash, safeTxHash },
+                  "Got gnosis transaction receipt",
                 )
                 resolve(receipt)
               } else {
@@ -101,15 +103,22 @@ export const useDeposit = (
             ),
             value: "0",
           })
-          console.log(`Sending gnosis transactions...`)
-          console.log(gnosisTransactions)
+          logger.info(
+            { market: marketAccount.market.address },
+            "Sending gnosis transactions",
+          )
+          logger.debug(
+            { transactions: gnosisTransactions },
+            "Gnosis transactions payload",
+          )
           const { safeTxHash } = await sdk.txs.send({
             txs: gnosisTransactions,
           })
-          console.log(`Got gnosis transaction:\n\tsafeTxHash: ${safeTxHash}`)
+          logger.info({ safeTxHash }, "Got gnosis transaction")
           const receipt = await checkTransaction(safeTxHash)
-          console.log(
-            `Got gnosis transaction receipt:\n\ttxHash: ${receipt.transactionHash}`,
+          logger.info(
+            { txHash: receipt.transactionHash, safeTxHash },
+            "Got gnosis transaction receipt",
           )
           return receipt
         }
@@ -142,7 +151,10 @@ export const useDeposit = (
       })
     },
     onError(error) {
-      console.log(error)
+      logger.error(
+        { err: error, market: marketAccount.market.address },
+        "Failed to deposit",
+      )
     },
   })
 }

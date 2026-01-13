@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Market, SupportedChainId, Token } from "@wildcatfi/wildcat-sdk"
@@ -15,6 +14,7 @@ import { NETWORKS_BY_ID } from "@/config/network"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { logger } from "@/lib/logging/client"
 import {
   BasicBorrowerInfo,
   fillInMlaTemplate,
@@ -79,12 +79,12 @@ export const useSetMarketMLA = () => {
 
       let message: string
       if (template === "noMLA") {
-        console.log("no mla template id")
+        logger.info({ market: market.address }, "No MLA template selected")
         message = DECLINE_MLA_ASSIGNMENT_MESSAGE.replace(
           "{{market}}",
           market.address.toLowerCase(),
         ).replace("{{timeSigned}}", formatDate(timeSigned)!)
-        console.log("message", message)
+        logger.debug({ message }, "Decline MLA message")
       } else {
         const mlaData = fillInMlaTemplate(template, values)
         message = mlaData.message
@@ -123,7 +123,7 @@ export const useSetMarketMLA = () => {
       const doSubmit = async () => {
         const { signature } = await signMessage()
         if (template === "noMLA") {
-          console.log("submitting decline mla")
+          logger.info({ market: market.address }, "Submitting decline MLA")
           const response = await fetch(
             `/api/mla/${market.address.toLowerCase()}/decline?chainId=${
               market.chainId
@@ -217,25 +217,33 @@ export const useSignMla = (salt: string) => {
       borrowerProfile,
       asset,
     }: SignMlaFromFormInputs) => {
-      console.log("signing mla")
+      logger.info({ salt }, "Signing MLA")
       const selectedMla = form.getValues("mla")
       const mlaTemplateId =
         selectedMla === "noMLA" ? undefined : Number(selectedMla)
-      console.log("mlaTemplateId", mlaTemplateId)
+      logger.debug({ mlaTemplateId }, "MLA template id")
       if (!signer || !marketAddress || !borrowerProfile || !asset) {
-        console.log("missing required data")
+        logger.warn(
+          {
+            hasSigner: !!signer,
+            hasMarketAddress: !!marketAddress,
+            hasBorrowerProfile: !!borrowerProfile,
+            hasAsset: !!asset,
+          },
+          "Missing required data",
+        )
         throw Error("Missing required data")
       }
 
       let message: string
       if (mlaTemplateId === undefined) {
-        console.log("no mla template id")
+        logger.info({ marketAddress }, "No MLA template selected")
         message = DECLINE_MLA_ASSIGNMENT_MESSAGE.replace(
           "{{market}}",
           marketAddress.toLowerCase(),
         ).replace("{{timeSigned}}", formatDate(timeSigned)!)
       } else {
-        console.log("getting mla from form")
+        logger.debug({ mlaTemplateId }, "Getting MLA from form")
         const mlaData = await getMlaFromForm(
           signer,
           form,
@@ -247,11 +255,11 @@ export const useSignMla = (salt: string) => {
           NETWORKS_BY_ID[signer.chainId as SupportedChainId],
         )
         message = mlaData.message
-        console.log("message", message)
+        logger.debug({ message }, "MLA message")
       }
 
       const signMessage = async () => {
-        console.log(message)
+        logger.debug({ message }, "Signing message")
         if (sdk && safeConnected) {
           await sdk.eth.setSafeSettings([
             {
@@ -275,7 +283,7 @@ export const useSignMla = (salt: string) => {
           }
         }
         const signatureResult = await signer.signMessage(message)
-        console.log("signatureResult", signatureResult)
+        logger.debug({ signatureResult }, "Signature result")
         return {
           signature: signatureResult,
           safeTxHash: undefined,

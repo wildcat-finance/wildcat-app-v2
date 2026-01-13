@@ -8,6 +8,7 @@ import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/component
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { logger } from "@/lib/logging/client"
 import { COLORS } from "@/theme/colors"
 
 import { TerminateFlowProps } from "./interface"
@@ -28,7 +29,9 @@ export const TerminateFlow = ({
 }: TerminateFlowProps) => {
   const { t } = useTranslation()
   const handleTerminateMarket = () => {
-    terminateFunc().catch((err) => console.log(err))
+    terminateFunc().catch((err) =>
+      logger.error({ err }, "Failed to terminate market"),
+    )
   }
 
   const showForm = !(isTerminating || successPopup || errorPopup)

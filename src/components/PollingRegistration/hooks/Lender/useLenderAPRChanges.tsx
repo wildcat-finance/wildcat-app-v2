@@ -10,6 +10,7 @@ import { useDispatch } from "react-redux"
 
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { logger } from "@/lib/logging/client"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { formatBps } from "@/utils/formatters"
@@ -32,7 +33,7 @@ export const useLenderAPRChanges = (address?: `0x${string}`) => {
 
   useEffect(() => {
     if (marketRecords) {
-      console.dir(marketRecords)
+      logger.debug({ marketRecords }, "Lender APR changes")
       marketRecords.forEach((data: MarketRecords) => {
         data.records.forEach((record: AnnualInterestBipsUpdatedRecord) => {
           dispatch(
@@ -79,7 +80,7 @@ export const useLenderAPRChanges = (address?: `0x${string}`) => {
           ])
         })
         .catch((err) => {
-          console.log(err)
+          logger.error({ err }, "Failed to fetch APR changes")
           return undefined
         })
     })

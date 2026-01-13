@@ -8,6 +8,7 @@ import { useDispatch } from "react-redux"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { RESERVE_RATIO_BIPS_UPDATEDS } from "@/graphql/queries"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { logger } from "@/lib/logging/client"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { COLORS } from "@/theme/colors"
 import { formatBps, MARKET_PARAMS_DECIMALS } from "@/utils/formatters"
@@ -86,7 +87,7 @@ export const useReserveRatioBipsUpdateds = (
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching reserve ratio bips updateds: ", error)
+      logger.error({ err: error }, "Error fetching reserve ratio bips updateds")
     }
   }, [error])
 
