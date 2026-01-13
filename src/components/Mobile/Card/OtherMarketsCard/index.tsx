@@ -1,5 +1,4 @@
 import { Box, Divider, Typography } from "@mui/material"
-import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 
 import { COLORS } from "@/theme/colors"
 

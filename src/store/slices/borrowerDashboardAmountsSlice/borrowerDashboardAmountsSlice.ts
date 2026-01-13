@@ -1,10 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
-import {
-  BorrowerDashboardSections,
-  BorrowerMarketDashboardSections,
-} from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
-
 export type BorrowerDashboardAmountsType = {
   deposited: number
   nonDeposited: number

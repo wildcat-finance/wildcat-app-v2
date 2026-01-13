@@ -14,7 +14,7 @@ import {
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 
-import { POLLING_INTERVAL } from "@/config/polling"
+import { POLLING_INTERVALS } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
@@ -135,7 +135,7 @@ export function useGetWithdrawals(
   } = useQuery({
     queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(chainId, "initial", address),
     queryFn: getAllPendingWithdrawalBatches,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
     placeholderData: keepPreviousData,
     enabled: !!market && !!chainId,
     refetchOnMount: false,

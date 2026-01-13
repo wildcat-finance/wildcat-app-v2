@@ -8,6 +8,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
+import { logger } from "@/lib/logging/client"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 export type UseMarketRecordsProps = {
@@ -30,19 +31,25 @@ export function useMarketRecords({
 
   const getMarketRecordsInternal = async () => {
     if (finalEventIndex === undefined) {
-      console.error(
-        `Failed to retrieve market records: Market event index is undefined`,
+      logger.error(
+        { market: market.address },
+        "Failed to retrieve market records: event index is undefined",
       )
       throw Error(
         `Failed to retrieve market records, likely an error in the subgraph`,
       )
     }
     const endEventIndex = Math.max(0, finalEventIndex - page * pageSize)
-    console.log(finalEventIndex, "finalEventIndex")
-    console.log(`END EVENT INDEX: ${endEventIndex}`)
-    console.log(`Page: ${page}`)
-    console.log(kinds)
-    console.log(`Page Size: ${pageSize}`)
+    logger.debug(
+      {
+        finalEventIndex,
+        endEventIndex,
+        page,
+        pageSize,
+        kinds,
+      },
+      "Market records pagination",
+    )
 
     const records = await getMarketRecords(subgraphClient, {
       market,
@@ -52,10 +59,14 @@ export function useMarketRecords({
       kinds: kinds?.length ? kinds : undefined,
     })
 
-    console.log(`Records: ${records.length}`)
-
-    console.log(`Start Event Index: ${endEventIndex - pageSize}`)
-    console.log(`End Event Index: ${endEventIndex}`)
+    logger.debug(
+      {
+        recordsCount: records.length,
+        startEventIndex: endEventIndex - pageSize,
+        endEventIndex,
+      },
+      "Market records window",
+    )
 
     const newestEventIndex = Math.max(
       ...records.slice(0, pageSize).map((r) => r.eventIndex + 1),

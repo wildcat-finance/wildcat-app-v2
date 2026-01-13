@@ -18,6 +18,7 @@ import { LinkGroup } from "@/components/LinkComponent"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { logger } from "@/lib/logging/client"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -143,7 +144,7 @@ export const RepayAndTerminateFlow = ({
     if (terminateMarketStep?.status === "InsufficientAllowance") {
       approve(terminateMarketStep.outstanding)
         .then(() => modal.setFlowStep(TerminateModalSteps.approved))
-        .catch((err) => console.log(err))
+        .catch((err) => logger.error({ err }, "Approve failed"))
     }
   }
 
@@ -158,14 +159,14 @@ export const RepayAndTerminateFlow = ({
       tokenAmount: repayAmount,
       maxBatches: length,
     })
-      .catch((err) => console.log(err))
+      .catch((err) => logger.error({ err }, "Repay and process failed"))
       .finally(() => modal.setFlowStep(TerminateModalSteps.repayed))
   }
 
   const handleTerminateMarket = () => {
     modal.setFlowStep(TerminateModalSteps.terminateLoading)
     terminateFunc()
-      .catch((err) => console.log(err))
+      .catch((err) => logger.error({ err }, "Terminate market failed"))
       .finally(() => modal.setFlowStep(TerminateModalSteps.final))
   }
 

@@ -7,6 +7,7 @@ import { getSubgraphClient } from "@wildcatfi/wildcat-sdk"
 
 import { NETWORKS } from "@/config/network"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { logger } from "@/lib/logging/client"
 
 export type SubgraphClientType = ApolloClient<NormalizedCacheObject>
 
@@ -32,7 +33,7 @@ export const SubgraphProvider = ({
   const { chainId } = useSelectedNetwork()
   // Recreates the subgraph client when the target chain changes
   const value = useMemo(() => {
-    console.log(`Recreating subgraph client for chain ${chainId}`)
+    logger.info({ chainId }, "Recreating subgraph client") // first test
     return getSubgraphClient(chainId)
   }, [chainId])
   return (

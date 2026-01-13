@@ -27,6 +27,7 @@ import { toastError, toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { logger } from "@/lib/logging/client"
 
 export type DeployNewV2MarketParams = (
   | (Omit<
@@ -100,8 +101,13 @@ export const useDeployV2Market = () => {
 
         let asset: Token
         const gnosisTransactions: PartialTransaction[] = []
-        console.log(
-          `useDeployMarket :: isTestnet: ${isTestnet} :: isConnectedToSafe: ${isConnectedToSafe} :: gnosisSafeSDK: ${!!gnosisSafeSDK}`,
+        logger.debug(
+          {
+            isTestnet,
+            isConnectedToSafe,
+            hasGnosisSafeSDK: !!gnosisSafeSDK,
+          },
+          "Deploy market status",
         )
         if (isTestnet) {
           if (isConnectedToSafe) {
@@ -224,22 +230,27 @@ export const useDeployV2Market = () => {
               value: "0",
             })
 
-            console.log("Sending Gnosis transactions:", gnosisTransactions)
+            logger.info("Sending Gnosis transactions")
+            logger.debug(
+              { transactions: gnosisTransactions },
+              "Gnosis transactions payload",
+            )
 
             const tx = await gnosisSafeSDK.txs.send({ txs: gnosisTransactions })
-            console.log("Transaction sent, result:", tx)
+            logger.info({ tx }, "Transaction sent")
 
             const checkTransaction = async () => {
               const transactionBySafeHash =
                 await gnosisSafeSDK.txs.getBySafeTxHash(tx.safeTxHash)
 
               if (transactionBySafeHash?.txHash) {
-                console.log(
-                  `Transaction confirmed. txHash: ${transactionBySafeHash.txHash}`,
+                logger.info(
+                  { txHash: transactionBySafeHash.txHash },
+                  "Transaction confirmed",
                 )
                 return transactionBySafeHash.txHash
               }
-              console.log("Transaction pending, rechecking in 1 second...")
+              logger.debug("Transaction pending, rechecking in 1 second")
               return new Promise<string>((res) => {
                 setTimeout(async () => res(await checkTransaction()), 1000)
               })
@@ -248,12 +259,12 @@ export const useDeployV2Market = () => {
             const txHash = await checkTransaction()
 
             if (txHash) {
-              console.log(`Waiting for transaction with txHash: ${txHash}`)
+              logger.info({ txHash }, "Waiting for transaction")
               const receipt = await waitForTransaction(txHash)
-              console.log("Transaction confirmed, receipt received.")
+              logger.info({ txHash }, "Transaction confirmed, receipt received")
               return receipt
             }
-            console.error("Failed to retrieve txHash.")
+            logger.error("Failed to retrieve txHash")
             throw new Error("Transaction failed or hash not found.")
           } else {
             // const exec = (...args: any[]) => hooksFactory[preview.fn]()
@@ -283,7 +294,10 @@ export const useDeployV2Market = () => {
 
       const doSubmit = async () => {
         if (mlaTemplateId === undefined) {
-          console.log(`Declining MLA for market ${marketAddress.toLowerCase()}`)
+          logger.info(
+            { market: marketAddress.toLowerCase() },
+            "Declining MLA for market",
+          )
           const response = await fetch(
             `/api/mla/${marketAddress.toLowerCase()}/decline`,
             {
@@ -298,7 +312,10 @@ export const useDeployV2Market = () => {
           if (response.status !== 200) throw Error("Failed to submit MLA")
           return true
         }
-        console.log(`Submitting MLA for market ${marketAddress.toLowerCase()}`)
+        logger.info(
+          { market: marketAddress.toLowerCase() },
+          "Submitting MLA for market",
+        )
         const response = await fetch(
           `/api/mla/${marketAddress.toLowerCase()}`,
           {
@@ -347,12 +364,12 @@ export const useDeployV2Market = () => {
       })
     },
     onError(error) {
-      console.log(error)
+      logger.error({ err: error }, "Failed to deploy market")
     },
   })
 
   if (deployError?.message === "Failed to upload MLA selection") {
-    console.log("Failed to upload MLA selection")
+    logger.error("Failed to upload MLA selection")
   }
 
   return {

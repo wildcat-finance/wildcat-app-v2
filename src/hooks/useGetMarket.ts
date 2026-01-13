@@ -13,7 +13,7 @@ import {
   SubgraphGetMarketQueryVariables,
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 
-import { POLLING_INTERVAL } from "@/config/polling"
+import { POLLING_INTERVALS } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
@@ -79,7 +79,7 @@ export function useGetMarket({ address, ...filters }: UseMarketProps) {
       marketAddressFormatted,
     ),
     queryFn,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
     enabled:
       !!marketAddressFormatted &&
       !!signerOrProvider &&

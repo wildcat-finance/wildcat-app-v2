@@ -8,6 +8,7 @@ import { useDispatch } from "react-redux"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { WITHDRAWAL_EXECUTIONS } from "@/graphql/queries"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { logger } from "@/lib/logging/client"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { COLORS } from "@/theme/colors"
 import { formatTokenAmount } from "@/utils/formatters"
@@ -29,7 +30,7 @@ export const useWithdrawalExecutions = (
 
   useEffect(() => {
     if (data) {
-      console.dir(data)
+      logger.debug({ data }, "Withdrawal executions result")
       data.withdrawalExecutions.forEach(
         (withdrawalExecution: TWithdrawalExecution) => {
           if (
@@ -76,7 +77,7 @@ export const useWithdrawalExecutions = (
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching withdrawal executions: ", error)
+      logger.error({ err: error }, "Error fetching withdrawal executions")
     }
   }, [error])
 

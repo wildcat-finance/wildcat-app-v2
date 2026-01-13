@@ -10,6 +10,7 @@ import {
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { logger } from "@/lib/logging/client"
 import { useAppDispatch } from "@/store/hooks"
 import { resetPolicyLendersState } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 
@@ -88,20 +89,21 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       const send = async () => {
         if (isConnectedToSafe && isTestnet && txs.length > 1) {
           const tx = await gnosisSafeSDK.txs.send({ txs })
-          console.log("Transaction sent, result:", tx)
+          logger.info({ tx }, "Transaction sent")
 
           const checkTransaction = async (): Promise<string> => {
             const transactionBySafeHash =
               await gnosisSafeSDK.txs.getBySafeTxHash(tx.safeTxHash)
 
             if (transactionBySafeHash?.txHash) {
-              console.log(
-                `Transaction confirmed. txHash: ${transactionBySafeHash.txHash}`,
+              logger.info(
+                { txHash: transactionBySafeHash.txHash },
+                "Transaction confirmed",
               )
               return transactionBySafeHash.txHash
             }
 
-            console.log("Transaction pending, rechecking in 1 second...")
+            logger.debug("Transaction pending, rechecking in 1 second")
             return new Promise<string>((res) => {
               setTimeout(async () => res(await checkTransaction()), 1000)
             })
@@ -110,13 +112,13 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
           const txHash = await checkTransaction()
 
           if (txHash) {
-            console.log(`Waiting for transaction with txHash: ${txHash}`)
+            logger.info({ txHash }, "Waiting for transaction")
             const receipt = await waitForTransaction(txHash)
-            console.log("Transaction confirmed, receipt received.")
+            logger.info({ txHash }, "Transaction confirmed, receipt received")
             return receipt
           }
 
-          console.error("Failed to retrieve txHash.")
+          logger.error("Failed to retrieve txHash")
           throw new Error("Transaction failed or hash not found.")
         } else {
           // eslint-disable-next-line no-restricted-syntax
@@ -145,7 +147,11 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       })
       dispatch(resetPolicyLendersState())
     },
-    onError: (error) => console.log(error),
+    onError: (error) =>
+      logger.error(
+        { err: error, policyAddress: policy?.address },
+        "Failed to submit policy updates",
+      ),
   })
 
   return { submitUpdates, isSubmitting, isSuccess, isError }

@@ -1,7 +1,3 @@
-import { Dispatch } from "react"
-
-import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import { BaseTransaction } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
@@ -9,11 +5,11 @@ import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { logger } from "@/lib/logging/client"
 
 export const useFaucet = (marketAccount: MarketAccount) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
-  const { connected: safeConnected, sdk } = useSafeAppsSDK()
   const { isTestnet, chainId: targetChainId } = useSelectedNetwork()
 
   return useMutation({
@@ -59,7 +55,10 @@ export const useFaucet = (marketAccount: MarketAccount) => {
       })
     },
     onError(error) {
-      console.log(error)
+      logger.error(
+        { err: error, market: marketAccount.market.address },
+        "Failed to request faucet tokens",
+      )
     },
   })
 }

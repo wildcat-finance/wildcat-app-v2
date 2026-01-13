@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 
 import { JsonRpcSigner } from "@ethersproject/providers"
-import { isSupportedChainId, Signer } from "@wildcatfi/wildcat-sdk"
+import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { providers } from "ethers"
 import type {
   Account,

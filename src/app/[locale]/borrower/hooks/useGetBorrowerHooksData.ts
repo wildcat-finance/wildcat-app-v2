@@ -15,9 +15,10 @@ import {
 import { useAccount } from "wagmi"
 
 import { NETWORKS_BY_ID } from "@/config/network"
-import { POLLING_INTERVAL } from "@/config/polling"
+import { POLLING_INTERVALS } from "@/config/polling"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { logger } from "@/lib/logging/client"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 export const GET_BORROWER_HOOKS_DATA = "get-borrower-hooks-data"
@@ -51,7 +52,15 @@ export function useGetBorrowerHooksDataQuery({
           : undefined,
       ],
     )
-    console.log("result", result)
+    logger.debug(
+      {
+        chainId: chain,
+        borrower,
+        hooksInstancesCount: result.hooksInstances.length,
+        hooksTemplatesCount: result.hooksTemplates.length,
+      },
+      "Fetched borrower hooks data",
+    )
     const hooksTemplates = result.hooksTemplates.map((t) =>
       hooksTemplateFromLens(
         chain,
@@ -61,9 +70,9 @@ export function useGetBorrowerHooksDataQuery({
         isRegisteredBorrower,
       ),
     )
-    console.log(
-      "hooksTemplatess",
-      result.hooksInstances.map((i) => i.kind),
+    logger.debug(
+      { kinds: result.hooksInstances.map((i) => i.kind) },
+      "Borrower hooks instance kinds",
     )
     let hooksInstances: HooksInstance[] = []
     try {
@@ -77,7 +86,10 @@ export function useGetBorrowerHooksDataQuery({
         ),
       )
     } catch (err) {
-      console.log(`Error getting hooks instances: ${err}`)
+      logger.error(
+        { err, chainId: chain, borrower },
+        "Error getting hooks instances",
+      )
       throw err
     }
 
@@ -92,7 +104,7 @@ export function useGetBorrowerHooksDataQuery({
   return useQuery({
     queryKey: [GET_BORROWER_HOOKS_DATA, address, chainId],
     queryFn: getBorrowerHooksData,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
     enabled,
     refetchOnMount: false,
   })
@@ -132,7 +144,7 @@ export function useGetBorrowerHooksDataWithSubgraphQuery({
     queryKey: [GET_BORROWER_HOOKS_DATA_WITH_SUBGRAPH, address, chainId],
     queryFn: getBorrowerHooksData,
     enabled: !!address && !!chainId && enabled,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
     refetchOnMount: false,
   })
 }

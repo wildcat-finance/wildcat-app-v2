@@ -4,7 +4,6 @@ import { Box, Divider, Skeleton, Typography } from "@mui/material"
 import { SxProps, Theme } from "@mui/system"
 
 import {
-  ContentContainer,
   MarketParametersColumn,
   MarketParametersContainer,
   MarketParametersRowsDivider,

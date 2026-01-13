@@ -9,7 +9,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
-import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"

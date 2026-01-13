@@ -20,6 +20,7 @@ import {
   BorrowerProfile,
 } from "@/app/api/profiles/interface"
 import { BorrowerProfileUpdate } from "@/app/api/profiles/updates/interface"
+import { logger } from "@/lib/logging/server"
 
 import { MlaTemplateField } from "./mla"
 import { getProviderForServer } from "./provider"
@@ -171,8 +172,9 @@ export async function tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered(
   const borrowerAddresses = borrowerInvitations
     .map(({ invitation }) => invitation?.address)
     .filter(Boolean) as string[]
-  console.log(
-    `Found ${borrowerAddresses.length} borrowers with pending invitations`,
+  logger.info(
+    { chainId, count: borrowerAddresses.length },
+    "Found borrowers with pending invitations",
   )
   const registeredBorrowers = await checkRegisteredBorrowers(
     getProviderForServer(chainId),
@@ -182,7 +184,10 @@ export async function tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered(
   const borrowersToUpdate = borrowerAddresses.filter(
     (_, i) => registeredBorrowers[i],
   )
-  console.log(`Found ${borrowersToUpdate.length} borrowers to update`)
+  logger.info(
+    { chainId, count: borrowersToUpdate.length },
+    "Found borrowers to update",
+  )
   await prisma.$transaction(
     borrowersToUpdate.map((borrower) =>
       prisma.borrower.update({

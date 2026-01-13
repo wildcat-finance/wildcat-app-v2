@@ -3,6 +3,7 @@ import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import { QueryKeys } from "@/config/query-keys"
+import { logger } from "@/lib/logging/client"
 
 const fetchBorrowerProfile = async (
   address: `0x${string}` | undefined,
@@ -25,7 +26,15 @@ const fetchBorrowerProfile = async (
   }
 
   if (!response.ok) {
-    console.log(`Failed to fetch profile: ${response.statusText}`)
+    logger.error(
+      {
+        address: normalizedAddress,
+        chainId,
+        status: response.status,
+        statusText: response.statusText,
+      },
+      "Failed to fetch profile",
+    )
     throw new Error("Failed to fetch profile")
   }
 
