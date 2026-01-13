@@ -73,7 +73,9 @@ export const UnderlyingAssetSelect = forwardRef(
       handleTokenSelect(selectedToken)
     }
 
-    const selectedToken = tokens.find((token) => token.address === value)
+    const selectedToken = value
+      ? tokens.find((token) => token.address === value) ?? null
+      : null
     return (
       <div>
         <Autocomplete
@@ -96,21 +98,26 @@ export const UnderlyingAssetSelect = forwardRef(
               helperText={errorText}
             />
           )}
-          renderOption={(props, option) => (
-            <MenuItem {...props}>
-              {"logoURI" in option && option.logoURI && (
-                <Image
-                  width={20}
-                  height={20}
-                  style={{ marginRight: 10 }}
-                  src={option.logoURI}
-                  alt={option.name}
-                />
-              )}
-              {option.name}
-            </MenuItem>
-          )}
-          isOptionEqualToValue={(option, val) => option.address === val.address}
+          renderOption={(props, option) => {
+            const { key, ...optionProps } = props
+            return (
+              <MenuItem key={key} {...optionProps}>
+                {"logoURI" in option && option.logoURI && (
+                  <Image
+                    width={20}
+                    height={20}
+                    style={{ marginRight: 10 }}
+                    src={option.logoURI}
+                    alt={option.name}
+                  />
+                )}
+                {option.name}
+              </MenuItem>
+            )
+          }}
+          isOptionEqualToValue={(option, val) =>
+            option.address === val?.address
+          }
           getOptionLabel={(option) => option.name}
           value={selectedToken}
           options={tokens}

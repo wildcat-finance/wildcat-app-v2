@@ -340,7 +340,7 @@ export const MarketPolicyForm = ({
               explainer={t("createNewMarket.policy.earlyClose.explainer")}
             >
               <Switch
-                checked={allowClosureBeforeTermWatch}
+                checked={Boolean(allowClosureBeforeTermWatch)}
                 onChange={(e) => {
                   setValue("allowClosureBeforeTerm", e.target.checked)
                 }}
@@ -355,7 +355,7 @@ export const MarketPolicyForm = ({
                 )}
               >
                 <Switch
-                  checked={allowTermReductionWatch}
+                  checked={Boolean(allowTermReductionWatch)}
                   onChange={(e) => {
                     setValue("allowTermReduction", e.target.checked)
                   }}
