@@ -11,6 +11,7 @@ import { useDispatch } from "react-redux"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { logger } from "@/lib/logging/client"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
@@ -31,7 +32,7 @@ export const useMarketTerminateds = (address?: `0x${string}`) => {
 
   useEffect(() => {
     if (marketRecords) {
-      console.dir(marketRecords)
+      logger.debug({ marketRecords }, "Borrower market terminated records")
       marketRecords.forEach((data: MarketRecords) => {
         data.records.forEach((record: MarketClosedRecord) => {
           dispatch(
@@ -76,7 +77,7 @@ export const useMarketTerminateds = (address?: `0x${string}`) => {
           ])
         })
         .catch((err) => {
-          console.log(err)
+          logger.error({ err }, "Failed to fetch terminated markets")
           return undefined
         })
     })

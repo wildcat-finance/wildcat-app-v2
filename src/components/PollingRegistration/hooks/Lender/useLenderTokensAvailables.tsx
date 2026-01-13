@@ -10,6 +10,7 @@ import { useDispatch } from "react-redux"
 
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { logger } from "@/lib/logging/client"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -26,7 +27,7 @@ export const useLenderTokensAvailables = (address?: `0x${string}`) => {
 
   useEffect(() => {
     if (withdrawalBatches) {
-      console.dir(withdrawalBatches)
+      logger.debug({ withdrawalBatches }, "Lender withdrawal batches")
       withdrawalBatches.forEach((batch: WithdrawalBatch) => {
         batch.payments.forEach((payment: WithdrawalPaymentRecord) => {
           dispatch(
@@ -62,7 +63,7 @@ export const useLenderTokensAvailables = (address?: `0x${string}`) => {
           setWithdrawalBatches((prev) => [...prev, batch])
         })
         .catch((err) => {
-          console.log(err)
+          logger.error({ err }, "Failed to fetch withdrawal batch")
           return undefined
         })
     })

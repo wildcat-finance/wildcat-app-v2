@@ -11,6 +11,7 @@ import { toastRequest, ToastRequestConfig } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { logger } from "@/lib/logging/client"
 import { useAppDispatch } from "@/store/hooks"
 import { resetEditPolicyState } from "@/store/slices/editPolicySlice/editPolicySlice"
 
@@ -56,19 +57,24 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       }
 
       const gnosisTransactions: PartialTransaction[] = []
-      console.log(
-        `useDeployMarket :: isTestnet: ${isTestnet} :: isConnectedToSafe: ${isConnectedToSafe} :: gnosisSafeSDK: ${!!gnosisSafeSDK}`,
+      logger.debug(
+        {
+          isTestnet,
+          isConnectedToSafe,
+          hasGnosisSafeSDK: !!gnosisSafeSDK,
+        },
+        "Submit policy updates status",
       )
 
       const txs: Array<PartialTransaction & ToastRequestConfig> = []
       if (addLenders && addLenders.length) {
-        console.log(`adding lenders`)
-        console.log(addLenders)
+        logger.info({ count: addLenders.length }, "Adding lenders")
+        logger.debug({ addLenders }, "Add lenders list")
         if (
           policy instanceof OpenTermHooks ||
           policy instanceof FixedTermHooks
         ) {
-          console.log(`adding lenders to v2 policy`)
+          logger.debug("Adding lenders to v2 policy")
           const tx = policy.populateAddLenders(
             addLenders.map((lender) => ({ lender })),
           )
@@ -79,7 +85,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
             error: `Failed to add ${addLenders.length} lenders`,
           })
         } else {
-          console.log(`adding lenders to v1 policy`)
+          logger.debug("Adding lenders to v1 policy")
           const tx = marketsToUpdate?.length
             ? policy.populateAuthorizeLendersAndUpdateMarkets(
                 addLenders,
@@ -95,10 +101,15 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         }
       }
       if (removeLenders && removeLenders.length) {
-        console.log(`removing lenders`)
-        console.log(removeLenders)
-        console.log(`policy address: ${policy.address}`)
-        console.log(`policy address: ${policy.contract.address}`)
+        logger.info({ count: removeLenders.length }, "Removing lenders")
+        logger.debug({ removeLenders }, "Remove lenders list")
+        logger.debug(
+          {
+            policyAddress: policy.address,
+            contractAddress: policy.contract.address,
+          },
+          "Policy addresses",
+        )
         if (
           policy instanceof OpenTermHooks ||
           policy instanceof FixedTermHooks
@@ -167,7 +178,10 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       dispatch(resetEditPolicyState())
     },
     onError(error) {
-      console.log(error)
+      logger.error(
+        { err: error, policyAddress: policy?.address },
+        "Failed to submit policy updates",
+      )
     },
   })
 

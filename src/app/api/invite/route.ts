@@ -12,6 +12,7 @@ import {
   prisma,
   tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered,
 } from "@/lib/db"
+import { logger } from "@/lib/logging/server"
 import { getProviderForServer } from "@/lib/provider"
 import { verifySignature } from "@/lib/signatures"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
@@ -311,18 +312,16 @@ export async function PUT(request: NextRequest) {
     timeSigned,
     signature,
   } = body
-  console.log({
-    name,
-    description,
-    entityKind,
-    founded,
-    headquarters,
-    jurisdiction,
-    physicalAddress,
-    timeSigned,
-    signature,
-    address,
-  })
+  logger.info(
+    {
+      name,
+      entityKind,
+      timeSigned,
+      address,
+      chainId,
+    },
+    "Accept invite payload",
+  )
 
   const borrowerInvitation = await findBorrowerWithPendingInvitation(
     address,
@@ -352,21 +351,7 @@ export async function PUT(request: NextRequest) {
   if (!result) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
-  console.log(`--- accept invite ---`)
-  console.log("borrower", JSON.stringify(borrowerInvitation, null, 2))
-  console.log(
-    JSON.stringify(
-      {
-        network: chainId,
-        signature,
-        address,
-        name,
-        timeSigned,
-      },
-      null,
-      2,
-    ),
-  )
+  logger.info({ address, chainId }, "Accept invite verified")
   if (
     borrowerInvitation.name !== name ||
     borrowerInvitation.description !== description ||

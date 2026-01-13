@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { BORROWER_REGISTRATION_CHANGES } from "@/graphql/queries"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { logger } from "@/lib/logging/client"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
@@ -26,7 +27,7 @@ export const useBorrowerRegistrationChanges = (address?: `0x${string}`) => {
     if (data) {
       data.borrowerRegistrationChanges.forEach(
         (change: TBorrowerRegistrationChange) => {
-          console.dir(change)
+          logger.debug({ change }, "Borrower registration change")
           dispatch(
             addNotification({
               description: t(
@@ -47,7 +48,10 @@ export const useBorrowerRegistrationChanges = (address?: `0x${string}`) => {
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching borrower registration changes: ", error)
+      logger.error(
+        { err: error },
+        "Error fetching borrower registration changes",
+      )
     }
   }, [error])
 

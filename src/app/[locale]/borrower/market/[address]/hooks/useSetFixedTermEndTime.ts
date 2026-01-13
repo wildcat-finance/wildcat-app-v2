@@ -6,6 +6,7 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { logger } from "@/lib/logging/client"
 
 export const useSetFixedTermEndTime = (
   marketAccount: MarketAccount,
@@ -60,7 +61,10 @@ export const useSetFixedTermEndTime = (
       })
     },
     onError(error) {
-      console.log(error)
+      logger.error(
+        { err: error, market: marketAccount.market.address },
+        "Failed to set fixed term end time",
+      )
     },
   })
 }

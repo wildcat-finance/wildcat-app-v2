@@ -2,13 +2,13 @@ import {
   getLensContract,
   getLensV2Contract,
   hasDeploymentAddress,
-  logger,
   Market,
   MarketVersion,
   SignerOrProvider,
 } from "@wildcatfi/wildcat-sdk"
 
 import { NetworkInfo, NETWORKS } from "@/config/network"
+import { logger } from "@/lib/logging/client"
 import { TOKENS_ADDRESSES } from "@/utils/constants"
 
 export async function updateMarkets(
@@ -63,7 +63,10 @@ export async function updateMarkets(
               market.updateWith(updates[i])
             })
           } catch (err) {
-            console.log("Wrong underlying network detected", err)
+            logger.warn(
+              { err, chainId: networkData.chainId },
+              "Wrong underlying network detected",
+            )
           }
         })
       : []),
@@ -76,10 +79,13 @@ export async function updateMarkets(
           market.updateWith(updates[i])
         })
       } catch (err) {
-        console.log("Wrong underlying network detected", err)
+        logger.warn(
+          { err, chainId: networkData.chainId },
+          "Wrong underlying network detected",
+        )
       }
     }),
   ])
-  logger.debug(`Got ${markets.length} market updates`)
+  logger.debug({ count: markets.length }, "Got market updates")
   return [...v1Chunks.flat(), ...v2Chunks.flat()]
 }

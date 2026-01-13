@@ -16,6 +16,7 @@ import { NextRequest } from "next/server"
 import { TargetChainId, TargetNetwork } from "@/config/network"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { prisma } from "@/lib/db"
+import { logger } from "@/lib/logging/server"
 import {
   BasicBorrowerInfo,
   fillInMlaTemplate,
@@ -620,7 +621,7 @@ describe("API", () => {
   describe("[POST] /api/mla/templates", () => {
     test("Create a new MLA template", async () => {
       if ((await prisma.mlaTemplate.count()) > 0) {
-        console.log("Skipping MLA template creation because it already exists")
+        logger.info("Skipping MLA template creation because it already exists")
         return
       }
 
@@ -642,7 +643,7 @@ describe("API", () => {
       )
       const response = await postMlaTemplate(req)
       expect(response.status).toBe(200)
-      console.log("Created MLA template")
+      logger.info("Created MLA template")
     })
   })
 

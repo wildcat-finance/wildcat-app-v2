@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { Dispatch } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
@@ -9,6 +8,7 @@ import { useAccount } from "wagmi"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { logger } from "@/lib/logging/client"
 
 export const useWithdraw = (
   marketAccount: MarketAccount,
@@ -89,7 +89,15 @@ export const useWithdraw = (
       })
     },
     onError(error, amount) {
-      console.log(error, amount)
+      logger.error(
+        {
+          err: error,
+          amount,
+          market: marketAccount.market.address,
+          queueFullWithdrawal,
+        },
+        "Failed to withdraw",
+      )
     },
   })
 }

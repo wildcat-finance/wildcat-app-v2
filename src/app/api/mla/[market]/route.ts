@@ -83,8 +83,11 @@ export async function POST(
   const provider = getProviderForServer(body.chainId)
   const codeSize = (await provider.getCode(marketAddress)).length
   const { chainId } = body
-  console.log(`Code size for market ${marketAddress}: ${codeSize}`)
-  console.log(body.timeSigned)
+  logger.info({ marketAddress, chainId, codeSize }, "Market code size")
+  logger.info(
+    { marketAddress, chainId, timeSigned: body.timeSigned },
+    "MLA time signed",
+  )
 
   const refusal = await prisma.refusalToAssignMla.findFirst({
     where: {
