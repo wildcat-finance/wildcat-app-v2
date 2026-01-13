@@ -32,7 +32,7 @@ export const useBorrowerNames = () => {
     queryKey: [USE_REGISTERED_BORROWERS_KEY],
     queryFn: getBorrowers,
     refetchOnMount: false,
-    refetchInterval: 10_000,
+    refetchInterval: 20_000,
   })
   return {
     data: data === null ? undefined : data,

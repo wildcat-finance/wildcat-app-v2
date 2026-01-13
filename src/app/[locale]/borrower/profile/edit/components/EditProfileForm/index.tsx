@@ -39,6 +39,7 @@ import JurisdictionsByCountry from "@/config/jurisdictions-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import { useAuthToken, useLogin } from "@/hooks/useApiAuth"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { logger } from "@/lib/logging/client"
 import { mockedNaturesOptions } from "@/mocks/mocks"
 import { COLORS } from "@/theme/colors"
 
@@ -178,7 +179,7 @@ export default function EditProfileForm({
         afterSubmit?.()
       },
       onError: (error) => {
-        console.error(error)
+        logger.error({ err: error }, "Failed to update borrower profile")
       },
     })
   }
@@ -307,7 +308,10 @@ export default function EditProfileForm({
     const jurisdictionWatch = privateWatch("jurisdiction")
     const entityKindWatch = privateWatch("entityKind")
     if (countryWatch) {
-      console.log(`Update country from useEffect`)
+      logger.debug(
+        { countryWatch, jurisdictionWatch, entityKindWatch },
+        "Update country from useEffect",
+      )
       if (subdivisionOptions.length === 0) {
         setPrivateValue("jurisdiction", "", { shouldValidate: true })
       } else if (subdivisionOptions.length === 1) {

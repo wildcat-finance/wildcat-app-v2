@@ -8,6 +8,7 @@ import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.js
 import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { logger } from "@/lib/logging/client"
 import { ROUTES } from "@/routes"
 import { formatUnixMsAsDate } from "@/utils/formatters"
 
@@ -79,16 +80,21 @@ export const useSubmitAcceptInvitation = () => {
       )
 
       if (result.signature) {
-        console.log(`Got Signature`)
-        console.log({
-          signature: result.signature,
-          name,
-          timeSigned,
-          address,
-        })
+        logger.info(
+          {
+            signature: result.signature,
+            name,
+            timeSigned,
+            address,
+          },
+          "Got signature",
+        )
       } else if (result.safeTxHash) {
-        console.log(`Got result.safeTxHash`)
-        console.log(await sdk?.txs.getBySafeTxHash(result.safeTxHash))
+        const safeTx = await sdk?.txs.getBySafeTxHash(result.safeTxHash)
+        logger.info(
+          { safeTxHash: result.safeTxHash, safeTx },
+          "Got safe tx hash",
+        )
       }
       const response = await fetch("/api/invite", {
         method: "PUT",
@@ -115,13 +121,13 @@ export const useSubmitAcceptInvitation = () => {
       return result
     },
     onSuccess: () => {
-      console.log(`Invalidating queries`)
+      logger.info("Invalidating borrower invite queries")
       client.invalidateQueries({ queryKey: [USE_BORROWER_INVITE_KEY] })
       client.invalidateQueries({ queryKey: [USE_BORROWER_INVITE_EXISTS_KEY] })
       replace(ROUTES.borrower.root)
     },
     onError(error) {
-      console.log(error)
+      logger.error({ err: error }, "Failed to accept invitation")
     },
   })
 }

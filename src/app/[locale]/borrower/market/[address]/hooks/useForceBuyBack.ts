@@ -7,6 +7,7 @@ import { parseUnits } from "ethers/lib/utils"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { logger } from "@/lib/logging/client"
 
 export const useForceBuyBack = (
   marketAccount: MarketAccount,
@@ -81,7 +82,10 @@ export const useForceBuyBack = (
       })
     },
     onError(error) {
-      console.log(error)
+      logger.error(
+        { err: error, market: marketAccount.market.address },
+        "Failed to force buy back",
+      )
     },
   })
 }

@@ -5,6 +5,7 @@ import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { logger } from "@/lib/logging/client"
 
 export const useFaucet = (marketAccount: MarketAccount) => {
   const signer = useEthersSigner()
@@ -54,7 +55,10 @@ export const useFaucet = (marketAccount: MarketAccount) => {
       })
     },
     onError(error) {
-      console.log(error)
+      logger.error(
+        { err: error, market: marketAccount.market.address },
+        "Failed to request faucet tokens",
+      )
     },
   })
 }

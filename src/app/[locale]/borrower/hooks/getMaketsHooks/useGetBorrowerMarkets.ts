@@ -16,6 +16,8 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { logger } from "@/lib/logging/client"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
 
@@ -38,7 +40,7 @@ export function useGetBorrowerMarketsQuery({
   const address = (borrowerAddress ?? userAddress)?.toLowerCase()
 
   async function queryBorrowerMarkets() {
-    console.log(`Running getMarketsForBorrower!`)
+    logger.debug({ address }, "Running getMarketsForBorrower")
     if (!address) return []
     // eslint-disable-next-line camelcase
     const filter = (combineFilters([
@@ -65,7 +67,10 @@ export function useGetBorrowerMarketsQuery({
       const subgraphMarkets = await queryBorrowerMarkets()
       return updateMarkets(subgraphMarkets, provider, network)
     } catch (error) {
-      console.log("Error fetching borrower markets", error)
+      logger.error(
+        { err: error, address, chainId },
+        "Error fetching borrower markets",
+      )
       throw error
     }
   }

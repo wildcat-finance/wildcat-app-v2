@@ -153,6 +153,7 @@ export const useGetMarketAccountForBorrowerLegacy = (
     market,
     lender: address ?? constants.AddressZero,
     provider: signerOrProvider,
+
     enabled: !!market && !!signerOrProvider && !isWrongNetwork,
   })
 }
