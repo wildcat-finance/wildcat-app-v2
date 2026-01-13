@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { getBasicBorrowerData } from "@wildcatfi/wildcat-sdk"
 
-import { POLLING_INTERVAL } from "@/config/polling"
+import { POLLING_INTERVALS } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
@@ -20,6 +20,6 @@ export const useGetBasicBorrowerData = (borrowerAddress?: string) => {
       getBasicBorrowerData(subgraphClient, borrowerAddressLower as string),
     enabled: !!borrowerAddressLower && !!chainId,
     refetchOnMount: false,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
   })
 }

@@ -14,7 +14,7 @@ import {
 import { SubgraphGetMarketQueryVariables } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { constants } from "ethers"
 
-import { POLLING_INTERVAL } from "@/config/polling"
+import { POLLING_INTERVALS } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
@@ -66,7 +66,7 @@ export function useLenderMarketAccountQuery({
       lenderAddress,
       "initial",
     ),
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
     queryFn: queryMarketAccount,
     enabled,
     refetchOnMount: false,
@@ -113,7 +113,7 @@ export function useLenderMarketAccountQuery({
       "update",
     ),
     queryFn: updateMarketAccount,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
     placeholderData: keepPreviousData,
     enabled: !!data,
     refetchOnMount: false,
