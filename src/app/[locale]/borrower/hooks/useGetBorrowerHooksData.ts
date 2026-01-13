@@ -15,7 +15,7 @@ import {
 import { useAccount } from "wagmi"
 
 import { NETWORKS_BY_ID } from "@/config/network"
-import { POLLING_INTERVAL } from "@/config/polling"
+import { POLLING_INTERVALS } from "@/config/polling"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { logger } from "@/lib/logging/client"
@@ -104,7 +104,7 @@ export function useGetBorrowerHooksDataQuery({
   return useQuery({
     queryKey: [GET_BORROWER_HOOKS_DATA, address, chainId],
     queryFn: getBorrowerHooksData,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
     enabled,
     refetchOnMount: false,
   })
@@ -144,7 +144,7 @@ export function useGetBorrowerHooksDataWithSubgraphQuery({
     queryKey: [GET_BORROWER_HOOKS_DATA_WITH_SUBGRAPH, address, chainId],
     queryFn: getBorrowerHooksData,
     enabled: !!address && !!chainId && enabled,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
     refetchOnMount: false,
   })
 }
