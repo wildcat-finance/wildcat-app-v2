@@ -5,10 +5,11 @@ import {
   Market,
   MarketRecordKind,
   getMarketRecords,
+  getSubgraphClient,
 } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
-import { useSubgraphClient } from "@/providers/SubgraphProvider"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export type UseMarketRecordsProps = {
   market: Market
@@ -26,7 +27,9 @@ export function useMarketRecords({
   search,
 }: UseMarketRecordsProps) {
   const [finalEventIndex, setFinalEventIndex] = useState(market.eventIndex)
-  const subgraphClient = useSubgraphClient()
+  const { chainId } = useSelectedNetwork()
+  const targetChainId = market?.chainId ?? chainId
+  const subgraphClient = getSubgraphClient(targetChainId)
 
   const getMarketRecordsInternal = async () => {
     if (finalEventIndex === undefined) {

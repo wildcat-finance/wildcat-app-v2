@@ -1,9 +1,8 @@
 import React from "react"
 
-import { Box, Button, SvgIcon, Typography } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 import { useAccount, useSwitchChain } from "wagmi"
 
-import Clock from "@/assets/icons/clock_icon.svg"
 import { NETWORKS } from "@/config/network"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAppDispatch } from "@/store/hooks"

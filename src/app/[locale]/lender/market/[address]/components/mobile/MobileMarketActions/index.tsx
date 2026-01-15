@@ -2,16 +2,12 @@ import { Dispatch, SetStateAction } from "react"
 import * as React from "react"
 
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
-import {
-  DepositStatus,
-  HooksKind,
-  MarketAccount,
-  SupportedChainId,
-} from "@wildcatfi/wildcat-sdk"
+import { DepositStatus, HooksKind, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
+import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { useFaucet } from "@/app/[locale]/lender/market/[address]/hooks/useFaucet"
 import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
 import Clock from "@/assets/icons/clock_icon.svg"
@@ -127,7 +123,8 @@ export const MobileMarketActions = ({
 }: MobileMarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
-  const { isTestnet } = useSelectedNetwork()
+  const { isTestnet, chainId } = useSelectedNetwork()
+  const isDifferentChain = chainId !== market.chainId
 
   const notMature =
     market &&
@@ -146,10 +143,9 @@ export const MobileMarketActions = ({
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.raw.isZero()
 
-  const { data: mla, isLoading: mlaLoading } = useMarketMla(market.address)
+  const { data: mla } = useMarketMla(market.address)
   const mlaResponse = mla && "noMLA" in mla ? null : mla
-  const { data: signedMla, isLoading: signedMlaLoading } =
-    useGetSignedMla(mlaResponse)
+  const { data: signedMla } = useGetSignedMla(mlaResponse)
   const mlaRequiredAndUnsigned =
     signedMla === null && !!mla && !("noMLA" in mla)
 
@@ -169,7 +165,8 @@ export const MobileMarketActions = ({
       }}
     >
       {!mlaRequiredAndUnsigned &&
-        !withdrawals.totalClaimableAmount.raw.isZero() && (
+        !withdrawals.totalClaimableAmount.raw.isZero() &&
+        !isDifferentChain && (
           <Box
             sx={{
               display: "flex",
@@ -205,8 +202,9 @@ export const MobileMarketActions = ({
       <Box
         sx={{
           display: "flex",
-          flexDirection: mlaRequiredAndUnsigned ? "column" : "row",
-          gap: mlaRequiredAndUnsigned ? 0 : "8px",
+          flexDirection:
+            mlaRequiredAndUnsigned || isDifferentChain ? "column" : "row",
+          gap: mlaRequiredAndUnsigned || isDifferentChain ? 0 : "8px",
           padding: "12px",
           backgroundColor: COLORS.bunker,
           borderRadius: "14px",
@@ -214,7 +212,11 @@ export const MobileMarketActions = ({
           width: "100%",
         }}
       >
-        {mlaRequiredAndUnsigned && (
+        {isDifferentChain && (
+          <SwitchChainAlert desiredChainId={market.chainId} />
+        )}
+
+        {mlaRequiredAndUnsigned && !isDifferentChain && (
           <>
             <Typography
               variant="mobH3"
@@ -264,7 +266,7 @@ export const MobileMarketActions = ({
           </>
         )}
 
-        {!mlaRequiredAndUnsigned && (
+        {!mlaRequiredAndUnsigned && !isDifferentChain && (
           <>
             <Box
               sx={{
