@@ -11,11 +11,11 @@ import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { ROUTES } from "@/routes"
 import {
-  capacityComparator,
   percentComparator,
   statusComparator,
+  typeComparator,
 } from "@/utils/comparators"
-import { formatTokenWithCommas } from "@/utils/formatters"
+import { formatSecsToHours, formatTokenWithCommas } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -27,7 +27,13 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
   const rows: GridRowsProp = (markets ?? [])
     .filter((market) => !market.isClosed)
     .map((market) => {
-      const { address, name, underlyingToken, annualInterestBips } = market
+      const {
+        address,
+        name,
+        underlyingToken,
+        annualInterestBips,
+        withdrawalBatchDuration,
+      } = market
       const { borrowed } = market.getTotalDebtBreakdown()
 
       const marketStatus = getMarketStatusChip(market)
@@ -42,6 +48,7 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
         debt: borrowed.raw.lt(0)
           ? new TokenAmount(BigNumber.from(0), underlyingToken)
           : borrowed,
+        withdrawalBatchDuration,
       }
     })
 
@@ -49,8 +56,8 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
     {
       field: "name",
       headerName: t("borrowerProfile.profile.activeMarkets.table.name"),
-      flex: 3,
-      minWidth: 208,
+      flex: 2,
+      minWidth: 200,
       headerAlign: "left",
       align: "left",
       renderCell: (params) => (
@@ -58,25 +65,35 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
           href={`${ROUTES.lender.market}/${params.row.id}`}
           style={{
             ...LinkCell,
-            justifyContent: "flex-start",
+            paddingRight: "16px",
+            justifyContent: "center",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "6px",
+            minWidth: 0,
           }}
         >
-          <span
-            style={{
+          <Typography
+            variant="text3"
+            sx={{
+              display: "block",
+              width: "100%",
+              minWidth: 0,
               overflow: "hidden",
+              whiteSpace: "nowrap",
               textOverflow: "ellipsis",
-              maxWidth: "200px",
             }}
           >
             {params.value}
-          </span>
+          </Typography>
         </Link>
       ),
     },
     {
       field: "status",
       headerName: t("borrowerProfile.profile.activeMarkets.table.status"),
-      minWidth: 120,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
@@ -88,21 +105,20 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
             justifyContent: "flex-start",
           }}
         >
-          <Box width="130px">
+          <Box width="120px">
             <MarketStatusChip status={params.value} />
           </Box>
         </Link>
       ),
-      flex: 1,
     },
     {
       field: "term",
       headerName: t("borrowerProfile.profile.activeMarkets.table.term"),
-      minWidth: 170,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "left",
       align: "left",
-      sortComparator: capacityComparator,
-      flex: 2,
+      sortComparator: typeComparator,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -112,7 +128,7 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
           }}
         >
           <Box minWidth="170px">
-            <MarketTypeChip {...params.value} />
+            <MarketTypeChip type="table" {...params.value} />
           </Box>
         </Link>
       ),
@@ -120,27 +136,49 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
     {
       field: "asset",
       headerName: t("borrowerProfile.profile.activeMarkets.table.asset"),
-      minWidth: 95,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
-      flex: 1,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+          }}
         >
           {params.value}
         </Link>
       ),
     },
     {
+      field: "withdrawalBatchDuration",
+      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      minWidth: 100,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.lender.market}/${params.row.id}`}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+          }}
+        >
+          {formatSecsToHours(params.value, true)}
+        </Link>
+      ),
+    },
+    {
       field: "lenderAPR",
       headerName: t("borrowerProfile.profile.activeMarkets.table.apr"),
-      minWidth: 95,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       sortComparator: percentComparator,
-      flex: 1,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -153,10 +191,10 @@ export const MarketsSection = ({ markets }: { markets?: Market[] }) => {
     {
       field: "debt",
       headerName: t("borrowerProfile.profile.activeMarkets.table.debt"),
-      minWidth: 110,
+      flex: 1,
+      minWidth: 100,
       headerAlign: "right",
       align: "right",
-      flex: 1.5,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
