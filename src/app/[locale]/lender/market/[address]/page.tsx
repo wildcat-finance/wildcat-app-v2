@@ -326,7 +326,7 @@ export default function LenderMarketDetails({
             />
           </Box>
 
-          {authorizedInMarket && (
+          {(authorizedInMarket || isDifferentChain) && (
             <MobileMarketActions
               marketAccount={marketAccount}
               withdrawals={withdrawals}

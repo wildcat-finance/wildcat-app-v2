@@ -127,7 +127,10 @@ export const MobileMarketActions = ({
     desiredChainId: market.chainId,
     includeAgreementStatus: false,
   })
+
   const isDifferentChain = isSelectionMismatch || isWrongNetwork
+
+  console.log("isDifferentChain")
 
   const notMature =
     market &&
