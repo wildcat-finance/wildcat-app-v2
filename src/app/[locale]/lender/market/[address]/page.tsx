@@ -21,11 +21,11 @@ import { Footer } from "@/components/Footer"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
-import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import {
@@ -57,9 +57,11 @@ export default function LenderMarketDetails({
   const dispatch = useAppDispatch()
   const { isConnected } = useAccount()
 
-  const { isWrongNetwork, targetChainId } = useCurrentNetwork()
   const searchParams = useSearchParams()
-  const marketChainId = parseInt(searchParams.get("chainId") ?? "", 10)
+  const marketChainIdRaw = parseInt(searchParams.get("chainId") ?? "", 10)
+  const marketChainId = Number.isFinite(marketChainIdRaw)
+    ? marketChainIdRaw
+    : undefined
 
   const {
     data: market,
@@ -70,16 +72,22 @@ export default function LenderMarketDetails({
     chainId: marketChainId,
   })
 
+  const { isWrongNetwork, isSelectionMismatch, selectedChainId } =
+    useNetworkGate({
+      desiredChainId: market?.chainId ?? marketChainId,
+      includeAgreementStatus: false,
+    })
+
   const { data: marketAccount, isLoadingInitial: isMarketAccountLoading } =
     useLenderMarketAccount(market)
   const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
     useGetLenderWithdrawals(market)
   const { data: marketSummary, isLoading: isLoadingSummary } = useMarketSummary(
     address.toLowerCase(),
-    market?.chainId ?? targetChainId,
+    market?.chainId ?? selectedChainId,
   )
 
-  const isDifferentChain = market?.chainId !== targetChainId
+  const isDifferentChain = isSelectionMismatch || isWrongNetwork
 
   const authorizedInMarket =
     marketAccount &&

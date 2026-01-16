@@ -13,7 +13,7 @@ import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[
 import Clock from "@/assets/icons/clock_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
 import { useMarketMla } from "@/hooks/useMarketMla"
-import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -123,8 +123,11 @@ export const MobileMarketActions = ({
 }: MobileMarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
-  const { isTestnet, chainId } = useSelectedNetwork()
-  const isDifferentChain = chainId !== market.chainId
+  const { isTestnet, isSelectionMismatch, isWrongNetwork } = useNetworkGate({
+    desiredChainId: market.chainId,
+    includeAgreementStatus: false,
+  })
+  const isDifferentChain = isSelectionMismatch || isWrongNetwork
 
   const notMature =
     market &&

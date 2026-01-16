@@ -1,12 +1,10 @@
 import React from "react"
 
 import { Box, Button, Typography } from "@mui/material"
-import { useAccount, useSwitchChain } from "wagmi"
 
 import { NETWORKS } from "@/config/network"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { useAppDispatch } from "@/store/hooks"
-import { setSelectedNetwork } from "@/store/slices/selectedNetworkSlice/selectedNetworkSlice"
+import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { COLORS } from "@/theme/colors"
 
 import { SwitchChainAlertProps } from "./interface"
@@ -20,9 +18,10 @@ import {
 const PrimaryNetworks = Object.values(NETWORKS)
 
 export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
-  const { switchChain } = useSwitchChain()
-  const { address } = useAccount()
-  const dispatch = useAppDispatch()
+  const { requestSwitchNetwork, isSwitching } = useNetworkGate({
+    desiredChainId,
+    includeAgreementStatus: false,
+  })
 
   const isMobile = useMobileResolution()
 
@@ -31,10 +30,7 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
     "Unknown Network"
 
   const handleSwitchChain = () => {
-    if (address) {
-      switchChain({ chainId: desiredChainId })
-    }
-    dispatch(setSelectedNetwork(desiredChainId))
+    requestSwitchNetwork()
   }
 
   if (isMobile)
@@ -87,8 +83,9 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
             lineHeight: "20px",
           }}
           onClick={handleSwitchChain}
+          disabled={isSwitching}
         >
-          Switch Network
+          {isSwitching ? "Switching..." : "Switch Network"}
         </Button>
       </>
     )
@@ -117,8 +114,9 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
           variant="contained"
           sx={ButtonStyle}
           onClick={handleSwitchChain}
+          disabled={isSwitching}
         >
-          Switch Network
+          {isSwitching ? "Switching..." : "Switch Network"}
         </Button>
       </Box>
     </Box>
