@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.8.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.7.0...v2.8.0) (2026-01-16)
+
+
+### Features
+
+* add withdrawal duration column to borrower profile's markets tables and implement next headers ([68f7a3c](https://github.com/wildcat-finance/wildcat-app-v2/commit/68f7a3c3de5ee8cf4d795dedd6bca4c8594ba5fe))
+
+
+### Bug Fixes
+
+* **borrower-profile-wds:** add wds column to tables and fix mobile view ([471b86b](https://github.com/wildcat-finance/wildcat-app-v2/commit/471b86b27fffe3154ae3647e8a7e57c5fb8af164))
+* **borrower-profile-wds:** add wds column to tables and fix mobile view ([471b86b](https://github.com/wildcat-finance/wildcat-app-v2/commit/471b86b27fffe3154ae3647e8a7e57c5fb8af164))
+* **borrower-profile-wds:** add wds column to tables and fix mobile view ([616afb5](https://github.com/wildcat-finance/wildcat-app-v2/commit/616afb5959e4edf97489fcb4f17400fc3402e818))
+
 ## [2.7.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.6.1...v2.7.0) (2026-01-08)
 
 
