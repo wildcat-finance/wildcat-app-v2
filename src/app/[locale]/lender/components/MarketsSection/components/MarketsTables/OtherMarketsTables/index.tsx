@@ -5,7 +5,6 @@ import { Box, Button, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import {
   DepositStatus,
-  MarketAccount,
   MarketVersion,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
@@ -13,12 +12,8 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
-import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
-import {
-  BorrowerWithName,
-  useBorrowerNames,
-} from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MobileMarketCard } from "@/app/[locale]/lender/components/mobile/MobileMarketCard"
 import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
 import Ethena from "@/assets/companies-icons/ethena_icon.svg"
@@ -31,7 +26,6 @@ import { AprTooltip } from "@/components/AdsBanners/Common/AprTooltip"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
-import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { TablePagination } from "@/components/TablePagination"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
@@ -44,44 +38,25 @@ import {
 } from "@/utils/comparators"
 import { AUROS_ETHENA_ADDRESS, pageCalcHeights } from "@/utils/constants"
 import {
+  buildMarketHref,
   formatBps,
   formatSecsToHours,
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
-import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
+import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
-export type LenderOtherMarketsTableModel = {
-  id: string
-  status: ReturnType<typeof getMarketStatusChip>
-  term: ReturnType<typeof getMarketTypeChip>
-  name: string
-  borrower: string | undefined
-  borrowerAddress: string | undefined
-  asset: string
-  debt: TokenAmount | undefined
-  apr: number
-  withdrawalBatchDuration: number
-  isSelfOnboard: boolean
-  button?: string
-  capacityLeft: TokenAmount
-}
+import {
+  LenderOtherMarketsTableModel,
+  LenderOtherMarketsTableProps,
+} from "./interface"
 
 export const OtherMarketsTables = ({
   marketAccounts,
   isLoading,
   filters,
-}: {
-  marketAccounts: MarketAccount[]
-  borrowers: BorrowerWithName[]
-  isLoading: boolean
-  filters: {
-    nameFilter: string
-    assetFilter: SmallFilterSelectItem[]
-    statusFilter: MarketStatus[]
-  }
-}) => {
+}: LenderOtherMarketsTableProps) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const isMobile = useMobileResolution()
@@ -121,6 +96,7 @@ export const OtherMarketsTables = ({
         maxTotalSupply,
         totalSupply,
         withdrawalBatchDuration,
+        chainId,
       } = market
 
       const borrower = (borrowers ?? []).find(
@@ -150,6 +126,7 @@ export const OtherMarketsTables = ({
           market.version === MarketVersion.V2 &&
           account.depositAvailability === DepositStatus.Ready,
         button: address,
+        chainId,
       }
     },
   )
@@ -167,7 +144,7 @@ export const OtherMarketsTables = ({
       align: "left",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId)}
           style={{
             ...LinkCell,
             paddingRight: "16px",
@@ -211,7 +188,7 @@ export const OtherMarketsTables = ({
       sortComparator: statusComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId)}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -233,7 +210,7 @@ export const OtherMarketsTables = ({
       sortComparator: typeComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId)}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -273,7 +250,7 @@ export const OtherMarketsTables = ({
 
         return (
           <Link
-            href={`${ROUTES.lender.market}/${params.row.id}`}
+            href={buildMarketHref(params.row.id, params.row.chainId)}
             style={{ ...LinkCell, justifyContent: "flex-end" }}
           >
             <AprChip
@@ -295,7 +272,7 @@ export const OtherMarketsTables = ({
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId)}
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
@@ -314,7 +291,7 @@ export const OtherMarketsTables = ({
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId)}
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
@@ -333,10 +310,10 @@ export const OtherMarketsTables = ({
       align: "right",
       sortComparator: tokenAmountComparator,
       renderCell: (
-        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
+        params: GridRenderCellParams<LenderOtherMarketsTableModel, TokenAmount>,
       ) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId)}
           style={{
             textDecoration: "none",
             width: "100%",
@@ -366,7 +343,7 @@ export const OtherMarketsTables = ({
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId)}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value
@@ -390,7 +367,7 @@ export const OtherMarketsTables = ({
         <Link
           href={
             params.row.isSelfOnboard
-              ? `${ROUTES.lender.market}/${params.row.id}`
+              ? buildMarketHref(params.row.id, params.row.chainId)
               : `${ROUTES.lender.profile}/${params.row.borrowerAddress}`
           }
           style={{ ...LinkCell, justifyContent: "flex-end" }}

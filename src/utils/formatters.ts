@@ -8,6 +8,7 @@ import duration from "dayjs/plugin/duration"
 import { BigNumber } from "ethers"
 import { formatUnits } from "ethers/lib/utils"
 
+import { ROUTES } from "@/routes"
 import { dayjs } from "@/utils/dayjs"
 
 // <---- TIMESTAMP TO DATE FORMATTERS ---->
@@ -164,6 +165,11 @@ export const formatRayAsPercentage = (ray: BigNumber, fixed?: number) => {
   const percentage = parseFloat(formatUnits(ray, 27)) * 100
 
   return stripTrailingZeroes(percentage.toFixed(fixed || 2))
+}
+
+export const buildMarketHref = (marketAddress: string, chainId?: number) => {
+  const base = `${ROUTES.lender.market}/${marketAddress}`
+  return chainId ? `${base}?chainId=${chainId}` : base
 }
 
 // <---- TOKEN PARAMETERS FORMATTERS ---->
