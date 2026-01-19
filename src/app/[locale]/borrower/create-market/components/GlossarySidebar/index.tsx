@@ -155,7 +155,7 @@ export const GlossarySidebar = ({
       </Typography>
 
       {glossaryArray.map((block) => (
-        <Box sx={GlossaryItem}>
+        <Box key={`${block.title}-${block.description}`} sx={GlossaryItem}>
           <Typography variant="text3">{`‣ ${block.title}`}</Typography>
 
           <Typography variant="text3" color={COLORS.santasGrey}>

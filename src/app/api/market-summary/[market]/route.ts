@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { TargetChainId } from "@/config/network"
 import { prisma } from "@/lib/db"
+import { logger } from "@/lib/logging/server"
 import { getProviderForServer } from "@/lib/provider"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 import { getZodParseError } from "@/lib/zod-error"
@@ -20,6 +21,7 @@ export async function GET(
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
   }
+  logger.info({ market, chainId }, "Market summary request")
   const marketDescription = await prisma.marketDescription.findFirst({
     where: { marketAddress: market, chainId },
   })

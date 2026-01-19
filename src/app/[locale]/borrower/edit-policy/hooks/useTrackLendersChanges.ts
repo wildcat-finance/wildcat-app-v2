@@ -5,6 +5,7 @@ import {
   PolicyLenderTableDataType,
   PolicyLenderMarketTableDataType,
 } from "@/app/[locale]/borrower/edit-policy/interface"
+import { logger } from "@/lib/logging/client"
 
 const areMarketsEqual = (
   initialMarkets: PolicyLenderMarketTableDataType[],
@@ -115,7 +116,7 @@ function useTrackPolicyLendersChanges(
 
   const isLendersHaveChanges = !areLendersEqual(initialLenders, lendersRows)
 
-  console.log("isLendersHaveChanges", isLendersHaveChanges)
+  logger.debug({ isLendersHaveChanges }, "Lender changes tracked")
 
   return {
     isLendersHaveChanges,

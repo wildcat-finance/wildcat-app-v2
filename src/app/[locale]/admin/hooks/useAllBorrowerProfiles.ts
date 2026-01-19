@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query"
 
 import { BorrowerProfileForAdminView } from "@/app/api/profiles/interface"
+import { POLLING_INTERVALS } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
@@ -30,6 +31,6 @@ export const useAllBorrowerProfiles = () => {
       return (await response.json()) as BorrowerProfileForAdminView[]
     },
     enabled: token?.isAdmin,
-    refetchInterval: 10_000,
+    refetchInterval: POLLING_INTERVALS.fast,
   })
 }

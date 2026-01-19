@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { toastError, toastRequest } from "@/components/Toasts"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { logger } from "@/lib/logging/client"
 import { HAS_SIGNED_SLA_KEY } from "@/providers/RedirectsProvider/hooks/useHasSignedSla"
 import { SHOULD_REDIRECT_KEY } from "@/providers/RedirectsProvider/hooks/useShouldRedirect"
 import { formatUnixMsAsDate } from "@/utils/formatters"
@@ -57,9 +58,8 @@ export const useSignAgreement = () => {
           const settings = {
             offChainSigning: true,
           }
-          console.log(
-            `Set safe settings: ${await sdk.eth.setSafeSettings([settings])}`,
-          )
+          const settingsResult = await sdk.eth.setSafeSettings([settings])
+          logger.info({ settingsResult }, "Set safe settings")
 
           const result = await sdk.txs.signMessage(agreementText)
 
@@ -92,16 +92,21 @@ export const useSignAgreement = () => {
       )
 
       if (result.signature) {
-        console.log(`Got Signature`)
-        console.log({
-          signature: result.signature,
-          name,
-          timeSigned,
-          address,
-        })
+        logger.info(
+          {
+            signature: result.signature,
+            name,
+            timeSigned,
+            address,
+          },
+          "Got signature",
+        )
       } else if (result.safeTxHash) {
-        console.log(`Got result.safeTxHash`)
-        console.log(await sdk?.txs.getBySafeTxHash(result.safeTxHash))
+        const safeTx = await sdk?.txs.getBySafeTxHash(result.safeTxHash)
+        logger.info(
+          { safeTxHash: result.safeTxHash, safeTx },
+          "Got safe tx hash",
+        )
       }
       await submitSignature({
         signature: result.signature ?? "0x",
@@ -121,7 +126,7 @@ export const useSignAgreement = () => {
       router.back()
     },
     onError(error) {
-      console.log(error)
+      logger.error({ err: error }, "Failed to sign agreement")
     },
   })
 }

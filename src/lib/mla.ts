@@ -17,7 +17,6 @@ import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import { ACCEPT_MLA_MESSAGE } from "@/config/mla-acceptance"
 import { NETWORKS_BY_ID } from "@/config/network"
-import { dayjs } from "@/utils/dayjs"
 import { formatBps, formatUnixMsAsDate } from "@/utils/formatters"
 
 type NetworkData = {
@@ -322,8 +321,6 @@ export function getFieldValuesForBorrower({
 }) {
   const market =
     marketInput instanceof Market ? getMarketParams(marketInput) : marketInput
-  // console.log(`Min Deposit: ${hooksConfig?.minimumDeposit}`)
-
   const { jurisdiction, entityKind } = borrowerInfo
 
   const jurisdictionObj =

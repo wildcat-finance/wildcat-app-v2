@@ -25,6 +25,7 @@ import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { Loader } from "@/components/Loader"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { logger } from "@/lib/logging/client"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
@@ -154,7 +155,7 @@ export default function CreateMarketPage() {
   const handleDeployMarket = newMarketForm.handleSubmit((data) => {
     const marketParams = newMarketForm.getValues()
 
-    console.log(`Deploying market with MLA template ID: ${marketParams.mla}`)
+    logger.info({ mlaTemplateId: marketParams.mla }, "Deploying market")
 
     // const deployedMarkets = selectedHooksTemplate?.totalMarkets
     if (assetData && tokenAsset && selectedHooksTemplate && mlaSignature) {
@@ -218,15 +219,12 @@ export default function CreateMarketPage() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any
 
-      // console.log(`--- MARKET PARAMS ---`)
-      // console.log(realParams)
-      // console.log(`--- END MARKET PARAMS ---`)
       deployNewMarket(realParams)
     }
   })
 
   const handleClickDeploy = () => {
-    console.log(`clicked deploy`)
+    logger.info("Clicked deploy")
     setFinalOpen(true)
     handleDeployMarket()
   }

@@ -10,9 +10,10 @@ import { useDispatch } from "react-redux"
 
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { logger } from "@/lib/logging/client"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
-import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
+import { formatTokenWithCommas } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
 type MarketRecords = {
@@ -32,7 +33,7 @@ export const useLenderDepositeds = (address?: `0x${string}`) => {
 
   useEffect(() => {
     if (marketRecords) {
-      console.dir(marketRecords)
+      logger.debug({ marketRecords }, "Lender deposit records")
       marketRecords.forEach((data: MarketRecords) => {
         data.records.forEach((record: DepositRecord) => {
           dispatch(
@@ -80,7 +81,7 @@ export const useLenderDepositeds = (address?: `0x${string}`) => {
           ])
         })
         .catch((err) => {
-          console.log(err)
+          logger.error({ err }, "Failed to fetch lender deposits")
           return undefined
         })
     })

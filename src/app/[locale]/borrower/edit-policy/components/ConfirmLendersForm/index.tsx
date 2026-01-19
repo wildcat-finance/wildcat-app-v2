@@ -13,6 +13,7 @@ import Coins from "@/assets/icons/coins_icon.svg"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { LinkGroup } from "@/components/LinkComponent"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { logger } from "@/lib/logging/client"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setEditStep } from "@/store/slices/editPolicySlice/editPolicySlice"
 import { COLORS } from "@/theme/colors"
@@ -77,22 +78,22 @@ export const ConfirmLendersForm = ({
     const nameUpdated = originalPolicyName !== pendingPolicyName
     let actionIndex = 1
     if (nameUpdated) {
-      console.log(
-        // eslint-disable-next-line no-plusplus
-        `ACTION #${actionIndex++} - Update policy name to ${pendingPolicyName}`,
+      logger.info(
+        { actionIndex, policyName: pendingPolicyName },
+        "Update policy name",
       )
+      actionIndex += 1
     }
     if (newLenders.length) {
-      console.log(
-        // eslint-disable-next-line no-plusplus
-        `ACTION #${actionIndex++} - Add ${newLenders.length} new lenders`,
-      )
+      logger.info({ actionIndex, count: newLenders.length }, "Add new lenders")
+      actionIndex += 1
     }
     if (removedLenders.length) {
-      console.log(
-        // eslint-disable-next-line no-plusplus
-        `ACTION #${actionIndex++} - Remove ${removedLenders.length} lenders`,
+      logger.info(
+        { actionIndex, count: removedLenders.length },
+        "Remove lenders",
       )
+      actionIndex += 1
     }
     submitUpdates({
       addLenders: newLenders.map((l) => l.address),

@@ -3,9 +3,9 @@
 import * as React from "react"
 import { useEffect, useState } from "react"
 
-import { Box, Button, Divider, IconButton, SvgIcon } from "@mui/material"
+import { Box, Button, Divider, SvgIcon } from "@mui/material"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { MarketsSection } from "@/app/[locale]/borrower/profile/components/MarketsSection"

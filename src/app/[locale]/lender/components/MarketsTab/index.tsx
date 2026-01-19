@@ -11,6 +11,7 @@ import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames
 import { MarketsTableAccordion } from "@/app/[locale]/lender/components/MarketsTab/MarketsTableAccordion"
 import { OtherMarketsTable } from "@/app/[locale]/lender/components/MarketsTab/OtherMarketsTable"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
+import { logger } from "@/lib/logging/client"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   setActiveAmount,
@@ -74,7 +75,7 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
 
   const { data: borrowers } = useBorrowerNames()
 
-  console.log(`Got ${borrowers?.length} borrowers`)
+  logger.debug({ count: borrowers?.length }, "Got borrowers")
 
   const isLoading = isLoadingInitial || isLoadingUpdate
 

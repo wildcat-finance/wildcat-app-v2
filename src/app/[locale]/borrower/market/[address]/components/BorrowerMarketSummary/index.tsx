@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 import AuthWrapper from "@/components/AuthWrapper"
 import { Markdown } from "@/components/Markdown"
 import { MarkdownEditor } from "@/components/MarkdownEditor"
+import { logger } from "@/lib/logging/client"
 import { COLORS } from "@/theme/colors"
 
 import { useUpdateMarketSummary } from "../../hooks/useUpdateMarketSummary"
@@ -41,7 +42,7 @@ const InnerMarketSummaryEditor = ({
         handleClose()
       },
       onError: (error) => {
-        console.error(error)
+        logger.error({ err: error }, "Failed to update market summary")
       },
     })
   }

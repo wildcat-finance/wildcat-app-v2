@@ -17,6 +17,7 @@ import { AddModal } from "@/app/[locale]/borrower/edit-policy/components/EditLen
 import useTrackPolicyLendersChanges from "@/app/[locale]/borrower/edit-policy/hooks/useTrackLendersChanges"
 import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
+import { logger } from "@/lib/logging/client"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   setEditStep,
@@ -47,7 +48,7 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
 
   // Functions
   const handleClickConfirm = () => {
-    console.log("handleClickConfirm")
+    logger.debug("Handle click confirm")
     dispatch(setEditStep("confirm"))
   }
 

@@ -69,7 +69,7 @@ export const LenderRestrictionsForm = ({
           )}
         >
           <Switch
-            checked={withdrawalRequiresAccessWatch}
+            checked={Boolean(withdrawalRequiresAccessWatch)}
             onChange={(e) => {
               setValue("withdrawalRequiresAccess", e.target.checked)
             }}
@@ -85,7 +85,7 @@ export const LenderRestrictionsForm = ({
           )}
         >
           <Switch
-            checked={transferRequiresAccessWatch}
+            checked={Boolean(transferRequiresAccessWatch)}
             onChange={(e) => {
               setValue("transferRequiresAccess", e.target.checked)
             }}
@@ -99,7 +99,7 @@ export const LenderRestrictionsForm = ({
           )}
         >
           <Switch
-            checked={disableTransfersWatch}
+            checked={Boolean(disableTransfersWatch)}
             onChange={(e) => {
               setValue("disableTransfers", e.target.checked)
             }}

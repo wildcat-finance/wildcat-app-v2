@@ -2,8 +2,7 @@ import { ChangeEvent, useEffect, useState } from "react"
 import * as React from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
-import { maxTokenAmount, minTokenAmount } from "@wildcatfi/wildcat-sdk"
-import humanizeDuration from "humanize-duration"
+import { minTokenAmount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"

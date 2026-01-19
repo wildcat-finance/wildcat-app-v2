@@ -11,6 +11,7 @@ import {
   getSignedMasterLoanAgreement,
   prisma,
 } from "@/lib/db"
+import { logger } from "@/lib/logging/server"
 import { fillInMlaTemplate, getFieldValuesForBorrower } from "@/lib/mla"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
@@ -67,7 +68,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { market: string } },
 ) {
-  console.log(`Got request to set MLA for market ${params.market}`)
+  logger.info({ market: params.market }, "Got request to set MLA for market")
   let body: SetMasterLoanAgreementInput
   try {
     const input = await request.json()
@@ -82,8 +83,11 @@ export async function POST(
   const provider = getProviderForServer(body.chainId)
   const codeSize = (await provider.getCode(marketAddress)).length
   const { chainId } = body
-  console.log(`Code size for market ${marketAddress}: ${codeSize}`)
-  console.log(body.timeSigned)
+  logger.info({ marketAddress, chainId, codeSize }, "Market code size")
+  logger.info(
+    { marketAddress, chainId, timeSigned: body.timeSigned },
+    "MLA time signed",
+  )
 
   const refusal = await prisma.refusalToAssignMla.findFirst({
     where: {

@@ -1,4 +1,4 @@
-import { JSX, forwardRef, ForwardedRef, ChangeEvent } from "react"
+import { JSX, forwardRef, ForwardedRef } from "react"
 
 import {
   Autocomplete,

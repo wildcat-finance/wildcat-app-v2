@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { MARKET_TERMINATEDS } from "@/graphql/queries"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { logger } from "@/lib/logging/client"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
@@ -26,7 +27,7 @@ export const useLenderMarketTerminateds = (
 
   useEffect(() => {
     if (data) {
-      console.dir(data)
+      logger.debug({ data }, "Market terminateds result")
       data.marketCloseds.forEach((terminated: TMarketTerminated) => {
         dispatch(
           addNotification({
@@ -49,7 +50,7 @@ export const useLenderMarketTerminateds = (
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching market terminateds: ", error)
+      logger.error({ err: error }, "Error fetching market terminateds")
     }
   }, [error])
 

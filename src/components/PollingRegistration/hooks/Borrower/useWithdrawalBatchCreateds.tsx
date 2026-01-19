@@ -9,13 +9,10 @@ import Clock from "@/assets/icons/clock_icon.svg"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { WITHDRAWAL_BATCH_CREATEDS } from "@/graphql/queries"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { logger } from "@/lib/logging/client"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { COLORS } from "@/theme/colors"
-import {
-  formatBps,
-  MARKET_PARAMS_DECIMALS,
-  formatSecsToHours,
-} from "@/utils/formatters"
+import { formatSecsToHours } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
 import { TWithdrawalBatchCreated } from "../../interface"
@@ -34,7 +31,7 @@ export const useWithdrawalBatchCreateds = (
 
   useEffect(() => {
     if (data) {
-      console.dir(data)
+      logger.debug({ data }, "Withdrawal batch createds result")
       data.withdrawalBatchCreateds.forEach(
         (withdrawalBatchCreated: TWithdrawalBatchCreated) => {
           if (
@@ -92,7 +89,7 @@ export const useWithdrawalBatchCreateds = (
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching created withdrawals: ", error)
+      logger.error({ err: error }, "Error fetching created withdrawals")
     }
   }, [error])
 

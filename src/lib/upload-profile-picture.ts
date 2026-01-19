@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js"
 import { decode } from "base64-arraybuffer"
 
+import { logger } from "@/lib/logging/server"
+
 export async function uploadProfilePicture(
   base64Image: string,
   address: string,
@@ -27,7 +29,7 @@ export async function uploadProfilePicture(
     })
 
   if (error) {
-    console.error("Error uploading profile picture:", error)
+    logger.error({ err: error, address }, "Error uploading profile picture")
     return undefined
   }
 

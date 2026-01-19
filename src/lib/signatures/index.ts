@@ -16,6 +16,7 @@ import {
 } from "ethers/lib/utils"
 
 import { VerifiedSignature, VerifySignatureOptions } from "./interface"
+import { logger } from "../logging/server"
 
 type JsonRpcProvider = providers.JsonRpcProvider
 
@@ -170,7 +171,7 @@ async function getSignatureAddress(
       }
     }
   } catch (err) {
-    console.log(`Bad Signature: ${signature}`)
+    logger.warn({ address }, "Bad signature")
   }
   return constants.AddressZero
 }
@@ -197,7 +198,7 @@ export async function verifySignature({
           return owners.includes(signer.toLowerCase())
         }
       } catch (err) {
-        console.log(`Not single owner signature: ${signature}`)
+        logger.warn({ address }, "Not single owner signature")
       }
     }
     return verifyGnosisSignature(address, provider, message, signature)
@@ -244,7 +245,7 @@ export async function verifyAndDescribeSignature({
           }
         }
       } catch (err) {
-        console.log(`Not single owner signature: ${signature}`)
+        logger.warn({ address }, "Not single owner signature")
       }
     }
     if (

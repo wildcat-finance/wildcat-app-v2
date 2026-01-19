@@ -12,6 +12,7 @@ import {
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { logger } from "@/lib/logging/client"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 export const useGetMarketAccountForBorrowerLegacy = (
@@ -38,7 +39,16 @@ export const useGetMarketAccountForBorrowerLegacy = (
       !chainId ||
       !targetChainId
     ) {
-      console.log("updateMarket: missing required parameters")
+      logger.warn(
+        {
+          hasMarketAccount: !!marketAccount,
+          hasAddress: !!address,
+          hasSignerOrProvider: !!signerOrProvider,
+          chainId,
+          targetChainId,
+        },
+        "updateMarket: missing required parameters",
+      )
       throw Error()
     }
     if (chainId !== marketAccount.market.chainId || chainId !== targetChainId) {

@@ -5,6 +5,7 @@ import { BorrowerProfileInput } from "@/app/api/profiles/interface"
 import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
+import { logger } from "@/lib/logging/client"
 
 import { USE_REGISTERED_BORROWERS_KEY } from "../../../hooks/useBorrowerNames"
 
@@ -123,7 +124,10 @@ export const useUpdateBorrowerProfile = () => {
       }
     },
     onError(error) {
-      console.error("Error updating profile with blockchain signature:", error)
+      logger.error(
+        { err: error },
+        "Error updating profile with blockchain signature",
+      )
     },
   })
 }
