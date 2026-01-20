@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.9.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.8.0...v2.9.0) (2026-01-20)
+
+
+### Features
+
+* multichain market view and chain-aware market URLs ([7fa485a](https://github.com/wildcat-finance/wildcat-app-v2/commit/7fa485aff5b6229117c4fbc7a72ac0ad92911e80))
+* multichain market view and chain-aware market URLs ([7fa485a](https://github.com/wildcat-finance/wildcat-app-v2/commit/7fa485aff5b6229117c4fbc7a72ac0ad92911e80))
+* multichain-markets-view ([12adc44](https://github.com/wildcat-finance/wildcat-app-v2/commit/12adc4493d1ad0cab11725138a923707749666bd))
+* multichain-markets-view ([12adc44](https://github.com/wildcat-finance/wildcat-app-v2/commit/12adc4493d1ad0cab11725138a923707749666bd))
+
+
+### Bug Fixes
+
+* **build:** update package-lock ([f8778d4](https://github.com/wildcat-finance/wildcat-app-v2/commit/f8778d4c50062c8d73bac826c2156792f1ae9ef4))
+* **chores:** sla query key invalidation and file removal ([73c4b57](https://github.com/wildcat-finance/wildcat-app-v2/commit/73c4b57bb2e992eefe81781ec5c61938822244dd))
+
 ## [2.8.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.7.0...v2.8.0) (2026-01-16)
 
 
