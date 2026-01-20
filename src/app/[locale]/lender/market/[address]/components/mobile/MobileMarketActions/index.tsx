@@ -130,8 +130,6 @@ export const MobileMarketActions = ({
 
   const isDifferentChain = isSelectionMismatch || isWrongNetwork
 
-  console.log("isDifferentChain")
-
   const notMature =
     market &&
     market.hooksConfig?.kind === HooksKind.FixedTerm &&

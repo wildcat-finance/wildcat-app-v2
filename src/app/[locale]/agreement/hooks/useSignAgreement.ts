@@ -116,7 +116,10 @@ export const useSignAgreement = () => {
       return result
     },
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: [SLA_STATUS_QUERY_KEY] })
+      client.invalidateQueries({
+        queryKey: [SLA_STATUS_QUERY_KEY],
+        exact: false,
+      })
       client.invalidateQueries({ queryKey: [HAS_SIGNED_SLA_KEY] })
       router.back()
     },
