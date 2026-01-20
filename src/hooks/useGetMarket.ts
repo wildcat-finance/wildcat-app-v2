@@ -7,92 +7,106 @@ import {
   getLensContract,
   getLensV2Contract,
 } from "@wildcatfi/wildcat-sdk"
-import {
-  GetMarketDocument,
-  SubgraphGetMarketQuery,
-  SubgraphGetMarketQueryVariables,
-} from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
+import type { SubgraphGetMarketQuery } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
-import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 export type UseMarketProps = {
   address: string | undefined
-} & Partial<Omit<SubgraphGetMarketQueryVariables, "market">>
+  chainId?: number
+}
 
-export function useGetMarket({ address, ...filters }: UseMarketProps) {
-  const subgraphClient = useSubgraphClient()
-  const { signer, provider, isWrongNetwork, chainId } = useEthersProvider()
-  const marketAddressFormatted = address?.toLowerCase()
-  // since we still need to have an address and have the correct network, it means we need to have a connected wallet, so we only need a signer
+type ApiResponse = {
+  chainId: number | null
+  market: NonNullable<SubgraphGetMarketQuery["market"]> | null
+}
+
+async function fetchApiMarket(addressLower: string, chainId?: number) {
+  const url = new URL("/api/market/get", window.location.origin)
+  url.searchParams.set("address", addressLower)
+  if (typeof chainId === "number" && Number.isFinite(chainId)) {
+    url.searchParams.set("chainId", String(chainId))
+  }
+
+  const res = await fetch(url.toString(), { cache: "no-store" })
+  if (!res.ok) throw new Error("Failed to fetch market via api")
+  return (await res.json()) as ApiResponse
+}
+
+export function useGetMarket({ address, chainId }: UseMarketProps) {
+  const marketAddressLower = address?.toLowerCase()
+
+  const api = useQuery({
+    queryKey: ["market", "apiGet", marketAddressLower, chainId ?? "discover"],
+    enabled: !!marketAddressLower,
+    queryFn: () => fetchApiMarket(marketAddressLower!, chainId),
+    staleTime: 60 * 60 * 1000, // 1h client cache
+    refetchOnWindowFocus: false,
+  })
+
+  const effectiveChainId = api.data?.chainId ?? undefined
+  const subgraphMarket = api.data?.market ?? null
+
+  const { signer, provider } = useEthersProvider({
+    chainId:
+      typeof effectiveChainId === "number" ? effectiveChainId : undefined,
+  })
   const signerOrProvider = signer || provider
 
-  async function queryMarket() {
-    if (!marketAddressFormatted || !signerOrProvider || !chainId) throw Error()
-
-    const result = await subgraphClient.query<
-      SubgraphGetMarketQuery,
-      SubgraphGetMarketQueryVariables
-    >({
-      query: GetMarketDocument,
-      variables: {
-        market: marketAddressFormatted,
-        ...filters,
-      },
-    })
-
-    return Market.fromSubgraphMarketData(
-      chainId,
-      signerOrProvider,
-      result.data.market!,
-    )
-  }
-
-  async function updateMarket(market: Market | undefined) {
-    if (!market || !signerOrProvider || !chainId) throw Error()
-    if (market.version === MarketVersion.V1) {
-      const lens = getLensContract(chainId, signerOrProvider)
-      const update = await lens.getMarketData(market.address)
-      market.updateWith(update)
-    } else {
-      const lens = getLensV2Contract(chainId, signerOrProvider)
-      const update = await lens.getMarketData(market.address)
-      market.updateWith(update)
-    }
-    if (market.provider !== signerOrProvider) {
-      market.provider = signerOrProvider
-    }
-
-    return market
-  }
-
-  async function queryFn() {
-    const marketFromSubgraph = await queryMarket()
-    return updateMarket(marketFromSubgraph)
-  }
-
-  const { data, ...result } = useQuery({
+  const query = useQuery({
     queryKey: QueryKeys.Markets.GET_MARKET(
-      chainId ?? 0,
-      marketAddressFormatted,
+      effectiveChainId ?? 0,
+      marketAddressLower,
     ),
-    queryFn,
-    refetchInterval: POLLING_INTERVAL,
     enabled:
-      !!marketAddressFormatted &&
-      !!signerOrProvider &&
-      !!chainId &&
-      !isWrongNetwork,
+      !!marketAddressLower &&
+      !!effectiveChainId &&
+      !!subgraphMarket &&
+      !!signerOrProvider,
+    refetchInterval: POLLING_INTERVAL,
+    queryFn: async () => {
+      if (!effectiveChainId || !subgraphMarket || !signerOrProvider)
+        throw Error()
+
+      const market = Market.fromSubgraphMarketData(
+        effectiveChainId,
+        signerOrProvider,
+        subgraphMarket,
+      )
+
+      if (market.version === MarketVersion.V1) {
+        const lens = getLensContract(effectiveChainId, signerOrProvider)
+        const update = await lens.getMarketData(market.address)
+        market.updateWith(update)
+      } else {
+        const lens = getLensV2Contract(effectiveChainId, signerOrProvider)
+        const update = await lens.getMarketData(market.address)
+        market.updateWith(update)
+      }
+
+      return market
+    },
     refetchOnMount: false,
+    refetchOnWindowFocus: false,
   })
 
   useEffect(() => {
-    if (data && signerOrProvider && data.provider !== signerOrProvider) {
-      data.provider = signerOrProvider
+    if (
+      query.data &&
+      signerOrProvider &&
+      query.data.provider !== signerOrProvider
+    ) {
+      query.data.provider = signerOrProvider
     }
-  }, [signerOrProvider])
+  }, [query.data, signerOrProvider])
 
-  return { ...result, data }
+  return {
+    ...query,
+    isDiscoveringChainId: api.isLoading,
+    discoveredChainId: effectiveChainId,
+    apiError: api.error,
+    apiLoading: api.isLoading,
+  }
 }

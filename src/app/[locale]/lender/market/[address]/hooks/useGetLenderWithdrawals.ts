@@ -10,6 +10,7 @@ import {
   LenderWithdrawalStatus,
   TokenAmount,
   BatchStatus,
+  getSubgraphClient,
 } from "@wildcatfi/wildcat-sdk"
 import {
   GetLenderWithdrawalsForMarketDocument,
@@ -21,8 +22,6 @@ import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
-import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type LenderWithdrawalsForMarketResult = {
@@ -37,19 +36,18 @@ export type LenderWithdrawalsForMarketResult = {
 export function useGetLenderWithdrawals(
   market: Market | undefined,
 ): TwoStepQueryHookResult<LenderWithdrawalsForMarketResult> {
-  const subgraphClient = useSubgraphClient()
   const { address } = useAccount()
-  const { chainId: targetChainId } = useSelectedNetwork()
+
+  const targetChainId = market?.chainId
+  const subgraphClient = useMemo(
+    () => (targetChainId ? getSubgraphClient(targetChainId) : undefined),
+    [targetChainId],
+  )
+
   const lender = address?.toLowerCase()
   const marketAddress = market?.address.toLowerCase()
   async function queryLenderWithdrawals() {
-    if (
-      !lender ||
-      !market ||
-      !marketAddress ||
-      market.chainId !== targetChainId
-    )
-      throw Error()
+    if (!lender || !market || !marketAddress || !subgraphClient) throw Error()
     logger.debug(`Getting lender withdrawals...`)
     const result = await subgraphClient.query<
       SubgraphGetLenderWithdrawalsForMarketQuery,
@@ -132,14 +130,14 @@ export function useGetLenderWithdrawals(
     failureReason: errorInitial,
   } = useQuery({
     queryKey: QueryKeys.Lender.GET_WITHDRAWALS.INITIAL(
-      market?.chainId ?? targetChainId,
+      targetChainId ?? 0,
       lender,
       marketAddress,
     ),
     queryFn: queryLenderWithdrawals,
     refetchInterval: POLLING_INTERVAL,
     placeholderData: keepPreviousData,
-    enabled: !!lender && !!market,
+    enabled: !!lender && !!market && !!targetChainId && !!subgraphClient,
     // refetchOnMount: false,
   })
 
@@ -267,7 +265,7 @@ export function useGetLenderWithdrawals(
     failureReason: errorUpdate,
   } = useQuery({
     queryKey: QueryKeys.Lender.GET_WITHDRAWALS.UPDATE(
-      market?.chainId ?? targetChainId,
+      targetChainId ?? 0,
       lender,
       marketAddress,
       updateQueryKeys,

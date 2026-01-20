@@ -11,6 +11,7 @@ import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
+  buildMarketHref,
   formatBps,
   formatSecsToHours,
   formatTokenWithCommas,
@@ -44,6 +45,7 @@ export type LenderMobileMarketItem = {
   loan?: TokenAmount | undefined
   asset: string
   isSelfOnboard?: boolean
+  chainId?: number
 }
 
 export const DepositArrow = () => (
@@ -185,7 +187,7 @@ export const MobileMarketCard = ({
 
         <Box sx={CardFooterButtonsContainer}>
           <Link
-            href={`${ROUTES.lender.market}/${marketItem.id}`}
+            href={buildMarketHref(marketItem.id, marketItem.chainId)}
             style={{ textDecoration: "none" }}
           >
             <Button
@@ -199,7 +201,7 @@ export const MobileMarketCard = ({
           </Link>
           {buttonText && (
             <Link
-              href={`${ROUTES.lender.market}/${marketItem.id}`}
+              href={buildMarketHref(marketItem.id, marketItem.chainId)}
               style={{ textDecoration: "none" }}
             >
               <Button

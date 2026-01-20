@@ -4,7 +4,7 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 
 import { Box, Divider, Skeleton, Typography, useTheme } from "@mui/material"
-import { redirect } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
@@ -15,16 +15,17 @@ import { MobileMlaAlert } from "@/app/[locale]/lender/market/[address]/component
 import { MobileMlaModal } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaModal/MobileMlaModal"
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
+import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
 import { Footer } from "@/components/Footer"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
-import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import {
@@ -46,13 +47,6 @@ import { LenderStatus } from "./interface"
 import { SectionContainer, SkeletonContainer, SkeletonStyle } from "./style"
 import { getEffectiveLenderRole } from "./utils"
 
-const BorrowerProfileRedirect = ({ address }: { address: string }) => {
-  useEffect(() => {
-    redirect(`/borrower/profile/${address}`)
-  }, [])
-  return null
-}
-
 export default function LenderMarketDetails({
   params: { address },
 }: {
@@ -62,16 +56,38 @@ export default function LenderMarketDetails({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const { isConnected } = useAccount()
-  const { isWrongNetwork, targetChainId } = useCurrentNetwork()
-  const { data: market, isLoading: isMarketLoading } = useGetMarket({ address })
+
+  const searchParams = useSearchParams()
+  const marketChainIdRaw = parseInt(searchParams.get("chainId") ?? "", 10)
+  const marketChainId = Number.isFinite(marketChainIdRaw)
+    ? marketChainIdRaw
+    : undefined
+
+  const {
+    data: market,
+    isLoading: isMarketLoading,
+    apiError,
+  } = useGetMarket({
+    address,
+    chainId: marketChainId,
+  })
+
+  const { isWrongNetwork, isSelectionMismatch, selectedChainId } =
+    useNetworkGate({
+      desiredChainId: market?.chainId ?? marketChainId,
+      includeAgreementStatus: false,
+    })
+
   const { data: marketAccount, isLoadingInitial: isMarketAccountLoading } =
     useLenderMarketAccount(market)
   const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
     useGetLenderWithdrawals(market)
   const { data: marketSummary, isLoading: isLoadingSummary } = useMarketSummary(
     address.toLowerCase(),
-    market?.chainId ?? targetChainId,
+    market?.chainId ?? selectedChainId,
   )
+
+  const isDifferentChain = isSelectionMismatch || isWrongNetwork
 
   const authorizedInMarket =
     marketAccount &&
@@ -223,6 +239,17 @@ export default function LenderMarketDetails({
       </Box>
     )
 
+  if (apiError)
+    return (
+      <Box sx={{ padding: "52px 20px 0 44px" }}>
+        <Box sx={{ width: "69%" }}>
+          <Typography variant="title2">
+            Failed to load market data. Please try again later.
+          </Typography>
+        </Box>
+      </Box>
+    )
+
   if (!marketAccount || !market)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
@@ -299,7 +326,7 @@ export default function LenderMarketDetails({
             />
           </Box>
 
-          {authorizedInMarket && (
+          {(authorizedInMarket || isDifferentChain) && (
             <MobileMarketActions
               marketAccount={marketAccount}
               withdrawals={withdrawals}
@@ -322,10 +349,14 @@ export default function LenderMarketDetails({
       <Box>
         <MarketHeader marketAccount={marketAccount} />
 
-        <Box sx={SectionContainer(theme)}>
+        {isDifferentChain && (
+          <SwitchChainAlert desiredChainId={market?.chainId} />
+        )}
+
+        <Box sx={SectionContainer(theme, isDifferentChain)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (
             <Box>
-              {authorizedInMarket && (
+              {authorizedInMarket && !isDifferentChain && (
                 <MarketActions
                   marketAccount={marketAccount}
                   withdrawals={withdrawals}
