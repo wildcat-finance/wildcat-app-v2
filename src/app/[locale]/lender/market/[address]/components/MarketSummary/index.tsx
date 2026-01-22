@@ -54,8 +54,6 @@ export const MarketSummary = ({
             : "none",
       }}
     >
-      {isMobile && <Typography variant="mobH3">Market Description</Typography>}
-
       <Box
         sx={{
           height: isMobile ? "335px" : "100%",
