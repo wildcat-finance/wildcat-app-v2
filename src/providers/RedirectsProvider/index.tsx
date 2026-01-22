@@ -58,7 +58,8 @@ export const RedirectsProvider = ({ children }: GenericProviderProps) => {
       networkChanged &&
       isMarketRoute &&
       role in MARKET_ROLE_TO_ROUTE &&
-      role !== "lender"
+      role !== "lender" &&
+      role !== "borrower"
     ) {
       router.replace(
         MARKET_ROLE_TO_ROUTE[role as keyof typeof MARKET_ROLE_TO_ROUTE],

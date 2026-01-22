@@ -64,9 +64,20 @@ export const MarketAuthorisedLenders = ({
 
   const hasMLA = 0 // test const for hoiding/showing MLA columns in table
 
-  const lendersNames: { [key: string]: string } = JSON.parse(
-    localStorage.getItem("lenders-name") || "{}",
-  )
+  const [lendersNames, setLendersNames] = React.useState<{
+    [key: string]: string
+  }>({})
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+    try {
+      setLendersNames(
+        JSON.parse(window.localStorage.getItem("lenders-name") || "{}"),
+      )
+    } catch {
+      setLendersNames({})
+    }
+  }, [])
 
   const [state, copyToClipboard] = useCopyToClipboard()
   const { getAddressUrl } = useBlockExplorer({ chainId: market?.chainId })

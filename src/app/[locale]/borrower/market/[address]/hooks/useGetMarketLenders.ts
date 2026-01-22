@@ -10,26 +10,31 @@ import {
   MarketVersion,
   SignerOrProvider,
   SupportedChainId,
+  getSubgraphClient,
 } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
 import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
-import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
-import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 export const useGetMarketLenders = (market?: Market) => {
-  const { isWrongNetwork, signer, provider, chainId } = useEthersProvider()
-  const subgraphClient = useSubgraphClient()
+  const { signer, provider, chainId } = useEthersProvider({
+    chainId: market?.chainId,
+  })
+  const targetChainId = market?.chainId ?? chainId
+  const subgraphClient = targetChainId
+    ? getSubgraphClient(targetChainId)
+    : undefined
   const { address } = useAccount()
   const signerOrProvider = signer ?? provider
 
   async function getMarketLenders() {
     if (!market) throw new Error("Market undefined")
     if (!signerOrProvider) throw new Error("Signer or provider undefined")
-    if (!chainId) throw new Error("Chain ID undefined") // Should never happen
+    if (!targetChainId) throw new Error("Chain ID undefined") // Should never happen
+    if (!subgraphClient) throw new Error("Subgraph client undefined")
     const policy =
       market.version === MarketVersion.V2
         ? market.hooksConfig?.hooksAddress
@@ -39,7 +44,7 @@ export const useGetMarketLenders = (market?: Market) => {
       getPolicyMarketsAndLenders(subgraphClient, {
         fetchPolicy: "network-only",
         contractAddress: policy?.toLowerCase(),
-        chainId: chainId as SupportedChainId,
+        chainId: targetChainId as SupportedChainId,
         signerOrProvider: signerOrProvider as SignerOrProvider,
         numMarkets: 1,
       }),
@@ -75,7 +80,7 @@ export const useGetMarketLenders = (market?: Market) => {
       ),
     ]
     if (market.version === MarketVersion.V2) {
-      const lens = getLensV2Contract(chainId, signerOrProvider)
+      const lens = getLensV2Contract(targetChainId, signerOrProvider)
       const updates = await lens.getLenderAccountsData(
         market.address,
         allLenders.map((x) => x.address),
@@ -94,12 +99,12 @@ export const useGetMarketLenders = (market?: Market) => {
 
   return useQuery({
     queryKey: QueryKeys.Markets.GET_MARKET_LENDERS(
-      chainId ?? 0,
+      targetChainId ?? 0,
       market?.address,
     ),
     queryFn: getMarketLenders,
     refetchInterval: POLLING_INTERVAL,
-    enabled: address && market && !isWrongNetwork && !!chainId,
+    enabled: address && market && !!targetChainId && !!subgraphClient,
     refetchOnMount: false,
   })
 }

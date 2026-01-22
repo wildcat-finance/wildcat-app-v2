@@ -46,9 +46,20 @@ export const MarketWithdrawalRequests = ({
     .add(activeTotalAmount)
     .add(claimableTotalAmount)
 
-  const lendersName: { [key: string]: string } = JSON.parse(
-    localStorage.getItem("lenders-name") || "{}",
-  )
+  const [lendersName, setLendersName] = React.useState<{
+    [key: string]: string
+  }>({})
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+    try {
+      setLendersName(
+        JSON.parse(window.localStorage.getItem("lenders-name") || "{}"),
+      )
+    } catch {
+      setLendersName({})
+    }
+  }, [])
 
   const columns: GridColDef[] = [
     {

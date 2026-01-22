@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { Box, IconButton, SvgIcon, Typography, useTheme } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
@@ -32,19 +32,27 @@ export type ClaimableTableProps = {
   chainId?: number
 }
 
-const lendersName: { [key: string]: string } = JSON.parse(
-  localStorage.getItem("lenders-name") || "{}",
-)
-
 export const ClaimableTable = ({
   withdrawalBatches,
   totalAmount,
   chainId,
 }: ClaimableTableProps) => {
   const [isClaimableOpen, setIsClaimableOpen] = useState(false)
+  const [lendersName, setLendersName] = useState<{ [key: string]: string }>({})
   const theme = useTheme()
   const isMobile = useMobileResolution()
   const { getAddressUrl, getTxUrl } = useBlockExplorer({ chainId })
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    try {
+      setLendersName(
+        JSON.parse(window.localStorage.getItem("lenders-name") || "{}"),
+      )
+    } catch {
+      setLendersName({})
+    }
+  }, [])
 
   const claimableColumns: GridColDef[] = useMemo(
     () => [
