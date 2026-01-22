@@ -347,7 +347,7 @@ export default function LenderMarketDetails({
           </Box>
 
           {hasMarketDescription && (
-            <Box id="marketSummary">
+            <Box id="marketDescription">
               <MarketSummary
                 marketSummary={marketSummary}
                 isLoading={isLoadingSummary}
