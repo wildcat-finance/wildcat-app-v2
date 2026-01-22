@@ -12,6 +12,7 @@ import { COLORS } from "@/theme/colors"
 
 export type TransactionHeaderProps = {
   label: string
+  subLabel?: string
   progress?: number
   arrowOnClick: (() => void) | null
   crossOnClick: (() => void) | null
@@ -19,6 +20,7 @@ export type TransactionHeaderProps = {
 
 export const TransactionHeader = ({
   label,
+  subLabel,
   progress,
   arrowOnClick,
   crossOnClick,
@@ -48,15 +50,17 @@ export const TransactionHeader = ({
         <Box height="20px" width="20px" />
       )}
 
-      <Typography
-        variant="text1"
-        sx={{
-          fontSize: "16px",
-          lineHeight: "28px",
-        }}
+      <Box
+        sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
       >
-        {label}
-      </Typography>
+        {subLabel && (
+          <Typography variant="mobText3" color={COLORS.manate}>
+            {subLabel}
+          </Typography>
+        )}
+
+        <Typography variant="mobText1">{label}</Typography>
+      </Box>
 
       {crossOnClick ? (
         <IconButton onClick={crossOnClick}>
