@@ -8,7 +8,6 @@ import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
-import { BorrowerProfileDetails } from "@/app/[locale]/borrower/profile/components/BorrowerProfileDetails"
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
 import { MobileMarketActions } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMarketActions"
 import { MobileMlaAlert } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaAlert"
@@ -21,6 +20,7 @@ import { Footer } from "@/components/Footer"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
+import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
@@ -390,15 +390,9 @@ export default function LenderMarketDetails({
           )}
 
           {currentSection === LenderMarketSections.BORROWER_PROFILE && (
-            <>
-              <Divider sx={{ paddingTop: "12px" }} />
-
-              <BorrowerProfileDetails
-                address={marketAccount.market.borrower}
-                isMarketPage
-                hideMarkets
-              />
-            </>
+            <ProfileSection
+              profileAddress={marketAccount.market.borrower as `0x${string}`}
+            />
           )}
 
           {currentSection === LenderMarketSections.REQUESTS && (
