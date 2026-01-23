@@ -3,17 +3,13 @@ import React, { useState } from "react"
 import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { usePathname } from "next/navigation"
 
-import { AurosEthenaMobileCard } from "@/components/AdsBanners/AurosEthena/AurosEthenaMobileCard"
-import {
-  LenderMobileMarketItem,
-  MobileMarketCard,
-} from "@/components/Mobile/MobileMarketCard"
-} from "@/app/[locale]/lender/components/mobile/MobileMarketCard"
 import { AurosEthenaMobileContent } from "@/components/AdsBanners/AurosEthena/AurosEthenaMobileContent"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { AUROS_ETHENA_ADDRESS } from "@/utils/constants"
 import { formatBps } from "@/utils/formatters"
+
+import { LenderMobileMarketItem, MobileMarketCard } from "../MobileMarketCard"
 
 const ITEMS_PER_PAGE = 20
 

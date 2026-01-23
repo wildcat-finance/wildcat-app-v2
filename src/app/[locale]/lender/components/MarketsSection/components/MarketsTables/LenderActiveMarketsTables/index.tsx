@@ -9,8 +9,6 @@ import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
-import { MobileMarketCard } from "@/app/[locale]/lender/components/mobile/MobileMarketCard"
-import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
 import Ethena from "@/assets/companies-icons/ethena_icon.svg"
 import Ethereal from "@/assets/companies-icons/ethereal_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
@@ -23,7 +21,6 @@ import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
-import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -41,7 +38,7 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
-import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
+import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 import {

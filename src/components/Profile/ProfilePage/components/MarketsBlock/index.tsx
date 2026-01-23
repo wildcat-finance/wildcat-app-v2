@@ -21,7 +21,7 @@ import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 import { MarketsBlockProps } from "./interface"
-import { LinkCell, TableStyle } from "./style"
+import { LinkCell } from "./style"
 
 export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
   const { t } = useTranslation()
@@ -233,9 +233,9 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       </Typography>
       <DataGrid
         getRowHeight={() => "auto"}
+        autoHeight
         sx={{
           marginTop: "12px",
-          overflow: "auto",
           "& .MuiDataGrid-columnHeader": { padding: 0 },
           "& .MuiDataGrid-row": {
             minHeight: "66px !important",
