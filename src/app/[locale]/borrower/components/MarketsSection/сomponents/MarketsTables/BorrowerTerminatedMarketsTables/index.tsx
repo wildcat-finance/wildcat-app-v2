@@ -335,6 +335,7 @@ export const BorrowerTerminatedMarketsTables = ({
               "& .MuiDataGrid-columnHeader": { padding: 0 },
               "& .MuiDataGrid-cell": { padding: "0px" },
             }}
+            autoHeight
             rows={prevActive}
             columns={columns}
             columnHeaderHeight={40}
@@ -363,6 +364,7 @@ export const BorrowerTerminatedMarketsTables = ({
               "& .MuiDataGrid-columnHeader": { padding: 0 },
               "& .MuiDataGrid-cell": { padding: "0px" },
             }}
+            autoHeight
             rows={neverActive}
             columns={columns}
             columnHeaderHeight={40}

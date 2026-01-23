@@ -403,6 +403,7 @@ export const BorrowerActiveMarketsTables = ({
               "& .MuiDataGrid-columnHeader": { padding: 0 },
               "& .MuiDataGrid-cell": { padding: "0px" },
             }}
+            autoHeight
             rows={depositedMarkets}
             columns={columns}
             columnHeaderHeight={40}
@@ -441,6 +442,7 @@ export const BorrowerActiveMarketsTables = ({
                 height: "auto",
               },
             }}
+            autoHeight
             getRowHeight={() => "auto"}
             rows={nonDepositedMarkets}
             columns={columns}
