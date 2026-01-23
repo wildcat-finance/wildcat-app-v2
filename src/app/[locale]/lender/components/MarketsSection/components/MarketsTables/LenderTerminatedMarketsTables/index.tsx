@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { DataGridSx } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/style"
 import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
@@ -332,21 +333,7 @@ export const LenderTerminatedMarketsTables = ({
           noMarketsSubtitle={t("dashboard.markets.noMarkets.closed.subtitle")}
         >
           <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-row": {
-                minHeight: "66px !important",
-                maxHeight: "66px !important",
-              },
-              "& .MuiDataGrid-cell": {
-                padding: "0px",
-                minHeight: "66px",
-                height: "auto",
-              },
-            }}
+            sx={DataGridSx}
             getRowHeight={() => "auto"}
             rows={prevActive}
             columns={columns}
@@ -369,21 +356,7 @@ export const LenderTerminatedMarketsTables = ({
           noMarketsSubtitle={t("dashboard.markets.noMarkets.closed.subtitle")}
         >
           <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-row": {
-                minHeight: "66px !important",
-                maxHeight: "66px !important",
-              },
-              "& .MuiDataGrid-cell": {
-                padding: "0px",
-                minHeight: "66px",
-                height: "auto",
-              },
-            }}
+            sx={DataGridSx}
             getRowHeight={() => "auto"}
             rows={neverActive}
             columns={columns}

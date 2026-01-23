@@ -1,22 +1,21 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import {
   DepositStatus,
-  MarketAccount,
   MarketVersion,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import { BorrowerActiveMarketsTableModel } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/BorrowerActiveMarketsTables"
 import {
   MarketsTablesProps,
   TypeSafeColDef,
 } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
+import { DataGridSx } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/style"
 import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
@@ -29,12 +28,11 @@ import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/Aur
 import { AprTooltip } from "@/components/AdsBanners/Common/AprTooltip"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { TablePagination } from "@/components/TablePagination"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
-import { COLORS } from "@/theme/colors"
-import { lh, pxToRem } from "@/theme/units"
 import {
   statusComparator,
   tokenAmountComparator,
@@ -49,8 +47,6 @@ import {
 } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
-
-import { MarketsTableAccordion } from "../../../../../../../../components/MarketsTableAccordion"
 
 export type OtherMarketsTableModel = {
   id: string
@@ -436,21 +432,7 @@ export const OtherMarketsTables = ({
           showNoFilteredMarkets
         >
           <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-row": {
-                minHeight: "66px !important",
-                maxHeight: "66px !important",
-              },
-              "& .MuiDataGrid-cell": {
-                padding: "0px",
-                minHeight: "66px",
-                height: "auto",
-              },
-            }}
+            sx={DataGridSx}
             getRowHeight={() => "auto"}
             rows={selfOnboard}
             columns={columns}
@@ -477,21 +459,7 @@ export const OtherMarketsTables = ({
           showNoFilteredMarkets
         >
           <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-row": {
-                minHeight: "66px !important",
-                maxHeight: "66px !important",
-              },
-              "& .MuiDataGrid-cell": {
-                padding: "0px",
-                minHeight: "66px",
-                height: "auto",
-              },
-            }}
+            sx={DataGridSx}
             getRowHeight={() => "auto"}
             rows={manual}
             columns={columns}
