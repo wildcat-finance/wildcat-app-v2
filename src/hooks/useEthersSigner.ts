@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 
 import { JsonRpcSigner } from "@ethersproject/providers"
-import { isSupportedChainId, Signer } from "@wildcatfi/wildcat-sdk"
+import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { providers } from "ethers"
 import type {
   Account,
@@ -107,16 +107,23 @@ export function useEthersProvider({
   const { chainId: targetChainId } = useAppSelector(
     (state) => state.selectedNetwork,
   )
-  const { data: walletClient } = useWalletClient({ chainId: targetChainId })
-  const publicClient = usePublicClient({ chainId: targetChainId })
+
+  const effectiveChainId = chainId || targetChainId
+
+  const { data: walletClient } = useWalletClient({
+    chainId: effectiveChainId,
+  })
+  const publicClient = usePublicClient({
+    chainId: effectiveChainId,
+  })
 
   const client = walletClient?.chain ? walletClient : publicClient
 
   return useMemo(
     () =>
       client?.chain
-        ? clientToWalletInfo(client, targetChainId)
-        : { targetChainId },
-    [client],
+        ? clientToWalletInfo(client, effectiveChainId)
+        : { targetChainId: effectiveChainId },
+    [client, effectiveChainId],
   )
 }

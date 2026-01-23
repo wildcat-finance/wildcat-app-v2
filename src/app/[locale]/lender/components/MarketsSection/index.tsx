@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react"
 
-import { Box, Button, Skeleton, Typography } from "@mui/material"
+import { Box, Button, Divider, Skeleton, Typography } from "@mui/material"
 import {
   DepositStatus,
   LenderRole,
   MarketAccount,
   MarketVersion,
-  SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
@@ -20,12 +19,10 @@ import { OtherMarketsTables } from "@/app/[locale]/lender/components/MarketsSect
 import { MobileMarketSectionHeader } from "@/app/[locale]/lender/components/MarketsSection/components/MobileMarketSectionSwitcher"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { FilterTextField } from "@/components/FilterTextfield"
+import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
+import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
 import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
 import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
-import {
-  SmallFilterSelect,
-  SmallFilterSelectItem,
-} from "@/components/SmallFilterSelect"
 import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -62,6 +59,7 @@ export const MarketsSection = () => {
     search: marketSearch,
     assets: marketAssets,
     statuses: marketStatuses,
+    withdrawalCycles: marketWithdrawalCycles,
   } = marketFilters
 
   const setMarketSearch: React.Dispatch<React.SetStateAction<string>> =
@@ -79,15 +77,15 @@ export const MarketsSection = () => {
     )
 
   const setMarketAssets: React.Dispatch<
-    React.SetStateAction<SmallFilterSelectItem[]>
+    React.SetStateAction<MarketsFilterSelectItem[]>
   > = useCallback(
     (value) => {
       const next =
         typeof value === "function"
           ? (
               value as (
-                prev: SmallFilterSelectItem[],
-              ) => SmallFilterSelectItem[]
+                prev: MarketsFilterSelectItem[],
+              ) => MarketsFilterSelectItem[]
             )(marketAssets)
           : value
       dispatch(setMarketFilters({ role: "lender", filters: { assets: next } }))
@@ -96,15 +94,15 @@ export const MarketsSection = () => {
   )
 
   const setMarketStatuses: React.Dispatch<
-    React.SetStateAction<SmallFilterSelectItem[]>
+    React.SetStateAction<MarketsFilterSelectItem[]>
   > = useCallback(
     (value) => {
       const next =
         typeof value === "function"
           ? (
               value as (
-                prev: SmallFilterSelectItem[],
-              ) => SmallFilterSelectItem[]
+                prev: MarketsFilterSelectItem[],
+              ) => MarketsFilterSelectItem[]
             )(marketStatuses)
           : value
       dispatch(
@@ -112,6 +110,28 @@ export const MarketsSection = () => {
       )
     },
     [dispatch, marketStatuses],
+  )
+
+  const setMarketWithdrawalCycles: React.Dispatch<
+    React.SetStateAction<MarketsFilterSelectItem[]>
+  > = useCallback(
+    (value) => {
+      const next =
+        typeof value === "function"
+          ? (
+              value as (
+                prev: MarketsFilterSelectItem[],
+              ) => MarketsFilterSelectItem[]
+            )(marketWithdrawalCycles)
+          : value
+      dispatch(
+        setMarketFilters({
+          role: "lender",
+          filters: { withdrawalCycles: next },
+        }),
+      )
+    },
+    [dispatch, marketWithdrawalCycles],
   )
 
   const filters = useMemo(
@@ -127,6 +147,13 @@ export const MarketsSection = () => {
   // rerender consumer when filters change now
 
   const { t } = useTranslation()
+
+  const withdrawalCycleOptions = [
+    { id: "0-86400", name: "≤ 24h" },
+    { id: "86401-259200", name: "1 - 3 days" },
+    { id: "259201-604800", name: "3 - 7 days" },
+    { id: "604801-Infinity", name: "7+ days" },
+  ]
 
   const {
     isWrongNetwork,
@@ -152,8 +179,16 @@ export const MarketsSection = () => {
         marketStatuses,
         marketAssets,
         borrowers,
+        marketWithdrawalCycles,
       ),
-    [marketAccounts, marketSearch, marketStatuses, marketAssets, borrowers],
+    [
+      marketAccounts,
+      marketSearch,
+      marketStatuses,
+      marketAssets,
+      borrowers,
+      marketWithdrawalCycles,
+    ],
   )
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
@@ -340,7 +375,6 @@ export const MarketsSection = () => {
           sx={{
             display: "flex",
             flexDirection: "column",
-            padding: "0 24px",
           }}
         >
           <Box
@@ -349,6 +383,7 @@ export const MarketsSection = () => {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              padding: "0 24px",
             }}
           >
             <Typography variant="title2" sx={{ marginBottom: "6px" }}>
@@ -391,7 +426,7 @@ export const MarketsSection = () => {
           <Typography
             variant="text3"
             color={COLORS.santasGrey}
-            sx={{ marginBottom: "24px" }}
+            sx={{ marginBottom: "24px", padding: "0 24px" }}
           >
             {t("dashboard.markets.lenderSubtitle")}{" "}
             <Link
@@ -408,7 +443,7 @@ export const MarketsSection = () => {
             sx={{
               width: "100%",
               display: "flex",
-              justifyContent: "space-between",
+              flexDirection: "column",
             }}
           >
             {isConnected &&
@@ -416,7 +451,12 @@ export const MarketsSection = () => {
                 <Box
                   role="status"
                   aria-label="Loading market section tabs"
-                  sx={{ display: "flex", gap: "8px", height: "32px" }}
+                  sx={{
+                    display: "flex",
+                    gap: "8px",
+                    height: "32px",
+                    padding: "0 24px",
+                  }}
                 >
                   <Skeleton
                     variant="rounded"
@@ -450,33 +490,56 @@ export const MarketsSection = () => {
                 !noMarketsAtAll && <LenderMarketSectionSwitcher />
               ))}
 
-            <Box sx={{ width: "fit-content", display: "flex", gap: "6px" }}>
+            <Divider
+              sx={{
+                marginTop: "18px",
+                borderColor: COLORS.athensGrey,
+                width: "100%",
+              }}
+            />
+
+            <Box
+              sx={{
+                width: "100%",
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "0 24px",
+                marginTop: "16px",
+              }}
+            >
+              <Box sx={{ display: "flex", gap: "6px" }}>
+                <MarketsFilterSelect
+                  placeholder={t("dashboard.markets.filters.assets")}
+                  options={
+                    tokens?.map((token) => ({
+                      id: token.address,
+                      name: token.symbol,
+                    })) ?? []
+                  }
+                  selected={marketAssets}
+                  setSelected={setMarketAssets}
+                />
+
+                <MarketsFilterSelect
+                  placeholder={t("dashboard.markets.filters.statuses")}
+                  options={marketStatusesMock}
+                  selected={marketStatuses}
+                  setSelected={setMarketStatuses}
+                />
+
+                <MarketsFilterSelect
+                  placeholder="Withdrawal Cycle"
+                  options={withdrawalCycleOptions}
+                  selected={marketWithdrawalCycles}
+                  setSelected={setMarketWithdrawalCycles}
+                />
+              </Box>
+
               <FilterTextField
                 value={marketSearch}
                 setValue={setMarketSearch}
                 placeholder={t("dashboard.markets.filters.name")}
-                width="180px"
-              />
-
-              <SmallFilterSelect
-                placeholder={t("dashboard.markets.filters.assets")}
-                options={
-                  tokens?.map((token) => ({
-                    id: token.address,
-                    name: token.symbol,
-                  })) ?? []
-                }
-                selected={marketAssets}
-                setSelected={setMarketAssets}
-                width="180px"
-              />
-
-              <SmallFilterSelect
-                placeholder={t("dashboard.markets.filters.statuses")}
-                options={marketStatusesMock}
-                selected={marketStatuses}
-                setSelected={setMarketStatuses}
-                width="180px"
+                width="264px"
               />
             </Box>
           </Box>
@@ -494,10 +557,13 @@ export const MarketsSection = () => {
                 })) ?? []
               }
               statusesOptions={marketStatusesMock}
+              withdrawalCycleOptions={withdrawalCycleOptions}
               marketAssets={marketAssets}
               marketStatuses={marketStatuses}
+              marketWithdrawalCycles={marketWithdrawalCycles}
               setMarketAssets={setMarketAssets}
               setMarketStatuses={setMarketStatuses}
+              setMarketWithdrawalCycles={setMarketWithdrawalCycles}
             />
 
             <MobileSearchButton

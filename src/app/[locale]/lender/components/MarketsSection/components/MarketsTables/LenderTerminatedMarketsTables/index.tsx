@@ -1,17 +1,18 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box, Button, Typography, useMediaQuery } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
-import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
-import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { MobileMarketList } from "@/app/[locale]/lender/components/mobile/MobileMarketList"
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
@@ -20,46 +21,28 @@ import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { COLORS } from "@/theme/colors"
-import { lh, pxToRem } from "@/theme/units"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
 import {
-  formatBps,
+  buildMarketHref,
+  formatSecsToHours,
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
-import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
+import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
-export type LenderTerminatedMarketsTableModel = {
-  id: string
-  status: ReturnType<typeof getMarketStatusChip>
-  term: ReturnType<typeof getMarketTypeChip>
-  name: string
-  borrower: string | undefined
-  borrowerAddress: string | undefined
-  asset: string
-  debt: TokenAmount | undefined
-  loan: TokenAmount | undefined
-  apr: number
-  hasEverInteracted: boolean
-}
+import {
+  LenderTerminatedMarketsTableModel,
+  LenderTerminatedMarketsTableProps,
+} from "./interface"
 
 export const LenderTerminatedMarketsTables = ({
   marketAccounts,
   borrowers,
   isLoading,
   filters,
-}: {
-  marketAccounts: MarketAccount[]
-  borrowers: BorrowerWithName[]
-  isLoading: boolean
-  filters: {
-    nameFilter: string
-    assetFilter: SmallFilterSelectItem[]
-    statusFilter: MarketStatus[]
-  }
-}) => {
+}: LenderTerminatedMarketsTableProps) => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
@@ -94,6 +77,8 @@ export const LenderTerminatedMarketsTables = ({
         underlyingToken,
         annualInterestBips,
         totalSupply,
+        withdrawalBatchDuration,
+        chainId,
       } = market
 
       const borrower = borrowers?.find(
@@ -114,9 +99,11 @@ export const LenderTerminatedMarketsTables = ({
         borrowerAddress,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
+        withdrawalBatchDuration,
         loan: marketBalance,
         debt: totalSupply,
         hasEverInteracted: account.hasEverInteracted,
+        chainId,
       }
     })
 
@@ -126,124 +113,89 @@ export const LenderTerminatedMarketsTables = ({
 
   const columns: TypeSafeColDef<LenderTerminatedMarketsTableModel>[] = [
     {
+      field: "name",
+      headerName: t("dashboard.markets.tables.header.name"),
+      flex: 2,
+      minWidth: 200,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => (
+        <Link
+          href={buildMarketHref(params.row.id, params.row.chainId)}
+          style={{
+            ...LinkCell,
+            paddingRight: "16px",
+            justifyContent: "center",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "6px",
+            minWidth: 0,
+
+            borderLeft: params.row.loan.gt(0)
+              ? `2px solid ${COLORS.carminePink}`
+              : "none",
+            paddingLeft: params.row.loan.gt(0) ? "10px" : 0,
+          }}
+        >
+          <Typography
+            variant="text3"
+            sx={{
+              display: "block",
+              width: "100%",
+              minWidth: 0,
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {params.value}
+          </Typography>
+
+          <Link
+            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+            style={{ display: "flex", textDecoration: "none" }}
+          >
+            <BorrowerProfileChip borrower={params.row.borrower} />
+          </Link>
+        </Link>
+      ),
+    },
+    {
       field: "status",
       headerName: t("dashboard.markets.tables.header.status"),
-      minWidth: 120,
-      flex: 0.7,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId)}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
           }}
         >
-          <Box width="130px">
+          <Box width="120px">
             <MarketStatusChip status={params.value} />
           </Box>
         </Link>
       ),
     },
     {
-      field: "name",
-      headerName: t("dashboard.markets.tables.header.name"),
-      flex: 3,
-      minWidth: 208,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
-          style={{
-            ...LinkCell,
-            justifyContent: "flex-start",
-          }}
-        >
-          {params.value}
-        </Link>
-      ),
-    },
-    {
-      field: "borrower",
-      minWidth: 134,
-      flex: 1.7,
-      headerAlign: "left",
-      align: "left",
-      renderHeader: () => (
-        <Typography
-          variant="text4"
-          sx={{
-            lineHeight: "10px",
-            color: COLORS.santasGrey,
-            padding: "0 12px",
-          }}
-        >
-          {t("dashboard.markets.tables.header.borrower")}
-        </Typography>
-      ),
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
-          style={{
-            textDecoration: "none",
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            color: "inherit",
-            justifyContent: "flex-start",
-          }}
-        >
-          <Link
-            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
-            style={{
-              textDecoration: "none",
-              width: "100%",
-              height: "fit-content",
-            }}
-          >
-            <Button
-              size="small"
-              variant="text"
-              sx={{
-                fontSize: pxToRem(13),
-                lineHeight: lh(20, 13),
-                fontWeight: 500,
-                minWidth: "calc(100% - 1px)",
-                width: "calc(100% - 1px)",
-                textAlign: "left",
-                textOverflow: "ellipsis",
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-                display: "inline-block",
-
-                "&:hover": {
-                  boxShadow: "none",
-                  backgroundColor: COLORS.whiteSmoke,
-                  color: COLORS.blackRock,
-                },
-              }}
-            >
-              {params.value}
-            </Button>
-          </Link>
-        </Link>
-      ),
-    },
-    {
       field: "asset",
       headerName: t("dashboard.markets.tables.header.asset"),
-      minWidth: 95,
+      minWidth: 200,
+      flex: 2,
       headerAlign: "right",
       align: "right",
-      flex: 1,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
+          href={buildMarketHref(params.row.id, params.row.chainId)}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+          }}
         >
           {params.value}
         </Link>
@@ -252,14 +204,14 @@ export const LenderTerminatedMarketsTables = ({
     {
       field: "debt",
       headerName: t("dashboard.markets.tables.header.debt"),
-      minWidth: 110,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
-      flex: 1.5,
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId)}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value
@@ -274,16 +226,19 @@ export const LenderTerminatedMarketsTables = ({
     {
       field: "loan",
       headerName: t("dashboard.markets.tables.header.loan"),
-      minWidth: 106,
-      flex: 1.6,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
       renderCell: (
-        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
+        params: GridRenderCellParams<
+          LenderTerminatedMarketsTableModel,
+          TokenAmount
+        >,
       ) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId)}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value
@@ -296,18 +251,45 @@ export const LenderTerminatedMarketsTables = ({
       ),
     },
     {
-      field: "apr",
-      headerName: t("dashboard.markets.tables.header.apr"),
-      minWidth: 102,
+      field: "withdrawalBatchDuration",
+      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      minWidth: 100,
       flex: 1,
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.lender.market}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId)}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+          }}
+        >
+          {formatSecsToHours(params.value, true)}
+        </Link>
+      ),
+    },
+    {
+      sortable: false,
+      field: "button",
+      headerName: "",
+      minWidth: 100,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => (
+        <Link
+          href={buildMarketHref(params.row.id, params.row.chainId)}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {`${formatBps(params.value)}%`}
+          <Button
+            size="small"
+            variant="contained"
+            color="secondary"
+            disabled={!params.row.hasEverInteracted}
+          >
+            Withdraw
+          </Button>
         </Link>
       ),
     },
@@ -358,8 +340,17 @@ export const LenderTerminatedMarketsTables = ({
               maxWidth: "calc(100vw - 267px)",
               padding: "0 16px",
               "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
+              "& .MuiDataGrid-row": {
+                minHeight: "66px !important",
+                maxHeight: "66px !important",
+              },
+              "& .MuiDataGrid-cell": {
+                padding: "0px",
+                minHeight: "66px",
+                height: "auto",
+              },
             }}
+            getRowHeight={() => "auto"}
             rows={prevActive}
             columns={columns}
             columnHeaderHeight={40}
@@ -386,8 +377,17 @@ export const LenderTerminatedMarketsTables = ({
               maxWidth: "calc(100vw - 267px)",
               padding: "0 16px",
               "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
+              "& .MuiDataGrid-row": {
+                minHeight: "66px !important",
+                maxHeight: "66px !important",
+              },
+              "& .MuiDataGrid-cell": {
+                padding: "0px",
+                minHeight: "66px",
+                height: "auto",
+              },
             }}
+            getRowHeight={() => "auto"}
             rows={neverActive}
             columns={columns}
             columnHeaderHeight={40}

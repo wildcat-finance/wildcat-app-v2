@@ -1,5 +1,47 @@
 # Changelog
 
+## [2.8.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.7.0...v2.8.0) (2026-01-16)
+
+
+### Features
+
+* add withdrawal duration column to borrower profile's markets tables and implement next headers ([68f7a3c](https://github.com/wildcat-finance/wildcat-app-v2/commit/68f7a3c3de5ee8cf4d795dedd6bca4c8594ba5fe))
+
+
+### Bug Fixes
+
+* **borrower-profile-wds:** add wds column to tables and fix mobile view ([471b86b](https://github.com/wildcat-finance/wildcat-app-v2/commit/471b86b27fffe3154ae3647e8a7e57c5fb8af164))
+* **borrower-profile-wds:** add wds column to tables and fix mobile view ([471b86b](https://github.com/wildcat-finance/wildcat-app-v2/commit/471b86b27fffe3154ae3647e8a7e57c5fb8af164))
+* **borrower-profile-wds:** add wds column to tables and fix mobile view ([616afb5](https://github.com/wildcat-finance/wildcat-app-v2/commit/616afb5959e4edf97489fcb4f17400fc3402e818))
+
+## [2.7.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.6.1...v2.7.0) (2026-01-08)
+
+
+### Features
+
+* market overview edits and reflection for maximum fixed terms for testnets ([9400b69](https://github.com/wildcat-finance/wildcat-app-v2/commit/9400b692ad4f5e554912c75b33c5b623f761043f))
+* **market-overview:** market overview edits ([f87a956](https://github.com/wildcat-finance/wildcat-app-v2/commit/f87a9566df5fef2dedcbbbb926c9745b9c90784d))
+
+
+### Bug Fixes
+
+* **fixed-term:** updated to reflect maximum fixed terms for testnets ([1a4a134](https://github.com/wildcat-finance/wildcat-app-v2/commit/1a4a134cc6725eb6d17b0b940e8a28a01f3522f1))
+* **fixed-term:** updated to reflect maximum fixed terms for testnets ([5e3c17e](https://github.com/wildcat-finance/wildcat-app-v2/commit/5e3c17e9d18988342e8ea69a3e412a6a89d13d5d))
+* **refactor:** remove some duplication and move durations to i18n ([06742f9](https://github.com/wildcat-finance/wildcat-app-v2/commit/06742f9b276c4eedf12cf5adef177c8938558135))
+
+## [2.6.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.6.0...v2.6.1) (2025-12-25)
+
+
+### Bug Fixes
+
+* **duration:** remaining duration still present after termination ([09b1bc9](https://github.com/wildcat-finance/wildcat-app-v2/commit/09b1bc9f07207f68c09668af7489f72de4b09a41))
+* **region:** add Sri lanka and Georgia as regions ([4bae252](https://github.com/wildcat-finance/wildcat-app-v2/commit/4bae2527ca110417c084c00fb8c6f560a6050dad))
+* **region:** add Sri lanka and Georgia as regions ([2ef9ec1](https://github.com/wildcat-finance/wildcat-app-v2/commit/2ef9ec10d0faf03acef5dc5f346054e6ac9a9f62))
+* **terminated-wds:** surface claims immediately when market terminates ([086f7b4](https://github.com/wildcat-finance/wildcat-app-v2/commit/086f7b4150dd57a27df3bb9568cccdd647edc910))
+* **terminated-wds:** surface claims immediately when market terminates ([086f7b4](https://github.com/wildcat-finance/wildcat-app-v2/commit/086f7b4150dd57a27df3bb9568cccdd647edc910))
+* **terminated-wds:** surface claims immediately when market terminates ([09b1bc9](https://github.com/wildcat-finance/wildcat-app-v2/commit/09b1bc9f07207f68c09668af7489f72de4b09a41))
+* **terminated-wds:** surface claims immediately when market terminates ([09b1bc9](https://github.com/wildcat-finance/wildcat-app-v2/commit/09b1bc9f07207f68c09668af7489f72de4b09a41))
+
 ## [2.6.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.5.3...v2.6.0) (2025-12-18)
 
 

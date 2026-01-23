@@ -2,13 +2,15 @@
 
 import { useEffect, useRef } from "react"
 
-import { useRouter, useSelectedLayoutSegments } from "next/navigation"
+import {
+  usePathname,
+  useRouter,
+  useSelectedLayoutSegments,
+} from "next/navigation"
 
-import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { GenericProviderProps } from "@/providers/interface"
 import { ROUTES } from "@/routes"
-
-import { useShouldRedirect } from "./hooks/useShouldRedirect"
 
 const MARKET_ROLE_TO_ROUTE = {
   lender: ROUTES.lender.root,
@@ -17,11 +19,15 @@ const MARKET_ROLE_TO_ROUTE = {
 
 export const RedirectsProvider = ({ children }: GenericProviderProps) => {
   const router = useRouter()
-  const { data: redirectPath, isFetching } = useShouldRedirect()
-  const { targetChainId, chainId: activeChainId } = useCurrentNetwork()
+  const pathname = usePathname()
+  const { redirectPath, isRedirectLoading, selectedChainId, walletChainId } =
+    useNetworkGate({ pathname })
   const segments = useSelectedLayoutSegments()
 
-  const previousNetworkRef = useRef({ targetChainId, activeChainId })
+  const previousNetworkRef = useRef({
+    selectedChainId,
+    walletChainId,
+  })
 
   const [role, secondSegment, marketAddress] = segments
   const isMarketRoute =
@@ -30,10 +36,10 @@ export const RedirectsProvider = ({ children }: GenericProviderProps) => {
     Boolean(marketAddress)
 
   useEffect(() => {
-    if (redirectPath && !isFetching) {
+    if (redirectPath && !isRedirectLoading) {
       router.push(redirectPath)
     }
-  }, [router, redirectPath, isFetching])
+  }, [router, redirectPath, isRedirectLoading])
 
   useEffect(() => {
     const prev = previousNetworkRef.current
@@ -41,21 +47,26 @@ export const RedirectsProvider = ({ children }: GenericProviderProps) => {
     // detect whether the target and connected networks
     // actually changed eg (not initial render or disconnect)
     const networkChanged =
-      (prev.targetChainId &&
-        targetChainId &&
-        prev.targetChainId !== targetChainId) ||
-      (prev.activeChainId &&
-        activeChainId &&
-        prev.activeChainId !== activeChainId)
+      (prev.selectedChainId &&
+        selectedChainId &&
+        prev.selectedChainId !== selectedChainId) ||
+      (prev.walletChainId &&
+        walletChainId &&
+        prev.walletChainId !== walletChainId)
 
-    if (networkChanged && isMarketRoute && role in MARKET_ROLE_TO_ROUTE) {
+    if (
+      networkChanged &&
+      isMarketRoute &&
+      role in MARKET_ROLE_TO_ROUTE &&
+      role !== "lender"
+    ) {
       router.replace(
         MARKET_ROLE_TO_ROUTE[role as keyof typeof MARKET_ROLE_TO_ROUTE],
       )
     }
 
-    previousNetworkRef.current = { targetChainId, activeChainId }
-  }, [activeChainId, targetChainId, isMarketRoute, role, router])
+    previousNetworkRef.current = { selectedChainId, walletChainId }
+  }, [isMarketRoute, role, router, selectedChainId, walletChainId])
 
   return children
 }

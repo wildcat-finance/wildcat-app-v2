@@ -9,6 +9,7 @@ import {
   getLenderAccountForMarket,
   MarketVersion,
   getLensV2Contract,
+  getSubgraphClient,
 } from "@wildcatfi/wildcat-sdk"
 import { SubgraphGetMarketQueryVariables } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { constants } from "ethers"
@@ -17,7 +18,6 @@ import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type UseLenderProps = {
@@ -34,13 +34,15 @@ export function useLenderMarketAccountQuery({
   enabled,
   ...filters
 }: UseLenderProps): TwoStepQueryHookResult<MarketAccount | undefined> {
-  const subgraphClient = useSubgraphClient()
   const marketAddress = market?.address.toLowerCase()
   const lenderAddress = lender?.toLowerCase()
-  const { chainId: targetChainId } = useSelectedNetwork()
+
+  const { chainId } = useSelectedNetwork()
+  const targetChainId = market?.chainId ?? chainId
+  const subgraphClient = getSubgraphClient(targetChainId)
 
   async function queryMarketAccount() {
-    if (!market || !lender || market.chainId !== targetChainId) throw Error()
+    if (!market || !lender) throw Error()
     const result = await getLenderAccountForMarket(subgraphClient, {
       market: market as Market,
       lender: lenderAddress as string,
@@ -71,8 +73,7 @@ export function useLenderMarketAccountQuery({
   })
 
   async function updateMarketAccount() {
-    if (!data || !provider || !market || market.chainId !== targetChainId)
-      throw Error()
+    if (!data || !provider || !market) throw Error()
     if (data.market.version === MarketVersion.V1) {
       const lens = getLensContract(market.chainId, provider)
       const update = await lens.getMarketDataWithLenderStatus(
@@ -144,7 +145,9 @@ export function useLenderMarketAccountQuery({
 }
 
 export const useLenderMarketAccount = (market: Market | undefined) => {
-  const { address, signer, provider, isWrongNetwork } = useEthersProvider()
+  const { address, signer, provider, isWrongNetwork } = useEthersProvider({
+    chainId: market?.chainId,
+  })
   const signerOrProvider = signer ?? provider
 
   return useLenderMarketAccountQuery({

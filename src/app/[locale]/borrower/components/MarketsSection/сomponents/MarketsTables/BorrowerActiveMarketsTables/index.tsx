@@ -1,7 +1,7 @@
 import * as React from "react"
 import { useEffect, useRef } from "react"
 
-import { Box } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
@@ -11,10 +11,15 @@ import {
   MarketsTablesProps,
   TypeSafeColDef,
 } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
-import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import Ethena from "@/assets/companies-icons/ethena_icon.svg"
+import Ethereal from "@/assets/companies-icons/ethereal_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { AurosEthenaBanner } from "@/components/AdsBanners/AurosEthena/AurosEthenaBanner"
+import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/AurosEthenaProposalChip"
+import { AprTooltip } from "@/components/AdsBanners/Common/AprTooltip"
+import { AprChip } from "@/components/AprChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -24,10 +29,16 @@ import {
   tokenAmountComparator,
   typeComparator,
 } from "@/utils/comparators"
-import { pageCalcHeights } from "@/utils/constants"
-import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
+import { AUROS_ETHENA_ADDRESS, pageCalcHeights } from "@/utils/constants"
+import {
+  formatBps,
+  formatSecsToHours,
+  formatTokenWithCommas,
+} from "@/utils/formatters"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
+
+import { MarketsTableModel } from "../../../../MarketsTables/interface"
 
 export type BorrowerActiveMarketsTableModel = {
   id: string
@@ -39,6 +50,7 @@ export type BorrowerActiveMarketsTableModel = {
   capacityLeft: TokenAmount
   debt: TokenAmount | undefined
   borrowable: TokenAmount
+  withdrawalBatchDuration: number
 }
 
 export const BorrowerActiveMarketsTables = ({
@@ -79,6 +91,7 @@ export const BorrowerActiveMarketsTables = ({
         borrowableAssets,
         maxTotalSupply,
         totalSupply,
+        withdrawalBatchDuration,
       } = market
 
       const marketStatus = getMarketStatusChip(market)
@@ -94,6 +107,7 @@ export const BorrowerActiveMarketsTables = ({
         borrowable: borrowableAssets,
         debt: totalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
+        withdrawalBatchDuration,
       }
     })
 
@@ -109,10 +123,46 @@ export const BorrowerActiveMarketsTables = ({
 
   const columns: TypeSafeColDef<BorrowerActiveMarketsTableModel>[] = [
     {
+      field: "name",
+      headerName: t("dashboard.markets.tables.header.name"),
+      flex: 2,
+      minWidth: 200,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => (
+        <Link
+          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          style={{
+            ...LinkCell,
+            paddingRight: "16px",
+            justifyContent: "center",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "6px",
+            minWidth: 0,
+          }}
+        >
+          <Typography
+            variant="text3"
+            sx={{
+              display: "block",
+              width: "100%",
+              minWidth: 0,
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {params.value}
+          </Typography>
+        </Link>
+      ),
+    },
+    {
       field: "status",
       headerName: t("dashboard.markets.tables.header.status"),
-      minWidth: 120,
-      flex: 0.7,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
@@ -124,7 +174,7 @@ export const BorrowerActiveMarketsTables = ({
             justifyContent: "flex-start",
           }}
         >
-          <Box width="130px">
+          <Box width="120px">
             <MarketStatusChip status={params.value} />
           </Box>
         </Link>
@@ -133,7 +183,7 @@ export const BorrowerActiveMarketsTables = ({
     {
       field: "term",
       headerName: t("dashboard.markets.tables.header.term"),
-      minWidth: 170,
+      minWidth: 100,
       flex: 1,
       headerAlign: "left",
       align: "left",
@@ -147,103 +197,101 @@ export const BorrowerActiveMarketsTables = ({
           }}
         >
           <Box minWidth="170px">
-            <MarketTypeChip {...params.value} />
+            <MarketTypeChip type="table" {...params.value} />
           </Box>
-        </Link>
-      ),
-    },
-    {
-      field: "name",
-      headerName: t("dashboard.markets.tables.header.name"),
-      flex: 3,
-      minWidth: 208,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{
-            ...LinkCell,
-            justifyContent: "flex-start",
-          }}
-        >
-          {params.value}
         </Link>
       ),
     },
     {
       field: "apr",
       headerName: t("dashboard.markets.tables.header.apr"),
-      minWidth: 102,
+      minWidth: 100,
       flex: 1,
       headerAlign: "right",
       align: "right",
-      renderCell: (params) => (
-        <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
-        >
-          {`${formatBps(params.value)}%`}
-        </Link>
-      ),
+      renderCell: (params) => {
+        const isAurosTestnet =
+          params.row.id.toLowerCase() ===
+          AUROS_ETHENA_ADDRESS.testnet.toLowerCase()
+        const isAurosMainnet =
+          params.row.id.toLowerCase() ===
+          AUROS_ETHENA_ADDRESS.mainnet.toLowerCase()
+
+        const isAuros = isAurosTestnet || isAurosMainnet
+
+        const adsComponent = isAuros ? (
+          <AprTooltip
+            baseAPR={formatBps(params.value)}
+            aprProposal={<AurosEthenaProposalChip isTooltip />}
+            banner={<AurosEthenaBanner />}
+            withdrawalAnyTime
+          />
+        ) : undefined
+
+        return (
+          <Link
+            href={`${ROUTES.borrower.market}/${params.row.id}`}
+            style={{ ...LinkCell, justifyContent: "flex-end" }}
+          >
+            <AprChip
+              isBonus={isAuros}
+              baseApr={formatBps(params.value)}
+              icons={isAuros ? [<Ethena />, <Ethereal />] : undefined}
+              adsComponent={adsComponent}
+            />
+          </Link>
+        )
+      },
     },
     {
       field: "asset",
       headerName: t("dashboard.markets.tables.header.asset"),
-      minWidth: 95,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
-      flex: 1,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-end",
+          }}
         >
           {params.value}
         </Link>
       ),
     },
     {
-      field: "capacityLeft",
-      headerName: t("dashboard.markets.tables.header.capacity"),
-      minWidth: 82,
+      field: "withdrawalBatchDuration",
+      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
-      sortComparator: tokenAmountComparator,
-      flex: 1.5,
-      renderCell: (
-        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
-      ) => (
+      renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{
-            textDecoration: "none",
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            color: "inherit",
+            ...LinkCell,
             justifyContent: "flex-end",
           }}
         >
-          {params.value && params.value.gt(0)
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
+          {formatSecsToHours(params.value, true)}
         </Link>
       ),
     },
     {
-      field: "debt",
-      headerName: t("dashboard.markets.tables.header.debt"),
-      minWidth: 110,
+      field: "borrowable",
+      headerName: t("dashboard.markets.tables.header.borrowable"),
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
-      flex: 1.5,
       sortComparator: tokenAmountComparator,
-      renderCell: (params) => (
+      renderCell: (
+        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
+      ) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
@@ -258,16 +306,14 @@ export const BorrowerActiveMarketsTables = ({
       ),
     },
     {
-      field: "borrowable",
-      headerName: t("dashboard.markets.tables.header.borrowable"),
-      minWidth: 106,
-      flex: 1.6,
+      field: "debt",
+      headerName: t("dashboard.markets.tables.header.debt"),
+      minWidth: 100,
+      flex: 1,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
-      renderCell: (
-        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
-      ) => (
+      renderCell: (params) => (
         <Link
           href={`${ROUTES.borrower.market}/${params.row.id}`}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
@@ -348,8 +394,17 @@ export const BorrowerActiveMarketsTables = ({
               maxWidth: "calc(100vw - 267px)",
               padding: "0 16px",
               "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
+              "& .MuiDataGrid-row": {
+                minHeight: "66px !important",
+                maxHeight: "66px !important",
+              },
+              "& .MuiDataGrid-cell": {
+                padding: "0px",
+                minHeight: "66px",
+                height: "auto",
+              },
             }}
+            getRowHeight={() => "auto"}
             rows={nonDepositedMarkets}
             columns={columns}
             columnHeaderHeight={40}

@@ -60,7 +60,7 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
     setPage(0)
   }, [search])
 
-  const { data, isLoading, pagesCount, finalEventIndex } = useMarketRecords({
+  const { data, isLoading } = useMarketRecords({
     market,
     page,
     pageSize,

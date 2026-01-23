@@ -8,6 +8,7 @@ import duration from "dayjs/plugin/duration"
 import { BigNumber } from "ethers"
 import { formatUnits } from "ethers/lib/utils"
 
+import { ROUTES } from "@/routes"
 import { dayjs } from "@/utils/dayjs"
 
 // <---- TIMESTAMP TO DATE FORMATTERS ---->
@@ -69,10 +70,18 @@ export function formatConstrainToNumber(
   return constraints[key] / 100
 }
 
-export const formatSecsToHours = (seconds: number) => {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const remainingSeconds = seconds % 60
+export const formatSecsToHours = (seconds: number, short?: boolean) => {
+  const s = Math.max(0, Math.floor(seconds))
+
+  const hours = Math.floor(s / 3600)
+  const minutes = Math.floor((s % 3600) / 60)
+  const remainingSeconds = s % 60
+
+  if (short) {
+    if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""}`
+    if (minutes > 0) return `${minutes} min`
+    return "<1 min"
+  }
 
   let timeString = ""
 
@@ -156,6 +165,11 @@ export const formatRayAsPercentage = (ray: BigNumber, fixed?: number) => {
   const percentage = parseFloat(formatUnits(ray, 27)) * 100
 
   return stripTrailingZeroes(percentage.toFixed(fixed || 2))
+}
+
+export const buildMarketHref = (marketAddress: string, chainId?: number) => {
+  const base = `${ROUTES.lender.market}/${marketAddress}`
+  return chainId ? `${base}?chainId=${chainId}` : base
 }
 
 // <---- TOKEN PARAMETERS FORMATTERS ---->
