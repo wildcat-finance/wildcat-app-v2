@@ -30,7 +30,11 @@ import {
   MarketHeaderUpperContainer,
 } from "./style"
 
-export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
+export const MarketHeader = ({
+  marketAccount,
+  mla,
+  hasMarketDescription,
+}: MarketHeaderProps) => {
   const theme = useTheme()
   const isMobile = useMobileResolution()
 
@@ -233,6 +237,25 @@ export const MarketHeader = ({ marketAccount, mla }: MarketHeaderProps) => {
           >
             Status
           </Button>
+          {hasMarketDescription && (
+            <Button
+              variant="text"
+              size="small"
+              sx={{
+                minWidth: "fit-content",
+                padding: "6px 8px",
+                flexShrink: 0,
+                fontSize: 10,
+                fontWeight: 600,
+                lineHeight: "16px",
+                backgroundColor: COLORS.hintOfRed,
+              }}
+              component="a"
+              href="#marketDescription"
+            >
+              Market Description
+            </Button>
+          )}
           <Button
             variant="text"
             size="small"
