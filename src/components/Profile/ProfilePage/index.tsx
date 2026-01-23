@@ -30,6 +30,7 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
   const isLoading = isMarketsLoading || isProfileLoading
   const activeMarkets = borrowerMarkets?.filter((market) => !market.isClosed)
   const marketsAmount = (activeMarkets ?? []).length
+  const accountName = profileData?.name ?? trimAddress(profileAddress as string)
 
   // Mobile
   const [section, setSection] = useState<"markets" | "info">("markets")
@@ -45,6 +46,8 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
   if (isLoading)
     return <ProfilePageSkeleton isExternal={isExternal} isMobile={isMobile} />
 
+  console.log(accountName)
+
   if (isMobile)
     return (
       <Box sx={MobileContentContainer}>
@@ -55,7 +58,7 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
         >
           <ProfileNamePageBlock
             {...profileData}
-            name={profileData?.name || trimAddress(profileAddress as string)}
+            name={accountName}
             marketsAmount={marketsAmount}
             isExternal={isExternal}
             isMobile={isMobile}
@@ -80,6 +83,7 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
     <Box sx={PageContentContainer}>
       <ProfileNamePageBlock
         {...profileData}
+        name={accountName}
         marketsAmount={marketsAmount}
         isExternal={isExternal}
         isMobile={isMobile}
