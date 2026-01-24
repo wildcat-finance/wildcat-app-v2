@@ -322,6 +322,7 @@ const MARKET_QUERY_KEYS = {
   GET_MARKET_RECORDS: (
     chainId: number,
     marketAddress?: string,
+    eventIndex?: number,
     page?: number,
     pageSize?: number,
     kinds?: string[],
@@ -332,6 +333,7 @@ const MARKET_QUERY_KEYS = {
       "GET_MARKET_RECORDS",
       chainId,
       marketAddress,
+      eventIndex,
       page,
       pageSize,
       kinds,

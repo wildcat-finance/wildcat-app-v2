@@ -1,5 +1,3 @@
-import { useState } from "react"
-
 import { useQuery } from "@tanstack/react-query"
 import {
   Market,
@@ -26,13 +24,14 @@ export function useMarketRecords({
   kinds,
   search,
 }: UseMarketRecordsProps) {
-  const [finalEventIndex, setFinalEventIndex] = useState(market.eventIndex)
+  const { eventIndex } = market
+
   const { chainId } = useSelectedNetwork()
   const targetChainId = market?.chainId ?? chainId
   const subgraphClient = getSubgraphClient(targetChainId)
 
   const getMarketRecordsInternal = async () => {
-    if (finalEventIndex === undefined) {
+    if (eventIndex === undefined) {
       console.error(
         `Failed to retrieve market records: Market event index is undefined`,
       )
@@ -40,32 +39,15 @@ export function useMarketRecords({
         `Failed to retrieve market records, likely an error in the subgraph`,
       )
     }
-    const endEventIndex = Math.max(0, finalEventIndex - page * pageSize)
-    console.log(finalEventIndex, "finalEventIndex")
-    console.log(`END EVENT INDEX: ${endEventIndex}`)
-    console.log(`Page: ${page}`)
-    console.log(kinds)
-    console.log(`Page Size: ${pageSize}`)
 
     const records = await getMarketRecords(subgraphClient, {
       market,
       fetchPolicy: "network-only",
-      endEventIndex: finalEventIndex,
+      endEventIndex: eventIndex,
       limit: 500,
       kinds: kinds?.length ? kinds : undefined,
     })
 
-    console.log(`Records: ${records.length}`)
-
-    console.log(`Start Event Index: ${endEventIndex - pageSize}`)
-    console.log(`End Event Index: ${endEventIndex}`)
-
-    const newestEventIndex = Math.max(
-      ...records.slice(0, pageSize).map((r) => r.eventIndex + 1),
-    )
-    if (newestEventIndex > finalEventIndex) {
-      setFinalEventIndex(newestEventIndex)
-    }
     records.sort((a, b) => b.eventIndex - a.eventIndex)
 
     const q = search?.trim().toLowerCase()
@@ -90,16 +72,18 @@ export function useMarketRecords({
   }
 
   const { data, isLoading, error, isError } = useQuery({
+    // eventIndex in query key ensures auto-refetch when market updates
     queryKey: QueryKeys.Markets.GET_MARKET_RECORDS(
       market.chainId,
       market.address,
+      eventIndex,
       page,
       pageSize,
       kinds,
       search ?? "",
     ),
     queryFn: getMarketRecordsInternal,
-    enabled: true,
+    enabled: eventIndex !== undefined,
     refetchOnMount: false,
   })
 
@@ -107,11 +91,8 @@ export function useMarketRecords({
     data,
     isLoading,
     pagesCount:
-      finalEventIndex === undefined
-        ? undefined
-        : Math.ceil(finalEventIndex / pageSize),
+      eventIndex === undefined ? undefined : Math.ceil(eventIndex / pageSize),
     isError,
     error,
-    finalEventIndex,
   }
 }
