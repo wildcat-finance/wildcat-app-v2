@@ -16,6 +16,7 @@ export type UseMarketRecordsProps = {
   kinds?: MarketRecordKind[]
   search?: string
 }
+const SUBGRAPH_DEFAULT_END_EVENT_INDEX = 100_000_000
 
 export function useMarketRecords({
   market,
@@ -24,26 +25,15 @@ export function useMarketRecords({
   kinds,
   search,
 }: UseMarketRecordsProps) {
-  const { eventIndex } = market
-
   const { chainId } = useSelectedNetwork()
   const targetChainId = market?.chainId ?? chainId
   const subgraphClient = getSubgraphClient(targetChainId)
 
   const getMarketRecordsInternal = async () => {
-    if (eventIndex === undefined) {
-      console.error(
-        `Failed to retrieve market records: Market event index is undefined`,
-      )
-      throw Error(
-        `Failed to retrieve market records, likely an error in the subgraph`,
-      )
-    }
-
     const records = await getMarketRecords(subgraphClient, {
       market,
       fetchPolicy: "network-only",
-      endEventIndex: eventIndex,
+      endEventIndex: SUBGRAPH_DEFAULT_END_EVENT_INDEX,
       limit: 500,
       kinds: kinds?.length ? kinds : undefined,
     })
@@ -72,26 +62,25 @@ export function useMarketRecords({
   }
 
   const { data, isLoading, error, isError } = useQuery({
-    // eventIndex in query key ensures auto-refetch when market updates
     queryKey: QueryKeys.Markets.GET_MARKET_RECORDS(
       market.chainId,
       market.address,
-      eventIndex,
       page,
       pageSize,
       kinds,
       search ?? "",
     ),
     queryFn: getMarketRecordsInternal,
-    enabled: eventIndex !== undefined,
     refetchOnMount: false,
   })
 
   return {
     data,
     isLoading,
-    pagesCount:
-      eventIndex === undefined ? undefined : Math.ceil(eventIndex / pageSize),
+    // use totalRecords from the actual response for accurate pagination
+    pagesCount: data?.totalRecords
+      ? Math.ceil(data.totalRecords / pageSize)
+      : undefined,
     isError,
     error,
   }
