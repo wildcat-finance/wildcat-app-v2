@@ -12,11 +12,6 @@ import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { GenericProviderProps } from "@/providers/interface"
 import { ROUTES } from "@/routes"
 
-const MARKET_ROLE_TO_ROUTE = {
-  lender: ROUTES.lender.root,
-  borrower: ROUTES.borrower.root,
-} as const
-
 export const RedirectsProvider = ({ children }: GenericProviderProps) => {
   const router = useRouter()
   const pathname = usePathname()
@@ -29,11 +24,7 @@ export const RedirectsProvider = ({ children }: GenericProviderProps) => {
     walletChainId,
   })
 
-  const [role, secondSegment, marketAddress] = segments
-  const isMarketRoute =
-    role in MARKET_ROLE_TO_ROUTE &&
-    secondSegment === "market" &&
-    Boolean(marketAddress)
+  const [role, secondSegment] = segments
 
   useEffect(() => {
     if (redirectPath && !isRedirectLoading) {
@@ -54,20 +45,18 @@ export const RedirectsProvider = ({ children }: GenericProviderProps) => {
         walletChainId &&
         prev.walletChainId !== walletChainId)
 
-    if (
-      networkChanged &&
-      isMarketRoute &&
-      role in MARKET_ROLE_TO_ROUTE &&
-      role !== "lender" &&
-      role !== "borrower"
-    ) {
-      router.replace(
-        MARKET_ROLE_TO_ROUTE[role as keyof typeof MARKET_ROLE_TO_ROUTE],
-      )
+    const isBorrowerPolicyRoute =
+      role === "borrower" &&
+      (secondSegment === "policy" ||
+        secondSegment === "edit-policy" ||
+        secondSegment === "create-policy")
+
+    if (networkChanged && isBorrowerPolicyRoute) {
+      router.replace(ROUTES.borrower.root)
     }
 
     previousNetworkRef.current = { selectedChainId, walletChainId }
-  }, [isMarketRoute, role, router, selectedChainId, walletChainId])
+  }, [role, secondSegment, router, selectedChainId, walletChainId])
 
   return children
 }

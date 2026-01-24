@@ -333,9 +333,9 @@ export default function MarketDetails({
             </Box>
           )}
 
-          {checked === 6 && (
+          {checked === 6 && canInteract && (
             <Box sx={SlideContentContainer} marginTop="12px">
-              {canInteract && <MarketMLA marketAccount={marketAccount} />}
+              <MarketMLA marketAccount={marketAccount} />
             </Box>
           )}
           {checked === 7 && (
