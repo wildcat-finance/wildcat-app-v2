@@ -1,5 +1,3 @@
-import { useState } from "react"
-
 import { useQuery } from "@tanstack/react-query"
 import {
   Market,
@@ -18,6 +16,7 @@ export type UseMarketRecordsProps = {
   kinds?: MarketRecordKind[]
   search?: string
 }
+const SUBGRAPH_DEFAULT_END_EVENT_INDEX = 999_999_999
 
 export function useMarketRecords({
   market,
@@ -26,46 +25,19 @@ export function useMarketRecords({
   kinds,
   search,
 }: UseMarketRecordsProps) {
-  const [finalEventIndex, setFinalEventIndex] = useState(market.eventIndex)
   const { chainId } = useSelectedNetwork()
   const targetChainId = market?.chainId ?? chainId
   const subgraphClient = getSubgraphClient(targetChainId)
 
   const getMarketRecordsInternal = async () => {
-    if (finalEventIndex === undefined) {
-      console.error(
-        `Failed to retrieve market records: Market event index is undefined`,
-      )
-      throw Error(
-        `Failed to retrieve market records, likely an error in the subgraph`,
-      )
-    }
-    const endEventIndex = Math.max(0, finalEventIndex - page * pageSize)
-    console.log(finalEventIndex, "finalEventIndex")
-    console.log(`END EVENT INDEX: ${endEventIndex}`)
-    console.log(`Page: ${page}`)
-    console.log(kinds)
-    console.log(`Page Size: ${pageSize}`)
-
     const records = await getMarketRecords(subgraphClient, {
       market,
       fetchPolicy: "network-only",
-      endEventIndex: finalEventIndex,
+      endEventIndex: SUBGRAPH_DEFAULT_END_EVENT_INDEX,
       limit: 500,
       kinds: kinds?.length ? kinds : undefined,
     })
 
-    console.log(`Records: ${records.length}`)
-
-    console.log(`Start Event Index: ${endEventIndex - pageSize}`)
-    console.log(`End Event Index: ${endEventIndex}`)
-
-    const newestEventIndex = Math.max(
-      ...records.slice(0, pageSize).map((r) => r.eventIndex + 1),
-    )
-    if (newestEventIndex > finalEventIndex) {
-      setFinalEventIndex(newestEventIndex)
-    }
     records.sort((a, b) => b.eventIndex - a.eventIndex)
 
     const q = search?.trim().toLowerCase()
@@ -99,19 +71,22 @@ export function useMarketRecords({
       search ?? "",
     ),
     queryFn: getMarketRecordsInternal,
-    enabled: true,
     refetchOnMount: false,
+    refetchInterval: 2 * 60 * 1000, // 2min
   })
+
+  let pagesCount: number | undefined
+  if (data?.totalRecords) {
+    pagesCount = Math.ceil(data.totalRecords / pageSize)
+  } else if (market.eventIndex) {
+    pagesCount = Math.ceil(market.eventIndex / pageSize)
+  }
 
   return {
     data,
     isLoading,
-    pagesCount:
-      finalEventIndex === undefined
-        ? undefined
-        : Math.ceil(finalEventIndex / pageSize),
+    pagesCount,
     isError,
     error,
-    finalEventIndex,
   }
 }
