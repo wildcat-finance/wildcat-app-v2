@@ -16,7 +16,7 @@ export type UseMarketRecordsProps = {
   kinds?: MarketRecordKind[]
   search?: string
 }
-const SUBGRAPH_DEFAULT_END_EVENT_INDEX = 100_000_000
+const SUBGRAPH_DEFAULT_END_EVENT_INDEX = 999_999_999
 
 export function useMarketRecords({
   market,
@@ -72,15 +72,20 @@ export function useMarketRecords({
     ),
     queryFn: getMarketRecordsInternal,
     refetchOnMount: false,
+    refetchInterval: 2 * 60 * 1000, // 2min
   })
+
+  let pagesCount: number | undefined
+  if (data?.totalRecords) {
+    pagesCount = Math.ceil(data.totalRecords / pageSize)
+  } else if (market.eventIndex) {
+    pagesCount = Math.ceil(market.eventIndex / pageSize)
+  }
 
   return {
     data,
     isLoading,
-    // use totalRecords from the actual response for accurate pagination
-    pagesCount: data?.totalRecords
-      ? Math.ceil(data.totalRecords / pageSize)
-      : undefined,
+    pagesCount,
     isError,
     error,
   }
