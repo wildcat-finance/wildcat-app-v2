@@ -7,9 +7,18 @@ import { ProfileSectionNameBlock } from "./components/ProfileSectionNameBlock"
 import { ProfileSectionProps } from "./interface"
 import { OverallBlock } from "../components/OverallBlock"
 
-export const ProfileSection = ({ profileAddress }: ProfileSectionProps) => {
-  const { data: profileData } = useGetBorrowerProfile(profileAddress)
-  const { data: borrowerMarkets } = useGetBorrowerMarkets(profileAddress)
+export const ProfileSection = ({
+  profileAddress,
+  externalChainId,
+}: ProfileSectionProps) => {
+  const { data: profileData } = useGetBorrowerProfile(
+    profileAddress,
+    externalChainId,
+  )
+  const { data: borrowerMarkets } = useGetBorrowerMarkets(
+    profileAddress,
+    externalChainId,
+  )
 
   const activeMarkets = borrowerMarkets?.filter((market) => !market.isClosed)
   const marketsAmount = (activeMarkets ?? []).length
@@ -18,7 +27,11 @@ export const ProfileSection = ({ profileAddress }: ProfileSectionProps) => {
     <>
       <ProfileSectionNameBlock {...profileData} />
 
-      <OverallBlock {...profileData} marketsAmount={marketsAmount} />
+      <OverallBlock
+        {...profileData}
+        marketsAmount={marketsAmount}
+        externalChainId={externalChainId}
+      />
     </>
   )
 }

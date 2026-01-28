@@ -395,6 +395,7 @@ export default function LenderMarketDetails({
           {currentSection === LenderMarketSections.BORROWER_PROFILE && (
             <ProfileSection
               profileAddress={marketAccount.market.borrower as `0x${string}`}
+              externalChainId={marketChainId}
             />
           )}
 
