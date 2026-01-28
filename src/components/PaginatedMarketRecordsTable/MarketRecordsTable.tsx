@@ -103,7 +103,7 @@ export function MarketRecordsTable({
   setPageSize,
   rowCount,
 }: MarketRecordsTableProps) {
-  const { getTxUrl } = useBlockExplorer()
+  const { getTxUrl } = useBlockExplorer({ chainId: market.chainId })
   const name = useBorrowerNameOrAddress(market.borrower)
   const { t } = useTranslation()
 

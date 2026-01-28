@@ -37,7 +37,9 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
   const theme = useTheme()
   const isMobile = useMobileResolution()
   const [state, copyToClipboard] = useCopyToClipboard()
-  const { getAddressUrl, getTokenUrl } = useBlockExplorer()
+  const { getAddressUrl, getTokenUrl } = useBlockExplorer({
+    chainId: market.chainId,
+  })
   const { timeDelinquent, delinquencyGracePeriod } = market
 
   const [gracePeriodLabel, gracePeriodTimer] =

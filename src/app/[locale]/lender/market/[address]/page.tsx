@@ -314,7 +314,10 @@ export default function LenderMarketDetails({
           </Box>
 
           <Box id="requests">
-            <WithdrawalRequests withdrawals={withdrawals} />
+            <WithdrawalRequests
+              withdrawals={withdrawals}
+              chainId={market.chainId}
+            />
           </Box>
 
           <Box id="mla">
@@ -397,7 +400,10 @@ export default function LenderMarketDetails({
 
           {currentSection === LenderMarketSections.REQUESTS && (
             <Box marginTop="12px">
-              <WithdrawalRequests withdrawals={withdrawals} />
+              <WithdrawalRequests
+                withdrawals={withdrawals}
+                chainId={market.chainId}
+              />
             </Box>
           )}
           {currentSection === LenderMarketSections.MARKET_HISTORY && (
