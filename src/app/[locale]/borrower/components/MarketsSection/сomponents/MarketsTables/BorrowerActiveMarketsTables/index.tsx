@@ -11,6 +11,7 @@ import {
   MarketsTablesProps,
   TypeSafeColDef,
 } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
+import { DataGridSx } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/style"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import Ethena from "@/assets/companies-icons/ethena_icon.svg"
 import Ethereal from "@/assets/companies-icons/ethereal_icon.svg"
@@ -359,13 +360,7 @@ export const BorrowerActiveMarketsTables = ({
           showNoFilteredMarkets
         >
           <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-cell": { padding: "0px" },
-            }}
+            sx={DataGridSx}
             rows={depositedMarkets}
             columns={columns}
             columnHeaderHeight={40}
@@ -389,21 +384,7 @@ export const BorrowerActiveMarketsTables = ({
           showNoFilteredMarkets
         >
           <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-row": {
-                minHeight: "66px !important",
-                maxHeight: "66px !important",
-              },
-              "& .MuiDataGrid-cell": {
-                padding: "0px",
-                minHeight: "66px",
-                height: "auto",
-              },
-            }}
+            sx={DataGridSx}
             getRowHeight={() => "auto"}
             rows={nonDepositedMarkets}
             columns={columns}

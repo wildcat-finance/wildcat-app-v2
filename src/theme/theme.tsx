@@ -1149,7 +1149,12 @@ export const theme = createTheme({
           },
 
           "& .MuiDataGrid-columnHeader--sorted": {
-            color: `${COLORS.blackRock} !important`,
+            color: `${COLORS.ultramarineBlue} !important`,
+
+            "& .MuiDataGrid-sortIcon": {
+              opacity: "inherit !important",
+              "& path": { fill: COLORS.ultramarineBlue },
+            },
           },
 
           "& .MuiDataGrid-columnHeader:focus": {
