@@ -29,6 +29,7 @@ import {
   typeComparator,
 } from "@/utils/comparators"
 import {
+  buildMarketHref,
   formatBps,
   formatTokenWithCommas,
   timestampToDateFormatted,
@@ -91,7 +92,11 @@ export const BorrowerMarketsTable = ({
       sortComparator: statusComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{ ...LinkCell, justifyContent: "flex-start" }}
         >
           <Box width="130px">
@@ -109,7 +114,11 @@ export const BorrowerMarketsTable = ({
       align: "left",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{ ...LinkCell, justifyContent: "flex-start" }}
         >
           <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -130,7 +139,11 @@ export const BorrowerMarketsTable = ({
       sortable: true,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{ ...LinkCell, justifyContent: "flex-start" }}
         >
           <Box width={130}>
@@ -148,7 +161,11 @@ export const BorrowerMarketsTable = ({
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value}
@@ -164,7 +181,11 @@ export const BorrowerMarketsTable = ({
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {`${formatBps(params.value)}%`}
@@ -191,7 +212,11 @@ export const BorrowerMarketsTable = ({
       ),
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {`${formatBps(params.value)}%`}
@@ -210,7 +235,11 @@ export const BorrowerMarketsTable = ({
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value ? formatTokenWithCommas(params.value) : "0"}
@@ -229,7 +258,11 @@ export const BorrowerMarketsTable = ({
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value
@@ -250,7 +283,11 @@ export const BorrowerMarketsTable = ({
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
@@ -271,6 +308,7 @@ export const BorrowerMarketsTable = ({
       maxTotalSupply,
       borrowableAssets,
       deployedEvent,
+      chainId,
     } = market
 
     const marketStatus = getMarketStatusChip(market)
@@ -278,6 +316,7 @@ export const BorrowerMarketsTable = ({
 
     return {
       id: address,
+      chainId,
       status: marketStatus,
       marketType,
       name,

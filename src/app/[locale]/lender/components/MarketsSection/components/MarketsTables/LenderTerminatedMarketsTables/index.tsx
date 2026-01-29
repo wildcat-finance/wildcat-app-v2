@@ -348,6 +348,7 @@ export const LenderTerminatedMarketsTables = ({
               },
             }}
             getRowHeight={() => "auto"}
+            autoHeight
             rows={prevActive}
             columns={columns}
             columnHeaderHeight={40}
@@ -384,6 +385,7 @@ export const LenderTerminatedMarketsTables = ({
                 height: "auto",
               },
             }}
+            autoHeight
             getRowHeight={() => "auto"}
             rows={neverActive}
             columns={columns}

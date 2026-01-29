@@ -20,6 +20,7 @@ import {
 } from "@/components/Sidebar/MarketSidebar/style"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
+import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   setCheckBlock,
@@ -57,41 +58,51 @@ export const MarketSidebar = () => {
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 
+  const { isWrongNetwork, isSelectionMismatch } = useNetworkGate({
+    desiredChainId: market?.chainId,
+    includeAgreementStatus: false,
+  })
+  const isDifferentChain = isWrongNetwork || isSelectionMismatch
+  // canInteract: borrower owns market AND is on correct chain
+  const canInteract = holdTheMarket && !isDifferentChain
+
   return (
     <Box sx={ContentContainer}>
       <Box position="sticky" top="32px">
         <BackButton title={t("borrowerMarketDetails.sidebar.backToMarkets")} />
 
         <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
-          <Button
-            variant="text"
-            size="medium"
-            sx={{
-              ...MenuItemButton,
-              backgroundColor: sidebarState.borrowRepay
-                ? COLORS.whiteSmoke
-                : "transparent",
-            }}
-            onClick={() => {
-              dispatch(setCheckBlock(1))
-              dispatch(
-                setSidebarHighlightState({
-                  borrowRepay: true,
-                  statusDetails: false,
-                  marketSummary: false,
-                  withdrawals: false,
-                  lenders: false,
-                  mla: false,
-                  marketHistory: false,
-                }),
-              )
-            }}
-          >
-            <SvgIcon sx={{ marginRight: "10px" }}>
-              <BorrowAndRepayIcon />
-            </SvgIcon>
-            {t("borrowerMarketDetails.sidebar.borrowRepay")}
-          </Button>
+          {canInteract && (
+            <Button
+              variant="text"
+              size="medium"
+              sx={{
+                ...MenuItemButton,
+                backgroundColor: sidebarState.borrowRepay
+                  ? COLORS.whiteSmoke
+                  : "transparent",
+              }}
+              onClick={() => {
+                dispatch(setCheckBlock(1))
+                dispatch(
+                  setSidebarHighlightState({
+                    borrowRepay: true,
+                    statusDetails: false,
+                    marketSummary: false,
+                    withdrawals: false,
+                    lenders: false,
+                    mla: false,
+                    marketHistory: false,
+                  }),
+                )
+              }}
+            >
+              <SvgIcon sx={{ marginRight: "10px" }}>
+                <BorrowAndRepayIcon />
+              </SvgIcon>
+              {t("borrowerMarketDetails.sidebar.borrowRepay")}
+            </Button>
+          )}
           <Button
             variant="text"
             size="medium"
@@ -238,35 +249,37 @@ export const MarketSidebar = () => {
             </SvgIcon>
             {t("borrowerMarketDetails.sidebar.authorisedLenders")}
           </Button>
-          <Button
-            variant="text"
-            size="medium"
-            sx={{
-              ...MenuItemButton,
-              backgroundColor: sidebarState.mla
-                ? COLORS.whiteSmoke
-                : "transparent",
-            }}
-            onClick={() => {
-              dispatch(setCheckBlock(6))
-              dispatch(
-                setSidebarHighlightState({
-                  borrowRepay: false,
-                  statusDetails: false,
-                  marketSummary: false,
-                  withdrawals: false,
-                  lenders: false,
-                  mla: true,
-                  marketHistory: false,
-                }),
-              )
-            }}
-          >
-            <SvgIcon sx={{ marginRight: "10px" }}>
-              <CollateralContractIcon />
-            </SvgIcon>
-            {t("borrowerMarketDetails.sidebar.mla")}
-          </Button>
+          {canInteract && (
+            <Button
+              variant="text"
+              size="medium"
+              sx={{
+                ...MenuItemButton,
+                backgroundColor: sidebarState.mla
+                  ? COLORS.whiteSmoke
+                  : "transparent",
+              }}
+              onClick={() => {
+                dispatch(setCheckBlock(6))
+                dispatch(
+                  setSidebarHighlightState({
+                    borrowRepay: false,
+                    statusDetails: false,
+                    marketSummary: false,
+                    withdrawals: false,
+                    lenders: false,
+                    mla: true,
+                    marketHistory: false,
+                  }),
+                )
+              }}
+            >
+              <SvgIcon sx={{ marginRight: "10px" }}>
+                <CollateralContractIcon />
+              </SvgIcon>
+              {t("borrowerMarketDetails.sidebar.mla")}
+            </Button>
+          )}
 
           <Button
             variant="text"
