@@ -49,8 +49,6 @@ export const OverallBlock = ({
   defaults,
   isPage,
 }: OverallBlockProps) => {
-  console.log(externalChainId, "externalChainId")
-
   const { t } = useTranslation()
   const { getAddressUrl } = useBlockExplorer({ chainId: externalChainId })
   const isMobile = useMobileResolution()
