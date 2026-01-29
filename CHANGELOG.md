@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.2](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.9.1...v2.9.2) (2026-01-29)
+
+
+### Bug Fixes
+
+* **multichain:** add borrower-side multichain market URLs and fixes ([ba05421](https://github.com/wildcat-finance/wildcat-app-v2/commit/ba05421bc482a80df0fb0168fc1cfbe74b87e8a5))
+
 ## [2.9.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.9.0...v2.9.1) (2026-01-26)
 
 
