@@ -23,11 +23,12 @@ import { OngoingTable } from "./OngoingTable"
 
 export const WithdrawalRequests = ({
   withdrawals,
+  chainId,
 }: WithdrawalRequestsProps) => {
   const { t } = useTranslation()
   const theme = useTheme()
   const isMobile = useMobileResolution()
-  const { getAddressUrl, getTxUrl } = useBlockExplorer()
+  const { getAddressUrl, getTxUrl } = useBlockExplorer({ chainId })
 
   const expiredTotalAmount = withdrawals.expiredTotalPendingAmount
   const activeTotalAmount = withdrawals.activeTotalPendingAmount
@@ -122,6 +123,7 @@ export const WithdrawalRequests = ({
         <ClaimableTable
           withdrawals={withdrawals.expiredPendingWithdrawals}
           totalAmount={claimableTotalAmount}
+          chainId={chainId}
         />
 
         <OutstandingTable

@@ -69,7 +69,7 @@ export const MarketAuthorisedLenders = ({
   )
 
   const [state, copyToClipboard] = useCopyToClipboard()
-  const { getAddressUrl } = useBlockExplorer()
+  const { getAddressUrl } = useBlockExplorer({ chainId: market?.chainId })
 
   const { data, isLoading } = useGetMarketLenders(market)
   const { t } = useTranslation()

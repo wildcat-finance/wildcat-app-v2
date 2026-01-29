@@ -29,6 +29,7 @@ import { DataGridCells, MarketWithdrawalRequetstCell } from "../style"
 export type ClaimableTableProps = {
   withdrawalBatches: WithdrawalBatch[]
   totalAmount: TokenAmount
+  chainId?: number
 }
 
 const lendersName: { [key: string]: string } = JSON.parse(
@@ -38,11 +39,12 @@ const lendersName: { [key: string]: string } = JSON.parse(
 export const ClaimableTable = ({
   withdrawalBatches,
   totalAmount,
+  chainId,
 }: ClaimableTableProps) => {
   const [isClaimableOpen, setIsClaimableOpen] = useState(false)
   const theme = useTheme()
   const isMobile = useMobileResolution()
-  const { getAddressUrl, getTxUrl } = useBlockExplorer()
+  const { getAddressUrl, getTxUrl } = useBlockExplorer({ chainId })
 
   const claimableColumns: GridColDef[] = useMemo(
     () => [
@@ -244,6 +246,7 @@ export const ClaimableTable = ({
               amount={row.amount}
               dateSubmitted={row.dateSubmitted}
               isLast={index === mobileRows.length - 1}
+              chainId={chainId}
             />
           ))}
         </Box>

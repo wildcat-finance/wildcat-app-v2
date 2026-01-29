@@ -39,7 +39,9 @@ export const MarketWithdrawalRequests = ({
   const expiredTotalAmount = withdrawals.expiredWithdrawalsTotalOwed
   const activeTotalAmount = withdrawals.activeWithdrawalsTotalOwed
   const claimableTotalAmount = withdrawals.claimableWithdrawalsAmount
-  const { getAddressUrl, getTxUrl } = useBlockExplorer()
+  const { getAddressUrl, getTxUrl } = useBlockExplorer({
+    chainId: market.chainId,
+  })
   const totalAmount = expiredTotalAmount
     .add(activeTotalAmount)
     .add(claimableTotalAmount)
@@ -153,6 +155,7 @@ export const MarketWithdrawalRequests = ({
       <ClaimableTable
         withdrawalBatches={withdrawals.batchesWithClaimableWithdrawals ?? []}
         totalAmount={withdrawals.claimableWithdrawalsAmount}
+        chainId={market.chainId}
       />
 
       <OutstandingTable

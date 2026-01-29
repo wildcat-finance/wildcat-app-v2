@@ -45,11 +45,12 @@ export const OverallBlock = ({
   entityKind,
   additionalUrls,
   marketsAmount,
+  externalChainId,
   defaults,
   isPage,
 }: OverallBlockProps) => {
   const { t } = useTranslation()
-  const { getAddressUrl } = useBlockExplorer()
+  const { getAddressUrl } = useBlockExplorer({ chainId: externalChainId })
   const isMobile = useMobileResolution()
 
   const jurisdictionObj =
