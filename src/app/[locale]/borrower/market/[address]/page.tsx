@@ -149,6 +149,14 @@ export default function MarketDetails({
     dispatch(setWithdrawalsCount(totalWithdrawalsCount))
   }, [totalWithdrawalsCount])
 
+  const isLoadingMarket = isMarketLoading || apiLoading || isDiscoveringChainId
+  useEffect(() => {
+    if (isLoadingMarket || !market || !marketAccount) return
+    if (!canInteract && checked === 1) {
+      dispatch(setCheckBlock(2))
+    }
+  }, [canInteract, checked, dispatch, isLoadingMarket, market, marketAccount])
+
   if (apiError) {
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
@@ -161,8 +169,6 @@ export default function MarketDetails({
     )
   }
 
-  // Show loading skeleton while fetching
-  const isLoadingMarket = isMarketLoading || apiLoading || isDiscoveringChainId
   if (isLoadingMarket || !market || !marketAccount)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
