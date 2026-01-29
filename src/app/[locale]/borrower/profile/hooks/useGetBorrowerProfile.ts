@@ -33,8 +33,12 @@ const fetchBorrowerProfile = async (
   return data.profile as BorrowerProfile
 }
 
-export const useGetBorrowerProfile = (address: `0x${string}` | undefined) => {
-  const { chainId } = useSelectedNetwork()
+export const useGetBorrowerProfile = (
+  address: `0x${string}` | undefined,
+  externalChainId?: number,
+) => {
+  const { chainId: selectedChainId } = useSelectedNetwork()
+  const chainId = externalChainId ?? selectedChainId
   const normalizedAddress = address?.toLowerCase() as `0x${string}` | undefined
   return useQuery<BorrowerProfile | undefined>({
     queryKey: QueryKeys.Borrower.GET_PROFILE(chainId, normalizedAddress),
@@ -46,9 +50,11 @@ export const useGetBorrowerProfile = (address: `0x${string}` | undefined) => {
 
 export const useInvalidateBorrowerProfile = (
   address: `0x${string}` | undefined,
+  externalChainId?: number,
 ) => {
   const queryClient = useQueryClient()
-  const { chainId } = useSelectedNetwork()
+  const { chainId: selectedChainId } = useSelectedNetwork()
+  const chainId = externalChainId ?? selectedChainId
   const normalizedAddress = address?.toLowerCase() as `0x${string}` | undefined
 
   return () => {

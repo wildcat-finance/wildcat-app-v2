@@ -8,6 +8,7 @@ export type TypeSafeColDef<T> = GridColDef & { field: keyof T }
 
 export type MarketsTableModel = {
   id: string
+  chainId?: number
   status: ReturnType<typeof getMarketStatusChip>
   marketType: ReturnType<typeof getMarketTypeChip>
   name: string

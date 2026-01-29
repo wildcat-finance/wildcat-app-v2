@@ -11,7 +11,11 @@ import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { capacityComparator, statusComparator } from "@/utils/comparators"
-import { formatBps, formatTokenWithCommas } from "@/utils/formatters"
+import {
+  buildMarketHref,
+  formatBps,
+  formatTokenWithCommas,
+} from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -24,6 +28,7 @@ export type MarketsTabProps = {
 
 export type MarketsTableModel = {
   id: string
+  chainId?: number
   status: ReturnType<typeof getMarketStatusChip>
   type: ReturnType<typeof getMarketTypeChip>
   name: string
@@ -44,7 +49,11 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       sortComparator: statusComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -66,7 +75,11 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       sortComparator: capacityComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -87,7 +100,11 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       align: "left",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -106,7 +123,11 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       flex: 1,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value}
@@ -122,7 +143,11 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       flex: 1.5,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value
@@ -143,7 +168,11 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {`${formatBps(params.value)}%`}
@@ -161,6 +190,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
 
     return {
       id: address,
+      chainId: market.chainId,
       status: marketStatus,
       type: marketType,
       name,

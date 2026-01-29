@@ -447,6 +447,7 @@ export const LenderActiveMarketsTables = ({
                   height: "auto",
                 },
               }}
+              autoHeight
               getRowHeight={() => "auto"}
               rows={depositedMarkets}
               columns={columns}
@@ -499,6 +500,7 @@ export const LenderActiveMarketsTables = ({
                 },
               }}
               getRowHeight={() => "auto"}
+              autoHeight
               rows={nonDepositedMarkets}
               columns={columns}
               columnHeaderHeight={40}

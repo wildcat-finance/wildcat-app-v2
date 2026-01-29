@@ -24,14 +24,27 @@ export const LenderName = ({ address }: LenderNameProps) => {
   const lowerCaseAddress = address.toLowerCase()
   const [isEdit, setIsEdit] = useState(false)
 
-  const lendersName: { [key: string]: string } = JSON.parse(
-    localStorage.getItem("lenders-name") || "{}",
-  )
-
-  const [name, setName] = useState(lendersName[lowerCaseAddress] || "Add Name")
+  const [lendersName, setLendersName] = useState<{ [key: string]: string }>({})
+  const [name, setName] = useState("Add Name")
   const [prevName, setPrevName] = useState(name)
   const containerRef = useRef<HTMLDivElement>(null)
   const isPlaceholder = name === "Add Name"
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    try {
+      const stored = JSON.parse(
+        window.localStorage.getItem("lenders-name") || "{}",
+      ) as { [key: string]: string }
+      setLendersName(stored)
+      setName(stored[lowerCaseAddress] || "Add Name")
+      setPrevName(stored[lowerCaseAddress] || "Add Name")
+    } catch {
+      setLendersName({})
+      setName("Add Name")
+      setPrevName("Add Name")
+    }
+  }, [lowerCaseAddress])
 
   const handleClickEdit = () => {
     if (isPlaceholder) setName("")

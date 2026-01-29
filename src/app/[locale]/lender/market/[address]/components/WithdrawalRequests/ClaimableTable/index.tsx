@@ -26,12 +26,16 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 
-export const ClaimableTable = ({ withdrawals, totalAmount }: TableProps) => {
+export const ClaimableTable = ({
+  withdrawals,
+  totalAmount,
+  chainId,
+}: TableProps) => {
   const { t } = useTranslation()
   const [isClaimableOpen, setIsClaimableOpen] = useState(false)
   const theme = useTheme()
   const isMobile = useMobileResolution()
-  const { getAddressUrl, getTxUrl } = useBlockExplorer()
+  const { getAddressUrl, getTxUrl } = useBlockExplorer({ chainId })
 
   const claimableColumns: GridColDef[] = useMemo(
     () => [
@@ -246,6 +250,7 @@ export const ClaimableTable = ({ withdrawals, totalAmount }: TableProps) => {
               amount={row.amount}
               dateSubmitted={row.dateSubmitted}
               isLast={index === mobileRows.length - 1}
+              chainId={chainId}
             />
           ))}
         </Box>

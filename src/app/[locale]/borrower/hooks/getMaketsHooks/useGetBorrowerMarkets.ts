@@ -6,6 +6,7 @@ import {
   SubgraphMarket_Filter,
   SupportedChainId,
   getMarketsForBorrower,
+  getSubgraphClient,
 } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
@@ -15,7 +16,6 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
 
@@ -31,7 +31,9 @@ export function useGetBorrowerMarketsQuery({
   ...variables
 }: GetMarketsProps) {
   const { address: userAddress } = useAccount()
-  const subgraphClient = useSubgraphClient()
+  const { chainId: selectedChainId } = useSelectedNetwork()
+  const targetChainId = chainId ?? selectedChainId
+  const subgraphClient = getSubgraphClient(targetChainId)
   const network = useSelectedNetwork()
   const address = (borrowerAddress ?? userAddress)?.toLowerCase()
 
@@ -85,12 +87,14 @@ export function useGetBorrowerMarketsQuery({
 
 export const useGetBorrowerMarkets = (
   borrowerAddress?: `0x${string}`,
+  externalChainId?: number,
   args?: SubgraphGetMarketsWithEventsQueryVariables | undefined,
 ) => {
-  const { chainId } = useCurrentNetwork()
+  const { chainId: currentChainId } = useCurrentNetwork()
   const { isWrongNetwork, provider, signer } = useEthersProvider()
 
   const signerOrProvider = signer ?? provider
+  const chainId = externalChainId ?? currentChainId
 
   return useGetBorrowerMarketsQuery({
     borrowerAddress,

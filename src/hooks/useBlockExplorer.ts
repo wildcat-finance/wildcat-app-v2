@@ -11,12 +11,24 @@ const normalizeBaseUrl = (url: string) => url.replace(/\/+$/, "")
 const buildUrl = (baseUrl: string, path: string) =>
   `${baseUrl}/${path.replace(/^\/+/, "")}`
 
-export const useBlockExplorer = () => {
+export type UseBlockExplorerOptions = {
+  chainId?: number
+}
+
+export const useBlockExplorer = (options?: UseBlockExplorerOptions) => {
+  const { chainId: overrideChainId } = options ?? {}
+
   const { blockExplorerUrl: selectedExplorerUrl, chainId: targetChainId } =
     useSelectedNetwork()
   const { explorerUrl, chainId: connectedChainId } = useCurrentNetwork()
 
   const baseUrl = useMemo(() => {
+    if (overrideChainId) {
+      return normalizeBaseUrl(
+        getBlockExplorerBaseUrl(overrideChainId as SupportedChainId),
+      )
+    }
+
     const normalizedSelected = selectedExplorerUrl
       ? normalizeBaseUrl(selectedExplorerUrl)
       : undefined
@@ -44,7 +56,13 @@ export const useBlockExplorer = () => {
       fallbackTarget ??
       normalizeBaseUrl(BlockExplorerBaseUrl)
     )
-  }, [selectedExplorerUrl, explorerUrl, connectedChainId, targetChainId])
+  }, [
+    overrideChainId,
+    selectedExplorerUrl,
+    explorerUrl,
+    connectedChainId,
+    targetChainId,
+  ])
 
   const build = useCallback(
     (path: string) => buildUrl(baseUrl, path),

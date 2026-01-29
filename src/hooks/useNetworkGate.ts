@@ -90,8 +90,13 @@ export const useNetworkGate = ({
 
     const isAgreementPath = pathname === ROUTES.agreement
     const lenderMarketPath = isLenderMarketPath(pathname)
+    const borrowerMarketPath = pathname.startsWith(ROUTES.borrower.market)
 
-    if ((!address || isWrongNetwork) && isNotPublicPath(pathname)) {
+    if (!address && isNotPublicPath(pathname)) {
+      return "/"
+    }
+
+    if (isWrongNetwork && isNotPublicPath(pathname) && !borrowerMarketPath) {
       return "/"
     }
 

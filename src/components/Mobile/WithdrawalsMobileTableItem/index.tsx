@@ -15,6 +15,7 @@ type OutstandingRowProps = {
   amount: string
   dateSubmitted: string
   isLast?: boolean
+  chainId?: number
 }
 
 export const WithdrawalsMobileTableItem = ({
@@ -23,8 +24,9 @@ export const WithdrawalsMobileTableItem = ({
   amount,
   dateSubmitted,
   isLast = false,
+  chainId,
 }: OutstandingRowProps) => {
-  const { getAddressUrl, getTxUrl } = useBlockExplorer()
+  const { getAddressUrl, getTxUrl } = useBlockExplorer({ chainId })
 
   return (
     <Box>
