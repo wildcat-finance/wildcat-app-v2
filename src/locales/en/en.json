@@ -468,7 +468,7 @@
         "confirm": "Confirm"
       },
       "borrow": {
-        "borrow" : "Borrow",
+        "borrow": "Borrow",
         "borrowSum": "Borrow Sum",
         "availableToBorrow": "Available To Borrow",
         "afterTransaction": " after this transaction",
@@ -1003,7 +1003,8 @@
       "requests": "Withdrawal Requests",
       "marketHistory": "Market History",
       "borrowerProfile": "About Borrower",
-      "description": "Market Description"
+      "description": "Market Description",
+      "wrapDebtToken": "Wrap Debt Token"
     },
     "buttons": {
       "addToken": "Add Debt Token To Wallet",
@@ -1011,6 +1012,25 @@
       "viewMla": "View/Sign MLA",
       "mlaNotSet": "Borrower Has Not Configured An MLA",
       "mlaRefused": "Borrower Declined to Set An MLA"
+    },
+    "wrapDebtToken": {
+      "title": "No wrapper deployed",
+      "subtitle": "This market doesn't have a wrapper contract yet.",
+      "deployButton": "Deploy Wrapper",
+      "commonQuestions": "Common Questions",
+      "learnMore": "Learn more",
+      "whatIsWrapping": {
+        "question": "What is wrapping?",
+        "answer": "Wrapping converts rebasing market tokens into a transferable ERC-4626-style token, making them easier to use across DeFi."
+      },
+      "whoCanDeploy": {
+        "question": "Who can deploy the wrapper?",
+        "answer": "Anyone can deploy the wrapper — not just the borrower."
+      },
+      "whatHappensAfter": {
+        "question": "What happens after deployment?",
+        "answer": "Once deployed, the wrapper is available to everyone."
+      }
     },
     "transactions": {
       "deposit": {
@@ -1050,7 +1070,6 @@
           "claim": "Claim Assets",
           "withdrawals": "Go to Withdrawals"
         }
-
       }
     },
     "barchart": {
@@ -1105,7 +1124,7 @@
     }
   },
   "txModal": {
-    "viewOnEtherscan":"View on Explorer"
+    "viewOnEtherscan": "View on Explorer"
   },
   "link": {
     "viewOnEtherscan": "View on Explorer"

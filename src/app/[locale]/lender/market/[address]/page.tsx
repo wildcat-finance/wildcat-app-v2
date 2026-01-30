@@ -41,6 +41,7 @@ import { COLORS } from "@/theme/colors"
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
 import { MarketActions } from "./components/MarketActions"
 import { MarketSummary } from "./components/MarketSummary"
+import { WrapDebtToken } from "./components/WrapDebtToken"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
@@ -404,6 +405,9 @@ export default function LenderMarketDetails({
             <Box marginTop="12px">
               <PaginatedMarketRecordsTable market={market} />
             </Box>
+          )}
+          {currentSection === LenderMarketSections.WRAP_DEBT_TOKEN && (
+            <WrapDebtToken />
           )}
         </Box>
       </Box>
