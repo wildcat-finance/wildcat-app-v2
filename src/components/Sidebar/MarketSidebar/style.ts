@@ -1,7 +1,7 @@
 import { lh, pxToRem } from "@/theme/units"
 
 export const ContentContainer = {
-  minWidth: "267px",
+  width: "267px",
   padding: "32px 12px 0px",
   display: "flex",
   flexDirection: "column",

@@ -8,13 +8,18 @@ import Question from "@/assets/icons/circledQuestion_icon.svg"
 import { MiniLoader } from "@/components/Loader"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import {
+  setInitialAmount,
+  setWrappedAmount,
+} from "@/store/slices/wrapDebtTokenFlowSlice/wrapDebtTokenFlowSlice"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 
-import { ErrorWrapperAlert } from "./components/ErrorWrapperAlert"
-import { SuccessWrapperModal } from "./components/SuccessWrapperModal"
-import { WrapperExchangeBanner } from "./components/WrapperExchangeBanner"
-import { WrapperHeader } from "./components/WrapperHeader"
+import { ErrorWrapperAlert } from "../../../../../../../../../components/WrapDebtToken/ErrorWrapperAlert"
+import { SuccessWrapperModal } from "../../../../../../../../../components/WrapDebtToken/SuccessWrapperModal"
+import { WrapperExchangeBanner } from "../../../../../../../../../components/WrapDebtToken/WrapperExchangeBanner"
+import { WrapperHeader } from "../../../../../../../../../components/WrapDebtToken/WrapperHeader"
 
 const mockAddress = "0x000000000000000000000000000000000000"
 const mockExchangeRate = 1
@@ -40,10 +45,18 @@ enum TokenWrapperFormTabs {
 
 export const WrapperSection = () => {
   const { t } = useTranslation()
+  const dispatch = useAppDispatch()
   const [tab, setTab] = React.useState<TokenWrapperFormTabs>(
     TokenWrapperFormTabs.WRAP,
   )
   const [amount, setAmount] = React.useState<number | undefined>(undefined)
+
+  const initialAmount = useAppSelector(
+    (state) => state.wrapDebtTokenFlow.initialAmount,
+  )
+  const wrappedAmount = useAppSelector(
+    (state) => state.wrapDebtTokenFlow.wrappedAmount,
+  )
 
   // Mock states
   const [isMockApproved, setIsMockApproved] = React.useState<boolean>(false)
@@ -54,7 +67,7 @@ export const WrapperSection = () => {
 
   const isWrapTab = tab === TokenWrapperFormTabs.WRAP
   const isNoAmount = amount === 0 || amount === undefined
-  const wrappedAmount = amount ?? 0 * mockExchangeRate
+  const calculatedWrappedAmount = (amount ?? 0) * mockExchangeRate
   const isApproveButtonDisabled =
     isNoAmount || isMockApproved || isMockApproving
   const isMainButtonDisabled =
@@ -93,6 +106,22 @@ export const WrapperSection = () => {
         setIsMockError(true)
       } else {
         setIsMockSuccess(true)
+        // Update balances on successful transaction
+        if (amount !== undefined) {
+          if (isWrapTab) {
+            // Wrap: decrease initialAmount, increase wrappedAmount
+            dispatch(setInitialAmount(initialAmount - amount))
+            dispatch(
+              setWrappedAmount(wrappedAmount + amount * mockExchangeRate),
+            )
+          } else {
+            // Unwrap: increase initialAmount, decrease wrappedAmount
+            dispatch(
+              setInitialAmount(initialAmount + amount * mockExchangeRate),
+            )
+            dispatch(setWrappedAmount(wrappedAmount - amount))
+          }
+        }
       }
     }, 5000)
   }
@@ -176,7 +205,9 @@ export const WrapperSection = () => {
                 border: `1px solid ${COLORS.iron}`,
               }}
             >
-              <Typography variant="text3">~ {wrappedAmount} WETH</Typography>
+              <Typography variant="text3">
+                ~ {calculatedWrappedAmount} WETH
+              </Typography>
             </Box>
 
             <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
@@ -247,7 +278,9 @@ export const WrapperSection = () => {
                 border: `1px solid ${COLORS.iron}`,
               }}
             >
-              <Typography variant="text3">~ {wrappedAmount} ETH</Typography>
+              <Typography variant="text3">
+                ~ {calculatedWrappedAmount} ETH
+              </Typography>
             </Box>
 
             <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>

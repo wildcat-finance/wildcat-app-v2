@@ -5,10 +5,18 @@ import { useTranslation } from "react-i18next"
 
 import Change from "@/assets/icons/change_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
+import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 
 export const WrapperExchangeBanner = () => {
   const { t } = useTranslation()
+
+  const initialAmount = useAppSelector(
+    (state) => state.wrapDebtTokenFlow.initialAmount,
+  )
+  const wrappedAmount = useAppSelector(
+    (state) => state.wrapDebtTokenFlow.wrappedAmount,
+  )
 
   return (
     <Box
@@ -38,7 +46,7 @@ export const WrapperExchangeBanner = () => {
             gap: "3px",
           }}
         >
-          <Typography variant="title2">0.0056</Typography>
+          <Typography variant="title2">{initialAmount}</Typography>
           <Typography
             variant="text4"
             color={COLORS.manate}
@@ -49,7 +57,9 @@ export const WrapperExchangeBanner = () => {
         </Box>
       </Box>
 
-      <SvgIcon>
+      <SvgIcon
+        sx={{ fontSize: "20px", "& path": { fill: COLORS.matteSilver } }}
+      >
         <Change />
       </SvgIcon>
 
@@ -69,7 +79,7 @@ export const WrapperExchangeBanner = () => {
             gap: "3px",
           }}
         >
-          <Typography variant="title2">0</Typography>
+          <Typography variant="title2">{wrappedAmount}</Typography>
           <Typography
             variant="text4"
             color={COLORS.manate}

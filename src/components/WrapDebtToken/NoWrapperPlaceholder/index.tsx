@@ -16,7 +16,7 @@ import {
   LearnMoreButton,
   NoWrapperPlaceholderContainer,
   PlaceholderIcon,
-  PlaceholderSubtitle,
+  CreateButton,
   PlaceholderTitle,
   QuestionItem,
   QuestionsContainer,
@@ -32,7 +32,7 @@ export const NoWrapperPlaceholder = ({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const handleClick = () => {
-    dispatch(setTokenWrapperStep(WrapDebtTokenFlowSteps.CREATE_WRAPPER))
+    dispatch(setTokenWrapperStep(WrapDebtTokenFlowSteps.HAS_WRAPPER))
   }
 
   return (
@@ -46,16 +46,17 @@ export const NoWrapperPlaceholder = ({
           {t("lenderMarketDetails.wrapDebtToken.title")}
         </Typography>
 
-        <Typography
-          variant="text2"
-          color={COLORS.manate}
-          sx={PlaceholderSubtitle}
-        >
+        <Typography variant="text2" color={COLORS.manate}>
           {t("lenderMarketDetails.wrapDebtToken.subtitle")}
         </Typography>
 
         {canCreateWrapper && (
-          <Button variant="contained" size="large" onClick={handleClick}>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={handleClick}
+            sx={CreateButton}
+          >
             {t("lenderMarketDetails.wrapDebtToken.deployButton")}
           </Button>
         )}

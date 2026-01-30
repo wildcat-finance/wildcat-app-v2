@@ -9,6 +9,7 @@ import { useSearchParams } from "next/navigation"
 import { useAccount } from "wagmi"
 
 import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart"
+import { WrapDebtToken } from "@/app/[locale]/borrower/market/[address]/components/WrapDebtToken"
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { LeadBanner } from "@/components/LeadBanner"
@@ -347,6 +348,11 @@ export default function MarketDetails({
           {checked === 7 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <PaginatedMarketRecordsTable market={market} />
+            </Box>
+          )}
+          {checked === 8 && (
+            <Box sx={SlideContentContainer} marginTop="4px">
+              <WrapDebtToken />
             </Box>
           )}
         </Box>
