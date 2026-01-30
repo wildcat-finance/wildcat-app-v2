@@ -9,6 +9,7 @@ import hideMarketSectionsSlice from "@/store/slices/hideMarketSectionsSlice/hide
 import lenderDashboardAmountsSlice from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import lenderDashboardSlice from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import policyLendersSlice from "@/store/slices/policyLendersSlice/policyLendersSlice"
+import wrapDebtTokenFlowSlice from "@/store/slices/wrapDebtTokenFlowSlice/wrapDebtTokenFlowSlice"
 
 import apiTokensSlice from "./slices/apiTokensSlice/apiTokensSlice"
 import borrowerLendersTabSidebarSlice from "./slices/borrowerLendersTabSidebarSlice/borrowerLendersTabSidebarSlice"
@@ -28,6 +29,7 @@ import selectedNetworkSlice from "./slices/selectedNetworkSlice/selectedNetworkS
 export const makeStore = () => {
   const store = configureStore({
     reducer: {
+      wrapDebtTokenFlow: wrapDebtTokenFlowSlice,
       hideMarketSections: hideMarketSectionsSlice,
       apiTokens: apiTokensSlice,
       routing: routingSlice,
