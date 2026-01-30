@@ -8,6 +8,7 @@ import { MarketVersion } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart"
+import { WrapDebtToken } from "@/app/[locale]/borrower/market/[address]/components/WrapDebtToken"
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
@@ -290,6 +291,11 @@ export default function MarketDetails({
           {checked === 7 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <PaginatedMarketRecordsTable market={market} />
+            </Box>
+          )}
+          {checked === 8 && (
+            <Box sx={SlideContentContainer} marginTop="4px">
+              <WrapDebtToken />
             </Box>
           )}
         </Box>

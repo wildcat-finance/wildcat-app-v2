@@ -2,10 +2,11 @@ import * as React from "react"
 
 import { Box } from "@mui/material"
 
-import { WrapperSection } from "@/app/[locale]/lender/market/[address]/components/WrapDebtToken/components/WrapperSection"
 import { NoWrapperPlaceholder } from "@/components/WrapDebtToken/NoWrapperPlaceholder"
 import { useAppSelector } from "@/store/hooks"
 import { WrapDebtTokenFlowSteps } from "@/store/slices/wrapDebtTokenFlowSlice/wrapDebtTokenFlowSlice"
+
+import { WrapperSection } from "./components/WrapperSection"
 
 export const WrapDebtToken = () => {
   const wrapperStep = useAppSelector((state) => state.wrapDebtTokenFlow.step)
@@ -13,7 +14,7 @@ export const WrapDebtToken = () => {
   return (
     <Box>
       {wrapperStep === WrapDebtTokenFlowSteps.NO_WRAPPER && (
-        <NoWrapperPlaceholder canCreateWrapper />
+        <NoWrapperPlaceholder canCreateWrapper={false} />
       )}
 
       {wrapperStep === WrapDebtTokenFlowSteps.HAS_WRAPPER && <WrapperSection />}

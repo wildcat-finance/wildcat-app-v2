@@ -19,6 +19,7 @@ const useSidebarHighlight = (checked: number) => {
             lenders: false,
             mla: false,
             marketHistory: false,
+            tokenWrapper: false,
           }),
         )
         break
@@ -32,6 +33,7 @@ const useSidebarHighlight = (checked: number) => {
             lenders: false,
             mla: false,
             marketHistory: false,
+            tokenWrapper: false,
           }),
         )
         break
@@ -45,6 +47,7 @@ const useSidebarHighlight = (checked: number) => {
             lenders: false,
             mla: false,
             marketHistory: false,
+            tokenWrapper: false,
           }),
         )
         break
@@ -58,6 +61,7 @@ const useSidebarHighlight = (checked: number) => {
             lenders: false,
             mla: false,
             marketHistory: false,
+            tokenWrapper: false,
           }),
         )
         break
@@ -71,6 +75,7 @@ const useSidebarHighlight = (checked: number) => {
             lenders: true,
             mla: false,
             marketHistory: false,
+            tokenWrapper: false,
           }),
         )
         break
@@ -84,6 +89,7 @@ const useSidebarHighlight = (checked: number) => {
             lenders: false,
             mla: true,
             marketHistory: false,
+            tokenWrapper: false,
           }),
         )
         break
@@ -97,6 +103,21 @@ const useSidebarHighlight = (checked: number) => {
             lenders: false,
             mla: false,
             marketHistory: true,
+            tokenWrapper: false,
+          }),
+        )
+        break
+      case 8:
+        dispatch(
+          setSidebarHighlightState({
+            borrowRepay: false,
+            statusDetails: false,
+            marketSummary: false,
+            withdrawals: false,
+            lenders: false,
+            mla: false,
+            marketHistory: false,
+            tokenWrapper: true,
           }),
         )
         break
@@ -108,8 +129,9 @@ const useSidebarHighlight = (checked: number) => {
             marketSummary: false,
             withdrawals: false,
             lenders: false,
-            mla: true,
-            marketHistory: true,
+            mla: false,
+            marketHistory: false,
+            tokenWrapper: true,
           }),
         )
         break

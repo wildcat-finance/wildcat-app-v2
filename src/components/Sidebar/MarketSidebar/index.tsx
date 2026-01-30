@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Box, Button, SvgIcon, Typography } from "@mui/material"
+import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
 import { useParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -12,6 +12,7 @@ import LenderBorrowerIcon from "@/assets/icons/lenderBorrower_icon.svg"
 import MarketEventsIcon from "@/assets/icons/marketEvents_icon.svg"
 import StatusAndDetailsIcon from "@/assets/icons/statusAndDetails_icon.svg"
 import SummaryIcon from "@/assets/icons/summary_icon.svg"
+import TokenWrapIcon from "@/assets/icons/tokenWrap_icon.svg"
 import WithdrawalAndRequestsIcon from "@/assets/icons/withdrawalAndRequests_icon.svg"
 import { BackButton } from "@/components/BackButton"
 import {
@@ -83,6 +84,7 @@ export const MarketSidebar = () => {
                   lenders: false,
                   mla: false,
                   marketHistory: false,
+                  tokenWrapper: false,
                 }),
               )
             }}
@@ -112,6 +114,7 @@ export const MarketSidebar = () => {
                   lenders: false,
                   mla: false,
                   marketHistory: false,
+                  tokenWrapper: false,
                 }),
               )
             }}
@@ -142,6 +145,7 @@ export const MarketSidebar = () => {
                     lenders: false,
                     mla: false,
                     marketHistory: false,
+                    tokenWrapper: false,
                   }),
                 )
               }}
@@ -176,6 +180,7 @@ export const MarketSidebar = () => {
                   lenders: false,
                   mla: false,
                   marketHistory: false,
+                  tokenWrapper: false,
                 }),
               )
             }}
@@ -229,6 +234,7 @@ export const MarketSidebar = () => {
                   lenders: true,
                   mla: false,
                   marketHistory: false,
+                  tokenWrapper: false,
                 }),
               )
             }}
@@ -258,6 +264,7 @@ export const MarketSidebar = () => {
                   lenders: false,
                   mla: true,
                   marketHistory: false,
+                  tokenWrapper: false,
                 }),
               )
             }}
@@ -286,8 +293,9 @@ export const MarketSidebar = () => {
                   marketSummary: false,
                   withdrawals: false,
                   lenders: false,
-                  mla: true,
+                  mla: false,
                   marketHistory: true,
+                  tokenWrapper: false,
                 }),
               )
             }}
@@ -298,6 +306,62 @@ export const MarketSidebar = () => {
             {t("borrowerMarketDetails.sidebar.marketHistory")}
           </Button>
         </Box>
+
+        {holdTheMarket && (
+          <>
+            <Divider sx={{ margin: "6px 0px" }} />
+
+            <Button
+              variant="text"
+              size="medium"
+              sx={{
+                ...MenuItemButton,
+                backgroundColor: sidebarState.tokenWrapper
+                  ? COLORS.whiteSmoke
+                  : "transparent",
+              }}
+              onClick={() => {
+                dispatch(setCheckBlock(8))
+                dispatch(
+                  setSidebarHighlightState({
+                    borrowRepay: false,
+                    statusDetails: false,
+                    marketSummary: false,
+                    withdrawals: false,
+                    lenders: false,
+                    mla: false,
+                    marketHistory: false,
+                    tokenWrapper: true,
+                  }),
+                )
+              }}
+            >
+              <SvgIcon
+                sx={{
+                  marginRight: "10px",
+                  "& path": { fill: COLORS.blackRock },
+                }}
+              >
+                <TokenWrapIcon />
+              </SvgIcon>
+              {t("lenderMarketDetails.sidebar.wrapDebtToken")}
+
+              <Box
+                sx={{
+                  display: "flex",
+                  padding: "0px 6px",
+                  borderRadius: "4px",
+                  backgroundColor: COLORS.glitter,
+                  marginLeft: "auto",
+                }}
+              >
+                <Typography variant="text4" color={COLORS.ultramarineBlue}>
+                  New
+                </Typography>
+              </Box>
+            </Button>
+          </>
+        )}
 
         {marketAccount && holdTheMarket && (
           <TerminateMarket marketAccount={marketAccount} />

@@ -12,6 +12,7 @@ const initialState: THighLightSidebar = {
     lenders: false,
     mla: false,
     marketHistory: false,
+    tokenWrapper: false,
   },
   withdrawalsCount: 0,
 }

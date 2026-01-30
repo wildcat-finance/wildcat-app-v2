@@ -20,8 +20,8 @@ export const PlaceholderTitle = {
   marginBottom: "4px",
 }
 
-export const PlaceholderSubtitle = {
-  marginBottom: "20px",
+export const CreateButton = {
+  marginTop: "20px",
 }
 
 export const QuestionsContainer = {
