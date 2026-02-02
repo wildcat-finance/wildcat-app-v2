@@ -13,9 +13,9 @@ export type SuccessWrapperModalProps = {
   isWrapping: boolean
   open: boolean
   onClose: () => void
-  initialAmount: number | undefined
+  initialAmount: string | undefined
   initialAsset: string
-  finalAmount: number | undefined
+  finalAmount: string | undefined
   finalAsset: string
   txHash?: string
 }
@@ -32,7 +32,7 @@ export const SuccessWrapperModal = ({
 }: SuccessWrapperModalProps) => {
   const { getTxUrl } = useBlockExplorer()
 
-  if (!initialAmount || !finalAmount) return null
+  if (initialAmount === undefined || finalAmount === undefined) return null
 
   return (
     <Dialog

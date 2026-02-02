@@ -1,6 +1,6 @@
 import { COLORS } from "@/theme/colors"
 
-export const NoWrapperPlaceholderContainer = {
+export const NoWrapperStateContainer = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",

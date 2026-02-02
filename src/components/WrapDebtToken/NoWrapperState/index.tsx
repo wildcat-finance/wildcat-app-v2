@@ -5,16 +5,12 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import TokenWrapIcon from "@/assets/icons/tokenWrap_icon.svg"
-import { useAppDispatch } from "@/store/hooks"
-import {
-  setTokenWrapperStep,
-  WrapDebtTokenFlowSteps,
-} from "@/store/slices/wrapDebtTokenFlowSlice/wrapDebtTokenFlowSlice"
+import { MiniLoader } from "@/components/Loader"
 import { COLORS } from "@/theme/colors"
 
 import {
   LearnMoreButton,
-  NoWrapperPlaceholderContainer,
+  NoWrapperStateContainer,
   PlaceholderIcon,
   CreateButton,
   PlaceholderTitle,
@@ -22,22 +18,26 @@ import {
   QuestionsContainer,
 } from "./style"
 
-export type NoWrapperPlaceholderProps = {
+export type NoWrapperStateProps = {
   canCreateWrapper: boolean
+  onCreateWrapper?: () => void
+  isCreatingWrapper?: boolean
+  disableCreateWrapper?: boolean
+  statusMessage?: string
 }
 
-export const NoWrapperPlaceholder = ({
+export const NoWrapperState = ({
   canCreateWrapper,
-}: NoWrapperPlaceholderProps) => {
+  onCreateWrapper,
+  isCreatingWrapper,
+  disableCreateWrapper,
+  statusMessage,
+}: NoWrapperStateProps) => {
   const { t } = useTranslation()
-  const dispatch = useAppDispatch()
-  const handleClick = () => {
-    dispatch(setTokenWrapperStep(WrapDebtTokenFlowSteps.HAS_WRAPPER))
-  }
 
   return (
     <Box>
-      <Box sx={NoWrapperPlaceholderContainer}>
+      <Box sx={NoWrapperStateContainer}>
         <SvgIcon sx={PlaceholderIcon}>
           <TokenWrapIcon />
         </SvgIcon>
@@ -50,14 +50,28 @@ export const NoWrapperPlaceholder = ({
           {t("lenderMarketDetails.wrapDebtToken.subtitle")}
         </Typography>
 
+        {statusMessage && (
+          <Typography variant="text3" color={COLORS.manate}>
+            {statusMessage}
+          </Typography>
+        )}
+
         {canCreateWrapper && (
           <Button
             variant="contained"
             size="large"
-            onClick={handleClick}
+            onClick={onCreateWrapper}
+            disabled={disableCreateWrapper || isCreatingWrapper}
             sx={CreateButton}
           >
-            {t("lenderMarketDetails.wrapDebtToken.deployButton")}
+            {isCreatingWrapper ? (
+              <>
+                <MiniLoader />
+                {t("lenderMarketDetails.wrapDebtToken.deployButton")}
+              </>
+            ) : (
+              t("lenderMarketDetails.wrapDebtToken.deployButton")
+            )}
           </Button>
         )}
       </Box>
