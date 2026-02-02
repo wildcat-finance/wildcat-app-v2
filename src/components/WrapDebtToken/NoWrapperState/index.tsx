@@ -1,11 +1,13 @@
 import * as React from "react"
 
-import { Box, Button, SvgIcon, Typography } from "@mui/material"
+import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import TokenWrapIcon from "@/assets/icons/tokenWrap_icon.svg"
+import UpArrow from "@/assets/icons/upArrow_icon.svg"
 import { MiniLoader } from "@/components/Loader"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
 import {
@@ -34,24 +36,43 @@ export const NoWrapperState = ({
   statusMessage,
 }: NoWrapperStateProps) => {
   const { t } = useTranslation()
+  const isMobile = useMobileResolution()
+
+  const [open, setOpen] = React.useState(!isMobile)
 
   return (
-    <Box>
-      <Box sx={NoWrapperStateContainer}>
+    <Box
+      sx={{
+        backgroundColor: isMobile ? COLORS.white : "transparent",
+        padding: isMobile ? "26px 16px 12px 16px" : "0",
+        borderRadius: isMobile ? "14px" : "0",
+      }}
+    >
+      <Box sx={NoWrapperStateContainer(isMobile)}>
         <SvgIcon sx={PlaceholderIcon}>
           <TokenWrapIcon />
         </SvgIcon>
 
-        <Typography variant="text1" sx={PlaceholderTitle}>
+        <Typography
+          variant={isMobile ? "mobH3" : "text1"}
+          sx={PlaceholderTitle}
+        >
           {t("lenderMarketDetails.wrapDebtToken.title")}
         </Typography>
 
-        <Typography variant="text2" color={COLORS.manate}>
+        <Typography
+          variant={isMobile ? "mobText2" : "text2"}
+          textAlign="center"
+          color={COLORS.manate}
+        >
           {t("lenderMarketDetails.wrapDebtToken.subtitle")}
         </Typography>
 
         {statusMessage && (
-          <Typography variant="text3" color={COLORS.manate}>
+          <Typography
+            variant={isMobile ? "mobText3" : "text3"}
+            color={COLORS.manate}
+          >
             {statusMessage}
           </Typography>
         )}
@@ -60,6 +81,7 @@ export const NoWrapperState = ({
           <Button
             variant="contained"
             size="large"
+            fullWidth={isMobile}
             onClick={onCreateWrapper}
             disabled={disableCreateWrapper || isCreatingWrapper}
             sx={CreateButton}
@@ -76,51 +98,105 @@ export const NoWrapperState = ({
         )}
       </Box>
 
-      <Box sx={QuestionsContainer}>
-        <Typography variant="title3">
-          {t("lenderMarketDetails.wrapDebtToken.commonQuestions")}
-        </Typography>
+      {open && isMobile && <Divider sx={{ marginBottom: "20px" }} />}
 
-        <Box sx={QuestionItem}>
-          <Typography variant="text2">
-            {t("lenderMarketDetails.wrapDebtToken.whatIsWrapping.question")}
-          </Typography>
+      {open && (
+        <Box sx={QuestionsContainer(isMobile)}>
+          {!isMobile && (
+            <Typography variant="title3">
+              {t("lenderMarketDetails.wrapDebtToken.commonQuestions")}
+            </Typography>
+          )}
 
-          <Typography variant="text2" color={COLORS.manate}>
-            {t("lenderMarketDetails.wrapDebtToken.whatIsWrapping.answer")}
-          </Typography>
+          <Box sx={QuestionItem}>
+            <Typography variant={isMobile ? "mobText2SemiBold" : "text2"}>
+              {t("lenderMarketDetails.wrapDebtToken.whatIsWrapping.question")}
+            </Typography>
+
+            <Typography
+              variant={isMobile ? "mobText2" : "text2"}
+              color={COLORS.manate}
+            >
+              {t("lenderMarketDetails.wrapDebtToken.whatIsWrapping.answer")}
+            </Typography>
+          </Box>
+
+          <Box sx={QuestionItem}>
+            <Typography variant={isMobile ? "mobText2SemiBold" : "text2"}>
+              {t("lenderMarketDetails.wrapDebtToken.whoCanDeploy.question")}
+            </Typography>
+
+            <Typography
+              variant={isMobile ? "mobText2" : "text2"}
+              color={COLORS.manate}
+            >
+              {t("lenderMarketDetails.wrapDebtToken.whoCanDeploy.answer")}
+            </Typography>
+          </Box>
+
+          <Box sx={QuestionItem}>
+            <Typography variant={isMobile ? "mobText2SemiBold" : "text2"}>
+              {t("lenderMarketDetails.wrapDebtToken.whatHappensAfter.question")}
+            </Typography>
+
+            <Typography
+              variant={isMobile ? "mobText2" : "text2"}
+              color={COLORS.manate}
+            >
+              {t("lenderMarketDetails.wrapDebtToken.whatHappensAfter.answer")}
+            </Typography>
+          </Box>
         </Box>
+      )}
 
-        <Box sx={QuestionItem}>
-          <Typography variant="text2">
-            {t("lenderMarketDetails.wrapDebtToken.whoCanDeploy.question")}
-          </Typography>
+      {open && (
+        <Link
+          href="https://docs.wildcat.finance/"
+          target="_blank"
+          style={LearnMoreButton(isMobile)}
+        >
+          <Button
+            variant="contained"
+            color="secondary"
+            size="medium"
+            fullWidth={isMobile}
+          >
+            {t("lenderMarketDetails.wrapDebtToken.learnMore")}
+          </Button>
+        </Link>
+      )}
 
-          <Typography variant="text2" color={COLORS.manate}>
-            {t("lenderMarketDetails.wrapDebtToken.whoCanDeploy.answer")}
-          </Typography>
-        </Box>
+      {isMobile && (
+        <Button
+          variant="text"
+          size="small"
+          fullWidth
+          onClick={() => setOpen(!open)}
+          sx={{
+            padding: "12px",
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+            color: COLORS.ultramarineBlue,
 
-        <Box sx={QuestionItem}>
-          <Typography variant="text2">
-            {t("lenderMarketDetails.wrapDebtToken.whatHappensAfter.question")}
-          </Typography>
-
-          <Typography variant="text2" color={COLORS.manate}>
-            {t("lenderMarketDetails.wrapDebtToken.whatHappensAfter.answer")}
-          </Typography>
-        </Box>
-      </Box>
-
-      <Link
-        href="https://docs.wildcat.finance/"
-        target="_blank"
-        style={LearnMoreButton}
-      >
-        <Button variant="contained" color="secondary" size="medium">
-          {t("lenderMarketDetails.wrapDebtToken.learnMore")}
+            "&:hover": {
+              color: COLORS.ultramarineBlue,
+              backgroundColor: "transparent",
+            },
+          }}
+        >
+          <SvgIcon
+            sx={{
+              fontSize: "12px",
+              transform: open ? "rotate(180deg)" : "rotate(0deg)",
+              "& path": { fill: COLORS.ultramarineBlue },
+            }}
+          >
+            <UpArrow />
+          </SvgIcon>
+          See {open ? "less" : "more"}
         </Button>
-      </Link>
+      )}
     </Box>
   )
 }

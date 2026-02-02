@@ -4,6 +4,8 @@ import { Box, Button, Divider, Typography } from "@mui/material"
 
 import { LinkGroup } from "@/components/LinkComponent"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
@@ -27,28 +29,38 @@ export const WrapperHeader = ({
   disableAddWrappedToken,
 }: WrapperFormHeaderProps) => {
   const { getAddressUrl } = useBlockExplorer()
+  const isMobile = useMobileResolution()
+  const isMobileOpenState = useAppSelector(
+    (state) => state.wrapDebtTokenFlow.isMobileOpenedState,
+  )
 
   return (
     <>
-      <Divider sx={{ marginBottom: "26px" }} />
+      {isMobileOpenState && isMobile && (
+        <Divider sx={{ marginBottom: "26px" }} />
+      )}
 
-      <Typography
-        variant="text3"
-        color={COLORS.manate}
-        sx={{ marginBottom: "6px" }}
-      >
-        Wrapper contract
-      </Typography>
+      {!isMobile && (
+        <Typography
+          variant="text3"
+          color={COLORS.manate}
+          sx={{ marginBottom: "6px" }}
+        >
+          Wrapper contract
+        </Typography>
+      )}
 
       <Box
         sx={{
           display: "flex",
-          alignItems: "center",
-          gap: "11px",
+          flexDirection: isMobile ? "column" : "row",
+          alignItems: isMobileOpenState ? "center" : "flex-start",
+          gap: isMobile ? "6px" : "11px",
           marginBottom: "12px",
+          marginTop: isMobileOpenState && isMobile ? "26px" : "0px",
         }}
       >
-        <Typography variant="title3">
+        <Typography variant={isMobile ? "mobH3" : "title3"}>
           {wrapperName || "Wrapped Token"}
         </Typography>
 
@@ -61,7 +73,10 @@ export const WrapperHeader = ({
             borderRadius: "26px",
           }}
         >
-          <Typography variant="text3" color={COLORS.ultramarineBlue}>
+          <Typography
+            variant={isMobile ? "mobText3" : "text3"}
+            color={COLORS.ultramarineBlue}
+          >
             {wrapperSymbol || "WRAP"}
           </Typography>
         </Box>
@@ -71,23 +86,31 @@ export const WrapperHeader = ({
         sx={{
           width: "100%",
           display: "flex",
+          flexDirection: isMobile && isMobileOpenState ? "column" : "row",
           justifyContent: "space-between",
           alignItems: "center",
+          marginBottom: isMobile && !isMobileOpenState ? "12px" : "0",
         }}
       >
         <Box
           sx={{
-            width: "fit-content",
+            // eslint-disable-next-line no-nested-ternary
+            width: isMobile
+              ? isMobileOpenState
+                ? "fit-content"
+                : "100%"
+              : "fit-content",
             display: "flex",
             alignItems: "center",
+            justifyContent: "space-between",
             gap: "6px",
-            padding: "4px 8px 4px 12px",
-            background: COLORS.blackHaze,
-            borderRadius: "8px",
+            padding: isMobile ? "6px 12px" : "4px 8px 4px 12px",
+            background: isMobile ? COLORS.whiteSmoke : COLORS.blackHaze,
+            borderRadius: isMobile ? "28px" : "8px",
           }}
         >
           {/* Change for wrapper address */}
-          <Typography variant="text3">
+          <Typography variant={isMobile ? "mobText3" : "text3"}>
             {trimAddress(contractAddress)}
           </Typography>
 
@@ -97,30 +120,44 @@ export const WrapperHeader = ({
           />
         </Box>
 
-        <Box sx={{ display: "flex", gap: "6px" }}>
-          <Button
-            variant="outlined"
-            size="small"
-            color="secondary"
-            onClick={onAddMarketToken}
-            disabled={!onAddMarketToken || disableAddMarketToken}
+        {isMobileOpenState && (
+          <Box
+            sx={{
+              display: "flex",
+              gap: "6px",
+              marginTop: isMobile && isMobileOpenState ? "20px" : 0,
+            }}
           >
-            + Add market token
-          </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              color="secondary"
+              onClick={onAddMarketToken}
+              disabled={!onAddMarketToken || disableAddMarketToken}
+            >
+              + Add market token
+            </Button>
 
-          <Button
-            variant="outlined"
-            size="small"
-            color="secondary"
-            onClick={onAddWrappedToken}
-            disabled={!onAddWrappedToken || disableAddWrappedToken}
-          >
-            + Add wrapped token
-          </Button>
-        </Box>
+            <Button
+              variant="outlined"
+              size="small"
+              color="secondary"
+              onClick={onAddWrappedToken}
+              disabled={!onAddWrappedToken || disableAddWrappedToken}
+            >
+              + Add wrapped token
+            </Button>
+          </Box>
+        )}
       </Box>
 
-      <Divider sx={{ margin: "24px 0 20px" }} />
+      {isMobileOpenState && (
+        <Divider
+          sx={{
+            margin: isMobile ? "20px 16px" : "24px 0 20px",
+          }}
+        />
+      )}
     </>
   )
 }

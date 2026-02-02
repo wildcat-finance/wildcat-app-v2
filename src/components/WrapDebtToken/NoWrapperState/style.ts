@@ -1,14 +1,14 @@
 import { COLORS } from "@/theme/colors"
 
-export const NoWrapperStateContainer = {
+export const NoWrapperStateContainer = (isMobile: boolean) => ({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  backgroundColor: COLORS.hintOfRed,
-  padding: "20px",
+  backgroundColor: isMobile ? "transparent" : COLORS.hintOfRed,
+  padding: isMobile ? 0 : "20px",
   borderRadius: "12px",
-  marginBottom: "32px",
-}
+  marginBottom: isMobile ? "20px" : "32px",
+})
 
 export const PlaceholderIcon = {
   fontSize: "20px",
@@ -24,12 +24,12 @@ export const CreateButton = {
   marginTop: "20px",
 }
 
-export const QuestionsContainer = {
+export const QuestionsContainer = (isMobile: boolean) => ({
   display: "flex",
   flexDirection: "column",
   gap: "16px",
-  padding: "0px 32px",
-}
+  padding: isMobile ? 0 : "0px 32px",
+})
 
 export const QuestionItem = {
   display: "flex",
@@ -37,8 +37,8 @@ export const QuestionItem = {
   gap: "8px",
 }
 
-export const LearnMoreButton = {
+export const LearnMoreButton = (isMobile: boolean) => ({
   display: "flex",
-  margin: "24px 0px 0px 32px",
+  margin: isMobile ? "16px 0 20px 0" : "24px 0px 0px 32px",
   textDecoration: "none",
-}
+})

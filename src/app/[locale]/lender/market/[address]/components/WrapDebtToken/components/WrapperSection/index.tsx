@@ -14,18 +14,27 @@ import { BigNumber } from "ethers"
 
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import Check from "@/assets/icons/check_icon.svg"
+import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import Question from "@/assets/icons/circledQuestion_icon.svg"
+import ConfettiPattern from "@/assets/icons/confetti_pattern.svg"
+import { LinkGroup } from "@/components/LinkComponent"
 import { MiniLoader } from "@/components/Loader"
+import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
 import { toastRequest } from "@/components/Toasts"
 import { TooltipButton } from "@/components/TooltipButton"
+import { WrapperSuccessBanner } from "@/components/WrapDebtToken/mobile/WrapperSuccessBanner"
 import { QueryKeys } from "@/config/query-keys"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useWrapperAllowance } from "@/hooks/wrapper/useWrapperAllowance"
 import { useWrapperBalances } from "@/hooks/wrapper/useWrapperBalances"
 import { useWrapperLimits } from "@/hooks/wrapper/useWrapperLimits"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { setIsMobileOpenedState } from "@/store/slices/wrapDebtTokenFlowSlice/wrapDebtTokenFlowSlice"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 import { isUSDTLikeToken } from "@/utils/constants"
@@ -607,8 +616,39 @@ export const WrapperSection = ({
     ? formatTokenWithCommas(outputAmount)
     : "0"
 
+  // Mobile
+  const isMobile = useMobileResolution()
+  const isMobileOpenState = useAppSelector(
+    (state) => state.wrapDebtTokenFlow.isMobileOpenedState,
+  )
+
+  const dispatch = useAppDispatch()
+
+  const handleOpenSection = () => {
+    dispatch(setIsMobileOpenedState(true))
+  }
+
+  const { getTxUrl } = useBlockExplorer()
+
   return (
-    <Box marginTop="4px">
+    <Box
+      marginTop="4px"
+      sx={{
+        backgroundColor: COLORS.white,
+        borderRadius: isMobile ? "14px" : "10px",
+        padding: isMobile && !isMobileOpenState ? "16px" : 0,
+        marginTop: { xs: "0px", md: "4px" },
+        paddingBottom: isMobile ? "16px" : 0,
+      }}
+    >
+      {isMobile && isMobileOpenState && (
+        <TransactionHeader
+          label="Wrapper contract"
+          arrowOnClick={() => dispatch(setIsMobileOpenedState(false))}
+          crossOnClick={null}
+        />
+      )}
+
       <WrapperHeader
         contractAddress={wrapper.address}
         wrapperName={wrapper.name}
@@ -626,198 +666,256 @@ export const WrapperSection = ({
         shareSymbol={wrapper.shareToken.symbol}
       />
 
-      <Tabs
-        value={tab}
-        onChange={handleTabsChange}
-        sx={{
-          width: "100%",
-          height: "28px",
-          minHeight: "28px",
-          marginBottom: "16px",
-        }}
-      >
-        <Tab value={TokenWrapperFormTabs.WRAP} label="Wrap" sx={TabStyle} />
-        <Tab value={TokenWrapperFormTabs.UNWRAP} label="Unwrap" sx={TabStyle} />
-      </Tabs>
-
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "flex-end",
-          marginBottom: "24px",
-        }}
-      >
-        <Tabs
-          value={unit}
-          onChange={handleUnitChange}
-          sx={{ height: "28px", minHeight: "28px" }}
-        >
-          <Tab value={AmountUnit.ASSETS} label="Assets" sx={UnitTabStyle} />
-          <Tab value={AmountUnit.SHARES} label="Shares" sx={UnitTabStyle} />
-        </Tabs>
-      </Box>
-
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          gap: "8px",
-          alignItems: "flex-start",
-        }}
-      >
-        <Box
-          sx={{
-            width: "50%",
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px",
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <Typography variant="text3">{inputLabel}</Typography>
-            {maxTooltip && (
-              <TooltipButton value={maxTooltip} color={COLORS.manate} />
-            )}
-          </Box>
-
-          <NumberTextField
-            value={amount}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-              setAmount(event.target.value)
-            }
-            size="medium"
-            label="Amount"
-            error={!!helperText}
-            helperText={helperText}
-            endAdornment={
-              <TextfieldButton buttonText="Max" onClick={setMaxAmount} />
-            }
-          />
-        </Box>
-
-        <Box
-          sx={{
-            width: "50%",
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px",
-          }}
-        >
-          <Typography variant="text3">{outputLabel}</Typography>
+      {isMobileOpenState && (
+        <>
+          <Tabs
+            value={tab}
+            onChange={handleTabsChange}
+            sx={{
+              width: "100%",
+              height: "28px",
+              minHeight: "28px",
+              marginBottom: "16px",
+              paddingX: isMobile ? "16px" : 0,
+            }}
+          >
+            <Tab value={TokenWrapperFormTabs.WRAP} label="Wrap" sx={TabStyle} />
+            <Tab
+              value={TokenWrapperFormTabs.UNWRAP}
+              label="Unwrap"
+              sx={TabStyle}
+            />
+          </Tabs>
 
           <Box
             sx={{
-              width: "100%",
-              padding: "10px 16px",
               display: "flex",
-              justifyContent: "flex-start",
-              alignItems: "center",
-              borderRadius: "10px",
-              border: `1px solid ${COLORS.iron}`,
+              justifyContent: "flex-end",
+              marginBottom: "24px",
+              paddingX: isMobile ? "16px" : 0,
             }}
           >
-            <Typography variant="text3">
-              ~ {formattedOutput} {outputToken.symbol}
-            </Typography>
-          </Box>
-
-          <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
-            <SvgIcon
-              sx={{ fontSize: "12px", "& path": { fill: COLORS.manate } }}
+            <Tabs
+              value={unit}
+              onChange={handleUnitChange}
+              sx={{ height: "28px", minHeight: "28px" }}
             >
-              <Question />
-            </SvgIcon>
-
-            <Typography variant="text4" color={COLORS.manate}>
-              Estimates may change with the current conversion rate.
-            </Typography>
+              <Tab value={AmountUnit.ASSETS} label="Assets" sx={UnitTabStyle} />
+              <Tab value={AmountUnit.SHARES} label="Shares" sx={UnitTabStyle} />
+            </Tabs>
           </Box>
-        </Box>
-      </Box>
 
-      <Box
-        sx={{
-          display: "flex",
-          gap: "8px",
-          justifyContent: "flex-end",
-          marginTop: "24px",
-        }}
-      >
-        {isWrapTab && (
-          <Button
-            variant="contained"
-            size="large"
-            onClick={() =>
-              toastRequest(approveMutation.mutateAsync(), {
-                pending: "Approving...",
-                success: "Approved",
-                error: "Approval failed",
-              })
-            }
-            disabled={isApproveButtonDisabled}
-            sx={{ display: "flex", alignItems: "center", gap: "3px" }}
-          >
-            {isApproved && !isInputZero && (
-              <SvgIcon
-                fontSize="medium"
+          {!showSuccess && (
+            <Box
+              sx={{
+                width: "100%",
+                display: "flex",
+                flexDirection: isMobile ? "column" : "row",
+                paddingX: isMobile ? "16px" : 0,
+                gap: isMobile ? "24px" : "8px",
+                alignItems: "flex-start",
+              }}
+            >
+              <Box
                 sx={{
-                  marginRight: "3px",
-                  "& path": {
-                    fill: `${COLORS.santasGrey}`,
-                  },
+                  width: isMobile ? "100%" : "50%",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
                 }}
               >
-                <Check />
-              </SvgIcon>
-            )}
+                <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <Typography variant={isMobile ? "mobText3" : "text3"}>
+                    {inputLabel}
+                  </Typography>
+                  {maxTooltip && (
+                    <TooltipButton value={maxTooltip} color={COLORS.manate} />
+                  )}
+                </Box>
 
-            {approveMutation.isPending && <MiniLoader />}
+                <NumberTextField
+                  value={amount}
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                    setAmount(event.target.value)
+                  }
+                  size="medium"
+                  label="Amount"
+                  error={!!helperText}
+                  helperText={helperText}
+                  endAdornment={
+                    <TextfieldButton buttonText="Max" onClick={setMaxAmount} />
+                  }
+                />
+              </Box>
 
-            {/* eslint-disable-next-line no-nested-ternary */}
-            {approveMutation.isPending
-              ? "Approving"
-              : isApproved && !isInputZero
-                ? "Approved"
-                : "Approve"}
-          </Button>
-        )}
+              <Box
+                sx={{
+                  width: isMobile ? "100%" : "50%",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                <Typography variant={isMobile ? "mobText3" : "text3"}>
+                  {outputLabel}
+                </Typography>
 
+                <Box
+                  sx={{
+                    width: "100%",
+                    padding: "10px 16px",
+                    display: "flex",
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                    borderRadius: "10px",
+                    border: `1px solid ${COLORS.iron}`,
+                  }}
+                >
+                  <Typography variant={isMobile ? "mobText3" : "text3"}>
+                    ~ {formattedOutput} {outputToken.symbol}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                  <SvgIcon
+                    sx={{ fontSize: "12px", "& path": { fill: COLORS.manate } }}
+                  >
+                    <Question />
+                  </SvgIcon>
+
+                  <Typography
+                    variant={isMobile ? "mobText4" : "text4"}
+                    color={COLORS.manate}
+                  >
+                    Estimates may change with the current conversion rate.
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          )}
+
+          {!showSuccess && (
+            <Box
+              sx={{
+                display: "flex",
+                gap: isMobile ? "6px" : "8px",
+                justifyContent: isMobile ? "space-between" : "flex-end",
+                marginTop: isMobile ? "32px" : "24px",
+                paddingX: isMobile ? "16px" : 0,
+              }}
+            >
+              {isWrapTab && (
+                <Button
+                  fullWidth={isMobile}
+                  variant="contained"
+                  size="large"
+                  onClick={() =>
+                    toastRequest(approveMutation.mutateAsync(), {
+                      pending: "Approving...",
+                      success: "Approved",
+                      error: "Approval failed",
+                    })
+                  }
+                  disabled={isApproveButtonDisabled}
+                  sx={{ display: "flex", alignItems: "center", gap: "3px" }}
+                >
+                  {isApproved && !isInputZero && (
+                    <SvgIcon
+                      fontSize="medium"
+                      sx={{
+                        marginRight: "3px",
+                        "& path": {
+                          fill: `${COLORS.santasGrey}`,
+                        },
+                      }}
+                    >
+                      <Check />
+                    </SvgIcon>
+                  )}
+
+                  {approveMutation.isPending && <MiniLoader />}
+
+                  {/* eslint-disable-next-line no-nested-ternary */}
+                  {approveMutation.isPending
+                    ? "Approving"
+                    : isApproved && !isInputZero
+                      ? "Approved"
+                      : "Approve"}
+                </Button>
+              )}
+
+              <Button
+                fullWidth={isMobile}
+                variant="contained"
+                size="large"
+                onClick={() =>
+                  toastRequest(submitMutation.mutateAsync(), {
+                    pending: isWrapTab ? "Wrapping..." : "Unwrapping...",
+                    success: isWrapTab ? "Wrapped" : "Unwrapped",
+                    error: "Transaction failed",
+                  })
+                }
+                disabled={shouldDisableSubmit}
+                sx={{ display: "flex", alignItems: "center", gap: "10px" }}
+              >
+                {submitMutation.isPending && <MiniLoader />}
+                {submitButtonText}
+              </Button>
+            </Box>
+          )}
+
+          {showError && (
+            <ErrorWrapperAlert
+              isWrapping={isWrapTab}
+              message={errorMessage}
+              txHash={txHash}
+            />
+          )}
+
+          {showSuccess && isMobile && (
+            <WrapperSuccessBanner
+              isWrapping={isWrapTab}
+              open={showSuccess && !isMobile}
+              onClose={handleClose}
+              initialAmount={
+                inputAmount ? formatTokenWithCommas(inputAmount) : "0"
+              }
+              initialAsset={inputToken.symbol}
+              finalAmount={
+                outputAmount ? formatTokenWithCommas(outputAmount) : "0"
+              }
+              finalAsset={outputToken.symbol}
+              txHash={txHash}
+            />
+          )}
+
+          <SuccessWrapperModal
+            isWrapping={isWrapTab}
+            open={showSuccess && !isMobile}
+            onClose={handleClose}
+            initialAmount={
+              inputAmount ? formatTokenWithCommas(inputAmount) : "0"
+            }
+            initialAsset={inputToken.symbol}
+            finalAmount={
+              outputAmount ? formatTokenWithCommas(outputAmount) : "0"
+            }
+            finalAsset={outputToken.symbol}
+            txHash={txHash}
+          />
+        </>
+      )}
+
+      {!isMobileOpenState && isMobile && (
         <Button
           variant="contained"
           size="large"
-          onClick={() =>
-            toastRequest(submitMutation.mutateAsync(), {
-              pending: isWrapTab ? "Wrapping..." : "Unwrapping...",
-              success: isWrapTab ? "Wrapped" : "Unwrapped",
-              error: "Transaction failed",
-            })
-          }
-          disabled={shouldDisableSubmit}
-          sx={{ display: "flex", alignItems: "center", gap: "10px" }}
+          fullWidth
+          onClick={handleOpenSection}
         >
-          {submitMutation.isPending && <MiniLoader />}
-          {submitButtonText}
+          Wrap More Tokens
         </Button>
-      </Box>
-
-      {showError && (
-        <ErrorWrapperAlert
-          isWrapping={isWrapTab}
-          message={errorMessage}
-          txHash={txHash}
-        />
       )}
-
-      <SuccessWrapperModal
-        isWrapping={isWrapTab}
-        open={showSuccess}
-        onClose={handleClose}
-        initialAmount={inputAmount ? formatTokenWithCommas(inputAmount) : "0"}
-        initialAsset={inputToken.symbol}
-        finalAmount={outputAmount ? formatTokenWithCommas(outputAmount) : "0"}
-        finalAsset={outputToken.symbol}
-        txHash={txHash}
-      />
     </Box>
   )
 }
