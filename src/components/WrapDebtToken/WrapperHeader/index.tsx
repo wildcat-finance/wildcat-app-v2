@@ -1,7 +1,6 @@
 import React from "react"
 
 import { Box, Button, Divider, Typography } from "@mui/material"
-import { useTranslation } from "react-i18next"
 
 import { LinkGroup } from "@/components/LinkComponent"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
@@ -10,10 +9,23 @@ import { trimAddress } from "@/utils/formatters"
 
 export type WrapperFormHeaderProps = {
   contractAddress: string
+  wrapperName?: string
+  wrapperSymbol?: string
+  onAddMarketToken?: () => void
+  onAddWrappedToken?: () => void
+  disableAddMarketToken?: boolean
+  disableAddWrappedToken?: boolean
 }
 
-export const WrapperHeader = ({ contractAddress }: WrapperFormHeaderProps) => {
-  const { t } = useTranslation()
+export const WrapperHeader = ({
+  contractAddress,
+  wrapperName,
+  wrapperSymbol,
+  onAddMarketToken,
+  onAddWrappedToken,
+  disableAddMarketToken,
+  disableAddWrappedToken,
+}: WrapperFormHeaderProps) => {
   const { getAddressUrl } = useBlockExplorer()
 
   return (
@@ -36,8 +48,9 @@ export const WrapperHeader = ({ contractAddress }: WrapperFormHeaderProps) => {
           marginBottom: "12px",
         }}
       >
-        {/* Change for wrapper name */}
-        <Typography variant="title3">Wrapped Ethereum</Typography>
+        <Typography variant="title3">
+          {wrapperName || "Wrapped Token"}
+        </Typography>
 
         <Box
           sx={{
@@ -48,9 +61,8 @@ export const WrapperHeader = ({ contractAddress }: WrapperFormHeaderProps) => {
             borderRadius: "26px",
           }}
         >
-          {/* Change for wrapper symbol */}
           <Typography variant="text3" color={COLORS.ultramarineBlue}>
-            WETH
+            {wrapperSymbol || "WRAP"}
           </Typography>
         </Box>
       </Box>
@@ -86,11 +98,23 @@ export const WrapperHeader = ({ contractAddress }: WrapperFormHeaderProps) => {
         </Box>
 
         <Box sx={{ display: "flex", gap: "6px" }}>
-          <Button variant="outlined" size="small" color="secondary">
+          <Button
+            variant="outlined"
+            size="small"
+            color="secondary"
+            onClick={onAddMarketToken}
+            disabled={!onAddMarketToken || disableAddMarketToken}
+          >
             + Add market token
           </Button>
 
-          <Button variant="outlined" size="small" color="secondary">
+          <Button
+            variant="outlined"
+            size="small"
+            color="secondary"
+            onClick={onAddWrappedToken}
+            disabled={!onAddWrappedToken || disableAddWrappedToken}
+          >
             + Add wrapped token
           </Button>
         </Box>

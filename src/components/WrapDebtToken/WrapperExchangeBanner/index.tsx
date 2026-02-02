@@ -1,22 +1,28 @@
 import React from "react"
 
 import { Box, SvgIcon, Typography } from "@mui/material"
-import { useTranslation } from "react-i18next"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 
 import Change from "@/assets/icons/change_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
-import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
+import { formatTokenWithCommas } from "@/utils/formatters"
 
-export const WrapperExchangeBanner = () => {
-  const { t } = useTranslation()
+export type WrapperExchangeBannerProps = {
+  marketBalance?: TokenAmount
+  shareBalance?: TokenAmount
+  marketSymbol?: string
+  shareSymbol?: string
+}
 
-  const initialAmount = useAppSelector(
-    (state) => state.wrapDebtTokenFlow.initialAmount,
-  )
-  const wrappedAmount = useAppSelector(
-    (state) => state.wrapDebtTokenFlow.wrappedAmount,
-  )
+export const WrapperExchangeBanner = ({
+  marketBalance,
+  shareBalance,
+  marketSymbol,
+  shareSymbol,
+}: WrapperExchangeBannerProps = {}) => {
+  const marketValue = marketBalance ? formatTokenWithCommas(marketBalance) : "0"
+  const shareValue = shareBalance ? formatTokenWithCommas(shareBalance) : "0"
 
   return (
     <Box
@@ -35,7 +41,10 @@ export const WrapperExchangeBanner = () => {
           <Typography variant="text3" color={COLORS.manate}>
             Market tokens
           </Typography>
-          <TooltipButton value="TBD" color={COLORS.manate} />
+          <TooltipButton
+            value="Balance of market (debt) tokens in your wallet."
+            color={COLORS.manate}
+          />
         </Box>
 
         <Box
@@ -46,13 +55,13 @@ export const WrapperExchangeBanner = () => {
             gap: "3px",
           }}
         >
-          <Typography variant="title2">{initialAmount}</Typography>
+          <Typography variant="title2">{marketValue}</Typography>
           <Typography
             variant="text4"
             color={COLORS.manate}
             sx={{ marginTop: "4px" }}
           >
-            ETH
+            {marketSymbol || ""}
           </Typography>
         </Box>
       </Box>
@@ -68,7 +77,10 @@ export const WrapperExchangeBanner = () => {
           <Typography variant="text3" color={COLORS.manate}>
             Wrapped tokens
           </Typography>
-          <TooltipButton value="TBD" color={COLORS.manate} />
+          <TooltipButton
+            value="Balance of wrapped (ERC-4626 share) tokens in your wallet."
+            color={COLORS.manate}
+          />
         </Box>
 
         <Box
@@ -79,13 +91,13 @@ export const WrapperExchangeBanner = () => {
             gap: "3px",
           }}
         >
-          <Typography variant="title2">{wrappedAmount}</Typography>
+          <Typography variant="title2">{shareValue}</Typography>
           <Typography
             variant="text4"
             color={COLORS.manate}
             sx={{ marginTop: "4px" }}
           >
-            WETH
+            {shareSymbol || ""}
           </Typography>
         </Box>
       </Box>

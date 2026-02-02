@@ -290,6 +290,32 @@ const LENDER_QUERY_KEYS = {
   ) => k(["lender", "GET_SIGNED_MLA", chainId, marketAddress, lenderAddress]),
 } as const
 
+const WRAPPER_QUERY_KEYS = {
+  GET_WRAPPER_FOR_MARKET: (chainId: number, marketAddress?: string) =>
+    k(["wrapper", "GET_WRAPPER_FOR_MARKET", chainId, marketAddress]),
+  GET_WRAPPER: (chainId: number, wrapperAddress?: string) =>
+    k(["wrapper", "GET_WRAPPER", chainId, wrapperAddress]),
+  GET_BALANCES: (chainId: number, wrapperAddress?: string, account?: string) =>
+    k(["wrapper", "GET_BALANCES", chainId, wrapperAddress, account]),
+  GET_ALLOWANCE: (chainId: number, wrapperAddress?: string, account?: string) =>
+    k(["wrapper", "GET_ALLOWANCE", chainId, wrapperAddress, account]),
+  GET_LIMITS: (chainId: number, wrapperAddress?: string, account?: string) =>
+    k(["wrapper", "GET_LIMITS", chainId, wrapperAddress, account]),
+  PREVIEW: (
+    wrapperAddress?: string,
+    tab?: string,
+    unit?: string,
+    inputAmountRaw?: string,
+  ) => k(["wrapper", "PREVIEW", wrapperAddress, tab, unit, inputAmountRaw]),
+  MAX_SHARES_FROM_BALANCE: (
+    wrapperAddress?: string,
+    marketBalanceRaw?: string,
+  ) =>
+    k(["wrapper", "MAX_SHARES_FROM_BALANCE", wrapperAddress, marketBalanceRaw]),
+  MAX_ASSETS_FROM_SHARES: (wrapperAddress?: string, shareBalanceRaw?: string) =>
+    k(["wrapper", "MAX_ASSETS_FROM_SHARES", wrapperAddress, shareBalanceRaw]),
+} as const
+
 const MARKET_QUERY_KEYS = {
   // GET_ALL_TOKENS_WITH_MARKETS_KEY
   GET_ALL_TOKENS_WITH_MARKETS: (chainId: number) =>
@@ -345,5 +371,6 @@ export const QueryKeys = {
   User: USER_QUERY_KEYS,
   Token: TOKEN_QUERY_KEYS,
   Lender: LENDER_QUERY_KEYS,
+  Wrapper: WRAPPER_QUERY_KEYS,
   Markets: MARKET_QUERY_KEYS,
 } as const

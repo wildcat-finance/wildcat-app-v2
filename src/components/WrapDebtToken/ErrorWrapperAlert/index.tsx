@@ -2,16 +2,22 @@ import React from "react"
 
 import { Box, Typography } from "@mui/material"
 import Link from "next/link"
-import { useTranslation } from "react-i18next"
 
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { COLORS } from "@/theme/colors"
 
 export type WrapperFormProps = {
   isWrapping?: boolean
+  message?: string
+  txHash?: string
 }
 
-export const ErrorWrapperAlert = ({ isWrapping }: WrapperFormProps) => {
-  const { t } = useTranslation()
+export const ErrorWrapperAlert = ({
+  isWrapping,
+  message,
+  txHash,
+}: WrapperFormProps) => {
+  const { getTxUrl } = useBlockExplorer()
 
   return (
     <Box
@@ -48,23 +54,25 @@ export const ErrorWrapperAlert = ({ isWrapping }: WrapperFormProps) => {
 
       <Box sx={{ display: "flex", gap: "2px" }}>
         <Typography variant="text4" color={COLORS.dullRed08}>
-          Explanatory message about the problem.
+          {message || "Explanatory message about the problem."}
         </Typography>
 
-        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-        <Link
-          href="#"
-          style={{
-            display: "flex",
-            color: COLORS.dullRed08,
-            textDecorationLine: "underline",
-          }}
-        >
-          <Typography variant="text4" color={COLORS.dullRed08}>
-            {" "}
-            View on Ethescan
-          </Typography>
-        </Link>
+        {txHash && (
+          <Link
+            href={getTxUrl(txHash)}
+            target="_blank"
+            style={{
+              display: "flex",
+              color: COLORS.dullRed08,
+              textDecorationLine: "underline",
+            }}
+          >
+            <Typography variant="text4" color={COLORS.dullRed08}>
+              {" "}
+              View on Etherscan
+            </Typography>
+          </Link>
+        )}
       </Box>
     </Box>
   )

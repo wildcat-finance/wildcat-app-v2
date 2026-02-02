@@ -295,7 +295,7 @@ export default function MarketDetails({
           )}
           {checked === 8 && (
             <Box sx={SlideContentContainer} marginTop="4px">
-              <WrapDebtToken />
+              <WrapDebtToken market={market} />
             </Box>
           )}
         </Box>

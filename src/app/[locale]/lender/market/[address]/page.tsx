@@ -407,7 +407,11 @@ export default function LenderMarketDetails({
             </Box>
           )}
           {currentSection === LenderMarketSections.WRAP_DEBT_TOKEN && (
-            <WrapDebtToken />
+            <WrapDebtToken
+              market={market}
+              isAuthorizedLender={authorizedInMarket as boolean}
+              isDifferentChain={isDifferentChain}
+            />
           )}
         </Box>
       </Box>
