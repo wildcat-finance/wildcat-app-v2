@@ -4,6 +4,7 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 
 import { Box, Divider, Skeleton, Typography, useTheme } from "@mui/material"
+import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -26,6 +27,8 @@ import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
+import { useTokenWrapper } from "@/hooks/wrapper/useTokenWrapper"
+import { useWrapperForMarket } from "@/hooks/wrapper/useWrapperForMarket"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import {
@@ -97,6 +100,22 @@ export default function LenderMarketDetails({
     [LenderStatus.DepositAndWithdraw, LenderStatus.WithdrawOnly].includes(
       getEffectiveLenderRole(marketAccount),
     )
+
+  const {
+    wrapperAddress,
+    hasWrapper,
+    hasFactory,
+    isLoading: isWrapperLookupLoading,
+  } = useWrapperForMarket(market)
+
+  const {
+    data: wrapper,
+    isLoading: isWrapperLoading,
+    isError: isWrapperError,
+  } = useTokenWrapper(
+    market?.chainId as SupportedChainId | undefined,
+    wrapperAddress,
+  )
 
   const isLoading =
     isMarketLoading ||
@@ -311,7 +330,11 @@ export default function LenderMarketDetails({
           </Box>
 
           <Box id="status">
-            <MarketParameters market={market} />
+            <MarketParameters
+              market={market}
+              wrapper={wrapper}
+              hasWrapper={hasWrapper}
+            />
           </Box>
 
           <Box id="requests">
@@ -379,7 +402,11 @@ export default function LenderMarketDetails({
                 isLender={authorizedInMarket as boolean}
               />
               <Divider sx={{ margin: "40px 0 44px" }} />
-              <MarketParameters market={market} />
+              <MarketParameters
+                market={market}
+                wrapper={wrapper}
+                hasWrapper={hasWrapper}
+              />
             </Box>
           )}
 
@@ -409,6 +436,12 @@ export default function LenderMarketDetails({
           {currentSection === LenderMarketSections.WRAP_DEBT_TOKEN && (
             <WrapDebtToken
               market={market}
+              wrapper={wrapper}
+              hasWrapper={hasWrapper}
+              hasFactory={hasFactory}
+              isWrapperLoading={isWrapperLoading}
+              isWrapperLookupLoading={isWrapperLookupLoading}
+              isWrapperError={isWrapperError}
               isAuthorizedLender={authorizedInMarket as boolean}
               isDifferentChain={isDifferentChain}
             />

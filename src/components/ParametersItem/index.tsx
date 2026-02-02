@@ -17,6 +17,7 @@ import {
 export const ParametersItem = ({
   title,
   value,
+  valueComponent,
   tooltipText,
   valueTooltipText,
   alarmState,
@@ -69,6 +70,8 @@ export const ParametersItem = ({
             {value}
           </Typography>
         )}
+
+        {valueComponent}
 
         {valueTooltipText && (
           <TooltipButton value={valueTooltipText} color={COLORS.galliano} />

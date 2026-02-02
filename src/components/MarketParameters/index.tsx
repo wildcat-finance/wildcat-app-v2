@@ -10,7 +10,9 @@ import { AurosEthenaBanner } from "@/components/AdsBanners/AurosEthena/AurosEthe
 import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/AurosEthenaProposalChip"
 import { ProposalMarketParameter } from "@/components/AdsBanners/Common/ProposalMarketParameter"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { useWrapperBalances } from "@/hooks/wrapper/useWrapperBalances"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
 import { AUROS_ETHENA_ADDRESS } from "@/utils/constants"
@@ -31,14 +33,78 @@ import {
 } from "./style"
 import { ParametersItem } from "../ParametersItem"
 
-export const MarketParameters = ({ market }: MarketParametersProps) => {
+const WrapperChip = ({ hasWrapper }: { hasWrapper: boolean }) => (
+  <Box
+    sx={{
+      width: "fit-content",
+      display: "flex",
+      alignItems: "center",
+      gap: "3px",
+      padding: "0 8px 0 5px",
+      borderRadius: "12px",
+      backgroundColor: hasWrapper ? "#D1FAE6" : COLORS.remy,
+    }}
+  >
+    <Box
+      sx={{
+        width: "4px",
+        height: "4px",
+        borderRadius: "50%",
+        backgroundColor: hasWrapper ? "#28CA7C" : COLORS.wildWatermelon,
+      }}
+    />
+
+    <Typography variant="text4" color={hasWrapper ? "#19965A" : COLORS.dullRed}>
+      {hasWrapper ? "Active" : "Unactive"}
+    </Typography>
+  </Box>
+)
+
+const AdoptionStats = ({
+  marketAmount,
+  marketAsset,
+  sharesAmount,
+  sharesAsset,
+}: {
+  marketAmount: string
+  marketAsset: string
+  sharesAmount: string
+  sharesAsset: string
+}) => (
+  <Typography variant="text3">
+    {marketAmount} {marketAsset} <span style={{ opacity: 0.3 }}>|</span>{" "}
+    {sharesAmount} {sharesAsset}
+  </Typography>
+)
+
+export const MarketParameters = ({
+  market,
+  wrapper,
+  hasWrapper,
+}: MarketParametersProps) => {
   const isLocalHost = window.location.hostname === "localhost"
   const { t } = useTranslation()
   const theme = useTheme()
   const isMobile = useMobileResolution()
-  const [state, copyToClipboard] = useCopyToClipboard()
   const { getAddressUrl, getTokenUrl } = useBlockExplorer()
   const { timeDelinquent, delinquencyGracePeriod } = market
+
+  const { address } = useEthersProvider({
+    chainId: market?.chainId,
+  })
+
+  const { data: balances } = useWrapperBalances(
+    market?.chainId,
+    wrapper,
+    address,
+  )
+
+  const marketValue = balances?.marketBalance
+    ? formatTokenWithCommas(balances?.marketBalance)
+    : "0"
+  const shareValue = balances?.shareBalance
+    ? formatTokenWithCommas(balances?.shareBalance)
+    : "0"
 
   const [gracePeriodLabel, gracePeriodTimer] =
     timeDelinquent > delinquencyGracePeriod
@@ -192,6 +258,45 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             value={market.marketToken.symbol}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
+
+          <ParametersItem
+            title="Wrapper Address"
+            value=""
+            valueComponent={<WrapperChip hasWrapper={hasWrapper} />}
+          />
+          <Divider sx={{ margin: "12px 0 12px" }} />
+
+          {hasWrapper && wrapper && (
+            <>
+              <ParametersItem
+                title="Wrapper Address"
+                value={trimAddress(wrapper.address.toLowerCase())}
+                copy={wrapper.address}
+                link={getAddressUrl(wrapper.address.toLowerCase())}
+              />
+              <Divider sx={{ margin: "12px 0 12px" }} />
+            </>
+          )}
+
+          {hasWrapper && wrapper && (
+            <>
+              <ParametersItem
+                title="Adoption Stats"
+                tooltipText="TBD"
+                value=""
+                valueComponent={
+                  <AdoptionStats
+                    marketAmount={marketValue}
+                    marketAsset={wrapper.marketToken.symbol}
+                    sharesAmount={shareValue}
+                    sharesAsset={wrapper.shareToken.symbol}
+                  />
+                }
+              />
+              <Divider sx={{ margin: "12px 0 12px" }} />
+            </>
+          )}
+
           <ParametersItem
             title={t("borrowerMarketDetails.parameters.maxBorrowingCapacity")}
             value={`${formatTokenWithCommas(market.maxTotalSupply, {

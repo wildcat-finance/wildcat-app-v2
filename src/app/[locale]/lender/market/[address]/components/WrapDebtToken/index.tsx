@@ -7,6 +7,7 @@ import {
   Market,
   Signer,
   SupportedChainId,
+  TokenWrapper,
   WrapperFactory,
 } from "@wildcatfi/wildcat-sdk"
 import { constants } from "ethers"
@@ -17,18 +18,28 @@ import { NoWrapperState } from "@/components/WrapDebtToken/NoWrapperState"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
-import { useTokenWrapper } from "@/hooks/wrapper/useTokenWrapper"
-import { useWrapperForMarket } from "@/hooks/wrapper/useWrapperForMarket"
 import { COLORS } from "@/theme/colors"
 
 export type WrapDebtTokenProps = {
   market: Market | undefined
+  wrapper: TokenWrapper | undefined
+  hasWrapper: boolean
+  hasFactory: boolean
+  isWrapperLookupLoading: boolean
+  isWrapperLoading: boolean
+  isWrapperError: boolean
   isAuthorizedLender: boolean
   isDifferentChain: boolean
 }
 
 export const WrapDebtToken = ({
   market,
+  wrapper,
+  hasWrapper,
+  hasFactory,
+  isWrapperLookupLoading,
+  isWrapperLoading,
+  isWrapperError,
   isAuthorizedLender,
   isDifferentChain,
 }: WrapDebtTokenProps) => {
@@ -37,21 +48,7 @@ export const WrapDebtToken = ({
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
   const client = useQueryClient()
 
-  const {
-    wrapperAddress,
-    hasWrapper,
-    hasFactory,
-    isLoading: isWrapperLookupLoading,
-  } = useWrapperForMarket(market)
-
-  const {
-    data: wrapper,
-    isLoading: isWrapperLoading,
-    isError: isWrapperError,
-  } = useTokenWrapper(
-    market?.chainId as SupportedChainId | undefined,
-    wrapperAddress,
-  )
+  const wrapperAddress = wrapper?.address
 
   const waitForSafeTransaction = async (safeTxHash: string) => {
     if (!sdk) throw new Error("No Safe SDK")
