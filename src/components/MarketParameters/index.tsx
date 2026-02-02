@@ -31,7 +31,7 @@ import {
 } from "./style"
 import { ParametersItem } from "../ParametersItem"
 
-const WrapperChip = ({ hasWrapper }: { hasWrapper: boolean }) => (
+const WrapperChip = ({ hasWrapper }: { hasWrapper?: boolean }) => (
   <Box
     sx={{
       width: "fit-content",
