@@ -22,7 +22,8 @@ export const ErrorWrapperAlert = ({
   return (
     <Box
       sx={{
-        width: "100%",
+        width: { xs: "calc(100% - 32px)", md: "100%" },
+        marginX: { xs: "auto", md: "0" },
         display: "flex",
         flexDirection: "column",
         gap: "4px",
@@ -38,7 +39,7 @@ export const ErrorWrapperAlert = ({
         sx={{
           position: "absolute",
           top: "-12px",
-          right: "55px",
+          right: { xs: "145px", md: "55px" },
           width: 0,
           height: 0,
           borderLeft: "8px solid transparent",

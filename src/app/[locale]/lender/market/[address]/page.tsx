@@ -39,6 +39,7 @@ import {
   resetPageState,
   setWithdrawalsCount,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
+import { setIsMobileOpenedState } from "@/store/slices/wrapDebtTokenFlowSlice/wrapDebtTokenFlowSlice"
 import { COLORS } from "@/theme/colors"
 
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
@@ -185,6 +186,9 @@ export default function LenderMarketDetails({
   const [isMobileWithdrawalOpen, setIsMobileWithdrawalOpen] =
     React.useState(false)
   const [isMobileMLAOpen, setIsMobileMLAOpen] = React.useState(false)
+  const isMobileWrapperSectionOpen = useAppSelector(
+    (state) => state.wrapDebtTokenFlow.isMobileOpenedState,
+  )
 
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
@@ -196,6 +200,14 @@ export default function LenderMarketDetails({
       dispatch(hideDescriptionSection(false))
     }
   }, [marketSummary])
+
+  useEffect(() => {
+    if (!isMobile) {
+      dispatch(setIsMobileOpenedState(true))
+    } else {
+      dispatch(setIsMobileOpenedState(false))
+    }
+  }, [isMobile])
 
   if (!mounted) return null
 
@@ -309,6 +321,25 @@ export default function LenderMarketDetails({
       />
     )
 
+  if (isMobile && isMobileWrapperSectionOpen)
+    return (
+      <>
+        <WrapDebtToken
+          market={market}
+          wrapper={wrapper}
+          hasWrapper={hasWrapper}
+          hasFactory={hasFactory}
+          isWrapperLoading={isWrapperLoading}
+          isWrapperLookupLoading={isWrapperLookupLoading}
+          isWrapperError={isWrapperError}
+          isAuthorizedLender={authorizedInMarket as boolean}
+          isDifferentChain={isDifferentChain}
+        />
+
+        <Footer showFooter={false} showDivider={false} />
+      </>
+    )
+
   if (isMobile)
     return (
       <>
@@ -320,6 +351,18 @@ export default function LenderMarketDetails({
           }}
         >
           <MarketHeader marketAccount={marketAccount} mla={mla} />
+
+          <WrapDebtToken
+            market={market}
+            wrapper={wrapper}
+            hasWrapper={hasWrapper}
+            hasFactory={hasFactory}
+            isWrapperLoading={isWrapperLoading}
+            isWrapperLookupLoading={isWrapperLookupLoading}
+            isWrapperError={isWrapperError}
+            isAuthorizedLender={authorizedInMarket as boolean}
+            isDifferentChain={isDifferentChain}
+          />
 
           <Box id="depositWithdraw">
             <BarCharts

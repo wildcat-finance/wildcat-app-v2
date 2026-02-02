@@ -5,6 +5,8 @@ import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 
 import Change from "@/assets/icons/change_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -21,6 +23,11 @@ export const WrapperExchangeBanner = ({
   marketSymbol,
   shareSymbol,
 }: WrapperExchangeBannerProps = {}) => {
+  const isMobile = useMobileResolution()
+  const isMobileOpenState = useAppSelector(
+    (state) => state.wrapDebtTokenFlow.isMobileOpenedState,
+  )
+
   const marketValue = marketBalance ? formatTokenWithCommas(marketBalance) : "0"
   const shareValue = shareBalance ? formatTokenWithCommas(shareBalance) : "0"
 
@@ -31,14 +38,19 @@ export const WrapperExchangeBanner = ({
         justifyContent: "space-between",
         alignItems: "center",
         padding: "16px",
-        background: COLORS.hintOfRed,
+        background: isMobile ? COLORS.whiteSmoke : COLORS.hintOfRed,
         borderRadius: "12px",
-        marginBottom: "24px",
+        // eslint-disable-next-line no-nested-ternary
+        marginBottom: isMobile ? (isMobileOpenState ? "20px" : "12px") : "24px",
+        marginX: isMobile && isMobileOpenState ? "16px" : 0,
       }}
     >
       <Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <Typography variant="text3" color={COLORS.manate}>
+          <Typography
+            variant={isMobile ? "mobText3" : "text3"}
+            color={COLORS.manate}
+          >
             Market tokens
           </Typography>
           <TooltipButton
@@ -55,9 +67,11 @@ export const WrapperExchangeBanner = ({
             gap: "3px",
           }}
         >
-          <Typography variant="title2">{marketValue}</Typography>
+          <Typography variant={isMobile ? "mobText1" : "title2"}>
+            {marketValue}
+          </Typography>
           <Typography
-            variant="text4"
+            variant={isMobile ? "mobText4" : "text4"}
             color={COLORS.manate}
             sx={{ marginTop: "4px" }}
           >
@@ -74,7 +88,10 @@ export const WrapperExchangeBanner = ({
 
       <Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <Typography variant="text3" color={COLORS.manate}>
+          <Typography
+            variant={isMobile ? "mobText3" : "text3"}
+            color={COLORS.manate}
+          >
             Wrapped tokens
           </Typography>
           <TooltipButton
@@ -91,9 +108,11 @@ export const WrapperExchangeBanner = ({
             gap: "3px",
           }}
         >
-          <Typography variant="title2">{shareValue}</Typography>
+          <Typography variant={isMobile ? "mobText1" : "title2"}>
+            {shareValue}
+          </Typography>
           <Typography
-            variant="text4"
+            variant={isMobile ? "mobText4" : "text4"}
             color={COLORS.manate}
             sx={{ marginTop: "4px" }}
           >

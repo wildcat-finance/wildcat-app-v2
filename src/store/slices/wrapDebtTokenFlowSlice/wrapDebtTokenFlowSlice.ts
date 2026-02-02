@@ -7,33 +7,24 @@ export enum WrapDebtTokenFlowSteps {
 
 export type WrapDebtTokenFlowType = {
   step: WrapDebtTokenFlowSteps
-  initialAmount: number
-  wrappedAmount: number
+  isMobileOpenedState: boolean
 }
 
 const initialState: WrapDebtTokenFlowType = {
   step: WrapDebtTokenFlowSteps.NO_WRAPPER,
-  initialAmount: 200,
-  wrappedAmount: 0,
+  isMobileOpenedState: false,
 }
 
 const wrapDebtTokenFlowSlice = createSlice({
   name: "wrapDebtTokenFlow",
   initialState,
   reducers: {
-    setTokenWrapperStep: (state, action) => {
-      state.step = action.payload
-    },
-    setWrappedAmount: (state, action) => {
-      state.wrappedAmount = action.payload
-    },
-    setInitialAmount: (state, action) => {
-      state.initialAmount = action.payload
+    setIsMobileOpenedState: (state, action) => {
+      state.isMobileOpenedState = action.payload
     },
   },
 })
 
-export const { setTokenWrapperStep, setWrappedAmount, setInitialAmount } =
-  wrapDebtTokenFlowSlice.actions
+export const { setIsMobileOpenedState } = wrapDebtTokenFlowSlice.actions
 
 export default wrapDebtTokenFlowSlice.reducer
