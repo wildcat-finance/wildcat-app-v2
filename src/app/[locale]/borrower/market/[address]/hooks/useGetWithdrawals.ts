@@ -6,6 +6,7 @@ import {
   getLensV2Contract,
   WithdrawalBatch,
   TokenAmount,
+  getSubgraphClient,
 } from "@wildcatfi/wildcat-sdk"
 import {
   GetIncompleteWithdrawalsForMarketDocument,
@@ -16,8 +17,6 @@ import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
-import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type BorrowerWithdrawalsForMarketResult = {
@@ -93,10 +92,13 @@ export function useGetWithdrawals(
   market: Market | undefined,
 ): TwoStepQueryHookResult<BorrowerWithdrawalsForMarketResult> {
   const address = market?.address.toLowerCase()
-  const { chainId } = useSelectedNetwork()
-  const subgraphClient = useSubgraphClient()
+  const targetChainId = market?.chainId
+  const subgraphClient = useMemo(
+    () => (targetChainId ? getSubgraphClient(targetChainId) : undefined),
+    [targetChainId],
+  )
   async function getAllPendingWithdrawalBatches(): Promise<BorrowerWithdrawalsForMarketResult> {
-    if (!address || !market) throw Error()
+    if (!address || !market || !subgraphClient) throw Error()
     logger.debug(`Getting withdrawal batches...`)
     const result = await subgraphClient.query<
       SubgraphGetIncompleteWithdrawalsForMarketQuery,
@@ -133,11 +135,15 @@ export function useGetWithdrawals(
     isError: isErrorInitial,
     failureReason: errorInitial,
   } = useQuery({
-    queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(chainId, "initial", address),
+    queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+      targetChainId ?? 0,
+      "initial",
+      address,
+    ),
     queryFn: getAllPendingWithdrawalBatches,
     refetchInterval: POLLING_INTERVAL,
     placeholderData: keepPreviousData,
-    enabled: !!market && !!chainId,
+    enabled: !!market && !!targetChainId && !!subgraphClient,
     refetchOnMount: false,
   })
 
@@ -153,9 +159,9 @@ export function useGetWithdrawals(
       claimableWithdrawalsAmount: market?.underlyingToken.getAmount(0),
     } as BorrowerWithdrawalsForMarketResult)
   async function getUpdatedBatches(): Promise<BorrowerWithdrawalsForMarketResult> {
-    if (!address || !market) throw Error()
+    if (!address || !market || !targetChainId) throw Error()
     logger.debug(`Getting batch updates...`)
-    const lens = getLensV2Contract(chainId, market.provider)
+    const lens = getLensV2Contract(targetChainId, market.provider)
     const batchUpdates = await lens.getWithdrawalBatchesData(
       address,
       withdrawals.incompleteBatches.map((x) => x.expiry),
@@ -243,14 +249,14 @@ export function useGetWithdrawals(
     failureReason: errorUpdate,
   } = useQuery({
     queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
-      chainId,
+      targetChainId ?? 0,
       "update",
       address,
       updateQueryKeys,
     ),
     queryFn: getUpdatedBatches,
     placeholderData: keepPreviousData,
-    enabled: !!data && !!chainId,
+    enabled: !!data && !!targetChainId,
     refetchOnMount: false,
   })
 

@@ -42,7 +42,7 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
     queryKey: ["market", "apiGet", marketAddressLower, chainId ?? "discover"],
     enabled: !!marketAddressLower,
     queryFn: () => fetchApiMarket(marketAddressLower!, chainId),
-    staleTime: 60 * 60 * 1000, // 1h client cache
+    staleTime: 5 * 60 * 1000, // 5min
     refetchOnWindowFocus: false,
   })
 

@@ -451,6 +451,7 @@ export const OtherMarketsTables = ({
             <DataGrid
               sx={DataGridSx}
               getRowHeight={() => "auto"}
+              autoHeight
               rows={selfOnboard}
               columns={columns}
               columnHeaderHeight={40}
@@ -488,6 +489,7 @@ export const OtherMarketsTables = ({
             <DataGrid
               sx={DataGridSx}
               getRowHeight={() => "auto"}
+              autoHeight
               rows={manual}
               columns={columns}
               columnHeaderHeight={40}

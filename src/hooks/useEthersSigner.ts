@@ -117,7 +117,14 @@ export function useEthersProvider({
     chainId: effectiveChainId,
   })
 
-  const client = walletClient?.chain ? walletClient : publicClient
+  const walletClientForChain =
+    walletClient?.chain &&
+    (typeof effectiveChainId !== "number" ||
+      walletClient.chain.id === effectiveChainId)
+      ? walletClient
+      : undefined
+
+  const client = walletClientForChain ?? publicClient
 
   return useMemo(
     () =>

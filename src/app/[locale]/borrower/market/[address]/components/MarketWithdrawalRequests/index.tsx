@@ -39,14 +39,27 @@ export const MarketWithdrawalRequests = ({
   const expiredTotalAmount = withdrawals.expiredWithdrawalsTotalOwed
   const activeTotalAmount = withdrawals.activeWithdrawalsTotalOwed
   const claimableTotalAmount = withdrawals.claimableWithdrawalsAmount
-  const { getAddressUrl, getTxUrl } = useBlockExplorer()
+  const { getAddressUrl, getTxUrl } = useBlockExplorer({
+    chainId: market.chainId,
+  })
   const totalAmount = expiredTotalAmount
     .add(activeTotalAmount)
     .add(claimableTotalAmount)
 
-  const lendersName: { [key: string]: string } = JSON.parse(
-    localStorage.getItem("lenders-name") || "{}",
-  )
+  const [lendersName, setLendersName] = React.useState<{
+    [key: string]: string
+  }>({})
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+    try {
+      setLendersName(
+        JSON.parse(window.localStorage.getItem("lenders-name") || "{}"),
+      )
+    } catch {
+      setLendersName({})
+    }
+  }, [])
 
   const columns: GridColDef[] = [
     {
@@ -153,6 +166,7 @@ export const MarketWithdrawalRequests = ({
       <ClaimableTable
         withdrawalBatches={withdrawals.batchesWithClaimableWithdrawals ?? []}
         totalAmount={withdrawals.claimableWithdrawalsAmount}
+        chainId={market.chainId}
       />
 
       <OutstandingTable

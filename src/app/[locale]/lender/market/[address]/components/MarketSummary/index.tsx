@@ -1,14 +1,18 @@
 "use client"
 
-import { Box, Typography } from "@mui/material"
+import { Dispatch, SetStateAction } from "react"
+
+import { Box, Button, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { Markdown } from "@/components/Markdown"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
 export const MarketSummary = ({
   marketSummary,
   isLoading,
+  setIsMobileDescriptionOpen,
 }: {
   marketSummary:
     | {
@@ -17,8 +21,10 @@ export const MarketSummary = ({
       }
     | undefined
   isLoading: boolean
+  setIsMobileDescriptionOpen?: Dispatch<SetStateAction<boolean>>
 }) => {
   const { t } = useTranslation()
+  const isMobile = useMobileResolution()
 
   if (isLoading) {
     return (
@@ -39,15 +45,36 @@ export const MarketSummary = ({
   return (
     <Box
       sx={{
-        padding: "20px",
+        padding: isMobile ? "24px 16px 12px" : "20px",
         borderRadius: "14px",
+        backgroundColor: isMobile ? COLORS.white : "transparent",
         border:
-          marketSummary && marketSummary.description !== ""
+          !isMobile && marketSummary && marketSummary.description !== ""
             ? `1px solid ${COLORS.athensGrey}`
             : "none",
       }}
     >
-      <Markdown markdown={marketSummary?.description || ""} />
+      <Box
+        sx={{
+          height: isMobile ? "335px" : "100%",
+          overflow: isMobile ? "hidden" : "auto",
+        }}
+      >
+        <Markdown markdown={marketSummary?.description || ""} />
+      </Box>
+
+      {isMobile && setIsMobileDescriptionOpen && (
+        <Button
+          onClick={() => setIsMobileDescriptionOpen(true)}
+          variant="contained"
+          color="secondary"
+          size="medium"
+          fullWidth
+          sx={{ marginTop: "28px" }}
+        >
+          See more
+        </Button>
+      )}
     </Box>
   )
 }

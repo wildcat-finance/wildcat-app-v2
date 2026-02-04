@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useCallback } from "react"
+import React, { useEffect, useMemo, useCallback, useState } from "react"
 
 import { Box, Button, Divider, Typography } from "@mui/material"
 import {
@@ -38,6 +38,7 @@ import { useBorrowerNames } from "../../hooks/useBorrowerNames"
 export const MarketsSection = () => {
   const dispatch = useAppDispatch()
   const { isTestnet } = useAppSelector((state) => state.selectedNetwork)
+  const [mounted, setMounted] = useState(false)
 
   const marketSection = useAppSelector(
     (state) => state.borrowerDashboard.marketSection,
@@ -156,6 +157,10 @@ export const MarketsSection = () => {
   const { data: borrowers } = useBorrowerNames()
 
   const bannerDisplayConfig = useBorrowerInvitationRedirect()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
   const tokens = useMemo(() => {
@@ -465,6 +470,7 @@ export const MarketsSection = () => {
       {marketSection === BorrowerMarketDashboardSections.ACTIVE &&
         showFullFunctionality &&
         !noMarkets &&
+        mounted &&
         !isWrongNetwork && (
           <BorrowerActiveMarketsTables
             marketAccounts={filteredActiveBorrowerMarkets}
@@ -476,6 +482,7 @@ export const MarketsSection = () => {
       {marketSection === BorrowerMarketDashboardSections.TERMINATED &&
         showFullFunctionality &&
         !noMarkets &&
+        mounted &&
         !isWrongNetwork && (
           <BorrowerTerminatedMarketsTables
             marketAccounts={filteredTerminatedBorrowerMarkets}
@@ -485,6 +492,7 @@ export const MarketsSection = () => {
         )}
 
       {marketSection === BorrowerMarketDashboardSections.OTHER &&
+        mounted &&
         !isWrongNetwork && (
           <OtherMarketsTables
             marketAccounts={filteredOtherMarketAccounts}
@@ -493,7 +501,7 @@ export const MarketsSection = () => {
           />
         )}
 
-      {isWrongNetwork && <WrongNetworkAlert />}
+      {mounted && isWrongNetwork && <WrongNetworkAlert />}
     </Box>
   )
 }

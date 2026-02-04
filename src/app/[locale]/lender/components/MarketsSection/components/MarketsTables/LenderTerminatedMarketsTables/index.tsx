@@ -335,6 +335,7 @@ export const LenderTerminatedMarketsTables = ({
           <DataGrid
             sx={DataGridSx}
             getRowHeight={() => "auto"}
+            autoHeight
             rows={prevActive}
             columns={columns}
             columnHeaderHeight={40}
@@ -357,6 +358,7 @@ export const LenderTerminatedMarketsTables = ({
         >
           <DataGrid
             sx={DataGridSx}
+            autoHeight
             getRowHeight={() => "auto"}
             rows={neverActive}
             columns={columns}

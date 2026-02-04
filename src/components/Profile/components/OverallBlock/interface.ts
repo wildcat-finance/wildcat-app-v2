@@ -2,6 +2,7 @@ import { BorrowerProfile } from "@/app/api/profiles/interface"
 
 export type OverallBlockProps = Partial<BorrowerProfile> & {
   marketsAmount?: number
+  externalChainId?: number
   defaults?: string
   isPage?: boolean
 }

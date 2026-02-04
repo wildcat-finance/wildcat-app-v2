@@ -5,12 +5,14 @@ import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[
 
 export type WithdrawalRequestsProps = {
   withdrawals: LenderWithdrawalsForMarketResult
+  chainId?: number
 }
 
 export type TableProps = {
   withdrawals: LenderWithdrawalStatus[]
   totalAmount: TokenAmount
   columns?: GridColDef[]
+  chainId?: number
 }
 
 export type WithdrawalTxRow = {

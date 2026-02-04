@@ -167,8 +167,12 @@ export const formatRayAsPercentage = (ray: BigNumber, fixed?: number) => {
   return stripTrailingZeroes(percentage.toFixed(fixed || 2))
 }
 
-export const buildMarketHref = (marketAddress: string, chainId?: number) => {
-  const base = `${ROUTES.lender.market}/${marketAddress}`
+export const buildMarketHref = (
+  marketAddress: string,
+  chainId?: number,
+  baseRoute: string = ROUTES.lender.market,
+) => {
+  const base = `${baseRoute}/${marketAddress}`
   return chainId ? `${base}?chainId=${chainId}` : base
 }
 

@@ -439,6 +439,7 @@ export const LenderActiveMarketsTables = ({
               rows={depositedMarkets}
               columns={columns}
               columnHeaderHeight={40}
+              autoHeight
             />
           )}
         </MarketsTableAccordion>
@@ -473,6 +474,7 @@ export const LenderActiveMarketsTables = ({
             <DataGrid
               sx={DataGridSx}
               getRowHeight={() => "auto"}
+              autoHeight
               rows={nonDepositedMarkets}
               columns={columns}
               columnHeaderHeight={40}

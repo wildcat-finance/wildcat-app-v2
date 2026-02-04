@@ -29,6 +29,7 @@ import LinkIcon from "@/assets/icons/link_icon.svg"
 import { Accordion } from "@/components/Accordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
@@ -50,7 +51,6 @@ import {
   NumberOfLenders,
 } from "./style"
 import { useGetMarketLenders } from "../../hooks/useGetMarketLenders"
-import { ForceBuyBackModal } from "../Modals/ForceBuyBackModal"
 
 export const MarketAuthorisedLenders = ({
   market,
@@ -64,12 +64,26 @@ export const MarketAuthorisedLenders = ({
 
   const hasMLA = 0 // test const for hoiding/showing MLA columns in table
 
-  const lendersNames: { [key: string]: string } = JSON.parse(
-    localStorage.getItem("lenders-name") || "{}",
-  )
+  const [lendersNames, setLendersNames] = React.useState<{
+    [key: string]: string
+  }>({})
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+    try {
+      setLendersNames(
+        JSON.parse(window.localStorage.getItem("lenders-name") || "{}"),
+      )
+    } catch {
+      setLendersNames({})
+    }
+  }, [])
 
   const [state, copyToClipboard] = useCopyToClipboard()
-  const { getAddressUrl } = useBlockExplorer()
+  const { getAddressUrl } = useBlockExplorer({ chainId: market?.chainId })
+  const { isSelectionMismatch } = useNetworkGate({
+    desiredChainId: market?.chainId,
+  })
 
   const { data, isLoading } = useGetMarketLenders(market)
   const { t } = useTranslation()
@@ -453,6 +467,7 @@ export const MarketAuthorisedLenders = ({
           </Typography>
           <Link href={editLendersLink}>
             <Button
+              disabled={isSelectionMismatch}
               variant="contained"
               size="small"
               sx={{
@@ -480,6 +495,7 @@ export const MarketAuthorisedLenders = ({
             </Typography>
             <Link href={editLendersLink}>
               <Button
+                disabled={isSelectionMismatch}
                 variant="contained"
                 size="small"
                 sx={{
@@ -511,7 +527,12 @@ export const MarketAuthorisedLenders = ({
             </Typography>
             {marketAccount?.isBorrower && (
               <Link href={editLendersLink}>
-                <Button size="small" variant="outlined" color="secondary">
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="secondary"
+                  disabled={isSelectionMismatch}
+                >
                   {t(
                     "borrowerMarketDetails.authorisedLenders.buttons.editPolicy",
                   )}

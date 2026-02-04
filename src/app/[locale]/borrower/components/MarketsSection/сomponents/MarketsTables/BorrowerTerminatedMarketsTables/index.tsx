@@ -28,6 +28,7 @@ import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import { AUROS_ETHENA_ADDRESS, pageCalcHeights } from "@/utils/constants"
 import {
+  buildMarketHref,
   formatBps,
   formatSecsToHours,
   formatTokenWithCommas,
@@ -39,6 +40,7 @@ import { MarketsTableAccordion } from "../../../../../../../../components/Market
 
 export type BorrowerTerminatedMarketsTableModel = {
   id: string
+  chainId?: number
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
@@ -88,6 +90,7 @@ export const BorrowerTerminatedMarketsTables = ({
         borrowableAssets,
         totalSupply,
         withdrawalBatchDuration,
+        chainId,
       } = market
 
       const marketStatus = getMarketStatusChip(market)
@@ -95,6 +98,7 @@ export const BorrowerTerminatedMarketsTables = ({
 
       return {
         id: address,
+        chainId,
         status: marketStatus,
         term: marketType,
         name,
@@ -121,7 +125,11 @@ export const BorrowerTerminatedMarketsTables = ({
       align: "left",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{
             ...LinkCell,
             paddingRight: "16px",
@@ -158,7 +166,11 @@ export const BorrowerTerminatedMarketsTables = ({
       sortComparator: statusComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -179,7 +191,11 @@ export const BorrowerTerminatedMarketsTables = ({
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
@@ -217,7 +233,11 @@ export const BorrowerTerminatedMarketsTables = ({
 
         return (
           <Link
-            href={`${ROUTES.borrower.market}/${params.row.id}`}
+            href={buildMarketHref(
+              params.row.id,
+              params.row.chainId,
+              ROUTES.borrower.market,
+            )}
             style={{ ...LinkCell, justifyContent: "flex-end" }}
           >
             <AprChip
@@ -239,7 +259,11 @@ export const BorrowerTerminatedMarketsTables = ({
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
@@ -259,7 +283,11 @@ export const BorrowerTerminatedMarketsTables = ({
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value
@@ -305,6 +333,7 @@ export const BorrowerTerminatedMarketsTables = ({
             rows={prevActive}
             columns={columns}
             columnHeaderHeight={40}
+            autoHeight
           />
         </MarketsTableAccordion>
       </Box>
@@ -327,6 +356,7 @@ export const BorrowerTerminatedMarketsTables = ({
             rows={neverActive}
             columns={columns}
             columnHeaderHeight={40}
+            autoHeight
           />
         </MarketsTableAccordion>
       </Box>

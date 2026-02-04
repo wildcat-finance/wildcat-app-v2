@@ -16,7 +16,11 @@ import {
   statusComparator,
   typeComparator,
 } from "@/utils/comparators"
-import { formatSecsToHours, formatTokenWithCommas } from "@/utils/formatters"
+import {
+  buildMarketHref,
+  formatSecsToHours,
+  formatTokenWithCommas,
+} from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -44,12 +48,14 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
         maxTotalSupply,
         totalSupply,
         withdrawalBatchDuration,
+        chainId,
       } = market
 
       const marketStatus = getMarketStatusChip(market)
 
       return {
         id: address,
+        chainId,
         name,
         status: marketStatus,
         asset: underlyingToken.symbol,
@@ -71,7 +77,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       align: "left",
       renderCell: (params) => (
         <Link
-          href={`${marketLink}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
           style={{
             ...LinkCell,
             paddingRight: "16px",
@@ -108,7 +114,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       sortComparator: statusComparator,
       renderCell: (params) => (
         <Link
-          href={`${marketLink}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -130,7 +136,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       sortComparator: typeComparator,
       renderCell: (params) => (
         <Link
-          href={`${marketLink}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -151,7 +157,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${marketLink}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
@@ -170,7 +176,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${marketLink}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
@@ -190,7 +196,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       sortComparator: percentComparator,
       renderCell: (params) => (
         <Link
-          href={`${marketLink}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {`${params.value / 100}%`}
@@ -206,7 +212,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${marketLink}/${params.row.id}`}
+          href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value

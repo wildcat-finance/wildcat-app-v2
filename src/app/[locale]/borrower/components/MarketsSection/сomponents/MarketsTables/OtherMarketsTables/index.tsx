@@ -1,10 +1,11 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import {
   DepositStatus,
+  MarketAccount,
   MarketVersion,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
@@ -16,7 +17,6 @@ import {
   TypeSafeColDef,
 } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { DataGridSx } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/style"
-import { MarketsTableModel } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import Ethena from "@/assets/companies-icons/ethena_icon.svg"
@@ -28,7 +28,6 @@ import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/Aur
 import { AprTooltip } from "@/components/AdsBanners/Common/AprTooltip"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
-import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { TablePagination } from "@/components/TablePagination"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -40,6 +39,7 @@ import {
 } from "@/utils/comparators"
 import { AUROS_ETHENA_ADDRESS, pageCalcHeights } from "@/utils/constants"
 import {
+  buildMarketHref,
   formatBps,
   formatSecsToHours,
   formatTokenWithCommas,
@@ -50,6 +50,7 @@ import { getMarketTypeChip } from "@/utils/marketType"
 
 export type OtherMarketsTableModel = {
   id: string
+  chainId?: number
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
@@ -105,6 +106,7 @@ export const OtherMarketsTables = ({
         maxTotalSupply,
         totalSupply,
         withdrawalBatchDuration,
+        chainId,
       } = market
 
       const borrower = (borrowers ?? []).find(
@@ -119,6 +121,7 @@ export const OtherMarketsTables = ({
 
       return {
         id: address,
+        chainId,
         status: marketStatus,
         term: marketType,
         name,
@@ -151,7 +154,11 @@ export const OtherMarketsTables = ({
       align: "left",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{
             ...LinkCell,
             paddingRight: "16px",
@@ -195,7 +202,11 @@ export const OtherMarketsTables = ({
       sortComparator: statusComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -217,7 +228,11 @@ export const OtherMarketsTables = ({
       sortComparator: typeComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -257,7 +272,11 @@ export const OtherMarketsTables = ({
 
         return (
           <Link
-            href={`${ROUTES.borrower.market}/${params.row.id}`}
+            href={buildMarketHref(
+              params.row.id,
+              params.row.chainId,
+              ROUTES.borrower.market,
+            )}
             style={{ ...LinkCell, justifyContent: "flex-end" }}
           >
             <AprChip
@@ -279,7 +298,11 @@ export const OtherMarketsTables = ({
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
@@ -298,7 +321,11 @@ export const OtherMarketsTables = ({
       align: "right",
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
@@ -317,10 +344,14 @@ export const OtherMarketsTables = ({
       align: "right",
       sortComparator: tokenAmountComparator,
       renderCell: (
-        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
+        params: GridRenderCellParams<OtherMarketsTableModel, TokenAmount>,
       ) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value
@@ -341,10 +372,14 @@ export const OtherMarketsTables = ({
       align: "right",
       sortComparator: tokenAmountComparator,
       renderCell: (
-        params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
+        params: GridRenderCellParams<OtherMarketsTableModel, TokenAmount>,
       ) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{
             textDecoration: "none",
             width: "100%",
@@ -374,7 +409,11 @@ export const OtherMarketsTables = ({
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Link
-          href={`${ROUTES.borrower.market}/${params.row.id}`}
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value
@@ -434,6 +473,7 @@ export const OtherMarketsTables = ({
           <DataGrid
             sx={DataGridSx}
             getRowHeight={() => "auto"}
+            autoHeight
             rows={selfOnboard}
             columns={columns}
             columnHeaderHeight={40}
@@ -461,6 +501,7 @@ export const OtherMarketsTables = ({
           <DataGrid
             sx={DataGridSx}
             getRowHeight={() => "auto"}
+            autoHeight
             rows={manual}
             columns={columns}
             columnHeaderHeight={40}

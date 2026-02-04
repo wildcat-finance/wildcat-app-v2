@@ -13,6 +13,7 @@ import { MobileMarketActions } from "@/app/[locale]/lender/market/[address]/comp
 import { MobileMlaAlert } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaAlert"
 import { MobileMlaModal } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaModal/MobileMlaModal"
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
+import { MobileMarketDescriptionModal } from "@/app/[locale]/lender/market/[address]/components/Modals/MobileMarketDescriptionModal"
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
@@ -86,6 +87,9 @@ export default function LenderMarketDetails({
     address.toLowerCase(),
     market?.chainId ?? selectedChainId,
   )
+
+  const hasMarketDescription =
+    !!marketSummary && marketSummary?.description !== ""
 
   const isDifferentChain = isSelectionMismatch || isWrongNetwork
 
@@ -165,6 +169,8 @@ export default function LenderMarketDetails({
   const [isMobileWithdrawalOpen, setIsMobileWithdrawalOpen] =
     React.useState(false)
   const [isMobileMLAOpen, setIsMobileMLAOpen] = React.useState(false)
+  const [isMobileDescriptionOpen, setIsMobileDescriptionOpen] =
+    React.useState(false)
 
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
@@ -289,6 +295,33 @@ export default function LenderMarketDetails({
       />
     )
 
+  if (isMobile && isMobileDescriptionOpen)
+    return (
+      <Box>
+        <MobileMarketDescriptionModal
+          marketName={market?.name}
+          marketSummary={marketSummary}
+          isLoading={isLoadingSummary}
+          setIsMobileDescriptionOpen={setIsMobileDescriptionOpen}
+        />
+
+        {(authorizedInMarket || isDifferentChain) && (
+          <MobileMarketActions
+            marketAccount={marketAccount}
+            withdrawals={withdrawals}
+            isMobileDepositOpen={isMobileDepositOpen}
+            isMobileWithdrawalOpen={isMobileWithdrawalOpen}
+            setIsMobileDepositOpen={setIsMobileDepositOpen}
+            setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
+            isMLAOpen={isMobileMLAOpen}
+            setIsMLAOpen={setIsMobileMLAOpen}
+          />
+        )}
+
+        <Footer showFooter={false} />
+      </Box>
+    )
+
   if (isMobile)
     return (
       <>
@@ -299,7 +332,11 @@ export default function LenderMarketDetails({
             gap: "4px",
           }}
         >
-          <MarketHeader marketAccount={marketAccount} mla={mla} />
+          <MarketHeader
+            marketAccount={marketAccount}
+            mla={mla}
+            hasMarketDescription={hasMarketDescription}
+          />
 
           <Box id="depositWithdraw">
             <BarCharts
@@ -309,12 +346,25 @@ export default function LenderMarketDetails({
             />
           </Box>
 
+          {hasMarketDescription && (
+            <Box id="marketDescription">
+              <MarketSummary
+                marketSummary={marketSummary}
+                isLoading={isLoadingSummary}
+                setIsMobileDescriptionOpen={setIsMobileDescriptionOpen}
+              />
+            </Box>
+          )}
+
           <Box id="status">
             <MarketParameters market={market} />
           </Box>
 
           <Box id="requests">
-            <WithdrawalRequests withdrawals={withdrawals} />
+            <WithdrawalRequests
+              withdrawals={withdrawals}
+              chainId={market.chainId}
+            />
           </Box>
 
           <Box id="mla">
@@ -392,12 +442,16 @@ export default function LenderMarketDetails({
           {currentSection === LenderMarketSections.BORROWER_PROFILE && (
             <ProfileSection
               profileAddress={marketAccount.market.borrower as `0x${string}`}
+              externalChainId={marketChainId}
             />
           )}
 
           {currentSection === LenderMarketSections.REQUESTS && (
             <Box marginTop="12px">
-              <WithdrawalRequests withdrawals={withdrawals} />
+              <WithdrawalRequests
+                withdrawals={withdrawals}
+                chainId={market.chainId}
+              />
             </Box>
           )}
           {currentSection === LenderMarketSections.MARKET_HISTORY && (
