@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.9.2...v2.10.0) (2026-02-04)
+
+
+### Features
+
+* **market-description:** add mobile view for lenders ([ace430b](https://github.com/wildcat-finance/wildcat-app-v2/commit/ace430b97f137b9d7c8628fb71b6c807dd5c3a56))
+
 ## [2.9.2](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.9.1...v2.9.2) (2026-01-29)
 
 
