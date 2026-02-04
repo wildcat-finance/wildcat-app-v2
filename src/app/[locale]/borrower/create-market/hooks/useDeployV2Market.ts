@@ -12,6 +12,9 @@ import {
   PartialTransaction,
   getMockArchControllerOwnerContract,
   getHooksFactoryContract,
+  WrapperFactory,
+  hasDeploymentAddress,
+  SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
 import {
   DeployMarketStatus,
@@ -21,6 +24,7 @@ import {
   OpenTermMarketDeploymentArgs,
 } from "@wildcatfi/wildcat-sdk/dist/access"
 import { MarketDeployedEvent } from "@wildcatfi/wildcat-sdk/dist/typechain/HooksFactory"
+import { constants } from "ethers"
 import { parseUnits } from "ethers/lib/utils"
 
 import { toastError, toastRequest } from "@/components/Toasts"
@@ -51,6 +55,7 @@ export type DeployNewV2MarketParams = (
   timeSigned: number
   mlaTemplateId: number | undefined
   mlaSignature: string
+  deployWrapper?: boolean
 }
 
 export const useDeployV2Market = () => {
@@ -67,6 +72,24 @@ export const useDeployV2Market = () => {
       }
       return tx
     })
+  }
+
+  const waitForSafeTransaction = async (safeTxHash: string) => {
+    if (!gnosisSafeSDK) throw Error("No sdk found")
+    const resolvedTxHash = await new Promise<string>((resolve) => {
+      const check = async () => {
+        const transactionBySafeHash =
+          await gnosisSafeSDK.txs.getBySafeTxHash(safeTxHash)
+        if (transactionBySafeHash?.txHash) {
+          resolve(transactionBySafeHash.txHash)
+        } else {
+          setTimeout(check, 1000)
+        }
+      }
+      check()
+    })
+    await waitForTransaction(resolvedTxHash)
+    return resolvedTxHash
   }
 
   const [deployedMarket, setDeployedMarket] = useState<string | undefined>()
@@ -86,6 +109,7 @@ export const useDeployV2Market = () => {
       timeSigned,
       mlaTemplateId,
       mlaSignature,
+      deployWrapper,
       ...marketParams
     }: DeployNewV2MarketParams) => {
       if (!signer || !hooksTemplate || !marketParams) {
@@ -279,6 +303,54 @@ export const useDeployV2Market = () => {
         ) as unknown as MarketDeployedEvent["args"]
         marketAddress = event.market
         setDeployedMarket(marketAddress)
+      }
+
+      if (deployWrapper) {
+        const chainId = hooksTemplate.chainId as SupportedChainId
+        if (
+          !hasDeploymentAddress(chainId, "Wildcat4626WrapperFactory") ||
+          !marketAddress
+        ) {
+          throw Error("Wrapper factory not available on this chain")
+        }
+
+        const existingWrapper = await WrapperFactory.getWrapperForMarket(
+          chainId,
+          signer,
+          marketAddress,
+        )
+
+        if (existingWrapper === constants.AddressZero) {
+          await toastRequest(
+            (async () => {
+              if (isConnectedToSafe) {
+                if (!gnosisSafeSDK) throw Error("No sdk found")
+                const tx = WrapperFactory.populateCreateWrapper(
+                  chainId,
+                  signer,
+                  marketAddress,
+                )
+                const { safeTxHash } = await gnosisSafeSDK.txs.send({
+                  txs: [tx],
+                })
+                await waitForSafeTransaction(safeTxHash)
+                return safeTxHash
+              }
+
+              const { wrapper } = await WrapperFactory.createWrapper(
+                chainId,
+                signer,
+                marketAddress,
+              )
+              return wrapper
+            })(),
+            {
+              pending: "Deploying Wrapper...",
+              success: "Wrapper Deployed Successfully!",
+              error: "Wrapper Deployment Failed.",
+            },
+          )
+        }
       }
 
       const doSubmit = async () => {

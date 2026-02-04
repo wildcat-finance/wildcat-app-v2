@@ -29,7 +29,7 @@ export const LenderRestrictionsForm = ({
   const transferRequiresAccessWatch = watch("transferRequiresAccess")
 
   const handleNextClick = () => {
-    dispatch(setCreatingStep(CreateMarketSteps.MLA))
+    dispatch(setCreatingStep(CreateMarketSteps.WRAPPER))
   }
 
   const handleBackClick = () => {
