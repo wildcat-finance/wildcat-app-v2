@@ -1148,15 +1148,14 @@ export const theme = createTheme({
             display: "none",
           },
 
-          "& .MuiDataGrid-columnHeader--sorted": {
-            color: `${COLORS.blackRock} !important`,
-          },
-
           "& .MuiDataGrid-columnHeader:focus": {
             outline: "transparent",
           },
           "& .MuiDataGrid-cell:focus": {
             outline: "transparent",
+          },
+          "& .MuiDataGrid-row:first-of-type .MuiDataGrid-cell": {
+            borderTop: "none",
           },
 
           "& .MuiDataGrid-row:hover": {
@@ -1193,6 +1192,7 @@ export const theme = createTheme({
 
           "& .MuiDataGrid-columnHeader": {
             padding: "0 16px",
+            borderBottom: `1px solid ${COLORS.athensGrey}`,
 
             fontSize: pxToRem(11),
             lineHeight: lh(12, 11),
@@ -1207,6 +1207,16 @@ export const theme = createTheme({
 
             "& .MuiDataGrid-columnSeparator": {
               display: "none",
+            },
+
+            "&.MuiDataGrid-columnHeader--sorted": {
+              color: `${COLORS.ultramarineBlue} !important`,
+              borderBottomColor: `${COLORS.ultramarineBlue} !important`,
+
+              "& .MuiDataGrid-sortIcon": {
+                opacity: "inherit !important",
+                "& path": { fill: COLORS.ultramarineBlue },
+              },
             },
           },
 

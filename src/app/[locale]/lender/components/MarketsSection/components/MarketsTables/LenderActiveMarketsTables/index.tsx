@@ -25,6 +25,7 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
+import { COLORS } from "@/theme/colors"
 import {
   statusComparator,
   tokenAmountComparator,
@@ -45,6 +46,7 @@ import {
   LenderActiveMarketsTableModel,
   LenderActiveMarketsTableProps,
 } from "./interface"
+import { DataGridSx } from "../style"
 
 export const LenderActiveMarketsTables = ({
   marketAccounts,
@@ -432,22 +434,7 @@ export const LenderActiveMarketsTables = ({
             </Box>
           ) : (
             <DataGrid
-              sx={{
-                overflow: "auto",
-                maxWidth: "calc(100vw - 267px)",
-                padding: "0 16px",
-                "& .MuiDataGrid-columnHeader": { padding: 0 },
-                "& .MuiDataGrid-row": {
-                  minHeight: "66px !important",
-                  maxHeight: "66px !important",
-                },
-                "& .MuiDataGrid-cell": {
-                  padding: "0px",
-                  minHeight: "66px",
-                  height: "auto",
-                },
-              }}
-              autoHeight
+              sx={DataGridSx}
               getRowHeight={() => "auto"}
               rows={depositedMarkets}
               columns={columns}
@@ -484,23 +471,8 @@ export const LenderActiveMarketsTables = ({
             </Box>
           ) : (
             <DataGrid
-              sx={{
-                overflow: "auto",
-                maxWidth: "calc(100vw - 267px)",
-                padding: "0 16px",
-                "& .MuiDataGrid-columnHeader": { padding: 0 },
-                "& .MuiDataGrid-row": {
-                  minHeight: "66px !important",
-                  maxHeight: "66px !important",
-                },
-                "& .MuiDataGrid-cell": {
-                  padding: "0px",
-                  minHeight: "66px",
-                  height: "auto",
-                },
-              }}
+              sx={DataGridSx}
               getRowHeight={() => "auto"}
-              autoHeight
               rows={nonDepositedMarkets}
               columns={columns}
               columnHeaderHeight={40}
