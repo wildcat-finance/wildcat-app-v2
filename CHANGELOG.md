@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.11.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.10.0...v2.11.0) (2026-02-04)
+
+
+### Features
+
+* **table-header:** add sticky markets table's headers  ([5e42ff4](https://github.com/wildcat-finance/wildcat-app-v2/commit/5e42ff42ea20bf33726d6df812e6d09f9ad1edce))
+* **table-header:** add sticky markets table's headers and more obvious highlighting for sorted columns ([8b9f040](https://github.com/wildcat-finance/wildcat-app-v2/commit/8b9f04026359605ea59f8c833db856f2742f22bb))
+
 ## [2.10.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.9.2...v2.10.0) (2026-02-04)
 
 
