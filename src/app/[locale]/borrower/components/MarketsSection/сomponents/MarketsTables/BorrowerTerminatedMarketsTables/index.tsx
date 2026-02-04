@@ -333,7 +333,6 @@ export const BorrowerTerminatedMarketsTables = ({
             rows={prevActive}
             columns={columns}
             columnHeaderHeight={40}
-            autoHeight
           />
         </MarketsTableAccordion>
       </Box>
@@ -356,7 +355,6 @@ export const BorrowerTerminatedMarketsTables = ({
             rows={neverActive}
             columns={columns}
             columnHeaderHeight={40}
-            autoHeight
           />
         </MarketsTableAccordion>
       </Box>

@@ -28,6 +28,7 @@ import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/Aur
 import { AprTooltip } from "@/components/AdsBanners/Common/AprTooltip"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { TablePagination } from "@/components/TablePagination"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -473,7 +474,6 @@ export const OtherMarketsTables = ({
           <DataGrid
             sx={DataGridSx}
             getRowHeight={() => "auto"}
-            autoHeight
             rows={selfOnboard}
             columns={columns}
             columnHeaderHeight={40}
@@ -501,7 +501,6 @@ export const OtherMarketsTables = ({
           <DataGrid
             sx={DataGridSx}
             getRowHeight={() => "auto"}
-            autoHeight
             rows={manual}
             columns={columns}
             columnHeaderHeight={40}

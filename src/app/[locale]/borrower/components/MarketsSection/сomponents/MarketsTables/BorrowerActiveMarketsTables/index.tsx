@@ -400,7 +400,6 @@ export const BorrowerActiveMarketsTables = ({
         >
           <DataGrid
             sx={DataGridSx}
-            autoHeight
             rows={depositedMarkets}
             columns={columns}
             columnHeaderHeight={40}
@@ -425,7 +424,6 @@ export const BorrowerActiveMarketsTables = ({
         >
           <DataGrid
             sx={DataGridSx}
-            autoHeight
             getRowHeight={() => "auto"}
             rows={nonDepositedMarkets}
             columns={columns}
