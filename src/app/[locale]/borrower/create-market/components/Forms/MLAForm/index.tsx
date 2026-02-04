@@ -37,7 +37,7 @@ export const MlaForm = ({ form }: MLAFormProps) => {
   }
 
   const handleBackClick = () => {
-    dispatch(setCreatingStep(CreateMarketSteps.LRESTRICTIONS))
+    dispatch(setCreatingStep(CreateMarketSteps.WRAPPER))
   }
 
   const mlaWatch = watch("mla")

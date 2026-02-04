@@ -38,6 +38,7 @@ import { FinancialForm } from "./components/Forms/FinancialForm"
 import { LenderRestrictionsForm } from "./components/Forms/LenderRestrictionsForm"
 import { MarketPolicyForm } from "./components/Forms/MarketPolicyForm"
 import { MlaForm } from "./components/Forms/MLAForm"
+import { WrapperForm } from "./components/Forms/WrapperForm"
 import { GlossarySidebar } from "./components/GlossarySidebar"
 import { StepCounterTitle } from "./components/StepCounterTitle"
 import { useTokensList } from "./components/UnderlyingAssetSelect/hooks/useTokensList"
@@ -215,6 +216,7 @@ export default function CreateMarketPage() {
         newProviderInputs: [],
         roleProviderFactory: constants.AddressZero,
         minimumDeposit: marketParams.minimumDeposit,
+        deployWrapper: marketParams.deployWrapper,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any
 
@@ -297,6 +299,10 @@ export default function CreateMarketPage() {
 
         {currentStep === CreateMarketSteps.LRESTRICTIONS && (
           <LenderRestrictionsForm form={newMarketForm} />
+        )}
+
+        {currentStep === CreateMarketSteps.WRAPPER && (
+          <WrapperForm form={newMarketForm} />
         )}
 
         {currentStep === CreateMarketSteps.CONFIRM && (

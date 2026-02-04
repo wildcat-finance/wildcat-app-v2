@@ -382,6 +382,25 @@ export const ConfirmationForm = ({
 
       <Divider sx={DividerStyle} />
 
+      <Box
+        sx={{
+          ...SectionGrid,
+          gap: "20px 12px",
+          gridTemplateRows: "repeat(1, 1fr)",
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="text4" sx={{ textTransform: "uppercase" }}>
+          {t("createNewMarket.wrapper.title")}
+        </Typography>
+
+        <Typography variant="text2" sx={{ height: "20px" }}>
+          {getValues("deployWrapper") ? "Yes" : "No"}
+        </Typography>
+      </Box>
+
+      <Divider sx={DividerStyle} />
+
       <Typography variant="text4" sx={SubtitleStyle}>
         {t("createNewMarket.lenderRestrictions.title")}
       </Typography>

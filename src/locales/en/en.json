@@ -1379,6 +1379,14 @@
         "glossary": "A short identifier prefix, such as \"abcWETH\" for the tokens lenders receive in the market."
       }
     },
+    "wrapper": {
+      "title": "Wrapper Contract",
+      "deploy": {
+        "label": "Deploy wrapper contract for this market",
+        "explainer": "If you don’t deploy now, anyone can deploy later. Deploying now makes the wrapper ready for lenders immediately."
+      }
+
+    },
     "mla": {
       "title": "Loan Agreement",
       "mla": {

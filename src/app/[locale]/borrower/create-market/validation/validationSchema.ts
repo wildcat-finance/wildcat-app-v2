@@ -105,6 +105,7 @@ export const baseMarketSchemaFields = {
   transferRequiresAccess: z.boolean(),
   depositRequiresAccess: z.boolean(),
   withdrawalRequiresAccess: z.boolean(),
+  deployWrapper: z.boolean().optional(),
 }
 
 export const marketRefinementCallback = (
