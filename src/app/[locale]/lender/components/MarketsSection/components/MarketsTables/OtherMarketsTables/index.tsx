@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next"
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import { DataGridSx } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/style"
 import Ethena from "@/assets/companies-icons/ethena_icon.svg"
 import Ethereal from "@/assets/companies-icons/ethereal_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
@@ -448,23 +449,8 @@ export const OtherMarketsTables = ({
             </Box>
           ) : (
             <DataGrid
-              sx={{
-                overflow: "auto",
-                maxWidth: "calc(100vw - 267px)",
-                padding: "0 16px",
-                "& .MuiDataGrid-columnHeader": { padding: 0 },
-                "& .MuiDataGrid-row": {
-                  minHeight: "66px !important",
-                  maxHeight: "66px !important",
-                },
-                "& .MuiDataGrid-cell": {
-                  padding: "0px",
-                  minHeight: "66px",
-                  height: "auto",
-                },
-              }}
+              sx={DataGridSx}
               getRowHeight={() => "auto"}
-              autoHeight
               rows={selfOnboard}
               columns={columns}
               columnHeaderHeight={40}
@@ -500,23 +486,8 @@ export const OtherMarketsTables = ({
             </Box>
           ) : (
             <DataGrid
-              sx={{
-                overflow: "auto",
-                maxWidth: "calc(100vw - 267px)",
-                padding: "0 16px",
-                "& .MuiDataGrid-columnHeader": { padding: 0 },
-                "& .MuiDataGrid-row": {
-                  minHeight: "66px !important",
-                  maxHeight: "66px !important",
-                },
-                "& .MuiDataGrid-cell": {
-                  padding: "0px",
-                  minHeight: "66px",
-                  height: "auto",
-                },
-              }}
+              sx={DataGridSx}
               getRowHeight={() => "auto"}
-              autoHeight
               rows={manual}
               columns={columns}
               columnHeaderHeight={40}

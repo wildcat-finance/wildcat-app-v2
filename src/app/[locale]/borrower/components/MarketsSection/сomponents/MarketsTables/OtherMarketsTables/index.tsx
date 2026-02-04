@@ -16,6 +16,7 @@ import {
   MarketsTablesProps,
   TypeSafeColDef,
 } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
+import { DataGridSx } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/style"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import Ethena from "@/assets/companies-icons/ethena_icon.svg"
@@ -27,12 +28,11 @@ import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/Aur
 import { AprTooltip } from "@/components/AdsBanners/Common/AprTooltip"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { TablePagination } from "@/components/TablePagination"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
-import { COLORS } from "@/theme/colors"
-import { lh, pxToRem } from "@/theme/units"
 import {
   statusComparator,
   tokenAmountComparator,
@@ -48,8 +48,6 @@ import {
 } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
-
-import { MarketsTableAccordion } from "../../../../../../../../components/MarketsTableAccordion"
 
 export type OtherMarketsTableModel = {
   id: string
@@ -474,23 +472,8 @@ export const OtherMarketsTables = ({
           showNoFilteredMarkets
         >
           <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-row": {
-                minHeight: "66px !important",
-                maxHeight: "66px !important",
-              },
-              "& .MuiDataGrid-cell": {
-                padding: "0px",
-                minHeight: "66px",
-                height: "auto",
-              },
-            }}
+            sx={DataGridSx}
             getRowHeight={() => "auto"}
-            autoHeight
             rows={selfOnboard}
             columns={columns}
             columnHeaderHeight={40}
@@ -516,23 +499,8 @@ export const OtherMarketsTables = ({
           showNoFilteredMarkets
         >
           <DataGrid
-            sx={{
-              overflow: "auto",
-              maxWidth: "calc(100vw - 267px)",
-              padding: "0 16px",
-              "& .MuiDataGrid-columnHeader": { padding: 0 },
-              "& .MuiDataGrid-row": {
-                minHeight: "66px !important",
-                maxHeight: "66px !important",
-              },
-              "& .MuiDataGrid-cell": {
-                padding: "0px",
-                minHeight: "66px",
-                height: "auto",
-              },
-            }}
+            sx={DataGridSx}
             getRowHeight={() => "auto"}
-            autoHeight
             rows={manual}
             columns={columns}
             columnHeaderHeight={40}
