@@ -182,6 +182,10 @@ const nextConfig = {
     },
   },
 
+  experimental: {
+    instrumentationHook: true,
+  },
+
   images: {
     remotePatterns: [
       {
