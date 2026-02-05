@@ -1,3 +1,4 @@
+import { SpanStatusCode, trace } from "@opentelemetry/api"
 import {
   getLensV2Contract,
   isSupportedChainId,
@@ -32,32 +33,105 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { market: string } },
 ) {
-  const market = params.market.toLowerCase()
-  const chainId = validateChainIdParam(request)
-  if (!chainId) {
-    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
-  }
-  const mla = await getSignedMasterLoanAgreement(market, chainId)
-  if (!mla) {
-    const refusal = await prisma.refusalToAssignMla.findFirst({
-      where: {
-        chainId,
-        market,
-      },
-    })
-    if (refusal) {
-      return NextResponse.json({ noMLA: true })
+  const tracer = trace.getTracer("wildcat-app-v2")
+  return tracer.startActiveSpan("api.mla.get", async (span) => {
+    const market = params.market.toLowerCase()
+    try {
+      const chainId = validateChainIdParam(request)
+      if (!chainId) {
+        span.setAttribute("mla.result", "invalid_chain_id")
+        return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+      }
+
+      span.setAttributes({
+        "market.address": market,
+        "market.chain_id": chainId,
+      })
+
+      const mla = await tracer.startActiveSpan(
+        "mla.db.getSigned",
+        async (child) => {
+          try {
+            return await getSignedMasterLoanAgreement(market, chainId)
+          } catch (error) {
+            child.recordException(error as Error)
+            child.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: error instanceof Error ? error.message : String(error),
+            })
+            throw error
+          } finally {
+            child.end()
+          }
+        },
+      )
+
+      if (!mla) {
+        const refusal = await tracer.startActiveSpan(
+          "mla.db.getRefusal",
+          async (child) => {
+            try {
+              return await prisma.refusalToAssignMla.findFirst({
+                where: {
+                  chainId,
+                  market,
+                },
+              })
+            } catch (error) {
+              child.recordException(error as Error)
+              child.setStatus({
+                code: SpanStatusCode.ERROR,
+                message: error instanceof Error ? error.message : String(error),
+              })
+              throw error
+            } finally {
+              child.end()
+            }
+          },
+        )
+        if (refusal) {
+          span.setAttributes({
+            "mla.result": "refused",
+            "mla.refused": true,
+          })
+          return NextResponse.json({ noMLA: true })
+        }
+        span.setAttribute("mla.result", "not_found")
+        return NextResponse.json({ error: "MLA not found" }, { status: 404 })
+      }
+
+      if (!mla.borrowerSignature) {
+        span.setAttributes({
+          "mla.result": "missing_signature",
+          "mla.has_signature": false,
+        })
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: "Borrower signature missing",
+        })
+        // This is a 500 error because the borrower signature should always be present.
+        return NextResponse.json(
+          { error: "Borrower signature not found" },
+          { status: 500 },
+        )
+      }
+
+      span.setAttributes({
+        "mla.result": "ok",
+        "mla.has_signature": true,
+      })
+      return NextResponse.json(mla as MasterLoanAgreementResponse)
+    } catch (error) {
+      span.recordException(error as Error)
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      })
+      throw error
+    } finally {
+      span.end()
     }
-    return NextResponse.json({ error: "MLA not found" }, { status: 404 })
-  }
-  if (!mla.borrowerSignature) {
-    // This is a 500 error because the borrower signature should always be present.
-    return NextResponse.json(
-      { error: "Borrower signature not found" },
-      { status: 500 },
-    )
-  }
-  return NextResponse.json(mla as MasterLoanAgreementResponse)
+  })
 }
 
 /// POST /api/mla/[market]

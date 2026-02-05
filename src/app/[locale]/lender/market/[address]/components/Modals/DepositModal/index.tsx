@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
+import React, { ChangeEvent, useEffect, useMemo, useRef, useState } from "react"
 
 import {
   Box,
@@ -8,6 +8,8 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
+import { SpanStatusCode, context, trace } from "@opentelemetry/api"
+import type { SpanContext } from "@opentelemetry/api"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
@@ -30,6 +32,7 @@ import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
+import { getServerTraceContext } from "@/lib/otel/pageTrace"
 import { COLORS } from "@/theme/colors"
 import { isUSDTLikeToken } from "@/utils/constants"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
@@ -55,6 +58,10 @@ export const DepositModal = ({
   const [depositError, setDepositError] = useState<string | undefined>()
 
   const { connected: isConnectedToSafe } = useSafeAppsSDK()
+  const tracer = trace.getTracer("wildcat-app-v2-web")
+  const flowSpanRef = useRef<ReturnType<typeof tracer.startSpan> | null>(null)
+  const flowContextRef = useRef<ReturnType<typeof context.active> | null>(null)
+  const serverSpanContextRef = useRef<SpanContext | null>(null)
 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
@@ -67,12 +74,13 @@ export const DepositModal = ({
     isSuccess: isDeposed,
     isError: isDepositError,
     reset: resetDeposit,
-  } = useDeposit(marketAccount, setTxHash)
+  } = useDeposit(marketAccount, setTxHash, () => flowContextRef.current)
 
   const { mutateAsync: approve, isPending: isApproving } = useApprove(
     market.underlyingToken,
     market,
     setTxHash,
+    () => flowContextRef.current,
   )
 
   const modal = useApprovalModal(
@@ -85,7 +93,7 @@ export const DepositModal = ({
   // user inputted amount
   const depositTokenAmount = useMemo(
     () => marketAccount.market.underlyingToken.parseAmount(amount || "0"),
-    [amount],
+    [amount, marketAccount.market.underlyingToken],
   )
   const minimumDeposit = market.hooksConfig?.minimumDeposit
 
@@ -115,41 +123,6 @@ export const DepositModal = ({
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
     setAmount(value)
-  }
-
-  const handleDeposit = () => {
-    setTxHash("")
-    deposit(depositTokenAmount)
-  }
-
-  const handleTryAgain = () => {
-    setTxHash("")
-    handleDeposit()
-  }
-
-  const handleApprove = () => {
-    setTxHash("")
-
-    if (!isAllowanceSufficient) {
-      if (
-        marketAccount.underlyingApproval.gt(0) &&
-        isUSDTLikeToken(market.underlyingToken.address)
-      ) {
-        approve(depositTokenAmount.token.getAmount(0)).then(() => {
-          approve(depositTokenAmount).then(() => {
-            if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
-              setAmount("")
-            }
-          })
-        })
-      } else {
-        approve(depositTokenAmount).then(() => {
-          if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
-            setAmount("")
-          }
-        })
-      }
-    }
   }
 
   const mustResetAllowance =
@@ -199,6 +172,120 @@ export const DepositModal = ({
     ? "Underlying token balance is zero"
     : "Market is at full capacity"
 
+  const ensureFlowSpan = () => {
+    if (!flowSpanRef.current) {
+      const serverSpanContext =
+        serverSpanContextRef.current ?? getServerTraceContext()
+      serverSpanContextRef.current = serverSpanContext
+
+      const span = tracer.startSpan(
+        "deposit.flow",
+        serverSpanContext
+          ? {
+              links: [
+                {
+                  context: serverSpanContext,
+                  attributes: { "link.type": "page.render" },
+                },
+              ],
+            }
+          : undefined,
+      )
+      span.setAttributes({
+        "market.address": market.address,
+        "market.chain_id": market.chainId,
+        "token.address": market.underlyingToken.address,
+        "token.symbol": market.underlyingToken.symbol,
+        "safe.connected": isConnectedToSafe,
+      })
+      if (serverSpanContext) {
+        span.setAttribute("page.trace_id", serverSpanContext.traceId)
+      }
+      if (typeof window !== "undefined") {
+        span.setAttribute("page.route", window.location.pathname)
+      }
+      flowSpanRef.current = span
+      flowContextRef.current = trace.setSpan(context.active(), span)
+    }
+    flowSpanRef.current.setAttribute(
+      "token.amount",
+      depositTokenAmount.raw.toString(),
+    )
+    return flowContextRef.current
+  }
+
+  const endFlowSpan = (outcome: "success" | "error" | "cancelled") => {
+    const span = flowSpanRef.current
+    if (!span) return
+    span.setAttribute("flow.outcome", outcome)
+    if (outcome === "success") {
+      span.setStatus({ code: SpanStatusCode.OK })
+    } else if (outcome === "error") {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: "deposit failed" })
+    } else {
+      span.setStatus({
+        code: SpanStatusCode.UNSET,
+        message: "deposit flow cancelled",
+      })
+    }
+    span.end()
+    flowSpanRef.current = null
+    flowContextRef.current = null
+  }
+
+  const handleDeposit = () => {
+    setTxHash("")
+    const flowContext = ensureFlowSpan()
+    if (flowContext) {
+      context.with(flowContext, () => deposit(depositTokenAmount))
+    } else {
+      deposit(depositTokenAmount)
+    }
+  }
+
+  const handleTryAgain = () => {
+    setTxHash("")
+    handleDeposit()
+  }
+
+  const handleApprove = () => {
+    setTxHash("")
+
+    if (!isAllowanceSufficient) {
+      const flowContext = ensureFlowSpan()
+      if (
+        marketAccount.underlyingApproval.gt(0) &&
+        isUSDTLikeToken(market.underlyingToken.address)
+      ) {
+        const runApprovals = () =>
+          approve(depositTokenAmount.token.getAmount(0)).then(() => {
+            approve(depositTokenAmount).then(() => {
+              if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
+                setAmount("")
+              }
+            })
+          })
+        if (flowContext) {
+          context.with(flowContext, runApprovals)
+        } else {
+          runApprovals()
+        }
+      } else {
+        const runApproval = () =>
+          approve(depositTokenAmount).then(() => {
+            if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
+              setAmount("")
+            }
+          })
+        if (flowContext) {
+          context.with(flowContext, runApproval)
+        } else {
+          runApproval()
+        }
+      }
+    }
+  }
+
   useEffect(() => {
     if (amount === "" || amount === "0" || depositStep === "Ready") {
       setDepositError(undefined)
@@ -236,9 +323,11 @@ export const DepositModal = ({
 
   useEffect(() => {
     if (isDepositError) {
+      endFlowSpan("error")
       setShowErrorPopup(true)
     }
     if (isDeposed) {
+      endFlowSpan("success")
       setShowSuccessPopup(true)
     }
   }, [isDepositError, isDeposed])
@@ -255,9 +344,15 @@ export const DepositModal = ({
     setShowErrorPopup(false)
     resetDeposit()
     modal.handleCloseModal()
+    endFlowSpan("cancelled")
     if (setIsMobileOpen) {
       setIsMobileOpen(false)
     }
+  }
+
+  const handleCloseDesktopModal = () => {
+    modal.handleCloseModal()
+    endFlowSpan("cancelled")
   }
 
   const progressAmount = () => {
@@ -530,6 +625,7 @@ export const DepositModal = ({
                 setShowErrorPopup(false)
                 resetDeposit()
                 modal.handleCloseModal()
+                endFlowSpan("error")
                 if (setIsMobileOpen) setIsMobileOpen(false)
               }}
               txHash={txHash}
@@ -541,6 +637,7 @@ export const DepositModal = ({
                 setShowSuccessPopup(false)
                 resetDeposit()
                 modal.handleCloseModal()
+                endFlowSpan("success")
                 if (setIsMobileOpen) setIsMobileOpen(false)
               }}
               txHash={txHash}
@@ -588,7 +685,7 @@ export const DepositModal = ({
 
         <Dialog
           open={modal.isModalOpen}
-          onClose={isDepositing ? undefined : modal.handleCloseModal}
+          onClose={isDepositing ? undefined : handleCloseDesktopModal}
           sx={{
             "& .MuiDialog-paper": {
               height: "404px",
@@ -612,7 +709,7 @@ export const DepositModal = ({
                     : modal.handleClickBack
                 }
                 crossOnClick={
-                  modal.hideCrossButton ? null : modal.handleCloseModal
+                  modal.hideCrossButton ? null : handleCloseDesktopModal
                 }
               />
 
@@ -785,12 +882,19 @@ export const DepositModal = ({
                 setShowErrorPopup(false)
                 resetDeposit()
                 modal.handleCloseModal()
+                endFlowSpan("error")
               }}
               txHash={txHash}
             />
           )}
           {showSuccessPopup && (
-            <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
+            <SuccessModal
+              onClose={() => {
+                modal.handleCloseModal()
+                endFlowSpan("success")
+              }}
+              txHash={txHash}
+            />
           )}
 
           {txHash !== "" && showForm && (

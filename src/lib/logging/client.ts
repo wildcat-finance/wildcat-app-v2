@@ -1,3 +1,4 @@
+import { context, trace } from "@opentelemetry/api"
 import pino from "pino"
 
 const level =
@@ -8,5 +9,14 @@ export const logger = pino({
   level,
   browser: {
     asObject: true,
+  },
+  mixin() {
+    const span = trace.getSpan(context.active())
+    const spanContext = span?.spanContext()
+    if (!spanContext) return {}
+    return {
+      trace_id: spanContext.traceId,
+      span_id: spanContext.spanId,
+    }
   },
 })
