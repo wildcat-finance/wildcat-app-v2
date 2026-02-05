@@ -3,6 +3,8 @@ import "./globals.css"
 import { ReactNode, Suspense } from "react"
 
 import { Box } from "@mui/material"
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { context, trace } from "@opentelemetry/api"
 import { dir } from "i18next"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
@@ -19,6 +21,7 @@ import initTranslations from "@/app/i18n"
 import Header from "@/components/Header"
 import { HelpModal } from "@/components/HelpModal"
 import HotjarConsent from "@/components/HotjarConsent"
+import OtelClient from "@/components/OtelClient"
 import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
@@ -38,6 +41,18 @@ const inter = Inter({
   variable: "--font-inter",
 })
 
+function getTraceparentMeta() {
+  const span = trace.getSpan(context.active())
+  const spanContext = span?.spanContext()
+  if (!spanContext) return {}
+  const traceFlags = spanContext.traceFlags ?? 0
+  const traceparent = `00-${spanContext.traceId}-${
+    spanContext.spanId
+  }-${traceFlags.toString(16).padStart(2, "0")}`
+  const tracestate = spanContext.traceState?.serialize()
+  return { traceparent, tracestate }
+}
+
 export const metadata: Metadata = {
   title: "Wildcat - Private Credit, On Your Terms",
 }
@@ -55,6 +70,7 @@ export default async function RootLayout({
 }) {
   const initialState = cookieToInitialState(config, headers().get("cookie"))
   const { resources } = await initTranslations(locale, i18nNamespaces)
+  const { traceparent, tracestate } = getTraceparentMeta()
 
   return (
     <html lang={locale} dir={dir(locale)}>
@@ -63,8 +79,11 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="//docs.wildcat.finance" />
         <link rel="dns-prefetch" href="//docs.google.com" />
         <link rel="preconnect" href="https://t.me" crossOrigin="anonymous" />
+        {traceparent ? <meta name="traceparent" content={traceparent} /> : null}
+        {tracestate ? <meta name="tracestate" content={tracestate} /> : null}
       </head>
       <body className={inter.className} style={{ height: "100dvh" }}>
+        <OtelClient />
         <Toaster position="bottom-center" />
         <WagmiQueryProviders initialState={initialState}>
           <SafeProvider>

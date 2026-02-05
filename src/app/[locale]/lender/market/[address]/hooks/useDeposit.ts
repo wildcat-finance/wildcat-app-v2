@@ -1,5 +1,6 @@
 import { Dispatch } from "react"
 
+import { SpanStatusCode, context, trace } from "@opentelemetry/api"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import {
   BaseTransaction,
@@ -17,11 +18,13 @@ import { isUSDTLikeToken } from "@/utils/constants"
 export const useDeposit = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
+  getParentContext?: () => ReturnType<typeof context.active> | null,
 ) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
   const { targetChainId } = useCurrentNetwork()
+  const tracer = trace.getTracer("wildcat-app-v2-web")
 
   const waitForTransaction = async (safeTxHash: string) => {
     if (!sdk) throw Error("No sdk found")
@@ -37,104 +40,175 @@ export const useDeposit = (
 
   return useMutation({
     mutationFn: async (tokenAmount: TokenAmount) => {
-      if (!marketAccount || !signer) throw Error()
-      if (marketAccount.market.chainId !== targetChainId) {
-        throw Error(
-          `Market chainId does not match target chainId:` +
-            ` Market ${marketAccount.market.chainId},` +
-            ` Target ${targetChainId}`,
-        )
-      }
+      const parentContext = getParentContext?.() ?? context.active()
+      return tracer.startActiveSpan(
+        "market.deposit",
+        {},
+        parentContext,
+        async (span) => {
+          try {
+            if (!marketAccount || !signer) throw Error()
+            if (marketAccount.market.chainId !== targetChainId) {
+              throw Error(
+                `Market chainId does not match target chainId:` +
+                  ` Market ${marketAccount.market.chainId},` +
+                  ` Target ${targetChainId}`,
+              )
+            }
 
-      const step = marketAccount.previewDeposit(tokenAmount)
+            span.setAttributes({
+              "market.address": marketAccount.market.address,
+              "market.chain_id": marketAccount.market.chainId,
+              "token.address": tokenAmount.token.address,
+              "token.symbol": tokenAmount.token.symbol,
+              "token.amount": tokenAmount.raw.toString(),
+              "safe.connected": safeConnected,
+            })
 
-      const gnosisTransactions: BaseTransaction[] = []
+            const step = marketAccount.previewDeposit(tokenAmount)
 
-      if (step.status !== "Ready") {
-        if (safeConnected && step.status === "InsufficientAllowance") {
-          if (
-            marketAccount.underlyingApproval.gt(0) &&
-            isUSDTLikeToken(marketAccount.market.underlyingToken.address)
-          ) {
-            gnosisTransactions.push(
-              await marketAccount.populateApproveMarket(
-                tokenAmount.token.getAmount(0),
-              ),
-            )
-          }
-          gnosisTransactions.push(
-            await marketAccount.populateApproveMarket(tokenAmount),
-          )
-        } else {
-          throw Error(
-            `Should not be able to reach useDeposit when status not ready and not connected to safe`,
-          )
-        }
-      }
+            const gnosisTransactions: BaseTransaction[] = []
 
-      const deposit = async () => {
-        const checkTransaction = async (
-          safeTxHash: string,
-        ): Promise<Web3TransactionReceiptObject> =>
-          new Promise((resolve) => {
-            const doCheckTransaction = async () => {
-              const transactionBySafeHash =
-                await sdk.txs.getBySafeTxHash(safeTxHash)
-              if (transactionBySafeHash?.txHash) {
-                setTxHash(transactionBySafeHash.txHash)
-                const receipt = await waitForTransaction(safeTxHash)
-                logger.info(
-                  { txHash: receipt.transactionHash, safeTxHash },
-                  "Got gnosis transaction receipt",
+            if (step.status !== "Ready") {
+              if (safeConnected && step.status === "InsufficientAllowance") {
+                if (
+                  marketAccount.underlyingApproval.gt(0) &&
+                  isUSDTLikeToken(marketAccount.market.underlyingToken.address)
+                ) {
+                  gnosisTransactions.push(
+                    await marketAccount.populateApproveMarket(
+                      tokenAmount.token.getAmount(0),
+                    ),
+                  )
+                }
+                gnosisTransactions.push(
+                  await marketAccount.populateApproveMarket(tokenAmount),
                 )
-                resolve(receipt)
               } else {
-                setTimeout(doCheckTransaction, 1000)
+                throw Error(
+                  `Should not be able to reach useDeposit when status not ready and not connected to safe`,
+                )
               }
             }
-            doCheckTransaction()
-          })
-        if (gnosisTransactions.length) {
-          gnosisTransactions.push({
-            to: marketAccount.market.address,
-            data: marketAccount.market.contract.interface.encodeFunctionData(
-              "deposit",
-              [tokenAmount.raw],
-            ),
-            value: "0",
-          })
-          logger.info(
-            { market: marketAccount.market.address },
-            "Sending gnosis transactions",
-          )
-          logger.debug(
-            { transactions: gnosisTransactions },
-            "Gnosis transactions payload",
-          )
-          const { safeTxHash } = await sdk.txs.send({
-            txs: gnosisTransactions,
-          })
-          logger.info({ safeTxHash }, "Got gnosis transaction")
-          const receipt = await checkTransaction(safeTxHash)
-          logger.info(
-            { txHash: receipt.transactionHash, safeTxHash },
-            "Got gnosis transaction receipt",
-          )
-          return receipt
-        }
 
-        const tx = await marketAccount.deposit(tokenAmount)
+            const depositContext = trace.setSpan(context.active(), span)
+            const deposit = async () => {
+              const checkTransaction = async (
+                safeTxHash: string,
+              ): Promise<Web3TransactionReceiptObject> =>
+                new Promise((resolve) => {
+                  const doCheckTransaction = async () => {
+                    const transactionBySafeHash =
+                      await sdk.txs.getBySafeTxHash(safeTxHash)
+                    if (transactionBySafeHash?.txHash) {
+                      setTxHash(transactionBySafeHash.txHash)
+                      const receipt = await waitForTransaction(safeTxHash)
+                      logger.info(
+                        { txHash: receipt.transactionHash, safeTxHash },
+                        "Got gnosis transaction receipt",
+                      )
+                      resolve(receipt)
+                    } else {
+                      setTimeout(doCheckTransaction, 1000)
+                    }
+                  }
+                  doCheckTransaction()
+                })
+              if (gnosisTransactions.length) {
+                return tracer.startActiveSpan(
+                  "market.deposit.safe",
+                  {},
+                  depositContext,
+                  async (safeSpan) => {
+                    try {
+                      gnosisTransactions.push({
+                        to: marketAccount.market.address,
+                        data: marketAccount.market.contract.interface.encodeFunctionData(
+                          "deposit",
+                          [tokenAmount.raw],
+                        ),
+                        value: "0",
+                      })
+                      logger.info(
+                        { market: marketAccount.market.address },
+                        "Sending gnosis transactions",
+                      )
+                      logger.debug(
+                        { transactions: gnosisTransactions },
+                        "Gnosis transactions payload",
+                      )
+                      const { safeTxHash } = await sdk.txs.send({
+                        txs: gnosisTransactions,
+                      })
+                      safeSpan.setAttribute("safe.tx_hash", safeTxHash)
+                      logger.info({ safeTxHash }, "Got gnosis transaction")
+                      const receipt = await checkTransaction(safeTxHash)
+                      logger.info(
+                        { txHash: receipt.transactionHash, safeTxHash },
+                        "Got gnosis transaction receipt",
+                      )
+                      return receipt
+                    } catch (error) {
+                      safeSpan.recordException(error as Error)
+                      safeSpan.setStatus({
+                        code: SpanStatusCode.ERROR,
+                        message:
+                          error instanceof Error
+                            ? error.message
+                            : String(error),
+                      })
+                      throw error
+                    } finally {
+                      safeSpan.end()
+                    }
+                  },
+                )
+              }
 
-        if (!safeConnected) setTxHash(tx.hash)
+              return tracer.startActiveSpan(
+                "market.deposit.send",
+                {},
+                depositContext,
+                async (sendSpan) => {
+                  try {
+                    const tx = await marketAccount.deposit(tokenAmount)
+                    sendSpan.setAttribute("tx.hash", tx.hash)
 
-        if (safeConnected) {
-          return checkTransaction(tx.hash)
-        }
+                    if (!safeConnected) setTxHash(tx.hash)
 
-        return tx.wait()
-      }
+                    if (safeConnected) {
+                      return checkTransaction(tx.hash)
+                    }
 
-      await deposit()
+                    return tx.wait()
+                  } catch (error) {
+                    sendSpan.recordException(error as Error)
+                    sendSpan.setStatus({
+                      code: SpanStatusCode.ERROR,
+                      message:
+                        error instanceof Error ? error.message : String(error),
+                    })
+                    throw error
+                  } finally {
+                    sendSpan.end()
+                  }
+                },
+              )
+            }
+
+            await deposit()
+          } catch (error) {
+            span.recordException(error as Error)
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: error instanceof Error ? error.message : String(error),
+            })
+            throw error
+          } finally {
+            span.end()
+          }
+        },
+      )
     },
     onSuccess() {
       client.invalidateQueries({
