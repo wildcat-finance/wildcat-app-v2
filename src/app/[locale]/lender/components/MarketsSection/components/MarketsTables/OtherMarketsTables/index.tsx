@@ -449,6 +449,7 @@ export const OtherMarketsTables = ({
             </Box>
           ) : (
             <DataGrid
+              disableVirtualization
               sx={DataGridSx}
               getRowHeight={() => "auto"}
               rows={selfOnboard}
@@ -486,6 +487,7 @@ export const OtherMarketsTables = ({
             </Box>
           ) : (
             <DataGrid
+              disableVirtualization
               sx={DataGridSx}
               getRowHeight={() => "auto"}
               rows={manual}
