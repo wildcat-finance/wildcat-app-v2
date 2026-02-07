@@ -434,6 +434,7 @@ export const LenderActiveMarketsTables = ({
             </Box>
           ) : (
             <DataGrid
+              disableVirtualization
               sx={DataGridSx}
               getRowHeight={() => "auto"}
               rows={depositedMarkets}
@@ -471,6 +472,7 @@ export const LenderActiveMarketsTables = ({
             </Box>
           ) : (
             <DataGrid
+              disableVirtualization
               sx={DataGridSx}
               getRowHeight={() => "auto"}
               rows={nonDepositedMarkets}
