@@ -28,6 +28,7 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import Arrow from "@/assets/icons/sharpArrow_icon.svg"
 import TelegramFlyIcon from "@/assets/icons/telegramFly_icon.svg"
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
+import { HeaderNetworkButton } from "@/components/Header/HeaderNetworkButton"
 import bannerBg from "@/assets/pictures/telegram_banner_bg.svg?url"
 import {
   HelpMenuItemsList,
@@ -93,6 +94,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   return (
     <>
       <Box sx={{ display: "flex", alignItems: "center", minWidth: 0 }}>
+        <HeaderNetworkButton />
         {isConnected && address && !open && (
           <Box
             onClick={handleToggleConnect}
