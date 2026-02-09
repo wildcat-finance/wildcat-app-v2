@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.11.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.11.0...v2.11.1) (2026-02-09)
+
+
+### Bug Fixes
+
+* **market-list:** accordion covering market lists ([5a6becf](https://github.com/wildcat-finance/wildcat-app-v2/commit/5a6becf6546f140061acc28ac5ae4418df2f1f0a))
+* **markets:** sticky header occluding long market lists ([#229](https://github.com/wildcat-finance/wildcat-app-v2/issues/229)) ([6742a59](https://github.com/wildcat-finance/wildcat-app-v2/commit/6742a59092b58d3418f0b8c60f6dcc85aac3215c))
+
 ## [2.11.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.10.0...v2.11.0) (2026-02-04)
 
 
