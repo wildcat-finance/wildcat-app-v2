@@ -53,15 +53,16 @@ export const WrapperHeader = ({
       <Box
         sx={{
           display: "flex",
-          flexDirection: isMobile ? "column" : "row",
-          alignItems: isMobileOpenState ? "center" : "flex-start",
-          gap: isMobile ? "6px" : "11px",
-          marginBottom: "12px",
+          flexDirection: "row",
+          // alignItems: isMobileOpenState ? "center" : "flex-start",
+          justifyContent: isMobile ? "center" : "flex-start",
+          gap: isMobile ? "7px" : "11px",
+          marginBottom: isMobile ? "20px" : "12px",
           marginTop: isMobileOpenState && isMobile ? "26px" : "0px",
         }}
       >
         <Typography variant={isMobile ? "mobH3" : "title3"}>
-          {wrapperName || "Wrapped Token"}
+          {isMobile ? "Wrapper" : wrapperName}
         </Typography>
 
         <Box

@@ -628,8 +628,6 @@ export const WrapperSection = ({
     dispatch(setIsMobileOpenedState(true))
   }
 
-  const { getTxUrl } = useBlockExplorer()
-
   return (
     <Box
       marginTop="4px"
@@ -907,14 +905,25 @@ export const WrapperSection = ({
       )}
 
       {!isMobileOpenState && isMobile && (
-        <Button
-          variant="contained"
-          size="large"
-          fullWidth
-          onClick={handleOpenSection}
-        >
-          Wrap More Tokens
-        </Button>
+        <Box sx={{ display: "flex", gap: "8px" }}>
+          <Button
+            variant="contained"
+            size="large"
+            fullWidth
+            onClick={handleOpenSection}
+          >
+            Wrap
+          </Button>
+
+          <Button
+            variant="contained"
+            size="large"
+            fullWidth
+            onClick={handleOpenSection}
+          >
+            Unwrap
+          </Button>
+        </Box>
       )}
     </Box>
   )
