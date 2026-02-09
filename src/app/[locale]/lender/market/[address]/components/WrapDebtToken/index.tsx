@@ -15,6 +15,7 @@ import { constants } from "ethers"
 import { WrapperSection } from "@/app/[locale]/lender/market/[address]/components/WrapDebtToken/components/WrapperSection"
 import { toastRequest } from "@/components/Toasts"
 import { NoWrapperState } from "@/components/WrapDebtToken/NoWrapperState"
+import { WrapperSkeleton } from "@/components/WrapDebtToken/WrapperSkeleton"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
@@ -125,6 +126,8 @@ export const WrapDebtToken = ({
     Signer.isSigner(signer) &&
     !isDifferentChain
 
+  // return <WrapperSkeleton />
+
   return (
     <Box>
       {!isAuthorizedLender && (
@@ -157,11 +160,7 @@ export const WrapDebtToken = ({
             />
           )}
 
-          {hasFactory && isWrapperLookupLoading && (
-            <Typography variant="text3" color={COLORS.manate}>
-              Checking wrapper status...
-            </Typography>
-          )}
+          {hasFactory && isWrapperLookupLoading && <WrapperSkeleton />}
 
           {hasWrapper && wrapper && !isWrapperLoading && !isWrapperError && (
             <WrapperSection
@@ -173,9 +172,7 @@ export const WrapDebtToken = ({
           )}
 
           {hasWrapper && (isWrapperLoading || isWrapperError) && (
-            <Typography variant="text3" color={COLORS.manate}>
-              Loading wrapper details...
-            </Typography>
+            <WrapperSkeleton />
           )}
         </>
       )}

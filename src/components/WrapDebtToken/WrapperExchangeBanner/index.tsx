@@ -38,7 +38,7 @@ export const WrapperExchangeBanner = ({
         justifyContent: "space-between",
         alignItems: "center",
         padding: "16px",
-        background: isMobile ? COLORS.whiteSmoke : COLORS.hintOfRed,
+        background: isMobileOpenState ? COLORS.hintOfRed : "transparent",
         borderRadius: "12px",
         // eslint-disable-next-line no-nested-ternary
         marginBottom: isMobile ? (isMobileOpenState ? "20px" : "12px") : "24px",

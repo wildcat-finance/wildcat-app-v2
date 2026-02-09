@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useEffect } from "react"
 
 import { Box, Typography } from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
@@ -20,6 +21,8 @@ import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useTokenWrapper } from "@/hooks/wrapper/useTokenWrapper"
 import { useWrapperForMarket } from "@/hooks/wrapper/useWrapperForMarket"
+import { useAppDispatch } from "@/store/hooks"
+import { setIsMobileOpenedState } from "@/store/slices/wrapDebtTokenFlowSlice/wrapDebtTokenFlowSlice"
 import { COLORS } from "@/theme/colors"
 
 export type WrapDebtTokenProps = {
@@ -31,6 +34,11 @@ export const WrapDebtToken = ({ market }: WrapDebtTokenProps) => {
   const { signer } = useEthersProvider({ chainId: market?.chainId })
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
   const client = useQueryClient()
+  const dispatch = useAppDispatch()
+
+  useEffect(() => {
+    dispatch(setIsMobileOpenedState(true))
+  }, [])
 
   const { isWrongNetwork, isSelectionMismatch } = useNetworkGate({
     desiredChainId: market?.chainId,
