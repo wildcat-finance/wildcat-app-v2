@@ -12,6 +12,7 @@ import {
   BorrowerProfile,
   BorrowerProfileForAdminView,
 } from "@/app/api/profiles/interface"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { LinkGroup } from "@/components/LinkComponent"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { COLORS } from "@/theme/colors"
@@ -44,6 +45,7 @@ export const BorrowersTable = () => {
       minWidth: 134,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Invited At" />,
       renderCell: (params) => (
         <span
           style={{
@@ -64,6 +66,7 @@ export const BorrowersTable = () => {
       minWidth: 134,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Borrower Name" />,
       renderCell: (params) => (
         <span
           style={{
@@ -84,6 +87,7 @@ export const BorrowersTable = () => {
       // minWidth: 134,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Borrower Alias" />,
       renderCell: (params) => (
         <span
           style={{
@@ -104,6 +108,7 @@ export const BorrowersTable = () => {
       minWidth: 176,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Wallet Address" />,
       renderCell: ({ value }) => (
         <Box sx={MarketWithdrawalRequetstCell}>
           <Typography sx={{ minWidth: "80px" }} variant="text3">
@@ -122,6 +127,7 @@ export const BorrowersTable = () => {
       minWidth: 134,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Registered On Chain" />,
       renderCell: (params) => <span>{params.value ? "Yes" : "No"}</span>,
     },
     {
@@ -131,6 +137,7 @@ export const BorrowersTable = () => {
       minWidth: 134,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Signed At" />,
       renderCell: (params) => (
         <span>
           {params.value
@@ -146,6 +153,7 @@ export const BorrowersTable = () => {
       minWidth: 100,
       align: "right",
       headerAlign: "right",
+      renderHeader: () => <ColumnHeaderTitle title="" />,
       renderCell: (params) => {
         if (!params.row.timeSigned) {
           return (

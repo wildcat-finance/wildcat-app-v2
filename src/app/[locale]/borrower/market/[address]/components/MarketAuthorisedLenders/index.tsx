@@ -27,6 +27,7 @@ import {
 import Copy from "@/assets/icons/copy_icon.svg"
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { Accordion } from "@/components/Accordion"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
@@ -185,6 +186,11 @@ export const MarketAuthorisedLenders = ({
       minWidth: 146,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("borrowerMarketDetails.authorisedLenders.tableHeaders.name")}
+        />
+      ),
       renderCell: (params) => <LenderName address={params.value.address} />,
       flex: 1,
     },
@@ -197,6 +203,13 @@ export const MarketAuthorisedLenders = ({
       minWidth: 146,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t(
+            "borrowerMarketDetails.authorisedLenders.tableHeaders.walletAddress",
+          )}
+        />
+      ),
       renderCell: ({ value }) => (
         <Box sx={MarketWithdrawalRequetstCell}>
           <Typography sx={{ minWidth: "80px" }} variant="text3">
@@ -235,12 +248,11 @@ export const MarketAuthorisedLenders = ({
         "borrowerMarketDetails.authorisedLenders.tableHeaders.balance",
       ),
       renderHeader: () => (
-        <Typography variant="text4" color={COLORS.santasGrey}>
-          {t("borrowerMarketDetails.authorisedLenders.tableHeaders.balance")},{" "}
-          <span style={{ color: COLORS.ultramarineBlue }}>
-            {market.underlyingToken.symbol}
-          </span>
-        </Typography>
+        <ColumnHeaderTitle
+          title={`${t(
+            "borrowerMarketDetails.authorisedLenders.tableHeaders.balance",
+          )}, ${market.underlyingToken.symbol}`}
+        />
       ),
       minWidth: 142,
       headerAlign: "left",
@@ -270,6 +282,13 @@ export const MarketAuthorisedLenders = ({
       headerAlign: "left",
       align: "left",
       flex: 1,
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t(
+            "borrowerMarketDetails.authorisedLenders.tableHeaders.accessLevel",
+          )}
+        />
+      ),
       renderCell: ({ value }) => (
         <Box
           sx={{
@@ -360,6 +379,13 @@ export const MarketAuthorisedLenders = ({
       headerAlign: "left",
       align: "left",
       flex: 0.5,
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t(
+            "borrowerMarketDetails.authorisedLenders.tableHeaders.accessExpiry",
+          )}
+        />
+      ),
     },
     {
       sortable: false,
@@ -371,6 +397,13 @@ export const MarketAuthorisedLenders = ({
       headerAlign: hasMLA ? "left" : "right",
       align: hasMLA ? "left" : "right",
       flex: 1,
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t(
+            "borrowerMarketDetails.authorisedLenders.tableHeaders.dateAdded",
+          )}
+        />
+      ),
     },
   ]
 
@@ -385,6 +418,13 @@ export const MarketAuthorisedLenders = ({
       headerAlign: "left",
       align: "left",
       flex: 1.5,
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t(
+            "borrowerMarketDetails.authorisedLenders.tableHeaders.signedMLA",
+          )}
+        />
+      ),
     },
     {
       sortable: false,
@@ -396,6 +436,13 @@ export const MarketAuthorisedLenders = ({
       headerAlign: "left",
       align: "left",
       flex: 1.5,
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t(
+            "borrowerMarketDetails.authorisedLenders.tableHeaders.signDate",
+          )}
+        />
+      ),
     },
     {
       sortable: false,
@@ -405,6 +452,11 @@ export const MarketAuthorisedLenders = ({
       flex: 2,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("borrowerMarketDetails.authorisedLenders.tableHeaders.MLA")}
+        />
+      ),
       renderCell: ({ value }) =>
         value ? (
           <Box sx={MarketLendersMLA}>

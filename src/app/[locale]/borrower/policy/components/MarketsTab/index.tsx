@@ -8,6 +8,7 @@ import Link from "next/link"
 
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { capacityComparator, statusComparator } from "@/utils/comparators"
@@ -47,6 +48,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
+      renderHeader: () => <ColumnHeaderTitle title="Status" />,
       renderCell: (params) => (
         <Link
           href={buildMarketHref(
@@ -73,6 +75,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       headerAlign: "left",
       align: "left",
       sortComparator: capacityComparator,
+      renderHeader: () => <ColumnHeaderTitle title="Term" />,
       renderCell: (params) => (
         <Link
           href={buildMarketHref(
@@ -98,6 +101,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       minWidth: 208,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Market Name" />,
       renderCell: (params) => (
         <Link
           href={buildMarketHref(
@@ -121,6 +125,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       headerAlign: "right",
       align: "right",
       flex: 1,
+      renderHeader: () => <ColumnHeaderTitle title="Asset" />,
       renderCell: (params) => (
         <Link
           href={buildMarketHref(
@@ -141,6 +146,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       headerAlign: "right",
       align: "right",
       flex: 1.5,
+      renderHeader: () => <ColumnHeaderTitle title="Total Debt" />,
       renderCell: (params) => (
         <Link
           href={buildMarketHref(
@@ -166,6 +172,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => <ColumnHeaderTitle title="APR" />,
       renderCell: (params) => (
         <Link
           href={buildMarketHref(

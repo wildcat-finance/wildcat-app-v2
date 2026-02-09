@@ -13,6 +13,7 @@ import Link from "next/link"
 
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import { MarketWithdrawalRequetstCell } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/style"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { LinkGroup } from "@/components/LinkComponent"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
@@ -59,6 +60,7 @@ export const LendersTable = ({
       minWidth: 160,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Name" />,
       renderCell: (params) => <LenderName address={params.row.address} />,
       flex: 1,
     },
@@ -69,6 +71,7 @@ export const LendersTable = ({
       minWidth: 176,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Wallet Address" />,
       renderCell: ({ value }) => (
         <Box sx={MarketWithdrawalRequetstCell}>
           <Typography sx={{ minWidth: "80px" }} variant="text3">
@@ -88,6 +91,7 @@ export const LendersTable = ({
       headerAlign: "left",
       align: "left",
       flex: 4,
+      renderHeader: () => <ColumnHeaderTitle title="Assigned to Markets" />,
       renderCell: (params) =>
         !params.value.length ? (
           <Box
