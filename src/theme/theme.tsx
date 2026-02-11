@@ -354,11 +354,13 @@ export const theme = createTheme({
           borderRadius: 10,
           padding: 0,
           display: "flex",
+
           "&:active": {
             "& .MuiSwitch-thumb": {
               width: 15,
             },
           },
+
           "& .MuiSwitch-switchBase": {
             padding: 2,
             "&.Mui-checked": {
@@ -370,6 +372,7 @@ export const theme = createTheme({
               },
             },
           },
+
           "& .MuiSwitch-thumb": {
             width: 16,
             height: 16,
@@ -378,12 +381,14 @@ export const theme = createTheme({
               duration: 200,
             }),
           },
+
           "& .MuiSwitch-track": {
             borderRadius: 16 / 2,
             opacity: 1,
             backgroundColor: COLORS.whiteLilac,
             boxSizing: "border-box",
           },
+
           "& .MuiButtonBase-root.MuiSwitch-switchBase:hover": {
             backgroundColor: "transparent",
           },

@@ -1,6 +1,15 @@
-import React from "react"
+import React, { ChangeEvent } from "react"
 
-import { Box, Button, SvgIcon, Tabs, Tab, Typography } from "@mui/material"
+import {
+  Box,
+  Button,
+  SvgIcon,
+  Tabs,
+  Tab,
+  Typography,
+  Switch,
+  useTheme,
+} from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { BaseTransaction } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -14,10 +23,7 @@ import { BigNumber } from "ethers"
 
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import Check from "@/assets/icons/check_icon.svg"
-import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import Question from "@/assets/icons/circledQuestion_icon.svg"
-import ConfettiPattern from "@/assets/icons/confetti_pattern.svg"
-import { LinkGroup } from "@/components/LinkComponent"
 import { MiniLoader } from "@/components/Loader"
 import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
 import { NumberTextField } from "@/components/NumberTextfield"
@@ -26,7 +32,6 @@ import { toastRequest } from "@/components/Toasts"
 import { TooltipButton } from "@/components/TooltipButton"
 import { WrapperSuccessBanner } from "@/components/WrapDebtToken/mobile/WrapperSuccessBanner"
 import { QueryKeys } from "@/config/query-keys"
-import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -100,6 +105,7 @@ export const WrapperSection = ({
   isDifferentChain,
   isAuthorizedLender,
 }: WrapperSectionProps) => {
+  const theme = useTheme()
   const client = useQueryClient()
   const { targetChainId } = useCurrentNetwork()
   const { signer, address } = useEthersProvider({
@@ -377,11 +383,10 @@ export const WrapperSection = ({
   }
 
   const handleUnitChange = (
-    event: React.SyntheticEvent,
-    newUnit: AmountUnit,
+    event: ChangeEvent<HTMLInputElement>,
+    checked: boolean,
   ) => {
-    if (!newUnit) return
-    setUnit(newUnit)
+    setUnit(checked ? AmountUnit.SHARES : AmountUnit.ASSETS)
     setAmount("")
     setShowError(false)
     setShowSuccess(false)
@@ -673,7 +678,7 @@ export const WrapperSection = ({
               width: "100%",
               height: "28px",
               minHeight: "28px",
-              marginBottom: "16px",
+              marginBottom: isMobile ? "20px" : "24px",
               paddingX: isMobile ? "16px" : 0,
             }}
           >
@@ -684,24 +689,6 @@ export const WrapperSection = ({
               sx={TabStyle}
             />
           </Tabs>
-
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-end",
-              marginBottom: "24px",
-              paddingX: isMobile ? "16px" : 0,
-            }}
-          >
-            <Tabs
-              value={unit}
-              onChange={handleUnitChange}
-              sx={{ height: "28px", minHeight: "28px" }}
-            >
-              <Tab value={AmountUnit.ASSETS} label="Assets" sx={UnitTabStyle} />
-              <Tab value={AmountUnit.SHARES} label="Shares" sx={UnitTabStyle} />
-            </Tabs>
-          </Box>
 
           {!showSuccess && (
             <Box
@@ -744,6 +731,57 @@ export const WrapperSection = ({
                     <TextfieldButton buttonText="Max" onClick={setMaxAmount} />
                   }
                 />
+
+                <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <Typography
+                    variant={isMobile ? "mobText4" : "text4"}
+                    color={
+                      unit === AmountUnit.SHARES
+                        ? COLORS.blackRock
+                        : COLORS.manate
+                    }
+                  >
+                    Show in Shares
+                  </Typography>
+
+                  <Switch
+                    sx={{
+                      width: "28.8px",
+                      height: "16px",
+
+                      "&:active": {
+                        "& .MuiSwitch-thumb": {
+                          width: 12.8,
+                        },
+                      },
+
+                      "& .MuiSwitch-switchBase": {
+                        padding: "1.5px",
+
+                        "&.Mui-checked": {
+                          transform: "translateX(12.8px)",
+                          color: COLORS.white,
+
+                          "& + .MuiSwitch-track": {
+                            opacity: 1,
+                            backgroundColor: COLORS.blueRibbon,
+                          },
+                        },
+                      },
+
+                      "& .MuiSwitch-thumb": {
+                        width: "12.8px",
+                        height: "12.8px",
+                        borderRadius: 8,
+                        transition: theme.transitions.create(["width"], {
+                          duration: 200,
+                        }),
+                      },
+                    }}
+                    checked={unit === AmountUnit.SHARES}
+                    onChange={(e, checked) => handleUnitChange(e, checked)}
+                  />
+                </Box>
               </Box>
 
               <Box
@@ -760,13 +798,14 @@ export const WrapperSection = ({
 
                 <Box
                   sx={{
+                    height: "44px",
                     width: "100%",
                     padding: "10px 16px",
                     display: "flex",
                     justifyContent: "flex-start",
                     alignItems: "center",
-                    borderRadius: "10px",
-                    border: `1px solid ${COLORS.iron}`,
+                    borderRadius: "12px",
+                    border: `1px solid ${COLORS.whiteLilac}`,
                   }}
                 >
                   <Typography variant={isMobile ? "mobText3" : "text3"}>
