@@ -17,6 +17,62 @@ export type WrapperExchangeBannerProps = {
   shareSymbol?: string
 }
 
+const BannerItem = ({
+  isMobile,
+  title,
+  tooltip,
+  value,
+  symbol,
+  align,
+}: {
+  isMobile: boolean
+  title: string
+  tooltip: string
+  value: string
+  symbol: string
+  align: "start" | "end"
+}) => (
+  <Box
+    sx={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: `flex-${align}`,
+    }}
+  >
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: `flex-${align}`,
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        {align === "end" && (
+          <TooltipButton value={tooltip} color={COLORS.manate} />
+        )}
+        <Typography
+          variant={isMobile ? "mobText4" : "text4"}
+          color={COLORS.manate}
+        >
+          {title}
+        </Typography>
+        {align === "start" && (
+          <TooltipButton value={tooltip} color={COLORS.manate} />
+        )}
+      </Box>
+
+      <Typography
+        variant={isMobile ? "mobText4" : "text4"}
+        color={COLORS.manate}
+      >
+        ({symbol || ""})
+      </Typography>
+    </Box>
+
+    <Typography variant={isMobile ? "mobText1" : "title2"}>{value}</Typography>
+  </Box>
+)
+
 export const WrapperExchangeBanner = ({
   marketBalance,
   shareBalance,
@@ -45,40 +101,49 @@ export const WrapperExchangeBanner = ({
         marginX: isMobile && isMobileOpenState ? "16px" : 0,
       }}
     >
-      <Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <Typography
-            variant={isMobile ? "mobText3" : "text3"}
-            color={COLORS.manate}
-          >
-            Market tokens
-          </Typography>
-          <TooltipButton
-            value="Balance of market (debt) tokens in your wallet."
-            color={COLORS.manate}
-          />
-        </Box>
+      {/* <Box> */}
+      {/*  <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}> */}
+      {/*    <Typography */}
+      {/*      variant={isMobile ? "mobText3" : "text3"} */}
+      {/*      color={COLORS.manate} */}
+      {/*    > */}
+      {/*      Market tokens */}
+      {/*    </Typography> */}
+      {/*    <TooltipButton */}
+      {/*      value="Balance of market (debt) tokens in your wallet." */}
+      {/*      color={COLORS.manate} */}
+      {/*    /> */}
+      {/*  </Box> */}
 
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "start-end",
-            gap: "3px",
-          }}
-        >
-          <Typography variant={isMobile ? "mobText1" : "title2"}>
-            {marketValue}
-          </Typography>
-          <Typography
-            variant={isMobile ? "mobText4" : "text4"}
-            color={COLORS.manate}
-            sx={{ marginTop: "4px" }}
-          >
-            {marketSymbol || ""}
-          </Typography>
-        </Box>
-      </Box>
+      {/*  <Box */}
+      {/*    sx={{ */}
+      {/*      display: "flex", */}
+      {/*      alignItems: "flex-start", */}
+      {/*      justifyContent: "start-end", */}
+      {/*      gap: "3px", */}
+      {/*    }} */}
+      {/*  > */}
+      {/*    <Typography variant={isMobile ? "mobText1" : "title2"}> */}
+      {/*      {marketValue} */}
+      {/*    </Typography> */}
+      {/*    <Typography */}
+      {/*      variant={isMobile ? "mobText4" : "text4"} */}
+      {/*      color={COLORS.manate} */}
+      {/*      sx={{ marginTop: "4px" }} */}
+      {/*    > */}
+      {/*      {marketSymbol || ""} */}
+      {/*    </Typography> */}
+      {/*  </Box> */}
+      {/* </Box> */}
+
+      <BannerItem
+        title="Market tokens"
+        tooltip="Balance of market (debt) tokens in your wallet."
+        value={marketValue}
+        symbol={marketSymbol || ""}
+        align="start"
+        isMobile={isMobile}
+      />
 
       <SvgIcon
         sx={{ fontSize: "20px", "& path": { fill: COLORS.matteSilver } }}
@@ -86,40 +151,54 @@ export const WrapperExchangeBanner = ({
         <Change />
       </SvgIcon>
 
-      <Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <Typography
-            variant={isMobile ? "mobText3" : "text3"}
-            color={COLORS.manate}
-          >
-            Wrapped tokens
-          </Typography>
-          <TooltipButton
-            value="Balance of wrapped (ERC-4626 share) tokens in your wallet."
-            color={COLORS.manate}
-          />
-        </Box>
+      <BannerItem
+        title="Wrapped tokens"
+        tooltip="Balance of wrapped (ERC-4626 share) tokens in your wallet."
+        value={shareValue}
+        symbol={shareSymbol || ""}
+        align="end"
+        isMobile={isMobile}
+      />
 
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "flex-end",
-            gap: "3px",
-          }}
-        >
-          <Typography variant={isMobile ? "mobText1" : "title2"}>
-            {shareValue}
-          </Typography>
-          <Typography
-            variant={isMobile ? "mobText4" : "text4"}
-            color={COLORS.manate}
-            sx={{ marginTop: "4px" }}
-          >
-            {shareSymbol || ""}
-          </Typography>
-        </Box>
-      </Box>
+      {/* <Box */}
+      {/*  sx={{ */}
+      {/*    display: "flex", */}
+      {/*    flexDirection: "column", */}
+      {/*    alignItems: "flex-end", */}
+      {/*  }} */}
+      {/* > */}
+      {/*  <Box */}
+      {/*    sx={{ */}
+      {/*      display: "flex", */}
+      {/*      flexDirection: "column", */}
+      {/*      alignItems: "flex-end", */}
+      {/*    }} */}
+      {/*  > */}
+      {/*    <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}> */}
+      {/*      <TooltipButton */}
+      {/*        value="Balance of wrapped (ERC-4626 share) tokens in your wallet." */}
+      {/*        color={COLORS.manate} */}
+      {/*      /> */}
+      {/*      <Typography */}
+      {/*        variant={isMobile ? "mobText4" : "text4"} */}
+      {/*        color={COLORS.manate} */}
+      {/*      > */}
+      {/*        Wrapped tokens */}
+      {/*      </Typography> */}
+      {/*    </Box> */}
+
+      {/*    <Typography */}
+      {/*      variant={isMobile ? "mobText4" : "text4"} */}
+      {/*      color={COLORS.manate} */}
+      {/*    > */}
+      {/*      ({shareSymbol || ""}) */}
+      {/*    </Typography> */}
+      {/*  </Box> */}
+
+      {/*  <Typography variant={isMobile ? "mobText1" : "title2"}> */}
+      {/*    {shareValue} */}
+      {/*  </Typography> */}
+      {/* </Box> */}
     </Box>
   )
 }
