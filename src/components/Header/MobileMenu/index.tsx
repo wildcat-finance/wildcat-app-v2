@@ -24,6 +24,7 @@ import Avatarmob from "@/assets/icons/avatarmob_icon.png"
 import Menu from "@/assets/icons/burgerMenu_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
+import { HeaderNetworkButton } from "@/components/Header/HeaderNetworkButton"
 import { LinkGroup } from "@/components/LinkComponent"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { MobileSelectNetwork } from "@/components/MobileSelectNetwork"
@@ -80,6 +81,8 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   return (
     <>
       <Box sx={{ display: "flex", alignItems: "center" }}>
+        <HeaderNetworkButton />
+
         {isConnected && address && !open && (
           <Box
             onClick={handleToggleConnect}
@@ -235,32 +238,6 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
           </Link>
         </Box>
 
-        <Box sx={{ padding: "0 6px" }}>
-          <Button
-            size="large"
-            fullWidth
-            sx={{
-              borderRadius: "10px",
-              marginTop: "6px",
-              backgroundColor: COLORS.whiteSmoke,
-              color: COLORS.bunker,
-              gap: "4px",
-              "&:hover": {
-                backgroundColor: COLORS.blueRibbon,
-                color: COLORS.white,
-              },
-            }}
-            onClick={handleToggleSelectNetwork}
-          >
-            <NetworkIcon chainId={selectedNetwork.chainId} />
-            {selectedNetwork.name}
-
-            {selectedNetwork.isTestnet &&
-              !selectedNetwork.name.toLowerCase().includes("testnet") &&
-              "(Testnet)"}
-          </Button>
-        </Box>
-
         {isConnected ? (
           <>
             <Button
@@ -305,11 +282,6 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
           </Button>
         )}
       </Dialog>
-
-      <MobileSelectNetwork
-        open={openSelectNetwork}
-        handleClose={handleToggleSelectNetwork}
-      />
 
       <MobileConnectWallet
         open={openConnect}

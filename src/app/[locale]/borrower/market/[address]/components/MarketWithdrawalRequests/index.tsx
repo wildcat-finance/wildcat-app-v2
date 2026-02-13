@@ -11,6 +11,7 @@ import { OutstandingTable } from "@/app/[locale]/borrower/market/[address]/compo
 import { RepayModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/RepayModal"
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import LinkIcon from "@/assets/icons/link_icon.svg"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { LinkGroup } from "@/components/LinkComponent"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
@@ -69,6 +70,7 @@ export const MarketWithdrawalRequests = ({
       minWidth: 176,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Lender" />,
       renderCell: ({ value }) => (
         <Box sx={MarketWithdrawalRequetstCell}>
           <Typography variant="text3">
@@ -95,6 +97,7 @@ export const MarketWithdrawalRequests = ({
       minWidth: 216,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Date Submitted" />,
     },
     {
       sortable: false,
@@ -103,6 +106,7 @@ export const MarketWithdrawalRequests = ({
       minWidth: 216,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Transaction ID" />,
       renderCell: ({ value }) => (
         <Box sx={MarketWithdrawalRequetstCell}>
           <Typography variant="text3">{trimAddress(value)}</Typography>
@@ -119,6 +123,7 @@ export const MarketWithdrawalRequests = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => <ColumnHeaderTitle title="Amount" />,
     },
   ]
 

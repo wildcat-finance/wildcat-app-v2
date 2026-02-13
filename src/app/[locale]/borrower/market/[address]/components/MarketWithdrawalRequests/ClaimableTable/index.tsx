@@ -12,6 +12,7 @@ import Link from "next/link"
 
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { LinkGroup } from "@/components/LinkComponent"
 import { WithdrawalsMobileTableItem } from "@/components/Mobile/WithdrawalsMobileTableItem"
@@ -63,6 +64,7 @@ export const ClaimableTable = ({
         minWidth: 176,
         headerAlign: "left",
         align: "left",
+        renderHeader: () => <ColumnHeaderTitle title="Lender" />,
         renderCell: ({ value }) => (
           <Box
             sx={{
@@ -99,6 +101,7 @@ export const ClaimableTable = ({
         minWidth: 216,
         headerAlign: "left",
         align: "left",
+        renderHeader: () => <ColumnHeaderTitle title="Date Submitted" />,
         renderCell: ({ value, row }) => (
           <Box
             sx={{
@@ -127,6 +130,7 @@ export const ClaimableTable = ({
         minWidth: 216,
         headerAlign: "left",
         align: "left",
+        renderHeader: () => <ColumnHeaderTitle title="Transaction ID" />,
         renderCell: ({ value }) => (
           <Box
             sx={{
@@ -155,6 +159,7 @@ export const ClaimableTable = ({
         flex: 1,
         headerAlign: "right",
         align: "right",
+        renderHeader: () => <ColumnHeaderTitle title="Amount" />,
         renderCell: ({ value }) => (
           <Box
             sx={{

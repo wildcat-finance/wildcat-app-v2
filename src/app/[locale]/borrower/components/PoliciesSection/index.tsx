@@ -18,6 +18,7 @@ import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style
 import { useGetBorrowerHooksDataWithSubgraph } from "@/app/[locale]/borrower/hooks/useGetBorrowerHooksData"
 import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { FilterTextField } from "@/components/FilterTextfield"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { ROUTES } from "@/routes"
@@ -85,6 +86,7 @@ export const PoliciesSection = ({
       minWidth: 160,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Policy Name" />,
       renderCell: (params) => (
         <Link
           href={editPolicyLink(params.row.id)}
@@ -103,6 +105,7 @@ export const PoliciesSection = ({
       minWidth: 160,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Type" />,
       renderCell: (params) => (
         <Link
           href={editPolicyLink(params.row.id)}
@@ -123,6 +126,7 @@ export const PoliciesSection = ({
       minWidth: 160,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Access Requirements" />,
       renderCell: (params) => (
         <Link
           href={editPolicyLink(params.row.id)}
@@ -140,6 +144,7 @@ export const PoliciesSection = ({
       headerAlign: "left",
       align: "left",
       flex: 4,
+      renderHeader: () => <ColumnHeaderTitle title="Assigned to Markets" />,
       renderCell: (params) => (
         <Box
           sx={{
