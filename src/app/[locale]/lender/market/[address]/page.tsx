@@ -351,7 +351,8 @@ export default function LenderMarketDetails({
               <MarketSummary
                 marketSummary={marketSummary}
                 isLoading={isLoadingSummary}
-                setIsMobileDescriptionOpen={setIsMobileDescriptionOpen}
+                isOpen={isMobileDescriptionOpen}
+                setIsOpen={setIsMobileDescriptionOpen}
               />
             </Box>
           )}
