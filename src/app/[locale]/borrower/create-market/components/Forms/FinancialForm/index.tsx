@@ -1,8 +1,9 @@
 import { useEffect } from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, SvgIcon, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
+import MediumWarning from "@/assets/icons/mediumWarning_icon.svg"
 import { InputLabel } from "@/components/InputLabel"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
@@ -46,6 +47,20 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
   const ratioWatch = watch("reserveRatioBips")
   const delinquencyGracePeriodWatch = watch("delinquencyGracePeriod")
   const withdrawalBatchDurationWatch = watch("withdrawalBatchDuration")
+  const delinquencyGracePeriodNumber = Number(delinquencyGracePeriodWatch)
+  const withdrawalBatchDurationNumber = Number(withdrawalBatchDurationWatch)
+
+  const hasValidPeriodsValues =
+    Number.isFinite(delinquencyGracePeriodNumber) &&
+    Number.isFinite(withdrawalBatchDurationNumber) &&
+    delinquencyGracePeriodNumber > 0 &&
+    withdrawalBatchDurationNumber > 0
+
+  const showGraceVsWithdrawalWarning =
+    hasValidPeriodsValues &&
+    !errors.delinquencyGracePeriod &&
+    !errors.withdrawalBatchDuration &&
+    delinquencyGracePeriodNumber < withdrawalBatchDurationNumber
 
   const isFormValid =
     !!capacityWatch &&
@@ -209,6 +224,27 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
             {...register("withdrawalBatchDuration")}
           />
         </InputLabel>
+
+        {showGraceVsWithdrawalWarning && (
+          <Box
+            sx={{
+              gridColumn: "1 / -1",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "8px",
+              borderRadius: "12px",
+              padding: "12px",
+              backgroundColor: COLORS.oasis,
+            }}
+          >
+            <SvgIcon sx={{ fontSize: "16px", marginTop: "2px" }}>
+              <MediumWarning />
+            </SvgIcon>
+            <Typography variant="text3" sx={{ color: COLORS.butteredRum }}>
+              {t("createNewMarket.periods.graceVsWithdrawalWarning")}
+            </Typography>
+          </Box>
+        )}
       </Box>
 
       <InputLabel

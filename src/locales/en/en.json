@@ -1442,7 +1442,8 @@
         "placeholder": "0 - 2160",
         "chip": "Hours",
         "glossary": "A fixed period during which withdrawal requests are grouped and processed."
-      }
+      },
+      "graceVsWithdrawalWarning": "Warning: Grace Period is shorter than Withdrawal Cycle Duration. This can cause unintended penalty states and cannot be changed after market creation. Please ensure this is intentional."
     },
     "confirm": {
       "title": "Confirmation",
