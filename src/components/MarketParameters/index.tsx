@@ -1,4 +1,5 @@
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
+import * as React from "react"
 
 import { Box, Divider, Typography, useTheme } from "@mui/material"
 import { MarketVersion, HooksKind } from "@wildcatfi/wildcat-sdk"
@@ -9,6 +10,7 @@ import { useCopyToClipboard } from "react-use"
 import { AurosEthenaBanner } from "@/components/AdsBanners/AurosEthena/AurosEthenaBanner"
 import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/AurosEthenaProposalChip"
 import { ProposalMarketParameter } from "@/components/AdsBanners/Common/ProposalMarketParameter"
+import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
@@ -36,7 +38,6 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
   const { t } = useTranslation()
   const theme = useTheme()
   const isMobile = useMobileResolution()
-  const [state, copyToClipboard] = useCopyToClipboard()
   const { getAddressUrl, getTokenUrl } = useBlockExplorer({
     chainId: market.chainId,
   })
@@ -145,6 +146,16 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
   const isAurosMainnet =
     market.address.toLowerCase() === AUROS_ETHENA_ADDRESS.mainnet.toLowerCase()
 
+  const [isMobileOpen, setIsMobileOpen] = React.useState(false)
+
+  useEffect(() => {
+    if (!isMobile) {
+      setIsMobileOpen(true)
+    } else {
+      setIsMobileOpen(false)
+    }
+  }, [isMobile])
+
   return (
     <Box
       sx={{
@@ -206,202 +217,216 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             title={t("borrowerMarketDetails.parameters.totalInterestAccrued")}
             value={toTokenAmountProps(totalInterestAccrued).value}
           />
-          <Divider sx={{ margin: "12px 0 12px" }} />
-          <ParametersItem
-            title={t("borrowerMarketDetails.parameters.minimumDeposit.label")}
-            // value={t(
-            // `borrowerMarketDetails.parameters.minimumDeposit.${market.hooksConfig?.minimumDeposit ? "none" : "none"}`,
-            // )}
-            {...(market.hooksConfig?.minimumDeposit?.gt(0)
-              ? toTokenAmountProps(market.hooksConfig.minimumDeposit)
-              : {
-                  value: t(
-                    "borrowerMarketDetails.parameters.minimumDeposit.none",
-                  ),
-                })}
-          />
-          {market.version === MarketVersion.V2 && (
+          {isMobileOpen && (
             <>
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
-                title={t("borrowerMarketDetails.parameters.marketType.label")}
+                title={t(
+                  "borrowerMarketDetails.parameters.minimumDeposit.label",
+                )}
+                // value={t(
+                // `borrowerMarketDetails.parameters.minimumDeposit.${market.hooksConfig?.minimumDeposit ? "none" : "none"}`,
+                // )}
+                {...(market.hooksConfig?.minimumDeposit?.gt(0)
+                  ? toTokenAmountProps(market.hooksConfig.minimumDeposit)
+                  : {
+                      value: t(
+                        "borrowerMarketDetails.parameters.minimumDeposit.none",
+                      ),
+                    })}
+              />
+              {market.version === MarketVersion.V2 && (
+                <>
+                  <Divider sx={{ margin: "12px 0 12px" }} />
+                  <ParametersItem
+                    title={t(
+                      "borrowerMarketDetails.parameters.marketType.label",
+                    )}
+                    value={t(
+                      `borrowerMarketDetails.parameters.marketType.${market.hooksKind}.text`,
+                    )}
+                    valueTooltipText={t(
+                      `borrowerMarketDetails.parameters.marketType.${market.hooksKind}.tooltip`,
+                    )}
+                  />
+                </>
+              )}
+              {market.hooksConfig?.kind === HooksKind.FixedTerm && (
+                <>
+                  <Divider sx={{ margin: "12px 0 12px" }} />
+                  <ParametersItem
+                    title={t("borrowerMarketDetails.parameters.marketExpiry")}
+                    value={`${formatDate(
+                      market.hooksConfig.fixedTermEndTime,
+                    )} 00:00 UTC`}
+                  />
+                </>
+              )}
+              <Divider sx={{ margin: "12px 0 12px" }} />
+              <ParametersItem
+                title={t(
+                  "borrowerMarketDetails.parameters.depositAccess.label",
+                )}
                 value={t(
-                  `borrowerMarketDetails.parameters.marketType.${market.hooksKind}.text`,
+                  `borrowerMarketDetails.parameters.depositAccess.${depositAccess}.text`,
                 )}
                 valueTooltipText={t(
-                  `borrowerMarketDetails.parameters.marketType.${market.hooksKind}.tooltip`,
+                  `borrowerMarketDetails.parameters.depositAccess.${depositAccess}.tooltip`,
                 )}
               />
-            </>
-          )}
-          {market.hooksConfig?.kind === HooksKind.FixedTerm && (
-            <>
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
-                title={t("borrowerMarketDetails.parameters.marketExpiry")}
-                value={`${formatDate(
-                  market.hooksConfig.fixedTermEndTime,
-                )} 00:00 UTC`}
+                title={t(
+                  "borrowerMarketDetails.parameters.withdrawalAccess.label",
+                )}
+                value={t(
+                  `borrowerMarketDetails.parameters.withdrawalAccess.${withdrawalAccess}.text`,
+                )}
+                valueTooltipText={t(
+                  `borrowerMarketDetails.parameters.withdrawalAccess.${withdrawalAccess}.tooltip`,
+                )}
               />
-            </>
-          )}
-          <Divider sx={{ margin: "12px 0 12px" }} />
-          <ParametersItem
-            title={t("borrowerMarketDetails.parameters.depositAccess.label")}
-            value={t(
-              `borrowerMarketDetails.parameters.depositAccess.${depositAccess}.text`,
-            )}
-            valueTooltipText={t(
-              `borrowerMarketDetails.parameters.depositAccess.${depositAccess}.tooltip`,
-            )}
-          />
-          <Divider sx={{ margin: "12px 0 12px" }} />
-          <ParametersItem
-            title={t("borrowerMarketDetails.parameters.withdrawalAccess.label")}
-            value={t(
-              `borrowerMarketDetails.parameters.withdrawalAccess.${withdrawalAccess}.text`,
-            )}
-            valueTooltipText={t(
-              `borrowerMarketDetails.parameters.withdrawalAccess.${withdrawalAccess}.tooltip`,
-            )}
-          />
 
-          {hooksConfig && market.version === MarketVersion.V2 && (
-            <>
-              <Divider sx={{ margin: "12px 0 12px" }} />
-              <ParametersItem
-                title={t("borrowerMarketDetails.hooks.hooksAddress")}
-                value={trimAddress(hooksConfig.hooksAddress)}
-                copy={hooksConfig.hooksAddress}
-                link={getAddressUrl(hooksConfig.hooksAddress)}
-              />
+              {hooksConfig && market.version === MarketVersion.V2 && (
+                <>
+                  <Divider sx={{ margin: "12px 0 12px" }} />
+                  <ParametersItem
+                    title={t("borrowerMarketDetails.hooks.hooksAddress")}
+                    value={trimAddress(hooksConfig.hooksAddress)}
+                    copy={hooksConfig.hooksAddress}
+                    link={getAddressUrl(hooksConfig.hooksAddress)}
+                  />
+                </>
+              )}
+              {isMobile && <Divider sx={{ margin: "12px 0 12px" }} />}
             </>
           )}
-          {isMobile && <Divider sx={{ margin: "12px 0 12px" }} />}
         </Box>
-        <Box sx={MarketParametersContainerColumn(theme)}>
-          <ParametersItem
-            title={t("borrowerMarketDetails.parameters.minimumReserveRatio")}
-            value={`${formatBps(
-              market.reserveRatioBips,
-              MARKET_PARAMS_DECIMALS.reserveRatioBips,
-            )}%`}
-            tooltipText="A required percentage of market funds that must remain liquid and unavailable for borrowing."
-          />
-          <Divider sx={{ margin: "12px 0 12px" }} />
-          <ParametersItem
-            title={t("borrowerMarketDetails.parameters.baseAPR")}
-            value={`${formatBps(
-              market.annualInterestBips,
-              MARKET_PARAMS_DECIMALS.annualInterestBips,
-            )}%`}
-            tooltipText="The fixed annual percentage rate (excluding any protocol fees) that borrowers pay to lenders for assets within the market."
-          />
-          <Divider sx={{ margin: "12px 0 12px" }} />
-          {(isAurosTestnet || isAurosMainnet) && (
-            <>
-              <ProposalMarketParameter
-                proposal={<AurosEthenaProposalChip isTooltip={false} />}
-                banner={<AurosEthenaBanner maxWidth="100%" />}
-              />
-              <Divider sx={{ margin: "12px 0 12px" }} />
-            </>
-          )}
-          <ParametersItem
-            title={t("borrowerMarketDetails.parameters.protocolAPR")}
-            value={`${formatBps(
-              (market.protocolFeeBips * market.annualInterestBips) / 10000,
-              MARKET_PARAMS_DECIMALS.annualInterestBips,
-            )}%`}
-            tooltipText="An additional APR that accrues to the protocol by slowly increasing required reserves. Derived by the fee configuration of the protocol as a percentage of the current base APR."
-          />
-          <Divider sx={{ margin: "12px 0 12px" }} />
-          <ParametersItem
-            title={t("borrowerMarketDetails.parameters.effectiveAPR")}
-            value={`${formatRayAsPercentage(
-              market.effectiveLenderAPR,
-              MARKET_PARAMS_DECIMALS.annualInterestBips,
-            )}%`}
-            tooltipText="The current interest rate being paid to lenders: the base APR plus penalty APR if applicable."
-          />
-          <Divider sx={{ margin: "12px 0 12px" }} />
-          <ParametersItem
-            title={t("borrowerMarketDetails.parameters.penaltyAPR")}
-            value={`${formatBps(
-              market.delinquencyFeeBips,
-              MARKET_PARAMS_DECIMALS.delinquencyFeeBips,
-            )}%`}
-            tooltipText="An additional interest rate charged if the market remains delinquent—failing to maintain required reserves—after the grace period has elapsed."
-            alarmState={market.isIncurringPenalties}
-            valueTooltipText={
-              market.isIncurringPenalties
-                ? `This market is incurring delinquency fees, leading to a total APR of ${formatRayAsPercentage(
-                    market.effectiveLenderAPR,
-                    MARKET_PARAMS_DECIMALS.annualInterestBips,
-                  )}%. Penalties will continue to apply until the delinquency timer is below the grace period.`
-                : undefined
-            }
-          />
-          <Divider sx={{ margin: "12px 0 12px" }} />
-          <ParametersItem
-            title={t("borrowerMarketDetails.parameters.maximumGracePeriod")}
-            value={`${formatSecsToHours(market.delinquencyGracePeriod)}`}
-            tooltipText="The duration borrowers have to resolve reserve deficiencies or correct delinquency in the market before penalties take effect."
-          />
-          <Divider sx={{ margin: "12px 0 12px" }} />
-          <ParametersItem
-            title={gracePeriodLabel}
-            value={gracePeriodTimer}
-            tooltipText="The portion of the grace period left for borrowers to fix non-compliance issues, such as restoring reserves."
-            alarmState={timeDelinquent > delinquencyGracePeriod}
-            valueTooltipText={gracePeriodTooltip}
-          />
-          <Divider sx={{ margin: "12px 0 12px" }} />
-          <ParametersItem
-            title={t(
-              "borrowerMarketDetails.parameters.withdrawalCycleDuration",
+        {isMobileOpen && (
+          <Box sx={MarketParametersContainerColumn(theme)}>
+            <ParametersItem
+              title={t("borrowerMarketDetails.parameters.minimumReserveRatio")}
+              value={`${formatBps(
+                market.reserveRatioBips,
+                MARKET_PARAMS_DECIMALS.reserveRatioBips,
+              )}%`}
+              tooltipText="A required percentage of market funds that must remain liquid and unavailable for borrowing."
+            />
+            <Divider sx={{ margin: "12px 0 12px" }} />
+            <ParametersItem
+              title={t("borrowerMarketDetails.parameters.baseAPR")}
+              value={`${formatBps(
+                market.annualInterestBips,
+                MARKET_PARAMS_DECIMALS.annualInterestBips,
+              )}%`}
+              tooltipText="The fixed annual percentage rate (excluding any protocol fees) that borrowers pay to lenders for assets within the market."
+            />
+            <Divider sx={{ margin: "12px 0 12px" }} />
+            {(isAurosTestnet || isAurosMainnet) && (
+              <>
+                <ProposalMarketParameter
+                  proposal={<AurosEthenaProposalChip isTooltip={false} />}
+                  banner={<AurosEthenaBanner maxWidth="100%" />}
+                />
+                <Divider sx={{ margin: "12px 0 12px" }} />
+              </>
             )}
-            value={`${formatSecsToHours(market.withdrawalBatchDuration)}`}
-            tooltipText="A fixed period during which withdrawal requests are grouped and processed."
-          />
-          <Divider sx={{ margin: "12px 0 12px" }} />
-          <ParametersItem
-            title={t("borrowerMarketDetails.parameters.transferAccess.label")}
-            value={t(
-              `borrowerMarketDetails.parameters.transferAccess.${transferAccess}.text`,
-            )}
-            valueTooltipText={t(
-              `borrowerMarketDetails.parameters.transferAccess.${transferAccess}.tooltip`,
-            )}
-          />
-          <Divider sx={{ margin: "12px 0 12px" }} />
-          <ParametersItem
-            title={t(
-              "borrowerMarketDetails.parameters.marketEarlyClosure.label",
-            )}
-            value={t(
-              `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.text`,
-            )}
-            valueTooltipText={t(
-              `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.tooltip`,
-            )}
-          />
-          <Divider sx={{ margin: "12px 0 12px" }} />
-          <ParametersItem
-            title={t(
-              "borrowerMarketDetails.parameters.marketMaturityReduction.label",
-            )}
-            value={t(
-              `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.text`,
-            )}
-            valueTooltipText={t(
-              `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.tooltip`,
-            )}
-          />
-        </Box>
+            <ParametersItem
+              title={t("borrowerMarketDetails.parameters.protocolAPR")}
+              value={`${formatBps(
+                (market.protocolFeeBips * market.annualInterestBips) / 10000,
+                MARKET_PARAMS_DECIMALS.annualInterestBips,
+              )}%`}
+              tooltipText="An additional APR that accrues to the protocol by slowly increasing required reserves. Derived by the fee configuration of the protocol as a percentage of the current base APR."
+            />
+            <Divider sx={{ margin: "12px 0 12px" }} />
+            <ParametersItem
+              title={t("borrowerMarketDetails.parameters.effectiveAPR")}
+              value={`${formatRayAsPercentage(
+                market.effectiveLenderAPR,
+                MARKET_PARAMS_DECIMALS.annualInterestBips,
+              )}%`}
+              tooltipText="The current interest rate being paid to lenders: the base APR plus penalty APR if applicable."
+            />
+            <Divider sx={{ margin: "12px 0 12px" }} />
+            <ParametersItem
+              title={t("borrowerMarketDetails.parameters.penaltyAPR")}
+              value={`${formatBps(
+                market.delinquencyFeeBips,
+                MARKET_PARAMS_DECIMALS.delinquencyFeeBips,
+              )}%`}
+              tooltipText="An additional interest rate charged if the market remains delinquent—failing to maintain required reserves—after the grace period has elapsed."
+              alarmState={market.isIncurringPenalties}
+              valueTooltipText={
+                market.isIncurringPenalties
+                  ? `This market is incurring delinquency fees, leading to a total APR of ${formatRayAsPercentage(
+                      market.effectiveLenderAPR,
+                      MARKET_PARAMS_DECIMALS.annualInterestBips,
+                    )}%. Penalties will continue to apply until the delinquency timer is below the grace period.`
+                  : undefined
+              }
+            />
+            <Divider sx={{ margin: "12px 0 12px" }} />
+            <ParametersItem
+              title={t("borrowerMarketDetails.parameters.maximumGracePeriod")}
+              value={`${formatSecsToHours(market.delinquencyGracePeriod)}`}
+              tooltipText="The duration borrowers have to resolve reserve deficiencies or correct delinquency in the market before penalties take effect."
+            />
+            <Divider sx={{ margin: "12px 0 12px" }} />
+            <ParametersItem
+              title={gracePeriodLabel}
+              value={gracePeriodTimer}
+              tooltipText="The portion of the grace period left for borrowers to fix non-compliance issues, such as restoring reserves."
+              alarmState={timeDelinquent > delinquencyGracePeriod}
+              valueTooltipText={gracePeriodTooltip}
+            />
+            <Divider sx={{ margin: "12px 0 12px" }} />
+            <ParametersItem
+              title={t(
+                "borrowerMarketDetails.parameters.withdrawalCycleDuration",
+              )}
+              value={`${formatSecsToHours(market.withdrawalBatchDuration)}`}
+              tooltipText="A fixed period during which withdrawal requests are grouped and processed."
+            />
+            <Divider sx={{ margin: "12px 0 12px" }} />
+            <ParametersItem
+              title={t("borrowerMarketDetails.parameters.transferAccess.label")}
+              value={t(
+                `borrowerMarketDetails.parameters.transferAccess.${transferAccess}.text`,
+              )}
+              valueTooltipText={t(
+                `borrowerMarketDetails.parameters.transferAccess.${transferAccess}.tooltip`,
+              )}
+            />
+            <Divider sx={{ margin: "12px 0 12px" }} />
+            <ParametersItem
+              title={t(
+                "borrowerMarketDetails.parameters.marketEarlyClosure.label",
+              )}
+              value={t(
+                `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.text`,
+              )}
+              valueTooltipText={t(
+                `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.tooltip`,
+              )}
+            />
+            <Divider sx={{ margin: "12px 0 12px" }} />
+            <ParametersItem
+              title={t(
+                "borrowerMarketDetails.parameters.marketMaturityReduction.label",
+              )}
+              value={t(
+                `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.text`,
+              )}
+              valueTooltipText={t(
+                `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.tooltip`,
+              )}
+            />
+          </Box>
+        )}
       </Box>
 
-      {hooksConfig && isLocalHost && (
+      {hooksConfig && isLocalHost && isMobileOpen && (
         <>
           <Typography variant="title3">
             {t("borrowerMarketDetails.hooks.title")}
@@ -450,6 +475,14 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             </Box>
           </Box>
         </>
+      )}
+
+      {isMobile && (
+        <SeeMoreButton
+          variant="accordion"
+          isOpen={isMobileOpen}
+          setIsOpen={setIsMobileOpen}
+        />
       )}
     </Box>
   )
