@@ -2,7 +2,7 @@
 
 import { Dispatch, SetStateAction } from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { Markdown } from "@/components/Markdown"

@@ -22,13 +22,14 @@ export const BarCharts = ({
   isLender: boolean
 }) => {
   const isMobile = useMobileResolution()
-  const [isMobileOpen, setIsMobileOpen] = React.useState(false)
+  const [isSectionOpen, setIsSectionOpen] = React.useState(false)
 
+  // Keeps section visible on desktop devices
   useEffect(() => {
     if (!isMobile) {
-      setIsMobileOpen(true)
+      setIsSectionOpen(true)
     } else {
-      setIsMobileOpen(false)
+      setIsSectionOpen(false)
     }
   }, [isMobile])
 
@@ -38,7 +39,7 @@ export const BarCharts = ({
         display: "flex",
         flexDirection: "column",
         // eslint-disable-next-line no-nested-ternary
-        gap: isMobile ? (!isMobileOpen ? 0 : "16px") : "28px",
+        gap: isMobile ? (!isSectionOpen ? 0 : "16px") : "28px",
         backgroundColor: isMobile ? COLORS.white : "transparent",
         borderRadius: isMobile ? "14px" : 0,
       }}
@@ -48,21 +49,21 @@ export const BarCharts = ({
         legendType={isLender ? "small" : "big"}
         isLender={isLender}
       />
-      {isLender && isMobileOpen && (
+      {isLender && isSectionOpen && (
         <DebtBarChart marketAccount={marketAccount} />
       )}
-      {isLender && isMobileOpen && (
+      {isLender && isSectionOpen && (
         <WithdrawalsBarChart
           marketAccount={marketAccount}
           withdrawals={withdrawals}
         />
       )}
 
-      {isMobile && (
+      {isLender && isMobile && (
         <SeeMoreButton
           variant="accordion"
-          isOpen={isMobileOpen}
-          setIsOpen={setIsMobileOpen}
+          isOpen={isSectionOpen}
+          setIsOpen={setIsSectionOpen}
           sx={{ marginBottom: "24px" }}
         />
       )}
