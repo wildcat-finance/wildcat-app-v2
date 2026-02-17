@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 
 import { TableStyles } from "@/app/[locale]/borrower/edit-lenders-list/components/ConfirmLendersForm/style"
 import { useBorrowerNameOrAddress } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { TablePagination } from "@/components/TablePagination"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { COLORS } from "@/theme/colors"
@@ -119,6 +120,11 @@ export function MarketRecordsTable({
       flex: 1,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("marketRecords.table.header.transactionHash")}
+        />
+      ),
       renderCell: (params) => (
         <Box sx={{ display: "flex", gap: "4px" }}>
           <Typography variant="text3">
@@ -138,6 +144,9 @@ export function MarketRecordsTable({
       minWidth: 160,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("marketRecords.table.header.time")} />
+      ),
       renderCell: (params) => (
         <Typography variant="text3">
           {timestampToDateFormatted(params.value)}
@@ -152,6 +161,9 @@ export function MarketRecordsTable({
       headerAlign: "right",
       align: "right",
       sortable: false,
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("marketRecords.table.header.event")} />
+      ),
       renderCell: (params) => (
         <Typography variant="text3">
           {getRecordText(params.row, lendersName, name)}

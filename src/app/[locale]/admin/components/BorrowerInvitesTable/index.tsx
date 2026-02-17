@@ -9,6 +9,7 @@ import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { MarketWithdrawalRequetstCell } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/style"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { LinkGroup } from "@/components/LinkComponent"
 import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
@@ -56,6 +57,7 @@ export const BorrowerInvitesTable = () => {
       // minWidth: 134,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Borrower Name" />,
       renderCell: (params) => (
         <span
           style={{
@@ -76,6 +78,7 @@ export const BorrowerInvitesTable = () => {
       // minWidth: 134,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Borrower Alias" />,
       renderCell: (params) => (
         <span
           style={{
@@ -96,6 +99,7 @@ export const BorrowerInvitesTable = () => {
       // minWidth: 134,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Invited" />,
       renderCell: (params) => (
         <span
           style={{
@@ -120,6 +124,7 @@ export const BorrowerInvitesTable = () => {
       // minWidth: 176,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Wallet Address" />,
       renderCell: ({ value }) => (
         <Box sx={MarketWithdrawalRequetstCell}>
           <Typography sx={{ minWidth: "80px" }} variant="text3">
@@ -141,6 +146,7 @@ export const BorrowerInvitesTable = () => {
       // minWidth: 134,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Registered On Chain" />,
       renderCell: (params) => <span>{params.value ? "Yes" : "No"}</span>,
     },
     {
@@ -150,6 +156,7 @@ export const BorrowerInvitesTable = () => {
       // minWidth: 134,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Signed" />,
       renderCell: (params) => (
         <span>
           {params.value ? (
@@ -170,6 +177,7 @@ export const BorrowerInvitesTable = () => {
       sortable: false,
       align: "center",
       headerAlign: "center",
+      renderHeader: () => <ColumnHeaderTitle title="" />,
       renderCell: (params) => {
         if (params.row.timeSigned && !params.row.registeredOnChain) {
           if (isTestnet) {
@@ -191,6 +199,7 @@ export const BorrowerInvitesTable = () => {
       // minWidth: 120,
       align: "center",
       headerAlign: "center",
+      renderHeader: () => <ColumnHeaderTitle title="" />,
       renderCell: (params) => (
         <Button
           variant="outlined"

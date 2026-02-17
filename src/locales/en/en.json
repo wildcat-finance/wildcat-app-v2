@@ -11,6 +11,11 @@
       "connectedWith": "Connected Via",
       "disconnect": "Disconnect"
     },
+    "switchChain": {
+      "title": "Choose Deployment Chain",
+      "mainnet": "Mainnet",
+      "testnets": "Testnets"
+    },
     "modal": {
       "title": "Connect Wallet",
       "note": "By connecting your wallet, you consent to the Wildcat Privacy Policy."

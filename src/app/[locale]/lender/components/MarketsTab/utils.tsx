@@ -20,7 +20,7 @@ import {
   TypeSafeColDef,
 } from "@/app/[locale]/lender/components/MarketsTab/interface"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
-import { TooltipButton } from "@/components/TooltipButton"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
@@ -97,6 +97,7 @@ export const getColumns = (
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
+      renderHeader: () => <ColumnHeaderTitle title="Status" />,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -123,6 +124,7 @@ export const getColumns = (
       minWidth: 134,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Market Name" />,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -155,18 +157,7 @@ export const getColumns = (
       flex: 1.7,
       headerAlign: "left",
       align: "left",
-      renderHeader: () => (
-        <Typography
-          variant="text4"
-          sx={{
-            lineHeight: "10px",
-            color: COLORS.santasGrey,
-            padding: "0 12px",
-          }}
-        >
-          Borrower
-        </Typography>
-      ),
+      renderHeader: () => <ColumnHeaderTitle title="Borrower" />,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -212,6 +203,7 @@ export const getColumns = (
       flex: 0.6,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => <ColumnHeaderTitle title="Underlying Asset" />,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -237,6 +229,7 @@ export const getColumns = (
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => <ColumnHeaderTitle title="APR" />,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -261,6 +254,11 @@ export const getColumns = (
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("dashboard.markets.tables.header.withdrawal")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -282,15 +280,10 @@ export const getColumns = (
       headerAlign: "right",
       align: "right",
       renderHeader: () => (
-        <Box display="flex" columnGap="4px" alignItems="center">
-          <Typography
-            variant="text4"
-            sx={{ lineHeight: "10px", color: COLORS.santasGrey }}
-          >
-            CRR
-          </Typography>
-          <TooltipButton value="The percentage of market funds kept unborrowed and locked as reserve." />
-        </Box>
+        <ColumnHeaderTitle
+          title="CRR"
+          tooltipText="The percentage of market funds kept unborrowed and locked as reserve."
+        />
       ),
       renderCell: (params) => (
         <Link
@@ -317,6 +310,7 @@ export const getColumns = (
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
+      renderHeader: () => <ColumnHeaderTitle title="Max Capacity" />,
       renderCell: (
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
@@ -344,6 +338,7 @@ export const getColumns = (
       align: "right",
       sortComparator: tokenAmountComparator,
       flex: 1.5,
+      renderHeader: () => <ColumnHeaderTitle title="Capacity Left" />,
       renderCell: (
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
@@ -374,6 +369,7 @@ export const getColumns = (
       minWidth: otherMarketsTable ? 86 : 126,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => <ColumnHeaderTitle title="Created" />,
       renderCell: (params) => (
         <Link
           href={`${ROUTES.lender.market}/${params.row.id}`}
@@ -414,6 +410,7 @@ export const getColumns = (
     align: "right",
     sortComparator: tokenAmountComparator,
     flex: 1.5,
+    renderHeader: () => <ColumnHeaderTitle title="My Loan" />,
     renderCell: (
       params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
     ) => (
@@ -445,6 +442,7 @@ export const getColumns = (
     minWidth: 110,
     headerAlign: "right",
     align: "right",
+    renderHeader: () => <ColumnHeaderTitle title="Self-Onboard" />,
     renderCell: (params) => (
       <Link
         href={`${ROUTES.lender.market}/${params.row.id}`}
