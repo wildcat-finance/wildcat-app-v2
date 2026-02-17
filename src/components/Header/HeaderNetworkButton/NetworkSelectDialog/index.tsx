@@ -1,5 +1,6 @@
 import { Box, Button, Chip, Dialog, Typography } from "@mui/material"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 import { useAccount, useSwitchChain } from "wagmi"
 
 import {
@@ -31,6 +32,7 @@ export const NetworkSelectDialog = ({
   open,
   handleClose,
 }: NetworkSelectDialogProps) => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const { switchChain } = useSwitchChain()
   const { address } = useAccount()
@@ -111,7 +113,7 @@ export const NetworkSelectDialog = ({
           textAlign={isMobile ? "center" : "start"}
           sx={{ color: COLORS.blackRock }}
         >
-          Choose Deployment Chain
+          {t("header.switchChain.title")}
         </Typography>
 
         {mainnetNetworks.length > 0 && (
@@ -121,7 +123,7 @@ export const NetworkSelectDialog = ({
               sx={SectionHeader}
               textAlign={isMobile ? "center" : "start"}
             >
-              Mainnet
+              {t("header.switchChain.mainnet")}
             </Typography>
             <Box
               sx={{
@@ -143,7 +145,7 @@ export const NetworkSelectDialog = ({
               sx={SectionHeader}
               textAlign={isMobile ? "center" : "start"}
             >
-              Testnets
+              {t("header.switchChain.testnets")}
             </Typography>
             <Box
               sx={{
