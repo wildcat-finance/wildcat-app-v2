@@ -39,9 +39,10 @@ export default function MarketDailyStatsChart({
     useMemo(() => {
       console.log(`Calculating daily data for ${data.length} days`)
       const today = Math.floor(Date.now() / 1000)
-      const days = Math.floor((today - data[0].timestamp) / 86_400)
+      const startTimestamp = data[0]?.timestamp ?? today
+      const days = Math.floor((today - startTimestamp) / 86_400)
       const filledData = Array.from({ length: days }, (_, i) => {
-        const timestamp = data[0].timestamp + i * 86_400
+        const timestamp = startTimestamp + i * 86_400
         const dailyStats = data.find((point) => point.timestamp === timestamp)
         if (dailyStats) {
           return {

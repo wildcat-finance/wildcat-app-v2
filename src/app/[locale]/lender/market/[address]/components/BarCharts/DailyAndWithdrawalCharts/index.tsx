@@ -14,8 +14,12 @@ export const DailyAndWithdrawalCharts = ({ market }: { market: Market }) => {
     !!marketChartsData &&
     !isLoading && (
       <>
-        <MarketDailyStatsChart data={marketChartsData.dailyStats} />
-        <MarketWithdrawalsChart data={marketChartsData.withdrawalBatches} />
+        {marketChartsData.dailyStats.length > 0 && (
+          <MarketDailyStatsChart data={marketChartsData.dailyStats} />
+        )}
+        {marketChartsData.withdrawalBatches.length > 0 && (
+          <MarketWithdrawalsChart data={marketChartsData.withdrawalBatches} />
+        )}
       </>
     )
   )
