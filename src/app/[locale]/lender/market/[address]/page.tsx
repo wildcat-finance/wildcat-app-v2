@@ -40,6 +40,7 @@ import {
 import { COLORS } from "@/theme/colors"
 
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
+import { DailyAndWithdrawalCharts } from "./components/BarCharts/DailyAndWithdrawalCharts"
 import { MarketActions } from "./components/MarketActions"
 import { MarketSummary } from "./components/MarketSummary"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
@@ -417,6 +418,10 @@ export default function LenderMarketDetails({
                 legendType="big"
                 isLender={authorizedInMarket}
               />
+
+              <Divider sx={{ margin: "40px 0 32px" }} />
+
+              <DailyAndWithdrawalCharts market={market} />
             </Box>
           )}
 

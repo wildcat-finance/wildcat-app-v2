@@ -8,6 +8,7 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
 import { CapacityBarChart } from "./CapacityBarChart"
+import { DailyAndWithdrawalCharts } from "./DailyAndWithdrawalCharts"
 import { DebtBarChart } from "./DebtBarChart"
 import { BarChartProps } from "./interface"
 
@@ -43,6 +44,7 @@ export const BarCharts = ({
           withdrawals={withdrawals}
         />
       )}
+      <DailyAndWithdrawalCharts market={marketAccount.market} />
     </Box>
   )
 }

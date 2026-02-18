@@ -303,6 +303,9 @@ const MARKET_QUERY_KEYS = {
   // GET_MARKET_LENDERS_KEY
   GET_MARKET_LENDERS: (chainId: number, marketAddress?: string) =>
     k(["markets", "GET_MARKET_LENDERS", chainId, marketAddress]),
+  // GET_MARKET_CHARTS_DATA_KEY
+  GET_MARKET_CHARTS_DATA: (chainId: number, marketAddress?: string) =>
+    k(["markets", "GET_MARKET_CHARTS_DATA", chainId, marketAddress]),
   // GET_MARKET_MLA_KEY
   GET_MARKET_MLA: (
     chainId: number,
