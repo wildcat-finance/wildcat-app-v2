@@ -10,10 +10,12 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 
 interface LendingMarketChartProps {
   data?: MarketDailyStats[]
+  tokenSymbol: string
 }
 
 export default function MarketDailyStatsChart({
   data = [],
+  tokenSymbol,
 }: LendingMarketChartProps) {
   const isMobile = useMobileResolution()
 
@@ -27,12 +29,12 @@ export default function MarketDailyStatsChart({
     const sign = value >= 0 ? "" : "-"
     value = Math.abs(value)
     if (value >= 1_000_000) {
-      return `${sign}$${(value / 1_000_000).toFixed(2)}M`
+      return `${sign}${(value / 1_000_000).toFixed(2)}M ${tokenSymbol}`
     }
     if (value >= 1_000) {
-      return `${sign}$${(value / 1_000).toFixed(2)}K`
+      return `${sign}${(value / 1_000).toFixed(2)}K ${tokenSymbol}`
     }
-    return `${sign}$${value.toFixed(2)}`
+    return `${sign}${value.toFixed(2)} ${tokenSymbol}`
   }
 
   const { filledDailyData, dailyChartSeries, yAxisDailyDomain } =

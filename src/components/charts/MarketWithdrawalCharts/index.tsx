@@ -10,10 +10,12 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 
 interface LendingMarketChartProps {
   data?: MarketWithdrawalBatchExpirationStats[]
+  tokenSymbol: string
 }
 
 export default function MarketWithdrawalsChart({
   data = [],
+  tokenSymbol,
 }: LendingMarketChartProps) {
   const isMobile = useMobileResolution()
 
@@ -27,27 +29,27 @@ export default function MarketWithdrawalsChart({
     const sign = value >= 0 ? "" : "-"
     value = Math.abs(value)
     if (value >= 1_000_000) {
-      return `${sign}$${(value / 1_000_000).toFixed(2)}M`
+      return `${sign}${(value / 1_000_000).toFixed(2)}M ${tokenSymbol}`
     }
     if (value >= 1_000) {
-      return `${sign}$${(value / 1_000).toFixed(2)}K`
+      return `${sign}${(value / 1_000).toFixed(2)}K ${tokenSymbol}`
     }
-    return `${sign}$${value.toFixed(2)}`
+    return `${sign}${value.toFixed(2)} ${tokenSymbol}`
   }
 
-  const batchChartData = useMemo(() => {
-    console.log(`Calculating batch data for ${data.length} batches`)
-    return data.map((batch) => ({
-      timestamp: batch.timestamp * 1000,
-      amountPaid: batch.normalizedAmountPaid,
-      amountUnpaid: batch.normalizedAmountOwed,
-      isFullyPaid: batch.normalizedAmountOwed === 0,
-    }))
-  }, [data])
+  const batchChartData = useMemo(
+    () =>
+      data.map((batch) => ({
+        timestamp: batch.timestamp * 1000,
+        amountPaid: batch.normalizedAmountPaid,
+        amountUnpaid: batch.normalizedAmountOwed,
+        isFullyPaid: batch.normalizedAmountOwed === 0,
+      })),
+    [data],
+  )
 
-  const batchChartSeries = useMemo(() => {
-    console.log(`Calculating batch data for ${batchChartData.length} batches`)
-    return [
+  const batchChartSeries = useMemo(
+    () => [
       {
         data: batchChartData.map((batch) => batch.amountPaid),
         label: "Amount Paid",
@@ -60,8 +62,9 @@ export default function MarketWithdrawalsChart({
         color: "#ef4444",
         stack: "batch",
       },
-    ]
-  }, [batchChartData])
+    ],
+    [batchChartData],
+  )
 
   return (
     data.length > 0 && (
