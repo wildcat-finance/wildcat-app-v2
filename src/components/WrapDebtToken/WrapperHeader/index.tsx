@@ -54,7 +54,6 @@ export const WrapperHeader = ({
         sx={{
           display: "flex",
           flexDirection: "row",
-          // alignItems: isMobileOpenState ? "center" : "flex-start",
           justifyContent: isMobile ? "center" : "flex-start",
           gap: isMobile ? "7px" : "11px",
           marginBottom: isMobile ? "20px" : "12px",

@@ -12,9 +12,9 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { constants } from "ethers"
 
-import { WrapperSection } from "@/app/[locale]/lender/market/[address]/components/WrapDebtToken/components/WrapperSection"
 import { toastRequest } from "@/components/Toasts"
 import { NoWrapperState } from "@/components/WrapDebtToken/NoWrapperState"
+import { WrapperSection } from "@/components/WrapDebtToken/WrapperSection"
 import { WrapperSkeleton } from "@/components/WrapDebtToken/WrapperSkeleton"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
