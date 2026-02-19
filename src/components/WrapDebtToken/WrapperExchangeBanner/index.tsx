@@ -92,136 +92,73 @@ export const WrapperExchangeBanner = ({
   const shareValue = shareBalance ? formatTokenWithCommas(shareBalance) : "0"
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "8px",
-        padding: "16px",
-        background: isMobileOpenState ? COLORS.hintOfRed : "transparent",
-        borderRadius: "12px",
-        // eslint-disable-next-line no-nested-ternary
-        marginBottom: isMobile ? (isMobileOpenState ? "20px" : "12px") : "24px",
-        marginX: isMobile && isMobileOpenState ? "16px" : 0,
-      }}
-    >
-      {/* <Box> */}
-      {/*  <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}> */}
-      {/*    <Typography */}
-      {/*      variant={isMobile ? "mobText3" : "text3"} */}
-      {/*      color={COLORS.manate} */}
-      {/*    > */}
-      {/*      Market tokens */}
-      {/*    </Typography> */}
-      {/*    <TooltipButton */}
-      {/*      value="Balance of market (debt) tokens in your wallet." */}
-      {/*      color={COLORS.manate} */}
-      {/*    /> */}
-      {/*  </Box> */}
-
-      {/*  <Box */}
-      {/*    sx={{ */}
-      {/*      display: "flex", */}
-      {/*      alignItems: "flex-start", */}
-      {/*      justifyContent: "start-end", */}
-      {/*      gap: "3px", */}
-      {/*    }} */}
-      {/*  > */}
-      {/*    <Typography variant={isMobile ? "mobText1" : "title2"}> */}
-      {/*      {marketValue} */}
-      {/*    </Typography> */}
-      {/*    <Typography */}
-      {/*      variant={isMobile ? "mobText4" : "text4"} */}
-      {/*      color={COLORS.manate} */}
-      {/*      sx={{ marginTop: "4px" }} */}
-      {/*    > */}
-      {/*      {marketSymbol || ""} */}
-      {/*    </Typography> */}
-      {/*  </Box> */}
-      {/* </Box> */}
-
+    <>
       <Box
         sx={{
-          width: "100%",
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          flexDirection: "column",
+          gap: "8px",
+          padding: "16px",
+          background: isMobileOpenState ? COLORS.hintOfRed : "transparent",
+          borderRadius: "12px",
+          marginBottom: "12px",
+          marginX: isMobile && isMobileOpenState ? "16px" : 0,
         }}
       >
-        <BannerItem
-          title="Market tokens"
-          tooltip="Balance of market (debt) tokens in your wallet."
-          value={marketValue}
-          symbol={marketSymbol || ""}
-          align="start"
-          isMobile={isMobile}
-        />
-
-        <SvgIcon
-          sx={{ fontSize: "20px", "& path": { fill: COLORS.matteSilver } }}
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
         >
-          <Change />
-        </SvgIcon>
+          <BannerItem
+            title="Market tokens"
+            tooltip="Balance of market (debt) tokens in your wallet."
+            value={marketValue}
+            symbol={marketSymbol || ""}
+            align="start"
+            isMobile={isMobile}
+          />
 
-        <BannerItem
-          title="Wrapped tokens"
-          tooltip="Balance of wrapped (ERC-4626 share) tokens in your wallet."
-          value={shareValue}
-          symbol={shareSymbol || ""}
-          align="end"
-          isMobile={isMobile}
-        />
+          <SvgIcon
+            sx={{ fontSize: "20px", "& path": { fill: COLORS.matteSilver } }}
+          >
+            <Change />
+          </SvgIcon>
+
+          <BannerItem
+            title="Wrapped tokens"
+            tooltip="Balance of wrapped (ERC-4626 share) tokens in your wallet."
+            value={shareValue}
+            symbol={shareSymbol || ""}
+            align="end"
+            isMobile={isMobile}
+          />
+        </Box>
       </Box>
 
-      {convertedShareValue && convertedShareSymbol && (
+      {convertedShareValue && convertedShareSymbol && isMobileOpenState && (
         <Typography
-          variant={isMobile ? "mobText4" : "text4"}
+          variant={isMobile ? "mobText3" : "text3"}
           color={COLORS.manate}
-          sx={{ width: "100%", textAlign: "right" }}
+          sx={{
+            display: "block",
+            width: "100%",
+            textAlign: "right",
+            paddingRight: "16px",
+            // eslint-disable-next-line no-nested-ternary
+            marginBottom: isMobile
+              ? isMobileOpenState
+                ? "20px"
+                : "12px"
+              : "24px",
+          }}
         >
           Wrapped holdings value: ~ {convertedShareValue} {convertedShareSymbol}
         </Typography>
       )}
-
-      {/* <Box */}
-      {/*  sx={{ */}
-      {/*    display: "flex", */}
-      {/*    flexDirection: "column", */}
-      {/*    alignItems: "flex-end", */}
-      {/*  }} */}
-      {/* > */}
-      {/*  <Box */}
-      {/*    sx={{ */}
-      {/*      display: "flex", */}
-      {/*      flexDirection: "column", */}
-      {/*      alignItems: "flex-end", */}
-      {/*    }} */}
-      {/*  > */}
-      {/*    <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}> */}
-      {/*      <TooltipButton */}
-      {/*        value="Balance of wrapped (ERC-4626 share) tokens in your wallet." */}
-      {/*        color={COLORS.manate} */}
-      {/*      /> */}
-      {/*      <Typography */}
-      {/*        variant={isMobile ? "mobText4" : "text4"} */}
-      {/*        color={COLORS.manate} */}
-      {/*      > */}
-      {/*        Wrapped tokens */}
-      {/*      </Typography> */}
-      {/*    </Box> */}
-
-      {/*    <Typography */}
-      {/*      variant={isMobile ? "mobText4" : "text4"} */}
-      {/*      color={COLORS.manate} */}
-      {/*    > */}
-      {/*      ({shareSymbol || ""}) */}
-      {/*    </Typography> */}
-      {/*  </Box> */}
-
-      {/*  <Typography variant={isMobile ? "mobText1" : "title2"}> */}
-      {/*    {shareValue} */}
-      {/*  </Typography> */}
-      {/* </Box> */}
-    </Box>
+    </>
   )
 }

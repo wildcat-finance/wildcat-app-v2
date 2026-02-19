@@ -382,17 +382,19 @@ export default function LenderMarketDetails({
             />
           </Box>
 
-          <WrapDebtToken
-            market={market}
-            wrapper={wrapper}
-            hasWrapper={hasWrapper}
-            hasFactory={hasFactory}
-            isWrapperLoading={isWrapperLoading}
-            isWrapperLookupLoading={isWrapperLookupLoading}
-            isWrapperError={isWrapperError}
-            isAuthorizedLender={authorizedInMarket as boolean}
-            isDifferentChain={isDifferentChain}
-          />
+          {authorizedInMarket && (
+            <WrapDebtToken
+              market={market}
+              wrapper={wrapper}
+              hasWrapper={hasWrapper}
+              hasFactory={hasFactory}
+              isWrapperLoading={isWrapperLoading}
+              isWrapperLookupLoading={isWrapperLookupLoading}
+              isWrapperError={isWrapperError}
+              isAuthorizedLender={authorizedInMarket as boolean}
+              isDifferentChain={isDifferentChain}
+            />
+          )}
 
           {(authorizedInMarket || isDifferentChain) && (
             <MobileMarketActions

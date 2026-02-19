@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from "react"
+import React, { ChangeEvent, useEffect } from "react"
 
 import {
   Box,
@@ -20,6 +20,7 @@ import {
   TokenWrapper,
 } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
+import { usePathname } from "next/navigation"
 
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import Check from "@/assets/icons/check_icon.svg"
@@ -39,16 +40,20 @@ import { useWrapperAllowance } from "@/hooks/wrapper/useWrapperAllowance"
 import { useWrapperBalances } from "@/hooks/wrapper/useWrapperBalances"
 import { useWrapperLimits } from "@/hooks/wrapper/useWrapperLimits"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setIsMobileOpenedState } from "@/store/slices/wrapDebtTokenFlowSlice/wrapDebtTokenFlowSlice"
+import {
+  setActiveTab,
+  setIsMobileOpenedState,
+  WrapDebtTokenTab,
+} from "@/store/slices/wrapDebtTokenFlowSlice/wrapDebtTokenFlowSlice"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 import { isUSDTLikeToken } from "@/utils/constants"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
-import { ErrorWrapperAlert } from "../../../../../../../../../components/WrapDebtToken/ErrorWrapperAlert"
-import { SuccessWrapperModal } from "../../../../../../../../../components/WrapDebtToken/SuccessWrapperModal"
-import { WrapperExchangeBanner } from "../../../../../../../../../components/WrapDebtToken/WrapperExchangeBanner"
-import { WrapperHeader } from "../../../../../../../../../components/WrapDebtToken/WrapperHeader"
+import { ErrorWrapperAlert } from "../ErrorWrapperAlert"
+import { SuccessWrapperModal } from "../SuccessWrapperModal"
+import { WrapperExchangeBanner } from "../WrapperExchangeBanner"
+import { WrapperHeader } from "../WrapperHeader"
 
 const TabStyle = {
   fontSize: pxToRem(14),
@@ -65,11 +70,6 @@ const UnitTabStyle = {
   ...TabStyle,
   width: "auto",
   minWidth: "100px",
-}
-
-enum TokenWrapperFormTabs {
-  WRAP = "wrap",
-  UNWRAP = "unwrap",
 }
 
 enum AmountUnit {
@@ -112,6 +112,7 @@ export const WrapperSection = ({
   isDifferentChain,
   isAuthorizedLender,
 }: WrapperSectionProps) => {
+  const isLender = usePathname().includes("lender")
   const theme = useTheme()
   const client = useQueryClient()
   const { targetChainId } = useCurrentNetwork()
@@ -119,10 +120,9 @@ export const WrapperSection = ({
     chainId: market?.chainId,
   })
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
+  const dispatch = useAppDispatch()
+  const tab = useAppSelector((state) => state.wrapDebtTokenFlow.activeTab)
 
-  const [tab, setTab] = React.useState<TokenWrapperFormTabs>(
-    TokenWrapperFormTabs.WRAP,
-  )
   const [unit, setUnit] = React.useState<AmountUnit>(AmountUnit.ASSETS)
   const [amount, setAmount] = React.useState<string>("")
 
@@ -158,7 +158,7 @@ export const WrapperSection = ({
     isAddingToken: isAddingWrappedToken,
   } = useAddToken(wrapper.shareToken)
 
-  const isWrapTab = tab === TokenWrapperFormTabs.WRAP
+  const isWrapTab = tab === WrapDebtTokenTab.WRAP
   const isAssetsInput = unit === AmountUnit.ASSETS
 
   const inputToken = isAssetsInput ? wrapper.marketToken : wrapper.shareToken
@@ -386,9 +386,9 @@ export const WrapperSection = ({
 
   const handleTabsChange = (
     event: React.SyntheticEvent,
-    newTab: TokenWrapperFormTabs,
+    newTab: WrapDebtTokenTab,
   ) => {
-    setTab(newTab)
+    dispatch(setActiveTab(newTab))
     setAmount("")
     setIsSubmitTransitioning(false)
     setSuccessSnapshot(null)
@@ -663,10 +663,8 @@ export const WrapperSection = ({
     (state) => state.wrapDebtTokenFlow.isMobileOpenedState,
   )
 
-  const dispatch = useAppDispatch()
-
-  const handleOpenSection = (nextTab: TokenWrapperFormTabs) => {
-    setTab(nextTab)
+  const handleOpenSection = (nextTab: WrapDebtTokenTab) => {
+    dispatch(setActiveTab(nextTab))
     setIsSubmitTransitioning(false)
     setSuccessSnapshot(null)
     setShowError(false)
@@ -674,6 +672,13 @@ export const WrapperSection = ({
     setErrorMessage(undefined)
     dispatch(setIsMobileOpenedState(true))
   }
+
+  useEffect(
+    () => () => {
+      if (!isMobile) dispatch(setActiveTab(WrapDebtTokenTab.WRAP))
+    },
+    [],
+  )
 
   return (
     <Box
@@ -713,7 +718,7 @@ export const WrapperSection = ({
         convertedShareSymbol={wrapper.marketToken.symbol}
       />
 
-      {isMobileOpenState && (
+      {isMobileOpenState && isLender && (
         <>
           <Tabs
             value={tab}
@@ -726,12 +731,8 @@ export const WrapperSection = ({
               paddingX: isMobile ? "16px" : 0,
             }}
           >
-            <Tab value={TokenWrapperFormTabs.WRAP} label="Wrap" sx={TabStyle} />
-            <Tab
-              value={TokenWrapperFormTabs.UNWRAP}
-              label="Unwrap"
-              sx={TabStyle}
-            />
+            <Tab value={WrapDebtTokenTab.WRAP} label="Wrap" sx={TabStyle} />
+            <Tab value={WrapDebtTokenTab.UNWRAP} label="Unwrap" sx={TabStyle} />
           </Tabs>
 
           {!showSuccess && (
@@ -753,13 +754,83 @@ export const WrapperSection = ({
                   gap: "10px",
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <Typography variant={isMobile ? "mobText3" : "text3"}>
-                    {inputLabel}
-                  </Typography>
-                  {maxTooltip && (
-                    <TooltipButton value={maxTooltip} color={COLORS.manate} />
-                  )}
+                <Box
+                  sx={{
+                    width: "100%",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    paddingRight: "6px",
+                  }}
+                >
+                  <Box
+                    sx={{ display: "flex", alignItems: "center", gap: "6px" }}
+                  >
+                    <Typography variant={isMobile ? "mobText3" : "text3"}>
+                      {inputLabel}
+                    </Typography>
+                    {maxTooltip && (
+                      <TooltipButton value={maxTooltip} color={COLORS.manate} />
+                    )}
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "center",
+                      marginTop: helperText ? "4px" : "0",
+                    }}
+                  >
+                    <Typography
+                      variant={isMobile ? "mobText4" : "text4"}
+                      color={
+                        unit === AmountUnit.SHARES
+                          ? COLORS.blackRock
+                          : COLORS.manate
+                      }
+                    >
+                      Show in Shares
+                    </Typography>
+
+                    <Switch
+                      sx={{
+                        width: "28.8px",
+                        height: "16px",
+
+                        "&:active": {
+                          "& .MuiSwitch-thumb": {
+                            width: 12.8,
+                          },
+                        },
+
+                        "& .MuiSwitch-switchBase": {
+                          padding: "1.5px",
+
+                          "&.Mui-checked": {
+                            transform: "translateX(12.8px)",
+                            color: COLORS.white,
+
+                            "& + .MuiSwitch-track": {
+                              opacity: 1,
+                              backgroundColor: COLORS.blueRibbon,
+                            },
+                          },
+                        },
+
+                        "& .MuiSwitch-thumb": {
+                          width: "12.8px",
+                          height: "12.8px",
+                          borderRadius: 8,
+                          transition: theme.transitions.create(["width"], {
+                            duration: 200,
+                          }),
+                        },
+                      }}
+                      checked={unit === AmountUnit.SHARES}
+                      onChange={(e, checked) => handleUnitChange(e, checked)}
+                    />
+                  </Box>
                 </Box>
 
                 <NumberTextField
@@ -782,64 +853,6 @@ export const WrapperSection = ({
                     <TextfieldButton buttonText="Max" onClick={setMaxAmount} />
                   }
                 />
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    gap: "8px",
-                    alignItems: "center",
-                    marginTop: helperText ? "4px" : "0",
-                  }}
-                >
-                  <Typography
-                    variant={isMobile ? "mobText4" : "text4"}
-                    color={
-                      unit === AmountUnit.SHARES
-                        ? COLORS.blackRock
-                        : COLORS.manate
-                    }
-                  >
-                    Show in Shares
-                  </Typography>
-
-                  <Switch
-                    sx={{
-                      width: "28.8px",
-                      height: "16px",
-
-                      "&:active": {
-                        "& .MuiSwitch-thumb": {
-                          width: 12.8,
-                        },
-                      },
-
-                      "& .MuiSwitch-switchBase": {
-                        padding: "1.5px",
-
-                        "&.Mui-checked": {
-                          transform: "translateX(12.8px)",
-                          color: COLORS.white,
-
-                          "& + .MuiSwitch-track": {
-                            opacity: 1,
-                            backgroundColor: COLORS.blueRibbon,
-                          },
-                        },
-                      },
-
-                      "& .MuiSwitch-thumb": {
-                        width: "12.8px",
-                        height: "12.8px",
-                        borderRadius: 8,
-                        transition: theme.transitions.create(["width"], {
-                          duration: 200,
-                        }),
-                      },
-                    }}
-                    checked={unit === AmountUnit.SHARES}
-                    onChange={(e, checked) => handleUnitChange(e, checked)}
-                  />
-                </Box>
               </Box>
 
               <Box
@@ -993,13 +1006,13 @@ export const WrapperSection = ({
         </>
       )}
 
-      {!isMobileOpenState && isMobile && (
+      {!isMobileOpenState && isMobile && isLender && (
         <Box sx={{ display: "flex", gap: "8px" }}>
           <Button
             variant="contained"
             size="large"
             fullWidth
-            onClick={() => handleOpenSection(TokenWrapperFormTabs.WRAP)}
+            onClick={() => handleOpenSection(WrapDebtTokenTab.WRAP)}
           >
             Wrap
           </Button>
@@ -1008,7 +1021,7 @@ export const WrapperSection = ({
             variant="contained"
             size="large"
             fullWidth
-            onClick={() => handleOpenSection(TokenWrapperFormTabs.UNWRAP)}
+            onClick={() => handleOpenSection(WrapDebtTokenTab.UNWRAP)}
           >
             Unwrap
           </Button>

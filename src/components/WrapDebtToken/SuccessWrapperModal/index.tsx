@@ -7,6 +7,7 @@ import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import ConfettiPattern from "@/assets/icons/confetti_pattern.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { COLORS } from "@/theme/colors"
 
 export type SuccessWrapperModalProps = {
   isWrapping: boolean
@@ -85,6 +86,14 @@ export const SuccessWrapperModal = ({
       <Typography variant="text1" sx={{ marginBottom: "8px" }}>
         {initialAmount} {initialAsset} {isWrapping ? "wrapped" : "unwrapped"}{" "}
         {isWrapping ? "in" : "to"} {finalAsset} {finalAmount}
+      </Typography>
+
+      <Typography
+        variant="text3"
+        color={COLORS.manate}
+        sx={{ marginBottom: "30px" }}
+      >
+        You can close the modal window.
       </Typography>
 
       {txHash !== "" && txHash !== undefined && (

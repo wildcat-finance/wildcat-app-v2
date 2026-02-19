@@ -4,7 +4,7 @@ import * as React from "react"
 import { useEffect } from "react"
 
 import { Box, Divider, Skeleton } from "@mui/material"
-import { MarketVersion } from "@wildcatfi/wildcat-sdk"
+import { MarketVersion, SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart"
@@ -19,6 +19,8 @@ import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccoun
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { useTokenWrapper } from "@/hooks/wrapper/useTokenWrapper"
+import { useWrapperForMarket } from "@/hooks/wrapper/useWrapperForMarket"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
@@ -65,6 +67,22 @@ export default function MarketDetails({
   const prevURL = sessionStorage.getItem("previousPageUrl")
   const { data: marketMla, isLoading: isLoadingMarketMla } = useMarketMla(
     marketAccount?.market.address,
+  )
+
+  const {
+    wrapperAddress,
+    hasWrapper,
+    hasFactory,
+    isLoading: isWrapperLookupLoading,
+  } = useWrapperForMarket(market)
+
+  const {
+    data: wrapper,
+    isLoading: isWrapperLoading,
+    isError: isWrapperError,
+  } = useTokenWrapper(
+    market?.chainId as SupportedChainId | undefined,
+    wrapperAddress,
   )
 
   useEffect(() => {
@@ -230,7 +248,12 @@ export default function MarketDetails({
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketStatusChart market={market} />
               <Divider sx={{ margin: "32px 0 44px" }} />
-              <MarketParameters market={market} viewerType="borrower" />
+              <MarketParameters
+                market={market}
+                wrapper={wrapper}
+                hasWrapper={hasWrapper}
+                viewerType="borrower"
+              />
             </Box>
           )}
 
@@ -295,7 +318,15 @@ export default function MarketDetails({
           )}
           {checked === 8 && (
             <Box sx={SlideContentContainer} marginTop="4px">
-              <WrapDebtToken market={market} />
+              <WrapDebtToken
+                market={market}
+                wrapper={wrapper}
+                hasWrapper={hasWrapper}
+                hasFactory={hasFactory}
+                isWrapperLoading={isWrapperLoading}
+                isWrapperLookupLoading={isWrapperLookupLoading}
+                isWrapperError={isWrapperError}
+              />
             </Box>
           )}
         </Box>
