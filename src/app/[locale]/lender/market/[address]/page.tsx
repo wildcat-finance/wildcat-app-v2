@@ -352,18 +352,6 @@ export default function LenderMarketDetails({
         >
           <MarketHeader marketAccount={marketAccount} mla={mla} />
 
-          <WrapDebtToken
-            market={market}
-            wrapper={wrapper}
-            hasWrapper={hasWrapper}
-            hasFactory={hasFactory}
-            isWrapperLoading={isWrapperLoading}
-            isWrapperLookupLoading={isWrapperLookupLoading}
-            isWrapperError={isWrapperError}
-            isAuthorizedLender={authorizedInMarket as boolean}
-            isDifferentChain={isDifferentChain}
-          />
-
           <Box id="depositWithdraw">
             <BarCharts
               marketAccount={marketAccount}
@@ -375,6 +363,7 @@ export default function LenderMarketDetails({
           <Box id="status">
             <MarketParameters
               market={market}
+              viewerType="lender"
               wrapper={wrapper}
               hasWrapper={hasWrapper}
             />
@@ -392,6 +381,18 @@ export default function LenderMarketDetails({
               setIsMLAOpen={setIsMobileMLAOpen}
             />
           </Box>
+
+          <WrapDebtToken
+            market={market}
+            wrapper={wrapper}
+            hasWrapper={hasWrapper}
+            hasFactory={hasFactory}
+            isWrapperLoading={isWrapperLoading}
+            isWrapperLookupLoading={isWrapperLookupLoading}
+            isWrapperError={isWrapperError}
+            isAuthorizedLender={authorizedInMarket as boolean}
+            isDifferentChain={isDifferentChain}
+          />
 
           {(authorizedInMarket || isDifferentChain) && (
             <MobileMarketActions
@@ -447,6 +448,7 @@ export default function LenderMarketDetails({
               <Divider sx={{ margin: "40px 0 44px" }} />
               <MarketParameters
                 market={market}
+                viewerType="lender"
                 wrapper={wrapper}
                 hasWrapper={hasWrapper}
               />

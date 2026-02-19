@@ -1004,7 +1004,7 @@
       "marketHistory": "Market History",
       "borrowerProfile": "About Borrower",
       "description": "Market Description",
-      "wrapDebtToken": "Wrap Debt Token"
+      "wrapDebtToken": "Wrapped Debt Token"
     },
     "buttons": {
       "addToken": "Add Debt Token To Wallet",

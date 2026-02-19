@@ -27,7 +27,7 @@ import { MarketDeployedEvent } from "@wildcatfi/wildcat-sdk/dist/typechain/Hooks
 import { constants } from "ethers"
 import { parseUnits } from "ethers/lib/utils"
 
-import { toastError, toastRequest } from "@/components/Toasts"
+import { toastError, toastRequest, toastSuccess } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
@@ -94,6 +94,40 @@ export const useDeployV2Market = () => {
 
   const [deployedMarket, setDeployedMarket] = useState<string | undefined>()
 
+  type DeployStep = "mockToken" | "market" | "wrapper"
+
+  const getDeploySteps = ({
+    includeMockToken,
+    includeWrapper,
+  }: {
+    includeMockToken: boolean
+    includeWrapper: boolean
+  }) =>
+    [
+      ...(includeMockToken ? (["mockToken"] as DeployStep[]) : []),
+      "market",
+      ...(includeWrapper ? (["wrapper"] as DeployStep[]) : []),
+    ] as DeployStep[]
+
+  const getStepToastConfig = (
+    steps: ReturnType<typeof getDeploySteps>,
+    step: DeployStep,
+    messages: { pending: string; success: string; error: string },
+  ) => {
+    const currentIndex = steps.indexOf(step)
+    if (currentIndex === -1) {
+      throw new Error(`Unknown deployment step: ${step}`)
+    }
+    const position = currentIndex + 1
+    const total = steps.length
+
+    return {
+      pending: `Step ${position}/${total}: ${messages.pending}`,
+      success: `Step ${position}/${total}: ${messages.success}`,
+      error: `Step ${position}/${total}: ${messages.error}`,
+    }
+  }
+
   const {
     mutate: deployNewMarket,
     isPending: isDeploying,
@@ -116,6 +150,11 @@ export const useDeployV2Market = () => {
         return
       }
 
+      const includeMockTokenStep = !!isTestnet && !isConnectedToSafe
+      const deploymentSteps = getDeploySteps({
+        includeMockToken: includeMockTokenStep,
+        includeWrapper: !!deployWrapper,
+      })
       let marketAddress: string | undefined
       if (deployedMarket) {
         marketAddress = deployedMarket
@@ -156,11 +195,11 @@ export const useDeployV2Market = () => {
                 assetData.name,
                 assetData.symbol,
               ).then((t) => t.token),
-              {
-                pending: "Step 1/2: Deploying Mock Token...",
-                success: "Step 1/2: Mock Token Deployed Successfully!",
-                error: "Step 1/2: Mock Token Deployment Failed.",
-              },
+              getStepToastConfig(deploymentSteps, "mockToken", {
+                pending: "Deploying Mock Token..",
+                success: "Mock Token Deployed Successfully!",
+                error: "Mock Token Deployment Failed.",
+              }),
             )
           }
         } else {
@@ -197,9 +236,9 @@ export const useDeployV2Market = () => {
               await toastRequest(
                 archControllerOwner.registerBorrower(borrowerAddress),
                 {
-                  pending: "Adjusting: Registering Borrower...",
-                  success: "Adjusting: Borrower Registered Successfully",
-                  error: "Adjusting: Borrower Registration Failed",
+                  pending: "Prerequisite: Registering borrower...",
+                  success: "Prerequisite: Borrower registered",
+                  error: "Prerequisite: Borrower registration failed",
                 },
               )
             }
@@ -288,7 +327,14 @@ export const useDeployV2Market = () => {
           }
         }
 
-        const receipt = await send()
+        const receipt = await toastRequest(
+          send(),
+          getStepToastConfig(deploymentSteps, "market", {
+            pending: "Deploying Market..",
+            success: "Market Deployed Successfully!",
+            error: "Market Deployment Failed.",
+          }),
+        )
         const marketDeployedTopic =
           hooksTemplate.contract.interface.getEventTopic("MarketDeployed")
 
@@ -344,12 +390,19 @@ export const useDeployV2Market = () => {
               )
               return wrapper
             })(),
-            {
-              pending: "Deploying Wrapper...",
+            getStepToastConfig(deploymentSteps, "wrapper", {
+              pending: "Deploying Wrapper..",
               success: "Wrapper Deployed Successfully!",
               error: "Wrapper Deployment Failed.",
-            },
+            }),
           )
+        } else {
+          const { success } = getStepToastConfig(deploymentSteps, "wrapper", {
+            pending: "Deploying Wrapper..",
+            success: "Wrapper Deployed Successfully!",
+            error: "Wrapper Deployment Failed.",
+          })
+          toastSuccess(`${success} (already deployed)`)
         }
       }
 

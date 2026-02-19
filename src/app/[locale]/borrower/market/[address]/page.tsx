@@ -230,7 +230,7 @@ export default function MarketDetails({
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketStatusChart market={market} />
               <Divider sx={{ margin: "32px 0 44px" }} />
-              <MarketParameters market={market} />
+              <MarketParameters market={market} viewerType="borrower" />
             </Box>
           )}
 

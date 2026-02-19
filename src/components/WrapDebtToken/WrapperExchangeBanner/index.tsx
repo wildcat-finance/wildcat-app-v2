@@ -15,6 +15,8 @@ export type WrapperExchangeBannerProps = {
   shareBalance?: TokenAmount
   marketSymbol?: string
   shareSymbol?: string
+  convertedShareValue?: string
+  convertedShareSymbol?: string
 }
 
 const BannerItem = ({
@@ -78,6 +80,8 @@ export const WrapperExchangeBanner = ({
   shareBalance,
   marketSymbol,
   shareSymbol,
+  convertedShareValue,
+  convertedShareSymbol,
 }: WrapperExchangeBannerProps = {}) => {
   const isMobile = useMobileResolution()
   const isMobileOpenState = useAppSelector(
@@ -91,8 +95,8 @@ export const WrapperExchangeBanner = ({
     <Box
       sx={{
         display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
+        flexDirection: "column",
+        gap: "8px",
         padding: "16px",
         background: isMobileOpenState ? COLORS.hintOfRed : "transparent",
         borderRadius: "12px",
@@ -136,29 +140,48 @@ export const WrapperExchangeBanner = ({
       {/*  </Box> */}
       {/* </Box> */}
 
-      <BannerItem
-        title="Market tokens"
-        tooltip="Balance of market (debt) tokens in your wallet."
-        value={marketValue}
-        symbol={marketSymbol || ""}
-        align="start"
-        isMobile={isMobile}
-      />
-
-      <SvgIcon
-        sx={{ fontSize: "20px", "& path": { fill: COLORS.matteSilver } }}
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
       >
-        <Change />
-      </SvgIcon>
+        <BannerItem
+          title="Market tokens"
+          tooltip="Balance of market (debt) tokens in your wallet."
+          value={marketValue}
+          symbol={marketSymbol || ""}
+          align="start"
+          isMobile={isMobile}
+        />
 
-      <BannerItem
-        title="Wrapped tokens"
-        tooltip="Balance of wrapped (ERC-4626 share) tokens in your wallet."
-        value={shareValue}
-        symbol={shareSymbol || ""}
-        align="end"
-        isMobile={isMobile}
-      />
+        <SvgIcon
+          sx={{ fontSize: "20px", "& path": { fill: COLORS.matteSilver } }}
+        >
+          <Change />
+        </SvgIcon>
+
+        <BannerItem
+          title="Wrapped tokens"
+          tooltip="Balance of wrapped (ERC-4626 share) tokens in your wallet."
+          value={shareValue}
+          symbol={shareSymbol || ""}
+          align="end"
+          isMobile={isMobile}
+        />
+      </Box>
+
+      {convertedShareValue && convertedShareSymbol && (
+        <Typography
+          variant={isMobile ? "mobText4" : "text4"}
+          color={COLORS.manate}
+          sx={{ width: "100%", textAlign: "right" }}
+        >
+          Wrapped holdings value: ~ {convertedShareValue} {convertedShareSymbol}
+        </Typography>
+      )}
 
       {/* <Box */}
       {/*  sx={{ */}

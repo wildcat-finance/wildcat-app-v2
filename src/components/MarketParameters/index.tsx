@@ -55,7 +55,7 @@ const WrapperChip = ({ hasWrapper }: { hasWrapper?: boolean }) => (
     />
 
     <Typography variant="text4" color={hasWrapper ? "#19965A" : COLORS.dullRed}>
-      {hasWrapper ? "Active" : "Unactive"}
+      {hasWrapper ? "Active" : "Inactive"}
     </Typography>
   </Box>
 )
@@ -79,6 +79,7 @@ const AdoptionStats = ({
 
 export const MarketParameters = ({
   market,
+  viewerType,
   wrapper,
   hasWrapper,
 }: MarketParametersProps) => {
@@ -105,6 +106,10 @@ export const MarketParameters = ({
   const shareValue = balances?.shareBalance
     ? formatTokenWithCommas(balances?.shareBalance)
     : "0"
+  const adoptionStatsTooltip =
+    viewerType === "lender"
+      ? "Your Market (debt) tokens vs the amount of wrapped Market debt (tokens)"
+      : "The total amount of Market (debt) tokens vs the total amount of wrapped Market (debt) tokens"
 
   const [gracePeriodLabel, gracePeriodTimer] =
     timeDelinquent > delinquencyGracePeriod
@@ -260,7 +265,7 @@ export const MarketParameters = ({
           <Divider sx={{ margin: "12px 0 12px" }} />
 
           <ParametersItem
-            title="Wrapper Address"
+            title="Wrapper"
             value=""
             valueComponent={<WrapperChip hasWrapper={hasWrapper} />}
           />
@@ -282,7 +287,7 @@ export const MarketParameters = ({
             <>
               <ParametersItem
                 title="Adoption Stats"
-                tooltipText="TBD"
+                tooltipText={adoptionStatsTooltip}
                 value=""
                 valueComponent={
                   <AdoptionStats

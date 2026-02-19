@@ -58,14 +58,6 @@ export const WrapperSuccessBanner = ({
         {initialAmount} {initialAsset} {isWrapping ? "wrapped" : "unwrapped"}{" "}
         {isWrapping ? "in" : "to"} {finalAsset} {finalAmount}
       </Typography>
-      <Typography
-        variant="mobText3"
-        textAlign="center"
-        color={COLORS.manate}
-        sx={{ marginBottom: "30px" }}
-      >
-        Any other message. You can close the window.
-      </Typography>
 
       {txHash !== "" && txHash !== undefined && (
         <LinkGroup

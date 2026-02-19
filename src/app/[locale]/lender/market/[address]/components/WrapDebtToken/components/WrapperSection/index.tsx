@@ -77,6 +77,13 @@ enum AmountUnit {
   SHARES = "shares",
 }
 
+type SuccessSnapshot = {
+  initialAmount: string
+  initialAsset: string
+  finalAmount: string
+  finalAsset: string
+}
+
 export type WrapperSectionProps = {
   market: Market | undefined
   wrapper: TokenWrapper
@@ -123,6 +130,10 @@ export const WrapperSection = ({
   const [showError, setShowError] = React.useState(false)
   const [errorMessage, setErrorMessage] = React.useState<string | undefined>()
   const [txHash, setTxHash] = React.useState<string | undefined>()
+  const [isSubmitTransitioning, setIsSubmitTransitioning] =
+    React.useState(false)
+  const [successSnapshot, setSuccessSnapshot] =
+    React.useState<SuccessSnapshot | null>(null)
 
   const { data: balances } = useWrapperBalances(
     market?.chainId,
@@ -209,7 +220,7 @@ export const WrapperSection = ({
       wrapper.address,
       balances?.shareBalance?.raw.toString(),
     ),
-    enabled: !!balances?.shareBalance && !isWrapTab && isAssetsInput,
+    enabled: !!balances?.shareBalance,
     queryFn: async () => {
       if (!balances?.shareBalance) throw new Error("Missing share balance")
       return wrapper.previewRedeem(balances.shareBalance)
@@ -311,7 +322,8 @@ export const WrapperSection = ({
         })}`
       : undefined
 
-  const helperText = maxError || balanceError
+  const baseHelperText = maxError || balanceError
+  const helperText = isSubmitTransitioning ? undefined : baseHelperText
 
   const hasPreviewRequired =
     (isWrapTab && !isAssetsInput) || (!isWrapTab && isAssetsInput)
@@ -334,6 +346,7 @@ export const WrapperSection = ({
 
   const shouldDisableSubmit =
     !isAuthorizedLender ||
+    isSubmitTransitioning ||
     isDifferentChain ||
     !signer ||
     !Signer.isSigner(signer) ||
@@ -377,6 +390,8 @@ export const WrapperSection = ({
   ) => {
     setTab(newTab)
     setAmount("")
+    setIsSubmitTransitioning(false)
+    setSuccessSnapshot(null)
     setShowError(false)
     setShowSuccess(false)
     setErrorMessage(undefined)
@@ -388,6 +403,8 @@ export const WrapperSection = ({
   ) => {
     setUnit(checked ? AmountUnit.SHARES : AmountUnit.ASSETS)
     setAmount("")
+    setIsSubmitTransitioning(false)
+    setSuccessSnapshot(null)
     setShowError(false)
     setShowSuccess(false)
     setErrorMessage(undefined)
@@ -396,6 +413,8 @@ export const WrapperSection = ({
   const handleClose = () => {
     setShowSuccess(false)
     setAmount("")
+    setIsSubmitTransitioning(false)
+    setSuccessSnapshot(null)
   }
 
   const waitForSafeTransaction = async (safeTxHash: string) => {
@@ -494,6 +513,13 @@ export const WrapperSection = ({
 
   const submitMutation = useMutation({
     onMutate: () => {
+      setIsSubmitTransitioning(true)
+      setSuccessSnapshot({
+        initialAmount: inputAmount ? formatTokenWithCommas(inputAmount) : "0",
+        initialAsset: inputToken.symbol,
+        finalAmount: outputAmount ? formatTokenWithCommas(outputAmount) : "0",
+        finalAsset: outputToken.symbol,
+      })
       setShowError(false)
       setErrorMessage(undefined)
       setTxHash(undefined)
@@ -605,9 +631,12 @@ export const WrapperSection = ({
           address,
         ),
       })
+      setAmount("")
       setShowSuccess(true)
     },
     onError: (error: Error) => {
+      setIsSubmitTransitioning(false)
+      setSuccessSnapshot(null)
       setErrorMessage(error.message)
       setShowError(true)
     },
@@ -620,6 +649,13 @@ export const WrapperSection = ({
   const formattedOutput = outputAmount
     ? formatTokenWithCommas(outputAmount)
     : "0"
+  const convertedShareValue = maxAssetsFromShares
+    ? formatTokenWithCommas(maxAssetsFromShares)
+    : undefined
+  const successInitialAmount = successSnapshot?.initialAmount
+  const successInitialAsset = successSnapshot?.initialAsset
+  const successFinalAmount = successSnapshot?.finalAmount
+  const successFinalAsset = successSnapshot?.finalAsset
 
   // Mobile
   const isMobile = useMobileResolution()
@@ -629,7 +665,13 @@ export const WrapperSection = ({
 
   const dispatch = useAppDispatch()
 
-  const handleOpenSection = () => {
+  const handleOpenSection = (nextTab: TokenWrapperFormTabs) => {
+    setTab(nextTab)
+    setIsSubmitTransitioning(false)
+    setSuccessSnapshot(null)
+    setShowError(false)
+    setShowSuccess(false)
+    setErrorMessage(undefined)
     dispatch(setIsMobileOpenedState(true))
   }
 
@@ -667,6 +709,8 @@ export const WrapperSection = ({
         shareBalance={balances?.shareBalance}
         marketSymbol={wrapper.marketToken.symbol}
         shareSymbol={wrapper.shareToken.symbol}
+        convertedShareValue={convertedShareValue}
+        convertedShareSymbol={wrapper.marketToken.symbol}
       />
 
       {isMobileOpenState && (
@@ -727,12 +771,26 @@ export const WrapperSection = ({
                   label="Amount"
                   error={!!helperText}
                   helperText={helperText}
+                  FormHelperTextProps={{
+                    sx: {
+                      minHeight: "16px",
+                      whiteSpace: "normal",
+                      overflowWrap: "anywhere",
+                    },
+                  }}
                   endAdornment={
                     <TextfieldButton buttonText="Max" onClick={setMaxAmount} />
                   }
                 />
 
-                <Box sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: "8px",
+                    alignItems: "center",
+                    marginTop: helperText ? "4px" : "0",
+                  }}
+                >
                   <Typography
                     variant={isMobile ? "mobText4" : "text4"}
                     color={
@@ -914,14 +972,10 @@ export const WrapperSection = ({
               isWrapping={isWrapTab}
               open={showSuccess && !isMobile}
               onClose={handleClose}
-              initialAmount={
-                inputAmount ? formatTokenWithCommas(inputAmount) : "0"
-              }
-              initialAsset={inputToken.symbol}
-              finalAmount={
-                outputAmount ? formatTokenWithCommas(outputAmount) : "0"
-              }
-              finalAsset={outputToken.symbol}
+              initialAmount={successInitialAmount}
+              initialAsset={successInitialAsset ?? inputToken.symbol}
+              finalAmount={successFinalAmount}
+              finalAsset={successFinalAsset ?? outputToken.symbol}
               txHash={txHash}
             />
           )}
@@ -930,14 +984,10 @@ export const WrapperSection = ({
             isWrapping={isWrapTab}
             open={showSuccess && !isMobile}
             onClose={handleClose}
-            initialAmount={
-              inputAmount ? formatTokenWithCommas(inputAmount) : "0"
-            }
-            initialAsset={inputToken.symbol}
-            finalAmount={
-              outputAmount ? formatTokenWithCommas(outputAmount) : "0"
-            }
-            finalAsset={outputToken.symbol}
+            initialAmount={successInitialAmount}
+            initialAsset={successInitialAsset ?? inputToken.symbol}
+            finalAmount={successFinalAmount}
+            finalAsset={successFinalAsset ?? outputToken.symbol}
             txHash={txHash}
           />
         </>
@@ -949,7 +999,7 @@ export const WrapperSection = ({
             variant="contained"
             size="large"
             fullWidth
-            onClick={handleOpenSection}
+            onClick={() => handleOpenSection(TokenWrapperFormTabs.WRAP)}
           >
             Wrap
           </Button>
@@ -958,7 +1008,7 @@ export const WrapperSection = ({
             variant="contained"
             size="large"
             fullWidth
-            onClick={handleOpenSection}
+            onClick={() => handleOpenSection(TokenWrapperFormTabs.UNWRAP)}
           >
             Unwrap
           </Button>
