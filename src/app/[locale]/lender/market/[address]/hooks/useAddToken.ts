@@ -21,31 +21,14 @@ export function useAddToken(token?: WatchableToken) {
 
     setIsAddingToken(true)
     try {
-      const params = {
-        type: "ERC20" as const,
+      await walletClient.watchAsset({
+        type: "ERC20",
         options: {
           address: token.address,
           symbol: token.symbol,
-          decimals: Number(token.decimals),
+          decimals: token.decimals,
         },
-      }
-
-      if (
-        typeof window !== "undefined" &&
-        (window as typeof window & { ethereum?: { isMetaMask?: boolean } })
-          .ethereum?.isMetaMask
-      ) {
-        await (
-          window as typeof window & {
-            ethereum?: { request?: (args: unknown) => Promise<unknown> }
-          }
-        ).ethereum?.request?.({
-          method: "wallet_watchAsset",
-          params,
-        })
-      } else {
-        await walletClient.watchAsset(params)
-      }
+      })
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to add token"
