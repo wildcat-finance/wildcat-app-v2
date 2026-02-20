@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react"
 
-import { useWalletClient } from "wagmi"
+import { useAccount } from "wagmi"
 
 import { toastError } from "@/components/Toasts"
 
@@ -11,22 +11,32 @@ type WatchableToken = {
 }
 
 export function useAddToken(token?: WatchableToken) {
-  const { data: walletClient } = useWalletClient()
+  const { connector } = useAccount()
   const [isAddingToken, setIsAddingToken] = useState(false)
 
-  const canAddToken = !!token && !!walletClient
+  const canAddToken = !!token && !!connector
 
   const handleAddToken = useCallback(async () => {
-    if (!token || !walletClient) return
+    if (!token || !connector) return
 
     setIsAddingToken(true)
     try {
-      await walletClient.watchAsset({
-        type: "ERC20",
-        options: {
-          address: token.address,
-          symbol: token.symbol,
-          decimals: token.decimals,
+      const provider = (await connector.getProvider()) as {
+        request: (args: {
+          method: string
+          params: Record<string, unknown>
+        }) => Promise<boolean>
+      }
+
+      await provider.request({
+        method: "wallet_watchAsset",
+        params: {
+          type: "ERC20",
+          options: {
+            address: String(token.address),
+            symbol: String(token.symbol).slice(0, 11),
+            decimals: Number(token.decimals),
+          },
         },
       })
     } catch (error) {
@@ -36,7 +46,7 @@ export function useAddToken(token?: WatchableToken) {
     } finally {
       setIsAddingToken(false)
     }
-  }, [token, walletClient])
+  }, [token, connector])
 
   return { canAddToken, handleAddToken, isAddingToken }
 }
