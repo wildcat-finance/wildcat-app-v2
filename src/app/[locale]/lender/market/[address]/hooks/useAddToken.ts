@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react"
 
-import { useAccount, useWalletClient } from "wagmi"
+import { useWalletClient } from "wagmi"
 
 import { toastError } from "@/components/Toasts"
 
@@ -12,21 +12,12 @@ type WatchableToken = {
 
 export function useAddToken(token?: WatchableToken) {
   const { data: walletClient } = useWalletClient()
-  const { connector } = useAccount()
   const [isAddingToken, setIsAddingToken] = useState(false)
 
-  const supportsWatchAsset =
-    connector?.type === "injected" || connector?.type === "metaMask"
-  const canAddToken = !!token && !!walletClient && supportsWatchAsset
+  const canAddToken = !!token && !!walletClient
 
   const handleAddToken = useCallback(async () => {
     if (!token || !walletClient) return
-    if (!supportsWatchAsset) {
-      toastError(
-        "Adding tokens is only supported in MetaMask (in-app browser or extension).",
-      )
-      return
-    }
 
     setIsAddingToken(true)
     try {
@@ -44,46 +35,25 @@ export function useAddToken(token?: WatchableToken) {
         (window as typeof window & { ethereum?: { isMetaMask?: boolean } })
           .ethereum?.isMetaMask
       ) {
-        const metaMaskRequest = (
+        await (
           window as typeof window & {
             ethereum?: { request?: (args: unknown) => Promise<unknown> }
           }
-        ).ethereum?.request
-
-        if (metaMaskRequest) {
-          try {
-            await metaMaskRequest({
-              method: "wallet_watchAsset",
-              params,
-            })
-            return
-          } catch (error) {
-            try {
-              await metaMaskRequest({
-                method: "wallet_watchAsset",
-                params: [params],
-              })
-              return
-            } catch (fallbackError) {
-              throw fallbackError ?? error
-            }
-          }
-        }
+        ).ethereum?.request?.({
+          method: "wallet_watchAsset",
+          params,
+        })
+      } else {
+        await walletClient.watchAsset(params)
       }
-
-      await walletClient.watchAsset(params)
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : typeof error === "string"
-            ? error
-            : JSON.stringify(error)
-      toastError(message || "Failed to add token")
+        error instanceof Error ? error.message : "Failed to add token"
+      toastError(message)
     } finally {
       setIsAddingToken(false)
     }
-  }, [token, walletClient, supportsWatchAsset])
+  }, [token, walletClient])
 
   return { canAddToken, handleAddToken, isAddingToken }
 }
