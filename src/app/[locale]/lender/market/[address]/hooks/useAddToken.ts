@@ -1,42 +1,48 @@
-import { useCallback, useState } from "react"
-
-import { useWalletClient } from "wagmi"
+import { useMutation } from "@tanstack/react-query"
+import { useAccount, useWalletClient } from "wagmi"
 
 import { toastError } from "@/components/Toasts"
 
-type WatchableToken = {
+type NewToken = {
   address: string
+  name: string
   symbol: string
   decimals: number
 }
 
-export function useAddToken(token?: WatchableToken) {
+export function useAddToken(token?: NewToken) {
   const { data: walletClient } = useWalletClient()
-  const [isAddingToken, setIsAddingToken] = useState(false)
+  const { connector } = useAccount()
+  const supportsWatchAsset =
+    connector?.type === "injected" || connector?.type === "metaMask"
+  const canAddToken = !!token && !!walletClient && supportsWatchAsset
 
-  const canAddToken = !!token && !!walletClient
+  const { mutate: handleAddToken, isPending: isAddingToken } = useMutation({
+    mutationFn: async () => {
+      if (!token) throw new Error("Missing token")
+      if (!walletClient || !connector) {
+        throw new Error("Connect a wallet to add this token")
+      }
+      if (!supportsWatchAsset) {
+        throw new Error(
+          "Adding tokens is only supported in MetaMask (in-app browser or extension).",
+        )
+      }
 
-  const handleAddToken = useCallback(async () => {
-    if (!token || !walletClient) return
+      const { address, symbol, decimals, name } = token!
 
-    setIsAddingToken(true)
-    try {
-      await walletClient.watchAsset({
-        type: "ERC20",
-        options: {
-          address: token.address,
-          symbol: token.symbol,
-          decimals: token.decimals,
+      return walletClient!.request({
+        method: "wallet_watchAsset",
+        params: {
+          type: "ERC20",
+          options: { address, symbol, decimals, name },
         },
       })
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to add token"
-      toastError(message)
-    } finally {
-      setIsAddingToken(false)
-    }
-  }, [token, walletClient])
+    },
+    onError: (error: Error) => {
+      toastError(error.message)
+    },
+  })
 
   return { canAddToken, handleAddToken, isAddingToken }
 }
