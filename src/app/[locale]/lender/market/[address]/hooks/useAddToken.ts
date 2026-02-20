@@ -9,7 +9,6 @@ export type NewToken = {
   address: Address | string
   symbol: string
   decimals: number
-  image?: string
   chainId?: number
   name?: string
 }
@@ -20,7 +19,6 @@ type WalletWatchAssetParams = {
     address: Address
     symbol: string
     decimals: number
-    image?: string
   }
 }
 
@@ -145,7 +143,6 @@ export function useAddToken(token?: NewToken) {
           address: getAddress(t.address),
           symbol: normalizeSymbol(t.symbol),
           decimals: t.decimals,
-          ...(t.image ? { image: t.image } : {}),
         },
       }
 
