@@ -1,48 +1,42 @@
-import { useMutation } from "@tanstack/react-query"
-import { useAccount, useWalletClient } from "wagmi"
+import { useCallback, useState } from "react"
+
+import { useWalletClient } from "wagmi"
 
 import { toastError } from "@/components/Toasts"
 
-type NewToken = {
+type WatchableToken = {
   address: string
-  name: string
   symbol: string
   decimals: number
 }
 
-export function useAddToken(token?: NewToken) {
+export function useAddToken(token?: WatchableToken) {
   const { data: walletClient } = useWalletClient()
-  const { connector } = useAccount()
-  const supportsWatchAsset =
-    connector?.type === "injected" || connector?.type === "metaMask"
-  const canAddToken = !!token && !!walletClient && supportsWatchAsset
+  const [isAddingToken, setIsAddingToken] = useState(false)
 
-  const { mutate: handleAddToken, isPending: isAddingToken } = useMutation({
-    mutationFn: async () => {
-      if (!token) throw new Error("Missing token")
-      if (!walletClient || !connector) {
-        throw new Error("Connect a wallet to add this token")
-      }
-      if (!supportsWatchAsset) {
-        throw new Error(
-          "Adding tokens is only supported in MetaMask (in-app browser or extension).",
-        )
-      }
+  const canAddToken = !!token && !!walletClient
 
-      const { address, symbol, decimals, name } = token!
+  const handleAddToken = useCallback(async () => {
+    if (!token || !walletClient) return
 
-      return walletClient!.request({
-        method: "wallet_watchAsset",
-        params: {
-          type: "ERC20",
-          options: { address, symbol, decimals, name },
+    setIsAddingToken(true)
+    try {
+      await walletClient.watchAsset({
+        type: "ERC20",
+        options: {
+          address: token.address,
+          symbol: token.symbol,
+          decimals: token.decimals,
         },
       })
-    },
-    onError: (error: Error) => {
-      toastError(error.message)
-    },
-  })
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to add token"
+      toastError(message)
+    } finally {
+      setIsAddingToken(false)
+    }
+  }, [token, walletClient])
 
   return { canAddToken, handleAddToken, isAddingToken }
 }
