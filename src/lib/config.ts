@@ -1,6 +1,7 @@
+import { AddEthereumChainParameter } from "viem"
 import { http, createConfig, createStorage, cookieStorage } from "wagmi"
 import { mainnet, sepolia } from "wagmi/chains"
-import { metaMask, safe, walletConnect } from "wagmi/connectors"
+import { safe, walletConnect } from "wagmi/connectors"
 
 import { plasmaMainnet } from "./chains/plasma-mainnet"
 import { plasmaTestnet } from "./chains/plasma-testnet"
@@ -39,7 +40,6 @@ export const config = createConfig({
       allowedDomains: [/gnosis-safe.io$/, /app.safe.global$/],
       debug: false,
     }),
-    metaMask(),
     /* coinbaseWallet({
       appName: "Wildcat",
       appLogoUrl: "https://avatars.githubusercontent.com/u/113041915?s=200&v=4",
