@@ -158,6 +158,16 @@ export const WrapperSection = ({
     isAddingToken: isAddingWrappedToken,
   } = useAddToken(wrapper.shareToken)
 
+  const handleAddMarketToken = () => {
+    if (!canAddMarketToken) return
+    addMarketToken(wrapper.marketToken)
+  }
+
+  const handleAddWrappedToken = () => {
+    if (!canAddWrappedToken) return
+    addWrappedToken(wrapper.shareToken)
+  }
+
   const isWrapTab = tab === WrapDebtTokenTab.WRAP
   const isAssetsInput = unit === AmountUnit.ASSETS
 
@@ -703,8 +713,8 @@ export const WrapperSection = ({
         contractAddress={wrapper.address}
         wrapperName={wrapper.name}
         wrapperSymbol={wrapper.symbol}
-        onAddMarketToken={addMarketToken}
-        onAddWrappedToken={addWrappedToken}
+        onAddMarketToken={handleAddMarketToken}
+        onAddWrappedToken={handleAddWrappedToken}
         disableAddMarketToken={!canAddMarketToken || isAddingMarketToken}
         disableAddWrappedToken={!canAddWrappedToken || isAddingWrappedToken}
       />
