@@ -171,7 +171,7 @@ export const MarketActions = ({
           size="small"
           sx={{ height: "28px" }}
           onClick={() => handleAddToken()}
-          disabled={isAddingToken && canAddToken}
+          disabled={!canAddToken || isAddingToken}
         >
           {t("lenderMarketDetails.buttons.addToken")}
         </Button>
