@@ -10,6 +10,39 @@ type WatchableToken = {
   decimals: number
 }
 
+const safeStringify = (value: unknown) => {
+  try {
+    if (value && typeof value === "object") {
+      return JSON.stringify(value, Object.getOwnPropertyNames(value))
+    }
+    return JSON.stringify(value)
+  } catch {
+    return null
+  }
+}
+
+const formatErrorMessage = (error: unknown) => {
+  if (typeof error === "string") return error
+  if (error instanceof Error) {
+    if (error.message) return error.message
+    const json = safeStringify({
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      cause: error.cause,
+      ...error,
+    })
+    return json || String(error)
+  }
+  if (error && typeof error === "object") {
+    return safeStringify(error) || String(error)
+  }
+  if (typeof error === "number" || typeof error === "boolean") {
+    return String(error)
+  }
+  return "Failed to add token"
+}
+
 export function useAddToken(token?: WatchableToken) {
   const { data: walletClient } = useWalletClient()
   const { connector } = useAccount()
@@ -73,13 +106,7 @@ export function useAddToken(token?: WatchableToken) {
 
       await walletClient.watchAsset(params)
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : typeof error === "string"
-            ? error
-            : JSON.stringify(error)
-      toastError(message || "Failed to add token")
+      toastError(formatErrorMessage(error))
     } finally {
       setIsAddingToken(false)
     }
