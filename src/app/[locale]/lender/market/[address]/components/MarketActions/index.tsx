@@ -68,6 +68,12 @@ export const MarketActions = ({
     market?.marketToken,
   )
 
+  const handleAddTokenToWallet = () => {
+    if (canAddToken) {
+      handleAddToken(market.marketToken)
+    }
+  }
+
   const mlaResponse = mla && "noMLA" in mla ? null : mla
   const { data: signedMla, isLoading: signedMlaLoading } =
     useGetSignedMla(mlaResponse)
@@ -170,7 +176,7 @@ export const MarketActions = ({
           color="secondary"
           size="small"
           sx={{ height: "28px" }}
-          onClick={() => handleAddToken()}
+          onClick={handleAddTokenToWallet}
           disabled={isAddingToken && canAddToken}
         >
           {t("lenderMarketDetails.buttons.addToken")}
