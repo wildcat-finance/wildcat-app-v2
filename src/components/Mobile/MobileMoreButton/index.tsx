@@ -32,12 +32,6 @@ export const MobileMoreButton = ({
     market?.marketToken,
   )
 
-  const handleAddTokenToWallet = () => {
-    if (canAddToken) {
-      handleAddToken(market.marketToken)
-    }
-  }
-
   return (
     <>
       <Button
@@ -98,7 +92,7 @@ export const MobileMoreButton = ({
             variant="contained"
             color="secondary"
             size="medium"
-            onClick={handleAddTokenToWallet}
+            onClick={() => handleAddToken()}
             disabled={isAddingToken}
           >
             <Typography variant="mobText3SemiBold">
