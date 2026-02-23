@@ -32,6 +32,7 @@ import {
   MarketParametersContainerColumn,
 } from "./style"
 import { ParametersItem } from "../ParametersItem"
+import { TooltipButton } from "../TooltipButton"
 
 const WrapperChip = ({ hasWrapper }: { hasWrapper?: boolean }) => (
   <Box
@@ -60,21 +61,81 @@ const WrapperChip = ({ hasWrapper }: { hasWrapper?: boolean }) => (
   </Box>
 )
 
+const AdoptionStatsRow = ({
+  label,
+  amount,
+  asset,
+  pct,
+}: {
+  label: string
+  amount: string
+  asset: string
+  pct: string
+}) => (
+  <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+    <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
+      {label}
+    </Typography>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
+        width: "100%",
+      }}
+    >
+      <Typography variant="text3" sx={{ color: COLORS.blackRock }}>
+        {amount}
+      </Typography>
+      <Typography
+        variant="text3"
+        sx={{ color: COLORS.greySuit, flex: "1 0 0" }}
+      >
+        {pct}%
+      </Typography>
+      <Typography variant="text4" sx={{ color: COLORS.blackRock }}>
+        {asset}
+      </Typography>
+    </Box>
+  </Box>
+)
+
 const AdoptionStats = ({
   marketAmount,
   marketAsset,
   sharesAmount,
   sharesAsset,
+  marketPct,
+  sharesPct,
 }: {
   marketAmount: string
   marketAsset: string
   sharesAmount: string
   sharesAsset: string
+  marketPct: string
+  sharesPct: string
 }) => (
-  <Typography variant="text3">
-    {marketAmount} {marketAsset} <span style={{ opacity: 0.3 }}>|</span>{" "}
-    {sharesAmount} {sharesAsset}
-  </Typography>
+  <Box
+    sx={{
+      display: "flex",
+      flexDirection: "column",
+      gap: "6px",
+      width: "100%",
+    }}
+  >
+    <AdoptionStatsRow
+      label="Original Token"
+      amount={marketAmount}
+      asset={marketAsset}
+      pct={marketPct}
+    />
+    <AdoptionStatsRow
+      label="Wrapped Token"
+      amount={sharesAmount}
+      asset={sharesAsset}
+      pct={sharesPct}
+    />
+  </Box>
 )
 
 export const MarketParameters = ({
@@ -106,6 +167,19 @@ export const MarketParameters = ({
   const shareValue = balances?.shareBalance
     ? formatTokenWithCommas(balances?.shareBalance)
     : "0"
+
+  const marketFloat = balances?.marketBalance
+    ? parseFloat(balances.marketBalance.format(balances.marketBalance.decimals))
+    : 0
+  const sharesFloat = balances?.shareBalance
+    ? parseFloat(balances.shareBalance.format(balances.shareBalance.decimals))
+    : 0
+  const adoptionTotal = marketFloat + sharesFloat
+  const marketPct =
+    adoptionTotal > 0 ? ((marketFloat / adoptionTotal) * 100).toFixed(0) : "0"
+  const sharesPct =
+    adoptionTotal > 0 ? ((sharesFloat / adoptionTotal) * 100).toFixed(0) : "0"
+
   const adoptionStatsTooltip =
     viewerType === "lender"
       ? "Your Market (debt) tokens vs the amount of wrapped Market debt (tokens)"
@@ -285,19 +359,29 @@ export const MarketParameters = ({
 
           {hasWrapper && wrapper && (
             <>
-              <ParametersItem
-                title="Adoption Stats"
-                tooltipText={adoptionStatsTooltip}
-                value=""
-                valueComponent={
-                  <AdoptionStats
-                    marketAmount={marketValue}
-                    marketAsset={wrapper.marketToken.symbol}
-                    sharesAmount={shareValue}
-                    sharesAsset={wrapper.shareToken.symbol}
-                  />
-                }
-              />
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "4px",
+                  width: "100%",
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
+                    Adoption Status
+                  </Typography>
+                  <TooltipButton value={adoptionStatsTooltip} />
+                </Box>
+                <AdoptionStats
+                  marketAmount={marketValue}
+                  marketAsset={wrapper.marketToken.symbol}
+                  sharesAmount={shareValue}
+                  sharesAsset={wrapper.shareToken.symbol}
+                  marketPct={marketPct}
+                  sharesPct={sharesPct}
+                />
+              </Box>
               <Divider sx={{ margin: "12px 0 12px" }} />
             </>
           )}
