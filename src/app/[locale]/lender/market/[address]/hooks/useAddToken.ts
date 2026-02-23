@@ -12,12 +12,6 @@ type NewToken = {
   decimals: number
 }
 
-type EIP1193Provider = {
-  request: (args: { method: string; params?: unknown }) => Promise<unknown>
-}
-
-const SUPPORTED_CONNECTOR_TYPES = ["injected", "walletConnect"]
-
 const TOAST_STYLE = {
   borderRadius: "24px",
   background: COLORS.blackRock,
@@ -25,67 +19,46 @@ const TOAST_STYLE = {
   fontFamily: "Roboto, sans-serif",
 }
 
-function getErrorMessage(err: unknown): string {
-  if (err instanceof Error) return err.message
-  if (err && typeof err === "object") {
-    const e = err as Record<string, unknown>
-    if (typeof e.message === "string") return e.message
-    // Full JSON dump for unknown shapes — useful for debugging
-    try {
-      return JSON.stringify(e)
-    } catch {
-      return String(err)
-    }
-  }
-  return String(err)
-}
+const isMobileDevice = (): boolean =>
+  typeof navigator !== "undefined" &&
+  /Android|iPhone|iPad|iPod|IEMobile|Mobile/i.test(navigator.userAgent)
 
 export function useAddToken(token?: NewToken) {
+  const { data: walletClient } = useWalletClient()
   const { connector } = useAccount()
 
   const canAddToken =
     !!token &&
-    !!connector?.type &&
-    SUPPORTED_CONNECTOR_TYPES.includes(connector.type)
+    (isMobileDevice() || (!!walletClient && connector?.type === "injected"))
 
   const { mutate: handleAddToken, isPending: isAddingToken } = useMutation({
     mutationFn: async () => {
       if (!token) throw new Error("No token provided")
-      if (!connector) throw new Error("No connector")
 
       const { address, symbol, decimals, name } = token
 
-      const options = {
-        address: String(address),
-        symbol: String(symbol),
-        decimals: Number(decimals),
-        name: String(name),
-      }
-
-      if (connector.type === "walletConnect") {
-        await navigator.clipboard?.writeText(options.address).catch(() => {})
+      if (isMobileDevice()) {
+        await navigator.clipboard?.writeText(address).catch(() => {})
         toastSuccess(
-          `Token address copied! Open MetaMask → Import tokens → paste address to add ${symbol}.`,
+          `Token address copied! Open your wallet and paste address to add ${symbol}.`,
         )
         return
       }
 
-      const provider = (await connector.getProvider()) as
-        | EIP1193Provider
-        | undefined
-
-      if (!provider) throw new Error("Provider not available")
+      if (!walletClient) throw new Error("No wallet client")
 
       await toast.promise(
-        provider.request({
+        walletClient.request({
           method: "wallet_watchAsset",
-          params: { type: "ERC20", options },
+          params: {
+            type: "ERC20",
+            options: { address, symbol, decimals, name },
+          },
         }),
         {
           loading: `Adding ${symbol} to wallet...`,
           success: `${symbol} added to wallet`,
-          error: (err: unknown) =>
-            `Failed to add token: ${getErrorMessage(err)}`,
+          error: "Failed to add token",
         },
         { style: TOAST_STYLE },
       )
