@@ -161,8 +161,23 @@ export const WrapperSection = ({
   const isWrapTab = tab === WrapDebtTokenTab.WRAP
   const isAssetsInput = unit === AmountUnit.ASSETS
 
-  const inputToken = isAssetsInput ? wrapper.marketToken : wrapper.shareToken
-  const outputToken = isAssetsInput ? wrapper.shareToken : wrapper.marketToken
+  // eslint-disable-next-line no-nested-ternary
+  const inputToken = isWrapTab
+    ? isAssetsInput
+      ? wrapper.marketToken
+      : wrapper.shareToken
+    : isAssetsInput
+      ? wrapper.shareToken
+      : wrapper.marketToken
+
+  // eslint-disable-next-line no-nested-ternary
+  const outputToken = isWrapTab
+    ? isAssetsInput
+      ? wrapper.shareToken
+      : wrapper.marketToken
+    : isAssetsInput
+      ? wrapper.marketToken
+      : wrapper.shareToken
 
   const inputAmount = React.useMemo(
     () => parseAmountSafe(inputToken, amount),
@@ -188,10 +203,11 @@ export const WrapperSection = ({
       if (isWrapTab && !isAssetsInput) {
         return wrapper.previewMint(inputAmount)
       }
+
       if (!isWrapTab && isAssetsInput) {
-        return wrapper.previewWithdraw(inputAmount)
+        return wrapper.previewRedeem(inputAmount)
       }
-      return wrapper.previewRedeem(inputAmount)
+      return wrapper.previewWithdraw(inputAmount)
     },
     refetchOnMount: false,
     refetchOnWindowFocus: false,
@@ -240,7 +256,7 @@ export const WrapperSection = ({
     if (isWrapTab) {
       return isAssetsInput ? limits.maxDeposit : limits.maxMint
     }
-    return isAssetsInput ? limits.maxWithdraw : limits.maxRedeem
+    return isAssetsInput ? limits.maxRedeem : limits.maxWithdraw
   }, [limits, isWrapTab, isAssetsInput])
 
   const maxInputAmount = React.useMemo(() => {
@@ -250,15 +266,15 @@ export const WrapperSection = ({
         return minTokenAmount(balances.marketBalance, maxLimit)
       }
       if (!maxSharesFromBalance) return undefined
-      const maxShares = minTokenAmount(maxSharesFromBalance, maxLimit)
-      return maxShares ?? undefined
+      return minTokenAmount(maxSharesFromBalance, maxLimit) ?? undefined
     }
+
     if (isAssetsInput) {
-      if (!maxAssetsFromShares) return undefined
-      return minTokenAmount(maxAssetsFromShares, maxLimit)
+      if (!balances?.shareBalance) return undefined
+      return minTokenAmount(balances.shareBalance, maxLimit)
     }
-    if (!balances?.shareBalance) return undefined
-    return minTokenAmount(balances.shareBalance, maxLimit)
+    if (!maxAssetsFromShares) return undefined
+    return minTokenAmount(maxAssetsFromShares, maxLimit)
   }, [
     balances,
     isAssetsInput,
@@ -270,7 +286,7 @@ export const WrapperSection = ({
 
   const maxActionLabel = React.useMemo(() => {
     if (isWrapTab) return isAssetsInput ? "deposit" : "mint"
-    return isAssetsInput ? "withdraw" : "redeem"
+    return isAssetsInput ? "redeem" : "withdraw"
   }, [isWrapTab, isAssetsInput])
 
   const exceedsMax = !!inputAmount && !!maxLimit && inputAmount.gt(maxLimit)
@@ -291,13 +307,14 @@ export const WrapperSection = ({
         return `Insufficient ${wrapper.marketToken.symbol} balance`
       }
     } else {
+      if (isAssetsInput && balances.shareBalance.lt(inputAmount)) {
+        return `Insufficient ${wrapper.shareToken.symbol} balance`
+      }
       if (
-        isAssetsInput &&
+        !isAssetsInput &&
         outputAmount &&
         balances.shareBalance.lt(outputAmount)
-      )
-        return `Insufficient ${wrapper.shareToken.symbol} balance`
-      if (!isAssetsInput && balances.shareBalance.lt(inputAmount)) {
+      ) {
         return `Insufficient ${wrapper.shareToken.symbol} balance`
       }
     }
@@ -359,7 +376,7 @@ export const WrapperSection = ({
     if (isWrapTab) {
       return isAssetsInput ? "Amount to wrap" : "Wrapped tokens to mint"
     }
-    return isAssetsInput ? "Market tokens to receive" : "Amount to unwrap"
+    return isAssetsInput ? "Amount to unwrap" : "Market tokens to receive"
   }, [isWrapTab, isAssetsInput])
 
   const outputLabel = React.useMemo(() => {
@@ -369,8 +386,8 @@ export const WrapperSection = ({
         : "Estimated market tokens required"
     }
     return isAssetsInput
-      ? "Estimated wrapped tokens required"
-      : "You'll receive market tokens"
+      ? "You'll receive market tokens"
+      : "Estimated wrapped tokens required"
   }, [isWrapTab, isAssetsInput])
 
   const maxTooltip =
@@ -570,13 +587,13 @@ export const WrapperSection = ({
         }
 
         if (isWrapTab && isAssetsInput) {
-          txs.push(wrapper.populateDeposit(inputAmount, address))
+          txs.push(wrapper.populateDeposit(inputAmount, address)) // market → share
         } else if (isWrapTab && !isAssetsInput) {
-          txs.push(wrapper.populateMint(inputAmount, address))
+          txs.push(wrapper.populateMint(inputAmount, address)) // share → market (exact out)
         } else if (!isWrapTab && isAssetsInput) {
-          txs.push(wrapper.populateWithdraw(inputAmount, address, address))
+          txs.push(wrapper.populateRedeem(inputAmount, address, address)) // share → market
         } else {
-          txs.push(wrapper.populateRedeem(inputAmount, address, address))
+          txs.push(wrapper.populateWithdraw(inputAmount, address, address)) // market → share (exact out)
         }
 
         const { safeTxHash } = await sdk.txs.send({ txs })
@@ -598,13 +615,12 @@ export const WrapperSection = ({
         return tx.hash
       }
       if (!isWrapTab && isAssetsInput) {
-        const tx = await wrapper.withdraw(inputAmount, address, address)
+        const tx = await wrapper.redeem(inputAmount, address, address)
         setTxHash(tx.hash)
         await tx.wait()
         return tx.hash
       }
-
-      const tx = await wrapper.redeem(inputAmount, address, address)
+      const tx = await wrapper.withdraw(inputAmount, address, address)
       setTxHash(tx.hash)
       await tx.wait()
       return tx.hash
