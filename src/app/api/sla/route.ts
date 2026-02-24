@@ -43,6 +43,17 @@ export async function POST(request: NextRequest) {
   if (!result) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
+  const existingSignature =
+    await prisma.lenderServiceAgreementSignature.findFirst({
+      where: {
+        chainId: body.chainId,
+        signer: address,
+        serviceAgreementHash: ServiceAgreementVersion,
+      },
+    })
+  if (existingSignature) {
+    return NextResponse.json({ success: true })
+  }
   await prisma.lenderServiceAgreementSignature.create({
     data: {
       chainId: body.chainId,
