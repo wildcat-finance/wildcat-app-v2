@@ -13,7 +13,10 @@ import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
-import { AUROS_ETHENA_ADDRESS } from "@/utils/constants"
+import {
+  AUROS_ETHENA_ADDRESS,
+  KAPPALAB_ETHENA_ADDRESS,
+} from "@/utils/constants"
 import {
   formatBps,
   formatRayAsPercentage,
@@ -140,10 +143,11 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
     earlyMaturity = "no"
   }
 
-  const isAurosTestnet =
-    market.address.toLowerCase() === AUROS_ETHENA_ADDRESS.testnet.toLowerCase()
-  const isAurosMainnet =
-    market.address.toLowerCase() === AUROS_ETHENA_ADDRESS.mainnet.toLowerCase()
+  const isAuros =
+    market.address.toLowerCase() === AUROS_ETHENA_ADDRESS.toLowerCase()
+
+  const isKappaLab =
+    market.address.toLowerCase() === KAPPALAB_ETHENA_ADDRESS.toLowerCase()
 
   return (
     <Box
@@ -298,7 +302,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             tooltipText="The fixed annual percentage rate (excluding any protocol fees) that borrowers pay to lenders for assets within the market."
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
-          {(isAurosTestnet || isAurosMainnet) && (
+          {(isAuros || isKappaLab) && (
             <>
               <ProposalMarketParameter
                 proposal={<AurosEthenaProposalChip isTooltip={false} />}
