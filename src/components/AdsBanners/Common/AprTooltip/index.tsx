@@ -54,7 +54,7 @@ export const AprTooltip = ({
       </Box>
 
       <Typography variant="text3" color={COLORS.blackRock}>
-        – The core lending rate earned from borrowers.
+        – the core lending rate earned from borrowers.
       </Typography>
     </Box>
 
@@ -101,8 +101,8 @@ export const AprTooltip = ({
       {aprProposal}
 
       <Typography variant="text3" color={COLORS.blackRock}>
-        – Additional rewards (tokens or points) provided by the protocol or
-        partners
+        – additional rewards (tokens or points) provided by the protocol or
+        partners.
       </Typography>
     </Box>
 
