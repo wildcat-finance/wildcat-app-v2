@@ -38,7 +38,11 @@ import {
   tokenAmountComparator,
   typeComparator,
 } from "@/utils/comparators"
-import { AUROS_ETHENA_ADDRESS, pageCalcHeights } from "@/utils/constants"
+import {
+  AUROS_ETHENA_ADDRESS,
+  KAPPALAB_ETHENA_ADDRESS,
+  pageCalcHeights,
+} from "@/utils/constants"
 import {
   buildMarketHref,
   formatBps,
@@ -253,16 +257,15 @@ export const OtherMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => {
-        const isAurosTestnet =
-          params.row.id.toLowerCase() ===
-          AUROS_ETHENA_ADDRESS.testnet.toLowerCase()
-        const isAurosMainnet =
-          params.row.id.toLowerCase() ===
-          AUROS_ETHENA_ADDRESS.mainnet.toLowerCase()
+        const isAuros =
+          params.row.id.toLowerCase() === AUROS_ETHENA_ADDRESS.toLowerCase()
 
-        const isAuros = isAurosTestnet || isAurosMainnet
+        const isKappaLab =
+          params.row.id.toLowerCase() === KAPPALAB_ETHENA_ADDRESS.toLowerCase()
 
-        const adsComponent = isAuros ? (
+        const showAdsComponent = isAuros || isKappaLab
+
+        const adsComponent = showAdsComponent ? (
           <AprTooltip
             baseAPR={formatBps(params.value)}
             aprProposal={<AurosEthenaProposalChip isTooltip />}
@@ -281,9 +284,11 @@ export const OtherMarketsTables = ({
             style={{ ...LinkCell, justifyContent: "flex-end" }}
           >
             <AprChip
-              isBonus={isAuros}
+              isBonus={isAuros || isKappaLab}
               baseApr={formatBps(params.value)}
-              icons={isAuros ? [<Ethena />, <Ethereal />] : undefined}
+              icons={
+                isAuros || isKappaLab ? [<Ethena />, <Ethereal />] : undefined
+              }
               adsComponent={adsComponent}
             />
           </Link>

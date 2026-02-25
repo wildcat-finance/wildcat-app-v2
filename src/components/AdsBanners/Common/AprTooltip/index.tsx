@@ -102,7 +102,7 @@ export const AprTooltip = ({
 
       <Typography variant="text3" color={COLORS.blackRock}>
         – additional rewards (tokens or points) provided by the protocol or
-        partners
+        partners.
       </Typography>
     </Box>
 
