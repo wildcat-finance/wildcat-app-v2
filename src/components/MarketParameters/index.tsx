@@ -306,7 +306,12 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             <>
               <ProposalMarketParameter
                 proposal={<AurosEthenaProposalChip isTooltip={false} />}
-                banner={<AurosEthenaBanner maxWidth="100%" />}
+                banner={
+                  <AurosEthenaBanner
+                    tokenAmount={isAuros ? "1 million" : "200k"}
+                    maxWidth="100%"
+                  />
+                }
               />
               <Divider sx={{ margin: "12px 0 12px" }} />
             </>

@@ -229,7 +229,9 @@ export const BorrowerTerminatedMarketsTables = ({
           <AprTooltip
             baseAPR={formatBps(params.value)}
             aprProposal={<AurosEthenaProposalChip isTooltip />}
-            banner={<AurosEthenaBanner />}
+            banner={
+              <AurosEthenaBanner tokenAmount={isAuros ? "1 million" : "200k"} />
+            }
             withdrawalAnyTime
           />
         ) : undefined
