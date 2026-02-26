@@ -6,7 +6,13 @@ import Ethereal from "@/assets/companies-icons/ethereal-white_icon.svg"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
-export const AurosEthenaBanner = ({ maxWidth }: { maxWidth?: string }) => {
+export const AurosEthenaBanner = ({
+  maxWidth,
+  tokenAmount,
+}: {
+  maxWidth?: string
+  tokenAmount?: string
+}) => {
   const isMobile = useMobileResolution()
 
   return (
@@ -65,7 +71,7 @@ export const AurosEthenaBanner = ({ maxWidth }: { maxWidth?: string }) => {
         color={COLORS.white}
         sx={{ opacity: 0.8 }}
       >
-        Receive pro-rate share of 1 million Ethereal points
+        Receive pro-rate share of {tokenAmount} Ethereal points
       </Typography>
     </Box>
   )
