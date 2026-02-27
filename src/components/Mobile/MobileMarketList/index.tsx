@@ -72,11 +72,17 @@ export const MobileMarketList = ({
   const paginationItems = getPaginationRange(page, totalPages)
 
   const getAdsContent = (marketItem: LenderMobileMarketItem) => {
-    if (
-      marketItem.id.toLowerCase() === AUROS_ETHENA_ADDRESS.toLowerCase() ||
+    const isAuros =
+      marketItem.id.toLowerCase() === AUROS_ETHENA_ADDRESS.toLowerCase()
+    const isKappalab =
       marketItem.id.toLowerCase() === KAPPALAB_ETHENA_ADDRESS.toLowerCase()
-    ) {
-      return <AurosEthenaMobileContent baseAPR={formatBps(marketItem.apr)} />
+
+    if (isAuros || isKappalab) {
+      return (
+        <AurosEthenaMobileContent
+          tokenAmount={isAuros ? "1 million" : "200k"}
+        />
+      )
     }
     return undefined
   }
