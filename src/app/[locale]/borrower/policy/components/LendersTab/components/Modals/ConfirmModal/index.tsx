@@ -11,6 +11,7 @@ import { AddedDot } from "@/app/[locale]/borrower/policy/components/LendersTab/c
 import { SubmitPolicyUpdatesInputs } from "@/app/[locale]/borrower/policy/hooks/useSubmitUpdates"
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import Coins from "@/assets/icons/coins_icon.svg"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { LinkGroup } from "@/components/LinkComponent"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useAppSelector } from "@/store/hooks"
@@ -69,6 +70,7 @@ export const ConfirmModal = ({
       flex: 0.5,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Name" />,
       renderCell: (params) => (
         <>
           {params.row.status === EditLenderFlowStatuses.DELETED && (
@@ -102,6 +104,7 @@ export const ConfirmModal = ({
       flex: 1,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Wallet Address" />,
       renderCell: (params) => (
         <Box display="flex" gap="4px">
           <Typography
@@ -134,6 +137,7 @@ export const ConfirmModal = ({
       disableColumnMenu: true,
       flex: 0.7,
       align: "right",
+      renderHeader: () => <ColumnHeaderTitle title="" />,
       renderCell: (params) => (
         <Typography variant="text3" color={COLORS.santasGrey}>
           {params.row.status === EditLenderFlowStatuses.DELETED

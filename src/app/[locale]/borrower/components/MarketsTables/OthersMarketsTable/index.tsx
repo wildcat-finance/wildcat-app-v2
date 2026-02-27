@@ -17,8 +17,8 @@ import { useTranslation } from "react-i18next"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { TablePagination } from "@/components/TablePagination"
-import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
@@ -66,6 +66,11 @@ export const OthersMarketsTable = ({
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("borrowerMarketList.table.header.status")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(
@@ -88,6 +93,11 @@ export const OthersMarketsTable = ({
       minWidth: 134,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("borrowerMarketList.table.header.marketName")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(
@@ -119,6 +129,11 @@ export const OthersMarketsTable = ({
       headerAlign: "left",
       align: "left",
       sortComparator: typeComparator,
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("borrowerMarketList.table.header.marketType")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(
@@ -142,16 +157,9 @@ export const OthersMarketsTable = ({
       headerAlign: "left",
       align: "left",
       renderHeader: () => (
-        <Typography
-          variant="text4"
-          sx={{
-            lineHeight: "10px",
-            color: COLORS.santasGrey,
-            padding: "0 12px",
-          }}
-        >
-          Borrower
-        </Typography>
+        <ColumnHeaderTitle
+          title={t("borrowerMarketList.table.header.borrowerName")}
+        />
       ),
       renderCell: (params) => (
         <Link
@@ -197,6 +205,9 @@ export const OthersMarketsTable = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("borrowerMarketList.table.header.asset")} />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(
@@ -217,6 +228,9 @@ export const OthersMarketsTable = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("borrowerMarketList.table.header.apr")} />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(
@@ -238,15 +252,10 @@ export const OthersMarketsTable = ({
       headerAlign: "right",
       align: "right",
       renderHeader: () => (
-        <Box display="flex" columnGap="4px" alignItems="center">
-          <Typography
-            variant="text4"
-            sx={{ lineHeight: "10px", color: COLORS.santasGrey }}
-          >
-            CRR
-          </Typography>
-          <TooltipButton value="The percentage of market funds kept unborrowed and locked as reserve." />
-        </Box>
+        <ColumnHeaderTitle
+          title={t("borrowerMarketList.table.header.crr")}
+          tooltipText="The percentage of market funds kept unborrowed and locked as reserve."
+        />
       ),
       renderCell: (params) => (
         <Link
@@ -269,6 +278,11 @@ export const OthersMarketsTable = ({
       align: "right",
       sortComparator: tokenAmountComparator,
       flex: 1.5,
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("borrowerMarketList.table.header.capacity")}
+        />
+      ),
       renderCell: (
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
@@ -292,6 +306,11 @@ export const OthersMarketsTable = ({
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("borrowerMarketList.table.header.borrowable")}
+        />
+      ),
       renderCell: (
         params: GridRenderCellParams<MarketsTableModel, TokenAmount>,
       ) => (
@@ -319,6 +338,11 @@ export const OthersMarketsTable = ({
       flex: 1.2,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("borrowerMarketList.table.header.deploy")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(

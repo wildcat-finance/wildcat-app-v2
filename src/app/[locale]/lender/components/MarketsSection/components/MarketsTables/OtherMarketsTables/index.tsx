@@ -24,6 +24,7 @@ import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/Aur
 import { AprTooltip } from "@/components/AdsBanners/Common/AprTooltip"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
@@ -147,6 +148,9 @@ export const OtherMarketsTables = ({
       minWidth: 200,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("dashboard.markets.tables.header.name")} />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
@@ -191,6 +195,11 @@ export const OtherMarketsTables = ({
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("dashboard.markets.tables.header.status")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
@@ -213,6 +222,9 @@ export const OtherMarketsTables = ({
       headerAlign: "left",
       align: "left",
       sortComparator: typeComparator,
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("dashboard.markets.tables.header.term")} />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
@@ -234,6 +246,9 @@ export const OtherMarketsTables = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("dashboard.markets.tables.header.apr")} />
+      ),
       renderCell: (params) => {
         const isAuros =
           params.row.id.toLowerCase() === AUROS_ETHENA_ADDRESS.toLowerCase()
@@ -278,6 +293,11 @@ export const OtherMarketsTables = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("dashboard.markets.tables.header.withdrawal")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
@@ -297,6 +317,9 @@ export const OtherMarketsTables = ({
       flex: 0.5,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("dashboard.markets.tables.header.asset")} />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
@@ -317,6 +340,11 @@ export const OtherMarketsTables = ({
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("dashboard.markets.tables.header.capacity")}
+        />
+      ),
       renderCell: (
         params: GridRenderCellParams<LenderOtherMarketsTableModel, TokenAmount>,
       ) => (
@@ -349,6 +377,9 @@ export const OtherMarketsTables = ({
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("dashboard.markets.tables.header.debt")} />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
@@ -371,6 +402,7 @@ export const OtherMarketsTables = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => <ColumnHeaderTitle title="" />,
       renderCell: (params) => (
         <Link
           href={
