@@ -3,13 +3,9 @@ import React, { useState } from "react"
 import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { usePathname } from "next/navigation"
 
-import { AurosEthenaMobileContent } from "@/components/AdsBanners/AurosEthena/AurosEthenaMobileContent"
+import { getAdsMobileContent } from "@/components/AdsBanners/adsHelpers"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import {
-  AUROS_ETHENA_ADDRESS,
-  KAPPALAB_ETHENA_ADDRESS,
-} from "@/utils/constants"
 import { formatBps } from "@/utils/formatters"
 
 import { LenderMobileMarketItem, MobileMarketCard } from "../MobileMarketCard"
@@ -71,16 +67,6 @@ export const MobileMarketList = ({
 
   const paginationItems = getPaginationRange(page, totalPages)
 
-  const getAdsContent = (marketItem: LenderMobileMarketItem) => {
-    if (
-      marketItem.id.toLowerCase() === AUROS_ETHENA_ADDRESS.toLowerCase() ||
-      marketItem.id.toLowerCase() === KAPPALAB_ETHENA_ADDRESS.toLowerCase()
-    ) {
-      return <AurosEthenaMobileContent baseAPR={formatBps(marketItem.apr)} />
-    }
-    return undefined
-  }
-
   if (!markets.length && !isLoading)
     return (
       <Box
@@ -125,7 +111,7 @@ export const MobileMarketList = ({
         {!isLoading &&
           currentItems.map((marketItem) => (
             <MobileMarketCard
-              adsComponent={getAdsContent(marketItem)}
+              adsComponent={getAdsMobileContent(marketItem.id)}
               key={marketItem.id}
               marketItem={marketItem}
               buttonText="Deposit"
