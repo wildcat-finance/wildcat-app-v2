@@ -6,17 +6,11 @@ import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
 
-import { AurosEthenaBanner } from "@/components/AdsBanners/AurosEthena/AurosEthenaBanner"
-import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/AurosEthenaProposalChip"
-import { ProposalMarketParameter } from "@/components/AdsBanners/Common/ProposalMarketParameter"
+import { getAdsMarketParameterComponent } from "@/components/AdsBanners/adsHelpers"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
-import {
-  AUROS_ETHENA_ADDRESS,
-  KAPPALAB_ETHENA_ADDRESS,
-} from "@/utils/constants"
 import {
   formatBps,
   formatRayAsPercentage,
@@ -143,11 +137,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
     earlyMaturity = "no"
   }
 
-  const isAuros =
-    market.address.toLowerCase() === AUROS_ETHENA_ADDRESS.toLowerCase()
-
-  const isKappaLab =
-    market.address.toLowerCase() === KAPPALAB_ETHENA_ADDRESS.toLowerCase()
+  const adsMarketParameter = getAdsMarketParameterComponent(market.address)
 
   return (
     <Box
@@ -302,17 +292,9 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             tooltipText="The fixed annual percentage rate (excluding any protocol fees) that borrowers pay to lenders for assets within the market."
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
-          {(isAuros || isKappaLab) && (
+          {adsMarketParameter && (
             <>
-              <ProposalMarketParameter
-                proposal={<AurosEthenaProposalChip isTooltip={false} />}
-                banner={
-                  <AurosEthenaBanner
-                    tokenAmount={isAuros ? "1 million" : "200k"}
-                    maxWidth="100%"
-                  />
-                }
-              />
+              {adsMarketParameter}
               <Divider sx={{ margin: "12px 0 12px" }} />
             </>
           )}
