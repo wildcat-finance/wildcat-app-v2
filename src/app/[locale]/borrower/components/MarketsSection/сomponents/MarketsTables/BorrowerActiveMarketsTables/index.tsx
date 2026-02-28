@@ -13,13 +13,12 @@ import {
 } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { DataGridSx } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/style"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
-import Ethena from "@/assets/companies-icons/ethena_icon.svg"
-import Ethereal from "@/assets/companies-icons/ethereal_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
-import { AurosEthenaBanner } from "@/components/AdsBanners/AurosEthena/AurosEthenaBanner"
-import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/AurosEthenaProposalChip"
-import { AprTooltip } from "@/components/AdsBanners/Common/AprTooltip"
+import {
+  getAdsCellProps,
+  getAdsTooltipComponent,
+} from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { ROUTES } from "@/routes"
@@ -30,11 +29,7 @@ import {
   tokenAmountComparator,
   typeComparator,
 } from "@/utils/comparators"
-import {
-  AUROS_ETHENA_ADDRESS,
-  KAPPALAB_ETHENA_ADDRESS,
-  pageCalcHeights,
-} from "@/utils/constants"
+import { pageCalcHeights } from "@/utils/constants"
 import {
   buildMarketHref,
   formatBps,
@@ -231,24 +226,11 @@ export const BorrowerActiveMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => {
-        const isAuros =
-          params.row.id.toLowerCase() === AUROS_ETHENA_ADDRESS.toLowerCase()
-
-        const isKappaLab =
-          params.row.id.toLowerCase() === KAPPALAB_ETHENA_ADDRESS.toLowerCase()
-
-        const showAdsComponent = isAuros || isKappaLab
-
-        const adsComponent = showAdsComponent ? (
-          <AprTooltip
-            baseAPR={formatBps(params.value)}
-            aprProposal={<AurosEthenaProposalChip isTooltip />}
-            banner={
-              <AurosEthenaBanner tokenAmount={isAuros ? "1 million" : "200k"} />
-            }
-            withdrawalAnyTime
-          />
-        ) : undefined
+        const adsComponent = getAdsTooltipComponent(
+          params.row.id,
+          formatBps(params.value),
+        )
+        const adsCellProps = getAdsCellProps(params.row.id)
 
         return (
           <Link
@@ -260,11 +242,9 @@ export const BorrowerActiveMarketsTables = ({
             style={{ ...LinkCell, justifyContent: "flex-end" }}
           >
             <AprChip
-              isBonus={isAuros || isKappaLab}
+              isBonus={!!adsCellProps}
               baseApr={formatBps(params.value)}
-              icons={
-                isAuros || isKappaLab ? [<Ethena />, <Ethereal />] : undefined
-              }
+              icons={adsCellProps?.icons}
               adsComponent={adsComponent}
             />
           </Link>
