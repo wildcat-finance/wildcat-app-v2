@@ -33,7 +33,7 @@ const ETHENA_BASE_CONFIG: Omit<AdsConfig, "tokenAmount"> = {
   proposalText: "20x Multiplier",
   proposalChipLabel: "Ethena Points",
   ProposalIcon: Ethena,
-  bannerHeadline: "1 million weekly of",
+  bannerHeadline: "{tokenAmount} weekly of",
   bannerChipLabel: "Ethereal Points",
   BannerIcon: EtherealWhite,
   bannerDescription: "Receive pro-rate share of {tokenAmount} Ethereal points",

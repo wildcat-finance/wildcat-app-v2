@@ -42,7 +42,7 @@ export const AdsBanner = ({
           fontWeight={600}
           color={COLORS.white}
         >
-          {config.bannerHeadline}
+          {config.bannerHeadline.replace("{tokenAmount}", config.tokenAmount)}
         </Typography>
 
         <Box
