@@ -2,6 +2,8 @@
 
 /* eslint-disable react/no-array-index-key, react/no-unstable-nested-components, @typescript-eslint/no-explicit-any */
 
+import { useState } from "react"
+
 import {
   BarChart,
   Bar,
@@ -13,6 +15,7 @@ import {
   Cell,
 } from "recharts"
 
+import { BatchDetailDrawer } from "./BatchDetailDrawer"
 import { ChartCard } from "../../components/ChartCard"
 import { SectionError } from "../../components/SectionError"
 import { SectionSkeleton } from "../../components/SectionSkeleton"
@@ -20,13 +23,26 @@ import { T, fmtUSD, fmtK, axisStyle, gridStyle } from "../../constants"
 import { useSubgraphQuery } from "../../hooks/useSubgraphQuery"
 import { fetchBatches } from "../hooks/queries"
 
+function fmtToken(v: number, sym: string): string {
+  return `${fmtK(v)} ${sym}`
+}
+
 export function WithdrawalBatchSection({
   addr,
   dec,
+  symbol,
+  isStablecoin,
 }: {
   addr: string
   dec: number
+  symbol: string
+  isStablecoin: boolean
 }) {
+  const fmt = (v: number) => (isStablecoin ? fmtUSD(v) : fmtToken(v, symbol))
+  const [selectedBatch, setSelectedBatch] = useState<{
+    id: string
+    label: string
+  } | null>(null)
   const { data, loading, error } = useSubgraphQuery(
     () => fetchBatches(addr, dec),
     "Batches",
@@ -58,7 +74,7 @@ export function WithdrawalBatchSection({
     >
       <ChartCard
         title="Withdrawal Batch History"
-        description="Green = paid at expiry · Amber = paid late (hover for close time) · Red = still unpaid"
+        description="Green = paid at expiry · Amber = paid late · Red = still unpaid · Click any bar for details"
         height={260}
       >
         {batches.length === 0 ? (
@@ -80,6 +96,13 @@ export function WithdrawalBatchSection({
             <BarChart
               data={batches}
               margin={{ top: 8, right: 12, bottom: 0, left: 4 }}
+              style={{ cursor: "pointer" }}
+              onClick={(state: any) => {
+                if (state?.activeTooltipIndex != null) {
+                  const b = batches[state.activeTooltipIndex]
+                  if (b) setSelectedBatch({ id: b.id, label: b.label })
+                }
+              }}
             >
               <CartesianGrid {...gridStyle} />
               <XAxis
@@ -116,14 +139,14 @@ export function WithdrawalBatchSection({
                         Batch {label}
                       </div>
                       <div style={{ color: T.text }}>
-                        Requested: {fmtUSD(b.requested)}
+                        Requested: {fmt(b.requested)}
                       </div>
                       <div style={{ color: T.accentGreen }}>
-                        Paid at expiry: {fmtUSD(b.paidAtExpiry)}
+                        Paid at expiry: {fmt(b.paidAtExpiry)}
                       </div>
                       {b.shortfall > 0.01 && (
                         <div style={{ color: bc[b.status] }}>
-                          Shortfall: {fmtUSD(b.shortfall)} (
+                          Shortfall: {fmt(b.shortfall)} (
                           {Math.round((b.shortfall / b.requested) * 100)}%)
                         </div>
                       )}
@@ -192,8 +215,8 @@ export function WithdrawalBatchSection({
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {[
             { l: "Pending batches", v: `${queue.pendingBatches}` },
-            { l: "Total queued", v: fmtUSD(queue.totalQueued) },
-            { l: "Amount unfilled", v: fmtUSD(queue.amountUnfilled) },
+            { l: "Total queued", v: fmt(queue.totalQueued) },
+            { l: "Amount unfilled", v: fmt(queue.amountUnfilled) },
             { l: "Lenders waiting", v: `${queue.lendersWaiting}` },
             { l: "Next expiry", v: queue.nextExpiry },
           ].map((r) => (
@@ -276,6 +299,16 @@ export function WithdrawalBatchSection({
           ))}
         </div>
       </div>
+      {selectedBatch && (
+        <BatchDetailDrawer
+          batchId={selectedBatch.id}
+          batchLabel={selectedBatch.label}
+          dec={dec}
+          symbol={symbol}
+          isStablecoin={isStablecoin}
+          onClose={() => setSelectedBatch(null)}
+        />
+      )}
     </div>
   )
 }

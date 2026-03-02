@@ -8,6 +8,7 @@ export interface RawToken {
   symbol: string
   decimals: number
   address: string
+  isUsdStablecoin: boolean
 }
 
 export interface RawMarket {
@@ -136,6 +137,129 @@ export interface RawParameterChanges {
   }[]
 }
 
+// --- Raw batch-detail subgraph shapes ---
+
+export interface RawWithdrawalRequest {
+  account: { address: string }
+  normalizedAmount: string
+  blockTimestamp: number
+  transactionHash: string
+}
+
+export interface RawWithdrawalBatchPayment {
+  normalizedAmountPaid: string
+  blockTimestamp: number
+  transactionHash: string
+}
+
+export interface RawWithdrawalExecution {
+  account: { address: string }
+  normalizedAmount: string
+  blockTimestamp: number
+  transactionHash: string
+}
+
+export interface RawLenderWithdrawalStatus {
+  account: { address: string }
+  totalNormalizedRequests: string
+  normalizedAmountWithdrawn: string
+  isCompleted: boolean
+  requestsCount: number
+  executionsCount: number
+}
+
+export interface RawWithdrawalBatchInterestAccrued {
+  interestEarned: string
+  blockTimestamp: number
+  transactionHash: string
+}
+
+export interface RawBatchDetail {
+  id: string
+  expiry: string
+  totalNormalizedRequests: string
+  normalizedAmountPaid: string
+  isExpired: boolean
+  isClosed: boolean
+  lenderWithdrawalsCount: number
+  creation: { blockTimestamp: number }
+  requests: RawWithdrawalRequest[]
+  payments: RawWithdrawalBatchPayment[]
+  executions: RawWithdrawalExecution[]
+  withdrawals: RawLenderWithdrawalStatus[]
+  interestAccrualRecords: RawWithdrawalBatchInterestAccrued[]
+}
+
+// --- Processed batch-detail types ---
+
+export interface FillProgressionPoint {
+  timestamp: number
+  date: string
+  totalRequested: number
+  totalPaid: number
+}
+
+export interface LenderBreakdownRow {
+  address: string
+  requested: number
+  withdrawn: number
+  complete: boolean
+  requests: number
+  executions: number
+}
+
+export interface RequestTimelineRow {
+  date: string
+  lender: string
+  amount: number
+  tx: string
+  txFull: string
+}
+
+export interface PaymentHistoryRow {
+  date: string
+  amountPaid: number
+  tx: string
+  txFull: string
+}
+
+export interface ExecutionLogRow {
+  date: string
+  lender: string
+  amount: number
+  tx: string
+  txFull: string
+}
+
+export interface InterestAccrualRow {
+  date: string
+  interestEarned: number
+  tx: string
+  txFull: string
+}
+
+export interface BatchDetail {
+  id: string
+  expiry: number
+  totalRequested: number
+  totalPaid: number
+  lenderCount: number
+  interestEarned: number
+  createdDate: string
+  expiryDate: string
+  paymentsCount: number
+  executionsCount: number
+  isExpired: boolean
+  isClosed: boolean
+  status: "paid" | "paid-late" | "unpaid" | "pending"
+  fillProgression: FillProgressionPoint[]
+  lenders: LenderBreakdownRow[]
+  requests: RequestTimelineRow[]
+  payments: PaymentHistoryRow[]
+  executionLog: ExecutionLogRow[]
+  interestAccruals: InterestAccrualRow[]
+}
+
 // --- Component data shapes ---
 
 export interface MarketInfo {
@@ -144,6 +268,7 @@ export interface MarketInfo {
   borrower: string
   assetSymbol: string
   assetDecimals: number
+  isStablecoin: boolean
   marketType: "Open-term" | "Fixed-term" | "Unknown"
   fixedTermEndTime: number | null
   status: "Healthy" | "Delinquent" | "Penalty" | "Closed"

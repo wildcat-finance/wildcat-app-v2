@@ -189,7 +189,12 @@ export default function MarketDetailPage({
                 subtitle="Batch payment history and current pending queue"
               />
               <div style={{ marginTop: "12px" }}>
-                <WithdrawalBatchSection addr={addr} dec={m.assetDecimals} />
+                <WithdrawalBatchSection
+                  addr={addr}
+                  dec={m.assetDecimals}
+                  symbol={m.assetSymbol}
+                  isStablecoin={m.isStablecoin}
+                />
               </div>
             </section>
             <section>

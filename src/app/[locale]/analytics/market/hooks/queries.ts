@@ -17,11 +17,16 @@ import type {
   RawDelinquencyEvent,
   RawWithdrawalBatch,
   RawTransfer,
+  RawBatchDetail,
   MarketInfo,
   DailyDataPoint,
   ParameterChange,
   DelinquencyEvent,
   BatchResults,
+  BatchDetail,
+  FillProgressionPoint,
+  RawWithdrawalRequest,
+  RawWithdrawalBatchPayment,
   WithdrawalBatchData,
   LenderData,
   TransferData,
@@ -31,7 +36,7 @@ export async function fetchMarket(addr: string): Promise<RawMarket> {
   const d = await querySubgraph<{ market: RawMarket }>(`{
     market(id: "${addr}") {
       id name symbol decimals borrower
-      asset { symbol decimals address }
+      asset { symbol decimals address isUsdStablecoin }
       hooks { kind }
       hooksConfig { fixedTermEndTime }
       annualInterestBips reserveRatioBips delinquencyGracePeriod delinquencyFeeBips
@@ -92,6 +97,7 @@ export async function fetchMarketAndLenders(
       borrower: raw.borrower,
       assetSymbol: raw.asset.symbol,
       assetDecimals: dec,
+      isStablecoin: raw.asset.isUsdStablecoin,
       marketType,
       fixedTermEndTime: raw.hooksConfig?.fixedTermEndTime ?? null,
       status,
@@ -442,4 +448,172 @@ export async function fetchTransferData(
     amount: toHuman(t.amount, dec),
     tx: truncTx(t.transactionHash),
   }))
+}
+
+export function buildFillProgression(
+  requests: RawWithdrawalRequest[],
+  payments: RawWithdrawalBatchPayment[],
+  dec: number,
+  expiryTs: number,
+): FillProgressionPoint[] {
+  const events: { ts: number; type: "req" | "pay"; amount: number }[] = []
+  requests.forEach((r) =>
+    events.push({
+      ts: r.blockTimestamp,
+      type: "req",
+      amount: toHuman(r.normalizedAmount, dec),
+    }),
+  )
+  payments.forEach((p) =>
+    events.push({
+      ts: p.blockTimestamp,
+      type: "pay",
+      amount: toHuman(p.normalizedAmountPaid, dec),
+    }),
+  )
+  events.sort((a, b) => a.ts - b.ts)
+
+  const points: FillProgressionPoint[] = []
+  let cumRequested = 0
+  let cumPaid = 0
+  let injectedExpiry = false
+
+  events.forEach((e) => {
+    if (!injectedExpiry && e.ts >= expiryTs) {
+      points.push({
+        timestamp: expiryTs,
+        date: fmtDate(expiryTs),
+        totalRequested: cumRequested,
+        totalPaid: cumPaid,
+      })
+      injectedExpiry = true
+    }
+    if (e.type === "req") cumRequested += e.amount
+    else cumPaid += e.amount
+    points.push({
+      timestamp: e.ts,
+      date: fmtDate(e.ts),
+      totalRequested: cumRequested,
+      totalPaid: cumPaid,
+    })
+  })
+
+  if (!injectedExpiry) {
+    points.push({
+      timestamp: expiryTs,
+      date: fmtDate(expiryTs),
+      totalRequested: cumRequested,
+      totalPaid: cumPaid,
+    })
+  }
+
+  return points
+}
+
+export async function fetchBatchDetail(
+  batchId: string,
+  dec: number,
+): Promise<BatchDetail> {
+  const raw = await querySubgraph<{ withdrawalBatch: RawBatchDetail }>(`{
+    withdrawalBatch(id: "${batchId}") {
+      id expiry totalNormalizedRequests normalizedAmountPaid
+      isExpired isClosed lenderWithdrawalsCount
+      creation { blockTimestamp }
+      requests(orderBy: blockTimestamp, orderDirection: asc, first: 200) {
+        account { address } normalizedAmount blockTimestamp transactionHash
+      }
+      payments(orderBy: blockTimestamp, orderDirection: asc, first: 200) {
+        normalizedAmountPaid blockTimestamp transactionHash
+      }
+      executions(orderBy: blockTimestamp, orderDirection: asc, first: 200) {
+        account { address } normalizedAmount blockTimestamp transactionHash
+      }
+      withdrawals(first: 200) {
+        account { address } totalNormalizedRequests normalizedAmountWithdrawn
+        isCompleted requestsCount executionsCount
+      }
+      interestAccrualRecords(orderBy: blockTimestamp, orderDirection: asc, first: 200) {
+        interestEarned blockTimestamp transactionHash
+      }
+    }
+  }`).then((d) => d.withdrawalBatch)
+
+  const expiryTs = Number(raw.expiry)
+  const totalRequested = toHuman(raw.totalNormalizedRequests, dec)
+  const totalPaid = toHuman(raw.normalizedAmountPaid, dec)
+  const shortfall = totalRequested - totalPaid
+
+  let status: BatchDetail["status"] = "pending"
+  if (raw.isExpired || raw.isClosed) {
+    if (shortfall <= 0.01) {
+      status = "paid"
+    } else if (raw.isClosed) {
+      status = "paid-late"
+    } else {
+      status = "unpaid"
+    }
+  }
+
+  const interestEarned = raw.interestAccrualRecords.reduce(
+    (sum, r) => sum + toHuman(r.interestEarned, dec),
+    0,
+  )
+
+  const fillProgression = buildFillProgression(
+    raw.requests,
+    raw.payments,
+    dec,
+    expiryTs,
+  )
+
+  return {
+    id: raw.id,
+    expiry: expiryTs,
+    totalRequested,
+    totalPaid,
+    lenderCount: raw.lenderWithdrawalsCount,
+    interestEarned,
+    createdDate: fmtDate(raw.creation.blockTimestamp),
+    expiryDate: fmtDate(expiryTs),
+    paymentsCount: raw.payments.length,
+    executionsCount: raw.executions.length,
+    isExpired: raw.isExpired,
+    isClosed: raw.isClosed,
+    status,
+    fillProgression,
+    lenders: raw.withdrawals.map((w) => ({
+      address: truncAddr(w.account.address),
+      requested: toHuman(w.totalNormalizedRequests, dec),
+      withdrawn: toHuman(w.normalizedAmountWithdrawn, dec),
+      complete: w.isCompleted,
+      requests: w.requestsCount,
+      executions: w.executionsCount,
+    })),
+    requests: raw.requests.map((r) => ({
+      date: fmtDate(r.blockTimestamp),
+      lender: truncAddr(r.account.address),
+      amount: toHuman(r.normalizedAmount, dec),
+      tx: truncTx(r.transactionHash),
+      txFull: r.transactionHash,
+    })),
+    payments: raw.payments.map((p) => ({
+      date: fmtDate(p.blockTimestamp),
+      amountPaid: toHuman(p.normalizedAmountPaid, dec),
+      tx: truncTx(p.transactionHash),
+      txFull: p.transactionHash,
+    })),
+    executionLog: raw.executions.map((e) => ({
+      date: fmtDate(e.blockTimestamp),
+      lender: truncAddr(e.account.address),
+      amount: toHuman(e.normalizedAmount, dec),
+      tx: truncTx(e.transactionHash),
+      txFull: e.transactionHash,
+    })),
+    interestAccruals: raw.interestAccrualRecords.map((r) => ({
+      date: fmtDate(r.blockTimestamp),
+      interestEarned: toHuman(r.interestEarned, dec),
+      tx: truncTx(r.transactionHash),
+      txFull: r.transactionHash,
+    })),
+  }
 }
