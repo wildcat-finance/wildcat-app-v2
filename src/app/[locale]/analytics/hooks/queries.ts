@@ -12,7 +12,7 @@ import {
 
 // --- Fetch latest token prices from subgraph TokenDailyPrice ---
 
-async function fetchLatestTokenPrices(
+export async function fetchLatestTokenPrices(
   tokenAddresses: string[],
 ): Promise<Record<string, number>> {
   if (tokenAddresses.length === 0) return {}
