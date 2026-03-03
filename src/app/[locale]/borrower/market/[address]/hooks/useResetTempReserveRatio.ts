@@ -7,17 +7,17 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 
-export const useAdjustAPR = (
+export const useResetTempReserveRatio = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
 ) => {
-  const { signer, address, targetChainId } = useEthersProvider()
+  const { address, targetChainId } = useEthersProvider()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
   return useMutation({
-    mutationFn: async (amount: number) => {
-      if (!marketAccount || !signer) {
+    mutationFn: async () => {
+      if (!marketAccount) {
         return
       }
       if (marketAccount.chainId !== targetChainId) {
@@ -28,8 +28,10 @@ export const useAdjustAPR = (
         )
       }
 
-      const setApr = async () => {
-        const tx = await marketAccount.setAnnualInterestBips(amount * 100)
+      const currentAprBips = marketAccount.market.annualInterestBips
+
+      const resetRatio = async () => {
+        const tx = await marketAccount.setAnnualInterestBips(currentAprBips)
 
         if (!safeConnected) setTxHash(tx.hash)
 
@@ -49,7 +51,7 @@ export const useAdjustAPR = (
         return tx.wait()
       }
 
-      await setApr()
+      await resetRatio()
     },
     onSuccess() {
       client.invalidateQueries({

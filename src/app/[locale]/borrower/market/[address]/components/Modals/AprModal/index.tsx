@@ -6,13 +6,16 @@ import {
   Button,
   Dialog,
   FormControlLabel,
+  SvgIcon,
   Typography,
 } from "@mui/material"
 import { BIP, Market, SetAprPreview } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
+import Alert from "@/assets/icons/circledAlert_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
+import { DepositAlert } from "@/components/DepositAlert"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
@@ -37,6 +40,7 @@ import {
   AprModalMessageBox,
 } from "./style"
 import { useAdjustAPR } from "../../../hooks/useAdjustApr"
+import { useResetTempReserveRatio } from "../../../hooks/useResetTempReserveRatio"
 import { ModalDataItem } from "../components/ModalDataItem"
 import { ErrorModal } from "../FinalModals/ErrorModal"
 import { LoadingModal } from "../FinalModals/LoadingModal"
@@ -94,6 +98,10 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
   const [txHash, setTxHash] = useState<string | undefined>()
 
+  const [showResetSuccessPopup, setShowResetSuccessPopup] = useState(false)
+  const [showResetErrorPopup, setShowResetErrorPopup] = useState(false)
+  const [resetTxHash, setResetTxHash] = useState<string | undefined>()
+
   const isFixedTerm = market.isInFixedTerm
 
   const modal = useApprovalModal(
@@ -107,6 +115,13 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     marketAccount,
     setTxHash,
   )
+
+  const {
+    mutate: resetMutate,
+    isPending: isResetPending,
+    isSuccess: isResetSuccess,
+    isError: isResetError,
+  } = useResetTempReserveRatio(marketAccount, setResetTxHash)
 
   const handleClose = () => {
     modal.handleCloseModal()
@@ -211,7 +226,23 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     market.temporaryReserveRatioExpiry * 1000,
   ).format("DD/MM/YYYY HH:MM")
 
-  const showForm = !(isPending || showSuccessPopup || showErrorPopup)
+  const nowSec = Date.now() / 1000
+  const isExpiredTempRatio =
+    market.temporaryReserveRatio && market.temporaryReserveRatioExpiry < nowSec
+
+  const needsReset =
+    isExpiredTempRatio &&
+    !!apr &&
+    parseFloat(apr) < market.annualInterestBips / 100
+
+  const showForm = !(
+    isPending ||
+    isResetPending ||
+    showSuccessPopup ||
+    showErrorPopup ||
+    showResetSuccessPopup ||
+    showResetErrorPopup
+  )
 
   const isAprLTZero = parseFloat(apr) <= 0
 
@@ -257,6 +288,15 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     }
   }, [isError, isSuccess])
 
+  useEffect(() => {
+    if (isResetError) {
+      setShowResetErrorPopup(true)
+    }
+    if (isResetSuccess) {
+      setShowResetSuccessPopup(true)
+    }
+  }, [isResetError, isResetSuccess])
+
   const { approvedStep } = modal
 
   useEffect(() => {
@@ -279,7 +319,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
       <Dialog
         open={modal.isModalOpen}
-        onClose={isPending ? undefined : handleClose}
+        onClose={isPending || isResetPending ? undefined : handleClose}
         sx={AprModalDialog}
       >
         {showForm && (
@@ -297,7 +337,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
               <Link
                 href="https://docs.wildcat.finance/using-wildcat/terminology#base-apr"
                 target="_blank"
-                style={{ textDecoration: "none" }}
+                style={{ textDecoration: "none", display: "flex" }}
               >
                 <Typography variant="text3" color={COLORS.blueRibbon}>
                   {t("borrowerMarketDetails.modals.apr.learnMore")}
@@ -406,7 +446,11 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                     <Typography
                       variant="text4"
                       color={COLORS.santasGrey}
-                      sx={{ marginLeft: "auto", marginTop: "4px" }}
+                      sx={{
+                        marginLeft: "auto",
+                        marginTop: "4px",
+                        marginBottom: "4px",
+                      }}
                     >
                       {`${t(
                         "borrowerMarketDetails.modals.apr.willSetTemporarily",
@@ -418,7 +462,10 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                     <Typography
                       variant="text4"
                       color={COLORS.santasGrey}
-                      sx={{ marginLeft: "auto", marginTop: "4px" }}
+                      sx={{
+                        marginLeft: "auto",
+                        marginBottom: "4px",
+                      }}
                     >
                       {`${t(
                         "borrowerMarketDetails.modals.apr.setTemporarily",
@@ -426,6 +473,29 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                     </Typography>
                   )}
                 </Box>
+
+                {needsReset && (
+                  <DepositAlert
+                    text={
+                      <Typography variant="mobText3">
+                        {t(
+                          "borrowerMarketDetails.modals.apr.expiredTempRatioNotice",
+                        )}
+                      </Typography>
+                    }
+                    icon={
+                      <SvgIcon
+                        sx={{
+                          fontSize: "16px",
+                          "& path": { fill: COLORS.white },
+                          mt: "1px",
+                        }}
+                      >
+                        <Alert />
+                      </SvgIcon>
+                    }
+                  />
+                )}
               </>
             )}
 
@@ -546,6 +616,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
         )}
 
         {isPending && <LoadingModal txHash={txHash} />}
+        {isResetPending && <LoadingModal txHash={resetTxHash} />}
         {showErrorPopup && (
           <ErrorModal
             onTryAgain={handleTryAgain}
@@ -553,26 +624,51 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
             txHash={txHash}
           />
         )}
+        {showResetErrorPopup && (
+          <ErrorModal
+            onTryAgain={() => {
+              resetMutate()
+              setShowResetErrorPopup(false)
+            }}
+            onClose={() => {
+              setShowResetErrorPopup(false)
+              modal.handleCloseModal()
+            }}
+            txHash={resetTxHash}
+          />
+        )}
         {showSuccessPopup && (
           <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
+        )}
+        {showResetSuccessPopup && (
+          <SuccessModal
+            onClose={() => {
+              setShowResetSuccessPopup(false)
+              modal.handleCloseModal()
+            }}
+            txHash={resetTxHash}
+          />
         )}
 
         {showForm && (
           <TxModalFooter
             mainBtnText={
-              aprFixedReduction
-                ? "Forbidden [Fixed-Term]"
-                : t("borrowerMarketDetails.modals.apr.adjust")
+              // eslint-disable-next-line no-nested-ternary
+              needsReset
+                ? t("borrowerMarketDetails.modals.apr.resetTempRatio")
+                : aprFixedReduction
+                  ? "Forbidden [Fixed-Term]"
+                  : t("borrowerMarketDetails.modals.apr.adjust")
             }
             secondBtnText={
               modal.approvedStep
                 ? t("borrowerMarketDetails.modals.apr.confirmed")
                 : t("borrowerMarketDetails.modals.apr.confirm")
             }
-            mainBtnOnClick={handleAdjust}
-            secondBtnOnClick={handleConfirm}
-            disableMainBtn={disableAdjust}
-            disableSecondBtn={disableConfirm}
+            mainBtnOnClick={needsReset ? () => resetMutate() : handleAdjust}
+            secondBtnOnClick={needsReset ? undefined : handleConfirm}
+            disableMainBtn={needsReset ? false : disableAdjust}
+            disableSecondBtn={needsReset ? true : disableConfirm}
             secondBtnIcon={modal.approvedStep}
             hideButtons={!showForm}
           />
