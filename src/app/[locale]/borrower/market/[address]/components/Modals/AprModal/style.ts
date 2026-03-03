@@ -2,7 +2,6 @@ import { COLORS } from "@/theme/colors"
 
 export const AprModalDialog = {
   "& .MuiDialog-paper": {
-    height: "440px",
     width: "500px",
     border: "none",
     borderRadius: "20px",
