@@ -2,6 +2,7 @@ import * as React from "react"
 import { ReactNode } from "react"
 
 import { Box, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { TooltipButton } from "@/components/TooltipButton"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -15,6 +16,7 @@ export const ProposalMarketParameter = ({
   banner: ReactNode
 }) => {
   const isMobile = useMobileResolution()
+  const { t } = useTranslation()
 
   return (
     <Box
@@ -45,15 +47,10 @@ export const ProposalMarketParameter = ({
             variant={isMobile ? "mobText3" : "text3"}
             color={COLORS.santasGrey}
           >
-            Rewards APR
+            {t("adsBanners.rewardsAPR")}
           </Typography>
 
-          <TooltipButton
-            value="Lenders may receive additional incentives distributed by external
-          partners or protocol initiatives. These incentives are optional,
-          variable, and not part of the core lending terms. Wildcat does not
-          guarantee the program and accepts no liability."
-          />
+          <TooltipButton value={t("adsBanners.rewardsTooltip")} />
         </Box>
 
         {proposal}

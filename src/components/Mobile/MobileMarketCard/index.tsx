@@ -3,6 +3,7 @@ import * as React from "react"
 import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
@@ -73,6 +74,7 @@ export const MobileMarketCard = ({
   showBorrower?: boolean
   adsComponent?: React.ReactNode
 }) => {
+  const { t } = useTranslation()
   const getDepositLine = () => {
     if (marketItem.loan) {
       if (marketItem.loan?.raw.isZero()) {
@@ -140,7 +142,7 @@ export const MobileMarketCard = ({
           </Typography>
 
           <Typography variant="mobText4" color={COLORS.manate}>
-            available to lend
+            {t("mobile.marketCard.availableToLend")}
           </Typography>
         </Box>
       </Box>
@@ -149,7 +151,9 @@ export const MobileMarketCard = ({
 
       <Box sx={AprWithdrawalContainer}>
         <Box sx={AprWithdrawalItemContainer}>
-          <Typography variant="mobText4">Base APR</Typography>
+          <Typography variant="mobText4">
+            {t("mobile.marketCard.baseAPR")}
+          </Typography>
 
           <Box sx={AprWithdrawalChipContainer}>
             <Typography variant="mobText4">{`${formatBps(
@@ -159,7 +163,9 @@ export const MobileMarketCard = ({
         </Box>
 
         <Box sx={AprWithdrawalItemContainer}>
-          <Typography variant="mobText4">Withdrawal</Typography>
+          <Typography variant="mobText4">
+            {t("mobile.marketCard.withdrawal")}
+          </Typography>
 
           <Box sx={AprWithdrawalChipContainer}>
             <Typography variant="mobText4">
@@ -182,7 +188,8 @@ export const MobileMarketCard = ({
               : COLORS.manate
           }
         >
-          {getDepositLine()} {marketItem.asset} deposited
+          {getDepositLine()} {marketItem.asset}{" "}
+          {t("mobile.marketCard.deposited")}
         </Typography>
 
         <Box sx={CardFooterButtonsContainer}>
@@ -196,7 +203,7 @@ export const MobileMarketCard = ({
               color="secondary"
               sx={CardFooterButtonContainer}
             >
-              More
+              {t("mobile.marketCard.more")}
             </Button>
           </Link>
           {buttonText && (

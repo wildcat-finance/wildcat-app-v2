@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 
 import { Button, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { useAuthToken, useLogin } from "@/hooks/useApiAuth"
@@ -16,6 +17,7 @@ export default function AuthWrapper({
   children: React.ReactNode | React.ReactNode[]
   requiresAdmin?: boolean
 }) {
+  const { t } = useTranslation()
   const { address } = useAccount()
   const token = useAuthToken()
   const { mutate: login } = useLogin()
@@ -27,7 +29,9 @@ export default function AuthWrapper({
 
   // If no address, tell user to connect wallet
   if (!isMounted || !address) {
-    return <Typography variant="h6">Connect your wallet to continue</Typography>
+    return (
+      <Typography variant="h6">{t("authWrapper.connectWallet")}</Typography>
+    )
   }
   // If no token, give user button to login
   if (!token) {
@@ -38,13 +42,13 @@ export default function AuthWrapper({
         size="small"
         onClick={() => login(address)}
       >
-        {buttonText}
+        {buttonText || t("authWrapper.login")}
       </Button>
     )
   }
   // If token, but not admin and requiresAdmin, give user error
   if (requiresAdmin && !token.isAdmin) {
-    return <Typography variant="h6">You are not an admin</Typography>
+    return <Typography variant="h6">{t("authWrapper.notAdmin")}</Typography>
   }
   // If token, and is admin or doesn't require admin, render children
   // eslint-disable-next-line react/jsx-no-useless-fragment

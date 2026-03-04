@@ -1,6 +1,7 @@
 import { Box, Chip } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import humanizeDuration from "humanize-duration"
+import { useTranslation } from "react-i18next"
 
 import Clock from "@/assets/icons/clock_icon.svg"
 import { COLORS } from "@/theme/colors"
@@ -18,6 +19,7 @@ export const HealthyStatusChip = ({
   msLeft,
   withPeriod = true,
 }: HealthyStatusChipProps) => {
+  const { t } = useTranslation()
   const daysLeft = Number(
     humanizeDuration(msLeft || 0, {
       round: false,
@@ -29,16 +31,20 @@ export const HealthyStatusChip = ({
 
   if (daysLeft > 7) {
     additionalChipConfig = {
-      label: `Till ${remainingMillisecondsToDate(msLeft || 0)}`,
+      label: t("marketStatus.healthy.till", {
+        date: remainingMillisecondsToDate(msLeft || 0),
+      }),
       backgroundColor: COLORS.whiteSmoke,
       color: COLORS.santasGrey,
     }
   } else {
     additionalChipConfig = {
-      label: `${humanizeDuration(msLeft || 0, {
-        round: true,
-        largest: 1,
-      })} left`,
+      label: t("marketStatus.healthy.timeLeft", {
+        time: humanizeDuration(msLeft || 0, {
+          round: true,
+          largest: 1,
+        }),
+      }),
       icon: <ClockIcon />,
       backgroundColor: COLORS.oasis,
       color: COLORS.butteredRum,
@@ -48,7 +54,7 @@ export const HealthyStatusChip = ({
   return (
     <Box sx={{ display: "flex", gap: "4px 2px", flexWrap: "wrap" }}>
       <Chip
-        label="Healthy"
+        label={t("marketStatus.healthy.label")}
         sx={{
           backgroundColor: COLORS.glitter,
           color: COLORS.ultramarineBlue,

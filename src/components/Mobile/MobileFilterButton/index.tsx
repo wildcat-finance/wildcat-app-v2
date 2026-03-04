@@ -10,6 +10,7 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import Cross from "@/assets/icons/cross_icon.svg"
 import Filter from "@/assets/icons/filter_icon.svg"
@@ -44,6 +45,7 @@ export const MobileFilterButton = ({
   marketWithdrawalCycles,
   setMarketWithdrawalCycles,
 }: MobileFilterButtonProps) => {
+  const { t } = useTranslation()
   const [open, setOpen] = useState<boolean>(false)
 
   const allAssetsSelected =
@@ -220,7 +222,7 @@ export const MobileFilterButton = ({
             </SvgIcon>
 
             <Typography variant="mobText3" color={COLORS.santasGrey}>
-              Filters
+              {t("mobile.filters.title")}
             </Typography>
           </Box>
 
@@ -248,7 +250,7 @@ export const MobileFilterButton = ({
           }}
         >
           <FormControlLabel
-            label="Markets"
+            label={t("mobile.filters.markets")}
             control={
               <ExtendedCheckbox
                 checked={allStatusesSelected}
@@ -296,7 +298,7 @@ export const MobileFilterButton = ({
           ))}
 
           <FormControlLabel
-            label="Withdrawal Cycle"
+            label={t("mobile.filters.withdrawalCycle")}
             control={
               <ExtendedCheckbox
                 checked={allWithdrawalCyclesSelected}
@@ -347,7 +349,7 @@ export const MobileFilterButton = ({
           ))}
 
           <FormControlLabel
-            label="Currency"
+            label={t("mobile.filters.currency")}
             control={
               <ExtendedCheckbox
                 checked={allAssetsSelected}
@@ -403,7 +405,7 @@ export const MobileFilterButton = ({
             color="secondary"
             fullWidth
           >
-            Reset
+            {t("mobile.filters.reset")}
           </Button>
         </Box>
       </Dialog>

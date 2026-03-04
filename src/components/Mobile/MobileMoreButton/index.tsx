@@ -77,7 +77,9 @@ export const MobileMoreButton = ({
           }}
         >
           <Box sx={{ width: 20 }} />
-          <Typography variant="mobText2">Wallet Actions</Typography>
+          <Typography variant="mobText2">
+            {t("mobile.moreButton.title")}
+          </Typography>
           <IconButton onClick={toggleOpen} sx={{ width: 20, height: 20 }}>
             <SvgIcon
               sx={{ fontSize: 20, "& path": { fill: COLORS.santasGrey } }}
@@ -117,8 +119,7 @@ export const MobileMoreButton = ({
             </Box>
 
             <Typography variant="mobText4" color={COLORS.santasGrey}>
-              To add debt token to wallet please copy the token address and add
-              it manually.
+              {t("mobile.moreButton.addTokenManually")}
             </Typography>
           </Box>
         )}

@@ -198,20 +198,20 @@ export const MarketsTabSidebar = () => {
         >
           {showConnectedData && (
             <SidebarButton
-              label="Your Active Markets"
+              label={t("sidebar.marketsTab.yourActiveMarkets")}
               amount={activeAmount}
               onClick={() => scrollToMarkets("active-markets")}
             />
           )}
           {showConnectedData && (
             <SidebarButton
-              label="Your Terminated Markets"
+              label={t("sidebar.marketsTab.yourTerminatedMarkets")}
               amount={terminatedAmount}
               onClick={() => scrollToMarkets("terminated-markets")}
             />
           )}
           <SidebarButton
-            label="Other Markets"
+            label={t("sidebar.marketsTab.otherMarkets")}
             amount={otherAmount}
             onClick={() => scrollToMarkets("other-markets")}
           />
@@ -322,8 +322,8 @@ export const MarketsTabSidebar = () => {
       </Box>
 
       <FilterSelect
-        label="Underlying Asset"
-        placeholder="Filter by Asset"
+        label={t("sidebar.marketsTab.underlyingAsset")}
+        placeholder={t("sidebar.marketsTab.filterByAsset")}
         selected={selectedAssets}
         setSelected={setSelectedAssets}
         options={

@@ -1,13 +1,6 @@
 import { useState } from "react"
 
-import {
-  Box,
-  ClickAwayListener,
-  IconButton,
-  SvgIcon,
-  Tooltip,
-  Typography,
-} from "@mui/material"
+import { Box, IconButton, SvgIcon, Tooltip, Typography } from "@mui/material"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
@@ -51,7 +44,7 @@ export const LinkGroup = ({
               disableFocusListener
               disableHoverListener
               disableTouchListener
-              title="Copied"
+              title={t("link.copied")}
               slotProps={{
                 popper: {
                   disablePortal: true,

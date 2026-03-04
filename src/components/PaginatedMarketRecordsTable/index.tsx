@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material"
 import { Market, MarketRecordKind } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import Filter from "@/assets/icons/filter_icon.svg"
 import { FilterTextField } from "@/components/FilterTextfield"
@@ -27,24 +28,28 @@ type CheckboxOption<T> = {
 
 const MarketRecordFilters: CheckboxOption<MarketRecordKind>[] = (
   [
-    ["AnnualInterestBipsUpdated", "APR Change"],
-    ["Borrow", "Borrow"],
-    ["DebtRepaid", "Repayment"],
-    ["DelinquencyStatusChanged", "Delinquency"],
-    ["Deposit", "Deposit"],
-    ["FeesCollected", "Fees"],
-    ["FixedTermUpdated", "Fixed Term"],
-    ["MarketClosed", "Market Closed"],
-    ["MaxTotalSupplyUpdated", "Capacity Change"],
-    ["MinimumDepositUpdated", "Minimum Deposit Updated"],
-    ["ProtocolFeeBipsUpdated", "Protocol Fee Change"],
-    ["WithdrawalRequest", "Withdrawal"],
+    ["AnnualInterestBipsUpdated", "marketRecordsFilter.types.aprChange"],
+    ["Borrow", "marketRecordsFilter.types.borrow"],
+    ["DebtRepaid", "marketRecordsFilter.types.repayment"],
+    ["DelinquencyStatusChanged", "marketRecordsFilter.types.delinquency"],
+    ["Deposit", "marketRecordsFilter.types.deposit"],
+    ["FeesCollected", "marketRecordsFilter.types.fees"],
+    ["FixedTermUpdated", "marketRecordsFilter.types.fixedTerm"],
+    ["MarketClosed", "marketRecordsFilter.types.marketClosed"],
+    ["MaxTotalSupplyUpdated", "marketRecordsFilter.types.capacityChange"],
+    [
+      "MinimumDepositUpdated",
+      "marketRecordsFilter.types.minimumDepositUpdated",
+    ],
+    ["ProtocolFeeBipsUpdated", "marketRecordsFilter.types.protocolFeeChange"],
+    ["WithdrawalRequest", "marketRecordsFilter.types.withdrawal"],
   ] as [MarketRecordKind, string][]
 ).map(([value, label]) => ({ id: `check-filter-${value}`, value, label }))
 
 const ALL_KINDS: MarketRecordKind[] = MarketRecordFilters.map((f) => f.value)
 
 export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
+  const { t } = useTranslation()
   const [page, setPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)
   const [selectedFilters, setSelectedFilters] = useState<MarketRecordKind[]>(
@@ -199,7 +204,7 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
       >
         <Box sx={{ padding: "6px 0 6px 10px" }}>
           <FormControlLabel
-            label="All types"
+            label={t("marketRecordsFilter.allTypes")}
             control={
               <ExtendedCheckbox
                 checked={allSelected}
@@ -226,7 +231,7 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
             <Box sx={{ padding: "2px 0", display: "flex", align: "center" }}>
               <FormControlLabel
                 key={o.id}
-                label={o.label}
+                label={t(o.label)}
                 control={
                   <ExtendedCheckbox
                     value={o.value}
@@ -251,14 +256,14 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
           color="secondary"
           sx={{ width: "100%", marginTop: "12px" }}
         >
-          Reset
+          {t("marketRecordsFilter.reset")}
         </Button>
       </Popover>
 
       <FilterTextField
         value={search}
         setValue={setSearch}
-        placeholder="Search by ID"
+        placeholder={t("marketRecordsFilter.searchById")}
         width="180px"
       />
 
@@ -283,7 +288,10 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
       >
         {startEventIndex !== undefined && (
           <Typography variant="text3">
-            Viewing records {startEventIndex} to {endEventIndex}
+            {t("marketRecordsFilter.viewingRecords", {
+              start: startEventIndex,
+              end: endEventIndex,
+            })}
           </Typography>
         )}
         {/*      <div className="flex gap-x-4 items-center flex-row">

@@ -36,7 +36,9 @@
   },
   "footer": {
     "rights": "Wildcat Foundation 2025",
-    "agreement": "Download Terms Of Use"
+    "agreement": "Download Terms Of Use",
+    "cookiesSettings": "Cookies Settings",
+    "privacyPolicy": "Privacy Policy"
   },
   "admin": {
     "inviteBorrower": {
@@ -468,7 +470,7 @@
         "confirm": "Confirm"
       },
       "borrow": {
-        "borrow" : "Borrow",
+        "borrow": "Borrow",
         "borrowSum": "Borrow Sum",
         "availableToBorrow": "Available To Borrow",
         "afterTransaction": " after this transaction",
@@ -1050,7 +1052,6 @@
           "claim": "Claim Assets",
           "withdrawals": "Go to Withdrawals"
         }
-
       }
     },
     "barchart": {
@@ -1104,11 +1105,23 @@
       "download": "Download"
     }
   },
+  "hotjarConsent": {
+    "title": "Manage Tracking",
+    "message": "We use Hotjar for anonymous analytics. Allow tracking?",
+    "allow": "Allow",
+    "decline": "Decline"
+  },
+  "authWrapper": {
+    "connectWallet": "Connect your wallet to continue",
+    "login": "Login",
+    "notAdmin": "You are not an admin"
+  },
   "txModal": {
-    "viewOnEtherscan":"View on Explorer"
+    "viewOnEtherscan": "View on Explorer"
   },
   "link": {
-    "viewOnEtherscan": "View on Explorer"
+    "viewOnEtherscan": "View on Explorer",
+    "copied": "Copied"
   },
   "marketWithdrawalRequests": {
     "openWithdrawals": "Open Withdrawals",
@@ -1487,6 +1500,102 @@
     "time": {
       "oneYear": "one year",
       "twoYears": "two years"
+    }
+  },
+  "mobile": {
+    "moreButton": {
+      "title": "Wallet Actions",
+      "addTokenManually": "To add debt token to wallet please copy the token address and add it manually."
+    },
+    "marketCard": {
+      "baseAPR": "Base APR",
+      "withdrawal": "Withdrawal",
+      "availableToLend": "available to lend",
+      "deposited": "deposited",
+      "more": "More"
+    },
+    "marketList": {
+      "noMarkets": "No Markets Here",
+      "noMarketsSubtitle": "Change selected filters or check other sections",
+      "deposit": "Deposit",
+      "prev": "Prev",
+      "next": "Next"
+    },
+    "search": {
+      "placeholder": "Search by Name",
+      "reset": "Reset",
+      "search": "Search"
+    },
+    "filters": {
+      "title": "Filters",
+      "reset": "Reset",
+      "apply": "Apply",
+      "markets": "Markets",
+      "withdrawalCycle": "Withdrawal Cycle",
+      "currency": "Currency"
+    },
+    "connectWallet": {
+      "consentPrefix": "By connecting your wallet, you consent to the",
+      "privacyPolicy": "Wildcat Privacy Policy"
+    }
+  },
+  "marketStatus": {
+    "healthy": {
+      "label": "Healthy",
+      "till": "Till {{date}}",
+      "timeLeft": "{{time}} left"
+    }
+  },
+  "marketHeader": {
+    "mobileNav": {
+      "status": "Status",
+      "marketDescription": "Market Description",
+      "withdrawalRequests": "Withdrawal Requests",
+      "mla": "MLA"
+    }
+  },
+  "marketRecordsFilter": {
+    "allTypes": "All types",
+    "reset": "Reset",
+    "searchById": "Search by ID",
+    "viewingRecords": "Viewing records {{start}} to {{end}}",
+    "types": {
+      "aprChange": "APR Change",
+      "borrow": "Borrow",
+      "repayment": "Repayment",
+      "delinquency": "Delinquency",
+      "deposit": "Deposit",
+      "fees": "Fees",
+      "fixedTerm": "Fixed Term",
+      "marketClosed": "Market Closed",
+      "capacityChange": "Capacity Change",
+      "minimumDepositUpdated": "Minimum Deposit Updated",
+      "protocolFeeChange": "Protocol Fee Change",
+      "withdrawal": "Withdrawal"
+    }
+  },
+  "adsBanners": {
+    "rewardsAPR": "Rewards APR",
+    "rewardsTooltip": "Lenders may receive additional incentives distributed by external partners or protocol initiatives. These incentives are optional, variable, and not part of the core lending terms. Wildcat does not guarantee the program and accepts no liability."
+  },
+  "sidebar": {
+    "back": "Back",
+    "borrowerProfile": "Borrower Profile",
+    "editBorrowerProfile": "Edit Borrower Profile",
+    "backToMarkets": "Back To Markets",
+    "lendersTab": {
+      "search": "Search",
+      "markets": "Markets",
+      "filterByMarkets": "Filter by Markets",
+      "lenders": "Lenders",
+      "filterByLenders": "Filter by Lenders"
+    },
+    "marketsTab": {
+      "yourActiveMarkets": "Your Active Markets",
+      "yourTerminatedMarkets": "Your Terminated Markets",
+      "otherMarkets": "Other Markets",
+      "underlyingAsset": "Underlying Asset",
+      "filterByAsset": "Filter by Asset"
     }
   }
 }

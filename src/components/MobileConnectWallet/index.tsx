@@ -118,7 +118,7 @@ export const MobileConnectWallet = ({
         ))}
       </Box>
       <Typography variant="text3" sx={Terms}>
-        By connecting your wallet, you consent to the{" "}
+        {t("mobile.connectWallet.consentPrefix")}{" "}
         <MuiLink
           component={Link}
           href="https://docs.wildcat.finance/legal/protocol-ui-privacy-policy"
@@ -126,7 +126,7 @@ export const MobileConnectWallet = ({
           underline="always"
           color="inherit"
         >
-          Wildcat Privacy Policy
+          {t("mobile.connectWallet.privacyPolicy")}
         </MuiLink>
         .
       </Typography>

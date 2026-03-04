@@ -106,7 +106,7 @@ export const Footer = ({
             }}
             onClick={handleOpenCookiesModal}
           >
-            Cookies Settings
+            {t("footer.cookiesSettings")}
           </Button>
 
           <Link
@@ -122,7 +122,7 @@ export const Footer = ({
               color={COLORS.white06}
               sx={{ textDecoration: "underline" }}
             >
-              Privacy Policy
+              {t("footer.privacyPolicy")}
             </Typography>
           </Link>
 
@@ -151,7 +151,7 @@ export const Footer = ({
               }}
               onClick={handleOpenCookiesModal}
             >
-              Cookies Settings
+              {t("footer.cookiesSettings")}
             </Button>
 
             <Link
