@@ -42,7 +42,7 @@ export default function AuthWrapper({
         size="small"
         onClick={() => login(address)}
       >
-        {buttonText || t("authWrapper.login")}
+        {buttonText || t("common.actions.login")}
       </Button>
     )
   }

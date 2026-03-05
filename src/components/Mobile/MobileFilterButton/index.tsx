@@ -405,7 +405,7 @@ export const MobileFilterButton = ({
             color="secondary"
             fullWidth
           >
-            {t("mobile.filters.reset")}
+            {t("common.actions.reset")}
           </Button>
         </Box>
       </Dialog>

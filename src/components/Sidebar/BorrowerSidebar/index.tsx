@@ -19,7 +19,7 @@ export const BorrowerSidebar = () => {
 
   return (
     <Box sx={ContentContainer}>
-      <BackButton title={t("sidebar.back")} link={backLink} />
+      <BackButton title={t("common.actions.back")} link={backLink} />
 
       <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
         <Button variant="text" size="medium" sx={MenuItemButton}>

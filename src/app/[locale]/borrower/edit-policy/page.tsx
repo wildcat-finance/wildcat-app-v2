@@ -261,9 +261,7 @@ export default function EditPolicyPage() {
                 value={pendingPolicyName}
                 onChange={(e) => setPendingPolicyName(e.target.value)}
                 label={t("editPolicy.forms.policyName.title")}
-                placeholder={t(
-                  "createMarket.forms.marketDescription.block.policyName.placeholder",
-                )}
+                placeholder={t("editPolicy.forms.policyName.placeholder")}
               />
             )}
           </Box>

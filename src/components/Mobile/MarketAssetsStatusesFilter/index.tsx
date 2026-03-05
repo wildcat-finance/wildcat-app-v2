@@ -111,7 +111,7 @@ export const MarketAssetsStatusesFilter = ({
           sx={{ width: "100%", marginTop: "12px" }}
           onClick={onClear}
         >
-          <Typography variant="text3">{t("mobile.filters.reset")}</Typography>
+          <Typography variant="text3">{t("common.actions.reset")}</Typography>
         </Button>
         <Button
           variant="contained"
@@ -121,7 +121,7 @@ export const MarketAssetsStatusesFilter = ({
           onClick={onApply}
         >
           <Typography variant="text3" color={COLORS.white}>
-            {t("mobile.filters.apply")}
+            {t("common.actions.apply")}
           </Typography>
         </Button>
       </Box>

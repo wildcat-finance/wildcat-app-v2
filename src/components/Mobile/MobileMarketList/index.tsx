@@ -118,7 +118,7 @@ export const MobileMarketList = ({
               adsComponent={getAdsMobileContent(marketItem.id)}
               key={marketItem.id}
               marketItem={marketItem}
-              buttonText={t("mobile.marketList.deposit")}
+              buttonText={t("common.actions.deposit")}
               buttonIcon
               showBorrower={showBorrowerInCard}
             />
@@ -178,7 +178,7 @@ export const MobileMarketList = ({
               borderRadius: "8px",
             }}
           >
-            {t("mobile.marketList.prev")}
+            {t("common.actions.prev")}
           </Button>
 
           <Box sx={{ display: "flex", gap: "8px" }}>
@@ -242,7 +242,7 @@ export const MobileMarketList = ({
               borderRadius: "8px",
             }}
           >
-            {t("mobile.marketList.next")}
+            {t("common.actions.next")}
           </Button>
         </Box>
       )}

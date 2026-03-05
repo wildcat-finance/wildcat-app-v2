@@ -256,7 +256,7 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
           color="secondary"
           sx={{ width: "100%", marginTop: "12px" }}
         >
-          {t("marketRecordsFilter.reset")}
+          {t("common.actions.reset")}
         </Button>
       </Popover>
 

@@ -12,7 +12,10 @@ export const EditProfileSidebar = () => {
   const { t } = useTranslation()
   return (
     <Box sx={ContentContainer}>
-      <BackButton title={t("sidebar.back")} link={ROUTES.borrower.profile} />
+      <BackButton
+        title={t("common.actions.back")}
+        link={ROUTES.borrower.profile}
+      />
 
       <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
         <Button variant="text" size="medium" sx={MenuItemButton}>

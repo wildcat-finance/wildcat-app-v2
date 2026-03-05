@@ -236,7 +236,7 @@ export const MobileSearchButton = ({
             color="secondary"
             fullWidth
           >
-            {t("mobile.search.reset")}
+            {t("common.actions.reset")}
           </Button>
 
           <Button
@@ -245,7 +245,7 @@ export const MobileSearchButton = ({
             variant="contained"
             fullWidth
           >
-            {t("mobile.search.search")}
+            {t("common.actions.search")}
           </Button>
         </Box>
       </Dialog>
