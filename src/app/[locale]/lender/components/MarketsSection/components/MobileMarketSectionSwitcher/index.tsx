@@ -142,7 +142,12 @@ export const MobileMarketSectionHeader = ({
     (state) => state.lenderDashboardAmounts.manual,
   )
 
-  const otherMarketsAmount = selfOnboardAmount + manualAmount
+  const terminatedOtherAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.terminatedOther,
+  )
+
+  const otherMarketsAmount =
+    selfOnboardAmount + manualAmount + terminatedOtherAmount
 
   const dispatch = useAppDispatch()
 
@@ -273,6 +278,13 @@ export const MobileMarketSectionHeader = ({
               label="Onboarded by Borrower"
               target="manual"
               amount={manualAmount}
+              type="secondary"
+            />
+
+            <MobileSwitcherButton
+              label="Terminated"
+              target="other-terminated"
+              amount={terminatedOtherAmount}
               type="secondary"
             />
           </>

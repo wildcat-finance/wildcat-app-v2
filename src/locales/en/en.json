@@ -109,6 +109,7 @@
           "title": "Other Markets",
           "selfOnboard": "Self-Onboard",
           "manual": "Onboard by Borrower",
+          "terminated": "Terminated",
           "depositBTN": "Deposit",
           "requestBTN": "Request"
         },
