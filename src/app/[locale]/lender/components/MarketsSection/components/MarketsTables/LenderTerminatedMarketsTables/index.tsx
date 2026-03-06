@@ -321,7 +321,7 @@ export const LenderTerminatedMarketsTables = ({
     >
       <Box id="prev-active" ref={prevActiveRef}>
         <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.closed.prevActive")}
+          label={t("dashboard.markets.tables.closed.prevActive")}
           marketsLength={prevActive.length}
           isLoading={isLoading}
           isOpen
@@ -345,7 +345,7 @@ export const LenderTerminatedMarketsTables = ({
 
       <Box id="never-active" ref={neverActiveRef}>
         <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.closed.neverActive")}
+          label={t("dashboard.markets.tables.closed.neverActive")}
           isLoading={isLoading}
           isOpen
           marketsLength={neverActive.length}

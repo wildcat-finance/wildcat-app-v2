@@ -91,7 +91,7 @@ export const LenderDashboardSidebar = () => {
         }
       >
         <DashboardSectionAccordion
-          label={t("dashboard.markets.tables.borrower.active.title")}
+          label={t("dashboard.markets.tables.active.title")}
           amount={activeMarketsAmount}
           open={marketSection === LenderMarketDashboardSections.ACTIVE}
           onClick={() =>
@@ -99,12 +99,12 @@ export const LenderDashboardSidebar = () => {
           }
         >
           <DashboardButton
-            label={t("dashboard.markets.tables.borrower.active.deposited")}
+            label={t("dashboard.markets.tables.active.deposited")}
             amount={depositedAmount}
             onClick={() => handleScrollToTable("deposited")}
           />
           <DashboardButton
-            label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
+            label={t("dashboard.markets.tables.active.nonDeposited")}
             amount={nonDepositedAmount}
             onClick={() => handleScrollToTable("non-deposited")}
           />
@@ -115,7 +115,7 @@ export const LenderDashboardSidebar = () => {
         </DashboardSectionAccordion>
 
         <DashboardSectionAccordion
-          label={t("dashboard.markets.tables.borrower.closed.title")}
+          label={t("dashboard.markets.tables.closed.title")}
           amount={closedMarketsAmount}
           open={marketSection === LenderMarketDashboardSections.TERMINATED}
           onClick={() =>
@@ -123,12 +123,12 @@ export const LenderDashboardSidebar = () => {
           }
         >
           <DashboardButton
-            label={t("dashboard.markets.tables.borrower.closed.prevActive")}
+            label={t("dashboard.markets.tables.closed.prevActive")}
             amount={prevActiveAmount}
             onClick={() => handleScrollToTable("prev-active")}
           />
           <DashboardButton
-            label={t("dashboard.markets.tables.borrower.closed.neverActive")}
+            label={t("dashboard.markets.tables.closed.neverActive")}
             amount={neverActiveAmount}
             onClick={() => handleScrollToTable("never-active")}
           />

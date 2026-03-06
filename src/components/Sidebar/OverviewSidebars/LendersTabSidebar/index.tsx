@@ -126,7 +126,7 @@ export const LendersTabSidebar = () => {
         size="medium"
         sx={{ height: "32px", padding: "11px" }}
       >
-        {t("borrowerMarketList.sidebar.resetAll")}
+        {t("dashboard.markets.sidebar.resetAll")}
       </Button>
     </Box>
   )

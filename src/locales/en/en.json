@@ -128,17 +128,15 @@
         "statuses": "Status"
       },
       "tables": {
-        "borrower": {
-          "active": {
-            "title": "Your Markets",
-            "deposited": "Deposited",
-            "nonDeposited": "Non-Deposited"
-          },
-          "closed": {
-            "title": "Your Terminated Markets",
-            "prevActive": "Previously Active",
-            "neverActive": "Never Active"
-          }
+        "active": {
+          "title": "Your Markets",
+          "deposited": "Deposited",
+          "nonDeposited": "Non-Deposited"
+        },
+        "closed": {
+          "title": "Your Terminated Markets",
+          "prevActive": "Previously Active",
+          "neverActive": "Never Active"
         },
         "other": {
           "title": "Other Markets",
@@ -146,6 +144,11 @@
           "manual": "Onboard by Borrower",
           "depositBTN": "Deposit",
           "requestBTN": "Request"
+        },
+        "mobile": {
+          "active": "Yours",
+          "closed": "Your Terminated",
+          "other": "Others"
         },
         "header": {
           "status": "Status",
@@ -158,20 +161,28 @@
           "borrowable": "Borrowable",
           "loan": "Your Loan",
           "apr": "APR",
-          "withdrawal": "Withdrawal"
-        }
+          "withdrawal": "Withdrawal",
+          "marketType": "Market Type",
+          "deploy": "Deployed",
+          "crr": "Reserve"
+        },
+        "loading": "Loading..."
       },
       "noMarkets": {
         "wrongNetwork": "No Wildcat Markets On This Network",
         "lenderAlert": {
           "title": "No active markets",
-          "subtitle": "You don’t have any active markets now. See the Other Markets list to join one.",
+          "subtitle": "You don't have any active markets now. See the Other Markets list to join one.",
           "button": "Go to Other Markets"
         },
         "active": {
           "title": "No Active Markets.",
           "borrowerSubtitle": "Create a new market, or check your terminated ones.",
           "lenderSubtitle": "Join a suitable self-onboarding market, or reach out to a borrower (see their profile) for access to restricted ones."
+        },
+        "terminated": {
+          "title": "You don't have any terminated markets",
+          "subtitle": "Have you got any active markets?"
         },
         "closed": {
           "title": "No Terminated Market Positions",
@@ -186,71 +197,29 @@
           },
           "ending": "markets found."
         }
-      }
-    }
-  },
-  "borrowerMarketList": {
-    "title": {
-      "allMarkets": "All Markets",
-      "mla": "MLA",
-      "lenders": "Lenders",
-      "policies": "Policies"
-    },
-    "button": {
-      "newMarket": "Create Market",
-      "newPolicy": "Create Policy"
-    },
-    "sidebar": {
-      "searchPlaceholder": "Search By Market Name",
-      "marketTypes": "Market Types",
-      "activeMarketStatus": "Active Market Status",
-      "clear": "Clear",
-      "resetAll": "Reset Filters",
-      "title": {
-        "status": "Market Status",
-        "asset": "Underlying Asset"
       },
-      "radio": {
-        "all": "All"
-      }
-    },
-    "table": {
-      "title": {
-        "active": "Your Active Markets",
-        "terminated": "Your Terminated Markets",
-        "other": "Other Markets",
-        "loading": "Loading..."
+      "tabs": {
+        "allMarkets": "All Markets",
+        "mla": "MLA",
+        "lenders": "Lenders",
+        "policies": "Policies"
       },
-      "header": {
-        "status": "Status",
-        "marketName": "Market Name",
-        "borrowerName": "Borrower Name",
-        "asset": "Underlying Asset",
-        "apr": "Lender APR",
-        "crr": "Reserve",
-        "capacity": "Max Capacity",
-        "borrowable": "Borrowable",
-        "deploy": "Deployed",
-        "marketType": "Market Type"
+      "button": {
+        "newMarket": "Create Market",
+        "newPolicy": "Create Policy"
       },
-      "noMarkets": {
-        "wrongNetwork": "No Wildcat Markets On This Network",
-        "active": {
-          "title": "No Active Markets.",
-          "subtitle": "Create a new market, or check your terminated ones."
+      "sidebar": {
+        "searchPlaceholder": "Search By Market Name",
+        "marketTypes": "Market Types",
+        "activeMarketStatus": "Active Market Status",
+        "clear": "Clear",
+        "resetAll": "Reset Filters",
+        "title": {
+          "status": "Market Status",
+          "asset": "Underlying Asset"
         },
-        "terminated": {
-          "title": "You don’t have any terminated markets",
-          "subtitle": "Have you got any active markets?"
-        },
-        "filter": {
-          "beginning": "No",
-          "type": {
-            "active": "active",
-            "terminated": "terminated",
-            "other": "other"
-          },
-          "ending": "markets found."
+        "radio": {
+          "all": "All"
         }
       }
     }

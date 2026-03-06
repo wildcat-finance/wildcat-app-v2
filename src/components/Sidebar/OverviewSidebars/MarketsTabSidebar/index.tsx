@@ -161,7 +161,7 @@ export const MarketsTabSidebar = () => {
     >
       <TextField
         fullWidth
-        placeholder={t("borrowerMarketList.sidebar.searchPlaceholder")}
+        placeholder={t("dashboard.markets.sidebar.searchPlaceholder")}
         value={marketName}
         onChange={handleChangeMarketName}
         size="small"
@@ -185,7 +185,7 @@ export const MarketsTabSidebar = () => {
           color={COLORS.santasGrey}
           sx={{ height: "20px" }}
         >
-          {t("borrowerMarketList.sidebar.marketTypes")}
+          {t("dashboard.markets.sidebar.marketTypes")}
         </Typography>
 
         <Box
@@ -227,7 +227,7 @@ export const MarketsTabSidebar = () => {
           }}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            {t("borrowerMarketList.sidebar.activeMarketStatus")}
+            {t("dashboard.markets.sidebar.activeMarketStatus")}
           </Typography>
 
           {marketsStatuses.length !== 0 && (
@@ -245,7 +245,7 @@ export const MarketsTabSidebar = () => {
                 },
               }}
             >
-              {t("borrowerMarketList.sidebar.clear")}
+              {t("dashboard.markets.sidebar.clear")}
             </Button>
           )}
         </Box>
@@ -342,7 +342,7 @@ export const MarketsTabSidebar = () => {
           size="medium"
           sx={{ height: "32px", padding: "11px" }}
         >
-          {t("borrowerMarketList.sidebar.resetAll")}
+          {t("dashboard.markets.sidebar.resetAll")}
         </Button>
       )}
     </Box>
