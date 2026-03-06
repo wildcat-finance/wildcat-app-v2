@@ -65,7 +65,12 @@ export const LenderDashboardSidebar = () => {
     (state) => state.lenderDashboardAmounts.manual,
   )
 
-  const otherMarketsAmount = selfOnboardAmount + manualAmount
+  const terminatedOtherAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.terminatedOther,
+  )
+
+  const otherMarketsAmount =
+    selfOnboardAmount + manualAmount + terminatedOtherAmount
 
   const marketsAmount =
     activeMarketsAmount + closedMarketsAmount + otherMarketsAmount
@@ -153,6 +158,11 @@ export const LenderDashboardSidebar = () => {
             label={t("dashboard.markets.tables.other.manual")}
             amount={manualAmount}
             onClick={() => handleScrollToTable("manual")}
+          />
+          <DashboardButton
+            label={t("dashboard.markets.tables.other.terminated")}
+            amount={terminatedOtherAmount}
+            onClick={() => handleScrollToTable("other-terminated")}
           />
         </DashboardSectionAccordion>
       </DashboardPageAccordion>

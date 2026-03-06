@@ -78,7 +78,12 @@ export const BorrowerDashboardSidebar = () => {
     (state) => state.borrowerDashboardAmounts.manual,
   )
 
-  const otherMarketsAmount = selfOnboardAmount + manualAmount
+  const terminatedOtherAmount = useAppSelector(
+    (state) => state.borrowerDashboardAmounts.terminatedOther,
+  )
+
+  const otherMarketsAmount =
+    selfOnboardAmount + manualAmount + terminatedOtherAmount
 
   const marketsAmount =
     activeMarketsAmount + closedMarketsAmount + otherMarketsAmount
@@ -173,6 +178,11 @@ export const BorrowerDashboardSidebar = () => {
             label={t("dashboard.markets.tables.other.manual")}
             amount={manualAmount}
             onClick={() => handleScrollToTable("manual")}
+          />
+          <DashboardButton
+            label={t("dashboard.markets.tables.other.terminated")}
+            amount={terminatedOtherAmount}
+            onClick={() => handleScrollToTable("other-terminated")}
           />
         </DashboardSectionAccordion>
       </DashboardPageAccordion>

@@ -12,6 +12,7 @@ export type BorrowerDashboardAmountsType = {
   neverActive: number
   selfOnboard: number
   manual: number
+  terminatedOther: number
   policies: number
 }
 
@@ -22,6 +23,7 @@ export const initialState: BorrowerDashboardAmountsType = {
   neverActive: 0,
   selfOnboard: 0,
   manual: 0,
+  terminatedOther: 0,
   policies: 0,
 }
 
