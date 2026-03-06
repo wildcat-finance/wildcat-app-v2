@@ -87,7 +87,7 @@ export const LendersTabSidebar = () => {
         value={searchStore}
         onChange={handleChangeSearch}
         fullWidth
-        placeholder="Search"
+        placeholder={t("sidebar.lendersTab.search")}
         size="small"
         InputProps={{
           startAdornment: (
@@ -104,16 +104,16 @@ export const LendersTabSidebar = () => {
       />
 
       <FilterSelect
-        label="Markets"
-        placeholder="Filter by Markets"
+        label={t("sidebar.lendersTab.markets")}
+        placeholder={t("sidebar.lendersTab.filterByMarkets")}
         selected={selectedMarketsStore}
         setSelected={setSelectedMarkets}
         options={activeBorrowerMarkets ?? []}
       />
 
       <FilterSelect
-        label="Lenders"
-        placeholder="Filter by Lenders"
+        label={t("sidebar.lendersTab.lenders")}
+        placeholder={t("sidebar.lendersTab.filterByLenders")}
         selected={selectedLendersStore}
         setSelected={setSelectedLenders}
         options={lendersData ?? []}
@@ -126,7 +126,7 @@ export const LendersTabSidebar = () => {
         size="medium"
         sx={{ height: "32px", padding: "11px" }}
       >
-        {t("borrowerMarketList.sidebar.resetAll")}
+        {t("dashboard.markets.sidebar.resetAll")}
       </Button>
     </Box>
   )

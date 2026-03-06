@@ -1,4 +1,5 @@
 import { Box, Button } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { BackButton } from "@/components/BackButton"
 import {
@@ -7,14 +8,20 @@ import {
 } from "@/components/Sidebar/BorrowerSidebar/style"
 import { ROUTES } from "@/routes"
 
-export const EditProfileSidebar = () => (
-  <Box sx={ContentContainer}>
-    <BackButton title="Back" link={ROUTES.borrower.profile} />
+export const EditProfileSidebar = () => {
+  const { t } = useTranslation()
+  return (
+    <Box sx={ContentContainer}>
+      <BackButton
+        title={t("common.actions.back")}
+        link={ROUTES.borrower.profile}
+      />
 
-    <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
-      <Button variant="text" size="medium" sx={MenuItemButton}>
-        Edit Borrower Profile
-      </Button>
+      <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
+        <Button variant="text" size="medium" sx={MenuItemButton}>
+          {t("sidebar.editBorrowerProfile")}
+        </Button>
+      </Box>
     </Box>
-  </Box>
-)
+  )
+}

@@ -372,7 +372,7 @@ export const BorrowerActiveMarketsTables = ({
     >
       <Box id="deposited" ref={depositedRef}>
         <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.active.deposited")}
+          label={t("dashboard.markets.tables.active.deposited")}
           marketsLength={depositedMarkets.length}
           isLoading={isLoading}
           isOpen
@@ -397,7 +397,7 @@ export const BorrowerActiveMarketsTables = ({
 
       <Box id="non-deposited" ref={nonDepositedRef}>
         <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
+          label={t("dashboard.markets.tables.active.nonDeposited")}
           isLoading={isLoading}
           isOpen
           noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}

@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import Hotjar from "@hotjar/browser"
 import { Dialog, Typography, Box, Button } from "@mui/material"
 import Cookies, { CookieAttributes } from "js-cookie"
+import { useTranslation } from "react-i18next"
 
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -29,6 +30,7 @@ const getCookieOptions = (): CookieAttributes => ({
 })
 
 export default function HotjarConsent() {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const isMobile = useMobileResolution()
   const isVisible = useAppSelector((state) => state.cookieBanner.isVisible)
@@ -140,10 +142,10 @@ export default function HotjarConsent() {
       }}
     >
       <Typography variant="text2" fontWeight={600} sx={{ mb: "4px" }}>
-        Manage Tracking
+        {t("hotjarConsent.title")}
       </Typography>
       <Typography variant="text2" fontWeight={400} sx={{ mb: "20px" }}>
-        We use Hotjar for anonymous analytics. Allow tracking?
+        {t("hotjarConsent.message")}
       </Typography>
 
       <Box sx={{ display: "flex", gap: "8px" }}>
@@ -152,7 +154,7 @@ export default function HotjarConsent() {
           variant="contained"
           sx={{ padding: "6px 15px", borderRadius: "8px", height: "32px" }}
         >
-          Allow
+          {t("hotjarConsent.allow")}
         </Button>
         <Button
           onClick={handleDecline}
@@ -160,7 +162,7 @@ export default function HotjarConsent() {
           color="secondary"
           sx={{ padding: "6px 15px", borderRadius: "8px", height: "32px" }}
         >
-          Decline
+          {t("hotjarConsent.decline")}
         </Button>
       </Box>
     </Dialog>

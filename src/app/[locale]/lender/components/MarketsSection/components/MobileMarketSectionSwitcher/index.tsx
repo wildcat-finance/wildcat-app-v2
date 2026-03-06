@@ -193,22 +193,19 @@ export const MobileMarketSectionHeader = ({
         }}
       >
         <MobileSwitcherButton
-          // label={t("dashboard.markets.tables.borrower.active.title")}
-          label="Yours"
+          label={t("dashboard.markets.tables.mobile.active")}
           amount={activeMarketsAmount}
           section={LenderMarketDashboardSections.ACTIVE}
         />
 
         <MobileSwitcherButton
-          // label={t("dashboard.markets.tables.borrower.closed.title")}
-          label="Your Terminated"
+          label={t("dashboard.markets.tables.mobile.closed")}
           amount={closedMarketsAmount}
           section={LenderMarketDashboardSections.TERMINATED}
         />
 
         <MobileSwitcherButton
-          // label={t("dashboard.markets.tables.other.title")}
-          label="Others"
+          label={t("dashboard.markets.tables.mobile.other")}
           amount={otherMarketsAmount}
           section={LenderMarketDashboardSections.OTHER}
         />

@@ -161,7 +161,7 @@ export const MarketsTabSidebar = () => {
     >
       <TextField
         fullWidth
-        placeholder={t("borrowerMarketList.sidebar.searchPlaceholder")}
+        placeholder={t("dashboard.markets.sidebar.searchPlaceholder")}
         value={marketName}
         onChange={handleChangeMarketName}
         size="small"
@@ -185,7 +185,7 @@ export const MarketsTabSidebar = () => {
           color={COLORS.santasGrey}
           sx={{ height: "20px" }}
         >
-          {t("borrowerMarketList.sidebar.marketTypes")}
+          {t("dashboard.markets.sidebar.marketTypes")}
         </Typography>
 
         <Box
@@ -198,20 +198,20 @@ export const MarketsTabSidebar = () => {
         >
           {showConnectedData && (
             <SidebarButton
-              label="Your Active Markets"
+              label={t("sidebar.marketsTab.yourActiveMarkets")}
               amount={activeAmount}
               onClick={() => scrollToMarkets("active-markets")}
             />
           )}
           {showConnectedData && (
             <SidebarButton
-              label="Your Terminated Markets"
+              label={t("sidebar.marketsTab.yourTerminatedMarkets")}
               amount={terminatedAmount}
               onClick={() => scrollToMarkets("terminated-markets")}
             />
           )}
           <SidebarButton
-            label="Other Markets"
+            label={t("sidebar.marketsTab.otherMarkets")}
             amount={otherAmount}
             onClick={() => scrollToMarkets("other-markets")}
           />
@@ -227,7 +227,7 @@ export const MarketsTabSidebar = () => {
           }}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            {t("borrowerMarketList.sidebar.activeMarketStatus")}
+            {t("dashboard.markets.sidebar.activeMarketStatus")}
           </Typography>
 
           {marketsStatuses.length !== 0 && (
@@ -245,7 +245,7 @@ export const MarketsTabSidebar = () => {
                 },
               }}
             >
-              {t("borrowerMarketList.sidebar.clear")}
+              {t("dashboard.markets.sidebar.clear")}
             </Button>
           )}
         </Box>
@@ -322,8 +322,8 @@ export const MarketsTabSidebar = () => {
       </Box>
 
       <FilterSelect
-        label="Underlying Asset"
-        placeholder="Filter by Asset"
+        label={t("sidebar.marketsTab.underlyingAsset")}
+        placeholder={t("sidebar.marketsTab.filterByAsset")}
         selected={selectedAssets}
         setSelected={setSelectedAssets}
         options={
@@ -342,7 +342,7 @@ export const MarketsTabSidebar = () => {
           size="medium"
           sx={{ height: "32px", padding: "11px" }}
         >
-          {t("borrowerMarketList.sidebar.resetAll")}
+          {t("dashboard.markets.sidebar.resetAll")}
         </Button>
       )}
     </Box>
