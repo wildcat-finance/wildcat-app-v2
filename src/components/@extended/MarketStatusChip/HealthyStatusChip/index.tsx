@@ -51,6 +51,12 @@ export const HealthyStatusChip = ({
     }
   }
 
+  console.log(
+    t("marketStatus.healthy.till", {
+      date: remainingMillisecondsToDate(msLeft || 0),
+    }),
+  )
+
   return (
     <Box sx={{ display: "flex", gap: "4px 2px", flexWrap: "wrap" }}>
       <Chip
