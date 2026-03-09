@@ -126,6 +126,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const handleClose = () => {
     modal.handleCloseModal()
     setAprPreview(undefined)
+    setShowResetErrorPopup(false)
+    setShowResetSuccessPopup(false)
   }
 
   const handleAprChange = (evt: ChangeEvent<HTMLInputElement>) => {
@@ -630,10 +632,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
               resetMutate()
               setShowResetErrorPopup(false)
             }}
-            onClose={() => {
-              setShowResetErrorPopup(false)
-              modal.handleCloseModal()
-            }}
+            onClose={handleClose}
             txHash={resetTxHash}
           />
         )}
@@ -641,37 +640,33 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
           <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
         )}
         {showResetSuccessPopup && (
-          <SuccessModal
-            onClose={() => {
-              setShowResetSuccessPopup(false)
-              modal.handleCloseModal()
-            }}
-            txHash={resetTxHash}
-          />
+          <SuccessModal onClose={handleClose} txHash={resetTxHash} />
         )}
 
         {showForm && (
-          <TxModalFooter
-            mainBtnText={
-              // eslint-disable-next-line no-nested-ternary
-              needsReset
-                ? t("borrowerMarketDetails.modals.apr.resetTempRatio")
-                : aprFixedReduction
-                  ? "Forbidden [Fixed-Term]"
-                  : t("borrowerMarketDetails.modals.apr.adjust")
-            }
-            secondBtnText={
-              modal.approvedStep
-                ? t("borrowerMarketDetails.modals.apr.confirmed")
-                : t("borrowerMarketDetails.modals.apr.confirm")
-            }
-            mainBtnOnClick={needsReset ? () => resetMutate() : handleAdjust}
-            secondBtnOnClick={needsReset ? undefined : handleConfirm}
-            disableMainBtn={needsReset ? false : disableAdjust}
-            disableSecondBtn={needsReset ? true : disableConfirm}
-            secondBtnIcon={modal.approvedStep}
-            hideButtons={!showForm}
-          />
+          <Box sx={{ width: "100%", display: "flex", marginTop: "auto" }}>
+            <TxModalFooter
+              mainBtnText={
+                // eslint-disable-next-line no-nested-ternary
+                needsReset
+                  ? t("borrowerMarketDetails.modals.apr.resetTempRatio")
+                  : aprFixedReduction
+                    ? "Forbidden [Fixed-Term]"
+                    : t("borrowerMarketDetails.modals.apr.adjust")
+              }
+              secondBtnText={
+                modal.approvedStep
+                  ? t("borrowerMarketDetails.modals.apr.confirmed")
+                  : t("borrowerMarketDetails.modals.apr.confirm")
+              }
+              mainBtnOnClick={needsReset ? () => resetMutate() : handleAdjust}
+              secondBtnOnClick={needsReset ? undefined : handleConfirm}
+              disableMainBtn={needsReset ? false : disableAdjust}
+              disableSecondBtn={needsReset ? true : disableConfirm}
+              secondBtnIcon={modal.approvedStep}
+              hideButtons={!showForm}
+            />
+          </Box>
         )}
       </Dialog>
     </>

@@ -3,6 +3,8 @@ import { Dispatch } from "react"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
+// eslint-disable-next-line camelcase
+import { WildcatMarketV2__factory } from "@wildcatfi/wildcat-sdk/dist/typechain"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
@@ -11,13 +13,13 @@ export const useResetTempReserveRatio = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
 ) => {
-  const { address, targetChainId } = useEthersProvider()
+  const { signer, address, targetChainId } = useEthersProvider()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
   return useMutation({
     mutationFn: async () => {
-      if (!marketAccount) {
+      if (!marketAccount || !signer) {
         return
       }
       if (marketAccount.chainId !== targetChainId) {
@@ -28,10 +30,15 @@ export const useResetTempReserveRatio = (
         )
       }
 
-      const currentAprBips = marketAccount.market.annualInterestBips
+      const { market } = marketAccount
+      // eslint-disable-next-line camelcase
+      const contract = WildcatMarketV2__factory.connect(market.address, signer)
 
       const resetRatio = async () => {
-        const tx = await marketAccount.setAnnualInterestBips(currentAprBips)
+        const tx = await contract.setAnnualInterestAndReserveRatioBips(
+          market.annualInterestBips,
+          market.reserveRatioBips,
+        )
 
         if (!safeConnected) setTxHash(tx.hash)
 
