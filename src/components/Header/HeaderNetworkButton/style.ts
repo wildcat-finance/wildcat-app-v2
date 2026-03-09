@@ -5,7 +5,7 @@ export const ConnectButton = {
   width: "fit-content",
   display: "flex",
   alignItems: "center",
-  justifyContent: "space-between",
+  justifyContent: "center",
   gap: "4px",
   padding: "8px 10px",
   color: COLORS.white,

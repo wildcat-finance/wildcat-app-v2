@@ -57,7 +57,7 @@ export const HeaderNetworkButton = () => {
     <>
       {!isMobile && (
         <Button size="medium" sx={ConnectButton} onClick={handleClickOpen}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <NetworkIcon chainId={targetChainId as SupportedChainId} />
 
             <Typography
@@ -79,11 +79,6 @@ export const HeaderNetworkButton = () => {
               />
             )}
           </Box>
-
-          <SvgIcon
-            component={DownArrowIcon}
-            sx={{ fontSize: "16px", "& path": { fill: "white" } }}
-          />
         </Button>
       )}
 
