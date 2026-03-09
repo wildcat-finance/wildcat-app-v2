@@ -20,6 +20,7 @@ import {
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
@@ -122,6 +123,9 @@ export const BorrowerTerminatedMarketsTables = ({
       minWidth: 200,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("dashboard.markets.tables.header.name")} />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(
@@ -163,6 +167,11 @@ export const BorrowerTerminatedMarketsTables = ({
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("dashboard.markets.tables.header.status")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(
@@ -188,6 +197,9 @@ export const BorrowerTerminatedMarketsTables = ({
       flex: 2,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("dashboard.markets.tables.header.asset")} />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(
@@ -211,6 +223,9 @@ export const BorrowerTerminatedMarketsTables = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("dashboard.markets.tables.header.apr")} />
+      ),
       renderCell: (params) => {
         const adsComponent = getAdsTooltipComponent(
           params.row.id,
@@ -244,6 +259,11 @@ export const BorrowerTerminatedMarketsTables = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("dashboard.markets.tables.header.withdrawal")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(
@@ -268,6 +288,9 @@ export const BorrowerTerminatedMarketsTables = ({
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("dashboard.markets.tables.header.debt")} />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(

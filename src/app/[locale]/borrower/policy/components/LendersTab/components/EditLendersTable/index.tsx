@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next"
 
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import Cross from "@/assets/icons/cross_icon.svg"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { LinkGroup } from "@/components/LinkComponent"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -95,6 +96,7 @@ export const EditLendersTable = ({
       flex: 1,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Name" />,
       renderCell: (params) => (
         <>
           {params.row.status === EditLenderFlowStatuses.DELETED && (
@@ -129,6 +131,7 @@ export const EditLendersTable = ({
       flex: 1,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Wallet Address" />,
       renderCell: (params) => (
         <Box display="flex" gap="4px">
           <Typography
@@ -161,6 +164,7 @@ export const EditLendersTable = ({
       disableColumnMenu: true,
       flex: 0.0001,
       align: "right",
+      renderHeader: () => <ColumnHeaderTitle title="" />,
       renderCell: (params) => (
         <>
           {(params.row.status === EditLenderFlowStatuses.OLD ||

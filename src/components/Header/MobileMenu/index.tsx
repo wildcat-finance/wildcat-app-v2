@@ -1,6 +1,6 @@
 "use client"
 
-import { Dispatch, SetStateAction, useEffect, useState } from "react"
+import { Dispatch, SetStateAction, useState } from "react"
 import * as React from "react"
 
 import {
@@ -15,21 +15,17 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useAccount, useConnect, useDisconnect } from "wagmi"
-import { injected } from "wagmi/connectors"
+import { useAccount, useDisconnect } from "wagmi"
 
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import Avatar from "@/assets/icons/avatar_icon.svg"
-import Avatarmob from "@/assets/icons/avatarmob_icon.png"
 import Menu from "@/assets/icons/burgerMenu_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
+import { HeaderNetworkButton } from "@/components/Header/HeaderNetworkButton"
 import { LinkGroup } from "@/components/LinkComponent"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
-import { MobileSelectNetwork } from "@/components/MobileSelectNetwork"
-import { NetworkIcon } from "@/components/NetworkIcon"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
-import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
@@ -53,22 +49,16 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   const pathname = usePathname()
   const isMain = pathname.includes("lender") || pathname.includes("borrower")
 
-  const { data: profileData, isLoading: isProfileLoading } =
-    useGetBorrowerProfile(address as `0x${string}`)
+  const { data: profileData } = useGetBorrowerProfile(address as `0x${string}`)
 
   const { disconnect } = useDisconnect()
   const handleToggleModal = () => {
     setIsOpen(!open)
   }
-  const selectedNetwork = useSelectedNetwork()
 
   const [openConnect, setOpenConnect] = useState<boolean>(false)
-  const [openSelectNetwork, setOpenSelectNetwork] = useState<boolean>(false)
   const handleToggleConnect = () => {
     setOpenConnect(!openConnect)
-  }
-  const handleToggleSelectNetwork = () => {
-    setOpenSelectNetwork(!openSelectNetwork)
   }
   const { getAddressUrl } = useBlockExplorer()
 
@@ -80,6 +70,8 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   return (
     <>
       <Box sx={{ display: "flex", alignItems: "center" }}>
+        <HeaderNetworkButton />
+
         {isConnected && address && !open && (
           <Box
             onClick={handleToggleConnect}
@@ -235,32 +227,6 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
           </Link>
         </Box>
 
-        <Box sx={{ padding: "0 6px" }}>
-          <Button
-            size="large"
-            fullWidth
-            sx={{
-              borderRadius: "10px",
-              marginTop: "6px",
-              backgroundColor: COLORS.whiteSmoke,
-              color: COLORS.bunker,
-              gap: "4px",
-              "&:hover": {
-                backgroundColor: COLORS.blueRibbon,
-                color: COLORS.white,
-              },
-            }}
-            onClick={handleToggleSelectNetwork}
-          >
-            <NetworkIcon chainId={selectedNetwork.chainId} />
-            {selectedNetwork.name}
-
-            {selectedNetwork.isTestnet &&
-              !selectedNetwork.name.toLowerCase().includes("testnet") &&
-              "(Testnet)"}
-          </Button>
-        </Box>
-
         {isConnected ? (
           <>
             <Button
@@ -305,11 +271,6 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
           </Button>
         )}
       </Dialog>
-
-      <MobileSelectNetwork
-        open={openSelectNetwork}
-        handleClose={handleToggleSelectNetwork}
-      />
 
       <MobileConnectWallet
         open={openConnect}

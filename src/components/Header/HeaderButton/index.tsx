@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react"
 
-import { Button, useMediaQuery } from "@mui/material"
+import { Box, Button, SvgIcon, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
+import DownArrowIcon from "@/assets/icons/downArrow_icon.svg"
+import WalletIcon from "@/assets/icons/wallet_icon.svg"
 import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWalletDialog"
 import { ProfileDialog } from "@/components/Header/HeaderButton/ProfileDialog"
 import { ConnectButton } from "@/components/Header/HeaderButton/style"
@@ -47,7 +49,19 @@ export const HeaderButton = () => {
   return (
     <>
       <Button size="medium" sx={ConnectButton} onClick={handleClickOpen}>
-        {buttonText}
+        <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <SvgIcon
+            component={WalletIcon}
+            sx={{ fontSize: "14px", "& path": { fill: "white" } }}
+          />
+
+          <Typography
+            variant="text3"
+            sx={{ fontWeight: 600, color: "white", lineHeight: "20px" }}
+          >
+            {buttonText}
+          </Typography>
+        </Box>
       </Button>
 
       {isConnected && address ? (

@@ -10,6 +10,7 @@ import {
   MarketTableDataType,
 } from "@/app/[locale]/borrower/edit-policy/interface"
 import Coins from "@/assets/icons/coins_icon.svg"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { LinkGroup } from "@/components/LinkComponent"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
@@ -108,6 +109,7 @@ export const ConfirmLendersForm = ({
       flex: 1.5,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Name" />,
       renderCell: (params) => (
         <>
           {params.row.status === "new" && <Box sx={AddedDot} />}
@@ -135,6 +137,7 @@ export const ConfirmLendersForm = ({
       minWidth: 176,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => <ColumnHeaderTitle title="Wallet Address" />,
       renderCell: (params) => (
         <Box display="flex" gap="4px">
           <Typography
