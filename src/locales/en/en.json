@@ -44,7 +44,8 @@
     "items": {
       "telegram": {
         "title": "Market Updates, Straight to You",
-        "subtitle": "Stay ahead of the curve. Follow our bot for real-time market insights delivered instantly."
+        "subtitle": "Stay ahead of the curve. Follow our bot for real-time market insights delivered instantly.",
+        "botButton": "Get updates in Bot"
       },
       "bug": {
         "title": "Report a Bug",
@@ -67,6 +68,11 @@
         "subtitle": "Interested in working together? Tell us about your idea and let's explore what's possible."
       }
     }
+  },
+  "telegramBanner": {
+    "title": "Subscribe our Bot in Telegram",
+    "subtitle": "All markets updates you need in our Telegram Bot",
+    "button": "Subscribe"
   },
   "admin": {
     "inviteBorrower": {
