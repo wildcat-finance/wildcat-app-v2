@@ -17,6 +17,7 @@ import {
 } from "@/app/[locale]/layout-style"
 import initTranslations from "@/app/i18n"
 import Header from "@/components/Header"
+import { HelpModal } from "@/components/HelpModal"
 import HotjarConsent from "@/components/HotjarConsent"
 import PollingRegistration from "@/components/PollingRegistration"
 import { Sidebar } from "@/components/Sidebar"
@@ -94,6 +95,7 @@ export default async function RootLayout({
                           </Box>
                         </Box>
                       </Box>
+                      <HelpModal />
                     </ThemeRegistry>
                   </TranslationsProvider>
                 </SubgraphProvider>

@@ -38,6 +38,36 @@
     "rights": "Wildcat Foundation 2025",
     "agreement": "Download Terms Of Use"
   },
+  "helpModal": {
+    "title": "Let's talk 👋",
+    "subtitle": "We're here to help — ask a question, share an idea, or just say hello.",
+    "items": {
+      "telegram": {
+        "title": "Market Updates, Straight to You",
+        "subtitle": "Stay ahead of the curve. Follow our bot for real-time market insights delivered instantly."
+      },
+      "bug": {
+        "title": "Report a Bug",
+        "subtitle": "Found something broken? Tell us what happened and we'll fix it fast."
+      },
+      "question": {
+        "title": "Ask a Question",
+        "subtitle": "Not sure how something works? We'll get you a clear answer, quickly."
+      },
+      "feature": {
+        "title": "Suggest a Feature",
+        "subtitle": "Got an idea that would make this better? We're all ears — your feedback shapes what we build."
+      },
+      "faq": {
+        "title": "Check the FAQ",
+        "subtitle": "Looking for a quick answer? Browse our most common questions — no waiting required."
+      },
+      "business": {
+        "title": "Business or Partnership Inquiry",
+        "subtitle": "Interested in working together? Tell us about your idea and let's explore what's possible."
+      }
+    }
+  },
   "admin": {
     "inviteBorrower": {
       "button": "Invite Borrower",
