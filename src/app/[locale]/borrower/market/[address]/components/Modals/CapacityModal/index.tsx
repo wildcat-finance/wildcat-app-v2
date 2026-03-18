@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ChangeEvent, useEffect, useState } from "react"
+import { ChangeEvent, useEffect, useRef, useState } from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
@@ -19,6 +19,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { createClientFlowSession } from "@/lib/telemetry/clientFlow"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 export const CapacityModal = ({
@@ -30,6 +31,7 @@ export const CapacityModal = ({
   const [amount, setAmount] = useState("")
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
+  const flowSessionRef = useRef(createClientFlowSession())
 
   const modal = useApprovalModal(
     setShowSuccessPopup,
@@ -45,7 +47,17 @@ export const CapacityModal = ({
   const { mutate, isPending, isSuccess, isError } = useSetMaxTotalSupply(
     marketAccount,
     setTxHash,
+    () => flowSessionRef.current.getParentContext(),
   )
+
+  const closeModal = (
+    outcome: "cancelled" | "error" | "success" = "cancelled",
+  ) => {
+    flowSessionRef.current.endFlowSpan(outcome, {
+      "flow.outcome": outcome,
+    })
+    modal.handleCloseModal()
+  }
 
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
@@ -53,6 +65,12 @@ export const CapacityModal = ({
   }
 
   const handleConfirm = () => {
+    flowSessionRef.current.startFlowSpan("adjust_capacity.flow", {
+      "market.address": market.address,
+      "market.chain_id": market.chainId,
+      "token.symbol": market.underlyingToken.symbol,
+      "token.amount_input": amount,
+    })
     mutate(amount)
   }
 
@@ -72,6 +90,9 @@ export const CapacityModal = ({
       setShowErrorPopup(true)
     }
     if (isSuccess) {
+      flowSessionRef.current.endFlowSpan("success", {
+        "flow.outcome": "success",
+      })
       setShowSuccessPopup(true)
     }
   }, [isError, isSuccess])
@@ -90,7 +111,7 @@ export const CapacityModal = ({
 
       <Dialog
         open={modal.isModalOpen}
-        onClose={isPending ? undefined : modal.handleCloseModal}
+        onClose={isPending ? undefined : () => closeModal("cancelled")}
         sx={TxModalDialog}
       >
         {showForm && (
@@ -100,7 +121,9 @@ export const CapacityModal = ({
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
-            crossOnClick={modal.hideCrossButton ? null : modal.handleCloseModal}
+            crossOnClick={
+              modal.hideCrossButton ? null : () => closeModal("cancelled")
+            }
           />
         )}
 
@@ -135,12 +158,12 @@ export const CapacityModal = ({
         {showErrorPopup && (
           <ErrorModal
             onTryAgain={handleTryAgain}
-            onClose={modal.handleCloseModal}
+            onClose={() => closeModal("error")}
             txHash={txHash}
           />
         )}
         {showSuccessPopup && (
-          <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
+          <SuccessModal onClose={() => closeModal("success")} txHash={txHash} />
         )}
 
         <TxModalFooter

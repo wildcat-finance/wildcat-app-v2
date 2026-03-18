@@ -5,9 +5,9 @@ import {
   SubgraphGetAuthorizedLendersByMarketQuery,
   SubgraphGetAuthorizedLendersByMarketQueryVariables,
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
-import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 
 import { QueryKeys } from "@/config/query-keys"
+import { logger } from "@/lib/logging/client"
 
 export const useGetAuthorisedLendersByMarket = (market: Market | undefined) => {
   const subgraphClient = market?.chainId

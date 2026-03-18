@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ChangeEvent, useEffect, useState } from "react"
+import { ChangeEvent, useEffect, useRef, useState } from "react"
 
 import {
   Box,
@@ -20,6 +20,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
+import { createClientFlowSession } from "@/lib/telemetry/clientFlow"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
@@ -98,6 +99,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const [showErrorPopup, setShowErrorPopup] = useState(false)
 
   const [txHash, setTxHash] = useState<string | undefined>()
+  const flowSessionRef = useRef(createClientFlowSession())
 
   const [showResetSuccessPopup, setShowResetSuccessPopup] = useState(false)
   const [showResetErrorPopup, setShowResetErrorPopup] = useState(false)
@@ -115,6 +117,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const { mutate, isPending, isSuccess, isError } = useAdjustAPR(
     marketAccount,
     setTxHash,
+    () => flowSessionRef.current.getParentContext(),
   )
 
   const {
@@ -124,7 +127,12 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     isError: isResetError,
   } = useResetTempReserveRatio(marketAccount, setResetTxHash)
 
-  const handleClose = () => {
+  const handleClose = (
+    outcome: "cancelled" | "error" | "success" = "cancelled",
+  ) => {
+    flowSessionRef.current.endFlowSpan(outcome, {
+      "flow.outcome": outcome,
+    })
     modal.handleCloseModal()
     setAprPreview(undefined)
     setShowResetErrorPopup(false)
@@ -177,6 +185,11 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   }
 
   const handleAdjust = () => {
+    flowSessionRef.current.startFlowSpan("adjust_apr.flow", {
+      "market.address": market.address,
+      "market.chain_id": market.chainId,
+      "market.apr_bips": Math.round(parseFloat(apr) * 100),
+    })
     mutate(parseFloat(apr))
   }
 
@@ -287,6 +300,9 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
       setShowErrorPopup(true)
     }
     if (isSuccess) {
+      flowSessionRef.current.endFlowSpan("success", {
+        "flow.outcome": "success",
+      })
       setShowSuccessPopup(true)
     }
   }, [isError, isSuccess])
@@ -322,7 +338,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
       <Dialog
         open={modal.isModalOpen}
-        onClose={isPending || isResetPending ? undefined : handleClose}
+        onClose={isPending || isResetPending ? undefined : () => handleClose("cancelled")}
         sx={AprModalDialog}
       >
         {showForm && (
@@ -331,7 +347,9 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
-            crossOnClick={modal.hideCrossButton ? null : modal.handleCloseModal}
+            crossOnClick={
+              modal.hideCrossButton ? null : () => handleClose("cancelled")
+            }
           >
             <Box sx={AprModalMessageBox}>
               <Typography variant="text3" color={COLORS.santasGrey}>
@@ -623,7 +641,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
         {showErrorPopup && (
           <ErrorModal
             onTryAgain={handleTryAgain}
-            onClose={modal.handleCloseModal}
+            onClose={() => handleClose("error")}
             txHash={txHash}
           />
         )}
@@ -638,7 +656,10 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
           />
         )}
         {showSuccessPopup && (
-          <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
+          <SuccessModal
+            onClose={() => handleClose("success")}
+            txHash={txHash}
+          />
         )}
         {showResetSuccessPopup && (
           <SuccessModal onClose={handleClose} txHash={resetTxHash} />
