@@ -13,7 +13,26 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { logger } from "@/lib/logging/client"
+import {
+  getFlowIdFromContext,
+  recordSpanEnd,
+  recordSpanStart,
+} from "@/lib/telemetry/clientTracing"
+import { TelemetrySpanOutcome } from "@/lib/telemetry/types"
 import { isUSDTLikeToken } from "@/utils/constants"
+
+const getDataSize = (data?: string) => {
+  if (!data || !data.startsWith("0x")) return 0
+  return Math.max((data.length - 2) / 2, 0)
+}
+
+const summarizeTransactions = (transactions: BaseTransaction[]) =>
+  transactions.map((tx, index) => ({
+    index,
+    to: tx.to,
+    value: tx.value ?? "0",
+    dataSize: getDataSize(tx.data),
+  }))
 
 export const useDeposit = (
   marketAccount: MarketAccount,
@@ -41,11 +60,13 @@ export const useDeposit = (
   return useMutation({
     mutationFn: async (tokenAmount: TokenAmount) => {
       const parentContext = getParentContext?.() ?? context.active()
+      const flowId = getFlowIdFromContext(parentContext)
       return tracer.startActiveSpan(
         "market.deposit",
         {},
         parentContext,
         async (span) => {
+          let outcome: TelemetrySpanOutcome = "success"
           try {
             if (!marketAccount || !signer) throw Error()
             if (marketAccount.market.chainId !== targetChainId) {
@@ -56,13 +77,17 @@ export const useDeposit = (
               )
             }
 
-            span.setAttributes({
+            const spanAttributes = {
               "market.address": marketAccount.market.address,
               "market.chain_id": marketAccount.market.chainId,
               "token.address": tokenAmount.token.address,
               "token.symbol": tokenAmount.token.symbol,
               "token.amount": tokenAmount.raw.toString(),
               "safe.connected": safeConnected,
+            }
+            recordSpanStart(span, "market.deposit", {
+              attributes: spanAttributes,
+              flowId,
             })
 
             const step = marketAccount.previewDeposit(tokenAmount)
@@ -120,6 +145,10 @@ export const useDeposit = (
                   {},
                   depositContext,
                   async (safeSpan) => {
+                    let safeOutcome: TelemetrySpanOutcome = "success"
+                    recordSpanStart(safeSpan, "market.deposit.safe", {
+                      flowId,
+                    })
                     try {
                       gnosisTransactions.push({
                         to: marketAccount.market.address,
@@ -134,8 +163,12 @@ export const useDeposit = (
                         "Sending gnosis transactions",
                       )
                       logger.debug(
-                        { transactions: gnosisTransactions },
-                        "Gnosis transactions payload",
+                        {
+                          transactionCount: gnosisTransactions.length,
+                          transactions:
+                            summarizeTransactions(gnosisTransactions),
+                        },
+                        "Gnosis transactions summary",
                       )
                       const { safeTxHash } = await sdk.txs.send({
                         txs: gnosisTransactions,
@@ -149,6 +182,7 @@ export const useDeposit = (
                       )
                       return receipt
                     } catch (error) {
+                      safeOutcome = "error"
                       safeSpan.recordException(error as Error)
                       safeSpan.setStatus({
                         code: SpanStatusCode.ERROR,
@@ -159,6 +193,12 @@ export const useDeposit = (
                       })
                       throw error
                     } finally {
+                      recordSpanEnd(
+                        safeSpan,
+                        "market.deposit.safe",
+                        safeOutcome,
+                        { flowId },
+                      )
                       safeSpan.end()
                     }
                   },
@@ -170,6 +210,8 @@ export const useDeposit = (
                 {},
                 depositContext,
                 async (sendSpan) => {
+                  let sendOutcome: TelemetrySpanOutcome = "success"
+                  recordSpanStart(sendSpan, "market.deposit.send", { flowId })
                   try {
                     const tx = await marketAccount.deposit(tokenAmount)
                     sendSpan.setAttribute("tx.hash", tx.hash)
@@ -182,6 +224,7 @@ export const useDeposit = (
 
                     return tx.wait()
                   } catch (error) {
+                    sendOutcome = "error"
                     sendSpan.recordException(error as Error)
                     sendSpan.setStatus({
                       code: SpanStatusCode.ERROR,
@@ -190,6 +233,14 @@ export const useDeposit = (
                     })
                     throw error
                   } finally {
+                    recordSpanEnd(
+                      sendSpan,
+                      "market.deposit.send",
+                      sendOutcome,
+                      {
+                        flowId,
+                      },
+                    )
                     sendSpan.end()
                   }
                 },
@@ -198,6 +249,7 @@ export const useDeposit = (
 
             await deposit()
           } catch (error) {
+            outcome = "error"
             span.recordException(error as Error)
             span.setStatus({
               code: SpanStatusCode.ERROR,
@@ -205,6 +257,9 @@ export const useDeposit = (
             })
             throw error
           } finally {
+            recordSpanEnd(span, "market.deposit", outcome, {
+              flowId,
+            })
             span.end()
           }
         },

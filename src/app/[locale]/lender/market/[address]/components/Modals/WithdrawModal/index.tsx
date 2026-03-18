@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useState } from "react"
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react"
 import * as React from "react"
 
 import {
@@ -9,6 +9,7 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material"
+import { context } from "@opentelemetry/api"
 import { HooksKind, MarketVersion, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
@@ -28,6 +29,7 @@ import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButto
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { createClientFlowSession } from "@/lib/telemetry/clientFlow"
 import { COLORS } from "@/theme/colors"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
@@ -56,11 +58,13 @@ export const WithdrawModal = ({
   const [showErrorPopup, setShowErrorPopup] = useState(false)
   const [txHash, setTxHash] = useState<string | undefined>()
   const [error, setError] = useState<string | undefined>()
+  const flowSessionRef = useRef(createClientFlowSession())
 
   const { mutate, isSuccess, isError, isPending } = useWithdraw(
     marketAccount,
     setTxHash,
     !!maxAmount,
+    () => flowSessionRef.current.getParentContext(),
   )
 
   const modal = useApprovalModal(
@@ -69,6 +73,12 @@ export const WithdrawModal = ({
     setAmount,
     setTxHash,
   )
+
+  const endFlow = (outcome: "cancelled" | "error" | "success") => {
+    flowSessionRef.current.endFlowSpan(outcome, {
+      "flow.outcome": outcome,
+    })
+  }
 
   const handleOpenModal = () => {
     setMaxAmount(undefined)
@@ -87,7 +97,23 @@ export const WithdrawModal = ({
   }
 
   const handleWithdraw = () => {
-    mutate(amount)
+    const tokenAmountForFlow =
+      maxAmount ||
+      marketAccount.market.underlyingToken.parseAmount(
+        amount.replace(/,/g, "") || "0",
+      )
+    const flowContext = flowSessionRef.current.startFlowSpan("withdraw.flow", {
+      "market.address": market.address,
+      "market.chain_id": market.chainId,
+      "token.address": market.underlyingToken.address,
+      "token.symbol": market.underlyingToken.symbol,
+      "token.amount": tokenAmountForFlow.raw.toString(),
+    })
+    if (flowContext) {
+      context.with(flowContext, () => mutate(amount))
+    } else {
+      mutate(amount)
+    }
   }
 
   const handleTryAgain = () => {
@@ -135,6 +161,7 @@ export const WithdrawModal = ({
       setShowErrorPopup(true)
     }
     if (isSuccess) {
+      endFlow("success")
       setShowSuccessPopup(true)
     }
   }, [isError, isSuccess])
@@ -168,6 +195,7 @@ export const WithdrawModal = ({
   }
 
   const handleCloseMobileModal = () => {
+    endFlow("cancelled")
     if (setIsMobileOpen) {
       modal.handleCloseModal()
       setIsMobileOpen(false)
@@ -311,12 +339,21 @@ export const WithdrawModal = ({
           {showErrorPopup && (
             <ErrorModal
               onTryAgain={handleTryAgain}
-              onClose={handleCloseMobileModal}
+              onClose={() => {
+                endFlow("error")
+                handleCloseMobileModal()
+              }}
               txHash={txHash}
             />
           )}
           {showSuccessPopup && (
-            <SuccessModal onClose={handleCloseMobileModal} txHash={txHash} />
+            <SuccessModal
+              onClose={() => {
+                endFlow("success")
+                handleCloseMobileModal()
+              }}
+              txHash={txHash}
+            />
           )}
         </Dialog>
       </>
@@ -338,7 +375,14 @@ export const WithdrawModal = ({
 
       <Dialog
         open={modal.isModalOpen}
-        onClose={isPending ? undefined : modal.handleCloseModal}
+        onClose={
+          isPending
+            ? undefined
+            : () => {
+                endFlow("cancelled")
+                modal.handleCloseModal()
+              }
+        }
         sx={TxModalDialog}
       >
         {showForm && (
@@ -351,7 +395,12 @@ export const WithdrawModal = ({
                   : modal.handleClickBack
               }
               crossOnClick={
-                modal.hideCrossButton ? null : modal.handleCloseModal
+                modal.hideCrossButton
+                  ? null
+                  : () => {
+                      endFlow("cancelled")
+                      modal.handleCloseModal()
+                    }
               }
             />
 
@@ -420,12 +469,21 @@ export const WithdrawModal = ({
         {showErrorPopup && (
           <ErrorModal
             onTryAgain={handleTryAgain}
-            onClose={modal.handleCloseModal}
+            onClose={() => {
+              endFlow("error")
+              modal.handleCloseModal()
+            }}
             txHash={txHash}
           />
         )}
         {showSuccessPopup && (
-          <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
+          <SuccessModal
+            onClose={() => {
+              endFlow("success")
+              modal.handleCloseModal()
+            }}
+            txHash={txHash}
+          />
         )}
 
         <TxModalFooter

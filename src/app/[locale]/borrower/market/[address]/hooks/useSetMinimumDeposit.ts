@@ -1,5 +1,6 @@
 import { Dispatch } from "react"
 
+import { context } from "@opentelemetry/api"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
@@ -7,10 +8,12 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { logger } from "@/lib/logging/client"
+import { withClientSpan } from "@/lib/telemetry/clientTracing"
 
 export const useSetMinimumDeposit = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
+  getParentContext?: () => ReturnType<typeof context.active> | null,
 ) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
@@ -18,35 +21,52 @@ export const useSetMinimumDeposit = (
 
   return useMutation({
     mutationFn: async (newMinDeposit: string) => {
-      if (!marketAccount || !signer) {
-        return
-      }
-
-      const tokenAmount =
-        marketAccount.market.underlyingToken.parseAmount(newMinDeposit)
-
-      const setMinDeposit = async () => {
-        const tx = await marketAccount.setMinimumDeposit(tokenAmount)
-
-        if (!safeConnected) setTxHash(tx.hash)
-
-        if (safeConnected) {
-          const checkTransaction = async () => {
-            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(tx.hash)
-            if (transactionBySafeHash?.txHash) {
-              setTxHash(transactionBySafeHash.txHash)
-            } else {
-              setTimeout(checkTransaction, 1000)
-            }
+      await withClientSpan(
+        "market.set_minimum_deposit",
+        async (span) => {
+          if (!marketAccount || !signer) {
+            throw Error("Missing signer or market account")
           }
 
-          await checkTransaction()
-        }
+          const tokenAmount =
+            marketAccount.market.underlyingToken.parseAmount(newMinDeposit)
+          span.setAttributes({
+            "token.address": tokenAmount.token.address,
+            "token.symbol": tokenAmount.token.symbol,
+            "token.amount": tokenAmount.raw.toString(),
+          })
 
-        return tx.wait()
-      }
+          const tx = await marketAccount.setMinimumDeposit(tokenAmount)
+          span.setAttribute("tx.hash", tx.hash)
 
-      await setMinDeposit()
+          if (!safeConnected) setTxHash(tx.hash)
+
+          if (safeConnected) {
+            const checkTransaction = async () => {
+              const transactionBySafeHash = await sdk.txs.getBySafeTxHash(
+                tx.hash,
+              )
+              if (transactionBySafeHash?.txHash) {
+                setTxHash(transactionBySafeHash.txHash)
+              } else {
+                setTimeout(checkTransaction, 1000)
+              }
+            }
+
+            await checkTransaction()
+          }
+
+          await tx.wait()
+        },
+        {
+          parentContext: getParentContext?.() ?? context.active(),
+          attributes: {
+            "market.address": marketAccount.market.address,
+            "market.chain_id": marketAccount.market.chainId,
+            "safe.connected": safeConnected,
+          },
+        },
+      )
     },
     onSuccess() {
       client.invalidateQueries({

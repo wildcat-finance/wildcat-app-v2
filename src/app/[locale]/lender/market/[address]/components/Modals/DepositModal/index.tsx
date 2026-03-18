@@ -8,8 +8,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
-import { SpanStatusCode, context, trace } from "@opentelemetry/api"
-import type { SpanContext } from "@opentelemetry/api"
+import { context } from "@opentelemetry/api"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
@@ -32,7 +31,7 @@ import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
-import { getServerTraceContext } from "@/lib/otel/pageTrace"
+import { createClientFlowSession } from "@/lib/telemetry/clientFlow"
 import { COLORS } from "@/theme/colors"
 import { isUSDTLikeToken } from "@/utils/constants"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
@@ -58,10 +57,7 @@ export const DepositModal = ({
   const [depositError, setDepositError] = useState<string | undefined>()
 
   const { connected: isConnectedToSafe } = useSafeAppsSDK()
-  const tracer = trace.getTracer("wildcat-app-v2-web")
-  const flowSpanRef = useRef<ReturnType<typeof tracer.startSpan> | null>(null)
-  const flowContextRef = useRef<ReturnType<typeof context.active> | null>(null)
-  const serverSpanContextRef = useRef<SpanContext | null>(null)
+  const flowSessionRef = useRef(createClientFlowSession())
 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
@@ -74,13 +70,15 @@ export const DepositModal = ({
     isSuccess: isDeposed,
     isError: isDepositError,
     reset: resetDeposit,
-  } = useDeposit(marketAccount, setTxHash, () => flowContextRef.current)
+  } = useDeposit(marketAccount, setTxHash, () =>
+    flowSessionRef.current.getParentContext(),
+  )
 
   const { mutateAsync: approve, isPending: isApproving } = useApprove(
     market.underlyingToken,
     market,
     setTxHash,
-    () => flowContextRef.current,
+    () => flowSessionRef.current.getParentContext(),
   )
 
   const modal = useApprovalModal(
@@ -172,70 +170,32 @@ export const DepositModal = ({
     ? "Underlying token balance is zero"
     : "Market is at full capacity"
 
-  const ensureFlowSpan = () => {
-    if (!flowSpanRef.current) {
-      const serverSpanContext =
-        serverSpanContextRef.current ?? getServerTraceContext()
-      serverSpanContextRef.current = serverSpanContext
-
-      const span = tracer.startSpan(
-        "deposit.flow",
-        serverSpanContext
-          ? {
-              links: [
-                {
-                  context: serverSpanContext,
-                  attributes: { "link.type": "page.render" },
-                },
-              ],
-            }
-          : undefined,
-      )
-      span.setAttributes({
+  const ensureFlowContext = () =>
+    flowSessionRef.current.startFlowSpan(
+      "deposit.flow",
+      {
         "market.address": market.address,
         "market.chain_id": market.chainId,
         "token.address": market.underlyingToken.address,
         "token.symbol": market.underlyingToken.symbol,
+        "token.amount": depositTokenAmount.raw.toString(),
         "safe.connected": isConnectedToSafe,
-      })
-      if (serverSpanContext) {
-        span.setAttribute("page.trace_id", serverSpanContext.traceId)
-      }
-      if (typeof window !== "undefined") {
-        span.setAttribute("page.route", window.location.pathname)
-      }
-      flowSpanRef.current = span
-      flowContextRef.current = trace.setSpan(context.active(), span)
-    }
-    flowSpanRef.current.setAttribute(
-      "token.amount",
-      depositTokenAmount.raw.toString(),
+      },
+      {
+        pageLink: true,
+      },
     )
-    return flowContextRef.current
-  }
 
   const endFlowSpan = (outcome: "success" | "error" | "cancelled") => {
-    const span = flowSpanRef.current
-    if (!span) return
-    span.setAttribute("flow.outcome", outcome)
-    if (outcome === "success") {
-      span.setStatus({ code: SpanStatusCode.OK })
-    } else if (outcome === "error") {
-      span.setStatus({ code: SpanStatusCode.ERROR, message: "deposit failed" })
-    } else {
-      span.setStatus({
-        code: SpanStatusCode.UNSET,
-        message: "deposit flow cancelled",
-      })
-    }
-    span.end()
-    flowSpanRef.current = null
-    flowContextRef.current = null
+    flowSessionRef.current.endFlowSpan(outcome, {
+      "flow.outcome": outcome,
+      "token.amount": depositTokenAmount.raw.toString(),
+    })
   }
 
   const handleDeposit = () => {
     setTxHash("")
-    const flowContext = ensureFlowSpan()
+    const flowContext = ensureFlowContext()
     if (flowContext) {
       context.with(flowContext, () => deposit(depositTokenAmount))
     } else {
@@ -252,7 +212,7 @@ export const DepositModal = ({
     setTxHash("")
 
     if (!isAllowanceSufficient) {
-      const flowContext = ensureFlowSpan()
+      const flowContext = ensureFlowContext()
       if (
         marketAccount.underlyingApproval.gt(0) &&
         isUSDTLikeToken(market.underlyingToken.address)
@@ -323,7 +283,6 @@ export const DepositModal = ({
 
   useEffect(() => {
     if (isDepositError) {
-      endFlowSpan("error")
       setShowErrorPopup(true)
     }
     if (isDeposed) {

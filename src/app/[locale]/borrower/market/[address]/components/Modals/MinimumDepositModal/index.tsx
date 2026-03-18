@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from "react"
+import { ChangeEvent, useEffect, useRef, useState } from "react"
 import * as React from "react"
 
 import { Box, Button, Dialog } from "@mui/material"
@@ -19,6 +19,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { createClientFlowSession } from "@/lib/telemetry/clientFlow"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { useSetMinimumDeposit } from "../../../hooks/useSetMinimumDeposit"
@@ -33,10 +34,12 @@ export const MinimumDepositModal = ({
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
   const [preview, setPreview] = useState<SetMinimumDepositPreview | undefined>()
+  const flowSessionRef = useRef(createClientFlowSession())
 
   const { mutate, isPending, isError, isSuccess } = useSetMinimumDeposit(
     marketAccount,
     setTxHash,
+    () => flowSessionRef.current.getParentContext(),
   )
 
   const modal = useApprovalModal(
@@ -49,6 +52,15 @@ export const MinimumDepositModal = ({
   const { t } = useTranslation()
 
   const { market } = marketAccount
+
+  const closeModal = (
+    outcome: "cancelled" | "error" | "success" = "cancelled",
+  ) => {
+    flowSessionRef.current.endFlowSpan(outcome, {
+      "flow.outcome": outcome,
+    })
+    modal.handleCloseModal()
+  }
 
   // todo: write hook for mutation
 
@@ -63,6 +75,12 @@ export const MinimumDepositModal = ({
   }
 
   const handleConfirm = () => {
+    flowSessionRef.current.startFlowSpan("adjust_minimum_deposit.flow", {
+      "market.address": market.address,
+      "market.chain_id": market.chainId,
+      "token.symbol": market.underlyingToken.symbol,
+      "token.amount_input": amount,
+    })
     mutate(amount)
   }
 
@@ -84,6 +102,9 @@ export const MinimumDepositModal = ({
       setShowErrorPopup(true)
     }
     if (isSuccess) {
+      flowSessionRef.current.endFlowSpan("success", {
+        "flow.outcome": "success",
+      })
       setShowSuccessPopup(true)
     }
   }, [isError, isSuccess])
@@ -102,13 +123,13 @@ export const MinimumDepositModal = ({
 
       <Dialog
         open={modal.isModalOpen}
-        onClose={isPending ? undefined : modal.handleCloseModal}
+        onClose={isPending ? undefined : () => closeModal("cancelled")}
         sx={TxModalDialog}
       >
         {showForm && (
           <TxModalHeader
             title="Adjust Minimum Deposit"
-            arrowOnClick={modal.handleCloseModal}
+            arrowOnClick={() => closeModal("cancelled")}
             crossOnClick={null}
           />
         )}
@@ -159,12 +180,12 @@ export const MinimumDepositModal = ({
         {showErrorPopup && (
           <ErrorModal
             onTryAgain={handleTryAgain}
-            onClose={modal.handleCloseModal}
+            onClose={() => closeModal("error")}
             txHash={txHash}
           />
         )}
         {showSuccessPopup && (
-          <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
+          <SuccessModal onClose={() => closeModal("success")} txHash={txHash} />
         )}
 
         <TxModalFooter

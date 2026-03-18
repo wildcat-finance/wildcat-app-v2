@@ -17,7 +17,8 @@ const OTEL_CLIENT_INIT_KEY = "__wildcat_otel_client_initialized__"
 function buildOtlpUrl(endpoint: string) {
   const trimmed = endpoint.replace(/\/$/, "")
   if (trimmed.endsWith("/api/otel")) return trimmed
-  return trimmed.endsWith("/v1/traces") ? trimmed : `${trimmed}/v1/traces`
+  if (trimmed.endsWith("/v1/traces")) return trimmed
+  return `${trimmed}/v1/traces`
 }
 
 export function initClientOtel() {
@@ -29,9 +30,22 @@ export function initClientOtel() {
 
   const serviceName =
     process.env.NEXT_PUBLIC_OTEL_SERVICE_NAME || "wildcat-app-v2-web"
-  const resource = resourceFromAttributes({
+  const serviceNamespace = process.env.NEXT_PUBLIC_OTEL_SERVICE_NAMESPACE
+  const deploymentEnvironment =
+    process.env.NEXT_PUBLIC_OTEL_DEPLOYMENT_ENVIRONMENT
+
+  const resourceAttributes: Record<string, string> = {
     "service.name": serviceName,
-  })
+  }
+  if (serviceNamespace) {
+    resourceAttributes["service.namespace"] = serviceNamespace
+  }
+  if (deploymentEnvironment) {
+    resourceAttributes["deployment.environment"] = deploymentEnvironment
+    resourceAttributes["deployment.environment.name"] = deploymentEnvironment
+  }
+
+  const resource = resourceFromAttributes(resourceAttributes)
 
   const endpoint = process.env.NEXT_PUBLIC_OTEL_EXPORTER_OTLP_ENDPOINT
   const spanProcessors = []
@@ -59,15 +73,18 @@ export function initClientOtel() {
 
   const { origin } = window.location
   const propagateUrls = origin ? [origin] : []
+  const ignoreUrls = [/\/api\/otel$/]
 
   registerInstrumentations({
     instrumentations: [
       new DocumentLoadInstrumentation(),
       new FetchInstrumentation({
         clearTimingResources: true,
+        ignoreUrls,
         propagateTraceHeaderCorsUrls: propagateUrls,
       }),
       new XMLHttpRequestInstrumentation({
+        ignoreUrls,
         propagateTraceHeaderCorsUrls: propagateUrls,
       }),
     ],

@@ -1,3 +1,5 @@
+import { logger } from "@/lib/logging/server"
+
 const isPreview = process.env.VERCEL_ENV === "preview"
 
 export async function POST(req: Request) {
@@ -6,9 +8,9 @@ export async function POST(req: Request) {
   try {
     const data = JSON.parse(text)
     if (isPreview) {
-      console.log("CSP report:", data)
+      logger.warn({ report: data }, "CSP report")
     } else {
-      console.log("A CSP violation was detected.")
+      logger.warn("A CSP violation was detected.")
     }
   } catch {
     // ignore invalid JSON
