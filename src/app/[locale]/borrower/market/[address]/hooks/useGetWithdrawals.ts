@@ -13,10 +13,10 @@ import {
   SubgraphGetIncompleteWithdrawalsForMarketQuery,
   SubgraphGetIncompleteWithdrawalsForMarketQueryVariables,
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
-import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 
 import { POLLING_INTERVALS } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
+import { logger } from "@/lib/logging/client"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type BorrowerWithdrawalsForMarketResult = {

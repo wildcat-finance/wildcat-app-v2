@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 
+import { context } from "@opentelemetry/api"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { useAccount } from "wagmi"
 
@@ -10,6 +11,8 @@ import {
 import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
+import { withClientSpan } from "@/lib/telemetry/clientTracing"
+import { useFlowMutation } from "@/lib/telemetry/useFlowMutation"
 
 export const useGetSignedMla = (
   mla: MasterLoanAgreementResponse | null | undefined,
@@ -75,11 +78,42 @@ export const usePreviewSignedMla = (mla: MasterLoanAgreementResponse) => {
 
 export const useSignMla = (mla: MasterLoanAgreementResponse) => {
   const { address } = useAccount()
+  const flow = useFlowMutation()
   const { mutateAsync: signMla } = useMutation({
     mutationFn: async (timeSigned: number) => {
-      if (!address) throw new Error("No address")
-      const values = getFieldValuesForLender(address, timeSigned)
-      const { plaintext } = fillInMlaForLender(mla, values, mla.market)
+      flow.start("mla.sign_lender_preview.flow", {
+        "market.address": mla.market.toLowerCase(),
+        "lender.address": address?.toLowerCase() ?? "",
+      })
+
+      try {
+        const result = await withClientSpan(
+          "mla.sign_lender_preview",
+          async () => {
+            if (!address) throw new Error("No address")
+            const values = getFieldValuesForLender(address, timeSigned)
+            const { plaintext } = fillInMlaForLender(mla, values, mla.market)
+            return plaintext
+          },
+          {
+            parentContext: flow.getParentContext() ?? context.active(),
+            attributes: {
+              "operation.kind": "signature",
+              "market.address": mla.market.toLowerCase(),
+              "lender.address": address?.toLowerCase() ?? "",
+            },
+          },
+        )
+        flow.endSuccess()
+        return result
+      } catch (error) {
+        flow.endError(error)
+        throw error
+      }
     },
   })
+
+  return {
+    signMla,
+  }
 }
