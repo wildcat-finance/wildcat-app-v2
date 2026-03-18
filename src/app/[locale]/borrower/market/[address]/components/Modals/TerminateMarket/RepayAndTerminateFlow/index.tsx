@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
+import { context } from "@opentelemetry/api"
 import {
   CloseMarketStatus,
   minTokenAmount,
@@ -42,6 +43,9 @@ export const RepayAndTerminateFlow = ({
   successPopup,
   errorPopup,
   terminateTxHash,
+  ensureFlowContext,
+  getParentContext,
+  endFlow,
 }: RepayAndTerminateFlowProps) => {
   const { t } = useTranslation()
   const [approveTxHash, setApproveTxHash] = useState<string | undefined>("")
@@ -58,14 +62,23 @@ export const RepayAndTerminateFlow = ({
     mutateAsync: approve,
     isPending: isApproving,
     isError: isApproveError,
-  } = useApprove(market.underlyingToken, market, setApproveTxHash)
+  } = useApprove(
+    market.underlyingToken,
+    market,
+    setApproveTxHash,
+    getParentContext,
+  )
 
   const {
     mutateAsync: repayAndProcess,
     isPending: isProcessing,
     isSuccess: isProcessed,
     isError: IsProcessedError,
-  } = useProcessUnpaidWithdrawalBatch(marketAccount, setRepayTxHash)
+  } = useProcessUnpaidWithdrawalBatch(
+    marketAccount,
+    setRepayTxHash,
+    getParentContext,
+  )
 
   const getMarketValues = () => {
     const values = []
@@ -142,9 +155,16 @@ export const RepayAndTerminateFlow = ({
 
   const handleApprove = () => {
     if (terminateMarketStep?.status === "InsufficientAllowance") {
-      approve(terminateMarketStep.outstanding)
-        .then(() => modal.setFlowStep(TerminateModalSteps.approved))
-        .catch((err) => logger.error({ err }, "Approve failed"))
+      const flowContext = ensureFlowContext()
+      const runApprove = () =>
+        approve(terminateMarketStep.outstanding)
+          .then(() => modal.setFlowStep(TerminateModalSteps.approved))
+          .catch((err) => logger.error({ err }, "Approve failed"))
+      if (flowContext) {
+        context.with(flowContext, runApprove)
+      } else {
+        runApprove()
+      }
     }
   }
 
@@ -155,19 +175,33 @@ export const RepayAndTerminateFlow = ({
       market.underlyingToken.getAmount(marketAccount.underlyingApproval),
     )
     modal.setFlowStep(TerminateModalSteps.repayLoading)
-    repayAndProcess({
-      tokenAmount: repayAmount,
-      maxBatches: length,
-    })
-      .catch((err) => logger.error({ err }, "Repay and process failed"))
-      .finally(() => modal.setFlowStep(TerminateModalSteps.repayed))
+    const flowContext = ensureFlowContext()
+    const runRepayAndProcess = () =>
+      repayAndProcess({
+        tokenAmount: repayAmount,
+        maxBatches: length,
+      })
+        .catch((err) => logger.error({ err }, "Repay and process failed"))
+        .finally(() => modal.setFlowStep(TerminateModalSteps.repayed))
+    if (flowContext) {
+      context.with(flowContext, runRepayAndProcess)
+    } else {
+      runRepayAndProcess()
+    }
   }
 
   const handleTerminateMarket = () => {
     modal.setFlowStep(TerminateModalSteps.terminateLoading)
-    terminateFunc()
-      .catch((err) => logger.error({ err }, "Terminate market failed"))
-      .finally(() => modal.setFlowStep(TerminateModalSteps.final))
+    const flowContext = ensureFlowContext()
+    const runTerminate = () =>
+      terminateFunc()
+        .catch((err) => logger.error({ err }, "Terminate market failed"))
+        .finally(() => modal.setFlowStep(TerminateModalSteps.final))
+    if (flowContext) {
+      context.with(flowContext, runTerminate)
+    } else {
+      runTerminate()
+    }
   }
 
   const disableApprove =
@@ -217,6 +251,7 @@ export const RepayAndTerminateFlow = ({
 
   const handleHeaderBackClick = () => {
     if (modal.flowStep <= TerminateModalSteps.gettingValues) {
+      endFlow("cancelled")
       onClose()
       return
     }
@@ -227,7 +262,10 @@ export const RepayAndTerminateFlow = ({
   return (
     <Dialog
       open={isModalOpen}
-      onClose={onClose}
+      onClose={() => {
+        endFlow("cancelled")
+        onClose()
+      }}
       PaperProps={{
         sx: TerminateDialogContainer,
       }}
@@ -236,7 +274,14 @@ export const RepayAndTerminateFlow = ({
         <TxModalHeader
           title="Terminate Market"
           arrowOnClick={modal.hideArrowButton ? null : handleHeaderBackClick}
-          crossOnClick={modal.hideCrossButton ? null : onClose}
+          crossOnClick={
+            modal.hideCrossButton
+              ? null
+              : () => {
+                  endFlow("cancelled")
+                  onClose()
+                }
+          }
         />
       )}
 
@@ -403,12 +448,21 @@ export const RepayAndTerminateFlow = ({
 
       {isLoading && <LoadingModal txHash={terminateTxHash} />}
       {successPopup && !isLoading && (
-        <SuccessModal onClose={onClose} txHash={terminateTxHash} />
+        <SuccessModal
+          onClose={() => {
+            endFlow("success")
+            onClose()
+          }}
+          txHash={terminateTxHash}
+        />
       )}
       {errorPopup && !isLoading && (
         <ErrorModal
           onTryAgain={handleTerminateMarket}
-          onClose={onClose}
+          onClose={() => {
+            endFlow("error")
+            onClose()
+          }}
           txHash={terminateTxHash}
         />
       )}

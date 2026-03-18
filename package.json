@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:otel-local": "node scripts/next-with-local-ca.mjs dev",
     "build": "prisma generate && next build",
     "start": "next start",
+    "start:otel-local": "node scripts/next-with-local-ca.mjs start",
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build",
     "lint:errors": "next lint --quiet",

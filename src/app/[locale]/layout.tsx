@@ -4,7 +4,7 @@ import { ReactNode, Suspense } from "react"
 
 import { Box } from "@mui/material"
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { context, trace } from "@opentelemetry/api"
+import { context, propagation } from "@opentelemetry/api"
 import { dir } from "i18next"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
@@ -41,14 +41,10 @@ const inter = Inter({
 })
 
 function getTraceparentMeta() {
-  const span = trace.getSpan(context.active())
-  const spanContext = span?.spanContext()
-  if (!spanContext) return {}
-  const traceFlags = spanContext.traceFlags ?? 0
-  const traceparent = `00-${spanContext.traceId}-${
-    spanContext.spanId
-  }-${traceFlags.toString(16).padStart(2, "0")}`
-  const tracestate = spanContext.traceState?.serialize()
+  const carrier: Record<string, string> = {}
+  propagation.inject(context.active(), carrier)
+  const { traceparent } = carrier
+  const { tracestate } = carrier
   return { traceparent, tracestate }
 }
 
@@ -67,9 +63,9 @@ export default async function RootLayout({
   children: ReactNode
   params: { locale: string }
 }) {
+  const { traceparent, tracestate } = getTraceparentMeta()
   const initialState = cookieToInitialState(config, headers().get("cookie"))
   const { resources } = await initTranslations(locale, i18nNamespaces)
-  const { traceparent, tracestate } = getTraceparentMeta()
 
   return (
     <html lang={locale} dir={dir(locale)}>

@@ -1,4 +1,4 @@
-import { SpanStatusCode, context, trace } from "@opentelemetry/api"
+import { context } from "@opentelemetry/api"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Market, Token, TokenAmount } from "@wildcatfi/wildcat-sdk"
@@ -8,6 +8,7 @@ import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { logger } from "@/lib/logging/client"
+import { withClientSpan } from "@/lib/telemetry/clientTracing"
 
 export const useApprove = (
   token: Token,
@@ -19,75 +20,62 @@ export const useApprove = (
   const { address } = useAccount()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
-  const tracer = trace.getTracer("wildcat-app-v2-web")
 
   const mutation = useMutation({
     mutationFn: async (tokenAmount: TokenAmount) => {
       const parentContext = getParentContext?.() ?? context.active()
-      return tracer.startActiveSpan(
+      return withClientSpan(
         "market.approve",
-        {},
-        parentContext,
         async (span) => {
-          try {
-            if (!market) {
-              throw Error("Market not available")
-            }
-            if (market.chainId !== targetChainId) {
-              throw Error(
-                `Market chainId does not match target chainId:` +
-                  ` Market ${market.chainId},` +
-                  ` Target ${targetChainId}`,
-              )
-            }
-
-            span.setAttributes({
-              "market.address": market.address,
-              "market.chain_id": market.chainId,
-              "token.address": token.address,
-              "token.symbol": token.symbol,
-              "token.amount": tokenAmount.raw.toString(),
-              "safe.connected": safeConnected,
-            })
-
-            const approve = async () => {
-              const tx = await token.contract.approve(
-                market.address.toLowerCase(),
-                tokenAmount.raw,
-              )
-              span.setAttribute("tx.hash", tx.hash)
-
-              if (!safeConnected && setTxHash) setTxHash(tx.hash)
-
-              if (safeConnected) {
-                const checkTransaction = async () => {
-                  const transactionBySafeHash = await sdk.txs.getBySafeTxHash(
-                    tx.hash,
-                  )
-                  if (transactionBySafeHash?.txHash) {
-                    if (setTxHash) setTxHash(transactionBySafeHash.txHash)
-                  } else {
-                    setTimeout(checkTransaction, 1000)
-                  }
-                }
-
-                await checkTransaction()
-              }
-
-              return tx.wait()
-            }
-
-            await approve()
-          } catch (error) {
-            span.recordException(error as Error)
-            span.setStatus({
-              code: SpanStatusCode.ERROR,
-              message: error instanceof Error ? error.message : String(error),
-            })
-            throw error
-          } finally {
-            span.end()
+          if (!market) {
+            throw Error("Market not available")
           }
+          if (market.chainId !== targetChainId) {
+            throw Error(
+              `Market chainId does not match target chainId:` +
+                ` Market ${market.chainId},` +
+                ` Target ${targetChainId}`,
+            )
+          }
+
+          span.setAttributes({
+            "token.address": token.address,
+            "token.symbol": token.symbol,
+            "token.amount": tokenAmount.raw.toString(),
+          })
+
+          const tx = await token.contract.approve(
+            market.address.toLowerCase(),
+            tokenAmount.raw,
+          )
+          span.setAttribute("tx.hash", tx.hash)
+
+          if (!safeConnected && setTxHash) setTxHash(tx.hash)
+
+          if (safeConnected) {
+            const checkTransaction = async () => {
+              const transactionBySafeHash = await sdk.txs.getBySafeTxHash(
+                tx.hash,
+              )
+              if (transactionBySafeHash?.txHash) {
+                if (setTxHash) setTxHash(transactionBySafeHash.txHash)
+              } else {
+                setTimeout(checkTransaction, 1000)
+              }
+            }
+
+            await checkTransaction()
+          }
+
+          await tx.wait()
+        },
+        {
+          parentContext,
+          attributes: {
+            "market.address": market.address,
+            "market.chain_id": market.chainId,
+            "safe.connected": safeConnected,
+          },
         },
       )
     },
