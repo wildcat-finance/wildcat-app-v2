@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 import * as React from "react"
 
-import { Box, Skeleton, Typography } from "@mui/material"
+import { Box, Skeleton, Tooltip, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { MarketRecord } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
@@ -12,52 +12,55 @@ import { TablePagination } from "@/components/TablePagination"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { COLORS } from "@/theme/colors"
 import {
+  formatTokenWithCommas,
   timestampToDateFormatted,
-  TOKEN_FORMAT_DECIMALS,
   trimAddress,
 } from "@/utils/formatters"
 
 import { MarketRecordsTableProps, TypeSafeColDef } from "./interface"
 import { LinkGroup } from "../LinkComponent"
 
+const formatAmountDisplay = (
+  tokenAmount: Parameters<typeof formatTokenWithCommas>[0],
+) => formatTokenWithCommas(tokenAmount, { withSymbol: true })
+
+const formatAmountRaw = (
+  tokenAmount: Parameters<typeof formatTokenWithCommas>[0],
+) => `${tokenAmount.format(tokenAmount.decimals)} ${tokenAmount.symbol}`
+
 const getRecordText = (
   record: MarketRecord,
   lenderNames: { [key: string]: string },
   borrowerName: string,
+  raw = false,
 ): string => {
+  const fmt = raw ? formatAmountRaw : formatAmountDisplay
+
   if (record.__typename === "AnnualInterestBipsUpdated") {
     return `Base APR changed from ${record.oldAnnualInterestBips / 100}% to ${
       record.newAnnualInterestBips / 100
     }%`
   }
   if (record.__typename === "Borrow") {
-    return `${borrowerName} borrowed ${record.amount
-      .format(TOKEN_FORMAT_DECIMALS, true)
-      .toLocaleString()}`
+    return `${borrowerName} borrowed ${fmt(record.amount)}`
   }
   if (record.__typename === "DebtRepaid") {
-    return `${borrowerName} repaid ${record.amount
-      .format(TOKEN_FORMAT_DECIMALS, true)
-      .toLocaleString()}`
+    return `${borrowerName} repaid ${fmt(record.amount)}`
   }
   if (record.__typename === "Deposit") {
     const lenderName = lenderNames[record.address.toLowerCase()]
     const label = lenderName ?? trimAddress(record.address)
-    return `${label} loaned ${record.amount
-      .format(TOKEN_FORMAT_DECIMALS, true)
-      .toLocaleString()}`
+    return `${label} loaned ${fmt(record.amount)}`
   }
   if (record.__typename === "DelinquencyStatusChanged") {
     if (!record.isDelinquent) return `Market back in good standing`
-    const delinquentDebt = record.liquidityCoverageRequired
-      .satsub(record.totalAssets)
-      .format(TOKEN_FORMAT_DECIMALS, true)
-    return `Market delinquent by ${delinquentDebt.toLocaleString()}`
+    const delinquentAmount = record.liquidityCoverageRequired.satsub(
+      record.totalAssets,
+    )
+    return `Market delinquent by ${fmt(delinquentAmount)}`
   }
   if (record.__typename === "FeesCollected") {
-    return `${record.amount
-      .format(TOKEN_FORMAT_DECIMALS, true)
-      .toLocaleString()} collected in protocol fees`
+    return `${fmt(record.amount)} collected in protocol fees`
   }
   if (record.__typename === "MarketClosed") {
     return `Market closed`
@@ -65,22 +68,16 @@ const getRecordText = (
   if (record.__typename === "WithdrawalRequest") {
     const lenderName = lenderNames[record.address.toLowerCase()]
     const label = lenderName ?? trimAddress(record.address)
-    return `${label} requested a withdrawal of ${record.normalizedAmount
-      .format(TOKEN_FORMAT_DECIMALS, true)
-      .toLocaleString()}`
+    return `${label} requested a withdrawal of ${fmt(record.normalizedAmount)}`
   }
   if (record.__typename === "MaxTotalSupplyUpdated") {
     const kind = record.newMaxTotalSupply.gt(record.oldMaxTotalSupply)
       ? "increased"
       : "reduced"
-    return `Market capacity ${kind} to ${record.newMaxTotalSupply
-      .format(TOKEN_FORMAT_DECIMALS, true)
-      .toLocaleString()}`
+    return `Market capacity ${kind} to ${fmt(record.newMaxTotalSupply)}`
   }
   if (record.__typename === "MinimumDepositUpdated") {
-    return `Minimum deposit updated to ${record.newMinimumDeposit
-      .format(TOKEN_FORMAT_DECIMALS, true)
-      .toLocaleString()}`
+    return `Minimum deposit updated to ${fmt(record.newMinimumDeposit)}`
   }
   if (record.__typename === "ProtocolFeeBipsUpdated") {
     return `Protocol fee updated to ${record.newProtocolFeeBips / 100}%`
@@ -152,11 +149,15 @@ export function MarketRecordsTable({
       headerAlign: "right",
       align: "right",
       sortable: false,
-      renderCell: (params) => (
-        <Typography variant="text3">
-          {getRecordText(params.row, lendersName, name)}
-        </Typography>
-      ),
+      renderCell: (params) => {
+        const rawText = getRecordText(params.row, lendersName, name, true)
+        const displayText = getRecordText(params.row, lendersName, name)
+        return (
+          <Tooltip title={rawText} placement="right" arrow>
+            <Typography variant="text3">{displayText}</Typography>
+          </Tooltip>
+        )
+      },
     },
   ]
 
