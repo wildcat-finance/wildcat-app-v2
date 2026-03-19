@@ -229,7 +229,7 @@ export const HelpModal = () => {
                     alt=""
                     aria-hidden="true"
                     style={{
-                      width: "120px",
+                      width: "80px",
                       height: "auto",
                       display: "block",
                     }}
