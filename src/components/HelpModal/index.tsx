@@ -12,6 +12,7 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
+import Image from "next/image"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -23,6 +24,7 @@ import Message from "@/assets/icons/message_icon.svg"
 import Partnership from "@/assets/icons/partnership_icon.svg"
 import Arrow from "@/assets/icons/sharpArrow_icon.svg"
 import Telegram from "@/assets/icons/telegram_icon.svg"
+import WildcatEyes from "@/assets/pictures/eyes.webp"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { COLORS } from "@/theme/colors"
 
@@ -216,13 +218,22 @@ export const HelpModal = () => {
               aria-label={t("helpModal.title")}
             >
               <Box ref={popperContentRef}>
-                <Box sx={ModalHeaderSx}>
-                  <Typography variant="text1">
-                    {t("helpModal.title")}
-                  </Typography>
-                  <Typography variant="text3" color={COLORS.manate}>
-                    {t("helpModal.subtitle")}
-                  </Typography>
+                <Box
+                  sx={{
+                    ...ModalHeaderSx,
+                    alignItems: "center",
+                  }}
+                >
+                  <Image
+                    src={WildcatEyes}
+                    alt=""
+                    aria-hidden="true"
+                    style={{
+                      width: "120px",
+                      height: "auto",
+                      display: "block",
+                    }}
+                  />
                 </Box>
 
                 <Box
