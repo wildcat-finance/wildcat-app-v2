@@ -15,13 +15,12 @@ import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSectio
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { DataGridSx } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/style"
-import Ethena from "@/assets/companies-icons/ethena_icon.svg"
-import Ethereal from "@/assets/companies-icons/ethereal_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
-import { AurosEthenaBanner } from "@/components/AdsBanners/AurosEthena/AurosEthenaBanner"
-import { AurosEthenaProposalChip } from "@/components/AdsBanners/AurosEthena/AurosEthenaProposalChip"
-import { AprTooltip } from "@/components/AdsBanners/Common/AprTooltip"
+import {
+  getAdsCellProps,
+  getAdsTooltipComponent,
+} from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
@@ -37,7 +36,7 @@ import {
   tokenAmountComparator,
   typeComparator,
 } from "@/utils/comparators"
-import { AUROS_ETHENA_ADDRESS, pageCalcHeights } from "@/utils/constants"
+import { pageCalcHeights } from "@/utils/constants"
 import {
   buildMarketHref,
   formatBps,
@@ -231,23 +230,11 @@ export const OtherMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => {
-        const isAurosTestnet =
-          params.row.id.toLowerCase() ===
-          AUROS_ETHENA_ADDRESS.testnet.toLowerCase()
-        const isAurosMainnet =
-          params.row.id.toLowerCase() ===
-          AUROS_ETHENA_ADDRESS.mainnet.toLowerCase()
-
-        const isAuros = isAurosTestnet || isAurosMainnet
-
-        const adsComponent = isAuros ? (
-          <AprTooltip
-            baseAPR={formatBps(params.value)}
-            aprProposal={<AurosEthenaProposalChip isTooltip />}
-            banner={<AurosEthenaBanner />}
-            withdrawalAnyTime
-          />
-        ) : undefined
+        const adsComponent = getAdsTooltipComponent(
+          params.row.id,
+          formatBps(params.value),
+        )
+        const adsCellProps = getAdsCellProps(params.row.id)
 
         return (
           <Link
@@ -255,9 +242,9 @@ export const OtherMarketsTables = ({
             style={{ ...LinkCell, justifyContent: "flex-end" }}
           >
             <AprChip
-              isBonus={isAuros}
+              isBonus={!!adsCellProps}
               baseApr={formatBps(params.value)}
-              icons={isAuros ? [<Ethena />, <Ethereal />] : undefined}
+              icons={adsCellProps?.icons}
               adsComponent={adsComponent}
             />
           </Link>

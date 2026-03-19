@@ -12,6 +12,7 @@ export const FinalModalCloseButton = { "& path": { fill: `${COLORS.black}` } }
 export const FinalModalContentContainer = {
   height: "100%",
   display: "flex",
+  flex: 1,
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",

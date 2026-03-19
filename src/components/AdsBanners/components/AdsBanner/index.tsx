@@ -2,12 +2,20 @@ import * as React from "react"
 
 import { Box, SvgIcon, Typography } from "@mui/material"
 
-import Ethereal from "@/assets/companies-icons/ethereal-white_icon.svg"
+import { AdsConfig } from "@/components/AdsBanners/adsConfig"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
-export const AurosEthenaBanner = ({ maxWidth }: { maxWidth?: string }) => {
+export const AdsBanner = ({
+  config,
+  maxWidth,
+}: {
+  config: AdsConfig
+  maxWidth?: string
+}) => {
   const isMobile = useMobileResolution()
+
+  const { BannerIcon } = config
 
   return (
     <Box
@@ -34,7 +42,7 @@ export const AurosEthenaBanner = ({ maxWidth }: { maxWidth?: string }) => {
           fontWeight={600}
           color={COLORS.white}
         >
-          1 million weekly of
+          {config.bannerHeadline.replace("{tokenAmount}", config.tokenAmount)}
         </Typography>
 
         <Box
@@ -48,14 +56,14 @@ export const AurosEthenaBanner = ({ maxWidth }: { maxWidth?: string }) => {
           }}
         >
           <SvgIcon>
-            <Ethereal />
+            <BannerIcon />
           </SvgIcon>
 
           <Typography
             variant={isMobile ? "mobText4" : "text4"}
             color={COLORS.white}
           >
-            Ethereal Points
+            {config.bannerChipLabel}
           </Typography>
         </Box>
       </Box>
@@ -65,7 +73,7 @@ export const AurosEthenaBanner = ({ maxWidth }: { maxWidth?: string }) => {
         color={COLORS.white}
         sx={{ opacity: 0.8 }}
       >
-        Receive pro-rate share of 1 million Ethereal points
+        {config.bannerDescription.replace("{tokenAmount}", config.tokenAmount)}
       </Typography>
     </Box>
   )

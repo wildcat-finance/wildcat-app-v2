@@ -2,16 +2,20 @@ import * as React from "react"
 
 import { Box, SvgIcon, Typography } from "@mui/material"
 
-import Ethena from "@/assets/companies-icons/ethena_icon.svg"
+import { AdsConfig } from "@/components/AdsBanners/adsConfig"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
-export const AurosEthenaProposalChip = ({
+export const AdsProposalChip = ({
+  config,
   isTooltip,
 }: {
+  config: AdsConfig
   isTooltip: boolean
 }) => {
   const isMobile = useMobileResolution()
+
+  const { ProposalIcon } = config
 
   return (
     <Box
@@ -27,7 +31,7 @@ export const AurosEthenaProposalChip = ({
         variant={isMobile ? "mobText4" : "text3"}
         fontWeight={isTooltip ? 600 : 500}
       >
-        20x Multiplier
+        {config.proposalText}
       </Typography>
 
       <Box
@@ -41,11 +45,11 @@ export const AurosEthenaProposalChip = ({
         }}
       >
         <SvgIcon>
-          <Ethena />
+          <ProposalIcon />
         </SvgIcon>
 
         <Typography variant={isMobile ? "mobText4" : "text4"}>
-          Ethena Points
+          {config.proposalChipLabel}
         </Typography>
       </Box>
     </Box>

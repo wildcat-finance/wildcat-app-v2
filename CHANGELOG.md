@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.12.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.12.0...v2.12.1) (2026-03-19)
+
+
+### Bug Fixes
+
+* **apr:** add reset apr functionality ([#248](https://github.com/wildcat-finance/wildcat-app-v2/issues/248)) ([cc3d770](https://github.com/wildcat-finance/wildcat-app-v2/commit/cc3d7703f907ef1e3cad837975a13d359768f73c))
+* **apr:** add reset apr functionality ([#248](https://github.com/wildcat-finance/wildcat-app-v2/issues/248)) ([37dd411](https://github.com/wildcat-finance/wildcat-app-v2/commit/37dd411abecfc75e358060fe72cbc3a6d1949e6f))
+
+## [2.12.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.11.1...v2.12.0) (2026-02-13)
+
+
+### Features
+
+* **warning:** warn users when grace period lt wd cycle ([b6214ed](https://github.com/wildcat-finance/wildcat-app-v2/commit/b6214ed5ddaebb8bdff25c396dd4f4a8140a7fa0))
+* **warning:** warn users when grace period lt wd cycle ([02dbd61](https://github.com/wildcat-finance/wildcat-app-v2/commit/02dbd61f62a3c722e03a20a1dd6d4e356602c6cb))
+
 ## [2.11.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.11.0...v2.11.1) (2026-02-09)
 
 
