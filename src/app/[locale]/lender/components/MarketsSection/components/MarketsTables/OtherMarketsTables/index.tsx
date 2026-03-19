@@ -79,7 +79,7 @@ export const OtherMarketsTables = ({
         dispatch(setScrollTarget(null))
       }
     }
-  }, [scrollTargetId])
+  }, [dispatch, isMobile, scrollTargetId])
 
   const { data: borrowers } = useBorrowerNames()
 
@@ -143,9 +143,8 @@ export const OtherMarketsTables = ({
       headerAlign: "left",
       align: "left",
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          style={{
+        <Box
+          sx={{
             ...LinkCell,
             paddingRight: "16px",
             justifyContent: "center",
@@ -155,27 +154,41 @@ export const OtherMarketsTables = ({
             minWidth: 0,
           }}
         >
-          <Typography
-            variant="text3"
-            sx={{
+          <Link
+            href={buildMarketHref(params.row.id, params.row.chainId)}
+            style={{
               display: "block",
               width: "100%",
-              minWidth: 0,
-              overflow: "hidden",
-              whiteSpace: "nowrap",
-              textOverflow: "ellipsis",
+              textDecoration: "none",
+              color: "inherit",
             }}
           >
-            {params.value}
-          </Typography>
-
-          <Link
-            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
-            style={{ display: "flex", textDecoration: "none" }}
-          >
-            <BorrowerProfileChip borrower={params.row.borrower} />
+            <Typography
+              variant="text3"
+              sx={{
+                display: "block",
+                width: "100%",
+                minWidth: 0,
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {params.value}
+            </Typography>
           </Link>
-        </Link>
+
+          {params.row.borrowerAddress ? (
+            <Link
+              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              style={{ display: "flex", textDecoration: "none" }}
+            >
+              <BorrowerProfileChip borrower={params.row.borrower} />
+            </Link>
+          ) : (
+            <BorrowerProfileChip borrower={params.row.borrower} />
+          )}
+        </Box>
       ),
     },
     {
@@ -438,7 +451,7 @@ export const OtherMarketsTables = ({
             <DataGrid
               disableVirtualization
               sx={DataGridSx}
-              getRowHeight={() => "auto"}
+              rowHeight={66}
               rows={selfOnboard}
               columns={columns}
               columnHeaderHeight={40}
@@ -476,7 +489,7 @@ export const OtherMarketsTables = ({
             <DataGrid
               disableVirtualization
               sx={DataGridSx}
-              getRowHeight={() => "auto"}
+              rowHeight={66}
               rows={manual}
               columns={columns}
               columnHeaderHeight={40}

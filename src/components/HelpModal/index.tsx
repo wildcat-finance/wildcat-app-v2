@@ -1,10 +1,9 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import {
   Box,
-  ClickAwayListener,
   Divider,
   Fab,
   Grow,
@@ -24,7 +23,7 @@ import Message from "@/assets/icons/message_icon.svg"
 import Partnership from "@/assets/icons/partnership_icon.svg"
 import Arrow from "@/assets/icons/sharpArrow_icon.svg"
 import Telegram from "@/assets/icons/telegram_icon.svg"
-import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { COLORS } from "@/theme/colors"
 
 import {
@@ -33,6 +32,7 @@ import {
   ItemIconWrapperSx,
   ItemTypoContainerSx,
   MenuItemSx,
+  DisabledMenuItemSx,
   ModalHeaderSx,
   OverlaySx,
   PopperPaperSx,
@@ -40,13 +40,9 @@ import {
   TelegramItemSx,
 } from "./style"
 
-const TELEGRAM_URL = "https://t.me/wildcat_notifications_bot"
+// Empty strings indicate URLs that are not yet configured
 const BUG_REPORT_URL = ""
-const ASK_QUESTION_URL = "https://t.me/+ewyCAZOA5_Y2Zjg0"
 const SUGGEST_FEATURE_URL = ""
-const FAQ_URL = "https://docs.wildcat.finance/overview/faqs"
-const BUSINESS_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSfnCu3FjMtA48sWn28oRXxw71dc4ofnfaF1NdNnK62tkFxu7A/viewform?usp=send_form"
 
 type HelpMenuItemProps = {
   icon?: React.ReactNode
@@ -63,32 +59,54 @@ function HelpMenuItem({
   href,
   showDivider = true,
 }: HelpMenuItemProps) {
-  return (
+  const isDisabled = !href
+
+  const content = (
     <>
-      <Box
-        component={Link}
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        sx={MenuItemSx}
-      >
-        <Box sx={ItemIconWrapperSx}>
-          <SvgIcon sx={{ fontSize: "20px", "& path": COLORS.santasGrey }}>
-            {icon}
-          </SvgIcon>
-        </Box>
-
-        <Box sx={ItemTypoContainerSx}>
-          <Typography variant="text3">{title}</Typography>
-          <Typography variant="text3" color={COLORS.manate}>
-            {subtitle}
-          </Typography>
-        </Box>
-
-        <SvgIcon sx={ItemChevronSx}>
-          <Arrow />
+      <Box sx={ItemIconWrapperSx}>
+        <SvgIcon
+          aria-hidden="true"
+          sx={{ fontSize: "20px", "& path": { fill: COLORS.santasGrey } }}
+        >
+          {icon}
         </SvgIcon>
       </Box>
+
+      <Box sx={ItemTypoContainerSx}>
+        <Typography variant="text3">{title}</Typography>
+        <Typography variant="text3" color={COLORS.manate}>
+          {subtitle}
+        </Typography>
+      </Box>
+
+      <SvgIcon aria-hidden="true" sx={ItemChevronSx}>
+        <Arrow />
+      </SvgIcon>
+    </>
+  )
+
+  return (
+    <>
+      {isDisabled ? (
+        <Box
+          sx={DisabledMenuItemSx}
+          aria-disabled="true"
+          role="link"
+          tabIndex={-1}
+        >
+          {content}
+        </Box>
+      ) : (
+        <Box
+          component={Link}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={MenuItemSx}
+        >
+          {content}
+        </Box>
+      )}
 
       {showDivider && (
         <Divider sx={{ borderColor: COLORS.whiteLilac, my: "4px" }} />
@@ -100,25 +118,64 @@ function HelpMenuItem({
 export const HelpModal = () => {
   const [open, setOpen] = useState(false)
   const anchorRef = useRef<HTMLButtonElement>(null)
+  const popperContentRef = useRef<HTMLDivElement>(null)
   const { t } = useTranslation()
-  const isMobile = useMobileResolution()
 
   const handleToggle = () => setOpen((prev) => !prev)
-  const handleClose = () => setOpen(false)
+  const handleClose = useCallback(() => {
+    setOpen(false)
+    // Return focus to the FAB trigger on close
+    anchorRef.current?.focus()
+  }, [])
 
-  if (isMobile) return null
+  // Escape key handler (H5)
+  useEffect(() => {
+    if (!open) return undefined
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation()
+        handleClose()
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [open, handleClose])
+
+  // Focus management: move focus into popper when it opens (H6)
+  useEffect(() => {
+    if (!open) return undefined
+
+    // Slight delay to allow the Grow transition to render the content
+    const timer = setTimeout(() => {
+      const firstLink =
+        popperContentRef.current?.querySelector<HTMLElement>("a, [role=link]")
+      firstLink?.focus()
+    }, 220)
+
+    return () => clearTimeout(timer)
+  }, [open])
 
   return (
     <>
       <Fab
         ref={anchorRef}
         onClick={handleToggle}
-        sx={FabButtonSx}
-        aria-label="Help and feedback"
+        sx={{
+          ...FabButtonSx,
+          display: { xs: "none", md: "flex" },
+        }}
+        aria-label={t("helpModal.ariaLabel")}
+        aria-expanded={open}
+        aria-haspopup="true"
         disableRipple
       >
         {open ? (
-          <SvgIcon sx={{ path: { fill: COLORS.white }, fontSize: "20px" }}>
+          <SvgIcon
+            aria-hidden="true"
+            sx={{ path: { fill: COLORS.white }, fontSize: "20px" }}
+          >
             <Cross />
           </SvgIcon>
         ) : (
@@ -128,7 +185,13 @@ export const HelpModal = () => {
         )}
       </Fab>
 
-      <Box onClick={handleClose} sx={OverlaySx(open)} />
+      {/* Backdrop overlay (L2: replaces ClickAwayListener) */}
+      <Box
+        onClick={handleClose}
+        role="presentation"
+        aria-hidden="true"
+        sx={OverlaySx(open)}
+      />
 
       <Popper
         open={open}
@@ -146,111 +209,116 @@ export const HelpModal = () => {
       >
         {({ TransitionProps }) => (
           <Grow {...TransitionProps} timeout={200}>
-            <Paper sx={PopperPaperSx} elevation={0}>
-              <ClickAwayListener onClickAway={handleClose}>
-                <Box>
-                  <Box sx={ModalHeaderSx}>
-                    <Typography variant="text1">
-                      {t("helpModal.title")}
-                    </Typography>
-                    <Typography variant="text3" color={COLORS.manate}>
-                      {t("helpModal.subtitle")}
-                    </Typography>
-                  </Box>
+            <Paper
+              sx={PopperPaperSx}
+              elevation={0}
+              role="dialog"
+              aria-label={t("helpModal.title")}
+            >
+              <Box ref={popperContentRef}>
+                <Box sx={ModalHeaderSx}>
+                  <Typography variant="text1">
+                    {t("helpModal.title")}
+                  </Typography>
+                  <Typography variant="text3" color={COLORS.manate}>
+                    {t("helpModal.subtitle")}
+                  </Typography>
+                </Box>
 
-                  <Box
-                    component={Link}
-                    href={TELEGRAM_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={TelegramItemSx}
-                  >
-                    <Box sx={TelegramIconSx}>
-                      <SvgIcon
-                        sx={{
-                          fontSize: "20px",
-                          "& path": { fill: COLORS.white },
-                        }}
-                      >
-                        <Telegram />
-                      </SvgIcon>
-                    </Box>
-
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "2px",
-                      }}
-                    >
-                      <Typography variant="text3" color={COLORS.white}>
-                        {t("helpModal.items.telegram.title")}
-                      </Typography>
-                      <Typography
-                        variant="text3"
-                        color={COLORS.white}
-                        sx={{
-                          opacity: 0.8,
-                        }}
-                      >
-                        {t("helpModal.items.telegram.subtitle")}
-                      </Typography>
-                    </Box>
-
+                <Box
+                  component={Link}
+                  href={EXTERNAL_LINKS.TELEGRAM_BOT}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={TelegramItemSx}
+                >
+                  <Box sx={TelegramIconSx}>
                     <SvgIcon
+                      aria-hidden="true"
                       sx={{
-                        transform: "rotate(-180deg)",
-                        fontSize: "16px",
-                        margin: "0 0 auto auto",
-                        "& path": { fill: COLORS.white04 },
+                        fontSize: "20px",
+                        "& path": { fill: COLORS.white },
                       }}
                     >
-                      <Arrow />
+                      <Telegram />
                     </SvgIcon>
                   </Box>
 
-                  {/* Regular items */}
                   <Box
                     sx={{
                       display: "flex",
                       flexDirection: "column",
-                      pt: "8px",
+                      gap: "2px",
                     }}
                   >
-                    <HelpMenuItem
-                      icon={<Bug />}
-                      title={t("helpModal.items.bug.title")}
-                      subtitle={t("helpModal.items.bug.subtitle")}
-                      href={BUG_REPORT_URL}
-                    />
-                    <HelpMenuItem
-                      icon={<Message />}
-                      title={t("helpModal.items.question.title")}
-                      subtitle={t("helpModal.items.question.subtitle")}
-                      href={ASK_QUESTION_URL}
-                    />
-                    <HelpMenuItem
-                      icon={<Feat />}
-                      title={t("helpModal.items.feature.title")}
-                      subtitle={t("helpModal.items.feature.subtitle")}
-                      href={SUGGEST_FEATURE_URL}
-                    />
-                    <HelpMenuItem
-                      icon={<Ask />}
-                      title={t("helpModal.items.faq.title")}
-                      subtitle={t("helpModal.items.faq.subtitle")}
-                      href={FAQ_URL}
-                    />
-                    <HelpMenuItem
-                      icon={<Partnership />}
-                      title={t("helpModal.items.business.title")}
-                      subtitle={t("helpModal.items.business.subtitle")}
-                      href={BUSINESS_URL}
-                      showDivider={false}
-                    />
+                    <Typography variant="text3" color={COLORS.white}>
+                      {t("helpModal.items.telegram.title")}
+                    </Typography>
+                    <Typography
+                      variant="text3"
+                      color={COLORS.white}
+                      sx={{
+                        opacity: 0.8,
+                      }}
+                    >
+                      {t("helpModal.items.telegram.subtitle")}
+                    </Typography>
                   </Box>
+
+                  <SvgIcon
+                    aria-hidden="true"
+                    sx={{
+                      transform: "rotate(-180deg)",
+                      fontSize: "16px",
+                      margin: "0 0 auto auto",
+                      "& path": { fill: COLORS.white04 },
+                    }}
+                  >
+                    <Arrow />
+                  </SvgIcon>
                 </Box>
-              </ClickAwayListener>
+
+                {/* Regular items */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    pt: "8px",
+                  }}
+                >
+                  <HelpMenuItem
+                    icon={<Bug />}
+                    title={t("helpModal.items.bug.title")}
+                    subtitle={t("helpModal.items.bug.subtitle")}
+                    href={BUG_REPORT_URL}
+                  />
+                  <HelpMenuItem
+                    icon={<Message />}
+                    title={t("helpModal.items.question.title")}
+                    subtitle={t("helpModal.items.question.subtitle")}
+                    href={EXTERNAL_LINKS.TELEGRAM_COMMUNITY}
+                  />
+                  <HelpMenuItem
+                    icon={<Feat />}
+                    title={t("helpModal.items.feature.title")}
+                    subtitle={t("helpModal.items.feature.subtitle")}
+                    href={SUGGEST_FEATURE_URL}
+                  />
+                  <HelpMenuItem
+                    icon={<Ask />}
+                    title={t("helpModal.items.faq.title")}
+                    subtitle={t("helpModal.items.faq.subtitle")}
+                    href={EXTERNAL_LINKS.FAQ}
+                  />
+                  <HelpMenuItem
+                    icon={<Partnership />}
+                    title={t("helpModal.items.business.title")}
+                    subtitle={t("helpModal.items.business.subtitle")}
+                    href={EXTERNAL_LINKS.BUSINESS_INQUIRY}
+                    showDivider={false}
+                  />
+                </Box>
+              </Box>
             </Paper>
           </Grow>
         )}

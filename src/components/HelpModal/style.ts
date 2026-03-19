@@ -13,12 +13,12 @@ export const FabButtonSx: SxProps<Theme> = {
   bgcolor: COLORS.blueRibbon,
   color: COLORS.white,
   boxShadow: "0px 4px 16px rgba(73, 113, 255, 0.4)",
-  zIndex: 1300,
+  zIndex: 1250,
   "&:hover": {
     bgcolor: COLORS.ultramarineBlue,
     boxShadow: "0px 6px 20px rgba(73, 113, 255, 0.5)",
   },
-  transition: "all 0.2s ease",
+  transition: "background-color 0.2s ease, box-shadow 0.2s ease",
 }
 
 export const OverlaySx = (open: boolean): SxProps<Theme> => ({
@@ -27,7 +27,7 @@ export const OverlaySx = (open: boolean): SxProps<Theme> => ({
   bgcolor: "rgba(20, 20, 20, 0.35)",
   backdropFilter: "blur(4px)",
   WebkitBackdropFilter: "blur(4px)",
-  zIndex: 1298,
+  zIndex: 1248,
   opacity: open ? 1 : 0,
   visibility: open ? "visible" : "hidden",
   transition: "opacity 0.2s ease-in-out, visibility 0.2s ease-in-out",
@@ -100,6 +100,17 @@ export const MenuItemSx: SxProps<Theme> = {
   "&:hover": {
     opacity: 0.8,
   },
+}
+
+export const DisabledMenuItemSx: SxProps<Theme> = {
+  display: "flex",
+  alignItems: "flex-start",
+  gap: "8px",
+  borderRadius: "8px",
+  padding: "4px 0",
+  opacity: 0.45,
+  cursor: "default",
+  pointerEvents: "none",
 }
 
 export const ItemIconWrapperSx: SxProps<Theme> = {

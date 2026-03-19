@@ -9,6 +9,7 @@ import { MaturityModal } from "@/app/[locale]/borrower/market/[address]/componen
 import { MinimumDepositModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MinimumDepositModal"
 import TelegramIcon from "@/assets/icons/telegram_icon.svg"
 import { TransactionBlock } from "@/components/TransactionBlock"
+import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useAppDispatch } from "@/store/hooks"
 import {
   setCheckBlock,
@@ -103,7 +104,7 @@ export const MarketTransactions = ({
             variant="outlined"
             color="secondary"
             size="small"
-            href="https://t.me/wildcat_notifications_bot"
+            href={EXTERNAL_LINKS.TELEGRAM_BOT}
             target="_blank"
             rel="noopener noreferrer"
             sx={{
@@ -119,6 +120,7 @@ export const MarketTransactions = ({
             }}
           >
             <SvgIcon
+              aria-hidden="true"
               sx={{
                 fontSize: "20px",
                 flexShrink: 0,

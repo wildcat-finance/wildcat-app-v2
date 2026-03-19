@@ -1,18 +1,23 @@
 import { COLORS } from "@/theme/colors"
 
+const DATA_GRID_MIN_HEIGHT = "106px"
+
 export const DataGridSx = {
   overflow: "visible",
   height: "auto !important",
+  minHeight: DATA_GRID_MIN_HEIGHT,
   maxWidth: "calc(100vw - 267px)",
   padding: "0 16px",
   "& .MuiDataGrid-main": {
     overflow: "visible",
     height: "auto !important",
+    minHeight: DATA_GRID_MIN_HEIGHT,
     flex: "0 0 auto !important",
   },
   "& .MuiDataGrid-virtualScroller": {
     overflow: "visible",
     height: "auto !important",
+    minHeight: "66px",
     flex: "0 0 auto !important",
   },
   "& .MuiDataGrid-virtualScrollerContent": {

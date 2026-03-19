@@ -40,20 +40,21 @@
   },
   "helpModal": {
     "title": "Let's talk 👋",
-    "subtitle": "We're here to help — ask a question, share an idea, or just say hello.",
+    "subtitle": "We're here to help. Reach out via any of the channels below to get in touch.",
+    "ariaLabel": "Help and feedback",
     "items": {
       "telegram": {
-        "title": "Market Updates, Straight to You",
-        "subtitle": "Stay ahead of the curve. Follow our bot for real-time market insights delivered instantly.",
-        "botButton": "Get updates in Bot"
+        "title": "Telegram Notification Bot",
+        "subtitle": "Subscribe to our Telegram Bot for real-time updates on market events.",
+        "botButton": "Get updates from Telegram"
       },
       "bug": {
         "title": "Report a Bug",
-        "subtitle": "Found something broken? Tell us what happened and we'll fix it fast."
+        "subtitle": "Found something broken? Let us know what went wrong."
       },
       "question": {
         "title": "Ask a Question",
-        "subtitle": "Not sure how something works? We'll get you a clear answer, quickly."
+        "subtitle": "Not sure how something works? We'll try and respond as fast as we can."
       },
       "feature": {
         "title": "Suggest a Feature",
@@ -61,7 +62,7 @@
       },
       "faq": {
         "title": "Check the FAQ",
-        "subtitle": "Looking for a quick answer? Browse our most common questions — no waiting required."
+        "subtitle": "Answers to common questions and protocol documentation."
       },
       "business": {
         "title": "Business or Partnership Inquiry",
@@ -70,8 +71,8 @@
     }
   },
   "telegramBanner": {
-    "title": "Subscribe our Bot in Telegram",
-    "subtitle": "All markets updates you need in our Telegram Bot",
+    "title": "Subscribe to our Telegram Bot",
+    "subtitle": "Recieve notifications for market events",
     "button": "Subscribe"
   },
   "admin": {

@@ -17,8 +17,6 @@ import { NotificationsSidebar } from "@/components/Sidebar/NotificationsSidebar"
 import { LendersTabSidebar } from "@/components/Sidebar/OverviewSidebars/LendersTabSidebar"
 import { MarketsTabSidebar } from "@/components/Sidebar/OverviewSidebars/MarketsTabSidebar"
 import { ROUTES } from "@/routes"
-import { useAppSelector } from "@/store/hooks"
-import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
 import { COLORS } from "@/theme/colors"
 
 import { EditPolicySidebar } from "./EditPolicySidebar"
@@ -28,18 +26,14 @@ export const Sidebar = () => {
   const pathname = usePathname()
   const theme = useTheme()
 
-  const showCommitHash =
-    process.env.NODE_ENV === "production" ||
-    process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
-
   return (
     <Box
       sx={{
         display: "flex",
         flexDirection: "column",
         height: "calc(100vh - 82px)",
-        minWidth: "273px",
-        width: "273px",
+        minWidth: "267px",
+        width: "267px",
         borderRight: `1px solid ${COLORS.blackRock006}`,
         overflow: "hidden",
         overflowY: "auto",

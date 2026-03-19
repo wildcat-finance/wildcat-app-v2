@@ -18,6 +18,7 @@ import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import TelegramIcon from "@/assets/icons/telegram_icon.svg"
 import { TransactionBlock } from "@/components/TransactionBlock"
+import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useAppDispatch } from "@/store/hooks"
@@ -182,7 +183,7 @@ export const MarketActions = ({
           variant="outlined"
           color="secondary"
           size="small"
-          href="https://t.me/wildcat_notifications_bot"
+          href={EXTERNAL_LINKS.TELEGRAM_BOT}
           target="_blank"
           rel="noopener noreferrer"
           sx={{
@@ -199,6 +200,7 @@ export const MarketActions = ({
           }}
         >
           <SvgIcon
+            aria-hidden="true"
             sx={{
               fontSize: "20px",
               flexShrink: 0,
