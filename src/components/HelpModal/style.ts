@@ -1,6 +1,5 @@
 import { SxProps, Theme } from "@mui/material"
 
-import TelegramBg from "@/assets/pictures/telegramSmallBanner_bg.webp"
 import { COLORS } from "@/theme/colors"
 
 export const FabButtonSx: SxProps<Theme> = {
@@ -44,30 +43,28 @@ export const PopperPaperSx: SxProps<Theme> = {
   bgcolor: COLORS.white,
   overflow: "hidden",
   p: "16px",
+  pt: "4px",
   display: "flex",
   flexDirection: "column",
-  gap: "12px",
+  gap: "8px",
 }
 
 export const ModalHeaderSx: SxProps<Theme> = {
   display: "flex",
   flexDirection: "column",
-  gap: "4px",
-  paddingBottom: "16px",
+  gap: "0px",
+  paddingBottom: "0px",
 }
 
 export const TelegramItemSx: SxProps<Theme> = {
   position: "relative",
-  bgcolor: COLORS.bunker,
-  backgroundImage: `url(${TelegramBg.src})`,
-  backgroundSize: "cover",
-  backgroundPosition: "center",
+  overflow: "hidden",
+  isolation: "isolate",
   borderRadius: "14px",
   padding: "10px 12px",
   display: "flex",
   alignItems: "flex-start",
   gap: "10px",
-  overflow: "hidden",
   cursor: "pointer",
   textDecoration: "none",
   transition: "opacity 0.15s ease",

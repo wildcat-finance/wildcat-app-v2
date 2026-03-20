@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react"
 
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
-import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import TelegramFlyIcon from "@/assets/icons/telegramFly_icon.svg"
+import BannerBg from "@/assets/pictures/telegram_banner_bg.svg"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -64,57 +64,64 @@ export const TelegramBanner = () => {
       aria-label={t("telegramBanner.title")}
       sx={{
         mb: "10px",
-        mx: "16px",
+        mx: "auto",
+        width: "232px",
+        height: "218px",
+        boxSizing: "border-box",
         borderRadius: "20px",
-        bgcolor: COLORS.bunker,
         overflow: "hidden",
         position: "relative",
+        isolation: "isolate",
         padding: "24px",
         display: "flex",
         flexDirection: "column",
+        justifyContent: "center",
         alignItems: "center",
+        gap: "22px",
       }}
     >
-      {/* Background image via next/image for optimization */}
-      <Image
-        src="/images/telegramBigBanner_bg.webp"
-        alt=""
-        fill
-        sizes="241px"
-        style={{ objectFit: "cover", objectPosition: "center" }}
-        priority
+      <BannerBg
         aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          zIndex: -1,
+        }}
       />
 
       <SvgIcon
         aria-hidden="true"
         sx={{
           fontSize: "36px",
-          marginBottom: "8px",
-          position: "relative",
           "& path": { fill: COLORS.white },
         }}
       >
         <TelegramFlyIcon />
       </SvgIcon>
 
-      <Typography
-        variant="text2"
-        textAlign="center"
-        color={COLORS.white}
-        sx={{ marginBottom: "4px", position: "relative" }}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "4px",
+        }}
       >
-        {t("telegramBanner.title")}
-      </Typography>
+        <Typography variant="text2" textAlign="center" color={COLORS.white}>
+          {t("telegramBanner.title")}
+        </Typography>
 
-      <Typography
-        variant="text4"
-        textAlign="center"
-        color={COLORS.white}
-        sx={{ marginBottom: "22px", opacity: 0.8, position: "relative" }}
-      >
-        {t("telegramBanner.subtitle")}
-      </Typography>
+        <Typography
+          variant="text4"
+          textAlign="center"
+          color={COLORS.white}
+          sx={{ opacity: 0.8 }}
+        >
+          {t("telegramBanner.subtitle")}
+        </Typography>
+      </Box>
 
       <Button
         component={Link}
@@ -124,7 +131,6 @@ export const TelegramBanner = () => {
         variant="contained"
         size="small"
         sx={{
-          position: "relative",
           bgcolor: COLORS.white,
           color: COLORS.bunker,
           fontWeight: 600,

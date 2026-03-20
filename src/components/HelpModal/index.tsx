@@ -25,6 +25,7 @@ import Partnership from "@/assets/icons/partnership_icon.svg"
 import Arrow from "@/assets/icons/sharpArrow_icon.svg"
 import Telegram from "@/assets/icons/telegram_icon.svg"
 import WildcatEyes from "@/assets/pictures/eyes.webp"
+import TelegramSmallBg from "@/assets/pictures/telegramSmallBanner_bg.svg"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { COLORS } from "@/theme/colors"
 
@@ -229,7 +230,7 @@ export const HelpModal = () => {
                     alt=""
                     aria-hidden="true"
                     style={{
-                      width: "80px",
+                      width: "100px",
                       height: "auto",
                       display: "block",
                     }}
@@ -243,6 +244,16 @@ export const HelpModal = () => {
                   rel="noopener noreferrer"
                   sx={TelegramItemSx}
                 >
+                  <TelegramSmallBg
+                    aria-hidden="true"
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      width: "100%",
+                      height: "100%",
+                      zIndex: -1,
+                    }}
+                  />
                   <Box sx={TelegramIconSx}>
                     <SvgIcon
                       aria-hidden="true"
