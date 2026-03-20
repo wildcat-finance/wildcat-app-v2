@@ -82,7 +82,7 @@ export const TelegramBanner = () => {
         fill
         sizes="241px"
         style={{ objectFit: "cover", objectPosition: "center" }}
-        priority={false}
+        priority
         aria-hidden="true"
       />
 

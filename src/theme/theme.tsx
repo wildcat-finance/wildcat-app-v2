@@ -225,6 +225,18 @@ export const theme = createTheme({
   palette: PALETTE,
   typography: TYPOGRAPHY,
   components: {
+    MuiInputBase: {
+      styleOverrides: {
+        input: {
+          "@keyframes mui-auto-fill": {
+            from: { opacity: 1 },
+          },
+          "@keyframes mui-auto-fill-cancel": {
+            from: { opacity: 1 },
+          },
+        },
+      },
+    },
     MuiSvgIcon: {
       variants: [
         {

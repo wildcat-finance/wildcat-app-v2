@@ -156,6 +156,7 @@ export const OtherMarketsTables = ({
         >
           <Link
             href={buildMarketHref(params.row.id, params.row.chainId)}
+            prefetch={false}
             style={{
               display: "block",
               width: "100%",
@@ -181,6 +182,7 @@ export const OtherMarketsTables = ({
           {params.row.borrowerAddress ? (
             <Link
               href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              prefetch={false}
               style={{ display: "flex", textDecoration: "none" }}
             >
               <BorrowerProfileChip borrower={params.row.borrower} />
@@ -202,6 +204,7 @@ export const OtherMarketsTables = ({
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
+          prefetch={false}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -224,6 +227,7 @@ export const OtherMarketsTables = ({
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
+          prefetch={false}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -252,6 +256,7 @@ export const OtherMarketsTables = ({
         return (
           <Link
             href={buildMarketHref(params.row.id, params.row.chainId)}
+            prefetch={false}
             style={{ ...LinkCell, justifyContent: "flex-end" }}
           >
             <AprChip
@@ -274,6 +279,7 @@ export const OtherMarketsTables = ({
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
+          prefetch={false}
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
@@ -293,6 +299,7 @@ export const OtherMarketsTables = ({
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
+          prefetch={false}
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
@@ -315,6 +322,7 @@ export const OtherMarketsTables = ({
       ) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
+          prefetch={false}
           style={{
             textDecoration: "none",
             width: "100%",
@@ -345,6 +353,7 @@ export const OtherMarketsTables = ({
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
+          prefetch={false}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value
@@ -371,6 +380,7 @@ export const OtherMarketsTables = ({
               ? buildMarketHref(params.row.id, params.row.chainId)
               : `${ROUTES.lender.profile}/${params.row.borrowerAddress}`
           }
+          prefetch={false}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           <Button size="small" variant="contained" color="secondary">

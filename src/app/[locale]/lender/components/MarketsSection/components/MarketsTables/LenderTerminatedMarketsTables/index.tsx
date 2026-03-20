@@ -135,6 +135,7 @@ export const LenderTerminatedMarketsTables = ({
         >
           <Link
             href={buildMarketHref(params.row.id, params.row.chainId)}
+            prefetch={false}
             style={{
               display: "block",
               width: "100%",
@@ -160,6 +161,7 @@ export const LenderTerminatedMarketsTables = ({
           {params.row.borrowerAddress ? (
             <Link
               href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              prefetch={false}
               style={{ display: "flex", textDecoration: "none" }}
             >
               <BorrowerProfileChip borrower={params.row.borrower} />
@@ -181,6 +183,7 @@ export const LenderTerminatedMarketsTables = ({
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
+          prefetch={false}
           style={{
             ...LinkCell,
             justifyContent: "flex-start",
@@ -202,6 +205,7 @@ export const LenderTerminatedMarketsTables = ({
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
+          prefetch={false}
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
@@ -222,6 +226,7 @@ export const LenderTerminatedMarketsTables = ({
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
+          prefetch={false}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value
@@ -249,6 +254,7 @@ export const LenderTerminatedMarketsTables = ({
       ) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
+          prefetch={false}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           {params.value
@@ -270,6 +276,7 @@ export const LenderTerminatedMarketsTables = ({
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
+          prefetch={false}
           style={{
             ...LinkCell,
             justifyContent: "flex-end",
@@ -290,6 +297,7 @@ export const LenderTerminatedMarketsTables = ({
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
+          prefetch={false}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
           <Button
