@@ -5,6 +5,7 @@ import { Box, Button, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
@@ -35,6 +36,15 @@ import {
   LenderTerminatedMarketsTableProps,
 } from "./interface"
 
+const clickableGridSx = {
+  ...DataGridSx,
+  "& .MuiDataGrid-row": {
+    minHeight: "66px !important",
+    maxHeight: "66px !important",
+    cursor: "pointer",
+  },
+}
+
 export const LenderTerminatedMarketsTables = ({
   marketAccounts,
   borrowers,
@@ -44,6 +54,7 @@ export const LenderTerminatedMarketsTables = ({
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const router = useRouter()
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
   )
@@ -109,6 +120,15 @@ export const LenderTerminatedMarketsTables = ({
 
   const neverActive = rows.filter((market) => !market.hasEverInteracted)
 
+  const handleRowClick = (
+    params: { row: LenderTerminatedMarketsTableModel },
+    event: { target: EventTarget | null },
+  ) => {
+    const target = event.target as HTMLElement
+    if (target.closest("a")) return
+    router.push(buildMarketHref(params.row.id, params.row.chainId))
+  }
+
   const columns: TypeSafeColDef<LenderTerminatedMarketsTableModel>[] = [
     {
       field: "name",
@@ -133,35 +153,25 @@ export const LenderTerminatedMarketsTables = ({
             paddingLeft: params.row.loan.gt(0) ? "10px" : 0,
           }}
         >
-          <Link
-            href={buildMarketHref(params.row.id, params.row.chainId)}
-            prefetch={false}
-            style={{
+          <Typography
+            variant="text3"
+            sx={{
               display: "block",
               width: "100%",
-              textDecoration: "none",
-              color: "inherit",
+              minWidth: 0,
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
             }}
           >
-            <Typography
-              variant="text3"
-              sx={{
-                display: "block",
-                width: "100%",
-                minWidth: 0,
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {params.value}
-            </Typography>
-          </Link>
+            {params.value}
+          </Typography>
 
           {params.row.borrowerAddress ? (
             <Link
               href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
               prefetch={false}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
               style={{ display: "flex", textDecoration: "none" }}
             >
               <BorrowerProfileChip borrower={params.row.borrower} />
@@ -181,10 +191,8 @@ export const LenderTerminatedMarketsTables = ({
       align: "left",
       sortComparator: statusComparator,
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          prefetch={false}
-          style={{
+        <Box
+          sx={{
             ...LinkCell,
             justifyContent: "flex-start",
           }}
@@ -192,7 +200,7 @@ export const LenderTerminatedMarketsTables = ({
           <Box width="120px">
             <MarketStatusChip status={params.value} />
           </Box>
-        </Link>
+        </Box>
       ),
     },
     {
@@ -203,16 +211,14 @@ export const LenderTerminatedMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          prefetch={false}
-          style={{
+        <Box
+          sx={{
             ...LinkCell,
             justifyContent: "flex-end",
           }}
         >
           {params.value}
-        </Link>
+        </Box>
       ),
     },
     {
@@ -224,18 +230,14 @@ export const LenderTerminatedMarketsTables = ({
       align: "right",
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          prefetch={false}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {params.value
             ? formatTokenWithCommas(params.value, {
                 withSymbol: false,
                 fractionDigits: 2,
               })
             : "0"}
-        </Link>
+        </Box>
       ),
     },
     {
@@ -252,18 +254,14 @@ export const LenderTerminatedMarketsTables = ({
           TokenAmount
         >,
       ) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          prefetch={false}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {params.value
             ? formatTokenWithCommas(params.value, {
                 withSymbol: false,
                 fractionDigits: 2,
               })
             : "0"}
-        </Link>
+        </Box>
       ),
     },
     {
@@ -274,16 +272,14 @@ export const LenderTerminatedMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          prefetch={false}
-          style={{
+        <Box
+          sx={{
             ...LinkCell,
             justifyContent: "flex-end",
           }}
         >
           {formatSecsToHours(params.value, true)}
-        </Link>
+        </Box>
       ),
     },
     {
@@ -295,11 +291,7 @@ export const LenderTerminatedMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          prefetch={false}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           <Button
             size="small"
             variant="contained"
@@ -308,7 +300,7 @@ export const LenderTerminatedMarketsTables = ({
           >
             Withdraw
           </Button>
-        </Link>
+        </Box>
       ),
     },
   ]
@@ -354,11 +346,12 @@ export const LenderTerminatedMarketsTables = ({
         >
           <DataGrid
             disableVirtualization
-            sx={DataGridSx}
+            sx={clickableGridSx}
             rowHeight={66}
             rows={prevActive}
             columns={columns}
             columnHeaderHeight={40}
+            onRowClick={handleRowClick}
           />
         </MarketsTableAccordion>
       </Box>
@@ -378,11 +371,12 @@ export const LenderTerminatedMarketsTables = ({
         >
           <DataGrid
             disableVirtualization
-            sx={DataGridSx}
+            sx={clickableGridSx}
             rowHeight={66}
             rows={neverActive}
             columns={columns}
             columnHeaderHeight={40}
+            onRowClick={handleRowClick}
           />
         </MarketsTableAccordion>
       </Box>
