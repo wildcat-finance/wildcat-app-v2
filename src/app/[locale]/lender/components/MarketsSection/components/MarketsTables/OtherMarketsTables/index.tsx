@@ -169,6 +169,15 @@ export const OtherMarketsTables = ({
     router.push(buildMarketHref(params.row.id, params.row.chainId))
   }
 
+  const handleRowClick = (
+    params: { row: LenderOtherMarketsTableModel },
+    event: { target: EventTarget | null },
+  ) => {
+    const target = event.target as HTMLElement
+    if (target.closest("a")) return
+    router.push(buildMarketHref(params.row.id, params.row.chainId))
+  }
+
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
     {
       field: "name",
