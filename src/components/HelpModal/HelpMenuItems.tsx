@@ -138,11 +138,7 @@ export function TelegramHelpItem() {
         <Typography variant="text3" color={COLORS.white}>
           {t("helpModal.items.telegram.title")}
         </Typography>
-        <Typography
-          variant="text3"
-          color={COLORS.white}
-          sx={{ opacity: 0.8 }}
-        >
+        <Typography variant="text3" color={COLORS.white} sx={{ opacity: 0.8 }}>
           {t("helpModal.items.telegram.subtitle")}
         </Typography>
       </Box>

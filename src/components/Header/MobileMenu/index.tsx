@@ -44,12 +44,12 @@ import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
-const SlideTransition = React.forwardRef(function SlideTransition(
-  props: TransitionProps & { children: React.ReactElement },
-  ref: React.Ref<unknown>,
-) {
-  return <Slide direction="left" ref={ref} {...props} />
-})
+const SlideTransition = React.forwardRef(
+  (
+    props: TransitionProps & { children: React.ReactElement },
+    ref: React.Ref<unknown>,
+  ) => <Slide direction="left" ref={ref} {...props} />,
+)
 
 export type MobileMenuProps = {
   open: boolean
@@ -547,19 +547,19 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     padding: "16px 0 8px",
                   }}
                 >
-                <Typography
-                  variant="text4"
-                  color={COLORS.santasGrey}
-                  textAlign="center"
-                >
-                  Wildcat &copy; All Rights reserved. 2025
-                </Typography>
-                {commitSha && (
-                  <Typography variant="text4" color={COLORS.santasGrey}>
-                    Version {commitSha.slice(0, 4)}...{commitSha.slice(-4)}
+                  <Typography
+                    variant="text4"
+                    color={COLORS.santasGrey}
+                    textAlign="center"
+                  >
+                    Wildcat &copy; All Rights reserved. 2025
                   </Typography>
-                )}
-              </Box>
+                  {commitSha && (
+                    <Typography variant="text4" color={COLORS.santasGrey}>
+                      Version {commitSha.slice(0, 4)}...{commitSha.slice(-4)}
+                    </Typography>
+                  )}
+                </Box>
               </Box>
             </Box>
 

@@ -19,12 +19,7 @@ import WildcatEyes from "@/assets/pictures/eyes.webp"
 import { COLORS } from "@/theme/colors"
 
 import { HelpMenuItemsList, TelegramHelpItem } from "./HelpMenuItems"
-import {
-  FabButtonSx,
-  ModalHeaderSx,
-  OverlaySx,
-  PopperPaperSx,
-} from "./style"
+import { FabButtonSx, ModalHeaderSx, OverlaySx, PopperPaperSx } from "./style"
 
 export const HelpModal = () => {
   const [open, setOpen] = useState(false)
