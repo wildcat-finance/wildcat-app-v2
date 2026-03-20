@@ -59,6 +59,7 @@ const MobileSwitcherButton = ({
         borderRadius: "10px",
         gap: "6px",
         padding: "4px 16px",
+        flexShrink: 0,
         fontSize: "12px",
         lineHeight: "20px",
         fontWeight: marketSection === section ? 600 : 500,
@@ -191,8 +192,10 @@ export const MobileMarketSectionHeader = ({
 
       <Box
         sx={{
-          width: "fit-content",
+          width: "100%",
           display: "flex",
+          overflowX: "auto",
+          flexWrap: "nowrap",
           gap: "6px",
           marginBottom: "10px",
         }}
@@ -223,8 +226,9 @@ export const MobileMarketSectionHeader = ({
 
       <Box
         sx={{
-          width: "fit-content",
+          width: "100%",
           display: "flex",
+          flexWrap: "wrap",
           gap: "6px",
           marginTop: "10px",
         }}
