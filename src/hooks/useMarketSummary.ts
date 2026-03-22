@@ -18,7 +18,7 @@ export const useMarketSummary = (market: string, chainId: number) =>
     queryFn: () =>
       fetch(`/api/market-summary/${market}?chainId=${chainId}`)
         .then((res) =>
-          res.ok ? (res.json() as Promise<MarketSummary>) : undefined,
+          res.ok ? (res.json() as Promise<MarketSummary>) : null,
         )
-        .catch(() => undefined),
+        .catch(() => null),
   })
