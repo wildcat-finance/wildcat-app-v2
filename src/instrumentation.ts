@@ -1,6 +1,10 @@
 import { registerOTel } from "@vercel/otel"
 
+import { isOtelEnabled } from "@/lib/otel/enabled"
+
 export function register() {
+  if (!isOtelEnabled()) return
+
   const serviceName = process.env.OTEL_SERVICE_NAME || "wildcat-app-v2"
   const serviceNamespace = process.env.OTEL_SERVICE_NAMESPACE
   const deploymentEnvironment = process.env.OTEL_DEPLOYMENT_ENVIRONMENT
