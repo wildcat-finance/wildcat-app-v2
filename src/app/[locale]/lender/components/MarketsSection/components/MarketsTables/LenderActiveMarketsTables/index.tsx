@@ -66,7 +66,6 @@ export const LenderActiveMarketsTables = ({
   const { t } = useTranslation()
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const router = useRouter()
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
   )

@@ -27,6 +27,7 @@ import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
 import TranslationsProvider from "@/components/TranslationsProvider"
 import { config } from "@/lib/config"
+import { isOtelEnabled } from "@/lib/otel/enabled"
 import { RedirectsProvider } from "@/providers/RedirectsProvider"
 import { SafeProvider } from "@/providers/SafeProvider"
 import { SubgraphProvider } from "@/providers/SubgraphProvider"
@@ -64,6 +65,7 @@ export default async function RootLayout({
   children: ReactNode
   params: { locale: string }
 }) {
+  const otelEnabled = isOtelEnabled()
   const { traceparent, tracestate } = getTraceparentMeta()
   const initialState = cookieToInitialState(config, headers().get("cookie"))
   const { resources } = await initTranslations(locale, i18nNamespaces)
@@ -79,7 +81,7 @@ export default async function RootLayout({
         {tracestate ? <meta name="tracestate" content={tracestate} /> : null}
       </head>
       <body className={inter.className} style={{ height: "100dvh" }}>
-        <OtelClient />
+        {otelEnabled ? <OtelClient /> : null}
         <Toaster position="bottom-center" />
         <WagmiQueryProviders initialState={initialState}>
           <SafeProvider>
