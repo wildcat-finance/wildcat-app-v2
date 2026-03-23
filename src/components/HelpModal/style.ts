@@ -23,9 +23,6 @@ export const FabButtonSx: SxProps<Theme> = {
 export const OverlaySx = (open: boolean): SxProps<Theme> => ({
   position: "fixed",
   inset: 0,
-  backdropFilter: "blur(4px)",
-  WebkitBackdropFilter: "blur(4px)",
-  bgcolor: "rgba(20, 20, 20, 0.35)",
   zIndex: 1248,
   visibility: open ? "visible" : "hidden",
   pointerEvents: open ? "auto" : "none",
@@ -94,6 +91,14 @@ export const MenuItemSx: SxProps<Theme> = {
   "&:hover": {
     opacity: 0.8,
   },
+}
+
+export const MenuItemButtonSx: SxProps<Theme> = {
+  ...MenuItemSx,
+  width: "100%",
+  border: "none",
+  background: "transparent",
+  textAlign: "left",
 }
 
 export const DisabledMenuItemSx: SxProps<Theme> = {
