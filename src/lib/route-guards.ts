@@ -51,9 +51,9 @@ export const createRateLimiter = (max: number, windowMs: number) => {
     const now = Date.now()
 
     if (store.size > MAX_STORE_SIZE / 2) {
-      for (const [k, v] of store) {
+      store.forEach((v, k) => {
         if (now >= v.resetAt) store.delete(k)
-      }
+      })
     }
 
     if (store.size >= MAX_STORE_SIZE) {

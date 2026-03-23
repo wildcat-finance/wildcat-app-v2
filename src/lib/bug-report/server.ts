@@ -168,9 +168,9 @@ export const buildBugReportSlackMessage = ({
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*Page URL:* <${escapeSlackUrl(payload.context.pageUrl)}|${escapeSlackMrkdwn(
+          text: `*Page URL:* <${escapeSlackUrl(
             payload.context.pageUrl,
-          )}>`,
+          )}|${escapeSlackMrkdwn(payload.context.pageUrl)}>`,
         },
       },
       ...(traceLines.length
