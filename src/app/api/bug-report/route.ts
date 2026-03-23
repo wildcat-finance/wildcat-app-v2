@@ -41,17 +41,14 @@ export async function POST(request: Request) {
     )
   }
 
-  const contentLength = Number.parseInt(
-    request.headers.get("content-length") ?? "",
-    10,
-  )
-  if (contentLength > BUG_REPORT_MAX_BODY_BYTES) {
+  const raw = await request.text()
+  if (raw.length > BUG_REPORT_MAX_BODY_BYTES) {
     return Response.json({ error: "Request body too large" }, { status: 413 })
   }
 
   let parsedBody: unknown
   try {
-    parsedBody = await request.json()
+    parsedBody = JSON.parse(raw)
   } catch {
     return Response.json({ error: "Invalid JSON body" }, { status: 400 })
   }
