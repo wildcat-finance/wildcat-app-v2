@@ -53,6 +53,9 @@ export const createBugReportId = () => {
 const escapeSlackMrkdwn = (value: string) =>
   value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 
+const escapeSlackUrl = (url: string) =>
+  url.replace(/>/g, "%3E").replace(/\|/g, "%7C")
+
 export const buildGrafanaTraceUrl = (
   traceId: string | undefined,
   env: {
@@ -165,7 +168,7 @@ export const buildBugReportSlackMessage = ({
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*Page URL:* <${payload.context.pageUrl}|${escapeSlackMrkdwn(
+          text: `*Page URL:* <${escapeSlackUrl(payload.context.pageUrl)}|${escapeSlackMrkdwn(
             payload.context.pageUrl,
           )}>`,
         },
