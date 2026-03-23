@@ -97,8 +97,7 @@ export default function LenderMarketDetails({
     market?.chainId ?? selectedChainId,
   )
 
-  const hasMarketDescription =
-    !!marketSummary && marketSummary?.description !== ""
+  const hasMarketDescription = !!marketSummary?.description
 
   const isDifferentChain = isSelectionMismatch || isWrongNetwork
 
@@ -211,7 +210,7 @@ export default function LenderMarketDetails({
   useEffect(() => setMounted(true), [])
 
   useEffect(() => {
-    if (!marketSummary || marketSummary!.description === "") {
+    if (!marketSummary?.description) {
       dispatch(hideDescriptionSection(true))
     } else {
       dispatch(hideDescriptionSection(false))

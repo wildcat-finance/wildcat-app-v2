@@ -8,7 +8,7 @@ const level =
 export const logger = pino({
   level,
   browser: {
-    asObject: true,
+    asObject: false,
   },
   mixin() {
     const span = trace.getSpan(context.active())
