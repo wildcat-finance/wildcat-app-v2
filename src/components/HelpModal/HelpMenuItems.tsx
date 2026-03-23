@@ -1,6 +1,7 @@
 "use client"
 
 import { Box, Divider, SvgIcon, Typography } from "@mui/material"
+import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import Ask from "@/assets/icons/ask_icon.svg"
@@ -19,20 +20,21 @@ import {
   ItemChevronSx,
   ItemIconWrapperSx,
   ItemTypoContainerSx,
+  MenuItemButtonSx,
   MenuItemSx,
   TelegramIconSx,
   TelegramItemSx,
 } from "./style"
 
-// Empty strings indicate URLs that are not yet configured
-const BUG_REPORT_URL = ""
+// Empty string indicates URL is not yet configured
 const SUGGEST_FEATURE_URL = ""
 
 type HelpMenuItemProps = {
   icon?: React.ReactNode
   title: string
   subtitle: string
-  href: string
+  href?: string
+  onClick?: () => void
   showDivider?: boolean
 }
 
@@ -41,9 +43,10 @@ export function HelpMenuItem({
   title,
   subtitle,
   href,
+  onClick,
   showDivider = true,
 }: HelpMenuItemProps) {
-  const isDisabled = !href
+  const isDisabled = !href && !onClick
 
   const content = (
     <>
@@ -69,28 +72,46 @@ export function HelpMenuItem({
     </>
   )
 
+  let item: React.ReactNode
+  if (isDisabled) {
+    item = (
+      <Box
+        sx={DisabledMenuItemSx}
+        aria-disabled="true"
+        role="link"
+        tabIndex={-1}
+      >
+        {content}
+      </Box>
+    )
+  } else if (onClick) {
+    item = (
+      <Box
+        component="button"
+        type="button"
+        onClick={onClick}
+        sx={MenuItemButtonSx}
+      >
+        {content}
+      </Box>
+    )
+  } else {
+    item = (
+      <Box
+        component={Link}
+        href={href as string}
+        target="_blank"
+        rel="noopener noreferrer"
+        sx={MenuItemSx}
+      >
+        {content}
+      </Box>
+    )
+  }
+
   return (
     <>
-      {isDisabled ? (
-        <Box
-          sx={DisabledMenuItemSx}
-          aria-disabled="true"
-          role="link"
-          tabIndex={-1}
-        >
-          {content}
-        </Box>
-      ) : (
-        <Box
-          component="a"
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          sx={MenuItemSx}
-        >
-          {content}
-        </Box>
-      )}
+      {item}
 
       {showDivider && (
         <Divider sx={{ borderColor: COLORS.whiteLilac, my: "4px" }} />
@@ -157,18 +178,21 @@ export function TelegramHelpItem() {
   )
 }
 
-export function HelpMenuItemsList() {
+type HelpMenuItemsListProps = {
+  onReportBug: () => void
+}
+
+export function HelpMenuItemsList({ onReportBug }: HelpMenuItemsListProps) {
   const { t } = useTranslation()
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", pt: "8px" }}>
-      {/* --- Temporary hidden --- */}
-      {/* <HelpMenuItem */}
-      {/*  icon={<Bug />} */}
-      {/*  title={t("helpModal.items.bug.title")} */}
-      {/*  subtitle={t("helpModal.items.bug.subtitle")} */}
-      {/*  href={BUG_REPORT_URL} */}
-      {/* /> */}
+      <HelpMenuItem
+        icon={<Bug />}
+        title={t("helpModal.items.bug.title")}
+        subtitle={t("helpModal.items.bug.subtitle")}
+        onClick={onReportBug}
+      />
       <HelpMenuItem
         icon={<Message />}
         title={t("helpModal.items.question.title")}

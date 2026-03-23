@@ -30,6 +30,7 @@ import TelegramFlyIcon from "@/assets/icons/telegramFly_icon.svg"
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
 import WildcatEyes from "@/assets/pictures/eyes.webp"
 import bannerBg from "@/assets/pictures/telegram_banner_bg.svg?url"
+import { BugReportPanel } from "@/components/HelpModal/BugReportPanel"
 import {
   HelpMenuItemsList,
   TelegramHelpItem,
@@ -57,6 +58,7 @@ export type MobileMenuProps = {
 }
 
 type Panel = "main" | "help"
+type HelpPanelView = "menu" | "bug-report"
 
 export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   const { address, isConnected } = useAccount()
@@ -70,12 +72,14 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   const { disconnect } = useDisconnect()
 
   const [panel, setPanel] = useState<Panel>("main")
+  const [helpPanelView, setHelpPanelView] = useState<HelpPanelView>("menu")
   const [openConnect, setOpenConnect] = useState(false)
   const [openSelectNetwork, setOpenSelectNetwork] = useState(false)
 
   const handleToggleModal = () => {
     if (open) {
       setPanel("main")
+      setHelpPanelView("menu")
     }
     setIsOpen(!open)
   }
@@ -433,7 +437,10 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
               <Box sx={{ marginTop: "auto" }}>
                 {/* Help link */}
                 <Box
-                  onClick={() => setPanel("help")}
+                  onClick={() => {
+                    setHelpPanelView("menu")
+                    setPanel("help")
+                  }}
                   sx={{
                     display: "flex",
                     alignItems: "center",
@@ -583,7 +590,10 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                 }}
               >
                 <IconButton
-                  onClick={() => setPanel("main")}
+                  onClick={() => {
+                    setHelpPanelView("menu")
+                    setPanel("main")
+                  }}
                   aria-label="Back"
                   sx={{
                     width: "28px",
@@ -643,11 +653,16 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                 />
               </Box>
 
-              {/* Telegram item (from HelpModal) */}
-              <TelegramHelpItem />
-
-              {/* Help menu items (from HelpModal) */}
-              <HelpMenuItemsList />
+              {helpPanelView === "menu" ? (
+                <>
+                  <TelegramHelpItem />
+                  <HelpMenuItemsList
+                    onReportBug={() => setHelpPanelView("bug-report")}
+                  />
+                </>
+              ) : (
+                <BugReportPanel onBack={() => setHelpPanelView("menu")} />
+              )}
 
               {/* Footer */}
               <Box
