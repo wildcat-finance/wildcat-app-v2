@@ -16,17 +16,21 @@ import { useTranslation } from "react-i18next"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { COLORS } from "@/theme/colors"
 
+import { BugReportPanel } from "./BugReportPanel"
 import { HelpMenuItemsList, TelegramHelpItem } from "./HelpMenuItems"
 import { FabButtonSx, ModalHeaderSx, OverlaySx, PopperPaperSx } from "./style"
 
 export const HelpModal = () => {
   const [open, setOpen] = useState(false)
+  const [panel, setPanel] = useState<"menu" | "bug-report">("menu")
   const anchorRef = useRef<HTMLButtonElement>(null)
   const { t } = useTranslation()
 
   const handleToggle = () => setOpen((prev) => !prev)
   const handleClose = useCallback(() => {
     setOpen(false)
+    setPanel("menu")
+    anchorRef.current?.focus()
   }, [])
 
   // Escape key handler (H5)
@@ -112,8 +116,16 @@ export const HelpModal = () => {
                   </Typography>
                 </Box>
 
-                <TelegramHelpItem />
-                <HelpMenuItemsList />
+                {panel === "menu" ? (
+                  <>
+                    <TelegramHelpItem />
+                    <HelpMenuItemsList
+                      onReportBug={() => setPanel("bug-report")}
+                    />
+                  </>
+                ) : (
+                  <BugReportPanel onBack={() => setPanel("menu")} />
+                )}
               </Box>
             </Paper>
           </Grow>

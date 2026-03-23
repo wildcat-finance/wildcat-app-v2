@@ -90,3 +90,10 @@ export function initClientOtel() {
     ],
   })
 }
+
+export function isClientOtelInitialized() {
+  if (typeof window === "undefined") return false
+
+  const globalState = globalThis as unknown as Record<string, boolean>
+  return Boolean(globalState[OTEL_CLIENT_INIT_KEY])
+}
