@@ -73,7 +73,7 @@ export function initClientOtel() {
 
   const { origin } = window.location
   const propagateUrls = origin ? [origin] : []
-  const ignoreUrls = [/\/api\/otel$/]
+  const ignoreUrls = [/\/api\/otel$/, /\/api\/bug-report$/]
 
   registerInstrumentations({
     instrumentations: [
