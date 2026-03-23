@@ -104,10 +104,7 @@ export default function MarketDetails({
   }, [dispatch, prevURL])
 
   useEffect(() => {
-    if (
-      (!marketSummary || marketSummary!.description === "") &&
-      !holdTheMarket
-    ) {
+    if (!marketSummary?.description && !holdTheMarket) {
       dispatch(hideDescriptionSection(true))
     } else {
       dispatch(hideDescriptionSection(false))

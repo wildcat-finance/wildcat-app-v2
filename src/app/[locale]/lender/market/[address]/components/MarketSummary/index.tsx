@@ -14,12 +14,7 @@ export const MarketSummary = ({
   isLoading,
   setIsMobileDescriptionOpen,
 }: {
-  marketSummary:
-    | {
-        marketAddress: string
-        description: string
-      }
-    | undefined
+  marketSummary: { description: string | null } | null | undefined
   isLoading: boolean
   setIsMobileDescriptionOpen?: Dispatch<SetStateAction<boolean>>
 }) => {
@@ -49,7 +44,7 @@ export const MarketSummary = ({
         borderRadius: "14px",
         backgroundColor: isMobile ? COLORS.white : "transparent",
         border:
-          !isMobile && marketSummary && marketSummary.description !== ""
+          !isMobile && !!marketSummary?.description
             ? `1px solid ${COLORS.athensGrey}`
             : "none",
       }}
