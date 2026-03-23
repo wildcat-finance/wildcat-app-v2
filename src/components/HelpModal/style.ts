@@ -23,6 +23,8 @@ export const FabButtonSx: SxProps<Theme> = {
 export const OverlaySx = (open: boolean): SxProps<Theme> => ({
   position: "fixed",
   inset: 0,
+  backdropFilter: "blur(4px)",
+  WebkitBackdropFilter: "blur(4px)",
   bgcolor: "rgba(20, 20, 20, 0.35)",
   zIndex: 1248,
   opacity: open ? 1 : 0,
