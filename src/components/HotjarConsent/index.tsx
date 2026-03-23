@@ -45,8 +45,8 @@ export default function HotjarConsent() {
       return () => {}
     }
 
-    // Function to initialize Hotjar after user interaction
-    const initHotjar = () => {
+    // Initialize Hotjar without blocking the main thread
+    const startHotjar = () => {
       if (hotjarStarted.current) return
       hotjarStarted.current = true
 
@@ -57,6 +57,15 @@ export default function HotjarConsent() {
         }
       } catch (error) {
         console.error("Failed to initialize Hotjar:", error)
+      }
+    }
+
+    const initHotjar = () => {
+      if (hotjarStarted.current) return
+      if (typeof requestIdleCallback === "function") {
+        requestIdleCallback(() => startHotjar())
+      } else {
+        setTimeout(startHotjar, 0)
       }
     }
 

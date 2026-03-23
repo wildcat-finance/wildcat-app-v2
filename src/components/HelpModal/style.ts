@@ -24,8 +24,6 @@ export const OverlaySx = (open: boolean): SxProps<Theme> => ({
   position: "fixed",
   inset: 0,
   bgcolor: "rgba(20, 20, 20, 0.35)",
-  backdropFilter: "blur(4px)",
-  WebkitBackdropFilter: "blur(4px)",
   zIndex: 1248,
   opacity: open ? 1 : 0,
   visibility: open ? "visible" : "hidden",

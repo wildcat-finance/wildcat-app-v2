@@ -1,7 +1,6 @@
 "use client"
 
 import { Box, Divider, SvgIcon, Typography } from "@mui/material"
-import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import Ask from "@/assets/icons/ask_icon.svg"
@@ -83,7 +82,7 @@ export function HelpMenuItem({
         </Box>
       ) : (
         <Box
-          component={Link}
+          component="a"
           href={href}
           target="_blank"
           rel="noopener noreferrer"
@@ -105,7 +104,7 @@ export function TelegramHelpItem() {
 
   return (
     <Box
-      component={Link}
+      component="a"
       href={EXTERNAL_LINKS.TELEGRAM_BOT}
       target="_blank"
       rel="noopener noreferrer"
@@ -163,24 +162,26 @@ export function HelpMenuItemsList() {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", pt: "8px" }}>
-      <HelpMenuItem
-        icon={<Bug />}
-        title={t("helpModal.items.bug.title")}
-        subtitle={t("helpModal.items.bug.subtitle")}
-        href={BUG_REPORT_URL}
-      />
+      {/* --- Temporary hidden --- */}
+      {/* <HelpMenuItem */}
+      {/*  icon={<Bug />} */}
+      {/*  title={t("helpModal.items.bug.title")} */}
+      {/*  subtitle={t("helpModal.items.bug.subtitle")} */}
+      {/*  href={BUG_REPORT_URL} */}
+      {/* /> */}
       <HelpMenuItem
         icon={<Message />}
         title={t("helpModal.items.question.title")}
         subtitle={t("helpModal.items.question.subtitle")}
         href={EXTERNAL_LINKS.TELEGRAM_COMMUNITY}
       />
-      <HelpMenuItem
-        icon={<Feat />}
-        title={t("helpModal.items.feature.title")}
-        subtitle={t("helpModal.items.feature.subtitle")}
-        href={SUGGEST_FEATURE_URL}
-      />
+      {/* --- Temporary hidden --- */}
+      {/* <HelpMenuItem */}
+      {/*  icon={<Feat />} */}
+      {/*  title={t("helpModal.items.feature.title")} */}
+      {/*  subtitle={t("helpModal.items.feature.subtitle")} */}
+      {/*  href={SUGGEST_FEATURE_URL} */}
+      {/* /> */}
       <HelpMenuItem
         icon={<Ask />}
         title={t("helpModal.items.faq.title")}

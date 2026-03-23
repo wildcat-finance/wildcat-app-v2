@@ -24,14 +24,11 @@ import { FabButtonSx, ModalHeaderSx, OverlaySx, PopperPaperSx } from "./style"
 export const HelpModal = () => {
   const [open, setOpen] = useState(false)
   const anchorRef = useRef<HTMLButtonElement>(null)
-  const popperContentRef = useRef<HTMLDivElement>(null)
   const { t } = useTranslation()
 
   const handleToggle = () => setOpen((prev) => !prev)
   const handleClose = useCallback(() => {
     setOpen(false)
-    // Return focus to the FAB trigger on close
-    anchorRef.current?.focus()
   }, [])
 
   // Escape key handler (H5)
@@ -48,20 +45,6 @@ export const HelpModal = () => {
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
   }, [open, handleClose])
-
-  // Focus management: move focus into popper when it opens (H6)
-  useEffect(() => {
-    if (!open) return undefined
-
-    // Slight delay to allow the Grow transition to render the content
-    const timer = setTimeout(() => {
-      const firstLink =
-        popperContentRef.current?.querySelector<HTMLElement>("a, [role=link]")
-      firstLink?.focus()
-    }, 220)
-
-    return () => clearTimeout(timer)
-  }, [open])
 
   return (
     <>
@@ -121,7 +104,7 @@ export const HelpModal = () => {
               role="dialog"
               aria-label={t("helpModal.title")}
             >
-              <Box ref={popperContentRef}>
+              <Box>
                 <Box
                   sx={{
                     ...ModalHeaderSx,
@@ -132,6 +115,7 @@ export const HelpModal = () => {
                     src={WildcatEyes}
                     alt=""
                     aria-hidden="true"
+                    priority
                     style={{
                       width: "100px",
                       height: "auto",

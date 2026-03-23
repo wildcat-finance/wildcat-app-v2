@@ -59,6 +59,12 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} dir={dir(locale)}>
+      <head>
+        <link rel="dns-prefetch" href="//t.me" />
+        <link rel="dns-prefetch" href="//docs.wildcat.finance" />
+        <link rel="dns-prefetch" href="//docs.google.com" />
+        <link rel="preconnect" href="https://t.me" crossOrigin="anonymous" />
+      </head>
       <body className={inter.className} style={{ height: "100dvh" }}>
         <Toaster position="bottom-center" />
         <WagmiQueryProviders initialState={initialState}>
