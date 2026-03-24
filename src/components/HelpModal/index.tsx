@@ -109,24 +109,26 @@ export const HelpModal = () => {
               aria-label={t("helpModal.title")}
             >
               <Box>
-                <Box
-                  sx={{
-                    ...ModalHeaderSx,
-                    alignItems: "center",
-                  }}
-                >
-                  <Image
-                    src={WildcatEyes}
-                    alt=""
-                    aria-hidden="true"
-                    priority
-                    style={{
-                      width: "100px",
-                      height: "auto",
-                      display: "block",
+                {panel === "menu" && (
+                  <Box
+                    sx={{
+                      ...ModalHeaderSx,
+                      alignItems: "center",
                     }}
-                  />
-                </Box>
+                  >
+                    <Image
+                      src={WildcatEyes}
+                      alt=""
+                      aria-hidden="true"
+                      priority
+                      style={{
+                        width: "100px",
+                        height: "auto",
+                        display: "block",
+                      }}
+                    />
+                  </Box>
+                )}
 
                 {panel === "menu" ? (
                   <>
