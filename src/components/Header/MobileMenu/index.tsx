@@ -579,15 +579,15 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  marginBottom: "12px",
+                  marginBottom: "16px",
                 }}
               >
                 <IconButton
                   onClick={() => setPanel("main")}
                   aria-label="Back"
                   sx={{
-                    width: "28px",
-                    height: "28px",
+                    width: "32px",
+                    height: "32px",
                     borderRadius: "50%",
                     backgroundColor: COLORS.whiteSmoke,
                   }}
@@ -595,7 +595,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                   <SvgIcon
                     sx={{
                       fontSize: "16px",
-                      "& path": { fill: COLORS.santasGrey },
+                      "& path": { fill: COLORS.manate },
                     }}
                   >
                     <BackArrow />
@@ -605,16 +605,16 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                   onClick={handleToggleModal}
                   aria-label="Close"
                   sx={{
-                    width: "28px",
-                    height: "28px",
+                    width: "32px",
+                    height: "32px",
                     borderRadius: "50%",
                     backgroundColor: COLORS.whiteSmoke,
                   }}
                 >
                   <SvgIcon
                     sx={{
-                      fontSize: "14px",
-                      "& path": { stroke: COLORS.santasGrey },
+                      fontSize: "16px",
+                      "& path": { fill: COLORS.manate },
                     }}
                   >
                     <Cross />
@@ -622,25 +622,22 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                 </IconButton>
               </Box>
 
-              {/* Mascot header (matches desktop HelpModal) */}
+              {/* Help header */}
               <Box
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  alignItems: "center",
-                  pb: "4px",
+                  alignItems: "flex-start",
+                  gap: "4px",
+                  marginBottom: "18px",
                 }}
               >
-                <Image
-                  src={WildcatEyes}
-                  alt=""
-                  aria-hidden="true"
-                  style={{
-                    width: "100px",
-                    height: "auto",
-                    display: "block",
-                  }}
-                />
+                <Typography variant="mobText1">
+                  {t("helpModal.title")}
+                </Typography>
+                <Typography variant="mobText3" color={COLORS.manate}>
+                  {t("helpModal.subtitle")}
+                </Typography>
               </Box>
 
               {/* Telegram item (from HelpModal) */}

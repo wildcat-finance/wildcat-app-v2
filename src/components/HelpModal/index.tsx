@@ -105,23 +105,13 @@ export const HelpModal = () => {
               aria-label={t("helpModal.title")}
             >
               <Box>
-                <Box
-                  sx={{
-                    ...ModalHeaderSx,
-                    alignItems: "center",
-                  }}
-                >
-                  <Image
-                    src={WildcatEyes}
-                    alt=""
-                    aria-hidden="true"
-                    priority
-                    style={{
-                      width: "100px",
-                      height: "auto",
-                      display: "block",
-                    }}
-                  />
+                <Box sx={ModalHeaderSx}>
+                  <Typography variant="text1">
+                    {t("helpModal.title")}
+                  </Typography>
+                  <Typography variant="text3" color={COLORS.manate}>
+                    {t("helpModal.subtitle")}
+                  </Typography>
                 </Box>
 
                 <TelegramHelpItem />

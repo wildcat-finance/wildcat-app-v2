@@ -12,6 +12,7 @@ import Arrow from "@/assets/icons/sharpArrow_icon.svg"
 import Telegram from "@/assets/icons/telegram_icon.svg"
 import telegramSmallBg from "@/assets/pictures/telegramSmallBanner_bg.svg?url"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
 import {
@@ -34,6 +35,7 @@ type HelpMenuItemProps = {
   subtitle: string
   href: string
   showDivider?: boolean
+  isMobile?: boolean
 }
 
 export function HelpMenuItem({
@@ -42,6 +44,7 @@ export function HelpMenuItem({
   subtitle,
   href,
   showDivider = true,
+  isMobile,
 }: HelpMenuItemProps) {
   const isDisabled = !href
 
@@ -57,8 +60,13 @@ export function HelpMenuItem({
       </Box>
 
       <Box sx={ItemTypoContainerSx}>
-        <Typography variant="text3">{title}</Typography>
-        <Typography variant="text3" color={COLORS.manate}>
+        <Typography variant={isMobile ? "mobText3" : "text3"}>
+          {title}
+        </Typography>
+        <Typography
+          variant={isMobile ? "mobText3" : "text3"}
+          color={COLORS.manate}
+        >
           {subtitle}
         </Typography>
       </Box>
@@ -99,7 +107,7 @@ export function HelpMenuItem({
   )
 }
 
-export function TelegramHelpItem() {
+export function TelegramHelpItem({ isMobile }: { isMobile?: boolean }) {
   const { t } = useTranslation()
 
   return (
@@ -134,10 +142,17 @@ export function TelegramHelpItem() {
           gap: "2px",
         }}
       >
-        <Typography variant="text3" color={COLORS.white}>
+        <Typography
+          variant={isMobile ? "mobText3" : "text3"}
+          color={COLORS.white}
+        >
           {t("helpModal.items.telegram.title")}
         </Typography>
-        <Typography variant="text3" color={COLORS.white} sx={{ opacity: 0.8 }}>
+        <Typography
+          variant={isMobile ? "mobText3" : "text3"}
+          color={COLORS.white}
+          sx={{ opacity: 0.8 }}
+        >
           {t("helpModal.items.telegram.subtitle")}
         </Typography>
       </Box>
@@ -159,6 +174,7 @@ export function TelegramHelpItem() {
 
 export function HelpMenuItemsList() {
   const { t } = useTranslation()
+  const isMobile = useMobileResolution()
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", pt: "8px" }}>
@@ -174,6 +190,7 @@ export function HelpMenuItemsList() {
         title={t("helpModal.items.question.title")}
         subtitle={t("helpModal.items.question.subtitle")}
         href={EXTERNAL_LINKS.TELEGRAM_COMMUNITY}
+        isMobile={isMobile}
       />
       {/* --- Temporary hidden --- */}
       {/* <HelpMenuItem */}
@@ -187,6 +204,7 @@ export function HelpMenuItemsList() {
         title={t("helpModal.items.faq.title")}
         subtitle={t("helpModal.items.faq.subtitle")}
         href={EXTERNAL_LINKS.FAQ}
+        isMobile={isMobile}
       />
       <HelpMenuItem
         icon={<Partnership />}
@@ -194,6 +212,7 @@ export function HelpMenuItemsList() {
         subtitle={t("helpModal.items.business.subtitle")}
         href={EXTERNAL_LINKS.BUSINESS_INQUIRY}
         showDivider={false}
+        isMobile={isMobile}
       />
     </Box>
   )

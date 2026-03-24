@@ -23,8 +23,6 @@ export const FabButtonSx: SxProps<Theme> = {
 export const OverlaySx = (open: boolean): SxProps<Theme> => ({
   position: "fixed",
   inset: 0,
-  backdropFilter: "blur(4px)",
-  WebkitBackdropFilter: "blur(4px)",
   bgcolor: "rgba(20, 20, 20, 0.35)",
   zIndex: 1248,
   opacity: open ? 1 : 0,
@@ -43,7 +41,6 @@ export const PopperPaperSx: SxProps<Theme> = {
   bgcolor: COLORS.white,
   overflow: "hidden",
   p: "16px",
-  pt: "4px",
   display: "flex",
   flexDirection: "column",
   gap: "8px",
@@ -52,8 +49,8 @@ export const PopperPaperSx: SxProps<Theme> = {
 export const ModalHeaderSx: SxProps<Theme> = {
   display: "flex",
   flexDirection: "column",
-  gap: "0px",
-  paddingBottom: "0px",
+  gap: "4px",
+  marginBottom: "26px",
 }
 
 export const TelegramItemSx: SxProps<Theme> = {
