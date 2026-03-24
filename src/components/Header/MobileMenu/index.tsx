@@ -249,7 +249,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                       flex: 1,
                       minWidth: 0,
                       borderRadius: "20px",
-                      padding: "6px 4px",
+                      padding: "4px 12px 4px 4px",
                       backgroundColor: COLORS.whiteSmoke,
                       display: "flex",
                       alignItems: "center",
@@ -258,41 +258,51 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     {profileData && profileData.avatar ? (
                       <Image
                         src={profileData.avatar}
-                        style={{ borderRadius: "50%" }}
+                        style={{ borderRadius: "50%", marginRight: "7px" }}
                         alt="avatar"
                         width={24}
                         height={24}
                       />
                     ) : (
-                      <SvgIcon sx={{ fontSize: "24px" }}>
+                      <SvgIcon sx={{ fontSize: "24px", marginRight: "7px" }}>
                         <Avatar />
                       </SvgIcon>
                     )}
-                    <Typography variant="text3" noWrap>
-                      {trimAddress(address as string, 14)}
+
+                    <Typography
+                      variant="text3"
+                      sx={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        minWidth: 0,
+                      }}
+                    >
+                      {address as string}
                     </Typography>
-                    <Box marginLeft="auto" paddingRight="8px">
+                    <Box marginLeft="auto">
                       <LinkGroup
                         linkValue={getAddressUrl(address as string)}
                         copyValue={address}
                       />
                     </Box>
                   </Box>
+
                   <IconButton
                     onClick={handleToggleModal}
                     aria-label="Close"
                     sx={{
                       flexShrink: 0,
-                      width: "28px",
-                      height: "28px",
+                      width: "32px",
+                      height: "32px",
                       borderRadius: "50%",
                       backgroundColor: COLORS.whiteSmoke,
                     }}
                   >
                     <SvgIcon
                       sx={{
-                        fontSize: "14px",
-                        "& path": { stroke: COLORS.santasGrey },
+                        fontSize: "16px",
+                        "& path": { fill: COLORS.manate },
                       }}
                     >
                       <Cross />
@@ -312,13 +322,15 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                   }}
                 >
                   <Button
-                    fullWidth
-                    size="large"
+                    variant="contained"
+                    color="secondary"
+                    size="medium"
                     onClick={() => setOpenConnect(true)}
                     sx={{
+                      padding: "12px 8px",
                       borderRadius: "10px",
-                      backgroundColor: COLORS.whiteSmoke,
                     }}
+                    fullWidth
                   >
                     Switch Account
                   </Button>
@@ -326,9 +338,12 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     fullWidth
                     variant="contained"
                     color="primary"
-                    size="large"
+                    size="medium"
                     onClick={handleClickDisconnect}
-                    sx={{ borderRadius: "10px" }}
+                    sx={{
+                      padding: "12px 8px",
+                      borderRadius: "10px",
+                    }}
                   >
                     Disconnect
                   </Button>
@@ -339,6 +354,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                   fullWidth
                   onClick={handleToggleConnect}
                   sx={{
+                    padding: "12px 8px",
                     borderRadius: "10px",
                     marginBottom: "12px",
                     backgroundColor: COLORS.ultramarineBlue,
