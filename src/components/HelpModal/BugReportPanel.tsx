@@ -5,8 +5,8 @@ import { useState } from "react"
 import {
   Box,
   Button,
-  Checkbox,
   FormControlLabel,
+  Switch,
   TextField,
   Typography,
 } from "@mui/material"
@@ -141,70 +141,59 @@ export function BugReportPanel({ onBack }: BugReportPanelProps) {
   }
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "12px",
-        pt: "8px",
-      }}
-    >
-      <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-        <Typography variant="text2">
-          {t("helpModal.bugReport.title")}
-        </Typography>
-        <Typography variant="text3" color={COLORS.manate}>
-          {t("helpModal.bugReport.subtitle")}
-        </Typography>
-      </Box>
+    <Box sx={{ pt: "12px", pb: "24px", px: "8px" }}>
+      <Typography
+        component="div"
+        variant="text1"
+        sx={{ textAlign: "center", mb: "16px", fontWeight: 600 }}
+      >
+        {t("helpModal.bugReport.title")}
+      </Typography>
 
       <TextField
+        fullWidth
         multiline
-        minRows={5}
-        maxRows={8}
+        minRows={7}
+        maxRows={10}
         value={description}
         onChange={handleDescriptionChange}
         placeholder={t("helpModal.bugReport.placeholder")}
         error={Boolean(descriptionError)}
-        helperText={
-          descriptionError ??
-          t("helpModal.bugReport.descriptionHelper", {
-            min: BUG_REPORT_DESCRIPTION_MIN_LENGTH,
-            max: BUG_REPORT_DESCRIPTION_MAX_LENGTH,
-          })
-        }
+        helperText={descriptionError ?? undefined}
+        sx={{ height: "auto" }}
       />
 
-      <Typography variant="text4" color={COLORS.santasGrey}>
-        {t("helpModal.bugReport.characterCount", {
-          count: description.length,
-          max: BUG_REPORT_DESCRIPTION_MAX_LENGTH,
-        })}
+      <Typography
+        component="div"
+        variant="text4"
+        color={COLORS.santasGrey}
+        sx={{ textAlign: "right", mt: "4px", mb: "28px" }}
+      >
+        {description.length}/{BUG_REPORT_DESCRIPTION_MAX_LENGTH}
       </Typography>
 
-      <Box
-        sx={{
-          borderRadius: "12px",
-          border: `1px solid ${COLORS.whiteLilac}`,
-          p: "12px",
-          backgroundColor: COLORS.blackHaze,
-        }}
-      >
+      <Box sx={{ mb: "28px" }}>
         <FormControlLabel
           control={
-            <Checkbox
+            <Switch
               checked={includeTraces && otelAvailable}
               disabled={!otelAvailable}
               onChange={(e) => setIncludeTraces(e.target.checked)}
+              size="small"
             />
           }
-          label={t("helpModal.bugReport.includeTraces")}
-          sx={{ alignItems: "flex-start", margin: 0 }}
+          label={
+            <Typography variant="text3">
+              {t("helpModal.bugReport.includeTraces")}
+            </Typography>
+          }
+          sx={{ margin: 0, gap: "8px" }}
         />
         <Typography
+          component="div"
           variant="text4"
           color={COLORS.santasGrey}
-          sx={{ pl: "40px" }}
+          sx={{ mt: "8px" }}
         >
           {otelAvailable
             ? t("helpModal.bugReport.traceHelper")
@@ -212,14 +201,14 @@ export function BugReportPanel({ onBack }: BugReportPanelProps) {
         </Typography>
       </Box>
 
-      <Box sx={{ display: "flex", gap: "8px", pt: "4px" }}>
+      <Box sx={{ display: "flex", gap: "8px" }}>
         <Button
           fullWidth
           variant="outlined"
           onClick={onBack}
           disabled={isSubmitting}
         >
-          {t("helpModal.bugReport.actions.back")}
+          {t("helpModal.bugReport.actions.cancel")}
         </Button>
         <Button
           fullWidth

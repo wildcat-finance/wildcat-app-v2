@@ -58,6 +58,7 @@
       "traceUnavailable": "Tracing is not available in this session, so no trace references can be attached.",
       "actions": {
         "back": "Back",
+        "cancel": "Cancel",
         "backToHelp": "Back to Help",
         "submit": "Submit",
         "submitting": "Submitting..."

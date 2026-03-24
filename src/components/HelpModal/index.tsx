@@ -11,9 +11,11 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
+import Image from "next/image"
 import { useTranslation } from "react-i18next"
 
 import Cross from "@/assets/icons/cross_icon.svg"
+import WildcatEyes from "@/assets/pictures/eyes.webp"
 import { COLORS } from "@/theme/colors"
 
 import { BugReportPanel } from "./BugReportPanel"
@@ -107,14 +109,26 @@ export const HelpModal = () => {
               aria-label={t("helpModal.title")}
             >
               <Box>
-                <Box sx={ModalHeaderSx}>
-                  <Typography variant="text1">
-                    {t("helpModal.title")}
-                  </Typography>
-                  <Typography variant="text3" color={COLORS.manate}>
-                    {t("helpModal.subtitle")}
-                  </Typography>
-                </Box>
+                {panel === "menu" && (
+                  <Box
+                    sx={{
+                      ...ModalHeaderSx,
+                      alignItems: "center",
+                    }}
+                  >
+                    <Image
+                      src={WildcatEyes}
+                      alt=""
+                      aria-hidden="true"
+                      priority
+                      style={{
+                        width: "100px",
+                        height: "auto",
+                        display: "block",
+                      }}
+                    />
+                  </Box>
+                )}
 
                 {panel === "menu" ? (
                   <>
