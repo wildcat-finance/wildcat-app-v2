@@ -6,7 +6,6 @@ import * as React from "react"
 import { Box, Button, Chip, SvgIcon, Typography } from "@mui/material"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 
-import UpArrow from "@/assets/icons/upArrow_icon.svg"
 import Avatar from "@/assets/icons/avatar_icon.svg"
 import DownArrowIcon from "@/assets/icons/downArrow_icon.svg"
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
@@ -19,7 +18,6 @@ import { NETWORKS_BY_ID } from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
-import { trimAddress } from "@/utils/formatters"
 
 type HeaderNetworkButtonProps = {
   mobile?: boolean
@@ -40,6 +38,8 @@ export const HeaderNetworkButton = ({
   const handleClose = () => {
     setOpen(false)
   }
+
+  const isMobile = useMobileResolution()
 
   return (
     <>
@@ -67,11 +67,6 @@ export const HeaderNetworkButton = ({
               />
             )}
           </Box>
-
-          <SvgIcon
-            component={DownArrowIcon}
-            sx={{ fontSize: "16px", "& path": { fill: "white" } }}
-          />
         </Button>
       )}
 

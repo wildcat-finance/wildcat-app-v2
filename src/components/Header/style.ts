@@ -18,7 +18,7 @@ export const contentContainer = (theme: Theme): SxProps<Theme> => ({
     background: COLORS.white,
     borderRadius: "14px",
     height: "56px",
-      padding: "0 12px 0 16px",
+    padding: "0 12px 0 16px",
     overflow: "hidden",
     gap: "6px",
     zIndex: 5,

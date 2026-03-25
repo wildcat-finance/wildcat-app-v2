@@ -118,7 +118,7 @@ export default function Header() {
             flexShrink: 0,
             display: "flex",
             alignItems: "center",
-            ...(isMobile && { width: "110px", overflow: "hidden" }),
+            ...(isMobile && { width: "fit-content", overflow: "hidden" }),
           }}
         >
           {isMobile && (
@@ -179,21 +179,7 @@ export default function Header() {
           </div>
         )}
         {isMobile && (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              minWidth: 0,
-              gap: "6px",
-            }}
-          >
-            <HeaderNetworkButton mobile />
-
-            <MobileMenu
-              open={isMobileMenuOpen}
-              setIsOpen={setIsMobileMenuOpen}
-            />
-          </Box>
+          <MobileMenu open={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
         )}
       </Box>
     </>

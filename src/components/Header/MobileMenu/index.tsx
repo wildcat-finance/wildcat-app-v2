@@ -28,8 +28,8 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import Arrow from "@/assets/icons/sharpArrow_icon.svg"
 import TelegramFlyIcon from "@/assets/icons/telegramFly_icon.svg"
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
-import { HeaderNetworkButton } from "@/components/Header/HeaderNetworkButton"
 import bannerBg from "@/assets/pictures/telegram_banner_bg.svg?url"
+import { HeaderNetworkButton } from "@/components/Header/HeaderNetworkButton"
 import {
   HelpMenuItemsList,
   TelegramHelpItem,
@@ -38,9 +38,9 @@ import { LinkGroup } from "@/components/LinkComponent"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
-import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
