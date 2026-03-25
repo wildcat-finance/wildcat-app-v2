@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
@@ -75,6 +76,11 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       minWidth: 200,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("borrowerProfile.profile.activeMarkets.table.name")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
@@ -112,6 +118,11 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("borrowerProfile.profile.activeMarkets.table.status")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
@@ -134,6 +145,11 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       headerAlign: "left",
       align: "left",
       sortComparator: typeComparator,
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("borrowerProfile.profile.activeMarkets.table.term")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
@@ -155,6 +171,11 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("borrowerProfile.profile.activeMarkets.table.asset")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
@@ -174,6 +195,11 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("dashboard.markets.tables.header.withdrawal")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
@@ -194,6 +220,11 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       headerAlign: "right",
       align: "right",
       sortComparator: percentComparator,
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("borrowerProfile.profile.activeMarkets.table.apr")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
@@ -210,6 +241,11 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       minWidth: 100,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("borrowerProfile.profile.activeMarkets.table.debt")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}

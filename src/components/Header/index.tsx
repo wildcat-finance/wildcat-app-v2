@@ -2,13 +2,20 @@
 
 import { useEffect, useMemo, useState } from "react"
 
-import { Box, Skeleton, Switch, Typography, useTheme } from "@mui/material"
+import {
+  Box,
+  Skeleton,
+  SvgIcon,
+  Switch,
+  Typography,
+  useTheme,
+} from "@mui/material"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
-import LogoWhite from "@/assets/icons/airdrop_logo_new.svg"
 import Logo from "@/assets/icons/logo_white.svg"
+import MobileLogo from "@/assets/icons/noNameLogo_icon.svg"
 import LogoBlack from "@/assets/icons/sale_logo_black.svg"
 import { contentContainer, NavContainer } from "@/components/Header/style"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -68,7 +75,7 @@ export default function Header() {
     [side],
   )
 
-  const mobileLogo = side ? <LogoBlack /> : <LogoWhite />
+  // const mobileLogo = side ? <LogoBlack /> : <LogoWhite />
 
   if (!mounted)
     return (
@@ -108,7 +115,12 @@ export default function Header() {
           href={homeUrl}
           style={{ height: isMobile ? "32px" : "50px" }}
         >
-          {!isMobile ? <Logo /> : mobileLogo}
+          {isMobile && (
+            <SvgIcon sx={{ fontSize: "32px" }}>
+              <MobileLogo />
+            </SvgIcon>
+          )}
+          {!isMobile && <Logo />}
         </Link>
         {!isMobile && (
           <Box sx={NavContainer}>

@@ -12,6 +12,7 @@ import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style
 import { DataGridSx } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/style"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -117,6 +118,9 @@ export const LenderTerminatedMarketsTables = ({
       minWidth: 200,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("dashboard.markets.tables.header.name")} />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
@@ -166,6 +170,11 @@ export const LenderTerminatedMarketsTables = ({
       headerAlign: "left",
       align: "left",
       sortComparator: statusComparator,
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("dashboard.markets.tables.header.status")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
@@ -187,6 +196,9 @@ export const LenderTerminatedMarketsTables = ({
       flex: 2,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("dashboard.markets.tables.header.asset")} />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
@@ -207,6 +219,9 @@ export const LenderTerminatedMarketsTables = ({
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("dashboard.markets.tables.header.debt")} />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
@@ -229,6 +244,9 @@ export const LenderTerminatedMarketsTables = ({
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
+      renderHeader: () => (
+        <ColumnHeaderTitle title={t("dashboard.markets.tables.header.loan")} />
+      ),
       renderCell: (
         params: GridRenderCellParams<
           LenderTerminatedMarketsTableModel,
@@ -255,6 +273,11 @@ export const LenderTerminatedMarketsTables = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("dashboard.markets.tables.header.withdrawal")}
+        />
+      ),
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}
@@ -275,6 +298,7 @@ export const LenderTerminatedMarketsTables = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => <ColumnHeaderTitle title="" />,
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId)}

@@ -12,6 +12,7 @@ import {
   MarketWithdrawalRequetstCell,
   TotalAccordionSummary,
 } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests/style"
+import { ColumnHeaderTitle } from "@/components/ColumnHeaderTitle"
 import { LinkGroup } from "@/components/LinkComponent"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
@@ -45,6 +46,11 @@ export const WithdrawalRequests = ({
       minWidth: 176,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("lenderMarketDetails.requests.tableColumns.lender")}
+        />
+      ),
       renderCell: ({ value }) => (
         <Box sx={MarketWithdrawalRequetstCell}>
           <Typography variant="text3">{trimAddress(value)}</Typography>
@@ -59,6 +65,11 @@ export const WithdrawalRequests = ({
       minWidth: 216,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("lenderMarketDetails.requests.tableColumns.date")}
+        />
+      ),
     },
     {
       sortable: false,
@@ -67,6 +78,11 @@ export const WithdrawalRequests = ({
       minWidth: 216,
       headerAlign: "left",
       align: "left",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("lenderMarketDetails.requests.tableColumns.txID")}
+        />
+      ),
       renderCell: ({ value }) => (
         <Box sx={MarketWithdrawalRequetstCell}>
           <Typography variant="text3">{trimAddress(value)}</Typography>
@@ -83,6 +99,11 @@ export const WithdrawalRequests = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
+      renderHeader: () => (
+        <ColumnHeaderTitle
+          title={t("lenderMarketDetails.requests.tableColumns.amount")}
+        />
+      ),
     },
   ]
 
