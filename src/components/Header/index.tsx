@@ -106,7 +106,13 @@ export default function Header() {
         <Link
           onClick={handleResetTab}
           href={homeUrl}
-          style={{ height: isMobile ? "32px" : "50px" }}
+          style={{
+            height: isMobile ? "32px" : "50px",
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            ...(isMobile && { width: "110px", overflow: "hidden" }),
+          }}
         >
           {!isMobile ? <Logo /> : mobileLogo}
         </Link>
@@ -161,7 +167,21 @@ export default function Header() {
           </div>
         )}
         {isMobile && (
-          <MobileMenu open={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              minWidth: 0,
+              gap: "6px",
+            }}
+          >
+            <HeaderNetworkButton mobile />
+
+            <MobileMenu
+              open={isMobileMenuOpen}
+              setIsOpen={setIsMobileMenuOpen}
+            />
+          </Box>
         )}
       </Box>
     </>

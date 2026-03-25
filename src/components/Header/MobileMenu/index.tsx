@@ -28,7 +28,6 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import Arrow from "@/assets/icons/sharpArrow_icon.svg"
 import TelegramFlyIcon from "@/assets/icons/telegramFly_icon.svg"
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
-import WildcatEyes from "@/assets/pictures/eyes.webp"
 import bannerBg from "@/assets/pictures/telegram_banner_bg.svg?url"
 import {
   HelpMenuItemsList,
@@ -36,7 +35,6 @@ import {
 } from "@/components/HelpModal/HelpMenuItems"
 import { LinkGroup } from "@/components/LinkComponent"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
-import { MobileSelectNetwork } from "@/components/MobileSelectNetwork"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useAppDispatch } from "@/store/hooks"
@@ -71,8 +69,6 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
 
   const [panel, setPanel] = useState<Panel>("main")
   const [openConnect, setOpenConnect] = useState(false)
-  const [openSelectNetwork, setOpenSelectNetwork] = useState(false)
-
   const handleToggleModal = () => {
     if (open) {
       setPanel("main")
@@ -80,8 +76,6 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
     setIsOpen(!open)
   }
   const handleToggleConnect = () => setOpenConnect(!openConnect)
-  const handleToggleSelectNetwork = () =>
-    setOpenSelectNetwork(!openSelectNetwork)
   const { getAddressUrl } = useBlockExplorer()
 
   const handleClickDisconnect = () => {
@@ -98,7 +92,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
 
   return (
     <>
-      <Box sx={{ display: "flex", alignItems: "center" }}>
+      <Box sx={{ display: "flex", alignItems: "center", minWidth: 0 }}>
         {isConnected && address && !open && (
           <Box
             onClick={handleToggleConnect}
@@ -106,6 +100,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
+              minWidth: 0,
               backgroundColor: COLORS.whiteSmoke,
               borderRadius: "20px",
               padding: "2px 6px 2px 2px",
@@ -118,19 +113,27 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                 alt="avatar"
                 width={24}
                 height={24}
-                style={{ borderRadius: "50%" }}
+                style={{ borderRadius: "50%", flexShrink: 0 }}
               />
             ) : (
-              <SvgIcon sx={{ fontSize: "24px" }}>
+              <SvgIcon sx={{ fontSize: "24px", flexShrink: 0 }}>
                 <Avatar />
               </SvgIcon>
             )}
-            <Typography variant="text3">
+            <Typography
+              variant="text3"
+              sx={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
               {trimAddress(address as string)}
             </Typography>
             <SvgIcon
               sx={{
                 fontSize: "16px",
+                flexShrink: 0,
                 "& path": { fill: COLORS.santasGrey },
               }}
             >
@@ -142,10 +145,11 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
         <IconButton
           onClick={handleToggleModal}
           sx={{
-            marginLeft: "12px",
+            marginLeft: "4px",
             display: "flex",
             width: "40px",
             height: "40px",
+            flexShrink: 0,
             alignItems: "center",
             justifyContent: "center",
           }}
@@ -690,11 +694,6 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
           </Box>
         </Box>
       </Dialog>
-
-      <MobileSelectNetwork
-        open={openSelectNetwork}
-        handleClose={handleToggleSelectNetwork}
-      />
 
       <MobileConnectWallet
         open={openConnect}
