@@ -280,12 +280,25 @@ export const MarketsSection = () => {
 
   const selfOnboardAmount = othersMarkets.filter(
     (account) =>
+      !account.market.isClosed &&
       !account.hasEverInteracted &&
       account.market.version === MarketVersion.V2 &&
       account.depositAvailability === DepositStatus.Ready,
   ).length
 
-  const manualAmount = othersMarkets.length - selfOnboardAmount
+  const manualAmount = othersMarkets.filter(
+    (account) =>
+      !account.market.isClosed &&
+      !(
+        !account.hasEverInteracted &&
+        account.market.version === MarketVersion.V2 &&
+        account.depositAvailability === DepositStatus.Ready
+      ),
+  ).length
+
+  const terminatedOtherAmount = othersMarkets.filter(
+    (account) => account.market.isClosed,
+  ).length
 
   useEffect(() => {
     dispatch(
@@ -324,6 +337,12 @@ export const MarketsSection = () => {
         value: isWrongNetwork ? 0 : manualAmount,
       }),
     )
+    dispatch(
+      setSectionAmount({
+        name: "terminatedOther",
+        value: isWrongNetwork ? 0 : terminatedOtherAmount,
+      }),
+    )
   }, [
     depositedMarketsAmount,
     nonDepositedMarketsAmount,
@@ -331,6 +350,7 @@ export const MarketsSection = () => {
     neverActiveAmount,
     selfOnboardAmount,
     manualAmount,
+    terminatedOtherAmount,
     isWrongNetwork,
     dispatch,
   ])

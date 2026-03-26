@@ -2,17 +2,19 @@
 
 import { Dispatch, SetStateAction } from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { Markdown } from "@/components/Markdown"
+import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
 export const MarketSummary = ({
   marketSummary,
   isLoading,
-  setIsMobileDescriptionOpen,
+  isOpen,
+  setIsOpen,
 }: {
   marketSummary:
     | {
@@ -21,7 +23,8 @@ export const MarketSummary = ({
       }
     | undefined
   isLoading: boolean
-  setIsMobileDescriptionOpen?: Dispatch<SetStateAction<boolean>>
+  isOpen?: boolean
+  setIsOpen?: Dispatch<SetStateAction<boolean>>
 }) => {
   const { t } = useTranslation()
   const isMobile = useMobileResolution()
@@ -63,17 +66,13 @@ export const MarketSummary = ({
         <Markdown markdown={marketSummary?.description || ""} />
       </Box>
 
-      {isMobile && setIsMobileDescriptionOpen && (
-        <Button
-          onClick={() => setIsMobileDescriptionOpen(true)}
-          variant="contained"
-          color="secondary"
-          size="medium"
-          fullWidth
+      {isMobile && setIsOpen && (
+        <SeeMoreButton
+          variant="modal"
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
           sx={{ marginTop: "28px" }}
-        >
-          See more
-        </Button>
+        />
       )}
     </Box>
   )

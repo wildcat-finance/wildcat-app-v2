@@ -151,6 +151,7 @@
           "title": "Other Markets",
           "selfOnboard": "Self-Onboard",
           "manual": "Onboard by Borrower",
+          "terminated": "Terminated",
           "depositBTN": "Deposit",
           "requestBTN": "Request"
         },
@@ -507,7 +508,9 @@
         "approveNotified": "I understand that adjusting this APR impacts all lenders.",
         "adjust": "Adjust",
         "confirmed": "Confirmed",
-        "confirm": "Confirm"
+        "confirm": "Confirm",
+        "expiredTempRatioNotice": "The temporary reserve ratio has expired. You must reset it before lowering the APR.",
+        "resetTempRatio": "Reset Temporary Reserve Ratio"
       },
       "borrow": {
         "borrow" : "Borrow",

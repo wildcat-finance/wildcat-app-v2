@@ -78,6 +78,7 @@ export const OtherMarketsTables = ({
 
   const selfOnboardRef = useRef<HTMLDivElement>(null)
   const manualRef = useRef<HTMLDivElement>(null)
+  const terminatedRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!isMobile) {
@@ -87,6 +88,10 @@ export const OtherMarketsTables = ({
       }
       if (scrollTargetId === "manual" && manualRef.current) {
         manualRef.current.scrollIntoView({ behavior: "smooth" })
+        dispatch(setScrollTarget(null))
+      }
+      if (scrollTargetId === "other-terminated" && terminatedRef.current) {
+        terminatedRef.current.scrollIntoView({ behavior: "smooth" })
         dispatch(setScrollTarget(null))
       }
     }
@@ -142,8 +147,18 @@ export const OtherMarketsTables = ({
     },
   )
 
-  const selfOnboard = rows.filter((market) => market.isSelfOnboard)
-  const manual = rows.filter((market) => !market.isSelfOnboard)
+  const terminated = rows.filter((market) => {
+    const account = marketAccounts.find((a) => a.market.address === market.id)
+    return account?.market.isClosed
+  })
+
+  const activeRows = rows.filter((market) => {
+    const account = marketAccounts.find((a) => a.market.address === market.id)
+    return !account?.market.isClosed
+  })
+
+  const selfOnboard = activeRows.filter((market) => market.isSelfOnboard)
+  const manual = activeRows.filter((market) => !market.isSelfOnboard)
 
   const handleRowClick = (
     params: { row: LenderOtherMarketsTableModel },
@@ -394,11 +409,18 @@ export const OtherMarketsTables = ({
     page: 0,
   })
 
+  const [terminatedPaginationModel, setTerminatedPaginationModel] =
+    React.useState({
+      pageSize: 50,
+      page: 0,
+    })
+
   const { assetFilter, statusFilter, nameFilter } = filters
 
   useEffect(() => {
     setSelfOnboardPaginationModel((prevState) => ({ ...prevState, page: 0 }))
     setManualPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+    setTerminatedPaginationModel((prevState) => ({ ...prevState, page: 0 }))
   }, [assetFilter, statusFilter, nameFilter])
 
   if (isMobile)
@@ -409,6 +431,9 @@ export const OtherMarketsTables = ({
         )}
         {scrollTargetId === "manual" && (
           <MobileMarketList markets={manual} isLoading={isLoading} />
+        )}
+        {scrollTargetId === "other-terminated" && (
+          <MobileMarketList markets={terminated} isLoading={isLoading} />
         )}
       </>
     )
@@ -503,6 +528,34 @@ export const OtherMarketsTables = ({
               hideFooter={false}
             />
           )}
+        </MarketsTableAccordion>
+      </Box>
+
+      <Box id="other-terminated" ref={terminatedRef}>
+        <MarketsTableAccordion
+          label={t("dashboard.markets.tables.other.terminated")}
+          marketsLength={terminated.length}
+          isLoading={isLoading}
+          isOpen
+          nameFilter={filters.nameFilter}
+          assetFilter={filters.assetFilter}
+          statusFilter={filters.statusFilter}
+          showNoFilteredMarkets
+        >
+          <DataGrid
+            disableVirtualization
+            sx={DataGridSx}
+            getRowHeight={() => "auto"}
+            rows={terminated}
+            columns={columns}
+            columnHeaderHeight={40}
+            paginationModel={terminatedPaginationModel}
+            onPaginationModelChange={setTerminatedPaginationModel}
+            slots={{
+              pagination: TablePagination,
+            }}
+            hideFooter={false}
+          />
         </MarketsTableAccordion>
       </Box>
     </Box>

@@ -59,6 +59,7 @@ const MobileSwitcherButton = ({
         borderRadius: "10px",
         gap: "6px",
         padding: "4px 16px",
+        flexShrink: 0,
         fontSize: "12px",
         lineHeight: "20px",
         fontWeight: marketSection === section ? 600 : 500,
@@ -142,7 +143,12 @@ export const MobileMarketSectionHeader = ({
     (state) => state.lenderDashboardAmounts.manual,
   )
 
-  const otherMarketsAmount = selfOnboardAmount + manualAmount
+  const terminatedOtherAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.terminatedOther,
+  )
+
+  const otherMarketsAmount =
+    selfOnboardAmount + manualAmount + terminatedOtherAmount
 
   const dispatch = useAppDispatch()
 
@@ -186,8 +192,10 @@ export const MobileMarketSectionHeader = ({
 
       <Box
         sx={{
-          width: "fit-content",
+          width: "100%",
           display: "flex",
+          overflowX: "auto",
+          flexWrap: "nowrap",
           gap: "6px",
           marginBottom: "10px",
         }}
@@ -218,8 +226,9 @@ export const MobileMarketSectionHeader = ({
 
       <Box
         sx={{
-          width: "fit-content",
+          width: "100%",
           display: "flex",
+          flexWrap: "wrap",
           gap: "6px",
           marginTop: "10px",
         }}
@@ -273,6 +282,13 @@ export const MobileMarketSectionHeader = ({
               label="Onboarded by Borrower"
               target="manual"
               amount={manualAmount}
+              type="secondary"
+            />
+
+            <MobileSwitcherButton
+              label="Terminated"
+              target="other-terminated"
+              amount={terminatedOtherAmount}
               type="secondary"
             />
           </>

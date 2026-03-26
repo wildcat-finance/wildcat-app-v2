@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.12.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.12.0...v2.12.1) (2026-03-19)
+
+
+### Bug Fixes
+
+* **apr:** add reset apr functionality ([#248](https://github.com/wildcat-finance/wildcat-app-v2/issues/248)) ([cc3d770](https://github.com/wildcat-finance/wildcat-app-v2/commit/cc3d7703f907ef1e3cad837975a13d359768f73c))
+* **apr:** add reset apr functionality ([#248](https://github.com/wildcat-finance/wildcat-app-v2/issues/248)) ([37dd411](https://github.com/wildcat-finance/wildcat-app-v2/commit/37dd411abecfc75e358060fe72cbc3a6d1949e6f))
+
 ## [2.12.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.11.1...v2.12.0) (2026-02-13)
 
 
