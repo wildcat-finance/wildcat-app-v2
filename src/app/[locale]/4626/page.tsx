@@ -6,14 +6,15 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   CircularProgress,
-  Divider,
+  IconButton,
   Link,
   MenuItem,
   Paper,
   Stack,
+  SvgIcon,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material"
 import { ContractFactory, utils } from "ethers"
@@ -37,6 +38,14 @@ import {
   WILDCAT_4626_FACTORY_SOURCE_PATH,
 } from "./factoryArtifact"
 
+function CopyIcon() {
+  return (
+    <SvgIcon sx={{ fontSize: "inherit" }}>
+      <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+    </SvgIcon>
+  )
+}
+
 type DeploymentResult = {
   archController: string
   chainId: Supported4626DeploymentChainId
@@ -56,9 +65,24 @@ type DeploymentResult = {
 const DEFAULT_TARGET_CHAIN_ID: Supported4626DeploymentChainId = 11155111
 
 const cardSx = {
-  borderRadius: "24px",
+  borderRadius: "16px",
   border: `1px solid ${COLORS.blackRock006}`,
-  boxShadow: "none",
+  boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06)",
+}
+
+const kvLabelSx = {
+  fontSize: "11px",
+  fontWeight: 600,
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.06em",
+  color: COLORS.manate,
+  mb: 0.5,
+}
+
+const kvValueSx = {
+  fontSize: "14px",
+  fontWeight: 500,
+  fontFamily: "monospace",
 }
 
 const triggerDownload = (url: string, filename: string) => {
@@ -359,39 +383,71 @@ export default function Deploy4626FactoryPage() {
     }
   }
 
+  const [copiedArchController, setCopiedArchController] = useState(false)
+  const [copiedWallet, setCopiedWallet] = useState(false)
+
+  const handleCopyArchController = () => {
+    navigator.clipboard.writeText(target.archController)
+    setCopiedArchController(true)
+    setTimeout(() => setCopiedArchController(false), 2000)
+  }
+
+  const handleCopyWallet = () => {
+    if (!address) return
+    navigator.clipboard.writeText(address)
+    setCopiedWallet(true)
+    setTimeout(() => setCopiedWallet(false), 2000)
+  }
+
   return (
     <Box
       sx={{
         width: "100%",
-        px: { xs: 2, md: 6 },
+        display: "flex",
+        justifyContent: "center",
+        px: { xs: 2, md: 4 },
         py: { xs: 3, md: 5 },
       }}
     >
-      <Stack spacing={3} maxWidth="920px">
+      <Stack spacing={3} sx={{ width: "100%", maxWidth: "680px" }}>
+        {/* Header */}
         <Box>
-          <Chip
-            label="Preview Deploy Tool"
+          <Typography
             sx={{
-              mb: 2,
-              backgroundColor: COLORS.blueRibbon01,
-              color: COLORS.ultramarineBlue,
+              fontSize: "12px",
               fontWeight: 600,
+              color: COLORS.ultramarineBlue,
+              letterSpacing: "0.04em",
+              mb: 1,
             }}
-          />
-          <Typography variant="h4" sx={{ mb: 1, fontWeight: 700 }}>
+          >
+            Preview Deploy Tool
+          </Typography>
+          <Typography
+            variant="h5"
+            sx={{ fontWeight: 700, mb: 1, lineHeight: 1.3 }}
+          >
             Deploy Wildcat4626WrapperFactory
           </Typography>
-          <Typography variant="text2" color={COLORS.manate}>
+          <Typography
+            variant="body2"
+            sx={{ color: COLORS.manate, lineHeight: 1.6 }}
+          >
             This page deploys the compiled{" "}
-            <strong>{WILDCAT_4626_FACTORY_CONTRACT_NAME}</strong> contract from
-            the connected wallet and produces a downloadable artifact bundle
-            when the deployment succeeds.
+            <strong style={{ color: COLORS.blackRock }}>
+              {WILDCAT_4626_FACTORY_CONTRACT_NAME}
+            </strong>{" "}
+            contract from the connected wallet and produces a downloadable
+            artifact bundle when the deployment succeeds.
           </Typography>
         </Box>
 
-        <Paper sx={{ ...cardSx, p: 3 }}>
-          <Stack spacing={2.5}>
-            <Typography variant="title3">Deployment setup</Typography>
+        {/* Deployment setup card */}
+        <Paper sx={{ ...cardSx, p: { xs: 2.5, md: 3.5 } }}>
+          <Stack spacing={3}>
+            <Typography sx={{ fontSize: "16px", fontWeight: 700 }}>
+              Deployment setup
+            </Typography>
 
             <TextField
               select
@@ -403,6 +459,7 @@ export default function Deploy4626FactoryPage() {
                 )
               }
               fullWidth
+              size="small"
             >
               {targetOptions.map((option) => (
                 <MenuItem key={option.chainId} value={option.chainId}>
@@ -411,52 +468,91 @@ export default function Deploy4626FactoryPage() {
               ))}
             </TextField>
 
-            <Stack
-              direction={{ xs: "column", md: "row" }}
-              spacing={2}
-              divider={<Divider flexItem orientation="vertical" />}
+            {/* Key-value grid */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", md: "1fr 1fr 1fr" },
+                gap: 2,
+                p: 2,
+                borderRadius: "12px",
+                backgroundColor: COLORS.blackHaze,
+              }}
             >
-              <Box flex={1}>
-                <Typography variant="text4" color={COLORS.manate}>
-                  Connected wallet
-                </Typography>
-                <Typography variant="text1" sx={{ mt: 0.5 }}>
-                  {address ? trimAddress(address, 8) : "No wallet connected"}
-                </Typography>
+              <Box>
+                <Typography sx={kvLabelSx}>Connected wallet</Typography>
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <Typography sx={kvValueSx}>
+                    {address ? trimAddress(address, 8) : "No wallet connected"}
+                  </Typography>
+                  {address && (
+                    <Tooltip title={copiedWallet ? "Copied!" : "Copy address"}>
+                      <IconButton
+                        size="small"
+                        onClick={handleCopyWallet}
+                        sx={{
+                          p: 0.25,
+                          color: COLORS.manate,
+                          "&:hover": { color: COLORS.blackRock },
+                        }}
+                      >
+                        <CopyIcon />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </Stack>
               </Box>
-              <Box flex={1}>
-                <Typography variant="text4" color={COLORS.manate}>
-                  Wallet network
-                </Typography>
-                <Typography variant="text1" sx={{ mt: 0.5 }}>
-                  {connectedNetworkLabel}
-                </Typography>
+              <Box>
+                <Typography sx={kvLabelSx}>Wallet network</Typography>
+                <Typography sx={kvValueSx}>{connectedNetworkLabel}</Typography>
               </Box>
-              <Box flex={1}>
-                <Typography variant="text4" color={COLORS.manate}>
-                  Arch controller
-                </Typography>
-                <Typography variant="text1" sx={{ mt: 0.5 }}>
-                  {trimAddress(target.archController, 10)}
-                </Typography>
+              <Box>
+                <Typography sx={kvLabelSx}>Arch controller</Typography>
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <Typography sx={kvValueSx}>
+                    {trimAddress(target.archController, 10)}
+                  </Typography>
+                  <Tooltip
+                    title={copiedArchController ? "Copied!" : "Copy address"}
+                  >
+                    <IconButton
+                      size="small"
+                      onClick={handleCopyArchController}
+                      sx={{
+                        p: 0.25,
+                        color: COLORS.manate,
+                        "&:hover": { color: COLORS.blackRock },
+                      }}
+                    >
+                      <CopyIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
               </Box>
-            </Stack>
+            </Box>
 
+            {/* Info/warning alert - toned down */}
             <Alert
               severity={isOnTargetChain || !isConnected ? "info" : "warning"}
-              sx={{ borderRadius: "16px" }}
+              sx={{
+                borderRadius: "12px",
+                fontSize: "13px",
+                "& .MuiAlert-message": { fontSize: "13px" },
+              }}
             >
               {isConnected && !isOnTargetChain
                 ? `The wallet is connected to ${connectedNetworkLabel}. Switch to ${target.chainName} before deploying.`
                 : `The deployment will use ${target.chainName} and pass ${target.archController} to the constructor.`}
             </Alert>
 
+            {/* Action buttons */}
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
               {!isConnected && (
                 <Button
-                  variant="contained"
+                  variant="outlined"
                   size="large"
                   onClick={() => setIsConnectDialogOpen(true)}
+                  sx={{ px: 3 }}
                 >
                   Connect wallet
                 </Button>
@@ -464,10 +560,11 @@ export default function Deploy4626FactoryPage() {
 
               {isConnected && !isOnTargetChain && (
                 <Button
-                  variant="contained"
+                  variant="outlined"
                   size="large"
                   onClick={handleSwitchNetwork}
                   disabled={isSwitchingNetwork}
+                  sx={{ px: 3 }}
                 >
                   {isSwitchingNetwork
                     ? "Switching..."
@@ -485,6 +582,13 @@ export default function Deploy4626FactoryPage() {
                   !isConnected ||
                   !isOnTargetChain
                 }
+                sx={{
+                  px: 4,
+                  py: 1.25,
+                  fontWeight: 700,
+                  fontSize: "15px",
+                  flex: { xs: "unset", sm: 1 },
+                }}
               >
                 {isDeploying ? "Deploying..." : `Deploy to ${target.chainName}`}
               </Button>
@@ -492,15 +596,18 @@ export default function Deploy4626FactoryPage() {
           </Stack>
         </Paper>
 
+        {/* Deployment status card */}
         {(isDeploying || pendingTxHash || deployError || deploymentResult) && (
-          <Paper sx={{ ...cardSx, p: 3 }}>
+          <Paper sx={{ ...cardSx, p: { xs: 2.5, md: 3.5 } }}>
             <Stack spacing={2}>
-              <Typography variant="title3">Deployment status</Typography>
+              <Typography sx={{ fontSize: "16px", fontWeight: 700 }}>
+                Deployment status
+              </Typography>
 
               {isDeploying && (
                 <Stack direction="row" spacing={1.5} alignItems="center">
-                  <CircularProgress size={20} />
-                  <Typography variant="text2">
+                  <CircularProgress size={18} />
+                  <Typography variant="body2" sx={{ color: COLORS.manate }}>
                     Waiting for the deployment transaction to confirm on{" "}
                     {target.chainName}.
                   </Typography>
@@ -508,7 +615,7 @@ export default function Deploy4626FactoryPage() {
               )}
 
               {pendingTxHash && (
-                <Typography variant="text2">
+                <Typography variant="body2">
                   Pending transaction:{" "}
                   <Link
                     href={buildExplorerLink(
@@ -524,16 +631,30 @@ export default function Deploy4626FactoryPage() {
                 </Typography>
               )}
 
-              {deployError && <Alert severity="error">{deployError}</Alert>}
+              {deployError && (
+                <Alert
+                  severity="error"
+                  sx={{
+                    borderRadius: "12px",
+                    "& .MuiAlert-message": {
+                      overflow: "auto",
+                      maxHeight: "200px",
+                      wordBreak: "break-word",
+                    },
+                  }}
+                >
+                  {deployError}
+                </Alert>
+              )}
 
               {deploymentResult && (
                 <Stack spacing={1.5}>
-                  <Alert severity="success" sx={{ borderRadius: "16px" }}>
+                  <Alert severity="success" sx={{ borderRadius: "12px" }}>
                     Deployment confirmed. The artifact bundle should start
                     downloading automatically.
                   </Alert>
 
-                  <Typography variant="text2">
+                  <Typography variant="body2">
                     Contract address:{" "}
                     <Link
                       href={buildExplorerLink(
@@ -548,7 +669,7 @@ export default function Deploy4626FactoryPage() {
                     </Link>
                   </Typography>
 
-                  <Typography variant="text2">
+                  <Typography variant="body2">
                     Transaction:{" "}
                     <Link
                       href={buildExplorerLink(
@@ -563,7 +684,7 @@ export default function Deploy4626FactoryPage() {
                     </Link>
                   </Typography>
 
-                  <Typography variant="text2">
+                  <Typography variant="body2">
                     Confirmed at{" "}
                     {formatIsoTimestamp(deploymentResult.deployedAt)}
                   </Typography>
@@ -573,6 +694,7 @@ export default function Deploy4626FactoryPage() {
                       variant="contained"
                       onClick={handleDownloadArtifacts}
                       disabled={isPreparingDownload}
+                      sx={{ px: 3 }}
                     >
                       {isPreparingDownload
                         ? "Preparing artifacts..."
@@ -584,6 +706,7 @@ export default function Deploy4626FactoryPage() {
                         setDeployError(null)
                         setPendingTxHash(null)
                       }}
+                      sx={{ px: 3 }}
                     >
                       Clear status
                     </Button>
@@ -594,13 +717,36 @@ export default function Deploy4626FactoryPage() {
           </Paper>
         )}
 
-        <Paper sx={{ ...cardSx, p: 3, backgroundColor: COLORS.blackHaze }}>
+        {/* Included artifacts card */}
+        <Paper
+          sx={{
+            ...cardSx,
+            p: { xs: 2.5, md: 3.5 },
+            backgroundColor: COLORS.blackHaze,
+            border: "none",
+          }}
+        >
           <Stack spacing={1}>
-            <Typography variant="title3">Included artifacts</Typography>
-            <Typography variant="text2" color={COLORS.manate}>
-              The downloaded zip contains `deployment.json`, the ABI, and a
-              compact local artifact with the exact bytecode and metadata used
-              by this page.
+            <Typography sx={{ fontSize: "14px", fontWeight: 700 }}>
+              Included artifacts
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ color: COLORS.manate, lineHeight: 1.6 }}
+            >
+              The downloaded zip contains{" "}
+              <code
+                style={{
+                  fontSize: "12px",
+                  backgroundColor: COLORS.whiteLilac,
+                  padding: "2px 6px",
+                  borderRadius: "4px",
+                }}
+              >
+                deployment.json
+              </code>
+              , the ABI, and a compact local artifact with the exact bytecode
+              and metadata used by this page.
             </Typography>
           </Stack>
         </Paper>
