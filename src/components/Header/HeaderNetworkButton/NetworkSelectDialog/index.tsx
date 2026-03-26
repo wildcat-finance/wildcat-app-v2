@@ -8,7 +8,6 @@ import {
   DialogContainer,
   MobileDialogContainer,
   NetworkButton,
-  SectionHeader,
 } from "@/components/Header/HeaderNetworkButton/NetworkSelectDialog/style"
 import { NetworkIcon } from "@/components/NetworkIcon"
 import { NETWORKS, showTestnets } from "@/config/network"
@@ -117,47 +116,19 @@ export const NetworkSelectDialog = ({
         </Typography>
 
         {mainnetNetworks.length > 0 && (
-          <>
-            <Typography
-              variant="text3"
-              sx={SectionHeader}
-              textAlign={isMobile ? "center" : "start"}
-            >
-              {t("header.switchChain.mainnet")}
-            </Typography>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "4px",
-                width: "100%",
-              }}
-            >
-              {mainnetNetworks.map(renderNetworkButton)}
-            </Box>
-          </>
-        )}
-
-        {testnetNetworks.length > 0 && (
-          <>
-            <Typography
-              variant="text3"
-              sx={SectionHeader}
-              textAlign={isMobile ? "center" : "start"}
-            >
-              {t("header.switchChain.testnets")}
-            </Typography>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "4px",
-                width: "100%",
-              }}
-            >
-              {testnetNetworks.map(renderNetworkButton)}
-            </Box>
-          </>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "4px",
+              width: "100%",
+            }}
+          >
+            {mainnetNetworks.length > 0 &&
+              mainnetNetworks.map(renderNetworkButton)}
+            {testnetNetworks.length > 0 &&
+              testnetNetworks.map(renderNetworkButton)}
+          </Box>
         )}
       </Box>
     </Dialog>
