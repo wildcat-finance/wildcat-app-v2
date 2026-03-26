@@ -20,8 +20,7 @@ export const TelegramBanner = () => {
   const { t } = useTranslation()
   const pathname = usePathname()
 
-  // Initialize as true to avoid CLS (banner reserves space on first paint)
-  const [visible, setVisible] = useState(true)
+  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
     try {
