@@ -16,7 +16,6 @@ import { useTranslation } from "react-i18next"
 
 import Logo from "@/assets/icons/logo_white.svg"
 import MobileLogo from "@/assets/icons/noNameLogo_icon.svg"
-import LogoBlack from "@/assets/icons/sale_logo_black.svg"
 import { contentContainer, NavContainer } from "@/components/Header/style"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
@@ -74,8 +73,6 @@ export default function Header() {
     () => (side === "lender" ? ROUTES.lender.root : ROUTES.borrower.root),
     [side],
   )
-
-  // const mobileLogo = side ? <LogoBlack /> : <LogoWhite />
 
   if (!mounted)
     return (

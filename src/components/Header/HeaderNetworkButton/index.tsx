@@ -1,15 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import * as React from "react"
 
 import { Box, Button, Chip, SvgIcon, Typography } from "@mui/material"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 
-import Avatar from "@/assets/icons/avatar_icon.svg"
-import DownArrowIcon from "@/assets/icons/downArrow_icon.svg"
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
-import WalletIcon from "@/assets/icons/wallet_icon.svg"
 import { NetworkSelectDialog } from "@/components/Header/HeaderNetworkButton/NetworkSelectDialog"
 import { ConnectButton } from "@/components/Header/HeaderNetworkButton/style"
 import { MobileSelectNetwork } from "@/components/MobileSelectNetwork"

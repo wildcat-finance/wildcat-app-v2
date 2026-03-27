@@ -11,11 +11,9 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
-import Image from "next/image"
 import { useTranslation } from "react-i18next"
 
 import Cross from "@/assets/icons/cross_icon.svg"
-import WildcatEyes from "@/assets/pictures/eyes.webp"
 import { COLORS } from "@/theme/colors"
 
 import { HelpMenuItemsList, TelegramHelpItem } from "./HelpMenuItems"

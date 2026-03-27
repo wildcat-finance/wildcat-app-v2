@@ -165,7 +165,7 @@ export const OtherMarketsTables = ({
     event: { target: EventTarget | null },
   ) => {
     const target = event.target as HTMLElement
-    if (target.closest("a")) return
+    if (target.closest("a") || target.closest("button")) return
     router.push(buildMarketHref(params.row.id, params.row.chainId))
   }
 

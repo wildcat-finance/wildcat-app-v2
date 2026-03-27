@@ -115,21 +115,17 @@ export const NetworkSelectDialog = ({
           {t("header.switchChain.title")}
         </Typography>
 
-        {mainnetNetworks.length > 0 && (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "4px",
-              width: "100%",
-            }}
-          >
-            {mainnetNetworks.length > 0 &&
-              mainnetNetworks.map(renderNetworkButton)}
-            {testnetNetworks.length > 0 &&
-              testnetNetworks.map(renderNetworkButton)}
-          </Box>
-        )}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "4px",
+            width: "100%",
+          }}
+        >
+          {mainnetNetworks.map(renderNetworkButton)}
+          {testnetNetworks.map(renderNetworkButton)}
+        </Box>
       </Box>
     </Dialog>
   )
