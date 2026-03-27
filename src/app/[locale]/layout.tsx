@@ -17,6 +17,7 @@ import {
 } from "@/app/[locale]/layout-style"
 import initTranslations from "@/app/i18n"
 import Header from "@/components/Header"
+import { HelpModal } from "@/components/HelpModal"
 import HotjarConsent from "@/components/HotjarConsent"
 import PollingRegistration from "@/components/PollingRegistration"
 import { Sidebar } from "@/components/Sidebar"
@@ -58,6 +59,12 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} dir={dir(locale)}>
+      <head>
+        <link rel="dns-prefetch" href="//t.me" />
+        <link rel="dns-prefetch" href="//docs.wildcat.finance" />
+        <link rel="dns-prefetch" href="//docs.google.com" />
+        <link rel="preconnect" href="https://t.me" crossOrigin="anonymous" />
+      </head>
       <body className={inter.className} style={{ height: "100dvh" }}>
         <Toaster position="bottom-center" />
         <WagmiQueryProviders initialState={initialState}>
@@ -94,6 +101,7 @@ export default async function RootLayout({
                           </Box>
                         </Box>
                       </Box>
+                      <HelpModal />
                     </ThemeRegistry>
                   </TranslationsProvider>
                 </SubgraphProvider>

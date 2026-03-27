@@ -32,6 +32,36 @@ import { PALETTE } from "@/theme/palette"
 import { TYPOGRAPHY } from "@/theme/typography"
 import { lh, pxToRem } from "@/theme/units"
 
+type GridSortIconProps = React.ComponentProps<typeof SvgIcon> & {
+  sortingOrder?: unknown
+}
+
+const createGridSortIcon = (
+  IconComponent: React.ComponentType<React.SVGProps<SVGElement>>,
+  displayName: string,
+) => {
+  const GridSortIcon = React.forwardRef<SVGSVGElement, GridSortIconProps>(
+    (props, ref) => {
+      const iconProps = { ...props }
+      delete iconProps.sortingOrder
+
+      return (
+        <SvgIcon ref={ref} inheritViewBox {...iconProps}>
+          <IconComponent />
+        </SvgIcon>
+      )
+    },
+  )
+
+  GridSortIcon.displayName = displayName
+
+  return GridSortIcon
+}
+
+const GridAscIcon = createGridSortIcon(AscIcon, "GridAscIcon")
+const GridDescIcon = createGridSortIcon(DescIcon, "GridDescIcon")
+const GridUnsortedIcon = createGridSortIcon(UnsortedIcon, "GridUnsortedIcon")
+
 declare module "@mui/material/styles" {
   interface Palette {
     blueRibbon: Palette["primary"]
@@ -195,6 +225,18 @@ export const theme = createTheme({
   palette: PALETTE,
   typography: TYPOGRAPHY,
   components: {
+    MuiInputBase: {
+      styleOverrides: {
+        input: {
+          "@keyframes mui-auto-fill": {
+            from: { opacity: 1 },
+          },
+          "@keyframes mui-auto-fill-cancel": {
+            from: { opacity: 1 },
+          },
+        },
+      },
+    },
     MuiSvgIcon: {
       variants: [
         {
@@ -1069,9 +1111,9 @@ export const theme = createTheme({
         disableColumnSelector: true,
         hideFooter: true,
         slots: {
-          columnSortedDescendingIcon: DescIcon,
-          columnSortedAscendingIcon: AscIcon,
-          columnUnsortedIcon: UnsortedIcon,
+          columnSortedDescendingIcon: GridDescIcon,
+          columnSortedAscendingIcon: GridAscIcon,
+          columnUnsortedIcon: GridUnsortedIcon,
         },
       },
       styleOverrides: {

@@ -7,35 +7,29 @@ import { Footer } from "@/components/Footer"
 import { BorrowerDashboardSidebar } from "@/components/Sidebar/BorrowerDashboardSidebar"
 import { BorrowerSidebar } from "@/components/Sidebar/BorrowerSidebar"
 import { CreateMarketSidebar } from "@/components/Sidebar/CreateMarketSidebar"
-import { EditProfileSidebar } from "@/components/Sidebar/EditProfileSidebar"
 import { LenderDashboardSidebar } from "@/components/Sidebar/LenderDashboardSidebar"
 import { LenderMarketSidebar } from "@/components/Sidebar/LenderMarketSidebar"
 import { LenderListSidebar } from "@/components/Sidebar/LendersListSidebar"
 import { MarketSidebar } from "@/components/Sidebar/MarketSidebar"
-import { NewMarketSidebar } from "@/components/Sidebar/NewMarketSidebar"
-import { NotificationsSidebar } from "@/components/Sidebar/NotificationsSidebar"
-import { LendersTabSidebar } from "@/components/Sidebar/OverviewSidebars/LendersTabSidebar"
-import { MarketsTabSidebar } from "@/components/Sidebar/OverviewSidebars/MarketsTabSidebar"
 import { ROUTES } from "@/routes"
 import { useAppSelector } from "@/store/hooks"
-import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
 import { COLORS } from "@/theme/colors"
 
 import { EditPolicySidebar } from "./EditPolicySidebar"
+import { TelegramBanner } from "../TelegramBanner"
 
 export const Sidebar = () => {
   const pathname = usePathname()
   const theme = useTheme()
-  const step = useAppSelector((state) => state.borrowerOverview.tab)
-
-  const showCommitHash =
-    process.env.NODE_ENV === "production" ||
-    process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
 
   return (
     <Box
       sx={{
+        display: "flex",
+        flexDirection: "column",
         height: "calc(100vh - 82px)",
+        minWidth: "267px",
+        width: "267px",
         borderRight: `1px solid ${COLORS.blackRock006}`,
         overflow: "hidden",
         overflowY: "auto",
@@ -44,9 +38,7 @@ export const Sidebar = () => {
         },
       }}
     >
-      <Box
-        sx={{ height: `calc(100% - ${showCommitHash ? "156px" : "136px"})` }}
-      >
+      <Box marginBottom="auto">
         {pathname === ROUTES.lender.root && <LenderDashboardSidebar />}
         {pathname === ROUTES.borrower.root && <BorrowerDashboardSidebar />}
         {pathname.includes(ROUTES.borrower.market) && <MarketSidebar />}
@@ -60,7 +52,11 @@ export const Sidebar = () => {
         {/* {pathname === ROUTES.borrower.notifications && <NotificationsSidebar />} */}
       </Box>
 
-      <Footer />
+      <Box sx={{ width: "100%", marginTop: "auto" }}>
+        <TelegramBanner />
+
+        <Footer />
+      </Box>
     </Box>
   )
 }

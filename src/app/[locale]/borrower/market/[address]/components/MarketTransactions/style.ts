@@ -6,6 +6,7 @@ export const MarketTxContainer = {
 }
 
 export const MarketTxUpperButtonsContainer = {
+  height: "28px",
   display: "flex",
   columnGap: "6px",
 }

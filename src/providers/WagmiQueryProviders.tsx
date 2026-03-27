@@ -8,7 +8,14 @@ import { WagmiProvider, useConnect } from "wagmi"
 import { config } from "@/lib/config"
 import { GenericProviderProps } from "@/providers/interface"
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 30_000,
+    },
+  },
+})
 
 const AUTO_CONNECTED_CONNECTOR_IDS = ["safe"]
 

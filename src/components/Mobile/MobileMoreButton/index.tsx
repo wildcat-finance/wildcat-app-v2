@@ -10,11 +10,14 @@ import {
   Typography,
 } from "@mui/material"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
+import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import Cross from "@/assets/icons/cross_icon.svg"
+import TelegramIcon from "@/assets/icons/telegram_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
+import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { COLORS } from "@/theme/colors"
 
 export const MobileMoreButton = ({
@@ -64,6 +67,9 @@ export const MobileMoreButton = ({
             m: "auto 4px 4px",
             border: 0,
             height: "fit-content",
+
+            display: "flex",
+            gap: "4px",
           },
         }}
       >
@@ -122,6 +128,37 @@ export const MobileMoreButton = ({
             </Typography>
           </Box>
         )}
+
+        <Button
+          component={Link}
+          href={EXTERNAL_LINKS.TELEGRAM_BOT}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="contained"
+          color="secondary"
+          size="medium"
+          sx={{
+            color: COLORS.ultramarineBlue,
+            bgcolor: "rgba(62,104,255,0.06)",
+            textDecoration: "none",
+            "&:hover": {
+              bgcolor: "rgba(62,104,255,0.06)",
+            },
+          }}
+        >
+          <SvgIcon
+            aria-hidden="true"
+            sx={{
+              fontSize: "20px",
+              flexShrink: 0,
+              "& path": { fill: COLORS.ultramarineBlue },
+            }}
+          >
+            <TelegramIcon />
+          </SvgIcon>
+
+          {t("helpModal.items.telegram.botButton")}
+        </Button>
       </Dialog>
     </>
   )

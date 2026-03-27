@@ -55,7 +55,8 @@ export const filterMarketAccounts = (
     filteredMarkets = filteredMarkets.filter(({ market }) => {
       const matchMarket =
         market.name.toLowerCase().includes(searchString) ||
-        market.address.toLowerCase().includes(searchString)
+        market.address.toLowerCase().includes(searchString) ||
+        market.underlyingToken.symbol.toLowerCase().includes(searchString)
 
       let matchBorrower = false
       if (borrowers) {

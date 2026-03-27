@@ -5,6 +5,7 @@ import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
@@ -46,6 +47,15 @@ import {
 } from "./interface"
 import { DataGridSx } from "../style"
 
+const clickableGridSx = {
+  ...DataGridSx,
+  "& .MuiDataGrid-row": {
+    minHeight: "66px !important",
+    maxHeight: "66px !important",
+    cursor: "pointer",
+  },
+}
+
 export const LenderActiveMarketsTables = ({
   marketAccounts,
   borrowers,
@@ -55,6 +65,7 @@ export const LenderActiveMarketsTables = ({
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const router = useRouter()
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
   )
@@ -73,7 +84,7 @@ export const LenderActiveMarketsTables = ({
         dispatch(setScrollTarget(null))
       }
     }
-  }, [scrollTargetId])
+  }, [dispatch, isMobile, scrollTargetId])
 
   const rows: GridRowsProp<LenderActiveMarketsTableModel> = marketAccounts.map(
     (account) => {
@@ -123,6 +134,15 @@ export const LenderActiveMarketsTables = ({
 
   const nonDepositedMarkets = rows.filter((market) => !market.hasEverInteracted)
 
+  const handleRowClick = (
+    params: { row: LenderActiveMarketsTableModel },
+    event: { target: EventTarget | null },
+  ) => {
+    const target = event.target as HTMLElement
+    if (target.closest("a") || target.closest("button")) return
+    router.push(buildMarketHref(params.row.id, params.row.chainId))
+  }
+
   const columns: TypeSafeColDef<LenderActiveMarketsTableModel>[] = [
     {
       field: "name",
@@ -132,9 +152,8 @@ export const LenderActiveMarketsTables = ({
       headerAlign: "left",
       align: "left",
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          style={{
+        <Box
+          sx={{
             ...LinkCell,
             paddingRight: "16px",
             justifyContent: "center",
@@ -158,13 +177,19 @@ export const LenderActiveMarketsTables = ({
             {params.value}
           </Typography>
 
-          <Link
-            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
-            style={{ display: "flex", textDecoration: "none" }}
-          >
+          {params.row.borrowerAddress ? (
+            <Link
+              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              prefetch={false}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              style={{ display: "flex", textDecoration: "none" }}
+            >
+              <BorrowerProfileChip borrower={params.row.borrower} />
+            </Link>
+          ) : (
             <BorrowerProfileChip borrower={params.row.borrower} />
-          </Link>
-        </Link>
+          )}
+        </Box>
       ),
     },
     {
@@ -176,9 +201,8 @@ export const LenderActiveMarketsTables = ({
       align: "left",
       sortComparator: statusComparator,
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          style={{
+        <Box
+          sx={{
             ...LinkCell,
             justifyContent: "flex-start",
           }}
@@ -186,7 +210,7 @@ export const LenderActiveMarketsTables = ({
           <Box width="120px">
             <MarketStatusChip status={params.value} />
           </Box>
-        </Link>
+        </Box>
       ),
     },
     {
@@ -198,9 +222,8 @@ export const LenderActiveMarketsTables = ({
       align: "left",
       sortComparator: typeComparator,
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          style={{
+        <Box
+          sx={{
             ...LinkCell,
             justifyContent: "flex-start",
           }}
@@ -208,7 +231,7 @@ export const LenderActiveMarketsTables = ({
           <Box minWidth="170px">
             <MarketTypeChip type="table" {...params.value} />
           </Box>
-        </Link>
+        </Box>
       ),
     },
     {
@@ -226,17 +249,14 @@ export const LenderActiveMarketsTables = ({
         const adsCellProps = getAdsCellProps(params.row.id)
 
         return (
-          <Link
-            href={buildMarketHref(params.row.id, params.row.chainId)}
-            style={{ ...LinkCell, justifyContent: "flex-end" }}
-          >
+          <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
             <AprChip
               isBonus={!!adsCellProps}
               baseApr={formatBps(params.value)}
               icons={adsCellProps?.icons}
               adsComponent={adsComponent}
             />
-          </Link>
+          </Box>
         )
       },
     },
@@ -248,15 +268,14 @@ export const LenderActiveMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          style={{
+        <Box
+          sx={{
             ...LinkCell,
             justifyContent: "flex-end",
           }}
         >
           {formatSecsToHours(params.value, true)}
-        </Link>
+        </Box>
       ),
     },
     {
@@ -267,15 +286,14 @@ export const LenderActiveMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          style={{
+        <Box
+          sx={{
             ...LinkCell,
             justifyContent: "flex-end",
           }}
         >
           {params.value}
-        </Link>
+        </Box>
       ),
     },
     {
@@ -292,15 +310,9 @@ export const LenderActiveMarketsTables = ({
           TokenAmount
         >,
       ) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          style={{
-            textDecoration: "none",
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            color: "inherit",
+        <Box
+          sx={{
+            ...LinkCell,
             justifyContent: "flex-end",
           }}
         >
@@ -310,7 +322,7 @@ export const LenderActiveMarketsTables = ({
                 fractionDigits: 2,
               })
             : "0"}
-        </Link>
+        </Box>
       ),
     },
     {
@@ -322,17 +334,14 @@ export const LenderActiveMarketsTables = ({
       align: "right",
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {params.value
             ? formatTokenWithCommas(params.value, {
                 withSymbol: false,
                 fractionDigits: 2,
               })
             : "0"}
-        </Link>
+        </Box>
       ),
     },
     {
@@ -349,17 +358,14 @@ export const LenderActiveMarketsTables = ({
           TokenAmount
         >,
       ) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {params.value
             ? formatTokenWithCommas(params.value, {
                 withSymbol: false,
                 fractionDigits: 2,
               })
             : "0"}
-        </Link>
+        </Box>
       ),
     },
   ]
@@ -421,11 +427,12 @@ export const LenderActiveMarketsTables = ({
           ) : (
             <DataGrid
               disableVirtualization
-              sx={DataGridSx}
-              getRowHeight={() => "auto"}
+              sx={clickableGridSx}
+              rowHeight={66}
               rows={depositedMarkets}
               columns={columns}
               columnHeaderHeight={40}
+              onRowClick={handleRowClick}
             />
           )}
         </MarketsTableAccordion>
@@ -459,11 +466,12 @@ export const LenderActiveMarketsTables = ({
           ) : (
             <DataGrid
               disableVirtualization
-              sx={DataGridSx}
-              getRowHeight={() => "auto"}
+              sx={clickableGridSx}
+              rowHeight={66}
               rows={nonDepositedMarkets}
               columns={columns}
               columnHeaderHeight={40}
+              onRowClick={handleRowClick}
             />
           )}
         </MarketsTableAccordion>
