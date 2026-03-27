@@ -9,6 +9,7 @@ import {
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
@@ -52,6 +53,15 @@ import {
   LenderOtherMarketsTableProps,
 } from "./interface"
 
+const clickableGridSx = {
+  ...DataGridSx,
+  "& .MuiDataGrid-row": {
+    minHeight: "66px !important",
+    maxHeight: "66px !important",
+    cursor: "pointer",
+  },
+}
+
 export const OtherMarketsTables = ({
   marketAccounts,
   isLoading,
@@ -60,6 +70,7 @@ export const OtherMarketsTables = ({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const isMobile = useMobileResolution()
+  const router = useRouter()
 
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
@@ -84,7 +95,7 @@ export const OtherMarketsTables = ({
         dispatch(setScrollTarget(null))
       }
     }
-  }, [scrollTargetId])
+  }, [dispatch, isMobile, scrollTargetId])
 
   const { data: borrowers } = useBorrowerNames()
 
@@ -149,6 +160,15 @@ export const OtherMarketsTables = ({
   const selfOnboard = activeRows.filter((market) => market.isSelfOnboard)
   const manual = activeRows.filter((market) => !market.isSelfOnboard)
 
+  const handleRowClick = (
+    params: { row: LenderOtherMarketsTableModel },
+    event: { target: EventTarget | null },
+  ) => {
+    const target = event.target as HTMLElement
+    if (target.closest("a") || target.closest("button")) return
+    router.push(buildMarketHref(params.row.id, params.row.chainId))
+  }
+
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
     {
       field: "name",
@@ -158,9 +178,8 @@ export const OtherMarketsTables = ({
       headerAlign: "left",
       align: "left",
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          style={{
+        <Box
+          sx={{
             ...LinkCell,
             paddingRight: "16px",
             justifyContent: "center",
@@ -184,13 +203,19 @@ export const OtherMarketsTables = ({
             {params.value}
           </Typography>
 
-          <Link
-            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
-            style={{ display: "flex", textDecoration: "none" }}
-          >
+          {params.row.borrowerAddress ? (
+            <Link
+              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              prefetch={false}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              style={{ display: "flex", textDecoration: "none" }}
+            >
+              <BorrowerProfileChip borrower={params.row.borrower} />
+            </Link>
+          ) : (
             <BorrowerProfileChip borrower={params.row.borrower} />
-          </Link>
-        </Link>
+          )}
+        </Box>
       ),
     },
     {
@@ -202,9 +227,8 @@ export const OtherMarketsTables = ({
       align: "left",
       sortComparator: statusComparator,
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          style={{
+        <Box
+          sx={{
             ...LinkCell,
             justifyContent: "flex-start",
           }}
@@ -212,7 +236,7 @@ export const OtherMarketsTables = ({
           <Box width="120px">
             <MarketStatusChip status={params.value} />
           </Box>
-        </Link>
+        </Box>
       ),
     },
     {
@@ -224,9 +248,8 @@ export const OtherMarketsTables = ({
       align: "left",
       sortComparator: typeComparator,
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          style={{
+        <Box
+          sx={{
             ...LinkCell,
             justifyContent: "flex-start",
           }}
@@ -234,7 +257,7 @@ export const OtherMarketsTables = ({
           <Box minWidth="170px">
             <MarketTypeChip type="table" {...params.value} />
           </Box>
-        </Link>
+        </Box>
       ),
     },
     {
@@ -252,17 +275,14 @@ export const OtherMarketsTables = ({
         const adsCellProps = getAdsCellProps(params.row.id)
 
         return (
-          <Link
-            href={buildMarketHref(params.row.id, params.row.chainId)}
-            style={{ ...LinkCell, justifyContent: "flex-end" }}
-          >
+          <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
             <AprChip
               isBonus={!!adsCellProps}
               baseApr={formatBps(params.value)}
               icons={adsCellProps?.icons}
               adsComponent={adsComponent}
             />
-          </Link>
+          </Box>
         )
       },
     },
@@ -274,15 +294,14 @@ export const OtherMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          style={{
+        <Box
+          sx={{
             ...LinkCell,
             justifyContent: "flex-end",
           }}
         >
           {formatSecsToHours(params.value, true)}
-        </Link>
+        </Box>
       ),
     },
     {
@@ -293,15 +312,14 @@ export const OtherMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          style={{
+        <Box
+          sx={{
             ...LinkCell,
             justifyContent: "flex-end",
           }}
         >
           {params.value}
-        </Link>
+        </Box>
       ),
     },
     {
@@ -315,15 +333,9 @@ export const OtherMarketsTables = ({
       renderCell: (
         params: GridRenderCellParams<LenderOtherMarketsTableModel, TokenAmount>,
       ) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          style={{
-            textDecoration: "none",
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            color: "inherit",
+        <Box
+          sx={{
+            ...LinkCell,
             justifyContent: "flex-end",
           }}
         >
@@ -333,7 +345,7 @@ export const OtherMarketsTables = ({
                 fractionDigits: 2,
               })
             : "0"}
-        </Link>
+        </Box>
       ),
     },
     {
@@ -345,17 +357,14 @@ export const OtherMarketsTables = ({
       align: "right",
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
-        <Link
-          href={buildMarketHref(params.row.id, params.row.chainId)}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {params.value
             ? formatTokenWithCommas(params.value, {
                 withSymbol: false,
                 fractionDigits: 2,
               })
             : "0"}
-        </Link>
+        </Box>
       ),
     },
     {
@@ -367,20 +376,24 @@ export const OtherMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
-        <Link
-          href={
-            params.row.isSelfOnboard
-              ? buildMarketHref(params.row.id, params.row.chainId)
-              : `${ROUTES.lender.profile}/${params.row.borrowerAddress}`
-          }
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
-        >
-          <Button size="small" variant="contained" color="secondary">
-            {params.row.isSelfOnboard
-              ? `${t("dashboard.markets.tables.other.depositBTN")}`
-              : `${t("dashboard.markets.tables.other.requestBTN")}`}
-          </Button>
-        </Link>
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+          {params.row.isSelfOnboard ? (
+            <Button size="small" variant="contained" color="secondary">
+              {t("dashboard.markets.tables.other.depositBTN")}
+            </Button>
+          ) : (
+            <Link
+              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              prefetch={false}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              style={{ textDecoration: "none" }}
+            >
+              <Button size="small" variant="contained" color="secondary">
+                {t("dashboard.markets.tables.other.requestBTN")}
+              </Button>
+            </Link>
+          )}
+        </Box>
       ),
     },
   ]
@@ -462,13 +475,14 @@ export const OtherMarketsTables = ({
           ) : (
             <DataGrid
               disableVirtualization
-              sx={DataGridSx}
-              getRowHeight={() => "auto"}
+              sx={clickableGridSx}
+              rowHeight={66}
               rows={selfOnboard}
               columns={columns}
               columnHeaderHeight={40}
               paginationModel={selfOnboardPaginationModel}
               onPaginationModelChange={setSelfOnboardPaginationModel}
+              onRowClick={handleRowClick}
               slots={{
                 pagination: TablePagination,
               }}
@@ -500,13 +514,14 @@ export const OtherMarketsTables = ({
           ) : (
             <DataGrid
               disableVirtualization
-              sx={DataGridSx}
-              getRowHeight={() => "auto"}
+              sx={clickableGridSx}
+              rowHeight={66}
               rows={manual}
               columns={columns}
               columnHeaderHeight={40}
               paginationModel={manualPaginationModel}
               onPaginationModelChange={setManualPaginationModel}
+              onRowClick={handleRowClick}
               slots={{
                 pagination: TablePagination,
               }}

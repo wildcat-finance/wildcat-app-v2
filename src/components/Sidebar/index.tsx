@@ -16,20 +16,20 @@ import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 
 import { EditPolicySidebar } from "./EditPolicySidebar"
+import { TelegramBanner } from "../TelegramBanner"
 
 export const Sidebar = () => {
   const pathname = usePathname()
   const theme = useTheme()
-  const step = useAppSelector((state) => state.borrowerOverview.tab)
-
-  const showCommitHash =
-    process.env.NODE_ENV === "production" ||
-    process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
 
   return (
     <Box
       sx={{
+        display: "flex",
+        flexDirection: "column",
         height: "calc(100vh - 82px)",
+        minWidth: "267px",
+        width: "267px",
         borderRight: `1px solid ${COLORS.blackRock006}`,
         overflow: "hidden",
         overflowY: "auto",
@@ -38,9 +38,7 @@ export const Sidebar = () => {
         },
       }}
     >
-      <Box
-        sx={{ height: `calc(100% - ${showCommitHash ? "156px" : "136px"})` }}
-      >
+      <Box marginBottom="auto">
         {pathname === ROUTES.lender.root && <LenderDashboardSidebar />}
         {pathname === ROUTES.borrower.root && <BorrowerDashboardSidebar />}
         {pathname.includes(ROUTES.borrower.market) && <MarketSidebar />}
@@ -54,7 +52,11 @@ export const Sidebar = () => {
         {/* {pathname === ROUTES.borrower.notifications && <NotificationsSidebar />} */}
       </Box>
 
-      <Footer />
+      <Box sx={{ width: "100%", marginTop: "auto" }}>
+        <TelegramBanner />
+
+        <Footer />
+      </Box>
     </Box>
   )
 }

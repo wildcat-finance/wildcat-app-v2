@@ -62,6 +62,7 @@ export const LenderMlaModal = ({
         size="small"
         disabled={isLoading || !mla || signedMlaLoading || isPending}
         onClick={() => mla && setIsMlaOpen(true)}
+        sx={{ height: "28px" }}
       >
         {(isLoading && "Loading MLA...") || buttonText}
       </Button>

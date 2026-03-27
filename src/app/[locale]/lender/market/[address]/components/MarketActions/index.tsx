@@ -1,11 +1,12 @@
 import * as React from "react"
 
-import { Box, Button, Divider, Typography } from "@mui/material"
+import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
 import {
   DepositStatus,
   MarketAccount,
   QueueWithdrawalStatus,
 } from "@wildcatfi/wildcat-sdk"
+import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { LenderMlaModal } from "@/app/[locale]/lender/components/LenderMlaModal"
@@ -15,7 +16,9 @@ import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Mo
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
+import TelegramIcon from "@/assets/icons/telegram_icon.svg"
 import { TransactionBlock } from "@/components/TransactionBlock"
+import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useAppDispatch } from "@/store/hooks"
@@ -161,11 +164,12 @@ export const MarketActions = ({
 
   return (
     <>
-      <Box display="flex" columnGap="6px">
+      <Box display="flex" columnGap="6px" flexWrap="wrap" rowGap="6px">
         <Button
           variant="outlined"
           color="secondary"
           size="small"
+          sx={{ height: "28px" }}
           onClick={() => handleAddToken()}
           disabled={isAddingToken && canAddToken}
         >
@@ -173,6 +177,41 @@ export const MarketActions = ({
         </Button>
 
         <LenderMlaModal mla={mla} isLoading={mlaLoading} />
+
+        <Button
+          component={Link}
+          variant="outlined"
+          color="secondary"
+          size="small"
+          href={EXTERNAL_LINKS.TELEGRAM_BOT}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{
+            height: "28px",
+            padding: "6px 12px 6px 6px !important",
+            gap: "2px",
+            border: `1px solid ${COLORS.hawkesBlue}`,
+            color: COLORS.ultramarineBlue,
+            textDecoration: "none",
+            "&:hover": {
+              bgcolor: "rgba(62,104,255,0.06)",
+              border: `1px solid ${COLORS.hawkesBlue}`,
+            },
+          }}
+        >
+          <SvgIcon
+            aria-hidden="true"
+            sx={{
+              fontSize: "20px",
+              flexShrink: 0,
+              "& path": { fill: COLORS.ultramarineBlue },
+            }}
+          >
+            <TelegramIcon />
+          </SvgIcon>
+
+          {t("helpModal.items.telegram.botButton")}
+        </Button>
       </Box>
 
       <Divider sx={{ margin: "32px 0" }} />
