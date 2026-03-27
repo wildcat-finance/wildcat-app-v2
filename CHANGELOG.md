@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.13.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.12.1...v2.13.0) (2026-03-19)
+
+
+### Features
+
+* **mobile-view:** add collapsing section blocks ([67ea94f](https://github.com/wildcat-finance/wildcat-app-v2/commit/67ea94fc4e900d6ec1b555314f43822fab5155c0))
+* **mobile-view:** add collapsing section blocks ([4c35fa0](https://github.com/wildcat-finance/wildcat-app-v2/commit/4c35fa0030d823d4e251fd82969567d4b5e1e502))
+
 ## [2.12.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.12.0...v2.12.1) (2026-03-19)
 
 
