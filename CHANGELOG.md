@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.14.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.13.0...v2.14.0) (2026-03-27)
+
+
+### Features
+
+* **announce:** add help center and telegram bot announce ([bd2deb7](https://github.com/wildcat-finance/wildcat-app-v2/commit/bd2deb7d7ec12889b8f591bda6e74232768c99dd))
+* **announce:** add help center and telegram bot announce ([#258](https://github.com/wildcat-finance/wildcat-app-v2/issues/258)) ([5d4abfc](https://github.com/wildcat-finance/wildcat-app-v2/commit/5d4abfcff9d7fce9f09d6e16ea5f4e0d2e72eff0))
+* **markets-search:** add asset to search filters ([45b0a6e](https://github.com/wildcat-finance/wildcat-app-v2/commit/45b0a6e59e378dba50c760dbc5d0a5ab5a2a4ad8))
+* **markets-search:** add asset to search filters ([89b7807](https://github.com/wildcat-finance/wildcat-app-v2/commit/89b78073ac132302729b5e7fe2f7f4ee06002654))
+
+
+### Bug Fixes
+
+* **history-table:** add thousands separators ([0bc8aaa](https://github.com/wildcat-finance/wildcat-app-v2/commit/0bc8aaaba633c707ee8f01028bf965226b1b7d95))
+* refactor mobile view for switcher ([8b84210](https://github.com/wildcat-finance/wildcat-app-v2/commit/8b842100cf9b32482a6981d7357ccb9eb9ad0f98))
+* terminated markets overview ([b304e90](https://github.com/wildcat-finance/wildcat-app-v2/commit/b304e9076e1d30e8dfdc0d7d474118bee1d648ce))
+* terminated markets overview ([b304e90](https://github.com/wildcat-finance/wildcat-app-v2/commit/b304e9076e1d30e8dfdc0d7d474118bee1d648ce))
+
 ## [2.13.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.12.1...v2.13.0) (2026-03-19)
 
 
