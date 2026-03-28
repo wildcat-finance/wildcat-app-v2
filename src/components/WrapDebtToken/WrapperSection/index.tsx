@@ -248,7 +248,9 @@ export const WrapperSection = ({
   const approvalAmount = React.useMemo(() => {
     if (!isWrapTab) return undefined
     if (!inputAmount) return undefined
-    return isAssetsInput ? inputAmount : outputAmount
+    if (isAssetsInput) return inputAmount
+    // mint path: buffer by 0.1% to absorb scaleFactor drift between approval and mint tx
+    return outputAmount?.mulDiv(10010, 10000)
   }, [isWrapTab, inputAmount, isAssetsInput, outputAmount])
 
   const maxLimit = React.useMemo(() => {
@@ -301,8 +303,8 @@ export const WrapperSection = ({
       }
       if (
         !isAssetsInput &&
-        approvalAmount &&
-        balances.marketBalance.lt(approvalAmount)
+        outputAmount &&
+        balances.marketBalance.lt(outputAmount)
       ) {
         return `Insufficient ${wrapper.marketToken.symbol} balance`
       }
@@ -321,7 +323,6 @@ export const WrapperSection = ({
 
     return undefined
   }, [
-    approvalAmount,
     balances,
     inputAmount,
     isAssetsInput,
