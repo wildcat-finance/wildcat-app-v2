@@ -40,7 +40,11 @@ import {
   resetPageState,
   setWithdrawalsCount,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
-import { setIsMobileOpenedState } from "@/store/slices/wrapDebtTokenFlowSlice/wrapDebtTokenFlowSlice"
+import {
+  setActiveTab,
+  setIsMobileOpenedState,
+  WrapDebtTokenTab,
+} from "@/store/slices/wrapDebtTokenFlowSlice/wrapDebtTokenFlowSlice"
 import { COLORS } from "@/theme/colors"
 
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
@@ -175,9 +179,16 @@ export default function LenderMarketDetails({
     dispatch(setWithdrawalsCount(totalWithdrawalsCount))
   }, [totalWithdrawalsCount])
 
+  useEffect(() => {
+    if (currentSection !== LenderMarketSections.WRAP_DEBT_TOKEN) {
+      dispatch(setActiveTab(WrapDebtTokenTab.WRAP))
+    }
+  }, [currentSection])
+
   useEffect(
     () => () => {
       dispatch(resetPageState())
+      dispatch(setActiveTab(WrapDebtTokenTab.WRAP))
     },
     [],
   )

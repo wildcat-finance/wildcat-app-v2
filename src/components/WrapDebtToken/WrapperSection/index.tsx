@@ -690,13 +690,6 @@ export const WrapperSection = ({
     dispatch(setIsMobileOpenedState(true))
   }
 
-  useEffect(
-    () => () => {
-      if (!isMobile) dispatch(setActiveTab(WrapDebtTokenTab.WRAP))
-    },
-    [],
-  )
-
   return (
     <Box
       marginTop="4px"
