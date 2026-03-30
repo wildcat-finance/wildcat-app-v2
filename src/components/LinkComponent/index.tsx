@@ -109,7 +109,7 @@ export const LinkGroup = ({
               </SvgIcon>
 
               <Typography variant="text3">
-                {t("link.viewOnEtherscan")}
+                {t("common.explorer")}
               </Typography>
             </Link>
           )}

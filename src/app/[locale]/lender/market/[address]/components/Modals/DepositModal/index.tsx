@@ -196,8 +196,8 @@ export const DepositModal = ({
   const underlyingBalanceIsZero = marketAccount.underlyingBalance.raw.isZero()
 
   const tooltip = underlyingBalanceIsZero
-    ? "Underlying token balance is zero"
-    : "Market is at full capacity"
+    ? t("marketDetailsLender.deposit.zeroBalance")
+    : t("marketDetailsLender.deposit.fullCapacity")
 
   useEffect(() => {
     if (amount === "" || amount === "0" || depositStep === "Ready") {
@@ -212,7 +212,7 @@ export const DepositModal = ({
       } else {
         // warn that this is above balance but you can approve if you want to
         setDepositError(
-          "Amount exceeds wallet balance. You can still approve for future use",
+          t("marketDetailsLender.deposit.exceedsBalance"),
         )
       }
       return
@@ -284,7 +284,7 @@ export const DepositModal = ({
           }}
         >
           <TransactionHeader
-            label={t("lenderMarketDetails.transactions.deposit.modal.title")}
+            label={t("marketDetailsLender.transactions.deposit.modalTitle")}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : handleModalArrowClick
             }
@@ -305,7 +305,7 @@ export const DepositModal = ({
             {modal.gettingValueStep && (
               <>
                 <Typography variant="text2" lineHeight="24px">
-                  Choose amount of tokens
+                  {t("marketDetailsLender.deposit.chooseAmount")}
                 </Typography>
 
                 {minimumDeposit && (
@@ -314,7 +314,7 @@ export const DepositModal = ({
                     variant="text3"
                     lineHeight="24px"
                   >
-                    Minimum deposit{" "}
+                    {t("marketDetailsLender.deposit.minimumDeposit")}{" "}
                     <Typography
                       variant="text3"
                       lineHeight="24px"
@@ -332,7 +332,7 @@ export const DepositModal = ({
                   variant="text3"
                   lineHeight="24px"
                 >
-                  Available to deposit{" "}
+                  {t("marketDetailsLender.deposit.availableToDeposit")}{" "}
                   <Typography
                     variant="text3"
                     lineHeight="24px"
@@ -383,10 +383,7 @@ export const DepositModal = ({
                 <DepositAlert
                   text={
                     <Typography variant="mobText3">
-                      This is a fixed-term market: funds are locked until{" "}
-                      <span style={{ textDecoration: "underline" }}>
-                        {formatDate(fixedTermMaturity || 0)}
-                      </span>{" "}
+                      {t("marketDetailsLender.deposit.fixedTermLocked", { date: formatDate(fixedTermMaturity || 0) })}
                     </Typography>
                   }
                   icon={
@@ -407,7 +404,7 @@ export const DepositModal = ({
                 <DepositAlert
                   text={
                     <Typography variant="mobText3">
-                      The market can be repaid early to close
+                      {t("marketDetailsLender.deposit.earlyClose")}
                     </Typography>
                   }
                   icon={
@@ -428,7 +425,7 @@ export const DepositModal = ({
                 <DepositAlert
                   text={
                     <Typography variant="mobText3">
-                      The market’s duration can be shorten
+                      {t("marketDetailsLender.deposit.durationShorten")}
                     </Typography>
                   }
                   icon={
@@ -449,18 +446,12 @@ export const DepositModal = ({
                 <DepositAlert
                   text={
                     <Typography variant="mobText3">
-                      You have an existing allowance of{" "}
-                      {market.underlyingToken
-                        .getAmount(marketAccount.underlyingApproval)
-                        .format(market.underlyingToken.decimals, true)}{" "}
-                      for this market.
-                      <br />
-                      {market.underlyingToken.symbol} requires that allowances
-                      be reset to zero prior to being increased.
-                      <br />
-                      You will be prompted to execute two approval transactions
-                      to first reset and then increase the allowance for this
-                      market.
+                      {t("marketDetailsLender.deposit.existingAllowance", {
+                        amount: market.underlyingToken
+                          .getAmount(marketAccount.underlyingApproval)
+                          .format(market.underlyingToken.decimals, true),
+                        tokenName: market.underlyingToken.symbol,
+                      })}
                     </Typography>
                   }
                   icon={
@@ -488,14 +479,14 @@ export const DepositModal = ({
           )}
 
           <TxModalFooter
-            mainBtnText={t("lenderMarketDetails.transactions.deposit.button")}
+            mainBtnText={t("marketDetailsLender.transactions.deposit.button")}
             secondBtnText={
               // eslint-disable-next-line no-nested-ternary
               isConnectedToSafe
                 ? undefined
                 : isApprovedButton
-                  ? "Approved"
-                  : "Approve"
+                  ? t("common.toast.approved")
+                  : t("common.toast.approve")
             }
             secondBtnIcon={isApprovedButton && !isConnectedToSafe}
             mainBtnOnClick={handleDeposit}
@@ -567,7 +558,7 @@ export const DepositModal = ({
                   underlyingBalanceIsZero
                 }
               >
-                {t("lenderMarketDetails.transactions.deposit.button")}
+                {t("marketDetailsLender.transactions.deposit.button")}
               </Button>
             </Box>
           </Tooltip>
@@ -582,7 +573,7 @@ export const DepositModal = ({
               underlyingBalanceIsZero
             }
           >
-            {t("lenderMarketDetails.transactions.deposit.button")}
+            {t("marketDetailsLender.transactions.deposit.button")}
           </Button>
         )}
 
@@ -603,8 +594,7 @@ export const DepositModal = ({
           {showForm && (
             <>
               <TxModalHeader
-                title={t(
-                  "lenderMarketDetails.transactions.deposit.modal.title",
+                title={t("marketDetailsLender.transactions.deposit.modalTitle",
                 )}
                 arrowOnClick={
                   modal.hideArrowButton || !showForm
@@ -619,8 +609,7 @@ export const DepositModal = ({
               {modal.gettingValueStep && (
                 <Box width="100%" height="100%" padding="0 24px">
                   <ModalDataItem
-                    title={t(
-                      "lenderMarketDetails.transactions.deposit.modal.available",
+                    title={t("marketDetailsLender.transactions.deposit.modalAvailable",
                     )}
                     value={formatTokenWithCommas(marketAccount.maximumDeposit, {
                       withSymbol: true,
@@ -634,7 +623,7 @@ export const DepositModal = ({
 
                   {minimumDeposit && (
                     <ModalDataItem
-                      title="Minimum Deposit"
+                      title={t("marketDetailsLender.deposit.minimumDeposit")}
                       value={formatTokenWithCommas(minimumDeposit, {
                         withSymbol: true,
                       })}
@@ -802,14 +791,14 @@ export const DepositModal = ({
           )}
 
           <TxModalFooter
-            mainBtnText={t("lenderMarketDetails.transactions.deposit.button")}
+            mainBtnText={t("marketDetailsLender.transactions.deposit.button")}
             secondBtnText={
               // eslint-disable-next-line no-nested-ternary
               isConnectedToSafe
                 ? undefined
                 : isApprovedButton
-                  ? "Approved"
-                  : "Approve"
+                  ? t("common.toast.approved")
+                  : t("common.toast.approve")
             }
             secondBtnIcon={isApprovedButton && !isConnectedToSafe}
             mainBtnOnClick={handleDeposit}

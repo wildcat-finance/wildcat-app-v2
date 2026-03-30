@@ -100,7 +100,7 @@ export const LenderMarketSidebar = () => {
                 <SvgIcon sx={{ marginRight: "10px" }}>
                   <BorrowAndRepayIcon />
                 </SvgIcon>
-                {t("lenderMarketDetails.sidebar.actions")}
+                {t("marketDetails.sidebar.actions")}
               </Button>
             )}
 
@@ -119,7 +119,7 @@ export const LenderMarketSidebar = () => {
               <SvgIcon sx={{ marginRight: "10px" }}>
                 <StatusAndDetailsIcon />
               </SvgIcon>
-              {t("lenderMarketDetails.sidebar.status")}
+              {t("marketDetails.sidebar.statusDetails")}
             </Button>
 
             {!hideDescriptionSection && (
@@ -144,7 +144,7 @@ export const LenderMarketSidebar = () => {
                 >
                   <SummaryIcon />
                 </SvgIcon>
-                {t("lenderMarketDetails.description.title")}
+                {t("marketDetails.description.title")}
               </Button>
             )}
 
@@ -166,7 +166,7 @@ export const LenderMarketSidebar = () => {
                 <SvgIcon sx={{ marginRight: "10px" }}>
                   <WithdrawalAndRequestsIcon />
                 </SvgIcon>
-                {t("lenderMarketDetails.sidebar.requests")}
+                {t("marketDetails.sidebar.withdrawalRequests")}
                 {!!withdrawalsCount && (
                   <Box
                     sx={{
@@ -210,7 +210,7 @@ export const LenderMarketSidebar = () => {
               <SvgIcon sx={{ marginRight: "10px" }}>
                 <LenderBorrowerIcon />
               </SvgIcon>
-              {t("lenderMarketDetails.sidebar.borrowerProfile")}
+              {t("marketDetails.sidebar.borrowerProfile")}
             </Button>
 
             <Button
@@ -230,7 +230,7 @@ export const LenderMarketSidebar = () => {
               <SvgIcon sx={{ marginRight: "10px" }}>
                 <MarketEventsIcon />
               </SvgIcon>
-              {t("lenderMarketDetails.sidebar.marketHistory")}
+              {t("marketDetails.sidebar.marketHistory")}
             </Button>
           </Box>
         )}

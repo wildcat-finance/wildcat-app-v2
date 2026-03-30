@@ -119,7 +119,7 @@ export default function CreateMarketPage() {
 
   const defaultPolicyOption = {
     id: "createNewPolicy",
-    label: "Create New Policy",
+    label: t("marketDetailsBorrower.createMarketOptions.createNewPolicy"),
     value: "createNewPolicy",
   } as const
 
@@ -128,9 +128,9 @@ export default function CreateMarketPage() {
       defaultPolicyOption,
       ...(hooksInstances?.map((instance) => ({
         id: instance.address,
-        label: instance.name || "Unnamed Policy",
+        label: instance.name || t("marketDetailsBorrower.createMarketOptions.unnamedPolicy"),
         badge:
-          instance.kind === HooksKind.OpenTerm ? "Open Term" : "Fixed Term",
+          instance.kind === HooksKind.OpenTerm ? t("marketDetailsBorrower.createMarketOptions.openTerm") : t("marketDetailsBorrower.createMarketOptions.fixedTerm"),
         value: instance.address,
       })) ?? []),
     ],
@@ -342,10 +342,10 @@ export default function CreateMarketPage() {
 
                   <Box sx={DeployTypoBox}>
                     <Typography variant="title3">
-                      {t("createNewMarket.deploy.error.title")}
+                      {t("createMarket.deploy.errorTitle")}
                     </Typography>
                     <Typography variant="text3" sx={DeploySubtitle}>
-                      {t("createNewMarket.deploy.error.message")}
+                      {t("createMarket.deploy.errorMessage")}
                     </Typography>
                   </Box>
                 </Box>
@@ -361,7 +361,7 @@ export default function CreateMarketPage() {
                       setFinalOpen(false)
                     }}
                   >
-                    {t("createNewMarket.deploy.error.buttons.back")}
+                    {t("createMarket.deploy.errorBackButton")}
                   </Button>
                   <Button
                     variant="contained"
@@ -372,7 +372,7 @@ export default function CreateMarketPage() {
                       handleDeployMarket()
                     }}
                   >
-                    {t("createNewMarket.deploy.error.buttons.again")}
+                    {t("createMarket.deploy.errorAgainButton")}
                   </Button>
                 </Box>
               </Box>
@@ -396,10 +396,10 @@ export default function CreateMarketPage() {
 
                 <Box sx={DeployTypoBox}>
                   <Typography variant="title3">
-                    {t("createNewMarket.deploy.success.title")}
+                    {t("createMarket.deploy.successTitle")}
                   </Typography>
                   <Typography variant="text3" sx={DeploySubtitle}>
-                    {t("createNewMarket.deploy.success.message")}
+                    {t("createMarket.deploy.successMessage")}
                   </Typography>
                 </Box>
               </Box>
@@ -412,7 +412,7 @@ export default function CreateMarketPage() {
                     size="large"
                     fullWidth
                   >
-                    {t("createNewMarket.deploy.success.buttons.mla")}
+                    {t("createMarket.deploy.successMlaButton")}
                   </Button>
                 )}
                 <Button
@@ -421,7 +421,7 @@ export default function CreateMarketPage() {
                   size="large"
                   fullWidth
                 >
-                  {t("createNewMarket.deploy.success.buttons.markets")}
+                  {t("createMarket.deploy.successMarketsButton")}
                 </Button>
               </Box>
             </Box>
@@ -433,10 +433,10 @@ export default function CreateMarketPage() {
 
               <Box sx={DeployTypoBox}>
                 <Typography variant="text1">
-                  {t("createNewMarket.deploy.loading.title")}
+                  {t("createMarket.deploy.loadingTitle")}
                 </Typography>
                 <Typography variant="text3" sx={DeploySubtitle}>
-                  {t("createNewMarket.deploy.loading.message")}
+                  {t("createMarket.deploy.loadingMessage")}
                 </Typography>
               </Box>
             </Box>

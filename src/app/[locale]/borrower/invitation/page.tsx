@@ -1,6 +1,7 @@
 "use client"
 
 import { Box, Button, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { useLogin } from "@/hooks/useApiAuth"
@@ -10,6 +11,7 @@ import { PageContainer } from "../create-market/style"
 import { useGetBorrowerInvitation } from "../hooks/useBorrowerInvitation"
 
 const BorrowerInvitationPage = () => {
+  const { t } = useTranslation()
   const { address } = useAccount()
   const login = useLogin()
   const {
@@ -20,13 +22,13 @@ const BorrowerInvitationPage = () => {
   } = useGetBorrowerInvitation(address)
 
   if (!address) {
-    return <Box sx={PageContainer}>No Wallet Connected</Box>
+    return <Box sx={PageContainer}>{t("marketDetailsBorrower.invitation.noWallet")}</Box>
   }
   if (isLoadingInvite) {
-    return <Box sx={PageContainer}>Loading...</Box>
+    return <Box sx={PageContainer}>{t("common.loading")}</Box>
   }
   if (!inviteExists) {
-    return <Box sx={PageContainer}>No invitation found</Box>
+    return <Box sx={PageContainer}>{t("marketDetailsBorrower.invitation.noInvitation")}</Box>
   }
   if (mustLogin || !invitation) {
     return (
@@ -42,9 +44,9 @@ const BorrowerInvitationPage = () => {
         }}
       >
         <Typography variant="h6">
-          Sign In with wallet to view invitation
+          {t("marketDetailsBorrower.invitation.signInPrompt")}
         </Typography>
-        <Button onClick={() => login.mutate(address)}>Sign In</Button>
+        <Button onClick={() => login.mutate(address)}>{t("common.actions.signIn")}</Button>
       </Box>
     )
   }

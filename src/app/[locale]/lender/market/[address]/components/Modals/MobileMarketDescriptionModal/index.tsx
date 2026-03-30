@@ -1,6 +1,7 @@
 import React, { Dispatch, SetStateAction, useEffect } from "react"
 
 import { Box, Divider } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { Markdown } from "@/components/Markdown"
 import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
@@ -28,6 +29,8 @@ export const MobileMarketDescriptionModal = ({
     window.scrollTo({ top: 0, left: 0, behavior: "auto" })
   }, [])
 
+  const { t } = useTranslation()
+
   if (isLoading || !marketSummary || !setIsMobileDescriptionOpen) return null
 
   return (
@@ -45,7 +48,7 @@ export const MobileMarketDescriptionModal = ({
       }}
     >
       <TransactionHeader
-        label="Description"
+        label={t("marketDetailsLender.mobile.description")}
         subLabel={marketName}
         arrowOnClick={() => setIsMobileDescriptionOpen(false)}
         crossOnClick={null}

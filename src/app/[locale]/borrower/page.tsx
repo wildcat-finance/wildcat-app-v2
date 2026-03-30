@@ -6,6 +6,7 @@ import { Box, Button, Typography } from "@mui/material"
 import { GridRowsProp } from "@mui/x-data-grid"
 import { HooksKind } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { LendersSection } from "@/app/[locale]/borrower/components/LendersSection"
@@ -27,6 +28,7 @@ import { MarketsSection } from "./components/MarketsSection"
 import { PoliciesSection, PolicyDataT } from "./components/PoliciesSection"
 
 export default function BorrowerPage() {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const isMobile = useMobileResolution()
 
@@ -54,7 +56,7 @@ export default function BorrowerPage() {
   const policies: GridRowsProp<PolicyDataT> = [
     ...(hooksData?.hooksInstances.map((policy) => ({
       id: policy.address,
-      name: policy.name || "Unnamed Policy",
+      name: policy.name || t("borrowerMarketList.policies.unnamedPolicy"),
       type: policy.kind,
       markets: unfilteredBorrowerMarkets
         ? unfilteredBorrowerMarkets
@@ -64,20 +66,20 @@ export default function BorrowerPage() {
             .map((market) => ({ name: market.name, address: market.address }))
         : [],
       accessRequirements:
-        policy.roleProviders.length === 1 ? "Manual Approval" : "Self-Onboard",
+        policy.roleProviders.length === 1 ? t("borrowerMarketList.policies.accessTypes.manualApproval") : t("borrowerMarketList.policies.accessTypes.selfOnboard"),
     })) ?? []),
     ...(hooksData?.controller
       ? [
           {
             id: hooksData.controller.address,
-            name: "V1 Markets",
+            name: t("borrowerMarketList.policies.v1Markets"),
             type: HooksKind.OpenTerm,
             markets: unfilteredBorrowerMarkets
               ? unfilteredBorrowerMarkets.filter(
                   (market) => market.hooksConfig?.hooksAddress === undefined,
                 )
               : [],
-            accessRequirements: "Manual Approval",
+            accessRequirements: t("borrowerMarketList.policies.accessTypes.manualApproval"),
           },
         ]
       : []),
@@ -109,11 +111,10 @@ export default function BorrowerPage() {
         }}
       >
         <Typography variant="mobH3">
-          The Borrower UI is not configured for mobile, sorry!
+          {t("common.mobileFallback.title")}
         </Typography>
         <Typography variant="mobText3" color={COLORS.santasGrey}>
-          Hop on a desktop or laptop instead: we are aiming to sort this out in
-          time.
+          {t("common.mobileFallback.subtitle")}
         </Typography>
         <Link
           href={ROUTES.lender.root}
@@ -125,7 +126,7 @@ export default function BorrowerPage() {
           }}
         >
           <Button variant="contained" size="medium" color="secondary">
-            Switch to the Lenders
+            {t("common.mobileFallback.switchToLenders")}
           </Button>
         </Link>
       </Box>

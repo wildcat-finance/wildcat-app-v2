@@ -23,12 +23,12 @@ export const GlossarySidebar = ({
     case CreateMarketSteps.POLICY: {
       glossaryArray = [
         {
-          title: t("createNewMarket.policy.policy.label"),
-          description: t("createNewMarket.policy.policy.glossary"),
+          title: t("createMarket.policy.policy.label"),
+          description: t("createMarket.policy.policy.glossary"),
         },
         {
-          title: t("createNewMarket.policy.name.label"),
-          description: t("createNewMarket.policy.name.glossary"),
+          title: t("createMarket.policy.name.label"),
+          description: t("createMarket.policy.name.glossary"),
         },
       ]
       break
@@ -36,16 +36,16 @@ export const GlossarySidebar = ({
     case CreateMarketSteps.BASIC: {
       glossaryArray = [
         {
-          title: t("createNewMarket.basic.asset.label"),
-          description: t("createNewMarket.basic.asset.glossary"),
+          title: t("createMarket.basic.asset.label"),
+          description: t("createMarket.basic.asset.glossary"),
         },
         {
-          title: t("createNewMarket.basic.tokenName.label"),
-          description: t("createNewMarket.basic.tokenName.glossary"),
+          title: t("createMarket.basic.tokenName.label"),
+          description: t("createMarket.basic.tokenName.glossary"),
         },
         {
-          title: t("createNewMarket.basic.tokenSymbol.label"),
-          description: t("createNewMarket.basic.tokenSymbol.glossary"),
+          title: t("createMarket.basic.tokenSymbol.label"),
+          description: t("createMarket.basic.tokenSymbol.glossary"),
         },
       ]
       break
@@ -53,8 +53,8 @@ export const GlossarySidebar = ({
     case CreateMarketSteps.MLA: {
       glossaryArray = [
         {
-          title: t("createNewMarket.mla.mla.label"),
-          description: t("createNewMarket.mla.mla.glossary"),
+          title: t("createMarket.mla.mla.label"),
+          description: t("createMarket.mla.mla.glossary"),
         },
       ]
       break
@@ -62,32 +62,32 @@ export const GlossarySidebar = ({
     case CreateMarketSteps.FINANCIAL: {
       glossaryArray = [
         {
-          title: t("createNewMarket.financial.maxCapacity.label"),
-          description: t("createNewMarket.financial.maxCapacity.glossary"),
+          title: t("createMarket.financial.maxCapacity.label"),
+          description: t("createMarket.financial.maxCapacity.glossary"),
         },
         {
-          title: t("createNewMarket.financial.baseAPR.label"),
-          description: t("createNewMarket.financial.baseAPR.glossary"),
+          title: t("createMarket.financial.baseAPR.label"),
+          description: t("createMarket.financial.baseAPR.glossary"),
         },
         {
-          title: t("createNewMarket.financial.penaltyAPR.label"),
-          description: t("createNewMarket.financial.penaltyAPR.glossary"),
+          title: t("createMarket.financial.penaltyAPR.label"),
+          description: t("createMarket.financial.penaltyAPR.glossary"),
         },
         {
-          title: t("createNewMarket.financial.ratio.label"),
-          description: t("createNewMarket.financial.ratio.glossary"),
+          title: t("createMarket.financial.ratio.label"),
+          description: t("createMarket.financial.ratio.glossary"),
         },
         {
-          title: t("createNewMarket.periods.grace.label"),
-          description: t("createNewMarket.periods.grace.glossary"),
+          title: t("createMarket.periods.grace.label"),
+          description: t("createMarket.periods.grace.glossary"),
         },
         {
-          title: t("createNewMarket.periods.wdCycle.label"),
-          description: t("createNewMarket.periods.wdCycle.glossary"),
+          title: t("createMarket.periods.wdCycle.label"),
+          description: t("createMarket.periods.wdCycle.glossary"),
         },
         {
-          title: t("createNewMarket.financial.minDeposit.label"),
-          description: t("createNewMarket.financial.minDeposit.glossary"),
+          title: t("createMarket.financial.minDeposit.label"),
+          description: t("createMarket.financial.minDeposit.glossary"),
         },
       ]
       break
@@ -95,25 +95,20 @@ export const GlossarySidebar = ({
     case CreateMarketSteps.LRESTRICTIONS: {
       glossaryArray = [
         {
-          title: t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
+          title: t("createMarket.restrictions.restrictWithdrawals.label",
           ),
-          description: t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.glossary",
+          description: t("createMarket.restrictions.restrictWithdrawals.glossary",
           ),
         },
         {
-          title: t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.label",
+          title: t("createMarket.restrictions.restrictTransfers.label",
           ),
-          description: t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.glossary",
+          description: t("createMarket.restrictions.restrictTransfers.glossary",
           ),
         },
         {
-          title: t("createNewMarket.lenderRestrictions.disableTransfers.label"),
-          description: t(
-            "createNewMarket.lenderRestrictions.disableTransfers.glossary",
+          title: t("createMarket.restrictions.disableTransfers.label"),
+          description: t("createMarket.restrictions.disableTransfers.glossary",
           ),
         },
       ]
@@ -122,12 +117,12 @@ export const GlossarySidebar = ({
     default: {
       glossaryArray = [
         {
-          title: t("createNewMarket.policy.policy.label"),
-          description: t("createNewMarket.policy.policy.glossary"),
+          title: t("createMarket.policy.policy.label"),
+          description: t("createMarket.policy.policy.glossary"),
         },
         {
-          title: t("createNewMarket.policy.name.label"),
-          description: t("createNewMarket.policy.name.glossary"),
+          title: t("createMarket.policy.name.label"),
+          description: t("createMarket.policy.name.glossary"),
         },
       ]
       break
@@ -151,7 +146,7 @@ export const GlossarySidebar = ({
       </SvgIcon>
 
       <Typography variant="text1" sx={{ margin: "12px 0 32px" }}>
-        {t("createNewMarket.glossary")}
+        {t("createMarket.glossary")}
       </Typography>
 
       {glossaryArray.map((block) => (

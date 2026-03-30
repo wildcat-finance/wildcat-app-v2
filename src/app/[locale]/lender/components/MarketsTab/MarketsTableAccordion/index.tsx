@@ -7,6 +7,7 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { COLORS } from "@/theme/colors"
 
@@ -29,6 +30,7 @@ export const MarketsTableAccordion = ({
 
   children,
 }: MarketsTableAccordionProps) => {
+  const { t } = useTranslation()
   const defaultFilters =
     assetFilter?.length === 0 && statusFilter?.length === 0 && nameFilter === ""
 
@@ -38,7 +40,7 @@ export const MarketsTableAccordion = ({
         <Box display="flex" columnGap="4px">
           <Typography variant="text3">{label}</Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            {isLoading ? "Are Loading..." : marketsLength}
+            {isLoading ? t("marketDetailsLender.marketsTab.areLoading") : marketsLength}
           </Typography>
         </Box>
       </AccordionSummary>

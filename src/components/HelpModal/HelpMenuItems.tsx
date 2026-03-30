@@ -144,14 +144,14 @@ export function TelegramHelpItem({ isMobile }: { isMobile?: boolean }) {
           variant={isMobile ? "mobText3" : "text3"}
           color={COLORS.white}
         >
-          {t("helpModal.items.telegram.title")}
+          {t("helpCenter.items.telegram.title")}
         </Typography>
         <Typography
           variant={isMobile ? "mobText3" : "text3"}
           color={COLORS.white}
           sx={{ opacity: 0.8 }}
         >
-          {t("helpModal.items.telegram.subtitle")}
+          {t("helpCenter.items.telegram.subtitle")}
         </Typography>
       </Box>
 
@@ -179,35 +179,35 @@ export function HelpMenuItemsList() {
       {/* --- Temporary hidden --- */}
       {/* <HelpMenuItem */}
       {/*  icon={<Bug />} */}
-      {/*  title={t("helpModal.items.bug.title")} */}
-      {/*  subtitle={t("helpModal.items.bug.subtitle")} */}
+      {/*  title={t("helpCenter.items.bug.title")} */}
+      {/*  subtitle={t("helpCenter.items.bug.subtitle")} */}
       {/*  href={BUG_REPORT_URL} */}
       {/* /> */}
       <HelpMenuItem
         icon={<Message />}
-        title={t("helpModal.items.question.title")}
-        subtitle={t("helpModal.items.question.subtitle")}
+        title={t("helpCenter.items.question.title")}
+        subtitle={t("helpCenter.items.question.subtitle")}
         href={EXTERNAL_LINKS.TELEGRAM_COMMUNITY}
         isMobile={isMobile}
       />
       {/* --- Temporary hidden --- */}
       {/* <HelpMenuItem */}
       {/*  icon={<Feat />} */}
-      {/*  title={t("helpModal.items.feature.title")} */}
-      {/*  subtitle={t("helpModal.items.feature.subtitle")} */}
+      {/*  title={t("helpCenter.items.feature.title")} */}
+      {/*  subtitle={t("helpCenter.items.feature.subtitle")} */}
       {/*  href={SUGGEST_FEATURE_URL} */}
       {/* /> */}
       <HelpMenuItem
         icon={<Ask />}
-        title={t("helpModal.items.faq.title")}
-        subtitle={t("helpModal.items.faq.subtitle")}
+        title={t("helpCenter.items.faq.title")}
+        subtitle={t("helpCenter.items.faq.subtitle")}
         href={EXTERNAL_LINKS.FAQ}
         isMobile={isMobile}
       />
       <HelpMenuItem
         icon={<Partnership />}
-        title={t("helpModal.items.business.title")}
-        subtitle={t("helpModal.items.business.subtitle")}
+        title={t("helpCenter.items.business.title")}
+        subtitle={t("helpCenter.items.business.subtitle")}
         href={EXTERNAL_LINKS.BUSINESS_INQUIRY}
         showDivider={false}
         isMobile={isMobile}

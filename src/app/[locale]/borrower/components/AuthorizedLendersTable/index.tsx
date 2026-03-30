@@ -10,6 +10,7 @@ import {
 } from "@mui/material"
 import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import { MarketWithdrawalRequetstCell } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/style"
@@ -32,6 +33,7 @@ export const LendersTable = ({
   isOpen,
   isLoading,
 }: LendersTableProps) => {
+  const { t } = useTranslation()
   const { getAddressUrl } = useBlockExplorer()
   const getEditLendersLink = (lenderAddress: string) =>
     `${ROUTES.borrower.lendersList}?lenderAddress=${encodeURIComponent(
@@ -55,7 +57,7 @@ export const LendersTable = ({
       sortable: false,
       field: "name",
       disableColumnMenu: true,
-      headerName: "Name",
+      headerName: t("borrowerMarketList.lendersSection.tableHeaders.name"),
       minWidth: 160,
       headerAlign: "left",
       align: "left",
@@ -65,7 +67,7 @@ export const LendersTable = ({
     {
       sortable: false,
       field: "address",
-      headerName: "Wallet Address",
+      headerName: t("borrowerMarketList.lendersSection.tableHeaders.walletAddress"),
       minWidth: 176,
       headerAlign: "left",
       align: "left",
@@ -83,7 +85,7 @@ export const LendersTable = ({
     {
       sortable: true,
       field: "markets",
-      headerName: "Assigned to Markets",
+      headerName: t("borrowerMarketList.lendersSection.tableHeaders.assignedToMarkets"),
       minWidth: 176,
       headerAlign: "left",
       align: "left",
@@ -99,7 +101,7 @@ export const LendersTable = ({
             }}
           >
             <Typography variant="text3" color={COLORS.santasGrey}>
-              No markets yet
+              {t("borrowerMarketList.lendersSection.noMarkets")}
             </Typography>
 
             <Link href={getEditLendersLink(params.row.address)}>
@@ -108,7 +110,7 @@ export const LendersTable = ({
                 size="small"
                 sx={{ color: COLORS.ultramarineBlue }}
               >
-                Add markets
+                {t("borrowerMarketList.lendersSection.addMarkets")}
               </Button>
             </Link>
           </Box>
@@ -135,7 +137,7 @@ export const LendersTable = ({
         <Box display="flex" columnGap="4px">
           <Typography variant="text3">{label}</Typography>
           <Typography variant="text3" color={COLORS.santasGrey}>
-            {isLoading ? "are loading" : rows.length}
+            {isLoading ? t("borrowerMarketList.lendersSection.areLoading") : rows.length}
           </Typography>
         </Box>
       </AccordionSummary>

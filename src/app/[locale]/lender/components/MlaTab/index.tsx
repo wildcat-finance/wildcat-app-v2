@@ -3,11 +3,13 @@
 import { useMemo } from "react"
 
 import { Box, Button, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { useAuthToken, useLogin } from "@/hooks/useApiAuth"
 
 export default function MlaTab() {
+  const { t } = useTranslation()
   const token = useAuthToken()
   const { mutate: login } = useLogin()
   const { address } = useAccount()
@@ -28,11 +30,11 @@ export default function MlaTab() {
         }}
         height="calc(100vh - 43px - 52px - 52px - 110px)"
       >
-        <Typography variant="caption">NOT LOGGED IN</Typography>
+        <Typography variant="caption">{t("marketDetailsLender.mlaTab.notLoggedIn")}</Typography>
         <Typography variant="title2">
           {address
-            ? "Sign a message to view your signed MLAs"
-            : "Connect your wallet to continue"}
+            ? t("marketDetailsLender.mlaTab.signToView")
+            : t("marketDetailsLender.mlaTab.connectWallet")}
         </Typography>
         {address && (
           <Button
@@ -40,7 +42,7 @@ export default function MlaTab() {
             size="small"
             onClick={() => login(address)}
           >
-            Sign Message
+            {t("common.actions.signMessage")}
           </Button>
         )}
       </Box>

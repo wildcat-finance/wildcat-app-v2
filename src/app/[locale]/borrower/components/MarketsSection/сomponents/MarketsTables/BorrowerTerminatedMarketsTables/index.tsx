@@ -117,7 +117,7 @@ export const BorrowerTerminatedMarketsTables = ({
   const columns: TypeSafeColDef<BorrowerTerminatedMarketsTableModel>[] = [
     {
       field: "name",
-      headerName: t("dashboard.markets.tables.header.name"),
+      headerName: t("dashboard.tables.header.name"),
       flex: 2,
       minWidth: 200,
       headerAlign: "left",
@@ -157,7 +157,7 @@ export const BorrowerTerminatedMarketsTables = ({
     },
     {
       field: "status",
-      headerName: t("dashboard.markets.tables.header.status"),
+      headerName: t("dashboard.tables.header.status"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -183,7 +183,7 @@ export const BorrowerTerminatedMarketsTables = ({
     },
     {
       field: "asset",
-      headerName: t("dashboard.markets.tables.header.asset"),
+      headerName: t("dashboard.tables.header.asset"),
       minWidth: 200,
       flex: 2,
       headerAlign: "right",
@@ -206,7 +206,7 @@ export const BorrowerTerminatedMarketsTables = ({
     },
     {
       field: "apr",
-      headerName: t("dashboard.markets.tables.header.apr"),
+      headerName: t("dashboard.tables.header.apr"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -239,7 +239,7 @@ export const BorrowerTerminatedMarketsTables = ({
     },
     {
       field: "withdrawalBatchDuration",
-      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      headerName: t("dashboard.tables.header.withdrawal"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -262,7 +262,7 @@ export const BorrowerTerminatedMarketsTables = ({
     },
     {
       field: "debt",
-      headerName: t("dashboard.markets.tables.header.debt"),
+      headerName: t("dashboard.tables.header.debt"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -304,7 +304,7 @@ export const BorrowerTerminatedMarketsTables = ({
     >
       <Box id="prev-active" ref={prevActiveRef}>
         <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.closed.prevActive")}
+          label={t("dashboard.tables.borrower.prevActive")}
           marketsLength={prevActive.length}
           isLoading={isLoading}
           isOpen
@@ -312,8 +312,8 @@ export const BorrowerTerminatedMarketsTables = ({
           assetFilter={filters.assetFilter}
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
-          noMarketsTitle={t("dashboard.markets.noMarkets.closed.title")}
-          noMarketsSubtitle={t("dashboard.markets.noMarkets.closed.subtitle")}
+          noMarketsTitle={t("dashboard.emptyStates.closed.title")}
+          noMarketsSubtitle={t("dashboard.emptyStates.closed.subtitle")}
         >
           <DataGrid
             disableVirtualization
@@ -327,7 +327,7 @@ export const BorrowerTerminatedMarketsTables = ({
 
       <Box id="never-active" ref={neverActiveRef}>
         <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.closed.neverActive")}
+          label={t("dashboard.tables.borrower.neverActive")}
           isLoading={isLoading}
           isOpen
           marketsLength={neverActive.length}
@@ -335,8 +335,8 @@ export const BorrowerTerminatedMarketsTables = ({
           assetFilter={filters.assetFilter}
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
-          noMarketsTitle={t("dashboard.markets.noMarkets.closed.title")}
-          noMarketsSubtitle={t("dashboard.markets.noMarkets.closed.subtitle")}
+          noMarketsTitle={t("dashboard.emptyStates.closed.title")}
+          noMarketsSubtitle={t("dashboard.emptyStates.closed.subtitle")}
         >
           <DataGrid
             disableVirtualization

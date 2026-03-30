@@ -8,6 +8,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import Cross from "@/assets/icons/cross_icon.svg"
 import EditIcon from "@/assets/icons/edit_icon.svg"
@@ -21,14 +22,15 @@ import {
 } from "./style"
 
 export const LenderName = ({ address }: LenderNameProps) => {
+  const { t } = useTranslation()
   const lowerCaseAddress = address.toLowerCase()
   const [isEdit, setIsEdit] = useState(false)
 
   const [lendersName, setLendersName] = useState<{ [key: string]: string }>({})
-  const [name, setName] = useState("Add Name")
+  const [name, setName] = useState(t("marketDetailsBorrower.lenderStats.addName"))
   const [prevName, setPrevName] = useState(name)
   const containerRef = useRef<HTMLDivElement>(null)
-  const isPlaceholder = name === "Add Name"
+  const isPlaceholder = name === t("marketDetailsBorrower.lenderStats.addName")
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -37,12 +39,12 @@ export const LenderName = ({ address }: LenderNameProps) => {
         window.localStorage.getItem("lenders-name") || "{}",
       ) as { [key: string]: string }
       setLendersName(stored)
-      setName(stored[lowerCaseAddress] || "Add Name")
-      setPrevName(stored[lowerCaseAddress] || "Add Name")
+      setName(stored[lowerCaseAddress] || t("marketDetailsBorrower.lenderStats.addName"))
+      setPrevName(stored[lowerCaseAddress] || t("marketDetailsBorrower.lenderStats.addName"))
     } catch {
       setLendersName({})
-      setName("Add Name")
-      setPrevName("Add Name")
+      setName(t("marketDetailsBorrower.lenderStats.addName"))
+      setPrevName(t("marketDetailsBorrower.lenderStats.addName"))
     }
   }, [lowerCaseAddress])
 
@@ -56,7 +58,7 @@ export const LenderName = ({ address }: LenderNameProps) => {
     if (evt.key === "Enter") {
       if (name === "") {
         delete lendersName[lowerCaseAddress]
-        setName("Add Name")
+        setName(t("marketDetailsBorrower.lenderStats.addName"))
       } else {
         lendersName[lowerCaseAddress] = name
         localStorage.setItem("lenders-name", JSON.stringify(lendersName))

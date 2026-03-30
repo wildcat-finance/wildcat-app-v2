@@ -32,7 +32,7 @@ export const MarketSummary = ({
   if (isLoading) {
     return (
       <Typography variant="text2" color={COLORS.santasGrey}>
-        {t("lenderMarketDetails.description.states.loading")}
+        {t("marketDetails.description.states.loading")}
       </Typography>
     )
   }
@@ -40,7 +40,7 @@ export const MarketSummary = ({
   if (!marketSummary?.description || marketSummary?.description === "") {
     return (
       <Typography variant="text2" color={COLORS.santasGrey}>
-        {t("lenderMarketDetails.description.states.noDescription")}
+        {t("marketDetails.description.states.noDescription")}
       </Typography>
     )
   }

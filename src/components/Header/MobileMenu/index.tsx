@@ -655,10 +655,10 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                 }}
               >
                 <Typography variant="mobText1">
-                  {t("helpModal.title")}
+                  {t("helpCenter.title")}
                 </Typography>
                 <Typography variant="mobText3" color={COLORS.manate}>
-                  {t("helpModal.subtitle")}
+                  {t("helpCenter.subtitle")}
                 </Typography>
               </Box>
 

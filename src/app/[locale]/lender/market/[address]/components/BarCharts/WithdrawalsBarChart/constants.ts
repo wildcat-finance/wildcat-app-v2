@@ -1,7 +1,7 @@
 export const MARKET_BAR_DATA = {
   claimable: {
     id: "claimable",
-    label: "Claimable",
+    label: "marketDetailsLender.barchart.withdrawalsLabels.claimable",
     healthyBgColor: "#4971FF",
     delinquentBgColor: "#4971FF",
     healthyTextColor: "#FFFFFF",
@@ -9,7 +9,7 @@ export const MARKET_BAR_DATA = {
   },
   ongoing: {
     id: "ongoing",
-    label: "Ongoing",
+    label: "marketDetailsLender.barchart.withdrawalsLabels.ongoing",
     healthyBgColor: "#D6D6DE",
     delinquentBgColor: "#EFF0F4",
     healthyTextColor: "#1414144D",
@@ -17,7 +17,7 @@ export const MARKET_BAR_DATA = {
   },
   outstanding: {
     id: "outstanding",
-    label: "Outstanding",
+    label: "marketDetailsLender.barchart.withdrawalsLabels.outstanding",
     healthyBgColor: "#F7D7DA",
     delinquentBgColor: "#F7D7DA",
     healthyTextColor: "",

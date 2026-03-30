@@ -146,7 +146,7 @@ export const LenderActiveMarketsTables = ({
   const columns: TypeSafeColDef<LenderActiveMarketsTableModel>[] = [
     {
       field: "name",
-      headerName: t("dashboard.markets.tables.header.name"),
+      headerName: t("dashboard.tables.header.name"),
       flex: 2,
       minWidth: 200,
       headerAlign: "left",
@@ -194,7 +194,7 @@ export const LenderActiveMarketsTables = ({
     },
     {
       field: "status",
-      headerName: t("dashboard.markets.tables.header.status"),
+      headerName: t("dashboard.tables.header.status"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -215,7 +215,7 @@ export const LenderActiveMarketsTables = ({
     },
     {
       field: "term",
-      headerName: t("dashboard.markets.tables.header.term"),
+      headerName: t("dashboard.tables.header.term"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -236,7 +236,7 @@ export const LenderActiveMarketsTables = ({
     },
     {
       field: "apr",
-      headerName: t("dashboard.markets.tables.header.apr"),
+      headerName: t("dashboard.tables.header.apr"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -262,7 +262,7 @@ export const LenderActiveMarketsTables = ({
     },
     {
       field: "withdrawalBatchDuration",
-      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      headerName: t("dashboard.tables.header.withdrawal"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -280,7 +280,7 @@ export const LenderActiveMarketsTables = ({
     },
     {
       field: "asset",
-      headerName: t("dashboard.markets.tables.header.asset"),
+      headerName: t("dashboard.tables.header.asset"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -298,7 +298,7 @@ export const LenderActiveMarketsTables = ({
     },
     {
       field: "capacityLeft",
-      headerName: t("dashboard.markets.tables.header.capacity"),
+      headerName: t("dashboard.tables.header.capacity"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -327,7 +327,7 @@ export const LenderActiveMarketsTables = ({
     },
     {
       field: "debt",
-      headerName: t("dashboard.markets.tables.header.debt"),
+      headerName: t("dashboard.tables.header.debt"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -346,7 +346,7 @@ export const LenderActiveMarketsTables = ({
     },
     {
       field: "loan",
-      headerName: t("dashboard.markets.tables.header.loan"),
+      headerName: t("dashboard.tables.header.loan"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -401,13 +401,12 @@ export const LenderActiveMarketsTables = ({
     >
       <Box id="deposited" ref={depositedRef}>
         <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.active.deposited")}
+          label={t("dashboard.tables.borrower.deposited")}
           marketsLength={depositedMarkets.length}
           isLoading={isLoading}
           isOpen
-          noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
-          noMarketsSubtitle={t(
-            "dashboard.markets.noMarkets.active.lenderSubtitle",
+          noMarketsTitle={t("dashboard.emptyStates.active.title")}
+          noMarketsSubtitle={t("dashboard.emptyStates.active.lenderSubtitle",
           )}
           nameFilter={filters.nameFilter}
           assetFilter={filters.assetFilter}
@@ -419,7 +418,7 @@ export const LenderActiveMarketsTables = ({
               {depositedMarkets.map((marketItem) => (
                 <MobileMarketCard
                   marketItem={marketItem}
-                  buttonText="Deposit"
+                  buttonText={t("marketDetailsLender.mobileButtons.deposit")}
                   buttonIcon
                 />
               ))}
@@ -440,12 +439,11 @@ export const LenderActiveMarketsTables = ({
 
       <Box id="non-deposited" ref={nonDepositedRef}>
         <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
+          label={t("dashboard.tables.borrower.nonDeposited")}
           isLoading={isLoading}
           isOpen
-          noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
-          noMarketsSubtitle={t(
-            "dashboard.markets.noMarkets.active.lenderSubtitle",
+          noMarketsTitle={t("dashboard.emptyStates.active.title")}
+          noMarketsSubtitle={t("dashboard.emptyStates.active.lenderSubtitle",
           )}
           marketsLength={nonDepositedMarkets.length}
           nameFilter={filters.nameFilter}
@@ -458,7 +456,7 @@ export const LenderActiveMarketsTables = ({
               {nonDepositedMarkets.map((marketItem) => (
                 <MobileMarketCard
                   marketItem={marketItem}
-                  buttonText="Deposit"
+                  buttonText={t("marketDetailsLender.mobileButtons.deposit")}
                   buttonIcon
                 />
               ))}

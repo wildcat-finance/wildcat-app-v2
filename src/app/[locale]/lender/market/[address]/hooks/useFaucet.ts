@@ -4,6 +4,7 @@ import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { BaseTransaction } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
@@ -11,6 +12,7 @@ import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export const useFaucet = (marketAccount: MarketAccount) => {
+  const { t } = useTranslation()
   const signer = useEthersSigner()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
@@ -39,9 +41,9 @@ export const useFaucet = (marketAccount: MarketAccount) => {
       }
 
       await toastRequest(faucet(), {
-        error: "Failed to acquire testnet tokens",
-        success: "Acquired testnet tokens!",
-        pending: "Requesting testnet tokens...",
+        error: t("marketDetailsLender.toast.faucetError"),
+        success: t("marketDetailsLender.toast.faucetSuccess"),
+        pending: t("marketDetailsLender.toast.faucetPending"),
       })
     },
     onSuccess() {

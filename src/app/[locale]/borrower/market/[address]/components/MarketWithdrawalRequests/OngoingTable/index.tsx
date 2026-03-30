@@ -59,7 +59,7 @@ export const OngoingTable = ({
           }}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            {t("marketWithdrawalRequests.noOngoing")}
+            {t("marketDetails.withdrawals.noOngoing")}
           </Typography>
         </Box>
       )
@@ -99,7 +99,7 @@ export const OngoingTable = ({
     <DetailsAccordion
       isOpen={isOngoingOpen}
       setIsOpen={setIsOngoingOpen}
-      summaryText="Ongoing"
+      summaryText={t("marketDetailsBorrower.withdrawalTables.ongoing")}
       summarySx={{
         borderRadius: "0px",
         borderBottom: isOngoingOpen ? "none" : `1px solid`,

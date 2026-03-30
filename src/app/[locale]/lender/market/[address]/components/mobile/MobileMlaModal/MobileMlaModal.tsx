@@ -4,6 +4,8 @@ import * as React from "react"
 import { Box, Button } from "@mui/material"
 import { useAccount } from "wagmi"
 
+import { useTranslation } from "react-i18next"
+
 import { useSignLenderMLA } from "@/app/[locale]/lender/hooks/useSignLenderMla"
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
 import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
@@ -23,6 +25,7 @@ export const MobileMlaModal = ({
   isMobileOpen,
   setIsMobileOpen,
 }: MobileMlaModalProps) => {
+  const { t } = useTranslation()
   const mla = mlaInput && "noMLA" in mlaInput ? undefined : mlaInput
   const { address, chainId } = useAccount()
   const { data: signedMla, isLoading: signedMlaLoading } = useGetSignedMla(mla)
@@ -87,7 +90,7 @@ export const MobileMlaModal = ({
       }}
     >
       <TransactionHeader
-        label="Market Lending Agreement"
+        label={t("marketDetailsLender.mla.title")}
         arrowOnClick={null}
         crossOnClick={() => setIsMobileOpen(false)}
       />
@@ -105,7 +108,7 @@ export const MobileMlaModal = ({
             height: "100%",
             border: "none",
           }}
-          title="Market Lending Agreement"
+          title={t("marketDetailsLender.mla.title")}
         />
       </Box>
 
@@ -120,7 +123,7 @@ export const MobileMlaModal = ({
             disabled={disableActions}
             fullWidth
           >
-            Download PDF
+            {t("marketDetailsLender.mla.downloadPdf")}
           </Button>
         )}
 
@@ -133,7 +136,7 @@ export const MobileMlaModal = ({
             disabled={disableActions}
             fullWidth
           >
-            Download Signed MLA
+            {t("marketDetailsLender.mla.downloadSignedMla")}
           </Button>
         )}
 
@@ -146,7 +149,7 @@ export const MobileMlaModal = ({
             disabled={disableActions}
             fullWidth
           >
-            {signedMlaLoading ? "Signing..." : "Sign MLA"}
+            {signedMlaLoading ? t("common.toast.signing") : t("marketDetailsLender.mla.signMla")}
           </Button>
         )}
       </Box>

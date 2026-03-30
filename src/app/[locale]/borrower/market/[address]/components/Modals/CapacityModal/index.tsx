@@ -85,7 +85,7 @@ export const CapacityModal = ({
         onClick={modal.handleOpenModal}
         disabled={disableCapacity}
       >
-        {t("borrowerMarketDetails.buttons.capacity")}
+        {t("marketDetailsBorrower.actions.capacity")}
       </Button>
 
       <Dialog
@@ -95,8 +95,8 @@ export const CapacityModal = ({
       >
         {showForm && (
           <TxModalHeader
-            title="Adjust Capacity"
-            tooltip="Increase or decrease the maximum amount of credit extendable within this market."
+            title={t("marketDetailsBorrower.modals.capacity.title")}
+            tooltip={t("marketDetailsBorrower.modals.capacity.tooltip")}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
@@ -108,7 +108,7 @@ export const CapacityModal = ({
           <Box width="100%" height="100%" padding="12px 24px">
             <Box sx={TxModalInfoItem} marginBottom="20px">
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                {t("borrowerMarketDetails.modals.capacity.current")}
+                {t("marketDetailsBorrower.modals.capacity.current")}
               </Typography>
               <Typography variant="text3">{`${formatTokenWithCommas(
                 market.maxTotalSupply,
@@ -116,7 +116,7 @@ export const CapacityModal = ({
             </Box>
 
             <NumberTextField
-              label="Enter a new capacity"
+              label={t("marketDetailsBorrower.modals.capacity.inputLabel")}
               size="medium"
               style={{ width: "100%" }}
               value={amount}
@@ -144,7 +144,7 @@ export const CapacityModal = ({
         )}
 
         <TxModalFooter
-          mainBtnText="Confirm"
+          mainBtnText={t("common.actions.confirm")}
           mainBtnOnClick={handleConfirm}
           disableMainBtn={disableConfirm}
           hideButtons={!showForm}

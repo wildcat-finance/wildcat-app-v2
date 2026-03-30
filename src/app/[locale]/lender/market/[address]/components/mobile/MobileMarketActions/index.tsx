@@ -88,6 +88,7 @@ export const MobileFaucetButton = ({
 }: {
   marketAccount: MarketAccount
 }) => {
+  const { t } = useTranslation()
   const {
     mutate: faucet,
     isPending: isFauceting,
@@ -106,7 +107,7 @@ export const MobileFaucetButton = ({
       disabled={isFauceting}
       sx={{ padding: "10px 20px", marginTop: "16px" }}
     >
-      {isFauceting ? "Requesting Tokens..." : "Faucet"}
+      {isFauceting ? t("marketDetailsLender.faucetButton.requesting") : t("marketDetailsLender.faucetButton.faucet")}
     </Button>
   )
 }
@@ -190,7 +191,7 @@ export const MobileMarketActions = ({
             >
               <Box>
                 <MobileMarketTransactionItem
-                  title="Available To Claim"
+                  title={t("marketDetailsLender.mobile.availableToClaim")}
                   amount={formatTokenWithCommas(
                     withdrawals.totalClaimableAmount,
                   )}
@@ -228,7 +229,7 @@ export const MobileMarketActions = ({
               textAlign="center"
               marginTop="12px"
             >
-              Master Loan Agreement
+              {t("marketDetailsLender.mla.title")}
             </Typography>
 
             <Box
@@ -247,7 +248,7 @@ export const MobileMarketActions = ({
                 <Clock />
               </SvgIcon>
               <Typography variant="mobText3" color={COLORS.white06}>
-                Waiting for sign
+                {t("marketDetailsLender.mla.waitingForSign")}
               </Typography>
             </Box>
 
@@ -265,7 +266,7 @@ export const MobileMarketActions = ({
                 lineHeight: "20px",
               }}
             >
-              {t("lenderMarketDetails.buttons.viewMla")}
+              {t("marketDetailsLender.actions.viewMla")}
             </Button>
           </>
         )}
@@ -281,9 +282,8 @@ export const MobileMarketActions = ({
               }}
             >
               <MobileMarketTransactionItem
-                // title={t("lenderMarketDetails.transactions.withdraw.title")}
-                title="Available To Withdraw"
-                tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
+                title={t("marketDetailsLender.mobile.availableToWithdraw")}
+                tooltip={t("marketDetailsLender.transactions.withdraw.tooltip")}
                 amount={formatTokenWithCommas(marketAccount.marketBalance)}
                 asset={market.underlyingToken.symbol}
               />
@@ -301,8 +301,8 @@ export const MobileMarketActions = ({
               >
                 ↑{" "}
                 {notMature
-                  ? t("lenderMarketDetails.transactions.withdraw.buttonLocked")
-                  : t("lenderMarketDetails.transactions.withdraw.button")}
+                  ? t("marketDetailsLender.transactions.withdraw.buttonLocked")
+                  : t("marketDetailsLender.transactions.withdraw.button")}
               </Button>
             </Box>
 
@@ -315,8 +315,8 @@ export const MobileMarketActions = ({
               }}
             >
               <MobileMarketTransactionItem
-                title={t("lenderMarketDetails.transactions.deposit.title")}
-                tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
+                title={t("marketDetailsLender.transactions.deposit.title")}
+                tooltip={t("marketDetailsLender.transactions.deposit.tooltip")}
                 amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
                 asset={market.underlyingToken.symbol}
               />
@@ -333,7 +333,7 @@ export const MobileMarketActions = ({
                   disabled={marketAccount.maximumDeposit.raw.isZero()}
                   sx={{ padding: "10px 20px", marginTop: "16px" }}
                 >
-                  ↓ {t("lenderMarketDetails.transactions.deposit.button")}
+                  ↓ {t("marketDetailsLender.transactions.deposit.button")}
                 </Button>
               )}
             </Box>

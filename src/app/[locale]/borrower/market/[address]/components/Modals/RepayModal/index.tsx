@@ -262,10 +262,10 @@ export const RepayModal = ({
       : ""
 
   const amountInputLabel = isRepayByDays
-    ? `${t("borrowerMarketDetails.modals.repay.interestRemaining")}${
+    ? `${t("marketDetailsBorrower.modals.repay.interestRemaining")}${
         remainingInterest ? ` ${remainingInterest}` : ""
       }`
-    : `${t("borrowerMarketDetails.modals.repay.upTo")} ${formatTokenWithCommas(
+    : `${t("marketDetailsBorrower.modals.repay.upTo")} ${formatTokenWithCommas(
         market.outstandingDebt,
         {
           withSymbol: true,
@@ -287,7 +287,7 @@ export const RepayModal = ({
       market.underlyingToken.symbol
     }`}</Typography>
   ) : (
-    <TextfieldButton buttonText="Max" onClick={handleClickMaxAmount} />
+    <TextfieldButton buttonText={t("common.labels.max")} onClick={handleClickMaxAmount} />
   )
 
   useEffect(() => {
@@ -322,7 +322,7 @@ export const RepayModal = ({
     if (repayStep === "InsufficientAllowance") {
       // warn approval is larger than balance
       if (repayAmount.gt(marketAccount.underlyingBalance)) {
-        setRepayError(EXCEEDS_BALANCE_MESSAGE)
+        setRepayError(t("marketDetailsBorrower.modals.repay.exceedsBalance"))
       } else {
         // amount is within balance, just needs approval
         setRepayError(undefined)
@@ -334,7 +334,7 @@ export const RepayModal = ({
     if (repayStep === "InsufficientBalance") {
       if (!isAllowanceSufficient) {
         // needs approval - friendly message
-        setRepayError(EXCEEDS_BALANCE_MESSAGE)
+        setRepayError(t("marketDetailsBorrower.modals.repay.exceedsBalance"))
       } else {
         // has approval but truly insufficient balance
         setRepayError(SDK_ERRORS_MAPPING.repay[repayStep])
@@ -382,7 +382,7 @@ export const RepayModal = ({
           sx={{ width: "152px" }}
           disabled={disableRepayBtn}
         >
-          {t("borrowerMarketDetails.modals.repay.repay")}
+          {t("marketDetailsBorrower.modals.repay.repay")}
         </Button>
       )}
 
@@ -394,7 +394,7 @@ export const RepayModal = ({
           sx={PenaltyRepayBtn}
           disabled={disableRepayBtn}
         >
-          {t("borrowerMarketDetails.modals.repay.repay")}
+          {t("marketDetailsBorrower.modals.repay.repay")}
           <SvgIcon fontSize="tiny" sx={PenaltyRepayBtnIcon}>
             <Arrow />
           </SvgIcon>
@@ -408,7 +408,7 @@ export const RepayModal = ({
       >
         {showForm && (
           <TxModalHeader
-            title="Repay"
+            title={t("marketDetailsBorrower.modals.repay.title")}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
@@ -430,13 +430,13 @@ export const RepayModal = ({
               >
                 <Tab
                   value="sum"
-                  label="Sum"
+                  label={t("marketDetailsBorrower.modals.repay.tabSum")}
                   className="contained"
                   sx={{ width: "196px" }}
                 />
                 <Tab
                   value="days"
-                  label="Days*"
+                  label={t("marketDetailsBorrower.modals.repay.tabDays")}
                   className="contained"
                   sx={{ width: "196px" }}
                 />
@@ -445,14 +445,14 @@ export const RepayModal = ({
 
             {isRepayByDays && modal.gettingValueStep && (
               <Typography variant="text4" sx={DaysSubtitle}>
-                {t("borrowerMarketDetails.modals.repay.daysSubtitle")}
+                {t("marketDetailsBorrower.modals.repay.daysSubtitle")}
               </Typography>
             )}
 
             {modal.approvedStep && (
               <Box sx={TxModalInfoItem} padding="0 16px" marginBottom="8px">
                 <Typography variant="text3" sx={TxModalInfoTitle}>
-                  {t("borrowerMarketDetails.modals.repay.repaySum")}
+                  {t("marketDetailsBorrower.modals.repay.repaySum")}
                 </Typography>
                 <Typography variant="text3">
                   {isTooSmallOutstandingDebt
@@ -469,9 +469,9 @@ export const RepayModal = ({
               padding="0 16px"
             >
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                {t("borrowerMarketDetails.modals.repay.repaySum")}{" "}
+                {t("marketDetailsBorrower.modals.repay.repaySum")}{" "}
                 {modal.approvedStep &&
-                  t("borrowerMarketDetails.modals.repay.afterTransaction")}
+                  t("marketDetailsBorrower.modals.repay.afterTransaction")}
               </Typography>
               <Typography variant="text3">
                 {isTooSmallOutstandingDebt
@@ -593,30 +593,22 @@ export const RepayModal = ({
         {mustResetAllowance && (
           <Box width="100%" height="100%" padding="0 24px">
             <Typography variant="text3" color={COLORS.dullRed}>
-              You have an existing allowance of{" "}
-              {market.underlyingToken
+              {t("marketDetailsBorrower.modals.repay.existingAllowance", { amount: market.underlyingToken
                 .getAmount(marketAccount.underlyingApproval)
-                .format(market.underlyingToken.decimals, true)}{" "}
-              for this market.
-              <br />
-              {market.underlyingToken.symbol} requires that allowances be reset
-              to zero prior to being increased.
-              <br />
-              You will be prompted to execute two approval transactions to first
-              reset and then increase the allowance for this market.
+                .format(market.underlyingToken.decimals, true), tokenName: market.underlyingToken.symbol })}
             </Typography>
           </Box>
         )}
 
         <TxModalFooter
-          mainBtnText="Repay"
+          mainBtnText={t("marketDetailsBorrower.modals.repay.repay")}
           secondBtnText={
             // eslint-disable-next-line no-nested-ternary
             isConnectedToSafe
               ? undefined
               : isApprovedButton
-                ? t("borrowerMarketDetails.modals.repay.approved")
-                : t("borrowerMarketDetails.modals.repay.approve")
+                ? t("marketDetailsBorrower.modals.repay.approved")
+                : t("marketDetailsBorrower.modals.repay.approve")
           }
           secondBtnIcon={isApprovedButton && !isConnectedToSafe}
           mainBtnOnClick={handleRepay}

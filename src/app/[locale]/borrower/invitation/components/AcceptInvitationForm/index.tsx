@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 
 import { Box, Button, TextField, Typography } from "@mui/material"
 import Link from "next/link"
-import { Trans } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { AgreementText } from "@/app/[locale]/agreement/components/AgreementText"
@@ -21,6 +21,7 @@ export const AcceptInvitationForm = ({
   invitation: BorrowerInvitation
   address: string
 }) => {
+  const { t } = useTranslation()
   const [name, setName] = useState(invitation.name || "")
   const submitMutation = useSubmitAcceptInvitation()
   const [timeSigned, setTimeSigned] = useState<number>()
@@ -60,10 +61,10 @@ export const AcceptInvitationForm = ({
           justifyContent: "center",
         }}
       >
-        <Typography variant="h4">Accept Invitation</Typography>
+        <Typography variant="h4">{t("marketDetailsBorrower.invitation.acceptTitle")}</Typography>
 
         <TextField
-          label="Organization Name"
+          label={t("marketDetailsBorrower.invitation.organizationName")}
           value={name}
           onChange={(e) => setName(e.target.value)}
           fullWidth
@@ -103,7 +104,7 @@ export const AcceptInvitationForm = ({
           onClick={handleSubmit}
           disabled={!name || submitMutation.isPending}
         >
-          {submitMutation.isPending ? "Signing..." : "Sign & Accept"}
+          {submitMutation.isPending ? t("common.toast.signing") : t("common.actions.signAndAccept")}
         </Button>
 
         <Link href="/pdf/Wildcat_Terms_of_Use.pdf" target="_blank" download>

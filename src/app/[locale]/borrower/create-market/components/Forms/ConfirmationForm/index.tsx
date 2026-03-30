@@ -185,11 +185,11 @@ export const ConfirmationForm = ({
   return (
     <Box sx={{ ...FormContainer, width: "71.5%", paddingBottom: "24px" }}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.confirm.title")}
+        {t("createMarket.confirm.title")}
       </Typography>
 
       <Typography variant="text4" sx={SubtitleStyle}>
-        {t("createNewMarket.policy.title")}
+        {t("createMarket.policy.title")}
       </Typography>
 
       <Box
@@ -199,21 +199,21 @@ export const ConfirmationForm = ({
         }}
       >
         <ConfirmationFormItem
-          label={t("createNewMarket.policy.policy.label")}
+          label={t("createMarket.policy.policy.label")}
           value={isNewPolicy ? "NEW POLICY" : "EXISTING POLICY"}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.policy.name.label")}
+          label={t("createMarket.policy.name.label")}
           value={policyNameValue}
         />
         <ConfirmationFormItem
-          label={t("createNewMarket.policy.type.label")}
+          label={t("createMarket.policy.type.label")}
           value={marketTypeValue || ""}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.policy.access.label")}
+          label={t("createMarket.policy.access.label")}
           value={accessControlValue ?? "-"}
         />
       </Box>
@@ -221,7 +221,7 @@ export const ConfirmationForm = ({
       <Divider sx={DividerStyle} />
 
       <Typography variant="text4" sx={SubtitleStyle}>
-        {t("createNewMarket.basic.title")}
+        {t("createMarket.basic.title")}
       </Typography>
 
       <Box
@@ -231,17 +231,17 @@ export const ConfirmationForm = ({
         }}
       >
         <ConfirmationFormItem
-          label={t("createNewMarket.basic.asset.label")}
+          label={t("createMarket.basic.asset.label")}
           value={tokenAsset?.name || ""}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.basic.tokenName.label")}
+          label={t("createMarket.basic.tokenName.label")}
           value={`${getValues("namePrefix")} ${tokenAsset?.name}`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.basic.tokenSymbol.label")}
+          label={t("createMarket.basic.tokenSymbol.label")}
           value={`${getValues("symbolPrefix")}${tokenAsset?.symbol}`}
         />
       </Box>
@@ -259,7 +259,7 @@ export const ConfirmationForm = ({
             }}
           >
             <Typography variant="text4" sx={{ textTransform: "uppercase" }}>
-              {t("createNewMarket.mla.title")}
+              {t("createMarket.mla.title")}
             </Typography>
 
             {/* <Button
@@ -268,7 +268,7 @@ export const ConfirmationForm = ({
               size="small"
               sx={{ width: "fit-content" }}
             >
-              {t("createNewMarket.buttons.viewMLA")}
+              {t("createMarket.buttons.viewMLA")}
             </Button> */}
             <PreviewMlaModal
               form={form}
@@ -282,7 +282,7 @@ export const ConfirmationForm = ({
               sx={{ width: "fit-content" }}
               modalButtonVariant="contained"
               modalButtonSize="small"
-              buttonText={t("createNewMarket.buttons.viewMLA")}
+              buttonText={t("createMarket.buttons.viewMLA")}
               showSignButton={false}
             />
           </Box>
@@ -294,7 +294,7 @@ export const ConfirmationForm = ({
       {isFixedTerm && (
         <>
           <Typography variant="text4" sx={SubtitleStyle}>
-            {t("createNewMarket.confirm.typeTerms")}
+            {t("createMarket.confirm.typeTerms")}
           </Typography>
 
           <Box
@@ -304,7 +304,7 @@ export const ConfirmationForm = ({
             }}
           >
             <ConfirmationFormItem
-              label={t("createNewMarket.policy.expiration.label")}
+              label={t("createMarket.policy.expiration.label")}
               value={
                 timestampToDateFormatted(
                   Number(getValues("fixedTermEndTime")),
@@ -314,12 +314,12 @@ export const ConfirmationForm = ({
             />
 
             <ConfirmationFormItem
-              label={t("createNewMarket.policy.earlyClose.label")}
+              label={t("createMarket.policy.earlyClose.label")}
               value={getValues("allowClosureBeforeTerm") ? "Yes" : "No"}
             />
 
             <ConfirmationFormItem
-              label={t("createNewMarket.policy.reduceExpiration.label")}
+              label={t("createMarket.policy.reduceExpiration.label")}
               value={getValues("allowTermReduction") ? "Yes" : "No"}
             />
           </Box>
@@ -329,7 +329,7 @@ export const ConfirmationForm = ({
       )}
 
       <Typography variant="text4" sx={SubtitleStyle}>
-        {t("createNewMarket.financial.title")}
+        {t("createMarket.financial.title")}
       </Typography>
 
       <Box
@@ -340,42 +340,42 @@ export const ConfirmationForm = ({
         }}
       >
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.maxCapacity.label")}
+          label={t("createMarket.financial.maxCapacity.label")}
           value={`${getValues("maxTotalSupply")} ${tokenAsset?.symbol}`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.baseAPR.label")}
+          label={t("createMarket.financial.baseAPR.label")}
           value={`${getValues("annualInterestBips")}%`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.protocolFee.label")}
+          label={t("createMarket.financial.protocolFee.label")}
           /* dev: hardcoded for now, need to grab protocol fee from template */
           value={`${(getValues("annualInterestBips") * 5) / 100}%`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.penaltyAPR.label")}
+          label={t("createMarket.financial.penaltyAPR.label")}
           value={`${getValues("delinquencyFeeBips")}%`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.ratio.label")}
+          label={t("createMarket.financial.ratio.label")}
           value={`${getValues("reserveRatioBips")}%`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.periods.grace.label")}
+          label={t("createMarket.periods.grace.label")}
           value={`${getValues("delinquencyGracePeriod")} hours`}
         />
         <ConfirmationFormItem
-          label={t("createNewMarket.periods.wdCycle.label")}
+          label={t("createMarket.periods.wdCycle.label")}
           value={`${getValues("withdrawalBatchDuration")} hours`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.minDeposit.label")}
+          label={t("createMarket.financial.minDeposit.label")}
           value={`${getValues("minimumDeposit") ?? 0} ${tokenAsset?.symbol}`}
         />
       </Box>
@@ -383,7 +383,7 @@ export const ConfirmationForm = ({
       <Divider sx={DividerStyle} />
 
       <Typography variant="text4" sx={SubtitleStyle}>
-        {t("createNewMarket.lenderRestrictions.title")}
+        {t("createMarket.restrictions.title")}
       </Typography>
 
       <Box
@@ -393,21 +393,19 @@ export const ConfirmationForm = ({
         }}
       >
         <ConfirmationFormItem
-          label={t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
+          label={t("createMarket.restrictions.restrictWithdrawals.label",
           )}
           value={withdrawalRequiresAccess ? "Yes" : "No"}
         />
 
         <ConfirmationFormItem
-          label={t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.label",
+          label={t("createMarket.restrictions.restrictTransfers.label",
           )}
           value={transferRequiresAccess ? "Yes" : "No"}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.lenderRestrictions.disableTransfers.label")}
+          label={t("createMarket.restrictions.disableTransfers.label")}
           value={disableTransfers ? "Yes" : "No"}
         />
       </Box>
@@ -417,7 +415,7 @@ export const ConfirmationForm = ({
           <Divider sx={DividerStyle} />
 
           <Typography variant="text4" sx={SubtitleStyle}>
-            {t("createNewMarket.confirm.legalInfo.title")}
+            {t("createMarket.confirm.legalInfoTitle")}
           </Typography>
 
           <Box
@@ -428,12 +426,12 @@ export const ConfirmationForm = ({
             }}
           >
             <ConfirmationFormItem
-              label={t("createNewMarket.confirm.legalInfo.legalName")}
+              label={t("createMarket.confirm.legalName")}
               value={borrowerData?.name || ""}
             />
 
             <ConfirmationFormItem
-              label={t("createNewMarket.confirm.legalInfo.jurisdiction")}
+              label={t("createMarket.confirm.jurisdiction")}
               value={
                 jurisdiction
                   ? jurisdiction.subDivisionName || jurisdiction.countryName
@@ -442,17 +440,17 @@ export const ConfirmationForm = ({
             />
 
             <ConfirmationFormItem
-              label={t("createNewMarket.confirm.legalInfo.entityKind")}
+              label={t("createMarket.confirm.entityKind")}
               value={entityKind || ""}
             />
 
             <ConfirmationFormItem
-              label={t("createNewMarket.confirm.legalInfo.address")}
+              label={t("createMarket.confirm.address")}
               value={borrowerData?.physicalAddress || ""}
             />
 
             <ConfirmationFormItem
-              label={t("createNewMarket.confirm.legalInfo.email")}
+              label={t("createMarket.confirm.email")}
               value={borrowerData?.email || ""}
             />
           </Box>
@@ -465,7 +463,7 @@ export const ConfirmationForm = ({
         </SvgIcon>
 
         <Typography variant="text3">
-          {t("createNewMarket.confirm.alert")}
+          {t("createMarket.confirm.alert")}
         </Typography>
       </Box>
 
@@ -475,7 +473,7 @@ export const ConfirmationForm = ({
         </SvgIcon>
 
         <Typography variant="text3">
-          {t("createNewMarket.confirm.alertFee")}
+          {t("createMarket.confirm.alertFee")}
         </Typography>
       </Box>
 
@@ -488,7 +486,7 @@ export const ConfirmationForm = ({
           </SvgIcon>
 
           <Typography variant="text3">
-            {t("createNewMarket.confirm.alertReduction")}
+            {t("createMarket.confirm.alertReduction")}
           </Typography>
         </Box>
       )}
@@ -516,7 +514,7 @@ export const ConfirmationForm = ({
           >
             <BackArrow />
           </SvgIcon>
-          {t("createNewMarket.buttons.back")}
+          {t("createMarket.buttons.back")}
         </Button>
 
         <Box sx={{ display: "flex", gap: "4px" }}>
@@ -545,7 +543,7 @@ export const ConfirmationForm = ({
               disabled={signed}
               onClick={handleSign}
             >
-              {t("createNewMarket.buttons.signMlaRefusal")}
+              {t("createMarket.buttons.signMlaRefusal")}
             </Button>
           )}
 
@@ -556,7 +554,7 @@ export const ConfirmationForm = ({
             disabled={!signed}
             onClick={handleDeploy}
           >
-            {t("createNewMarket.buttons.deploy")}
+            {t("createMarket.buttons.deploy")}
           </Button>
         </Box>
       </Box>

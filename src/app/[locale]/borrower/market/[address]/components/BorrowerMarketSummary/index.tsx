@@ -57,7 +57,7 @@ const InnerMarketSummaryEditor = ({
 
       <Box sx={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
         <Button variant="contained" color="primary" onClick={handleClose}>
-          {t("borrowerMarketDetails.description.buttons.cancel")}
+          {t("common.actions.cancel")}
         </Button>
         <Button
           variant="contained"
@@ -66,8 +66,8 @@ const InnerMarketSummaryEditor = ({
           disabled={isPending}
         >
           {isPending
-            ? t("borrowerMarketDetails.description.buttons.pending")
-            : t("borrowerMarketDetails.description.buttons.save")}
+            ? t("marketDetails.description.buttons.pending")
+            : t("marketDetails.description.buttons.save")}
         </Button>
       </Box>
     </Box>
@@ -98,7 +98,7 @@ export const BorrowerMarketSummary = ({
   if (isLoading) {
     return (
       <Typography variant="text2" color={COLORS.santasGrey}>
-        {t("borrowerMarketDetails.description.states.loading")}
+        {t("marketDetails.description.states.loading")}
       </Typography>
     )
   }
@@ -109,7 +109,7 @@ export const BorrowerMarketSummary = ({
   ) {
     return (
       <Typography variant="text2" color={COLORS.santasGrey}>
-        {t("borrowerMarketDetails.description.states.noDescription")}
+        {t("marketDetails.description.states.noDescription")}
       </Typography>
     )
   }
@@ -125,11 +125,11 @@ export const BorrowerMarketSummary = ({
           }}
         >
           <Typography variant="title3">
-            {t("borrowerMarketDetails.description.title")}
+            {t("marketDetails.description.title")}
           </Typography>
 
           <AuthWrapper
-            buttonText={t("borrowerMarketDetails.description.buttons.login")}
+            buttonText={t("marketDetails.description.buttons.login")}
           >
             <Button
               variant="outlined"
@@ -138,8 +138,8 @@ export const BorrowerMarketSummary = ({
               onClick={() => setOpen(true)}
             >
               {marketSummary
-                ? t("borrowerMarketDetails.description.buttons.edit")
-                : t("borrowerMarketDetails.description.buttons.add")}
+                ? t("marketDetails.description.buttons.edit")
+                : t("marketDetails.description.buttons.add")}
             </Button>
           </AuthWrapper>
         </Box>

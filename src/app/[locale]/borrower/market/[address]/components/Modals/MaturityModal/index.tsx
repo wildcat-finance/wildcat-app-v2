@@ -104,15 +104,15 @@ export const MaturityModal = ({
         >]: string
       } = {
         [SetFixedTermEndTimeStatus.FixedTermEndTimeIncrease]:
-          "You cannot increase the maturity date",
+          t("marketDetailsBorrower.modals.maturity.cannotIncrease"),
         [SetFixedTermEndTimeStatus.FixedTermEndTimeNotChangeable]:
-          "This market does not allow modifications to the maturity date",
+          t("marketDetailsBorrower.modals.maturity.notAllowed"),
         [SetFixedTermEndTimeStatus.NotFixedTermMarket]:
-          "This is not a fixed term market. How did you get here?",
+          t("marketDetailsBorrower.modals.maturity.notFixedTerm"),
         [SetFixedTermEndTimeStatus.NotBorrower]:
-          "You are not a borrower. How did you get here?",
+          t("marketDetailsBorrower.modals.maturity.notBorrower"),
         [SetFixedTermEndTimeStatus.NotV2Market]:
-          "This is not a V2 market. How did you get here?",
+          t("marketDetailsBorrower.modals.maturity.notV2"),
       }
       const errorMessage = errorMessages[newPreview.status]
       setMaturityError(errorMessage)
@@ -172,7 +172,7 @@ export const MaturityModal = ({
         onClick={handleOpen}
         disabled={disableAdjustMaturity}
       >
-        Adjust Maturity
+        {t("marketDetailsBorrower.modals.maturity.title")}
       </Button>
 
       <Dialog
@@ -182,7 +182,7 @@ export const MaturityModal = ({
       >
         {showForm && (
           <TxModalHeader
-            title="Adjust Maturity"
+            title={t("marketDetailsBorrower.modals.maturity.title")}
             arrowOnClick={modal.handleCloseModal}
             crossOnClick={null}
           />
@@ -191,7 +191,7 @@ export const MaturityModal = ({
         {showForm && (
           <Box sx={{ width: "100%", height: "100%", padding: "12px 24px" }}>
             <ModalDataItem
-              title="Current Maturity"
+              title={t("marketDetailsBorrower.modals.maturity.currentMaturity")}
               value={remainingMillisecondsToDate(fixedTerm || 0)}
               containerSx={{
                 marginBottom: "14px",
@@ -200,7 +200,7 @@ export const MaturityModal = ({
 
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DesktopDatePicker
-                label="e.g. 25/12/2024"
+                label={t("marketDetailsBorrower.modals.maturity.datePlaceholder")}
                 format="DD/MM/YYYY"
                 value={maturity}
                 onChange={(v) => {
@@ -285,7 +285,7 @@ export const MaturityModal = ({
         )}
 
         <TxModalFooter
-          mainBtnText="Confirm"
+          mainBtnText={t("common.actions.confirm")}
           mainBtnOnClick={handleConfirm}
           disableMainBtn={disableConfirm}
           hideButtons={!showForm}

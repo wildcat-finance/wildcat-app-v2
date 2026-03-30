@@ -21,7 +21,7 @@ export const WrongNetworkAlert = () => {
     <Box sx={PageContainer}>
       <Box sx={AlertContainer}>
         <Typography variant="text1" sx={{ marginBottom: "6px" }}>
-          {t("dashboard.markets.noMarkets.wrongNetwork")}
+          {t("dashboard.emptyStates.wrongNetwork")}
         </Typography>
 
         <Typography

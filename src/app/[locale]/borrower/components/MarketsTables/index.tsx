@@ -205,11 +205,9 @@ export const MarketsTables = ({
             <BorrowerMarketsTable
               type="active"
               label={t("borrowerMarketList.table.title.active")}
-              noMarketsTitle={t(
-                "borrowerMarketList.table.noMarkets.active.title",
+              noMarketsTitle={t("borrowerMarketList.table.noMarkets.activeTitle",
               )}
-              noMarketsSubtitle={t(
-                "borrowerMarketList.table.noMarkets.active.subtitle",
+              noMarketsSubtitle={t("borrowerMarketList.table.noMarkets.activeSubtitle",
               )}
               tableData={activeBorrowerMarkets || []}
               isLoading={isBorrowerMarketsLoading}
@@ -224,11 +222,9 @@ export const MarketsTables = ({
             <BorrowerMarketsTable
               type="terminated"
               label={t("borrowerMarketList.table.title.terminated")}
-              noMarketsTitle={t(
-                "borrowerMarketList.table.noMarkets.terminated.title",
+              noMarketsTitle={t("borrowerMarketList.table.noMarkets.terminatedTitle",
               )}
-              noMarketsSubtitle={t(
-                "borrowerMarketList.table.noMarkets.terminated.subtitle",
+              noMarketsSubtitle={t("borrowerMarketList.table.noMarkets.terminatedSubtitle",
               )}
               tableData={terminatedBorrowerMarkets || []}
               isLoading={isBorrowerMarketsLoading}

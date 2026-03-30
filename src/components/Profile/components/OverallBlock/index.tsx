@@ -72,10 +72,10 @@ export const OverallBlock = ({
   const normalizedDefaults = defaults !== undefined ? String(defaults) : "0"
 
   const profileInfo: ProfileItem[] = [
-    makeInformationItem(t("borrowerProfile.profile.overallInfo.name"), name),
-    makeInformationItem(t("borrowerProfile.profile.overallInfo.alias"), alias),
+    makeInformationItem(t("borrowerProfile.info.name"), name),
+    makeInformationItem(t("borrowerProfile.info.alias"), alias),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.address"),
+      t("borrowerProfile.info.address"),
       address ? trimAddress(address) : undefined,
       {
         link: address ? getAddressUrl(address) : undefined,
@@ -83,30 +83,30 @@ export const OverallBlock = ({
       },
     ),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.headquarters"),
+      t("borrowerProfile.info.headquarters"),
       jurisdictionText,
     ),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.entityKind"),
+      t("borrowerProfile.info.entityKind"),
       entityKindText,
     ),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.founded"),
+      t("borrowerProfile.info.founded"),
       founded,
     ),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.markets"),
+      t("borrowerProfile.info.markets"),
       normalizedMarkets,
     ),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.borrowed"),
+      t("borrowerProfile.info.borrowed"),
       "[Coming Soon]",
     ),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.defaults.title"),
+      t("borrowerProfile.info.defaultsTitle"),
       normalizedDefaults,
       {
-        tooltipText: t("borrowerProfile.profile.overallInfo.defaults.tooltip"),
+        tooltipText: t("borrowerProfile.info.defaultsTooltip"),
       },
     ),
     ...(additionalUrls ?? []).map((url) =>
@@ -127,7 +127,7 @@ export const OverallBlock = ({
     return (
       <Box sx={MobileInfoContainer}>
         <Typography variant="mobH3" marginTop="12px">
-          {t("borrowerProfile.profile.overallInfo.title")}
+          {t("borrowerProfile.info.title")}
         </Typography>
         <Box sx={MobileInfoGrid}>
           {existingData.map((item, index) => (
@@ -152,7 +152,7 @@ export const OverallBlock = ({
   return (
     <Box>
       <Typography variant={isPage ? "title3" : "text2Highlighted"}>
-        {t("borrowerProfile.profile.overallInfo.title")}
+        {t("borrowerProfile.info.title")}
       </Typography>
 
       <Box sx={{ ...InfoContainer, marginTop: isPage ? "24px" : "16px" }}>

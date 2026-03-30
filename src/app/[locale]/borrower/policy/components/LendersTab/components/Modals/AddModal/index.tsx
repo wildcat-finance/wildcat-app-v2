@@ -105,7 +105,7 @@ export const AddModal = ({ disabled }: { disabled: boolean }) => {
           fontWeight: 600,
         }}
       >
-        {t("editLendersList.modals.add.addLender")}
+        {t("editLenders.addModal.addLender")}
       </Button>
 
       <Dialog
@@ -191,7 +191,7 @@ export const AddModal = ({ disabled }: { disabled: boolean }) => {
           type="submit"
           sx={{ margin: "24px 24px 0" }}
         >
-          {t("editLendersList.modals.add.add")}
+          {t("editLenders.addModal.add")}
         </Button>
       </Dialog>
     </>

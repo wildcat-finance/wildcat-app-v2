@@ -86,10 +86,10 @@ export const MarketTransactions = ({
       {holdTheMarket && (
         <Box sx={MarketTxUpperButtonsContainer}>
           {/* <Button variant="outlined" color="secondary" size="small"> */}
-          {/*  {t("borrowerMarketDetails.buttons.kyc")} */}
+          {/*  {t("marketDetailsBorrower.actions.kyc")} */}
           {/* </Button> */}
           {/* <Button variant="outlined" color="secondary" size="small"> */}
-          {/*  {t("borrowerMarketDetails.buttons.mla")} */}
+          {/*  {t("marketDetailsBorrower.actions.mla")} */}
           {/* </Button> */}
           <CapacityModal marketAccount={marketAccount} />
           <AprModal marketAccount={marketAccount} />
@@ -130,7 +130,7 @@ export const MarketTransactions = ({
               <TelegramIcon />
             </SvgIcon>
 
-            {t("helpModal.items.telegram.botButton")}
+            {t("helpCenter.items.telegram.botButton")}
           </Button>
         </Box>
       )}
@@ -139,8 +139,8 @@ export const MarketTransactions = ({
 
       <Box sx={MarketTxContainer}>
         <TransactionBlock
-          title={t("borrowerMarketDetails.transactions.toRepay.title")}
-          tooltip={t("borrowerMarketDetails.transactions.toRepay.tooltip")}
+          title={t("marketDetailsBorrower.transactions.toRepay.title")}
+          tooltip={t("marketDetailsBorrower.transactions.toRepay.tooltip")}
           amount={
             isTooSmallOutstandingDebt
               ? "< 0.00001"
@@ -158,8 +158,8 @@ export const MarketTransactions = ({
         </TransactionBlock>
 
         <TransactionBlock
-          title={t("borrowerMarketDetails.transactions.toBorrow.title")}
-          tooltip={t("borrowerMarketDetails.transactions.toBorrow.tooltip")}
+          title={t("marketDetailsBorrower.transactions.toBorrow.title")}
+          tooltip={t("marketDetailsBorrower.transactions.toBorrow.tooltip")}
           amount={formatTokenWithCommas(marketAccount.market.borrowableAssets)}
           asset={market.underlyingToken.symbol}
         >
@@ -191,7 +191,7 @@ export const MarketTransactions = ({
               sx={{ width: "fit-content" }}
               onClick={handleClickWithdrawals}
             >
-              {t("borrowerMarketDetails.transactions.ongoingWDs.button")}
+              {t("marketDetailsBorrower.transactions.ongoingWDs.button")}
             </Button>
           </Box>
         </>

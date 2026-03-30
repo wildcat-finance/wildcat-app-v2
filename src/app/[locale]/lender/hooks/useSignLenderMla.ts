@@ -1,5 +1,6 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useTranslation } from "react-i18next"
 
 import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
 import { LenderMlaSignatureInput } from "@/app/api/mla/lender-signature/interface"
@@ -10,6 +11,7 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
 
 export const useSignLenderMLA = () => {
+  const { t } = useTranslation()
   const { sdk, connected: safeConnected } = useSafeAppsSDK()
   const signer = useEthersSigner()
   const client = useQueryClient()
@@ -75,9 +77,9 @@ export const useSignLenderMLA = () => {
         return true
       }
       await toastRequest(doSubmit(), {
-        success: "MLA signed",
-        error: "Failed to sign MLA",
-        pending: "Signing MLA...",
+        success: t("marketDetailsLender.toast.mlaSignSuccess"),
+        error: t("marketDetailsLender.toast.mlaSignError"),
+        pending: t("marketDetailsLender.toast.mlaSignPending"),
       })
     },
     onSuccess() {

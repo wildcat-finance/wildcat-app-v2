@@ -42,7 +42,7 @@ export const ClaimableTable = ({
       {
         sortable: false,
         field: "lender",
-        headerName: "Lender",
+        headerName: t("marketDetailsLender.withdrawalTables.lender"),
         minWidth: 176,
         headerAlign: "left",
         align: "left",
@@ -76,7 +76,7 @@ export const ClaimableTable = ({
       {
         sortable: false,
         field: "dateSubmitted",
-        headerName: "Date Submitted",
+        headerName: t("marketDetailsLender.withdrawalTables.dateSubmitted"),
         minWidth: 216,
         headerAlign: "left",
         align: "left",
@@ -104,7 +104,7 @@ export const ClaimableTable = ({
       {
         sortable: false,
         field: "transactionId",
-        headerName: "Transaction ID",
+        headerName: t("marketDetailsLender.withdrawalTables.transactionId"),
         minWidth: 216,
         headerAlign: "left",
         align: "left",
@@ -131,7 +131,7 @@ export const ClaimableTable = ({
       {
         sortable: false,
         field: "amount",
-        headerName: "Amount",
+        headerName: t("marketDetailsLender.withdrawalTables.amount"),
         minWidth: 120,
         flex: 1,
         headerAlign: "right",
@@ -222,7 +222,7 @@ export const ClaimableTable = ({
           marginBottom={isMobile ? "0px" : "10px"}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            No claimable withdrawals.
+            {t("marketDetailsLender.withdrawalTables.noClaimable")}
           </Typography>
         </Box>
       )
@@ -273,7 +273,7 @@ export const ClaimableTable = ({
     <DetailsAccordion
       isOpen={isClaimableOpen}
       setIsOpen={setIsClaimableOpen}
-      summaryText={t("lenderMarketDetails.requests.claimable")}
+      summaryText={t("marketDetails.withdrawals.claimable")}
       summarySx={{
         borderRadius: "0px",
         borderBottom: isClaimableOpen ? "none" : `1px solid`,

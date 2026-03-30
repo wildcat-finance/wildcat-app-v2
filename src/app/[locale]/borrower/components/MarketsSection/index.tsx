@@ -146,10 +146,10 @@ export const MarketsSection = () => {
   const { t } = useTranslation()
 
   const withdrawalCycleOptions = [
-    { id: "0-86400", name: "≤ 24h" },
-    { id: "86401-259200", name: "1 - 3 days" },
-    { id: "259201-604800", name: "3 - 7 days" },
-    { id: "604801-Infinity", name: "7+ days" },
+    { id: "0-86400", name: t("dashboard.withdrawalCycleFilter.lessThan24h") },
+    { id: "86401-259200", name: t("dashboard.withdrawalCycleFilter.oneToThreeDays") },
+    { id: "259201-604800", name: t("dashboard.withdrawalCycleFilter.threeToSevenDays") },
+    { id: "604801-Infinity", name: t("dashboard.withdrawalCycleFilter.sevenPlusDays") },
   ]
 
   const { address } = useAccount()
@@ -377,7 +377,7 @@ export const MarketsSection = () => {
           }}
         >
           <Typography variant="title2" sx={{ marginBottom: "6px" }}>
-            {t("dashboard.markets.title")}
+            {t("dashboard.title")}
           </Typography>
           {!bannerDisplayConfig.hideCreateMarket && (
             <Link href={ROUTES.borrower.createMarket}>
@@ -391,7 +391,7 @@ export const MarketsSection = () => {
                   minWidth: "100px",
                 }}
               >
-                {t("dashboard.markets.borrowerTitleButton")}
+                {t("dashboard.borrowerButton")}
               </Button>
             </Link>
           )}
@@ -401,13 +401,13 @@ export const MarketsSection = () => {
           color={COLORS.santasGrey}
           sx={{ marginBottom: "24px", padding: "0 24px" }}
         >
-          {t("dashboard.markets.borrowerSubtitle")}{" "}
+          {t("dashboard.borrowerSubtitle")}{" "}
           <Link
             href="https://docs.wildcat.finance/using-wildcat/day-to-day-usage/borrowers"
             style={{ color: COLORS.santasGrey }}
             target="_blank"
           >
-            {t("dashboard.markets.docsLink")}
+            {t("dashboard.docsLink")}
           </Link>
         </Typography>
 
@@ -439,7 +439,7 @@ export const MarketsSection = () => {
           >
             <Box sx={{ display: "flex", gap: "6px" }}>
               <MarketsFilterSelect
-                placeholder={t("dashboard.markets.filters.assets")}
+                placeholder={t("dashboard.filters.assets")}
                 options={
                   tokens?.map((token) => ({
                     id: token.address,
@@ -451,14 +451,14 @@ export const MarketsSection = () => {
               />
 
               <MarketsFilterSelect
-                placeholder={t("dashboard.markets.filters.statuses")}
+                placeholder={t("dashboard.filters.statuses")}
                 options={marketStatusesMock}
                 selected={marketStatuses}
                 setSelected={setMarketStatuses}
               />
 
               <MarketsFilterSelect
-                placeholder="Withdrawal Cycle"
+                placeholder={t("dashboard.withdrawalCycleFilter.placeholder")}
                 options={withdrawalCycleOptions}
                 selected={marketWithdrawalCycles}
                 setSelected={setMarketWithdrawalCycles}
@@ -468,7 +468,7 @@ export const MarketsSection = () => {
             <FilterTextField
               value={marketSearch}
               setValue={setMarketSearch}
-              placeholder={t("dashboard.markets.filters.name")}
+              placeholder={t("dashboard.filters.name")}
               width="264px"
             />
           </Box>

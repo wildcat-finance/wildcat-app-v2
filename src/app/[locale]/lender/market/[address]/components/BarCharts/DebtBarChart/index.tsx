@@ -51,7 +51,7 @@ export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
         >
           <Box sx={{ display: "flex", justifyContent: "space-between" }}>
             <Typography variant={isMobile ? "mobH3" : "title3"}>
-              {t("lenderMarketDetails.barchart.debts.title")}
+              {t("marketDetailsLender.barchart.debts.title")}
             </Typography>
 
             <Box
@@ -75,7 +75,7 @@ export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
               {bars.map((chartItem) => (
                 <BarItem
                   key={chartItem.id}
-                  chartItem={chartItem}
+                  chartItem={{ ...chartItem, label: t(chartItem.label) }}
                   isOnlyBarItem={bars.length === 1}
                 />
               ))}
@@ -95,7 +95,7 @@ export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
                 <LenderLegendItem
                   key={chartItem.label}
                   color={chartItem.color}
-                  label={chartItem.label}
+                  label={t(chartItem.label)}
                   value={chartItem.value}
                   asset={chartItem.asset}
                   withDivider={isMobile && index !== legendItems.length - 1}

@@ -61,7 +61,7 @@ export const OutstandingTable = ({
           marginBottom={isMobile ? "0px" : "10px"}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            {t("marketWithdrawalRequests.noOutstanding")}
+            {t("marketDetails.withdrawals.noOutstanding")}
           </Typography>
         </Box>
       )
@@ -101,7 +101,7 @@ export const OutstandingTable = ({
     <DetailsAccordion
       isOpen={isOutstandingOpen}
       setIsOpen={setIsOutstandingOpen}
-      summaryText="Outstanding From Past Cycles"
+      summaryText={t("marketDetailsBorrower.withdrawalTables.outstandingFromPastCycles")}
       summarySx={{
         borderRadius: "0px",
         borderBottom: isOutstandingOpen || isMobile ? "none" : `1px solid`,

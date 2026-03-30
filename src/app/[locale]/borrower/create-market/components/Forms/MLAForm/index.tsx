@@ -79,12 +79,12 @@ export const MlaForm = ({ form }: MLAFormProps) => {
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.mla.title")}
+        {t("createMarket.mla.title")}
       </Typography>
 
       <HorizontalInputLabel
-        label={t("createNewMarket.mla.mla.label")}
-        explainer={t("createNewMarket.mla.mla.explainer")}
+        label={t("createMarket.mla.mla.label")}
+        explainer={t("createMarket.mla.mla.explainer")}
       >
         <RadioGroup
           aria-labelledby="mla-label"

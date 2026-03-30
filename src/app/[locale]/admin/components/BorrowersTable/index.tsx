@@ -39,7 +39,7 @@ export const BorrowersTable = () => {
   >[] = [
     {
       field: "timeInvited",
-      headerName: "Invited At",
+      headerName: t("admin.borrowersTable.invitedAt"),
       flex: 1,
       minWidth: 134,
       headerAlign: "left",
@@ -59,7 +59,7 @@ export const BorrowersTable = () => {
     },
     {
       field: "name",
-      headerName: "Borrower Name",
+      headerName: t("admin.borrowersTable.borrowerName"),
       flex: 1.7,
       minWidth: 134,
       headerAlign: "left",
@@ -79,7 +79,7 @@ export const BorrowersTable = () => {
     },
     {
       field: "alias",
-      headerName: "Borrower Alias",
+      headerName: t("admin.borrowersTable.borrowerAlias"),
       flex: 1,
       // minWidth: 134,
       headerAlign: "left",
@@ -100,7 +100,7 @@ export const BorrowersTable = () => {
     {
       sortable: false,
       field: "address",
-      headerName: "Wallet Address",
+      headerName: t("admin.borrowersTable.walletAddress"),
       minWidth: 176,
       headerAlign: "left",
       align: "left",
@@ -117,16 +117,16 @@ export const BorrowersTable = () => {
     },
     {
       field: "registeredOnChain",
-      headerName: "Registered On Chain",
+      headerName: t("admin.borrowersTable.registeredOnChain"),
       flex: 1,
       minWidth: 134,
       headerAlign: "left",
       align: "left",
-      renderCell: (params) => <span>{params.value ? "Yes" : "No"}</span>,
+      renderCell: (params) => <span>{params.value ? t("common.labels.yes") : t("common.labels.no")}</span>,
     },
     {
       field: "timeSigned",
-      headerName: "Signed At",
+      headerName: t("admin.borrowersTable.signedAt"),
       flex: 1,
       minWidth: 134,
       headerAlign: "left",
@@ -135,7 +135,7 @@ export const BorrowersTable = () => {
         <span>
           {params.value
             ? timestampToDateFormatted(+new Date(params.value) / 1000)
-            : "N/A"}
+            : t("common.labels.na")}
         </span>
       ),
     },
@@ -154,7 +154,7 @@ export const BorrowersTable = () => {
               color="error"
               onClick={() => setSelectedBorrower(params.row)}
             >
-              View Profile
+              {t("admin.borrowersTable.viewProfile")}
             </Button>
           )
         }

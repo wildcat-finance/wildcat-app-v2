@@ -96,13 +96,13 @@ export const MarketsTableAccordion = ({
         !defaultFilters && (
           <Box display="flex" flexDirection="column" padding="24px 16px 12px">
             <Typography variant="text2" color={COLORS.santasGrey}>
-              {t("dashboard.markets.noMarkets.filter.beginning")} {type}{" "}
+              {t("dashboard.emptyStates.filterBeginning")} {type}{" "}
               {statusFilter?.length !== 0 &&
                 statusFilter?.map((status) => ` ${status.toLowerCase()}`)}{" "}
               {nameFilter === "" ? "" : nameFilter}{" "}
               {assetFilter?.length !== 0 &&
                 `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
-              {t("dashboard.markets.noMarkets.filter.ending")}
+              {t("dashboard.emptyStates.filterEnding")}
             </Typography>
           </Box>
         )}

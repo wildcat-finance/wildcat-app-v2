@@ -102,7 +102,7 @@ export const MobileMoreButton = ({
             disabled={isAddingToken}
           >
             <Typography variant="mobText3SemiBold">
-              {t("lenderMarketDetails.buttons.addToken")}
+              {t("marketDetailsLender.actions.addToken")}
             </Typography>
           </Button>
         ) : (
@@ -157,7 +157,7 @@ export const MobileMoreButton = ({
             <TelegramIcon />
           </SvgIcon>
 
-          {t("helpModal.items.telegram.botButton")}
+          {t("helpCenter.items.telegram.botButton")}
         </Button>
       </Dialog>
     </>

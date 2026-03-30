@@ -90,7 +90,7 @@ export const getColumns = (
   const commonColumns: TypeSafeColDef<MarketsTableModel>[] = [
     {
       field: "status",
-      headerName: "Status",
+      headerName: t("marketDetailsLender.tableHeaders.status"),
       maxWidth: 146,
       minWidth: 120,
       flex: 0.7,
@@ -118,7 +118,7 @@ export const getColumns = (
     },
     {
       field: "name",
-      headerName: "Market Name",
+      headerName: t("marketDetailsLender.tableHeaders.marketName"),
       flex: 1.7,
       minWidth: 134,
       headerAlign: "left",
@@ -164,7 +164,7 @@ export const getColumns = (
             padding: "0 12px",
           }}
         >
-          Borrower
+          {t("marketDetailsLender.tableHeaders.borrower")}
         </Typography>
       ),
       renderCell: (params) => (
@@ -207,7 +207,7 @@ export const getColumns = (
     },
     {
       field: "asset",
-      headerName: "Underlying Asset",
+      headerName: t("marketDetailsLender.tableHeaders.underlyingAsset"),
       minWidth: 131,
       flex: 0.6,
       headerAlign: "right",
@@ -232,7 +232,7 @@ export const getColumns = (
     },
     {
       field: "lenderAPR",
-      headerName: "APR",
+      headerName: t("marketDetailsLender.tableHeaders.apr"),
       minWidth: 102,
       flex: 1,
       headerAlign: "right",
@@ -256,7 +256,7 @@ export const getColumns = (
     },
     {
       field: "withdrawalBatchDuration",
-      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      headerName: t("dashboard.tables.header.withdrawal"),
       minWidth: 110,
       flex: 1,
       headerAlign: "right",
@@ -276,7 +276,7 @@ export const getColumns = (
     },
     {
       field: "crr",
-      headerName: "CRR",
+      headerName: t("marketDetailsLender.tableHeaders.crr"),
       minWidth: 79,
       flex: 1,
       headerAlign: "right",
@@ -287,9 +287,9 @@ export const getColumns = (
             variant="text4"
             sx={{ lineHeight: "10px", color: COLORS.santasGrey }}
           >
-            CRR
+            {t("marketDetailsLender.tableHeaders.crr")}
           </Typography>
-          <TooltipButton value="The percentage of market funds kept unborrowed and locked as reserve." />
+          <TooltipButton value={t("marketDetailsLender.tableHeaders.crrTooltip")} />
         </Box>
       ),
       renderCell: (params) => (
@@ -311,7 +311,7 @@ export const getColumns = (
     },
     {
       field: "maxCapacity",
-      headerName: "Max Capacity",
+      headerName: t("marketDetailsLender.tableHeaders.maxCapacity"),
       minWidth: 106,
       flex: 1.6,
       headerAlign: "right",
@@ -338,7 +338,7 @@ export const getColumns = (
     },
     {
       field: "lend",
-      headerName: "Capacity Left",
+      headerName: t("marketDetailsLender.tableHeaders.capacityLeft"),
       minWidth: 110,
       headerAlign: "right",
       align: "right",
@@ -370,7 +370,7 @@ export const getColumns = (
     },
     {
       field: "deploy",
-      headerName: "Created",
+      headerName: t("marketDetailsLender.tableHeaders.created"),
       minWidth: otherMarketsTable ? 86 : 126,
       headerAlign: "right",
       align: "right",
@@ -408,7 +408,7 @@ export const getColumns = (
 
   const loanColumn: TypeSafeColDef<{ loan: TokenAmount }> = {
     field: "loan",
-    headerName: "My Loan",
+    headerName: t("marketDetailsLender.tableHeaders.myLoan"),
     minWidth: 120,
     headerAlign: "right",
     align: "right",
@@ -441,7 +441,7 @@ export const getColumns = (
 
   const selfOnboardColumn: TypeSafeColDef<{ selfOnboard: boolean }> = {
     field: "selfOnboard",
-    headerName: "Self-Onboard",
+    headerName: t("marketDetailsLender.tableHeaders.selfOnboard"),
     minWidth: 110,
     headerAlign: "right",
     align: "right",
@@ -459,7 +459,7 @@ export const getColumns = (
         }}
       >
         <Typography variant="text3" color={COLORS.blackRock}>
-          {params.value ? "Yes" : "No"}
+          {params.value ? t("common.labels.yes") : t("common.labels.no")}
         </Typography>
       </Link>
     ),
