@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.15.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.14.0...v2.15.0) (2026-03-30)
+
+
+### Features
+
+* **wrapper:** erc4626 wrapper for market tokens ([#222](https://github.com/wildcat-finance/wildcat-app-v2/issues/222)) ([d13c833](https://github.com/wildcat-finance/wildcat-app-v2/commit/d13c8335833fcb61ed28dbd4dbb1b28cfc8bb21d))
+* **wrapper:** erc4626 wrapper for market tokens ([#222](https://github.com/wildcat-finance/wildcat-app-v2/issues/222)) ([23dad65](https://github.com/wildcat-finance/wildcat-app-v2/commit/23dad65bfc758cdac7df71d7386f70611dcf8019))
+
 ## [2.14.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.13.0...v2.14.0) (2026-03-27)
 
 
