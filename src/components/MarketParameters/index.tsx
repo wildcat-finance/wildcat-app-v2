@@ -9,7 +9,9 @@ import { useCopyToClipboard } from "react-use"
 import { getAdsMarketParameterComponent } from "@/components/AdsBanners/adsHelpers"
 import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { useWrapperBalances } from "@/hooks/wrapper/useWrapperBalances"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
 import {
@@ -28,8 +30,118 @@ import {
   MarketParametersContainerColumn,
 } from "./style"
 import { ParametersItem } from "../ParametersItem"
+import { TooltipButton } from "../TooltipButton"
 
-export const MarketParameters = ({ market }: MarketParametersProps) => {
+const WrapperChip = ({ hasWrapper }: { hasWrapper?: boolean }) => (
+  <Box
+    sx={{
+      width: "fit-content",
+      display: "flex",
+      alignItems: "center",
+      gap: "3px",
+      padding: "0 8px 0 5px",
+      borderRadius: "12px",
+      backgroundColor: hasWrapper ? "#D1FAE6" : COLORS.remy,
+    }}
+  >
+    <Box
+      sx={{
+        width: "4px",
+        height: "4px",
+        borderRadius: "50%",
+        backgroundColor: hasWrapper ? "#28CA7C" : COLORS.wildWatermelon,
+      }}
+    />
+
+    <Typography variant="text4" color={hasWrapper ? "#19965A" : COLORS.dullRed}>
+      {hasWrapper ? "Active" : "Inactive"}
+    </Typography>
+  </Box>
+)
+
+const AdoptionStatsRow = ({
+  label,
+  amount,
+  asset,
+  pct,
+}: {
+  label: string
+  amount: string
+  asset: string
+  pct: string
+}) => (
+  <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
+    <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
+      {label}
+    </Typography>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
+        width: "100%",
+      }}
+    >
+      <Typography variant="text3" sx={{ color: COLORS.blackRock }}>
+        {amount}
+      </Typography>
+      <Typography
+        variant="text3"
+        sx={{ color: COLORS.greySuit, flex: "1 0 0" }}
+      >
+        {pct}%
+      </Typography>
+      <Typography variant="text4" sx={{ color: COLORS.blackRock }}>
+        {asset}
+      </Typography>
+    </Box>
+  </Box>
+)
+
+const AdoptionStats = ({
+  marketAmount,
+  marketAsset,
+  sharesAmount,
+  sharesAsset,
+  marketPct,
+  sharesPct,
+}: {
+  marketAmount: string
+  marketAsset: string
+  sharesAmount: string
+  sharesAsset: string
+  marketPct: string
+  sharesPct: string
+}) => (
+  <Box
+    sx={{
+      display: "flex",
+      flexDirection: "column",
+      gap: "6px",
+      width: "100%",
+    }}
+  >
+    <AdoptionStatsRow
+      label="Original Token"
+      amount={marketAmount}
+      asset={marketAsset}
+      pct={marketPct}
+    />
+    <AdoptionStatsRow
+      label="Wrapped Token"
+      amount={sharesAmount}
+      asset={sharesAsset}
+      pct={sharesPct}
+    />
+  </Box>
+)
+
+export const MarketParameters = ({
+  market,
+  viewerType,
+  wrapper,
+  hasWrapper,
+}: MarketParametersProps) => {
   const isLocalHost = window.location.hostname === "localhost"
   const { t } = useTranslation()
   const theme = useTheme()
@@ -38,6 +150,40 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
     chainId: market.chainId,
   })
   const { timeDelinquent, delinquencyGracePeriod } = market
+
+  const { address } = useEthersProvider({
+    chainId: market?.chainId,
+  })
+
+  const { data: balances } = useWrapperBalances(
+    market?.chainId,
+    wrapper,
+    address,
+  )
+
+  const marketValue = balances?.marketBalance
+    ? formatTokenWithCommas(balances?.marketBalance)
+    : "0"
+  const shareValue = balances?.shareBalance
+    ? formatTokenWithCommas(balances?.shareBalance)
+    : "0"
+
+  const marketFloat = balances?.marketBalance
+    ? parseFloat(balances.marketBalance.format(balances.marketBalance.decimals))
+    : 0
+  const sharesFloat = balances?.shareBalance
+    ? parseFloat(balances.shareBalance.format(balances.shareBalance.decimals))
+    : 0
+  const adoptionTotal = marketFloat + sharesFloat
+  const marketPct =
+    adoptionTotal > 0 ? ((marketFloat / adoptionTotal) * 100).toFixed(0) : "0"
+  const sharesPct =
+    adoptionTotal > 0 ? ((sharesFloat / adoptionTotal) * 100).toFixed(0) : "0"
+
+  const adoptionStatsTooltip =
+    viewerType === "lender"
+      ? "Your Market (debt) tokens vs the amount of wrapped Market debt (tokens)"
+      : "The total amount of Market (debt) tokens vs the total amount of wrapped Market (debt) tokens"
 
   const [gracePeriodLabel, gracePeriodTimer] =
     timeDelinquent > delinquencyGracePeriod
@@ -198,6 +344,55 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             value={market.marketToken.symbol}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
+
+          <ParametersItem
+            title="Wrapper"
+            value=""
+            valueComponent={<WrapperChip hasWrapper={hasWrapper} />}
+          />
+          <Divider sx={{ margin: "12px 0 12px" }} />
+
+          {hasWrapper && wrapper && (
+            <>
+              <ParametersItem
+                title="Wrapper Address"
+                value={trimAddress(wrapper.address.toLowerCase())}
+                copy={wrapper.address}
+                link={getAddressUrl(wrapper.address.toLowerCase())}
+              />
+              <Divider sx={{ margin: "12px 0 12px" }} />
+            </>
+          )}
+
+          {hasWrapper && wrapper && (
+            <>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "4px",
+                  width: "100%",
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
+                    Adoption Status
+                  </Typography>
+                  <TooltipButton value={adoptionStatsTooltip} />
+                </Box>
+                <AdoptionStats
+                  marketAmount={marketValue}
+                  marketAsset={wrapper.marketToken.symbol}
+                  sharesAmount={shareValue}
+                  sharesAsset={wrapper.shareToken.symbol}
+                  marketPct={marketPct}
+                  sharesPct={sharesPct}
+                />
+              </Box>
+              <Divider sx={{ margin: "12px 0 12px" }} />
+            </>
+          )}
+
           <ParametersItem
             title={t("borrowerMarketDetails.parameters.maxBorrowingCapacity")}
             value={`${formatTokenWithCommas(market.maxTotalSupply, {

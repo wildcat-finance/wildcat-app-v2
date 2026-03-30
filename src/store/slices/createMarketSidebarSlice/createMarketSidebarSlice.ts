@@ -7,6 +7,7 @@ export enum CreateMarketSteps {
   BRESTRICTIONS = "borrowerRestrictions",
   LRESTRICTIONS = "lenderRestrictions",
   PERIODS = "periods",
+  WRAPPER = "wrapper",
   MLA = "mla",
   CONFIRM = "confirmation",
 }
@@ -55,6 +56,13 @@ const initialState: CreateMarketSidebarSliceType = {
     },
     {
       number: 5,
+      title: "createNewMarket.wrapper.title",
+      disabled: true,
+      valid: false,
+      step: CreateMarketSteps.WRAPPER,
+    },
+    {
+      number: 6,
       title: "createNewMarket.mla.title",
       disabled: true,
       valid: false,
