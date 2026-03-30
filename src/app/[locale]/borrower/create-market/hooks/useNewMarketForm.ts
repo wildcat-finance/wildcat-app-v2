@@ -40,6 +40,7 @@ export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   transferRequiresAccess: false,
   depositRequiresAccess: true,
   withdrawalRequiresAccess: false,
+  deployWrapper: false,
 }
 
 function getValidationSchema(
