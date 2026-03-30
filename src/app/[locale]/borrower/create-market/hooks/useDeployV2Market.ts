@@ -12,6 +12,9 @@ import {
   PartialTransaction,
   getMockArchControllerOwnerContract,
   getHooksFactoryContract,
+  WrapperFactory,
+  hasDeploymentAddress,
+  SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
 import {
   DeployMarketStatus,
@@ -21,9 +24,10 @@ import {
   OpenTermMarketDeploymentArgs,
 } from "@wildcatfi/wildcat-sdk/dist/access"
 import { MarketDeployedEvent } from "@wildcatfi/wildcat-sdk/dist/typechain/HooksFactory"
+import { constants } from "ethers"
 import { parseUnits } from "ethers/lib/utils"
 
-import { toastError, toastRequest } from "@/components/Toasts"
+import { toastError, toastRequest, toastSuccess } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
@@ -51,6 +55,7 @@ export type DeployNewV2MarketParams = (
   timeSigned: number
   mlaTemplateId: number | undefined
   mlaSignature: string
+  deployWrapper?: boolean
 }
 
 export const useDeployV2Market = () => {
@@ -69,7 +74,59 @@ export const useDeployV2Market = () => {
     })
   }
 
+  const waitForSafeTransaction = async (safeTxHash: string) => {
+    if (!gnosisSafeSDK) throw Error("No sdk found")
+    const resolvedTxHash = await new Promise<string>((resolve) => {
+      const check = async () => {
+        const transactionBySafeHash =
+          await gnosisSafeSDK.txs.getBySafeTxHash(safeTxHash)
+        if (transactionBySafeHash?.txHash) {
+          resolve(transactionBySafeHash.txHash)
+        } else {
+          setTimeout(check, 1000)
+        }
+      }
+      check()
+    })
+    await waitForTransaction(resolvedTxHash)
+    return resolvedTxHash
+  }
+
   const [deployedMarket, setDeployedMarket] = useState<string | undefined>()
+
+  type DeployStep = "mockToken" | "market" | "wrapper"
+
+  const getDeploySteps = ({
+    includeMockToken,
+    includeWrapper,
+  }: {
+    includeMockToken: boolean
+    includeWrapper: boolean
+  }) =>
+    [
+      ...(includeMockToken ? (["mockToken"] as DeployStep[]) : []),
+      "market",
+      ...(includeWrapper ? (["wrapper"] as DeployStep[]) : []),
+    ] as DeployStep[]
+
+  const getStepToastConfig = (
+    steps: ReturnType<typeof getDeploySteps>,
+    step: DeployStep,
+    messages: { pending: string; success: string; error: string },
+  ) => {
+    const currentIndex = steps.indexOf(step)
+    if (currentIndex === -1) {
+      throw new Error(`Unknown deployment step: ${step}`)
+    }
+    const position = currentIndex + 1
+    const total = steps.length
+
+    return {
+      pending: `Step ${position}/${total}: ${messages.pending}`,
+      success: `Step ${position}/${total}: ${messages.success}`,
+      error: `Step ${position}/${total}: ${messages.error}`,
+    }
+  }
 
   const {
     mutate: deployNewMarket,
@@ -86,12 +143,18 @@ export const useDeployV2Market = () => {
       timeSigned,
       mlaTemplateId,
       mlaSignature,
+      deployWrapper,
       ...marketParams
     }: DeployNewV2MarketParams) => {
       if (!signer || !hooksTemplate || !marketParams) {
         return
       }
 
+      const includeMockTokenStep = !!isTestnet && !isConnectedToSafe
+      const deploymentSteps = getDeploySteps({
+        includeMockToken: includeMockTokenStep,
+        includeWrapper: !!deployWrapper,
+      })
       let marketAddress: string | undefined
       if (deployedMarket) {
         marketAddress = deployedMarket
@@ -132,11 +195,11 @@ export const useDeployV2Market = () => {
                 assetData.name,
                 assetData.symbol,
               ).then((t) => t.token),
-              {
-                pending: "Step 1/2: Deploying Mock Token...",
-                success: "Step 1/2: Mock Token Deployed Successfully!",
-                error: "Step 1/2: Mock Token Deployment Failed.",
-              },
+              getStepToastConfig(deploymentSteps, "mockToken", {
+                pending: "Deploying Mock Token..",
+                success: "Mock Token Deployed Successfully!",
+                error: "Mock Token Deployment Failed.",
+              }),
             )
           }
         } else {
@@ -173,9 +236,9 @@ export const useDeployV2Market = () => {
               await toastRequest(
                 archControllerOwner.registerBorrower(borrowerAddress),
                 {
-                  pending: "Adjusting: Registering Borrower...",
-                  success: "Adjusting: Borrower Registered Successfully",
-                  error: "Adjusting: Borrower Registration Failed",
+                  pending: "Prerequisite: Registering borrower...",
+                  success: "Prerequisite: Borrower registered",
+                  error: "Prerequisite: Borrower registration failed",
                 },
               )
             }
@@ -264,7 +327,14 @@ export const useDeployV2Market = () => {
           }
         }
 
-        const receipt = await send()
+        const receipt = await toastRequest(
+          send(),
+          getStepToastConfig(deploymentSteps, "market", {
+            pending: "Deploying Market..",
+            success: "Market Deployed Successfully!",
+            error: "Market Deployment Failed.",
+          }),
+        )
         const marketDeployedTopic =
           hooksTemplate.contract.interface.getEventTopic("MarketDeployed")
 
@@ -279,6 +349,61 @@ export const useDeployV2Market = () => {
         ) as unknown as MarketDeployedEvent["args"]
         marketAddress = event.market
         setDeployedMarket(marketAddress)
+      }
+
+      if (deployWrapper) {
+        const chainId = hooksTemplate.chainId as SupportedChainId
+        if (
+          !hasDeploymentAddress(chainId, "Wildcat4626WrapperFactory") ||
+          !marketAddress
+        ) {
+          throw Error("Wrapper factory not available on this chain")
+        }
+
+        const existingWrapper = await WrapperFactory.getWrapperForMarket(
+          chainId,
+          signer,
+          marketAddress,
+        )
+
+        if (existingWrapper === constants.AddressZero) {
+          await toastRequest(
+            (async () => {
+              if (isConnectedToSafe) {
+                if (!gnosisSafeSDK) throw Error("No sdk found")
+                const tx = WrapperFactory.populateCreateWrapper(
+                  chainId,
+                  signer,
+                  marketAddress,
+                )
+                const { safeTxHash } = await gnosisSafeSDK.txs.send({
+                  txs: [tx],
+                })
+                await waitForSafeTransaction(safeTxHash)
+                return safeTxHash
+              }
+
+              const { wrapper } = await WrapperFactory.createWrapper(
+                chainId,
+                signer,
+                marketAddress,
+              )
+              return wrapper
+            })(),
+            getStepToastConfig(deploymentSteps, "wrapper", {
+              pending: "Deploying Wrapper..",
+              success: "Wrapper Deployed Successfully!",
+              error: "Wrapper Deployment Failed.",
+            }),
+          )
+        } else {
+          const { success } = getStepToastConfig(deploymentSteps, "wrapper", {
+            pending: "Deploying Wrapper..",
+            success: "Wrapper Deployed Successfully!",
+            error: "Wrapper Deployment Failed.",
+          })
+          toastSuccess(`${success} (already deployed)`)
+        }
       }
 
       const doSubmit = async () => {
