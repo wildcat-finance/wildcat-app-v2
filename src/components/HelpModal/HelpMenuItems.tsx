@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import Ask from "@/assets/icons/ask_icon.svg"
+import Bug from "@/assets/icons/bug_icon.svg"
 import Message from "@/assets/icons/message_icon.svg"
 import Partnership from "@/assets/icons/partnership_icon.svg"
 import Arrow from "@/assets/icons/sharpArrow_icon.svg"
