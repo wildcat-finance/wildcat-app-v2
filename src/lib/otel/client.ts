@@ -12,7 +12,10 @@ import { resourceFromAttributes } from "@opentelemetry/resources"
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base"
 import { WebTracerProvider } from "@opentelemetry/sdk-trace-web"
 
-const OTEL_CLIENT_INIT_KEY = "__wildcat_otel_client_initialized__"
+import {
+  isClientOtelInitialized,
+  markClientOtelInitialized,
+} from "@/lib/otel/state"
 
 function buildOtlpUrl(endpoint: string) {
   const trimmed = endpoint.replace(/\/$/, "")
@@ -24,9 +27,8 @@ function buildOtlpUrl(endpoint: string) {
 export function initClientOtel() {
   if (typeof window === "undefined") return
 
-  const globalState = globalThis as unknown as Record<string, boolean>
-  if (globalState[OTEL_CLIENT_INIT_KEY]) return
-  globalState[OTEL_CLIENT_INIT_KEY] = true
+  if (isClientOtelInitialized()) return
+  markClientOtelInitialized()
 
   const serviceName =
     process.env.NEXT_PUBLIC_OTEL_SERVICE_NAME || "wildcat-app-v2-web"
@@ -89,11 +91,4 @@ export function initClientOtel() {
       }),
     ],
   })
-}
-
-export function isClientOtelInitialized() {
-  if (typeof window === "undefined") return false
-
-  const globalState = globalThis as unknown as Record<string, boolean>
-  return Boolean(globalState[OTEL_CLIENT_INIT_KEY])
 }

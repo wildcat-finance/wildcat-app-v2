@@ -1,6 +1,6 @@
 "use client"
 
-import { isClientOtelInitialized } from "@/lib/otel/client"
+import { isClientOtelInitialized } from "@/lib/otel/state"
 import {
   getTimelineTraceRefs,
   readTimelineEvents,
