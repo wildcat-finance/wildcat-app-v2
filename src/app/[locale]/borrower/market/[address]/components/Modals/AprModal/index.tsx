@@ -338,7 +338,11 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
       <Dialog
         open={modal.isModalOpen}
-        onClose={isPending || isResetPending ? undefined : () => handleClose("cancelled")}
+        onClose={
+          isPending || isResetPending
+            ? undefined
+            : () => handleClose("cancelled")
+        }
         sx={AprModalDialog}
       >
         {showForm && (
