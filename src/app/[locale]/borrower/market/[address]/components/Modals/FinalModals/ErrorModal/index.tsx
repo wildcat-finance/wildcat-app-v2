@@ -50,14 +50,10 @@ export const ErrorModal = ({
 
           <Box sx={FinalModalTypoBox}>
             <Typography variant="title3">
-              {title ?? (
-                <Trans i18nKey="common.states.error.title" />
-              )}
+              {title ?? <Trans i18nKey="common.states.error.title" />}
             </Typography>
             <Typography variant="text3" sx={FinalModalSubtitle}>
-              {subtitle ?? (
-                <Trans i18nKey="common.states.error.subtitle" />
-              )}
+              {subtitle ?? <Trans i18nKey="common.states.error.subtitle" />}
             </Typography>
           </Box>
         </Box>

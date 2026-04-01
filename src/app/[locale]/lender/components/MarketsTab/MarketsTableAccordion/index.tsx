@@ -40,7 +40,9 @@ export const MarketsTableAccordion = ({
         <Box display="flex" columnGap="4px">
           <Typography variant="text3">{label}</Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            {isLoading ? t("marketDetailsLender.marketsTab.areLoading") : marketsLength}
+            {isLoading
+              ? t("marketDetailsLender.marketsTab.areLoading")
+              : marketsLength}
           </Typography>
         </Box>
       </AccordionSummary>

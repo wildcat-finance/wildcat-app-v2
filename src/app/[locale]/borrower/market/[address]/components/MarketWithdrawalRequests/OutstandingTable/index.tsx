@@ -101,7 +101,9 @@ export const OutstandingTable = ({
     <DetailsAccordion
       isOpen={isOutstandingOpen}
       setIsOpen={setIsOutstandingOpen}
-      summaryText={t("marketDetailsBorrower.withdrawalTables.outstandingFromPastCycles")}
+      summaryText={t(
+        "marketDetailsBorrower.withdrawalTables.outstandingFromPastCycles",
+      )}
       summarySx={{
         borderRadius: "0px",
         borderBottom: isOutstandingOpen || isMobile ? "none" : `1px solid`,

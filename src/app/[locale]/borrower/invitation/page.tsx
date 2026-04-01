@@ -22,13 +22,21 @@ const BorrowerInvitationPage = () => {
   } = useGetBorrowerInvitation(address)
 
   if (!address) {
-    return <Box sx={PageContainer}>{t("marketDetailsBorrower.invitation.noWallet")}</Box>
+    return (
+      <Box sx={PageContainer}>
+        {t("marketDetailsBorrower.invitation.noWallet")}
+      </Box>
+    )
   }
   if (isLoadingInvite) {
     return <Box sx={PageContainer}>{t("common.loading")}</Box>
   }
   if (!inviteExists) {
-    return <Box sx={PageContainer}>{t("marketDetailsBorrower.invitation.noInvitation")}</Box>
+    return (
+      <Box sx={PageContainer}>
+        {t("marketDetailsBorrower.invitation.noInvitation")}
+      </Box>
+    )
   }
   if (mustLogin || !invitation) {
     return (
@@ -46,7 +54,9 @@ const BorrowerInvitationPage = () => {
         <Typography variant="h6">
           {t("marketDetailsBorrower.invitation.signInPrompt")}
         </Typography>
-        <Button onClick={() => login.mutate(address)}>{t("common.actions.signIn")}</Button>
+        <Button onClick={() => login.mutate(address)}>
+          {t("common.actions.signIn")}
+        </Button>
       </Box>
     )
   }

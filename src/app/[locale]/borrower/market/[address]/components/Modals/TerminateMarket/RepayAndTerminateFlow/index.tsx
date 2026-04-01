@@ -80,7 +80,9 @@ export const RepayAndTerminateFlow = ({
 
       if (market.normalizedUnclaimedWithdrawals.gt(0)) {
         values.push({
-          name: t("marketDetailsBorrower.modals.terminate.unclaimedWithdrawals"),
+          name: t(
+            "marketDetailsBorrower.modals.terminate.unclaimedWithdrawals",
+          ),
           value: formatTokenWithCommas(market.normalizedUnclaimedWithdrawals, {
             withSymbol: true,
           }),
@@ -342,7 +344,9 @@ export const RepayAndTerminateFlow = ({
                   paddingRight: "16px",
                 }}
               >
-                <Typography variant="text1">{t("common.labels.balance")}</Typography>
+                <Typography variant="text1">
+                  {t("common.labels.balance")}
+                </Typography>
                 <Typography variant="text1" noWrap color={COLORS.blueRibbon}>
                   {formatTokenWithCommas(marketAccount.underlyingBalance, {
                     withSymbol: true,
@@ -351,7 +355,9 @@ export const RepayAndTerminateFlow = ({
               </Box>
 
               <Typography variant="text1">
-                {t("marketDetailsBorrower.modals.terminate.insufficientBalance")}
+                {t(
+                  "marketDetailsBorrower.modals.terminate.insufficientBalance",
+                )}
               </Typography>
             </Box>
           )}
@@ -394,7 +400,9 @@ export const RepayAndTerminateFlow = ({
               onClick={isProcessed ? handleTerminateMarket : handleRepay}
               fullWidth
             >
-              {isProcessed ? t("marketDetailsBorrower.modals.terminate.terminateMarket") : t("common.actions.tryAgain")}
+              {isProcessed
+                ? t("marketDetailsBorrower.modals.terminate.terminateMarket")
+                : t("common.actions.tryAgain")}
             </Button>
           </Box>
         </>
@@ -421,8 +429,12 @@ export const RepayAndTerminateFlow = ({
       )}
 
       <TxModalFooter
-        mainBtnText={t("marketDetailsBorrower.modals.terminate.repayAndTerminate")}
-        secondBtnText={IsTxApproved ? t("common.toast.approved") : t("common.toast.approve")}
+        mainBtnText={t(
+          "marketDetailsBorrower.modals.terminate.repayAndTerminate",
+        )}
+        secondBtnText={
+          IsTxApproved ? t("common.toast.approved") : t("common.toast.approve")
+        }
         mainBtnOnClick={handleTerminateMarket}
         secondBtnOnClick={handleApprove}
         disableMainBtn={disableTerminate}

@@ -107,7 +107,9 @@ export const MobileFaucetButton = ({
       disabled={isFauceting}
       sx={{ padding: "10px 20px", marginTop: "16px" }}
     >
-      {isFauceting ? t("marketDetailsLender.faucetButton.requesting") : t("marketDetailsLender.faucetButton.faucet")}
+      {isFauceting
+        ? t("marketDetailsLender.faucetButton.requesting")
+        : t("marketDetailsLender.faucetButton.faucet")}
     </Button>
   )
 }

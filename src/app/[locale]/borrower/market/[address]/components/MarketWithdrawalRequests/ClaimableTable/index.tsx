@@ -3,13 +3,13 @@ import { useEffect, useMemo, useState } from "react"
 
 import { Box, IconButton, SvgIcon, Typography, useTheme } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
-import { useTranslation } from "react-i18next"
 import {
   LenderWithdrawalStatus,
   TokenAmount,
   WithdrawalBatch,
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"

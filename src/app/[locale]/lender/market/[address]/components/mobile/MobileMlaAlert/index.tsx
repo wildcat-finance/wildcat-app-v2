@@ -76,7 +76,8 @@ export const MobileMlaAlert = ({
             <Check />
           </SvgIcon>
           <Typography variant="mobText3" color={COLORS.santasGrey}>
-            {t("marketDetailsLender.mla.signedPrefix")}{formatDate(signedMla.timeSigned)}
+            {t("marketDetailsLender.mla.signedPrefix")}
+            {formatDate(signedMla.timeSigned)}
           </Typography>
         </Box>
 

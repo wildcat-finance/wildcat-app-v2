@@ -61,7 +61,9 @@ export const AcceptInvitationForm = ({
           justifyContent: "center",
         }}
       >
-        <Typography variant="h4">{t("marketDetailsBorrower.invitation.acceptTitle")}</Typography>
+        <Typography variant="h4">
+          {t("marketDetailsBorrower.invitation.acceptTitle")}
+        </Typography>
 
         <TextField
           label={t("marketDetailsBorrower.invitation.organizationName")}
@@ -104,7 +106,9 @@ export const AcceptInvitationForm = ({
           onClick={handleSubmit}
           disabled={!name || submitMutation.isPending}
         >
-          {submitMutation.isPending ? t("common.toast.signing") : t("common.actions.signAndAccept")}
+          {submitMutation.isPending
+            ? t("common.toast.signing")
+            : t("common.actions.signAndAccept")}
         </Button>
 
         <Link href="/pdf/Wildcat_Terms_of_Use.pdf" target="_blank" download>

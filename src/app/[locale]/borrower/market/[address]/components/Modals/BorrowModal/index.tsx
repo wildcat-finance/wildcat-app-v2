@@ -196,15 +196,18 @@ export const BorrowModal = ({
 
             {!modal.approvedStep && (
               <NumberTextField
-                label={t("marketDetailsBorrower.modals.borrow.inputLabel", { max: formatTokenWithCommas(
-                  marketAccount.market.borrowableAssets,
-                ) })}
+                label={t("marketDetailsBorrower.modals.borrow.inputLabel", {
+                  max: formatTokenWithCommas(
+                    marketAccount.market.borrowableAssets,
+                  ),
+                })}
                 helperText={
                   underlyingBorrowAmount.gt(market.borrowableAssets)
-                    ? t("marketDetailsBorrower.modals.borrow.inputHelper", { max: formatTokenWithCommas(
-                        market.borrowableAssets,
-                        { withSymbol: true },
-                      ) })
+                    ? t("marketDetailsBorrower.modals.borrow.inputHelper", {
+                        max: formatTokenWithCommas(market.borrowableAssets, {
+                          withSymbol: true,
+                        }),
+                      })
                     : ""
                 }
                 error={underlyingBorrowAmount.gt(market.borrowableAssets)}
@@ -236,7 +239,11 @@ export const BorrowModal = ({
         )}
 
         <TxModalFooter
-          mainBtnText={modal.approvedStep ? t("common.actions.confirm") : t("marketDetailsBorrower.modals.borrow.borrow")}
+          mainBtnText={
+            modal.approvedStep
+              ? t("common.actions.confirm")
+              : t("marketDetailsBorrower.modals.borrow.borrow")
+          }
           mainBtnOnClick={modal.approvedStep ? handleConfirm : handleBorrow}
           disableMainBtn={disableBorrow}
           hideButtons={!showForm}

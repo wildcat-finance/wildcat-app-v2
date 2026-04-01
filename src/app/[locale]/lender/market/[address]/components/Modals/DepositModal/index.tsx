@@ -211,9 +211,7 @@ export const DepositModal = ({
         setDepositError(SDK_ERRORS_MAPPING.deposit[depositStep])
       } else {
         // warn that this is above balance but you can approve if you want to
-        setDepositError(
-          t("marketDetailsLender.deposit.exceedsBalance"),
-        )
+        setDepositError(t("marketDetailsLender.deposit.exceedsBalance"))
       }
       return
     }
@@ -383,7 +381,9 @@ export const DepositModal = ({
                 <DepositAlert
                   text={
                     <Typography variant="mobText3">
-                      {t("marketDetailsLender.deposit.fixedTermLocked", { date: formatDate(fixedTermMaturity || 0) })}
+                      {t("marketDetailsLender.deposit.fixedTermLocked", {
+                        date: formatDate(fixedTermMaturity || 0),
+                      })}
                     </Typography>
                   }
                   icon={
@@ -594,8 +594,7 @@ export const DepositModal = ({
           {showForm && (
             <>
               <TxModalHeader
-                title={t("marketDetailsLender.transactions.deposit.modalTitle",
-                )}
+                title={t("marketDetailsLender.transactions.deposit.modalTitle")}
                 arrowOnClick={
                   modal.hideArrowButton || !showForm
                     ? null
@@ -609,7 +608,8 @@ export const DepositModal = ({
               {modal.gettingValueStep && (
                 <Box width="100%" height="100%" padding="0 24px">
                   <ModalDataItem
-                    title={t("marketDetailsLender.transactions.deposit.modalAvailable",
+                    title={t(
+                      "marketDetailsLender.transactions.deposit.modalAvailable",
                     )}
                     value={formatTokenWithCommas(marketAccount.maximumDeposit, {
                       withSymbol: true,

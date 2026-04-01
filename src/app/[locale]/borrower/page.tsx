@@ -66,7 +66,9 @@ export default function BorrowerPage() {
             .map((market) => ({ name: market.name, address: market.address }))
         : [],
       accessRequirements:
-        policy.roleProviders.length === 1 ? t("borrowerMarketList.policies.accessTypes.manualApproval") : t("borrowerMarketList.policies.accessTypes.selfOnboard"),
+        policy.roleProviders.length === 1
+          ? t("borrowerMarketList.policies.accessTypes.manualApproval")
+          : t("borrowerMarketList.policies.accessTypes.selfOnboard"),
     })) ?? []),
     ...(hooksData?.controller
       ? [
@@ -79,7 +81,9 @@ export default function BorrowerPage() {
                   (market) => market.hooksConfig?.hooksAddress === undefined,
                 )
               : [],
-            accessRequirements: t("borrowerMarketList.policies.accessTypes.manualApproval"),
+            accessRequirements: t(
+              "borrowerMarketList.policies.accessTypes.manualApproval",
+            ),
           },
         ]
       : []),

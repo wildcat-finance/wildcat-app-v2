@@ -77,7 +77,9 @@ export const TerminateFlow = ({
       )}
 
       <TxModalFooter
-        mainBtnText={t("marketDetailsBorrower.modals.terminate.terminateMarket")}
+        mainBtnText={t(
+          "marketDetailsBorrower.modals.terminate.terminateMarket",
+        )}
         mainBtnOnClick={handleTerminateMarket}
         hideButtons={!showForm}
       />

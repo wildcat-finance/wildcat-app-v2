@@ -103,16 +103,21 @@ export const MaturityModal = ({
           SetFixedTermEndTimeStatus.Ready
         >]: string
       } = {
-        [SetFixedTermEndTimeStatus.FixedTermEndTimeIncrease]:
-          t("marketDetailsBorrower.modals.maturity.cannotIncrease"),
-        [SetFixedTermEndTimeStatus.FixedTermEndTimeNotChangeable]:
-          t("marketDetailsBorrower.modals.maturity.notAllowed"),
-        [SetFixedTermEndTimeStatus.NotFixedTermMarket]:
-          t("marketDetailsBorrower.modals.maturity.notFixedTerm"),
-        [SetFixedTermEndTimeStatus.NotBorrower]:
-          t("marketDetailsBorrower.modals.maturity.notBorrower"),
-        [SetFixedTermEndTimeStatus.NotV2Market]:
-          t("marketDetailsBorrower.modals.maturity.notV2"),
+        [SetFixedTermEndTimeStatus.FixedTermEndTimeIncrease]: t(
+          "marketDetailsBorrower.modals.maturity.cannotIncrease",
+        ),
+        [SetFixedTermEndTimeStatus.FixedTermEndTimeNotChangeable]: t(
+          "marketDetailsBorrower.modals.maturity.notAllowed",
+        ),
+        [SetFixedTermEndTimeStatus.NotFixedTermMarket]: t(
+          "marketDetailsBorrower.modals.maturity.notFixedTerm",
+        ),
+        [SetFixedTermEndTimeStatus.NotBorrower]: t(
+          "marketDetailsBorrower.modals.maturity.notBorrower",
+        ),
+        [SetFixedTermEndTimeStatus.NotV2Market]: t(
+          "marketDetailsBorrower.modals.maturity.notV2",
+        ),
       }
       const errorMessage = errorMessages[newPreview.status]
       setMaturityError(errorMessage)
@@ -200,7 +205,9 @@ export const MaturityModal = ({
 
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DesktopDatePicker
-                label={t("marketDetailsBorrower.modals.maturity.datePlaceholder")}
+                label={t(
+                  "marketDetailsBorrower.modals.maturity.datePlaceholder",
+                )}
                 format="DD/MM/YYYY"
                 value={maturity}
                 onChange={(v) => {

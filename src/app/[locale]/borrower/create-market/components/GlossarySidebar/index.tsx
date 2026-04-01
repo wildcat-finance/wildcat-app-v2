@@ -95,21 +95,20 @@ export const GlossarySidebar = ({
     case CreateMarketSteps.LRESTRICTIONS: {
       glossaryArray = [
         {
-          title: t("createMarket.restrictions.restrictWithdrawals.label",
-          ),
-          description: t("createMarket.restrictions.restrictWithdrawals.glossary",
+          title: t("createMarket.restrictions.restrictWithdrawals.label"),
+          description: t(
+            "createMarket.restrictions.restrictWithdrawals.glossary",
           ),
         },
         {
-          title: t("createMarket.restrictions.restrictTransfers.label",
-          ),
-          description: t("createMarket.restrictions.restrictTransfers.glossary",
+          title: t("createMarket.restrictions.restrictTransfers.label"),
+          description: t(
+            "createMarket.restrictions.restrictTransfers.glossary",
           ),
         },
         {
           title: t("createMarket.restrictions.disableTransfers.label"),
-          description: t("createMarket.restrictions.disableTransfers.glossary",
-          ),
+          description: t("createMarket.restrictions.disableTransfers.glossary"),
         },
       ]
       break

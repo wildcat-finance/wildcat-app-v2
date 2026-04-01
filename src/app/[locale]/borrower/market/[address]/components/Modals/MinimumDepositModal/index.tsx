@@ -126,7 +126,9 @@ export const MinimumDepositModal = ({
             />
 
             <ModalDataItem
-              title={t("marketDetailsBorrower.modals.minimumDeposit.currentMinDeposit")}
+              title={t(
+                "marketDetailsBorrower.modals.minimumDeposit.currentMinDeposit",
+              )}
               value={
                 market.hooksConfig?.minimumDeposit
                   ? formatTokenWithCommas(market.hooksConfig?.minimumDeposit, {
@@ -140,7 +142,9 @@ export const MinimumDepositModal = ({
             />
 
             <NumberTextField
-              label={t("marketDetailsBorrower.modals.minimumDeposit.inputLabel")}
+              label={t(
+                "marketDetailsBorrower.modals.minimumDeposit.inputLabel",
+              )}
               size="medium"
               style={{ width: "100%" }}
               value={amount}

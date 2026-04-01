@@ -183,7 +183,9 @@ export default function PolicyPage() {
         }}
       >
         <Box sx={{ display: "flex", gap: "6px", padding: "40px 24px 0" }}>
-          <Typography variant="title2">{t("borrowerMarketList.policyPage.policyInfo")}</Typography>
+          <Typography variant="title2">
+            {t("borrowerMarketList.policyPage.policyInfo")}
+          </Typography>
 
           <PolicySelect
             policies={policies}
@@ -213,9 +215,21 @@ export default function PolicyPage() {
               backgroundColor: COLORS.athensGrey,
             }}
           />
-          <Tab value={PolicyTabs.DETAILS} label={t("borrowerMarketList.policyPage.tabs.details")} sx={TabStyle} />
-          <Tab value={PolicyTabs.MARKETS} label={t("borrowerMarketList.policyPage.tabs.markets")} sx={TabStyle} />
-          <Tab value={PolicyTabs.LENDERS} label={t("borrowerMarketList.policyPage.tabs.lenders")} sx={TabStyle} />
+          <Tab
+            value={PolicyTabs.DETAILS}
+            label={t("borrowerMarketList.policyPage.tabs.details")}
+            sx={TabStyle}
+          />
+          <Tab
+            value={PolicyTabs.MARKETS}
+            label={t("borrowerMarketList.policyPage.tabs.markets")}
+            sx={TabStyle}
+          />
+          <Tab
+            value={PolicyTabs.LENDERS}
+            label={t("borrowerMarketList.policyPage.tabs.lenders")}
+            sx={TabStyle}
+          />
           <Box
             sx={{
               width: "100%",

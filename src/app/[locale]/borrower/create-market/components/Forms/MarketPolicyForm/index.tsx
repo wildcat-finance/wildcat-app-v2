@@ -350,8 +350,7 @@ export const MarketPolicyForm = ({
             <Box sx={{ width: "100%", gridArea: "2/2/-2/-2" }}>
               <HorizontalInputLabel
                 label={t("createMarket.policy.reduceExpiration.label")}
-                explainer={t("createMarket.policy.reduceExpiration.explainer",
-                )}
+                explainer={t("createMarket.policy.reduceExpiration.explainer")}
               >
                 <Switch
                   checked={allowTermReductionWatch}

@@ -76,7 +76,9 @@ const SetMarketMLAForm = ({
         sx={{ display: "flex", flexDirection: "row", gap: 2, width: "100%" }}
       >
         <FormControl sx={{ mb: 2, width: "200px" }}>
-          <InputLabel>{t("marketDetailsBorrower.mlaStates.selectTemplate")}</InputLabel>
+          <InputLabel>
+            {t("marketDetailsBorrower.mlaStates.selectTemplate")}
+          </InputLabel>
           <Select
             value={selectedTemplateId || ""}
             onChange={(e) =>
@@ -148,8 +150,10 @@ const NoExistingMla = ({ marketAccount }: { marketAccount: MarketAccount }) => {
   const { data: borrowerProfile } = useBorrowerProfileTmp(
     marketAccount.market.borrower,
   )
-  if (!borrowerProfile) return <Box>{t("marketDetailsBorrower.mlaStates.noProfile")}</Box>
-  if (!marketAccount.isBorrower) return <Box>{t("marketDetailsBorrower.mlaStates.noMarketMla")}</Box>
+  if (!borrowerProfile)
+    return <Box>{t("marketDetailsBorrower.mlaStates.noProfile")}</Box>
+  if (!marketAccount.isBorrower)
+    return <Box>{t("marketDetailsBorrower.mlaStates.noMarketMla")}</Box>
   return (
     <SetMarketMLAForm
       borrowerProfile={borrowerProfile as unknown as BasicBorrowerInfo}
@@ -194,9 +198,12 @@ export const MarketMLA = ({
   if (isLoadingMarketMla || isLoadingBorrowerProfile)
     return <div>{t("common.loading")}</div>
 
-  if (!borrowerProfile) return <Box>{t("marketDetailsBorrower.mlaStates.noProfile")}</Box>
-  if (!marketAccount.isBorrower) return <Box>{t("marketDetailsBorrower.mlaStates.wrongAddress")}</Box>
-  if (marketMla && "noMLA" in marketMla) return <Box>{t("marketDetailsBorrower.mlaStates.declined")}</Box>
+  if (!borrowerProfile)
+    return <Box>{t("marketDetailsBorrower.mlaStates.noProfile")}</Box>
+  if (!marketAccount.isBorrower)
+    return <Box>{t("marketDetailsBorrower.mlaStates.wrongAddress")}</Box>
+  if (marketMla && "noMLA" in marketMla)
+    return <Box>{t("marketDetailsBorrower.mlaStates.declined")}</Box>
   if (marketMla)
     return (
       <ShowExistingMla

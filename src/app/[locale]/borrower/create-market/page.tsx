@@ -128,9 +128,13 @@ export default function CreateMarketPage() {
       defaultPolicyOption,
       ...(hooksInstances?.map((instance) => ({
         id: instance.address,
-        label: instance.name || t("marketDetailsBorrower.createMarketOptions.unnamedPolicy"),
+        label:
+          instance.name ||
+          t("marketDetailsBorrower.createMarketOptions.unnamedPolicy"),
         badge:
-          instance.kind === HooksKind.OpenTerm ? t("marketDetailsBorrower.createMarketOptions.openTerm") : t("marketDetailsBorrower.createMarketOptions.fixedTerm"),
+          instance.kind === HooksKind.OpenTerm
+            ? t("marketDetailsBorrower.createMarketOptions.openTerm")
+            : t("marketDetailsBorrower.createMarketOptions.fixedTerm"),
         value: instance.address,
       })) ?? []),
     ],

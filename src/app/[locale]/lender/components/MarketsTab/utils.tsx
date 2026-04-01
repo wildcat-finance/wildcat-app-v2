@@ -289,7 +289,9 @@ export const getColumns = (
           >
             {t("marketDetailsLender.tableHeaders.crr")}
           </Typography>
-          <TooltipButton value={t("marketDetailsLender.tableHeaders.crrTooltip")} />
+          <TooltipButton
+            value={t("marketDetailsLender.tableHeaders.crrTooltip")}
+          />
         </Box>
       ),
       renderCell: (params) => (

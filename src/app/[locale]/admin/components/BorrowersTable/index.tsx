@@ -122,7 +122,11 @@ export const BorrowersTable = () => {
       minWidth: 134,
       headerAlign: "left",
       align: "left",
-      renderCell: (params) => <span>{params.value ? t("common.labels.yes") : t("common.labels.no")}</span>,
+      renderCell: (params) => (
+        <span>
+          {params.value ? t("common.labels.yes") : t("common.labels.no")}
+        </span>
+      ),
     },
     {
       field: "timeSigned",

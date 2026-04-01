@@ -150,13 +150,20 @@ export const ForceBuyBackModal = ({
 
             {!modal.approvedStep && (
               <NumberTextField
-                label={t("marketDetailsBorrower.modals.forceBuyBack.inputLabel", { max: formatTokenWithCommas(maximum) })}
+                label={t(
+                  "marketDetailsBorrower.modals.forceBuyBack.inputLabel",
+                  { max: formatTokenWithCommas(maximum) },
+                )}
                 helperText={
                   buyBackAmount.gt(maximum)
-                    ? t("marketDetailsBorrower.modals.forceBuyBack.inputHelper", { max: formatTokenWithCommas(
-                        lender.marketBalance,
-                        { withSymbol: true },
-                      ) })
+                    ? t(
+                        "marketDetailsBorrower.modals.forceBuyBack.inputHelper",
+                        {
+                          max: formatTokenWithCommas(lender.marketBalance, {
+                            withSymbol: true,
+                          }),
+                        },
+                      )
                     : ""
                 }
                 error={buyBackAmount.gt(maximum)}
@@ -188,7 +195,11 @@ export const ForceBuyBackModal = ({
         )}
 
         <TxModalFooter
-          mainBtnText={modal.approvedStep ? t("common.actions.confirm") : t("marketDetailsBorrower.modals.forceBuyBack.buyBackButton")}
+          mainBtnText={
+            modal.approvedStep
+              ? t("common.actions.confirm")
+              : t("marketDetailsBorrower.modals.forceBuyBack.buyBackButton")
+          }
           mainBtnOnClick={modal.approvedStep ? handleConfirm : handleBorrow}
           disableMainBtn={disableForceBuyBack}
           hideButtons={!showForm}

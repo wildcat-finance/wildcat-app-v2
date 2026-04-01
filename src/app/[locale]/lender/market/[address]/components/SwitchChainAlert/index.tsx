@@ -62,7 +62,9 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
             color={COLORS.white06}
             textAlign="center"
           >
-            {t("marketDetailsLender.switchChain.description", { networkName: desiredChainName })}
+            {t("marketDetailsLender.switchChain.description", {
+              networkName: desiredChainName,
+            })}
           </Typography>
         </Box>
 
@@ -81,7 +83,9 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
           onClick={handleSwitchChain}
           disabled={isSwitching}
         >
-          {isSwitching ? t("common.states.switching") : t("common.actions.switchNetwork")}
+          {isSwitching
+            ? t("common.states.switching")
+            : t("common.actions.switchNetwork")}
         </Button>
       </>
     )
@@ -95,7 +99,9 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
           </Typography>
 
           <Typography variant="text3" color="#8A8C9F">
-            {t("marketDetailsLender.switchChain.description", { networkName: desiredChainName })}
+            {t("marketDetailsLender.switchChain.description", {
+              networkName: desiredChainName,
+            })}
           </Typography>
         </Box>
 
@@ -106,7 +112,9 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
           onClick={handleSwitchChain}
           disabled={isSwitching}
         >
-          {isSwitching ? t("common.states.switching") : t("common.actions.switchNetwork")}
+          {isSwitching
+            ? t("common.states.switching")
+            : t("common.actions.switchNetwork")}
         </Button>
       </Box>
     </Box>

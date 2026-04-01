@@ -30,7 +30,9 @@ export default function MlaTab() {
         }}
         height="calc(100vh - 43px - 52px - 52px - 110px)"
       >
-        <Typography variant="caption">{t("marketDetailsLender.mlaTab.notLoggedIn")}</Typography>
+        <Typography variant="caption">
+          {t("marketDetailsLender.mlaTab.notLoggedIn")}
+        </Typography>
         <Typography variant="title2">
           {address
             ? t("marketDetailsLender.mlaTab.signToView")

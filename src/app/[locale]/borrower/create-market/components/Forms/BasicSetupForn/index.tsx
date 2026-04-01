@@ -174,19 +174,21 @@ export const BasicSetupForm = ({
         }}
       >
         <Typography variant="text3">
-          {`${t("marketDetailsBorrower.basicSetup.fullTokenName")}${watch("namePrefix")} ${
-            tokenAsset?.name || ""
-          }`}
+          {`${t("marketDetailsBorrower.basicSetup.fullTokenName")}${watch(
+            "namePrefix",
+          )} ${tokenAsset?.name || ""}`}
         </Typography>
 
         <Typography variant="text3">
-          {`${t("marketDetailsBorrower.basicSetup.fullTokenTicker")}${watch("symbolPrefix")}${
-            tokenAsset?.symbol || ""
-          }`}
+          {`${t("marketDetailsBorrower.basicSetup.fullTokenTicker")}${watch(
+            "symbolPrefix",
+          )}${tokenAsset?.symbol || ""}`}
         </Typography>
 
         <Typography variant="text3">
-          {`${t("marketDetailsBorrower.basicSetup.assetAddress")}${tokenAsset?.address || ""}`}
+          {`${t("marketDetailsBorrower.basicSetup.assetAddress")}${
+            tokenAsset?.address || ""
+          }`}
         </Typography>
       </Box>
 

@@ -150,9 +150,18 @@ export const MarketsSection = () => {
 
   const withdrawalCycleOptions = [
     { id: "0-86400", name: t("dashboard.withdrawalCycleFilter.lessThan24h") },
-    { id: "86401-259200", name: t("dashboard.withdrawalCycleFilter.oneToThreeDays") },
-    { id: "259201-604800", name: t("dashboard.withdrawalCycleFilter.threeToSevenDays") },
-    { id: "604801-Infinity", name: t("dashboard.withdrawalCycleFilter.sevenPlusDays") },
+    {
+      id: "86401-259200",
+      name: t("dashboard.withdrawalCycleFilter.oneToThreeDays"),
+    },
+    {
+      id: "259201-604800",
+      name: t("dashboard.withdrawalCycleFilter.threeToSevenDays"),
+    },
+    {
+      id: "604801-Infinity",
+      name: t("dashboard.withdrawalCycleFilter.sevenPlusDays"),
+    },
   ]
 
   const {

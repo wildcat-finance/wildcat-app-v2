@@ -406,8 +406,7 @@ export const LenderActiveMarketsTables = ({
           isLoading={isLoading}
           isOpen
           noMarketsTitle={t("dashboard.emptyStates.active.title")}
-          noMarketsSubtitle={t("dashboard.emptyStates.active.lenderSubtitle",
-          )}
+          noMarketsSubtitle={t("dashboard.emptyStates.active.lenderSubtitle")}
           nameFilter={filters.nameFilter}
           assetFilter={filters.assetFilter}
           statusFilter={filters.statusFilter}
@@ -443,8 +442,7 @@ export const LenderActiveMarketsTables = ({
           isLoading={isLoading}
           isOpen
           noMarketsTitle={t("dashboard.emptyStates.active.title")}
-          noMarketsSubtitle={t("dashboard.emptyStates.active.lenderSubtitle",
-          )}
+          noMarketsSubtitle={t("dashboard.emptyStates.active.lenderSubtitle")}
           marketsLength={nonDepositedMarkets.length}
           nameFilter={filters.nameFilter}
           assetFilter={filters.assetFilter}

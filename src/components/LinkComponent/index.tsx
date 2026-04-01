@@ -108,9 +108,7 @@ export const LinkGroup = ({
                 <LinkIcon />
               </SvgIcon>
 
-              <Typography variant="text3">
-                {t("common.explorer")}
-              </Typography>
+              <Typography variant="text3">{t("common.explorer")}</Typography>
             </Link>
           )}
         </Box>

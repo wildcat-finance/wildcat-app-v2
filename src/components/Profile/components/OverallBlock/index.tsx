@@ -86,22 +86,10 @@ export const OverallBlock = ({
       t("borrowerProfile.info.headquarters"),
       jurisdictionText,
     ),
-    makeInformationItem(
-      t("borrowerProfile.info.entityKind"),
-      entityKindText,
-    ),
-    makeInformationItem(
-      t("borrowerProfile.info.founded"),
-      founded,
-    ),
-    makeInformationItem(
-      t("borrowerProfile.info.markets"),
-      normalizedMarkets,
-    ),
-    makeInformationItem(
-      t("borrowerProfile.info.borrowed"),
-      "[Coming Soon]",
-    ),
+    makeInformationItem(t("borrowerProfile.info.entityKind"), entityKindText),
+    makeInformationItem(t("borrowerProfile.info.founded"), founded),
+    makeInformationItem(t("borrowerProfile.info.markets"), normalizedMarkets),
+    makeInformationItem(t("borrowerProfile.info.borrowed"), "[Coming Soon]"),
     makeInformationItem(
       t("borrowerProfile.info.defaultsTitle"),
       normalizedDefaults,

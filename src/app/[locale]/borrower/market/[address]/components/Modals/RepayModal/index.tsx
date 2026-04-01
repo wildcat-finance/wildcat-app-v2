@@ -287,7 +287,10 @@ export const RepayModal = ({
       market.underlyingToken.symbol
     }`}</Typography>
   ) : (
-    <TextfieldButton buttonText={t("common.labels.max")} onClick={handleClickMaxAmount} />
+    <TextfieldButton
+      buttonText={t("common.labels.max")}
+      onClick={handleClickMaxAmount}
+    />
   )
 
   useEffect(() => {
@@ -593,9 +596,12 @@ export const RepayModal = ({
         {mustResetAllowance && (
           <Box width="100%" height="100%" padding="0 24px">
             <Typography variant="text3" color={COLORS.dullRed}>
-              {t("marketDetailsBorrower.modals.repay.existingAllowance", { amount: market.underlyingToken
-                .getAmount(marketAccount.underlyingApproval)
-                .format(market.underlyingToken.decimals, true), tokenName: market.underlyingToken.symbol })}
+              {t("marketDetailsBorrower.modals.repay.existingAllowance", {
+                amount: market.underlyingToken
+                  .getAmount(marketAccount.underlyingApproval)
+                  .format(market.underlyingToken.decimals, true),
+                tokenName: market.underlyingToken.symbol,
+              })}
             </Typography>
           </Box>
         )}

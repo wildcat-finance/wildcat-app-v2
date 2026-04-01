@@ -207,7 +207,9 @@ export const BorrowerMarketsTable = ({
           >
             {t("borrowerMarketList.table.header.crr")}
           </Typography>
-          <TooltipButton value={t("borrowerMarketList.table.header.crrTooltip")} />
+          <TooltipButton
+            value={t("borrowerMarketList.table.header.crrTooltip")}
+          />
         </Box>
       ),
       renderCell: (params) => (
@@ -340,9 +342,7 @@ export const BorrowerMarketsTable = ({
             {label}
           </Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            {isLoading
-              ? t("common.loading")
-              : rows.length}
+            {isLoading ? t("common.loading") : rows.length}
           </Typography>
         </Box>
       </AccordionSummary>

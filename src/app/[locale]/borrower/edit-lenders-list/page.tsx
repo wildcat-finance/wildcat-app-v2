@@ -122,9 +122,7 @@ export default function EditLendersListPage() {
             {!isLoading && t("editLenders.for")}
           </Typography>
         ) : (
-          <Typography variant="title2">
-            {t("editLenders.confirm")}
-          </Typography>
+          <Typography variant="title2">{t("editLenders.confirm")}</Typography>
         )}
 
         {!isLoading && step === "edit" && <MarketSelect />}

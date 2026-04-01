@@ -398,7 +398,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                   </Typography>
 
                   <ModalDataItem
-                    title={t("marketDetailsBorrower.modals.apr.collateralObligation",
+                    title={t(
+                      "marketDetailsBorrower.modals.apr.collateralObligation",
                     )}
                     value={
                       newCollateralObligations ?? currentCollateralObligations
@@ -453,7 +454,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                         marginBottom: "4px",
                       }}
                     >
-                      {`${t("marketDetailsBorrower.modals.apr.willSetTemporarily",
+                      {`${t(
+                        "marketDetailsBorrower.modals.apr.willSetTemporarily",
                       )} ${twoWeeksTime}`}
                     </Typography>
                   )}
@@ -467,7 +469,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                         marginBottom: "4px",
                       }}
                     >
-                      {`${t("marketDetailsBorrower.modals.apr.setTemporarily",
+                      {`${t(
+                        "marketDetailsBorrower.modals.apr.setTemporarily",
                       )} ${reserveRatioExpiry}`}
                     </Typography>
                   )}
@@ -477,7 +480,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                   <DepositAlert
                     text={
                       <Typography variant="mobText3">
-                        {t("marketDetailsBorrower.modals.apr.expiredTempRatioNotice",
+                        {t(
+                          "marketDetailsBorrower.modals.apr.expiredTempRatioNotice",
                         )}
                       </Typography>
                     }
@@ -518,7 +522,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 </ModalDataItem>
 
                 <ModalDataItem
-                  title={t("marketDetailsBorrower.modals.apr.newCollateralObligation",
+                  title={t(
+                    "marketDetailsBorrower.modals.apr.newCollateralObligation",
                   )}
                   value={
                     newCollateralObligations ?? currentCollateralObligations
@@ -573,7 +578,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                       padding: "0 12px",
                     }}
                   >
-                    {`${t("marketDetailsBorrower.modals.apr.willSetTemporarily",
+                    {`${t(
+                      "marketDetailsBorrower.modals.apr.willSetTemporarily",
                     )} ${twoWeeksTime}`}
                   </Typography>
                 )}
@@ -588,7 +594,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                       padding: "0 12px",
                     }}
                   >
-                    {`${t("marketDetailsBorrower.modals.apr.setTemporarily",
+                    {`${t(
+                      "marketDetailsBorrower.modals.apr.setTemporarily",
                     )} ${reserveRatioExpiry}`}
                   </Typography>
                 )}

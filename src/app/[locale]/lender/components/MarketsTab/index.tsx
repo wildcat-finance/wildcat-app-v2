@@ -155,8 +155,12 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
           <Box id="active-lender-markets" ref={activeMarketsRef}>
             <MarketsTableAccordion
               label={t("marketDetailsLender.marketsTab.yourActiveMarkets")}
-              noMarketsTitle={t("marketDetailsLender.marketsTab.noActiveMarkets")}
-              noMarketsSubtitle={t("marketDetailsLender.marketsTab.noActiveMarketsSubtitle")}
+              noMarketsTitle={t(
+                "marketDetailsLender.marketsTab.noActiveMarkets",
+              )}
+              noMarketsSubtitle={t(
+                "marketDetailsLender.marketsTab.noActiveMarketsSubtitle",
+              )}
               type="active"
               marketsLength={filteredActiveLenderMarketAccounts.length}
               isLoading={isLoading}
@@ -195,7 +199,9 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
             >
               <MarketsTableAccordion
                 type="terminated"
-                label={t("marketDetailsLender.marketsTab.yourTerminatedMarkets")}
+                label={t(
+                  "marketDetailsLender.marketsTab.yourTerminatedMarkets",
+                )}
                 marketsLength={terminatedMarketAccounts.length}
                 isLoading={isLoading}
                 assetFilter={filterByAsset}

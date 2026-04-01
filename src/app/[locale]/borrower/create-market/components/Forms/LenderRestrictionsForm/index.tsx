@@ -61,9 +61,9 @@ export const LenderRestrictionsForm = ({
         }}
       >
         <HorizontalInputLabel
-          label={t("createMarket.restrictions.restrictWithdrawals.label",
-          )}
-          explainer={t("createMarket.restrictions.restrictWithdrawals.explainer",
+          label={t("createMarket.restrictions.restrictWithdrawals.label")}
+          explainer={t(
+            "createMarket.restrictions.restrictWithdrawals.explainer",
           )}
         >
           <Switch
@@ -75,10 +75,8 @@ export const LenderRestrictionsForm = ({
         </HorizontalInputLabel>
 
         <HorizontalInputLabel
-          label={t("createMarket.restrictions.restrictTransfers.label",
-          )}
-          explainer={t("createMarket.restrictions.restrictTransfers.explainer",
-          )}
+          label={t("createMarket.restrictions.restrictTransfers.label")}
+          explainer={t("createMarket.restrictions.restrictTransfers.explainer")}
         >
           <Switch
             checked={transferRequiresAccessWatch}
@@ -90,8 +88,7 @@ export const LenderRestrictionsForm = ({
 
         <HorizontalInputLabel
           label={t("createMarket.restrictions.disableTransfers.label")}
-          explainer={t("createMarket.restrictions.disableTransfers.explainer",
-          )}
+          explainer={t("createMarket.restrictions.disableTransfers.explainer")}
         >
           <Switch
             checked={disableTransfersWatch}

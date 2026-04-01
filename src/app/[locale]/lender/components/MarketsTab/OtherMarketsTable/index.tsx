@@ -67,7 +67,11 @@ export const OtherMarketsTable = ({
               backgroundColor: COLORS.athensGrey,
             }}
           />
-          <Tab value="selfOnboard" label={t("marketDetailsLender.marketsTab.selfOnboard")} sx={TabStyle} />
+          <Tab
+            value="selfOnboard"
+            label={t("marketDetailsLender.marketsTab.selfOnboard")}
+            sx={TabStyle}
+          />
           <Tab value="all" label={t("common.labels.all")} sx={TabStyle} />
           <Box
             sx={{

@@ -2,9 +2,8 @@ import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react"
 import * as React from "react"
 
 import { Box, Button } from "@mui/material"
-import { useAccount } from "wagmi"
-
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { useSignLenderMLA } from "@/app/[locale]/lender/hooks/useSignLenderMla"
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
@@ -149,7 +148,9 @@ export const MobileMlaModal = ({
             disabled={disableActions}
             fullWidth
           >
-            {signedMlaLoading ? t("common.toast.signing") : t("marketDetailsLender.mla.signMla")}
+            {signedMlaLoading
+              ? t("common.toast.signing")
+              : t("marketDetailsLender.mla.signMla")}
           </Button>
         )}
       </Box>

@@ -67,7 +67,9 @@ export const LendersTable = ({
     {
       sortable: false,
       field: "address",
-      headerName: t("borrowerMarketList.lendersSection.tableHeaders.walletAddress"),
+      headerName: t(
+        "borrowerMarketList.lendersSection.tableHeaders.walletAddress",
+      ),
       minWidth: 176,
       headerAlign: "left",
       align: "left",
@@ -85,7 +87,9 @@ export const LendersTable = ({
     {
       sortable: true,
       field: "markets",
-      headerName: t("borrowerMarketList.lendersSection.tableHeaders.assignedToMarkets"),
+      headerName: t(
+        "borrowerMarketList.lendersSection.tableHeaders.assignedToMarkets",
+      ),
       minWidth: 176,
       headerAlign: "left",
       align: "left",
@@ -137,7 +141,9 @@ export const LendersTable = ({
         <Box display="flex" columnGap="4px">
           <Typography variant="text3">{label}</Typography>
           <Typography variant="text3" color={COLORS.santasGrey}>
-            {isLoading ? t("borrowerMarketList.lendersSection.areLoading") : rows.length}
+            {isLoading
+              ? t("borrowerMarketList.lendersSection.areLoading")
+              : rows.length}
           </Typography>
         </Box>
       </AccordionSummary>

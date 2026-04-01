@@ -214,24 +214,21 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             <>
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
-                title={t("marketDetails.parameters.minimumDeposit.label",
-                )}
+                title={t("marketDetails.parameters.minimumDeposit.label")}
                 // value={t(
                 // `borrowerMarketDetails.parameters.minimumDeposit.${market.hooksConfig?.minimumDeposit ? "none" : "none"}`,
                 // )}
                 {...(market.hooksConfig?.minimumDeposit?.gt(0)
                   ? toTokenAmountProps(market.hooksConfig.minimumDeposit)
                   : {
-                      value: t("marketDetails.parameters.minimumDeposit.none",
-                      ),
+                      value: t("marketDetails.parameters.minimumDeposit.none"),
                     })}
               />
               {market.version === MarketVersion.V2 && (
                 <>
                   <Divider sx={{ margin: "12px 0 12px" }} />
                   <ParametersItem
-                    title={t("marketDetails.parameters.marketType.label",
-                    )}
+                    title={t("marketDetails.parameters.marketType.label")}
                     value={t(
                       `borrowerMarketDetails.parameters.marketType.${market.hooksKind}.text`,
                     )}
@@ -254,8 +251,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               )}
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
-                title={t("marketDetails.parameters.depositAccess.label",
-                )}
+                title={t("marketDetails.parameters.depositAccess.label")}
                 value={t(
                   `borrowerMarketDetails.parameters.depositAccess.${depositAccess}.text`,
                 )}
@@ -265,8 +261,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
               />
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
-                title={t("marketDetails.parameters.withdrawalAccess.label",
-                )}
+                title={t("marketDetails.parameters.withdrawalAccess.label")}
                 value={t(
                   `borrowerMarketDetails.parameters.withdrawalAccess.${withdrawalAccess}.text`,
                 )}
@@ -367,8 +362,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t("marketDetails.parameters.withdrawalCycleDuration",
-              )}
+              title={t("marketDetails.parameters.withdrawalCycleDuration")}
               value={`${formatSecsToHours(market.withdrawalBatchDuration)}`}
               tooltipText="A fixed period during which withdrawal requests are grouped and processed."
             />
@@ -384,8 +378,7 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t("marketDetails.parameters.marketEarlyClosure.label",
-              )}
+              title={t("marketDetails.parameters.marketEarlyClosure.label")}
               value={t(
                 `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.text`,
               )}
@@ -395,7 +388,8 @@ export const MarketParameters = ({ market }: MarketParametersProps) => {
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t("marketDetails.parameters.marketMaturityReduction.label",
+              title={t(
+                "marketDetails.parameters.marketMaturityReduction.label",
               )}
               value={t(
                 `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.text`,

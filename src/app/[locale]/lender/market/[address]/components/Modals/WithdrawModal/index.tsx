@@ -283,8 +283,7 @@ export const WithdrawModal = ({
           </Box>
 
           <TxModalFooter
-            mainBtnText={t("common.actions.confirm",
-            )}
+            mainBtnText={t("common.actions.confirm")}
             mainBtnOnClick={handleWithdraw}
             disableMainBtn={disableWithdraw}
             hideButtons={!showForm}
@@ -356,7 +355,8 @@ export const WithdrawModal = ({
 
             <Box width="100%" height="100%" padding="0 24px">
               <ModalDataItem
-                title={t("marketDetailsLender.transactions.withdraw.modalAvailable",
+                title={t(
+                  "marketDetailsLender.transactions.withdraw.modalAvailable",
                 )}
                 value={
                   isTooSmallMarketBalance
@@ -427,8 +427,7 @@ export const WithdrawModal = ({
         )}
 
         <TxModalFooter
-          mainBtnText={t("common.actions.confirm",
-          )}
+          mainBtnText={t("common.actions.confirm")}
           mainBtnOnClick={handleWithdraw}
           disableMainBtn={disableWithdraw}
           hideButtons={!showForm}

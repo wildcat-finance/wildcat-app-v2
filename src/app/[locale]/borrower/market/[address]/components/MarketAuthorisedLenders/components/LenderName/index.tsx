@@ -27,7 +27,9 @@ export const LenderName = ({ address }: LenderNameProps) => {
   const [isEdit, setIsEdit] = useState(false)
 
   const [lendersName, setLendersName] = useState<{ [key: string]: string }>({})
-  const [name, setName] = useState(t("marketDetailsBorrower.lenderStats.addName"))
+  const [name, setName] = useState(
+    t("marketDetailsBorrower.lenderStats.addName"),
+  )
   const [prevName, setPrevName] = useState(name)
   const containerRef = useRef<HTMLDivElement>(null)
   const isPlaceholder = name === t("marketDetailsBorrower.lenderStats.addName")
@@ -39,8 +41,14 @@ export const LenderName = ({ address }: LenderNameProps) => {
         window.localStorage.getItem("lenders-name") || "{}",
       ) as { [key: string]: string }
       setLendersName(stored)
-      setName(stored[lowerCaseAddress] || t("marketDetailsBorrower.lenderStats.addName"))
-      setPrevName(stored[lowerCaseAddress] || t("marketDetailsBorrower.lenderStats.addName"))
+      setName(
+        stored[lowerCaseAddress] ||
+          t("marketDetailsBorrower.lenderStats.addName"),
+      )
+      setPrevName(
+        stored[lowerCaseAddress] ||
+          t("marketDetailsBorrower.lenderStats.addName"),
+      )
     } catch {
       setLendersName({})
       setName(t("marketDetailsBorrower.lenderStats.addName"))

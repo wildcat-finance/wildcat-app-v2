@@ -27,7 +27,9 @@ const RegisterBorrowerButton = ({ address }: { address: string }) => {
 
   return (
     <Button variant="outlined" onClick={() => mutate(address)}>
-      {isPending ? t("admin.invitesTable.registering") : t("admin.invitesTable.registerButton")}
+      {isPending
+        ? t("admin.invitesTable.registering")
+        : t("admin.invitesTable.registerButton")}
     </Button>
   )
 }
@@ -142,7 +144,11 @@ export const BorrowerInvitesTable = () => {
       // minWidth: 134,
       headerAlign: "left",
       align: "left",
-      renderCell: (params) => <span>{params.value ? t("common.labels.yes") : t("common.labels.no")}</span>,
+      renderCell: (params) => (
+        <span>
+          {params.value ? t("common.labels.yes") : t("common.labels.no")}
+        </span>
+      ),
     },
     {
       field: "timeSigned",

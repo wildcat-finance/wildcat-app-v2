@@ -435,7 +435,8 @@ export default function EditProfileForm({
           isLoading={isLoading}
         >
           <TextField
-            placeholder={t("borrowerProfile.editPublic.description.placeholder",
+            placeholder={t(
+              "borrowerProfile.editPublic.description.placeholder",
             )}
             sx={DescriptionField}
             error={Boolean(publicErrors.description)}
@@ -495,7 +496,8 @@ export default function EditProfileForm({
               isLoading={isLoading}
             >
               <TextField
-                placeholder={t("borrowerProfile.editPublic.website.placeholder",
+                placeholder={t(
+                  "borrowerProfile.editPublic.website.placeholder",
                 )}
                 fullWidth
                 error={Boolean(publicErrors.website)}
@@ -514,7 +516,8 @@ export default function EditProfileForm({
               isLoading={isLoading}
             >
               <TextField
-                placeholder={t("borrowerProfile.editPublic.twitter.placeholder",
+                placeholder={t(
+                  "borrowerProfile.editPublic.twitter.placeholder",
                 )}
                 fullWidth
                 error={Boolean(publicErrors.twitter)}
@@ -533,7 +536,8 @@ export default function EditProfileForm({
               isLoading={isLoading}
             >
               <TextField
-                placeholder={t("borrowerProfile.editPublic.telegram.placeholder",
+                placeholder={t(
+                  "borrowerProfile.editPublic.telegram.placeholder",
                 )}
                 fullWidth
                 error={Boolean(publicErrors.telegram)}
@@ -552,7 +556,8 @@ export default function EditProfileForm({
               isLoading={isLoading}
             >
               <TextField
-                placeholder={t("borrowerProfile.editPublic.linkedin.placeholder",
+                placeholder={t(
+                  "borrowerProfile.editPublic.linkedin.placeholder",
                 )}
                 fullWidth
                 error={Boolean(publicErrors.linkedin)}
@@ -582,7 +587,8 @@ export default function EditProfileForm({
             // eslint-disable-next-line react/no-array-index-key
             <Box key={index.toString()} sx={{ display: "flex", gap: 2, mb: 2 }}>
               <TextField
-                placeholder={t("borrowerProfile.editPublic.additionalUrls.labelPlaceholder",
+                placeholder={t(
+                  "borrowerProfile.editPublic.additionalUrls.labelPlaceholder",
                 )}
                 value={url.label}
                 onChange={(e) =>
@@ -595,7 +601,8 @@ export default function EditProfileForm({
                 sx={{ flex: 1 }}
               />
               <TextField
-                placeholder={t("borrowerProfile.editPublic.additionalUrls.urlPlaceholder",
+                placeholder={t(
+                  "borrowerProfile.editPublic.additionalUrls.urlPlaceholder",
                 )}
                 value={url.url}
                 onChange={(e) => handleUrlChange(index, "url", e.target.value)}
@@ -797,7 +804,8 @@ export default function EditProfileForm({
               isLoading={isLoading}
             >
               <TextField
-                placeholder={t("borrowerProfile.editPrivate.address.placeholder",
+                placeholder={t(
+                  "borrowerProfile.editPrivate.address.placeholder",
                 )}
                 fullWidth
                 disabled={!isAdmin}

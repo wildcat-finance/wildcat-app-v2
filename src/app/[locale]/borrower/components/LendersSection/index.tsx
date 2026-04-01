@@ -187,7 +187,9 @@ export const LendersSection = ({
           <FilterTextField
             value={lenderSearch}
             setValue={setLenderSearch}
-            placeholder={t("borrowerMarketList.lendersSection.searchPlaceholder")}
+            placeholder={t(
+              "borrowerMarketList.lendersSection.searchPlaceholder",
+            )}
           />
 
           <SmallFilterSelect

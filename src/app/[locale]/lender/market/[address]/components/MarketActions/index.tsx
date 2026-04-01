@@ -50,7 +50,9 @@ const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
       sx={{ width: "152px" }}
       onClick={() => faucet()}
     >
-      {isFauceting ? t("marketDetailsLender.faucetButton.requesting") : t("marketDetailsLender.faucetButton.faucet")}
+      {isFauceting
+        ? t("marketDetailsLender.faucetButton.requesting")
+        : t("marketDetailsLender.faucetButton.faucet")}
     </Button>
   )
 }
@@ -144,11 +146,9 @@ export const MarketActions = ({
     }
 
     if (parts.length === 0) {
-      return t("marketDetailsLender.withdrawalsAlert.title.noClaim",
-        {
-          claim: "nothing",
-        },
-      )
+      return t("marketDetailsLender.withdrawalsAlert.title.noClaim", {
+        claim: "nothing",
+      })
     }
 
     return parts.join(" · ")
@@ -219,7 +219,11 @@ export const MarketActions = ({
       <Box width="100%" display="flex" flexDirection="column">
         {(() => {
           if (mlaLoading || signedMlaLoading) {
-            return <Typography variant="title3">{t("marketDetailsLender.mla.loadingMlaData")}</Typography>
+            return (
+              <Typography variant="title3">
+                {t("marketDetailsLender.mla.loadingMlaData")}
+              </Typography>
+            )
           }
 
           if (mlaRequiredAndUnsigned) {
@@ -297,8 +301,7 @@ export const MarketActions = ({
                 sx={{ width: "fit-content" }}
                 onClick={handleChangeSection}
               >
-                {t("marketDetailsLender.withdrawalsAlert.buttons.withdrawals",
-                )}
+                {t("marketDetailsLender.withdrawalsAlert.buttons.withdrawals")}
               </Button>
             )}
 
