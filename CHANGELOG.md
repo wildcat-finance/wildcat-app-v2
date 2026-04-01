@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.15.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.15.0...v2.15.1) (2026-04-01)
+
+
+### Bug Fixes
+
+* **tables-headers:** fix positioning of sorting icons ([99a752e](https://github.com/wildcat-finance/wildcat-app-v2/commit/99a752e2e61b4fe38d65bdf9091557f57f702c89))
+* **tables-headers:** fix positioning of sorting icons ([b44b80c](https://github.com/wildcat-finance/wildcat-app-v2/commit/b44b80c62d30b95055a9797f1659460335dec19e))
+
 ## [2.15.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.14.0...v2.15.0) (2026-03-30)
 
 
