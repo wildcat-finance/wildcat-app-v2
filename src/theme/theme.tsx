@@ -32,26 +32,16 @@ import { PALETTE } from "@/theme/palette"
 import { TYPOGRAPHY } from "@/theme/typography"
 import { lh, pxToRem } from "@/theme/units"
 
-type GridSortIconProps = React.ComponentProps<typeof SvgIcon> & {
-  sortingOrder?: unknown
-}
-
 const createGridSortIcon = (
-  IconComponent: React.ComponentType<React.SVGProps<SVGElement>>,
+  IconComponent: React.FC<React.SVGProps<SVGElement>>,
   displayName: string,
 ) => {
-  const GridSortIcon = React.forwardRef<SVGSVGElement, GridSortIconProps>(
-    (props, ref) => {
-      const iconProps = { ...props }
-      delete iconProps.sortingOrder
-
-      return (
-        <SvgIcon ref={ref} inheritViewBox {...iconProps}>
-          <IconComponent />
-        </SvgIcon>
-      )
-    },
-  )
+  const GridSortIcon = React.forwardRef<
+    SVGElement,
+    React.SVGProps<SVGElement> & { sortingOrder?: unknown }
+  >(({ sortingOrder, ...props }, ref) => (
+    <IconComponent ref={ref} {...props} />
+  ))
 
   GridSortIcon.displayName = displayName
 
