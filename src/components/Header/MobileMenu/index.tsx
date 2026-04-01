@@ -654,23 +654,24 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                 </IconButton>
               </Box>
 
-              {/* Help header */}
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "flex-start",
-                  gap: "4px",
-                  marginBottom: "18px",
-                }}
-              >
-                <Typography variant="mobText1">
-                  {t("helpModal.title")}
-                </Typography>
-                <Typography variant="mobText3" color={COLORS.manate}>
-                  {t("helpModal.subtitle")}
-                </Typography>
-              </Box>
+              {helpPanelView === "menu" && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    gap: "4px",
+                    marginBottom: "18px",
+                  }}
+                >
+                  <Typography variant="mobText1">
+                    {t("helpModal.title")}
+                  </Typography>
+                  <Typography variant="mobText3" color={COLORS.manate}>
+                    {t("helpModal.subtitle")}
+                  </Typography>
+                </Box>
+              )}
 
               {helpPanelView === "menu" ? (
                 <>
