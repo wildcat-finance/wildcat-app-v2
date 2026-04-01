@@ -39,9 +39,7 @@ const createGridSortIcon = (
   const GridSortIcon = React.forwardRef<
     SVGElement,
     React.SVGProps<SVGElement> & { sortingOrder?: unknown }
-  >(({ sortingOrder, ...props }, ref) => (
-    <IconComponent ref={ref} {...props} />
-  ))
+  >(({ sortingOrder, ...props }, ref) => <IconComponent ref={ref} {...props} />)
 
   GridSortIcon.displayName = displayName
 
