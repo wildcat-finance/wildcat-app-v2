@@ -357,7 +357,7 @@ export const MarketSidebar = () => {
               >
                 <TokenWrapIcon />
               </SvgIcon>
-              {t("lenderMarketDetails.sidebar.wrapDebtToken")}
+              {t("wrapDebtToken.sidebar")}
 
               <Box
                 sx={{

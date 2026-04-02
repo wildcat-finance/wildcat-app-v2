@@ -49,12 +49,12 @@ export const WrapperForm = ({
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.wrapper.title")}
+        {t("createMarket.wrapper.title")}
       </Typography>
 
       <HorizontalInputLabel
-        label={t("createNewMarket.wrapper.deploy.label")}
-        explainer={t("createNewMarket.wrapper.deploy.explainer")}
+        label={t("createMarket.wrapper.deploy.label")}
+        explainer={t("createMarket.wrapper.deploy.explainer")}
       >
         <Switch
           checked={deployWrapper}

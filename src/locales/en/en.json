@@ -1127,6 +1127,13 @@
       "errorMessage": "Can you reach out to us and tell us how you got here?",
       "errorBackButton": "Back To Review Step",
       "errorAgainButton": "Try Again"
+    },
+    "wrapper": {
+      "title": "Wrapper",
+      "deploy": {
+        "label": "Deploy Wrapper",
+        "explainer": "Automatically deploy a wrapper contract for this market"
+      }
     }
   },
   "editPolicy": {
@@ -1499,22 +1506,104 @@
     "event": "Event"
   },
   "wrapDebtToken": {
-    "title": "No wrapper deployed",
-    "subtitle": "This market doesn't have a wrapper contract yet.",
-    "deployButton": "Deploy Wrapper",
-    "commonQuestions": "Common Questions",
-    "learnMore": "Learn more",
-    "whatIsWrapping": {
-      "question": "What is wrapping?",
-      "answer": "Wrapping converts rebasing market tokens into a transferable ERC-4626-style token, making them easier to use across DeFi."
+    "sidebar": "Wrapped Debt Token",
+    "noWrapper": {
+      "title": "No wrapper deployed",
+      "subtitle": "This market doesn't have a wrapper contract yet.",
+      "deployButton": "Deploy Wrapper",
+      "commonQuestions": "Common Questions",
+      "seeMore": "See more",
+      "seeLess": "See less",
+      "questions": {
+        "whatIsWrapping": {
+          "question": "What is wrapping?",
+          "answer": "Wrapping converts rebasing market tokens into a transferable ERC-4626-style token, making them easier to use across DeFi."
+        },
+        "whoCanDeploy": {
+          "question": "Who can deploy the wrapper?",
+          "answer": "Anyone can deploy the wrapper — not just the borrower."
+        },
+        "whatHappensAfter": {
+          "question": "What happens after deployment?",
+          "answer": "Once deployed, the wrapper is available to everyone."
+        }
+      }
     },
-    "whoCanDeploy": {
-      "question": "Who can deploy the wrapper?",
-      "answer": "Anyone can deploy the wrapper — not just the borrower."
+    "tabs": {
+      "wrap": "Wrap",
+      "unwrap": "Unwrap"
     },
-    "whatHappensAfter": {
-      "question": "What happens after deployment?",
-      "answer": "Once deployed, the wrapper is available to everyone."
+    "form": {
+      "amount": "Amount",
+      "showInShares": "Show in Shares",
+      "estimatesNote": "Estimates may change with the current conversion rate.",
+      "maxTooltip": "Max {{action}}: {{value}}",
+      "inputLabels": {
+        "amountToWrap": "Amount to wrap",
+        "wrappedTokensToMint": "Wrapped tokens to mint",
+        "marketTokensToReceive": "Market tokens to receive",
+        "amountToUnwrap": "Amount to unwrap"
+      },
+      "outputLabels": {
+        "receiveWrapped": "You'll receive wrapped tokens",
+        "estimatedMarketRequired": "Estimated market tokens required",
+        "estimatedWrappedRequired": "Estimated wrapped tokens required",
+        "receiveMarket": "You'll receive market tokens"
+      }
+    },
+    "buttons": {
+      "approving": "Approving...",
+      "wrapTokens": "Wrap Tokens",
+      "unwrapTokens": "Unwrap Tokens",
+      "wrapping": "Wrapping",
+      "unwrapping": "Unwrapping",
+      "addMarketToken": "+ Add market token",
+      "addWrappedToken": "+ Add wrapped token"
+    },
+    "labels": {
+      "wrapperContract": "Wrapper contract",
+      "wrapper": "Wrapper"
+    },
+    "banner": {
+      "marketTokens": "Market tokens",
+      "marketTokensTooltip": "Balance of market (debt) tokens in your wallet.",
+      "wrappedTokens": "Wrapped tokens",
+      "wrappedTokensTooltip": "Balance of wrapped (ERC-4626 share) tokens in your wallet.",
+      "wrappedHoldingsValue": "Wrapped holdings value: ~"
+    },
+    "toast": {
+      "wrapping": "Wrapping...",
+      "unwrapping": "Unwrapping...",
+      "wrapped": "Wrapped",
+      "unwrapped": "Unwrapped",
+      "deployingWrapper": "Deploying wrapper...",
+      "wrapperDeployed": "Wrapper deployed",
+      "failedToDeploy": "Failed to deploy wrapper"
+    },
+    "errors": {
+      "insufficientBalance": "Insufficient {{symbol}} balance",
+      "exceedsMax": "Exceeds max {{action}} of {{amount}}",
+      "unauthorizedLender": "Only authorized lenders can access the wrapper.",
+      "notAvailableOnChain": "Wrappers are not available on this chain yet.",
+      "transactionFailed": "Transaction failed",
+      "approvalFailed": "Approval failed"
+    },
+    "states": {
+      "checkingStatus": "Checking wrapper status...",
+      "loadingDetails": "Loading wrapper details..."
+    },
+    "alerts": {
+      "error": {
+        "title": "Oops! Something goes wrong. {{action}} Tokens again",
+        "defaultMessage": "Explanatory message about the problem."
+      }
+    },
+    "modals": {
+      "success": {
+        "wrapped": "{{initialAmount}} {{initialAsset}} wrapped in {{finalAsset}} {{finalAmount}}",
+        "unwrapped": "{{initialAmount}} {{initialAsset}} unwrapped to {{finalAsset}} {{finalAmount}}",
+        "closeHint": "You can close the modal window."
+      }
     }
   }
 }
