@@ -251,12 +251,6 @@ export const EditLendersTable = () => {
             </Typography>
             {/* <Button */}
             {/*  onClick={() => dispatch(resetPolicyFilters())} */}
-            {/*  size="small" */}
-            {/*  variant="text" */}
-            {/*  sx={ResetButtonStyles} */}
-            {/* > */}
-            {/*  {t("editLendersList.forms.edit.table.resetPolicyFilters")} */}
-            {/* </Button> */}
           </Box>
         </Box>
       )}

@@ -376,7 +376,7 @@ export const MarketParameters = ({
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
                   <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-                    Adoption Status
+                    {t("marketDetails.header.adoptionStatus")}
                   </Typography>
                   <TooltipButton value={adoptionStatsTooltip} />
                 </Box>
@@ -621,7 +621,7 @@ export const MarketParameters = ({
               ).map((x) => (
                 <ParametersItem
                   key={x}
-                  title={t(`borrowerMarketDetails.hooks.${x}`)}
+                  title={t(`marketDetails.hooks.${x}`)}
                   value={hooksConfig.flags[x] ? "True" : "False"}
                 />
               ))}
@@ -639,7 +639,7 @@ export const MarketParameters = ({
               ).map((x) => (
                 <ParametersItem
                   key={x}
-                  title={t(`borrowerMarketDetails.hooks.${x}`)}
+                  title={t(`marketDetails.hooks.${x}`)}
                   value={hooksConfig.flags[x] ? "True" : "False"}
                 />
               ))}

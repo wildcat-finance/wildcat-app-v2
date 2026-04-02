@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction } from "react"
 
 import { Button, SvgIcon } from "@mui/material"
 import type { SxProps, Theme } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import DownArrow from "@/assets/icons/downArrow20_icon.svg"
 import { COLORS } from "@/theme/colors"
@@ -21,10 +22,13 @@ export const SeeMoreButton = ({
   disabled,
   sx,
 }: SeeMoreButtonProps) => {
+  const { t } = useTranslation()
   const handleToggle = () => setIsOpen(!isOpen)
 
   if (variant === "accordion") {
-    const label = isOpen ? "See Less" : "See More"
+    const label = isOpen
+      ? t("common.actions.seeLess")
+      : t("common.actions.seeMore")
 
     return (
       <Button
@@ -71,7 +75,7 @@ export const SeeMoreButton = ({
       disabled={disabled}
       sx={sx}
     >
-      See More
+      {t("common.actions.seeMore")}
     </Button>
   )
 }

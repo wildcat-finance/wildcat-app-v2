@@ -118,7 +118,7 @@ export const MarketActions = ({
 
     if (!isOngoingWDsZero) {
       parts.push(
-        t("lenderMarketDetails.transactions.withdrawalsAlert.title.ongoing", {
+        t("marketDetailsLender.withdrawalsAlert.title.ongoing", {
           count: ongoingCount,
         }),
       )
@@ -126,12 +126,9 @@ export const MarketActions = ({
 
     if (!isOutstandingZero) {
       parts.push(
-        t(
-          "lenderMarketDetails.transactions.withdrawalsAlert.title.outstanding",
-          {
-            count: outstandingCount,
-          },
-        ),
+        t("marketDetailsLender.withdrawalsAlert.title.outstanding", {
+          count: outstandingCount,
+        }),
       )
     }
 

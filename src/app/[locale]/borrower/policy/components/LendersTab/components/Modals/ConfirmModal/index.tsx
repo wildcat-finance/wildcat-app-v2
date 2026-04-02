@@ -137,7 +137,7 @@ export const ConfirmModal = ({
       renderCell: (params) => (
         <Typography variant="text3" color={COLORS.santasGrey}>
           {params.row.status === EditLenderFlowStatuses.DELETED
-            ? "Removed"
+            ? t("editPolicy.confirmModal.removed")
             : ""}
         </Typography>
       ),
@@ -181,11 +181,11 @@ export const ConfirmModal = ({
         }}
       >
         <Typography variant="title3">
-          Confirm{" "}
+          {t("editPolicy.confirmModal.confirm")}{" "}
           <Typography variant="title3" color={COLORS.ultramarineBlue}>
             {policyName}
           </Typography>{" "}
-          Lenders Edits
+          {t("editPolicy.confirmModal.lendersEdits")}
         </Typography>
 
         <Box
@@ -259,7 +259,7 @@ export const ConfirmModal = ({
             <SvgIcon>
               <Arrow />
             </SvgIcon>
-            Back
+            {t("common.actions.back")}
           </Button>
           <Button
             variant="contained"
@@ -267,7 +267,7 @@ export const ConfirmModal = ({
             onClick={handleClickSubmit}
             sx={{ width: "144px" }}
           >
-            Confirm
+            {t("common.actions.confirm")}
           </Button>
         </Box>
       </Dialog>

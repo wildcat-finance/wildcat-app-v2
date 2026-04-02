@@ -9,6 +9,7 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import Filter from "@/assets/icons/filter_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
@@ -31,6 +32,7 @@ export const MarketsFilterSelect = ({
   selected,
   setSelected,
 }: MarketsFilterSelectProps) => {
+  const { t } = useTranslation()
   const selectRef = useRef<HTMLElement>(null)
 
   const onOpen = () => {
@@ -161,7 +163,7 @@ export const MarketsFilterSelect = ({
         variant="text"
         sx={{ width: "100%", paddingY: "7px", borderRadius: "0 0 8px 8px" }}
       >
-        Reset
+        {t("dashboard.filters.reset")}
       </Button>
     </Select>
   )

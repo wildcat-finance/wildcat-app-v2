@@ -3,6 +3,7 @@ import * as React from "react"
 
 import { Box, Button, Dialog, IconButton, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
+import { useTranslation } from "react-i18next"
 
 import {
   DeployButtonContainer,
@@ -31,6 +32,7 @@ export const FinalModal = ({
   isError,
   handleTryAgain,
 }: FinalModalProps) => {
+  const { t } = useTranslation()
   const [open, setIsOpen] = useState<boolean>(false)
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
@@ -95,10 +97,10 @@ export const FinalModal = ({
 
               <Box sx={DeployTypoBox}>
                 <Typography variant="title3">
-                  Oops! Something went wrong!
+                  {t("common.states.error.title")}
                 </Typography>
                 <Typography variant="text3" sx={DeploySubtitle}>
-                  Can you reach out to us and tell us how you got here?
+                  {t("common.states.error.subtitle")}
                 </Typography>
               </Box>
             </Box>
@@ -111,7 +113,7 @@ export const FinalModal = ({
                 fullWidth
                 onClick={handleResetModal}
               >
-                Back
+                {t("common.actions.back")}
               </Button>
               <Button
                 variant="contained"
@@ -122,7 +124,7 @@ export const FinalModal = ({
                   handleTryAgain()
                 }}
               >
-                Try Again
+                {t("common.actions.tryAgain")}
               </Button>
             </Box>
           </Box>
@@ -145,9 +147,11 @@ export const FinalModal = ({
             </SvgIcon>
 
             <Box sx={DeployTypoBox}>
-              <Typography variant="title3">Lenders were edited!</Typography>
+              <Typography variant="title3">
+                {t("editPolicy.finalModal.successTitle")}
+              </Typography>
               <Typography variant="text3" sx={DeploySubtitle}>
-                Lenders were successfully edited: the rest is up to you!
+                {t("editPolicy.finalModal.successSubtitle")}
               </Typography>
             </Box>
           </Box>
@@ -159,9 +163,11 @@ export const FinalModal = ({
           <Loader />
 
           <Box sx={DeployTypoBox}>
-            <Typography variant="text1">Wait a second...</Typography>
+            <Typography variant="text1">
+              {t("editPolicy.finalModal.loadingTitle")}
+            </Typography>
             <Typography variant="text3" sx={DeploySubtitle}>
-              Transaction in process.
+              {t("editPolicy.finalModal.loadingSubtitle")}
             </Typography>
           </Box>
         </Box>

@@ -64,7 +64,10 @@ export const LenderMarketSidebar = () => {
       }}
     >
       <Box position="sticky" top="32px">
-        <BackButton title="Back To Markets" link={ROUTES.lender.root} />
+        <BackButton
+          title={t("marketDetailsLender.sidebar.backToMarkets")}
+          link={ROUTES.lender.root}
+        />
 
         {isLoading && (
           <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
@@ -279,7 +282,7 @@ export const LenderMarketSidebar = () => {
                     }}
                   >
                     <Typography variant="text4" color={COLORS.ultramarineBlue}>
-                      New
+                      {t("common.labels.new")}
                     </Typography>
                   </Box>
                 </Button>

@@ -1,5 +1,6 @@
 import { Box, Button } from "@mui/material"
 import { usePathname } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import { BackButton } from "@/components/BackButton"
 import {
@@ -9,6 +10,7 @@ import {
 import { ROUTES } from "@/routes"
 
 export const BorrowerSidebar = () => {
+  const { t } = useTranslation()
   const pathname = usePathname()
 
   const backLink = pathname.includes(ROUTES.borrower.profile)
@@ -17,11 +19,13 @@ export const BorrowerSidebar = () => {
 
   return (
     <Box sx={ContentContainer}>
-      <BackButton title="Back" link={backLink} />
+      <BackButton title={t("common.actions.back")} link={backLink} />
 
       <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
         <Button variant="text" size="medium" sx={MenuItemButton}>
-          {pathname === ROUTES.borrower.editProfile && "Edit "}Borrower Profile
+          {pathname === ROUTES.borrower.editProfile
+            ? t("borrowerProfile.sidebar.editBorrowerProfile")
+            : t("borrowerProfile.sidebar.borrowerProfile")}
         </Button>
       </Box>
     </Box>

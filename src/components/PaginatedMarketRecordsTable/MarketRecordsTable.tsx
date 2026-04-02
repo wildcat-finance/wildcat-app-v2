@@ -214,7 +214,7 @@ export function MarketRecordsTable({
     return (
       <Box display="flex" flexDirection="column" marginTop="24px">
         <Typography variant="text3" color={COLORS.santasGrey}>
-          No unfiltered events
+          {t("marketRecords.noUnfilteredEvents")}
         </Typography>
       </Box>
     )

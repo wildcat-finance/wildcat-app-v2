@@ -97,13 +97,20 @@ export const MarketsTableAccordion = ({
         !defaultFilters && (
           <Box display="flex" flexDirection="column" padding="24px 16px 12px">
             <Typography variant="text2" color={COLORS.santasGrey}>
-              No {type}{" "}
-              {statusFilter?.length !== 0 &&
-                statusFilter?.map((status) => ` ${status.toLowerCase()}`)}{" "}
-              {nameFilter === "" ? "" : nameFilter}{" "}
-              {assetFilter?.length !== 0 &&
-                `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
-              markets available right now.
+              {t("lenderMarketList.noFilteredMarkets", {
+                type: type ?? "",
+                statusFilter:
+                  statusFilter?.length !== 0
+                    ? statusFilter
+                        ?.map((status) => ` ${status.toLowerCase()}`)
+                        .join("")
+                    : "",
+                nameFilter: nameFilter === "" ? "" : nameFilter,
+                assetFilter:
+                  assetFilter?.length !== 0
+                    ? assetFilter?.map((asset) => ` ${asset.name}`).join("")
+                    : "",
+              })}
             </Typography>
           </Box>
         )}

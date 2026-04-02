@@ -391,7 +391,7 @@ export const ConfirmationForm = ({
         }}
       >
         <Typography variant="text4" sx={{ textTransform: "uppercase" }}>
-          {t("createNewMarket.wrapper.title")}
+          {t("createMarket.wrapper.title")}
         </Typography>
 
         <Typography variant="text2" sx={{ height: "20px" }}>

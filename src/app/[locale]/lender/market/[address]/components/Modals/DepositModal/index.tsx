@@ -669,10 +669,9 @@ export const DepositModal = ({
                   <DepositAlert
                     text={
                       <Typography variant="mobText3">
-                        This is a fixed-term market: funds are locked until{" "}
-                        <span style={{ textDecoration: "underline" }}>
-                          {formatDate(fixedTermMaturity || 0)}
-                        </span>{" "}
+                        {t("marketDetailsLender.deposit.fixedTermLocked", {
+                          date: formatDate(fixedTermMaturity || 0),
+                        })}
                       </Typography>
                     }
                     icon={
@@ -693,7 +692,7 @@ export const DepositModal = ({
                   <DepositAlert
                     text={
                       <Typography variant="mobText3">
-                        The market can be repaid early to close
+                        {t("marketDetailsLender.deposit.earlyClose")}
                       </Typography>
                     }
                     icon={
@@ -714,7 +713,7 @@ export const DepositModal = ({
                   <DepositAlert
                     text={
                       <Typography variant="mobText3">
-                        The market’s duration can be shorten
+                        {t("marketDetailsLender.deposit.durationShorten")}
                       </Typography>
                     }
                     icon={
@@ -735,18 +734,12 @@ export const DepositModal = ({
                   <DepositAlert
                     text={
                       <Typography variant="mobText3">
-                        You have an existing allowance of{" "}
-                        {market.underlyingToken
-                          .getAmount(marketAccount.underlyingApproval)
-                          .format(market.underlyingToken.decimals, true)}{" "}
-                        for this market.
-                        <br />
-                        {market.underlyingToken.symbol} requires that allowances
-                        be reset to zero prior to being increased.
-                        <br />
-                        You will be prompted to execute two approval
-                        transactions to first reset and then increase the
-                        allowance for this market.
+                        {t("marketDetailsLender.deposit.existingAllowance", {
+                          amount: market.underlyingToken
+                            .getAmount(marketAccount.underlyingApproval)
+                            .format(market.underlyingToken.decimals, true),
+                          tokenName: market.underlyingToken.symbol,
+                        })}
                       </Typography>
                     }
                     icon={
