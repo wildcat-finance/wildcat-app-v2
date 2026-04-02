@@ -3,6 +3,7 @@ import { useEffect } from "react"
 
 import { Box, Typography } from "@mui/material"
 import { Market, TokenWrapper } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import { NoWrapperState } from "@/components/WrapDebtToken/NoWrapperState"
 import { WrapperSection } from "@/components/WrapDebtToken/WrapperSection"
@@ -30,6 +31,7 @@ export const WrapDebtToken = ({
   isWrapperLoading,
   isWrapperError,
 }: WrapDebtTokenProps) => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
   useEffect(() => {
@@ -47,7 +49,7 @@ export const WrapDebtToken = ({
       {!hasFactory && (
         <NoWrapperState
           canCreateWrapper={false}
-          statusMessage="Wrappers are not available on this chain yet."
+          statusMessage={t("wrapDebtToken.errors.notAvailableOnChain")}
         />
       )}
 
@@ -57,7 +59,7 @@ export const WrapDebtToken = ({
 
       {hasFactory && isWrapperLookupLoading && (
         <Typography variant="text3" color={COLORS.manate}>
-          Checking wrapper status...
+          {t("wrapDebtToken.states.checkingStatus")}
         </Typography>
       )}
 
@@ -72,7 +74,7 @@ export const WrapDebtToken = ({
 
       {hasWrapper && (isWrapperLoading || isWrapperError) && (
         <Typography variant="text3" color={COLORS.manate}>
-          Loading wrapper details...
+          {t("wrapDebtToken.states.loadingDetails")}
         </Typography>
       )}
     </Box>

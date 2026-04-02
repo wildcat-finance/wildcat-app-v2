@@ -188,14 +188,14 @@ export const MarketParameters = ({
   const [gracePeriodLabel, gracePeriodTimer] =
     timeDelinquent > delinquencyGracePeriod
       ? [
-          t("borrowerMarketDetails.label.remainingTime"),
+          t("marketDetails.label.remainingTime"),
           humanizeDuration((timeDelinquent - delinquencyGracePeriod) * 1000, {
             round: true,
             largest: 1,
           }),
         ]
       : [
-          t("borrowerMarketDetails.label.availableGracePeriod"),
+          t("marketDetails.label.availableGracePeriod"),
           formatSecsToHours(delinquencyGracePeriod - timeDelinquent),
         ]
 
@@ -205,20 +205,20 @@ export const MarketParameters = ({
     if (!market.isDelinquent) {
       if (willBeDelinquent) {
         // If the market is not currently delinquent but will be after the next update:
-        return t("borrowerMarketDetails.tooltip.willBeDelinquent")
+        return t("marketDetails.tooltip.willBeDelinquent")
       }
       if (timeDelinquent > delinquencyGracePeriod) {
         // If the market is not currently delinquent (on-chain) but is incurring penalties:
-        return t("borrowerMarketDetails.tooltip.delinquencyFeesApply")
+        return t("marketDetails.tooltip.delinquencyFeesApply")
       }
       return undefined
     }
     if (!willBeDelinquent) {
       // If the market will stop being delinquent after the next update:
-      return t("borrowerMarketDetails.tooltip.hasBecomeHealthy")
+      return t("marketDetails.tooltip.hasBecomeHealthy")
     }
     // If the market will continue to be delinquent after the next update:
-    return t("borrowerMarketDetails.tooltip.delinquencyContinues")
+    return t("marketDetails.tooltip.delinquencyContinues")
   }, [market])
 
   const totalInterestAccrued = market
@@ -311,19 +311,19 @@ export const MarketParameters = ({
         variant={isMobile ? "mobH3" : "title3"}
         sx={{ marginTop: { xs: "12px", md: 0 } }}
       >
-        {t("borrowerMarketDetails.header.parameters")}
+        {t("marketDetails.header.parameters")}
       </Typography>
       <Box sx={MarketParametersContainer(theme)}>
         <Box sx={MarketParametersContainerColumn(theme)}>
           <ParametersItem
-            title={t("borrowerMarketDetails.parameters.marketAddress")}
+            title={t("marketDetails.parameters.marketAddress")}
             value={trimAddress(market.address)}
             copy={market.address}
             link={getAddressUrl(market.address)}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <ParametersItem
-            title={t("borrowerMarketDetails.parameters.underlyingAsset")}
+            title={t("marketDetails.parameters.underlyingAsset")}
             value={`${market.underlyingToken.name} (${trimAddress(
               market.underlyingToken.address,
             )})`}
@@ -333,14 +333,14 @@ export const MarketParameters = ({
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <ParametersItem
-            title={t("borrowerMarketDetails.parameters.marketTokenName")}
+            title={t("marketDetails.parameters.marketTokenName")}
             value={market.marketToken.name}
             copy={getTokenUrl(market.marketToken.address)}
             link={getTokenUrl(market.marketToken.address)}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <ParametersItem
-            title={t("borrowerMarketDetails.parameters.marketTokenPrefix")}
+            title={t("marketDetails.parameters.marketTokenPrefix")}
             value={market.marketToken.symbol}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
@@ -376,7 +376,7 @@ export const MarketParameters = ({
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
                   <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-                    Adoption Status
+                    {t("marketDetails.header.adoptionStatus")}
                   </Typography>
                   <TooltipButton value={adoptionStatsTooltip} />
                 </Box>
@@ -394,7 +394,7 @@ export const MarketParameters = ({
           )}
 
           <ParametersItem
-            title={t("borrowerMarketDetails.parameters.maxBorrowingCapacity")}
+            title={t("marketDetails.parameters.maxBorrowingCapacity")}
             value={`${formatTokenWithCommas(market.maxTotalSupply, {
               fractionDigits: market.maxTotalSupply.token.decimals,
             })} ${market.underlyingToken.symbol}`}
@@ -402,34 +402,28 @@ export const MarketParameters = ({
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <ParametersItem
-            title={t("borrowerMarketDetails.parameters.totalInterestAccrued")}
+            title={t("marketDetails.parameters.totalInterestAccrued")}
             value={toTokenAmountProps(totalInterestAccrued).value}
           />
           {isMobileOpen && (
             <>
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
-                title={t(
-                  "borrowerMarketDetails.parameters.minimumDeposit.label",
-                )}
+                title={t("marketDetails.parameters.minimumDeposit.label")}
                 // value={t(
                 // `borrowerMarketDetails.parameters.minimumDeposit.${market.hooksConfig?.minimumDeposit ? "none" : "none"}`,
                 // )}
                 {...(market.hooksConfig?.minimumDeposit?.gt(0)
                   ? toTokenAmountProps(market.hooksConfig.minimumDeposit)
                   : {
-                      value: t(
-                        "borrowerMarketDetails.parameters.minimumDeposit.none",
-                      ),
+                      value: t("marketDetails.parameters.minimumDeposit.none"),
                     })}
               />
               {market.version === MarketVersion.V2 && (
                 <>
                   <Divider sx={{ margin: "12px 0 12px" }} />
                   <ParametersItem
-                    title={t(
-                      "borrowerMarketDetails.parameters.marketType.label",
-                    )}
+                    title={t("marketDetails.parameters.marketType.label")}
                     value={t(
                       `borrowerMarketDetails.parameters.marketType.${market.hooksKind}.text`,
                     )}
@@ -443,7 +437,7 @@ export const MarketParameters = ({
                 <>
                   <Divider sx={{ margin: "12px 0 12px" }} />
                   <ParametersItem
-                    title={t("borrowerMarketDetails.parameters.marketExpiry")}
+                    title={t("marketDetails.parameters.marketExpiry")}
                     value={`${formatDate(
                       market.hooksConfig.fixedTermEndTime,
                     )} 00:00 UTC`}
@@ -452,9 +446,7 @@ export const MarketParameters = ({
               )}
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
-                title={t(
-                  "borrowerMarketDetails.parameters.depositAccess.label",
-                )}
+                title={t("marketDetails.parameters.depositAccess.label")}
                 value={t(
                   `borrowerMarketDetails.parameters.depositAccess.${depositAccess}.text`,
                 )}
@@ -464,9 +456,7 @@ export const MarketParameters = ({
               />
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
-                title={t(
-                  "borrowerMarketDetails.parameters.withdrawalAccess.label",
-                )}
+                title={t("marketDetails.parameters.withdrawalAccess.label")}
                 value={t(
                   `borrowerMarketDetails.parameters.withdrawalAccess.${withdrawalAccess}.text`,
                 )}
@@ -479,7 +469,7 @@ export const MarketParameters = ({
                 <>
                   <Divider sx={{ margin: "12px 0 12px" }} />
                   <ParametersItem
-                    title={t("borrowerMarketDetails.hooks.hooksAddress")}
+                    title={t("marketDetails.hooks.hooksAddress")}
                     value={trimAddress(hooksConfig.hooksAddress)}
                     copy={hooksConfig.hooksAddress}
                     link={getAddressUrl(hooksConfig.hooksAddress)}
@@ -493,7 +483,7 @@ export const MarketParameters = ({
         {isMobileOpen && (
           <Box sx={MarketParametersContainerColumn(theme)}>
             <ParametersItem
-              title={t("borrowerMarketDetails.parameters.minimumReserveRatio")}
+              title={t("marketDetails.parameters.minimumReserveRatio")}
               value={`${formatBps(
                 market.reserveRatioBips,
                 MARKET_PARAMS_DECIMALS.reserveRatioBips,
@@ -502,7 +492,7 @@ export const MarketParameters = ({
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t("borrowerMarketDetails.parameters.baseAPR")}
+              title={t("marketDetails.parameters.baseAPR")}
               value={`${formatBps(
                 market.annualInterestBips,
                 MARKET_PARAMS_DECIMALS.annualInterestBips,
@@ -517,7 +507,7 @@ export const MarketParameters = ({
               </>
             )}
             <ParametersItem
-              title={t("borrowerMarketDetails.parameters.protocolAPR")}
+              title={t("marketDetails.parameters.protocolAPR")}
               value={`${formatBps(
                 (market.protocolFeeBips * market.annualInterestBips) / 10000,
                 MARKET_PARAMS_DECIMALS.annualInterestBips,
@@ -526,7 +516,7 @@ export const MarketParameters = ({
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t("borrowerMarketDetails.parameters.effectiveAPR")}
+              title={t("marketDetails.parameters.effectiveAPR")}
               value={`${formatRayAsPercentage(
                 market.effectiveLenderAPR,
                 MARKET_PARAMS_DECIMALS.annualInterestBips,
@@ -535,7 +525,7 @@ export const MarketParameters = ({
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t("borrowerMarketDetails.parameters.penaltyAPR")}
+              title={t("marketDetails.parameters.penaltyAPR")}
               value={`${formatBps(
                 market.delinquencyFeeBips,
                 MARKET_PARAMS_DECIMALS.delinquencyFeeBips,
@@ -553,7 +543,7 @@ export const MarketParameters = ({
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t("borrowerMarketDetails.parameters.maximumGracePeriod")}
+              title={t("marketDetails.parameters.maximumGracePeriod")}
               value={`${formatSecsToHours(market.delinquencyGracePeriod)}`}
               tooltipText="The duration borrowers have to resolve reserve deficiencies or correct delinquency in the market before penalties take effect."
             />
@@ -567,15 +557,13 @@ export const MarketParameters = ({
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t(
-                "borrowerMarketDetails.parameters.withdrawalCycleDuration",
-              )}
+              title={t("marketDetails.parameters.withdrawalCycleDuration")}
               value={`${formatSecsToHours(market.withdrawalBatchDuration)}`}
               tooltipText="A fixed period during which withdrawal requests are grouped and processed."
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t("borrowerMarketDetails.parameters.transferAccess.label")}
+              title={t("marketDetails.parameters.transferAccess.label")}
               value={t(
                 `borrowerMarketDetails.parameters.transferAccess.${transferAccess}.text`,
               )}
@@ -585,9 +573,7 @@ export const MarketParameters = ({
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t(
-                "borrowerMarketDetails.parameters.marketEarlyClosure.label",
-              )}
+              title={t("marketDetails.parameters.marketEarlyClosure.label")}
               value={t(
                 `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.text`,
               )}
@@ -598,7 +584,7 @@ export const MarketParameters = ({
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
               title={t(
-                "borrowerMarketDetails.parameters.marketMaturityReduction.label",
+                "marketDetails.parameters.marketMaturityReduction.label",
               )}
               value={t(
                 `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.text`,
@@ -614,12 +600,12 @@ export const MarketParameters = ({
       {hooksConfig && isLocalHost && isMobileOpen && (
         <>
           <Typography variant="title3">
-            {t("borrowerMarketDetails.hooks.title")}
+            {t("marketDetails.hooks.title")}
           </Typography>
           <Box sx={MarketParametersContainer(theme)}>
             <Box sx={MarketParametersContainerColumn(theme)}>
               <ParametersItem
-                title={t("borrowerMarketDetails.hooks.hooksAddress")}
+                title={t("marketDetails.hooks.hooksAddress")}
                 value={trimAddress(hooksConfig.hooksAddress)}
                 copy={hooksConfig.hooksAddress}
                 link={getAddressUrl(hooksConfig.hooksAddress)}
@@ -635,7 +621,7 @@ export const MarketParameters = ({
               ).map((x) => (
                 <ParametersItem
                   key={x}
-                  title={t(`borrowerMarketDetails.hooks.${x}`)}
+                  title={t(`marketDetails.hooks.${x}`)}
                   value={hooksConfig.flags[x] ? "True" : "False"}
                 />
               ))}
@@ -653,7 +639,7 @@ export const MarketParameters = ({
               ).map((x) => (
                 <ParametersItem
                   key={x}
-                  title={t(`borrowerMarketDetails.hooks.${x}`)}
+                  title={t(`marketDetails.hooks.${x}`)}
                   value={hooksConfig.flags[x] ? "True" : "False"}
                 />
               ))}

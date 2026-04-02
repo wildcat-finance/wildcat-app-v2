@@ -128,7 +128,7 @@ export const BorrowModal = ({
         sx={{ width: "152px" }}
         disabled={disableBorrowBtn}
       >
-        {t("borrowerMarketDetails.modals.borrow.borrow")}
+        {t("marketDetailsBorrower.modals.borrow.borrow")}
       </Button>
 
       <Dialog
@@ -138,7 +138,7 @@ export const BorrowModal = ({
       >
         {showForm && (
           <TxModalHeader
-            title="Borrow"
+            title={t("marketDetailsBorrower.modals.borrow.title")}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
@@ -151,7 +151,7 @@ export const BorrowModal = ({
             {modal.approvedStep && (
               <Box sx={TxModalInfoItem} marginBottom="8px">
                 <Typography variant="text3" sx={TxModalInfoTitle}>
-                  {t("borrowerMarketDetails.modals.borrow.borrowSum")}
+                  {t("marketDetailsBorrower.modals.borrow.borrowSum")}
                 </Typography>
                 <Typography variant="text3">
                   {amount} {market.underlyingToken.symbol}
@@ -161,9 +161,9 @@ export const BorrowModal = ({
 
             <Box sx={TxModalInfoItem} marginBottom="8px">
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                {t("borrowerMarketDetails.modals.borrow.availableToBorrow")}
+                {t("marketDetailsBorrower.modals.borrow.availableToBorrow")}
                 {modal.approvedStep &&
-                  t("borrowerMarketDetails.modals.borrow.afterTransaction")}
+                  t("marketDetailsBorrower.modals.borrow.afterTransaction")}
               </Typography>
               <Typography variant="text3">
                 {formatTokenWithCommas(
@@ -182,9 +182,9 @@ export const BorrowModal = ({
               : !!remainingInterest) && (
               <Box sx={TxModalInfoItem} marginBottom="20px">
                 <Typography variant="text3" sx={TxModalInfoTitle}>
-                  {t("borrowerMarketDetails.modals.borrow.interestRemaining")}
+                  {t("marketDetailsBorrower.modals.borrow.interestRemaining")}
                   {modal.approvedStep &&
-                    t("borrowerMarketDetails.modals.borrow.afterTransaction")}
+                    t("marketDetailsBorrower.modals.borrow.afterTransaction")}
                 </Typography>
                 <Typography variant="text3">
                   {modal.approvedStep
@@ -196,15 +196,18 @@ export const BorrowModal = ({
 
             {!modal.approvedStep && (
               <NumberTextField
-                label={`Up to ${formatTokenWithCommas(
-                  marketAccount.market.borrowableAssets,
-                )}`}
+                label={t("marketDetailsBorrower.modals.borrow.inputLabel", {
+                  max: formatTokenWithCommas(
+                    marketAccount.market.borrowableAssets,
+                  ),
+                })}
                 helperText={
                   underlyingBorrowAmount.gt(market.borrowableAssets)
-                    ? `Please, input amount under ${formatTokenWithCommas(
-                        market.borrowableAssets,
-                        { withSymbol: true },
-                      )}`
+                    ? t("marketDetailsBorrower.modals.borrow.inputHelper", {
+                        max: formatTokenWithCommas(market.borrowableAssets, {
+                          withSymbol: true,
+                        }),
+                      })
                     : ""
                 }
                 error={underlyingBorrowAmount.gt(market.borrowableAssets)}
@@ -236,7 +239,11 @@ export const BorrowModal = ({
         )}
 
         <TxModalFooter
-          mainBtnText={modal.approvedStep ? "Confirm" : "Borrow"}
+          mainBtnText={
+            modal.approvedStep
+              ? t("common.actions.confirm")
+              : t("marketDetailsBorrower.modals.borrow.borrow")
+          }
           mainBtnOnClick={modal.approvedStep ? handleConfirm : handleBorrow}
           disableMainBtn={disableBorrow}
           hideButtons={!showForm}

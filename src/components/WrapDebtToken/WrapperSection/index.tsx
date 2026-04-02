@@ -21,6 +21,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
 import { usePathname } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import Check from "@/assets/icons/check_icon.svg"
@@ -112,6 +113,7 @@ export const WrapperSection = ({
   isDifferentChain,
   isAuthorizedLender,
 }: WrapperSectionProps) => {
+  const { t } = useTranslation()
   const isLender = usePathname().includes("lender")
   const theme = useTheme()
   const client = useQueryClient()
@@ -299,14 +301,18 @@ export const WrapperSection = ({
 
     if (isWrapTab) {
       if (isAssetsInput && balances.marketBalance.lt(inputAmount)) {
-        return `Insufficient ${wrapper.marketToken.symbol} balance`
+        return t("wrapDebtToken.errors.insufficientBalance", {
+          symbol: wrapper.marketToken.symbol,
+        })
       }
       if (
         !isAssetsInput &&
         outputAmount &&
         balances.marketBalance.lt(outputAmount)
       ) {
-        return `Insufficient ${wrapper.marketToken.symbol} balance`
+        return t("wrapDebtToken.errors.insufficientBalance", {
+          symbol: wrapper.marketToken.symbol,
+        })
       }
     } else {
       if (
@@ -314,10 +320,14 @@ export const WrapperSection = ({
         outputAmount &&
         balances.shareBalance.lt(outputAmount)
       ) {
-        return `Insufficient ${wrapper.shareToken.symbol} balance`
+        return t("wrapDebtToken.errors.insufficientBalance", {
+          symbol: wrapper.shareToken.symbol,
+        })
       }
       if (!isAssetsInput && balances.shareBalance.lt(inputAmount)) {
-        return `Insufficient ${wrapper.shareToken.symbol} balance`
+        return t("wrapDebtToken.errors.insufficientBalance", {
+          symbol: wrapper.shareToken.symbol,
+        })
       }
     }
 
@@ -335,9 +345,10 @@ export const WrapperSection = ({
 
   const maxError =
     exceedsMax && maxLimit
-      ? `Exceeds max ${maxActionLabel} of ${formatTokenWithCommas(maxLimit, {
-          withSymbol: true,
-        })}`
+      ? t("wrapDebtToken.errors.exceedsMax", {
+          action: maxActionLabel,
+          amount: formatTokenWithCommas(maxLimit, { withSymbol: true }),
+        })
       : undefined
 
   const baseHelperText = maxError || balanceError
@@ -375,27 +386,32 @@ export const WrapperSection = ({
 
   const inputLabel = React.useMemo(() => {
     if (isWrapTab) {
-      return isAssetsInput ? "Amount to wrap" : "Wrapped tokens to mint"
+      return isAssetsInput
+        ? t("wrapDebtToken.form.inputLabels.amountToWrap")
+        : t("wrapDebtToken.form.inputLabels.wrappedTokensToMint")
     }
-    return isAssetsInput ? "Market tokens to receive" : "Amount to unwrap"
-  }, [isWrapTab, isAssetsInput])
+    return isAssetsInput
+      ? t("wrapDebtToken.form.inputLabels.marketTokensToReceive")
+      : t("wrapDebtToken.form.inputLabels.amountToUnwrap")
+  }, [isWrapTab, isAssetsInput, t])
 
   const outputLabel = React.useMemo(() => {
     if (isWrapTab) {
       return isAssetsInput
-        ? "You'll receive wrapped tokens"
-        : "Estimated market tokens required"
+        ? t("wrapDebtToken.form.outputLabels.receiveWrapped")
+        : t("wrapDebtToken.form.outputLabels.estimatedMarketRequired")
     }
     return isAssetsInput
-      ? "Estimated wrapped tokens required"
-      : "You'll receive market tokens"
-  }, [isWrapTab, isAssetsInput])
+      ? t("wrapDebtToken.form.outputLabels.estimatedWrappedRequired")
+      : t("wrapDebtToken.form.outputLabels.receiveMarket")
+  }, [isWrapTab, isAssetsInput, t])
 
   const maxTooltip =
     maxInputAmount &&
-    `Max ${maxActionLabel}: ${formatTokenWithCommas(maxInputAmount, {
-      withSymbol: true,
-    })}`
+    t("wrapDebtToken.form.maxTooltip", {
+      action: maxActionLabel,
+      value: formatTokenWithCommas(maxInputAmount, { withSymbol: true }),
+    })
 
   const setMaxAmount = () => {
     if (!maxInputAmount) return
@@ -659,9 +675,14 @@ export const WrapperSection = ({
     },
   })
 
+  // eslint-disable-next-line no-nested-ternary
   const submitButtonText = submitMutation.isPending
-    ? `${isWrapTab ? "Wrapping" : "Unwrapping"}`
-    : `${isWrapTab ? "Wrap" : "Unwrap"} Tokens`
+    ? isWrapTab
+      ? t("wrapDebtToken.buttons.wrapping")
+      : t("wrapDebtToken.buttons.unwrapping")
+    : isWrapTab
+      ? t("wrapDebtToken.buttons.wrapTokens")
+      : t("wrapDebtToken.buttons.unwrapTokens")
 
   const formattedOutput = outputAmount
     ? formatTokenWithCommas(outputAmount)
@@ -703,7 +724,7 @@ export const WrapperSection = ({
     >
       {isMobile && isMobileOpenState && (
         <TransactionHeader
-          label="Wrapper contract"
+          label={t("wrapDebtToken.labels.wrapperContract")}
           arrowOnClick={() => dispatch(setIsMobileOpenedState(false))}
           crossOnClick={null}
         />
@@ -741,8 +762,16 @@ export const WrapperSection = ({
               paddingX: isMobile ? "16px" : 0,
             }}
           >
-            <Tab value={WrapDebtTokenTab.WRAP} label="Wrap" sx={TabStyle} />
-            <Tab value={WrapDebtTokenTab.UNWRAP} label="Unwrap" sx={TabStyle} />
+            <Tab
+              value={WrapDebtTokenTab.WRAP}
+              label={t("wrapDebtToken.tabs.wrap")}
+              sx={TabStyle}
+            />
+            <Tab
+              value={WrapDebtTokenTab.UNWRAP}
+              label={t("wrapDebtToken.tabs.unwrap")}
+              sx={TabStyle}
+            />
           </Tabs>
 
           {!showSuccess && (
@@ -800,7 +829,7 @@ export const WrapperSection = ({
                           : COLORS.manate
                       }
                     >
-                      Show in Shares
+                      {t("wrapDebtToken.form.showInShares")}
                     </Typography>
 
                     <Switch
@@ -849,7 +878,7 @@ export const WrapperSection = ({
                     setAmount(event.target.value)
                   }
                   size="medium"
-                  label="Amount"
+                  label={t("wrapDebtToken.form.amount")}
                   error={!!helperText}
                   helperText={helperText}
                   FormHelperTextProps={{
@@ -860,7 +889,10 @@ export const WrapperSection = ({
                     },
                   }}
                   endAdornment={
-                    <TextfieldButton buttonText="Max" onClick={setMaxAmount} />
+                    <TextfieldButton
+                      buttonText={t("common.labels.max")}
+                      onClick={setMaxAmount}
+                    />
                   }
                 />
               </Box>
@@ -905,7 +937,7 @@ export const WrapperSection = ({
                     variant={isMobile ? "mobText4" : "text4"}
                     color={COLORS.manate}
                   >
-                    Estimates may change with the current conversion rate.
+                    {t("wrapDebtToken.form.estimatesNote")}
                   </Typography>
                 </Box>
               </Box>
@@ -929,9 +961,9 @@ export const WrapperSection = ({
                   size="large"
                   onClick={() =>
                     toastRequest(approveMutation.mutateAsync(), {
-                      pending: "Approving...",
-                      success: "Approved",
-                      error: "Approval failed",
+                      pending: t("wrapDebtToken.buttons.approving"),
+                      success: t("common.toast.approved"),
+                      error: t("wrapDebtToken.errors.approvalFailed"),
                     })
                   }
                   disabled={isApproveButtonDisabled}
@@ -955,10 +987,10 @@ export const WrapperSection = ({
 
                   {/* eslint-disable-next-line no-nested-ternary */}
                   {approveMutation.isPending
-                    ? "Approving"
+                    ? t("wrapDebtToken.buttons.approving")
                     : isApproved && !isInputZero
-                      ? "Approved"
-                      : "Approve"}
+                      ? t("common.toast.approved")
+                      : t("common.actions.approve")}
                 </Button>
               )}
 
@@ -968,9 +1000,13 @@ export const WrapperSection = ({
                 size="large"
                 onClick={() =>
                   toastRequest(submitMutation.mutateAsync(), {
-                    pending: isWrapTab ? "Wrapping..." : "Unwrapping...",
-                    success: isWrapTab ? "Wrapped" : "Unwrapped",
-                    error: "Transaction failed",
+                    pending: isWrapTab
+                      ? t("wrapDebtToken.toast.wrapping")
+                      : t("wrapDebtToken.toast.unwrapping"),
+                    success: isWrapTab
+                      ? t("wrapDebtToken.toast.wrapped")
+                      : t("wrapDebtToken.toast.unwrapped"),
+                    error: t("wrapDebtToken.errors.transactionFailed"),
                   })
                 }
                 disabled={shouldDisableSubmit}
@@ -1024,7 +1060,7 @@ export const WrapperSection = ({
             fullWidth
             onClick={() => handleOpenSection(WrapDebtTokenTab.WRAP)}
           >
-            Wrap
+            {t("wrapDebtToken.tabs.wrap")}
           </Button>
 
           <Button
@@ -1033,7 +1069,7 @@ export const WrapperSection = ({
             fullWidth
             onClick={() => handleOpenSection(WrapDebtTokenTab.UNWRAP)}
           >
-            Unwrap
+            {t("wrapDebtToken.tabs.unwrap")}
           </Button>
         </Box>
       )}

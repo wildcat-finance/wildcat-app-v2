@@ -48,7 +48,7 @@ export const TxModalFooter = ({
           </IconButton>
 
           <Typography variant="text3">
-            <Trans i18nKey="txModal.viewOnEtherscan" />
+            <Trans i18nKey="common.explorer" />
           </Typography>
         </Link>
       )}

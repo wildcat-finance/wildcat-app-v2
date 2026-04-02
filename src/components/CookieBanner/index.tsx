@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 
 import { Dialog, Box, Typography, Button } from "@mui/material"
 import Cookies from "js-cookie"
+import { useTranslation } from "react-i18next"
 
 import { COLORS } from "@/theme/colors"
 
@@ -15,6 +16,7 @@ declare global {
 }
 
 export default function CookieBanner() {
+  const { t } = useTranslation()
   const [isVisible, setIsVisible] = useState(false)
 
   const loadMatomo = () => {
@@ -72,7 +74,7 @@ export default function CookieBanner() {
       }}
     >
       <Typography variant="body1" sx={{ mb: 2 }}>
-        We use Matomo for anonymous analytics. Allow tracking?
+        {t("consent.matomoPrompt")}
       </Typography>
       <Box sx={{ display: "flex", gap: 1 }}>
         <Button
@@ -81,7 +83,7 @@ export default function CookieBanner() {
           color="success"
           sx={{ px: 2, py: 1 }}
         >
-          Allow
+          {t("common.actions.allow")}
         </Button>
         <Button
           onClick={handleDecline}
@@ -89,7 +91,7 @@ export default function CookieBanner() {
           color="error"
           sx={{ px: 2, py: 1 }}
         >
-          Decline
+          {t("common.actions.decline")}
         </Button>
       </Box>
     </Dialog>

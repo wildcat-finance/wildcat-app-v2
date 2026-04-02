@@ -94,7 +94,7 @@ export const BasicSetupForm = ({
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.basic.title")}
+        {t("createMarket.basic.title")}
       </Typography>
 
       <Box
@@ -103,7 +103,7 @@ export const BasicSetupForm = ({
           gap: "19px 10px",
         }}
       >
-        <InputLabel label={t("createNewMarket.basic.asset.label")}>
+        <InputLabel label={t("createMarket.basic.asset.label")}>
           <UnderlyingAssetSelect
             handleTokenSelect={handleTokenSelect}
             onBlur={tokenSelectorFormProps.onBlur}
@@ -122,9 +122,9 @@ export const BasicSetupForm = ({
 
         <Box />
 
-        <InputLabel label={t("createNewMarket.basic.tokenName.label")}>
+        <InputLabel label={t("createMarket.basic.tokenName.label")}>
           <TextField
-            label={t("createNewMarket.basic.tokenName.placeholder")}
+            label={t("createMarket.basic.tokenName.placeholder")}
             error={Boolean(errors.namePrefix)}
             helperText={errors.namePrefix?.message}
             InputProps={{
@@ -133,7 +133,7 @@ export const BasicSetupForm = ({
                   <TextfieldChip
                     text={
                       tokenAsset?.name ||
-                      `${t("createNewMarket.basic.tokenName.chip")}`
+                      `${t("createMarket.basic.tokenName.chip")}`
                     }
                   />
                 </InputAdornment>
@@ -143,9 +143,9 @@ export const BasicSetupForm = ({
           />
         </InputLabel>
 
-        <InputLabel label={t("createNewMarket.basic.tokenSymbol.label")}>
+        <InputLabel label={t("createMarket.basic.tokenSymbol.label")}>
           <TextField
-            label={t("createNewMarket.basic.tokenSymbol.placeholder")}
+            label={t("createMarket.basic.tokenSymbol.placeholder")}
             error={Boolean(errors.symbolPrefix)}
             helperText={errors.symbolPrefix?.message}
             InputProps={{
@@ -154,7 +154,7 @@ export const BasicSetupForm = ({
                   <TextfieldChip
                     text={
                       tokenAsset?.symbol ||
-                      `${t("createNewMarket.basic.tokenSymbol.chip")}`
+                      `${t("createMarket.basic.tokenSymbol.chip")}`
                     }
                   />
                 </InputAdornment>
@@ -174,19 +174,21 @@ export const BasicSetupForm = ({
         }}
       >
         <Typography variant="text3">
-          {`Full Market Token Name: ${t(watch("namePrefix"))} ${t(
-            tokenAsset?.name || "",
-          )}`}
+          {`${t("marketDetailsBorrower.basicSetup.fullTokenName")}${watch(
+            "namePrefix",
+          )} ${tokenAsset?.name || ""}`}
         </Typography>
 
         <Typography variant="text3">
-          {`Full Market Token Ticker: ${t(watch("symbolPrefix"))}${t(
-            tokenAsset?.symbol || "",
-          )}`}
+          {`${t("marketDetailsBorrower.basicSetup.fullTokenTicker")}${watch(
+            "symbolPrefix",
+          )}${tokenAsset?.symbol || ""}`}
         </Typography>
 
         <Typography variant="text3">
-          {`Underlying Asset Address: ${t(tokenAsset?.address || "")}`}
+          {`${t("marketDetailsBorrower.basicSetup.assetAddress")}${
+            tokenAsset?.address || ""
+          }`}
         </Typography>
       </Box>
 

@@ -21,7 +21,7 @@ export const WrongNetworkAlert = () => {
     <Box sx={PageContainer}>
       <Box sx={AlertContainer}>
         <Typography variant="text1" sx={{ marginBottom: "6px" }}>
-          {t("dashboard.markets.noMarkets.wrongNetwork")}
+          {t("dashboard.emptyStates.wrongNetwork")}
         </Typography>
 
         <Typography
@@ -29,7 +29,7 @@ export const WrongNetworkAlert = () => {
           color="#8A8C9F"
           sx={{ marginBottom: "24px" }}
         >
-          Switch to {name} to explore the markets.
+          {t("common.wrongNetworkAlert.switchTo", { name })}
         </Typography>
 
         <Button
@@ -38,7 +38,7 @@ export const WrongNetworkAlert = () => {
           sx={ButtonStyle}
           onClick={handleSwitchChain}
         >
-          Switch Network
+          {t("common.wrongNetworkAlert.switchNetwork")}
         </Button>
       </Box>
     </Box>

@@ -197,7 +197,7 @@ export const WithdrawModal = ({
           }}
         >
           <TransactionHeader
-            label={t("lenderMarketDetails.transactions.withdraw.modal.title")}
+            label={t("marketDetailsLender.transactions.withdraw.modalTitle")}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : handleModalArrowClick
             }
@@ -216,7 +216,7 @@ export const WithdrawModal = ({
             }}
           >
             <Typography variant="text2" lineHeight="24px">
-              Choose amount of tokens
+              {t("marketDetailsLender.withdraw.chooseAmount")}
             </Typography>
 
             <Typography
@@ -224,7 +224,7 @@ export const WithdrawModal = ({
               variant="text3"
               lineHeight="24px"
             >
-              Available to withdraw{" "}
+              {t("marketDetailsLender.withdraw.availableToWithdraw")}{" "}
               <Typography
                 variant="text3"
                 lineHeight="24px"
@@ -258,7 +258,7 @@ export const WithdrawModal = ({
                 }
                 endAdornment={
                   <TextfieldButton
-                    buttonText="Max"
+                    buttonText={t("common.labels.max")}
                     onClick={handleClickMaxAmount}
                   />
                 }
@@ -283,9 +283,7 @@ export const WithdrawModal = ({
           </Box>
 
           <TxModalFooter
-            mainBtnText={t(
-              "lenderMarketDetails.transactions.withdraw.modal.buttons.confirm",
-            )}
+            mainBtnText={t("common.actions.confirm")}
             mainBtnOnClick={handleWithdraw}
             disableMainBtn={disableWithdraw}
             hideButtons={!showForm}
@@ -332,8 +330,8 @@ export const WithdrawModal = ({
         disabled={notMature}
       >
         {notMature
-          ? t("lenderMarketDetails.transactions.withdraw.buttonLocked")
-          : t("lenderMarketDetails.transactions.withdraw.button")}
+          ? t("marketDetailsLender.transactions.withdraw.buttonLocked")
+          : t("marketDetailsLender.transactions.withdraw.button")}
       </Button>
 
       <Dialog
@@ -344,7 +342,7 @@ export const WithdrawModal = ({
         {showForm && (
           <>
             <TxModalHeader
-              title={t("lenderMarketDetails.transactions.withdraw.modal.title")}
+              title={t("marketDetailsLender.transactions.withdraw.modalTitle")}
               arrowOnClick={
                 modal.hideArrowButton || !showForm
                   ? null
@@ -358,7 +356,7 @@ export const WithdrawModal = ({
             <Box width="100%" height="100%" padding="0 24px">
               <ModalDataItem
                 title={t(
-                  "lenderMarketDetails.transactions.withdraw.modal.available",
+                  "marketDetailsLender.transactions.withdraw.modalAvailable",
                 )}
                 value={
                   isTooSmallMarketBalance
@@ -389,7 +387,7 @@ export const WithdrawModal = ({
                   }
                   endAdornment={
                     <TextfieldButton
-                      buttonText="Max"
+                      buttonText={t("common.labels.max")}
                       onClick={handleClickMaxAmount}
                     />
                   }
@@ -429,9 +427,7 @@ export const WithdrawModal = ({
         )}
 
         <TxModalFooter
-          mainBtnText={t(
-            "lenderMarketDetails.transactions.withdraw.modal.buttons.confirm",
-          )}
+          mainBtnText={t("common.actions.confirm")}
           mainBtnOnClick={handleWithdraw}
           disableMainBtn={disableWithdraw}
           hideButtons={!showForm}

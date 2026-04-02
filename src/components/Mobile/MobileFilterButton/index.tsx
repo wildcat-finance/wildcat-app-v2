@@ -10,6 +10,7 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import Cross from "@/assets/icons/cross_icon.svg"
 import Filter from "@/assets/icons/filter_icon.svg"
@@ -44,6 +45,7 @@ export const MobileFilterButton = ({
   marketWithdrawalCycles,
   setMarketWithdrawalCycles,
 }: MobileFilterButtonProps) => {
+  const { t } = useTranslation()
   const [open, setOpen] = useState<boolean>(false)
 
   const allAssetsSelected =
@@ -220,7 +222,7 @@ export const MobileFilterButton = ({
             </SvgIcon>
 
             <Typography variant="mobText3" color={COLORS.santasGrey}>
-              Filters
+              {t("dashboard.filters.title")}
             </Typography>
           </Box>
 
@@ -403,7 +405,7 @@ export const MobileFilterButton = ({
             color="secondary"
             fullWidth
           >
-            Reset
+            {t("common.actions.reset")}
           </Button>
         </Box>
       </Dialog>

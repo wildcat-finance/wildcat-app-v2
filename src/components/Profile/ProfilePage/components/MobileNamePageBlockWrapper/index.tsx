@@ -58,7 +58,7 @@ export const MobileNamePageBlockWrapper = ({
                 section === "markets" ? COLORS.whiteSmoke : "transparent",
             }}
           >
-            {t("borrowerProfile.profile.activeMarkets.title")}
+            {t("borrowerProfile.activeMarkets.title")}
           </Button>
           <Button
             onClick={() => handleChangeSection("info")}
@@ -68,7 +68,7 @@ export const MobileNamePageBlockWrapper = ({
                 section === "info" ? COLORS.whiteSmoke : "transparent",
             }}
           >
-            {t("borrowerProfile.profile.overallInfo.title")}
+            {t("borrowerProfile.info.title")}
           </Button>
         </Box>
       )}

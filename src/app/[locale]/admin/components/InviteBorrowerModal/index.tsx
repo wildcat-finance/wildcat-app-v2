@@ -111,22 +111,22 @@ export const InviteBorrowerModal = () => {
 
         {isPending && (
           <LoadingModal
-            title={t("admin.inviteBorrower.loading.title")}
-            subtitle={t("admin.inviteBorrower.loading.subtitle")}
+            title={t("admin.inviteBorrower.loadingTitle")}
+            subtitle={t("admin.inviteBorrower.loadingSubtitle")}
           />
         )}
         {isError && (
           <ErrorModal
             onClose={handleClose}
-            title={t("admin.inviteBorrower.error.title")}
-            subtitle={t("admin.inviteBorrower.error.subtitle")}
+            title={t("admin.inviteBorrower.errorTitle")}
+            subtitle={t("admin.inviteBorrower.errorSubtitle")}
           />
         )}
         {isSuccess && (
           <SuccessModal
             onClose={handleClose}
-            title={t("admin.inviteBorrower.success.title")}
-            subtitle={t("admin.inviteBorrower.success.subtitle")}
+            title={t("admin.inviteBorrower.successTitle")}
+            subtitle={t("admin.inviteBorrower.successSubtitle")}
           />
         )}
       </Dialog>

@@ -45,14 +45,14 @@ export const AdminSectionSwitcher = ({
   return (
     <Box sx={{ width: "fit-content", display: "flex", gap: "12px" }}>
       <SwitcherButton
-        label="Pending Invitations"
+        label={t("admin.tabs.pendingInvitations")}
         section="invitations"
         activeSection={activeSection}
         onSetSection={setActiveSection}
       />
 
       <SwitcherButton
-        label="Registered Borrowers"
+        label={t("admin.tabs.registeredBorrowers")}
         section="borrowers"
         activeSection={activeSection}
         onSetSection={setActiveSection}

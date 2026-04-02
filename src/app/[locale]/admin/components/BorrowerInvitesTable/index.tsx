@@ -22,11 +22,14 @@ import { CancelInviteModal } from "../CancelInviteModal"
 import { InviteBorrowerModal } from "../InviteBorrowerModal"
 
 const RegisterBorrowerButton = ({ address }: { address: string }) => {
+  const { t } = useTranslation()
   const { mutate, isPending } = useRegisterTestnetBorrower()
 
   return (
     <Button variant="outlined" onClick={() => mutate(address)}>
-      {isPending ? "Registering..." : "Register"}
+      {isPending
+        ? t("admin.invitesTable.registering")
+        : t("admin.invitesTable.registerButton")}
     </Button>
   )
 }
@@ -51,7 +54,7 @@ export const BorrowerInvitesTable = () => {
   >[] = [
     {
       field: "name",
-      headerName: "Borrower Name",
+      headerName: t("admin.invitesTable.borrowerName"),
       flex: 1,
       // minWidth: 134,
       headerAlign: "left",
@@ -71,7 +74,7 @@ export const BorrowerInvitesTable = () => {
     },
     {
       field: "alias",
-      headerName: "Borrower Alias",
+      headerName: t("admin.invitesTable.borrowerAlias"),
       flex: 1,
       // minWidth: 134,
       headerAlign: "left",
@@ -91,7 +94,7 @@ export const BorrowerInvitesTable = () => {
     },
     {
       field: "timeInvited",
-      headerName: "Invited",
+      headerName: t("admin.invitesTable.invited"),
       flex: 1,
       // minWidth: 134,
       headerAlign: "left",
@@ -116,7 +119,7 @@ export const BorrowerInvitesTable = () => {
     {
       sortable: false,
       field: "address",
-      headerName: "Wallet Address",
+      headerName: t("admin.invitesTable.walletAddress"),
       // minWidth: 176,
       headerAlign: "left",
       align: "left",
@@ -136,16 +139,20 @@ export const BorrowerInvitesTable = () => {
     },
     {
       field: "registeredOnChain",
-      headerName: "Registered On Chain",
+      headerName: t("admin.invitesTable.registeredOnChain"),
       flex: 0.6,
       // minWidth: 134,
       headerAlign: "left",
       align: "left",
-      renderCell: (params) => <span>{params.value ? "Yes" : "No"}</span>,
+      renderCell: (params) => (
+        <span>
+          {params.value ? t("common.labels.yes") : t("common.labels.no")}
+        </span>
+      ),
     },
     {
       field: "timeSigned",
-      headerName: "Signed",
+      headerName: t("admin.invitesTable.signed"),
       flex: 1,
       // minWidth: 134,
       headerAlign: "left",
@@ -159,7 +166,7 @@ export const BorrowerInvitesTable = () => {
               {dayjs(+new Date(params.value)).fromNow()}
             </span>
           ) : (
-            "N/A"
+            t("common.labels.na")
           )}
         </span>
       ),
@@ -177,7 +184,7 @@ export const BorrowerInvitesTable = () => {
           }
           return (
             <Typography variant="text3" color={COLORS.blackRock07}>
-              Pending Registration
+              {t("admin.invitesTable.pendingRegistration")}
             </Typography>
           )
         }
@@ -208,7 +215,7 @@ export const BorrowerInvitesTable = () => {
             })
           }
         >
-          {t("admin.inviteBorrower.cancel")}
+          {t("common.actions.cancel")}
         </Button>
       ),
     },

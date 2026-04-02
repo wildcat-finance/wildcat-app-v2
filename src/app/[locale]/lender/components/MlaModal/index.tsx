@@ -36,11 +36,11 @@ export const MlaModal = ({
         sx={sx}
       >
         {buttonText ||
-          (isLoading && "Loading MLA...") ||
+          (isLoading && t("marketDetailsLender.mla.loadingMla")) ||
           (!isLoading &&
             (mla === null
-              ? t("lenderMarketDetails.buttons.noMla")
-              : t("lenderMarketDetails.buttons.viewMla")))}
+              ? t("marketDetailsLender.mla.noMla")
+              : t("marketDetailsLender.actions.viewMla")))}
       </Button>
       <Modal
         open={isMlaOpen && !isClosed}
@@ -74,7 +74,7 @@ export const MlaModal = ({
                 height: "100%",
                 border: "none",
               }}
-              title="Market Lending Agreement"
+              title={t("marketDetailsLender.mla.title")}
             />
           </Box>
           <Box
@@ -86,7 +86,7 @@ export const MlaModal = ({
           >
             {isSigning ? (
               <Button variant="outlined" onClick={onSign}>
-                Signing...
+                {t("common.toast.signing")}
               </Button>
             ) : (
               showSignButton && (
@@ -95,7 +95,7 @@ export const MlaModal = ({
                   onClick={onSign}
                   disabled={disableSignButton || isSigning}
                 >
-                  Sign MLA
+                  {t("marketDetailsLender.mla.signMla")}
                 </Button>
               )
             )}
@@ -104,7 +104,7 @@ export const MlaModal = ({
                 variant="outlined"
                 onClick={() => window.open(downloadPdfUrl, "_blank")}
               >
-                Download PDF
+                {t("marketDetailsLender.mla.downloadPdf")}
               </Button>
             )}
             {downloadSignedUrl && (
@@ -112,7 +112,7 @@ export const MlaModal = ({
                 variant="outlined"
                 onClick={() => window.open(downloadSignedUrl, "_blank")}
               >
-                Download Signed MLA
+                {t("marketDetailsLender.mla.downloadSignedMla")}
               </Button>
             )}
           </Box>

@@ -70,7 +70,7 @@ export const SelectProfileItem = ({
               >
                 <Return />
               </SvgIcon>
-              {t("borrowerProfile.edit.buttons.back")}
+              {t("borrowerProfile.editButtons.back")}
             </Button>
             <Typography variant="text3" color={COLORS.santasGrey}>
               {oldLabel}

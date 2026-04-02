@@ -63,7 +63,7 @@ export const CapacityBarChart = ({
             }}
           >
             <Typography variant={isMobile ? "mobH3" : "title3"}>
-              {t("lenderMarketDetails.barchart.capacity.title")}
+              {t("marketDetailsLender.barchart.capacity.title")}
             </Typography>
 
             <Box
@@ -87,7 +87,7 @@ export const CapacityBarChart = ({
               {bars.map((chartItem) => (
                 <BarItem
                   key={chartItem.id}
-                  chartItem={chartItem}
+                  chartItem={{ ...chartItem, label: t(chartItem.label) }}
                   isOnlyBarItem={bars.length === 1}
                 />
               ))}
@@ -99,7 +99,7 @@ export const CapacityBarChart = ({
               {legendItems.map((chartItem) => (
                 <LegendItem
                   key={chartItem.label}
-                  chartItem={chartItem}
+                  chartItem={{ ...chartItem, label: t(chartItem.label) }}
                   type={isMobile ? "noBorderWithDivider" : "default"}
                 />
               ))}
@@ -119,7 +119,7 @@ export const CapacityBarChart = ({
                 <LenderLegendItem
                   key={chartItem.label}
                   color={chartItem.color}
-                  label={chartItem.label}
+                  label={t(chartItem.label)}
                   value={chartItem.value}
                   asset={chartItem.asset}
                   withDivider={isMobile && index !== legendItems.length - 1}

@@ -205,9 +205,11 @@ export const BorrowerMarketsTable = ({
             variant="text4"
             sx={{ lineHeight: "10px", color: COLORS.santasGrey }}
           >
-            CRR
+            {t("borrowerMarketList.table.header.crr")}
           </Typography>
-          <TooltipButton value="The percentage of market funds kept unborrowed and locked as reserve." />
+          <TooltipButton
+            value={t("borrowerMarketList.table.header.crrTooltip")}
+          />
         </Box>
       ),
       renderCell: (params) => (
@@ -340,9 +342,7 @@ export const BorrowerMarketsTable = ({
             {label}
           </Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            {isLoading
-              ? t("borrowerMarketList.table.title.loading")
-              : rows.length}
+            {isLoading ? t("common.loading") : rows.length}
           </Typography>
         </Box>
       </AccordionSummary>
@@ -386,13 +386,13 @@ export const BorrowerMarketsTable = ({
       {tableData.length === 0 && !isLoading && !defaultFilters && (
         <Box display="flex" flexDirection="column" padding="24px 16px 12px">
           <Typography variant="text2" color={COLORS.santasGrey}>
-            {t("borrowerMarketList.table.noMarkets.filter.beginning")} {type}{" "}
+            {t("borrowerMarketList.table.noMarkets.filterBeginning")} {type}{" "}
             {statusFilter?.length !== 0 &&
               statusFilter?.map((status) => ` ${status.toLowerCase()}`)}{" "}
             {nameFilter === "" ? "" : nameFilter}{" "}
             {assetFilter?.length !== 0 &&
               `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
-            {t("borrowerMarketList.table.noMarkets.filter.ending")}
+            {t("borrowerMarketList.table.noMarkets.filterEnding")}
           </Typography>
         </Box>
       )}

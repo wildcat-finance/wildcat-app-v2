@@ -80,7 +80,7 @@ export const PoliciesSection = ({
   const columns: TypeSafeColDef<PolicyDataT>[] = [
     {
       field: "name",
-      headerName: "Policy Name",
+      headerName: t("borrowerMarketList.policies.tableHeaders.policyName"),
       flex: 1.5,
       minWidth: 160,
       headerAlign: "left",
@@ -98,7 +98,7 @@ export const PoliciesSection = ({
     },
     {
       field: "type",
-      headerName: "Type",
+      headerName: t("borrowerMarketList.policies.tableHeaders.type"),
       flex: 1.5,
       minWidth: 160,
       headerAlign: "left",
@@ -110,15 +110,17 @@ export const PoliciesSection = ({
         >
           <Typography variant="text3">
             {params.row.type === HooksKind.OpenTerm
-              ? "Open Term"
-              : "Fixed Term"}
+              ? t("borrowerMarketList.policies.policyTypes.openTerm")
+              : t("borrowerMarketList.policies.policyTypes.fixedTerm")}
           </Typography>
         </Link>
       ),
     },
     {
       field: "accessRequirements",
-      headerName: "Access Requirements",
+      headerName: t(
+        "borrowerMarketList.policies.tableHeaders.accessRequirements",
+      ),
       flex: 1.5,
       minWidth: 160,
       headerAlign: "left",
@@ -135,7 +137,9 @@ export const PoliciesSection = ({
     {
       sortable: true,
       field: "markets",
-      headerName: "Assigned to Markets",
+      headerName: t(
+        "borrowerMarketList.policies.tableHeaders.assignedToMarkets",
+      ),
       minWidth: 176,
       headerAlign: "left",
       align: "left",
@@ -179,14 +183,16 @@ export const PoliciesSection = ({
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          <Typography variant="title2">Policies</Typography>
+          <Typography variant="title2">
+            {t("borrowerMarketList.policies.title")}
+          </Typography>
           <Typography variant="text3" color={COLORS.santasGrey}>
-            Common agreement for several markets.{" "}
+            {t("borrowerMarketList.policies.subtitle")}{" "}
             <Link
               href="https://docs.wildcat.finance/"
               style={{ color: COLORS.santasGrey }}
             >
-              Learn more
+              {t("borrowerMarketList.policies.learnMore")}
             </Link>
           </Typography>
         </Box>
@@ -204,11 +210,11 @@ export const PoliciesSection = ({
         <FilterTextField
           value={policyName}
           setValue={setPolicyName}
-          placeholder="Search by Name"
+          placeholder={t("borrowerMarketList.policies.searchPlaceholder")}
         />
 
         <SmallFilterSelect
-          placeholder="Markets"
+          placeholder={t("borrowerMarketList.policies.marketsFilter")}
           options={marketsOptions ?? []}
           selected={marketsFilter}
           setSelected={setMarketsFilter}
@@ -224,9 +230,13 @@ export const PoliciesSection = ({
           }}
         >
           <Box display="flex" columnGap="4px">
-            <Typography variant="text3">Policies</Typography>
+            <Typography variant="text3">
+              {t("borrowerMarketList.policies.title")}
+            </Typography>
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {isPoliciesLoading ? "Are Loading..." : rows.length}
+              {isPoliciesLoading
+                ? t("borrowerMarketList.policies.areLoading")
+                : rows.length}
             </Typography>
           </Box>
         </Box>

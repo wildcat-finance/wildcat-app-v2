@@ -1,7 +1,7 @@
 export const MARKET_BAR_DATA = {
   locked: {
     id: "locked",
-    label: "Locked",
+    label: "marketDetailsLender.barchart.debtLabels.locked",
     healthyBgColor: "#4971FF",
     delinquentBgColor: "#F1464B",
     healthyTextColor: "#FFFFFF",
@@ -9,7 +9,7 @@ export const MARKET_BAR_DATA = {
   },
   liquid: {
     id: "liquid",
-    label: "Liquid",
+    label: "marketDetailsLender.barchart.debtLabels.liquid",
     healthyBgColor: "#E4EBFE",
     delinquentBgColor: "#F7BEC1",
     healthyTextColor: "#4971FF",
@@ -17,7 +17,7 @@ export const MARKET_BAR_DATA = {
   },
   borrowed: {
     id: "borrowed",
-    label: "Borrowed",
+    label: "marketDetailsLender.barchart.debtLabels.borrowed",
     healthyBgColor: "#EFF0F4",
     delinquentBgColor: "#EFF0F4",
     healthyTextColor: "#4971FF",

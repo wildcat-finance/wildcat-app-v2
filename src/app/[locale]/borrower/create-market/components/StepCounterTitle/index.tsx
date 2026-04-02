@@ -19,7 +19,7 @@ export const StepCounterTitle = ({
   return (
     <Box sx={TitleContainer}>
       <Typography variant="text3" color={COLORS.santasGrey}>
-        {t("createNewMarket.title")}
+        {t("createMarket.title")}
       </Typography>
 
       {current && (

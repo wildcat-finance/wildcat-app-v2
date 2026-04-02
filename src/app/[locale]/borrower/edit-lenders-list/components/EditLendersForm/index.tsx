@@ -215,7 +215,7 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
               fontWeight: 600,
             }}
           >
-            {t("editLendersList.forms.edit.submit")}
+            {t("editLenders.editForm.submit")}
           </Button>
         </Box>
       </Box>
@@ -237,7 +237,7 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
             }}
           >
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {t("editLendersList.forms.edit.noLenders")}
+              {t("editLenders.editForm.noLenders")}
             </Typography>
           </Box>
         </Box>

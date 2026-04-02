@@ -126,7 +126,7 @@ export const FilterSelect = ({
               },
             }}
           >
-            {t("filter.clear")}
+            {t("common.actions.clear")}
           </Button>
         )}
       </Box>

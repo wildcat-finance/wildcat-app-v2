@@ -79,11 +79,11 @@ export const JurisdictionSelector = ({
         disabled={disabled}
         filterOptions={filterOptions}
         PopperComponent={MyPopper}
-        noOptionsText={t("borrowerProfile.edit.public.jurisdiction.noOptions")}
+        noOptionsText={t("borrowerProfile.editPublic.jurisdiction.noOptions")}
         renderInput={(params) => (
           <TextField
             {...params}
-            label={t("borrowerProfile.edit.public.jurisdiction.title")}
+            label={t("borrowerProfile.editPublic.jurisdiction.title")}
             error={error}
             helperText={helperText}
           />

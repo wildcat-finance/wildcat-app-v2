@@ -44,23 +44,23 @@ export const ProfileNamePageBlock = ({
 
   const links = [
     {
-      name: t("borrowerProfile.profile.buttons.website"),
+      name: t("borrowerProfile.socialLinks.website"),
       hasLink: !!website,
       url:
         website && website.startsWith("http") ? website : `https://${website}`,
     },
     {
-      name: t("borrowerProfile.profile.buttons.twitter"),
+      name: t("borrowerProfile.socialLinks.twitter"),
       hasLink: !!twitter,
       url: `https://x.com/${twitter}`,
     },
     {
-      name: t("borrowerProfile.profile.buttons.telegram"),
+      name: t("borrowerProfile.socialLinks.telegram"),
       hasLink: !!telegram,
       url: `https://t.me/${telegram}`,
     },
     {
-      name: t("borrowerProfile.profile.buttons.linkedin"),
+      name: t("borrowerProfile.socialLinks.linkedin"),
       hasLink: !!linkedin,
       url: `https://www.linkedin.com/company/${linkedin}`,
     },
@@ -192,7 +192,7 @@ export const ProfileNamePageBlock = ({
               >
                 <Edit />
               </SvgIcon>
-              {t("borrowerProfile.profile.buttons.edit")}
+              {t("borrowerProfile.socialLinks.edit")}
             </Button>
           </Link>
         )}

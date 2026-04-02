@@ -101,7 +101,7 @@ export default function EditPolicyPage() {
             if (lastProvider) {
               credentialSource = lastProvider.isPushProvider
                 ? t("editPolicy.roleProviders.manualApproval")
-                : t("editPolicy.roleProviders.defaulPullProvider")
+                : t("editPolicy.roleProviders.defaultPullProvider")
               credentialExpiry =
                 lastProvider.timeToLive === maxTimeToLive
                   ? maxTimeToLive
@@ -245,7 +245,7 @@ export default function EditPolicyPage() {
             <Box sx={InputLabelContainer} marginBottom="2px">
               <Box sx={InputLabelTypo}>
                 <Typography variant="text1">
-                  {t("editPolicy.forms.policyName.title")}
+                  {t("editPolicy.policyName.title")}
                 </Typography>
               </Box>
             </Box>
@@ -260,7 +260,7 @@ export default function EditPolicyPage() {
               <TextField
                 value={pendingPolicyName}
                 onChange={(e) => setPendingPolicyName(e.target.value)}
-                label={t("editPolicy.forms.policyName.title")}
+                label={t("editPolicy.policyName.title")}
                 placeholder={t(
                   "createMarket.forms.marketDescription.block.policyName.placeholder",
                 )}

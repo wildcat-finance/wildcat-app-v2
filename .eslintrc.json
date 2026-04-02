@@ -17,13 +17,22 @@
       "files": [
         "src/**/*.{ts,js,tsx,jsx}"
       ]
+    },
+    {
+      "files": [
+        "src/stories/**/*.{ts,tsx}"
+      ],
+      "rules": {
+        "i18next/no-literal-string": "off"
+      }
     }
   ],
   "plugins": [
     "react",
     "prettier",
     "@typescript-eslint",
-    "import"
+    "import",
+    "i18next"
   ],
   "ignorePatterns": [
     "node_modules/",
@@ -68,6 +77,69 @@
       {
         "semi": false,
         "endOfLine": "auto"
+      }
+    ],
+    "i18next/no-literal-string": [
+      "warn",
+      {
+        "markupOnly": true,
+        "onlyAttribute": [],
+        "ignoreAttribute": [
+          "data-testid",
+          "className",
+          "sx",
+          "variant",
+          "color",
+          "size",
+          "href",
+          "target",
+          "type",
+          "rel",
+          "alt",
+          "role",
+          "aria-label",
+          "fontWeight",
+          "textAlign",
+          "display",
+          "flexDirection",
+          "justifyContent",
+          "alignItems",
+          "position",
+          "component",
+          "slotProps"
+        ],
+        "ignoreCallee": [
+          "useQuery",
+          "useMutation",
+          "useEffect",
+          "useMemo",
+          "useCallback",
+          "console.log",
+          "console.error",
+          "console.warn",
+          "Error",
+          "require"
+        ],
+        "ignoreProperty": [
+          "fontWeight",
+          "textAlign",
+          "display",
+          "flexDirection",
+          "justifyContent",
+          "alignItems",
+          "position",
+          "borderRadius",
+          "backgroundColor",
+          "padding",
+          "margin",
+          "gap",
+          "width",
+          "height",
+          "overflow",
+          "transform",
+          "transition",
+          "queryKey"
+        ]
       }
     ],
     "import/order": [

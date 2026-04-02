@@ -33,7 +33,7 @@ export const EmptyAlert = ({
         </SvgIcon>
 
         <Typography variant="text2" color={COLORS.santasGrey}>
-          {t("borrowerProfile.profile.emptyStates.external.noMarkets")}
+          {t("borrowerProfile.emptyStates.externalNoMarkets")}
         </Typography>
       </Box>
     )
@@ -43,10 +43,10 @@ export const EmptyAlert = ({
       <Box sx={InternalAlertContainer}>
         <Box sx={InternalTextContainer}>
           <Typography variant="text1">
-            {t("borrowerProfile.profile.emptyStates.user.noInfo.title")}
+            {t("borrowerProfile.emptyStates.userNoInfoTitle")}
           </Typography>
           <Typography variant="text3" color={COLORS.santasGrey}>
-            {t("borrowerProfile.profile.emptyStates.user.noInfo.subtitle")}
+            {t("borrowerProfile.emptyStates.userNoInfoSubtitle")}
           </Typography>
         </Box>
 
@@ -56,7 +56,7 @@ export const EmptyAlert = ({
             size="medium"
             sx={{ padding: "10px 23.5px", lineHeight: "20px" }}
           >
-            {t("borrowerProfile.profile.emptyStates.user.noInfo.button")}
+            {t("borrowerProfile.emptyStates.userNoInfoButton")}
           </Button>
         </Link>
       </Box>

@@ -49,10 +49,10 @@ export const LenderMlaModal = ({
   const buttonText =
     // eslint-disable-next-line no-nested-ternary
     mla === null
-      ? t("lenderMarketDetails.buttons.mlaNotSet")
+      ? t("marketDetailsLender.actions.mlaNotSet")
       : mlaInput && "noMLA" in mlaInput
-        ? t("lenderMarketDetails.buttons.mlaRefused")
-        : t("lenderMarketDetails.buttons.viewMla")
+        ? t("marketDetailsLender.actions.mlaRefused")
+        : t("marketDetailsLender.actions.viewMla")
 
   return (
     <>
@@ -64,7 +64,7 @@ export const LenderMlaModal = ({
         onClick={() => mla && setIsMlaOpen(true)}
         sx={{ height: "28px" }}
       >
-        {(isLoading && "Loading MLA...") || buttonText}
+        {(isLoading && t("marketDetailsLender.mla.loadingMla")) || buttonText}
       </Button>
       <Modal
         open={isMlaOpen}
@@ -98,7 +98,7 @@ export const LenderMlaModal = ({
                 height: "100%",
                 border: "none",
               }}
-              title="Market Lending Agreement"
+              title={t("marketDetailsLender.mla.title")}
             />
           </Box>
           <Box
@@ -110,12 +110,12 @@ export const LenderMlaModal = ({
           >
             {signedMlaLoading ? (
               <Button variant="outlined" onClick={onSign}>
-                Signing...
+                {t("common.toast.signing")}
               </Button>
             ) : (
               signedMla === null && (
                 <Button variant="outlined" onClick={onSign}>
-                  Sign MLA
+                  {t("marketDetailsLender.mla.signMla")}
                 </Button>
               )
             )}
@@ -124,7 +124,7 @@ export const LenderMlaModal = ({
                 variant="outlined"
                 onClick={() => window.open(downloadPdfUrl, "_blank")}
               >
-                Download PDF
+                {t("marketDetailsLender.mla.downloadPdf")}
               </Button>
             )}
             {downloadSignedUrl && (
@@ -132,7 +132,7 @@ export const LenderMlaModal = ({
                 variant="outlined"
                 onClick={() => window.open(downloadSignedUrl, "_blank")}
               >
-                Download Signed MLA
+                {t("marketDetailsLender.mla.downloadSignedMla")}
               </Button>
             )}
           </Box>

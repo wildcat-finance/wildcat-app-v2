@@ -1,6 +1,7 @@
 import React from "react"
 
 import { Box, SvgIcon, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
@@ -25,6 +26,7 @@ export const WrapperSuccessBanner = ({
   finalAsset,
   txHash,
 }: SuccessWrapperModalProps) => {
+  const { t } = useTranslation()
   const { getTxUrl } = useBlockExplorer()
 
   return (
@@ -55,8 +57,12 @@ export const WrapperSuccessBanner = ({
         sx={{ marginBottom: "8px" }}
         textAlign="center"
       >
-        {initialAmount} {initialAsset} {isWrapping ? "wrapped" : "unwrapped"}{" "}
-        {isWrapping ? "in" : "to"} {finalAsset} {finalAmount}
+        {t(
+          isWrapping
+            ? "wrapDebtToken.modals.success.wrapped"
+            : "wrapDebtToken.modals.success.unwrapped",
+          { initialAmount, initialAsset, finalAmount, finalAsset },
+        )}
       </Typography>
 
       {txHash !== "" && txHash !== undefined && (

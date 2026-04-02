@@ -9,6 +9,7 @@ import {
   WithdrawalBatch,
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
@@ -37,6 +38,7 @@ export const ClaimableTable = ({
   totalAmount,
   chainId,
 }: ClaimableTableProps) => {
+  const { t } = useTranslation()
   const [isClaimableOpen, setIsClaimableOpen] = useState(false)
   const [lendersName, setLendersName] = useState<{ [key: string]: string }>({})
   const theme = useTheme()
@@ -59,7 +61,7 @@ export const ClaimableTable = ({
       {
         sortable: false,
         field: "lender",
-        headerName: "Lender",
+        headerName: t("marketDetailsBorrower.withdrawalTables.lender"),
         minWidth: 176,
         headerAlign: "left",
         align: "left",
@@ -95,7 +97,7 @@ export const ClaimableTable = ({
       {
         sortable: false,
         field: "dateSubmitted",
-        headerName: "Date Submitted",
+        headerName: t("marketDetailsBorrower.withdrawalTables.dateSubmitted"),
         minWidth: 216,
         headerAlign: "left",
         align: "left",
@@ -123,7 +125,7 @@ export const ClaimableTable = ({
       {
         sortable: false,
         field: "transactionId",
-        headerName: "Transaction ID",
+        headerName: t("marketDetailsBorrower.withdrawalTables.transactionId"),
         minWidth: 216,
         headerAlign: "left",
         align: "left",
@@ -150,7 +152,7 @@ export const ClaimableTable = ({
       {
         sortable: false,
         field: "amount",
-        headerName: "Amount",
+        headerName: t("marketDetailsBorrower.withdrawalTables.amount"),
         minWidth: 120,
         flex: 1,
         headerAlign: "right",
@@ -226,7 +228,7 @@ export const ClaimableTable = ({
           }}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            No claimable withdrawals.
+            {t("marketDetailsBorrower.withdrawalTables.noClaimable")}
           </Typography>
         </Box>
       )
@@ -277,7 +279,7 @@ export const ClaimableTable = ({
     <DetailsAccordion
       isOpen={isClaimableOpen}
       setIsOpen={setIsClaimableOpen}
-      summaryText="Claimable"
+      summaryText={t("marketDetailsBorrower.withdrawalTables.claimable")}
       summarySx={{
         borderRadius: "0px",
         borderBottom: isClaimableOpen ? "none" : `1px solid`,

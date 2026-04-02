@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material"
 import { Market, MarketRecordKind } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import Filter from "@/assets/icons/filter_icon.svg"
 import { FilterTextField } from "@/components/FilterTextfield"
@@ -45,6 +46,7 @@ const MarketRecordFilters: CheckboxOption<MarketRecordKind>[] = (
 const ALL_KINDS: MarketRecordKind[] = MarketRecordFilters.map((f) => f.value)
 
 export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
+  const { t } = useTranslation()
   const [page, setPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)
   const [selectedFilters, setSelectedFilters] = useState<MarketRecordKind[]>(
@@ -199,7 +201,7 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
       >
         <Box sx={{ padding: "6px 0 6px 10px" }}>
           <FormControlLabel
-            label="All types"
+            label={t("marketRecords.allTypes")}
             control={
               <ExtendedCheckbox
                 checked={allSelected}
@@ -251,7 +253,7 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
           color="secondary"
           sx={{ width: "100%", marginTop: "12px" }}
         >
-          Reset
+          {t("marketRecords.reset")}
         </Button>
       </Popover>
 
@@ -283,7 +285,10 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
       >
         {startEventIndex !== undefined && (
           <Typography variant="text3">
-            Viewing records {startEventIndex} to {endEventIndex}
+            {t("marketRecords.viewingRecords", {
+              start: startEventIndex,
+              end: endEventIndex,
+            })}
           </Typography>
         )}
         {/*      <div className="flex gap-x-4 items-center flex-row">

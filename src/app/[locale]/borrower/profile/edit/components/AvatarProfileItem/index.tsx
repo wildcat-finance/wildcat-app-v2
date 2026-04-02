@@ -45,7 +45,7 @@ export const AvatarProfileItem = ({
     <Box sx={ContentContainer}>
       <Box sx={AvatarTitle}>
         <Typography variant="text3">
-          {t("borrowerProfile.edit.public.avatar.title")}
+          {t("borrowerProfile.editPublic.avatar.title")}
         </Typography>
         <TooltipButton
           value={t("borrowerProfile.edit.public.avatar.tooltip")}
@@ -68,7 +68,7 @@ export const AvatarProfileItem = ({
             {avatar ? (
               <Image
                 src={avatar}
-                alt={t("borrowerProfile.edit.public.avatar.title")}
+                alt={t("borrowerProfile.editPublic.avatar.title")}
                 width={64}
                 height={64}
                 style={{
@@ -83,7 +83,7 @@ export const AvatarProfileItem = ({
 
             {!avatar && (
               <Typography variant="text4" color="#A0A0A0">
-                {t("borrowerProfile.edit.public.avatar.generated")}
+                {t("borrowerProfile.editPublic.avatar.generated")}
               </Typography>
             )}
           </Box>
@@ -107,7 +107,7 @@ export const AvatarProfileItem = ({
             >
               <Edit />
             </SvgIcon>
-            {t("borrowerProfile.edit.public.avatar.edit")}
+            {t("borrowerProfile.editPublic.avatar.edit")}
           </Button>
         )}
 

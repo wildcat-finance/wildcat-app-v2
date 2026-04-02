@@ -70,7 +70,7 @@ export const PeriodsForm = ({ form }: PeriodsFormProps) => {
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.periods.title")}
+        {t("createMarket.periods.title")}
       </Typography>
 
       <Box
@@ -80,30 +80,30 @@ export const PeriodsForm = ({ form }: PeriodsFormProps) => {
           gridTemplateRows: "repeat(1, 1fr)",
         }}
       >
-        <InputLabel label={t("createNewMarket.periods.grace.label")}>
+        <InputLabel label={t("createMarket.periods.grace.label")}>
           <NumberTextField
-            label={t("createNewMarket.periods.grace.placeholder")}
+            label={t("createMarket.periods.grace.placeholder")}
             value={delinquencyGracePeriodWatch}
             error={Boolean(errors.delinquencyGracePeriod)}
             helperText={errors.delinquencyGracePeriod?.message}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-                {t("createNewMarket.periods.grace.chip")}
+                {t("createMarket.periods.grace.chip")}
               </Typography>
             }
             {...register("delinquencyGracePeriod")}
           />
         </InputLabel>
 
-        <InputLabel label={t("createNewMarket.periods.wdCycle.label")}>
+        <InputLabel label={t("createMarket.periods.wdCycle.label")}>
           <NumberTextField
-            label={t("createNewMarket.periods.wdCycle.placeholder")}
+            label={t("createMarket.periods.wdCycle.placeholder")}
             value={withdrawalBatchDurationWatch}
             error={Boolean(errors.withdrawalBatchDuration)}
             helperText={errors.withdrawalBatchDuration?.message}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-                {t("createNewMarket.periods.wdCycle.chip")}
+                {t("createMarket.periods.wdCycle.chip")}
               </Typography>
             }
             {...register("withdrawalBatchDuration")}

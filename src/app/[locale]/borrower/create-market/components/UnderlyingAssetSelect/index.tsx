@@ -92,8 +92,8 @@ export const UnderlyingAssetSelect = forwardRef(
           filterOptions={filterOptions}
           noOptionsText={
             isLoading
-              ? t("createNewMarket.basic.asset.loading")
-              : t("createNewMarket.basic.asset.dropdownPlaceholder")
+              ? t("createMarket.basic.asset.loading")
+              : t("createMarket.basic.asset.dropdownPlaceholder")
           }
           ref={ref}
           onBlur={onBlur}
@@ -102,7 +102,7 @@ export const UnderlyingAssetSelect = forwardRef(
               {...params}
               value={query}
               onChange={handleChange}
-              label={t("createNewMarket.basic.asset.placeholder")}
+              label={t("createMarket.basic.asset.placeholder")}
               error={error}
               helperText={errorText}
             />
