@@ -32,26 +32,14 @@ import { PALETTE } from "@/theme/palette"
 import { TYPOGRAPHY } from "@/theme/typography"
 import { lh, pxToRem } from "@/theme/units"
 
-type GridSortIconProps = React.ComponentProps<typeof SvgIcon> & {
-  sortingOrder?: unknown
-}
-
 const createGridSortIcon = (
-  IconComponent: React.ComponentType<React.SVGProps<SVGElement>>,
+  IconComponent: React.FC<React.SVGProps<SVGElement>>,
   displayName: string,
 ) => {
-  const GridSortIcon = React.forwardRef<SVGSVGElement, GridSortIconProps>(
-    (props, ref) => {
-      const iconProps = { ...props }
-      delete iconProps.sortingOrder
-
-      return (
-        <SvgIcon ref={ref} inheritViewBox {...iconProps}>
-          <IconComponent />
-        </SvgIcon>
-      )
-    },
-  )
+  const GridSortIcon = React.forwardRef<
+    SVGElement,
+    React.SVGProps<SVGElement> & { sortingOrder?: unknown }
+  >(({ sortingOrder, ...props }, ref) => <IconComponent ref={ref} {...props} />)
 
   GridSortIcon.displayName = displayName
 
@@ -396,11 +384,13 @@ export const theme = createTheme({
           borderRadius: 10,
           padding: 0,
           display: "flex",
+
           "&:active": {
             "& .MuiSwitch-thumb": {
               width: 15,
             },
           },
+
           "& .MuiSwitch-switchBase": {
             padding: 2,
             "&.Mui-checked": {
@@ -412,6 +402,7 @@ export const theme = createTheme({
               },
             },
           },
+
           "& .MuiSwitch-thumb": {
             width: 16,
             height: 16,
@@ -420,12 +411,14 @@ export const theme = createTheme({
               duration: 200,
             }),
           },
+
           "& .MuiSwitch-track": {
             borderRadius: 16 / 2,
             opacity: 1,
             backgroundColor: COLORS.whiteLilac,
             boxSizing: "border-box",
           },
+
           "& .MuiButtonBase-root.MuiSwitch-switchBase:hover": {
             backgroundColor: "transparent",
           },

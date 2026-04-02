@@ -4,6 +4,7 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 
 import { Box, Divider, Skeleton, Typography, useTheme } from "@mui/material"
+import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -27,6 +28,8 @@ import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
+import { useTokenWrapper } from "@/hooks/wrapper/useTokenWrapper"
+import { useWrapperForMarket } from "@/hooks/wrapper/useWrapperForMarket"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import {
@@ -37,11 +40,17 @@ import {
   resetPageState,
   setWithdrawalsCount,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
+import {
+  setActiveTab,
+  setIsMobileOpenedState,
+  WrapDebtTokenTab,
+} from "@/store/slices/wrapDebtTokenFlowSlice/wrapDebtTokenFlowSlice"
 import { COLORS } from "@/theme/colors"
 
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
 import { MarketActions } from "./components/MarketActions"
 import { MarketSummary } from "./components/MarketSummary"
+import { WrapDebtToken } from "./components/WrapDebtToken"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
@@ -101,6 +110,22 @@ export default function LenderMarketDetails({
       getEffectiveLenderRole(marketAccount),
     )
 
+  const {
+    wrapperAddress,
+    hasWrapper,
+    hasFactory,
+    isLoading: isWrapperLookupLoading,
+  } = useWrapperForMarket(market)
+
+  const {
+    data: wrapper,
+    isLoading: isWrapperLoading,
+    isError: isWrapperError,
+  } = useTokenWrapper(
+    market?.chainId as SupportedChainId | undefined,
+    wrapperAddress,
+  )
+
   const isLoading =
     isMarketLoading ||
     isMarketAccountLoading ||
@@ -154,9 +179,16 @@ export default function LenderMarketDetails({
     dispatch(setWithdrawalsCount(totalWithdrawalsCount))
   }, [totalWithdrawalsCount])
 
+  useEffect(() => {
+    if (currentSection !== LenderMarketSections.WRAP_DEBT_TOKEN) {
+      dispatch(setActiveTab(WrapDebtTokenTab.WRAP))
+    }
+  }, [currentSection])
+
   useEffect(
     () => () => {
       dispatch(resetPageState())
+      dispatch(setActiveTab(WrapDebtTokenTab.WRAP))
     },
     [],
   )
@@ -171,6 +203,9 @@ export default function LenderMarketDetails({
   const [isMobileMLAOpen, setIsMobileMLAOpen] = React.useState(false)
   const [isMobileDescriptionOpen, setIsMobileDescriptionOpen] =
     React.useState(false)
+  const isMobileWrapperSectionOpen = useAppSelector(
+    (state) => state.wrapDebtTokenFlow.isMobileOpenedState,
+  )
 
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
@@ -182,6 +217,14 @@ export default function LenderMarketDetails({
       dispatch(hideDescriptionSection(false))
     }
   }, [marketSummary])
+
+  useEffect(() => {
+    if (!isMobile) {
+      dispatch(setIsMobileOpenedState(true))
+    } else {
+      dispatch(setIsMobileOpenedState(false))
+    }
+  }, [isMobile])
 
   if (!mounted) return null
 
@@ -322,6 +365,25 @@ export default function LenderMarketDetails({
       </Box>
     )
 
+  if (isMobile && isMobileWrapperSectionOpen)
+    return (
+      <>
+        <WrapDebtToken
+          market={market}
+          wrapper={wrapper}
+          hasWrapper={hasWrapper}
+          hasFactory={hasFactory}
+          isWrapperLoading={isWrapperLoading}
+          isWrapperLookupLoading={isWrapperLookupLoading}
+          isWrapperError={isWrapperError}
+          isAuthorizedLender={authorizedInMarket as boolean}
+          isDifferentChain={isDifferentChain}
+        />
+
+        <Footer showFooter={false} showDivider={false} />
+      </>
+    )
+
   if (isMobile)
     return (
       <>
@@ -358,7 +420,12 @@ export default function LenderMarketDetails({
           )}
 
           <Box id="status">
-            <MarketParameters market={market} />
+            <MarketParameters
+              market={market}
+              viewerType="lender"
+              wrapper={wrapper}
+              hasWrapper={hasWrapper}
+            />
           </Box>
 
           <Box id="requests">
@@ -376,6 +443,20 @@ export default function LenderMarketDetails({
               setIsMLAOpen={setIsMobileMLAOpen}
             />
           </Box>
+
+          {authorizedInMarket && (
+            <WrapDebtToken
+              market={market}
+              wrapper={wrapper}
+              hasWrapper={hasWrapper}
+              hasFactory={hasFactory}
+              isWrapperLoading={isWrapperLoading}
+              isWrapperLookupLoading={isWrapperLookupLoading}
+              isWrapperError={isWrapperError}
+              isAuthorizedLender={authorizedInMarket as boolean}
+              isDifferentChain={isDifferentChain}
+            />
+          )}
 
           {(authorizedInMarket || isDifferentChain) && (
             <MobileMarketActions
@@ -429,7 +510,12 @@ export default function LenderMarketDetails({
                 isLender={authorizedInMarket as boolean}
               />
               <Divider sx={{ margin: "40px 0 44px" }} />
-              <MarketParameters market={market} />
+              <MarketParameters
+                market={market}
+                viewerType="lender"
+                wrapper={wrapper}
+                hasWrapper={hasWrapper}
+              />
             </Box>
           )}
 
@@ -459,6 +545,19 @@ export default function LenderMarketDetails({
             <Box marginTop="12px">
               <PaginatedMarketRecordsTable market={market} />
             </Box>
+          )}
+          {currentSection === LenderMarketSections.WRAP_DEBT_TOKEN && (
+            <WrapDebtToken
+              market={market}
+              wrapper={wrapper}
+              hasWrapper={hasWrapper}
+              hasFactory={hasFactory}
+              isWrapperLoading={isWrapperLoading}
+              isWrapperLookupLoading={isWrapperLookupLoading}
+              isWrapperError={isWrapperError}
+              isAuthorizedLender={authorizedInMarket as boolean}
+              isDifferentChain={isDifferentChain}
+            />
           )}
         </Box>
       </Box>

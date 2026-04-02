@@ -1,6 +1,13 @@
 import * as React from "react"
 
-import { Box, Button, Skeleton, SvgIcon, Typography } from "@mui/material"
+import {
+  Box,
+  Button,
+  Divider,
+  Skeleton,
+  SvgIcon,
+  Typography,
+} from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import BorrowAndRepayIcon from "@/assets/icons/borrowAndRepay_icon.svg"
@@ -8,6 +15,7 @@ import LenderBorrowerIcon from "@/assets/icons/lenderBorrower_icon.svg"
 import MarketEventsIcon from "@/assets/icons/marketEvents_icon.svg"
 import StatusAndDetailsIcon from "@/assets/icons/statusAndDetails_icon.svg"
 import SummaryIcon from "@/assets/icons/summary_icon.svg"
+import TokenWrapIcon from "@/assets/icons/tokenWrap_icon.svg"
 import WithdrawalAndRequestsIcon from "@/assets/icons/withdrawalAndRequests_icon.svg"
 import { BackButton } from "@/components/BackButton"
 import { MenuItemButton } from "@/components/Sidebar/MarketSidebar/style"
@@ -232,6 +240,51 @@ export const LenderMarketSidebar = () => {
               </SvgIcon>
               {t("marketDetails.sidebar.marketHistory")}
             </Button>
+
+            {isLender && (
+              <>
+                <Divider sx={{ margin: "6px 0px" }} />
+
+                <Button
+                  variant="text"
+                  size="medium"
+                  onClick={() =>
+                    handleChangeSection(LenderMarketSections.WRAP_DEBT_TOKEN)
+                  }
+                  sx={{
+                    ...MenuItemButton,
+                    backgroundColor:
+                      currentSection === LenderMarketSections.WRAP_DEBT_TOKEN
+                        ? COLORS.whiteSmoke
+                        : "transparent",
+                  }}
+                >
+                  <SvgIcon
+                    sx={{
+                      marginRight: "10px",
+                      "& path": { fill: COLORS.blackRock },
+                    }}
+                  >
+                    <TokenWrapIcon />
+                  </SvgIcon>
+                  {t("lenderMarketDetails.sidebar.wrapDebtToken")}
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      padding: "0px 6px",
+                      borderRadius: "4px",
+                      backgroundColor: COLORS.glitter,
+                      marginLeft: "auto",
+                    }}
+                  >
+                    <Typography variant="text4" color={COLORS.ultramarineBlue}>
+                      New
+                    </Typography>
+                  </Box>
+                </Button>
+              </>
+            )}
           </Box>
         )}
       </Box>

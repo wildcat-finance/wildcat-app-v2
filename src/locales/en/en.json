@@ -1497,5 +1497,24 @@
     "transactionHash": "Transaction ID",
     "time": "Time",
     "event": "Event"
+  },
+  "wrapDebtToken": {
+    "title": "No wrapper deployed",
+    "subtitle": "This market doesn't have a wrapper contract yet.",
+    "deployButton": "Deploy Wrapper",
+    "commonQuestions": "Common Questions",
+    "learnMore": "Learn more",
+    "whatIsWrapping": {
+      "question": "What is wrapping?",
+      "answer": "Wrapping converts rebasing market tokens into a transferable ERC-4626-style token, making them easier to use across DeFi."
+    },
+    "whoCanDeploy": {
+      "question": "Who can deploy the wrapper?",
+      "answer": "Anyone can deploy the wrapper — not just the borrower."
+    },
+    "whatHappensAfter": {
+      "question": "What happens after deployment?",
+      "answer": "Once deployed, the wrapper is available to everyone."
+    }
   }
 }
