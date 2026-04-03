@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 import { BorrowerInvitation } from "@/app/api/invite/interface"
 import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { logger } from "@/lib/logging/client"
 
 export const USE_BORROWER_INVITE_KEY = "use-borrower-invite"
 export const USE_BORROWER_INVITE_EXISTS_KEY = "use-borrower-invite-exists"
@@ -71,7 +72,7 @@ export const useBorrowerInvitationExists = (address: string | undefined) => {
         method: "HEAD",
       },
     )
-    if (res.status === 404) return undefined
+    if (res.status === 404) return null
     if (res.headers.get("Signed") === "true")
       return BorrowerInvitationStatus.PendingRegistration
     return BorrowerInvitationStatus.PendingSignature
@@ -107,7 +108,7 @@ export const useBorrowerInvitation = (address: string | undefined) => {
       throw Error("Failed to get borrower invitation")
     }
     const { invitation } = await response.json().catch((err) => {
-      console.log(err)
+      logger.error({ err, address, chainId }, "Failed to parse invitation")
       return undefined
     })
     return invitation === undefined ? null : (invitation as BorrowerInvitation)

@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
+import React, { ChangeEvent, useEffect, useMemo, useRef, useState } from "react"
 
 import {
   Box,
@@ -9,6 +9,7 @@ import {
   Tabs,
   Typography,
 } from "@mui/material"
+import { context } from "@opentelemetry/api"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
@@ -36,6 +37,7 @@ import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButto
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { createClientFlowSession } from "@/lib/telemetry/clientFlow"
 import { COLORS } from "@/theme/colors"
 import { isUSDTLikeToken } from "@/utils/constants"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
@@ -66,6 +68,7 @@ export const RepayModal = ({
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
   const [justApprovedAmount, setJustApprovedAmount] = useState<TokenAmount>()
+  const flowSessionRef = useRef(createClientFlowSession())
 
   const [txHash, setTxHash] = useState<string | undefined>("")
 
@@ -98,11 +101,14 @@ export const RepayModal = ({
     isPending: isRepaying,
     isSuccess: isRepaid,
     isError: isRepayError,
-  } = useRepay(marketAccount, setTxHash, true)
+  } = useRepay(marketAccount, setTxHash, true, () =>
+    flowSessionRef.current.getParentContext(),
+  )
   const { mutateAsync: approve, isPending: isApproving } = useApprove(
     market.underlyingToken,
     market,
     setTxHash,
+    () => flowSessionRef.current.getParentContext(),
   )
 
   const handleChangeTabs = (
@@ -121,6 +127,15 @@ export const RepayModal = ({
     setFinalRepayAmount(undefined)
     setJustApprovedAmount(undefined)
     modal.handleOpenModal()
+  }
+
+  const closeModal = (
+    outcome: "cancelled" | "error" | "success" = "cancelled",
+  ) => {
+    flowSessionRef.current.endFlowSpan(outcome, {
+      "flow.outcome": outcome,
+    })
+    modal.handleCloseModal()
   }
 
   const isRepayByDays = type === "days"
@@ -164,17 +179,57 @@ export const RepayModal = ({
 
   const handleRepay = () => {
     setTxHash("")
-    repay(finalRepayAmount || repayAmount)
+    const flowContext = flowSessionRef.current.startFlowSpan("repay.flow", {
+      "market.address": market.address,
+      "market.chain_id": market.chainId,
+      "token.address": market.underlyingToken.address,
+      "token.symbol": market.underlyingToken.symbol,
+      "token.amount": (finalRepayAmount || repayAmount).raw.toString(),
+      "safe.connected": isConnectedToSafe,
+    })
+    if (flowContext) {
+      context.with(flowContext, () => repay(finalRepayAmount || repayAmount))
+    } else {
+      repay(finalRepayAmount || repayAmount)
+    }
   }
 
   const handleApprove = () => {
     setTxHash("")
+    const flowContext = flowSessionRef.current.startFlowSpan("repay.flow", {
+      "market.address": market.address,
+      "market.chain_id": market.chainId,
+      "token.address": market.underlyingToken.address,
+      "token.symbol": market.underlyingToken.symbol,
+      "token.amount": repayAmount.raw.toString(),
+      "safe.connected": isConnectedToSafe,
+    })
     if (!isAllowanceSufficient) {
       if (
         marketAccount.underlyingApproval.gt(0) &&
         isUSDTLikeToken(market.underlyingToken.address)
       ) {
-        approve(repayAmount.token.getAmount(0)).then(() => {
+        const runApprovals = () =>
+          approve(repayAmount.token.getAmount(0)).then(() => {
+            approve(repayAmount).then(() => {
+              // track that we just approved this amount
+              setJustApprovedAmount(repayAmount)
+              // only clear amount if approving more than balance
+              if (repayAmount.gt(marketAccount.underlyingBalance)) {
+                setAmount("")
+                setDays("")
+                setFinalRepayAmount(undefined)
+              }
+              modal.setFlowStep(ModalSteps.gettingValues)
+            })
+          })
+        if (flowContext) {
+          context.with(flowContext, runApprovals)
+        } else {
+          runApprovals()
+        }
+      } else {
+        const runApproval = () =>
           approve(repayAmount).then(() => {
             // track that we just approved this amount
             setJustApprovedAmount(repayAmount)
@@ -186,19 +241,11 @@ export const RepayModal = ({
             }
             modal.setFlowStep(ModalSteps.gettingValues)
           })
-        })
-      } else {
-        approve(repayAmount).then(() => {
-          // track that we just approved this amount
-          setJustApprovedAmount(repayAmount)
-          // only clear amount if approving more than balance
-          if (repayAmount.gt(marketAccount.underlyingBalance)) {
-            setAmount("")
-            setDays("")
-            setFinalRepayAmount(undefined)
-          }
-          modal.setFlowStep(ModalSteps.gettingValues)
-        })
+        if (flowContext) {
+          context.with(flowContext, runApproval)
+        } else {
+          runApproval()
+        }
       }
     }
   }
@@ -295,6 +342,9 @@ export const RepayModal = ({
       setShowErrorPopup(true)
     }
     if (isRepaid) {
+      flowSessionRef.current.endFlowSpan("success", {
+        "flow.outcome": "success",
+      })
       setShowSuccessPopup(true)
       setShowErrorPopup(false)
     }
@@ -403,7 +453,7 @@ export const RepayModal = ({
 
       <Dialog
         open={modal.isModalOpen}
-        onClose={isRepaying ? undefined : modal.handleCloseModal}
+        onClose={isRepaying ? undefined : () => closeModal("cancelled")}
         sx={TxModalDialog}
       >
         {showForm && (
@@ -412,7 +462,9 @@ export const RepayModal = ({
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
-            crossOnClick={modal.hideCrossButton ? null : modal.handleCloseModal}
+            crossOnClick={
+              modal.hideCrossButton ? null : () => closeModal("cancelled")
+            }
           />
         )}
 
@@ -574,12 +626,12 @@ export const RepayModal = ({
         {showErrorPopup && (
           <ErrorModal
             onTryAgain={handleTryAgain}
-            onClose={modal.handleCloseModal}
+            onClose={() => closeModal("error")}
             txHash={txHash}
           />
         )}
         {showSuccessPopup && (
-          <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
+          <SuccessModal onClose={() => closeModal("success")} txHash={txHash} />
         )}
 
         {txHash !== "" && showForm && (

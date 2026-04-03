@@ -13,12 +13,7 @@ export const MobileMarketDescriptionModal = ({
   setIsMobileDescriptionOpen,
 }: {
   marketName: string | undefined
-  marketSummary:
-    | {
-        marketAddress: string
-        description: string
-      }
-    | undefined
+  marketSummary: { description: string | null } | null | undefined
   isLoading: boolean
   setIsMobileDescriptionOpen?: Dispatch<SetStateAction<boolean>>
 }) => {
@@ -28,7 +23,8 @@ export const MobileMarketDescriptionModal = ({
     window.scrollTo({ top: 0, left: 0, behavior: "auto" })
   }, [])
 
-  if (isLoading || !marketSummary || !setIsMobileDescriptionOpen) return null
+  if (isLoading || !marketSummary?.description || !setIsMobileDescriptionOpen)
+    return null
 
   return (
     <Box

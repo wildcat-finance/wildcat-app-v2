@@ -25,6 +25,8 @@ import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { Loader } from "@/components/Loader"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { logger } from "@/lib/logging/client"
+import { useFlowMutation } from "@/lib/telemetry/useFlowMutation"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
@@ -67,6 +69,7 @@ export default function CreateMarketPage() {
   const dispatch = useAppDispatch()
   const { address } = useAccount()
   const { isTestnet } = useCurrentNetwork()
+  const createMarketFlow = useFlowMutation()
   const { chainId: targetChainId } = useAppSelector(
     (state) => state.selectedNetwork,
   )
@@ -83,7 +86,7 @@ export default function CreateMarketPage() {
     useNewMarketHooksData(newMarketForm)
 
   const { deployNewMarket, isDeploying, isSuccess, isError } =
-    useDeployV2Market()
+    useDeployV2Market(() => createMarketFlow.getParentContext())
 
   const [finalOpen, setFinalOpen] = useState<boolean>(false)
 
@@ -111,10 +114,22 @@ export default function CreateMarketPage() {
     data: mlaSignature,
     mutate: signMla,
     isPending: isSigning,
-    reset: resetMlaSignature,
-  } = useSignMla(salt)
+  } = useSignMla(salt, () => createMarketFlow.getParentContext())
+
+  const startCreateFlow = () => {
+    createMarketFlow.start("market.create_and_deploy.flow", {
+      "market.chain_id": selectedHooksTemplate?.chainId ?? targetChainId,
+      "borrower.address": address?.toLowerCase() ?? "",
+    })
+  }
+
+  const handleSignMla = (inputs: Parameters<typeof signMla>[0]) => {
+    startCreateFlow()
+    signMla(inputs)
+  }
 
   const handleClickClose = () => {
+    createMarketFlow.endCancel()
     setFinalOpen(false)
   }
 
@@ -155,7 +170,7 @@ export default function CreateMarketPage() {
   const handleDeployMarket = newMarketForm.handleSubmit((data) => {
     const marketParams = newMarketForm.getValues()
 
-    console.log(`Deploying market with MLA template ID: ${marketParams.mla}`)
+    logger.info({ mlaTemplateId: marketParams.mla }, "Deploying market")
 
     // const deployedMarkets = selectedHooksTemplate?.totalMarkets
     if (assetData && tokenAsset && selectedHooksTemplate && mlaSignature) {
@@ -220,15 +235,13 @@ export default function CreateMarketPage() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any
 
-      // console.log(`--- MARKET PARAMS ---`)
-      // console.log(realParams)
-      // console.log(`--- END MARKET PARAMS ---`)
       deployNewMarket(realParams)
     }
   })
 
   const handleClickDeploy = () => {
-    console.log(`clicked deploy`)
+    logger.info("Clicked deploy")
+    startCreateFlow()
     setFinalOpen(true)
     handleDeployMarket()
   }
@@ -239,13 +252,16 @@ export default function CreateMarketPage() {
   useEffect(() => {
     if (isError) {
       setShowErrorPopup(true)
+      createMarketFlow.endError(new Error("market.create_and_deploy.failed"))
     }
     if (isSuccess) {
       setShowSuccessPopup(true)
+      createMarketFlow.endSuccess()
     }
   }, [isError, isSuccess])
 
   const handleResetModal = () => {
+    createMarketFlow.endCancel()
     setShowErrorPopup(false)
   }
 
@@ -312,7 +328,7 @@ export default function CreateMarketPage() {
             handleDeploy={handleClickDeploy}
             salt={salt}
             timeSigned={timeSigned}
-            onClickSign={signMla}
+            onClickSign={handleSignMla}
             isSigning={isSigning}
             mlaSignature={mlaSignature}
           />

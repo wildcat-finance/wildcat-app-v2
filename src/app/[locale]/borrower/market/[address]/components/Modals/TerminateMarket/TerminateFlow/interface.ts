@@ -1,3 +1,4 @@
+import { Context } from "@opentelemetry/api"
 import { UseMutateAsyncFunction } from "@tanstack/react-query"
 
 export type TerminateFlowProps = {
@@ -8,4 +9,6 @@ export type TerminateFlowProps = {
   errorPopup: boolean
   successPopup: boolean
   txHash: string | undefined
+  ensureFlowContext: () => Context
+  endFlow: (outcome: "cancelled" | "error" | "success") => void
 }

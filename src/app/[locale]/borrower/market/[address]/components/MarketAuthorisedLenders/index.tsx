@@ -30,6 +30,7 @@ import { Accordion } from "@/components/Accordion"
 import { AddressButtons } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
+import { logger } from "@/lib/logging/client"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
@@ -147,27 +148,14 @@ export const MarketAuthorisedLenders = ({
           MLA: "View|Download",
           raw: lender,
         }
-        console.log(`Market Version: ${market.version}`)
-        console.log(
-          `market requires access for deposit: ${market.hooksConfig?.depositRequiresAccess}`,
+        logger.debug(
+          {
+            marketVersion: market.version,
+            depositRequiresAccess: market.hooksConfig?.depositRequiresAccess,
+            canDeposit: lender.canDeposit,
+          },
+          "Market lender access",
         )
-        console.log(`can deposit: ${lender.canDeposit}`)
-        // console.log(
-        //   `is deauthorized on controller: ${
-        //     lender.isAuthorizedOnController === false
-        //   }`,
-        // )
-        // console.log(
-        //   `role not undefined, not deposit and withdraw: ${
-        //     lender.role !== undefined &&
-        //     lender.role !== LenderRole.DepositAndWithdraw
-        //   }`,
-        // )
-        // console.log(
-        //   `expiry defined but expired: ${
-        //     lender.credentialExpiry !== undefined && !lender.hasValidCredential
-        //   }`,
-        // )
         return lenderData
       })
     : []

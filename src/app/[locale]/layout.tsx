@@ -3,6 +3,8 @@ import "./globals.css"
 import { ReactNode, Suspense } from "react"
 
 import { Box } from "@mui/material"
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { context, propagation } from "@opentelemetry/api"
 import { dir } from "i18next"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
@@ -19,12 +21,13 @@ import initTranslations from "@/app/i18n"
 import Header from "@/components/Header"
 import { HelpModal } from "@/components/HelpModal"
 import HotjarConsent from "@/components/HotjarConsent"
-import PollingRegistration from "@/components/PollingRegistration"
+import OtelClient from "@/components/OtelClient"
 import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
 import TranslationsProvider from "@/components/TranslationsProvider"
 import { config } from "@/lib/config"
+import { isOtelEnabled } from "@/lib/otel/enabled"
 import { RedirectsProvider } from "@/providers/RedirectsProvider"
 import { SafeProvider } from "@/providers/SafeProvider"
 import { SubgraphProvider } from "@/providers/SubgraphProvider"
@@ -38,6 +41,14 @@ const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
 })
+
+function getTraceparentMeta() {
+  const carrier: Record<string, string> = {}
+  propagation.inject(context.active(), carrier)
+  const { traceparent } = carrier
+  const { tracestate } = carrier
+  return { traceparent, tracestate }
+}
 
 export const metadata: Metadata = {
   title: "Wildcat - Private Credit, On Your Terms",
@@ -54,6 +65,8 @@ export default async function RootLayout({
   children: ReactNode
   params: { locale: string }
 }) {
+  const otelEnabled = isOtelEnabled()
+  const { traceparent, tracestate } = getTraceparentMeta()
   const initialState = cookieToInitialState(config, headers().get("cookie"))
   const { resources } = await initTranslations(locale, i18nNamespaces)
 
@@ -64,8 +77,11 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="//docs.wildcat.finance" />
         <link rel="dns-prefetch" href="//docs.google.com" />
         <link rel="preconnect" href="https://t.me" crossOrigin="anonymous" />
+        {traceparent ? <meta name="traceparent" content={traceparent} /> : null}
+        {tracestate ? <meta name="tracestate" content={tracestate} /> : null}
       </head>
       <body className={inter.className} style={{ height: "100dvh" }}>
+        {otelEnabled ? <OtelClient /> : null}
         <Toaster position="bottom-center" />
         <WagmiQueryProviders initialState={initialState}>
           <SafeProvider>

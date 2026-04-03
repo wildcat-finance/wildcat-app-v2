@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 import AuthWrapper from "@/components/AuthWrapper"
 import { Markdown } from "@/components/Markdown"
 import { MarkdownEditor } from "@/components/MarkdownEditor"
+import { logger } from "@/lib/logging/client"
 import { COLORS } from "@/theme/colors"
 
 import { useUpdateMarketSummary } from "../../hooks/useUpdateMarketSummary"
@@ -41,7 +42,7 @@ const InnerMarketSummaryEditor = ({
         handleClose()
       },
       onError: (error) => {
-        console.error(error)
+        logger.error({ err: error }, "Failed to update market summary")
       },
     })
   }
@@ -84,12 +85,7 @@ export const BorrowerMarketSummary = ({
   marketAddress: string
   chainId: number
   isBorrower: boolean
-  marketSummary:
-    | {
-        marketAddress: string
-        description: string
-      }
-    | undefined
+  marketSummary: { description: string | null } | null | undefined
   isLoading: boolean
 }) => {
   const { t } = useTranslation()
@@ -137,7 +133,7 @@ export const BorrowerMarketSummary = ({
               size="small"
               onClick={() => setOpen(true)}
             >
-              {marketSummary
+              {marketSummary?.description
                 ? t("borrowerMarketDetails.description.buttons.edit")
                 : t("borrowerMarketDetails.description.buttons.add")}
             </Button>
@@ -151,7 +147,7 @@ export const BorrowerMarketSummary = ({
           padding: "20px",
           borderRadius: "14px",
           border:
-            open || (marketSummary && marketSummary.description !== "")
+            open || !!marketSummary?.description
               ? `1px solid ${COLORS.athensGrey}`
               : "none",
         }}

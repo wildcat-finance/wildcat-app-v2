@@ -47,6 +47,34 @@
     "title": "Let's talk 👋",
     "subtitle": "We're here to help. Ask a question, share an idea, or just say hello.",
     "ariaLabel": "Help and feedback",
+    "bugReport": {
+      "title": "Report a Bug",
+      "subtitle": "Tell us what happened, what you expected, and how you got there.",
+      "placeholder": "Describe the issue and any steps that reproduce it.",
+      "descriptionHelper": "Keep it short and concrete. {{min}}-{{max}} characters.",
+      "characterCount": "{{count}} / {{max}}",
+      "includeTraces": "Include traces",
+      "traceHelper": "Include trace references to help us debug this. This includes trace IDs and related span references from this browser session.",
+      "traceUnavailable": "Tracing is not available in this session, so no trace references can be attached.",
+      "actions": {
+        "back": "Back",
+        "cancel": "Cancel",
+        "backToHelp": "Back to Help",
+        "submit": "Submit",
+        "submitting": "Submitting..."
+      },
+      "validation": {
+        "descriptionMin": "Add at least {{count}} characters so the report is actionable."
+      },
+      "messages": {
+        "genericError": "We couldn't submit that report. Please try again."
+      },
+      "success": {
+        "title": "Bug report submitted",
+        "subtitle": "The report has been sent to the team.",
+        "reportId": "Report ID"
+      }
+    },
     "items": {
       "telegram": {
         "title": "Market Updates, Straight to You",

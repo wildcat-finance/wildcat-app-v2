@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { TokenWrapper } from "@wildcatfi/wildcat-sdk"
 
-import { POLLING_INTERVAL } from "@/config/polling"
+import { POLLING_INTERVALS } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 
 export const useWrapperAllowance = (
@@ -16,7 +16,7 @@ export const useWrapperAllowance = (
       account,
     ),
     enabled: !!chainId && !!wrapper && !!account,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
     queryFn: async () => {
       if (!wrapper || !account) throw new Error("Missing wrapper")
       return wrapper.marketToken.contract.allowance(account, wrapper.address)

@@ -53,8 +53,8 @@ export const LenderTerminatedMarketsTables = ({
 }: LenderTerminatedMarketsTableProps) => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
-  const dispatch = useAppDispatch()
   const router = useRouter()
+  const dispatch = useAppDispatch()
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
   )

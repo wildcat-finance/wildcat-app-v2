@@ -8,6 +8,7 @@ import { WildcatMarketV2__factory } from "@wildcatfi/wildcat-sdk/dist/typechain"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { logger } from "@/lib/logging/client"
 
 export const useResetTempReserveRatio = (
   marketAccount: MarketAccount,
@@ -70,7 +71,7 @@ export const useResetTempReserveRatio = (
       })
     },
     onError(error) {
-      console.log(error)
+      logger.error({ err: error }, "Failed to reset temp reserve ratio")
     },
   })
 }

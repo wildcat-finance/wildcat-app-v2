@@ -7,7 +7,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { constants } from "ethers"
 
-import { POLLING_INTERVAL } from "@/config/polling"
+import { POLLING_INTERVALS } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 
@@ -37,7 +37,7 @@ export const useWrapperForMarket = (
       market?.address,
     ),
     enabled: !!market && !!signerOrProvider && hasFactory,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
     queryFn: async () => {
       if (!market || !signerOrProvider || !chainId) throw new Error("No market")
       return WrapperFactory.getWrapperForMarket(

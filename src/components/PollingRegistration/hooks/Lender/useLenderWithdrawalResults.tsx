@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { WITHDRAWAL_BATCH_EXPIREDS } from "@/graphql/queries"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { logger } from "@/lib/logging/client"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
 
@@ -26,7 +27,7 @@ export const useLenderWithdrawalResults = (
 
   useEffect(() => {
     if (data) {
-      console.dir(data)
+      logger.debug({ data }, "Withdrawal batch expireds result")
       data.withdrawalBatchExpireds.forEach(
         (withdrawalBatchExpired: TWithdrawalBatchExpired) => {
           if (
@@ -66,7 +67,7 @@ export const useLenderWithdrawalResults = (
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching withdrawal results: ", error)
+      logger.error({ err: error }, "Error fetching withdrawal results")
     }
   }, [error])
 

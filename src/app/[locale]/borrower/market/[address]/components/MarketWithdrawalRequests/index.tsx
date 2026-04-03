@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 
 import { Box, IconButton, SvgIcon, Typography, useTheme } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"

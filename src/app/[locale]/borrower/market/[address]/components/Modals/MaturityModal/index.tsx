@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ChangeEvent, useEffect, useState } from "react"
+import { ChangeEvent, useEffect, useRef, useState } from "react"
 
 import { Box, Button, Dialog, SvgIcon } from "@mui/material"
 import { DesktopDatePicker } from "@mui/x-date-pickers"
@@ -25,6 +25,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { createClientFlowSession } from "@/lib/telemetry/clientFlow"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 import {
@@ -77,15 +78,26 @@ export const MaturityModal = ({
     setNewMaturity,
     setTxHash,
   )
+  const flowSessionRef = useRef(createClientFlowSession())
 
   const { mutate, isPending, isError, isSuccess } = useSetFixedTermEndTime(
     marketAccount,
     setTxHash,
+    () => flowSessionRef.current.getParentContext(),
   )
 
   const { t } = useTranslation()
 
   const { market } = marketAccount
+
+  const closeModal = (
+    outcome: "cancelled" | "error" | "success" = "cancelled",
+  ) => {
+    flowSessionRef.current.endFlowSpan(outcome, {
+      "flow.outcome": outcome,
+    })
+    modal.handleCloseModal()
+  }
 
   // todo: write hook for mutation
 
@@ -128,6 +140,11 @@ export const MaturityModal = ({
 
   const handleConfirm = () => {
     if (!maturity) throw Error("Maturity is required")
+    flowSessionRef.current.startFlowSpan("adjust_maturity.flow", {
+      "market.address": market.address,
+      "market.chain_id": market.chainId,
+      "market.fixed_term_end_time": maturity.unix(),
+    })
     mutate(maturity.unix())
   }
 
@@ -159,6 +176,9 @@ export const MaturityModal = ({
       setShowErrorPopup(true)
     }
     if (isSuccess) {
+      flowSessionRef.current.endFlowSpan("success", {
+        "flow.outcome": "success",
+      })
       setShowSuccessPopup(true)
     }
   }, [isError, isSuccess])
@@ -177,13 +197,13 @@ export const MaturityModal = ({
 
       <Dialog
         open={modal.isModalOpen}
-        onClose={isPending ? undefined : modal.handleCloseModal}
+        onClose={isPending ? undefined : () => closeModal("cancelled")}
         sx={TxModalDialog}
       >
         {showForm && (
           <TxModalHeader
             title="Adjust Maturity"
-            arrowOnClick={modal.handleCloseModal}
+            arrowOnClick={() => closeModal("cancelled")}
             crossOnClick={null}
           />
         )}
@@ -276,12 +296,12 @@ export const MaturityModal = ({
         {showErrorPopup && (
           <ErrorModal
             onTryAgain={handleTryAgain}
-            onClose={modal.handleCloseModal}
+            onClose={() => closeModal("error")}
             txHash={txHash}
           />
         )}
         {showSuccessPopup && (
-          <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
+          <SuccessModal onClose={() => closeModal("success")} txHash={txHash} />
         )}
 
         <TxModalFooter

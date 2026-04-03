@@ -1,5 +1,6 @@
 import { Dispatch } from "react"
 
+import { context } from "@opentelemetry/api"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { LenderWithdrawalStatus, Market } from "@wildcatfi/wildcat-sdk"
@@ -7,11 +8,14 @@ import { useAccount } from "wagmi"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { logger } from "@/lib/logging/client"
+import { withClientSpan } from "@/lib/telemetry/clientTracing"
 
 export const useClaim = (
   market: Market,
   withdrawals: LenderWithdrawalStatus[],
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
+  getParentContext?: () => ReturnType<typeof context.active> | null,
 ) => {
   const client = useQueryClient()
   const { address } = useAccount()
@@ -21,43 +25,60 @@ export const useClaim = (
 
   return useMutation({
     mutationFn: async () => {
-      if (market.chainId !== targetChainId) {
-        throw Error(
-          `Market chainId does not match target chainId:` +
-            ` Market ${market.chainId},` +
-            ` Target ${targetChainId}`,
-        )
-      }
-      const claimableWithdrawals = withdrawals.filter((w) =>
-        w.availableWithdrawalAmount.gt(0),
-      )
-      if (!market || !claimableWithdrawals.length || !address) throw Error
-
-      const claim = async () => {
-        const tx =
-          claimableWithdrawals.length === 1
-            ? await market.executeWithdrawal(claimableWithdrawals[0])
-            : await market.executeWithdrawals(claimableWithdrawals)
-
-        if (!safeConnected) setTxHash(tx.hash)
-
-        if (safeConnected) {
-          const checkTransaction = async () => {
-            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(tx.hash)
-            if (transactionBySafeHash?.txHash) {
-              setTxHash(transactionBySafeHash.txHash)
-            } else {
-              setTimeout(checkTransaction, 1000)
-            }
+      await withClientSpan(
+        "market.claim",
+        async (span) => {
+          if (market.chainId !== targetChainId) {
+            throw Error(
+              `Market chainId does not match target chainId:` +
+                ` Market ${market.chainId},` +
+                ` Target ${targetChainId}`,
+            )
           }
 
-          await checkTransaction()
-        }
+          const claimableWithdrawals = withdrawals.filter((w) =>
+            w.availableWithdrawalAmount.gt(0),
+          )
+          if (!market || !claimableWithdrawals.length || !address) {
+            throw Error("No claimable withdrawals available")
+          }
 
-        return tx.wait()
-      }
+          const tx =
+            claimableWithdrawals.length === 1
+              ? await market.executeWithdrawal(claimableWithdrawals[0])
+              : await market.executeWithdrawals(claimableWithdrawals)
 
-      await claim()
+          span.setAttribute("tx.hash", tx.hash)
+
+          if (!safeConnected) setTxHash(tx.hash)
+
+          if (safeConnected) {
+            const checkTransaction = async () => {
+              const transactionBySafeHash = await sdk.txs.getBySafeTxHash(
+                tx.hash,
+              )
+              if (transactionBySafeHash?.txHash) {
+                setTxHash(transactionBySafeHash.txHash)
+              } else {
+                setTimeout(checkTransaction, 1000)
+              }
+            }
+
+            await checkTransaction()
+          }
+
+          await tx.wait()
+        },
+        {
+          parentContext: getParentContext?.() ?? context.active(),
+          attributes: {
+            "market.address": market.address,
+            "market.chain_id": market.chainId,
+            "safe.connected": safeConnected,
+            "withdrawals.count": withdrawals.length,
+          },
+        },
+      )
     },
     onSuccess() {
       const lender = address?.toLowerCase()
@@ -81,7 +102,10 @@ export const useClaim = (
       })
     },
     onError(error) {
-      console.log(error)
+      logger.error(
+        { err: error, market: market.address },
+        "Failed to claim withdrawals",
+      )
     },
   })
 }

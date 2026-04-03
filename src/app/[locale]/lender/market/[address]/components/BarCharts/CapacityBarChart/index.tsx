@@ -1,4 +1,4 @@
-import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { MARKET_BAR_ORDER } from "@/app/[locale]/lender/market/[address]/components/BarCharts/CapacityBarChart/constants"

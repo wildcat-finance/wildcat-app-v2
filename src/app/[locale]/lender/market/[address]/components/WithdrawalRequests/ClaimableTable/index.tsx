@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import * as React from "react"
 
-import { Box, IconButton, SvgIcon, Typography, useTheme } from "@mui/material"
+import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { LenderWithdrawalStatus } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
@@ -33,7 +33,6 @@ export const ClaimableTable = ({
 }: TableProps) => {
   const { t } = useTranslation()
   const [isClaimableOpen, setIsClaimableOpen] = useState(false)
-  const theme = useTheme()
   const isMobile = useMobileResolution()
   const { getAddressUrl, getTxUrl } = useBlockExplorer({ chainId })
 

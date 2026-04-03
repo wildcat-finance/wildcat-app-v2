@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { DEBT_REPAIDS } from "@/graphql/queries"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { logger } from "@/lib/logging/client"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { formatTokenAmount } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
@@ -27,7 +28,7 @@ export const useDebtRepaids = (
 
   useEffect(() => {
     if (data) {
-      console.dir(data)
+      logger.debug({ data }, "Debt repaids result")
       data.debtRepaids.forEach((debtRepaid: TDebtRepaid) => {
         dispatch(
           addNotification({
@@ -58,7 +59,7 @@ export const useDebtRepaids = (
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching dept repays: ", error)
+      logger.error({ err: error }, "Error fetching debt repays")
     }
   }, [error])
 
