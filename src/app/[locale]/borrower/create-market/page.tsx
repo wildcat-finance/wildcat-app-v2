@@ -31,6 +31,7 @@ import {
   CreateMarketSteps,
   setInitialCreateState,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
+import { getCreateMarketDeployRouting } from "@/utils/createMarketDeploy"
 
 import { BasicSetupForm } from "./components/Forms/BasicSetupForn"
 import { ConfirmationForm } from "./components/Forms/ConfirmationForm"
@@ -152,8 +153,12 @@ export default function CreateMarketPage() {
     setTokenAsset(assetData)
   }, [assetData])
 
-  const handleDeployMarket = newMarketForm.handleSubmit((data) => {
+  const handleDeployMarket = newMarketForm.handleSubmit(() => {
     const marketParams = newMarketForm.getValues()
+    const deployRouting = getCreateMarketDeployRouting({
+      implementationType: marketParams.implementationType,
+      commitmentFeePercent: marketParams.commitmentFeePercent,
+    })
 
     console.log(`Deploying market with MLA template ID: ${marketParams.mla}`)
 
@@ -166,6 +171,7 @@ export default function CreateMarketPage() {
             ? Number(marketParams.mla)
             : undefined,
         mlaSignature: mlaSignature.signature as string,
+        marketType: deployRouting.marketType,
         namePrefix: `${marketParams.namePrefix.trimEnd()} `,
         symbolPrefix: marketParams.symbolPrefix,
         annualInterestBips: Number(marketParams.annualInterestBips) * 100,
@@ -217,6 +223,9 @@ export default function CreateMarketPage() {
         roleProviderFactory: constants.AddressZero,
         minimumDeposit: marketParams.minimumDeposit,
         deployWrapper: marketParams.deployWrapper,
+        ...(deployRouting.marketType === "revolving"
+          ? { commitmentFeeBips: deployRouting.commitmentFeeBips }
+          : {}),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any
 
