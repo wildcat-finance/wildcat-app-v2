@@ -16,6 +16,7 @@ import {
   formatBps,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -29,6 +30,7 @@ export type MarketsTabProps = {
 export type MarketsTableModel = {
   id: string
   chainId?: number
+  implementationType: ReturnType<typeof getMarketImplementationType>
   status: ReturnType<typeof getMarketStatusChip>
   type: ReturnType<typeof getMarketTypeChip>
   name: string
@@ -186,11 +188,13 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
     const { borrowed } = market.getTotalDebtBreakdown()
 
     const marketStatus = getMarketStatusChip(market)
+    const implementationType = getMarketImplementationType(market)
     const marketType = getMarketTypeChip(market)
 
     return {
       id: address,
       chainId: market.chainId,
+      implementationType,
       status: marketStatus,
       type: marketType,
       name,

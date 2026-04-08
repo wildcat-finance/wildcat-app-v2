@@ -34,6 +34,7 @@ import {
   trimAddress,
   buildMarketHref,
 } from "@/utils/formatters"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -357,11 +358,13 @@ export const OthersMarketsTable = ({
       ? borrower.alias || borrower.name
       : trimAddress(borrowerAddress)
     const marketStatus = getMarketStatusChip(market)
+    const implementationType = getMarketImplementationType(market)
     const marketType = getMarketTypeChip(market)
 
     return {
       id: address,
       chainId,
+      implementationType,
       status: marketStatus,
       marketType,
       name,

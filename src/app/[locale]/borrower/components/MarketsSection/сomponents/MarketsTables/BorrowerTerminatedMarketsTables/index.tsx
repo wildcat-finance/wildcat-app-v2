@@ -3,7 +3,7 @@ import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
-import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -19,11 +19,9 @@ import {
   getAdsTooltipComponent,
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
-import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
-import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
 import {
@@ -32,7 +30,8 @@ import {
   formatSecsToHours,
   formatTokenWithCommas,
 } from "@/utils/formatters"
-import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
+import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 import { MarketsTableAccordion } from "../../../../../../../../components/MarketsTableAccordion"
@@ -40,6 +39,7 @@ import { MarketsTableAccordion } from "../../../../../../../../components/Market
 export type BorrowerTerminatedMarketsTableModel = {
   id: string
   chainId?: number
+  implementationType: ReturnType<typeof getMarketImplementationType>
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
@@ -93,11 +93,13 @@ export const BorrowerTerminatedMarketsTables = ({
       } = market
 
       const marketStatus = getMarketStatusChip(market)
+      const implementationType = getMarketImplementationType(market)
       const marketType = getMarketTypeChip(market)
 
       return {
         id: address,
         chainId,
+        implementationType,
         status: marketStatus,
         term: marketType,
         name,

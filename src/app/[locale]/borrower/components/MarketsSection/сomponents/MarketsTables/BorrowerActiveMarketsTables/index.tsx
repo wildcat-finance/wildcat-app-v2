@@ -36,14 +36,14 @@ import {
   formatSecsToHours,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
-
-import { MarketsTableModel } from "../../../../MarketsTables/interface"
 
 export type BorrowerActiveMarketsTableModel = {
   id: string
   chainId?: number
+  implementationType: ReturnType<typeof getMarketImplementationType>
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
@@ -98,11 +98,13 @@ export const BorrowerActiveMarketsTables = ({
       } = market
 
       const marketStatus = getMarketStatusChip(market)
+      const implementationType = getMarketImplementationType(market)
       const marketType = getMarketTypeChip(market)
 
       return {
         id: address,
         chainId,
+        implementationType,
         status: marketStatus,
         term: marketType,
         name,

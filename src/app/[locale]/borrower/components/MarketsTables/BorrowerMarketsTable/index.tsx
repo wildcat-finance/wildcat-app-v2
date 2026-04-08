@@ -8,7 +8,7 @@ import {
   Typography,
 } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
-import { HooksKind, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -34,6 +34,7 @@ import {
   formatTokenWithCommas,
   timestampToDateFormatted,
 } from "@/utils/formatters"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -312,11 +313,13 @@ export const BorrowerMarketsTable = ({
     } = market
 
     const marketStatus = getMarketStatusChip(market)
+    const implementationType = getMarketImplementationType(market)
     const marketType = getMarketTypeChip(market)
 
     return {
       id: address,
       chainId,
+      implementationType,
       status: marketStatus,
       marketType,
       name,

@@ -1,11 +1,10 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import {
   DepositStatus,
-  MarketAccount,
   MarketVersion,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
@@ -45,12 +44,14 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 export type OtherMarketsTableModel = {
   id: string
   chainId?: number
+  implementationType: ReturnType<typeof getMarketImplementationType>
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
@@ -122,11 +123,13 @@ export const OtherMarketsTables = ({
         : trimAddress(borrowerAddress)
 
       const marketStatus = getMarketStatusChip(market)
+      const implementationType = getMarketImplementationType(market)
       const marketType = getMarketTypeChip(market)
 
       return {
         id: address,
         chainId,
+        implementationType,
         status: marketStatus,
         term: marketType,
         name,
