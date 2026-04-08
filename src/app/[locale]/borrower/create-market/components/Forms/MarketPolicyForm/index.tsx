@@ -24,9 +24,11 @@ import ArrowLeftIcon from "@/assets/icons/sharpArrow_icon.svg"
 import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { HorizontalInputLabel } from "@/components/HorisontalInputLabel"
 import { InputLabel } from "@/components/InputLabel"
+import { NumberTextField } from "@/components/NumberTextfield"
 import { getMaxFixedTermDays } from "@/config/market-duration"
 import {
   mockedAccessControlOptions,
+  mockedImplementationTypesOptions,
   mockedMarketTypesOptions,
 } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
@@ -80,6 +82,7 @@ export const MarketPolicyForm = ({
   const maxDate = today.add(maxDays, "days")
 
   const {
+    getValues,
     setValue,
     register,
     formState: { errors },
@@ -89,13 +92,19 @@ export const MarketPolicyForm = ({
 
   const policyWatch = watch("policy")
   const policyNameWatch = watch("policyName")
+  const implementationTypeWatch = watch("implementationType")
   const marketTypeWatch = watch("marketType")
+  const commitmentFeePercentWatch = watch("commitmentFeePercent")
   const accessControlWatch = watch("accessControl")
   const fixedTermEndTimeWatch = watch("fixedTermEndTime")
   const allowClosureBeforeTermWatch = watch("allowClosureBeforeTerm")
   const allowTermReductionWatch = watch("allowTermReduction")
 
   const isFixedTerm = marketTypeWatch === "fixedTerm"
+  const isRevolving = implementationTypeWatch === "revolving"
+  const hasCommitmentFeeValue =
+    commitmentFeePercentWatch !== undefined &&
+    !Number.isNaN(commitmentFeePercentWatch)
 
   const disableFields = !(
     policyWatch === "createNewPolicy" || policyWatch === ""
@@ -106,10 +115,13 @@ export const MarketPolicyForm = ({
     policyWatch.trim() !== "" &&
     !!policyNameWatch &&
     policyNameWatch.trim() !== "" &&
+    !!implementationTypeWatch &&
+    implementationTypeWatch.trim() !== "" &&
     !!marketTypeWatch &&
     marketTypeWatch.trim() !== "" &&
     !!accessControlWatch &&
     accessControlWatch.trim() !== "" &&
+    (!isRevolving || (hasCommitmentFeeValue && !errors.commitmentFeePercent)) &&
     !errors.fixedTermEndTime
 
   const isFixedFormValid =
@@ -117,10 +129,13 @@ export const MarketPolicyForm = ({
     policyWatch.trim() !== "" &&
     !!policyNameWatch &&
     policyNameWatch.trim() !== "" &&
+    !!implementationTypeWatch &&
+    implementationTypeWatch.trim() !== "" &&
     !!marketTypeWatch &&
     marketTypeWatch.trim() !== "" &&
     !!accessControlWatch &&
     accessControlWatch.trim() !== "" &&
+    (!isRevolving || (hasCommitmentFeeValue && !errors.commitmentFeePercent)) &&
     !!fixedTermEndTimeWatch &&
     !errors.fixedTermEndTime
 
@@ -186,6 +201,25 @@ export const MarketPolicyForm = ({
           />
         </InputLabel>
 
+        <InputLabel label={t("createNewMarket.policy.implementation.label")}>
+          <ExtendedSelect
+            selectSX={{
+              "& .MuiSelect-icon": {
+                "&.Mui-disabled": {
+                  "& path": {
+                    fill: COLORS.santasGrey,
+                  },
+                },
+              },
+            }}
+            control={control}
+            name="implementationType"
+            label={t("createNewMarket.policy.implementation.placeholder")}
+            options={mockedImplementationTypesOptions}
+            optionSX={{ width: "360px" }}
+          />
+        </InputLabel>
+
         <InputLabel label={t("createNewMarket.policy.type.label")}>
           <ExtendedSelect
             selectSX={{
@@ -225,6 +259,34 @@ export const MarketPolicyForm = ({
             disabled={disableFields}
           />
         </InputLabel>
+
+        {isRevolving && (
+          <InputLabel
+            label={t("createNewMarket.policy.commitmentFee.label")}
+            subtitle={t("createNewMarket.policy.commitmentFee.explainer")}
+          >
+            <NumberTextField
+              min={0}
+              max={100}
+              decimalScale={2}
+              label={t("createNewMarket.policy.commitmentFee.placeholder")}
+              value={getValues("commitmentFeePercent")}
+              error={Boolean(errors.commitmentFeePercent)}
+              helperText={errors.commitmentFeePercent?.message}
+              endAdornment={
+                <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
+                  {t("createNewMarket.policy.commitmentFee.chip")}
+                </Typography>
+              }
+              onValueChange={(v) => {
+                setValue("commitmentFeePercent", v.floatValue as number, {
+                  shouldTouch: true,
+                  shouldValidate: true,
+                })
+              }}
+            />
+          </InputLabel>
+        )}
       </Box>
 
       {isFixedTerm && (

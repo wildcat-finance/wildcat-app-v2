@@ -45,7 +45,7 @@ describe("create market validation schema", () => {
     })
 
     expect(result.success).toBe(false)
-    expect(result.error?.issues[0]?.path).toEqual(["commitmentFeeBips"])
+    expect(result.error?.issues[0]?.path).toEqual(["commitmentFeePercent"])
     expect(result.error?.issues[0]?.message).toBe(
       "Commitment fee is required for revolving markets",
     )
@@ -55,10 +55,10 @@ describe("create market validation schema", () => {
     const result = schema.safeParse({
       ...baseData,
       implementationType: "revolving" as const,
-      commitmentFeeBips: 10_001,
+      commitmentFeePercent: 100.01,
     })
 
     expect(result.success).toBe(false)
-    expect(result.error?.issues[0]?.path).toEqual(["commitmentFeeBips"])
+    expect(result.error?.issues[0]?.path).toEqual(["commitmentFeePercent"])
   })
 })

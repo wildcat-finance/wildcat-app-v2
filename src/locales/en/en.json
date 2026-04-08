@@ -1388,6 +1388,10 @@
         "placeholder": "Input Policy Name",
         "glossary": "Unique identifier for this reusable market rule-set."
       },
+      "implementation": {
+        "label": "Market Type",
+        "placeholder": "Please Select"
+      },
       "type": {
         "label": "Market Term",
         "placeholder": "Please Select"
@@ -1403,6 +1407,12 @@
       },
       "expiration": {
         "label": "Fixed Term Maturity Date [00:00 UTC]"
+      },
+      "commitmentFee": {
+        "label": "Commitment Fee",
+        "placeholder": "0 - 100",
+        "chip": "%",
+        "explainer": "Charged on undrawn capacity for revolving markets."
       },
       "earlyClose": {
         "label": "Permit Early Termination",

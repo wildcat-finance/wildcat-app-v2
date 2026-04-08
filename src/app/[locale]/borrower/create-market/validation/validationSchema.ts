@@ -21,8 +21,7 @@ const TransferAccessOptions = [
   "Disabled",
 ] as const
 
-// Keep this aligned with the SDK/protocol revolving-market validation.
-const MAX_CREATE_FLOW_COMMITMENT_FEE_BIPS = 10_000
+const MAX_CREATE_FLOW_COMMITMENT_FEE_PERCENT = 100
 
 export const selectTransferAccessOptions: ExtendedSelectOptionItem<
   keyof typeof TransferAccess
@@ -95,11 +94,10 @@ export const baseMarketSchemaFields = {
   annualInterestBips: z.coerce.number().gte(0),
   delinquencyFeeBips: z.coerce.number().gte(0),
   reserveRatioBips: z.coerce.number().gte(0),
-  commitmentFeeBips: z.coerce
+  commitmentFeePercent: z.coerce
     .number()
-    .int()
     .gte(0)
-    .lte(MAX_CREATE_FLOW_COMMITMENT_FEE_BIPS)
+    .lte(MAX_CREATE_FLOW_COMMITMENT_FEE_PERCENT)
     .optional(),
   minimumDeposit: z.coerce.number().optional(),
   delinquencyGracePeriod: z.coerce.number().gt(0).lte(2160),
@@ -123,17 +121,17 @@ export const marketRefinementCallback = (
     implementationType: "legacy" | "revolving"
     marketType: string
     fixedTermEndTime?: number
-    commitmentFeeBips?: number
+    commitmentFeePercent?: number
   },
   ctx: z.RefinementCtx,
 ) => {
   if (
     data.implementationType === "revolving" &&
-    data.commitmentFeeBips === undefined
+    data.commitmentFeePercent === undefined
   ) {
     ctx.addIssue({
       message: "Commitment fee is required for revolving markets",
-      path: ["commitmentFeeBips"],
+      path: ["commitmentFeePercent"],
       code: "custom",
     })
   }
