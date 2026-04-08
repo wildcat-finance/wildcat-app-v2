@@ -63,7 +63,7 @@ export function getFieldValuesForBorrowerFromForm(
     market: {
       name: marketName,
       symbol: marketSymbol,
-      marketType:
+      marketTerm:
         marketParams.marketType === "standard"
           ? HooksKind.OpenTerm
           : HooksKind.FixedTerm,
