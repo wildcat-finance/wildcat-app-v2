@@ -11,7 +11,9 @@ import { useTranslation } from "react-i18next"
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { DataGridSx } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/style"
+import { MarketImplementationChip } from "@/components/@extended/MarketImplementationChip"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
@@ -20,7 +22,12 @@ import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { COLORS } from "@/theme/colors"
-import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
+import {
+  implementationComparator,
+  statusComparator,
+  tokenAmountComparator,
+  typeComparator,
+} from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
 import {
   buildMarketHref,
@@ -202,6 +209,51 @@ export const LenderTerminatedMarketsTables = ({
         >
           <Box width="120px">
             <MarketStatusChip status={params.value} />
+          </Box>
+        </Box>
+      ),
+    },
+    {
+      field: "implementationType",
+      headerName: t("dashboard.markets.tables.header.type"),
+      minWidth: 110,
+      flex: 1,
+      headerAlign: "left",
+      align: "left",
+      sortComparator: implementationComparator,
+      renderCell: (params) => (
+        <Box
+          sx={{
+            ...LinkCell,
+            justifyContent: "flex-start",
+          }}
+        >
+          <Box minWidth="120px">
+            <MarketImplementationChip
+              implementationType={params.value}
+              type="table"
+            />
+          </Box>
+        </Box>
+      ),
+    },
+    {
+      field: "term",
+      headerName: t("dashboard.markets.tables.header.term"),
+      minWidth: 100,
+      flex: 1,
+      headerAlign: "left",
+      align: "left",
+      sortComparator: typeComparator,
+      renderCell: (params) => (
+        <Box
+          sx={{
+            ...LinkCell,
+            justifyContent: "flex-start",
+          }}
+        >
+          <Box minWidth="170px">
+            <MarketTypeChip type="table" {...params.value} />
           </Box>
         </Box>
       ),

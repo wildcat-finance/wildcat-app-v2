@@ -1,6 +1,7 @@
 import { MarketType, MarketVersion } from "@wildcatfi/wildcat-sdk"
 
 import {
+  getMarketImplementationConfig,
   getMarketImplementationType,
   isLegacyMarket,
   isRevolvingMarket,
@@ -37,5 +38,14 @@ describe("marketImplementation", () => {
     expect(getMarketImplementationType(market)).toBe<MarketType>("revolving")
     expect(isRevolvingMarket(market)).toBe(true)
     expect(isLegacyMarket(market)).toBe(false)
+  })
+
+  it("returns stable display config for legacy and revolving implementations", () => {
+    expect(getMarketImplementationConfig("legacy")).toMatchObject({
+      label: "Standard",
+    })
+    expect(getMarketImplementationConfig("revolving")).toMatchObject({
+      label: "Revolving",
+    })
   })
 })

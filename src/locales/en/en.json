@@ -157,6 +157,7 @@
         },
         "header": {
           "status": "Status",
+          "type": "Type",
           "term": "Term",
           "name": "Market Name",
           "borrower": "Borrower Name",
@@ -231,6 +232,8 @@
       },
       "header": {
         "status": "Status",
+        "type": "Type",
+        "term": "Term",
         "marketName": "Market Name",
         "borrowerName": "Borrower Name",
         "asset": "Underlying Asset",
@@ -238,8 +241,7 @@
         "crr": "Reserve",
         "capacity": "Max Capacity",
         "borrowable": "Borrowable",
-        "deploy": "Deployed",
-        "marketType": "Market Type"
+        "deploy": "Deployed"
       },
       "noMarkets": {
         "wrongNetwork": "No Wildcat Markets On This Network",

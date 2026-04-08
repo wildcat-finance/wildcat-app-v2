@@ -17,6 +17,7 @@ import {
   TypeSafeColDef,
 } from "@/app/[locale]/borrower/components/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { MarketImplementationChip } from "@/components/@extended/MarketImplementationChip"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { TablePagination } from "@/components/TablePagination"
@@ -24,6 +25,7 @@ import { TooltipButton } from "@/components/TooltipButton"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
+  implementationComparator,
   statusComparator,
   tokenAmountComparator,
   typeComparator,
@@ -129,8 +131,36 @@ export const BorrowerMarketsTable = ({
       ),
     },
     {
-      field: "marketType",
-      headerName: t("borrowerMarketList.table.header.marketType"),
+      field: "implementationType",
+      headerName: t("borrowerMarketList.table.header.type"),
+      maxWidth: 146,
+      minWidth: 120,
+      flex: 1.5,
+      headerAlign: "left",
+      align: "left",
+      sortComparator: implementationComparator,
+      sortable: true,
+      renderCell: (params) => (
+        <Link
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
+          style={{ ...LinkCell, justifyContent: "flex-start" }}
+        >
+          <Box width={130}>
+            <MarketImplementationChip
+              implementationType={params.value}
+              type="table"
+            />
+          </Box>
+        </Link>
+      ),
+    },
+    {
+      field: "term",
+      headerName: t("borrowerMarketList.table.header.term"),
       maxWidth: 146,
       minWidth: 130,
       flex: 2,
@@ -314,14 +344,14 @@ export const BorrowerMarketsTable = ({
 
     const marketStatus = getMarketStatusChip(market)
     const implementationType = getMarketImplementationType(market)
-    const marketType = getMarketTypeChip(market)
+    const term = getMarketTypeChip(market)
 
     return {
       id: address,
       chainId,
       implementationType,
       status: marketStatus,
-      marketType,
+      term,
       name,
       asset: underlyingToken.symbol,
       lenderAPR: annualInterestBips,

@@ -1,6 +1,9 @@
 import { Market, MarketType, MarketVersion } from "@wildcatfi/wildcat-sdk"
 
+import { COLORS } from "@/theme/colors"
+
 type MarketImplementationSource = Pick<Market, "marketType" | "version">
+export type MarketImplementationType = MarketType
 
 export const getMarketImplementationType = (
   market: MarketImplementationSource,
@@ -20,3 +23,23 @@ export const isLegacyMarket = (market: MarketImplementationSource): boolean =>
 export const isRevolvingMarket = (
   market: MarketImplementationSource,
 ): boolean => getMarketImplementationType(market) === "revolving"
+
+export const getMarketImplementationConfig = (
+  implementationType: MarketImplementationType,
+) => {
+  switch (implementationType) {
+    case "revolving":
+      return {
+        label: "Revolving",
+        backgroundColor: COLORS.glitter,
+        color: COLORS.ultramarineBlue,
+      }
+    case "legacy":
+    default:
+      return {
+        label: "Standard",
+        backgroundColor: COLORS.blackHaze,
+        color: COLORS.santasGrey,
+      }
+  }
+}

@@ -12,7 +12,7 @@ export type MarketsTableModel = {
   chainId?: number
   implementationType: ReturnType<typeof getMarketImplementationType>
   status: ReturnType<typeof getMarketStatusChip>
-  marketType: ReturnType<typeof getMarketTypeChip>
+  term: ReturnType<typeof getMarketTypeChip>
   name: string
   borrowerName?: string
   asset: string
