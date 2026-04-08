@@ -42,6 +42,8 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
   } = form
 
   const capacityWatch = watch("maxTotalSupply")
+  const implementationTypeWatch = watch("implementationType")
+  const commitmentFeePercentWatch = watch("commitmentFeePercent")
   const baseAprWatch = watch("annualInterestBips")
   const penaltyAprWatch = watch("delinquencyFeeBips")
   const ratioWatch = watch("reserveRatioBips")
@@ -62,6 +64,11 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
     !errors.withdrawalBatchDuration &&
     delinquencyGracePeriodNumber < withdrawalBatchDurationNumber
 
+  const isRevolving = implementationTypeWatch === "revolving"
+  const hasCommitmentFeeValue =
+    commitmentFeePercentWatch !== undefined &&
+    !Number.isNaN(commitmentFeePercentWatch)
+
   const isFormValid =
     !!capacityWatch &&
     !errors.maxTotalSupply &&
@@ -71,6 +78,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
     !errors.delinquencyFeeBips &&
     !!ratioWatch &&
     !errors.reserveRatioBips &&
+    (!isRevolving || (hasCommitmentFeeValue && !errors.commitmentFeePercent)) &&
     !!delinquencyGracePeriodWatch &&
     !errors.delinquencyGracePeriod &&
     !!withdrawalBatchDurationWatch &&
@@ -192,6 +200,31 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
             {...register("reserveRatioBips")}
           />
         </InputLabel>
+
+        {isRevolving && (
+          <InputLabel label={t("createNewMarket.financial.commitmentFee.label")}>
+            <NumberTextField
+              min={0}
+              max={100}
+              decimalScale={2}
+              label={t("createNewMarket.financial.commitmentFee.placeholder")}
+              value={getValues("commitmentFeePercent")}
+              error={Boolean(errors.commitmentFeePercent)}
+              helperText={errors.commitmentFeePercent?.message}
+              endAdornment={
+                <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
+                  {t("createNewMarket.financial.commitmentFee.chip")}
+                </Typography>
+              }
+              onValueChange={(v) => {
+                setValue("commitmentFeePercent", v.floatValue as number, {
+                  shouldTouch: true,
+                  shouldValidate: true,
+                })
+              }}
+            />
+          </InputLabel>
+        )}
 
         <InputLabel label={t("createNewMarket.periods.grace.label")}>
           <NumberTextField

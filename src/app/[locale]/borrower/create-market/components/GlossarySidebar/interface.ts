@@ -3,4 +3,5 @@ import { CreateMarketSteps } from "@/store/slices/createMarketSidebarSlice/creat
 export type GlossarySidebarProps = {
   step: CreateMarketSteps
   hideGlossary?: boolean
+  isRevolving?: boolean
 }

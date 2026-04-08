@@ -1408,12 +1408,6 @@
       "expiration": {
         "label": "Fixed Term Maturity Date [00:00 UTC]"
       },
-      "commitmentFee": {
-        "label": "Commitment Fee",
-        "placeholder": "0 - 100",
-        "chip": "%",
-        "explainer": "Charged on undrawn capacity for revolving markets."
-      },
       "earlyClose": {
         "label": "Permit Early Termination",
         "explainer": "Allows you to terminate a market before it reaches maturity."
@@ -1473,7 +1467,8 @@
         "label": "Base APR",
         "placeholder": "0 - 100",
         "chip": "%",
-        "glossary": "The fixed annual percentage rate (excluding any protocol fees) that borrowers pay for assets within the market."
+        "glossary": "The fixed annual percentage rate (excluding any protocol fees) that borrowers pay for assets within the market.",
+        "glossaryRevolving": "The additional annual percentage rate charged on borrowed capital in a revolving market. Undrawn capacity does not accrue this rate; it accrues the separate commitment fee instead."
       },
       "protocolFee": {
         "label": "Protocol Fee APR"
@@ -1489,6 +1484,13 @@
         "placeholder": "0 - 100",
         "chip": "%",
         "glossary": "A required percentage of market funds that must remain liquid and unavailable for borrowing."
+      },
+      "commitmentFee": {
+        "label": "Commitment Fee",
+        "placeholder": "0 - 100",
+        "chip": "%",
+        "explainer": "Charged on undrawn capacity for revolving markets.",
+        "glossary": "A recurring fee charged on undrawn borrowing capacity in a revolving market. Lenders continue to earn this fee even when capital has been committed but not yet borrowed."
       },
       "minDeposit": {
         "label": "Minimum Deposit",

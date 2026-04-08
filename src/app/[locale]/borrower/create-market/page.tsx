@@ -79,6 +79,7 @@ export default function CreateMarketPage() {
   const currentNumber = steps.find((step) => step.step === currentStep)?.number
 
   const newMarketForm = useNewMarketForm(isTestnet ?? false)
+  const implementationTypeWatch = newMarketForm.watch("implementationType")
 
   const { selectedHooksInstance, selectedHooksTemplate, hooksInstances } =
     useNewMarketHooksData(newMarketForm)
@@ -459,7 +460,12 @@ export default function CreateMarketPage() {
         </Dialog>
       </Box>
 
-      {currentNumber && <GlossarySidebar step={currentStep} />}
+      {currentNumber && (
+        <GlossarySidebar
+          step={currentStep}
+          isRevolving={implementationTypeWatch === "revolving"}
+        />
+      )}
     </Box>
   )
 }
