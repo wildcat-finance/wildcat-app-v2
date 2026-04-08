@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import {
   BasicLenderData,
   getActiveLendersByMarket,
-  getLensV2Contract,
+  getLatestLensContract,
   getPolicyMarketsAndLenders,
   Market,
   MarketVersion,
@@ -80,7 +80,7 @@ export const useGetMarketLenders = (market?: Market) => {
       ),
     ]
     if (market.version === MarketVersion.V2) {
-      const lens = getLensV2Contract(targetChainId, signerOrProvider)
+      const lens = getLatestLensContract(targetChainId, signerOrProvider)
       const updates = await lens.getLenderAccountsData(
         market.address,
         allLenders.map((x) => x.address),

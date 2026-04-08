@@ -9,7 +9,7 @@ import {
   getLensContract,
   MarketVersion,
   SupportedChainId,
-  getLensV2Contract,
+  getLatestLensContract,
   SubgraphGetAllMarketsForLenderViewQueryVariables,
   getLenderAccountsForAllMarkets,
   SubgraphMarket_Filter,
@@ -130,7 +130,7 @@ export function useLendersMarkets(
     const lens = hasV1Lens
       ? getLensContract(targetChainId, signerOrProvider as SignerOrProvider)
       : undefined
-    const lensV2 = getLensV2Contract(
+    const latestLens = getLatestLensContract(
       targetChainId,
       signerOrProvider as SignerOrProvider,
     )
@@ -165,7 +165,7 @@ export function useLendersMarkets(
           })
         : []),
       ...v2Chunks.map(async (accountsChunk) => {
-        const updates = await lensV2.getMarketsDataWithLenderStatus(
+        const updates = await latestLens.getMarketsDataWithLenderStatus(
           lender ?? constants.AddressZero,
           accountsChunk.map((m) => m.market.address),
         )

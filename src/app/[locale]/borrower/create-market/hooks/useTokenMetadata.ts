@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { Token, Signer, getLensV2Contract } from "@wildcatfi/wildcat-sdk"
+import { Token, Signer, getLatestLensContract } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
@@ -14,7 +14,7 @@ export function useTokenMetadata({ address }: { address: string | undefined }) {
       address.length === 42 &&
       signer.chainId === targetChainId
     ) {
-      const lens = getLensV2Contract(signer.chainId, signer as Signer)
+      const lens = getLatestLensContract(signer.chainId, signer as Signer)
       const metadata = await lens.getTokenInfo(address)
       const token = Token.fromTokenMetadata(
         signer.chainId,
