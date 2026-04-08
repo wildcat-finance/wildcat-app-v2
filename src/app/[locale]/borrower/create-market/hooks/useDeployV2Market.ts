@@ -12,6 +12,7 @@ import {
   PartialTransaction,
   getMockArchControllerOwnerContract,
   getHooksFactoryContract,
+  getHooksFactoryRevolvingContract,
   WrapperFactory,
   hasDeploymentAddress,
   SupportedChainId,
@@ -263,68 +264,105 @@ export const useDeployV2Market = () => {
           if (preview.status !== DeployMarketStatus.Ready) {
             throw Error(`Market not ready : ${preview.status}`)
           }
-          const hooksFactory = getHooksFactoryContract(
-            hooksTemplate.chainId,
-            signer,
-          )
-          if (useGnosisMultiSend) {
-            const data =
-              preview.fn === "deployMarket"
-                ? hooksFactory.interface.encodeFunctionData(
-                    "deployMarket",
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    preview.args as any,
-                  )
-                : hooksFactory.interface.encodeFunctionData(
-                    "deployMarketAndHooks",
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    preview.args as any,
-                  )
+          if (preview.marketType === "legacy") {
+            const hooksFactory = getHooksFactoryContract(
+              hooksTemplate.chainId,
+              signer,
+            )
 
-            gnosisTransactions.push({
-              data,
-              to: hooksFactory.address,
-              value: "0",
-            })
+            if (useGnosisMultiSend) {
+              const data =
+                preview.fn === "deployMarket"
+                  ? hooksFactory.interface.encodeFunctionData(
+                      "deployMarket",
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      preview.args as any,
+                    )
+                  : hooksFactory.interface.encodeFunctionData(
+                      "deployMarketAndHooks",
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      preview.args as any,
+                    )
 
-            console.log("Sending Gnosis transactions:", gnosisTransactions)
-
-            const tx = await gnosisSafeSDK.txs.send({ txs: gnosisTransactions })
-            console.log("Transaction sent, result:", tx)
-
-            const checkTransaction = async () => {
-              const transactionBySafeHash =
-                await gnosisSafeSDK.txs.getBySafeTxHash(tx.safeTxHash)
-
-              if (transactionBySafeHash?.txHash) {
-                console.log(
-                  `Transaction confirmed. txHash: ${transactionBySafeHash.txHash}`,
-                )
-                return transactionBySafeHash.txHash
-              }
-              console.log("Transaction pending, rechecking in 1 second...")
-              return new Promise<string>((res) => {
-                setTimeout(async () => res(await checkTransaction()), 1000)
+              gnosisTransactions.push({
+                data,
+                to: hooksFactory.address,
+                value: "0",
               })
+            } else {
+              const tx = await (preview.fn === "deployMarket"
+                ? hooksFactory.deployMarket(...preview.args)
+                : hooksFactory.deployMarketAndHooks(...preview.args))
+              return tx.wait()
             }
-
-            const txHash = await checkTransaction()
-
-            if (txHash) {
-              console.log(`Waiting for transaction with txHash: ${txHash}`)
-              const receipt = await waitForTransaction(txHash)
-              console.log("Transaction confirmed, receipt received.")
-              return receipt
-            }
-            console.error("Failed to retrieve txHash.")
-            throw new Error("Transaction failed or hash not found.")
           } else {
-            // const exec = (...args: any[]) => hooksFactory[preview.fn]()
-            const tx = await (preview.fn === "deployMarket"
-              ? hooksFactory.deployMarket(...preview.args)
-              : hooksFactory.deployMarketAndHooks(...preview.args))
-            return tx.wait()
+            const hooksFactory = getHooksFactoryRevolvingContract(
+              hooksTemplate.chainId,
+              signer,
+            )
+
+            if (useGnosisMultiSend) {
+              const data =
+                preview.fn === "deployMarket"
+                  ? hooksFactory.interface.encodeFunctionData(
+                      "deployMarket",
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      preview.args as any,
+                    )
+                  : hooksFactory.interface.encodeFunctionData(
+                      "deployMarketAndHooks",
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      preview.args as any,
+                    )
+
+              gnosisTransactions.push({
+                data,
+                to: hooksFactory.address,
+                value: "0",
+              })
+            } else if (preview.fn === "deployMarket") {
+              const tx = await hooksFactory.deployMarket(...preview.args)
+              return tx.wait()
+            } else {
+              const tx = await hooksFactory.deployMarketAndHooks(
+                ...preview.args,
+              )
+              return tx.wait()
+            }
           }
+
+          console.log("Sending Gnosis transactions:", gnosisTransactions)
+
+          const tx = await gnosisSafeSDK.txs.send({ txs: gnosisTransactions })
+          console.log("Transaction sent, result:", tx)
+
+          const checkTransaction = async () => {
+            const transactionBySafeHash =
+              await gnosisSafeSDK.txs.getBySafeTxHash(tx.safeTxHash)
+
+            if (transactionBySafeHash?.txHash) {
+              console.log(
+                `Transaction confirmed. txHash: ${transactionBySafeHash.txHash}`,
+              )
+              return transactionBySafeHash.txHash
+            }
+            console.log("Transaction pending, rechecking in 1 second...")
+            return new Promise<string>((res) => {
+              setTimeout(async () => res(await checkTransaction()), 1000)
+            })
+          }
+
+          const txHash = await checkTransaction()
+
+          if (txHash) {
+            console.log(`Waiting for transaction with txHash: ${txHash}`)
+            const receipt = await waitForTransaction(txHash)
+            console.log("Transaction confirmed, receipt received.")
+            return receipt
+          }
+
+          console.error("Failed to retrieve txHash.")
+          throw new Error("Transaction failed or hash not found.")
         }
 
         const receipt = await toastRequest(
