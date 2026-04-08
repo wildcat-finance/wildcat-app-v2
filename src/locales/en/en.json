@@ -383,8 +383,17 @@
       "maximumGracePeriod": "Maximum Grace Period",
       "availableGracePeriod": "Available Grace Period",
       "withdrawalCycleDuration": "Withdrawal Cycle Duration",
-      "marketType": {
-        "label": "Market Type",
+      "marketImplementation": {
+        "label": "Type",
+        "legacy": {
+          "text": "Standard"
+        },
+        "revolving": {
+          "text": "Revolving"
+        }
+      },
+      "marketTerm": {
+        "label": "Term",
         "OpenTerm": {
           "text": "Open Term",
           "tooltip": "Withdrawal requests are possible at any time."

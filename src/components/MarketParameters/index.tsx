@@ -4,7 +4,6 @@ import { Box, Divider, Typography, useTheme } from "@mui/material"
 import { MarketVersion, HooksKind } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
-import { useCopyToClipboard } from "react-use"
 
 import { getAdsMarketParameterComponent } from "@/components/AdsBanners/adsHelpers"
 import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
@@ -23,6 +22,10 @@ import {
   toTokenAmountProps,
   trimAddress,
 } from "@/utils/formatters"
+import {
+  getMarketImplementationConfig,
+  getMarketImplementationType,
+} from "@/utils/marketImplementation"
 
 import { MarketParametersProps } from "./interface"
 import {
@@ -229,6 +232,8 @@ export const MarketParameters = ({
     : undefined
 
   const { hooksConfig } = market
+  const implementationType = getMarketImplementationType(market)
+  const implementationConfig = getMarketImplementationConfig(implementationType)
   const depositAccess =
     hooksConfig?.depositRequiresAccess === false ? "open" : "restricted"
 
@@ -410,6 +415,29 @@ export const MarketParameters = ({
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
                 title={t(
+                  "borrowerMarketDetails.parameters.marketImplementation.label",
+                )}
+                value={implementationConfig.label}
+              />
+              <Divider sx={{ margin: "12px 0 12px" }} />
+              {market.version === MarketVersion.V2 && market.hooksKind && (
+                <>
+                  <ParametersItem
+                    title={t(
+                      "borrowerMarketDetails.parameters.marketTerm.label",
+                    )}
+                    value={t(
+                      `borrowerMarketDetails.parameters.marketTerm.${market.hooksKind}.text`,
+                    )}
+                    valueTooltipText={t(
+                      `borrowerMarketDetails.parameters.marketTerm.${market.hooksKind}.tooltip`,
+                    )}
+                  />
+                  <Divider sx={{ margin: "12px 0 12px" }} />
+                </>
+              )}
+              <ParametersItem
+                title={t(
                   "borrowerMarketDetails.parameters.minimumDeposit.label",
                 )}
                 // value={t(
@@ -423,22 +451,6 @@ export const MarketParameters = ({
                       ),
                     })}
               />
-              {market.version === MarketVersion.V2 && (
-                <>
-                  <Divider sx={{ margin: "12px 0 12px" }} />
-                  <ParametersItem
-                    title={t(
-                      "borrowerMarketDetails.parameters.marketType.label",
-                    )}
-                    value={t(
-                      `borrowerMarketDetails.parameters.marketType.${market.hooksKind}.text`,
-                    )}
-                    valueTooltipText={t(
-                      `borrowerMarketDetails.parameters.marketType.${market.hooksKind}.tooltip`,
-                    )}
-                  />
-                </>
-              )}
               {market.hooksConfig?.kind === HooksKind.FixedTerm && (
                 <>
                   <Divider sx={{ margin: "12px 0 12px" }} />
