@@ -7,7 +7,6 @@ import {
   getLatestLensContract,
   getPolicyMarketsAndLenders,
   Market,
-  MarketVersion,
   SignerOrProvider,
   SupportedChainId,
   getSubgraphClient,
@@ -18,6 +17,10 @@ import { useAccount } from "wagmi"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import {
+  getMarketPolicyAddress,
+  isHooksManagedMarket,
+} from "@/utils/marketCapabilities"
 
 export const useGetMarketLenders = (market?: Market) => {
   const { signer, provider, chainId } = useEthersProvider({
@@ -35,10 +38,7 @@ export const useGetMarketLenders = (market?: Market) => {
     if (!signerOrProvider) throw new Error("Signer or provider undefined")
     if (!targetChainId) throw new Error("Chain ID undefined") // Should never happen
     if (!subgraphClient) throw new Error("Subgraph client undefined")
-    const policy =
-      market.version === MarketVersion.V2
-        ? market.hooksConfig?.hooksAddress
-        : market.controller
+    const policy = getMarketPolicyAddress(market)
     assert(policy !== undefined, `Policy undefined ${policy}`)
     const [{ lenders: policyLenders }, activeLenders] = await Promise.all([
       getPolicyMarketsAndLenders(subgraphClient, {
@@ -79,7 +79,7 @@ export const useGetMarketLenders = (market?: Market) => {
           }),
       ),
     ]
-    if (market.version === MarketVersion.V2) {
+    if (isHooksManagedMarket(market)) {
       const lens = getLatestLensContract(targetChainId, signerOrProvider)
       const updates = await lens.getLenderAccountsData(
         market.address,

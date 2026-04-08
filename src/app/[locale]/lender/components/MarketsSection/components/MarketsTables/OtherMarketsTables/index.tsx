@@ -3,11 +3,7 @@ import * as React from "react"
 
 import { Box, Button, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
-import {
-  DepositStatus,
-  MarketVersion,
-  TokenAmount,
-} from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
@@ -45,6 +41,7 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import { isSelfOnboardMarketAccount } from "@/utils/marketCapabilities"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -140,10 +137,7 @@ export const OtherMarketsTables = ({
         withdrawalBatchDuration,
         debt: totalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
-        isSelfOnboard:
-          !account.hasEverInteracted &&
-          market.version === MarketVersion.V2 &&
-          account.depositAvailability === DepositStatus.Ready,
+        isSelfOnboard: isSelfOnboardMarketAccount(account),
         button: address,
         chainId,
       }

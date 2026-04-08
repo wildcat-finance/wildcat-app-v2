@@ -3,11 +3,7 @@ import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
-import {
-  DepositStatus,
-  MarketVersion,
-  TokenAmount,
-} from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -44,6 +40,7 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import { isSelfOnboardMarketAccount } from "@/utils/marketCapabilities"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -141,10 +138,7 @@ export const OtherMarketsTables = ({
         borrowable: borrowableAssets,
         debt: totalSupply,
         withdrawalBatchDuration,
-        isSelfOnboard:
-          !account.hasEverInteracted &&
-          market.version === MarketVersion.V2 &&
-          account.depositAvailability === DepositStatus.Ready,
+        isSelfOnboard: isSelfOnboardMarketAccount(account),
       }
     },
   )
