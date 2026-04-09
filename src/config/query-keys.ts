@@ -301,6 +301,20 @@ const WRAPPER_QUERY_KEYS = {
     k(["wrapper", "GET_ALLOWANCE", chainId, wrapperAddress, account]),
   GET_LIMITS: (chainId: number, wrapperAddress?: string, account?: string) =>
     k(["wrapper", "GET_LIMITS", chainId, wrapperAddress, account]),
+  GET_ADOPTION: (
+    chainId: number,
+    wrapperAddress?: string,
+    viewerType?: string,
+    account?: string,
+  ) =>
+    k([
+      "wrapper",
+      "GET_ADOPTION",
+      chainId,
+      wrapperAddress,
+      viewerType,
+      account,
+    ]),
   PREVIEW: (
     wrapperAddress?: string,
     tab?: string,
