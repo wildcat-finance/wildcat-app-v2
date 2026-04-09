@@ -49,7 +49,7 @@ export const LenderRestrictionsForm = ({
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.lenderRestrictions.title")}
+        {t("createMarket.restrictions.title")}
       </Typography>
 
       <Box
@@ -61,11 +61,9 @@ export const LenderRestrictionsForm = ({
         }}
       >
         <HorizontalInputLabel
-          label={t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
-          )}
+          label={t("createMarket.restrictions.restrictWithdrawals.label")}
           explainer={t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.explainer",
+            "createMarket.restrictions.restrictWithdrawals.explainer",
           )}
         >
           <Switch
@@ -77,12 +75,8 @@ export const LenderRestrictionsForm = ({
         </HorizontalInputLabel>
 
         <HorizontalInputLabel
-          label={t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.label",
-          )}
-          explainer={t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.explainer",
-          )}
+          label={t("createMarket.restrictions.restrictTransfers.label")}
+          explainer={t("createMarket.restrictions.restrictTransfers.explainer")}
         >
           <Switch
             checked={transferRequiresAccessWatch}
@@ -93,10 +87,8 @@ export const LenderRestrictionsForm = ({
         </HorizontalInputLabel>
 
         <HorizontalInputLabel
-          label={t("createNewMarket.lenderRestrictions.disableTransfers.label")}
-          explainer={t(
-            "createNewMarket.lenderRestrictions.disableTransfers.explainer",
-          )}
+          label={t("createMarket.restrictions.disableTransfers.label")}
+          explainer={t("createMarket.restrictions.disableTransfers.explainer")}
         >
           <Switch
             checked={disableTransfersWatch}

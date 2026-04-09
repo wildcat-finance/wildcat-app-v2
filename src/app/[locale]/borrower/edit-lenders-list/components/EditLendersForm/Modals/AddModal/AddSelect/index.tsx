@@ -125,7 +125,7 @@ export const AddSelect = ({
   return (
     <FormControl fullWidth>
       <InputLabel disabled={disabled} sx={InputLabelStyle}>
-        {t("editLendersList.modals.add.atLeastOne")}
+        {t("editLenders.addModal.atLeastOne")}
       </InputLabel>
 
       <Select
@@ -173,7 +173,7 @@ export const AddSelect = ({
             onChange={handleChangeMarketName}
             fullWidth
             size="small"
-            placeholder={t("editLendersList.modals.add.searchByName")}
+            placeholder={t("editLenders.addModal.searchByName")}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -194,7 +194,7 @@ export const AddSelect = ({
 
         <Box sx={VariantsContainer}>
           <FormControlLabel
-            label={t("editLendersList.modals.add.allMarkets")}
+            label={t("editLenders.addModal.allMarkets")}
             control={
               <ExtendedCheckbox
                 onChange={handleSelectAllMarkets}
@@ -242,7 +242,7 @@ export const AddSelect = ({
           color="secondary"
           sx={{ width: "100%", marginTop: "24px" }}
         >
-          {t("editLendersList.modals.add.reset")}
+          {t("editLenders.addModal.reset")}
         </Button>
       </Select>
     </FormControl>

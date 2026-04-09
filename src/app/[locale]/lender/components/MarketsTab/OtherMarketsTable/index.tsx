@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react"
 
 import { Box, Tab, Tabs, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
+import { useTranslation } from "react-i18next"
 
 import { MarketsTableAccordion } from "@/app/[locale]/lender/components/MarketsTab/MarketsTableAccordion"
 import { TablePagination } from "@/components/TablePagination"
@@ -18,6 +19,7 @@ export const OtherMarketsTable = ({
   assetFilter,
   nameFilter,
 }: OtherMarketsTableProps) => {
+  const { t } = useTranslation()
   const [tab, setTab] = useState<"all" | "selfOnboard">("selfOnboard")
   const [paginationModel, setPaginationModel] = React.useState({
     pageSize: 10,
@@ -43,7 +45,7 @@ export const OtherMarketsTable = ({
   return (
     <MarketsTableAccordion
       type="other"
-      label="Other Markets"
+      label={t("marketDetailsLender.marketsTab.otherMarkets")}
       marketsLength={tableRows.length}
       isLoading={isLoading}
       isOpen
@@ -65,8 +67,12 @@ export const OtherMarketsTable = ({
               backgroundColor: COLORS.athensGrey,
             }}
           />
-          <Tab value="selfOnboard" label="Self-Onboard" sx={TabStyle} />
-          <Tab value="all" label="All" sx={TabStyle} />
+          <Tab
+            value="selfOnboard"
+            label={t("marketDetailsLender.marketsTab.selfOnboard")}
+            sx={TabStyle}
+          />
+          <Tab value="all" label={t("common.labels.all")} sx={TabStyle} />
           <Box
             sx={{
               width: "100%",
@@ -100,10 +106,10 @@ export const OtherMarketsTable = ({
           height="270px"
         >
           <Typography variant="title3" color={COLORS.blackRock}>
-            No Self-Onboard Markets Available
+            {t("marketDetailsLender.marketsTab.noSelfOnboardTitle")}
           </Typography>
           <Typography variant="text3" color={COLORS.santasGrey}>
-            No self-onboarding markets are available right now.
+            {t("marketDetailsLender.marketsTab.noSelfOnboardSubtitle")}
           </Typography>
         </Box>
       )}
@@ -129,13 +135,19 @@ export const OtherMarketsTable = ({
         !defaultFilters && (
           <Box display="flex" flexDirection="column" padding="24px 16px 12px">
             <Typography variant="text2" color={COLORS.santasGrey}>
-              There are no{" "}
-              {statusFilter?.length !== 0 &&
-                statusFilter?.map((status) => ` ${status.toLowerCase()}`)}{" "}
-              {nameFilter === "" ? "" : nameFilter}{" "}
-              {assetFilter?.length !== 0 &&
-                `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
-              markets right now.
+              {t("lenderMarketList.noFilteredMarketsAll", {
+                statusFilter:
+                  statusFilter?.length !== 0
+                    ? statusFilter
+                        ?.map((status) => ` ${status.toLowerCase()}`)
+                        .join("")
+                    : "",
+                nameFilter: nameFilter === "" ? "" : nameFilter,
+                assetFilter:
+                  assetFilter?.length !== 0
+                    ? assetFilter?.map((asset) => ` ${asset.name}`).join("")
+                    : "",
+              })}
             </Typography>
           </Box>
         )}

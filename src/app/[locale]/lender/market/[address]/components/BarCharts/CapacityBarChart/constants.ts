@@ -1,7 +1,7 @@
 export const MARKET_BAR_DATA = {
   myLoan: {
     id: "myLoan",
-    label: "Your Loan",
+    label: "marketDetailsLender.barchart.capacityLabels.yourLoan",
     healthyBgColor: "#4971FF",
     delinquentBgColor: "#4971FF",
     healthyTextColor: "#FFFFFF",
@@ -9,7 +9,7 @@ export const MARKET_BAR_DATA = {
   },
   otherLoans: {
     id: "otherLoans",
-    label: "Others",
+    label: "marketDetailsLender.barchart.capacityLabels.others",
     healthyBgColor: "#EFF0F4",
     delinquentBgColor: "#EFF0F4",
     healthyTextColor: "#1414144D",
@@ -17,7 +17,7 @@ export const MARKET_BAR_DATA = {
   },
   loaned: {
     id: "loaned",
-    label: "Loaned",
+    label: "marketDetailsLender.barchart.capacityLabels.loaned",
     healthyBgColor: "#EFF0F4",
     delinquentBgColor: "#EFF0F4",
     healthyTextColor: "#1414144D",
@@ -25,7 +25,7 @@ export const MARKET_BAR_DATA = {
   },
   availableToLend: {
     id: "availableToLend",
-    label: "Available to Lend",
+    label: "marketDetailsLender.barchart.capacityLabels.availableToLend",
     healthyBgColor: "#E4EBFE",
     delinquentBgColor: "#E4EBFE",
     healthyTextColor: "#4971FF",

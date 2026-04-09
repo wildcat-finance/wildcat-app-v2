@@ -1,3 +1,4 @@
+/* eslint-disable i18next/no-literal-string */
 import { Box, Typography } from "@mui/material"
 
 export const AgreementText = () => (

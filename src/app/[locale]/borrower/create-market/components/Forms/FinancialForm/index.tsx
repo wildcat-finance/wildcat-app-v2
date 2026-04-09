@@ -101,7 +101,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.financial.title")}
+        {t("createMarket.financial.title")}
       </Typography>
 
       <Box
@@ -110,9 +110,9 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
           gap: "38px 10px",
         }}
       >
-        <InputLabel label={t("createNewMarket.financial.maxCapacity.label")}>
+        <InputLabel label={t("createMarket.financial.maxCapacity.label")}>
           <NumberTextField
-            label={t("createNewMarket.financial.maxCapacity.placeholder")}
+            label={t("createMarket.financial.maxCapacity.placeholder")}
             value={getValues("maxTotalSupply")}
             decimalScale={tokenAsset?.decimals}
             // onBlur={(v) => {
@@ -132,52 +132,52 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
                 size="regular"
                 text={
                   tokenAsset?.symbol ||
-                  `${t("createNewMarket.financial.maxCapacity.chip")}`
+                  `${t("createMarket.financial.maxCapacity.chip")}`
                 }
               />
             }
           />
         </InputLabel>
 
-        <InputLabel label={t("createNewMarket.financial.baseAPR.label")}>
+        <InputLabel label={t("createMarket.financial.baseAPR.label")}>
           <NumberTextField
             min={0}
             max={100}
             decimalScale={2}
-            label={t("createNewMarket.financial.baseAPR.placeholder")}
+            label={t("createMarket.financial.baseAPR.placeholder")}
             value={getValues("annualInterestBips")}
             error={Boolean(errors.annualInterestBips)}
             helperText={errors.annualInterestBips?.message}
             endAdornment={
               <Typography variant="text2" sx={endDecorator}>
-                {t("createNewMarket.financial.baseAPR.chip")}
+                {t("createMarket.financial.baseAPR.chip")}
               </Typography>
             }
             {...register("annualInterestBips")}
           />
         </InputLabel>
 
-        <InputLabel label={t("createNewMarket.financial.penaltyAPR.label")}>
+        <InputLabel label={t("createMarket.financial.penaltyAPR.label")}>
           <NumberTextField
             min={0}
             max={100}
             decimalScale={2}
-            label={t("createNewMarket.financial.penaltyAPR.placeholder")}
+            label={t("createMarket.financial.penaltyAPR.placeholder")}
             value={getValues("delinquencyFeeBips")}
             error={Boolean(errors.delinquencyFeeBips)}
             helperText={errors.delinquencyFeeBips?.message}
             endAdornment={
               <Typography variant="text2" sx={endDecorator}>
-                {t("createNewMarket.financial.penaltyAPR.chip")}
+                {t("createMarket.financial.penaltyAPR.chip")}
               </Typography>
             }
             {...register("delinquencyFeeBips")}
           />
         </InputLabel>
 
-        <InputLabel label={t("createNewMarket.financial.ratio.label")}>
+        <InputLabel label={t("createMarket.financial.ratio.label")}>
           <NumberTextField
-            label={t("createNewMarket.financial.ratio.placeholder")}
+            label={t("createMarket.financial.ratio.placeholder")}
             min={0}
             max={100}
             decimalScale={2}
@@ -186,39 +186,39 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
             helperText={errors.reserveRatioBips?.message}
             endAdornment={
               <Typography variant="text2" sx={endDecorator}>
-                {t("createNewMarket.financial.ratio.chip")}
+                {t("createMarket.financial.ratio.chip")}
               </Typography>
             }
             {...register("reserveRatioBips")}
           />
         </InputLabel>
 
-        <InputLabel label={t("createNewMarket.periods.grace.label")}>
+        <InputLabel label={t("createMarket.periods.grace.label")}>
           <NumberTextField
             decimalScale={2}
-            label={t("createNewMarket.periods.grace.placeholder")}
+            label={t("createMarket.periods.grace.placeholder")}
             value={delinquencyGracePeriodWatch}
             error={Boolean(errors.delinquencyGracePeriod)}
             helperText={errors.delinquencyGracePeriod?.message}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-                {t("createNewMarket.periods.grace.chip")}
+                {t("createMarket.periods.grace.chip")}
               </Typography>
             }
             {...register("delinquencyGracePeriod")}
           />
         </InputLabel>
 
-        <InputLabel label={t("createNewMarket.periods.wdCycle.label")}>
+        <InputLabel label={t("createMarket.periods.wdCycle.label")}>
           <NumberTextField
             decimalScale={2}
-            label={t("createNewMarket.periods.wdCycle.placeholder")}
+            label={t("createMarket.periods.wdCycle.placeholder")}
             value={withdrawalBatchDurationWatch}
             error={Boolean(errors.withdrawalBatchDuration)}
             helperText={errors.withdrawalBatchDuration?.message}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-                {t("createNewMarket.periods.wdCycle.chip")}
+                {t("createMarket.periods.wdCycle.chip")}
               </Typography>
             }
             {...register("withdrawalBatchDuration")}
@@ -241,19 +241,19 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
               <MediumWarning />
             </SvgIcon>
             <Typography variant="text3" sx={{ color: COLORS.butteredRum }}>
-              {t("createNewMarket.periods.graceVsWithdrawalWarning")}
+              {t("createMarket.periods.graceVsWithdrawalWarning")}
             </Typography>
           </Box>
         )}
       </Box>
 
       <InputLabel
-        label={t("createNewMarket.financial.minDeposit.label")}
-        subtitle={t("createNewMarket.financial.minDeposit.explainer")}
+        label={t("createMarket.financial.minDeposit.label")}
+        subtitle={t("createMarket.financial.minDeposit.explainer")}
         margin="36px 0 0 0"
       >
         <NumberTextField
-          label={t("createNewMarket.financial.minDeposit.placeholder")}
+          label={t("createMarket.financial.minDeposit.placeholder")}
           max={getValues("maxTotalSupply")}
           value={getValues("minimumDeposit")}
           onValueChange={(v) => {
@@ -269,7 +269,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
               size="regular"
               text={
                 tokenAsset?.symbol ||
-                `${t("createNewMarket.financial.minDeposit.chip")}`
+                `${t("createMarket.financial.minDeposit.chip")}`
               }
             />
           }

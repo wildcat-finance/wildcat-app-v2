@@ -41,7 +41,7 @@ export const WithdrawalRequests = ({
     {
       sortable: false,
       field: "lender",
-      headerName: t("lenderMarketDetails.requests.tableColumns.lender"),
+      headerName: t("marketDetails.withdrawals.tableColumns.lender"),
       minWidth: 176,
       headerAlign: "left",
       align: "left",
@@ -55,7 +55,7 @@ export const WithdrawalRequests = ({
     {
       sortable: false,
       field: "dateSubmitted",
-      headerName: t("lenderMarketDetails.requests.tableColumns.date"),
+      headerName: t("marketDetails.withdrawals.tableColumns.date"),
       minWidth: 216,
       headerAlign: "left",
       align: "left",
@@ -63,7 +63,7 @@ export const WithdrawalRequests = ({
     {
       sortable: false,
       field: "transactionId",
-      headerName: t("lenderMarketDetails.requests.tableColumns.txID"),
+      headerName: t("marketDetails.withdrawals.tableColumns.txID"),
       minWidth: 216,
       headerAlign: "left",
       align: "left",
@@ -78,7 +78,7 @@ export const WithdrawalRequests = ({
     {
       sortable: false,
       field: "amount",
-      headerName: t("lenderMarketDetails.requests.tableColumns.amount"),
+      headerName: t("marketDetails.withdrawals.tableColumns.amount"),
       minWidth: 120,
       flex: 1,
       headerAlign: "right",
@@ -96,12 +96,12 @@ export const WithdrawalRequests = ({
         }}
       >
         <Typography variant={isMobile ? "mobH3" : "title3"}>
-          {t("lenderMarketDetails.requests.title")}
+          {t("marketDetails.withdrawals.openWithdrawals")}
         </Typography>
 
         <Box sx={TotalAccordionSummary(theme)}>
           <Typography variant={isMobile ? "mobText3" : "text2"}>
-            {t("lenderMarketDetails.requests.total")}
+            {t("marketDetails.withdrawals.total")}
           </Typography>
 
           <TextfieldChip

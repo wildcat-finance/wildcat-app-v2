@@ -155,7 +155,7 @@ export const ProfileDialog = ({
                   variant="text2"
                   sx={{ width: "100%", fontWeight: 600, textAlign: "left" }}
                 >
-                  View Profile
+                  {t("header.button.viewProfile")}
                 </Typography>
               </Button>
             </Link>

@@ -99,7 +99,7 @@ export const BorrowerDashboardSidebar = () => {
       }}
     >
       <DashboardPageAccordion
-        label={t("dashboard.markets.title")}
+        label={t("dashboard.title")}
         amount={marketsAmount}
         open={section === BorrowerDashboardSections.MARKETS}
         onClick={() => handleChangeSection(BorrowerDashboardSections.MARKETS)}
@@ -111,7 +111,7 @@ export const BorrowerDashboardSidebar = () => {
       >
         {showFullFunctionality && (
           <DashboardSectionAccordion
-            label={t("dashboard.markets.tables.borrower.active.title")}
+            label={t("dashboard.tables.borrower.activeTitle")}
             amount={activeMarketsAmount}
             open={
               marketSection === BorrowerMarketDashboardSections.ACTIVE &&
@@ -122,12 +122,12 @@ export const BorrowerDashboardSidebar = () => {
             }
           >
             <DashboardButton
-              label={t("dashboard.markets.tables.borrower.active.deposited")}
+              label={t("dashboard.tables.borrower.deposited")}
               amount={depositedAmount}
               onClick={() => handleScrollToTable("deposited")}
             />
             <DashboardButton
-              label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
+              label={t("dashboard.tables.borrower.nonDeposited")}
               amount={nonDepositedAmount}
               onClick={() => handleScrollToTable("non-deposited")}
             />
@@ -136,7 +136,7 @@ export const BorrowerDashboardSidebar = () => {
 
         {showFullFunctionality && (
           <DashboardSectionAccordion
-            label={t("dashboard.markets.tables.borrower.closed.title")}
+            label={t("dashboard.tables.borrower.closedTitle")}
             amount={closedMarketsAmount}
             open={
               marketSection === BorrowerMarketDashboardSections.TERMINATED &&
@@ -149,12 +149,12 @@ export const BorrowerDashboardSidebar = () => {
             }
           >
             <DashboardButton
-              label={t("dashboard.markets.tables.borrower.closed.prevActive")}
+              label={t("dashboard.tables.borrower.prevActive")}
               amount={prevActiveAmount}
               onClick={() => handleScrollToTable("prev-active")}
             />
             <DashboardButton
-              label={t("dashboard.markets.tables.borrower.closed.neverActive")}
+              label={t("dashboard.tables.borrower.neverActive")}
               amount={neverActiveAmount}
               onClick={() => handleScrollToTable("never-active")}
             />
@@ -162,7 +162,7 @@ export const BorrowerDashboardSidebar = () => {
         )}
 
         <DashboardSectionAccordion
-          label={t("dashboard.markets.tables.other.title")}
+          label={t("dashboard.tables.other.title")}
           amount={otherMarketsAmount}
           open={marketSection === BorrowerMarketDashboardSections.OTHER}
           onClick={() =>
@@ -170,17 +170,17 @@ export const BorrowerDashboardSidebar = () => {
           }
         >
           <DashboardButton
-            label={t("dashboard.markets.tables.other.selfOnboard")}
+            label={t("dashboard.tables.other.selfOnboard")}
             amount={selfOnboardAmount}
             onClick={() => handleScrollToTable("self-onboard")}
           />
           <DashboardButton
-            label={t("dashboard.markets.tables.other.manual")}
+            label={t("dashboard.tables.other.manual")}
             amount={manualAmount}
             onClick={() => handleScrollToTable("manual")}
           />
           <DashboardButton
-            label={t("dashboard.markets.tables.other.terminated")}
+            label={t("dashboard.tables.other.terminated")}
             amount={terminatedOtherAmount}
             onClick={() => handleScrollToTable("other-terminated")}
           />

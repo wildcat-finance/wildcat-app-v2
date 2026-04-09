@@ -149,10 +149,19 @@ export const MarketsSection = () => {
   const { t } = useTranslation()
 
   const withdrawalCycleOptions = [
-    { id: "0-86400", name: "≤ 24h" },
-    { id: "86401-259200", name: "1 - 3 days" },
-    { id: "259201-604800", name: "3 - 7 days" },
-    { id: "604801-Infinity", name: "7+ days" },
+    { id: "0-86400", name: t("dashboard.withdrawalCycleFilter.lessThan24h") },
+    {
+      id: "86401-259200",
+      name: t("dashboard.withdrawalCycleFilter.oneToThreeDays"),
+    },
+    {
+      id: "259201-604800",
+      name: t("dashboard.withdrawalCycleFilter.threeToSevenDays"),
+    },
+    {
+      id: "604801-Infinity",
+      name: t("dashboard.withdrawalCycleFilter.sevenPlusDays"),
+    },
   ]
 
   const {
@@ -400,7 +409,7 @@ export const MarketsSection = () => {
             }}
           >
             <Typography variant="title2" sx={{ marginBottom: "6px" }}>
-              {t("dashboard.markets.title")}
+              {t("dashboard.title")}
             </Typography>
 
             {isConnected &&
@@ -431,7 +440,7 @@ export const MarketsSection = () => {
                     )
                   }
                 >
-                  {t("dashboard.markets.lenderTitleButton")}
+                  {t("dashboard.lenderButton")}
                 </Button>
               ))}
           </Box>
@@ -441,14 +450,14 @@ export const MarketsSection = () => {
             color={COLORS.santasGrey}
             sx={{ marginBottom: "24px", padding: "0 24px" }}
           >
-            {t("dashboard.markets.lenderSubtitle")}{" "}
+            {t("dashboard.lenderSubtitle")}{" "}
             <Link
               href="https://docs.wildcat.finance/using-wildcat/day-to-day-usage/lenders"
               style={{ color: COLORS.santasGrey }}
               target="_blank"
               rel="noreferrer"
             >
-              {t("dashboard.markets.docsLink")}
+              {t("dashboard.docsLink")}
             </Link>
           </Typography>
 
@@ -522,7 +531,7 @@ export const MarketsSection = () => {
             >
               <Box sx={{ display: "flex", gap: "6px" }}>
                 <MarketsFilterSelect
-                  placeholder={t("dashboard.markets.filters.assets")}
+                  placeholder={t("dashboard.filters.assets")}
                   options={
                     tokens?.map((token) => ({
                       id: token.address,
@@ -534,14 +543,14 @@ export const MarketsSection = () => {
                 />
 
                 <MarketsFilterSelect
-                  placeholder={t("dashboard.markets.filters.statuses")}
+                  placeholder={t("dashboard.filters.statuses")}
                   options={marketStatusesMock}
                   selected={marketStatuses}
                   setSelected={setMarketStatuses}
                 />
 
                 <MarketsFilterSelect
-                  placeholder="Withdrawal Cycle"
+                  placeholder={t("dashboard.withdrawalCycleFilter.placeholder")}
                   options={withdrawalCycleOptions}
                   selected={marketWithdrawalCycles}
                   setSelected={setMarketWithdrawalCycles}
@@ -551,7 +560,7 @@ export const MarketsSection = () => {
               <FilterTextField
                 value={marketSearch}
                 setValue={setMarketSearch}
-                placeholder={t("dashboard.markets.filters.name")}
+                placeholder={t("dashboard.filters.name")}
                 width="264px"
               />
             </Box>
@@ -646,14 +655,14 @@ export const MarketsSection = () => {
               }}
             >
               <Typography variant="text1" marginBottom="6px">
-                {t("dashboard.markets.noMarkets.lenderAlert.title")}
+                {t("dashboard.emptyStates.lenderAlert.title")}
               </Typography>
               <Typography
                 variant="text3"
                 color={COLORS.santasGrey}
                 marginBottom="24px"
               >
-                {t("dashboard.markets.noMarkets.lenderAlert.subtitle")}
+                {t("dashboard.emptyStates.lenderAlert.subtitle")}
               </Typography>
 
               <Button
@@ -670,7 +679,7 @@ export const MarketsSection = () => {
                   color={COLORS.white}
                   sx={{ fontWeight: 600 }}
                 >
-                  {t("dashboard.markets.noMarkets.lenderAlert.button")}
+                  {t("dashboard.emptyStates.lenderAlert.button")}
                 </Typography>
               </Button>
             </Box>

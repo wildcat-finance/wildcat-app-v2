@@ -21,6 +21,7 @@ import {
   SvgIcon,
   TextField,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import Filter from "@/assets/icons/filter_icon.svg"
 import Icon from "@/assets/icons/search_icon.svg"
@@ -196,6 +197,7 @@ export const SmallFilterSelect = ({
   setSelected,
   width,
 }: SmallFilterSelectProps) => {
+  const { t } = useTranslation()
   const [search, setSearch] = useState("")
 
   const selectRef = useRef<HTMLElement>(null)
@@ -403,7 +405,7 @@ export const SmallFilterSelect = ({
           color="secondary"
           sx={{ width: "100%", marginTop: "12px" }}
         >
-          Reset
+          {t("common.actions.reset")}
         </Button>
       </Select>
     </FormControl>

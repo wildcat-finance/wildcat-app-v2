@@ -33,6 +33,7 @@ import { MarketActionsProps } from "./interface"
 import { useFaucet } from "../../hooks/useFaucet"
 
 const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
+  const { t } = useTranslation()
   const {
     mutate: faucet,
     isPending: isFauceting,
@@ -49,7 +50,9 @@ const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
       sx={{ width: "152px" }}
       onClick={() => faucet()}
     >
-      {isFauceting ? "Requesting Tokens..." : "Faucet"}
+      {isFauceting
+        ? t("marketDetailsLender.faucetButton.requesting")
+        : t("marketDetailsLender.faucetButton.faucet")}
     </Button>
   )
 }
@@ -115,7 +118,7 @@ export const MarketActions = ({
 
     if (!isOngoingWDsZero) {
       parts.push(
-        t("lenderMarketDetails.transactions.withdrawalsAlert.title.ongoing", {
+        t("marketDetailsLender.withdrawalsAlert.title.ongoing", {
           count: ongoingCount,
         }),
       )
@@ -123,18 +126,15 @@ export const MarketActions = ({
 
     if (!isOutstandingZero) {
       parts.push(
-        t(
-          "lenderMarketDetails.transactions.withdrawalsAlert.title.outstanding",
-          {
-            count: outstandingCount,
-          },
-        ),
+        t("marketDetailsLender.withdrawalsAlert.title.outstanding", {
+          count: outstandingCount,
+        }),
       )
     }
 
     if (!isClaimableZero) {
       parts.push(
-        t("lenderMarketDetails.transactions.withdrawalsAlert.title.claim", {
+        t("marketDetailsLender.withdrawalsAlert.title.claim", {
           claimableAmount: `${formatTokenWithCommas(
             withdrawals.totalClaimableAmount,
           )} ${market.underlyingToken.symbol}`,
@@ -143,12 +143,9 @@ export const MarketActions = ({
     }
 
     if (parts.length === 0) {
-      return t(
-        "lenderMarketDetails.transactions.withdrawalsAlert.title.noClaim",
-        {
-          claim: "nothing",
-        },
-      )
+      return t("marketDetailsLender.withdrawalsAlert.title.noClaim", {
+        claim: "nothing",
+      })
     }
 
     return parts.join(" · ")
@@ -173,7 +170,7 @@ export const MarketActions = ({
           onClick={() => handleAddToken()}
           disabled={isAddingToken && canAddToken}
         >
-          {t("lenderMarketDetails.buttons.addToken")}
+          {t("marketDetailsLender.actions.addToken")}
         </Button>
 
         <LenderMlaModal mla={mla} isLoading={mlaLoading} />
@@ -210,7 +207,7 @@ export const MarketActions = ({
             <TelegramIcon />
           </SvgIcon>
 
-          {t("helpModal.items.telegram.botButton")}
+          {t("helpCenter.items.telegram.botButton")}
         </Button>
       </Box>
 
@@ -219,21 +216,25 @@ export const MarketActions = ({
       <Box width="100%" display="flex" flexDirection="column">
         {(() => {
           if (mlaLoading || signedMlaLoading) {
-            return <Typography variant="title3">Loading MLA Data...</Typography>
+            return (
+              <Typography variant="title3">
+                {t("marketDetailsLender.mla.loadingMlaData")}
+              </Typography>
+            )
           }
 
           if (mlaRequiredAndUnsigned) {
             return (
               <>
                 <Typography variant="title3" sx={{ marginBottom: "8px" }}>
-                  Loan Agreement Signature Required
+                  {t("marketDetailsLender.mla.signatureRequired")}
                 </Typography>
                 <Typography
                   variant="text3"
                   sx={{ marginBottom: isClaimableZero ? "0" : "24px" }}
                   color={COLORS.santasGrey}
                 >
-                  You need to sign the MLA before you can access this market.
+                  {t("marketDetailsLender.mla.signatureRequiredSubtitle")}
                 </Typography>
               </>
             )
@@ -242,8 +243,8 @@ export const MarketActions = ({
           return (
             <Box sx={TransactionsContainer}>
               <TransactionBlock
-                title={t("lenderMarketDetails.transactions.deposit.title")}
-                tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
+                title={t("marketDetailsLender.transactions.deposit.title")}
+                tooltip={t("marketDetailsLender.transactions.deposit.tooltip")}
                 amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
                 asset={market.underlyingToken.symbol}
               >
@@ -252,8 +253,8 @@ export const MarketActions = ({
               </TransactionBlock>
 
               <TransactionBlock
-                title={t("lenderMarketDetails.transactions.withdraw.title")}
-                tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
+                title={t("marketDetailsLender.transactions.withdraw.title")}
+                tooltip={t("marketDetailsLender.transactions.withdraw.tooltip")}
                 amount={
                   isTooSmallMarketBalance
                     ? `< 0.00001`
@@ -276,7 +277,7 @@ export const MarketActions = ({
         <Typography variant="title3">{getWithdrawalsStatus()}</Typography>
         {isClaimableZero && (
           <Typography variant="text3" color={COLORS.santasGrey} marginTop="8px">
-            {t("lenderMarketDetails.transactions.withdrawalsAlert.subtitle")}
+            {t("marketDetailsLender.withdrawalsAlert.subtitle")}
           </Typography>
         )}
 
@@ -297,9 +298,7 @@ export const MarketActions = ({
                 sx={{ width: "fit-content" }}
                 onClick={handleChangeSection}
               >
-                {t(
-                  "lenderMarketDetails.transactions.withdrawalsAlert.buttons.withdrawals",
-                )}
+                {t("marketDetailsLender.withdrawalsAlert.buttons.withdrawals")}
               </Button>
             )}
 

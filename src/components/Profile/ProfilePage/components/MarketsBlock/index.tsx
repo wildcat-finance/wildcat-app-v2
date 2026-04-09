@@ -70,7 +70,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
   const columns: GridColDef[] = [
     {
       field: "name",
-      headerName: t("borrowerProfile.profile.activeMarkets.table.name"),
+      headerName: t("borrowerProfile.activeMarkets.nameHeader"),
       flex: 2,
       minWidth: 200,
       headerAlign: "left",
@@ -106,7 +106,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "status",
-      headerName: t("borrowerProfile.profile.activeMarkets.table.status"),
+      headerName: t("borrowerProfile.activeMarkets.statusHeader"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -128,7 +128,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "term",
-      headerName: t("borrowerProfile.profile.activeMarkets.table.term"),
+      headerName: t("borrowerProfile.activeMarkets.termHeader"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -150,7 +150,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "asset",
-      headerName: t("borrowerProfile.profile.activeMarkets.table.asset"),
+      headerName: t("borrowerProfile.activeMarkets.assetHeader"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -169,7 +169,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "withdrawalBatchDuration",
-      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      headerName: t("dashboard.tables.header.withdrawal"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -188,7 +188,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "apr",
-      headerName: t("borrowerProfile.profile.activeMarkets.table.apr"),
+      headerName: t("borrowerProfile.activeMarkets.aprHeader"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -205,7 +205,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "debt",
-      headerName: t("borrowerProfile.profile.activeMarkets.table.debt"),
+      headerName: t("borrowerProfile.activeMarkets.debtHeader"),
       flex: 1,
       minWidth: 100,
       headerAlign: "right",
@@ -235,7 +235,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
   return (
     <Box marginTop="32px" marginBottom="44px">
       <Typography variant="title3">
-        {t("borrowerProfile.profile.activeMarkets.title")}
+        {t("borrowerProfile.activeMarkets.title")}
       </Typography>
       <DataGrid
         getRowHeight={() => "auto"}

@@ -2,6 +2,7 @@ import React, { useState } from "react"
 
 import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { usePathname } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import { getAdsMobileContent } from "@/components/AdsBanners/adsHelpers"
 import { ROUTES } from "@/routes"
@@ -50,6 +51,7 @@ export const MobileMarketList = ({
   markets: LenderMobileMarketItem[]
   isLoading: boolean
 }) => {
+  const { t } = useTranslation()
   const [page, setPage] = useState(0)
   const pathname = usePathname()
 
@@ -84,9 +86,11 @@ export const MobileMarketList = ({
           alignItems: "center",
         }}
       >
-        <Typography variant="mobH3">No Markets Here</Typography>
+        <Typography variant="mobH3">
+          {t("dashboard.emptyStates.noMarketsHere")}
+        </Typography>
         <Typography variant="mobText3" color={COLORS.santasGrey}>
-          Change selected filters or check other sections
+          {t("dashboard.emptyStates.changeFilters")}
         </Typography>
       </Box>
     )
@@ -114,7 +118,7 @@ export const MobileMarketList = ({
               adsComponent={getAdsMobileContent(marketItem.id)}
               key={marketItem.id}
               marketItem={marketItem}
-              buttonText="Deposit"
+              buttonText={t("dashboard.tables.other.depositButton")}
               buttonIcon
               showBorrower={showBorrowerInCard}
             />
@@ -174,7 +178,7 @@ export const MobileMarketList = ({
               borderRadius: "8px",
             }}
           >
-            Prev
+            {t("common.actions.prev")}
           </Button>
 
           <Box sx={{ display: "flex", gap: "8px" }}>
@@ -238,7 +242,7 @@ export const MobileMarketList = ({
               borderRadius: "8px",
             }}
           >
-            Next
+            {t("common.actions.next")}
           </Button>
         </Box>
       )}

@@ -34,14 +34,10 @@ export const LoadingModal = ({
 
           <Box sx={FinalModalTypoBox}>
             <Typography variant="text1">
-              {title ?? (
-                <Trans i18nKey="borrowerMarketDetails.modals.loading.title" />
-              )}
+              {title ?? <Trans i18nKey="common.states.loading.title" />}
             </Typography>
             <Typography variant="text3" sx={FinalModalSubtitle}>
-              {subtitle ?? (
-                <Trans i18nKey="borrowerMarketDetails.modals.loading.subtitle" />
-              )}
+              {subtitle ?? <Trans i18nKey="common.states.loading.subtitle" />}
             </Typography>
           </Box>
         </Box>

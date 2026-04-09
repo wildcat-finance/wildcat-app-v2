@@ -1,6 +1,7 @@
 import React from "react"
 
 import { Box, Button, Divider, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { LinkGroup } from "@/components/LinkComponent"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
@@ -28,6 +29,7 @@ export const WrapperHeader = ({
   disableAddMarketToken,
   disableAddWrappedToken,
 }: WrapperFormHeaderProps) => {
+  const { t } = useTranslation()
   const { getAddressUrl } = useBlockExplorer()
   const isMobile = useMobileResolution()
   const isMobileOpenState = useAppSelector(
@@ -46,7 +48,7 @@ export const WrapperHeader = ({
           color={COLORS.manate}
           sx={{ marginBottom: "6px" }}
         >
-          Wrapper contract
+          {t("wrapDebtToken.labels.wrapperContract")}
         </Typography>
       )}
 
@@ -61,7 +63,7 @@ export const WrapperHeader = ({
         }}
       >
         <Typography variant={isMobile ? "mobH3" : "title3"}>
-          {isMobile ? "Wrapper" : wrapperName}
+          {isMobile ? t("wrapDebtToken.labels.wrapper") : wrapperName}
         </Typography>
 
         <Box
@@ -135,7 +137,7 @@ export const WrapperHeader = ({
               onClick={onAddMarketToken}
               disabled={!onAddMarketToken || disableAddMarketToken}
             >
-              + Add market token
+              {t("wrapDebtToken.buttons.addMarketToken")}
             </Button>
 
             <Button
@@ -145,7 +147,7 @@ export const WrapperHeader = ({
               onClick={onAddWrappedToken}
               disabled={!onAddWrappedToken || disableAddWrappedToken}
             >
-              + Add wrapped token
+              {t("wrapDebtToken.buttons.addWrappedToken")}
             </Button>
           </Box>
         )}

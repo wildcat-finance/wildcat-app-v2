@@ -312,7 +312,9 @@ export const TableSelect = ({
   return (
     <>
       <FormControl fullWidth>
-        <InputLabel sx={InputLabelStyle}>Add market</InputLabel>
+        <InputLabel sx={InputLabelStyle}>
+          {t("editLenders.table.addMarket")}
+        </InputLabel>
 
         <Select
           value={lenderMarkets}
@@ -435,7 +437,7 @@ export const TableSelect = ({
             color="secondary"
             sx={{ width: "100%", marginTop: "12px" }}
           >
-            {t("editLendersList.forms.edit.table.reset")}
+            {t("editLenders.table.reset")}
           </Button>
         </Select>
       </FormControl>

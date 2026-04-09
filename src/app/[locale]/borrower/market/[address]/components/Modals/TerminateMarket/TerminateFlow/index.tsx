@@ -41,7 +41,7 @@ export const TerminateFlow = ({
     >
       {showForm && (
         <TxModalHeader
-          title="Terminate Market"
+          title={t("marketDetailsBorrower.modals.terminate.terminateMarket")}
           arrowOnClick={onClose}
           crossOnClick={null}
         />
@@ -51,14 +51,14 @@ export const TerminateFlow = ({
         <Box sx={TerminateDialogBody}>
           <Box sx={TerminateDialogTypo}>
             <Typography variant="text1" textAlign="center" marginBottom="8px">
-              {t("borrowerMarketDetails.modals.terminate.areYouSure")}
+              {t("marketDetailsBorrower.modals.terminate.areYouSure")}
             </Typography>
             <Typography
               variant="text2"
               color={COLORS.santasGrey}
               textAlign="center"
             >
-              {t("borrowerMarketDetails.modals.terminate.consequences")}
+              {t("marketDetailsBorrower.modals.terminate.consequences")}
             </Typography>
           </Box>
         </Box>
@@ -77,7 +77,9 @@ export const TerminateFlow = ({
       )}
 
       <TxModalFooter
-        mainBtnText="Terminate Market"
+        mainBtnText={t(
+          "marketDetailsBorrower.modals.terminate.terminateMarket",
+        )}
         mainBtnOnClick={handleTerminateMarket}
         hideButtons={!showForm}
       />

@@ -2,6 +2,7 @@ import React from "react"
 
 import { Box, SvgIcon, Typography } from "@mui/material"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import Change from "@/assets/icons/change_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
@@ -83,6 +84,7 @@ export const WrapperExchangeBanner = ({
   convertedShareValue,
   convertedShareSymbol,
 }: WrapperExchangeBannerProps = {}) => {
+  const { t } = useTranslation()
   const isMobile = useMobileResolution()
   const isMobileOpenState = useAppSelector(
     (state) => state.wrapDebtTokenFlow.isMobileOpenedState,
@@ -114,8 +116,8 @@ export const WrapperExchangeBanner = ({
           }}
         >
           <BannerItem
-            title="Market tokens"
-            tooltip="Balance of market (debt) tokens in your wallet."
+            title={t("wrapDebtToken.banner.marketTokens")}
+            tooltip={t("wrapDebtToken.banner.marketTokensTooltip")}
             value={marketValue}
             symbol={marketSymbol || ""}
             align="start"
@@ -129,8 +131,8 @@ export const WrapperExchangeBanner = ({
           </SvgIcon>
 
           <BannerItem
-            title="Wrapped tokens"
-            tooltip="Balance of wrapped (ERC-4626 share) tokens in your wallet."
+            title={t("wrapDebtToken.banner.wrappedTokens")}
+            tooltip={t("wrapDebtToken.banner.wrappedTokensTooltip")}
             value={shareValue}
             symbol={shareSymbol || ""}
             align="end"
@@ -156,7 +158,8 @@ export const WrapperExchangeBanner = ({
               : "24px",
           }}
         >
-          Wrapped holdings value: ~ {convertedShareValue} {convertedShareSymbol}
+          {t("wrapDebtToken.banner.wrappedHoldingsValue")} {convertedShareValue}{" "}
+          {convertedShareSymbol}
         </Typography>
       )}
     </>

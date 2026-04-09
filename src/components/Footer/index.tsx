@@ -106,7 +106,7 @@ export const Footer = ({
             }}
             onClick={handleOpenCookiesModal}
           >
-            Cookies Settings
+            {t("footer.cookiesSettings")}
           </Button>
 
           <Link
@@ -122,7 +122,7 @@ export const Footer = ({
               color={COLORS.white06}
               sx={{ textDecoration: "underline" }}
             >
-              Privacy Policy
+              {t("footer.privacyPolicy")}
             </Typography>
           </Link>
 
@@ -151,7 +151,7 @@ export const Footer = ({
               }}
               onClick={handleOpenCookiesModal}
             >
-              Cookies Settings
+              {t("footer.cookiesSettings")}
             </Button>
 
             <Link
@@ -164,7 +164,8 @@ export const Footer = ({
               }}
             >
               <Typography variant="text4" sx={{ display: "flex", gap: "2px" }}>
-                {t("footer.agreement")} <Box sx={{ rotate: "270deg" }}>⇤</Box>
+                {t("footer.agreement")}{" "}
+                <Box sx={{ rotate: "270deg" }}>{t("footer.arrowSymbol")}</Box>
               </Typography>
             </Link>
 
@@ -177,7 +178,9 @@ export const Footer = ({
                 marginBottom: "8px",
               }}
             >
-              <Typography variant="text4">Privacy Policy</Typography>
+              <Typography variant="text4">
+                {t("footer.privacyPolicy")}
+              </Typography>
             </Link>
           </>
         )}

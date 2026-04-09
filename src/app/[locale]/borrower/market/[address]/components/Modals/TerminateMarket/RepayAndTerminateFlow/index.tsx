@@ -71,7 +71,7 @@ export const RepayAndTerminateFlow = ({
     if (market) {
       if (market.normalizedPendingWithdrawals.gt(0)) {
         values.push({
-          name: "Pending Withdrawals",
+          name: t("marketDetailsBorrower.modals.terminate.pendingWithdrawals"),
           value: formatTokenWithCommas(market.normalizedPendingWithdrawals, {
             withSymbol: true,
           }),
@@ -80,7 +80,9 @@ export const RepayAndTerminateFlow = ({
 
       if (market.normalizedUnclaimedWithdrawals.gt(0)) {
         values.push({
-          name: "Unclaimed Withdrawals",
+          name: t(
+            "marketDetailsBorrower.modals.terminate.unclaimedWithdrawals",
+          ),
           value: formatTokenWithCommas(market.normalizedUnclaimedWithdrawals, {
             withSymbol: true,
           }),
@@ -89,7 +91,7 @@ export const RepayAndTerminateFlow = ({
 
       if (market.outstandingDebt.gt(0)) {
         values.push({
-          name: "Remaining Loan",
+          name: t("marketDetailsBorrower.modals.terminate.remainingLoan"),
           value: formatTokenWithCommas(
             market.underlyingToken.getAmount(market.outstandingTotalSupply),
             {
@@ -102,7 +104,7 @@ export const RepayAndTerminateFlow = ({
       // protocol fees
       if (market.lastAccruedProtocolFees.gt(0)) {
         values.push({
-          name: "Protocol Fees",
+          name: t("marketDetailsBorrower.modals.terminate.protocolFees"),
           value: formatTokenWithCommas(market.lastAccruedProtocolFees, {
             withSymbol: true,
           }),
@@ -233,7 +235,7 @@ export const RepayAndTerminateFlow = ({
     >
       {(showTerminateForm || showRepayedPopup) && (
         <TxModalHeader
-          title="Terminate Market"
+          title={t("marketDetailsBorrower.modals.terminate.terminateMarket")}
           arrowOnClick={modal.hideArrowButton ? null : handleHeaderBackClick}
           crossOnClick={modal.hideCrossButton ? null : onClose}
         />
@@ -243,15 +245,15 @@ export const RepayAndTerminateFlow = ({
         <Box width="100%" height="100%" padding="0 24px">
           <Box sx={TerminateAlertContainer}>
             <Typography color={COLORS.blueRibbon} variant="text3">
-              {t("borrowerMarketDetails.modals.terminate.repayRemaining")}
+              {t("marketDetailsBorrower.modals.terminate.repayRemaining")}
             </Typography>
             <Typography color={COLORS.blueRibbon} variant="text3">
-              {t("borrowerMarketDetails.modals.terminate.learnMore")}
+              {t("marketDetailsBorrower.modals.terminate.learnMore")}
             </Typography>
           </Box>
 
           <Typography variant="text2">
-            {t("borrowerMarketDetails.modals.terminate.debts")}
+            {t("marketDetailsBorrower.modals.terminate.debts")}
           </Typography>
 
           <Box sx={TerminateDetailsContainer}>
@@ -278,7 +280,7 @@ export const RepayAndTerminateFlow = ({
             }}
           >
             <Typography variant="text3">
-              {t("borrowerMarketDetails.modals.terminate.total")}
+              {t("marketDetailsBorrower.modals.terminate.total")}
             </Typography>
             <Typography variant="text3" noWrap color={COLORS.dullRed}>
               {formatTokenWithCommas(market.totalDebts, {
@@ -296,7 +298,7 @@ export const RepayAndTerminateFlow = ({
             }}
           >
             <Typography variant="text2">
-              {t("borrowerMarketDetails.modals.terminate.totalAssets")}
+              {t("marketDetailsBorrower.modals.terminate.totalAssets")}
             </Typography>
 
             <Typography variant="text2" noWrap color="green">
@@ -315,7 +317,7 @@ export const RepayAndTerminateFlow = ({
             }}
           >
             <Typography variant="text2">
-              {t("borrowerMarketDetails.modals.terminate.remainingDebt")}
+              {t("marketDetailsBorrower.modals.terminate.remainingDebt")}
             </Typography>
             <Typography variant="text2" noWrap color={COLORS.dullRed}>
               {formatTokenWithCommas(market.outstandingDebt, {
@@ -342,7 +344,9 @@ export const RepayAndTerminateFlow = ({
                   paddingRight: "16px",
                 }}
               >
-                <Typography variant="text1">Balance</Typography>
+                <Typography variant="text1">
+                  {t("common.labels.balance")}
+                </Typography>
                 <Typography variant="text1" noWrap color={COLORS.blueRibbon}>
                   {formatTokenWithCommas(marketAccount.underlyingBalance, {
                     withSymbol: true,
@@ -351,7 +355,9 @@ export const RepayAndTerminateFlow = ({
               </Box>
 
               <Typography variant="text1">
-                Insufficient balance to repay remaining debts.
+                {t(
+                  "marketDetailsBorrower.modals.terminate.insufficientBalance",
+                )}
               </Typography>
             </Box>
           )}
@@ -394,7 +400,9 @@ export const RepayAndTerminateFlow = ({
               onClick={isProcessed ? handleTerminateMarket : handleRepay}
               fullWidth
             >
-              {isProcessed ? "Terminate Market" : "Try Again"}
+              {isProcessed
+                ? t("marketDetailsBorrower.modals.terminate.terminateMarket")
+                : t("common.actions.tryAgain")}
             </Button>
           </Box>
         </>
@@ -421,8 +429,12 @@ export const RepayAndTerminateFlow = ({
       )}
 
       <TxModalFooter
-        mainBtnText="Repay and Terminate"
-        secondBtnText={IsTxApproved ? "Approved" : "Approve"}
+        mainBtnText={t(
+          "marketDetailsBorrower.modals.terminate.repayAndTerminate",
+        )}
+        secondBtnText={
+          IsTxApproved ? t("common.toast.approved") : t("common.toast.approve")
+        }
         mainBtnOnClick={handleTerminateMarket}
         secondBtnOnClick={handleApprove}
         disableMainBtn={disableTerminate}

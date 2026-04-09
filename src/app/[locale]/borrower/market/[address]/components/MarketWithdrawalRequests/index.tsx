@@ -65,7 +65,7 @@ export const MarketWithdrawalRequests = ({
     {
       sortable: false,
       field: "lender",
-      headerName: "Lender",
+      headerName: t("marketDetailsBorrower.withdrawalTables.lender"),
       minWidth: 176,
       headerAlign: "left",
       align: "left",
@@ -91,7 +91,7 @@ export const MarketWithdrawalRequests = ({
     {
       sortable: false,
       field: "dateSubmitted",
-      headerName: "Date Submitted",
+      headerName: t("marketDetailsBorrower.withdrawalTables.dateSubmitted"),
       minWidth: 216,
       headerAlign: "left",
       align: "left",
@@ -99,7 +99,7 @@ export const MarketWithdrawalRequests = ({
     {
       sortable: false,
       field: "transactionId",
-      headerName: "Transaction ID",
+      headerName: t("marketDetailsBorrower.withdrawalTables.transactionId"),
       minWidth: 216,
       headerAlign: "left",
       align: "left",
@@ -114,7 +114,7 @@ export const MarketWithdrawalRequests = ({
     {
       sortable: false,
       field: "amount",
-      headerName: "Amount",
+      headerName: t("marketDetailsBorrower.withdrawalTables.amount"),
       minWidth: 120,
       flex: 1,
       headerAlign: "right",
@@ -132,7 +132,7 @@ export const MarketWithdrawalRequests = ({
         }}
       >
         <Typography variant="title3" sx={isMobile ? { marginTop: "12px" } : {}}>
-          {t("marketWithdrawalRequests.openWithdrawals")}
+          {t("marketDetails.withdrawals.openWithdrawals")}
         </Typography>
         {(market.isDelinquent || market.isIncurringPenalties) &&
           isHoldingMarket && (
@@ -145,7 +145,7 @@ export const MarketWithdrawalRequests = ({
 
       <Box sx={TotalAccordionSummary(theme)}>
         <Typography variant="text2">
-          {t("marketWithdrawalRequests.total")}
+          {t("marketDetails.withdrawals.total")}
         </Typography>
 
         <TextfieldChip

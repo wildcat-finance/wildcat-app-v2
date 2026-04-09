@@ -97,7 +97,7 @@ export const MinimumDepositModal = ({
         onClick={modal.handleOpenModal}
         disabled={disableMinDeposit}
       >
-        Adjust Minimum Deposit
+        {t("marketDetailsBorrower.modals.minimumDeposit.title")}
       </Button>
 
       <Dialog
@@ -107,7 +107,7 @@ export const MinimumDepositModal = ({
       >
         {showForm && (
           <TxModalHeader
-            title="Adjust Minimum Deposit"
+            title={t("marketDetailsBorrower.modals.minimumDeposit.title")}
             arrowOnClick={modal.handleCloseModal}
             crossOnClick={null}
           />
@@ -116,7 +116,7 @@ export const MinimumDepositModal = ({
         {showForm && (
           <Box sx={{ width: "100%", height: "100%", padding: "12px 24px" }}>
             <ModalDataItem
-              title={t("borrowerMarketDetails.modals.capacity.current")}
+              title={t("marketDetailsBorrower.modals.capacity.current")}
               value={`${formatTokenWithCommas(market.maxTotalSupply)} ${
                 market.underlyingToken.symbol
               }`}
@@ -126,7 +126,9 @@ export const MinimumDepositModal = ({
             />
 
             <ModalDataItem
-              title="Current Minimum Deposit"
+              title={t(
+                "marketDetailsBorrower.modals.minimumDeposit.currentMinDeposit",
+              )}
               value={
                 market.hooksConfig?.minimumDeposit
                   ? formatTokenWithCommas(market.hooksConfig?.minimumDeposit, {
@@ -140,7 +142,9 @@ export const MinimumDepositModal = ({
             />
 
             <NumberTextField
-              label="Enter New Minimum Deposit Amount"
+              label={t(
+                "marketDetailsBorrower.modals.minimumDeposit.inputLabel",
+              )}
               size="medium"
               style={{ width: "100%" }}
               value={amount}
@@ -168,7 +172,7 @@ export const MinimumDepositModal = ({
         )}
 
         <TxModalFooter
-          mainBtnText="Confirm"
+          mainBtnText={t("common.actions.confirm")}
           mainBtnOnClick={handleConfirm}
           disableMainBtn={disableConfirm}
           hideButtons={!showForm}

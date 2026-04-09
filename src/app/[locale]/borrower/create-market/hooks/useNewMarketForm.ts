@@ -79,8 +79,8 @@ export type NewMarketFormType = UseFormReturn<MarketValidationSchemaType>
 export const useNewMarketForm = (isTestnet: boolean): NewMarketFormType => {
   const { t } = useTranslation()
   const maxLabel = isTestnet
-    ? t("utils.time.oneYear")
-    : t("utils.time.twoYears")
+    ? t("common.time.oneYear")
+    : t("common.time.twoYears")
 
   const validationSchemaAsync = useMemo(
     () =>

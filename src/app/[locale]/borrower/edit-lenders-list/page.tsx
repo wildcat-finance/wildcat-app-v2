@@ -118,13 +118,11 @@ export default function EditLendersListPage() {
       <Box sx={{ display: "flex", gap: "6px", marginBottom: "25px" }}>
         {step === "edit" ? (
           <Typography variant="title2">
-            {t("editLendersList.editing")}
-            {!isLoading && t("editLendersList.for")}
+            {t("editLenders.editing")}
+            {!isLoading && t("editLenders.for")}
           </Typography>
         ) : (
-          <Typography variant="title2">
-            {t("editLendersList.confirm")}
-          </Typography>
+          <Typography variant="title2">{t("editLenders.confirm")}</Typography>
         )}
 
         {!isLoading && step === "edit" && <MarketSelect />}

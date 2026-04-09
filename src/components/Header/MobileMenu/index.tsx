@@ -338,7 +338,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     }}
                     fullWidth
                   >
-                    Switch Account
+                    {t("header.button.switchAccount")}
                   </Button>
                   <Button
                     fullWidth
@@ -351,7 +351,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                       borderRadius: "10px",
                     }}
                   >
-                    Disconnect
+                    {t("header.button.disconnect")}
                   </Button>
                 </Box>
               ) : (
@@ -371,7 +371,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     },
                   }}
                 >
-                  Connect
+                  {t("header.button.connect")}
                 </Button>
               )}
 
@@ -468,7 +468,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                   }}
                 >
                   <Typography variant="text3" fontWeight={500}>
-                    Help
+                    {t("header.menu.help")}
                   </Typography>
                 </Box>
 
@@ -485,7 +485,9 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     "&:hover": { backgroundColor: COLORS.whiteSmoke },
                   }}
                 >
-                  <Typography variant="text3">Cookies Settings</Typography>
+                  <Typography variant="text3">
+                    {t("header.menu.cookiesSettings")}
+                  </Typography>
                   <SvgIcon
                     aria-hidden="true"
                     sx={{
@@ -515,7 +517,9 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     "&:hover": { backgroundColor: COLORS.whiteSmoke },
                   }}
                 >
-                  <Typography variant="text3">Privacy Policy</Typography>
+                  <Typography variant="text3">
+                    {t("header.menu.privacyPolicy")}
+                  </Typography>
                   <SvgIcon
                     aria-hidden="true"
                     sx={{
@@ -545,7 +549,9 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     "&:hover": { backgroundColor: COLORS.whiteSmoke },
                   }}
                 >
-                  <Typography variant="text3">Agreement</Typography>
+                  <Typography variant="text3">
+                    {t("header.menu.agreement")}
+                  </Typography>
                   <SvgIcon
                     aria-hidden="true"
                     sx={{
@@ -574,11 +580,12 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     color={COLORS.santasGrey}
                     textAlign="center"
                   >
-                    Wildcat &copy; All Rights reserved. 2025
+                    {t("header.menu.copyright")}
                   </Typography>
                   {commitSha && (
                     <Typography variant="text4" color={COLORS.santasGrey}>
-                      Version {commitSha.slice(0, 4)}...{commitSha.slice(-4)}
+                      {t("header.menu.version")} {commitSha.slice(0, 4)}...
+                      {commitSha.slice(-4)}
                     </Typography>
                   )}
                 </Box>
@@ -655,10 +662,10 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                 }}
               >
                 <Typography variant="mobText1">
-                  {t("helpModal.title")}
+                  {t("helpCenter.title")}
                 </Typography>
                 <Typography variant="mobText3" color={COLORS.manate}>
-                  {t("helpModal.subtitle")}
+                  {t("helpCenter.subtitle")}
                 </Typography>
               </Box>
 
@@ -684,11 +691,12 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                   color={COLORS.santasGrey}
                   textAlign="center"
                 >
-                  Wildcat &copy; All Rights reserved. 2025
+                  {t("header.menu.copyright")}
                 </Typography>
                 {commitSha && (
                   <Typography variant="text4" color={COLORS.santasGrey}>
-                    Version {commitSha.slice(0, 4)}...{commitSha.slice(-4)}
+                    {t("header.menu.version")} {commitSha.slice(0, 4)}...
+                    {commitSha.slice(-4)}
                   </Typography>
                 )}
               </Box>

@@ -9,6 +9,7 @@ import {
   SvgIcon,
 } from "@mui/material"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 import { useAccount, useSwitchChain } from "wagmi"
 
 import Cross from "@/assets/icons/cross_icon.svg"
@@ -43,6 +44,7 @@ export const MobileSelectNetwork = ({
   handleClose,
 }: MobileSelectNetworkProps) => {
   const dispatch = useAppDispatch()
+  const { t } = useTranslation()
   const { switchChain } = useSwitchChain()
   const { address } = useAccount()
 
@@ -60,7 +62,7 @@ export const MobileSelectNetwork = ({
       <Box sx={TitleContainer}>
         <Box width="20px" height="20px" />
         <Typography variant="text1" textAlign="center">
-          Select Network
+          {t("header.menu.selectNetwork")}
         </Typography>
         <IconButton disableRipple onClick={handleClose}>
           <SvgIcon sx={CloseButtonIcon}>

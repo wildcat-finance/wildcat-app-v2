@@ -79,7 +79,7 @@ export const ConfirmModal = ({
             >
               {lendersNames[params.row.address.toLowerCase()] ===
               ("" || undefined)
-                ? t("editLendersList.forms.edit.table.addName")
+                ? t("editLenders.table.addName")
                 : lendersNames[params.row.address.toLowerCase()]}
             </Typography>
           )}
@@ -137,7 +137,7 @@ export const ConfirmModal = ({
       renderCell: (params) => (
         <Typography variant="text3" color={COLORS.santasGrey}>
           {params.row.status === EditLenderFlowStatuses.DELETED
-            ? "Removed"
+            ? t("editPolicy.confirmModal.removed")
             : ""}
         </Typography>
       ),
@@ -159,7 +159,7 @@ export const ConfirmModal = ({
           fontWeight: 600,
         }}
       >
-        {t("editLendersList.forms.edit.submit")}
+        {t("editLenders.editForm.submit")}
       </Button>
 
       <Dialog
@@ -181,11 +181,11 @@ export const ConfirmModal = ({
         }}
       >
         <Typography variant="title3">
-          Confirm{" "}
+          {t("editPolicy.confirmModal.confirm")}{" "}
           <Typography variant="title3" color={COLORS.ultramarineBlue}>
             {policyName}
           </Typography>{" "}
-          Lenders Edits
+          {t("editPolicy.confirmModal.lendersEdits")}
         </Typography>
 
         <Box
@@ -202,9 +202,9 @@ export const ConfirmModal = ({
         >
           <Coins />
           <Typography variant="text3" color={COLORS.butteredRum}>
-            {t("editLendersList.forms.confirm.keepInMind")}{" "}
+            {t("editLenders.confirmForm.keepInMind")}{" "}
             <span style={{ fontWeight: 700 }}>
-              {t("editLendersList.forms.confirm.payGas")}
+              {t("editLenders.confirmForm.payGas")}
             </span>
           </Typography>
         </Box>
@@ -259,7 +259,7 @@ export const ConfirmModal = ({
             <SvgIcon>
               <Arrow />
             </SvgIcon>
-            Back
+            {t("common.actions.back")}
           </Button>
           <Button
             variant="contained"
@@ -267,7 +267,7 @@ export const ConfirmModal = ({
             onClick={handleClickSubmit}
             sx={{ width: "144px" }}
           >
-            Confirm
+            {t("common.actions.confirm")}
           </Button>
         </Box>
       </Dialog>

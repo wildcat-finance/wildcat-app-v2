@@ -49,7 +49,7 @@ export const CollateralObligationsData = ({
           {formatTokenWithCommas(minimumReserves, { withSymbol: true })}
         </Typography>
         <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          {t("borrowerMarketDetails.statusChart.minReserves")}
+          {t("marketDetails.statusChart.minReserves")}
         </Typography>
       </Box>
       <Box className="obligations__value">
@@ -59,7 +59,7 @@ export const CollateralObligationsData = ({
           })}
         </Typography>
         <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          {t("borrowerMarketDetails.statusChart.ongoingWds")}
+          {t("marketDetails.statusChart.ongoingWds")}
         </Typography>
       </Box>
       <Box className="obligations__value">
@@ -68,7 +68,7 @@ export const CollateralObligationsData = ({
         </Typography>
 
         <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          {t("borrowerMarketDetails.statusChart.claimableWds")}
+          {t("marketDetails.statusChart.claimableWds")}
         </Typography>
       </Box>
       <Box className="obligations__value">
@@ -77,7 +77,7 @@ export const CollateralObligationsData = ({
         </Typography>
 
         <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          {t("borrowerMarketDetails.statusChart.outstandingWds")}
+          {t("marketDetails.statusChart.outstandingWds")}
         </Typography>
       </Box>
       <Box className="obligations__value">
@@ -87,7 +87,7 @@ export const CollateralObligationsData = ({
           })}
         </Typography>
         <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          {t("borrowerMarketDetails.statusChart.protocolFees")}
+          {t("marketDetails.statusChart.protocolFees")}
         </Typography>
       </Box>
       <Box

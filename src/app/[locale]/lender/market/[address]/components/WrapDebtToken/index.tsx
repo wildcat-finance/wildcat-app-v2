@@ -11,6 +11,7 @@ import {
   WrapperFactory,
 } from "@wildcatfi/wildcat-sdk"
 import { constants } from "ethers"
+import { useTranslation } from "react-i18next"
 
 import { toastRequest } from "@/components/Toasts"
 import { NoWrapperState } from "@/components/WrapDebtToken/NoWrapperState"
@@ -44,6 +45,7 @@ export const WrapDebtToken = ({
   isAuthorizedLender,
   isDifferentChain,
 }: WrapDebtTokenProps) => {
+  const { t } = useTranslation()
   const { targetChainId } = useCurrentNetwork()
   const { signer } = useEthersProvider({ chainId: market?.chainId })
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
@@ -132,7 +134,7 @@ export const WrapDebtToken = ({
     <Box>
       {!isAuthorizedLender && (
         <Typography variant="text3" color={COLORS.manate}>
-          Only authorized lenders can access the wrapper.
+          {t("wrapDebtToken.errors.unauthorizedLender")}
         </Typography>
       )}
 
@@ -141,7 +143,7 @@ export const WrapDebtToken = ({
           {!hasFactory && (
             <NoWrapperState
               canCreateWrapper={false}
-              statusMessage="Wrappers are not available on this chain yet."
+              statusMessage={t("wrapDebtToken.errors.notAvailableOnChain")}
             />
           )}
 
@@ -150,9 +152,9 @@ export const WrapDebtToken = ({
               canCreateWrapper={canCreateWrapper}
               onCreateWrapper={() =>
                 toastRequest(createWrapperMutation.mutateAsync(), {
-                  pending: "Deploying wrapper...",
-                  success: "Wrapper deployed",
-                  error: "Failed to deploy wrapper",
+                  pending: t("wrapDebtToken.toast.deployingWrapper"),
+                  success: t("wrapDebtToken.toast.wrapperDeployed"),
+                  error: t("wrapDebtToken.toast.failedToDeploy"),
                 })
               }
               isCreatingWrapper={createWrapperMutation.isPending}

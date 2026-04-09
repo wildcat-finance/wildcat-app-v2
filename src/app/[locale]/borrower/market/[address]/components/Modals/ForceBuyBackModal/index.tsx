@@ -100,7 +100,7 @@ export const ForceBuyBackModal = ({
         size="small"
         disabled={disableForceBuyBackButton}
       >
-        {t("borrowerMarketDetails.authorisedLenders.buttons.forceBuyBack")}
+        {t("marketDetailsBorrower.modals.forceBuyBack.button")}
       </Button>
 
       <Dialog
@@ -110,7 +110,7 @@ export const ForceBuyBackModal = ({
       >
         {showForm && (
           <TxModalHeader
-            title={t("borrowerMarketDetails.modals.forceBuyBack.title")}
+            title={t("marketDetailsBorrower.modals.forceBuyBack.title")}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
@@ -124,7 +124,7 @@ export const ForceBuyBackModal = ({
               <Box sx={TxModalInfoItem} marginBottom="8px">
                 <Typography variant="text3" sx={TxModalInfoTitle}>
                   {t(
-                    "borrowerMarketDetails.modals.forceBuyBack.repurchaseAmount",
+                    "marketDetailsBorrower.modals.forceBuyBack.repurchaseAmount",
                   )}
                 </Typography>
                 <Typography variant="text3">
@@ -135,7 +135,7 @@ export const ForceBuyBackModal = ({
 
             <Box sx={TxModalInfoItem} marginBottom="8px" flexDirection="column">
               <Typography variant="text3">
-                {t("borrowerMarketDetails.modals.forceBuyBack.from")}
+                {t("marketDetailsBorrower.modals.forceBuyBack.from")}
               </Typography>
               <Typography variant="text3" sx={TxModalInfoTitle}>
                 {lenderName ?? lender.address}
@@ -144,19 +144,26 @@ export const ForceBuyBackModal = ({
 
             <Box sx={TxModalInfoItem} marginBottom="8px">
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                {t("borrowerMarketDetails.modals.forceBuyBack.description")}
+                {t("marketDetailsBorrower.modals.forceBuyBack.description")}
               </Typography>
             </Box>
 
             {!modal.approvedStep && (
               <NumberTextField
-                label={`Up to ${formatTokenWithCommas(maximum)}`}
+                label={t(
+                  "marketDetailsBorrower.modals.forceBuyBack.inputLabel",
+                  { max: formatTokenWithCommas(maximum) },
+                )}
                 helperText={
                   buyBackAmount.gt(maximum)
-                    ? `Please, input amount under ${formatTokenWithCommas(
-                        lender.marketBalance,
-                        { withSymbol: true },
-                      )}`
+                    ? t(
+                        "marketDetailsBorrower.modals.forceBuyBack.inputHelper",
+                        {
+                          max: formatTokenWithCommas(lender.marketBalance, {
+                            withSymbol: true,
+                          }),
+                        },
+                      )
                     : ""
                 }
                 error={buyBackAmount.gt(maximum)}
@@ -188,7 +195,11 @@ export const ForceBuyBackModal = ({
         )}
 
         <TxModalFooter
-          mainBtnText={modal.approvedStep ? "Confirm" : "Buy Back"}
+          mainBtnText={
+            modal.approvedStep
+              ? t("common.actions.confirm")
+              : t("marketDetailsBorrower.modals.forceBuyBack.buyBackButton")
+          }
           mainBtnOnClick={modal.approvedStep ? handleConfirm : handleBorrow}
           disableMainBtn={disableForceBuyBack}
           hideButtons={!showForm}

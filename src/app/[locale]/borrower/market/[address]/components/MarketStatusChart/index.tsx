@@ -71,7 +71,7 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
     <Box marginTop="12px">
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
         <Typography variant="title3">
-          {t("borrowerMarketDetails.statusChart.totalDebt")}
+          {t("marketDetails.statusChart.totalDebt")}
         </Typography>
 
         <Box
@@ -98,7 +98,7 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
         remainingInterest && (
           <Box sx={{ display: "flex", columnGap: "3px", marginBottom: "24px" }}>
             <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-              {t("borrowerMarketDetails.statusChart.sufficientReserves")}
+              {t("marketDetails.statusChart.sufficientReserves")}
             </Typography>
             <Typography variant="text3" sx={{ color: COLORS.ultramarineBlue }}>
               {remainingInterest}
