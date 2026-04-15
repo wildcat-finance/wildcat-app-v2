@@ -2,7 +2,7 @@
 
 import { Box } from "@mui/material"
 
-import { MarketsSection } from "@/app/[locale]/lender/components/MarketsSection"
+import { ExploreSection } from "@/app/[locale]/lender/components/MarketsDashboard/ExploreSection"
 import { Footer } from "@/components/Footer"
 
 export default function Lender() {
@@ -14,7 +14,7 @@ export default function Lender() {
         minWidth: 0,
         display: "flex",
         flexDirection: "column",
-        paddingTop: { xs: "0px", md: "32px" },
+        overflow: "hidden",
       }}
     >
       <Box
@@ -25,7 +25,7 @@ export default function Lender() {
           flexDirection: "column",
         }}
       >
-        <MarketsSection />
+        <ExploreSection />
       </Box>
       <Footer showFooter={false} />
     </Box>
