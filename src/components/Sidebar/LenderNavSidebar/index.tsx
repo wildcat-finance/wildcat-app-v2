@@ -72,17 +72,7 @@ const NavItem = ({ href, label, active, badge }: NavItemProps) => (
       },
     }}
   >
-    <IconPlaceholder />
-    <Typography
-      variant="text2"
-      sx={{
-        color: active ? COLORS.blackRock : COLORS.santasGrey,
-        fontWeight: active ? 600 : 500,
-        flexShrink: 0,
-      }}
-    >
-      {label}
-    </Typography>
+    <Typography variant="text2">{label}</Typography>
     {badge !== undefined && badge > 0 && <CountBadge count={badge} />}
   </Box>
 )
