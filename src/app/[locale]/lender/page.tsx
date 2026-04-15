@@ -9,13 +9,21 @@ export default function Lender() {
   return (
     <Box
       sx={{
-        minHeight: { xs: "calc(100dvh - 64px)", md: "auto" },
+        height: "100%",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
       }}
     >
-      <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          minHeight: 0,
+        }}
+      >
         <ExploreSection />
       </Box>
       <Footer showFooter={false} />
