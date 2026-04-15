@@ -9,6 +9,7 @@ import { BorrowerSidebar } from "@/components/Sidebar/BorrowerSidebar"
 import { CreateMarketSidebar } from "@/components/Sidebar/CreateMarketSidebar"
 import { LenderDashboardSidebar } from "@/components/Sidebar/LenderDashboardSidebar"
 import { LenderMarketSidebar } from "@/components/Sidebar/LenderMarketSidebar"
+import { LenderNavSidebar } from "@/components/Sidebar/LenderNavSidebar"
 import { LenderListSidebar } from "@/components/Sidebar/LendersListSidebar"
 import { MarketSidebar } from "@/components/Sidebar/MarketSidebar"
 import { ROUTES } from "@/routes"
@@ -39,7 +40,9 @@ export const Sidebar = () => {
       }}
     >
       <Box marginBottom="auto">
-        {pathname === ROUTES.lender.root && <LenderDashboardSidebar />}
+        {(pathname === ROUTES.lender.root ||
+          pathname === ROUTES.lender.myMarkets ||
+          pathname === ROUTES.lender.allMarkets) && <LenderNavSidebar />}
         {pathname === ROUTES.borrower.root && <BorrowerDashboardSidebar />}
         {pathname.includes(ROUTES.borrower.market) && <MarketSidebar />}
         {(pathname.includes(ROUTES.borrower.profile) ||
