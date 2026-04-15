@@ -2,6 +2,7 @@
 
 import { Box } from "@mui/material"
 
+import { ExploreMarketsTable } from "@/app/[locale]/lender/components/ExploreMarketsTable"
 import { TopMarketsSection } from "@/app/[locale]/lender/components/TopMarketsSection"
 import { TrendingMarketsCarousel } from "@/app/[locale]/lender/components/TrendingMarketsCarousel"
 
@@ -9,6 +10,9 @@ export const ExploreSection = () => (
   <Box
     sx={{
       width: "100%",
+      flex: 1,
+      minHeight: 0,
+      overflowY: "auto",
       padding: "28px 16px",
       display: "flex",
       flexDirection: "column",
@@ -17,5 +21,6 @@ export const ExploreSection = () => (
   >
     <TopMarketsSection />
     <TrendingMarketsCarousel />
+    <ExploreMarketsTable />
   </Box>
 )
