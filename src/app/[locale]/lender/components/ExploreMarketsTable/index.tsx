@@ -76,7 +76,6 @@ export const DataGridSx = {
   height: "auto !important",
   minHeight: DATA_GRID_MIN_HEIGHT,
   maxWidth: "calc(100vw - 267px)",
-  padding: "0 16px",
   "& .MuiDataGrid-main": {
     overflow: "visible",
     height: "auto !important",
@@ -487,6 +486,7 @@ export const ExploreMarketsTable = () => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          marginBottom: "12px",
         }}
       >
         <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
