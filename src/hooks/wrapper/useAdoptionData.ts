@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { TokenAmount, TokenWrapper } from "@wildcatfi/wildcat-sdk"
 
-import { POLLING_INTERVAL } from "@/config/polling"
+import { POLLING_INTERVALS } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 
 export type AdoptionData = {
@@ -36,7 +36,7 @@ export const useAdoptionData = (
       account,
     ),
     enabled: !!chainId && !!wrapper && (viewerType === "borrower" || !!account),
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
     queryFn: async (): Promise<AdoptionData> => {
       if (!wrapper) throw new Error("Missing wrapper")
       // borrower
