@@ -30,9 +30,7 @@ export const LenderAnalyticsSummary = ({
         {items.map((item, index) => (
           <Box key={item.label}>
             <Box sx={MobileSummaryRow}>
-              <Box
-                sx={{ display: "flex", alignItems: "center", gap: "4px" }}
-              >
+              <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
                 <Typography
                   variant="mobText3"
                   sx={{ color: COLORS.santasGrey }}
