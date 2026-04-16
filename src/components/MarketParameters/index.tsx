@@ -5,7 +5,6 @@ import { MarketVersion, HooksKind } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
-import { useCopyToClipboard } from "react-use"
 
 import { getAdsMarketParameterComponent } from "@/components/AdsBanners/adsHelpers"
 import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
@@ -144,6 +143,7 @@ export const MarketParameters = ({
   viewerType,
   wrapper,
   hasWrapper,
+  additionalItems,
 }: MarketParametersProps) => {
   const isLocalHost = window.location.hostname === "localhost"
   const { t } = useTranslation()
@@ -471,6 +471,20 @@ export const MarketParameters = ({
             title={t("borrowerMarketDetails.parameters.totalInterestAccrued")}
             value={toTokenAmountProps(totalInterestAccrued).value}
           />
+          {isMobileOpen && additionalItems && additionalItems.length > 0 && (
+            <>
+              {additionalItems.map((item) => (
+                <React.Fragment key={item.title}>
+                  <Divider sx={{ margin: "12px 0 12px" }} />
+                  <ParametersItem
+                    title={item.title}
+                    value={item.value}
+                    tooltipText={item.tooltipText}
+                  />
+                </React.Fragment>
+              ))}
+            </>
+          )}
           {isMobileOpen && (
             <>
               <Divider sx={{ margin: "12px 0 12px" }} />

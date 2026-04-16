@@ -282,6 +282,9 @@ const LENDER_QUERY_KEYS = {
         updateQueryKeys,
       ]),
   },
+  // GET_ACTIVE_LENDERS_COUNT_KEY
+  GET_ACTIVE_LENDERS_COUNT: (chainId: number, marketAddress?: string) =>
+    k(["lender", "GET_ACTIVE_LENDERS_COUNT", chainId, marketAddress]),
   // GET_SIGNED_MLA_KEY
   GET_SIGNED_MLA: (
     chainId: number,
