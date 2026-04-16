@@ -285,6 +285,9 @@ const LENDER_QUERY_KEYS = {
   // GET_ACTIVE_LENDERS_COUNT_KEY
   GET_ACTIVE_LENDERS_COUNT: (chainId: number, marketAddress?: string) =>
     k(["lender", "GET_ACTIVE_LENDERS_COUNT", chainId, marketAddress]),
+  // GET_MARKET_DAILY_FLOWS_KEY
+  GET_MARKET_DAILY_FLOWS: (chainId: number, marketAddress?: string) =>
+    k(["lender", "GET_MARKET_DAILY_FLOWS", chainId, marketAddress]),
   // GET_SIGNED_MLA_KEY
   GET_SIGNED_MLA: (
     chainId: number,

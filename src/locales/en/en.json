@@ -1125,7 +1125,13 @@
       "totalWithdrawalsExecuted": "Total Withdrawals Executed",
       "totalWithdrawalsExecutedTooltip": "Total amount you have successfully withdrawn from this market, including claimed and partially executed batches.",
       "totalLenders": "Total Lenders",
-      "totalLendersTooltip": "Number of lenders with an active balance in this market."
+      "totalLendersTooltip": "Number of lenders with an active balance in this market.",
+      "charts": {
+        "dailyFlows": "Daily Deposits & Withdrawals",
+        "dailyFlowsDesc": "Deposits above axis, withdrawals below",
+        "cumulativeNetFlow": "Cumulative Net Flow",
+        "cumulativeNetFlowDesc": "Running total: deposits minus withdrawals"
+      }
     },
     "barchart": {
       "capacity": {

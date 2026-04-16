@@ -577,7 +577,9 @@ export const MarketParameters = ({
                 <ParametersItem
                   title={additionalItems[additionalItems.length - 1].title}
                   value={additionalItems[additionalItems.length - 1].value}
-                  tooltipText={additionalItems[additionalItems.length - 1].tooltipText}
+                  tooltipText={
+                    additionalItems[additionalItems.length - 1].tooltipText
+                  }
                 />
               </>
             )}
@@ -624,9 +626,13 @@ export const MarketParameters = ({
               <Box
                 sx={{
                   flex: 1,
-                  borderLeft: isMobile ? "none" : `1px solid ${COLORS.athensGrey}`,
+                  borderLeft: isMobile
+                    ? "none"
+                    : `1px solid ${COLORS.athensGrey}`,
                   paddingLeft: isMobile ? 0 : "24px",
-                  borderTop: isMobile ? `1px solid ${COLORS.athensGrey}` : "none",
+                  borderTop: isMobile
+                    ? `1px solid ${COLORS.athensGrey}`
+                    : "none",
                   marginTop: isMobile ? "12px" : 0,
                   paddingTop: isMobile ? "12px" : 0,
                 }}

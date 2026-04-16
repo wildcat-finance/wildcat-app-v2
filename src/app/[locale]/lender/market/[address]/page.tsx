@@ -50,12 +50,14 @@ import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
 import { LenderAnalyticsSummary } from "./components/LenderAnalyticsSummary"
+import { LenderFlowCharts } from "./components/LenderFlowCharts"
 import { MarketActions } from "./components/MarketActions"
 import { MarketSummary } from "./components/MarketSummary"
 import { WrapDebtToken } from "./components/WrapDebtToken"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { useLenderMarketAnalytics } from "./hooks/useLenderMarketAnalytics"
+import { useMarketDailyFlows } from "./hooks/useMarketDailyFlows"
 import { LenderStatus } from "./interface"
 import { SectionContainer, SkeletonContainer, SkeletonStyle } from "./style"
 import { getEffectiveLenderRole } from "./utils"
@@ -96,6 +98,11 @@ export default function LenderMarketDetails({
   const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
     useGetLenderWithdrawals(market)
   const analytics = useLenderMarketAnalytics(market, withdrawals)
+  const {
+    dailyFlows,
+    isLoading: isFlowsLoading,
+    symbol,
+  } = useMarketDailyFlows(market)
 
   const hasLenderInteracted = !!marketAccount?.hasEverInteracted
 
@@ -551,6 +558,14 @@ export default function LenderMarketDetails({
               setIsMLAOpen={setIsMobileMLAOpen}
             />
           )}
+
+          <Box sx={{ padding: "0 4px" }}>
+            <LenderFlowCharts
+              dailyFlows={dailyFlows}
+              isLoading={isFlowsLoading}
+              symbol={symbol}
+            />
+          </Box>
         </Box>
 
         <Footer showFooter={false} />
@@ -588,6 +603,13 @@ export default function LenderMarketDetails({
                 legendType="big"
                 isLender={authorizedInMarket}
               />
+              <Box sx={{ marginTop: "32px" }}>
+                <LenderFlowCharts
+                  dailyFlows={dailyFlows}
+                  isLoading={isFlowsLoading}
+                  symbol={symbol}
+                />
+              </Box>
             </Box>
           )}
 

@@ -62,6 +62,7 @@
     "react-scroll": "^1.9.0",
     "react-toastify": "^10.0.5",
     "react-use": "^17.5.0",
+    "recharts": "^3.8.1",
     "redux-persist": "^6.0.0",
     "rehype-raw": "^7.0.0",
     "rehype-sanitize": "^6.0.0",
