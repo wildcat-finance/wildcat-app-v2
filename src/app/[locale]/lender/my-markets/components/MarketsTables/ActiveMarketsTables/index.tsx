@@ -1,0 +1,443 @@
+import * as React from "react"
+import { useEffect, useRef } from "react"
+
+import { Box, Typography } from "@mui/material"
+import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
+
+import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
+import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import {
+  getAdsCellProps,
+  getAdsTooltipComponent,
+} from "@/components/AdsBanners/adsHelpers"
+import { AprChip } from "@/components/AprChip"
+import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
+import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
+import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { ROUTES } from "@/routes"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
+import {
+  statusComparator,
+  tokenAmountComparator,
+  typeComparator,
+} from "@/utils/comparators"
+import { pageCalcHeights } from "@/utils/constants"
+import {
+  buildMarketHref,
+  formatBps,
+  formatSecsToHours,
+  formatTokenWithCommas,
+  trimAddress,
+} from "@/utils/formatters"
+import { getMarketStatusChip } from "@/utils/marketStatus"
+import { getMarketTypeChip } from "@/utils/marketType"
+
+import { ActiveMarketsTableModel, ActiveMarketsTableProps } from "./interface"
+import { DataGridSx } from "../style"
+
+const clickableGridSx = {
+  ...DataGridSx,
+  "& .MuiDataGrid-row": {
+    minHeight: "66px !important",
+    maxHeight: "66px !important",
+    cursor: "pointer",
+  },
+}
+
+export const ActiveMarketsTables = ({
+  marketAccounts,
+  borrowers,
+  isLoading,
+  filters,
+}: ActiveMarketsTableProps) => {
+  const isMobile = useMobileResolution()
+  const { t } = useTranslation()
+  const dispatch = useAppDispatch()
+  const router = useRouter()
+  const scrollTargetId = useAppSelector(
+    (state) => state.lenderDashboard.scrollTarget,
+  )
+
+  const depositedRef = useRef<HTMLDivElement>(null)
+  const nonDepositedRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!isMobile) {
+      if (scrollTargetId === "deposited" && depositedRef.current) {
+        depositedRef.current.scrollIntoView({ behavior: "smooth" })
+        dispatch(setScrollTarget(null))
+      }
+      if (scrollTargetId === "non-deposited" && nonDepositedRef.current) {
+        nonDepositedRef.current.scrollIntoView({ behavior: "smooth" })
+        dispatch(setScrollTarget(null))
+      }
+    }
+  }, [dispatch, isMobile, scrollTargetId])
+
+  const rows: GridRowsProp<ActiveMarketsTableModel> = marketAccounts.map(
+    (account) => {
+      const { market, marketBalance, hasEverInteracted } = account
+      const {
+        address,
+        borrower: borrowerAddress,
+        name,
+        underlyingToken,
+        annualInterestBips,
+        maxTotalSupply,
+        totalSupply,
+        withdrawalBatchDuration,
+        chainId,
+      } = market
+
+      const borrower = borrowers?.find(
+        (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
+      )
+      const borrowerName = borrower
+        ? borrower.alias || borrower.name
+        : trimAddress(borrowerAddress)
+
+      return {
+        id: address,
+        status: getMarketStatusChip(market),
+        term: getMarketTypeChip(market),
+        name,
+        borrower: borrowerName,
+        borrowerAddress,
+        asset: underlyingToken.symbol,
+        apr: annualInterestBips,
+        withdrawalBatchDuration,
+        loan: marketBalance,
+        debt: totalSupply,
+        capacityLeft: maxTotalSupply.sub(totalSupply),
+        hasEverInteracted,
+        chainId,
+      }
+    },
+  )
+
+  const depositedMarkets = rows.filter((market) => market.hasEverInteracted)
+  const nonDepositedMarkets = rows.filter((market) => !market.hasEverInteracted)
+
+  const handleRowClick = (
+    params: { row: ActiveMarketsTableModel },
+    event: { target: EventTarget | null },
+  ) => {
+    const target = event.target as HTMLElement
+    if (target.closest("a") || target.closest("button")) return
+    router.push(buildMarketHref(params.row.id, params.row.chainId))
+  }
+
+  const columns: TypeSafeColDef<ActiveMarketsTableModel>[] = [
+    {
+      field: "name",
+      headerName: t("dashboard.markets.tables.header.name"),
+      flex: 2,
+      minWidth: 200,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => (
+        <Box
+          sx={{
+            ...LinkCell,
+            paddingRight: "16px",
+            justifyContent: "center",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "6px",
+            minWidth: 0,
+          }}
+        >
+          <Typography
+            variant="text3"
+            sx={{
+              display: "block",
+              width: "100%",
+              minWidth: 0,
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {params.value}
+          </Typography>
+
+          {params.row.borrowerAddress ? (
+            <Link
+              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              prefetch={false}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              style={{ display: "flex", textDecoration: "none" }}
+            >
+              <BorrowerProfileChip borrower={params.row.borrower} />
+            </Link>
+          ) : (
+            <BorrowerProfileChip borrower={params.row.borrower} />
+          )}
+        </Box>
+      ),
+    },
+    {
+      field: "status",
+      headerName: t("dashboard.markets.tables.header.status"),
+      minWidth: 100,
+      flex: 1,
+      headerAlign: "left",
+      align: "left",
+      sortComparator: statusComparator,
+      renderCell: (params) => (
+        <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
+          <Box width="120px">
+            <MarketStatusChip status={params.value} />
+          </Box>
+        </Box>
+      ),
+    },
+    {
+      field: "term",
+      headerName: t("dashboard.markets.tables.header.term"),
+      minWidth: 100,
+      flex: 1,
+      headerAlign: "left",
+      align: "left",
+      sortComparator: typeComparator,
+      renderCell: (params) => (
+        <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
+          <Box minWidth="170px">
+            <MarketTypeChip type="table" {...params.value} />
+          </Box>
+        </Box>
+      ),
+    },
+    {
+      field: "apr",
+      headerName: t("dashboard.markets.tables.header.apr"),
+      minWidth: 100,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => {
+        const adsComponent = getAdsTooltipComponent(
+          params.row.id,
+          formatBps(params.value),
+        )
+        const adsCellProps = getAdsCellProps(params.row.id)
+
+        return (
+          <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+            <AprChip
+              isBonus={!!adsCellProps}
+              baseApr={formatBps(params.value)}
+              icons={adsCellProps?.icons}
+              adsComponent={adsComponent}
+            />
+          </Box>
+        )
+      },
+    },
+    {
+      field: "withdrawalBatchDuration",
+      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      minWidth: 100,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => (
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+          {formatSecsToHours(params.value, true)}
+        </Box>
+      ),
+    },
+    {
+      field: "asset",
+      headerName: t("dashboard.markets.tables.header.asset"),
+      minWidth: 100,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      renderCell: (params) => (
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+          {params.value}
+        </Box>
+      ),
+    },
+    {
+      field: "capacityLeft",
+      headerName: t("dashboard.markets.tables.header.capacity"),
+      minWidth: 100,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      sortComparator: tokenAmountComparator,
+      renderCell: (
+        params: GridRenderCellParams<ActiveMarketsTableModel, TokenAmount>,
+      ) => (
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+          {params.value && params.value.gt(0)
+            ? formatTokenWithCommas(params.value, {
+                withSymbol: false,
+                fractionDigits: 2,
+              })
+            : "0"}
+        </Box>
+      ),
+    },
+    {
+      field: "debt",
+      headerName: t("dashboard.markets.tables.header.debt"),
+      minWidth: 100,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      sortComparator: tokenAmountComparator,
+      renderCell: (params) => (
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+          {params.value
+            ? formatTokenWithCommas(params.value, {
+                withSymbol: false,
+                fractionDigits: 2,
+              })
+            : "0"}
+        </Box>
+      ),
+    },
+    {
+      field: "loan",
+      headerName: t("dashboard.markets.tables.header.loan"),
+      minWidth: 100,
+      flex: 1,
+      headerAlign: "right",
+      align: "right",
+      sortComparator: tokenAmountComparator,
+      renderCell: (
+        params: GridRenderCellParams<ActiveMarketsTableModel, TokenAmount>,
+      ) => (
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+          {params.value
+            ? formatTokenWithCommas(params.value, {
+                withSymbol: false,
+                fractionDigits: 2,
+              })
+            : "0"}
+        </Box>
+      ),
+    },
+  ]
+
+  if (isMobile)
+    return (
+      <>
+        {scrollTargetId === "deposited" && (
+          <MobileMarketList markets={depositedMarkets} isLoading={isLoading} />
+        )}
+        {scrollTargetId === "non-deposited" && (
+          <MobileMarketList
+            markets={nonDepositedMarkets}
+            isLoading={isLoading}
+          />
+        )}
+      </>
+    )
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: `calc(100vh - ${pageCalcHeights.dashboard})`,
+        width: "100%",
+        overflow: "auto",
+        overflowY: "auto",
+        gap: "16px",
+        marginTop: "24px",
+        paddingBottom: "26px",
+      }}
+    >
+      <Box id="deposited" ref={depositedRef}>
+        <MarketsTableAccordion
+          label={t("dashboard.markets.tables.borrower.active.deposited")}
+          marketsLength={depositedMarkets.length}
+          isLoading={isLoading}
+          isOpen
+          noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
+          noMarketsSubtitle={t(
+            "dashboard.markets.noMarkets.active.lenderSubtitle",
+          )}
+          nameFilter={filters.nameFilter}
+          assetFilter={filters.assetFilter}
+          statusFilter={filters.statusFilter}
+          showNoFilteredMarkets
+        >
+          {isMobile ? (
+            <Box display="flex" flexDirection="column">
+              {depositedMarkets.map((marketItem) => (
+                <MobileMarketCard
+                  marketItem={marketItem}
+                  buttonText="Deposit"
+                  buttonIcon
+                />
+              ))}
+            </Box>
+          ) : (
+            <DataGrid
+              disableVirtualization
+              sx={clickableGridSx}
+              rowHeight={66}
+              rows={depositedMarkets}
+              columns={columns}
+              columnHeaderHeight={40}
+              onRowClick={handleRowClick}
+            />
+          )}
+        </MarketsTableAccordion>
+      </Box>
+
+      <Box id="non-deposited" ref={nonDepositedRef}>
+        <MarketsTableAccordion
+          label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
+          isLoading={isLoading}
+          isOpen
+          noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
+          noMarketsSubtitle={t(
+            "dashboard.markets.noMarkets.active.lenderSubtitle",
+          )}
+          marketsLength={nonDepositedMarkets.length}
+          nameFilter={filters.nameFilter}
+          assetFilter={filters.assetFilter}
+          statusFilter={filters.statusFilter}
+          showNoFilteredMarkets
+        >
+          {isMobile ? (
+            <Box display="flex" flexDirection="column">
+              {nonDepositedMarkets.map((marketItem) => (
+                <MobileMarketCard
+                  marketItem={marketItem}
+                  buttonText="Deposit"
+                  buttonIcon
+                />
+              ))}
+            </Box>
+          ) : (
+            <DataGrid
+              disableVirtualization
+              sx={clickableGridSx}
+              rowHeight={66}
+              rows={nonDepositedMarkets}
+              columns={columns}
+              columnHeaderHeight={40}
+              onRowClick={handleRowClick}
+            />
+          )}
+        </MarketsTableAccordion>
+      </Box>
+    </Box>
+  )
+}
