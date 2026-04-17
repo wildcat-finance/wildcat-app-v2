@@ -6,25 +6,23 @@ import Link from "next/link"
 import { COLORS } from "@/theme/colors"
 import { buildMarketHref, formatBps } from "@/utils/formatters"
 
-type TrendingMarketCardProps = {
+type TrendingMarketCardInflowProps = {
   marketAddress: string
   chainId?: number
   borrowerName: string
   asset: string
   apr: number
-  statHighlight?: string
-  statLabel?: string
+  inflow: string
 }
 
-export const TrendingMarketCard = ({
+export const TrendingMarketCardInflow = ({
   marketAddress,
   chainId,
   borrowerName,
   asset,
   apr,
-  statHighlight,
-  statLabel,
-}: TrendingMarketCardProps) => (
+  inflow,
+}: TrendingMarketCardInflowProps) => (
   <Box
     component={Link}
     href={buildMarketHref(marketAddress, chainId)}
@@ -85,37 +83,27 @@ export const TrendingMarketCard = ({
         flexShrink: 0,
       }}
     >
-      {(statHighlight || statLabel) && (
-        <Box
-          sx={{
-            display: "flex",
-            gap: "4px",
-            alignItems: "flex-start",
-            justifyContent: "center",
-          }}
+      <Box
+        sx={{
+          display: "flex",
+          gap: "4px",
+          alignItems: "flex-start",
+          justifyContent: "center",
+        }}
+      >
+        <Typography
+          variant="text3"
+          sx={{ color: "#28CA7C", whiteSpace: "nowrap" }}
         >
-          {statHighlight && (
-            <Typography
-              variant="text3"
-              sx={{ color: "#28CA7C", whiteSpace: "nowrap" }}
-            >
-              {statHighlight}
-            </Typography>
-          )}
-          {statLabel && (
-            <Typography
-              variant="text3"
-              sx={{
-                color: COLORS.blackRock,
-                opacity: 0.8,
-                whiteSpace: "nowrap",
-              }}
-            >
-              {statLabel}
-            </Typography>
-          )}
-        </Box>
-      )}
+          {inflow}
+        </Typography>
+        <Typography
+          variant="text3"
+          sx={{ color: COLORS.blackRock, opacity: 0.8, whiteSpace: "nowrap" }}
+        >
+          deposited this week
+        </Typography>
+      </Box>
     </Box>
 
     <Box
