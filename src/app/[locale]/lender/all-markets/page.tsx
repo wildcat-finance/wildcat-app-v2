@@ -4,6 +4,8 @@ import { Box } from "@mui/material"
 
 import { Footer } from "@/components/Footer"
 
+import { AllMarketsSection } from "./components/AllMarketsSection"
+
 export default function AllMarkets() {
   return (
     <Box
@@ -14,7 +16,17 @@ export default function AllMarkets() {
         overflow: "hidden",
       }}
     >
-      <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }} />
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "auto",
+          minHeight: 0,
+        }}
+      >
+        <AllMarketsSection />
+      </Box>
       <Footer showFooter={false} />
     </Box>
   )
