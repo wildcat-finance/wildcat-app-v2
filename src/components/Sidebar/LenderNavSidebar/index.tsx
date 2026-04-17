@@ -46,6 +46,15 @@ export const LenderNavSidebar = () => {
   const allMarketsCount = useAppSelector(
     (state) => state.lenderDashboardAmounts.allMarkets,
   )
+  const selfOnboardAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.selfOnboard,
+  )
+  const manualAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.manual,
+  )
+  const terminatedOtherAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.terminatedOther,
+  )
 
   const activeMarketsAmount = depositedAmount + nonDepositedAmount
   const closedMarketsAmount = prevActiveAmount + neverActiveAmount
@@ -167,7 +176,9 @@ export const LenderNavSidebar = () => {
         )}
       </Box>
 
-      <Box sx={{ width: "100%", marginBottom: "4px" }}>
+      <Box
+        sx={{ width: "100%", marginBottom: isOnAllMarkets ? "16px" : "4px" }}
+      >
         <Box
           component={Link}
           href={ROUTES.lender.allMarkets}
@@ -183,6 +194,41 @@ export const LenderNavSidebar = () => {
             {allMarketsCount !== 0 ? allMarketsCount : null}
           </Typography>
         </Box>
+
+        {isOnAllMarkets && (
+          <Box
+            sx={{
+              width: "100%",
+              paddingLeft: "14px",
+              marginTop: "12px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "14px",
+            }}
+          >
+            <DashboardSectionAccordion
+              label={t("dashboard.markets.tables.other.title")}
+              amount={allMarketsCount}
+              open
+            >
+              <DashboardButton
+                label={t("dashboard.markets.tables.other.selfOnboard")}
+                amount={selfOnboardAmount}
+                onClick={() => dispatch(setScrollTarget("self-onboard"))}
+              />
+              <DashboardButton
+                label={t("dashboard.markets.tables.other.manual")}
+                amount={manualAmount}
+                onClick={() => dispatch(setScrollTarget("manual"))}
+              />
+              <DashboardButton
+                label={t("dashboard.markets.tables.other.terminated")}
+                amount={terminatedOtherAmount}
+                onClick={() => dispatch(setScrollTarget("other-terminated"))}
+              />
+            </DashboardSectionAccordion>
+          </Box>
+        )}
       </Box>
     </Box>
   )
