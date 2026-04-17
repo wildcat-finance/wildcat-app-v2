@@ -4,8 +4,11 @@ import { COLORS } from "@/theme/colors"
 
 export const CHART_COLORS = {
   deposit: "#34d399",
-  withdrawal: "#f87171",
-  netFlow: "#3E68FF",
+  withdrawalRequested: "#fca5a5",
+  withdrawalExecuted: "#dc2626",
+  netFlowExecuted: "#3E68FF",
+  netFlowRequested: "#3E68FF",
+  pendingBand: "#93A3C4",
   gridLine: COLORS.athensGrey,
   axisText: COLORS.santasGrey,
   tooltipBg: COLORS.blackRock,
@@ -31,7 +34,15 @@ export const ChartCardStyle: SxProps<Theme> = {
 export const ChartHeader: SxProps<Theme> = {
   display: "flex",
   justifyContent: "space-between",
-  alignItems: "flex-start",
+  alignItems: "center",
+  gap: "12px",
+}
+
+export const ChartDescription: SxProps<Theme> = {
+  color: COLORS.santasGrey,
+  fontSize: "11px",
+  display: "block",
+  marginTop: "-4px",
 }
 
 export const TimeRangeButton = (isActive: boolean): SxProps<Theme> => ({
@@ -49,3 +60,36 @@ export const TimeRangeButton = (isActive: boolean): SxProps<Theme> => ({
     backgroundColor: isActive ? COLORS.blueRibbon01 : COLORS.athensGrey,
   },
 })
+
+export const ChartActionButton: SxProps<Theme> = {
+  padding: "4px",
+  borderRadius: "4px",
+  color: COLORS.santasGrey,
+  "& svg": {
+    width: "12px",
+    height: "12px",
+    display: "block",
+  },
+  "& svg path": {
+    fill: "currentColor",
+  },
+  "&:hover": {
+    backgroundColor: COLORS.athensGrey,
+    color: COLORS.blackRock,
+  },
+}
+
+export const ExpandDialogPaper: SxProps<Theme> = {
+  borderRadius: "12px",
+  backgroundColor: COLORS.white,
+  padding: 0,
+  margin: "24px",
+  maxWidth: "1100px",
+}
+
+export const ExpandDialogContent: SxProps<Theme> = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "16px",
+  padding: "20px 24px 20px",
+}

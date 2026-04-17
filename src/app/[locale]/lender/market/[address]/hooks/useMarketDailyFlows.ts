@@ -18,6 +18,7 @@ const GET_MARKET_DAILY_STATS = gql`
       startTimestamp
       totalDeposited
       totalWithdrawalsRequested
+      totalWithdrawalsExecuted
     }
   }
 `
@@ -27,6 +28,7 @@ type MarketDailyStatsQuery = {
     startTimestamp: number
     totalDeposited: string
     totalWithdrawalsRequested: string
+    totalWithdrawalsExecuted: string
   }>
 }
 
@@ -40,9 +42,13 @@ export type DailyFlowPoint = {
   dateShort: string
   timestamp: number
   dailyDeposit: number
-  dailyWithdrawal: number
-  dailyWithdrawalNeg: number
-  netFlow: number
+  dailyWithdrawalRequested: number
+  dailyWithdrawalExecuted: number
+  dailyWithdrawalRequestedNeg: number
+  dailyWithdrawalExecutedNeg: number
+  netFlowExecuted: number
+  netFlowRequested: number
+  pendingBand: number
 }
 
 function formatDateShort(ts: number): string {
@@ -59,22 +65,29 @@ function toDailyFlows(
   decimals: number,
 ): DailyFlowPoint[] {
   let cumDep = 0
-  let cumWd = 0
+  let cumReq = 0
+  let cumExec = 0
 
   return stats.map((s) => {
     const dep = parseFloat(formatUnits(s.totalDeposited, decimals))
-    const wd = parseFloat(formatUnits(s.totalWithdrawalsRequested, decimals))
+    const req = parseFloat(formatUnits(s.totalWithdrawalsRequested, decimals))
+    const exec = parseFloat(formatUnits(s.totalWithdrawalsExecuted, decimals))
     cumDep += dep
-    cumWd += wd
+    cumReq += req
+    cumExec += exec
 
     return {
       date: formatDateISO(s.startTimestamp),
       dateShort: formatDateShort(s.startTimestamp),
       timestamp: s.startTimestamp,
       dailyDeposit: dep,
-      dailyWithdrawal: wd,
-      dailyWithdrawalNeg: -wd,
-      netFlow: cumDep - cumWd,
+      dailyWithdrawalRequested: req,
+      dailyWithdrawalExecuted: exec,
+      dailyWithdrawalRequestedNeg: -req,
+      dailyWithdrawalExecutedNeg: -exec,
+      netFlowExecuted: cumDep - cumExec,
+      netFlowRequested: cumDep - cumReq,
+      pendingBand: cumReq - cumExec,
     }
   })
 }
