@@ -1128,9 +1128,11 @@
       "totalLendersTooltip": "Number of lenders with an active balance in this market.",
       "charts": {
         "dailyFlows": "Daily Deposits & Withdrawals",
-        "dailyFlowsDesc": "Deposits above axis, withdrawals below",
+        "dailyFlowsDesc": "Deposits above axis; withdrawals below (requested vs executed)",
         "cumulativeNetFlow": "Cumulative Net Flow",
-        "cumulativeNetFlowDesc": "Running total: deposits minus withdrawals"
+        "cumulativeNetFlowDesc": "Deposits minus withdrawals — executed (filled) vs requested (line)",
+        "expand": "Expand chart",
+        "close": "Close"
       }
     },
     "barchart": {
