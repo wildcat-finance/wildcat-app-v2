@@ -92,7 +92,7 @@ export const TrendingMarketsCarousel = () => {
           display: "flex",
           gap: "6px",
           overflowX: "auto",
-          padding: "32px 0 4px",
+          padding: "20px 0 4px",
           "&::-webkit-scrollbar": { display: "none" },
           scrollbarWidth: "none",
         }}
