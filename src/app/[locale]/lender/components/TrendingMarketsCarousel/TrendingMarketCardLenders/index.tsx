@@ -6,25 +6,23 @@ import Link from "next/link"
 import { COLORS } from "@/theme/colors"
 import { buildMarketHref, formatBps } from "@/utils/formatters"
 
-type TrendingMarketCardProps = {
+type TrendingMarketCardLendersProps = {
   marketAddress: string
   chainId?: number
   borrowerName: string
   asset: string
   apr: number
-  statHighlight?: string
-  statLabel?: string
+  lenderCount?: number
 }
 
-export const TrendingMarketCard = ({
+export const TrendingMarketCardLenders = ({
   marketAddress,
   chainId,
   borrowerName,
   asset,
   apr,
-  statHighlight,
-  statLabel,
-}: TrendingMarketCardProps) => (
+  lenderCount,
+}: TrendingMarketCardLendersProps) => (
   <Box
     component={Link}
     href={buildMarketHref(marketAddress, chainId)}
@@ -61,7 +59,7 @@ export const TrendingMarketCard = ({
           paddingX: "6px",
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
+          gap: "4px",
           flexShrink: 0,
         }}
       >
@@ -77,45 +75,63 @@ export const TrendingMarketCard = ({
     <Box
       sx={{
         display: "flex",
-        flexDirection: "column",
-        gap: "2px",
+        gap: "4px",
         alignItems: "center",
+        justifyContent: "center",
+        flexWrap: "wrap",
         paddingTop: "4px",
         paddingBottom: "16px",
         flexShrink: 0,
       }}
     >
-      {(statHighlight || statLabel) && (
-        <Box
-          sx={{
-            display: "flex",
-            gap: "4px",
-            alignItems: "flex-start",
-            justifyContent: "center",
-          }}
+      <Typography
+        variant="text3"
+        sx={{ color: COLORS.blackRock, opacity: 0.8, whiteSpace: "nowrap" }}
+      >
+        Earn
+      </Typography>
+      <Typography
+        variant="text3"
+        sx={{ color: "#28CA7C", whiteSpace: "nowrap" }}
+      >
+        {formatBps(apr)} APY
+      </Typography>
+      <Typography
+        variant="text3"
+        sx={{ color: COLORS.blackRock, opacity: 0.8, whiteSpace: "nowrap" }}
+      >
+        ·
+      </Typography>
+      <Typography
+        variant="text3"
+        sx={{ color: COLORS.blackRock, opacity: 0.8, whiteSpace: "nowrap" }}
+      >
+        Trusted by
+      </Typography>
+      <Box
+        sx={{
+          backgroundColor: COLORS.glitter,
+          borderRadius: "12px",
+          paddingX: "6px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <Typography
+          variant="text3"
+          sx={{ color: COLORS.ultramarineBlue, whiteSpace: "nowrap" }}
         >
-          {statHighlight && (
-            <Typography
-              variant="text3"
-              sx={{ color: "#28CA7C", whiteSpace: "nowrap" }}
-            >
-              {statHighlight}
-            </Typography>
-          )}
-          {statLabel && (
-            <Typography
-              variant="text3"
-              sx={{
-                color: COLORS.blackRock,
-                opacity: 0.8,
-                whiteSpace: "nowrap",
-              }}
-            >
-              {statLabel}
-            </Typography>
-          )}
-        </Box>
-      )}
+          {lenderCount?.toLocaleString() ?? "—"}
+        </Typography>
+      </Box>
+      <Typography
+        variant="text3"
+        sx={{ color: COLORS.blackRock, opacity: 0.8, whiteSpace: "nowrap" }}
+      >
+        lenders
+      </Typography>
     </Box>
 
     <Box

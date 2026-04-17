@@ -208,6 +208,27 @@ export const DEBT_REPAIDS = gql`
 //   blockTimestamp_gt: getLastFetchedTimestamp(address),
 // },
 
+export const RECENT_DEPOSITS = gql`
+  query ($where: Deposit_filter, $first: Int) {
+    deposits(
+      where: $where
+      first: $first
+      orderBy: blockTimestamp
+      orderDirection: desc
+    ) {
+      id
+      assetAmount
+      blockTimestamp
+      account {
+        address
+      }
+      market {
+        id
+      }
+    }
+  }
+`
+
 export const MARKET_TERMINATEDS = gql`
   query ($where: MarketClosed_filter) {
     marketCloseds(where: $where) {
