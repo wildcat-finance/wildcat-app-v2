@@ -290,6 +290,9 @@ const LENDER_QUERY_KEYS = {
   ) => k(["lender", "GET_SIGNED_MLA", chainId, marketAddress, lenderAddress]),
   GET_BORROWER_PENALTY_WARNING: (chainId: number, borrowerAddress?: string) =>
     k(["lender", "GET_BORROWER_PENALTY_WARNING", chainId, borrowerAddress]),
+  // GET_RECENT_DEPOSITS_KEY
+  GET_RECENT_DEPOSITS: (chainId: number) =>
+    k(["lender", "GET_RECENT_DEPOSITS", chainId]),
 } as const
 
 const WRAPPER_QUERY_KEYS = {

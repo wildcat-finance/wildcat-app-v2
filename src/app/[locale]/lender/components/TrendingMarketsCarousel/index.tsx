@@ -3,83 +3,210 @@
 import { useMemo } from "react"
 
 import { Box, Typography } from "@mui/material"
-import { TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { formatUnits } from "viem"
 
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
+import {
+  RecentDepositsData,
+  useRecentDeposits,
+} from "@/app/[locale]/lender/hooks/useRecentDeposits"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
-import { TrendingMarketCard } from "./TrendingMarketCard"
+import { TrendingMarketCardApr } from "./TrendingMarketCardApr"
+import { TrendingMarketCardInflow } from "./TrendingMarketCardInflow"
+import { TrendingMarketCardInterestPaid } from "./TrendingMarketCardInterestPaid"
+import { TrendingMarketCardLenders } from "./TrendingMarketCardLenders"
+import { TrendingMarketCardTvl } from "./TrendingMarketCardTvl"
 
-const TRENDING_COUNT = 10
+const SLOT_COUNT = 5
 
-const formatCompactAmount = (amount: TokenAmount): string => {
-  const num = parseFloat(amount.toFixed(2))
-  if (num >= 1_000_000_000) return `${(num / 1_000_000_000).toFixed(1)}B`
-  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`
-  if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`
-  return num.toFixed(0)
+const ZERO = BigInt(0)
+
+const compactFormat = (num: number): string =>
+  new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(num)
+
+const formatTokenCompact = (raw: bigint, decimals: number): string =>
+  compactFormat(parseFloat(formatUnits(raw, decimals)))
+
+const pickMax = <T,>(
+  items: T[],
+  score: (item: T) => bigint | number | undefined,
+): T | undefined => {
+  let best: T | undefined
+  let bestScore: bigint | number | undefined
+  items.forEach((item) => {
+    const s = score(item)
+    if (s === undefined) return
+    if (bestScore === undefined) {
+      best = item
+      bestScore = s
+      return
+    }
+    if (typeof s === "bigint" && typeof bestScore === "bigint") {
+      if (s > bestScore) {
+        best = item
+        bestScore = s
+      }
+      return
+    }
+    if (typeof s === "number" && typeof bestScore === "number") {
+      if (s > bestScore) {
+        best = item
+        bestScore = s
+      }
+    }
+  })
+  return best
 }
 
-const getUtilization = (
-  totalSupply: TokenAmount,
-  maxTotalSupply: TokenAmount,
-): number => {
-  const maxNum = parseFloat(maxTotalSupply.toFixed(4))
-  if (maxNum === 0) return 0
-  const totalNum = parseFloat(totalSupply.toFixed(4))
-  return Math.round((totalNum / maxNum) * 100)
+const pickInflowWinner = (
+  eligible: MarketAccount[],
+  bucket: RecentDepositsData,
+) =>
+  pickMax(eligible, (account) => {
+    const stats = bucket[account.market.address.toLowerCase()]
+    return stats && stats.totalAssetAmount > ZERO
+      ? stats.totalAssetAmount
+      : undefined
+  })
+
+const pickLendersWinner = (
+  eligible: MarketAccount[],
+  bucket: RecentDepositsData,
+) =>
+  pickMax(eligible, (account) => {
+    const stats = bucket[account.market.address.toLowerCase()]
+    return stats && stats.uniqueLenders > 0 ? stats.uniqueLenders : undefined
+  })
+
+const pickTotalDepositedWinner = (eligible: MarketAccount[]) =>
+  pickMax(eligible, (account) => {
+    const raw = account.market.totalDeposited?.raw
+    if (!raw) return undefined
+    const big = raw.toBigInt()
+    return big > ZERO ? big : undefined
+  })
+
+type Slot = {
+  key: string
+  account: MarketAccount
+  lenderCount: number
+  formattedStat?: string
 }
 
 export const TrendingMarketsCarousel = () => {
   const { marketAccounts, borrowers } = useLenderMarketsContext()
+  const { data: recentDeposits } = useRecentDeposits()
 
-  const trendingMarkets = useMemo(
-    () =>
-      marketAccounts
-        .filter((a) => !a.market.isClosed && a.market.maxTotalSupply.gt(0))
-        .map((account) => {
-          const { market } = account
-          const utilization = getUtilization(
-            market.totalSupply,
-            market.maxTotalSupply,
+  const slots = useMemo<Slot[]>(() => {
+    const eligible = marketAccounts.filter(
+      (a) => !a.market.isClosed && a.market.maxTotalSupply.gt(0),
+    )
+    if (eligible.length === 0) return []
+
+    const broadStats = (account: MarketAccount) =>
+      recentDeposits.broad[account.market.address.toLowerCase()]
+
+    const inflow7dWinner = pickInflowWinner(eligible, recentDeposits.last7d)
+    const inflowLifetimeWinner = pickTotalDepositedWinner(eligible)
+
+    const lenders7dWinner = pickLendersWinner(eligible, recentDeposits.last7d)
+    const lendersBroadWinner = pickLendersWinner(eligible, recentDeposits.broad)
+
+    const interestPaidWinner = pickMax(eligible, (account) => {
+      const raw = account.market.totalBaseInterestAccrued?.raw
+      if (!raw) return undefined
+      const big = raw.toBigInt()
+      return big > ZERO ? big : undefined
+    })
+
+    const aprWinner = pickMax(
+      eligible,
+      (account) => account.market.annualInterestBips,
+    )
+
+    const tvlWinner = pickMax(eligible, (account) => {
+      const big = account.market.totalSupply.raw.toBigInt()
+      return big > ZERO ? big : undefined
+    })
+
+    const makeSlot = (
+      key: string,
+      account: MarketAccount | undefined,
+      formattedStat?: string,
+    ): Slot | null => {
+      if (!account) return null
+      return {
+        key,
+        account,
+        lenderCount: broadStats(account)?.uniqueLenders ?? 0,
+        formattedStat,
+      }
+    }
+
+    const tvlInflowAccount = inflow7dWinner ?? inflowLifetimeWinner
+    let tvlInflowStat: string | undefined
+    if (tvlInflowAccount) {
+      const addr = tvlInflowAccount.market.address.toLowerCase()
+      const { decimals } = tvlInflowAccount.market.underlyingToken
+      const stats7d = recentDeposits.last7d[addr]
+      if (stats7d && stats7d.totalAssetAmount > ZERO) {
+        tvlInflowStat = `+${formatTokenCompact(
+          stats7d.totalAssetAmount,
+          decimals,
+        )}`
+      } else {
+        const deposited = tvlInflowAccount.market.totalDeposited?.raw
+        if (deposited) {
+          const big = deposited.toBigInt()
+          if (big > ZERO)
+            tvlInflowStat = `+${formatTokenCompact(big, decimals)}`
+        }
+      }
+    }
+
+    let interestPaidStat: string | undefined
+    if (interestPaidWinner) {
+      const raw = interestPaidWinner.market.totalBaseInterestAccrued?.raw
+      if (raw) {
+        const big = raw.toBigInt()
+        if (big > ZERO) {
+          interestPaidStat = formatTokenCompact(
+            big,
+            interestPaidWinner.market.underlyingToken.decimals,
           )
-          return { account, utilization }
-        })
-        .sort((a, b) => b.utilization - a.utilization)
-        .slice(0, TRENDING_COUNT)
-        .map(({ account, utilization }) => {
-          const { market } = account
-          const {
-            address,
-            borrower: borrowerAddress,
-            underlyingToken,
-            annualInterestBips,
-            totalSupply,
-            chainId,
-          } = market
+        }
+      }
+    }
 
-          const borrower = (borrowers ?? []).find(
-            (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
-          )
-          const borrowerName = borrower
-            ? borrower.alias || borrower.name || trimAddress(borrowerAddress)
-            : trimAddress(borrowerAddress)
+    let tvlStat: string | undefined
+    if (tvlWinner) {
+      const big = tvlWinner.market.totalSupply.raw.toBigInt()
+      if (big > ZERO) {
+        tvlStat = formatTokenCompact(
+          big,
+          tvlWinner.market.underlyingToken.decimals,
+        )
+      }
+    }
 
-          return {
-            marketAddress: address,
-            chainId,
-            borrowerName,
-            asset: underlyingToken.symbol,
-            apr: annualInterestBips,
-            statHighlight: formatCompactAmount(totalSupply),
-            statLabel: `${underlyingToken.symbol} supplied · ${utilization}% filled`,
-          }
-        }),
-    [marketAccounts, borrowers],
-  )
+    const built: (Slot | null)[] = [
+      makeSlot("tvlInflow", tvlInflowAccount, tvlInflowStat),
+      makeSlot("lenders", lenders7dWinner ?? lendersBroadWinner),
+      makeSlot("interestPaid", interestPaidWinner, interestPaidStat),
+      makeSlot("highestApr", aprWinner),
+      makeSlot("highestTvl", tvlWinner, tvlStat),
+    ]
 
-  if (trendingMarkets.length === 0) return null
+    return built.filter((s): s is Slot => s !== null).slice(0, SLOT_COUNT)
+  }, [marketAccounts, recentDeposits])
+
+  if (slots.length === 0) return null
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -97,22 +224,70 @@ export const TrendingMarketsCarousel = () => {
           scrollbarWidth: "none",
         }}
       >
-        {trendingMarkets.map((market) => (
-          <Box
-            key={market.marketAddress}
-            sx={{ flexShrink: 0, width: "304px" }}
-          >
-            <TrendingMarketCard
-              marketAddress={market.marketAddress}
-              chainId={market.chainId}
-              borrowerName={market.borrowerName}
-              asset={market.asset}
-              apr={market.apr}
-              statHighlight={market.statHighlight}
-              statLabel={market.statLabel}
-            />
-          </Box>
-        ))}
+        {slots.map((slot) => {
+          const { market } = slot.account
+          const borrower = (borrowers ?? []).find(
+            (b) => b.address.toLowerCase() === market.borrower.toLowerCase(),
+          )
+          const borrowerName = borrower
+            ? borrower.alias || borrower.name || trimAddress(market.borrower)
+            : trimAddress(market.borrower)
+
+          const commonProps = {
+            marketAddress: market.address,
+            chainId: market.chainId,
+            borrowerName,
+            asset: market.underlyingToken.symbol,
+            apr: market.annualInterestBips,
+          }
+
+          let card: React.ReactNode
+          switch (slot.key) {
+            case "tvlInflow":
+              card = (
+                <TrendingMarketCardInflow
+                  {...commonProps}
+                  inflow={slot.formattedStat ?? "—"}
+                />
+              )
+              break
+            case "lenders":
+              card = (
+                <TrendingMarketCardLenders
+                  {...commonProps}
+                  lenderCount={slot.lenderCount}
+                />
+              )
+              break
+            case "interestPaid":
+              card = (
+                <TrendingMarketCardInterestPaid
+                  {...commonProps}
+                  interestPaid={slot.formattedStat ?? "—"}
+                />
+              )
+              break
+            case "highestApr":
+              card = <TrendingMarketCardApr {...commonProps} />
+              break
+            case "highestTvl":
+              card = (
+                <TrendingMarketCardTvl
+                  {...commonProps}
+                  totalSupply={slot.formattedStat ?? "—"}
+                />
+              )
+              break
+            default:
+              card = null
+          }
+
+          return (
+            <Box key={slot.key} sx={{ flexShrink: 0, width: "304px" }}>
+              {card}
+            </Box>
+          )
+        })}
       </Box>
     </Box>
   )

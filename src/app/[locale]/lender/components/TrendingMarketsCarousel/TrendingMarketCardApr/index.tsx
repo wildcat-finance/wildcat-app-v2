@@ -6,25 +6,21 @@ import Link from "next/link"
 import { COLORS } from "@/theme/colors"
 import { buildMarketHref, formatBps } from "@/utils/formatters"
 
-type TrendingMarketCardProps = {
+type TrendingMarketCardAprProps = {
   marketAddress: string
   chainId?: number
   borrowerName: string
   asset: string
   apr: number
-  statHighlight?: string
-  statLabel?: string
 }
 
-export const TrendingMarketCard = ({
+export const TrendingMarketCardApr = ({
   marketAddress,
   chainId,
   borrowerName,
   asset,
   apr,
-  statHighlight,
-  statLabel,
-}: TrendingMarketCardProps) => (
+}: TrendingMarketCardAprProps) => (
   <Box
     component={Link}
     href={buildMarketHref(marketAddress, chainId)}
@@ -77,45 +73,27 @@ export const TrendingMarketCard = ({
     <Box
       sx={{
         display: "flex",
-        flexDirection: "column",
-        gap: "2px",
+        gap: "4px",
         alignItems: "center",
+        justifyContent: "center",
+        flexWrap: "wrap",
         paddingTop: "4px",
         paddingBottom: "16px",
         flexShrink: 0,
       }}
     >
-      {(statHighlight || statLabel) && (
-        <Box
-          sx={{
-            display: "flex",
-            gap: "4px",
-            alignItems: "flex-start",
-            justifyContent: "center",
-          }}
-        >
-          {statHighlight && (
-            <Typography
-              variant="text3"
-              sx={{ color: "#28CA7C", whiteSpace: "nowrap" }}
-            >
-              {statHighlight}
-            </Typography>
-          )}
-          {statLabel && (
-            <Typography
-              variant="text3"
-              sx={{
-                color: COLORS.blackRock,
-                opacity: 0.8,
-                whiteSpace: "nowrap",
-              }}
-            >
-              {statLabel}
-            </Typography>
-          )}
-        </Box>
-      )}
+      <Typography
+        variant="text3"
+        sx={{ color: "#28CA7C", whiteSpace: "nowrap" }}
+      >
+        #1
+      </Typography>
+      <Typography
+        variant="text3"
+        sx={{ color: COLORS.blackRock, opacity: 0.8, whiteSpace: "nowrap" }}
+      >
+        highest rate in the market
+      </Typography>
     </Box>
 
     <Box
