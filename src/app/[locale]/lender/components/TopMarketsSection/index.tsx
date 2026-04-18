@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import * as React from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import {
   DepositStatus,
@@ -27,6 +27,7 @@ import {
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import { MarketsTableWrapper } from "@/components/MarketsTableWrapper"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
@@ -72,6 +73,9 @@ export const DataGridSx = {
     zIndex: 2,
     backgroundColor: COLORS.white,
   },
+  "& .MuiDataGrid-columnHeaderTitleContainer": {
+    margin: "8px 0 !important",
+  },
   "& .MuiDataGrid-columnHeader": {
     padding: 0,
   },
@@ -104,9 +108,12 @@ const clickableGridSx = {
 export const TopMarketsSection = () => {
   const { t } = useTranslation()
   const router = useRouter()
-  const { marketAccounts, borrowers } = useLenderMarketsContext()
+  const { marketAccounts, borrowers, isLoadingInitial, isLoadingUpdate } =
+    useLenderMarketsContext()
 
   const [sortMode, setSortMode] = useState(SORT_OPTIONS[0])
+
+  const isLoading = isLoadingInitial || isLoadingUpdate
 
   const sortedRows = useMemo((): GridRowsProp<LenderOtherMarketsTableModel> => {
     const active = marketAccounts.filter((a) => !a.market.isClosed)
@@ -377,13 +384,13 @@ export const TopMarketsSection = () => {
   ]
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box sx={{ width: "100%", paddingX: "16px" }}>
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
           gap: "8px",
-          marginBottom: "4px",
+          marginBottom: "12px",
         }}
       >
         <Typography variant="title3">Top 3</Typography>
@@ -393,16 +400,26 @@ export const TopMarketsSection = () => {
           onChange={setSortMode}
         />
       </Box>
-      <DataGrid
-        disableVirtualization
-        sx={clickableGridSx}
-        rowHeight={66}
-        rows={sortedRows}
-        columns={columns}
-        columnHeaderHeight={40}
-        onRowClick={handleRowClick}
-        hideFooter
-      />
+
+      <MarketsTableWrapper
+        marketsLength={sortedRows.length}
+        rowsLength={3}
+        isLoading={isLoading}
+        noMarketsTitle="No Markets Available"
+        noMarketsSubtitle="There are no markets to display at the moment."
+        highlightNoMarketsBanner
+      >
+        <DataGrid
+          disableVirtualization
+          sx={clickableGridSx}
+          rowHeight={66}
+          rows={sortedRows}
+          columns={columns}
+          columnHeaderHeight={36}
+          onRowClick={handleRowClick}
+          hideFooter
+        />
+      </MarketsTableWrapper>
     </Box>
   )
 }

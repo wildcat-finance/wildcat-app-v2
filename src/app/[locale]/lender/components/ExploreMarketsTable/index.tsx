@@ -3,7 +3,13 @@
 import { useMemo, useState } from "react"
 import * as React from "react"
 
-import { Box, Button, FormControlLabel, Typography } from "@mui/material"
+import {
+  Box,
+  Button,
+  FormControlLabel,
+  Skeleton,
+  Typography,
+} from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import {
   DepositStatus,
@@ -30,6 +36,7 @@ import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { FilterTextField } from "@/components/FilterTextfield"
 import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
+import { MarketsTableWrapper } from "@/components/MarketsTableWrapper"
 import { TablePagination } from "@/components/TablePagination"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -123,6 +130,8 @@ export const ExploreMarketsTable = () => {
     useLenderMarketsContext()
   const { isTestnet } = useCurrentNetwork()
 
+  const isLoading = isLoadingInitial || isLoadingUpdate
+
   const [sortMode, setSortMode] = useState<SortOption>("Most Funded")
   const [search, setSearch] = useState("")
   const [assets, setAssets] = useState<MarketsFilterSelectItem[]>([])
@@ -132,11 +141,6 @@ export const ExploreMarketsTable = () => {
   >([])
   const [showSelfOnboard, setShowSelfOnboard] = useState(true)
   const [showOnboardByBorrower, setShowOnboardByBorrower] = useState(false)
-
-  const [paginationModel, setPaginationModel] = useState({
-    pageSize: 50,
-    page: 0,
-  })
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
   const tokens = useMemo(() => {
@@ -455,7 +459,7 @@ export const ExploreMarketsTable = () => {
   ]
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box sx={{ width: "100%", paddingX: "16px" }}>
       <Box
         sx={{
           width: "fit-content",
@@ -464,20 +468,34 @@ export const ExploreMarketsTable = () => {
           margin: "16px 0 18px",
         }}
       >
-        {SORT_OPTIONS.map((option) => (
-          <Button
-            key={option}
-            variant="text"
-            onClick={() => setSortMode(option)}
-            sx={{
-              fontWeight: sortMode === option ? 600 : 500,
-              backgroundColor:
-                sortMode === option ? COLORS.whiteSmoke : "transparent",
-            }}
-          >
-            {option}
-          </Button>
-        ))}
+        {isLoading
+          ? Array.from({ length: 4 }, (_, i) => `skeleton-row-${i}`).map(
+              (key) => (
+                <Skeleton
+                  key={key}
+                  height="36px"
+                  width="106px"
+                  sx={{
+                    borderRadius: "10px",
+                    bgcolor: COLORS.athensGrey,
+                  }}
+                />
+              ),
+            )
+          : SORT_OPTIONS.map((option) => (
+              <Button
+                key={option}
+                variant="text"
+                onClick={() => setSortMode(option)}
+                sx={{
+                  fontWeight: sortMode === option ? 600 : 500,
+                  backgroundColor:
+                    sortMode === option ? COLORS.whiteSmoke : "transparent",
+                }}
+              >
+                {option}
+              </Button>
+            ))}
       </Box>
 
       <Box
@@ -569,23 +587,43 @@ export const ExploreMarketsTable = () => {
         />
       </Box>
 
-      <DataGrid
-        disableVirtualization
-        sx={DataGridSx}
-        rowHeight={66}
-        rows={rows}
-        columns={columns}
-        columnHeaderHeight={40}
-        onRowClick={handleRowClick}
-        loading={isLoadingInitial || isLoadingUpdate}
-      />
+      <MarketsTableWrapper
+        marketsLength={rows.length}
+        rowsLength={5}
+        isLoading={isLoading}
+        noMarketsTitle="No Markets Available"
+        noMarketsSubtitle="There are no markets to display at the moment."
+        highlightNoMarketsBanner
+      >
+        <DataGrid
+          disableVirtualization
+          sx={DataGridSx}
+          rowHeight={66}
+          rows={rows}
+          columns={columns}
+          columnHeaderHeight={40}
+          onRowClick={handleRowClick}
+          loading={isLoadingInitial || isLoadingUpdate}
+        />
+      </MarketsTableWrapper>
 
       <Box
         sx={{ display: "flex", justifyContent: "center", marginTop: "18px" }}
       >
-        <Button size="small" variant="contained" color="secondary">
-          Explore All Markets
-        </Button>
+        {isLoading ? (
+          <Skeleton
+            height="28px"
+            width="127px"
+            sx={{
+              borderRadius: "10px",
+              bgcolor: COLORS.athensGrey,
+            }}
+          />
+        ) : (
+          <Button size="small" variant="contained" color="secondary">
+            Explore All Markets
+          </Button>
+        )}
       </Box>
     </Box>
   )
