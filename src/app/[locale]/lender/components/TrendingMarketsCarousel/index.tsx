@@ -1,8 +1,9 @@
 "use client"
 
 import { useMemo } from "react"
+import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Skeleton, Typography } from "@mui/material"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { formatUnits } from "viem"
 
@@ -100,8 +101,11 @@ type Slot = {
 }
 
 export const TrendingMarketsCarousel = () => {
-  const { marketAccounts, borrowers } = useLenderMarketsContext()
+  const { marketAccounts, borrowers, isLoadingInitial, isLoadingUpdate } =
+    useLenderMarketsContext()
   const { data: recentDeposits } = useRecentDeposits()
+
+  const isLoading = isLoadingInitial || isLoadingUpdate
 
   const slots = useMemo<Slot[]>(() => {
     const eligible = marketAccounts.filter(
@@ -206,11 +210,12 @@ export const TrendingMarketsCarousel = () => {
     return built.filter((s): s is Slot => s !== null).slice(0, SLOT_COUNT)
   }, [marketAccounts, recentDeposits])
 
-  if (slots.length === 0) return null
-
   return (
     <Box sx={{ width: "100%" }}>
-      <Typography variant="title3" sx={{ color: COLORS.blackRock }}>
+      <Typography
+        variant="title3"
+        sx={{ color: COLORS.blackRock, paddingLeft: "16px" }}
+      >
         Trending Markets
       </Typography>
 
@@ -224,70 +229,98 @@ export const TrendingMarketsCarousel = () => {
           scrollbarWidth: "none",
         }}
       >
-        {slots.map((slot) => {
-          const { market } = slot.account
-          const borrower = (borrowers ?? []).find(
-            (b) => b.address.toLowerCase() === market.borrower.toLowerCase(),
-          )
-          const borrowerName = borrower
-            ? borrower.alias || borrower.name || trimAddress(market.borrower)
-            : trimAddress(market.borrower)
+        {isLoading
+          ? Array.from({ length: 5 }, (_, i) => `skeleton-row-${i}`).map(
+              (key, index) => (
+                <Skeleton
+                  key={key}
+                  height="136px"
+                  width="304px"
+                  sx={{
+                    minWidth: "304px",
+                    borderRadius: "12px",
+                    bgcolor: COLORS.athensGrey,
+                    ...(index === 0 && { marginLeft: "16px" }),
+                    ...(index === 4 && { marginRight: "16px" }),
+                  }}
+                />
+              ),
+            )
+          : slots.map((slot, index) => {
+              const { market } = slot.account
+              const borrower = (borrowers ?? []).find(
+                (b) =>
+                  b.address.toLowerCase() === market.borrower.toLowerCase(),
+              )
+              const borrowerName = borrower
+                ? borrower.alias ||
+                  borrower.name ||
+                  trimAddress(market.borrower)
+                : trimAddress(market.borrower)
 
-          const commonProps = {
-            marketAddress: market.address,
-            chainId: market.chainId,
-            borrowerName,
-            asset: market.underlyingToken.symbol,
-            apr: market.annualInterestBips,
-          }
+              const commonProps = {
+                marketAddress: market.address,
+                chainId: market.chainId,
+                borrowerName,
+                asset: market.underlyingToken.symbol,
+                apr: market.annualInterestBips,
+              }
 
-          let card: React.ReactNode
-          switch (slot.key) {
-            case "tvlInflow":
-              card = (
-                <TrendingMarketCardInflow
-                  {...commonProps}
-                  inflow={slot.formattedStat ?? "—"}
-                />
-              )
-              break
-            case "lenders":
-              card = (
-                <TrendingMarketCardLenders
-                  {...commonProps}
-                  lenderCount={slot.lenderCount}
-                />
-              )
-              break
-            case "interestPaid":
-              card = (
-                <TrendingMarketCardInterestPaid
-                  {...commonProps}
-                  interestPaid={slot.formattedStat ?? "—"}
-                />
-              )
-              break
-            case "highestApr":
-              card = <TrendingMarketCardApr {...commonProps} />
-              break
-            case "highestTvl":
-              card = (
-                <TrendingMarketCardTvl
-                  {...commonProps}
-                  totalSupply={slot.formattedStat ?? "—"}
-                />
-              )
-              break
-            default:
-              card = null
-          }
+              let card: React.ReactNode
+              switch (slot.key) {
+                case "tvlInflow":
+                  card = (
+                    <TrendingMarketCardInflow
+                      {...commonProps}
+                      inflow={slot.formattedStat ?? "—"}
+                    />
+                  )
+                  break
+                case "lenders":
+                  card = (
+                    <TrendingMarketCardLenders
+                      {...commonProps}
+                      lenderCount={slot.lenderCount}
+                    />
+                  )
+                  break
+                case "interestPaid":
+                  card = (
+                    <TrendingMarketCardInterestPaid
+                      {...commonProps}
+                      interestPaid={slot.formattedStat ?? "—"}
+                    />
+                  )
+                  break
+                case "highestApr":
+                  card = <TrendingMarketCardApr {...commonProps} />
+                  break
+                case "highestTvl":
+                  card = (
+                    <TrendingMarketCardTvl
+                      {...commonProps}
+                      totalSupply={slot.formattedStat ?? "—"}
+                    />
+                  )
+                  break
+                default:
+                  card = null
+              }
 
-          return (
-            <Box key={slot.key} sx={{ flexShrink: 0, width: "304px" }}>
-              {card}
-            </Box>
-          )
-        })}
+              return (
+                <Box
+                  key={slot.key}
+                  sx={{
+                    flexShrink: 0,
+                    width: "304px",
+                    ...(index === 0 && { marginLeft: "16px" }),
+                    ...(index === slots.length - 1 && { marginRight: "16px" }),
+                  }}
+                >
+                  {card}
+                </Box>
+              )
+            })}
       </Box>
     </Box>
   )
