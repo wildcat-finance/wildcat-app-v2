@@ -13,7 +13,7 @@ export const ExploreSection = () => (
       flex: 1,
       minHeight: 0,
       overflowY: "auto",
-      padding: "28px 16px",
+      paddingY: "28px",
       display: "flex",
       flexDirection: "column",
       gap: "32px",
