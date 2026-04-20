@@ -244,7 +244,7 @@ export const TrendingMarketsCarousel = () => {
                 (key, index) => (
                   <Skeleton
                     key={key}
-                    height="152px"
+                    height="182px"
                     width="220px"
                     sx={{
                       minWidth: "220px",
