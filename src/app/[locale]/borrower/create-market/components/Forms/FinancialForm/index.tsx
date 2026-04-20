@@ -65,6 +65,11 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
     delinquencyGracePeriodNumber < withdrawalBatchDurationNumber
 
   const isRevolving = implementationTypeWatch === "revolving"
+  const aprLabel = t(
+    isRevolving
+      ? "createNewMarket.financial.baseAPR.labelRevolving"
+      : "createNewMarket.financial.baseAPR.label",
+  )
   const hasCommitmentFeeValue =
     commitmentFeePercentWatch !== undefined &&
     !Number.isNaN(commitmentFeePercentWatch)
@@ -147,7 +152,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
           />
         </InputLabel>
 
-        <InputLabel label={t("createNewMarket.financial.baseAPR.label")}>
+        <InputLabel label={aprLabel}>
           <NumberTextField
             min={0}
             max={100}

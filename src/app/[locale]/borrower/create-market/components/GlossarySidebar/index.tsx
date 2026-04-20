@@ -67,7 +67,11 @@ export const GlossarySidebar = ({
           description: t("createNewMarket.financial.maxCapacity.glossary"),
         },
         {
-          title: t("createNewMarket.financial.baseAPR.label"),
+          title: t(
+            isRevolving
+              ? "createNewMarket.financial.baseAPR.labelRevolving"
+              : "createNewMarket.financial.baseAPR.label",
+          ),
           description: t(
             isRevolving
               ? "createNewMarket.financial.baseAPR.glossaryRevolving"

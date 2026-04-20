@@ -143,6 +143,11 @@ export const ConfirmationForm = ({
 
   const isFixedTerm = getValues("marketType") === "fixedTerm"
   const isRevolving = getValues("implementationType") === "revolving"
+  const aprLabel = t(
+    isRevolving
+      ? "createNewMarket.financial.baseAPR.labelRevolving"
+      : "createNewMarket.financial.baseAPR.label",
+  )
   const isNewPolicy = getValues("policy") === "createNewPolicy"
   const policyNameValue = getValues("policyName") || "Unnamed Policy"
   const depositRequiresAccess = "Yes" // getValues("depositRequiresAccess")
@@ -355,7 +360,7 @@ export const ConfirmationForm = ({
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.baseAPR.label")}
+          label={aprLabel}
           value={`${getValues("annualInterestBips")}%`}
         />
 

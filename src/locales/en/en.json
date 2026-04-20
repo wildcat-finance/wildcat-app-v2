@@ -1465,6 +1465,7 @@
       },
       "baseAPR": {
         "label": "Base APR",
+        "labelRevolving": "Utilization APR",
         "placeholder": "0 - 100",
         "chip": "%",
         "glossary": "The fixed annual percentage rate (excluding any protocol fees) that borrowers pay for assets within the market.",
