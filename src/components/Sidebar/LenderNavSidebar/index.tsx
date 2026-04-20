@@ -128,7 +128,7 @@ export const LenderNavSidebar = () => {
             }}
           >
             <DashboardSectionAccordion
-              label={t("dashboard.markets.tables.borrower.active.title")}
+              label="Active Markets"
               amount={activeMarketsAmount}
               open={marketSection === LenderMarketDashboardSections.ACTIVE}
               onClick={() =>
@@ -150,7 +150,7 @@ export const LenderNavSidebar = () => {
             </DashboardSectionAccordion>
 
             <DashboardSectionAccordion
-              label={t("dashboard.markets.tables.borrower.closed.title")}
+              label="Terminated Markets"
               amount={closedMarketsAmount}
               open={marketSection === LenderMarketDashboardSections.TERMINATED}
               onClick={() =>
