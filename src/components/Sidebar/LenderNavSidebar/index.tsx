@@ -4,6 +4,7 @@ import { Box, SvgIcon, Typography } from "@mui/material"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import AllMarketsIcon from "@/assets/icons/markets_icon.svg"
 import ExploreIcon from "@/assets/icons/oneOfMany_icon.svg"
@@ -26,6 +27,8 @@ export const LenderNavSidebar = () => {
   const pathname = usePathname()
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
+
+  const { isConnected } = useAccount()
 
   const marketSection = useAppSelector(
     (state) => state.lenderDashboard.marketSection,
@@ -99,82 +102,94 @@ export const LenderNavSidebar = () => {
         </Box>
       </Box>
 
-      <Box sx={{ width: "100%", marginBottom: isOnMyMarkets ? "16px" : "4px" }}>
+      {isConnected && (
         <Box
-          component={Link}
-          href={ROUTES.lender.myMarkets}
-          sx={navLinkSx(isOnMyMarkets)}
+          sx={{ width: "100%", marginBottom: isOnMyMarkets ? "16px" : "4px" }}
         >
-          <SvgIcon sx={{ marginRight: "10px" }}>
-            <MyMarketsIcon />
-          </SvgIcon>
-          <Typography variant="text2" sx={{ marginRight: "6px" }}>
-            My Markets
-          </Typography>
-          <Typography variant="text2" color={COLORS.santasGrey}>
-            {myMarketsCount !== 0 ? activeMarketsAmount : null}
-          </Typography>
-        </Box>
-
-        {isOnMyMarkets && (
           <Box
-            sx={{
-              width: "100%",
-              paddingLeft: "14px",
-              marginTop: "12px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "14px",
-            }}
+            component={Link}
+            href={ROUTES.lender.myMarkets}
+            sx={navLinkSx(isOnMyMarkets)}
           >
-            <DashboardSectionAccordion
-              label="Active Markets"
-              amount={activeMarketsAmount}
-              open={marketSection === LenderMarketDashboardSections.ACTIVE}
-              onClick={() =>
-                dispatch(setMarketSection(LenderMarketDashboardSections.ACTIVE))
-              }
-            >
-              <DashboardButton
-                label={t("dashboard.markets.tables.borrower.active.deposited")}
-                amount={depositedAmount}
-                onClick={() => dispatch(setScrollTarget("deposited"))}
-              />
-              <DashboardButton
-                label={t(
-                  "dashboard.markets.tables.borrower.active.nonDeposited",
-                )}
-                amount={nonDepositedAmount}
-                onClick={() => dispatch(setScrollTarget("non-deposited"))}
-              />
-            </DashboardSectionAccordion>
-
-            <DashboardSectionAccordion
-              label="Terminated Markets"
-              amount={closedMarketsAmount}
-              open={marketSection === LenderMarketDashboardSections.TERMINATED}
-              onClick={() =>
-                dispatch(
-                  setMarketSection(LenderMarketDashboardSections.TERMINATED),
-                )
-              }
-            >
-              <DashboardButton
-                label={t("dashboard.markets.tables.borrower.closed.prevActive")}
-                amount={prevActiveAmount}
-                onClick={() => dispatch(setScrollTarget("prev-active"))}
-              />
-              <DashboardButton
-                label={t(
-                  "dashboard.markets.tables.borrower.closed.neverActive",
-                )}
-                amount={neverActiveAmount}
-                onClick={() => dispatch(setScrollTarget("never-active"))}
-              />
-            </DashboardSectionAccordion>
+            <SvgIcon sx={{ marginRight: "10px" }}>
+              <MyMarketsIcon />
+            </SvgIcon>
+            <Typography variant="text2" sx={{ marginRight: "6px" }}>
+              My Markets
+            </Typography>
+            <Typography variant="text2" color={COLORS.santasGrey}>
+              {myMarketsCount !== 0 ? activeMarketsAmount : null}
+            </Typography>
           </Box>
-        )}
-      </Box>
+
+          {isOnMyMarkets && (
+            <Box
+              sx={{
+                width: "100%",
+                paddingLeft: "14px",
+                marginTop: "12px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "14px",
+              }}
+            >
+              <DashboardSectionAccordion
+                label="Active Markets"
+                amount={activeMarketsAmount}
+                open={marketSection === LenderMarketDashboardSections.ACTIVE}
+                onClick={() =>
+                  dispatch(
+                    setMarketSection(LenderMarketDashboardSections.ACTIVE),
+                  )
+                }
+              >
+                <DashboardButton
+                  label={t(
+                    "dashboard.markets.tables.borrower.active.deposited",
+                  )}
+                  amount={depositedAmount}
+                  onClick={() => dispatch(setScrollTarget("deposited"))}
+                />
+                <DashboardButton
+                  label={t(
+                    "dashboard.markets.tables.borrower.active.nonDeposited",
+                  )}
+                  amount={nonDepositedAmount}
+                  onClick={() => dispatch(setScrollTarget("non-deposited"))}
+                />
+              </DashboardSectionAccordion>
+
+              <DashboardSectionAccordion
+                label="Terminated Markets"
+                amount={closedMarketsAmount}
+                open={
+                  marketSection === LenderMarketDashboardSections.TERMINATED
+                }
+                onClick={() =>
+                  dispatch(
+                    setMarketSection(LenderMarketDashboardSections.TERMINATED),
+                  )
+                }
+              >
+                <DashboardButton
+                  label={t(
+                    "dashboard.markets.tables.borrower.closed.prevActive",
+                  )}
+                  amount={prevActiveAmount}
+                  onClick={() => dispatch(setScrollTarget("prev-active"))}
+                />
+                <DashboardButton
+                  label={t(
+                    "dashboard.markets.tables.borrower.closed.neverActive",
+                  )}
+                  amount={neverActiveAmount}
+                  onClick={() => dispatch(setScrollTarget("never-active"))}
+                />
+              </DashboardSectionAccordion>
+            </Box>
+          )}
+        </Box>
+      )}
 
       <Box
         sx={{ width: "100%", marginBottom: isOnAllMarkets ? "16px" : "4px" }}
