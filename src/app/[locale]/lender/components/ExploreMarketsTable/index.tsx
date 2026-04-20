@@ -459,7 +459,7 @@ export const ExploreMarketsTable = () => {
   ]
 
   return (
-    <Box sx={{ width: "100%", paddingX: "16px" }}>
+    <Box sx={{ width: "100%", padding: "0 16px 28px" }}>
       <Box
         sx={{
           width: "fit-content",

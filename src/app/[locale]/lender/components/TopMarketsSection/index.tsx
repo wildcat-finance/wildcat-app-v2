@@ -384,7 +384,7 @@ export const TopMarketsSection = () => {
   ]
 
   return (
-    <Box sx={{ width: "100%", paddingX: "16px" }}>
+    <Box sx={{ width: "100%", padding: "28px 16px 0" }}>
       <Box
         sx={{
           display: "flex",
