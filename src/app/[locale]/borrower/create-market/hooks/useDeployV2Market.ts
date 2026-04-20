@@ -458,7 +458,15 @@ export const useDeployV2Market = () => {
               }),
             },
           )
-          if (response.status !== 200) throw Error("Failed to submit MLA")
+          if (response.status !== 200) {
+            const error = await response
+              .json()
+              .catch(() => undefined as { error?: string } | undefined)
+            throw Error(
+              error?.error ??
+                `Failed to submit MLA decline (${response.status})`,
+            )
+          }
           return true
         }
         console.log(`Submitting MLA for market ${marketAddress.toLowerCase()}`)
@@ -474,7 +482,15 @@ export const useDeployV2Market = () => {
             }),
           },
         )
-        if (response.status !== 200) throw Error("Failed to submit MLA")
+        if (response.status !== 200) {
+          const error = await response
+            .json()
+            .catch(() => undefined as { error?: string } | undefined)
+          throw Error(
+            error?.error ??
+              `Failed to submit MLA submission (${response.status})`,
+          )
+        }
         return true
       }
       await toastRequest(doSubmit(), {

@@ -2,7 +2,9 @@ import { useQuery } from "@tanstack/react-query"
 import {
   DepositAccess,
   getHooksFactoryContract,
+  getHooksFactoryRevolvingContract,
   HooksKind,
+  MarketType,
   Market,
   SignerOrProvider,
   Token,
@@ -100,12 +102,13 @@ export async function getMlaFromForm(
   borrowerProfile: BorrowerProfile,
   asset: Token,
   salt: string,
+  marketType: MarketType,
   networkData: NetworkInfo,
 ) {
-  const hooksFactoryContract = getHooksFactoryContract(
-    networkData.chainId,
-    provider,
-  )
+  const hooksFactoryContract =
+    marketType === "revolving"
+      ? getHooksFactoryRevolvingContract(networkData.chainId, provider)
+      : getHooksFactoryContract(networkData.chainId, provider)
   const marketAddress = await hooksFactoryContract.computeMarketAddress(salt)
 
   const mlaTemplate = await fetch(`/api/mla/templates/${mlaTemplateId}`).then(
@@ -157,7 +160,8 @@ export const usePreviewMlaFromForm = (
   salt: string,
 ) => {
   const { provider } = useEthersProvider()
-  const { data: marketAddress } = useCalculateMarketAddress(salt)
+  const marketType = form.watch("implementationType")
+  const { data: marketAddress } = useCalculateMarketAddress(salt, marketType)
   const selectedNetwork = useSelectedNetwork()
   return useQuery({
     refetchOnMount: true,
@@ -182,6 +186,7 @@ export const usePreviewMlaFromForm = (
         borrowerProfile,
         asset,
         salt,
+        marketType,
         selectedNetwork,
       )
     },
