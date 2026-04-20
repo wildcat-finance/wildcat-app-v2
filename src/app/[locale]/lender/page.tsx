@@ -9,7 +9,7 @@ export default function Lender() {
   return (
     <Box
       sx={{
-        height: "100%",
+        minHeight: { xs: "calc(100dvh - 64px)", md: "auto" },
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -20,8 +20,6 @@ export default function Lender() {
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          overflow: "hidden",
-          minHeight: 0,
         }}
       >
         <ExploreSection />
