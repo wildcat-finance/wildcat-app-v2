@@ -226,13 +226,6 @@ export const MyMarketsSection = () => {
     (a) => a.market.isClosed,
   ).length
 
-  // Redirect from OTHER section (set by explore page) to ACTIVE on mount
-  useEffect(() => {
-    if (marketSection === LenderMarketDashboardSections.OTHER) {
-      dispatch(setMarketSection(LenderMarketDashboardSections.ACTIVE))
-    }
-  }, [marketSection, dispatch])
-
   if (!mounted)
     return (
       <Skeleton

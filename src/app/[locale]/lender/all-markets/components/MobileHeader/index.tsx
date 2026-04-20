@@ -79,6 +79,9 @@ export const MobileHeader = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     dispatch(setScrollTarget("self-onboard"))
+    return () => {
+      dispatch(setScrollTarget(null))
+    }
   }, [dispatch])
 
   return (
@@ -97,16 +100,13 @@ export const MobileHeader = ({ children }: { children: ReactNode }) => {
           width: "100%",
           display: "flex",
           justifyContent: "space-between",
-          marginBottom: "12px",
         }}
       >
         <Typography variant="mobH2" marginLeft="12px">
-          {t("dashboard.markets.title")}
+          All Markets
         </Typography>
         {children}
       </Box>
-
-      <Divider />
 
       <Box
         sx={{
