@@ -9,17 +9,21 @@ import { TrendingMarketsCarousel } from "@/app/[locale]/lender/components/Trendi
 export const ExploreSection = () => (
   <Box
     sx={{
+      height: { xs: "auto", md: `calc(100vh - 82px)` },
       width: "100%",
-      flex: 1,
-      minHeight: 0,
-      overflowY: "auto",
-      display: "flex",
-      flexDirection: "column",
-      gap: "32px",
+      overflow: "auto",
     }}
   >
-    <TopMarketsSection />
-    <TrendingMarketsCarousel />
-    <ExploreMarketsTable />
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "32px",
+      }}
+    >
+      <TopMarketsSection />
+      <TrendingMarketsCarousel />
+      <ExploreMarketsTable />
+    </Box>
   </Box>
 )
