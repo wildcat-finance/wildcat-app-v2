@@ -2,10 +2,15 @@ import * as React from "react"
 import { useEffect, useRef } from "react"
 
 import { Box, Typography } from "@mui/material"
-import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
+import {
+  DataGrid,
+  GridRow,
+  GridRowProps,
+  GridRenderCellParams,
+  GridRowsProp,
+} from "@mui/x-data-grid"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
@@ -44,6 +49,16 @@ import { getMarketTypeChip } from "@/utils/marketType"
 import { ActiveMarketsTableModel, ActiveMarketsTableProps } from "./interface"
 import { DataGridSx } from "../style"
 
+const MarketLinkRow = (props: GridRowProps) => (
+  <Link
+    href={buildMarketHref(props.row.id, props.row.chainId)}
+    style={{ display: "contents", color: "inherit" }}
+    tabIndex={-1}
+  >
+    <GridRow {...props} />
+  </Link>
+)
+
 const clickableGridSx = {
   ...DataGridSx,
   "& .MuiDataGrid-row": {
@@ -62,7 +77,6 @@ export const ActiveMarketsTables = ({
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-  const router = useRouter()
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
   )
@@ -126,15 +140,6 @@ export const ActiveMarketsTables = ({
 
   const depositedMarkets = rows.filter((market) => market.hasEverInteracted)
   const nonDepositedMarkets = rows.filter((market) => !market.hasEverInteracted)
-
-  const handleRowClick = (
-    params: { row: ActiveMarketsTableModel },
-    event: { target: EventTarget | null },
-  ) => {
-    const target = event.target as HTMLElement
-    if (target.closest("a") || target.closest("button")) return
-    router.push(buildMarketHref(params.row.id, params.row.chainId))
-  }
 
   const columns: TypeSafeColDef<ActiveMarketsTableModel>[] = [
     {
@@ -394,7 +399,7 @@ export const ActiveMarketsTables = ({
               rows={depositedMarkets}
               columns={columns}
               columnHeaderHeight={40}
-              onRowClick={handleRowClick}
+              slots={{ row: MarketLinkRow }}
             />
           )}
         </MarketsTableAccordion>
@@ -433,7 +438,7 @@ export const ActiveMarketsTables = ({
               rows={nonDepositedMarkets}
               columns={columns}
               columnHeaderHeight={40}
-              onRowClick={handleRowClick}
+              slots={{ row: MarketLinkRow }}
             />
           )}
         </MarketsTableAccordion>

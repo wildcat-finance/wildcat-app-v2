@@ -10,14 +10,19 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material"
-import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
+import {
+  DataGrid,
+  GridRow,
+  GridRowProps,
+  GridRenderCellParams,
+  GridRowsProp,
+} from "@mui/x-data-grid"
 import {
   DepositStatus,
   MarketVersion,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
@@ -127,10 +132,19 @@ export const DataGridSx = {
   },
 }
 
+const MarketLinkRow = (props: GridRowProps) => (
+  <Link
+    href={buildMarketHref(props.row.id, props.row.chainId)}
+    style={{ display: "contents", color: "inherit" }}
+    tabIndex={-1}
+  >
+    <GridRow {...props} />
+  </Link>
+)
+
 export const ExploreMarketsTable = () => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
-  const router = useRouter()
   const { marketAccounts, borrowers, isLoadingInitial, isLoadingUpdate } =
     useLenderMarketsContext()
   const { isTestnet } = useCurrentNetwork()
@@ -250,15 +264,6 @@ export const ExploreMarketsTable = () => {
     showSelfOnboard,
     showOnboardByBorrower,
   ])
-
-  const handleRowClick = (
-    params: { row: LenderOtherMarketsTableModel },
-    event: { target: EventTarget | null },
-  ) => {
-    const target = event.target as HTMLElement
-    if (target.closest("a") || target.closest("button")) return
-    router.push(buildMarketHref(params.row.id, params.row.chainId))
-  }
 
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
     {
@@ -443,7 +448,12 @@ export const ExploreMarketsTable = () => {
       renderCell: (params) => (
         <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {params.row.isSelfOnboard ? (
-            <Button size="small" variant="contained" color="secondary">
+            <Button
+              size="small"
+              variant="contained"
+              color="secondary"
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            >
               {t("dashboard.markets.tables.other.depositBTN")}
             </Button>
           ) : (
@@ -744,7 +754,7 @@ export const ExploreMarketsTable = () => {
           rows={rows}
           columns={columns}
           columnHeaderHeight={40}
-          onRowClick={handleRowClick}
+          slots={{ row: MarketLinkRow }}
           loading={isLoadingInitial || isLoadingUpdate}
         />
       </MarketsTableWrapper>

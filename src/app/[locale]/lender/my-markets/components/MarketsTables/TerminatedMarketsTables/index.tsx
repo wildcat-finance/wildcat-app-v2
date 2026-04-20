@@ -2,10 +2,15 @@ import * as React from "react"
 import { useEffect, useRef } from "react"
 
 import { Box, Button, Typography } from "@mui/material"
-import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
+import {
+  DataGrid,
+  GridRow,
+  GridRowProps,
+  GridRenderCellParams,
+  GridRowsProp,
+} from "@mui/x-data-grid"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
@@ -36,6 +41,16 @@ import {
 } from "./interface"
 import { DataGridSx } from "../style"
 
+const MarketLinkRow = (props: GridRowProps) => (
+  <Link
+    href={buildMarketHref(props.row.id, props.row.chainId)}
+    style={{ display: "contents", color: "inherit" }}
+    tabIndex={-1}
+  >
+    <GridRow {...props} />
+  </Link>
+)
+
 const clickableGridSx = {
   ...DataGridSx,
   "& .MuiDataGrid-row": {
@@ -54,7 +69,6 @@ export const TerminatedMarketsTables = ({
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-  const router = useRouter()
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
   )
@@ -116,15 +130,6 @@ export const TerminatedMarketsTables = ({
 
   const prevActive = rows.filter((market) => market.hasEverInteracted)
   const neverActive = rows.filter((market) => !market.hasEverInteracted)
-
-  const handleRowClick = (
-    params: { row: TerminatedMarketsTableModel },
-    event: { target: EventTarget | null },
-  ) => {
-    const target = event.target as HTMLElement
-    if (target.closest("a") || target.closest("button")) return
-    router.push(buildMarketHref(params.row.id, params.row.chainId))
-  }
 
   const columns: TypeSafeColDef<TerminatedMarketsTableModel>[] = [
     {
@@ -276,6 +281,7 @@ export const TerminatedMarketsTables = ({
             variant="contained"
             color="secondary"
             disabled={!params.row.hasEverInteracted}
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
             Withdraw
           </Button>
@@ -330,7 +336,7 @@ export const TerminatedMarketsTables = ({
             rows={prevActive}
             columns={columns}
             columnHeaderHeight={40}
-            onRowClick={handleRowClick}
+            slots={{ row: MarketLinkRow }}
           />
         </MarketsTableAccordion>
       </Box>
@@ -355,7 +361,7 @@ export const TerminatedMarketsTables = ({
             rows={neverActive}
             columns={columns}
             columnHeaderHeight={40}
-            onRowClick={handleRowClick}
+            slots={{ row: MarketLinkRow }}
           />
         </MarketsTableAccordion>
       </Box>
