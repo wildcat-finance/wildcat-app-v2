@@ -2,8 +2,6 @@
 
 import { Box } from "@mui/material"
 
-import { Footer } from "@/components/Footer"
-
 import { AllMarketsSection } from "./components/AllMarketsSection"
 
 export default function AllMarkets() {
@@ -25,7 +23,6 @@ export default function AllMarkets() {
       >
         <AllMarketsSection />
       </Box>
-      <Footer showFooter={false} />
     </Box>
   )
 }
