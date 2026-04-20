@@ -4,6 +4,7 @@ import * as React from "react"
 import { Box, Skeleton, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
+import { RepeatingSkeletons } from "@/components/RepeatingSkeletons"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { COLORS } from "@/theme/colors"
 import { MarketStatus } from "@/utils/marketStatus"
@@ -57,17 +58,13 @@ export const MarketsTableWrapper = ({
             width="100%"
             sx={{ bgcolor: COLORS.athensGrey }}
           />
-          {Array.from(
-            { length: rowsLength },
-            (_, i) => `skeleton-row-${i}`,
-          ).map((key) => (
-            <Skeleton
-              key={key}
-              height="58px"
-              width="100%"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
-          ))}
+          <RepeatingSkeletons
+            itemsLength={rowsLength}
+            skeletonSX={{
+              height: "58px",
+              width: "100%",
+            }}
+          />
         </Box>
       )}
 

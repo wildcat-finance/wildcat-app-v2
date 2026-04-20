@@ -37,9 +37,13 @@ import { FilterTextField } from "@/components/FilterTextfield"
 import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
 import { MarketsTableWrapper } from "@/components/MarketsTableWrapper"
+import { ExploreMarketCard } from "@/components/Mobile/ExploreMarketCard"
+import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
+import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
 import { TablePagination } from "@/components/TablePagination"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { marketStatusesMock } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -124,6 +128,7 @@ export const DataGridSx = {
 }
 
 export const ExploreMarketsTable = () => {
+  const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const router = useRouter()
   const { marketAccounts, borrowers, isLoadingInitial, isLoadingUpdate } =
@@ -457,6 +462,112 @@ export const ExploreMarketsTable = () => {
       ),
     },
   ]
+
+  if (isMobile)
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          padding: "16px 8px 8px",
+          borderRadius: "14px",
+          backgroundColor: COLORS.white,
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "4px",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              gap: "6px",
+              alignItems: "center",
+              padding: "4px 0 8px",
+            }}
+          >
+            {SORT_OPTIONS.map((option) => (
+              <Box
+                key={option}
+                onClick={() => setSortMode(option)}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: sortMode === option ? "2px 10px" : "2px",
+                  borderRadius: "20px",
+                  backgroundColor:
+                    sortMode === option ? COLORS.blackRock : "transparent",
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
+              >
+                <Typography
+                  variant="mobText3"
+                  sx={{
+                    color:
+                      sortMode === option ? COLORS.white : COLORS.blackRock,
+                    fontWeight: sortMode === option ? 600 : 500,
+                    whiteSpace: "nowrap",
+                    lineHeight: "20px",
+                  }}
+                >
+                  {option}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+
+          <Box sx={{ display: "flex", gap: "4px" }}>
+            <MobileFilterButton
+              assetsOptions={
+                tokens?.map((token) => ({
+                  id: token.address,
+                  name: token.symbol,
+                })) ?? []
+              }
+              statusesOptions={marketStatusesMock}
+              withdrawalCycleOptions={withdrawalCycleOptions}
+              marketAssets={assets}
+              marketStatuses={statuses}
+              marketWithdrawalCycles={withdrawalCycles}
+              setMarketAssets={setAssets}
+              setMarketStatuses={setStatuses}
+              setMarketWithdrawalCycles={setWithdrawalCycles}
+              showSelfOnboard={showSelfOnboard}
+              showOnboardByBorrower={showOnboardByBorrower}
+              setShowSelfOnboard={setShowSelfOnboard}
+              setShowOnboardByBorrower={setShowOnboardByBorrower}
+            />
+
+            <MobileSearchButton
+              marketAccounts={marketAccounts.filter((a) => !a.market.isClosed)}
+              marketSearch={search}
+              setMarketSearch={setSearch}
+              isExplorePage
+            />
+          </Box>
+        </Box>
+
+        {rows.map((marketItem, index) => (
+          <ExploreMarketCard
+            key={marketItem.id}
+            marketItem={marketItem}
+            isLast={index === rows.length - 1}
+          />
+        ))}
+
+        <Box sx={{ padding: "10px 8px 4px" }}>
+          <Button variant="contained" color="secondary" size="small" fullWidth>
+            Explore All Markets
+          </Button>
+        </Box>
+      </Box>
+    )
 
   return (
     <Box sx={{ width: "100%", padding: "0 16px 28px" }}>

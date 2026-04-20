@@ -15,6 +15,7 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
 import Cross from "@/assets/icons/cross_icon.svg"
+import Filter from "@/assets/icons/filter_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -23,12 +24,14 @@ export type MobileSearchButtonProps = {
   marketAccounts: MarketAccount[]
   marketSearch: string
   setMarketSearch: React.Dispatch<React.SetStateAction<string>>
+  isExplorePage?: boolean
 }
 
 export const MobileSearchButton = ({
   marketAccounts,
   marketSearch,
   setMarketSearch,
+  isExplorePage,
 }: MobileSearchButtonProps) => {
   const [open, setOpen] = useState<boolean>(false)
 
@@ -43,35 +46,61 @@ export const MobileSearchButton = ({
     setMarketSearch("")
   }
 
+  const isFiltered = marketSearch !== ""
+  const alternateIndication = isFiltered && isExplorePage
+
   return (
     <>
-      {marketSearch === "" && (
-        <IconButton
-          onClick={handleToggleOpen}
-          sx={{
-            width: "32px",
-            height: "32px",
-            borderRadius: "50%",
-            backgroundColor: COLORS.blackHaze,
-            "&:hover": {
-              backgroundColor: COLORS.hintOfRed,
-            },
-          }}
-        >
-          <SvgIcon
+      {(marketSearch === "" || isExplorePage) && (
+        <Box sx={{ position: "relative", display: "inline-flex" }}>
+          <IconButton
+            onClick={handleToggleOpen}
             sx={{
-              fontSize: "14px",
-              "& path": {
-                fill: "#8A8C9F",
+              width: "32px",
+              height: "32px",
+              borderRadius: "50%",
+              backgroundColor: alternateIndication
+                ? "#E4EBFEB2"
+                : COLORS.blackHaze,
+              "&:hover": {
+                backgroundColor: alternateIndication
+                  ? "#E4EBFEB2"
+                  : COLORS.hintOfRed,
               },
             }}
           >
-            <Search />
-          </SvgIcon>
-        </IconButton>
+            <SvgIcon
+              sx={{
+                fontSize: "14px",
+                "& path": {
+                  fill: alternateIndication
+                    ? COLORS.ultramarineBlue
+                    : "#8A8C9F",
+                },
+              }}
+            >
+              <Search />
+            </SvgIcon>
+          </IconButton>
+
+          {isFiltered && (
+            <Box
+              sx={{
+                position: "absolute",
+                top: "1px",
+                right: "2px",
+                width: "6px",
+                height: "6px",
+                borderRadius: "50%",
+                border: "1px solid white",
+                backgroundColor: COLORS.ultramarineBlue,
+              }}
+            />
+          )}
+        </Box>
       )}
 
-      {marketSearch !== "" && (
+      {marketSearch !== "" && !isExplorePage && (
         <Box
           onClick={handleToggleOpen}
           sx={{
