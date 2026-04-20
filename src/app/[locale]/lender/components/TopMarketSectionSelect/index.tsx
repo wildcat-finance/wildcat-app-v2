@@ -79,7 +79,9 @@ export const TopMarketSectionSelect = ({
           },
         },
         "& .MuiSelect-icon": {
-          color: COLORS.manate,
+          "& path": {
+            fill: COLORS.manate,
+          },
         },
       }}
       MenuProps={{
