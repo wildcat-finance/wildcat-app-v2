@@ -3,6 +3,7 @@
 import { Box, SvgIcon, Typography } from "@mui/material"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useAccount } from "wagmi"
 
 import AllMarketsIcon from "@/assets/icons/markets_icon.svg"
 import ExploreIcon from "@/assets/icons/oneOfMany_icon.svg"
@@ -30,6 +31,7 @@ const OVERVIEW_ROUTES = [
 export const LenderMobileFooterMenu = () => {
   const pathname = usePathname()
   const isMobile = useMobileResolution()
+  const { isConnected } = useAccount()
 
   const isOverviewPage = OVERVIEW_ROUTES.some(
     (route) => pathname?.endsWith(route),
@@ -53,46 +55,50 @@ export const LenderMobileFooterMenu = () => {
         marginTop: "8px",
       }}
     >
-      {TABS.map(({ label, href, icon: Icon }) => {
-        const isActive = pathname?.endsWith(href) ?? false
+      {TABS.filter(({ label }) => label !== "My Markets" || isConnected).map(
+        ({ label, href, icon: Icon }) => {
+          const isActive = pathname?.endsWith(href) ?? false
 
-        return (
-          <Box
-            key={href}
-            component={Link}
-            href={href}
-            sx={{
-              flex: "1 0 0",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "4px",
-              textDecoration: "none",
-            }}
-          >
-            <SvgIcon
+          return (
+            <Box
+              key={href}
+              component={Link}
+              href={href}
               sx={{
-                fontSize: "16px",
-                "& path": {
-                  stroke: isActive ? COLORS.ultramarineBlue : COLORS.blackRock,
-                },
+                flex: "1 0 0",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "4px",
+                textDecoration: "none",
               }}
             >
-              <Icon />
-            </SvgIcon>
-            <Typography
-              variant="mobText4"
-              sx={{
-                color: isActive ? COLORS.ultramarineBlue : COLORS.blackRock,
-                lineHeight: "16px",
-                fontWeight: 500,
-              }}
-            >
-              {label}
-            </Typography>
-          </Box>
-        )
-      })}
+              <SvgIcon
+                sx={{
+                  fontSize: "16px",
+                  "& path": {
+                    stroke: isActive
+                      ? COLORS.ultramarineBlue
+                      : COLORS.blackRock,
+                  },
+                }}
+              >
+                <Icon />
+              </SvgIcon>
+              <Typography
+                variant="mobText4"
+                sx={{
+                  color: isActive ? COLORS.ultramarineBlue : COLORS.blackRock,
+                  lineHeight: "16px",
+                  fontWeight: 500,
+                }}
+              >
+                {label}
+              </Typography>
+            </Box>
+          )
+        },
+      )}
     </Box>
   )
 }
