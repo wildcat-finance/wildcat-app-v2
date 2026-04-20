@@ -12,6 +12,7 @@ type TrendingMarketCardAprProps = {
   borrowerName: string
   asset: string
   apr: number
+  isMobile?: boolean
 }
 
 export const TrendingMarketCardApr = ({
@@ -20,6 +21,7 @@ export const TrendingMarketCardApr = ({
   borrowerName,
   asset,
   apr,
+  isMobile,
 }: TrendingMarketCardAprProps) => (
   <Box
     component={Link}
@@ -39,13 +41,14 @@ export const TrendingMarketCardApr = ({
     <Box
       sx={{
         display: "flex",
-        gap: "6px",
+        flexDirection: { xs: "column-reverse", md: "row" },
+        gap: { xs: "2px", md: "6px" },
         alignItems: "center",
         flexShrink: 0,
       }}
     >
       <Typography
-        variant="text1"
+        variant={isMobile ? "text1" : "mobText1"}
         sx={{ color: COLORS.blackRock, whiteSpace: "nowrap" }}
       >
         {borrowerName}
@@ -62,7 +65,7 @@ export const TrendingMarketCardApr = ({
         }}
       >
         <Typography
-          variant="text3"
+          variant={isMobile ? "text3" : "mobText3"}
           sx={{ color: COLORS.blackRock, whiteSpace: "nowrap" }}
         >
           {asset}
@@ -78,18 +81,18 @@ export const TrendingMarketCardApr = ({
         justifyContent: "center",
         flexWrap: "wrap",
         paddingTop: "4px",
-        paddingBottom: "16px",
-        flexShrink: 0,
+        paddingBottom: { xs: "12px", md: "16px" },
+        flex: { xs: "1 0 0", md: "0 0 auto" },
       }}
     >
       <Typography
-        variant="text3"
+        variant={isMobile ? "text3" : "mobText3"}
         sx={{ color: "#28CA7C", whiteSpace: "nowrap" }}
       >
         #1
       </Typography>
       <Typography
-        variant="text3"
+        variant={isMobile ? "text3" : "mobText3"}
         sx={{ color: COLORS.blackRock, opacity: 0.8, whiteSpace: "nowrap" }}
       >
         highest rate in the market
@@ -118,21 +121,27 @@ export const TrendingMarketCardApr = ({
           whiteSpace: "nowrap",
         }}
       >
-        <Typography variant="text4Highlighted" sx={{ color: COLORS.white }}>
+        <Typography
+          variant={isMobile ? "text4Highlighted" : "mobText4SemiBold"}
+          sx={{ color: COLORS.white }}
+        >
           Earn
         </Typography>
-        <Typography variant="text4Highlighted" sx={{ color: COLORS.white }}>
+        <Typography
+          variant={isMobile ? "text4Highlighted" : "mobText4SemiBold"}
+          sx={{ color: COLORS.white }}
+        >
           {formatBps(apr)} APY
         </Typography>
       </Box>
       <Typography
-        variant="text4Highlighted"
+        variant={isMobile ? "text4Highlighted" : "mobText4SemiBold"}
         sx={{ color: COLORS.white, opacity: 0.2, flexShrink: 0 }}
       >
         |
       </Typography>
       <Typography
-        variant="text4Highlighted"
+        variant={isMobile ? "text4Highlighted" : "mobText4SemiBold"}
         sx={{
           color: COLORS.white,
           flex: "1 0 0",

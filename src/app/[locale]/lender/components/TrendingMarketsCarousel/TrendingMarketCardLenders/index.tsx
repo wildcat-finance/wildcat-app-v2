@@ -13,6 +13,7 @@ type TrendingMarketCardLendersProps = {
   asset: string
   apr: number
   lenderCount?: number
+  isMobile?: boolean
 }
 
 export const TrendingMarketCardLenders = ({
@@ -22,6 +23,7 @@ export const TrendingMarketCardLenders = ({
   asset,
   apr,
   lenderCount,
+  isMobile,
 }: TrendingMarketCardLendersProps) => (
   <Box
     component={Link}
@@ -41,13 +43,14 @@ export const TrendingMarketCardLenders = ({
     <Box
       sx={{
         display: "flex",
-        gap: "6px",
+        flexDirection: { xs: "column-reverse", md: "row" },
+        gap: { xs: "2px", md: "6px" },
         alignItems: "center",
         flexShrink: 0,
       }}
     >
       <Typography
-        variant="text1"
+        variant={isMobile ? "text1" : "mobText1"}
         sx={{ color: COLORS.blackRock, whiteSpace: "nowrap" }}
       >
         {borrowerName}
@@ -64,7 +67,7 @@ export const TrendingMarketCardLenders = ({
         }}
       >
         <Typography
-          variant="text3"
+          variant={isMobile ? "text3" : "mobText3"}
           sx={{ color: COLORS.blackRock, whiteSpace: "nowrap" }}
         >
           {asset}
@@ -75,63 +78,73 @@ export const TrendingMarketCardLenders = ({
     <Box
       sx={{
         display: "flex",
-        gap: "4px",
+        flexDirection: { xs: "column", md: "row" },
+        flexWrap: { xs: "nowrap", md: "wrap" },
+        gap: { xs: "2px", md: "4px" },
         alignItems: "center",
         justifyContent: "center",
-        flexWrap: "wrap",
         paddingTop: "4px",
-        paddingBottom: "16px",
-        flexShrink: 0,
+        paddingBottom: { xs: "12px", md: "16px" },
+        flex: { xs: "1 0 0", md: "0 0 auto" },
       }}
     >
-      <Typography
-        variant="text3"
-        sx={{ color: COLORS.blackRock, opacity: 0.8, whiteSpace: "nowrap" }}
-      >
-        Earn
-      </Typography>
-      <Typography
-        variant="text3"
-        sx={{ color: "#28CA7C", whiteSpace: "nowrap" }}
-      >
-        {formatBps(apr)} APY
-      </Typography>
-      <Typography
-        variant="text3"
-        sx={{ color: COLORS.blackRock, opacity: 0.8, whiteSpace: "nowrap" }}
-      >
-        ·
-      </Typography>
-      <Typography
-        variant="text3"
-        sx={{ color: COLORS.blackRock, opacity: 0.8, whiteSpace: "nowrap" }}
-      >
-        Trusted by
-      </Typography>
-      <Box
-        sx={{
-          backgroundColor: COLORS.glitter,
-          borderRadius: "12px",
-          paddingX: "6px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-      >
+      <Box sx={{ display: "flex", gap: "4px", alignItems: "center" }}>
         <Typography
-          variant="text3"
-          sx={{ color: COLORS.ultramarineBlue, whiteSpace: "nowrap" }}
+          variant={isMobile ? "text3" : "mobText3"}
+          sx={{ color: COLORS.blackRock, opacity: 0.8, whiteSpace: "nowrap" }}
         >
-          {lenderCount?.toLocaleString() ?? "—"}
+          Earn
+        </Typography>
+        <Typography
+          variant={isMobile ? "text3" : "mobText3"}
+          sx={{ color: "#28CA7C", whiteSpace: "nowrap" }}
+        >
+          {formatBps(apr)} APY
         </Typography>
       </Box>
       <Typography
-        variant="text3"
-        sx={{ color: COLORS.blackRock, opacity: 0.8, whiteSpace: "nowrap" }}
+        variant={isMobile ? "text3" : "mobText3"}
+        sx={{
+          color: COLORS.blackRock,
+          opacity: 0.8,
+          whiteSpace: "nowrap",
+          display: { xs: "none", md: "block" },
+        }}
       >
-        lenders
+        ·
       </Typography>
+      <Box sx={{ display: "flex", gap: "4px", alignItems: "center" }}>
+        <Typography
+          variant={isMobile ? "text3" : "mobText3"}
+          sx={{ color: COLORS.blackRock, opacity: 0.8, whiteSpace: "nowrap" }}
+        >
+          Trusted by
+        </Typography>
+        <Box
+          sx={{
+            backgroundColor: COLORS.glitter,
+            borderRadius: "12px",
+            paddingX: "6px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <Typography
+            variant={isMobile ? "text3" : "mobText3"}
+            sx={{ color: COLORS.ultramarineBlue, whiteSpace: "nowrap" }}
+          >
+            {lenderCount?.toLocaleString() ?? "—"}
+          </Typography>
+        </Box>
+        <Typography
+          variant={isMobile ? "text3" : "mobText3"}
+          sx={{ color: COLORS.blackRock, opacity: 0.8, whiteSpace: "nowrap" }}
+        >
+          lenders
+        </Typography>
+      </Box>
     </Box>
 
     <Box
@@ -156,21 +169,27 @@ export const TrendingMarketCardLenders = ({
           whiteSpace: "nowrap",
         }}
       >
-        <Typography variant="text4Highlighted" sx={{ color: COLORS.white }}>
+        <Typography
+          variant={isMobile ? "text4Highlighted" : "mobText4SemiBold"}
+          sx={{ color: COLORS.white }}
+        >
           Earn
         </Typography>
-        <Typography variant="text4Highlighted" sx={{ color: COLORS.white }}>
+        <Typography
+          variant={isMobile ? "text4Highlighted" : "mobText4SemiBold"}
+          sx={{ color: COLORS.white }}
+        >
           {formatBps(apr)} APY
         </Typography>
       </Box>
       <Typography
-        variant="text4Highlighted"
+        variant={isMobile ? "text4Highlighted" : "mobText4SemiBold"}
         sx={{ color: COLORS.white, opacity: 0.2, flexShrink: 0 }}
       >
         |
       </Typography>
       <Typography
-        variant="text4Highlighted"
+        variant={isMobile ? "text4Highlighted" : "mobText4SemiBold"}
         sx={{
           color: COLORS.white,
           flex: "1 0 0",
