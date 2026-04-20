@@ -40,7 +40,7 @@ import { MarketsTableWrapper } from "@/components/MarketsTableWrapper"
 import { ExploreMarketCard } from "@/components/Mobile/ExploreMarketCard"
 import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
 import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
-import { TablePagination } from "@/components/TablePagination"
+import { RepeatingSkeletons } from "@/components/RepeatingSkeletons"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -487,39 +487,49 @@ export const ExploreMarketsTable = () => {
               display: "flex",
               gap: "6px",
               alignItems: "center",
-              padding: "4px 0 8px",
             }}
           >
-            {SORT_OPTIONS.map((option) => (
-              <Box
-                key={option}
-                onClick={() => setSortMode(option)}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: sortMode === option ? "2px 10px" : "2px",
+            {isLoading ? (
+              <RepeatingSkeletons
+                itemsLength={4}
+                skeletonSX={{
+                  height: "24px",
+                  width: "90px",
                   borderRadius: "20px",
-                  backgroundColor:
-                    sortMode === option ? COLORS.blackRock : "transparent",
-                  cursor: "pointer",
-                  flexShrink: 0,
                 }}
-              >
-                <Typography
-                  variant="mobText3"
+              />
+            ) : (
+              SORT_OPTIONS.map((option) => (
+                <Box
+                  key={option}
+                  onClick={() => setSortMode(option)}
                   sx={{
-                    color:
-                      sortMode === option ? COLORS.white : COLORS.blackRock,
-                    fontWeight: sortMode === option ? 600 : 500,
-                    whiteSpace: "nowrap",
-                    lineHeight: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: sortMode === option ? "2px 10px" : "2px",
+                    borderRadius: "20px",
+                    backgroundColor:
+                      sortMode === option ? COLORS.blackRock : "transparent",
+                    cursor: "pointer",
+                    flexShrink: 0,
                   }}
                 >
-                  {option}
-                </Typography>
-              </Box>
-            ))}
+                  <Typography
+                    variant="mobText3"
+                    sx={{
+                      color:
+                        sortMode === option ? COLORS.white : COLORS.blackRock,
+                      fontWeight: sortMode === option ? 600 : 500,
+                      whiteSpace: "nowrap",
+                      lineHeight: "20px",
+                    }}
+                  >
+                    {option}
+                  </Typography>
+                </Box>
+              ))
+            )}
           </Box>
 
           <Box sx={{ display: "flex", gap: "4px" }}>
@@ -553,13 +563,27 @@ export const ExploreMarketsTable = () => {
           </Box>
         </Box>
 
-        {rows.map((marketItem, index) => (
-          <ExploreMarketCard
-            key={marketItem.id}
-            marketItem={marketItem}
-            isLast={index === rows.length - 1}
+        {isLoading ? (
+          <RepeatingSkeletons
+            itemsLength={5}
+            skeletonSX={{
+              height: "86px",
+              borderRadius: "12px",
+              marginBottom: "6px",
+              "&:last-of-type": {
+                marginBottom: "0",
+              },
+            }}
           />
-        ))}
+        ) : (
+          rows.map((marketItem, index) => (
+            <ExploreMarketCard
+              key={marketItem.id}
+              marketItem={marketItem}
+              isLast={index === rows.length - 1}
+            />
+          ))
+        )}
 
         <Box sx={{ padding: "10px 8px 4px" }}>
           <Button variant="contained" color="secondary" size="small" fullWidth>
