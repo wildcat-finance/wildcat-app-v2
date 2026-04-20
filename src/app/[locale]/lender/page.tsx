@@ -3,7 +3,6 @@
 import { Box } from "@mui/material"
 
 import { ExploreSection } from "@/app/[locale]/lender/components/MarketsDashboard/ExploreSection"
-import { Footer } from "@/components/Footer"
 
 export default function Lender() {
   return (
@@ -24,7 +23,6 @@ export default function Lender() {
       >
         <ExploreSection />
       </Box>
-      <Footer showFooter={false} />
     </Box>
   )
 }

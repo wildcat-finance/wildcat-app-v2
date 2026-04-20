@@ -2,8 +2,6 @@
 
 import { Box } from "@mui/material"
 
-import { Footer } from "@/components/Footer"
-
 import { MyMarketsSection } from "./components/MyMarketsSection"
 
 export default function MyMarketsPage() {
@@ -25,7 +23,6 @@ export default function MyMarketsPage() {
       >
         <MyMarketsSection />
       </Box>
-      <Footer showFooter={false} />
     </Box>
   )
 }
