@@ -26,8 +26,6 @@ export const TrendingMarketCardTvl = ({
   isMobile,
 }: TrendingMarketCardTvlProps) => (
   <Box
-    component={Link}
-    href={buildMarketHref(marketAddress, chainId)}
     sx={{
       display: "flex",
       flexDirection: "column",
@@ -36,7 +34,6 @@ export const TrendingMarketCardTvl = ({
       padding: "20px 12px 12px",
       borderRadius: "12px",
       border: `1px solid ${COLORS.whiteLilac}`,
-      textDecoration: "none",
       width: "100%",
     }}
   >
@@ -110,6 +107,8 @@ export const TrendingMarketCardTvl = ({
     </Box>
 
     <Box
+      component={Link}
+      href={buildMarketHref(marketAddress, chainId)}
       sx={{
         display: "flex",
         alignItems: "center",
@@ -120,6 +119,7 @@ export const TrendingMarketCardTvl = ({
         width: "100%",
         height: "32px",
         flexShrink: 0,
+        textDecoration: "none",
       }}
     >
       <Box
