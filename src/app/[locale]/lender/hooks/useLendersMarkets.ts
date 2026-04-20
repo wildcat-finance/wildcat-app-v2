@@ -30,6 +30,20 @@ import { TwoStepQueryHookResult } from "@/utils/types"
 export type LenderMarketsQueryProps =
   SubgraphGetAllMarketsForLenderViewQueryVariables
 
+const DEFAULT_NUM_MARKETS = 1000
+const SEPOLIA_FALLBACK_NUM_MARKETS = 100
+
+function isRecoverableSepoliaMarketQueryError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+
+  return (
+    error.message.includes("Null value resolved for non-null field `asset`") ||
+    error.message.includes(
+      "Null value resolved for non-null field `deployedEvent`",
+    )
+  )
+}
+
 function getChunks<T extends Market | MarketAccount>(
   chainId: SupportedChainId,
   values: T[],
@@ -83,23 +97,62 @@ export function useLendersMarkets(
       { ...marketFilter },
       ...EXCLUDED_MARKETS_FILTER,
     ]) as SubgraphMarket_Filter
-    const lenderAccounts = await getLenderAccountsForAllMarkets(
-      subgraphClient,
-      {
-        ...otherFilters,
-        lender: lender ?? constants.AddressZero,
-        fetchPolicy: "network-only",
-        chainId,
-        signerOrProvider,
-        marketFilter: filter,
-      },
-    )
-    lenderAccounts.sort(
-      (a, b) =>
-        (b.market.deployedEvent?.blockNumber ?? 0) -
-        (a.market.deployedEvent?.blockNumber ?? 0),
-    )
-    return lenderAccounts
+
+    try {
+      const lenderAccounts = await getLenderAccountsForAllMarkets(
+        subgraphClient,
+        {
+          ...otherFilters,
+          lender: lender ?? constants.AddressZero,
+          fetchPolicy: "network-only",
+          chainId,
+          signerOrProvider,
+          marketFilter: filter,
+        },
+      )
+
+      lenderAccounts.sort(
+        (a, b) =>
+          (b.market.deployedEvent?.blockNumber ?? 0) -
+          (a.market.deployedEvent?.blockNumber ?? 0),
+      )
+      return lenderAccounts
+    } catch (error) {
+      const requestedNumMarkets = otherFilters.numMarkets ?? DEFAULT_NUM_MARKETS
+      const shouldRetryWithSepoliaFallback =
+        targetChainId === SupportedChainId.Sepolia &&
+        requestedNumMarkets > SEPOLIA_FALLBACK_NUM_MARKETS &&
+        isRecoverableSepoliaMarketQueryError(error)
+
+      if (!shouldRetryWithSepoliaFallback) {
+        throw error
+      }
+
+      console.warn(
+        "Sepolia lender markets query hit malformed historical rows; retrying with a smaller page size.",
+        error,
+      )
+
+      const lenderAccounts = await getLenderAccountsForAllMarkets(
+        subgraphClient,
+        {
+          ...otherFilters,
+          numMarkets: SEPOLIA_FALLBACK_NUM_MARKETS,
+          lender: lender ?? constants.AddressZero,
+          fetchPolicy: "network-only",
+          chainId,
+          signerOrProvider,
+          marketFilter: filter,
+        },
+      )
+
+      lenderAccounts.sort(
+        (a, b) =>
+          (b.market.deployedEvent?.blockNumber ?? 0) -
+          (a.market.deployedEvent?.blockNumber ?? 0),
+      )
+      return lenderAccounts
+    }
   }
 
   const {
