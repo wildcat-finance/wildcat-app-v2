@@ -12,6 +12,7 @@ import {
   RecentDepositsData,
   useRecentDeposits,
 } from "@/app/[locale]/lender/hooks/useRecentDeposits"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
@@ -210,6 +211,133 @@ export const TrendingMarketsCarousel = () => {
     return built.filter((s): s is Slot => s !== null).slice(0, SLOT_COUNT)
   }, [marketAccounts, recentDeposits])
 
+  const isMobile = useMobileResolution()
+
+  if (isMobile)
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "4px",
+          borderRadius: "14px",
+          backgroundColor: COLORS.white,
+          overflow: "hidden",
+        }}
+      >
+        <Typography variant="mobH3" sx={{ padding: "16px 16px 8px 16px" }}>
+          Trending Markets
+        </Typography>
+
+        <Box
+          sx={{
+            display: "flex",
+            gap: "2px",
+            overflowX: "auto",
+            "&::-webkit-scrollbar": { display: "none" },
+            scrollbarWidth: "none",
+            marginBottom: "8px",
+          }}
+        >
+          {isLoading
+            ? Array.from({ length: 5 }, (_, i) => `skeleton-row-${i}`).map(
+                (key, index) => (
+                  <Skeleton
+                    key={key}
+                    height="152px"
+                    width="220px"
+                    sx={{
+                      minWidth: "220px",
+                      borderRadius: "12px",
+                      bgcolor: COLORS.athensGrey,
+                      ...(index === 0 && { marginLeft: "8px" }),
+                      ...(index === 4 && { marginRight: "8px" }),
+                    }}
+                  />
+                ),
+              )
+            : slots.map((slot, index) => {
+                const { market } = slot.account
+                const borrower = (borrowers ?? []).find(
+                  (b) =>
+                    b.address.toLowerCase() === market.borrower.toLowerCase(),
+                )
+                const borrowerName = borrower
+                  ? borrower.alias ||
+                    borrower.name ||
+                    trimAddress(market.borrower)
+                  : trimAddress(market.borrower)
+
+                const commonProps = {
+                  marketAddress: market.address,
+                  chainId: market.chainId,
+                  borrowerName,
+                  asset: market.underlyingToken.symbol,
+                  apr: market.annualInterestBips,
+                }
+
+                let card: React.ReactNode
+                switch (slot.key) {
+                  case "tvlInflow":
+                    card = (
+                      <TrendingMarketCardInflow
+                        {...commonProps}
+                        inflow={slot.formattedStat ?? "—"}
+                      />
+                    )
+                    break
+                  case "lenders":
+                    card = (
+                      <TrendingMarketCardLenders
+                        {...commonProps}
+                        lenderCount={slot.lenderCount}
+                      />
+                    )
+                    break
+                  case "interestPaid":
+                    card = (
+                      <TrendingMarketCardInterestPaid
+                        {...commonProps}
+                        interestPaid={slot.formattedStat ?? "—"}
+                      />
+                    )
+                    break
+                  case "highestApr":
+                    card = <TrendingMarketCardApr {...commonProps} />
+                    break
+                  case "highestTvl":
+                    card = (
+                      <TrendingMarketCardTvl
+                        {...commonProps}
+                        totalSupply={slot.formattedStat ?? "—"}
+                      />
+                    )
+                    break
+                  default:
+                    card = null
+                }
+
+                return (
+                  <Box
+                    key={slot.key}
+                    sx={{
+                      flexShrink: 0,
+                      display: "flex",
+                      width: "220px",
+                      ...(index === 0 && { marginLeft: "8px" }),
+                      ...(index === slots.length - 1 && {
+                        marginRight: "8px",
+                      }),
+                    }}
+                  >
+                    {card}
+                  </Box>
+                )
+              })}
+        </Box>
+      </Box>
+    )
+
   return (
     <Box sx={{ width: "100%" }}>
       <Typography
@@ -264,6 +392,7 @@ export const TrendingMarketsCarousel = () => {
                 borrowerName,
                 asset: market.underlyingToken.symbol,
                 apr: market.annualInterestBips,
+                isMobile,
               }
 
               let card: React.ReactNode
