@@ -10,7 +10,7 @@ export default function MyMarketsPage() {
   return (
     <Box
       sx={{
-        height: "100%",
+        minHeight: { xs: "calc(100dvh - 64px)", md: "auto" },
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -21,8 +21,6 @@ export default function MyMarketsPage() {
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          overflow: "auto",
-          minHeight: 0,
         }}
       >
         <MyMarketsSection />
