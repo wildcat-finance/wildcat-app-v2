@@ -586,7 +586,14 @@ export const ExploreMarketsTable = () => {
         )}
 
         <Box sx={{ padding: "10px 8px 4px" }}>
-          <Button variant="contained" color="secondary" size="small" fullWidth>
+          <Button
+            component={Link}
+            href="/lender/all-markets"
+            variant="contained"
+            color="secondary"
+            size="small"
+            fullWidth
+          >
             Explore All Markets
           </Button>
         </Box>
@@ -755,7 +762,13 @@ export const ExploreMarketsTable = () => {
             }}
           />
         ) : (
-          <Button size="small" variant="contained" color="secondary">
+          <Button
+            component={Link}
+            href="/lender/all-markets"
+            size="small"
+            variant="contained"
+            color="secondary"
+          >
             Explore All Markets
           </Button>
         )}
