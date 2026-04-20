@@ -2,14 +2,19 @@ import { useEffect, useRef } from "react"
 import * as React from "react"
 
 import { Box, Button, Typography } from "@mui/material"
-import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
+import {
+  DataGrid,
+  GridRow,
+  GridRowProps,
+  GridRenderCellParams,
+  GridRowsProp,
+} from "@mui/x-data-grid"
 import {
   DepositStatus,
   MarketVersion,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
@@ -48,6 +53,16 @@ import { getMarketTypeChip } from "@/utils/marketType"
 import { OtherMarketsTableModel, OtherMarketsTableProps } from "./interface"
 import { DataGridSx } from "../style"
 
+const MarketLinkRow = (props: GridRowProps) => (
+  <Link
+    href={buildMarketHref(props.row.id, props.row.chainId)}
+    style={{ display: "contents", color: "inherit" }}
+    tabIndex={-1}
+  >
+    <GridRow {...props} />
+  </Link>
+)
+
 const clickableGridSx = {
   ...DataGridSx,
   "& .MuiDataGrid-row": {
@@ -66,7 +81,6 @@ export const OtherMarketsTable = ({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const isMobile = useMobileResolution()
-  const router = useRouter()
 
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
@@ -153,15 +167,6 @@ export const OtherMarketsTable = ({
 
   const selfOnboard = activeRows.filter((market) => market.isSelfOnboard)
   const manual = activeRows.filter((market) => !market.isSelfOnboard)
-
-  const handleRowClick = (
-    params: { row: OtherMarketsTableModel },
-    event: { target: EventTarget | null },
-  ) => {
-    const target = event.target as HTMLElement
-    if (target.closest("a") || target.closest("button")) return
-    router.push(buildMarketHref(params.row.id, params.row.chainId))
-  }
 
   const columns: TypeSafeColDef<OtherMarketsTableModel>[] = [
     {
@@ -372,7 +377,12 @@ export const OtherMarketsTable = ({
       renderCell: (params) => (
         <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {params.row.isSelfOnboard ? (
-            <Button size="small" variant="contained" color="secondary">
+            <Button
+              size="small"
+              variant="contained"
+              color="secondary"
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            >
               {t("dashboard.markets.tables.other.depositBTN")}
             </Button>
           ) : (
@@ -466,8 +476,8 @@ export const OtherMarketsTable = ({
             columnHeaderHeight={40}
             paginationModel={selfOnboardPaginationModel}
             onPaginationModelChange={setSelfOnboardPaginationModel}
-            onRowClick={handleRowClick}
             slots={{
+              row: MarketLinkRow,
               pagination: TablePagination,
             }}
             hideFooter={false}
@@ -494,8 +504,8 @@ export const OtherMarketsTable = ({
             columnHeaderHeight={40}
             paginationModel={manualPaginationModel}
             onPaginationModelChange={setManualPaginationModel}
-            onRowClick={handleRowClick}
             slots={{
+              row: MarketLinkRow,
               pagination: TablePagination,
             }}
             hideFooter={false}
@@ -516,14 +526,15 @@ export const OtherMarketsTable = ({
         >
           <DataGrid
             disableVirtualization
-            sx={DataGridSx}
-            getRowHeight={() => "auto"}
+            sx={clickableGridSx}
+            rowHeight={66}
             rows={terminated}
             columns={columns}
             columnHeaderHeight={40}
             paginationModel={terminatedPaginationModel}
             onPaginationModelChange={setTerminatedPaginationModel}
             slots={{
+              row: MarketLinkRow,
               pagination: TablePagination,
             }}
             hideFooter={false}
