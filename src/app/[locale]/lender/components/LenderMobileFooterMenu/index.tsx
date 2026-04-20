@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useAccount } from "wagmi"
 
-import AllMarketsIcon from "@/assets/icons/markets_icon.svg"
+import AllMarketsIcon from "@/assets/icons/allMarkets_icon.svg"
 import ExploreIcon from "@/assets/icons/oneOfMany_icon.svg"
 import MyMarketsIcon from "@/assets/icons/stack_icon.svg"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -77,9 +77,7 @@ export const LenderMobileFooterMenu = () => {
                 sx={{
                   fontSize: "16px",
                   "& path": {
-                    stroke: isActive
-                      ? COLORS.ultramarineBlue
-                      : COLORS.blackRock,
+                    fill: isActive ? COLORS.ultramarineBlue : COLORS.blackRock,
                   },
                 }}
               >

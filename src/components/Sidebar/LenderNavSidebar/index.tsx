@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
-import AllMarketsIcon from "@/assets/icons/markets_icon.svg"
+import AllMarketsIcon from "@/assets/icons/allMarkets_icon.svg"
 import ExploreIcon from "@/assets/icons/oneOfMany_icon.svg"
 import MyMarketsIcon from "@/assets/icons/stack_icon.svg"
 import { ROUTES } from "@/routes"
