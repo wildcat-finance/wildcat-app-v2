@@ -437,7 +437,7 @@ export const OtherMarketsTable = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: `calc(100vh - ${pageCalcHeights.dashboard})`,
+        height: `calc(100vh - 268px)`,
         width: "100%",
         overflow: "auto",
         overflowY: "auto",

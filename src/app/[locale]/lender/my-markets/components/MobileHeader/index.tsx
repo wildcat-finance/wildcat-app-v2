@@ -123,6 +123,9 @@ export const MobileHeader = ({ children }: { children: ReactNode }) => {
     if (marketSection === LenderMarketDashboardSections.TERMINATED) {
       dispatch(setScrollTarget("prev-active"))
     }
+    return () => {
+      dispatch(setScrollTarget(null))
+    }
   }, [marketSection, dispatch])
 
   return (
