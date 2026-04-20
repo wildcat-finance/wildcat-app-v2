@@ -27,6 +27,7 @@ const NO_WALLET_RESTRICTED_PATHS = [
   ROUTES.borrower.createMarket,
   ROUTES.borrower.market,
   ROUTES.borrower.lendersList,
+  ROUTES.lender.myMarkets,
 ]
 
 const isNotPublicPath = (pathname: string) => {
