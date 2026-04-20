@@ -18,7 +18,7 @@ export const ExploreSection = () => (
       sx={{
         display: "flex",
         flexDirection: "column",
-        gap: "32px",
+        gap: { xs: "4px", md: "32px" },
       }}
     >
       <TopMarketsSection />
