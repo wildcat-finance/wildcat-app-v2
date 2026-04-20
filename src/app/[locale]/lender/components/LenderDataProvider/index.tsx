@@ -160,6 +160,14 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
         value: isWrongNetwork ? 0 : terminatedOtherAmount,
       }),
     )
+    dispatch(
+      setLendersSectionAmount({
+        name: "allMarkets",
+        value: isWrongNetwork
+          ? 0
+          : selfOnboardAmount + manualAmount + terminatedOtherAmount,
+      }),
+    )
   }, [
     depositedMarketsAmount,
     nonDepositedMarketsAmount,
