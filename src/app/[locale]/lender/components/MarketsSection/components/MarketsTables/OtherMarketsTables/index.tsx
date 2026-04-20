@@ -2,14 +2,19 @@ import { useEffect, useRef } from "react"
 import * as React from "react"
 
 import { Box, Button, Typography } from "@mui/material"
-import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
+import {
+  DataGrid,
+  GridRenderCellParams,
+  GridRow,
+  GridRowProps,
+  GridRowsProp,
+} from "@mui/x-data-grid"
 import {
   DepositStatus,
   MarketVersion,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
@@ -62,6 +67,16 @@ const clickableGridSx = {
   },
 }
 
+const MarketLinkRow = (props: GridRowProps) => (
+  <Link
+    href={buildMarketHref(props.row.id, props.row.chainId)}
+    style={{ display: "contents", color: "inherit" }}
+    tabIndex={-1}
+  >
+    <GridRow {...props} />
+  </Link>
+)
+
 export const OtherMarketsTables = ({
   marketAccounts,
   isLoading,
@@ -70,7 +85,6 @@ export const OtherMarketsTables = ({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const isMobile = useMobileResolution()
-  const router = useRouter()
 
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
@@ -160,15 +174,6 @@ export const OtherMarketsTables = ({
   const selfOnboard = activeRows.filter((market) => market.isSelfOnboard)
   const manual = activeRows.filter((market) => !market.isSelfOnboard)
 
-  const handleRowClick = (
-    params: { row: LenderOtherMarketsTableModel },
-    event: { target: EventTarget | null },
-  ) => {
-    const target = event.target as HTMLElement
-    if (target.closest("a") || target.closest("button")) return
-    router.push(buildMarketHref(params.row.id, params.row.chainId))
-  }
-
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
     {
       field: "name",
@@ -227,12 +232,7 @@ export const OtherMarketsTables = ({
       align: "left",
       sortComparator: statusComparator,
       renderCell: (params) => (
-        <Box
-          sx={{
-            ...LinkCell,
-            justifyContent: "flex-start",
-          }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
           <Box width="120px">
             <MarketStatusChip status={params.value} />
           </Box>
@@ -248,12 +248,7 @@ export const OtherMarketsTables = ({
       align: "left",
       sortComparator: typeComparator,
       renderCell: (params) => (
-        <Box
-          sx={{
-            ...LinkCell,
-            justifyContent: "flex-start",
-          }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
           <Box minWidth="170px">
             <MarketTypeChip type="table" {...params.value} />
           </Box>
@@ -294,12 +289,7 @@ export const OtherMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
-        <Box
-          sx={{
-            ...LinkCell,
-            justifyContent: "flex-end",
-          }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {formatSecsToHours(params.value, true)}
         </Box>
       ),
@@ -312,12 +302,7 @@ export const OtherMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
-        <Box
-          sx={{
-            ...LinkCell,
-            justifyContent: "flex-end",
-          }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {params.value}
         </Box>
       ),
@@ -333,12 +318,7 @@ export const OtherMarketsTables = ({
       renderCell: (
         params: GridRenderCellParams<LenderOtherMarketsTableModel, TokenAmount>,
       ) => (
-        <Box
-          sx={{
-            ...LinkCell,
-            justifyContent: "flex-end",
-          }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {params.value && params.value.gt(0)
             ? formatTokenWithCommas(params.value, {
                 withSymbol: false,
@@ -378,7 +358,12 @@ export const OtherMarketsTables = ({
       renderCell: (params) => (
         <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {params.row.isSelfOnboard ? (
-            <Button size="small" variant="contained" color="secondary">
+            <Button
+              size="small"
+              variant="contained"
+              color="secondary"
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            >
               {t("dashboard.markets.tables.other.depositBTN")}
             </Button>
           ) : (
@@ -482,10 +467,7 @@ export const OtherMarketsTables = ({
               columnHeaderHeight={40}
               paginationModel={selfOnboardPaginationModel}
               onPaginationModelChange={setSelfOnboardPaginationModel}
-              onRowClick={handleRowClick}
-              slots={{
-                pagination: TablePagination,
-              }}
+              slots={{ row: MarketLinkRow, pagination: TablePagination }}
               hideFooter={false}
             />
           )}
@@ -521,10 +503,7 @@ export const OtherMarketsTables = ({
               columnHeaderHeight={40}
               paginationModel={manualPaginationModel}
               onPaginationModelChange={setManualPaginationModel}
-              onRowClick={handleRowClick}
-              slots={{
-                pagination: TablePagination,
-              }}
+              slots={{ row: MarketLinkRow, pagination: TablePagination }}
               hideFooter={false}
             />
           )}
@@ -544,16 +523,14 @@ export const OtherMarketsTables = ({
         >
           <DataGrid
             disableVirtualization
-            sx={DataGridSx}
-            getRowHeight={() => "auto"}
+            sx={clickableGridSx}
+            rowHeight={66}
             rows={terminated}
             columns={columns}
             columnHeaderHeight={40}
             paginationModel={terminatedPaginationModel}
             onPaginationModelChange={setTerminatedPaginationModel}
-            slots={{
-              pagination: TablePagination,
-            }}
+            slots={{ row: MarketLinkRow, pagination: TablePagination }}
             hideFooter={false}
           />
         </MarketsTableAccordion>

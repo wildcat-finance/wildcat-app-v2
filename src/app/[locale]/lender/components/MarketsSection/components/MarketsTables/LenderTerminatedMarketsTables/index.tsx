@@ -2,10 +2,15 @@ import { useEffect, useRef } from "react"
 import * as React from "react"
 
 import { Box, Button, Typography } from "@mui/material"
-import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
+import {
+  DataGrid,
+  GridRenderCellParams,
+  GridRow,
+  GridRowProps,
+  GridRowsProp,
+} from "@mui/x-data-grid"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
@@ -45,6 +50,16 @@ const clickableGridSx = {
   },
 }
 
+const MarketLinkRow = (props: GridRowProps) => (
+  <Link
+    href={buildMarketHref(props.row.id, props.row.chainId)}
+    style={{ display: "contents", color: "inherit" }}
+    tabIndex={-1}
+  >
+    <GridRow {...props} />
+  </Link>
+)
+
 export const LenderTerminatedMarketsTables = ({
   marketAccounts,
   borrowers,
@@ -54,7 +69,6 @@ export const LenderTerminatedMarketsTables = ({
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-  const router = useRouter()
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
   )
@@ -120,15 +134,6 @@ export const LenderTerminatedMarketsTables = ({
 
   const neverActive = rows.filter((market) => !market.hasEverInteracted)
 
-  const handleRowClick = (
-    params: { row: LenderTerminatedMarketsTableModel },
-    event: { target: EventTarget | null },
-  ) => {
-    const target = event.target as HTMLElement
-    if (target.closest("a") || target.closest("button")) return
-    router.push(buildMarketHref(params.row.id, params.row.chainId))
-  }
-
   const columns: TypeSafeColDef<LenderTerminatedMarketsTableModel>[] = [
     {
       field: "name",
@@ -191,12 +196,7 @@ export const LenderTerminatedMarketsTables = ({
       align: "left",
       sortComparator: statusComparator,
       renderCell: (params) => (
-        <Box
-          sx={{
-            ...LinkCell,
-            justifyContent: "flex-start",
-          }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
           <Box width="120px">
             <MarketStatusChip status={params.value} />
           </Box>
@@ -211,12 +211,7 @@ export const LenderTerminatedMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
-        <Box
-          sx={{
-            ...LinkCell,
-            justifyContent: "flex-end",
-          }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {params.value}
         </Box>
       ),
@@ -272,12 +267,7 @@ export const LenderTerminatedMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
-        <Box
-          sx={{
-            ...LinkCell,
-            justifyContent: "flex-end",
-          }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {formatSecsToHours(params.value, true)}
         </Box>
       ),
@@ -297,6 +287,7 @@ export const LenderTerminatedMarketsTables = ({
             variant="contained"
             color="secondary"
             disabled={!params.row.hasEverInteracted}
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
             Withdraw
           </Button>
@@ -351,7 +342,7 @@ export const LenderTerminatedMarketsTables = ({
             rows={prevActive}
             columns={columns}
             columnHeaderHeight={40}
-            onRowClick={handleRowClick}
+            slots={{ row: MarketLinkRow }}
           />
         </MarketsTableAccordion>
       </Box>
@@ -376,7 +367,7 @@ export const LenderTerminatedMarketsTables = ({
             rows={neverActive}
             columns={columns}
             columnHeaderHeight={40}
-            onRowClick={handleRowClick}
+            slots={{ row: MarketLinkRow }}
           />
         </MarketsTableAccordion>
       </Box>
