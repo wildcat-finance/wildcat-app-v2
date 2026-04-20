@@ -117,6 +117,9 @@ export const TrendingMarketsCarousel = () => {
     const broadStats = (account: MarketAccount) =>
       recentDeposits.broad[account.market.address.toLowerCase()]
 
+    const last7dStats = (account: MarketAccount) =>
+      recentDeposits.last7d[account.market.address.toLowerCase()]
+
     const inflow7dWinner = pickInflowWinner(eligible, recentDeposits.last7d)
     const inflowLifetimeWinner = pickTotalDepositedWinner(eligible)
 
@@ -149,7 +152,7 @@ export const TrendingMarketsCarousel = () => {
       return {
         key,
         account,
-        lenderCount: broadStats(account)?.uniqueLenders ?? 0,
+        lenderCount: last7dStats(account)?.uniqueLenders ?? 0,
         formattedStat,
       }
     }
