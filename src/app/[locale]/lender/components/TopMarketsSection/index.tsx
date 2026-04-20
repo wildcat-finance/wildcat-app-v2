@@ -28,6 +28,8 @@ import {
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableWrapper } from "@/components/MarketsTableWrapper"
+import { ExploreMarketCard } from "@/components/Mobile/ExploreMarketCard"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
@@ -106,6 +108,7 @@ const clickableGridSx = {
 }
 
 export const TopMarketsSection = () => {
+  const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const router = useRouter()
   const { marketAccounts, borrowers, isLoadingInitial, isLoadingUpdate } =
@@ -382,6 +385,69 @@ export const TopMarketsSection = () => {
       ),
     },
   ]
+
+  if (isMobile)
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          padding: "8px",
+          borderRadius: "14px",
+          backgroundColor: COLORS.white,
+        }}
+      >
+        <Typography variant="mobH3" sx={{ padding: "8px" }}>
+          Top 3
+        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            gap: "6px",
+            alignItems: "center",
+            padding: "4px 0 8px",
+          }}
+        >
+          {SORT_OPTIONS.map((option) => (
+            <Box
+              key={option}
+              onClick={() => setSortMode(option)}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: sortMode === option ? "2px 10px" : "2px",
+                borderRadius: "20px",
+                backgroundColor:
+                  sortMode === option ? COLORS.blackRock : "transparent",
+                cursor: "pointer",
+                flexShrink: 0,
+              }}
+            >
+              <Typography
+                variant="mobText3"
+                sx={{
+                  color: sortMode === option ? COLORS.white : COLORS.blackRock,
+                  fontWeight: sortMode === option ? 600 : 500,
+                  whiteSpace: "nowrap",
+                  lineHeight: "20px",
+                }}
+              >
+                {option}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+
+        {sortedRows.map((marketItem, index) => (
+          <ExploreMarketCard
+            key={marketItem.id}
+            marketItem={marketItem}
+            isLast={index === sortedRows.length - 1}
+          />
+        ))}
+      </Box>
+    )
 
   return (
     <Box sx={{ width: "100%", padding: "28px 16px 0" }}>
