@@ -104,7 +104,7 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
 
       dispatch(setIsDisabled({ steps: allStepsToDisable, disabled: true }))
     }
-  }, [isFormValid])
+  }, [dispatch, isFormValid])
 
   return (
     <Box sx={FormContainer}>
@@ -202,7 +202,9 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
         </InputLabel>
 
         {isRevolving && (
-          <InputLabel label={t("createNewMarket.financial.commitmentFee.label")}>
+          <InputLabel
+            label={t("createNewMarket.financial.commitmentFee.label")}
+          >
             <NumberTextField
               min={0}
               max={100}
