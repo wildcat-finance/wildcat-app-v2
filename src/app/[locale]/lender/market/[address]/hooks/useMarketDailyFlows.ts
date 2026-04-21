@@ -46,9 +46,7 @@ export type DailyFlowPoint = {
   dailyWithdrawalExecuted: number
   dailyWithdrawalRequestedNeg: number
   dailyWithdrawalExecutedNeg: number
-  netFlowExecuted: number
-  netFlowRequested: number
-  pendingBand: number
+  netFlow: number
 }
 
 function formatDateShort(ts: number): string {
@@ -64,6 +62,9 @@ function toDailyFlows(
   stats: MarketDailyStatsQuery["marketDailyStats_collection"],
   decimals: number,
 ): DailyFlowPoint[] {
+  // Despite the "total" prefix, the deployed subgraph (v2.0.23) records
+  // per-day deltas in these fields (values are non-monotonic across days).
+  // Accumulate them here to derive the cumulative running total.
   let cumDep = 0
   let cumReq = 0
   let cumExec = 0
@@ -85,9 +86,7 @@ function toDailyFlows(
       dailyWithdrawalExecuted: exec,
       dailyWithdrawalRequestedNeg: -req,
       dailyWithdrawalExecutedNeg: -exec,
-      netFlowExecuted: cumDep - cumExec,
-      netFlowRequested: cumDep - cumReq,
-      pendingBand: cumReq - cumExec,
+      netFlow: cumDep - cumReq,
     }
   })
 }

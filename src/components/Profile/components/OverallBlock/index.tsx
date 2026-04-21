@@ -47,6 +47,8 @@ export const OverallBlock = ({
   marketsAmount,
   externalChainId,
   defaults,
+  borrowed,
+  extraItems,
   isPage,
 }: OverallBlockProps) => {
   const { t } = useTranslation()
@@ -100,7 +102,7 @@ export const OverallBlock = ({
     ),
     makeInformationItem(
       t("borrowerProfile.profile.overallInfo.borrowed"),
-      "[Coming Soon]",
+      borrowed ?? "[Coming Soon]",
     ),
     makeInformationItem(
       t("borrowerProfile.profile.overallInfo.defaults.title"),
@@ -114,6 +116,7 @@ export const OverallBlock = ({
         link: url.url,
       }),
     ),
+    ...(extraItems ?? []),
   ]
 
   const existingData = profileInfo.filter(

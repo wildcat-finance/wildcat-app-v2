@@ -13,9 +13,9 @@ import {
 import { useTranslation } from "react-i18next"
 import {
   Area,
+  AreaChart,
   ComposedChart,
   Bar,
-  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -24,20 +24,20 @@ import {
 } from "recharts"
 
 import Expand from "@/assets/icons/expand_icon.svg"
+import {
+  CHART_COLORS,
+  ChartActionButtonStyle,
+  ChartCardStyle,
+  ChartDescriptionStyle,
+  ChartHeaderStyle,
+  ExpandDialogContentStyle,
+  ExpandDialogPaperStyle,
+  TimeRangeChipStyle,
+} from "@/components/Profile/shared/chartStyle"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
-import {
-  CHART_COLORS,
-  ChartsGrid,
-  ChartCardStyle,
-  ChartHeader,
-  ChartDescription,
-  TimeRangeButton,
-  ChartActionButton,
-  ExpandDialogPaper,
-  ExpandDialogContent,
-} from "./style"
+import { ChartsGrid } from "./style"
 import type { DailyFlowPoint } from "../../hooks/useMarketDailyFlows"
 
 const DAY = 86_400
@@ -186,6 +186,9 @@ type ChartBodyProps = {
   minTickGap: number
 }
 
+const DAY_SECONDS = 86_400
+const BAR_SIZE = 16
+
 function DailyFlowsChartBody({
   data,
   symbol,
@@ -204,7 +207,10 @@ function DailyFlowsChartBody({
           dataKey="timestamp"
           type="number"
           scale="time"
-          domain={["dataMin", "dataMax"]}
+          domain={[
+            (dataMin: number) => dataMin - DAY_SECONDS * 1.5,
+            (dataMax: number) => dataMax + DAY_SECONDS * 1.5,
+          ]}
           ticks={ticks}
           tick={AXIS_STYLE}
           tickLine={false}
@@ -219,7 +225,10 @@ function DailyFlowsChartBody({
           tickFormatter={fmtK}
           width={48}
         />
-        <Tooltip content={<FlowTooltip symbol={symbol} />} />
+        <Tooltip
+          content={<FlowTooltip symbol={symbol} />}
+          cursor={{ fill: `${COLORS.ultramarineBlue}14` }}
+        />
         {/* Separate stackIds so the two negative bars render side-by-side
             (grouped) rather than stacking and double-counting outflow. */}
         <Bar
@@ -229,6 +238,7 @@ function DailyFlowsChartBody({
           opacity={0.85}
           name="Deposits"
           radius={[2, 2, 0, 0]}
+          barSize={BAR_SIZE}
           isAnimationActive={false}
         />
         <Bar
@@ -238,6 +248,7 @@ function DailyFlowsChartBody({
           opacity={0.85}
           name="Withdrawals Requested"
           radius={[0, 0, 2, 2]}
+          barSize={BAR_SIZE}
           isAnimationActive={false}
         />
         <Bar
@@ -247,6 +258,7 @@ function DailyFlowsChartBody({
           opacity={0.85}
           name="Withdrawals Executed"
           radius={[0, 0, 2, 2]}
+          barSize={BAR_SIZE}
           isAnimationActive={false}
         />
       </ComposedChart>
@@ -263,20 +275,17 @@ function CumulativeNetFlowChartBody({
 }: ChartBodyProps & { gradientId: string }) {
   return (
     <ResponsiveContainer>
-      <ComposedChart
-        data={data}
-        margin={{ top: 8, right: 12, bottom: 0, left: 4 }}
-      >
+      <AreaChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 4 }}>
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
             <stop
               offset="5%"
-              stopColor={CHART_COLORS.netFlowExecuted}
-              stopOpacity={0.22}
+              stopColor={CHART_COLORS.deposit}
+              stopOpacity={0.25}
             />
             <stop
               offset="95%"
-              stopColor={CHART_COLORS.netFlowExecuted}
+              stopColor={CHART_COLORS.deposit}
               stopOpacity={0.02}
             />
           </linearGradient>
@@ -286,7 +295,10 @@ function CumulativeNetFlowChartBody({
           dataKey="timestamp"
           type="number"
           scale="time"
-          domain={["dataMin", "dataMax"]}
+          domain={[
+            (dataMin: number) => dataMin - DAY_SECONDS * 1.5,
+            (dataMax: number) => dataMax + DAY_SECONDS * 1.5,
+          ]}
           ticks={ticks}
           tick={AXIS_STYLE}
           tickLine={false}
@@ -301,59 +313,20 @@ function CumulativeNetFlowChartBody({
           tickFormatter={fmtK}
           width={48}
         />
-        <Tooltip content={<FlowTooltip symbol={symbol} />} />
-        {/* Blue gradient area = settled net flow (executed). The band
-            stacked on top (invisible base at netFlowRequested + tinted
-            pendingBand) renders the gap between the two cumulative
-            curves, which is the outstanding pending withdrawal amount.
-            The thin line at netFlowRequested is the band's lower edge. */}
+        <Tooltip
+          content={<FlowTooltip symbol={symbol} />}
+          cursor={{ stroke: COLORS.ultramarineBlue, strokeWidth: 1 }}
+        />
         <Area
           type="monotone"
-          dataKey="netFlowExecuted"
-          stroke={CHART_COLORS.netFlowExecuted}
-          strokeWidth={1.25}
+          dataKey="netFlow"
+          stroke={CHART_COLORS.deposit}
+          strokeWidth={2}
           fill={`url(#${gradientId})`}
-          name="Net Flow (Executed)"
+          name="Net Flow"
           isAnimationActive={false}
         />
-        <Area
-          type="monotone"
-          dataKey="netFlowRequested"
-          stackId="band"
-          stroke="none"
-          fillOpacity={0}
-          activeDot={false}
-          legendType="none"
-          name="__bandBase"
-          isAnimationActive={false}
-        />
-        <Area
-          type="monotone"
-          dataKey="pendingBand"
-          stackId="band"
-          stroke="none"
-          fill={CHART_COLORS.pendingBand}
-          fillOpacity={0.35}
-          activeDot={false}
-          name="Pending Withdrawals"
-          isAnimationActive={false}
-        />
-        <Line
-          type="monotone"
-          dataKey="netFlowRequested"
-          stroke={CHART_COLORS.netFlowRequested}
-          strokeWidth={1.25}
-          strokeOpacity={0.7}
-          dot={false}
-          activeDot={{
-            r: 3,
-            stroke: CHART_COLORS.netFlowRequested,
-            fill: CHART_COLORS.netFlowRequested,
-          }}
-          name="Net Flow (Requested)"
-          isAnimationActive={false}
-        />
-      </ComposedChart>
+      </AreaChart>
     </ResponsiveContainer>
   )
 }
@@ -414,7 +387,7 @@ export const LenderFlowCharts = ({
           <Button
             key={r}
             onClick={() => setRange(r)}
-            sx={TimeRangeButton(range === r)}
+            sx={TimeRangeChipStyle(range === r)}
           >
             {r}
           </Button>
@@ -447,7 +420,7 @@ export const LenderFlowCharts = ({
     <IconButton
       onClick={() => setFocused(chart)}
       aria-label={t("lenderMarketDetails.analytics.charts.expand")}
-      sx={ChartActionButton}
+      sx={ChartActionButtonStyle}
     >
       <Expand />
     </IconButton>
@@ -475,7 +448,7 @@ export const LenderFlowCharts = ({
     <>
       <Box sx={ChartsGrid(isMobile)}>
         <Box sx={ChartCardStyle}>
-          <Box sx={ChartHeader}>
+          <Box sx={ChartHeaderStyle}>
             <Typography
               variant="text4"
               sx={{ fontWeight: 600, color: COLORS.blackRock }}
@@ -487,7 +460,7 @@ export const LenderFlowCharts = ({
               {renderExpandButton("flows")}
             </Box>
           </Box>
-          <Typography variant="text4" sx={ChartDescription}>
+          <Typography variant="text4" sx={ChartDescriptionStyle}>
             {t("lenderMarketDetails.analytics.charts.dailyFlowsDesc")}
           </Typography>
           <Box sx={{ width: "100%", height: 220 }}>
@@ -501,7 +474,7 @@ export const LenderFlowCharts = ({
         </Box>
 
         <Box sx={ChartCardStyle}>
-          <Box sx={ChartHeader}>
+          <Box sx={ChartHeaderStyle}>
             <Typography
               variant="text4"
               sx={{ fontWeight: 600, color: COLORS.blackRock }}
@@ -513,7 +486,7 @@ export const LenderFlowCharts = ({
               {renderExpandButton("cumulative")}
             </Box>
           </Box>
-          <Typography variant="text4" sx={ChartDescription}>
+          <Typography variant="text4" sx={ChartDescriptionStyle}>
             {t("lenderMarketDetails.analytics.charts.cumulativeNetFlowDesc")}
           </Typography>
           <Box sx={{ width: "100%", height: 220 }}>
@@ -533,9 +506,9 @@ export const LenderFlowCharts = ({
         onClose={() => setFocused(null)}
         fullWidth
         maxWidth="lg"
-        PaperProps={{ sx: ExpandDialogPaper }}
+        PaperProps={{ sx: ExpandDialogPaperStyle }}
       >
-        <Box sx={ExpandDialogContent}>
+        <Box sx={ExpandDialogContentStyle}>
           <Box
             sx={{
               display: "flex",
@@ -555,13 +528,13 @@ export const LenderFlowCharts = ({
               <IconButton
                 onClick={() => setFocused(null)}
                 aria-label={t("lenderMarketDetails.analytics.charts.close")}
-                sx={ChartActionButton}
+                sx={ChartActionButtonStyle}
               >
                 <CrossIcon />
               </IconButton>
             </Box>
           </Box>
-          <Typography variant="text4" sx={ChartDescription}>
+          <Typography variant="text4" sx={ChartDescriptionStyle}>
             {focusedDescription}
           </Typography>
           <Box sx={{ width: "100%", height: isMobile ? 360 : 520 }}>
