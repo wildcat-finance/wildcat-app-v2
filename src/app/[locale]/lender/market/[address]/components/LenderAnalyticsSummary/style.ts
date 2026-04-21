@@ -14,10 +14,8 @@ export const SummaryGrid = (isMobile: boolean): SxProps<Theme> =>
       }
     : {
         width: "100%",
-        height: "100%",
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-        gridAutoRows: "1fr",
         gap: "12px",
       }
 
