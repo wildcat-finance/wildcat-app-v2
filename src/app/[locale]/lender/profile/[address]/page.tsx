@@ -6,7 +6,7 @@ import { useEffect } from "react"
 import { redirect } from "next/navigation"
 import { useAccount } from "wagmi"
 
-import { ProfilePage } from "@/components/Profile/ProfilePage"
+import { LenderProfilePage } from "@/components/Profile/LenderProfilePage"
 import { ROUTES } from "@/routes"
 
 export default function OtherBorrowerProfile({
@@ -22,5 +22,5 @@ export default function OtherBorrowerProfile({
     }
   }, [address, userAddress])
 
-  return <ProfilePage profileAddress={address} type="external" />
+  return <LenderProfilePage profileAddress={address} type="external" />
 }

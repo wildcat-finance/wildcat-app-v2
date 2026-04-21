@@ -11,8 +11,10 @@ import { MobileSummaryRow, SummaryCard, SummaryGrid } from "./style"
 type SummaryItem = {
   label: string
   value: string
+  symbol?: string
   tooltip?: string
   fullPrecisionValue?: string
+  description?: string
 }
 
 export const LenderAnalyticsSummary = ({
@@ -52,12 +54,30 @@ export const LenderAnalyticsSummary = ({
                   disableHoverListener={!item.fullPrecisionValue}
                   arrow
                 >
-                  <Typography
-                    variant="mobText3"
-                    sx={{ color: COLORS.blackRock }}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-end",
+                    }}
                   >
-                    {item.value}
-                  </Typography>
+                    <Typography
+                      variant="mobText3"
+                      sx={{ color: COLORS.blackRock }}
+                    >
+                      {item.symbol
+                        ? `${item.value} ${item.symbol}`
+                        : item.value}
+                    </Typography>
+                    {item.description && (
+                      <Typography
+                        variant="text4"
+                        sx={{ color: COLORS.santasGrey }}
+                      >
+                        {item.description}
+                      </Typography>
+                    )}
+                  </Box>
                 </Tooltip>
               )}
             </Box>
@@ -75,13 +95,13 @@ export const LenderAnalyticsSummary = ({
       {items.map((item) => (
         <Box key={item.label} sx={SummaryCard}>
           <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-            <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
+            <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
               {item.label}
             </Typography>
             {item.tooltip && (
               <Tooltip title={item.tooltip} placement="top" arrow>
                 <Typography
-                  variant="text4"
+                  variant="text3"
                   sx={{
                     color: COLORS.santasGrey,
                     cursor: "help",
@@ -96,7 +116,7 @@ export const LenderAnalyticsSummary = ({
           {isLoading ? (
             <Skeleton
               width="60%"
-              height="28px"
+              height="32px"
               sx={{ marginTop: "4px", bgcolor: COLORS.athensGrey }}
             />
           ) : (
@@ -106,17 +126,46 @@ export const LenderAnalyticsSummary = ({
               disableHoverListener={!item.fullPrecisionValue}
               arrow
             >
-              <Typography
-                variant="title3"
+              <Box
                 sx={{
                   marginTop: "4px",
-                  color: COLORS.blackRock,
-                  wordBreak: "break-word",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "4px",
                 }}
               >
-                {item.value}
-              </Typography>
+                <Typography
+                  variant={item.symbol ? "title3" : "title2"}
+                  sx={{
+                    color: COLORS.blackRock,
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {item.value}
+                </Typography>
+                {item.symbol && (
+                  <Typography
+                    variant="text4"
+                    sx={{ marginTop: "4px", color: COLORS.blackRock }}
+                  >
+                    {item.symbol}
+                  </Typography>
+                )}
+              </Box>
             </Tooltip>
+          )}
+          {item.description && !isLoading && (
+            <Typography
+              variant="text3"
+              component="div"
+              sx={{
+                marginTop: "6px",
+                color: COLORS.santasGrey,
+                lineHeight: 1.4,
+              }}
+            >
+              {item.description}
+            </Typography>
           )}
         </Box>
       ))}

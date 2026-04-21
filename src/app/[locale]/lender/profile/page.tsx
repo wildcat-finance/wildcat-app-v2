@@ -4,10 +4,10 @@ import * as React from "react"
 
 import { useAccount } from "wagmi"
 
-import { ProfilePage } from "@/components/Profile/ProfilePage"
+import { LenderProfilePage } from "@/components/Profile/LenderProfilePage"
 
 export default function UserBorrowerProfile() {
   const { address: accountAddress } = useAccount()
 
-  return <ProfilePage profileAddress={accountAddress} type="internal" />
+  return <LenderProfilePage profileAddress={accountAddress} type="internal" />
 }

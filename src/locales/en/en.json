@@ -1130,7 +1130,7 @@
         "dailyFlows": "Daily Deposits & Withdrawals",
         "dailyFlowsDesc": "Deposits above axis; withdrawals below (requested vs executed)",
         "cumulativeNetFlow": "Cumulative Net Flow",
-        "cumulativeNetFlowDesc": "Deposits minus withdrawals — executed (filled) vs requested (line)",
+        "cumulativeNetFlowDesc": "Running total: deposits − withdrawals",
         "expand": "Expand chart",
         "close": "Close"
       }

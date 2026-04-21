@@ -109,15 +109,15 @@ export default function LenderMarketDetails({
   const analyticsSummaryItems = React.useMemo(() => {
     if (!market || !marketAccount) return []
     const zero = market.underlyingToken.getAmount(0)
+    const assetSymbol = market.underlyingToken.symbol
     const totalDeposited = marketAccount.totalDeposited ?? zero
     const totalInterestEarned = marketAccount.totalInterestEarned ?? zero
     const totalWithdrawalsExecuted = analytics.totalWithdrawalsExecuted ?? zero
     return [
       {
         label: t("lenderMarketDetails.analytics.lifetimeDeposited"),
-        value: formatTokenWithCommas(totalDeposited, {
-          withSymbol: true,
-        }),
+        value: formatTokenWithCommas(totalDeposited),
+        symbol: assetSymbol,
         tooltip: t("lenderMarketDetails.analytics.lifetimeDepositedTooltip"),
         fullPrecisionValue: totalDeposited.format(
           totalDeposited.decimals,
@@ -126,9 +126,8 @@ export default function LenderMarketDetails({
       },
       {
         label: t("lenderMarketDetails.analytics.interestEarned"),
-        value: formatTokenWithCommas(totalInterestEarned, {
-          withSymbol: true,
-        }),
+        value: formatTokenWithCommas(totalInterestEarned),
+        symbol: assetSymbol,
         tooltip: t("lenderMarketDetails.analytics.interestEarnedTooltip"),
         fullPrecisionValue: totalInterestEarned.format(
           totalInterestEarned.decimals,
@@ -137,9 +136,8 @@ export default function LenderMarketDetails({
       },
       {
         label: t("lenderMarketDetails.analytics.totalWithdrawalsExecuted"),
-        value: formatTokenWithCommas(totalWithdrawalsExecuted, {
-          withSymbol: true,
-        }),
+        value: formatTokenWithCommas(totalWithdrawalsExecuted),
+        symbol: assetSymbol,
         tooltip: t(
           "lenderMarketDetails.analytics.totalWithdrawalsExecutedTooltip",
         ),

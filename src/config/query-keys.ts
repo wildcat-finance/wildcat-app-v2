@@ -51,6 +51,26 @@ const BORROWER_QUERY_KEYS = {
   // BORROWER_PROFILE_KEY
   GET_PROFILE: (chainId: number, borrowerAddress?: string) =>
     k(["borrower", "GET_PROFILE", chainId, borrowerAddress]),
+  GET_PROFILE_ANALYTICS: (chainId: number, borrowerAddress?: string) =>
+    k(["borrower", "GET_PROFILE_ANALYTICS", chainId, borrowerAddress]),
+  GET_PROFILE_DELINQUENCY: (
+    chainId: number,
+    borrowerAddress?: string,
+    marketIds?: string[],
+  ) =>
+    k([
+      "borrower",
+      "GET_PROFILE_DELINQUENCY",
+      chainId,
+      borrowerAddress,
+      marketIds,
+    ]),
+  GET_PROFILE_BATCHES: (
+    chainId: number,
+    borrowerAddress?: string,
+    marketIds?: string[],
+  ) =>
+    k(["borrower", "GET_PROFILE_BATCHES", chainId, borrowerAddress, marketIds]),
   // CALCULATE_MARKET_ADDRESS_KEY
   CALCULATE_MARKET_ADDRESS: (chainId: number, salt: string) =>
     k(["borrower", "CALCULATE_MARKET_ADDRESS", chainId, salt]),
@@ -288,6 +308,18 @@ const LENDER_QUERY_KEYS = {
   // GET_MARKET_DAILY_FLOWS_KEY
   GET_MARKET_DAILY_FLOWS: (chainId: number, marketAddress?: string) =>
     k(["lender", "GET_MARKET_DAILY_FLOWS", chainId, marketAddress]),
+  GET_PROFILE_POSITIONS: (chainId: number, lenderAddress?: string) =>
+    k(["lender", "GET_PROFILE_POSITIONS", chainId, lenderAddress]),
+  GET_PROFILE_ACTIVITY: (
+    chainId: number,
+    lenderAddress?: string,
+    marketIds?: string[],
+  ) => k(["lender", "GET_PROFILE_ACTIVITY", chainId, lenderAddress, marketIds]),
+  GET_PROFILE_BATCHES: (
+    chainId: number,
+    lenderAddress?: string,
+    marketIds?: string[],
+  ) => k(["lender", "GET_PROFILE_BATCHES", chainId, lenderAddress, marketIds]),
   // GET_SIGNED_MLA_KEY
   GET_SIGNED_MLA: (
     chainId: number,
