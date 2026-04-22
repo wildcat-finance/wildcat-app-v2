@@ -358,14 +358,15 @@ export const OtherMarketsTables = ({
       renderCell: (params) => (
         <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {params.row.isSelfOnboard ? (
-            <Button
-              size="small"
-              variant="contained"
-              color="secondary"
-              sx={rowLinkInteractiveSx}
+            <Box
+              component={Link}
+              href={buildMarketHref(params.row.id, params.row.chainId)}
+              sx={{ ...rowLinkInteractiveSx, textDecoration: "none" }}
             >
-              {t("dashboard.markets.tables.other.depositBTN")}
-            </Button>
+              <Button size="small" variant="contained" color="secondary">
+                {t("dashboard.markets.tables.other.depositBTN")}
+              </Button>
+            </Box>
           ) : (
             <Box
               component={Link}

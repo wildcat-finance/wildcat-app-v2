@@ -271,15 +271,20 @@ export const LenderTerminatedMarketsTables = ({
       align: "right",
       renderCell: (params) => (
         <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-          <Button
-            size="small"
-            variant="contained"
-            color="secondary"
-            disabled={!params.row.hasEverInteracted}
-            sx={rowLinkInteractiveSx}
+          <Box
+            component={Link}
+            href={buildMarketHref(params.row.id, params.row.chainId)}
+            sx={{ ...rowLinkInteractiveSx, textDecoration: "none" }}
           >
-            Withdraw
-          </Button>
+            <Button
+              size="small"
+              variant="contained"
+              color="secondary"
+              disabled={!params.row.hasEverInteracted}
+            >
+              Withdraw
+            </Button>
+          </Box>
         </Box>
       ),
     },
