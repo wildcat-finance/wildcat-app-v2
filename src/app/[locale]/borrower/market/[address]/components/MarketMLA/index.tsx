@@ -14,13 +14,13 @@ import {
 import { Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
+import { MlaModal } from "@/app/[locale]/borrower/components/MlaModal"
 import { useGetMlaTemplates } from "@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates"
 import { usePreviewMla } from "@/app/[locale]/borrower/hooks/mla/usePreviewMla"
 import {
   useBorrowerProfileTmp,
   useSetMarketMLA,
 } from "@/app/[locale]/borrower/hooks/mla/useSignBorrowerMla"
-import { MlaModal } from "@/app/[locale]/lender/components/MlaModal"
 import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import { useMarketMla } from "@/hooks/useMarketMla"

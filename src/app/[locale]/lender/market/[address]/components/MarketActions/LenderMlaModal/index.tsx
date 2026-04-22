@@ -7,8 +7,8 @@ import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { LenderMlaModalProps } from "./interface"
-import { useSignLenderMLA } from "../../hooks/useSignLenderMla"
-import { useGetSignedMla } from "../../hooks/useSignMla"
+import { useSignLenderMLA } from "../../../../../hooks/useSignLenderMla"
+import { useGetSignedMla } from "../../../../../hooks/useSignMla"
 
 export const LenderMlaModal = ({
   mla: mlaInput,
