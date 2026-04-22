@@ -2,7 +2,7 @@
 
 import { Box } from "@mui/material"
 
-import { ExploreSection } from "@/app/[locale]/lender/components/MarketsDashboard/ExploreSection"
+import { ExploreSection } from "@/app/[locale]/lender/components/ExploreSection"
 
 export default function Lender() {
   return (

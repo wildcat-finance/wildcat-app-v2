@@ -21,7 +21,7 @@ import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
-import { TopMarketSectionSelect } from "@/app/[locale]/lender/components/TopMarketSectionSelect"
+import { TopMarketSectionSelect } from "@/app/[locale]/lender/components/ExploreSection/TopMarketsSection/TopMarketSectionSelect"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
