@@ -2,13 +2,7 @@ import { useEffect, useRef } from "react"
 import * as React from "react"
 
 import { Box, Button, Typography } from "@mui/material"
-import {
-  DataGrid,
-  GridRenderCellParams,
-  GridRow,
-  GridRowProps,
-  GridRowsProp,
-} from "@mui/x-data-grid"
+import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import {
   DepositStatus,
   MarketVersion,
@@ -20,7 +14,11 @@ import { useTranslation } from "react-i18next"
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
-import { DataGridSx } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/style"
+import {
+  clickableGridSx,
+  rowLinkInteractiveSx,
+  rowLinkStretchedSx,
+} from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/style"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import {
@@ -57,25 +55,6 @@ import {
   LenderOtherMarketsTableModel,
   LenderOtherMarketsTableProps,
 } from "./interface"
-
-const clickableGridSx = {
-  ...DataGridSx,
-  "& .MuiDataGrid-row": {
-    minHeight: "66px !important",
-    maxHeight: "66px !important",
-    cursor: "pointer",
-  },
-}
-
-const MarketLinkRow = (props: GridRowProps) => (
-  <Link
-    href={buildMarketHref(props.row.id, props.row.chainId)}
-    style={{ display: "contents", color: "inherit" }}
-    tabIndex={-1}
-  >
-    <GridRow {...props} />
-  </Link>
-)
 
 export const OtherMarketsTables = ({
   marketAccounts,
@@ -194,29 +173,39 @@ export const OtherMarketsTables = ({
             minWidth: 0,
           }}
         >
-          <Typography
-            variant="text3"
-            sx={{
-              display: "block",
-              width: "100%",
-              minWidth: 0,
-              overflow: "hidden",
-              whiteSpace: "nowrap",
-              textOverflow: "ellipsis",
-            }}
+          <Box
+            component={Link}
+            href={buildMarketHref(params.row.id, params.row.chainId)}
+            sx={rowLinkStretchedSx}
           >
-            {params.value}
-          </Typography>
+            <Typography
+              variant="text3"
+              sx={{
+                display: "block",
+                width: "100%",
+                minWidth: 0,
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {params.value}
+            </Typography>
+          </Box>
 
           {params.row.borrowerAddress ? (
-            <Link
+            <Box
+              component={Link}
               href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
               prefetch={false}
-              onClick={(e: React.MouseEvent) => e.stopPropagation()}
-              style={{ display: "flex", textDecoration: "none" }}
+              sx={{
+                ...rowLinkInteractiveSx,
+                display: "flex",
+                textDecoration: "none",
+              }}
             >
               <BorrowerProfileChip borrower={params.row.borrower} />
-            </Link>
+            </Box>
           ) : (
             <BorrowerProfileChip borrower={params.row.borrower} />
           )}
@@ -271,12 +260,23 @@ export const OtherMarketsTables = ({
 
         return (
           <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-            <AprChip
-              isBonus={!!adsCellProps}
-              baseApr={formatBps(params.value)}
-              icons={adsCellProps?.icons}
-              adsComponent={adsComponent}
-            />
+            <Box
+              component={Link}
+              href={buildMarketHref(params.row.id, params.row.chainId)}
+              tabIndex={-1}
+              sx={{
+                ...rowLinkInteractiveSx,
+                textDecoration: "none",
+                color: "inherit",
+              }}
+            >
+              <AprChip
+                isBonus={!!adsCellProps}
+                baseApr={formatBps(params.value)}
+                icons={adsCellProps?.icons}
+                adsComponent={adsComponent}
+              />
+            </Box>
           </Box>
         )
       },
@@ -362,21 +362,21 @@ export const OtherMarketsTables = ({
               size="small"
               variant="contained"
               color="secondary"
-              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              sx={rowLinkInteractiveSx}
             >
               {t("dashboard.markets.tables.other.depositBTN")}
             </Button>
           ) : (
-            <Link
+            <Box
+              component={Link}
               href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
               prefetch={false}
-              onClick={(e: React.MouseEvent) => e.stopPropagation()}
-              style={{ textDecoration: "none" }}
+              sx={{ ...rowLinkInteractiveSx, textDecoration: "none" }}
             >
               <Button size="small" variant="contained" color="secondary">
                 {t("dashboard.markets.tables.other.requestBTN")}
               </Button>
-            </Link>
+            </Box>
           )}
         </Box>
       ),
@@ -467,7 +467,7 @@ export const OtherMarketsTables = ({
               columnHeaderHeight={40}
               paginationModel={selfOnboardPaginationModel}
               onPaginationModelChange={setSelfOnboardPaginationModel}
-              slots={{ row: MarketLinkRow, pagination: TablePagination }}
+              slots={{ pagination: TablePagination }}
               hideFooter={false}
             />
           )}
@@ -503,7 +503,7 @@ export const OtherMarketsTables = ({
               columnHeaderHeight={40}
               paginationModel={manualPaginationModel}
               onPaginationModelChange={setManualPaginationModel}
-              slots={{ row: MarketLinkRow, pagination: TablePagination }}
+              slots={{ pagination: TablePagination }}
               hideFooter={false}
             />
           )}
@@ -530,7 +530,7 @@ export const OtherMarketsTables = ({
             columnHeaderHeight={40}
             paginationModel={terminatedPaginationModel}
             onPaginationModelChange={setTerminatedPaginationModel}
-            slots={{ row: MarketLinkRow, pagination: TablePagination }}
+            slots={{ pagination: TablePagination }}
             hideFooter={false}
           />
         </MarketsTableAccordion>

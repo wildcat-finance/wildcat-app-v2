@@ -2,13 +2,7 @@ import * as React from "react"
 import { useEffect, useRef } from "react"
 
 import { Box, Typography } from "@mui/material"
-import {
-  DataGrid,
-  GridRenderCellParams,
-  GridRow,
-  GridRowProps,
-  GridRowsProp,
-} from "@mui/x-data-grid"
+import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
@@ -50,26 +44,11 @@ import {
   LenderActiveMarketsTableModel,
   LenderActiveMarketsTableProps,
 } from "./interface"
-import { DataGridSx } from "../style"
-
-const clickableGridSx = {
-  ...DataGridSx,
-  "& .MuiDataGrid-row": {
-    minHeight: "66px !important",
-    maxHeight: "66px !important",
-    cursor: "pointer",
-  },
-}
-
-const MarketLinkRow = (props: GridRowProps) => (
-  <Link
-    href={buildMarketHref(props.row.id, props.row.chainId)}
-    style={{ display: "contents", color: "inherit" }}
-    tabIndex={-1}
-  >
-    <GridRow {...props} />
-  </Link>
-)
+import {
+  clickableGridSx,
+  rowLinkInteractiveSx,
+  rowLinkStretchedSx,
+} from "../style"
 
 export const LenderActiveMarketsTables = ({
   marketAccounts,
@@ -168,29 +147,39 @@ export const LenderActiveMarketsTables = ({
             minWidth: 0,
           }}
         >
-          <Typography
-            variant="text3"
-            sx={{
-              display: "block",
-              width: "100%",
-              minWidth: 0,
-              overflow: "hidden",
-              whiteSpace: "nowrap",
-              textOverflow: "ellipsis",
-            }}
+          <Box
+            component={Link}
+            href={buildMarketHref(params.row.id, params.row.chainId)}
+            sx={rowLinkStretchedSx}
           >
-            {params.value}
-          </Typography>
+            <Typography
+              variant="text3"
+              sx={{
+                display: "block",
+                width: "100%",
+                minWidth: 0,
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {params.value}
+            </Typography>
+          </Box>
 
           {params.row.borrowerAddress ? (
-            <Link
+            <Box
+              component={Link}
               href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
               prefetch={false}
-              onClick={(e: React.MouseEvent) => e.stopPropagation()}
-              style={{ display: "flex", textDecoration: "none" }}
+              sx={{
+                ...rowLinkInteractiveSx,
+                display: "flex",
+                textDecoration: "none",
+              }}
             >
               <BorrowerProfileChip borrower={params.row.borrower} />
-            </Link>
+            </Box>
           ) : (
             <BorrowerProfileChip borrower={params.row.borrower} />
           )}
@@ -245,12 +234,23 @@ export const LenderActiveMarketsTables = ({
 
         return (
           <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-            <AprChip
-              isBonus={!!adsCellProps}
-              baseApr={formatBps(params.value)}
-              icons={adsCellProps?.icons}
-              adsComponent={adsComponent}
-            />
+            <Box
+              component={Link}
+              href={buildMarketHref(params.row.id, params.row.chainId)}
+              tabIndex={-1}
+              sx={{
+                ...rowLinkInteractiveSx,
+                textDecoration: "none",
+                color: "inherit",
+              }}
+            >
+              <AprChip
+                isBonus={!!adsCellProps}
+                baseApr={formatBps(params.value)}
+                icons={adsCellProps?.icons}
+                adsComponent={adsComponent}
+              />
+            </Box>
           </Box>
         )
       },
@@ -412,7 +412,6 @@ export const LenderActiveMarketsTables = ({
               rows={depositedMarkets}
               columns={columns}
               columnHeaderHeight={40}
-              slots={{ row: MarketLinkRow }}
             />
           )}
         </MarketsTableAccordion>
@@ -451,7 +450,6 @@ export const LenderActiveMarketsTables = ({
               rows={nonDepositedMarkets}
               columns={columns}
               columnHeaderHeight={40}
-              slots={{ row: MarketLinkRow }}
             />
           )}
         </MarketsTableAccordion>
