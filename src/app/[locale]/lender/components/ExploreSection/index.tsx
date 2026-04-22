@@ -4,9 +4,9 @@ import React, { useEffect, useState } from "react"
 
 import { Box, Skeleton } from "@mui/material"
 
-import { ExploreMarketsTable } from "@/app/[locale]/lender/components/ExploreMarketsTable"
-import { TopMarketsSection } from "@/app/[locale]/lender/components/TopMarketsSection"
-import { TrendingMarketsCarousel } from "@/app/[locale]/lender/components/TrendingMarketsCarousel"
+import { ExploreMarketsTable } from "@/app/[locale]/lender/components/ExploreSection/ExploreMarketsTable"
+import { TopMarketsSection } from "@/app/[locale]/lender/components/ExploreSection/TopMarketsSection"
+import { TrendingMarketsCarousel } from "@/app/[locale]/lender/components/ExploreSection/TrendingMarketsCarousel"
 import { COLORS } from "@/theme/colors"
 
 export const ExploreSection = () => {
