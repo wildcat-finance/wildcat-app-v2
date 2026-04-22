@@ -27,7 +27,6 @@ import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
-import { LenderOtherMarketsTableModel } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/OtherMarketsTables/interface"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
@@ -130,6 +129,23 @@ export const DataGridSx = {
     minHeight: "66px",
     height: "auto",
   },
+}
+
+export type LenderOtherMarketsTableModel = {
+  id: string
+  chainId?: number
+  status: ReturnType<typeof getMarketStatusChip>
+  term: ReturnType<typeof getMarketTypeChip>
+  name: string
+  borrower: string | undefined
+  borrowerAddress: string | undefined
+  asset: string
+  debt: TokenAmount | undefined
+  apr: number
+  withdrawalBatchDuration: number
+  isSelfOnboard: boolean
+  button?: string
+  capacityLeft: TokenAmount
 }
 
 const MarketLinkRow = (props: GridRowProps) => (
