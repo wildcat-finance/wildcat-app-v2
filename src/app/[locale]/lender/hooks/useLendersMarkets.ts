@@ -6,10 +6,8 @@ import {
   SignerOrProvider,
   Market,
   MarketAccount,
-  getLensContract,
   MarketVersion,
   SupportedChainId,
-  getLensV2Contract,
   SubgraphGetAllMarketsForLenderViewQueryVariables,
   getLenderAccountsForAllMarkets,
   SubgraphMarket_Filter,
@@ -17,6 +15,11 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { BigNumber, constants } from "ethers"
+
+import {
+  getViemLensContract,
+  getViemLensV2Contract,
+} from "@/utils/viemLens"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
@@ -128,9 +131,9 @@ export function useLendersMarkets(
     logger.debug(`Getting lender updates...`)
     const hasV1Lens = hasDeploymentAddress(targetChainId, "MarketLens")
     const lens = hasV1Lens
-      ? getLensContract(targetChainId, signerOrProvider as SignerOrProvider)
+      ? getViemLensContract(targetChainId, signerOrProvider as SignerOrProvider)
       : undefined
-    const lensV2 = getLensV2Contract(
+    const lensV2 = getViemLensV2Contract(
       targetChainId,
       signerOrProvider as SignerOrProvider,
     )
