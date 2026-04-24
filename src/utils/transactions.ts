@@ -1,4 +1,4 @@
-import type { Provider, TransactionReceipt } from "@ethersproject/providers"
+import type { TransactionReceipt } from "@ethersproject/providers"
 import {
   PartialTransaction,
   SafeTransactionInput,
@@ -23,6 +23,18 @@ type SafeSdkLike = {
   }
 }
 
+type WaitForTransactionProvider = {
+  waitForTransaction: (transactionHash: string) => Promise<TransactionReceipt>
+}
+
+const isWaitForTransactionProvider = (
+  provider: unknown,
+): provider is WaitForTransactionProvider =>
+  typeof provider === "object" &&
+  provider !== null &&
+  "waitForTransaction" in provider &&
+  typeof provider.waitForTransaction === "function"
+
 export const waitForSafeTransactionHash = async (
   sdk: SafeSdkLike,
   safeTxHash: string,
@@ -45,12 +57,12 @@ export const waitForSubmittedTransaction = async ({
   safeConnected,
   safeSdk,
 }: {
-  provider: Provider | undefined
+  provider: unknown
   hash: string
   safeConnected?: boolean
   safeSdk?: SafeSdkLike
 }): Promise<{ hash: string; receipt: TransactionReceipt }> => {
-  if (!provider) {
+  if (!isWaitForTransactionProvider(provider)) {
     throw Error("No provider available to wait for transaction")
   }
   if (safeConnected && !safeSdk) {
