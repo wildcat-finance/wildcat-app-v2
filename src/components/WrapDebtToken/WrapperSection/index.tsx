@@ -477,23 +477,23 @@ export const WrapperSection = ({
           allowance.gt(0) &&
           isUSDTLikeToken(wrapper.marketToken.address)
         ) {
-          txs.push({
-            to: wrapper.marketToken.address,
-            data: wrapper.marketToken.contract.interface.encodeFunctionData(
-              "approve",
-              [wrapper.address, "0"],
+          txs.push(
+            toSafeTransactionInput(
+              wrapper.marketToken.populateApprove(
+                wrapper.address,
+                wrapper.marketToken.getAmount(0),
+              ),
             ),
-            value: "0",
-          })
+          )
         }
-        txs.push({
-          to: wrapper.marketToken.address,
-          data: wrapper.marketToken.contract.interface.encodeFunctionData(
-            "approve",
-            [wrapper.address, approvalAmount.raw.toString()],
+        txs.push(
+          toSafeTransactionInput(
+            wrapper.marketToken.populateApprove(
+              wrapper.address,
+              approvalAmount,
+            ),
           ),
-          value: "0",
-        })
+        )
         const { safeTxHash } = await sdk.txs.send({ txs })
         const hash = await waitForSafeTransaction(safeTxHash)
         setTxHash(hash)
@@ -505,19 +505,22 @@ export const WrapperSection = ({
         allowance.gt(0) &&
         isUSDTLikeToken(wrapper.marketToken.address)
       ) {
-        const resetTx = await wrapper.marketToken.contract.approve(
+        const resetHash = await wrapper.marketToken.approve(
           wrapper.address,
-          0,
+          wrapper.marketToken.getAmount(0),
         )
-        await resetTx.wait()
+        await waitForSubmittedTransaction({
+          provider: signer.provider,
+          hash: resetHash,
+        })
       }
-      const tx = await wrapper.marketToken.contract.approve(
+      const hash = await wrapper.marketToken.approve(
         wrapper.address,
-        approvalAmount.raw.toString(),
+        approvalAmount,
       )
-      setTxHash(tx.hash)
-      await tx.wait()
-      return tx.hash
+      setTxHash(hash)
+      await waitForSubmittedTransaction({ provider: signer.provider, hash })
+      return hash
     },
     onSuccess: () => {
       client.invalidateQueries({
@@ -569,23 +572,23 @@ export const WrapperSection = ({
             allowance.gt(0) &&
             isUSDTLikeToken(wrapper.marketToken.address)
           ) {
-            txs.push({
-              to: wrapper.marketToken.address,
-              data: wrapper.marketToken.contract.interface.encodeFunctionData(
-                "approve",
-                [wrapper.address, "0"],
+            txs.push(
+              toSafeTransactionInput(
+                wrapper.marketToken.populateApprove(
+                  wrapper.address,
+                  wrapper.marketToken.getAmount(0),
+                ),
               ),
-              value: "0",
-            })
+            )
           }
-          txs.push({
-            to: wrapper.marketToken.address,
-            data: wrapper.marketToken.contract.interface.encodeFunctionData(
-              "approve",
-              [wrapper.address, approvalAmount.raw.toString()],
+          txs.push(
+            toSafeTransactionInput(
+              wrapper.marketToken.populateApprove(
+                wrapper.address,
+                approvalAmount,
+              ),
             ),
-            value: "0",
-          })
+          )
         }
 
         if (isWrapTab && isAssetsInput) {

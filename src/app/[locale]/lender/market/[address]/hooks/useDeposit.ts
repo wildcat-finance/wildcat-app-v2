@@ -4,9 +4,11 @@ import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   MarketAccount,
+  prepareTransaction,
   SafeTransactionInput,
   TokenAmount,
   toSafeTransactionInput,
+  wildcatMarketAbi,
 } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
@@ -67,14 +69,16 @@ export const useDeposit = (
 
       const deposit = async () => {
         if (gnosisTransactions.length) {
-          gnosisTransactions.push({
-            to: marketAccount.market.address,
-            data: marketAccount.market.contract.interface.encodeFunctionData(
-              "deposit",
-              [tokenAmount.raw.toString()],
+          gnosisTransactions.push(
+            toSafeTransactionInput(
+              prepareTransaction({
+                to: marketAccount.market.address,
+                abi: wildcatMarketAbi,
+                functionName: "deposit",
+                args: [tokenAmount.raw],
+              }),
             ),
-            value: "0",
-          })
+          )
           console.log(`Sending gnosis transactions...`)
           console.log(gnosisTransactions)
           const { safeTxHash } = await sdk.txs.send({

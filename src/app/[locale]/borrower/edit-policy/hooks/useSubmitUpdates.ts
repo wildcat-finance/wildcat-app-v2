@@ -101,7 +101,6 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         console.log(`removing lenders`)
         console.log(removeLenders)
         console.log(`policy address: ${policy.address}`)
-        console.log(`policy address: ${policy.contract.address}`)
         if (
           policy instanceof OpenTermHooks ||
           policy instanceof FixedTermHooks

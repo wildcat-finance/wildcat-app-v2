@@ -24,7 +24,7 @@ import {
   OpenTermHooksTemplate,
   OpenTermMarketDeploymentArgs,
 } from "@wildcatfi/wildcat-sdk/dist/access"
-import { zeroAddress } from "viem"
+import { decodeEventLog, parseAbiItem, zeroAddress, type Hex } from "viem"
 
 import { toastError, toastRequest, toastSuccess } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
@@ -60,6 +60,10 @@ export type DeployNewV2MarketParams = (
 type MarketDeployedEventArgs = {
   market: string
 }
+
+const marketDeployedEventAbi = parseAbiItem(
+  "event MarketDeployed(address indexed hooksTemplate, address indexed market, string name, string symbol, address asset, uint256 maxTotalSupply, uint256 annualInterestBips, uint256 delinquencyFeeBips, uint256 withdrawalBatchDuration, uint256 reserveRatioBips, uint256 delinquencyGracePeriod, uint256 hooks)",
+)
 
 export const useDeployV2Market = () => {
   const signer = useEthersSigner()
@@ -373,19 +377,26 @@ export const useDeployV2Market = () => {
             error: "Market Deployment Failed.",
           }),
         )
-        const marketDeployedTopic =
-          hooksTemplate.contract.interface.getEventTopic("MarketDeployed")
 
-        const log = receipt.logs.find(
-          (l) => l.topics[0] === marketDeployedTopic,
-        )!
+        const event = receipt.logs
+          .map((log) => {
+            try {
+              return decodeEventLog({
+                abi: [marketDeployedEventAbi],
+                data: log.data as Hex,
+                topics: log.topics as [Hex, ...Hex[]],
+              })
+            } catch {
+              return undefined
+            }
+          })
+          .find((decoded) => decoded?.eventName === "MarketDeployed")
 
-        const event = hooksTemplate.contract.interface.decodeEventLog(
-          "MarketDeployed",
-          log.data,
-          log.topics,
-        ) as unknown as MarketDeployedEventArgs
-        marketAddress = event.market
+        if (!event) {
+          throw Error("MarketDeployed event not found")
+        }
+
+        marketAddress = (event.args as MarketDeployedEventArgs).market
         setDeployedMarket(marketAddress)
       }
 
