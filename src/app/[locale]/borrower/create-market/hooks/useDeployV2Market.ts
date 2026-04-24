@@ -5,11 +5,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   MarketParameters,
   deployToken,
-  TokenAmount,
   Token,
   getNextTokenAddress,
   populateDeployToken,
-  PartialTransaction,
+  SafeTransactionInput,
+  toSafeTransactionInput,
   getMockArchControllerOwnerContract,
   getHooksFactoryContract,
   getHooksFactoryRevolvingContract,
@@ -26,7 +26,6 @@ import {
 } from "@wildcatfi/wildcat-sdk/dist/access"
 import { MarketDeployedEvent } from "@wildcatfi/wildcat-sdk/dist/typechain/HooksFactory"
 import { constants } from "ethers"
-import { parseUnits } from "ethers/lib/utils"
 
 import { toastError, toastRequest, toastSuccess } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
@@ -163,7 +162,7 @@ export const useDeployV2Market = () => {
         const useGnosisMultiSend = isConnectedToSafe && isTestnet
 
         let asset: Token
-        const gnosisTransactions: PartialTransaction[] = []
+        const gnosisTransactions: SafeTransactionInput[] = []
         console.log(
           `useDeployMarket :: isTestnet: ${isTestnet} :: isConnectedToSafe: ${isConnectedToSafe} :: gnosisSafeSDK: ${!!gnosisSafeSDK}`,
         )
@@ -181,11 +180,13 @@ export const useDeployV2Market = () => {
               signer,
             )
             gnosisTransactions.push(
-              await populateDeployToken(
-                chainId,
-                signer,
-                assetData.name,
-                assetData.symbol,
+              toSafeTransactionInput(
+                await populateDeployToken(
+                  chainId,
+                  signer,
+                  assetData.name,
+                  assetData.symbol,
+                ),
               ),
             )
           } else {
@@ -195,7 +196,7 @@ export const useDeployV2Market = () => {
                 signer,
                 assetData.name,
                 assetData.symbol,
-              ).then((t) => t.token),
+              ).then((t) => t.result),
               getStepToastConfig(deploymentSteps, "mockToken", {
                 pending: "Deploying Mock Token..",
                 success: "Mock Token Deployed Successfully!",
@@ -207,11 +208,7 @@ export const useDeployV2Market = () => {
           asset = assetData
         }
 
-        const maxTotalSupply = new TokenAmount(
-          parseUnits(maxTotalSupplyNum.toString(), asset.decimals),
-          asset,
-        )
-
+        const maxTotalSupply = asset.parseAmount(maxTotalSupplyNum.toString())
         const minimumDeposit = asset.parseAmount(minimumDepositNum ?? 0)
 
         const borrowerAddress = hooksTemplate.signerAddress
@@ -415,13 +412,13 @@ export const useDeployV2Market = () => {
                   marketAddress,
                 )
                 const { safeTxHash } = await gnosisSafeSDK.txs.send({
-                  txs: [tx],
+                  txs: [toSafeTransactionInput(tx)],
                 })
                 await waitForSafeTransaction(safeTxHash)
                 return safeTxHash
               }
 
-              const { wrapper } = await WrapperFactory.createWrapper(
+              const { result: wrapper } = await WrapperFactory.createWrapper(
                 chainId,
                 signer,
                 marketAddress,

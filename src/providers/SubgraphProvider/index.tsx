@@ -2,13 +2,12 @@
 
 import { createContext, useContext, useMemo } from "react"
 
-import { ApolloClient, NormalizedCacheObject } from "@apollo/client"
 import { getSubgraphClient } from "@wildcatfi/wildcat-sdk"
 
 import { NETWORKS } from "@/config/network"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
-export type SubgraphClientType = ApolloClient<NormalizedCacheObject>
+export type SubgraphClientType = ReturnType<typeof getSubgraphClient>
 
 const TargetNetworkEnv = process.env.NEXT_PUBLIC_TARGET_NETWORK
 
