@@ -10,7 +10,7 @@ import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { useWrapperBalances } from "@/hooks/wrapper/useWrapperBalances"
+import { useAdoptionData } from "@/hooks/wrapper/useAdoptionData"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
 import {
@@ -159,30 +159,29 @@ export const MarketParameters = ({
     chainId: market?.chainId,
   })
 
-  const { data: balances } = useWrapperBalances(
+  const { data: adoptionData } = useAdoptionData(
     market?.chainId,
     wrapper,
+    viewerType,
     address,
   )
 
-  const marketValue = balances?.marketBalance
-    ? formatTokenWithCommas(balances?.marketBalance)
+  const marketValue = adoptionData
+    ? formatTokenWithCommas(adoptionData.originalAmount)
     : "0"
-  const shareValue = balances?.shareBalance
-    ? formatTokenWithCommas(balances?.shareBalance)
+  const shareValue = adoptionData
+    ? formatTokenWithCommas(adoptionData.wrappedAmount)
     : "0"
 
-  const marketFloat = balances?.marketBalance
-    ? parseFloat(balances.marketBalance.format(balances.marketBalance.decimals))
+  const adoptionTotal = adoptionData
+    ? adoptionData.originalAssetValue + adoptionData.wrappedAssetValue
     : 0
-  const sharesFloat = balances?.shareBalance
-    ? parseFloat(balances.shareBalance.format(balances.shareBalance.decimals))
-    : 0
-  const adoptionTotal = marketFloat + sharesFloat
-  const marketPct =
-    adoptionTotal > 0 ? ((marketFloat / adoptionTotal) * 100).toFixed(0) : "0"
-  const sharesPct =
-    adoptionTotal > 0 ? ((sharesFloat / adoptionTotal) * 100).toFixed(0) : "0"
+  const marketPctNum =
+    adoptionTotal > 0
+      ? Math.round((adoptionData!.originalAssetValue / adoptionTotal) * 100)
+      : 0
+  const marketPct = String(marketPctNum)
+  const sharesPct = String(adoptionTotal > 0 ? 100 - marketPctNum : 0)
 
   const adoptionStatsTooltip =
     viewerType === "lender"
@@ -436,7 +435,11 @@ export const MarketParameters = ({
                   marketAmount={marketValue}
                   marketAsset={wrapper.marketToken.symbol}
                   sharesAmount={shareValue}
-                  sharesAsset={wrapper.shareToken.symbol}
+                  sharesAsset={
+                    viewerType === "borrower"
+                      ? wrapper.marketToken.symbol
+                      : wrapper.shareToken.symbol
+                  }
                   marketPct={marketPct}
                   sharesPct={sharesPct}
                 />

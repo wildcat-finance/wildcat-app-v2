@@ -40,7 +40,7 @@
     "clear": "Clear"
   },
   "footer": {
-    "rights": "Wildcat Foundation 2025",
+    "rights": "Wildcat Foundation 2026",
     "agreement": "Download Terms Of Use"
   },
   "helpModal": {
@@ -76,8 +76,8 @@
     }
   },
   "telegramBanner": {
-    "title": "Subscribe to our Telegram Bot",
-    "subtitle": "Receive notifications for market events",
+    "title": "Subscribe to our Telegram\u00a0Bot",
+    "subtitle": "Receive notifications for market\u00a0events",
     "button": "Subscribe"
   },
   "admin": {

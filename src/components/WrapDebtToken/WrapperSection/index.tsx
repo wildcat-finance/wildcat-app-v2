@@ -648,6 +648,14 @@ export const WrapperSection = ({
           address,
         ),
       })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Wrapper.GET_ADOPTION(
+          market?.chainId ?? 0,
+          wrapper.address,
+          "lender",
+          address,
+        ),
+      })
       setAmount("")
       setShowSuccess(true)
     },

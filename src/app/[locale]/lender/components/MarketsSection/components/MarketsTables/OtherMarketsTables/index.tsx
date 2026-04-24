@@ -5,13 +5,16 @@ import { Box, Button, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
-import { DataGridSx } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/style"
+import {
+  clickableGridSx,
+  rowLinkInteractiveSx,
+  rowLinkStretchedSx,
+} from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/style"
 import { MarketImplementationChip } from "@/components/@extended/MarketImplementationChip"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
@@ -53,15 +56,6 @@ import {
   LenderOtherMarketsTableProps,
 } from "./interface"
 
-const clickableGridSx = {
-  ...DataGridSx,
-  "& .MuiDataGrid-row": {
-    minHeight: "66px !important",
-    maxHeight: "66px !important",
-    cursor: "pointer",
-  },
-}
-
 export const OtherMarketsTables = ({
   marketAccounts,
   isLoading,
@@ -70,7 +64,6 @@ export const OtherMarketsTables = ({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const isMobile = useMobileResolution()
-  const router = useRouter()
 
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
@@ -159,15 +152,6 @@ export const OtherMarketsTables = ({
   const selfOnboard = activeRows.filter((market) => market.isSelfOnboard)
   const manual = activeRows.filter((market) => !market.isSelfOnboard)
 
-  const handleRowClick = (
-    params: { row: LenderOtherMarketsTableModel },
-    event: { target: EventTarget | null },
-  ) => {
-    const target = event.target as HTMLElement
-    if (target.closest("a") || target.closest("button")) return
-    router.push(buildMarketHref(params.row.id, params.row.chainId))
-  }
-
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
     {
       field: "name",
@@ -188,29 +172,39 @@ export const OtherMarketsTables = ({
             minWidth: 0,
           }}
         >
-          <Typography
-            variant="text3"
-            sx={{
-              display: "block",
-              width: "100%",
-              minWidth: 0,
-              overflow: "hidden",
-              whiteSpace: "nowrap",
-              textOverflow: "ellipsis",
-            }}
+          <Box
+            component={Link}
+            href={buildMarketHref(params.row.id, params.row.chainId)}
+            sx={rowLinkStretchedSx}
           >
-            {params.value}
-          </Typography>
+            <Typography
+              variant="text3"
+              sx={{
+                display: "block",
+                width: "100%",
+                minWidth: 0,
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {params.value}
+            </Typography>
+          </Box>
 
           {params.row.borrowerAddress ? (
-            <Link
+            <Box
+              component={Link}
               href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
               prefetch={false}
-              onClick={(e: React.MouseEvent) => e.stopPropagation()}
-              style={{ display: "flex", textDecoration: "none" }}
+              sx={{
+                ...rowLinkInteractiveSx,
+                display: "flex",
+                textDecoration: "none",
+              }}
             >
               <BorrowerProfileChip borrower={params.row.borrower} />
-            </Link>
+            </Box>
           ) : (
             <BorrowerProfileChip borrower={params.row.borrower} />
           )}
@@ -226,12 +220,7 @@ export const OtherMarketsTables = ({
       align: "left",
       sortComparator: statusComparator,
       renderCell: (params) => (
-        <Box
-          sx={{
-            ...LinkCell,
-            justifyContent: "flex-start",
-          }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
           <Box width="120px">
             <MarketStatusChip status={params.value} />
           </Box>
@@ -271,12 +260,7 @@ export const OtherMarketsTables = ({
       align: "left",
       sortComparator: typeComparator,
       renderCell: (params) => (
-        <Box
-          sx={{
-            ...LinkCell,
-            justifyContent: "flex-start",
-          }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
           <Box minWidth="170px">
             <MarketTypeChip type="table" {...params.value} />
           </Box>
@@ -299,12 +283,23 @@ export const OtherMarketsTables = ({
 
         return (
           <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-            <AprChip
-              isBonus={!!adsCellProps}
-              baseApr={formatBps(params.value)}
-              icons={adsCellProps?.icons}
-              adsComponent={adsComponent}
-            />
+            <Box
+              component={Link}
+              href={buildMarketHref(params.row.id, params.row.chainId)}
+              tabIndex={-1}
+              sx={{
+                ...rowLinkInteractiveSx,
+                textDecoration: "none",
+                color: "inherit",
+              }}
+            >
+              <AprChip
+                isBonus={!!adsCellProps}
+                baseApr={formatBps(params.value)}
+                icons={adsCellProps?.icons}
+                adsComponent={adsComponent}
+              />
+            </Box>
           </Box>
         )
       },
@@ -317,12 +312,7 @@ export const OtherMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
-        <Box
-          sx={{
-            ...LinkCell,
-            justifyContent: "flex-end",
-          }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {formatSecsToHours(params.value, true)}
         </Box>
       ),
@@ -335,12 +325,7 @@ export const OtherMarketsTables = ({
       headerAlign: "right",
       align: "right",
       renderCell: (params) => (
-        <Box
-          sx={{
-            ...LinkCell,
-            justifyContent: "flex-end",
-          }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {params.value}
         </Box>
       ),
@@ -356,12 +341,7 @@ export const OtherMarketsTables = ({
       renderCell: (
         params: GridRenderCellParams<LenderOtherMarketsTableModel, TokenAmount>,
       ) => (
-        <Box
-          sx={{
-            ...LinkCell,
-            justifyContent: "flex-end",
-          }}
-        >
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {params.value && params.value.gt(0)
             ? formatTokenWithCommas(params.value, {
                 withSymbol: false,
@@ -401,20 +381,26 @@ export const OtherMarketsTables = ({
       renderCell: (params) => (
         <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
           {params.row.isSelfOnboard ? (
-            <Button size="small" variant="contained" color="secondary">
-              {t("dashboard.markets.tables.other.depositBTN")}
-            </Button>
+            <Box
+              component={Link}
+              href={buildMarketHref(params.row.id, params.row.chainId)}
+              sx={{ ...rowLinkInteractiveSx, textDecoration: "none" }}
+            >
+              <Button size="small" variant="contained" color="secondary">
+                {t("dashboard.markets.tables.other.depositBTN")}
+              </Button>
+            </Box>
           ) : (
-            <Link
+            <Box
+              component={Link}
               href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
               prefetch={false}
-              onClick={(e: React.MouseEvent) => e.stopPropagation()}
-              style={{ textDecoration: "none" }}
+              sx={{ ...rowLinkInteractiveSx, textDecoration: "none" }}
             >
               <Button size="small" variant="contained" color="secondary">
                 {t("dashboard.markets.tables.other.requestBTN")}
               </Button>
-            </Link>
+            </Box>
           )}
         </Box>
       ),
@@ -505,10 +491,7 @@ export const OtherMarketsTables = ({
               columnHeaderHeight={40}
               paginationModel={selfOnboardPaginationModel}
               onPaginationModelChange={setSelfOnboardPaginationModel}
-              onRowClick={handleRowClick}
-              slots={{
-                pagination: TablePagination,
-              }}
+              slots={{ pagination: TablePagination }}
               hideFooter={false}
             />
           )}
@@ -544,10 +527,7 @@ export const OtherMarketsTables = ({
               columnHeaderHeight={40}
               paginationModel={manualPaginationModel}
               onPaginationModelChange={setManualPaginationModel}
-              onRowClick={handleRowClick}
-              slots={{
-                pagination: TablePagination,
-              }}
+              slots={{ pagination: TablePagination }}
               hideFooter={false}
             />
           )}
@@ -567,16 +547,14 @@ export const OtherMarketsTables = ({
         >
           <DataGrid
             disableVirtualization
-            sx={DataGridSx}
-            getRowHeight={() => "auto"}
+            sx={clickableGridSx}
+            rowHeight={66}
             rows={terminated}
             columns={columns}
             columnHeaderHeight={40}
             paginationModel={terminatedPaginationModel}
             onPaginationModelChange={setTerminatedPaginationModel}
-            slots={{
-              pagination: TablePagination,
-            }}
+            slots={{ pagination: TablePagination }}
             hideFooter={false}
           />
         </MarketsTableAccordion>
