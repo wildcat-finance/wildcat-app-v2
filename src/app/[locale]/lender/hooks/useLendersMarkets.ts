@@ -6,10 +6,8 @@ import {
   SignerOrProvider,
   Market,
   MarketAccount,
-  getLensContract,
   MarketVersion,
   SupportedChainId,
-  getLensV2Contract,
   SubgraphGetAllMarketsForLenderViewQueryVariables,
   getLenderAccountsForAllMarkets,
   SubgraphMarket_Filter,
@@ -26,6 +24,7 @@ import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
 import { TwoStepQueryHookResult } from "@/utils/types"
+import { getViemLensContract, getViemLensV2Contract } from "@/utils/viemLens"
 
 export type LenderMarketsQueryProps =
   SubgraphGetAllMarketsForLenderViewQueryVariables
@@ -128,9 +127,9 @@ export function useLendersMarkets(
     logger.debug(`Getting lender updates...`)
     const hasV1Lens = hasDeploymentAddress(targetChainId, "MarketLens")
     const lens = hasV1Lens
-      ? getLensContract(targetChainId, signerOrProvider as SignerOrProvider)
+      ? getViemLensContract(targetChainId, signerOrProvider as SignerOrProvider)
       : undefined
-    const lensV2 = getLensV2Contract(
+    const lensV2 = getViemLensV2Contract(
       targetChainId,
       signerOrProvider as SignerOrProvider,
     )
