@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.16.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.15.1...v2.16.0) (2026-04-22)
+
+
+### Features
+
+* **markets-tables:** fix markets links ([8fcbc9d](https://github.com/wildcat-finance/wildcat-app-v2/commit/8fcbc9d92b96fbe1ae04659c892e913baa493f8a))
+
+
+### Bug Fixes
+
+* **markets-tables:** fix markets links ([a5e9a3b](https://github.com/wildcat-finance/wildcat-app-v2/commit/a5e9a3b7f79bfd2fda5f8f06210526db34bc9a71))
+
 ## [2.15.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.15.0...v2.15.1) (2026-04-09)
 
 
