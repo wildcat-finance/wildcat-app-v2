@@ -8,10 +8,7 @@ import {
 
 import { NetworkInfo, NETWORKS } from "@/config/network"
 import { TOKENS_ADDRESSES } from "@/utils/constants"
-import {
-  getViemLensContract,
-  getViemLensV2Contract,
-} from "@/utils/viemLens"
+import { getViemLensContract, getViemLensV2Contract } from "@/utils/viemLens"
 
 export async function updateMarkets(
   markets: Market[],

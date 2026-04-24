@@ -16,11 +16,6 @@ import {
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { BigNumber, constants } from "ethers"
 
-import {
-  getViemLensContract,
-  getViemLensV2Contract,
-} from "@/utils/viemLens"
-
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -29,6 +24,7 @@ import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
 import { TwoStepQueryHookResult } from "@/utils/types"
+import { getViemLensContract, getViemLensV2Contract } from "@/utils/viemLens"
 
 export type LenderMarketsQueryProps =
   SubgraphGetAllMarketsForLenderViewQueryVariables

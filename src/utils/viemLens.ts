@@ -1,22 +1,27 @@
-import { BigNumber } from "ethers"
-import {
-  type Address,
-  decodeFunctionResult,
-  encodeFunctionData,
-} from "viem"
-
 import {
   type SignerOrProvider,
   type SupportedChainId,
   getDeploymentAddress,
 } from "@wildcatfi/wildcat-sdk"
+/* eslint-disable camelcase */
 import {
   MarketLens__factory,
   MarketLensV2__factory,
 } from "@wildcatfi/wildcat-sdk/dist/typechain"
+/* eslint-enable camelcase */
+import { BigNumber } from "ethers"
+import { decodeFunctionResult, encodeFunctionData } from "viem"
 
-const MarketLensV2Abi = MarketLensV2__factory.abi as readonly Record<string, unknown>[]
-const MarketLensAbi = MarketLens__factory.abi as readonly Record<string, unknown>[]
+// eslint-disable-next-line camelcase
+const marketLensV2Abi = MarketLensV2__factory.abi as readonly Record<
+  string,
+  unknown
+>[]
+// eslint-disable-next-line camelcase
+const marketLensAbi = MarketLens__factory.abi as readonly Record<
+  string,
+  unknown
+>[]
 
 function viemToEthers(value: unknown): unknown {
   if (typeof value === "bigint") {
@@ -27,9 +32,9 @@ function viemToEthers(value: unknown): unknown {
   }
   if (value !== null && typeof value === "object") {
     const result: Record<string, unknown> = {}
-    for (const [k, v] of Object.entries(value)) {
+    Object.entries(value).forEach(([k, v]) => {
       result[k] = viemToEthers(v)
-    }
+    })
     return result
   }
   return value
@@ -40,13 +45,9 @@ async function rawCall(
   to: string,
   data: string,
 ): Promise<string> {
-  const p =
-    "call" in provider
-      ? provider
-      : "provider" in provider
-        ? (provider as { provider: { call: Function } }).provider
-        : provider
-  const result = await (p as { call: Function }).call({ to, data })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const p: any = "call" in provider ? provider : (provider as any).provider
+  const result = await p.call({ to, data })
   return result as string
 }
 
@@ -58,16 +59,19 @@ function callAndDecode(
   args: unknown[],
 ) {
   const calldata = encodeFunctionData({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     abi: abi as any,
     functionName,
     args,
   })
   return rawCall(provider, address, calldata).then((raw) => {
     const decoded = decodeFunctionResult({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       abi: abi as any,
       functionName,
       data: raw as `0x${string}`,
     })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return viemToEthers(decoded) as any[]
   })
 }
@@ -96,12 +100,12 @@ export function getViemLensContract(
   chainId: SupportedChainId,
   provider: SignerOrProvider,
 ) {
-  return createViemLens(chainId, provider, "MarketLens", MarketLensAbi)
+  return createViemLens(chainId, provider, "MarketLens", marketLensAbi)
 }
 
 export function getViemLensV2Contract(
   chainId: SupportedChainId,
   provider: SignerOrProvider,
 ) {
-  return createViemLens(chainId, provider, "MarketLensV2", MarketLensV2Abi)
+  return createViemLens(chainId, provider, "MarketLensV2", marketLensV2Abi)
 }
