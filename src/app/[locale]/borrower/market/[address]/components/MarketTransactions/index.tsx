@@ -15,7 +15,12 @@ import {
   setSidebarHighlightState,
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
-import { formatTokenWithCommas } from "@/utils/formatters"
+import { dayjs } from "@/utils/dayjs"
+import {
+  formatBps,
+  formatTokenWithCommas,
+  MARKET_PARAMS_DECIMALS,
+} from "@/utils/formatters"
 import {
   getFixedTermHooksConfig,
   isFixedTermMarket,
@@ -65,6 +70,31 @@ export const MarketTransactions = ({
   const ongoingWDs = withdrawals.activeWithdrawal?.requests.length ?? 0
 
   const isOngoingWDsZero = ongoingWDs === 0
+
+  const tempRatiosDiffer =
+    market.temporaryReserveRatio &&
+    market.reserveRatioBips !== market.originalReserveRatioBips
+
+  const nowSec = Date.now() / 1000
+  const tempRatioExpired =
+    tempRatiosDiffer && market.temporaryReserveRatioExpiry < nowSec
+
+  const hasTempReserveRatio = tempRatiosDiffer && !tempRatioExpired
+
+  const originalRatioFormatted = formatBps(
+    market.originalReserveRatioBips,
+    MARKET_PARAMS_DECIMALS.reserveRatioBips,
+  )
+  const currentRatioFormatted = formatBps(
+    market.reserveRatioBips,
+    MARKET_PARAMS_DECIMALS.reserveRatioBips,
+  )
+  const tempReserveRatioExpiry = hasTempReserveRatio
+    ? dayjs
+        .unix(market.temporaryReserveRatioExpiry)
+        .utc()
+        .format("D MMM YYYY, HH:mm [UTC]")
+    : undefined
 
   const handleClickWithdrawals = () => {
     dispatch(setCheckBlock(4))
@@ -136,6 +166,69 @@ export const MarketTransactions = ({
       )}
 
       {holdTheMarket && <Divider sx={{ margin: "32px 0" }} />}
+
+      {tempRatioExpired && (
+        <Box
+          sx={{
+            display: "flex",
+            gap: "10px",
+            padding: "12px 16px",
+            borderRadius: "8px",
+            backgroundColor: COLORS.oasis,
+            border: `1px solid ${COLORS.galliano}`,
+            mb: "24px",
+          }}
+        >
+          <Typography variant="text3" sx={{ color: COLORS.butteredRum }}>
+            {t(
+              "borrowerMarketDetails.parameters.tempReserveRatio.borrowerExpiredNotice",
+              {
+                currentRatio: currentRatioFormatted,
+                originalRatio: originalRatioFormatted,
+              },
+            )}{" "}
+            <Link
+              href={EXTERNAL_LINKS.DOCS_REDUCING_APR}
+              target="_blank"
+              style={{ color: COLORS.butteredRum, fontWeight: 600 }}
+            >
+              {t("borrowerMarketDetails.modals.apr.learnMore")}
+            </Link>
+          </Typography>
+        </Box>
+      )}
+
+      {hasTempReserveRatio && (
+        <Box
+          sx={{
+            display: "flex",
+            gap: "10px",
+            padding: "12px 16px",
+            borderRadius: "8px",
+            backgroundColor: COLORS.whiteSmoke,
+            border: `1px solid ${COLORS.iron}`,
+            mb: "24px",
+          }}
+        >
+          <Typography variant="text3" sx={{ color: COLORS.blackRock }}>
+            {t(
+              "borrowerMarketDetails.parameters.tempReserveRatio.borrowerActiveNotice",
+              {
+                currentRatio: currentRatioFormatted,
+                originalRatio: originalRatioFormatted,
+                expiry: tempReserveRatioExpiry,
+              },
+            )}{" "}
+            <Link
+              href={EXTERNAL_LINKS.DOCS_REDUCING_APR}
+              target="_blank"
+              style={{ color: COLORS.blackRock, fontWeight: 600 }}
+            >
+              {t("borrowerMarketDetails.modals.apr.learnMore")}
+            </Link>
+          </Typography>
+        </Box>
+      )}
 
       <Box sx={MarketTxContainer}>
         <TransactionBlock

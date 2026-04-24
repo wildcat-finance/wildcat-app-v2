@@ -313,29 +313,4 @@ export async function PUT(request: NextRequest) {
   return NextResponse.json({ success: true })
 }
 
-// DELETE /api/profiles/updates?borrower=<borrower>&chainId=<chainId>
-// Test function only
-export async function DELETE(request: NextRequest) {
-  const chainId = validateChainIdParam(request)
-  if (!chainId) {
-    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
-  }
-  const borrower = request.nextUrl.searchParams.get("borrower")
-  if (!borrower) {
-    return NextResponse.json(
-      { success: false, message: "No Borrower Provided" },
-      { status: 400 },
-    )
-  }
-
-  const result = await prisma.borrowerProfileUpdateRequest.deleteMany({
-    where: {
-      chainId,
-      ...(borrower && { address: borrower }),
-    },
-  })
-
-  return NextResponse.json({ success: true, deleted: result.count })
-}
-
 export const dynamic = "force-dynamic"
