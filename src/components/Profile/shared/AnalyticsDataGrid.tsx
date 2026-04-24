@@ -5,6 +5,7 @@ import * as React from "react"
 import { Box } from "@mui/material"
 import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid"
 
+import { TableStyles } from "@/app/[locale]/borrower/edit-lenders-list/components/ConfirmLendersForm/style"
 import { COLORS } from "@/theme/colors"
 
 type AnalyticsDataGridProps = {
@@ -13,6 +14,40 @@ type AnalyticsDataGridProps = {
   minWidth?: number
   noRowsLabel?: string
   loading?: boolean
+}
+
+export const analyticsDataGridSx = {
+  ...TableStyles,
+  border: "none",
+  minWidth: "var(--analytics-table-min-width)",
+  "& .MuiDataGrid-columnHeaders": {
+    backgroundColor: COLORS.white,
+  },
+  "& .MuiDataGrid-columnHeaderTitle": {
+    color: COLORS.santasGrey,
+    fontWeight: 500,
+    letterSpacing: 0,
+  },
+  "& .MuiDataGrid-cell": {
+    color: COLORS.blackRock,
+  },
+  "& .MuiDataGrid-cell a": {
+    color: "inherit",
+    textDecoration: "none",
+  },
+  "& .MuiDataGrid-cell:focus, & .MuiDataGrid-columnHeader:focus": {
+    outline: "none",
+  },
+  "& .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus-within":
+    {
+      outline: "none",
+    },
+  "& .MuiDataGrid-footerContainer": {
+    display: "none",
+  },
+  "& .MuiDataGrid-overlayWrapper": {
+    minHeight: "160px !important",
+  },
 }
 
 export const AnalyticsDataGrid = ({
@@ -24,51 +59,21 @@ export const AnalyticsDataGrid = ({
 }: AnalyticsDataGridProps) => (
   <Box
     sx={{
-      border: `1px solid ${COLORS.athensGrey}`,
-      borderRadius: "16px",
+      "--analytics-table-min-width": `${minWidth}px`,
       backgroundColor: COLORS.white,
-      overflow: "hidden",
     }}
   >
     <Box sx={{ overflowX: "auto" }}>
       <DataGrid
         autoHeight
+        getRowHeight={() => "auto"}
+        hideFooter
         disableRowSelectionOnClick
         disableColumnMenu
         loading={loading}
         rows={rows}
         columns={columns}
-        sx={{
-          border: "none",
-          minWidth,
-          "& .MuiDataGrid-columnHeaders": {
-            borderBottom: `1px solid ${COLORS.athensGrey}`,
-            backgroundColor: COLORS.whiteSmoke,
-          },
-          "& .MuiDataGrid-columnHeaderTitle": {
-            color: COLORS.santasGrey,
-            fontWeight: 600,
-            fontSize: "12px",
-            textTransform: "uppercase",
-            letterSpacing: "0.04em",
-          },
-          "& .MuiDataGrid-row": {
-            minHeight: "60px !important",
-            maxHeight: "60px !important",
-          },
-          "& .MuiDataGrid-cell": {
-            minHeight: "60px !important",
-            maxHeight: "60px !important",
-            borderBottom: `1px solid ${COLORS.athensGrey}`,
-            color: COLORS.blackRock,
-          },
-          "& .MuiDataGrid-footerContainer": {
-            display: "none",
-          },
-          "& .MuiDataGrid-overlayWrapper": {
-            minHeight: "160px !important",
-          },
-        }}
+        sx={analyticsDataGridSx}
         localeText={{
           noRowsLabel,
         }}

@@ -174,7 +174,7 @@ export const OverviewTab = ({
             padding: "24px",
           }}
         >
-          <Typography variant="title3" marginBottom="8px">
+          <Typography variant="title3" marginBottom="24px">
             Active markets
           </Typography>
           <Typography variant="text2" color={COLORS.santasGrey}>

@@ -98,7 +98,7 @@ const SectionCard = ({
         {subtitle}
       </Typography>
     )}
-    <Box sx={{ marginTop: "20px" }}>{children}</Box>
+    <Box sx={{ marginTop: "24px" }}>{children}</Box>
   </Box>
 )
 
@@ -411,7 +411,7 @@ export const WithdrawalsDelinquencyTab = ({
     }
 
     return (
-      <Box sx={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
         {batchesQuery.data.batches.length === 0 ? (
           <EmptyPanel message="No expired withdrawal batches for this borrower." />
         ) : (
@@ -684,14 +684,14 @@ export const WithdrawalsDelinquencyTab = ({
             },
           ]}
         />
-        <Box sx={{ marginTop: "20px" }}>{renderDelinquency()}</Box>
+        <Box sx={{ marginTop: "24px" }}>{renderDelinquency()}</Box>
       </SectionCard>
 
       <SectionCard
         title="Borrower debt profile"
         subtitle="Cumulative debt and interest cost over time."
       >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           {renderAggregateDebt()}
           {renderInterestCost()}
         </Box>

@@ -2,18 +2,22 @@
 
 import * as React from "react"
 
-import { Box, Chip, Link as MuiLink, Tooltip, Typography } from "@mui/material"
+import { Box, Tooltip, Typography } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import Link from "next/link"
 
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { LenderPositionsData } from "@/app/[locale]/lender/profile/hooks/types"
 import { useLenderActivity } from "@/app/[locale]/lender/profile/hooks/useLenderActivity"
+import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { LinkGroup } from "@/components/LinkComponent"
 import { formatPercent, formatUsd } from "@/components/Profile/shared/analytics"
 import { AnalyticsDataGrid } from "@/components/Profile/shared/AnalyticsDataGrid"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress, buildMarketHref } from "@/utils/formatters"
+import { MarketStatus } from "@/utils/marketStatus"
 
 import { LenderOverviewHeader } from "./LenderOverviewHeader"
 
@@ -23,19 +27,54 @@ type LenderOverviewTabProps = {
   isLoading: boolean
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  Active: COLORS.lightGreen,
-  Delinquent: COLORS.oasis,
-  Penalty: COLORS.remy,
-  Closed: COLORS.athensGrey,
+const getPositionMarketStatus = (
+  status: "Active" | "Delinquent" | "Penalty" | "Closed",
+) => {
+  const statusMap = {
+    Active: MarketStatus.HEALTHY,
+    Delinquent: MarketStatus.DELINQUENT,
+    Penalty: MarketStatus.PENALTY,
+    Closed: MarketStatus.TERMINATED,
+  } as const
+
+  return {
+    status: statusMap[status],
+    healthyPeriod: null,
+    penaltyPeriod: 0,
+    delinquencyPeriod: 0,
+  }
 }
 
-const STATUS_TEXT_COLORS: Record<string, string> = {
-  Active: COLORS.blackRock,
-  Delinquent: COLORS.butteredRum,
-  Penalty: COLORS.dullRed,
-  Closed: COLORS.santasGrey,
-}
+const TextCell = ({ children }: { children: React.ReactNode }) => (
+  <Typography variant="text3">{children}</Typography>
+)
+
+const RightTextCell = ({ children }: { children: React.ReactNode }) => (
+  <Typography variant="text3" width="100%" textAlign="right">
+    {children}
+  </Typography>
+)
+
+const ProfileAddressCell = ({
+  address,
+  profileHref,
+  explorerHref,
+}: {
+  address: string
+  profileHref: string
+  explorerHref: string
+}) => (
+  <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+    <Tooltip title={address} placement="top">
+      <Link href={profileHref}>
+        <Typography component="span" variant="text3" color={COLORS.blackRock}>
+          {trimAddress(address)}
+        </Typography>
+      </Link>
+    </Tooltip>
+    <LinkGroup linkValue={explorerHref} copyValue={address} />
+  </Box>
+)
 
 export const LenderOverviewTab = ({
   lenderAddress,
@@ -43,6 +82,7 @@ export const LenderOverviewTab = ({
   isLoading,
 }: LenderOverviewTabProps) => {
   const { data: borrowers } = useBorrowerNames()
+  const { getAddressUrl } = useBlockExplorer()
   const activityQuery = useLenderActivity(
     lenderAddress,
     data?.marketIds ?? [],
@@ -52,6 +92,7 @@ export const LenderOverviewTab = ({
   const positions = data?.positions ?? []
   const activePositions = positions
     .filter((position) => position.currentBalance > 0)
+    .filter((position) => position.status !== "Closed")
     .sort((left, right) => right.currentBalance - left.currentBalance)
 
   const borrowerExposureRows = React.useMemo(() => {
@@ -75,10 +116,12 @@ export const LenderOverviewTab = ({
       const match = borrowers?.find(
         (b) => b.address.toLowerCase() === position.borrower.toLowerCase(),
       )
+      const borrowerName =
+        match?.alias ?? match?.name ?? trimAddress(position.borrower)
       const existing = rows.get(position.borrower) ?? {
         id: position.borrower,
         borrower: position.borrower,
-        borrowerName: match?.alias ?? match?.name ?? "",
+        borrowerName,
         marketCount: 0,
         exposure: 0,
         share: 0,
@@ -107,13 +150,9 @@ export const LenderOverviewTab = ({
         <Link
           href={buildMarketHref(row.marketId, undefined, ROUTES.lender.market)}
         >
-          <MuiLink
-            component="span"
-            underline="hover"
-            color={COLORS.ultramarineBlue}
-          >
+          <Typography component="span" variant="text3" color={COLORS.blackRock}>
             {value}
-          </MuiLink>
+          </Typography>
         </Link>
       ),
     },
@@ -123,23 +162,18 @@ export const LenderOverviewTab = ({
       flex: 1,
       minWidth: 150,
       renderCell: ({ value }) => (
-        <Tooltip title={value} placement="top">
-          <Link href={`${ROUTES.borrower.profile}/${value}`}>
-            <MuiLink
-              component="span"
-              underline="hover"
-              color={COLORS.ultramarineBlue}
-            >
-              {trimAddress(value)}
-            </MuiLink>
-          </Link>
-        </Tooltip>
+        <ProfileAddressCell
+          address={value}
+          profileHref={`${ROUTES.borrower.profile}/${value}`}
+          explorerHref={getAddressUrl(value)}
+        />
       ),
     },
     {
       field: "asset",
       headerName: "Asset",
       minWidth: 110,
+      renderCell: ({ value }) => <TextCell>{value}</TextCell>,
     },
     {
       field: "currentBalance",
@@ -147,7 +181,11 @@ export const LenderOverviewTab = ({
       minWidth: 130,
       align: "right",
       headerAlign: "right",
-      valueFormatter: (value) => formatUsd(value as number, { compact: true }),
+      renderCell: ({ value }) => (
+        <RightTextCell>
+          {formatUsd(value as number, { compact: true })}
+        </RightTextCell>
+      ),
     },
     {
       field: "totalDeposited",
@@ -155,7 +193,11 @@ export const LenderOverviewTab = ({
       minWidth: 130,
       align: "right",
       headerAlign: "right",
-      valueFormatter: (value) => formatUsd(value as number, { compact: true }),
+      renderCell: ({ value }) => (
+        <RightTextCell>
+          {formatUsd(value as number, { compact: true })}
+        </RightTextCell>
+      ),
     },
     {
       field: "interestEarned",
@@ -163,7 +205,11 @@ export const LenderOverviewTab = ({
       minWidth: 130,
       align: "right",
       headerAlign: "right",
-      valueFormatter: (value) => formatUsd(value as number, { compact: true }),
+      renderCell: ({ value }) => (
+        <RightTextCell>
+          {formatUsd(value as number, { compact: true })}
+        </RightTextCell>
+      ),
     },
     {
       field: "apr",
@@ -171,21 +217,20 @@ export const LenderOverviewTab = ({
       minWidth: 110,
       align: "right",
       headerAlign: "right",
-      valueFormatter: (value) => formatPercent(value as number),
+      renderCell: ({ value }) => (
+        <RightTextCell>{formatPercent(value as number)}</RightTextCell>
+      ),
     },
     {
       field: "status",
       headerName: "Status",
       minWidth: 120,
       renderCell: ({ value }) => (
-        <Chip
-          label={value}
-          size="small"
-          sx={{
-            borderRadius: "8px",
-            backgroundColor: STATUS_COLORS[value as string],
-            color: STATUS_TEXT_COLORS[value as string],
-          }}
+        <MarketStatusChip
+          status={getPositionMarketStatus(
+            value as "Active" | "Delinquent" | "Penalty" | "Closed",
+          )}
+          withPeriod={false}
         />
       ),
     },
@@ -198,17 +243,11 @@ export const LenderOverviewTab = ({
       flex: 1.2,
       minWidth: 180,
       renderCell: ({ value }) => (
-        <Tooltip title={value} placement="top">
-          <Link href={`${ROUTES.borrower.profile}/${value}`}>
-            <MuiLink
-              component="span"
-              underline="hover"
-              color={COLORS.ultramarineBlue}
-            >
-              {trimAddress(value)}
-            </MuiLink>
-          </Link>
-        </Tooltip>
+        <ProfileAddressCell
+          address={value}
+          profileHref={`${ROUTES.borrower.profile}/${value}`}
+          explorerHref={getAddressUrl(value)}
+        />
       ),
     },
     {
@@ -216,6 +255,7 @@ export const LenderOverviewTab = ({
       headerName: "Name",
       flex: 1,
       minWidth: 160,
+      renderCell: ({ value }) => <TextCell>{value}</TextCell>,
     },
     {
       field: "marketCount",
@@ -223,6 +263,7 @@ export const LenderOverviewTab = ({
       minWidth: 110,
       align: "right",
       headerAlign: "right",
+      renderCell: ({ value }) => <RightTextCell>{value}</RightTextCell>,
     },
     {
       field: "exposure",
@@ -230,7 +271,11 @@ export const LenderOverviewTab = ({
       minWidth: 140,
       align: "right",
       headerAlign: "right",
-      valueFormatter: (value) => formatUsd(value as number, { compact: true }),
+      renderCell: ({ value }) => (
+        <RightTextCell>
+          {formatUsd(value as number, { compact: true })}
+        </RightTextCell>
+      ),
     },
     {
       field: "share",
@@ -238,7 +283,9 @@ export const LenderOverviewTab = ({
       minWidth: 150,
       align: "right",
       headerAlign: "right",
-      valueFormatter: (value) => formatPercent(value as number, 1),
+      renderCell: ({ value }) => (
+        <RightTextCell>{formatPercent(value as number, 1)}</RightTextCell>
+      ),
     },
   ]
 
@@ -252,7 +299,7 @@ export const LenderOverviewTab = ({
       />
 
       <Box>
-        <Typography variant="title3" marginBottom="12px">
+        <Typography variant="title3" marginBottom="24px">
           Active positions
         </Typography>
         <AnalyticsDataGrid
@@ -265,7 +312,7 @@ export const LenderOverviewTab = ({
       </Box>
 
       <Box>
-        <Typography variant="title3" marginBottom="12px">
+        <Typography variant="title3" marginBottom="24px">
           Borrower exposure
         </Typography>
         <AnalyticsDataGrid

@@ -5,7 +5,6 @@ import * as React from "react"
 import {
   Box,
   Chip,
-  Link as MuiLink,
   Skeleton,
   Tooltip as MuiTooltip,
   Typography,
@@ -35,6 +34,7 @@ import {
   LenderDailyCashFlowPoint,
   useLenderDailyStats,
 } from "@/app/[locale]/lender/profile/hooks/useLenderDailyStats"
+import { LinkGroup } from "@/components/LinkComponent"
 import {
   AnalyticsTimeRange,
   filterByTimeRange,
@@ -110,16 +110,24 @@ const WITHDRAWAL_COLOR = "#f87171"
 const NET_FLOW_COLOR = "#22d3ee"
 
 const UsdCell = ({ value }: { value: number | undefined }) => {
-  if (typeof value !== "number" || !Number.isFinite(value)) return <>—</>
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return <Typography variant="text3">—</Typography>
+  }
   return (
     <MuiTooltip
       title={formatUsd(value, { maximumFractionDigits: 2 })}
       placement="top"
     >
-      <Box component="span">{formatUsd(value, { compact: true })}</Box>
+      <Typography component="span" variant="text3">
+        {formatUsd(value, { compact: true })}
+      </Typography>
     </MuiTooltip>
   )
 }
+
+const TextCell = ({ children }: { children: React.ReactNode }) => (
+  <Typography variant="text3">{children}</Typography>
+)
 
 const formatAxisUsd = (v: number) => {
   if (Math.abs(v) >= 1e9) return `$${(v / 1e9).toFixed(2)}B`
@@ -231,6 +239,7 @@ export const ActivityCashFlowTab = ({
       field: "date",
       headerName: "Date",
       minWidth: 130,
+      renderCell: ({ value }) => <TextCell>{value}</TextCell>,
     },
     {
       field: "market",
@@ -241,13 +250,9 @@ export const ActivityCashFlowTab = ({
         <Link
           href={buildMarketHref(row.marketId, undefined, ROUTES.lender.market)}
         >
-          <MuiLink
-            component="span"
-            underline="hover"
-            color={COLORS.ultramarineBlue}
-          >
+          <Typography component="span" variant="text3">
             {value}
-          </MuiLink>
+          </Typography>
         </Link>
       ),
     },
@@ -283,17 +288,14 @@ export const ActivityCashFlowTab = ({
       headerName: "Transaction",
       minWidth: 170,
       renderCell: ({ value }) => (
-        <MuiTooltip title={value} placement="top">
-          <MuiLink
-            href={getTxUrl(value)}
-            target="_blank"
-            rel="noreferrer"
-            underline="hover"
-            color={COLORS.ultramarineBlue}
-          >
-            {trimAddress(value, 8)}
-          </MuiLink>
-        </MuiTooltip>
+        <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          <MuiTooltip title={value} placement="top">
+            <Typography component="span" variant="text3">
+              {trimAddress(value, 8)}
+            </Typography>
+          </MuiTooltip>
+          <LinkGroup linkValue={getTxUrl(value)} copyValue={value} />
+        </Box>
       ),
     },
   ]
@@ -308,13 +310,9 @@ export const ActivityCashFlowTab = ({
         <Link
           href={buildMarketHref(row.marketId, undefined, ROUTES.lender.market)}
         >
-          <MuiLink
-            component="span"
-            underline="hover"
-            color={COLORS.ultramarineBlue}
-          >
+          <Typography component="span" variant="text3">
             {value}
-          </MuiLink>
+          </Typography>
         </Link>
       ),
     },
@@ -322,6 +320,7 @@ export const ActivityCashFlowTab = ({
       field: "expiry",
       headerName: "Expiry",
       minWidth: 140,
+      renderCell: ({ value }) => <TextCell>{value}</TextCell>,
     },
     {
       field: "requested",
@@ -369,16 +368,22 @@ export const ActivityCashFlowTab = ({
     },
   ]
 
+  const batchRows = batchesQuery.data ?? []
   const batchSummary = {
-    pending: (batchesQuery.data ?? []).filter(
-      (batch) => !batch.isCompleted && !batch.isExpired && !batch.isClosed,
+    total: batchRows.length,
+    pending: batchRows.filter(
+      (batch) => getBatchStatus(batch).label === "Pending",
     ).length,
-    completed: (batchesQuery.data ?? []).filter((batch) => batch.isCompleted)
-      .length,
-    totalRequested: (batchesQuery.data ?? []).reduce(
-      (sum, batch) => sum + batch.requested,
-      0,
-    ),
+    completed: batchRows.filter(
+      (batch) => getBatchStatus(batch).label === "Completed",
+    ).length,
+    expired: batchRows.filter(
+      (batch) => getBatchStatus(batch).label === "Expired",
+    ).length,
+    closed: batchRows.filter(
+      (batch) => getBatchStatus(batch).label === "Closed",
+    ).length,
+    totalRequested: batchRows.reduce((sum, batch) => sum + batch.requested, 0),
   }
 
   const hasCashFlow = (dailyStatsQuery.data?.length ?? 0) > 1
@@ -452,7 +457,7 @@ export const ActivityCashFlowTab = ({
           variant="text4"
           color={COLORS.santasGrey}
           marginTop="6px"
-          marginBottom="16px"
+          marginBottom="24px"
           display="block"
           sx={{ lineHeight: 1.45 }}
         >
@@ -461,7 +466,7 @@ export const ActivityCashFlowTab = ({
 
         {renderCashFlow()}
 
-        <Box sx={{ marginTop: "16px" }}>
+        <Box sx={{ marginTop: "24px" }}>
           <AnalyticsDataGrid
             loading={isPositionsLoading || activityQuery.isLoading}
             rows={activityQuery.data?.activity ?? []}
@@ -473,13 +478,18 @@ export const ActivityCashFlowTab = ({
       </Box>
 
       <Box>
-        <Typography variant="title3" marginBottom="12px">
+        <Typography variant="title3" marginBottom="24px">
           Withdrawal batch status
         </Typography>
 
         <LenderAnalyticsSummary
           isLoading={batchesQuery.isLoading}
           items={[
+            {
+              label: "Total batches",
+              value: String(batchSummary.total),
+              description: "rows in the table",
+            },
             {
               label: "Pending batches",
               value: String(batchSummary.pending),
@@ -488,6 +498,18 @@ export const ActivityCashFlowTab = ({
               label: "Completed batches",
               value: String(batchSummary.completed),
             },
+            {
+              label: "Expired batches",
+              value: String(batchSummary.expired),
+            },
+            ...(batchSummary.closed > 0
+              ? [
+                  {
+                    label: "Closed batches",
+                    value: String(batchSummary.closed),
+                  },
+                ]
+              : []),
             {
               label: "Total requested",
               value: formatUsd(batchSummary.totalRequested, {
@@ -500,10 +522,10 @@ export const ActivityCashFlowTab = ({
           ]}
         />
 
-        <Box sx={{ marginTop: "16px" }}>
+        <Box sx={{ marginTop: "24px" }}>
           <AnalyticsDataGrid
             loading={batchesQuery.isLoading}
-            rows={(batchesQuery.data ?? []).map((batch) => ({
+            rows={batchRows.map((batch) => ({
               ...batch,
               status: getBatchStatus(batch).label,
             }))}

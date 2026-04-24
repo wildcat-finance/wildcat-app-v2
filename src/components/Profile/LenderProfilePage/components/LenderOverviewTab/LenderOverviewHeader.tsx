@@ -38,6 +38,14 @@ const latestOf = (
   return match?.timestamp
 }
 
+const formatEffectiveYield = (value: number | undefined) => {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return "0.00%"
+  }
+
+  return value < 0.01 ? "<0.01%" : formatPercent(value)
+}
+
 export const LenderOverviewHeader = ({
   lenderAddress,
   data,
@@ -86,13 +94,20 @@ export const LenderOverviewHeader = ({
     },
     {
       label: "Effective yield",
-      value: formatPercent(profileInfo?.effectiveYield ?? 0),
+      value: formatEffectiveYield(profileInfo?.effectiveYield),
       description: "interest / total deposited",
+      fullPrecisionValue:
+        typeof profileInfo?.effectiveYield === "number" &&
+        profileInfo.effectiveYield > 0
+          ? `${profileInfo.effectiveYield.toFixed(6)}%`
+          : undefined,
     },
     {
       label: "Active positions",
       value: String(profileInfo?.activePositions ?? 0),
-      description: `of ${profileInfo?.totalPositions ?? 0} total`,
+      description: `open positions with balance, of ${
+        profileInfo?.totalPositions ?? 0
+      } total`,
     },
     {
       label: "Assets used",
