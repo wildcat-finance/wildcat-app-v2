@@ -14,7 +14,9 @@ import {
   rowLinkInteractiveSx,
   rowLinkStretchedSx,
 } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/style"
+import { MarketImplementationChip } from "@/components/@extended/MarketImplementationChip"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
@@ -23,7 +25,12 @@ import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { COLORS } from "@/theme/colors"
-import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
+import {
+  implementationComparator,
+  statusComparator,
+  tokenAmountComparator,
+  typeComparator,
+} from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
 import {
   buildMarketHref,
@@ -31,6 +38,7 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -90,10 +98,12 @@ export const LenderTerminatedMarketsTables = ({
         ? borrower.alias || borrower.name
         : trimAddress(borrowerAddress)
       const marketStatus = getMarketStatusChip(market)
+      const implementationType = getMarketImplementationType(market)
       const marketType = getMarketTypeChip(market)
 
       return {
         id: address,
+        implementationType,
         status: marketStatus,
         term: marketType,
         name,
@@ -185,9 +195,59 @@ export const LenderTerminatedMarketsTables = ({
       align: "left",
       sortComparator: statusComparator,
       renderCell: (params) => (
-        <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
+        <Box
+          sx={{
+            ...LinkCell,
+            justifyContent: "flex-start",
+          }}
+        >
           <Box width="120px">
             <MarketStatusChip status={params.value} />
+          </Box>
+        </Box>
+      ),
+    },
+    {
+      field: "implementationType",
+      headerName: t("dashboard.markets.tables.header.type"),
+      minWidth: 110,
+      flex: 1,
+      headerAlign: "left",
+      align: "left",
+      sortComparator: implementationComparator,
+      renderCell: (params) => (
+        <Box
+          sx={{
+            ...LinkCell,
+            justifyContent: "flex-start",
+          }}
+        >
+          <Box minWidth="120px">
+            <MarketImplementationChip
+              implementationType={params.value}
+              type="table"
+            />
+          </Box>
+        </Box>
+      ),
+    },
+    {
+      field: "term",
+      headerName: t("dashboard.markets.tables.header.term"),
+      minWidth: 100,
+      flex: 1,
+      headerAlign: "left",
+      align: "left",
+      sortComparator: typeComparator,
+      renderCell: (params) => (
+        <Box
+          sx={{
+            ...LinkCell,
+            justifyContent: "flex-start",
+          }}
+        >
+          <Box minWidth="170px">
+            <MarketTypeChip type="table" {...params.value} />
           </Box>
         </Box>
       ),

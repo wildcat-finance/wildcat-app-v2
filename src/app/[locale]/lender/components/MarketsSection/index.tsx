@@ -1,12 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react"
 
 import { Box, Button, Divider, Skeleton, Typography } from "@mui/material"
-import {
-  DepositStatus,
-  LenderRole,
-  MarketAccount,
-  MarketVersion,
-} from "@wildcatfi/wildcat-sdk"
+import { LenderRole, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -39,6 +34,7 @@ import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFilter
 import { COLORS } from "@/theme/colors"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { filterMarketAccounts } from "@/utils/filters"
+import { isSelfOnboardMarketAccount } from "@/utils/marketCapabilities"
 import { MarketStatus } from "@/utils/marketStatus"
 
 export const MarketsSection = () => {
@@ -267,20 +263,12 @@ export const MarketsSection = () => {
 
   const selfOnboardAmount = othersMarkets.filter(
     (account) =>
-      !account.market.isClosed &&
-      !account.hasEverInteracted &&
-      account.market.version === MarketVersion.V2 &&
-      account.depositAvailability === DepositStatus.Ready,
+      !account.market.isClosed && isSelfOnboardMarketAccount(account),
   ).length
 
   const manualAmount = othersMarkets.filter(
     (account) =>
-      !account.market.isClosed &&
-      !(
-        !account.hasEverInteracted &&
-        account.market.version === MarketVersion.V2 &&
-        account.depositAvailability === DepositStatus.Ready
-      ),
+      !account.market.isClosed && !isSelfOnboardMarketAccount(account),
   ).length
 
   const terminatedOtherAmount = othersMarkets.filter(

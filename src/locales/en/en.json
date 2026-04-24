@@ -157,6 +157,7 @@
         },
         "header": {
           "status": "Status",
+          "type": "Type",
           "term": "Term",
           "name": "Market Name",
           "borrower": "Borrower Name",
@@ -210,7 +211,7 @@
     },
     "sidebar": {
       "searchPlaceholder": "Search By Market Name",
-      "marketTypes": "Market Types",
+      "marketTypes": "Market Terms",
       "activeMarketStatus": "Active Market Status",
       "clear": "Clear",
       "resetAll": "Reset Filters",
@@ -231,6 +232,8 @@
       },
       "header": {
         "status": "Status",
+        "type": "Type",
+        "term": "Term",
         "marketName": "Market Name",
         "borrowerName": "Borrower Name",
         "asset": "Underlying Asset",
@@ -238,8 +241,7 @@
         "crr": "Reserve",
         "capacity": "Max Capacity",
         "borrowable": "Borrowable",
-        "deploy": "Deployed",
-        "marketType": "Market Type"
+        "deploy": "Deployed"
       },
       "noMarkets": {
         "wrongNetwork": "No Wildcat Markets On This Network",
@@ -388,14 +390,25 @@
         "borrowerExpiredNotice": "Reserve ratio was temporarily elevated to {{currentRatio}}% but the protection period has expired. Reset it to restore the base ratio of {{originalRatio}}%."
       },
       "baseAPR": "Base Lender APR",
+      "utilizationAPR": "Utilization APR",
+      "commitmentAPR": "Commitment APR",
       "penaltyAPR": "Penalty APR",
       "protocolAPR": "Protocol Fee APR",
       "effectiveAPR": "Effective Lender APR",
       "maximumGracePeriod": "Maximum Grace Period",
       "availableGracePeriod": "Available Grace Period",
       "withdrawalCycleDuration": "Withdrawal Cycle Duration",
-      "marketType": {
-        "label": "Market Type",
+      "marketImplementation": {
+        "label": "Type",
+        "legacy": {
+          "text": "Standard"
+        },
+        "revolving": {
+          "text": "Revolving"
+        }
+      },
+      "marketTerm": {
+        "label": "Term",
         "OpenTerm": {
           "text": "Open Term",
           "tooltip": "Withdrawal requests are possible at any time."
@@ -507,15 +520,19 @@
     "modals": {
       "apr": {
         "adjustBase": "Adjust Base APR",
+        "adjustUtilization": "Adjust Utilization APR",
         "alreadyUpdated": "Base APR Recently Adjusted",
+        "alreadyUpdatedUtilization": "Utilization APR Recently Adjusted",
         "learnMore": "Learn More",
         "aprAffects": "Effects Of APR Adjustment",
         "collateralObligation": "Collateral Obligation",
         "currentBaseApr": "Current Base APR",
+        "currentUtilizationApr": "Current Utilization APR",
         "reservedRatio": "Reserve Ratio",
         "willSetTemporarily": "Temporary reserve ratio in force until",
         "setTemporarily": "set temporarily until",
         "newBaseApr": "New Base APR",
+        "newUtilizationApr": "New Utilization APR",
         "newCollateralObligation": "New Collateral Obligation",
         "newReservedRatio": "New Reserve Ratio",
         "approveNotified": "I understand that adjusting this APR impacts all lenders.",
@@ -676,7 +693,7 @@
             }
           },
           "marketType": {
-            "title": "Market Type",
+            "title": "Market Term",
             "placeholder": "Please Select",
             "subtitle": "",
             "tooltip": "Select the nature of the market: open (lenders can make withdrawal requests at any time) or fixed (withdrawal requests only possible after a fixed maturity date).",
@@ -1390,8 +1407,12 @@
         "placeholder": "Input Policy Name",
         "glossary": "Unique identifier for this reusable market rule-set."
       },
-      "type": {
+      "implementation": {
         "label": "Market Type",
+        "placeholder": "Please Select"
+      },
+      "type": {
+        "label": "Market Term",
         "placeholder": "Please Select"
       },
       "kyc": {
@@ -1463,9 +1484,11 @@
       },
       "baseAPR": {
         "label": "Base APR",
+        "labelRevolving": "Utilization APR",
         "placeholder": "0 - 100",
         "chip": "%",
-        "glossary": "The fixed annual percentage rate (excluding any protocol fees) that borrowers pay for assets within the market."
+        "glossary": "The fixed annual percentage rate (excluding any protocol fees) that borrowers pay for assets within the market.",
+        "glossaryRevolving": "The additional annual percentage rate charged on borrowed capital in a revolving market. Undrawn capacity does not accrue this rate; it accrues the separate commitment fee instead."
       },
       "protocolFee": {
         "label": "Protocol Fee APR"
@@ -1481,6 +1504,13 @@
         "placeholder": "0 - 100",
         "chip": "%",
         "glossary": "A required percentage of market funds that must remain liquid and unavailable for borrowing."
+      },
+      "commitmentFee": {
+        "label": "Commitment Fee",
+        "placeholder": "0 - 100",
+        "chip": "%",
+        "explainer": "Charged on undrawn capacity for revolving markets.",
+        "glossary": "A recurring fee charged on undrawn borrowing capacity in a revolving market. Lenders continue to earn this fee even when capital has been committed but not yet borrowed."
       },
       "minDeposit": {
         "label": "Minimum Deposit",
@@ -1532,7 +1562,7 @@
     },
     "confirm": {
       "title": "Confirmation",
-      "typeTerms": "Market Type/Terms",
+      "typeTerms": "Market Term",
       "alert": "Once created, the only adjustable market parameters are Base APR, Minimum Deposit and Maximum Capacity.",
       "alertFee": "A protocol fee will be in place on this market, currently defined as a 5% additional rate on your Base APR, whatever you set it as.\n\nPlease factor this in, and be prepared to maintain sufficient market reserves over time: failure to do so can result in delinquency.",
       "alertReduction": "You have enabled Permit Maturity Reduction on this market. You will be able to reduce the time until withdrawal requests are permitted.",

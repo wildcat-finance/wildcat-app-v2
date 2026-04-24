@@ -3,7 +3,7 @@ import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
-import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -13,18 +13,23 @@ import {
 } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { DataGridSx } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/style"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { MarketImplementationChip } from "@/components/@extended/MarketImplementationChip"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import {
   getAdsCellProps,
   getAdsTooltipComponent,
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
-import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
-import { COLORS } from "@/theme/colors"
-import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
+import {
+  implementationComparator,
+  statusComparator,
+  tokenAmountComparator,
+  typeComparator,
+} from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
 import {
   buildMarketHref,
@@ -32,7 +37,8 @@ import {
   formatSecsToHours,
   formatTokenWithCommas,
 } from "@/utils/formatters"
-import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
+import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 import { MarketsTableAccordion } from "../../../../../../../../components/MarketsTableAccordion"
@@ -40,6 +46,7 @@ import { MarketsTableAccordion } from "../../../../../../../../components/Market
 export type BorrowerTerminatedMarketsTableModel = {
   id: string
   chainId?: number
+  implementationType: ReturnType<typeof getMarketImplementationType>
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
@@ -93,11 +100,13 @@ export const BorrowerTerminatedMarketsTables = ({
       } = market
 
       const marketStatus = getMarketStatusChip(market)
+      const implementationType = getMarketImplementationType(market)
       const marketType = getMarketTypeChip(market)
 
       return {
         id: address,
         chainId,
+        implementationType,
         status: marketStatus,
         term: marketType,
         name,
@@ -177,6 +186,61 @@ export const BorrowerTerminatedMarketsTables = ({
         >
           <Box width="120px">
             <MarketStatusChip status={params.value} />
+          </Box>
+        </Link>
+      ),
+    },
+    {
+      field: "implementationType",
+      headerName: t("dashboard.markets.tables.header.type"),
+      minWidth: 110,
+      flex: 1,
+      headerAlign: "left",
+      align: "left",
+      sortComparator: implementationComparator,
+      renderCell: (params) => (
+        <Link
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-start",
+          }}
+        >
+          <Box minWidth="120px">
+            <MarketImplementationChip
+              implementationType={params.value}
+              type="table"
+            />
+          </Box>
+        </Link>
+      ),
+    },
+    {
+      field: "term",
+      headerName: t("dashboard.markets.tables.header.term"),
+      minWidth: 100,
+      flex: 1,
+      headerAlign: "left",
+      align: "left",
+      sortComparator: typeComparator,
+      renderCell: (params) => (
+        <Link
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-start",
+          }}
+        >
+          <Box minWidth="170px">
+            <MarketTypeChip type="table" {...params.value} />
           </Box>
         </Link>
       ),

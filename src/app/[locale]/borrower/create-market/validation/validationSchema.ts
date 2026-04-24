@@ -21,6 +21,8 @@ const TransferAccessOptions = [
   "Disabled",
 ] as const
 
+const MAX_CREATE_FLOW_COMMITMENT_FEE_PERCENT = 100
+
 export const selectTransferAccessOptions: ExtendedSelectOptionItem<
   keyof typeof TransferAccess
 >[] = [
@@ -72,6 +74,7 @@ export const selectDepositAccessOptions: ExtendedSelectOptionItem<
 ]
 
 export const baseMarketSchemaFields = {
+  implementationType: z.enum(["legacy", "revolving"]),
   marketName: z.string().min(1),
   mla: z.string().optional(),
   accessControl: z.string().min(1),
@@ -91,6 +94,11 @@ export const baseMarketSchemaFields = {
   annualInterestBips: z.coerce.number().gte(0),
   delinquencyFeeBips: z.coerce.number().gte(0),
   reserveRatioBips: z.coerce.number().gte(0),
+  commitmentFeePercent: z.coerce
+    .number()
+    .gte(0)
+    .lte(MAX_CREATE_FLOW_COMMITMENT_FEE_PERCENT)
+    .optional(),
   minimumDeposit: z.coerce.number().optional(),
   delinquencyGracePeriod: z.coerce.number().gt(0).lte(2160),
   withdrawalBatchDuration: z.coerce.number().gt(0).lte(2160),
@@ -109,9 +117,25 @@ export const baseMarketSchemaFields = {
 }
 
 export const marketRefinementCallback = (
-  data: { marketType: string; fixedTermEndTime?: number },
+  data: {
+    implementationType: "legacy" | "revolving"
+    marketType: string
+    fixedTermEndTime?: number
+    commitmentFeePercent?: number
+  },
   ctx: z.RefinementCtx,
 ) => {
+  if (
+    data.implementationType === "revolving" &&
+    data.commitmentFeePercent === undefined
+  ) {
+    ctx.addIssue({
+      message: "Commitment fee is required for revolving markets",
+      path: ["commitmentFeePercent"],
+      code: "custom",
+    })
+  }
+
   if (data.marketType === "fixedTerm") {
     const now = Math.floor(Date.now() / 1000)
     if (data.fixedTermEndTime === undefined) {

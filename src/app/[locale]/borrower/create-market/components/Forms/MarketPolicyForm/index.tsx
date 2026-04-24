@@ -7,7 +7,6 @@ import {
   Switch,
   TextField,
   Typography,
-  useTheme,
 } from "@mui/material"
 import { DesktopDatePicker } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
@@ -27,6 +26,7 @@ import { InputLabel } from "@/components/InputLabel"
 import { getMaxFixedTermDays } from "@/config/market-duration"
 import {
   mockedAccessControlOptions,
+  mockedImplementationTypesOptions,
   mockedMarketTypesOptions,
 } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
@@ -70,7 +70,6 @@ export const MarketPolicyForm = ({
   isTestnet,
 }: MarketPolicyFormProps) => {
   const { t } = useTranslation()
-  const theme = useTheme()
   const dispatch = useAppDispatch()
   const router = useRouter()
 
@@ -89,6 +88,7 @@ export const MarketPolicyForm = ({
 
   const policyWatch = watch("policy")
   const policyNameWatch = watch("policyName")
+  const implementationTypeWatch = watch("implementationType")
   const marketTypeWatch = watch("marketType")
   const accessControlWatch = watch("accessControl")
   const fixedTermEndTimeWatch = watch("fixedTermEndTime")
@@ -106,6 +106,8 @@ export const MarketPolicyForm = ({
     policyWatch.trim() !== "" &&
     !!policyNameWatch &&
     policyNameWatch.trim() !== "" &&
+    !!implementationTypeWatch &&
+    implementationTypeWatch.trim() !== "" &&
     !!marketTypeWatch &&
     marketTypeWatch.trim() !== "" &&
     !!accessControlWatch &&
@@ -117,6 +119,8 @@ export const MarketPolicyForm = ({
     policyWatch.trim() !== "" &&
     !!policyNameWatch &&
     policyNameWatch.trim() !== "" &&
+    !!implementationTypeWatch &&
+    implementationTypeWatch.trim() !== "" &&
     !!marketTypeWatch &&
     marketTypeWatch.trim() !== "" &&
     !!accessControlWatch &&
@@ -183,6 +187,25 @@ export const MarketPolicyForm = ({
             helperText={errors.policyName?.message}
             {...register("policyName")}
             disabled={disableFields}
+          />
+        </InputLabel>
+
+        <InputLabel label={t("createNewMarket.policy.implementation.label")}>
+          <ExtendedSelect
+            selectSX={{
+              "& .MuiSelect-icon": {
+                "&.Mui-disabled": {
+                  "& path": {
+                    fill: COLORS.santasGrey,
+                  },
+                },
+              },
+            }}
+            control={control}
+            name="implementationType"
+            label={t("createNewMarket.policy.implementation.placeholder")}
+            options={mockedImplementationTypesOptions}
+            optionSX={{ width: "360px" }}
           />
         </InputLabel>
 

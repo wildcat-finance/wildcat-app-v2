@@ -14,8 +14,6 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { isUSDTLikeToken } from "@/utils/constants"
 
-import type { BorrowerWithdrawalsForMarketResult } from "./useGetWithdrawals"
-
 export const useRepay = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
@@ -25,6 +23,19 @@ export const useRepay = (
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
   const { targetChainId } = useCurrentNetwork()
+
+  const shouldProcessUnpaidWithdrawals = (amount: TokenAmount): boolean => {
+    const { market } = marketAccount
+    const maxBatches = market.unpaidWithdrawalBatchExpiries.length
+    if (maxBatches === 0) return false
+
+    const projectedAssets = market.totalAssets.add(amount.raw)
+    const withdrawalObligations = market.normalizedUnclaimedWithdrawals.add(
+      market.lastAccruedProtocolFees.raw,
+    )
+
+    return projectedAssets.gte(withdrawalObligations)
+  }
 
   const waitForTransaction = async (safeTxHash: string) => {
     if (!sdk) throw Error("No sdk found")
@@ -98,12 +109,15 @@ export const useRepay = (
           })
         const maxBatches =
           marketAccount.market.unpaidWithdrawalBatchExpiries.length
+        const processUnpaidWithdrawals = shouldProcessUnpaidWithdrawals(amount)
         if (gnosisTransactions.length) {
           gnosisTransactions.push(
-            await marketAccount.market.populateRepayAndProcessUnpaidWithdrawalBatches(
-              amount,
-              maxBatches,
-            ),
+            processUnpaidWithdrawals
+              ? await marketAccount.market.populateRepayAndProcessUnpaidWithdrawalBatches(
+                  amount,
+                  maxBatches,
+                )
+              : await marketAccount.populateRepay(amount.raw),
           )
           console.log(`Sending gnosis transactions...`)
           console.log(gnosisTransactions)
@@ -117,11 +131,12 @@ export const useRepay = (
           )
           return receipt
         }
-        const tx =
-          await marketAccount.market.repayAndProcessUnpaidWithdrawalBatches(
-            amount,
-            maxBatches,
-          )
+        const tx = processUnpaidWithdrawals
+          ? await marketAccount.market.repayAndProcessUnpaidWithdrawalBatches(
+              amount,
+              maxBatches,
+            )
+          : await marketAccount.repay(amount.raw)
 
         if (!safeConnected) setTxHash(tx.hash)
 
