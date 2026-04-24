@@ -1,6 +1,6 @@
-// eslint-disable-next-line camelcase
-import { WildcatMarket__factory } from "@wildcatfi/wildcat-sdk/dist/typechain"
+import { wildcatMarketAbi } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
+import { decodeFunctionResult, encodeFunctionData, type Hex } from "viem"
 
 import { TargetChainId } from "@/config/network"
 import { prisma } from "@/lib/db"
@@ -51,13 +51,19 @@ export async function POST(
     return getZodParseError(err)
   }
   const token = await verifyApiToken(request)
-  // eslint-disable-next-line camelcase
-  const borrower = await WildcatMarket__factory.connect(
-    parsedBody.marketAddress,
-    getProviderForServer(chainId),
-  )
-    .borrower()
-    .then((t) => t.toLowerCase())
+  const provider = getProviderForServer(chainId)
+  const borrowerResult = await provider.call({
+    to: parsedBody.marketAddress,
+    data: encodeFunctionData({
+      abi: wildcatMarketAbi,
+      functionName: "borrower",
+    }),
+  })
+  const borrower = decodeFunctionResult({
+    abi: wildcatMarketAbi,
+    functionName: "borrower",
+    data: borrowerResult as Hex,
+  }).toLowerCase()
 
   if (borrower !== token?.address.toLowerCase()) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

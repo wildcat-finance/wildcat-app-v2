@@ -8,9 +8,8 @@ import {
   WithdrawalAccess,
   Token,
 } from "@wildcatfi/wildcat-sdk"
-import { toUtf8Bytes } from "ethers/lib/utils"
 import humanizeDuration from "humanize-duration"
-import { getAddress, keccak256 } from "viem"
+import { getAddress, keccak256, stringToHex } from "viem"
 
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import ELFsByCountry from "@/config/elfs-by-country.json"
@@ -519,7 +518,7 @@ export function fillInMlaTemplate(
   const message = ACCEPT_MLA_MESSAGE.replace(
     "{{market}}",
     formatAddress(marketAddress) as string,
-  ).replace("{{hash}}", keccak256(toUtf8Bytes(plaintext)))
+  ).replace("{{hash}}", keccak256(stringToHex(plaintext)))
   return {
     html,
     plaintext,
@@ -541,7 +540,7 @@ export function fillInMlaForLender(
   const message = ACCEPT_MLA_MESSAGE.replace(
     "{{market}}",
     formatAddress(marketAddress) as string,
-  ).replace("{{hash}}", keccak256(toUtf8Bytes(plaintext)))
+  ).replace("{{hash}}", keccak256(stringToHex(plaintext)))
 
   return { html, plaintext, message }
 }

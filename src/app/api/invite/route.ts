@@ -2,8 +2,8 @@ import {
   getArchControllerContract,
   isSupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
-import { keccak256, toUtf8Bytes } from "ethers/lib/utils"
 import { NextRequest, NextResponse } from "next/server"
+import { keccak256, stringToHex } from "viem"
 
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import {
@@ -401,7 +401,7 @@ export async function PUT(request: NextRequest) {
       signature,
       timeSigned: new Date(timeSigned),
       borrowerName: name,
-      serviceAgreementHash: keccak256(toUtf8Bytes(AgreementText)),
+      serviceAgreementHash: keccak256(stringToHex(AgreementText)),
     },
   })
   return NextResponse.json({ success: true })

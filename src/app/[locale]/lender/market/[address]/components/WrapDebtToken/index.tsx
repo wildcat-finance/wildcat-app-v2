@@ -11,7 +11,7 @@ import {
   WrapperFactory,
   toSafeTransactionInput,
 } from "@wildcatfi/wildcat-sdk"
-import { constants } from "ethers"
+import { zeroAddress } from "viem"
 
 import { toastRequest } from "@/components/Toasts"
 import { NoWrapperState } from "@/components/WrapDebtToken/NoWrapperState"
@@ -111,7 +111,7 @@ export const WrapDebtToken = ({
           market?.address,
         ),
       })
-      if (wrapperAddress && wrapperAddress !== constants.AddressZero) {
+      if (wrapperAddress && wrapperAddress !== zeroAddress) {
         client.invalidateQueries({
           queryKey: QueryKeys.Wrapper.GET_WRAPPER(
             market?.chainId ?? 0,

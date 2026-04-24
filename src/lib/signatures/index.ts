@@ -1,19 +1,18 @@
 import { AccountKind, describeAccount } from "@wildcatfi/wildcat-sdk"
+import type { CallOverrides, providers } from "ethers"
 import {
-  // eslint-disable-next-line camelcase
-  CheckSafeSignature__factory,
-  ISafe,
-  // eslint-disable-next-line camelcase
-  ISafe__factory,
-} from "@wildcatfi/wildcat-sdk/dist/typechain"
-import { providers, CallOverrides, constants, utils } from "ethers"
-import {
-  defaultAbiCoder,
+  decodeFunctionResult,
+  encodeFunctionData,
   getAddress,
-  hexlify,
+  hashMessage,
+  isHex,
   keccak256,
-  toUtf8Bytes,
-} from "ethers/lib/utils"
+  recoverMessageAddress,
+  stringToHex,
+  zeroAddress,
+  type Address,
+  type Hex,
+} from "viem"
 
 import { VerifiedSignature, VerifySignatureOptions } from "./interface"
 
@@ -22,70 +21,178 @@ type JsonRpcProvider = providers.JsonRpcProvider
 const MAGIC_VALUE = "0x1626ba7e"
 const MAGIC_VALUE_BYTES = "0x20c13b0b"
 
-export async function checkSafeSignature(
+const safeIsValidSignatureBytes32Abi = [
+  {
+    inputs: [
+      { internalType: "bytes32", name: "_dataHash", type: "bytes32" },
+      { internalType: "bytes", name: "_signature", type: "bytes" },
+    ],
+    name: "isValidSignature",
+    outputs: [{ internalType: "bytes4", name: "", type: "bytes4" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const
+
+const safeIsValidSignatureBytesAbi = [
+  {
+    inputs: [
+      { internalType: "bytes", name: "_data", type: "bytes" },
+      { internalType: "bytes", name: "_signature", type: "bytes" },
+    ],
+    name: "isValidSignature",
+    outputs: [{ internalType: "bytes4", name: "", type: "bytes4" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const
+
+const safeGetOwnersAbi = [
+  {
+    inputs: [],
+    name: "getOwners",
+    outputs: [{ internalType: "address[]", name: "", type: "address[]" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const
+
+const toMessageHex = (message: string): Hex =>
+  isHex(message) ? message : stringToHex(message)
+
+async function callSafeIsValidSignatureBytes32(
+  safeAddress: string,
   provider: JsonRpcProvider,
-  address: string,
-  message: string,
-  signature: string,
-  { blockTag, ...otherOverrides }: CallOverrides = {},
-): Promise<boolean[]> {
-  if (!message.startsWith("0x")) {
-    message = hexlify(toUtf8Bytes(message))
-  }
-  // eslint-disable-next-line camelcase
-  const bytecode = CheckSafeSignature__factory.bytecode.concat(
-    defaultAbiCoder
-      .encode(["address", "bytes", "bytes"], [address, message, signature])
-      .slice(2),
-  )
-  const result = await provider.call(
-    { data: bytecode, ...otherOverrides },
-    blockTag,
-  )
-  return defaultAbiCoder.decode(["bool"], result)[0]
-}
-
-function getSafe(safeAddress: string, provider: JsonRpcProvider) {
-  // eslint-disable-next-line camelcase
-  return ISafe__factory.connect(safeAddress, provider)
-}
-
-async function check1271Signature(
-  safe: ISafe,
-  messageHash: string,
-  // eslint-disable-next-line default-param-last
+  messageHash: Hex,
   signature = "0x",
-  overrides?: CallOverrides,
+  { blockTag, ...otherOverrides }: CallOverrides = {},
 ): Promise<boolean> {
   try {
-    const response = await safe["isValidSignature(bytes32,bytes)"](
-      messageHash,
-      signature,
-      overrides,
+    const data = encodeFunctionData({
+      abi: safeIsValidSignatureBytes32Abi,
+      functionName: "isValidSignature",
+      args: [messageHash, signature as Hex],
+    })
+    const result = await provider.call(
+      { to: safeAddress, data, ...otherOverrides },
+      blockTag,
     )
+    const response = decodeFunctionResult({
+      abi: safeIsValidSignatureBytes32Abi,
+      functionName: "isValidSignature",
+      data: result as Hex,
+    })
     return response.slice(0, 10).toLowerCase() === MAGIC_VALUE
   } catch (err) {
     return false
   }
 }
 
-async function check1271SignatureBytes(
-  safe: ISafe,
-  message: string,
-  // eslint-disable-next-line default-param-last
+async function callSafeIsValidSignatureBytes(
+  safeAddress: string,
+  provider: JsonRpcProvider,
+  message: Hex,
   signature = "0x",
-  overrides?: CallOverrides,
+  { blockTag, ...otherOverrides }: CallOverrides = {},
 ): Promise<boolean> {
   try {
-    const response = await safe["isValidSignature(bytes,bytes)"](
-      message,
-      signature,
-      overrides,
+    const data = encodeFunctionData({
+      abi: safeIsValidSignatureBytesAbi,
+      functionName: "isValidSignature",
+      args: [message, signature as Hex],
+    })
+    const result = await provider.call(
+      { to: safeAddress, data, ...otherOverrides },
+      blockTag,
     )
+    const response = decodeFunctionResult({
+      abi: safeIsValidSignatureBytesAbi,
+      functionName: "isValidSignature",
+      data: result as Hex,
+    })
     return response.slice(0, 10).toLowerCase() === MAGIC_VALUE_BYTES
   } catch (err) {
     return false
   }
+}
+
+export async function checkSafeSignature(
+  provider: JsonRpcProvider,
+  address: string,
+  message: string,
+  signature: string,
+  { blockTag, ...otherOverrides }: CallOverrides = {},
+): Promise<boolean> {
+  const messageBytes = toMessageHex(message)
+  const isValidBytesSignature = await callSafeIsValidSignatureBytes(
+    address,
+    provider,
+    messageBytes,
+    signature,
+    { blockTag, ...otherOverrides },
+  )
+  if (isValidBytesSignature) return true
+  return callSafeIsValidSignatureBytes32(
+    address,
+    provider,
+    hashMessage({ raw: messageBytes }),
+    signature,
+    { blockTag, ...otherOverrides },
+  )
+}
+
+async function check1271Signature(
+  safeAddress: string,
+  provider: JsonRpcProvider,
+  messageHash: Hex,
+  // eslint-disable-next-line default-param-last
+  signature = "0x",
+  overrides?: CallOverrides,
+): Promise<boolean> {
+  return callSafeIsValidSignatureBytes32(
+    safeAddress,
+    provider,
+    messageHash,
+    signature,
+    overrides,
+  )
+}
+
+async function check1271SignatureBytes(
+  safeAddress: string,
+  provider: JsonRpcProvider,
+  message: Hex,
+  // eslint-disable-next-line default-param-last
+  signature = "0x",
+  overrides?: CallOverrides,
+): Promise<boolean> {
+  return callSafeIsValidSignatureBytes(
+    safeAddress,
+    provider,
+    message,
+    signature,
+    overrides,
+  )
+}
+
+async function getSafeOwners(
+  safeAddress: string,
+  provider: JsonRpcProvider,
+  { blockTag, ...otherOverrides }: CallOverrides = {},
+): Promise<Address[]> {
+  const data = encodeFunctionData({
+    abi: safeGetOwnersAbi,
+    functionName: "getOwners",
+  })
+  const result = await provider.call(
+    { to: safeAddress, data, ...otherOverrides },
+    blockTag,
+  )
+  return decodeFunctionResult({
+    abi: safeGetOwnersAbi,
+    functionName: "getOwners",
+    data: result as Hex,
+  }) as Address[]
 }
 
 async function verifyGnosisSignature(
@@ -96,11 +203,8 @@ async function verifyGnosisSignature(
   signature = "0x",
   overrides?: CallOverrides,
 ): Promise<boolean> {
-  const safe = getSafe(address, provider)
   // eip 1271 expects bytes32 digest
-  const messageBytes = message.startsWith("0x")
-    ? message
-    : hexlify(toUtf8Bytes(message))
+  const messageBytes = toMessageHex(message)
   const messageHash = keccak256(messageBytes)
   if (
     await checkSafeSignature(
@@ -113,34 +217,56 @@ async function verifyGnosisSignature(
   ) {
     return true
   }
-  if (await check1271Signature(safe, messageHash, signature, overrides)) {
+  if (
+    await check1271Signature(
+      address,
+      provider,
+      messageHash,
+      signature,
+      overrides,
+    )
+  ) {
     return true
   }
-  if (await check1271SignatureBytes(safe, messageBytes, signature, overrides)) {
+  if (
+    await check1271SignatureBytes(
+      address,
+      provider,
+      messageBytes,
+      signature,
+      overrides,
+    )
+  ) {
     return true
   }
   return false
 }
 
-function verifyUserSignature(
+async function verifyUserSignature(
   address: string,
   message: string,
   signature: string,
-): boolean {
+): Promise<boolean> {
   try {
-    const signer = utils.verifyMessage(message, signature)
+    const signer = await recoverMessageAddress({
+      message,
+      signature: signature as Hex,
+    })
     return signer.toLowerCase() === address.toLowerCase()
   } catch (err) {
     return false
   }
 }
 
-function getUserSignatureAddress(
+async function getUserSignatureAddress(
   message: string,
   signature: string,
-): string | undefined {
+): Promise<string | undefined> {
   try {
-    const signer = utils.verifyMessage(message, signature)
+    const signer = await recoverMessageAddress({
+      message,
+      signature: signature as Hex,
+    })
     return signer
   } catch (err) {
     // throw new HttpException(401, 'Invalid signature');
@@ -172,7 +298,7 @@ async function getSignatureAddress(
   } catch (err) {
     console.log(`Bad Signature: ${signature}`)
   }
-  return constants.AddressZero
+  return zeroAddress
 }
 
 export async function verifySignature({
@@ -189,10 +315,10 @@ export async function verifySignature({
   if (description.kind === AccountKind.Safe) {
     if (allowSingleSafeOwner) {
       try {
-        const signer = getUserSignatureAddress(message, signature)
+        const signer = await getUserSignatureAddress(message, signature)
         if (signer) {
-          const owners = (await getSafe(address, provider).getOwners()).map(
-            (owner) => owner.toLowerCase(),
+          const owners = (await getSafeOwners(address, provider)).map((owner) =>
+            owner.toLowerCase(),
           )
           return owners.includes(signer.toLowerCase())
         }
@@ -218,7 +344,7 @@ export async function verifyAndDescribeSignature({
 }: VerifySignatureOptions): Promise<VerifiedSignature | undefined> {
   const description = await describeAccount(provider, address)
   if (description.kind === AccountKind.EOA) {
-    if (verifyUserSignature(address, message, signature)) {
+    if (await verifyUserSignature(address, message, signature)) {
       return { kind: "ECDSA", address, signature }
     }
     return undefined
@@ -228,10 +354,10 @@ export async function verifyAndDescribeSignature({
   if (description.kind === AccountKind.Safe) {
     if (allowSingleSafeOwner) {
       try {
-        const signer = getUserSignatureAddress(message, signature)
+        const signer = await getUserSignatureAddress(message, signature)
         if (signer) {
           const owners = (
-            await getSafe(address, provider).getOwners(overrides)
+            await getSafeOwners(address, provider, overrides)
           ).map((owner) => owner.toLowerCase())
           if (owners.includes(signer.toLowerCase())) {
             return {

@@ -16,7 +16,7 @@ import {
   hasDeploymentAddress,
 } from "@wildcatfi/wildcat-sdk"
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
-import { BigNumber, constants } from "ethers"
+import { zeroAddress } from "viem"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
@@ -64,6 +64,19 @@ function getChunks<T extends Market | MarketAccount>(
   }
 }
 
+type LenderStatusUpdate = Parameters<MarketAccount["updateWith"]>[0]
+
+function zeroLenderBalances(lenderStatus: LenderStatusUpdate) {
+  const zero = BigInt(0)
+  return {
+    ...lenderStatus,
+    normalizedBalance: zero,
+    scaledBalance: zero,
+    underlyingBalance: zero,
+    underlyingApproval: zero,
+  } as unknown as LenderStatusUpdate
+}
+
 export function useLendersMarkets(
   filters: LenderMarketsQueryProps = {},
 ): TwoStepQueryHookResult<MarketAccount[]> {
@@ -87,7 +100,7 @@ export function useLendersMarkets(
       subgraphClient,
       {
         ...otherFilters,
-        lender: lender ?? constants.AddressZero,
+        lender: lender ?? zeroAddress,
         fetchPolicy: "network-only",
         chainId,
         signerOrProvider,
@@ -141,53 +154,37 @@ export function useLendersMarkets(
       ...(lens
         ? v1Chunks.map(async (accountsChunk) => {
             const updates = await lens.getMarketsDataWithLenderStatus(
-              lender ?? constants.AddressZero,
+              lender ?? zeroAddress,
               accountsChunk.map((m) => m.market.address),
             )
             accountsChunk.forEach((account, i) => {
-              let update = updates[i]
+              const update = updates[i]
               account.market.updateWith(update.market)
               // If the lender account is not set, set the balances to 0 but still use
               // the credential, as that will tell us whether the market is open access.
-              if (!lender) {
-                update = {
-                  ...update,
-                  lenderStatus: {
-                    ...update.lenderStatus,
-                    normalizedBalance: BigNumber.from(0),
-                    scaledBalance: BigNumber.from(0),
-                    underlyingBalance: BigNumber.from(0),
-                    underlyingApproval: BigNumber.from(0),
-                  },
-                }
-              }
-              account.updateWith(update.lenderStatus)
+              account.updateWith(
+                !lender
+                  ? zeroLenderBalances(update.lenderStatus)
+                  : update.lenderStatus,
+              )
             })
           })
         : []),
       ...v2Chunks.map(async (accountsChunk) => {
         const updates = await latestLens.getMarketsDataWithLenderStatus(
-          lender ?? constants.AddressZero,
+          lender ?? zeroAddress,
           accountsChunk.map((m) => m.market.address),
         )
         accountsChunk.forEach((account, i) => {
-          let update = updates[i]
+          const update = updates[i]
           account.market.updateWith(update.market)
           // If the lender account is not set, set the balances to 0 but still use
           // the credential, as that will tell us whether the market is open access.
-          if (!lender) {
-            update = {
-              ...update,
-              lenderStatus: {
-                ...update.lenderStatus,
-                normalizedBalance: BigNumber.from(0),
-                scaledBalance: BigNumber.from(0),
-                underlyingBalance: BigNumber.from(0),
-                underlyingApproval: BigNumber.from(0),
-              },
-            }
-          }
-          account.updateWith(update.lenderStatus)
+          account.updateWith(
+            !lender
+              ? zeroLenderBalances(update.lenderStatus)
+              : update.lenderStatus,
+          )
         })
       }),
     ]).catch((e) => {

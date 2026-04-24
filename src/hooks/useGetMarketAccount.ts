@@ -9,7 +9,7 @@ import {
   SignerOrProvider,
 } from "@wildcatfi/wildcat-sdk"
 import { SubgraphGetMarketQueryVariables } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
-import { constants } from "ethers"
+import { zeroAddress } from "viem"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
@@ -137,7 +137,7 @@ export const useGetMarketAccountForBorrowerLegacy = (
 
   return useBorrowerMarketAccountQuery({
     market,
-    lender: address ?? constants.AddressZero,
+    lender: address ?? zeroAddress,
     provider: signerOrProvider,
     enabled: !!market && !!signerOrProvider && !isWrongNetwork,
   })

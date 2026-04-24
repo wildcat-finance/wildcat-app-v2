@@ -24,8 +24,7 @@ import {
   OpenTermHooksTemplate,
   OpenTermMarketDeploymentArgs,
 } from "@wildcatfi/wildcat-sdk/dist/access"
-import { MarketDeployedEvent } from "@wildcatfi/wildcat-sdk/dist/typechain/HooksFactory"
-import { constants } from "ethers"
+import { zeroAddress } from "viem"
 
 import { toastError, toastRequest, toastSuccess } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
@@ -56,6 +55,10 @@ export type DeployNewV2MarketParams = (
   mlaTemplateId: number | undefined
   mlaSignature: string
   deployWrapper?: boolean
+}
+
+type MarketDeployedEventArgs = {
+  market: string
 }
 
 export const useDeployV2Market = () => {
@@ -381,7 +384,7 @@ export const useDeployV2Market = () => {
           "MarketDeployed",
           log.data,
           log.topics,
-        ) as unknown as MarketDeployedEvent["args"]
+        ) as unknown as MarketDeployedEventArgs
         marketAddress = event.market
         setDeployedMarket(marketAddress)
       }
@@ -401,7 +404,7 @@ export const useDeployV2Market = () => {
           marketAddress,
         )
 
-        if (existingWrapper === constants.AddressZero) {
+        if (existingWrapper === zeroAddress) {
           await toastRequest(
             (async () => {
               if (isConnectedToSafe) {
