@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.16.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.16.0...v2.16.1) (2026-04-24)
+
+
+### Bug Fixes
+
+* display temporary reserve ratio state + api fixes ([aaf67f2](https://github.com/wildcat-finance/wildcat-app-v2/commit/aaf67f27b269d3d1c9e96423d76cd94faea8a5bc))
+* display temporary reserve ratio state in market views ([#279](https://github.com/wildcat-finance/wildcat-app-v2/issues/279)) ([2b33605](https://github.com/wildcat-finance/wildcat-app-v2/commit/2b336058400252d704806b3e1db1d450747ff408))
+* fail early on undefined secret in verifyApiToken and remove profile delete route ([#281](https://github.com/wildcat-finance/wildcat-app-v2/issues/281)) ([07a4f5e](https://github.com/wildcat-finance/wildcat-app-v2/commit/07a4f5eb84319d3135964b58512d99aefc0ffd9c))
+
 ## [2.16.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.15.1...v2.16.0) (2026-04-22)
 
 
