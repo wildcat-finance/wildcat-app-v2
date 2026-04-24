@@ -10,13 +10,16 @@ const TOKEN_TTL = 604_800 // 1 week
 export const verifyApiToken = async (
   request: NextRequest,
 ): Promise<DataStoredInToken | undefined> => {
+  const { SECRET_KEY } = process.env
   const authHeader = request.headers.get("authorization")
   if (!authHeader) {
     return undefined
   }
   const token = authHeader.replace("Bearer ", "")
+  const secretKey = SECRET_KEY
+  if (!secretKey) return undefined
   try {
-    const user = verify(token, process.env.SECRET_KEY as string)
+    const user = verify(token, secretKey)
     if (!user) return undefined
     return user as DataStoredInToken
   } catch (err) {

@@ -3,16 +3,19 @@ import React, { useEffect, useMemo } from "react"
 import { Box, Divider, Typography, useTheme } from "@mui/material"
 import { MarketVersion, HooksKind } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
+import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { getAdsMarketParameterComponent } from "@/components/AdsBanners/adsHelpers"
 import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
+import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAdoptionData } from "@/hooks/wrapper/useAdoptionData"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
+import { dayjs } from "@/utils/dayjs"
 import {
   formatBps,
   formatRayAsPercentage,
@@ -230,6 +233,66 @@ export const MarketParameters = ({
         market.underlyingToken.getAmount(0)
       ).add(market.totalBaseInterestAccrued ?? 0)
     : undefined
+
+  const tempRatiosDiffer =
+    market.temporaryReserveRatio &&
+    market.reserveRatioBips !== market.originalReserveRatioBips
+
+  const nowSec = Date.now() / 1000
+  const tempRatioExpired =
+    tempRatiosDiffer && market.temporaryReserveRatioExpiry < nowSec
+
+  const hasTempReserveRatio = tempRatiosDiffer && !tempRatioExpired
+
+  const originalRatioFormatted = formatBps(
+    market.originalReserveRatioBips,
+    MARKET_PARAMS_DECIMALS.reserveRatioBips,
+  )
+  const currentRatioFormatted = formatBps(
+    market.reserveRatioBips,
+    MARKET_PARAMS_DECIMALS.reserveRatioBips,
+  )
+  const tempReserveRatioExpiry = hasTempReserveRatio
+    ? dayjs
+        .unix(market.temporaryReserveRatioExpiry)
+        .utc()
+        .format("D MMM YYYY, HH:mm [UTC]")
+    : undefined
+
+  const tempRatioI18nPrefix = viewerType === "borrower" ? "borrower" : "lender"
+
+  const tempRatioValueComponent = (() => {
+    if (hasTempReserveRatio) {
+      return (
+        <TooltipButton
+          value={t(
+            `borrowerMarketDetails.parameters.tempReserveRatio.${tempRatioI18nPrefix}ActiveTooltip`,
+            {
+              expiry: tempReserveRatioExpiry,
+              originalRatio: originalRatioFormatted,
+              currentRatio: currentRatioFormatted,
+            },
+          )}
+          color={COLORS.galliano}
+        />
+      )
+    }
+    if (tempRatioExpired) {
+      return (
+        <TooltipButton
+          value={t(
+            `borrowerMarketDetails.parameters.tempReserveRatio.${tempRatioI18nPrefix}ExpiredTooltip`,
+            {
+              currentRatio: currentRatioFormatted,
+              originalRatio: originalRatioFormatted,
+            },
+          )}
+          color={COLORS.santasGrey}
+        />
+      )
+    }
+    return undefined
+  })()
 
   const { hooksConfig } = market
   const isRevolving = isRevolvingMarket(market)
@@ -554,14 +617,93 @@ export const MarketParameters = ({
         </Box>
         {isMobileOpen && (
           <Box sx={MarketParametersContainerColumn(theme)}>
+            {hasTempReserveRatio && (
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: "10px",
+                  padding: "12px 16px",
+                  borderRadius: "8px",
+                  backgroundColor: COLORS.oasis,
+                  border: `1px solid ${COLORS.galliano}`,
+                  mb: "12px",
+                }}
+              >
+                <Typography
+                  variant={isMobile ? "mobText3" : "text3"}
+                  sx={{ color: COLORS.butteredRum }}
+                >
+                  <strong>
+                    {t(
+                      "borrowerMarketDetails.parameters.tempReserveRatio.bannerHeading",
+                    )}
+                  </strong>{" "}
+                  {t(
+                    `borrowerMarketDetails.parameters.tempReserveRatio.${tempRatioI18nPrefix}BannerBody`,
+                    {
+                      originalRatio: originalRatioFormatted,
+                      currentRatio: currentRatioFormatted,
+                      expiry: tempReserveRatioExpiry,
+                    },
+                  )}{" "}
+                  <Link
+                    href={EXTERNAL_LINKS.DOCS_REDUCING_APR}
+                    target="_blank"
+                    style={{ color: COLORS.butteredRum, fontWeight: 600 }}
+                  >
+                    {t("borrowerMarketDetails.modals.apr.learnMore")}
+                  </Link>
+                </Typography>
+              </Box>
+            )}
             <ParametersItem
-              title={t("borrowerMarketDetails.parameters.minimumReserveRatio")}
-              value={`${formatBps(
-                market.reserveRatioBips,
-                MARKET_PARAMS_DECIMALS.reserveRatioBips,
-              )}%`}
+              title={
+                hasTempReserveRatio
+                  ? t("borrowerMarketDetails.parameters.tempReserveRatio.title")
+                  : t("borrowerMarketDetails.parameters.minimumReserveRatio")
+              }
+              value={`${
+                hasTempReserveRatio || tempRatioExpired
+                  ? originalRatioFormatted
+                  : currentRatioFormatted
+              }%`}
               tooltipText="A required percentage of market funds that must remain liquid and unavailable for borrowing."
+              valueComponent={tempRatioValueComponent}
             />
+            {hasTempReserveRatio && (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  mt: "-4px",
+                  mb: "2px",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    padding: "2px 8px",
+                    borderRadius: "4px",
+                    backgroundColor: COLORS.oasis,
+                  }}
+                >
+                  <Typography
+                    variant="text4"
+                    sx={{ color: COLORS.butteredRum, fontSize: "12px" }}
+                  >
+                    {t(
+                      "borrowerMarketDetails.parameters.tempReserveRatio.badgeLabel",
+                      {
+                        currentRatio: currentRatioFormatted,
+                        expiry: tempReserveRatioExpiry,
+                      },
+                    )}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
               title={configuredAprLabel}
