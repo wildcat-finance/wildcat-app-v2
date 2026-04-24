@@ -19,6 +19,7 @@ import { DepositAlert } from "@/components/DepositAlert"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
@@ -226,7 +227,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
   const reserveRatioExpiry = dayjs(
     market.temporaryReserveRatioExpiry * 1000,
-  ).format("DD/MM/YYYY HH:MM")
+  ).format("DD/MM/YYYY HH:mm")
 
   const nowSec = Date.now() / 1000
   const isExpiredTempRatio =
@@ -337,7 +338,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 {t("borrowerMarketDetails.modals.apr.alreadyUpdated")}
               </Typography>
               <Link
-                href="https://docs.wildcat.finance/using-wildcat/terminology#base-apr"
+                href={EXTERNAL_LINKS.DOCS_REDUCING_APR}
                 target="_blank"
                 style={{ textDecoration: "none", display: "flex" }}
               >
