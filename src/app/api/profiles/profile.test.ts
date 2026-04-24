@@ -31,7 +31,6 @@ import {
   GET as getProfileUpdateRequests,
   POST as postProfileUpdateRequest,
   PUT as putProfileUpdateRequest,
-  DELETE as deleteProfileUpdateRequest,
 } from "./updates/route"
 import { LoginInput } from "../auth/login/interface"
 import { POST as postLogin } from "../auth/login/route"
