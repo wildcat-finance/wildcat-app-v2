@@ -61,21 +61,20 @@ function getMinimumAPR(market: Market) {
   const { liquidReserves, outstandingTotalSupply } = market
   const currentCollateralizationBips = liquidReserves
     .mul(BIP)
-    .div(outstandingTotalSupply.gt(0) ? outstandingTotalSupply : 1)
-    .raw.toNumber()
+    .div(outstandingTotalSupply.gt(0) ? outstandingTotalSupply : 1).raw
   const [, originalAnnualInterestBips] =
     market.originalReserveRatioAndAnnualInterestBips
 
   // reserve ratio set in APR reduction is 2 * relativeReduction
   // so divide collateralization ratio by 2 to get max relative reduction in bips
-  if (currentCollateralizationBips < 5_000) {
+  if (currentCollateralizationBips < BigInt(5_000)) {
     // if the max reduction is <25% given the current collateralization ratio,
     // the market still allows a reduction of <=25% with no penalty
     return Math.floor(originalAnnualInterestBips * 0.75)
   }
   const maximumRelativeReduction = Math.min(
     10_000,
-    Math.floor(currentCollateralizationBips / 2),
+    Number(currentCollateralizationBips / BigInt(2)),
   )
   const maximumReduction = Math.floor(
     (originalAnnualInterestBips * maximumRelativeReduction) / 10_000,

@@ -170,7 +170,7 @@ export const RepayModal = ({
     setTxHash("")
     if (!isAllowanceSufficient) {
       if (
-        marketAccount.underlyingApproval.gt(0) &&
+        marketAccount.underlyingApproval > BigInt(0) &&
         isUSDTLikeToken(market.underlyingToken.address)
       ) {
         approve(repayAmount.token.getAmount(0)).then(() => {
@@ -226,7 +226,7 @@ export const RepayModal = ({
 
   const mustResetAllowance =
     repayStep === "InsufficientAllowance" &&
-    marketAccount.underlyingApproval.gt(0) &&
+    marketAccount.underlyingApproval > BigInt(0) &&
     isUSDTLikeToken(market.underlyingToken.address)
 
   const disableApprove =
@@ -365,7 +365,7 @@ export const RepayModal = ({
   useEffect(() => {
     if (
       justApprovedAmount &&
-      marketAccount.underlyingApproval.gte(justApprovedAmount.raw)
+      marketAccount.underlyingApproval >= justApprovedAmount.raw
     ) {
       setJustApprovedAmount(undefined)
     }

@@ -173,7 +173,11 @@ export const formatTokenAmountPercentage = (
 ) => {
   if (total.eq(0)) return 0
 
-  return Number(formatFixedBigint((amount.raw * 100n * 10n ** 18n) / total.raw))
+  return Number(
+    formatFixedBigint(
+      (amount.raw * BigInt(100) * BigInt("1000000000000000000")) / total.raw,
+    ),
+  )
 }
 
 export const buildMarketHref = (

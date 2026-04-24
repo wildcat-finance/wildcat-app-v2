@@ -1,7 +1,4 @@
-import { Dispatch } from "react"
-
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import { BaseTransaction } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
@@ -9,6 +6,7 @@ import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useFaucet = (marketAccount: MarketAccount) => {
   const signer = useEthersSigner()
@@ -34,8 +32,14 @@ export const useFaucet = (marketAccount: MarketAccount) => {
       }
 
       const faucet = async () => {
-        const tx = await marketAccount.market.underlyingToken.faucet()
-        return tx.wait()
+        const hash = await marketAccount.market.underlyingToken.faucet()
+        const { receipt } = await waitForSubmittedTransaction({
+          provider: signer.provider,
+          hash,
+          safeConnected,
+          safeSdk: sdk,
+        })
+        return receipt
       }
 
       await toastRequest(faucet(), {

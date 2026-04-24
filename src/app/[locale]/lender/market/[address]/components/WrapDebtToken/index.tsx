@@ -9,6 +9,7 @@ import {
   SupportedChainId,
   TokenWrapper,
   WrapperFactory,
+  toSafeTransactionInput,
 } from "@wildcatfi/wildcat-sdk"
 import { constants } from "ethers"
 
@@ -89,12 +90,14 @@ export const WrapDebtToken = ({
           signer,
           market.address,
         )
-        const { safeTxHash } = await sdk.txs.send({ txs: [tx] })
+        const { safeTxHash } = await sdk.txs.send({
+          txs: [toSafeTransactionInput(tx)],
+        })
         await waitForSafeTransaction(safeTxHash)
         return safeTxHash
       }
 
-      const { wrapper: createdWrapper } = await WrapperFactory.createWrapper(
+      const { result: createdWrapper } = await WrapperFactory.createWrapper(
         market.chainId as SupportedChainId,
         signer,
         market.address,

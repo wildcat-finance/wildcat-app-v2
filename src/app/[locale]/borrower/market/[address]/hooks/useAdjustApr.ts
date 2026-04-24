@@ -6,6 +6,7 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useAdjustAPR = (
   marketAccount: MarketAccount,
@@ -29,24 +30,19 @@ export const useAdjustAPR = (
       }
 
       const setApr = async () => {
-        const tx = await marketAccount.setAnnualInterestBips(amount * 100)
+        const hash = await marketAccount.setAnnualInterestBips(amount * 100)
 
-        if (!safeConnected) setTxHash(tx.hash)
+        if (!safeConnected) setTxHash(hash)
 
-        if (safeConnected) {
-          const checkTransaction = async () => {
-            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(tx.hash)
-            if (transactionBySafeHash?.txHash) {
-              setTxHash(transactionBySafeHash.txHash)
-            } else {
-              setTimeout(checkTransaction, 1000)
-            }
-          }
-
-          await checkTransaction()
-        }
-
-        return tx.wait()
+        const { hash: transactionHash, receipt } =
+          await waitForSubmittedTransaction({
+            provider: signer.provider,
+            hash,
+            safeConnected,
+            safeSdk: sdk,
+          })
+        setTxHash(transactionHash)
+        return receipt
       }
 
       await setApr()

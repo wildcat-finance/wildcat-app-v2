@@ -2,12 +2,12 @@ import { Dispatch } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { MarketAccount, Signer, TokenAmount } from "@wildcatfi/wildcat-sdk"
-import { parseUnits } from "ethers/lib/utils"
+import { MarketAccount, Signer } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-import { useEthersProvider, useEthersSigner } from "@/hooks/useEthersSigner"
+import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useBorrow = (
   marketAccount: MarketAccount,
@@ -39,30 +39,23 @@ export const useBorrow = (
         )
       }
 
-      const tokenAmount = new TokenAmount(
-        parseUnits(amount, marketAccount.market.underlyingToken.decimals),
-        marketAccount.market.underlyingToken,
-      )
+      const tokenAmount =
+        marketAccount.market.underlyingToken.parseAmount(amount)
 
       const borrow = async () => {
-        const tx = await marketAccount.borrow(tokenAmount)
+        const hash = await marketAccount.borrow(tokenAmount)
 
-        if (!safeConnected) setTxHash(tx.hash)
+        if (!safeConnected) setTxHash(hash)
 
-        if (safeConnected) {
-          const checkTransaction = async () => {
-            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(tx.hash)
-            if (transactionBySafeHash?.txHash) {
-              setTxHash(transactionBySafeHash.txHash)
-            } else {
-              setTimeout(checkTransaction, 1000)
-            }
-          }
-
-          await checkTransaction()
-        }
-
-        return tx.wait()
+        const { hash: transactionHash, receipt } =
+          await waitForSubmittedTransaction({
+            provider: signer.provider,
+            hash,
+            safeConnected,
+            safeSdk: sdk,
+          })
+        setTxHash(transactionHash)
+        return receipt
       }
 
       await borrow()

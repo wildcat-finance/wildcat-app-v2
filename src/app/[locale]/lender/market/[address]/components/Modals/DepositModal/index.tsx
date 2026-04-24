@@ -132,7 +132,7 @@ export const DepositModal = ({
 
     if (!isAllowanceSufficient) {
       if (
-        marketAccount.underlyingApproval.gt(0) &&
+        marketAccount.underlyingApproval > BigInt(0) &&
         isUSDTLikeToken(market.underlyingToken.address)
       ) {
         approve(depositTokenAmount.token.getAmount(0)).then(() => {
@@ -154,7 +154,7 @@ export const DepositModal = ({
 
   const mustResetAllowance =
     !isAllowanceSufficient &&
-    marketAccount.underlyingApproval.gt(0) &&
+    marketAccount.underlyingApproval > BigInt(0) &&
     isUSDTLikeToken(market.underlyingToken.address)
 
   const disableApprove =

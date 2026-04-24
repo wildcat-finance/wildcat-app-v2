@@ -6,6 +6,7 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useSetFixedTermEndTime = (
   marketAccount: MarketAccount,
@@ -22,24 +23,20 @@ export const useSetFixedTermEndTime = (
       }
 
       const setFixedTermEndTime = async () => {
-        const tx = await marketAccount.setFixedTermEndTime(newFixedTermEndTime)
+        const hash =
+          await marketAccount.setFixedTermEndTime(newFixedTermEndTime)
 
-        if (!safeConnected) setTxHash(tx.hash)
+        if (!safeConnected) setTxHash(hash)
 
-        if (safeConnected) {
-          const checkTransaction = async () => {
-            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(tx.hash)
-            if (transactionBySafeHash?.txHash) {
-              setTxHash(transactionBySafeHash.txHash)
-            } else {
-              setTimeout(checkTransaction, 1000)
-            }
-          }
-
-          await checkTransaction()
-        }
-
-        return tx.wait()
+        const { hash: transactionHash, receipt } =
+          await waitForSubmittedTransaction({
+            provider: signer.provider,
+            hash,
+            safeConnected,
+            safeSdk: sdk,
+          })
+        setTxHash(transactionHash)
+        return receipt
       }
 
       await setFixedTermEndTime()
