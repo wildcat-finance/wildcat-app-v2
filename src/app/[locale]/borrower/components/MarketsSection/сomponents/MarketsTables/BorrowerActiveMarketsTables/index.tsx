@@ -120,13 +120,12 @@ export const BorrowerActiveMarketsTables = ({
     })
 
   const depositedMarkets = rows.filter(
-    (market) => !market.borrowable.raw.isZero() || !market.debt?.raw.isZero(),
+    (market) => !market.borrowable.eq(0) || !market.debt?.eq(0),
   )
 
   const nonDepositedMarkets = rows.filter(
     (market) =>
-      market.borrowable.raw.isZero() &&
-      market.status.status === MarketStatus.HEALTHY,
+      market.borrowable.eq(0) && market.status.status === MarketStatus.HEALTHY,
   )
 
   const columns: TypeSafeColDef<BorrowerActiveMarketsTableModel>[] = [

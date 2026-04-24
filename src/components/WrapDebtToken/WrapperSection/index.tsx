@@ -184,7 +184,7 @@ export const WrapperSection = ({
     [inputToken, amount],
   )
 
-  const isInputZero = !inputAmount || (inputAmount && inputAmount.raw.isZero())
+  const isInputZero = !inputAmount || inputAmount.eq(0)
 
   const previewQuery = useQuery({
     queryKey: QueryKeys.Wrapper.PREVIEW(
@@ -193,7 +193,7 @@ export const WrapperSection = ({
       unit,
       inputAmount?.raw.toString(),
     ),
-    enabled: !!wrapper && !!inputAmount && !inputAmount.raw.isZero(),
+    enabled: !!wrapper && !!inputAmount && !inputAmount.eq(0),
     queryFn: async () => {
       if (!inputAmount) throw new Error("No input amount")
 
@@ -347,7 +347,7 @@ export const WrapperSection = ({
     (isWrapTab && !isAssetsInput) || (!isWrapTab && isAssetsInput)
   const missingPreview = hasPreviewRequired && !outputAmount
 
-  const approvalRequired = !!approvalAmount && !approvalAmount.raw.isZero()
+  const approvalRequired = !!approvalAmount && !approvalAmount.eq(0)
 
   const isApproved =
     !approvalRequired || (allowance ? allowance.gte(approvalAmount.raw) : false)

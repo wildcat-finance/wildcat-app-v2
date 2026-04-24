@@ -252,15 +252,15 @@ export const MarketsSection = () => {
     const { borrowed } = account.market.getTotalDebtBreakdown()
     return (
       !account.market.isClosed &&
-      (!account.market.borrowableAssets.raw.isZero() || !borrowed.raw.isZero())
+      (!account.market.borrowableAssets.eq(0) || !borrowed.eq(0))
     )
   }).length
 
   const nonDepositedMarketsAmount = borrowerMarkets.filter((account) => {
     const { borrowed } = account.market.getTotalDebtBreakdown()
     return (
-      account.market.borrowableAssets.raw.isZero() &&
-      borrowed.raw.isZero() &&
+      account.market.borrowableAssets.eq(0) &&
+      borrowed.eq(0) &&
       !account.market.isClosed &&
       !account.market.isIncurringPenalties &&
       !account.market.isDelinquent

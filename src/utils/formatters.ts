@@ -1,12 +1,12 @@
 import {
+  formatFixedBigint,
   MarketParameterConstraints,
   MarketParameters,
   stripTrailingZeroes,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
 import duration from "dayjs/plugin/duration"
-import { BigNumber } from "ethers"
-import { formatUnits } from "ethers/lib/utils"
+import { formatUnits } from "viem"
 
 import { ROUTES } from "@/routes"
 import { dayjs } from "@/utils/dayjs"
@@ -161,10 +161,19 @@ export const formatBps = (bps: number, fixed?: number) => {
   return stripTrailingZeroes(fixedNum)
 }
 
-export const formatRayAsPercentage = (ray: BigNumber, fixed?: number) => {
+export const formatRayAsPercentage = (ray: bigint, fixed?: number) => {
   const percentage = parseFloat(formatUnits(ray, 27)) * 100
 
   return stripTrailingZeroes(percentage.toFixed(fixed || 2))
+}
+
+export const formatTokenAmountPercentage = (
+  total: TokenAmount,
+  amount: TokenAmount,
+) => {
+  if (total.eq(0)) return 0
+
+  return Number(formatFixedBigint((amount.raw * 100n * 10n ** 18n) / total.raw))
 }
 
 export const buildMarketHref = (

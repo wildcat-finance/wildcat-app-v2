@@ -32,7 +32,7 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
   const bars = barOrders
     .filter((barId) => barRawData[barId] !== undefined)
     .map((barId) => barRawData[barId])
-    .filter((chartItem) => !chartItem.hide && !chartItem.value.raw.isZero())
+    .filter((chartItem) => !chartItem.hide && !chartItem.value.eq(0))
 
   const legendItems = legendItemsOrder
     .filter((barId) => barRawData[barId] !== undefined)

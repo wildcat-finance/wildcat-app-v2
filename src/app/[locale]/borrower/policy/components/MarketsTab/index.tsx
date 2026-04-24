@@ -3,7 +3,6 @@ import * as React from "react"
 import { Box, Skeleton } from "@mui/material"
 import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid"
 import { Market, TokenAmount } from "@wildcatfi/wildcat-sdk"
-import { BigNumber } from "ethers"
 import Link from "next/link"
 
 import { MarketImplementationChip } from "@/components/@extended/MarketImplementationChip"
@@ -234,9 +233,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       name,
       asset: underlyingToken.symbol,
       apr: annualInterestBips,
-      debt: borrowed.raw.lt(0)
-        ? new TokenAmount(BigNumber.from(0), underlyingToken)
-        : borrowed,
+      debt: borrowed.lt(0) ? underlyingToken.getAmount(0) : borrowed,
     }
   })
 

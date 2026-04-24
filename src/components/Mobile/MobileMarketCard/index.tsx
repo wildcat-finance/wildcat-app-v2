@@ -75,7 +75,7 @@ export const MobileMarketCard = ({
 }) => {
   const getDepositLine = () => {
     if (marketItem.loan) {
-      if (marketItem.loan?.raw.isZero()) {
+      if (marketItem.loan.eq(0)) {
         return "0"
       }
       if (
@@ -177,7 +177,7 @@ export const MobileMarketCard = ({
         <Typography
           variant="mobText4"
           color={
-            marketItem.loan && !marketItem.loan.raw.isZero()
+            marketItem.loan && !marketItem.loan.eq(0)
               ? COLORS.blackRock
               : COLORS.manate
           }

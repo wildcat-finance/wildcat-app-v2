@@ -138,14 +138,14 @@ export const MobileMarketActions = ({
 
   const hideDeposit =
     market.isClosed ||
-    marketAccount.maximumDeposit.raw.isZero() ||
+    marketAccount.maximumDeposit.eq(0) ||
     marketAccount.depositAvailability !== DepositStatus.Ready
 
   const showFaucet =
     hideDeposit &&
     isTestnet &&
     market.underlyingToken.isMock &&
-    marketAccount.underlyingBalance.raw.isZero()
+    marketAccount.underlyingBalance.eq(0)
 
   const { data: mla } = useMarketMla(market.address)
   const mlaResponse = mla && "noMLA" in mla ? null : mla
@@ -169,7 +169,7 @@ export const MobileMarketActions = ({
       }}
     >
       {!mlaRequiredAndUnsigned &&
-        !withdrawals.totalClaimableAmount.raw.isZero() &&
+        !withdrawals.totalClaimableAmount.eq(0) &&
         !isDifferentChain && (
           <Box
             sx={{
@@ -330,7 +330,7 @@ export const MobileMarketActions = ({
                   color="secondary"
                   size="large"
                   fullWidth
-                  disabled={marketAccount.maximumDeposit.raw.isZero()}
+                  disabled={marketAccount.maximumDeposit.eq(0)}
                   sx={{ padding: "10px 20px", marginTop: "16px" }}
                 >
                   ↓ {t("lenderMarketDetails.transactions.deposit.button")}
