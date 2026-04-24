@@ -2,17 +2,21 @@
 
 import * as React from "react"
 
-import { Box, Chip, Link as MuiLink, Typography } from "@mui/material"
+import { Box, Tooltip as MuiTooltip, Typography } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import Link from "next/link"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 
 import { LenderPositionsData } from "@/app/[locale]/lender/profile/hooks/types"
+import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { LinkGroup } from "@/components/LinkComponent"
 import { formatPercent, formatUsd } from "@/components/Profile/shared/analytics"
 import { AnalyticsDataGrid } from "@/components/Profile/shared/AnalyticsDataGrid"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { buildMarketHref, trimAddress } from "@/utils/formatters"
+import { MarketStatus } from "@/utils/marketStatus"
 
 type MarketsInterestTabProps = {
   data?: LenderPositionsData
@@ -31,10 +35,39 @@ const PIE_COLORS = [
 const asNumericValue = (value: unknown) =>
   typeof value === "number" ? value : Number(value ?? 0)
 
+const TextCell = ({ children }: { children: React.ReactNode }) => (
+  <Typography variant="text3">{children}</Typography>
+)
+
+const RightTextCell = ({ children }: { children: React.ReactNode }) => (
+  <Typography variant="text3" width="100%" textAlign="right">
+    {children}
+  </Typography>
+)
+
+const getHistoryMarketStatus = (
+  status: "Active" | "Delinquent" | "Penalty" | "Closed",
+) => {
+  const statusMap = {
+    Active: MarketStatus.HEALTHY,
+    Delinquent: MarketStatus.DELINQUENT,
+    Penalty: MarketStatus.PENALTY,
+    Closed: MarketStatus.TERMINATED,
+  } as const
+
+  return {
+    status: statusMap[status],
+    healthyPeriod: null,
+    penaltyPeriod: 0,
+    delinquencyPeriod: 0,
+  }
+}
+
 export const MarketsInterestTab = ({
   data,
   isLoading,
 }: MarketsInterestTabProps) => {
+  const { getAddressUrl } = useBlockExplorer()
   const positions = data?.positions ?? []
   const interestRows = positions
     .filter((position) => position.interestEarned > 0)
@@ -44,6 +77,7 @@ export const MarketsInterestTab = ({
     (sum, position) => sum + position.interestEarned,
     0,
   )
+  const activePositionCount = data?.profile.activePositions ?? 0
 
   const interestColumns: GridColDef[] = [
     {
@@ -55,13 +89,9 @@ export const MarketsInterestTab = ({
         <Link
           href={buildMarketHref(row.marketId, undefined, ROUTES.lender.market)}
         >
-          <MuiLink
-            component="span"
-            underline="hover"
-            color={COLORS.ultramarineBlue}
-          >
+          <Typography component="span" variant="text3">
             {value}
-          </MuiLink>
+          </Typography>
         </Link>
       ),
     },
@@ -69,6 +99,7 @@ export const MarketsInterestTab = ({
       field: "asset",
       headerName: "Asset",
       minWidth: 110,
+      renderCell: ({ value }) => <TextCell>{value}</TextCell>,
     },
     {
       field: "interestEarned",
@@ -76,7 +107,11 @@ export const MarketsInterestTab = ({
       minWidth: 150,
       align: "right",
       headerAlign: "right",
-      valueFormatter: (value) => formatUsd(value as number, { compact: true }),
+      renderCell: ({ value }) => (
+        <RightTextCell>
+          {formatUsd(value as number, { compact: true })}
+        </RightTextCell>
+      ),
     },
     {
       field: "share",
@@ -84,7 +119,9 @@ export const MarketsInterestTab = ({
       minWidth: 120,
       align: "right",
       headerAlign: "right",
-      valueFormatter: (value) => formatPercent(value as number, 1),
+      renderCell: ({ value }) => (
+        <RightTextCell>{formatPercent(value as number, 1)}</RightTextCell>
+      ),
     },
   ]
 
@@ -98,13 +135,9 @@ export const MarketsInterestTab = ({
         <Link
           href={buildMarketHref(row.marketId, undefined, ROUTES.lender.market)}
         >
-          <MuiLink
-            component="span"
-            underline="hover"
-            color={COLORS.ultramarineBlue}
-          >
+          <Typography component="span" variant="text3">
             {value}
-          </MuiLink>
+          </Typography>
         </Link>
       ),
     },
@@ -113,45 +146,42 @@ export const MarketsInterestTab = ({
       headerName: "Borrower",
       minWidth: 150,
       renderCell: ({ value }) => (
-        <Link href={`${ROUTES.borrower.profile}/${value}`}>
-          <MuiLink
-            component="span"
-            underline="hover"
-            color={COLORS.ultramarineBlue}
-          >
-            {trimAddress(value)}
-          </MuiLink>
-        </Link>
+        <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          <MuiTooltip title={value} placement="top">
+            <Link href={`${ROUTES.borrower.profile}/${value}`}>
+              <Typography component="span" variant="text3">
+                {trimAddress(value)}
+              </Typography>
+            </Link>
+          </MuiTooltip>
+          <LinkGroup linkValue={getAddressUrl(value)} copyValue={value} />
+        </Box>
       ),
     },
     {
       field: "asset",
       headerName: "Asset",
       minWidth: 110,
+      renderCell: ({ value }) => <TextCell>{value}</TextCell>,
     },
     {
       field: "addedDate",
       headerName: "First deposit",
       minWidth: 140,
+      renderCell: ({ value }) => <TextCell>{value}</TextCell>,
     },
     {
       field: "status",
       headerName: "Status",
       minWidth: 130,
-      renderCell: ({ value }) => {
-        const isActive = value !== "Closed"
-        return (
-          <Chip
-            label={isActive ? "Active" : "Exited"}
-            size="small"
-            sx={{
-              borderRadius: "8px",
-              backgroundColor: isActive ? COLORS.lightGreen : COLORS.athensGrey,
-              color: isActive ? COLORS.blackRock : COLORS.santasGrey,
-            }}
-          />
-        )
-      },
+      renderCell: ({ value }) => (
+        <MarketStatusChip
+          status={getHistoryMarketStatus(
+            value as "Active" | "Delinquent" | "Penalty" | "Closed",
+          )}
+          withPeriod={false}
+        />
+      ),
     },
     {
       field: "totalDeposited",
@@ -159,7 +189,11 @@ export const MarketsInterestTab = ({
       minWidth: 140,
       align: "right",
       headerAlign: "right",
-      valueFormatter: (value) => formatUsd(value as number, { compact: true }),
+      renderCell: ({ value }) => (
+        <RightTextCell>
+          {formatUsd(value as number, { compact: true })}
+        </RightTextCell>
+      ),
     },
     {
       field: "interestEarned",
@@ -167,14 +201,18 @@ export const MarketsInterestTab = ({
       minWidth: 130,
       align: "right",
       headerAlign: "right",
-      valueFormatter: (value) => formatUsd(value as number, { compact: true }),
+      renderCell: ({ value }) => (
+        <RightTextCell>
+          {formatUsd(value as number, { compact: true })}
+        </RightTextCell>
+      ),
     },
   ]
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       <Box>
-        <Typography variant="title3" marginBottom="12px">
+        <Typography variant="title3" marginBottom="24px">
           Interest breakdown
         </Typography>
 
@@ -185,11 +223,11 @@ export const MarketsInterestTab = ({
               borderRadius: "16px",
               backgroundColor: COLORS.white,
               padding: "24px",
-              marginBottom: "16px",
+              marginBottom: "24px",
             }}
           >
             <Typography variant="text2Highlighted">
-              Interest by market
+              Interest by position
             </Typography>
             <Typography
               variant="text4"
@@ -199,7 +237,9 @@ export const MarketsInterestTab = ({
               sx={{ lineHeight: 1.45 }}
             >
               {formatUsd(totalInterest, { compact: true })} total interest
-              earned.
+              earned across {interestRows.length} historical positions with
+              interest, including exited markets. Active positions currently
+              open with balance: {activePositionCount}.
             </Typography>
 
             <Box
@@ -314,8 +354,17 @@ export const MarketsInterestTab = ({
       </Box>
 
       <Box>
-        <Typography variant="title3" marginBottom="12px">
+        <Typography variant="title3" marginBottom="6px">
           Market history
+        </Typography>
+        <Typography
+          variant="text4"
+          color={COLORS.santasGrey}
+          marginBottom="24px"
+          display="block"
+          sx={{ lineHeight: 1.45 }}
+        >
+          All {positions.length} lender positions, including exited markets.
         </Typography>
         <AnalyticsDataGrid
           loading={isLoading}

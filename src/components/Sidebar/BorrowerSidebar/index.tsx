@@ -1,4 +1,4 @@
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button } from "@mui/material"
 import { usePathname } from "next/navigation"
 
 import { BackButton } from "@/components/BackButton"
@@ -26,44 +26,24 @@ const ProfileTabList = ({
   )
 
   return (
-    <Box display="flex" flexDirection="column" rowGap="6px" width="100%">
+    <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
       {resolved.tabs.map((tab) => {
         const isActive = tab.value === currentTab
 
         return (
-          <Box
+          <Button
             key={tab.value}
-            component="button"
             type="button"
+            variant="text"
+            size="medium"
             onClick={() => setCurrentTab(tab.value)}
             sx={{
-              all: "unset",
-              cursor: "pointer",
-              display: "flex",
-              flexDirection: "column",
-              gap: "2px",
-              padding: "10px 12px",
-              borderRadius: "10px",
-              border: `1px solid ${
-                isActive ? COLORS.hawkesBlue : COLORS.athensGrey
-              }`,
-              backgroundColor: isActive ? COLORS.glitter : COLORS.whiteSmoke,
-              transition: "background-color 120ms, border-color 120ms",
-              "&:hover": {
-                backgroundColor: isActive ? COLORS.glitter : COLORS.athensGrey,
-              },
+              ...MenuItemButton,
+              backgroundColor: isActive ? COLORS.whiteSmoke : "transparent",
             }}
           >
-            <Typography
-              variant="text3"
-              sx={{
-                color: COLORS.blackRock,
-                fontWeight: isActive ? 600 : 500,
-              }}
-            >
-              {tab.label}
-            </Typography>
-          </Box>
+            {tab.label}
+          </Button>
         )
       })}
     </Box>
