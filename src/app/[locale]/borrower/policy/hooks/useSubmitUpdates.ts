@@ -13,7 +13,7 @@ import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetPolicyLendersState } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 import {
-  toEthersTransactionRequest,
+  sendTransactionAndWait,
   toSafeTransactions,
 } from "@/utils/transactions"
 
@@ -128,9 +128,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
           // eslint-disable-next-line no-restricted-syntax
           for (const tx of txs) {
             // eslint-disable-next-line no-await-in-loop
-            await signer
-              .sendTransaction(toEthersTransactionRequest(tx))
-              .then(({ wait }) => wait())
+            await sendTransactionAndWait(signer, tx)
           }
           return {
             status: "success",

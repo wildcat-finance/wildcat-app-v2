@@ -7,10 +7,11 @@ import { randomBytes } from "crypto"
 import { before } from "node:test"
 
 import { getLensV2Contract, Market } from "@wildcatfi/wildcat-sdk"
-import { Wallet } from "ethers"
 import { NextApiRequest } from "next"
 import { RequestInit } from "next/dist/server/web/spec-extension/request"
 import { NextRequest } from "next/server"
+import { bytesToHex, type Hex } from "viem"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 // import { Body, createMocks, createRequest } from "node-mocks-http"
 
 import { TargetChainId, TargetNetwork } from "@/config/network"
@@ -220,19 +221,18 @@ describe("API", () => {
   const adminPrivateKey = randomBytes(32)
 
   const provider = getProviderForServer()
-  const wallet = new Wallet(privateKey, provider)
-  const adminWallet = new Wallet(adminPrivateKey, provider)
-  const otherWallet = Wallet.createRandom({ provider })
-  const realWallet = new Wallet(
-    process.env.TEST_BORROWER_PRIVATE_KEY as `0x${string}`,
-    provider,
+  const wallet = privateKeyToAccount(bytesToHex(privateKey))
+  const adminWallet = privateKeyToAccount(bytesToHex(adminPrivateKey))
+  const otherWallet = privateKeyToAccount(generatePrivateKey())
+  const realWallet = privateKeyToAccount(
+    process.env.TEST_BORROWER_PRIVATE_KEY as Hex,
   )
   const borrowerAddress = wallet.address as `0x${string}`
   let adminToken: string = ""
   let borrowerToken: string = ""
   let otherToken: string = ""
 
-  async function getToken(walletToUse: Wallet, isAdmin: boolean) {
+  async function getToken(walletToUse: typeof wallet, isAdmin: boolean) {
     if (isAdmin) {
       const isAlreadyAdmin = await prisma.adminAccount.findFirst({
         where: {
@@ -251,7 +251,7 @@ describe("API", () => {
     const LoginMessage = `Connect to wildcat.finance as account ${walletToUse.address.toLowerCase()}\nDate: ${dayjs(
       timeSigned,
     ).format("MMMM DD, YYYY")}`
-    const signature = await walletToUse.signMessage(LoginMessage)
+    const signature = await walletToUse.signMessage({ message: LoginMessage })
     const req = mockPost("/api/auth/login", {
       address: walletToUse.address,
       signature,
@@ -304,7 +304,9 @@ describe("API", () => {
       const LoginMessage = `Connect to wildcat.finance as account ${adminWallet.address.toLowerCase()}\nDate: ${dayjs(
         timeSigned,
       ).format("MMMM DD, YYYY")}`
-      const signature = await adminWallet.signMessage(LoginMessage)
+      const signature = await adminWallet.signMessage({
+        message: LoginMessage,
+      })
       const req = mockPost("/api/auth/login", {
         address: adminWallet.address,
         signature,
@@ -488,7 +490,7 @@ describe("API", () => {
   describe("[PUT] /api/invite/[address]", () => {
     test("Fails if invitation does not exist", async () => {
       const timeSigned = Date.now()
-      const wallet2 = Wallet.createRandom({ provider })
+      const wallet2 = privateKeyToAccount(generatePrivateKey())
       const token = await getToken(wallet2, false)
       const body: AcceptInvitationInput = {
         address: wallet2.address as `0x${string}`,
@@ -516,12 +518,12 @@ describe("API", () => {
         agreementText = `${agreementText}\n\nDate: ${dateSigned}`
       }
       agreementText = `${agreementText}\n\nOrganization Name: ${invite.name}`
-      const wallet2 = Wallet.createRandom({ provider })
+      const wallet2 = privateKeyToAccount(generatePrivateKey())
       const body: AcceptInvitationInput = {
         address: borrowerAddress,
         name: invite.name,
         timeSigned,
-        signature: await wallet2.signMessage(agreementText),
+        signature: await wallet2.signMessage({ message: agreementText }),
       }
       const req = mockPut(`/api/invite/${wallet2.address}`, body, {
         headers: {
@@ -545,7 +547,7 @@ describe("API", () => {
         address: borrowerAddress,
         name: invite.name,
         timeSigned,
-        signature: await wallet.signMessage(agreementText),
+        signature: await wallet.signMessage({ message: agreementText }),
       }
       const req = mockPut(`/api/invite/${borrowerAddress}`, body, {
         headers: {
@@ -726,7 +728,9 @@ describe("API", () => {
         mlaTemplate as unknown as MlaTemplate,
         values,
       )
-      const signature = await realWallet.signMessage(filledTemplate.plaintext)
+      const signature = await realWallet.signMessage({
+        message: filledTemplate.plaintext,
+      })
       const req = mockPost(`/api/mla/${market.address}`, {
         mlaTemplate: mlaTemplate.id,
         timeSigned,

@@ -1,9 +1,10 @@
-import type { TransactionReceipt } from "@ethersproject/providers"
 import {
   PartialTransaction,
   SafeTransactionInput,
+  Signer,
   toSafeTransactionInput,
 } from "@wildcatfi/wildcat-sdk"
+import type { TransactionReceipt } from "viem"
 
 export const toSafeTransactions = (
   txs: PartialTransaction[],
@@ -14,6 +15,17 @@ export const toEthersTransactionRequest = (tx: PartialTransaction) => ({
   data: tx.data,
   value: (tx.value ?? BigInt(0)).toString(),
 })
+
+export const sendTransactionAndWait = async (
+  signer: Signer,
+  tx: PartialTransaction,
+) => {
+  const submitted = await signer.sendTransaction(toEthersTransactionRequest(tx))
+  if (!submitted.wait) {
+    throw Error("Submitted transaction does not expose a wait function")
+  }
+  return submitted.wait()
+}
 
 type SafeSdkLike = {
   txs: {

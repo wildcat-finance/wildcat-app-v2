@@ -1,6 +1,6 @@
-import type { providers } from "ethers"
+import type { ViemProviderLike } from "../viem-provider"
 
-type JsonRpcProvider = providers.JsonRpcProvider
+type JsonRpcProvider = ViemProviderLike
 
 export type VerifiedSignature =
   | {

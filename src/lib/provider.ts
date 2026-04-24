@@ -1,10 +1,12 @@
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
-import { providers } from "ethers"
 import { createPublicClient, http } from "viem"
 import { mainnet, sepolia } from "viem/chains"
 
+import { TargetChainId } from "@/config/network"
+
 import { plasmaMainnet } from "./chains/plasma-mainnet"
 import { plasmaTestnet } from "./chains/plasma-testnet"
+import { createViemProvider } from "./viem-provider"
 
 const VIEM_CHAIN_BY_ID = {
   [SupportedChainId.Sepolia]: sepolia,
@@ -22,7 +24,9 @@ const RPC_URL_BY_ID = {
   [SupportedChainId.PlasmaMainnet]: "https://rpc.plasma.to",
 }
 
-export const getProviderForServer = (chainId: SupportedChainId) => {
+export const getProviderForServer = (
+  chainId: SupportedChainId = TargetChainId,
+) => {
   const chain = VIEM_CHAIN_BY_ID[chainId]
   const rpcUrl = RPC_URL_BY_ID[chainId].replace(
     "ALCHEMY_API_KEY",
@@ -33,14 +37,5 @@ export const getProviderForServer = (chainId: SupportedChainId) => {
     chain,
     transport: http(rpcUrl),
   })
-  const { account, transport } = client
-  const network = {
-    chainId: chain.id,
-    name: chain.name,
-    ensAddress: (
-      chain.contracts as { ensRegistry?: { address: string } } | undefined
-    )?.ensRegistry?.address,
-  }
-  const provider = new providers.Web3Provider(transport, network)
-  return provider
+  return createViemProvider(client)
 }

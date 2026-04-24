@@ -1,5 +1,4 @@
 import { AccountKind, describeAccount } from "@wildcatfi/wildcat-sdk"
-import type { CallOverrides, providers } from "ethers"
 import {
   decodeFunctionResult,
   encodeFunctionData,
@@ -15,8 +14,14 @@ import {
 } from "viem"
 
 import { VerifiedSignature, VerifySignatureOptions } from "./interface"
+import type { ViemProviderLike } from "../viem-provider"
 
-type JsonRpcProvider = providers.JsonRpcProvider
+type JsonRpcProvider = ViemProviderLike
+
+type CallOverrides = {
+  blockTag?: number | bigint
+  from?: string
+}
 
 const MAGIC_VALUE = "0x1626ba7e"
 const MAGIC_VALUE_BYTES = "0x20c13b0b"
