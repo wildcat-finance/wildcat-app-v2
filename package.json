@@ -1,6 +1,6 @@
 {
   "name": "wildcat-app-v2",
-  "version": "2.16.0",
+  "version": "3.0.0-beta",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -37,7 +37,7 @@
     "@types/humanize-duration": "^3.27.4",
     "@types/react-scroll": "^1.8.10",
     "@types/redux-mock-store": "^1.0.6",
-    "@wildcatfi/wildcat-sdk": "^3.0.68-beta",
+    "@wildcatfi/wildcat-sdk": "file:../wildcat.ts",
     "base64-arraybuffer": "^1.0.2",
     "classnames": "^2.5.1",
     "dayjs": "^1.11.10",
@@ -111,6 +111,7 @@
     "prisma": "^6.0.1",
     "redux-mock-store": "^1.5.4",
     "storybook": "^7.6.6",
+    "tailwindcss": "^3.4.2",
     "ts-node": "^10.9.2",
     "typescript": "^5"
   },
