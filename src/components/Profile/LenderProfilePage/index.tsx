@@ -19,6 +19,7 @@ import { pageCalcHeights } from "@/utils/constants"
 import { ActivityCashFlowTab } from "./components/ActivityCashFlowTab"
 import { LenderOverviewTab } from "./components/LenderOverviewTab"
 import { MarketsInterestTab } from "./components/MarketsInterestTab"
+import { TempTestChartsTab } from "./components/TempTestChartsTab"
 
 type LenderProfilePageProps = {
   profileAddress: `0x${string}` | undefined
@@ -97,6 +98,13 @@ export const LenderProfilePage = ({
           )}
           {currentTab === "markets" && (
             <MarketsInterestTab
+              data={positionsQuery.data}
+              isLoading={positionsQuery.isLoading}
+            />
+          )}
+          {currentTab === "temp-test-charts" && (
+            <TempTestChartsTab
+              lenderAddress={profileAddress}
               data={positionsQuery.data}
               isLoading={positionsQuery.isLoading}
             />

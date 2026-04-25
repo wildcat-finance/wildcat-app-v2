@@ -18,6 +18,7 @@ export type LenderPositionRow = {
   borrower: string
   asset: string
   currentBalance: number
+  currentTokenBalance: number
   totalDeposited: number
   interestEarned: number
   apr: number
@@ -70,4 +71,28 @@ export type LenderBatchRow = {
   isClosed: boolean
   isExpired: boolean
   expiry: string
+}
+
+export type LenderCapitalAtRiskPoint = {
+  date: string
+  dateShort: string
+  timestamp: number
+  healthyUsd: number
+  graceUsd: number
+  penaltyUsd: number
+  withdrawalQueueUsd: number
+  cumulativeDelinquencyFeesEarnedUsd: number
+}
+
+export type LenderRiskReturnsPoint = {
+  date: string
+  dateShort: string
+  timestamp: number
+  cumulativeInterestUsd: number
+  depositsUsd: number
+  cumulativeNetDepositsUsd: number
+  otherWithdrawalsUsd: number
+  lenderWithdrawalsUsd: number
+  marketWithdrawalsUsd: number
+  lenderWithdrawalSharePct: number
 }
