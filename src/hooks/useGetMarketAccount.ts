@@ -59,7 +59,6 @@ export function useBorrowerMarketAccountQuery({
     targetChainId,
     lenderAddress,
     marketAddress,
-    market,
   )
 
   const {

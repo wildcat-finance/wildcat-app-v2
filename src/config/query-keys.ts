@@ -1,6 +1,10 @@
 import { getAddress, isAddress } from "viem"
 
 const normalizeKeyPart = (value: unknown): unknown => {
+  if (typeof value === "bigint") {
+    return value.toString()
+  }
+
   if (typeof value === "string" && isAddress(value)) {
     try {
       return getAddress(value).toLowerCase()
@@ -82,7 +86,6 @@ const BORROWER_QUERY_KEYS = {
     chainId: number,
     borrowerAddress?: string,
     marketAddress?: string,
-    market?: unknown,
   ) =>
     k([
       "borrower",
@@ -90,7 +93,6 @@ const BORROWER_QUERY_KEYS = {
       chainId,
       borrowerAddress,
       marketAddress,
-      market,
     ]),
   // GET_BORROWER_PROFILE_KEY
   // @TODO this is a duplicate of GET_PROFILE - double check that the fact the function
