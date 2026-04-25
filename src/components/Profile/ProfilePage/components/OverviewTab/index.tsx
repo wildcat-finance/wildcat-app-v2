@@ -162,7 +162,13 @@ export const OverviewTab = ({
             padding: isMobile ? "16px" : "24px",
           }}
         >
-          <Typography variant="title3">Active markets</Typography>
+          <Typography
+            variant="title2"
+            display="block"
+            sx={{ marginBottom: "24px" }}
+          >
+            Active markets
+          </Typography>
           <MarketsBlock markets={borrowerMarkets} isLoading={false} />
         </Box>
       ) : (
@@ -174,7 +180,11 @@ export const OverviewTab = ({
             padding: "24px",
           }}
         >
-          <Typography variant="title3" marginBottom="24px">
+          <Typography
+            variant="title2"
+            display="block"
+            sx={{ marginBottom: "24px" }}
+          >
             Active markets
           </Typography>
           <Typography variant="text2" color={COLORS.santasGrey}>

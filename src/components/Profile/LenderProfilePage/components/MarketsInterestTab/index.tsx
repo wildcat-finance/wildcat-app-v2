@@ -212,7 +212,11 @@ export const MarketsInterestTab = ({
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       <Box>
-        <Typography variant="title3" marginBottom="24px">
+        <Typography
+          variant="title2"
+          display="block"
+          sx={{ marginBottom: "24px" }}
+        >
           Interest breakdown
         </Typography>
 
@@ -354,15 +358,18 @@ export const MarketsInterestTab = ({
       </Box>
 
       <Box>
-        <Typography variant="title3" marginBottom="6px">
+        <Typography
+          variant="title2"
+          display="block"
+          sx={{ marginBottom: "6px" }}
+        >
           Market history
         </Typography>
         <Typography
-          variant="text4"
+          variant="text3"
           color={COLORS.santasGrey}
-          marginBottom="24px"
           display="block"
-          sx={{ lineHeight: 1.45 }}
+          sx={{ marginBottom: "24px" }}
         >
           All {positions.length} lender positions, including exited markets.
         </Typography>

@@ -28,6 +28,9 @@ export const analyticsDataGridSx = {
     fontWeight: 500,
     letterSpacing: 0,
   },
+  "& .MuiDataGrid-columnHeader .MuiDataGrid-columnHeaderTitleContainer": {
+    margin: "0 0 8px",
+  },
   "& .MuiDataGrid-cell": {
     color: COLORS.blackRock,
   },
