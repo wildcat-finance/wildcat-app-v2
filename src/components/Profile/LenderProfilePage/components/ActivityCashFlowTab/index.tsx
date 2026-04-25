@@ -452,14 +452,18 @@ export const ActivityCashFlowTab = ({
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       <Box>
-        <Typography variant="title3">Deposit & Withdrawal Activity</Typography>
         <Typography
-          variant="text4"
-          color={COLORS.santasGrey}
-          marginTop="6px"
-          marginBottom="24px"
+          variant="title2"
           display="block"
-          sx={{ lineHeight: 1.45 }}
+          sx={{ marginBottom: "6px" }}
+        >
+          Deposit & Withdrawal Activity
+        </Typography>
+        <Typography
+          variant="text3"
+          color={COLORS.santasGrey}
+          display="block"
+          sx={{ marginBottom: "24px" }}
         >
           Cumulative capital flow and transaction history
         </Typography>
@@ -478,7 +482,11 @@ export const ActivityCashFlowTab = ({
       </Box>
 
       <Box>
-        <Typography variant="title3" marginBottom="24px">
+        <Typography
+          variant="title2"
+          display="block"
+          sx={{ marginBottom: "24px" }}
+        >
           Withdrawal batch status
         </Typography>
 

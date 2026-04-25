@@ -86,19 +86,24 @@ const SectionCard = ({
       padding: "24px",
     }}
   >
-    <Typography variant="title3">{title}</Typography>
+    <Typography
+      variant="title2"
+      display="block"
+      sx={{ marginBottom: subtitle ? "6px" : "24px" }}
+    >
+      {title}
+    </Typography>
     {subtitle && (
       <Typography
-        variant="text4"
+        variant="text3"
         color={COLORS.santasGrey}
-        marginTop="6px"
         display="block"
-        sx={{ lineHeight: 1.45 }}
+        sx={{ marginBottom: "24px" }}
       >
         {subtitle}
       </Typography>
     )}
-    <Box sx={{ marginTop: "24px" }}>{children}</Box>
+    <Box>{children}</Box>
   </Box>
 )
 

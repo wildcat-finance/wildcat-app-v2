@@ -136,12 +136,14 @@ export const LenderOverviewHeader = ({
       }}
     >
       <Box>
-        <Typography variant="title2">Lender Profile</Typography>
         <Typography
-          variant="text2"
-          color={COLORS.santasGrey}
-          sx={{ marginTop: "4px", display: "block" }}
+          variant="title2"
+          display="block"
+          sx={{ marginBottom: "6px" }}
         >
+          Lender Profile
+        </Typography>
+        <Typography variant="text3" color={COLORS.santasGrey} display="block">
           Portfolio overview and position details for this lender
         </Typography>
       </Box>

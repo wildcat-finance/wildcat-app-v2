@@ -299,7 +299,11 @@ export const LenderOverviewTab = ({
       />
 
       <Box>
-        <Typography variant="title3" marginBottom="24px">
+        <Typography
+          variant="title2"
+          display="block"
+          sx={{ marginBottom: "24px" }}
+        >
           Active positions
         </Typography>
         <AnalyticsDataGrid
@@ -312,7 +316,11 @@ export const LenderOverviewTab = ({
       </Box>
 
       <Box>
-        <Typography variant="title3" marginBottom="24px">
+        <Typography
+          variant="title2"
+          display="block"
+          sx={{ marginBottom: "24px" }}
+        >
           Borrower exposure
         </Typography>
         <AnalyticsDataGrid
