@@ -25,7 +25,7 @@ export const CHART_COLORS = {
   tooltipBorder: COLORS.iron,
 }
 
-export const ChartCardStyle: SxProps<Theme> = {
+export const ChartCardStyle = {
   backgroundColor: COLORS.blackHaze,
   borderRadius: "12px",
   padding: "16px 20px 12px",
@@ -45,7 +45,14 @@ export const ChartCardStyle: SxProps<Theme> = {
   "& .recharts-wrapper *:focus, & .recharts-wrapper *:focus-visible": {
     outline: `2px solid ${COLORS.ultramarineBlue}`,
   },
-}
+} satisfies SxProps<Theme>
+
+export const ProfileChartContainerStyle = {
+  width: "100%",
+  maxWidth: { xs: "100%", lg: "75%" },
+  marginLeft: "auto",
+  marginRight: "auto",
+} satisfies SxProps<Theme>
 
 export const ChartHeaderStyle: SxProps<Theme> = {
   display: "flex",

@@ -7,21 +7,12 @@ import {
   Chip,
   Skeleton,
   Tooltip as MuiTooltip,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import Link from "next/link"
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  Legend,
-  Line,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts"
 
 import { LenderAnalyticsSummary } from "@/app/[locale]/lender/market/[address]/components/LenderAnalyticsSummary"
 import {
@@ -34,16 +25,17 @@ import {
   LenderDailyCashFlowPoint,
   useLenderDailyStats,
 } from "@/app/[locale]/lender/profile/hooks/useLenderDailyStats"
-import { LinkGroup } from "@/components/LinkComponent"
 import {
-  AnalyticsTimeRange,
-  filterByTimeRange,
-  formatUsd,
-} from "@/components/Profile/shared/analytics"
+  ChartTooltipFormatter,
+  TimeSeriesChart,
+  TimeSeriesConfig,
+  formatChartDate,
+} from "@/components/ECharts"
+import { tooltipRow, tooltipShell } from "@/components/ECharts/formatters"
+import { LinkGroup } from "@/components/LinkComponent"
+import { formatUsd } from "@/components/Profile/shared/analytics"
 import { AnalyticsChartCard } from "@/components/Profile/shared/AnalyticsChartCard"
 import { AnalyticsDataGrid } from "@/components/Profile/shared/AnalyticsDataGrid"
-import { AxisStyle, GridStyle } from "@/components/Profile/shared/chartStyle"
-import { ChartTooltip } from "@/components/Profile/shared/ChartTooltip"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -109,6 +101,209 @@ const DEPOSIT_COLOR = "#34d399"
 const WITHDRAWAL_COLOR = "#f87171"
 const NET_FLOW_COLOR = "#22d3ee"
 
+type CashFlowPeriod = "D" | "W" | "M" | "Q" | "Y" | "Cumulative"
+
+type CashFlowChartPoint = LenderDailyCashFlowPoint & {
+  periodDeposits: number
+  periodWithdrawalsRequested: number
+  periodWithdrawalsExecuted: number
+  periodInterestEarned: number
+}
+
+const CASH_FLOW_PERIODS: CashFlowPeriod[] = [
+  "D",
+  "W",
+  "M",
+  "Q",
+  "Y",
+  "Cumulative",
+]
+
+const CASH_FLOW_SERIES: TimeSeriesConfig<CashFlowChartPoint>[] = [
+  {
+    key: "cumDeposits",
+    name: "Cumulative Deposits",
+    color: DEPOSIT_COLOR,
+    kind: "area",
+  },
+  {
+    key: "cumWithdrawalsExecuted",
+    name: "Cumulative Withdrawals",
+    color: WITHDRAWAL_COLOR,
+    kind: "area",
+  },
+  {
+    key: "netFlowExecuted",
+    name: "Net Flow",
+    color: NET_FLOW_COLOR,
+    kind: "line",
+  },
+]
+
+const getUtcDate = (timestamp: number) => new Date(timestamp * 1000)
+
+const getPeriodStartTimestamp = (
+  timestamp: number,
+  period: Exclude<CashFlowPeriod, "D" | "Cumulative">,
+) => {
+  const date = getUtcDate(timestamp)
+  const year = date.getUTCFullYear()
+  const month = date.getUTCMonth()
+
+  if (period === "W") {
+    const start = new Date(
+      Date.UTC(year, month, date.getUTCDate() - ((date.getUTCDay() + 6) % 7)),
+    )
+    return Math.floor(start.getTime() / 1000)
+  }
+
+  if (period === "M") return Math.floor(Date.UTC(year, month, 1) / 1000)
+  if (period === "Q")
+    return Math.floor(Date.UTC(year, month - (month % 3), 1) / 1000)
+  return Math.floor(Date.UTC(year, 0, 1) / 1000)
+}
+
+const getCashFlowPointWithPeriodValues = (
+  point: LenderDailyCashFlowPoint,
+): CashFlowChartPoint => ({
+  ...point,
+  periodDeposits: point.dayDeposits,
+  periodWithdrawalsRequested: point.dayWithdrawalsRequested,
+  periodWithdrawalsExecuted: point.dayWithdrawalsExecuted,
+  periodInterestEarned: point.dayInterestEarned,
+})
+
+const groupCashFlowData = (
+  data: LenderDailyCashFlowPoint[],
+  period: CashFlowPeriod,
+): CashFlowChartPoint[] => {
+  if (period === "D" || period === "Cumulative") {
+    return data.map(getCashFlowPointWithPeriodValues)
+  }
+
+  const grouped = new Map<number, CashFlowChartPoint>()
+
+  data.forEach((point) => {
+    const timestamp = getPeriodStartTimestamp(point.timestamp, period)
+    const existing = grouped.get(timestamp)
+
+    if (!existing) {
+      grouped.set(timestamp, {
+        ...point,
+        timestamp,
+        date: formatChartDate(timestamp * 1000),
+        dateShort: formatChartDate(timestamp * 1000),
+        periodDeposits: point.dayDeposits,
+        periodWithdrawalsRequested: point.dayWithdrawalsRequested,
+        periodWithdrawalsExecuted: point.dayWithdrawalsExecuted,
+        periodInterestEarned: point.dayInterestEarned,
+      })
+      return
+    }
+
+    existing.periodDeposits += point.dayDeposits
+    existing.periodWithdrawalsRequested += point.dayWithdrawalsRequested
+    existing.periodWithdrawalsExecuted += point.dayWithdrawalsExecuted
+    existing.periodInterestEarned += point.dayInterestEarned
+    existing.cumDeposits = point.cumDeposits
+    existing.cumWithdrawalsRequested = point.cumWithdrawalsRequested
+    existing.cumWithdrawalsExecuted = point.cumWithdrawalsExecuted
+    existing.cumInterestEarned = point.cumInterestEarned
+    existing.netFlowExecuted = point.netFlowExecuted
+    existing.netFlowRequested = point.netFlowRequested
+    existing.pendingBand = point.pendingBand
+  })
+
+  return Array.from(grouped.values()).sort(
+    (left, right) => left.timestamp - right.timestamp,
+  )
+}
+
+const buildCashFlowCsv = (data: CashFlowChartPoint[]) =>
+  [
+    [
+      "Date",
+      "Deposits",
+      "Withdrawals Requested",
+      "Withdrawals Executed",
+      "Interest Earned",
+      "Cumulative Deposits",
+      "Cumulative Withdrawals",
+      "Net Flow",
+      "Total Movement",
+    ],
+    ...data.map((point) => [
+      formatChartDate(point.timestamp * 1000),
+      point.periodDeposits,
+      point.periodWithdrawalsRequested,
+      point.periodWithdrawalsExecuted,
+      point.periodInterestEarned,
+      point.cumDeposits,
+      point.cumWithdrawalsExecuted,
+      point.netFlowExecuted,
+      point.periodDeposits + point.periodWithdrawalsExecuted,
+    ]),
+  ]
+    .map((row) =>
+      row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(","),
+    )
+    .join("\n")
+
+const getCashFlowTooltip =
+  (period: CashFlowPeriod): ChartTooltipFormatter<CashFlowChartPoint> =>
+  (params, data) => {
+    const items = Array.isArray(params) ? params : [params]
+    const timestamp = Number(items[0]?.axisValue ?? 0) / 1000
+    const point = data.find((item) => item.timestamp === timestamp)
+    if (!point) return ""
+
+    const periodLabel = period === "Cumulative" ? "Daily" : period
+    const rows = [
+      tooltipRow({
+        color: DEPOSIT_COLOR,
+        label: `${periodLabel} deposits`,
+        value: formatUsd(point.periodDeposits, { compact: true }),
+      }),
+      tooltipRow({
+        color: WITHDRAWAL_COLOR,
+        label: `${periodLabel} withdrawals`,
+        value: formatUsd(point.periodWithdrawalsExecuted, { compact: true }),
+      }),
+      tooltipRow({
+        color: COLORS.galliano,
+        label: "Requested withdrawals",
+        value: formatUsd(point.periodWithdrawalsRequested, { compact: true }),
+      }),
+      tooltipRow({
+        color: DEPOSIT_COLOR,
+        label: "Cumulative deposits",
+        value: formatUsd(point.cumDeposits, { compact: true }),
+      }),
+      tooltipRow({
+        color: WITHDRAWAL_COLOR,
+        label: "Cumulative withdrawals",
+        value: formatUsd(point.cumWithdrawalsExecuted, { compact: true }),
+      }),
+      tooltipRow({
+        color: NET_FLOW_COLOR,
+        label: "Net flow",
+        value: formatUsd(point.netFlowExecuted, { compact: true }),
+      }),
+      tooltipRow({
+        color: COLORS.santasGrey,
+        label: "Total movement",
+        value: formatUsd(
+          point.periodDeposits + point.periodWithdrawalsExecuted,
+          {
+            compact: true,
+          },
+        ),
+      }),
+    ].join("")
+
+    return tooltipShell(formatChartDate(point.timestamp * 1000), rows)
+  }
+
 const UsdCell = ({ value }: { value: number | undefined }) => {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return <Typography variant="text3">—</Typography>
@@ -136,80 +331,75 @@ const formatAxisUsd = (v: number) => {
   return `$${v.toFixed(0)}`
 }
 
+const PeriodSelector = ({
+  value,
+  onChange,
+}: {
+  value: CashFlowPeriod
+  onChange: (value: CashFlowPeriod) => void
+}) => (
+  <ToggleButtonGroup
+    exclusive
+    size="small"
+    value={value}
+    onChange={(_, nextValue: CashFlowPeriod | null) => {
+      if (nextValue) onChange(nextValue)
+    }}
+    sx={{
+      "& .MuiToggleButton-root": {
+        borderColor: COLORS.athensGrey,
+        color: COLORS.santasGrey,
+        fontFamily: "inherit",
+        fontSize: 10,
+        lineHeight: 1,
+        minWidth: 30,
+        padding: "5px 7px",
+        textTransform: "none",
+      },
+      "& .Mui-selected": {
+        backgroundColor: `${COLORS.ultramarineBlue}14 !important`,
+        color: `${COLORS.ultramarineBlue} !important`,
+      },
+    }}
+  >
+    {CASH_FLOW_PERIODS.map((period) => (
+      <ToggleButton
+        key={period}
+        value={period}
+        aria-label={`${period} grouping`}
+      >
+        {period}
+      </ToggleButton>
+    ))}
+  </ToggleButtonGroup>
+)
+
 const CashFlowChart = ({
   data,
-  timeRange,
+  period,
 }: {
   data: LenderDailyCashFlowPoint[]
-  timeRange: AnalyticsTimeRange
+  period: CashFlowPeriod
 }) => {
-  const filtered = filterByTimeRange(data, timeRange)
-  const tickInterval = Math.max(1, Math.floor(filtered.length / 12))
+  const groupedData = React.useMemo(
+    () => groupCashFlowData(data, period),
+    [data, period],
+  )
 
   return (
-    <ResponsiveContainer>
-      <AreaChart
-        data={filtered}
-        margin={{ top: 8, right: 12, bottom: 0, left: 4 }}
-      >
-        <CartesianGrid {...GridStyle} />
-        <XAxis
-          dataKey="dateShort"
-          tick={AxisStyle}
-          tickLine={false}
-          axisLine={false}
-          interval={tickInterval}
-        />
-        <YAxis
-          tick={AxisStyle}
-          tickLine={false}
-          axisLine={false}
-          tickFormatter={formatAxisUsd}
-          width={72}
-        />
-        <Tooltip
-          content={
-            <ChartTooltip
-              formatValue={(value) => formatUsd(value, { compact: true })}
-            />
-          }
-        />
-        <Legend
-          verticalAlign="top"
-          align="right"
-          height={24}
-          iconType="plainline"
-          wrapperStyle={{ fontSize: 11, color: COLORS.santasGrey }}
-        />
-        <Area
-          type="monotone"
-          dataKey="cumDeposits"
-          stroke={DEPOSIT_COLOR}
-          strokeWidth={2}
-          fill={`${DEPOSIT_COLOR}20`}
-          name="Cumulative Deposits"
-          isAnimationActive={false}
-        />
-        <Area
-          type="monotone"
-          dataKey="cumWithdrawalsExecuted"
-          stroke={WITHDRAWAL_COLOR}
-          strokeWidth={2}
-          fill={`${WITHDRAWAL_COLOR}20`}
-          name="Cumulative Withdrawals"
-          isAnimationActive={false}
-        />
-        <Line
-          type="monotone"
-          dataKey="netFlowExecuted"
-          stroke={NET_FLOW_COLOR}
-          strokeWidth={2}
-          dot={false}
-          name="Net Flow"
-          isAnimationActive={false}
-        />
-      </AreaChart>
-    </ResponsiveContainer>
+    <TimeSeriesChart
+      data={groupedData}
+      series={CASH_FLOW_SERIES}
+      formatValue={(value) => formatUsd(value, { compact: true })}
+      yAxisFormatter={formatAxisUsd}
+      tooltipFormatter={getCashFlowTooltip(period)}
+      showExportActions
+      exportButtonVariant="text"
+      csvContent={buildCashFlowCsv(groupedData)}
+      csvFileName={`lender-cashflow-${period.toLowerCase()}.csv`}
+      imageFileName={`lender-cashflow-${period.toLowerCase()}.png`}
+      ariaLabel="Cumulative lender capital flow"
+    />
   )
 }
 
@@ -219,7 +409,8 @@ export const ActivityCashFlowTab = ({
   isPositionsLoading,
 }: ActivityCashFlowTabProps) => {
   const { getTxUrl } = useBlockExplorer()
-  const [timeRange, setTimeRange] = React.useState<AnalyticsTimeRange>("all")
+  const [cashFlowPeriod, setCashFlowPeriod] =
+    React.useState<CashFlowPeriod>("Cumulative")
 
   const activityQuery = useLenderActivity(
     lenderAddress,
@@ -422,13 +613,20 @@ export const ActivityCashFlowTab = ({
         <AnalyticsChartCard
           title="Cumulative Capital Flow"
           description="Cumulative deposits vs withdrawals over time (USD)"
-          showTimeRange
-          timeRange={timeRange}
-          onTimeRangeChange={setTimeRange}
+          actions={
+            <PeriodSelector
+              value={cashFlowPeriod}
+              onChange={setCashFlowPeriod}
+            />
+          }
           cardHeight={260}
+          constrainWidth
         >
           {() => (
-            <CashFlowChart data={dailyStatsQuery.data!} timeRange={timeRange} />
+            <CashFlowChart
+              data={dailyStatsQuery.data!}
+              period={cashFlowPeriod}
+            />
           )}
         </AnalyticsChartCard>
       )

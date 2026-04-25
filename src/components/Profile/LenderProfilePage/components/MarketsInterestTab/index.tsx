@@ -5,13 +5,14 @@ import * as React from "react"
 import { Box, Tooltip as MuiTooltip, Typography } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import Link from "next/link"
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 
 import { LenderPositionsData } from "@/app/[locale]/lender/profile/hooks/types"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { DonutChart, DonutChartItem } from "@/components/ECharts"
 import { LinkGroup } from "@/components/LinkComponent"
 import { formatPercent, formatUsd } from "@/components/Profile/shared/analytics"
 import { AnalyticsDataGrid } from "@/components/Profile/shared/AnalyticsDataGrid"
+import { ProfileChartContainerStyle } from "@/components/Profile/shared/chartStyle"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -31,9 +32,6 @@ const PIE_COLORS = [
   COLORS.greySuit,
   COLORS.matteSilver,
 ]
-
-const asNumericValue = (value: unknown) =>
-  typeof value === "number" ? value : Number(value ?? 0)
 
 const TextCell = ({ children }: { children: React.ReactNode }) => (
   <Typography variant="text3">{children}</Typography>
@@ -78,6 +76,28 @@ export const MarketsInterestTab = ({
     0,
   )
   const activePositionCount = data?.profile.activePositions ?? 0
+  const interestDonutData = React.useMemo<DonutChartItem[]>(
+    () =>
+      interestRows.map((row, index) => ({
+        name: row.marketName,
+        value: row.interestEarned,
+        color: PIE_COLORS[index % PIE_COLORS.length],
+        tooltipRows: [
+          { label: "APR", value: `${row.apr.toFixed(2)}%` },
+          { label: "Status", value: row.status },
+          {
+            label: "Share",
+            value: formatPercent(
+              totalInterest > 0
+                ? (row.interestEarned / totalInterest) * 100
+                : 0,
+              1,
+            ),
+          },
+        ],
+      })),
+    [interestRows, totalInterest],
+  )
 
   const interestColumns: GridColDef[] = [
     {
@@ -228,6 +248,7 @@ export const MarketsInterestTab = ({
               backgroundColor: COLORS.white,
               padding: "24px",
               marginBottom: "24px",
+              ...ProfileChartContainerStyle,
             }}
           >
             <Typography variant="text2Highlighted">
@@ -256,43 +277,31 @@ export const MarketsInterestTab = ({
               }}
             >
               <Box sx={{ width: "100%", height: 260 }}>
-                <ResponsiveContainer>
-                  <PieChart>
-                    <Pie
-                      data={interestRows.map((row) => ({
-                        name: row.marketName,
-                        value: row.interestEarned,
-                      }))}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={2}
-                    >
-                      {interestRows.map((row, index) => (
-                        <Cell
-                          key={row.marketId}
-                          fill={PIE_COLORS[index % PIE_COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value) => formatUsd(asNumericValue(value))}
-                      contentStyle={{
-                        borderRadius: "12px",
-                        border: `1px solid ${COLORS.athensGrey}`,
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                <DonutChart
+                  data={interestDonutData}
+                  colors={PIE_COLORS}
+                  formatValue={(value) => formatUsd(value)}
+                  centerLabel={{
+                    primary: formatUsd(totalInterest, { compact: true }),
+                    secondary: "Total interest",
+                  }}
+                  ariaLabel="Interest earned by lender position"
+                />
               </Box>
 
               <Box
-                sx={{ display: "flex", flexDirection: "column", gap: "10px" }}
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                  maxHeight: "252px",
+                  overflowY: interestDonutData.length > 7 ? "auto" : "visible",
+                  paddingRight: interestDonutData.length > 7 ? "6px" : 0,
+                }}
               >
-                {interestRows.map((row, index) => (
+                {interestDonutData.map((row, index) => (
                   <Box
-                    key={row.marketId}
+                    key={row.name}
                     sx={{
                       display: "flex",
                       alignItems: "center",
@@ -304,7 +313,8 @@ export const MarketsInterestTab = ({
                         width: "10px",
                         height: "10px",
                         borderRadius: "3px",
-                        backgroundColor: PIE_COLORS[index % PIE_COLORS.length],
+                        backgroundColor:
+                          row.color ?? PIE_COLORS[index % PIE_COLORS.length],
                       }}
                     />
                     <Typography
@@ -312,12 +322,12 @@ export const MarketsInterestTab = ({
                       sx={{ flex: 1, minWidth: 0 }}
                       noWrap
                     >
-                      {row.marketName}
+                      {row.name}
                     </Typography>
                     <Typography variant="text2" color={COLORS.santasGrey}>
                       {formatPercent(
                         totalInterest > 0
-                          ? (row.interestEarned / totalInterest) * 100
+                          ? (row.value / totalInterest) * 100
                           : 0,
                         1,
                       )}
