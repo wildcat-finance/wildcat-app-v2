@@ -21,10 +21,42 @@ export type BorrowerInterestCostPoint = {
   date: string
   dateShort: string
   timestamp: number
+  dayBaseInterest: number
+  dayDelinquencyFees: number
+  dayProtocolFees: number
   baseInterest: number
   delinquencyFees: number
   protocolFees: number
   totalCost: number
+}
+
+export type BorrowerCureVelocityPoint = {
+  id: string
+  marketId: string
+  marketName: string
+  startTimestamp: number
+  endTimestamp: number
+  severityUsd: number
+  cureHours: number
+  delinquencyFeesUsd: number
+  penalized: boolean
+}
+
+export type BorrowerCureVelocityData = {
+  points: BorrowerCureVelocityPoint[]
+  protocolMedianCureHours: number | null
+}
+
+export type BorrowerCapitalCostPoint = {
+  date: string
+  dateShort: string
+  timestamp: number
+  baseInterest: number
+  delinquencyFees: number
+  protocolFees: number
+  statedApr: number
+  effectiveApr: number
+  totalDebtUsd: number
 }
 
 export type BorrowerAggregateDebtPoint = {

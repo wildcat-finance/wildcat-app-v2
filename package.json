@@ -41,6 +41,7 @@
     "base64-arraybuffer": "^1.0.2",
     "classnames": "^2.5.1",
     "dayjs": "^1.11.10",
+    "echarts": "^6.0.0",
     "ethers": "^5.7.2",
     "humanize-duration": "^3.32.1",
     "i18next": "^23.10.1",

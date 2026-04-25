@@ -2,13 +2,9 @@
 
 import * as React from "react"
 
-import { Box, Button, Dialog, IconButton, Typography } from "@mui/material"
+import { Box, Dialog, IconButton, Typography } from "@mui/material"
 
 import Expand from "@/assets/icons/expand_icon.svg"
-import {
-  ANALYTICS_TIME_RANGES,
-  AnalyticsTimeRange,
-} from "@/components/Profile/shared/analytics"
 import { COLORS } from "@/theme/colors"
 
 import {
@@ -18,17 +14,16 @@ import {
   ChartHeaderStyle,
   ExpandDialogContentStyle,
   ExpandDialogPaperStyle,
-  TimeRangeChipStyle,
+  ProfileChartContainerStyle,
 } from "./chartStyle"
 
 type AnalyticsChartCardProps = {
   title: string
   description?: string
-  timeRange?: AnalyticsTimeRange
-  onTimeRangeChange?: (range: AnalyticsTimeRange) => void
-  showTimeRange?: boolean
+  actions?: React.ReactNode
   cardHeight?: number
   dialogHeight?: number
+  constrainWidth?: boolean
   children: (args: { isExpanded: boolean }) => React.ReactNode
 }
 
@@ -50,36 +45,23 @@ const CrossIcon = () => (
 export const AnalyticsChartCard = ({
   title,
   description,
-  timeRange,
-  onTimeRangeChange,
-  showTimeRange = false,
+  actions,
   cardHeight = 220,
   dialogHeight = 520,
+  constrainWidth = false,
   children,
 }: AnalyticsChartCardProps) => {
   const [isExpanded, setIsExpanded] = React.useState(false)
 
-  const renderTimeRangeChips = () => {
-    if (!showTimeRange || !onTimeRangeChange) return null
-
-    return (
-      <Box sx={{ display: "flex", gap: "2px", flexShrink: 0 }}>
-        {ANALYTICS_TIME_RANGES.map((option) => (
-          <Button
-            key={option.value}
-            onClick={() => onTimeRangeChange(option.value)}
-            sx={TimeRangeChipStyle(timeRange === option.value)}
-          >
-            {option.label}
-          </Button>
-        ))}
-      </Box>
-    )
-  }
-
   return (
     <>
-      <Box sx={ChartCardStyle}>
+      <Box
+        sx={
+          constrainWidth
+            ? [ChartCardStyle, ProfileChartContainerStyle]
+            : ChartCardStyle
+        }
+      >
         <Box sx={ChartHeaderStyle}>
           <Typography
             variant="text4"
@@ -89,7 +71,7 @@ export const AnalyticsChartCard = ({
           </Typography>
 
           <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
-            {renderTimeRangeChips()}
+            {actions}
             <IconButton
               onClick={() => setIsExpanded(true)}
               aria-label="Expand chart"
@@ -136,7 +118,7 @@ export const AnalyticsChartCard = ({
             </Typography>
 
             <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
-              {renderTimeRangeChips()}
+              {actions}
               <IconButton
                 onClick={() => setIsExpanded(false)}
                 aria-label="Close expanded chart"
