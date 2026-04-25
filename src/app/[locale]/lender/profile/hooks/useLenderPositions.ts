@@ -53,6 +53,7 @@ const GET_LENDER_PROFILE_POSITIONS = gql`
       scaledBalance
       totalDeposited
       totalInterestEarned
+      lastScaleFactor
       addedTimestamp
     }
   }
@@ -89,6 +90,7 @@ type LenderProfilePositionsQuery = {
     scaledBalance: string
     totalDeposited: string
     totalInterestEarned: string
+    lastScaleFactor: string
     addedTimestamp: number
   }>
 }
@@ -102,6 +104,35 @@ const getPositionStatus = (
   if (isIncurringPenalties) return "Penalty"
   if (isDelinquent) return "Delinquent"
   return "Active"
+}
+
+const getLiveInterestEarned = (account: {
+  scaledBalance: string
+  totalInterestEarned: string
+  lastScaleFactor: string
+  market: {
+    scaleFactor: string
+  }
+}) => {
+  const indexedInterest = BigInt(account.totalInterestEarned)
+  const scaledBalance = BigInt(account.scaledBalance)
+  const lastScaleFactor = BigInt(account.lastScaleFactor)
+  const currentScaleFactor = BigInt(account.market.scaleFactor)
+
+  if (scaledBalance === BigInt(0) || currentScaleFactor <= lastScaleFactor) {
+    return indexedInterest
+  }
+
+  const previousBalance = normalizeScaledAmount(
+    account.scaledBalance,
+    account.lastScaleFactor,
+  )
+  const currentBalance = normalizeScaledAmount(
+    account.scaledBalance,
+    account.market.scaleFactor,
+  )
+
+  return indexedInterest + (currentBalance - previousBalance)
 }
 
 const emptyPositions = (address: string): LenderPositionsData => ({
@@ -170,20 +201,20 @@ export const useLenderPositions = (
 
       const positions = lenderAccounts.map<LenderPositionRow>((account) => {
         const price = priceMap[account.market.id] ?? 0
-        const currentBalance =
-          toHumanAmount(
-            normalizeScaledAmount(
-              account.scaledBalance,
-              account.market.scaleFactor,
-            ),
-            account.market.asset.decimals,
-          ) * price
+        const currentTokenBalance = toHumanAmount(
+          normalizeScaledAmount(
+            account.scaledBalance,
+            account.market.scaleFactor,
+          ),
+          account.market.asset.decimals,
+        )
+        const currentBalance = currentTokenBalance * price
         const totalDeposited =
           toHumanAmount(account.totalDeposited, account.market.asset.decimals) *
           price
         const interestEarned =
           toHumanAmount(
-            account.totalInterestEarned,
+            getLiveInterestEarned(account),
             account.market.asset.decimals,
           ) * price
         const totalSupply =
@@ -207,6 +238,7 @@ export const useLenderPositions = (
           borrower: account.market.borrower,
           asset: account.market.asset.symbol,
           currentBalance,
+          currentTokenBalance,
           totalDeposited,
           interestEarned,
           apr: account.market.annualInterestBips / 100,
@@ -236,9 +268,7 @@ export const useLenderPositions = (
       const totalDeposited = lenderStats
         ? Number(lenderStats.totalDepositedUSD)
         : clientTotalDeposited
-      const totalInterestEarned = lenderStats
-        ? Number(lenderStats.totalInterestEarnedUSD)
-        : clientInterestEarned
+      const totalInterestEarned = clientInterestEarned
 
       const firstSeenTimestamp =
         lenderStats?.firstSeenTimestamp ??
