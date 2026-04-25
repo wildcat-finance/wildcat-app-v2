@@ -24,10 +24,7 @@ export async function GET(
     where: { marketAddress: market, chainId },
   })
   if (!marketDescription) {
-    return NextResponse.json(
-      { error: "Market description not found" },
-      { status: 404 },
-    )
+    return NextResponse.json({ description: "" })
   }
   return NextResponse.json({ description: marketDescription.description })
 }
