@@ -44,7 +44,7 @@ const fetchBorrowerProfileForPrefetch = async (
   }
 
   const data = await response.json()
-  return data.profile as BorrowerProfile
+  return data.profile ? (data.profile as BorrowerProfile) : undefined
 }
 
 const getRowMarketAddress = (target: EventTarget | null) => {

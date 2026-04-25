@@ -562,12 +562,12 @@ describe("API", () => {
 
   describe("/api/profiles", () => {
     describe("[GET] /api/profiles/[address]", () => {
-      test("Returns 404 if no profile exists", async () => {
+      test("Returns an empty profile response if no profile exists", async () => {
         const req = mockGet(`/api/profiles/${otherWallet.address}`)
         const response = await getProfile(req, {
           params: { address: otherWallet.address as `0x${string}` },
         })
-        expect(response.status).toBe(404)
+        expect(response.status).toBe(200)
         expect(await response.json()).toEqual({ profile: null })
       })
 

@@ -45,7 +45,7 @@ export async function GET(
   // TODO: Change when real API will be ready
   const profile = await getBorrowerProfile(address, chainId)
   if (!profile) {
-    return NextResponse.json({ profile: null }, { status: 404 })
+    return NextResponse.json({ profile: null })
   }
 
   return NextResponse.json({ profile })

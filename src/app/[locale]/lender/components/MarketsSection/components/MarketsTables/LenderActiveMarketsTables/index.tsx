@@ -22,6 +22,7 @@ import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { useMarketRowPrefetchHandlers } from "@/hooks/usePrefetchMarketDetailMetadata"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
@@ -131,6 +132,11 @@ export const LenderActiveMarketsTables = ({
   const depositedMarkets = rows.filter((market) => market.hasEverInteracted)
 
   const nonDepositedMarkets = rows.filter((market) => !market.hasEverInteracted)
+
+  const depositedPrefetchHandlers =
+    useMarketRowPrefetchHandlers(depositedMarkets)
+  const nonDepositedPrefetchHandlers =
+    useMarketRowPrefetchHandlers(nonDepositedMarkets)
 
   const columns: TypeSafeColDef<LenderActiveMarketsTableModel>[] = [
     {
@@ -434,14 +440,16 @@ export const LenderActiveMarketsTables = ({
               ))}
             </Box>
           ) : (
-            <DataGrid
-              disableVirtualization
-              sx={clickableGridSx}
-              rowHeight={66}
-              rows={depositedMarkets}
-              columns={columns}
-              columnHeaderHeight={40}
-            />
+            <Box {...depositedPrefetchHandlers}>
+              <DataGrid
+                disableVirtualization
+                sx={clickableGridSx}
+                rowHeight={66}
+                rows={depositedMarkets}
+                columns={columns}
+                columnHeaderHeight={40}
+              />
+            </Box>
           )}
         </MarketsTableAccordion>
       </Box>
@@ -472,14 +480,16 @@ export const LenderActiveMarketsTables = ({
               ))}
             </Box>
           ) : (
-            <DataGrid
-              disableVirtualization
-              sx={clickableGridSx}
-              rowHeight={66}
-              rows={nonDepositedMarkets}
-              columns={columns}
-              columnHeaderHeight={40}
-            />
+            <Box {...nonDepositedPrefetchHandlers}>
+              <DataGrid
+                disableVirtualization
+                sx={clickableGridSx}
+                rowHeight={66}
+                rows={nonDepositedMarkets}
+                columns={columns}
+                columnHeaderHeight={40}
+              />
+            </Box>
           )}
         </MarketsTableAccordion>
       </Box>
