@@ -336,6 +336,12 @@ const MARKET_QUERY_KEYS = {
   // GET_ALL_TOKENS_WITH_MARKETS_KEY
   GET_ALL_TOKENS_WITH_MARKETS: (chainId: number) =>
     k(["markets", "GET_ALL_TOKENS_WITH_MARKETS", chainId]),
+  // GET_MARKET_SUMMARY_KEY
+  GET_MARKET_SUMMARY: (chainId: number, marketAddress?: string) =>
+    k(["markets", "GET_MARKET_SUMMARY", chainId, marketAddress]),
+  // GET_MARKET_SUMMARY_EXISTS_KEY
+  GET_MARKET_SUMMARY_EXISTS: (chainId: number, marketAddress?: string) =>
+    k(["markets", "GET_MARKET_SUMMARY_EXISTS", chainId, marketAddress]),
   // GET_MARKET_ACCOUNT_KEY
   GET_MARKET_ACCOUNT: (chainId: number, marketAddress?: string) =>
     k(["markets", "GET_MARKET_ACCOUNT", chainId, marketAddress]),

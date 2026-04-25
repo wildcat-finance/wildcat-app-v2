@@ -22,6 +22,7 @@ import {
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
+import { useMarketRowPrefetchHandlers } from "@/hooks/usePrefetchMarketDetailMetadata"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
@@ -49,6 +50,7 @@ export type BorrowerActiveMarketsTableModel = {
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
+  borrowerAddress: string
   apr: number
   asset: string
   capacityLeft: TokenAmount
@@ -92,6 +94,7 @@ export const BorrowerActiveMarketsTables = ({
         name,
         underlyingToken,
         annualInterestBips,
+        borrower: borrowerAddress,
         borrowableAssets,
         maxTotalSupply,
         totalSupply,
@@ -110,6 +113,7 @@ export const BorrowerActiveMarketsTables = ({
         status: marketStatus,
         term: marketType,
         name,
+        borrowerAddress,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
         borrowable: borrowableAssets,
@@ -127,6 +131,11 @@ export const BorrowerActiveMarketsTables = ({
     (market) =>
       market.borrowable.eq(0) && market.status.status === MarketStatus.HEALTHY,
   )
+
+  const depositedPrefetchHandlers =
+    useMarketRowPrefetchHandlers(depositedMarkets)
+  const nonDepositedPrefetchHandlers =
+    useMarketRowPrefetchHandlers(nonDepositedMarkets)
 
   const columns: TypeSafeColDef<BorrowerActiveMarketsTableModel>[] = [
     {
@@ -417,13 +426,15 @@ export const BorrowerActiveMarketsTables = ({
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
         >
-          <DataGrid
-            disableVirtualization
-            sx={DataGridSx}
-            rows={depositedMarkets}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
+          <Box {...depositedPrefetchHandlers}>
+            <DataGrid
+              disableVirtualization
+              sx={DataGridSx}
+              rows={depositedMarkets}
+              columns={columns}
+              columnHeaderHeight={40}
+            />
+          </Box>
         </MarketsTableAccordion>
       </Box>
 
@@ -442,14 +453,16 @@ export const BorrowerActiveMarketsTables = ({
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
         >
-          <DataGrid
-            disableVirtualization
-            sx={DataGridSx}
-            getRowHeight={() => "auto"}
-            rows={nonDepositedMarkets}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
+          <Box {...nonDepositedPrefetchHandlers}>
+            <DataGrid
+              disableVirtualization
+              sx={DataGridSx}
+              getRowHeight={() => "auto"}
+              rows={nonDepositedMarkets}
+              columns={columns}
+              columnHeaderHeight={40}
+            />
+          </Box>
         </MarketsTableAccordion>
       </Box>
     </Box>
