@@ -4,7 +4,9 @@ import {
   TokenAmount,
   TransferAccess,
   getDeploymentAddress,
+  getHooksFactoryAddressForMarketType,
   HooksKind,
+  MarketType,
   WithdrawalAccess,
   Token,
 } from "@wildcatfi/wildcat-sdk"
@@ -16,7 +18,6 @@ import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import { ACCEPT_MLA_MESSAGE } from "@/config/mla-acceptance"
 import { NETWORKS_BY_ID } from "@/config/network"
-import { dayjs } from "@/utils/dayjs"
 import { formatBps, formatUnixMsAsDate } from "@/utils/formatters"
 
 type NetworkData = {
@@ -49,6 +50,7 @@ export type MlaBorrowerFields = {
   networkData: NetworkData
   market: {
     address: string
+    implementationType?: MarketType
     name: string
     symbol: string
     marketTerm: HooksKind
@@ -247,7 +249,7 @@ type BorrowerSignedMla = {
 }
 
 const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
-  const { underlyingToken: asset, hooksConfig, name, symbol, address } = market
+  const { hooksConfig, name, symbol, address } = market
   // Deposits are only open if `depositRequiresAccess` is defined and false
   const depositAccess =
     hooksConfig?.depositRequiresAccess === false
@@ -282,6 +284,7 @@ const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
   }
   return {
     address,
+    implementationType: market.marketType ?? "legacy",
     name,
     symbol,
     marketTerm: hooksConfig?.kind ?? HooksKind.OpenTerm,
@@ -344,6 +347,7 @@ export function getFieldValuesForBorrower({
       jurisdictionObj?.subDivisionName || jurisdictionObj?.countryName
   }
   const networkInfo = NETWORKS_BY_ID[asset.chainId]
+  const implementationType = market.implementationType ?? "legacy"
 
   const entityKindText =
     entityKind !== undefined && jurisdictionObj
@@ -406,7 +410,12 @@ export function getFieldValuesForBorrower({
     ],
     [
       "hooksFactory.address",
-      formatAddress(getDeploymentAddress(networkInfo.chainId, "HooksFactory")),
+      formatAddress(
+        getHooksFactoryAddressForMarketType(
+          networkInfo.chainId,
+          implementationType,
+        ),
+      ),
     ],
     // token amount
     [
