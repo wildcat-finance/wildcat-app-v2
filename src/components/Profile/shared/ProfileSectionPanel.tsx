@@ -44,7 +44,14 @@ export const ProfileSectionPanel = ({
         marginBottom: subtitle ? "6px" : { xs: "12px", md: "24px" },
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "baseline", gap: "8px", minWidth: 0 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "baseline",
+          gap: "8px",
+          minWidth: 0,
+        }}
+      >
         <Typography variant="title2" display="block">
           {title}
         </Typography>

@@ -698,9 +698,7 @@ export const ActivityCashFlowTab = ({
               const requested = Number(row.requested) || 0
               const withdrawn = Number(row.withdrawn) || 0
               const fillPct =
-                requested > 0
-                  ? Math.min(100, (withdrawn / requested) * 100)
-                  : 0
+                requested > 0 ? Math.min(100, (withdrawn / requested) * 100) : 0
               return (
                 <MobileAnalyticsCard
                   href={buildMarketHref(
@@ -733,8 +731,12 @@ export const ActivityCashFlowTab = ({
                       status.label === "Expired"
                         ? COLORS.dullRed
                         : COLORS.ultramarineBlue,
-                    leftLabel: `${formatUsd(withdrawn, { compact: true })} withdrawn`,
-                    label: `${formatUsd(Number(row.remaining) || 0, { compact: true })} remaining`,
+                    leftLabel: `${formatUsd(withdrawn, {
+                      compact: true,
+                    })} withdrawn`,
+                    label: `${formatUsd(Number(row.remaining) || 0, {
+                      compact: true,
+                    })} remaining`,
                   }}
                 />
               )

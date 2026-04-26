@@ -147,8 +147,7 @@ const MobilePagination = ({
                 height: "28px",
                 padding: 0,
                 borderRadius: "8px",
-                backgroundColor:
-                  item === page ? COLORS.glitter : "transparent",
+                backgroundColor: item === page ? COLORS.glitter : "transparent",
                 color:
                   item === page ? COLORS.ultramarineBlue : COLORS.blackRock,
                 fontWeight: item === page ? 600 : 400,
