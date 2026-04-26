@@ -1,6 +1,6 @@
 "use client"
 
-import { Box, Button } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 
 import { COLORS } from "@/theme/colors"
 
@@ -46,9 +46,6 @@ export const ProfileTabBar = <T extends string>({
               borderRadius: "10px",
               color: isActive ? COLORS.blackRock : COLORS.santasGrey,
               flexShrink: 0,
-              fontSize: "12px",
-              fontWeight: isActive ? 600 : 500,
-              lineHeight: 1.2,
               minHeight: "36px",
               padding: "8px 10px",
               whiteSpace: "nowrap",
@@ -57,7 +54,9 @@ export const ProfileTabBar = <T extends string>({
               },
             }}
           >
-            {tab.label}
+            <Typography variant="text3" sx={{ fontWeight: isActive ? 600 : 500 }}>
+              {tab.label}
+            </Typography>
           </Button>
         )
       })}

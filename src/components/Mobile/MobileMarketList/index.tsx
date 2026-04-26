@@ -154,16 +154,14 @@ const segmentedSx = {
   "& .MuiToggleButton-root": {
     flex: 1,
     padding: "5px 8px",
-    fontSize: "12px",
-    lineHeight: "16px",
     textTransform: "none" as const,
     color: COLORS.santasGrey,
     border: `1px solid ${COLORS.athensGrey}`,
-    fontWeight: 500,
+    typography: "text4",
     "&.Mui-selected": {
       backgroundColor: COLORS.glitter,
       color: COLORS.ultramarineBlue,
-      fontWeight: 600,
+      typography: "text4Highlighted",
       borderColor: COLORS.glitter,
       "&:hover": { backgroundColor: COLORS.glitter },
     },
