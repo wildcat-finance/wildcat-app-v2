@@ -24,6 +24,7 @@ import {
 import * as echarts from "echarts/core"
 import { CanvasRenderer } from "echarts/renderers"
 
+import DownloadIcon from "@/assets/icons/fullArrow_icon.svg"
 import { COLORS } from "@/theme/colors"
 
 import { EChartOption } from "./types"
@@ -72,13 +73,7 @@ const ExportButton = ({
     size="small"
     variant="outlined"
     color="secondary"
-    endIcon={
-      variant === "icon" ? (
-        <Box component="span" sx={{ rotate: "270deg", lineHeight: 1 }}>
-          ⇤
-        </Box>
-      ) : undefined
-    }
+    endIcon={variant === "icon" ? <DownloadIcon /> : undefined}
     sx={{
       minWidth: 0,
       height: 24,
@@ -98,6 +93,13 @@ const ExportButton = ({
       "& .MuiButton-endIcon": {
         marginLeft: "3px",
         marginRight: 0,
+        "& svg": {
+          height: 10,
+          width: 10,
+        },
+        "& path": {
+          fill: "currentColor",
+        },
       },
     }}
   >

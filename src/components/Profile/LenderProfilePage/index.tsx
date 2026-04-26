@@ -102,7 +102,7 @@ export const LenderProfilePage = ({
               isLoading={positionsQuery.isLoading}
             />
           )}
-          {currentTab === "temp-test-charts" && (
+          {currentTab === "lender-charts" && (
             <TempTestChartsTab
               lenderAddress={profileAddress}
               data={positionsQuery.data}

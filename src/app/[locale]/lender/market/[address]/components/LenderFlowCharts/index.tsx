@@ -24,8 +24,8 @@ import {
 } from "recharts"
 
 import Expand from "@/assets/icons/expand_icon.svg"
+import { CHART_PALETTE } from "@/components/ECharts"
 import {
-  CHART_COLORS,
   ChartActionButtonStyle,
   ChartCardStyle,
   ChartDescriptionStyle,
@@ -52,7 +52,11 @@ const TIME_RANGES: Record<string, number | null> = {
 
 function fmtAxisDate(ts: number): string {
   const d = new Date(ts * 1000)
-  return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  })
 }
 
 function fmtK(v: number): string {
@@ -234,7 +238,7 @@ function DailyFlowsChartBody({
         <Bar
           dataKey="dailyDeposit"
           stackId="deposits"
-          fill={CHART_COLORS.deposit}
+          fill={CHART_PALETTE.semantic.deposit}
           opacity={0.85}
           name="Deposits"
           radius={[2, 2, 0, 0]}
@@ -244,7 +248,7 @@ function DailyFlowsChartBody({
         <Bar
           dataKey="dailyWithdrawalRequestedNeg"
           stackId="requested"
-          fill={CHART_COLORS.withdrawalRequested}
+          fill={CHART_PALETTE.semantic.withdrawalSoft}
           opacity={0.85}
           name="Withdrawals Requested"
           radius={[0, 0, 2, 2]}
@@ -254,7 +258,7 @@ function DailyFlowsChartBody({
         <Bar
           dataKey="dailyWithdrawalExecutedNeg"
           stackId="executed"
-          fill={CHART_COLORS.withdrawalExecuted}
+          fill={CHART_PALETTE.semantic.withdrawal}
           opacity={0.85}
           name="Withdrawals Executed"
           radius={[0, 0, 2, 2]}
@@ -280,12 +284,12 @@ function CumulativeNetFlowChartBody({
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
             <stop
               offset="5%"
-              stopColor={CHART_COLORS.deposit}
+              stopColor={CHART_PALETTE.semantic.deposit}
               stopOpacity={0.25}
             />
             <stop
               offset="95%"
-              stopColor={CHART_COLORS.deposit}
+              stopColor={CHART_PALETTE.semantic.deposit}
               stopOpacity={0.02}
             />
           </linearGradient>
@@ -320,7 +324,7 @@ function CumulativeNetFlowChartBody({
         <Area
           type="monotone"
           dataKey="netFlow"
-          stroke={CHART_COLORS.deposit}
+          stroke={CHART_PALETTE.semantic.deposit}
           strokeWidth={2}
           fill={`url(#${gradientId})`}
           name="Net Flow"

@@ -23,6 +23,8 @@ type CategoryBarChartProps<T extends object> = {
   formatValue?: ChartValueFormatter
   yAxisWidth?: number
   showDataZoom?: boolean
+  barBorderRadius?: number | number[]
+  categoryLabelFontFamily?: string
   tooltipFormatter?: ChartTooltipFormatter<T>
   visualMap?: EChartOption["visualMap"]
   markLine?: ChartMarkLine
@@ -44,6 +46,8 @@ export const CategoryBarChart = <T extends object>({
   formatValue,
   yAxisWidth,
   showDataZoom,
+  barBorderRadius,
+  categoryLabelFontFamily,
   tooltipFormatter,
   visualMap,
   markLine,
@@ -64,6 +68,8 @@ export const CategoryBarChart = <T extends object>({
         formatValue,
         yAxisWidth,
         showDataZoom,
+        barBorderRadius,
+        categoryLabelFontFamily,
         tooltipFormatter,
         visualMap,
         markLine,
@@ -77,6 +83,8 @@ export const CategoryBarChart = <T extends object>({
       formatValue,
       yAxisWidth,
       showDataZoom,
+      barBorderRadius,
+      categoryLabelFontFamily,
       tooltipFormatter,
       visualMap,
       markLine,

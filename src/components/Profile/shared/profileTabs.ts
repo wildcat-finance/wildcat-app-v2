@@ -16,8 +16,8 @@ export type LenderProfileTab =
   | "overview"
   | "activity"
   | "markets"
-  | "temp-test-charts"
-export type BorrowerProfileTab = "overview" | "delinquency"
+  | "lender-charts"
+export type BorrowerProfileTab = "overview" | "delinquency" | "borrower-charts"
 
 export const LENDER_PROFILE_TABS: ProfileTabDef<LenderProfileTab>[] = [
   {
@@ -36,9 +36,9 @@ export const LENDER_PROFILE_TABS: ProfileTabDef<LenderProfileTab>[] = [
     description: "All market history and return attribution.",
   },
   {
-    value: "temp-test-charts",
-    label: "temp test charts",
-    description: "Temporary lender chart experiments.",
+    value: "lender-charts",
+    label: "[preview] lender charts",
+    description: "Yield, withdrawal pressure, and capital-at-risk history.",
   },
 ]
 
@@ -52,6 +52,11 @@ export const BORROWER_PROFILE_TABS: ProfileTabDef<BorrowerProfileTab>[] = [
     value: "delinquency",
     label: "Withdrawals & Delinquency",
     description: "Delinquency track record and withdrawal analytics.",
+  },
+  {
+    value: "borrower-charts",
+    label: "[preview] borrower charts",
+    description: "Cure velocity, realized capital cost, and APR drift.",
   },
 ]
 

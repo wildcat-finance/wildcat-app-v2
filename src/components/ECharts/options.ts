@@ -10,6 +10,7 @@ import {
   tooltipRow,
   tooltipShell,
 } from "./formatters"
+import { CHART_PALETTE } from "./palette"
 import {
   CategoryBarSeries,
   ChartMarkLine,
@@ -31,40 +32,28 @@ const watermarkImage =
 
 type WatermarkPlacement = "cartesian" | "dense" | "donut"
 
-const getWatermarkLeft = (placement: WatermarkPlacement) => {
-  if (placement === "donut") return "68%"
-  if (placement === "dense") return "center"
-  return "center"
-}
-
-const getWatermarkTop = (placement: WatermarkPlacement) => {
-  if (placement === "donut") return "18px"
-  if (placement === "dense") return "24%"
-  return "18%"
-}
-
 export const ECHART_COLORS = {
-  axis: COLORS.santasGrey,
-  text: COLORS.blackRock,
-  grid: COLORS.athensGrey,
-  tooltipBg: COLORS.blackRock,
-  tooltipBorder: COLORS.iron,
+  axis: CHART_PALETTE.ui.axis,
+  text: CHART_PALETTE.ui.text,
+  grid: CHART_PALETTE.ui.grid,
+  tooltipBg: CHART_PALETTE.ui.tooltipBg,
+  tooltipBorder: CHART_PALETTE.ui.tooltipBorder,
 }
 
 export const getChartWatermark = (
   placement: WatermarkPlacement = "cartesian",
 ): EChartOption["graphic"] => ({
   type: "image",
-  z: placement === "cartesian" ? 0 : 999,
+  z: 0,
   silent: true,
   style: {
     image: watermarkImage,
-    width: placement === "donut" ? 84 : 312,
-    height: placement === "donut" ? 28 : 104,
+    width: placement === "dense" ? 240 : 280,
+    height: placement === "dense" ? 80 : 93,
     opacity: 0.05,
   },
-  left: getWatermarkLeft(placement),
-  top: getWatermarkTop(placement),
+  left: "center",
+  top: "middle",
 })
 
 export const getDataZoom = (enabled: boolean, axis = "x") => {
@@ -92,15 +81,15 @@ export const getDataZoom = (enabled: boolean, axis = "x") => {
       bottom: axis === "x" ? 8 : 24,
       top: axis === "y" ? 24 : undefined,
       borderColor: COLORS.black01,
-      fillerColor: COLORS.blueRibbon01,
+      fillerColor: CHART_PALETTE.ui.zoomFill,
       backgroundColor: COLORS.blackRock006,
       dataBackground: {
         lineStyle: { color: COLORS.greySuit, opacity: 0.75 },
         areaStyle: { color: COLORS.greySuit, opacity: 0.18 },
       },
       selectedDataBackground: {
-        lineStyle: { color: COLORS.ultramarineBlue, opacity: 0.9 },
-        areaStyle: { color: COLORS.ultramarineBlue, opacity: 0.2 },
+        lineStyle: { color: CHART_PALETTE.semantic.primary, opacity: 0.9 },
+        areaStyle: { color: CHART_PALETTE.semantic.primary, opacity: 0.2 },
       },
       handleStyle: {
         borderColor: COLORS.blackRock,
@@ -111,11 +100,11 @@ export const getDataZoom = (enabled: boolean, axis = "x") => {
       },
       emphasis: {
         handleStyle: {
-          borderColor: COLORS.ultramarineBlue,
+          borderColor: CHART_PALETTE.semantic.primary,
           color: COLORS.white,
         },
         moveHandleStyle: {
-          color: COLORS.blueRibbon01,
+          color: CHART_PALETTE.ui.zoomFill,
         },
       },
       textStyle: {
@@ -154,12 +143,12 @@ export const baseTooltip = {
   axisPointer: {
     type: "cross",
     lineStyle: {
-      color: COLORS.ultramarineBlue,
+      color: CHART_PALETTE.semantic.primary,
       width: 1,
       opacity: 0.7,
     },
     crossStyle: {
-      color: COLORS.ultramarineBlue,
+      color: CHART_PALETTE.semantic.primary,
       opacity: 0.7,
     },
   },
@@ -217,7 +206,7 @@ const getTimeSeriesTooltipFormatter =
       )
       .map((item) =>
         tooltipRow({
-          color: String(item.color ?? COLORS.ultramarineBlue),
+          color: String(item.color ?? CHART_PALETTE.semantic.primary),
           label: item.seriesName ?? "",
           value: formatValue(getNumericValue(item.value)),
         }),
@@ -270,7 +259,7 @@ export const buildTimeSeriesOption = <T extends object>({
     xAxis: {
       ...baseAxis,
       type: "time",
-      boundaryGap: false,
+      boundaryGap: ["0%", "0%"],
       axisLabel: {
         ...baseAxis.axisLabel,
         formatter: (value: number) => formatAxisDate(value),
@@ -332,13 +321,13 @@ export const buildTimeSeriesOption = <T extends object>({
                   formatter: ({ name }: { name: string }) => name,
                 },
                 itemStyle: {
-                  color: COLORS.ultramarineBlue,
+                  color: CHART_PALETTE.semantic.primary,
                 },
                 data: markPoints.map((point) => ({
                   name: point.name,
                   coord: [point.timestamp * 1000, point.value],
                   itemStyle: {
-                    color: point.color ?? COLORS.ultramarineBlue,
+                    color: point.color ?? CHART_PALETTE.semantic.primary,
                   },
                 })),
               }
@@ -361,6 +350,8 @@ export const buildCategoryBarOption = <T extends object>({
   formatValue = formatCompactNumber,
   yAxisWidth,
   showDataZoom = false,
+  barBorderRadius,
+  categoryLabelFontFamily,
   tooltipFormatter,
   visualMap,
   markLine,
@@ -373,6 +364,8 @@ export const buildCategoryBarOption = <T extends object>({
   formatValue?: ChartValueFormatter
   yAxisWidth?: number
   showDataZoom?: boolean
+  barBorderRadius?: number | number[]
+  categoryLabelFontFamily?: string
   tooltipFormatter?: ChartTooltipFormatter<T>
   visualMap?: EChartOption["visualMap"]
   markLine?: ChartMarkLine
@@ -385,6 +378,7 @@ export const buildCategoryBarOption = <T extends object>({
     axisLabel: {
       ...baseAxis.axisLabel,
       color: horizontal ? COLORS.blackRock : COLORS.santasGrey,
+      fontFamily: categoryLabelFontFamily ?? baseAxis.axisLabel.fontFamily,
       overflow: "truncate",
       width: horizontal ? yAxisWidth ?? 140 : 80,
     },
@@ -437,7 +431,7 @@ export const buildCategoryBarOption = <T extends object>({
           .filter((item) => (values[item.seriesName ?? ""] ?? 0) !== 0)
           .map((item) =>
             tooltipRow({
-              color: String(item.color ?? COLORS.ultramarineBlue),
+              color: String(item.color ?? CHART_PALETTE.semantic.primary),
               label: item.seriesName ?? "",
               value: formatValue(values[item.seriesName ?? ""] ?? 0),
             }),
@@ -459,7 +453,8 @@ export const buildCategoryBarOption = <T extends object>({
         barMaxWidth: 26,
         itemStyle: {
           color: visualMap ? undefined : item.color,
-          borderRadius: horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0],
+          borderRadius:
+            barBorderRadius ?? (horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]),
         },
         emphasis: {
           focus: "series",
@@ -484,7 +479,7 @@ export const buildCategoryBarOption = <T extends object>({
               triggerLineEvent: false,
               tooltip: { show: false },
               lineStyle: {
-                color: markLine.color ?? COLORS.ultramarineBlue,
+                color: markLine.color ?? CHART_PALETTE.semantic.primary,
                 type: "dashed",
                 width: 1,
               },
@@ -577,7 +572,7 @@ export const buildDonutOption = ({
         String(param.name ?? ""),
         [
           tooltipRow({
-            color: String(param.color ?? COLORS.ultramarineBlue),
+            color: String(param.color ?? CHART_PALETTE.semantic.primary),
             label: "Interest",
             value: `${formatValue(value)} (${percent.toFixed(1)}%)`,
           }),
@@ -585,7 +580,7 @@ export const buildDonutOption = ({
             (param.data as DonutChartItem | undefined)?.tooltipRows ?? []
           ).map((row) =>
             tooltipRow({
-              color: String(param.color ?? COLORS.ultramarineBlue),
+              color: String(param.color ?? CHART_PALETTE.semantic.primary),
               label: row.label,
               value: row.value,
             }),

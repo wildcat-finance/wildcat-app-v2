@@ -8,7 +8,7 @@ import Link from "next/link"
 
 import { LenderPositionsData } from "@/app/[locale]/lender/profile/hooks/types"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
-import { DonutChart, DonutChartItem } from "@/components/ECharts"
+import { CHART_PALETTE, DonutChart, DonutChartItem } from "@/components/ECharts"
 import { LinkGroup } from "@/components/LinkComponent"
 import { formatPercent, formatUsd } from "@/components/Profile/shared/analytics"
 import { AnalyticsDataGrid } from "@/components/Profile/shared/AnalyticsDataGrid"
@@ -24,14 +24,7 @@ type MarketsInterestTabProps = {
   isLoading: boolean
 }
 
-const PIE_COLORS = [
-  COLORS.ultramarineBlue,
-  COLORS.cornflowerBlue,
-  COLORS.galliano,
-  COLORS.carminePink,
-  COLORS.greySuit,
-  COLORS.matteSilver,
-]
+const PIE_COLORS = [...CHART_PALETTE.categorical]
 
 const TextCell = ({ children }: { children: React.ReactNode }) => (
   <Typography variant="text3">{children}</Typography>
@@ -261,10 +254,9 @@ export const MarketsInterestTab = ({
               display="block"
               sx={{ lineHeight: 1.45 }}
             >
-              {formatUsd(totalInterest, { compact: true })} total interest
-              earned across {interestRows.length} historical positions with
-              interest, including exited markets. Active positions currently
-              open with balance: {activePositionCount}.
+              {formatUsd(totalInterest, { compact: true })} earned across{" "}
+              {interestRows.length} positions with realized interest.{" "}
+              {activePositionCount} positions are still open with balance.
             </Typography>
 
             <Box
