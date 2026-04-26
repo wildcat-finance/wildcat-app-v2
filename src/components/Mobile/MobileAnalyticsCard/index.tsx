@@ -123,7 +123,6 @@ export const MobileAnalyticsCard = ({
               <Typography
                 variant="text2Highlighted"
                 sx={{
-                  fontWeight: 700,
                   color: headlineColor ?? COLORS.blackRock,
                 }}
               >

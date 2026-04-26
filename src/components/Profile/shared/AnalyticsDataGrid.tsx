@@ -117,26 +117,25 @@ const MobilePagination = ({
           minWidth: "fit-content",
           padding: "6px 12px",
           borderRadius: "8px",
-          fontSize: "13px",
         }}
       >
-        Prev
+        <Typography variant="text3">Prev</Typography>
       </Button>
       <Box sx={{ display: "flex", gap: "4px", alignItems: "center" }}>
         {items.map((item, idx) =>
           item === "..." ? (
-            <Box
+            <Typography
               // eslint-disable-next-line react/no-array-index-key
               key={`gap-${idx}`}
+              variant="text3"
               sx={{
                 width: "20px",
                 textAlign: "center",
                 color: COLORS.santasGrey,
-                fontSize: "12px",
               }}
             >
               …
-            </Box>
+            </Typography>
           ) : (
             <Button
               key={item}
@@ -150,15 +149,18 @@ const MobilePagination = ({
                 backgroundColor: item === page ? COLORS.glitter : "transparent",
                 color:
                   item === page ? COLORS.ultramarineBlue : COLORS.blackRock,
-                fontWeight: item === page ? 600 : 400,
-                fontSize: "12px",
                 "&:hover": {
                   backgroundColor:
                     item === page ? COLORS.glitter : COLORS.whiteSmoke,
                 },
               }}
             >
-              {item + 1}
+              <Typography
+                variant={item === page ? "text3" : "text3"}
+                sx={{ fontWeight: item === page ? 600 : 500 }}
+              >
+                {item + 1}
+              </Typography>
             </Button>
           ),
         )}
@@ -173,10 +175,9 @@ const MobilePagination = ({
           minWidth: "fit-content",
           padding: "6px 12px",
           borderRadius: "8px",
-          fontSize: "13px",
         }}
       >
-        Next
+        <Typography variant="text3">Next</Typography>
       </Button>
     </Box>
   )
