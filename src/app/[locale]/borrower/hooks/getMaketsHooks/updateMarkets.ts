@@ -59,7 +59,7 @@ export async function updateMarkets(
               market.updateWith(updates[i])
             })
           } catch (err) {
-            console.log("Wrong underlying network detected", err)
+            logger.debug("Wrong underlying network detected", err)
           }
         })
       : []),
@@ -77,7 +77,7 @@ export async function updateMarkets(
           Object.assign(market, updates[i])
         })
       } catch (err) {
-        console.log("Wrong underlying network detected", err)
+        logger.debug("Wrong underlying network detected", err)
       }
     }),
   ])

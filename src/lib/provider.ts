@@ -24,14 +24,27 @@ const RPC_URL_BY_ID = {
   [SupportedChainId.PlasmaMainnet]: "https://rpc.plasma.to",
 }
 
+const SERVER_RPC_ENV_BY_ID = {
+  [SupportedChainId.Sepolia]: "WILDCAT_SERVER_RPC_URL_SEPOLIA",
+  [SupportedChainId.Mainnet]: "WILDCAT_SERVER_RPC_URL_MAINNET",
+  [SupportedChainId.PlasmaTestnet]: "WILDCAT_SERVER_RPC_URL_PLASMA_TESTNET",
+  [SupportedChainId.PlasmaMainnet]: "WILDCAT_SERVER_RPC_URL_PLASMA_MAINNET",
+}
+
+const resolveServerRpcUrl = (chainId: SupportedChainId) => {
+  const serverRpcUrl = process.env[SERVER_RPC_ENV_BY_ID[chainId]]
+  if (serverRpcUrl) return serverRpcUrl
+  return RPC_URL_BY_ID[chainId].replace(
+    "ALCHEMY_API_KEY",
+    process.env.NEXT_PUBLIC_ALCHEMY_API_KEY || "",
+  )
+}
+
 export const getProviderForServer = (
   chainId: SupportedChainId = TargetChainId,
 ) => {
   const chain = VIEM_CHAIN_BY_ID[chainId]
-  const rpcUrl = RPC_URL_BY_ID[chainId].replace(
-    "ALCHEMY_API_KEY",
-    process.env.NEXT_PUBLIC_ALCHEMY_API_KEY || "",
-  )
+  const rpcUrl = resolveServerRpcUrl(chainId)
 
   const client = createPublicClient({
     chain,

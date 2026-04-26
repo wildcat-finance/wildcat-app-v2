@@ -201,10 +201,9 @@ export function useLendersMarkets(
         })
       }),
     ]).catch((e) => {
-      console.log(e)
       throw e
     })
-    console.log(`getLenderUpdates:: Got lender updates: ${accounts.length}`)
+    logger.debug(`Got ${accounts.length} lender updates`)
     return accounts
   }
 
