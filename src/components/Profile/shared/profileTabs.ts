@@ -98,7 +98,10 @@ export const resolveProfileTabs = (pathname: string) => {
       defaultTab: "overview" as LenderProfileTab,
     }
   }
-  if (pathname.includes(ROUTES.borrower.profile)) {
+  if (
+    pathname.includes(ROUTES.borrower.profile) ||
+    pathname.includes(ROUTES.profile.borrower)
+  ) {
     return {
       kind: "borrower" as const,
       tabs: BORROWER_PROFILE_TABS,

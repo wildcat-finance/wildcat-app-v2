@@ -41,6 +41,7 @@ import { COLORS } from "@/theme/colors"
 
 type BorrowerChartsTabProps = {
   borrowerAddress: `0x${string}` | undefined
+  chainId?: number
   analytics?: BorrowerProfileAnalytics
   isAnalyticsLoading: boolean
   analyticsAvailable: boolean
@@ -526,6 +527,7 @@ const buildCapitalCostOption = (
 
 export const BorrowerChartsTab = ({
   borrowerAddress,
+  chainId,
   analytics,
   isAnalyticsLoading,
   analyticsAvailable,
@@ -539,11 +541,13 @@ export const BorrowerChartsTab = ({
     marketIds,
     priceMap: analytics?.priceMap ?? {},
     gracePeriodMap: analytics?.gracePeriodMap ?? {},
+    chainId,
   })
   const capitalCostQuery = useBorrowerCapitalCostDrift({
     borrowerAddress,
     marketIds,
     priceMap: analytics?.priceMap ?? {},
+    chainId,
   })
 
   const capitalCostRows = React.useMemo(

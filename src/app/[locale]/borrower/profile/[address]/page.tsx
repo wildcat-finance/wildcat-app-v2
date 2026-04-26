@@ -3,24 +3,27 @@
 import * as React from "react"
 import { useEffect } from "react"
 
-import { redirect } from "next/navigation"
-import { useAccount } from "wagmi"
+import { useRouter, useSearchParams } from "next/navigation"
 
-import { ProfilePage } from "@/components/Profile/ProfilePage"
-import { ROUTES } from "@/routes"
+import { buildBorrowerProfileHref } from "@/utils/formatters"
 
 export default function OtherBorrowerProfile({
   params: { address },
 }: {
   params: { address: `0x${string}` }
 }) {
-  const { address: userAddress } = useAccount()
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
-    if (address.toLowerCase() === userAddress?.toLowerCase()) {
-      redirect(ROUTES.borrower.profile)
-    }
-  }, [address, userAddress])
+    const chainId = Number(searchParams.get("chainId"))
+    router.replace(
+      buildBorrowerProfileHref(
+        address,
+        Number.isInteger(chainId) && chainId > 0 ? chainId : undefined,
+      ),
+    )
+  }, [address, router, searchParams])
 
-  return <ProfilePage profileAddress={address} type="external" />
+  return null
 }

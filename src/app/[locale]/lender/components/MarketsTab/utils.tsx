@@ -27,6 +27,7 @@ import { lh, pxToRem } from "@/theme/units"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import {
+  buildBorrowerProfileHref,
   formatBps,
   formatSecsToHours,
   formatTokenWithCommas,
@@ -181,7 +182,10 @@ export const getColumns = (
           }}
         >
           <Link
-            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+            href={buildBorrowerProfileHref(
+              params.row.borrowerAddress,
+              params.row.chainId,
+            )}
             style={{
               textDecoration: "none",
               width: "fit-content",
@@ -509,6 +513,7 @@ export const getRows = (
       name,
       borrowerName,
       borrowerAddress,
+      chainId: market.chainId,
       asset: underlyingToken.symbol,
       lenderAPR: annualInterestBips,
       crr: reserveRatioBips,

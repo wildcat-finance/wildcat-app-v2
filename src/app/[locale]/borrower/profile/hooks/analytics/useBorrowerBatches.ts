@@ -69,8 +69,10 @@ export const useBorrowerBatches = (
   borrowerAddress: `0x${string}` | undefined,
   marketIds: string[],
   priceMap: Record<string, number>,
+  externalChainId?: number,
 ) => {
-  const { chainId } = useSelectedNetwork()
+  const { chainId: selectedChainId } = useSelectedNetwork()
+  const chainId = externalChainId ?? selectedChainId
   const normalizedAddress = borrowerAddress?.toLowerCase()
   const normalizedMarketIds = useMemo(() => [...marketIds].sort(), [marketIds])
 

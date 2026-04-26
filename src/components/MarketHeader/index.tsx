@@ -18,9 +18,8 @@ import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
 import { MobileMoreButton } from "@/components/Mobile/MobileMoreButton"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import { trimAddress } from "@/utils/formatters"
+import { buildBorrowerProfileHref, trimAddress } from "@/utils/formatters"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 
 import { MarketHeaderProps } from "./interface"
@@ -156,7 +155,7 @@ export const MarketHeader = ({
           </Box>
 
           <Link
-            href={`${ROUTES.lender.profile}/${market.borrower}`}
+            href={buildBorrowerProfileHref(market.borrower, market.chainId)}
             style={{ display: "flex", textDecoration: "none" }}
           >
             <Box

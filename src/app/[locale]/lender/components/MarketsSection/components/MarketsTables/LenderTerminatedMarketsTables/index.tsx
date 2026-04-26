@@ -23,6 +23,7 @@ import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
 import {
+  buildBorrowerProfileHref,
   buildMarketHref,
   formatSecsToHours,
   formatTokenWithCommas,
@@ -169,7 +170,10 @@ export const LenderTerminatedMarketsTables = ({
 
           {params.row.borrowerAddress ? (
             <Link
-              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              href={buildBorrowerProfileHref(
+                params.row.borrowerAddress,
+                params.row.chainId,
+              )}
               prefetch={false}
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
               style={{ display: "flex", textDecoration: "none" }}

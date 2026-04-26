@@ -40,6 +40,7 @@ import { COLORS } from "@/theme/colors"
 
 type WithdrawalsDelinquencyTabProps = {
   borrowerAddress: `0x${string}` | undefined
+  chainId?: number
   analytics?: BorrowerProfileAnalytics
   isAnalyticsLoading: boolean
   analyticsAvailable: boolean
@@ -314,6 +315,7 @@ const buildBatchCsv = (rows: BatchChartRow[]) =>
 
 export const WithdrawalsDelinquencyTab = ({
   borrowerAddress,
+  chainId,
   analytics,
   isAnalyticsLoading,
   analyticsAvailable,
@@ -328,11 +330,13 @@ export const WithdrawalsDelinquencyTab = ({
     marketIds,
     analytics?.gracePeriodMap ?? {},
     analytics?.nameMap ?? {},
+    chainId,
   )
   const batchesQuery = useBorrowerBatches(
     borrowerAddress,
     marketIds,
     analytics?.priceMap ?? {},
+    chainId,
   )
 
   const delinquencyMetrics = React.useMemo(() => {

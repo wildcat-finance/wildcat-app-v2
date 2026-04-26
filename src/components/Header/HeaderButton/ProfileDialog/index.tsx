@@ -56,7 +56,10 @@ export const ProfileDialog = ({
   }
 
   const { data: isRegisteredBorrower } = useGetIsRegisteredBorrower()
-  const isLenderContext = pathname.includes(ROUTES.lender.root)
+  const isBorrowerAppPath =
+    pathname === ROUTES.borrower.root ||
+    pathname.startsWith(`${ROUTES.borrower.root}/`)
+  const isLenderContext = !isBorrowerAppPath
   const shouldShowProfileLink = isLenderContext || isRegisteredBorrower
   const profileRoute = isLenderContext
     ? ROUTES.lender.profile

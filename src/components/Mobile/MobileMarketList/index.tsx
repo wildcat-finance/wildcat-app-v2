@@ -53,7 +53,9 @@ export const MobileMarketList = ({
   const [page, setPage] = useState(0)
   const pathname = usePathname()
 
-  const isBorrowerProfilePage = pathname.includes(ROUTES.borrower.profile)
+  const isBorrowerProfilePage =
+    pathname.includes(ROUTES.borrower.profile) ||
+    pathname.includes(ROUTES.profile.borrower)
   const isLenderProfilePage = pathname.includes(ROUTES.lender.profile)
 
   const showBorrowerInCard = !isBorrowerProfilePage && !isLenderProfilePage

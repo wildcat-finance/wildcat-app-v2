@@ -122,12 +122,15 @@ export const useBorrowerCapitalCostDrift = ({
   borrowerAddress,
   marketIds,
   priceMap,
+  chainId: externalChainId,
 }: {
   borrowerAddress: `0x${string}` | undefined
   marketIds: string[]
   priceMap: Record<string, number>
+  chainId?: number
 }) => {
-  const { chainId } = useSelectedNetwork()
+  const { chainId: selectedChainId } = useSelectedNetwork()
+  const chainId = externalChainId ?? selectedChainId
   const normalizedAddress = borrowerAddress?.toLowerCase()
   const normalizedMarketIds = useMemo(() => [...marketIds].sort(), [marketIds])
   const stablePriceMapKey = useMemo(() => JSON.stringify(priceMap), [priceMap])

@@ -13,7 +13,6 @@ import { useAccount } from "wagmi"
 import { updateMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/updateMarkets"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
-import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
@@ -87,19 +86,19 @@ export function useGetBorrowerMarketsQuery({
 
 export const useGetBorrowerMarkets = (
   borrowerAddress?: `0x${string}`,
-  externalChainId?: number,
+  externalChainId?: SupportedChainId,
   args?: SubgraphGetMarketsWithEventsQueryVariables | undefined,
 ) => {
-  const { chainId: currentChainId } = useCurrentNetwork()
-  const { isWrongNetwork, provider, signer } = useEthersProvider()
+  const { chainId: selectedChainId } = useSelectedNetwork()
+  const chainId = externalChainId ?? selectedChainId
+  const { isWrongNetwork, provider, signer } = useEthersProvider({ chainId })
 
   const signerOrProvider = signer ?? provider
-  const chainId = externalChainId ?? currentChainId
 
   return useGetBorrowerMarketsQuery({
     borrowerAddress,
     provider: signerOrProvider,
-    enabled: !!signerOrProvider && !isWrongNetwork,
+    enabled: !!chainId && !!signerOrProvider && !isWrongNetwork,
     chainId,
     ...args,
   })

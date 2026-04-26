@@ -32,6 +32,7 @@ import {
 } from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
 import {
+  buildBorrowerProfileHref,
   buildMarketHref,
   formatBps,
   formatSecsToHours,
@@ -179,7 +180,10 @@ export const LenderActiveMarketsTables = ({
 
           {params.row.borrowerAddress ? (
             <Link
-              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              href={buildBorrowerProfileHref(
+                params.row.borrowerAddress,
+                params.row.chainId,
+              )}
               prefetch={false}
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
               style={{ display: "flex", textDecoration: "none" }}

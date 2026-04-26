@@ -10,6 +10,8 @@ export type MarketsTableModel = {
   status: ReturnType<typeof getMarketStatusChip>
   name: string
   borrowerName?: string
+  borrowerAddress?: string
+  chainId?: number
   asset: string
   lenderAPR: number
   crr: number

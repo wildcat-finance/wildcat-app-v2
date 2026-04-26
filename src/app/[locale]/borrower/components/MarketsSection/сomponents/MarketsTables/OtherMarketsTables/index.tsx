@@ -39,6 +39,7 @@ import {
 } from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
 import {
+  buildBorrowerProfileHref,
   buildMarketHref,
   formatBps,
   formatSecsToHours,
@@ -199,7 +200,10 @@ export const OtherMarketsTables = ({
           </Typography>
 
           <Link
-            href={`${ROUTES.borrower.profile}/${params.row.borrowerAddress}`}
+            href={buildBorrowerProfileHref(
+              params.row.borrowerAddress,
+              params.row.chainId,
+            )}
             style={{ display: "flex", textDecoration: "none" }}
           >
             <BorrowerProfileChip borrower={params.row.borrower} />

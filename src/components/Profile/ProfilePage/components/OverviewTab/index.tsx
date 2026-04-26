@@ -17,6 +17,7 @@ import { ProfileNamePageBlock } from "../ProfileNamePageBlock"
 
 type OverviewTabProps = {
   profileAddress: `0x${string}` | undefined
+  chainId?: number
   type: "external" | "internal"
   accountName: string
   marketsAmount: number
@@ -29,6 +30,7 @@ type OverviewTabProps = {
 
 export const OverviewTab = ({
   profileAddress,
+  chainId,
   type,
   accountName,
   marketsAmount,
@@ -38,7 +40,7 @@ export const OverviewTab = ({
   analyticsAvailable,
   isMobile,
 }: OverviewTabProps) => {
-  const { data: profileData } = useGetBorrowerProfile(profileAddress)
+  const { data: profileData } = useGetBorrowerProfile(profileAddress, chainId)
 
   const summaryItems = [
     {

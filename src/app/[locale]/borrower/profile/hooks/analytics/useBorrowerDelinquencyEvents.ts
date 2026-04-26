@@ -44,8 +44,10 @@ export const useBorrowerDelinquencyEvents = (
   marketIds: string[],
   gracePeriodMap: Record<string, number>,
   nameMap: Record<string, string>,
+  externalChainId?: number,
 ) => {
-  const { chainId } = useSelectedNetwork()
+  const { chainId: selectedChainId } = useSelectedNetwork()
+  const chainId = externalChainId ?? selectedChainId
   const normalizedAddress = borrowerAddress?.toLowerCase()
   const normalizedMarketIds = useMemo(() => [...marketIds].sort(), [marketIds])
 
