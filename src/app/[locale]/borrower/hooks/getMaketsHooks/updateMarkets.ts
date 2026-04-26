@@ -9,7 +9,7 @@ import {
 
 import { NetworkInfo, NETWORKS } from "@/config/network"
 import { TOKENS_ADDRESSES } from "@/utils/constants"
-import { getMarketsV2Safe } from "@/utils/marketV2Reads"
+import { refreshMarketsV2LiveDataSafe } from "@/utils/marketV2Reads"
 
 export async function updateMarkets(
   markets: Market[],
@@ -68,9 +68,9 @@ export async function updateMarkets(
         return
       }
       try {
-        const updates = await getMarketsV2Safe(
+        const updates = await refreshMarketsV2LiveDataSafe(
           networkData.chainId,
-          marketsChunk.map((m) => m.address),
+          marketsChunk,
           provider as SignerOrProvider,
         )
         marketsChunk.forEach((market, i) => {

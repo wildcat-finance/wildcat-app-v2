@@ -9,7 +9,6 @@ import {
   getLensContract,
   MarketVersion,
   SupportedChainId,
-  getLatestLensContract,
   SubgraphGetAllMarketsForLenderViewQueryVariables,
   getLenderAccountsForAllMarkets,
   SubgraphMarket_Filter,
@@ -25,7 +24,7 @@ import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
-import { getMarketsV2Safe } from "@/utils/marketV2Reads"
+import { refreshMarketAccountsV2LiveDataSafe } from "@/utils/marketV2Reads"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type LenderMarketsQueryProps =
@@ -145,10 +144,6 @@ export function useLendersMarkets(
     const lens = hasV1Lens
       ? getLensContract(targetChainId, signerOrProvider as SignerOrProvider)
       : undefined
-    const latestLens = getLatestLensContract(
-      targetChainId,
-      signerOrProvider as SignerOrProvider,
-    )
 
     const { v1Chunks, v2Chunks } = getChunks(targetChainId, accounts)
     await Promise.all([
@@ -175,30 +170,12 @@ export function useLendersMarkets(
         if (accountsChunk.length === 0) {
           return
         }
-        const marketAddresses = accountsChunk.map((m) => m.market.address)
-        const [updates, refreshedMarkets] = await Promise.all([
-          latestLens.getMarketsDataWithLenderStatus(
-            lender ?? zeroAddress,
-            marketAddresses,
-          ),
-          getMarketsV2Safe(
-            targetChainId,
-            marketAddresses,
-            signerOrProvider as SignerOrProvider,
-          ),
-        ])
-        accountsChunk.forEach((account, i) => {
-          const update = updates[i]
-          account.market.updateWith(update.market)
-          Object.assign(account.market, refreshedMarkets[i])
-          // If the lender account is not set, set the balances to 0 but still use
-          // the credential, as that will tell us whether the market is open access.
-          account.updateWith(
-            !lender
-              ? zeroLenderBalances(update.lenderStatus)
-              : update.lenderStatus,
-          )
-        })
+        await refreshMarketAccountsV2LiveDataSafe(
+          targetChainId,
+          signerOrProvider as SignerOrProvider,
+          lender,
+          accountsChunk,
+        )
       }),
     ]).catch((e) => {
       throw e
