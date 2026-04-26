@@ -386,7 +386,9 @@ export const LenderOverviewTab = ({
               headlineLabel="Exposure"
               progress={{
                 value: row.share,
-                leftLabel: `${row.marketCount} market${row.marketCount === 1 ? "" : "s"}`,
+                leftLabel: `${row.marketCount} market${
+                  row.marketCount === 1 ? "" : "s"
+                }`,
                 label: `${formatPercent(row.share, 1)} of portfolio`,
               }}
             />

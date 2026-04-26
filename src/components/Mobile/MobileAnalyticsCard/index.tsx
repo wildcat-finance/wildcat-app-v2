@@ -107,9 +107,7 @@ export const MobileAnalyticsCard = ({
             >
               {title}
             </Typography>
-            {titleSub && (
-              <Box sx={{ marginTop: "4px" }}>{titleSub}</Box>
-            )}
+            {titleSub && <Box sx={{ marginTop: "4px" }}>{titleSub}</Box>}
           </Box>
           <Box
             sx={{
