@@ -41,6 +41,7 @@ export const OverviewTab = ({
   isMobile,
 }: OverviewTabProps) => {
   const { data: profileData } = useGetBorrowerProfile(profileAddress, chainId)
+  const activeBorrowerMarkets = borrowerMarkets ?? []
 
   const summaryItems = [
     {
@@ -83,7 +84,13 @@ export const OverviewTab = ({
   ]
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: { xs: "2px", md: "24px" },
+      }}
+    >
       <Box
         sx={{
           border: `1px solid ${COLORS.athensGrey}`,
@@ -155,45 +162,39 @@ export const OverviewTab = ({
         />
       </Box>
 
-      {marketsAmount > 0 ? (
+      <Box
+        sx={{
+          border: `1px solid ${COLORS.athensGrey}`,
+          borderRadius: "16px",
+          backgroundColor: COLORS.white,
+          padding: isMobile ? "16px" : "24px",
+        }}
+      >
         <Box
           sx={{
-            border: `1px solid ${COLORS.athensGrey}`,
-            borderRadius: "16px",
-            backgroundColor: COLORS.white,
-            padding: isMobile ? "16px" : "24px",
+            display: "flex",
+            alignItems: "baseline",
+            gap: "8px",
+            marginBottom: "16px",
           }}
         >
-          <Typography
-            variant="title2"
-            display="block"
-            sx={{ marginBottom: "24px" }}
-          >
+          <Typography variant="title2" display="block">
             Active markets
           </Typography>
-          <MarketsBlock markets={borrowerMarkets} isLoading={false} />
+          {activeBorrowerMarkets.length > 0 && (
+            <Typography variant="text3" color={COLORS.santasGrey}>
+              · {activeBorrowerMarkets.length}
+            </Typography>
+          )}
         </Box>
-      ) : (
-        <Box
-          sx={{
-            border: `1px solid ${COLORS.athensGrey}`,
-            borderRadius: "16px",
-            backgroundColor: COLORS.white,
-            padding: "24px",
-          }}
-        >
-          <Typography
-            variant="title2"
-            display="block"
-            sx={{ marginBottom: "24px" }}
-          >
-            Active markets
-          </Typography>
+        {activeBorrowerMarkets.length > 0 ? (
+          <MarketsBlock markets={activeBorrowerMarkets} isLoading={false} />
+        ) : (
           <Typography variant="text2" color={COLORS.santasGrey}>
             No active markets found for this borrower on the selected network.
           </Typography>
-        </Box>
-      )}
+        )}
+      </Box>
     </Box>
   )
 }

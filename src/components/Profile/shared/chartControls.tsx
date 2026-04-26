@@ -32,9 +32,16 @@ export const ChartPeriodSelector = ({
       if (nextValue) onChange(nextValue)
     }}
     sx={{
+      maxWidth: "100%",
+      overflowX: "auto",
+      scrollbarWidth: "none",
+      "&::-webkit-scrollbar": {
+        display: "none",
+      },
       "& .MuiToggleButton-root": {
         borderColor: COLORS.athensGrey,
         color: COLORS.santasGrey,
+        flexShrink: 0,
         fontFamily: "inherit",
         fontSize: 10,
         lineHeight: 1,

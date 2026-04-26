@@ -341,7 +341,13 @@ export const CapitalAtRiskTimeline = ({
       actions={<ChartPeriodSelector value={period} onChange={setPeriod} />}
     >
       {() => (
-        <Box sx={{ height: "100%", marginX: "auto", width: "80%" }}>
+        <Box
+          sx={{
+            height: "100%",
+            marginX: "auto",
+            width: { xs: "100%", md: "80%" },
+          }}
+        >
           <EChart
             option={option}
             ariaLabel="Lender capital at risk timeline"

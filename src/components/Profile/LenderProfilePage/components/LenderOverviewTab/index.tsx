@@ -11,9 +11,12 @@ import { LenderPositionsData } from "@/app/[locale]/lender/profile/hooks/types"
 import { useLenderActivity } from "@/app/[locale]/lender/profile/hooks/useLenderActivity"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { LinkGroup } from "@/components/LinkComponent"
+import { MobileAnalyticsCard } from "@/components/Mobile/MobileAnalyticsCard"
 import { formatPercent, formatUsd } from "@/components/Profile/shared/analytics"
 import { AnalyticsDataGrid } from "@/components/Profile/shared/AnalyticsDataGrid"
+import { ProfileSectionPanel } from "@/components/Profile/shared/ProfileSectionPanel"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -87,6 +90,7 @@ export const LenderOverviewTab = ({
   isLoading,
 }: LenderOverviewTabProps) => {
   const { data: borrowers } = useBorrowerNames()
+  const isMobile = useMobileResolution()
   const { chainId } = useSelectedNetwork()
   const { getAddressUrl } = useBlockExplorer()
   const activityQuery = useLenderActivity(
@@ -296,7 +300,13 @@ export const LenderOverviewTab = ({
   ]
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: { xs: "2px", md: "24px" },
+      }}
+    >
       <LenderOverviewHeader
         lenderAddress={lenderAddress}
         data={data}
@@ -304,39 +314,85 @@ export const LenderOverviewTab = ({
         isLoading={isLoading}
       />
 
-      <Box>
-        <Typography
-          variant="title2"
-          display="block"
-          sx={{ marginBottom: "24px" }}
-        >
-          Active positions
-        </Typography>
+      <ProfileSectionPanel
+        title="Active positions"
+        count={activePositions.length}
+      >
         <AnalyticsDataGrid
           loading={isLoading}
           rows={activePositions}
           columns={positionColumns}
           noRowsLabel="No active positions for this lender."
           minWidth={980}
+          maxHeight={isMobile ? 520 : 560}
+          renderMobileRow={(row) => (
+            <MobileAnalyticsCard
+              href={buildMarketHref(
+                row.marketId,
+                undefined,
+                ROUTES.lender.market,
+              )}
+              title={row.marketName}
+              titleSub={
+                <Typography variant="text4" color={COLORS.santasGrey}>
+                  {trimAddress(row.borrower)} · {row.asset}
+                </Typography>
+              }
+              headerRight={
+                <MarketStatusChip
+                  status={getPositionMarketStatus(row.status)}
+                  withPeriod={false}
+                />
+              }
+              headlineValue={formatUsd(row.currentBalance, { compact: true })}
+              headlineLabel="Balance"
+              rows={[
+                {
+                  label: "Deposited",
+                  value: formatUsd(row.totalDeposited, { compact: true }),
+                },
+                {
+                  label: "Interest earned",
+                  value: formatUsd(row.interestEarned, { compact: true }),
+                },
+                { label: "APR", value: formatPercent(row.apr) },
+              ]}
+            />
+          )}
         />
-      </Box>
+      </ProfileSectionPanel>
 
-      <Box>
-        <Typography
-          variant="title2"
-          display="block"
-          sx={{ marginBottom: "24px" }}
-        >
-          Borrower exposure
-        </Typography>
+      <ProfileSectionPanel
+        title="Borrower exposure"
+        count={borrowerExposureRows.length}
+      >
         <AnalyticsDataGrid
           loading={isLoading}
           rows={borrowerExposureRows}
           columns={borrowerExposureColumns}
           noRowsLabel="No active borrower exposure."
           minWidth={700}
+          maxHeight={isMobile ? 520 : 560}
+          renderMobileRow={(row) => (
+            <MobileAnalyticsCard
+              href={buildBorrowerProfileHref(row.borrower, chainId)}
+              title={row.borrowerName}
+              titleSub={
+                <Typography variant="text4" color={COLORS.santasGrey}>
+                  {trimAddress(row.borrower)}
+                </Typography>
+              }
+              headlineValue={formatUsd(row.exposure, { compact: true })}
+              headlineLabel="Exposure"
+              progress={{
+                value: row.share,
+                leftLabel: `${row.marketCount} market${row.marketCount === 1 ? "" : "s"}`,
+                label: `${formatPercent(row.share, 1)} of portfolio`,
+              }}
+            />
+          )}
         />
-      </Box>
+      </ProfileSectionPanel>
     </Box>
   )
 }

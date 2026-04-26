@@ -570,7 +570,13 @@ export const BorrowerChartsTab = ({
 
   if (!analyticsAvailable) {
     return (
-      <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: { xs: "2px", md: "24px" },
+        }}
+      >
         <AnalyticsUnavailableNotice />
       </Box>
     )
@@ -682,7 +688,13 @@ export const BorrowerChartsTab = ({
       title="Borrower charts"
       subtitle="Cure speed and realized capital cost across this borrower."
     >
-      <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: { xs: "2px", md: "24px" },
+        }}
+      >
         {renderCureVelocity()}
         {renderCapitalCost()}
       </Box>
