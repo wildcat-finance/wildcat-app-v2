@@ -132,10 +132,15 @@ export const LenderOverviewHeader = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        gap: "16px",
+        gap: { xs: "2px", md: "16px" },
       }}
     >
-      <Box>
+      <Box
+        sx={{
+          display: { xs: "none", md: "block" },
+          padding: 0,
+        }}
+      >
         <Typography
           variant="title2"
           display="block"
@@ -152,7 +157,7 @@ export const LenderOverviewHeader = ({
         sx={{
           display: "flex",
           flexDirection: { xs: "column", lg: "row" },
-          gap: "16px",
+          gap: { xs: "2px", lg: "16px" },
           alignItems: "stretch",
         }}
       >
@@ -209,12 +214,22 @@ export const LenderOverviewHeader = ({
                   display: "flex",
                   justifyContent: "space-between",
                   gap: "12px",
+                  minWidth: 0,
                 }}
               >
                 <Typography variant="text2" color={COLORS.santasGrey}>
                   {label}
                 </Typography>
-                <Typography variant="text2Highlighted">{value}</Typography>
+                <Typography
+                  variant="text2Highlighted"
+                  sx={{
+                    minWidth: 0,
+                    textAlign: "right",
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {value}
+                </Typography>
               </Box>
             ))}
           </Box>

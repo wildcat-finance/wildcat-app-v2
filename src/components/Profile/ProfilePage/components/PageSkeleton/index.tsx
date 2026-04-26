@@ -17,10 +17,10 @@ export const ProfilePageSkeleton = ({ isMobile }: ProfilePageSkeletonProps) => (
       width: "100%",
       height: isMobile ? "auto" : `calc(100vh - ${pageCalcHeights.page})`,
       overflowY: isMobile ? "visible" : "auto",
-      padding: isMobile ? "0" : "44px 44px 24px 44px",
+      padding: isMobile ? "4px" : "44px 44px 24px 44px",
       display: "flex",
       flexDirection: "column",
-      gap: "24px",
+      gap: isMobile ? "4px" : "24px",
     }}
   >
     <Skeleton sx={{ ...blockSx, height: "200px" }} />

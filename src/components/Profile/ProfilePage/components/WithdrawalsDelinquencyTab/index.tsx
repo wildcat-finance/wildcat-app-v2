@@ -36,6 +36,7 @@ import {
 } from "@/components/Profile/shared/AnalyticsPanels"
 import { AnalyticsUnavailableNotice } from "@/components/Profile/shared/AnalyticsUnavailableNotice"
 import { buildCsv } from "@/components/Profile/shared/chartExport"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
 type WithdrawalsDelinquencyTabProps = {
@@ -128,9 +129,16 @@ const ChartToggleGroup = <T extends string>({
       if (nextValue) onChange(nextValue)
     }}
     sx={{
+      maxWidth: "100%",
+      overflowX: "auto",
+      scrollbarWidth: "none",
+      "&::-webkit-scrollbar": {
+        display: "none",
+      },
       "& .MuiToggleButton-root": {
         borderColor: COLORS.athensGrey,
         color: COLORS.santasGrey,
+        flexShrink: 0,
         fontSize: 10,
         lineHeight: 1,
         padding: "5px 7px",
@@ -320,6 +328,7 @@ export const WithdrawalsDelinquencyTab = ({
   isAnalyticsLoading,
   analyticsAvailable,
 }: WithdrawalsDelinquencyTabProps) => {
+  const isMobile = useMobileResolution()
   const [delinquencySort, setDelinquencySort] =
     React.useState<DelinquencySort>("hours")
   const [batchSort, setBatchSort] = React.useState<BatchSort>("expiry")
@@ -442,7 +451,13 @@ export const WithdrawalsDelinquencyTab = ({
 
   if (!analyticsAvailable) {
     return (
-      <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: { xs: "2px", md: "24px" },
+        }}
+      >
         <AnalyticsUnavailableNotice />
       </Box>
     )
@@ -508,7 +523,7 @@ export const WithdrawalsDelinquencyTab = ({
                 ],
               },
             }}
-            yAxisWidth={170}
+            yAxisWidth={isMobile ? 112 : 170}
             barBorderRadius={0}
             categoryLabelFontFamily="Inter, sans-serif"
             showExportActions
@@ -538,7 +553,13 @@ export const WithdrawalsDelinquencyTab = ({
     }
 
     return (
-      <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: { xs: "2px", md: "24px" },
+        }}
+      >
         {batchRows.length === 0 ? (
           <EmptyPanel message="No expired withdrawal batches for this borrower." />
         ) : (
@@ -710,7 +731,13 @@ export const WithdrawalsDelinquencyTab = ({
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: { xs: "2px", md: "24px" },
+      }}
+    >
       <AnalyticsSectionCard
         title="Delinquency track record"
         subtitle="How often markets fell delinquent and how long they took to recover."

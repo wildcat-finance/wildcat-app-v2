@@ -5,6 +5,7 @@ import * as React from "react"
 import { Box, Dialog, IconButton, Typography } from "@mui/material"
 
 import Expand from "@/assets/icons/expand_icon.svg"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
 import {
@@ -52,14 +53,30 @@ export const AnalyticsChartCard = ({
   children,
 }: AnalyticsChartCardProps) => {
   const [isExpanded, setIsExpanded] = React.useState(false)
+  const isMobile = useMobileResolution()
+  const resolvedCardHeight =
+    isMobile && typeof cardHeight === "number"
+      ? Math.max(cardHeight, 280)
+      : cardHeight
+  const resolvedDialogHeight =
+    isMobile && typeof dialogHeight === "number"
+      ? "calc(100dvh - 132px)"
+      : dialogHeight
 
   return (
     <>
       <Box
         sx={
           constrainWidth
-            ? [ChartCardStyle, ProfileChartContainerStyle]
-            : ChartCardStyle
+            ? [
+                ChartCardStyle,
+                ProfileChartContainerStyle,
+                { padding: { xs: "14px 12px 12px", md: "16px 20px 12px" } },
+              ]
+            : [
+                ChartCardStyle,
+                { padding: { xs: "14px 12px 12px", md: "16px 20px 12px" } },
+              ]
         }
       >
         <Box sx={ChartHeaderStyle}>
@@ -88,7 +105,7 @@ export const AnalyticsChartCard = ({
           </Typography>
         )}
 
-        <Box sx={{ width: "100%", height: cardHeight }}>
+        <Box sx={{ width: "100%", height: resolvedCardHeight }}>
           {children({ isExpanded: false })}
         </Box>
       </Box>
@@ -96,11 +113,29 @@ export const AnalyticsChartCard = ({
       <Dialog
         open={isExpanded}
         onClose={() => setIsExpanded(false)}
+        fullScreen={isMobile}
         fullWidth
         maxWidth="lg"
-        PaperProps={{ sx: ExpandDialogPaperStyle }}
+        PaperProps={{
+          sx: {
+            ...(ExpandDialogPaperStyle as Record<string, unknown>),
+            ...(isMobile
+              ? {
+                  borderRadius: 0,
+                  margin: 0,
+                  maxHeight: "100dvh",
+                  maxWidth: "100vw",
+                }
+              : {}),
+          },
+        }}
       >
-        <Box sx={ExpandDialogContentStyle}>
+        <Box
+          sx={{
+            ...(ExpandDialogContentStyle as Record<string, unknown>),
+            ...(isMobile ? { gap: "12px", padding: "16px" } : {}),
+          }}
+        >
           <Box
             sx={{
               display: "flex",
@@ -135,7 +170,7 @@ export const AnalyticsChartCard = ({
             </Typography>
           )}
 
-          <Box sx={{ width: "100%", height: dialogHeight }}>
+          <Box sx={{ width: "100%", height: resolvedDialogHeight }}>
             {children({ isExpanded: true })}
           </Box>
         </Box>

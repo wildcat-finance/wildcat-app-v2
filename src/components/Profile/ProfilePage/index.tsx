@@ -4,6 +4,7 @@ import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHo
 import { useBorrowerAggregateStats } from "@/app/[locale]/borrower/profile/hooks/analytics/useBorrowerAggregateStats"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { Footer } from "@/components/Footer"
+import { ProfileTabBar } from "@/components/Profile/shared/ProfileTabBar"
 import {
   BORROWER_PROFILE_TABS,
   useProfileTab,
@@ -65,8 +66,16 @@ export const ProfilePage = ({
         display: "flex",
         flexDirection: "column",
         gap: "24px",
+        ...(isMobile && {
+          gap: "2px",
+          padding: "2px",
+        }),
       }}
     >
+      {isMobile && (
+        <ProfileTabBar tabs={BORROWER_PROFILE_TABS} defaultTab="overview" />
+      )}
+
       {currentTab === "overview" && (
         <OverviewTab
           profileAddress={profileAddress}

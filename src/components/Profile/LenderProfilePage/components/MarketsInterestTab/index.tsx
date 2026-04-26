@@ -10,8 +10,10 @@ import { LenderPositionsData } from "@/app/[locale]/lender/profile/hooks/types"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { CHART_PALETTE, DonutChart, DonutChartItem } from "@/components/ECharts"
 import { LinkGroup } from "@/components/LinkComponent"
+import { MobileAnalyticsCard } from "@/components/Mobile/MobileAnalyticsCard"
 import { formatPercent, formatUsd } from "@/components/Profile/shared/analytics"
 import { AnalyticsDataGrid } from "@/components/Profile/shared/AnalyticsDataGrid"
+import { ProfileSectionPanel } from "@/components/Profile/shared/ProfileSectionPanel"
 import { ProfileChartContainerStyle } from "@/components/Profile/shared/chartStyle"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
@@ -229,24 +231,26 @@ export const MarketsInterestTab = ({
   ]
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      <Box>
-        <Typography
-          variant="title2"
-          display="block"
-          sx={{ marginBottom: "24px" }}
-        >
-          Interest breakdown
-        </Typography>
-
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: { xs: "2px", md: "24px" },
+      }}
+    >
+      <ProfileSectionPanel title="Interest breakdown">
         {interestRows.length > 0 ? (
           <Box
             sx={{
-              border: `1px solid ${COLORS.athensGrey}`,
               borderRadius: "16px",
               backgroundColor: COLORS.white,
-              padding: "24px",
-              marginBottom: "24px",
+              padding: { xs: 0, md: "24px" },
+              marginBottom: { xs: "12px", md: "24px" },
+              border: {
+                xs: "none",
+                md: "1px solid",
+              },
+              borderColor: { xs: "transparent", md: COLORS.athensGrey },
               ...ProfileChartContainerStyle,
             }}
           >
@@ -340,8 +344,8 @@ export const MarketsInterestTab = ({
             sx={{
               border: `1px dashed ${COLORS.iron}`,
               borderRadius: "16px",
-              padding: "24px",
-              marginBottom: "16px",
+              padding: { xs: "12px", md: "24px" },
+              marginBottom: { xs: "12px", md: "16px" },
             }}
           >
             <Typography variant="text2" color={COLORS.santasGrey}>
@@ -362,33 +366,74 @@ export const MarketsInterestTab = ({
           columns={interestColumns}
           noRowsLabel="No interest earned yet."
           minWidth={760}
+          maxHeight={560}
+          renderMobileRow={(row) => (
+            <MobileAnalyticsCard
+              href={buildMarketHref(
+                row.marketId,
+                undefined,
+                ROUTES.lender.market,
+              )}
+              title={row.marketName}
+              titleSub={
+                <Typography variant="text4" color={COLORS.santasGrey}>
+                  {row.asset}
+                </Typography>
+              }
+              headlineValue={formatUsd(row.interestEarned, { compact: true })}
+              headlineLabel="Interest"
+              progress={{
+                value: row.share,
+                label: `${formatPercent(row.share, 1)} of total`,
+              }}
+            />
+          )}
         />
-      </Box>
+      </ProfileSectionPanel>
 
-      <Box>
-        <Typography
-          variant="title2"
-          display="block"
-          sx={{ marginBottom: "6px" }}
-        >
-          Market history
-        </Typography>
-        <Typography
-          variant="text3"
-          color={COLORS.santasGrey}
-          display="block"
-          sx={{ marginBottom: "24px" }}
-        >
-          All {positions.length} lender positions, including exited markets.
-        </Typography>
+      <ProfileSectionPanel
+        title="Market history"
+        subtitle={`All ${positions.length} lender positions, including exited markets.`}
+      >
         <AnalyticsDataGrid
           loading={isLoading}
           rows={positions}
           columns={marketHistoryColumns}
           noRowsLabel="No market history found for this lender."
           minWidth={980}
+          maxHeight={560}
+          renderMobileRow={(row) => (
+            <MobileAnalyticsCard
+              href={buildMarketHref(
+                row.marketId,
+                undefined,
+                ROUTES.lender.market,
+              )}
+              title={row.marketName}
+              titleSub={
+                <Typography variant="text4" color={COLORS.santasGrey}>
+                  {trimAddress(row.borrower)} · {row.asset} · since{" "}
+                  {row.addedDate}
+                </Typography>
+              }
+              headerRight={
+                <MarketStatusChip
+                  status={getHistoryMarketStatus(row.status)}
+                  withPeriod={false}
+                />
+              }
+              headlineValue={formatUsd(row.totalDeposited, { compact: true })}
+              headlineLabel="Deposited"
+              rows={[
+                {
+                  label: "Interest earned",
+                  value: formatUsd(row.interestEarned, { compact: true }),
+                },
+              ]}
+            />
+          )}
         />
-      </Box>
+      </ProfileSectionPanel>
     </Box>
   )
 }

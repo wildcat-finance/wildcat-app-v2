@@ -35,7 +35,7 @@ export const AnalyticsSectionCard = ({
       border: `1px solid ${COLORS.athensGrey}`,
       borderRadius: "16px",
       backgroundColor: COLORS.white,
-      padding: "24px",
+      padding: { xs: "16px", md: "24px" },
     }}
   >
     <Typography

@@ -6,6 +6,7 @@ import { useLenderPositions } from "@/app/[locale]/lender/profile/hooks/useLende
 import { Footer } from "@/components/Footer"
 import { ProfilePageSkeleton } from "@/components/Profile/ProfilePage/components/PageSkeleton"
 import { AnalyticsUnavailableNotice } from "@/components/Profile/shared/AnalyticsUnavailableNotice"
+import { ProfileTabBar } from "@/components/Profile/shared/ProfileTabBar"
 import {
   LENDER_PROFILE_TABS,
   useProfileTab,
@@ -51,7 +52,7 @@ export const LenderProfilePage = ({
       <Box
         sx={{
           width: "100%",
-          padding: isMobile ? "0" : "44px",
+          padding: isMobile ? "4px" : "44px",
         }}
       >
         <Box
@@ -78,8 +79,16 @@ export const LenderProfilePage = ({
         display: "flex",
         flexDirection: "column",
         gap: "24px",
+        ...(isMobile && {
+          gap: "2px",
+          padding: "2px",
+        }),
       }}
     >
+      {isMobile && (
+        <ProfileTabBar tabs={LENDER_PROFILE_TABS} defaultTab="overview" />
+      )}
+
       {analyticsAvailable ? (
         <>
           {currentTab === "overview" && (

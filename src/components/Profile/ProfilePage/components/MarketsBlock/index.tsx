@@ -5,6 +5,7 @@ import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
@@ -24,6 +25,7 @@ import {
 } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
+import { isBorrowerContextPath } from "@/utils/profileRoutes"
 
 import { MarketsBlockProps } from "./interface"
 import { LinkCell } from "./style"
@@ -33,7 +35,8 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
   const isMobile = useMobileResolution()
 
   const pathname = usePathname()
-  const marketLink = pathname.includes(ROUTES.borrower.profile)
+  const { address: connectedAddress } = useAccount()
+  const marketLink = isBorrowerContextPath(pathname, connectedAddress)
     ? ROUTES.borrower.market
     : ROUTES.lender.market
 
@@ -41,7 +44,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     .filter((market) => !market.isClosed)
     .map((market) => {
       const {
-        address,
+        address: marketAddress,
         name,
         underlyingToken,
         annualInterestBips,
@@ -53,9 +56,13 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       } = market
 
       const marketStatus = getMarketStatusChip(market)
+      const capRaw = maxTotalSupply.raw
+      const utilisation = capRaw.isZero()
+        ? 0
+        : totalSupply.raw.mul(10000).div(capRaw).toNumber() / 100
 
       return {
-        id: address,
+        id: marketAddress,
         chainId,
         name,
         status: marketStatus,
@@ -63,8 +70,12 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
         apr: annualInterestBips,
         term: getMarketTypeChip(market),
         debt: totalDebts,
+        capacity: maxTotalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
+        utilisation,
         withdrawalBatchDuration,
+        borrower: undefined,
+        borrowerAddress: undefined,
       }
     })
 
@@ -232,9 +243,16 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
   ]
 
   if (isMobile) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    return <MobileMarketList markets={rows} isLoading={isLoading} />
+    const uniqueAssets = new Set(rows.map((r) => r.asset)).size
+    return (
+      <MobileMarketList
+        markets={rows as Parameters<typeof MobileMarketList>[0]["markets"]}
+        isLoading={!!isLoading}
+        variant="borrower-context"
+        groupByAsset={uniqueAssets > 1}
+        enableToolbar
+      />
+    )
   }
 
   return (

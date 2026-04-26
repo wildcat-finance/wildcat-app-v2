@@ -1,5 +1,6 @@
 import { Box, Button } from "@mui/material"
 import { usePathname } from "next/navigation"
+import { useAccount } from "wagmi"
 
 import { BackButton } from "@/components/BackButton"
 import {
@@ -14,6 +15,7 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { isHinterlightSupported } from "@/lib/hinterlight"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { isBorrowerContextPath } from "@/utils/profileRoutes"
 
 const ProfileTabList = ({
   resolved,
@@ -52,10 +54,11 @@ const ProfileTabList = ({
 
 export const BorrowerSidebar = () => {
   const pathname = usePathname()
+  const { address } = useAccount()
   const isLenderProfile = pathname.includes(ROUTES.lender.profile)
   const isEditProfile = pathname.includes(ROUTES.borrower.editProfile)
 
-  const backLink = pathname.includes(ROUTES.borrower.profile)
+  const backLink = isBorrowerContextPath(pathname, address)
     ? ROUTES.borrower.root
     : ROUTES.lender.root
 

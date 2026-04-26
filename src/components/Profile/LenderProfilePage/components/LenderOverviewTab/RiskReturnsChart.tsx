@@ -433,7 +433,13 @@ export const RiskReturnsChart = ({
     }
 
     return (
-      <Box sx={{ height: "100%", marginX: "auto", width: "80%" }}>
+      <Box
+        sx={{
+          height: "100%",
+          marginX: "auto",
+          width: { xs: "100%", md: "80%" },
+        }}
+      >
         <EChart
           option={option}
           ariaLabel={`Risk and returns for ${
@@ -457,7 +463,15 @@ export const RiskReturnsChart = ({
       dialogHeight={580}
       constrainWidth
       actions={
-        <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <Box
+          sx={{
+            alignItems: "center",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "8px",
+            maxWidth: "100%",
+          }}
+        >
           <Typography
             component="span"
             sx={{
@@ -475,8 +489,9 @@ export const RiskReturnsChart = ({
             onChange={(event) => setSelectedMarketId(event.target.value)}
             sx={{
               height: 28,
-              minWidth: 190,
+              minWidth: { xs: "100%", sm: 190 },
               color: COLORS.blackRock,
+              flex: { xs: "1 0 100%", sm: "0 0 auto" },
               fontFamily: "monospace",
               fontSize: 10,
               "& .MuiSelect-select": {

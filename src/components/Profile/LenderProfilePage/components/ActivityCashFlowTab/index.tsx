@@ -32,6 +32,7 @@ import {
 } from "@/components/ECharts"
 import { tooltipRow, tooltipShell } from "@/components/ECharts/formatters"
 import { LinkGroup } from "@/components/LinkComponent"
+import { MobileAnalyticsCard } from "@/components/Mobile/MobileAnalyticsCard"
 import { formatUsd } from "@/components/Profile/shared/analytics"
 import { AnalyticsChartCard } from "@/components/Profile/shared/AnalyticsChartCard"
 import { AnalyticsDataGrid } from "@/components/Profile/shared/AnalyticsDataGrid"
@@ -40,6 +41,7 @@ import {
   ChartPeriodSelector,
   groupPeriodData,
 } from "@/components/Profile/shared/chartControls"
+import { ProfileSectionPanel } from "@/components/Profile/shared/ProfileSectionPanel"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -503,7 +505,7 @@ export const ActivityCashFlowTab = ({
             border: `1px solid ${COLORS.remy}`,
             backgroundColor: COLORS.remy,
             borderRadius: "16px",
-            padding: "24px",
+            padding: { xs: "16px", md: "24px" },
           }}
         >
           <Typography variant="text2" color={COLORS.dullRed}>
@@ -551,7 +553,7 @@ export const ActivityCashFlowTab = ({
         sx={{
           border: `1px dashed ${COLORS.iron}`,
           borderRadius: "16px",
-          padding: "24px",
+          padding: { xs: "16px", md: "24px" },
         }}
       >
         <Typography variant="text2" color={COLORS.santasGrey}>
@@ -562,46 +564,84 @@ export const ActivityCashFlowTab = ({
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      <Box>
-        <Typography
-          variant="title2"
-          display="block"
-          sx={{ marginBottom: "6px" }}
-        >
-          Deposit & Withdrawal Activity
-        </Typography>
-        <Typography
-          variant="text3"
-          color={COLORS.santasGrey}
-          display="block"
-          sx={{ marginBottom: "24px" }}
-        >
-          Deposits, withdrawals, and request batches for this wallet.
-        </Typography>
-
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: { xs: "2px", md: "24px" },
+      }}
+    >
+      <ProfileSectionPanel
+        title="Deposit & Withdrawal Activity"
+        subtitle="Deposits, withdrawals, and request batches for this wallet."
+      >
         {renderCashFlow()}
 
-        <Box sx={{ marginTop: "24px" }}>
+        <Box sx={{ marginTop: { xs: "12px", md: "24px" } }}>
           <AnalyticsDataGrid
             loading={isPositionsLoading || activityQuery.isLoading}
             rows={activityQuery.data?.activity ?? []}
             columns={activityColumns}
             noRowsLabel="No deposit or withdrawal activity found."
             minWidth={920}
+            maxHeight={560}
+            renderMobileRow={(row) => {
+              const palette = getActivityTypePalette(row.type as string)
+              return (
+                <MobileAnalyticsCard
+                  href={buildMarketHref(
+                    row.marketId,
+                    undefined,
+                    ROUTES.lender.market,
+                  )}
+                  title={row.market}
+                  titleSub={
+                    <Typography variant="text4" color={COLORS.santasGrey}>
+                      {row.date}
+                    </Typography>
+                  }
+                  headerRight={
+                    <Chip
+                      label={row.type}
+                      size="small"
+                      sx={{ borderRadius: "8px", ...palette }}
+                    />
+                  }
+                  headlineValue={
+                    typeof row.amountUsd === "number"
+                      ? formatUsd(row.amountUsd, { compact: true })
+                      : "—"
+                  }
+                  headlineLabel="Amount"
+                  rows={[
+                    {
+                      label: "Tx",
+                      value: (
+                        <Box
+                          component="span"
+                          sx={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          {trimAddress(row.txHash, 8)}
+                          <LinkGroup
+                            linkValue={getTxUrl(row.txHash)}
+                            copyValue={row.txHash}
+                          />
+                        </Box>
+                      ),
+                    },
+                  ]}
+                />
+              )
+            }}
           />
         </Box>
-      </Box>
+      </ProfileSectionPanel>
 
-      <Box>
-        <Typography
-          variant="title2"
-          display="block"
-          sx={{ marginBottom: "24px" }}
-        >
-          Withdrawal batch status
-        </Typography>
-
+      <ProfileSectionPanel title="Withdrawal batch status">
         <LenderAnalyticsSummary
           isLoading={batchesQuery.isLoading}
           items={[
@@ -642,7 +682,7 @@ export const ActivityCashFlowTab = ({
           ]}
         />
 
-        <Box sx={{ marginTop: "24px" }}>
+        <Box sx={{ marginTop: { xs: "12px", md: "24px" } }}>
           <AnalyticsDataGrid
             loading={batchesQuery.isLoading}
             rows={batchRows.map((batch) => ({
@@ -652,9 +692,56 @@ export const ActivityCashFlowTab = ({
             columns={batchColumns}
             noRowsLabel="No withdrawal batches found."
             minWidth={900}
+            maxHeight={560}
+            renderMobileRow={(row) => {
+              const status = getBatchStatus(row as LenderBatchRow)
+              const requested = Number(row.requested) || 0
+              const withdrawn = Number(row.withdrawn) || 0
+              const fillPct =
+                requested > 0
+                  ? Math.min(100, (withdrawn / requested) * 100)
+                  : 0
+              return (
+                <MobileAnalyticsCard
+                  href={buildMarketHref(
+                    row.marketId,
+                    undefined,
+                    ROUTES.lender.market,
+                  )}
+                  title={row.marketName}
+                  titleSub={
+                    <Typography variant="text4" color={COLORS.santasGrey}>
+                      Expires {row.expiry}
+                    </Typography>
+                  }
+                  headerRight={
+                    <Chip
+                      label={status.label}
+                      size="small"
+                      sx={{
+                        borderRadius: "8px",
+                        backgroundColor: status.color,
+                        color: status.textColor,
+                      }}
+                    />
+                  }
+                  headlineValue={formatUsd(requested, { compact: true })}
+                  headlineLabel="Requested"
+                  progress={{
+                    value: fillPct,
+                    color:
+                      status.label === "Expired"
+                        ? COLORS.dullRed
+                        : COLORS.ultramarineBlue,
+                    leftLabel: `${formatUsd(withdrawn, { compact: true })} withdrawn`,
+                    label: `${formatUsd(Number(row.remaining) || 0, { compact: true })} remaining`,
+                  }}
+                />
+              )
+            }}
           />
         </Box>
-      </Box>
+      </ProfileSectionPanel>
     </Box>
   )
 }

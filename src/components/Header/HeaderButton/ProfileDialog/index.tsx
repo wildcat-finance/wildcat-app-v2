@@ -32,6 +32,7 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
+import { isBorrowerContextPath } from "@/utils/profileRoutes"
 
 export const ProfileDialog = ({
   open,
@@ -56,10 +57,8 @@ export const ProfileDialog = ({
   }
 
   const { data: isRegisteredBorrower } = useGetIsRegisteredBorrower()
-  const isBorrowerAppPath =
-    pathname === ROUTES.borrower.root ||
-    pathname.startsWith(`${ROUTES.borrower.root}/`)
-  const isLenderContext = !isBorrowerAppPath
+  const isBorrowerContext = isBorrowerContextPath(pathname, address)
+  const isLenderContext = !isBorrowerContext
   const shouldShowProfileLink = isLenderContext || isRegisteredBorrower
   const profileRoute = isLenderContext
     ? ROUTES.lender.profile
