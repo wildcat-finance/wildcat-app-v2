@@ -14,9 +14,14 @@ import { LinkGroup } from "@/components/LinkComponent"
 import { formatPercent, formatUsd } from "@/components/Profile/shared/analytics"
 import { AnalyticsDataGrid } from "@/components/Profile/shared/AnalyticsDataGrid"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import { trimAddress, buildMarketHref } from "@/utils/formatters"
+import {
+  buildBorrowerProfileHref,
+  buildMarketHref,
+  trimAddress,
+} from "@/utils/formatters"
 import { MarketStatus } from "@/utils/marketStatus"
 
 import { LenderOverviewHeader } from "./LenderOverviewHeader"
@@ -82,6 +87,7 @@ export const LenderOverviewTab = ({
   isLoading,
 }: LenderOverviewTabProps) => {
   const { data: borrowers } = useBorrowerNames()
+  const { chainId } = useSelectedNetwork()
   const { getAddressUrl } = useBlockExplorer()
   const activityQuery = useLenderActivity(
     lenderAddress,
@@ -164,7 +170,7 @@ export const LenderOverviewTab = ({
       renderCell: ({ value }) => (
         <ProfileAddressCell
           address={value}
-          profileHref={`${ROUTES.borrower.profile}/${value}`}
+          profileHref={buildBorrowerProfileHref(value, chainId)}
           explorerHref={getAddressUrl(value)}
         />
       ),
@@ -245,7 +251,7 @@ export const LenderOverviewTab = ({
       renderCell: ({ value }) => (
         <ProfileAddressCell
           address={value}
-          profileHref={`${ROUTES.borrower.profile}/${value}`}
+          profileHref={buildBorrowerProfileHref(value, chainId)}
           explorerHref={getAddressUrl(value)}
         />
       ),

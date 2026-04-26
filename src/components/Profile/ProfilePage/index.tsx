@@ -20,15 +20,23 @@ import { ProfilePageSkeleton } from "./components/PageSkeleton"
 import { WithdrawalsDelinquencyTab } from "./components/WithdrawalsDelinquencyTab"
 import { ProfilePageProps } from "./interface"
 
-export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
-  const { chainId } = useSelectedNetwork()
+export const ProfilePage = ({
+  type,
+  profileAddress,
+  chainId: profileChainId,
+}: ProfilePageProps) => {
+  const { chainId: selectedChainId } = useSelectedNetwork()
+  const chainId = profileChainId ?? selectedChainId
   const analyticsAvailable = isHinterlightSupported(chainId)
 
   const { data: profileData, isLoading: isProfileLoading } =
-    useGetBorrowerProfile(profileAddress)
+    useGetBorrowerProfile(profileAddress, chainId)
   const { data: borrowerMarkets, isLoading: isMarketsLoading } =
-    useGetBorrowerMarkets(profileAddress)
-  const borrowerAnalyticsQuery = useBorrowerAggregateStats(profileAddress)
+    useGetBorrowerMarkets(profileAddress, chainId)
+  const borrowerAnalyticsQuery = useBorrowerAggregateStats(
+    profileAddress,
+    chainId,
+  )
 
   const isMobile = useMobileResolution()
   const { currentTab } = useProfileTab(BORROWER_PROFILE_TABS, "overview")
@@ -62,6 +70,7 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
       {currentTab === "overview" && (
         <OverviewTab
           profileAddress={profileAddress}
+          chainId={chainId}
           type={type}
           accountName={accountName}
           marketsAmount={marketsAmount}
@@ -78,6 +87,7 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
       {currentTab === "delinquency" && (
         <WithdrawalsDelinquencyTab
           borrowerAddress={profileAddress}
+          chainId={chainId}
           analytics={borrowerAnalyticsQuery.data}
           isAnalyticsLoading={
             analyticsAvailable && borrowerAnalyticsQuery.isLoading
@@ -89,6 +99,7 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
       {currentTab === "borrower-charts" && (
         <BorrowerChartsTab
           borrowerAddress={profileAddress}
+          chainId={chainId}
           analytics={borrowerAnalyticsQuery.data}
           isAnalyticsLoading={
             analyticsAvailable && borrowerAnalyticsQuery.isLoading

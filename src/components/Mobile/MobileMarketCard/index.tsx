@@ -8,9 +8,9 @@ import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
-import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
+  buildBorrowerProfileHref,
   buildMarketHref,
   formatBps,
   formatSecsToHours,
@@ -107,9 +107,12 @@ export const MobileMarketCard = ({
         <Box sx={MainInfoColumnContainer}>
           <Typography variant="mobText2">{marketItem.name}</Typography>
 
-          {showBorrower && (
+          {showBorrower && marketItem.borrowerAddress && (
             <Link
-              href={`${ROUTES.lender.profile}/${marketItem.borrowerAddress}`}
+              href={buildBorrowerProfileHref(
+                marketItem.borrowerAddress,
+                marketItem.chainId,
+              )}
               style={{
                 display: "flex",
                 width: "fit-content",

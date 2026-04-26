@@ -110,8 +110,10 @@ const emptyAnalytics = (address: string): BorrowerProfileAnalytics => ({
 
 export const useBorrowerAggregateStats = (
   borrowerAddress: `0x${string}` | undefined,
+  externalChainId?: number,
 ) => {
-  const { chainId } = useSelectedNetwork()
+  const { chainId: selectedChainId } = useSelectedNetwork()
+  const chainId = externalChainId ?? selectedChainId
   const normalizedAddress = borrowerAddress?.toLowerCase()
 
   return useQuery<BorrowerProfileAnalytics>({

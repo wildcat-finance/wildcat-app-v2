@@ -19,12 +19,12 @@ import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import {
+  buildBorrowerProfileHref,
   buildMarketHref,
   formatSecsToHours,
   formatTokenWithCommas,
@@ -159,7 +159,10 @@ export const LenderTerminatedMarketsTables = ({
           {params.row.borrowerAddress ? (
             <Box
               component={Link}
-              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              href={buildBorrowerProfileHref(
+                params.row.borrowerAddress,
+                params.row.chainId,
+              )}
               prefetch={false}
               sx={{
                 ...rowLinkInteractiveSx,

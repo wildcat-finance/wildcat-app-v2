@@ -43,6 +43,9 @@ export default function Header() {
 
   // Set default to "lender"
   const [side, setSide] = useState<"lender" | "borrower">("lender")
+  const isBorrowerAppPath =
+    pathname === ROUTES.borrower.root ||
+    pathname.startsWith(`${ROUTES.borrower.root}/`)
 
   const handleToggleSide = () => {
     if (side === "borrower") {
@@ -56,12 +59,12 @@ export default function Header() {
 
   useEffect(() => {
     // Default to lender unless explicitly on borrower path
-    if (pathname.includes(ROUTES.borrower.root)) {
+    if (isBorrowerAppPath) {
       setSide("borrower")
     } else {
       setSide("lender")
     }
-  }, [pathname])
+  }, [isBorrowerAppPath])
 
   const handleResetTab = () => {
     if (side === "borrower") {

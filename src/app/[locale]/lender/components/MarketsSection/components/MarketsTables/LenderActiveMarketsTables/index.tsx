@@ -21,7 +21,6 @@ import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import {
@@ -30,6 +29,7 @@ import {
   typeComparator,
 } from "@/utils/comparators"
 import {
+  buildBorrowerProfileHref,
   buildMarketHref,
   formatBps,
   formatSecsToHours,
@@ -169,7 +169,10 @@ export const LenderActiveMarketsTables = ({
           {params.row.borrowerAddress ? (
             <Box
               component={Link}
-              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              href={buildBorrowerProfileHref(
+                params.row.borrowerAddress,
+                params.row.chainId,
+              )}
               prefetch={false}
               sx={{
                 ...rowLinkInteractiveSx,

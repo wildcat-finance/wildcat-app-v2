@@ -28,11 +28,12 @@ import {
   typeComparator,
 } from "@/utils/comparators"
 import {
+  buildBorrowerProfileHref,
+  buildMarketHref,
   formatBps,
   formatTokenWithCommas,
   timestampToDateFormatted,
   trimAddress,
-  buildMarketHref,
 } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -166,7 +167,10 @@ export const OthersMarketsTable = ({
           }}
         >
           <Link
-            href={`${ROUTES.borrower.profile}/${params.row.borrowerAddress}`}
+            href={buildBorrowerProfileHref(
+              params.row.borrowerAddress,
+              params.row.chainId,
+            )}
             style={{
               textDecoration: "none",
               width: "fit-content",

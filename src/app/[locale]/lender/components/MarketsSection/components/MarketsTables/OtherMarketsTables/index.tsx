@@ -31,7 +31,6 @@ import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { TablePagination } from "@/components/TablePagination"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import {
@@ -40,6 +39,7 @@ import {
   typeComparator,
 } from "@/utils/comparators"
 import {
+  buildBorrowerProfileHref,
   buildMarketHref,
   formatBps,
   formatSecsToHours,
@@ -193,7 +193,10 @@ export const OtherMarketsTables = ({
           {params.row.borrowerAddress ? (
             <Box
               component={Link}
-              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              href={buildBorrowerProfileHref(
+                params.row.borrowerAddress,
+                params.row.chainId,
+              )}
               prefetch={false}
               sx={{
                 ...rowLinkInteractiveSx,
@@ -367,7 +370,10 @@ export const OtherMarketsTables = ({
           ) : (
             <Box
               component={Link}
-              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              href={buildBorrowerProfileHref(
+                params.row.borrowerAddress,
+                params.row.chainId,
+              )}
               prefetch={false}
               sx={{ ...rowLinkInteractiveSx, textDecoration: "none" }}
             >

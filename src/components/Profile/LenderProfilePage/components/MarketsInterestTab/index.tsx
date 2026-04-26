@@ -14,9 +14,14 @@ import { formatPercent, formatUsd } from "@/components/Profile/shared/analytics"
 import { AnalyticsDataGrid } from "@/components/Profile/shared/AnalyticsDataGrid"
 import { ProfileChartContainerStyle } from "@/components/Profile/shared/chartStyle"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import { buildMarketHref, trimAddress } from "@/utils/formatters"
+import {
+  buildBorrowerProfileHref,
+  buildMarketHref,
+  trimAddress,
+} from "@/utils/formatters"
 import { MarketStatus } from "@/utils/marketStatus"
 
 type MarketsInterestTabProps = {
@@ -58,6 +63,7 @@ export const MarketsInterestTab = ({
   data,
   isLoading,
 }: MarketsInterestTabProps) => {
+  const { chainId } = useSelectedNetwork()
   const { getAddressUrl } = useBlockExplorer()
   const positions = data?.positions ?? []
   const interestRows = positions
@@ -161,7 +167,7 @@ export const MarketsInterestTab = ({
       renderCell: ({ value }) => (
         <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
           <MuiTooltip title={value} placement="top">
-            <Link href={`${ROUTES.borrower.profile}/${value}`}>
+            <Link href={buildBorrowerProfileHref(value, chainId)}>
               <Typography component="span" variant="text3">
                 {trimAddress(value)}
               </Typography>
