@@ -11,7 +11,8 @@ import { mainnet, sepolia } from "wagmi/chains"
 // getSubgraphClient still points at Goldsky, so profile analytics use this
 // client directly and leave all other subgraph usage on the SDK path.
 const HINTERLIGHT_SUBGRAPH_URLS: Record<number, string> = {
-  [mainnet.id]: "https://graph.hinterlight.net/subgraphs/name/wildcat_ethereum_mainnet_analytics",
+  [mainnet.id]:
+    "https://graph.hinterlight.net/subgraphs/name/wildcat_ethereum_mainnet_analytics",
   [sepolia.id]:
     "https://graph.hinterlight.net/subgraphs/name/wildcat_ethereum_sepolia_analytics",
 }
