@@ -54,7 +54,10 @@ export const ProfileTabBar = <T extends string>({
               },
             }}
           >
-            <Typography variant="text3" sx={{ fontWeight: isActive ? 600 : 500 }}>
+            <Typography
+              variant="text3"
+              sx={{ fontWeight: isActive ? 600 : 500 }}
+            >
               {tab.label}
             </Typography>
           </Button>
