@@ -19,6 +19,7 @@ import Jurisdictions from "@/config/jurisdictions.json"
 import { ACCEPT_MLA_MESSAGE } from "@/config/mla-acceptance"
 import { NETWORKS_BY_ID } from "@/config/network"
 import { formatBps, formatUnixMsAsDate } from "@/utils/formatters"
+import { getMarketAprDisplayBips } from "@/utils/marketApr"
 
 type NetworkData = {
   chainId?: number
@@ -64,6 +65,7 @@ export type MlaBorrowerFields = {
     fixedTermEndTime: number | undefined
     /** APR in bips (format as %) */
     apr: number
+    aprLabel?: string
     /** Delinquency fee in bips (format as %) */
     delinquencyFee: number
     /** Reserve ratio in bips (format as %) */
@@ -120,6 +122,7 @@ export const MlaFieldValueKeys = [
   "lender.timeSignedMonthYear",
   "sla.timeUpdated",
   // bips (format as %)
+  "market.aprLabel",
   "market.apr",
   "market.delinquencyFee",
   "market.reserveRatio",
@@ -167,6 +170,7 @@ export type MlaFieldValueKey = (typeof MlaFieldValueKeys)[number]
 // | "lender.timeSignedMonthYear"
 // | "sla.timeUpdated"
 // // bips (format as %)
+// | "market.aprLabel"
 // | "market.apr"
 // | "market.delinquencyFee"
 // | "market.reserveRatio"
@@ -250,6 +254,7 @@ type BorrowerSignedMla = {
 
 const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
   const { hooksConfig, name, symbol, address } = market
+  const aprDisplay = getMarketAprDisplayBips(market)
   // Deposits are only open if `depositRequiresAccess` is defined and false
   const depositAccess =
     hooksConfig?.depositRequiresAccess === false
@@ -299,7 +304,11 @@ const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
       hooksConfig?.kind === HooksKind.FixedTerm
         ? hooksConfig.fixedTermEndTime
         : undefined,
-    apr: market.annualInterestBips,
+    apr: aprDisplay.configuredAprBips,
+    aprLabel:
+      aprDisplay.configuredAprKind === "utilization"
+        ? "Utilization APR"
+        : "Base APR",
     delinquencyFee: market.delinquencyFeeBips,
     reserveRatio: market.reserveRatioBips,
     allowClosureBeforeTerm:
@@ -310,7 +319,7 @@ const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
       hooksConfig?.kind === HooksKind.FixedTerm
         ? hooksConfig.allowTermReduction
         : undefined,
-    allowForceBuyBack: hooksConfig?.allowForceBuyBacks,
+    allowForceBuyBack: false,
   }
 }
 
@@ -448,6 +457,13 @@ export function getFieldValuesForBorrower({
     // ["lender.timeSigned", formatDate(Date.now())],
     ["sla.timeUpdated", formatDate(lastSlaUpdateTime)],
     // bips (format as %)
+    [
+      "market.aprLabel",
+      market.aprLabel ??
+        (market.implementationType === "revolving"
+          ? "Utilization APR"
+          : "Base APR"),
+    ],
     ["market.apr", formatBips(market.apr)],
     ["market.delinquencyFee", formatBips(market.delinquencyFee)],
     ["market.reserveRatio", formatBips(market.reserveRatio)],
@@ -464,7 +480,7 @@ export function getFieldValuesForBorrower({
         ? formatBool(market.allowTermReduction)
         : "N/A",
     ],
-    ["market.allowForceBuyBack", formatBool(market.allowForceBuyBack) ?? "N/A"],
+    ["market.allowForceBuyBack", formatBool(false) ?? "N/A"],
   ])
   return allData
 }

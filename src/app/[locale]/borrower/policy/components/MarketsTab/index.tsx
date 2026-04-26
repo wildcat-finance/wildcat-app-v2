@@ -20,6 +20,7 @@ import {
   formatBps,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import { getDisplayLenderAprBips } from "@/utils/marketApr"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -217,7 +218,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
   ]
 
   const rows: GridRowsProp<MarketsTableModel> = markets.map((market) => {
-    const { address, name, underlyingToken, annualInterestBips } = market
+    const { address, name, underlyingToken } = market
     const { borrowed } = market.getTotalDebtBreakdown()
 
     const marketStatus = getMarketStatusChip(market)
@@ -232,7 +233,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       term,
       name,
       asset: underlyingToken.symbol,
-      apr: annualInterestBips,
+      apr: getDisplayLenderAprBips(market),
       debt: borrowed.lt(0) ? underlyingToken.getAmount(0) : borrowed,
     }
   })

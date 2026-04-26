@@ -47,6 +47,7 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import { getDisplayLenderAprBips } from "@/utils/marketApr"
 import { isSelfOnboardMarketAccount } from "@/utils/marketCapabilities"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
@@ -102,7 +103,6 @@ export const OtherMarketsTables = ({
         name,
         borrower: borrowerAddress,
         underlyingToken,
-        annualInterestBips,
         maxTotalSupply,
         totalSupply,
         withdrawalBatchDuration,
@@ -129,7 +129,7 @@ export const OtherMarketsTables = ({
         borrower: borrowerName,
         borrowerAddress,
         asset: underlyingToken.symbol,
-        apr: annualInterestBips,
+        apr: getDisplayLenderAprBips(market),
         withdrawalBatchDuration,
         debt: totalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),

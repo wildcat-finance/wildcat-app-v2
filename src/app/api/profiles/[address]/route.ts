@@ -1,28 +1,23 @@
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
-import { BorrowerProfile } from "@/app/api/profiles/interface"
 import { getBorrowerProfile, prisma } from "@/lib/db"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 import { verifyApiToken } from "../../auth/verify-header"
+import { getProfileFixture } from "../fixtures"
 
-const mockProfile: BorrowerProfile = {
-  address: "0x1717503EE3f56e644cf8b1058e3F83F03a71b2E1",
-  name: "Wintermute LLC",
-  description:
-    "– leading global algorithmic trading firm and one of the largest players in digital asset markets. With an average daily trading volume of over $5bn.",
-  founded: "2017",
-  headquarters: "London",
-  website: "https://wintermute.com/",
-  twitter: "wintermute_t",
-  linkedin: "https://uk.linkedin.com/company/wintermute-trading",
-  jurisdiction: "UK",
-  entityKind: "llc",
-  physicalAddress: "48 Station Road, London, N73 8QA",
-  email: "example@domain.com",
-  chainId: SupportedChainId.Sepolia,
-  registeredOnChain: true,
+const PROFILE_CACHE_CONTROL = "public, s-maxage=300, stale-while-revalidate=600"
+const PROFILE_MISS_CACHE_CONTROL =
+  "public, s-maxage=60, stale-while-revalidate=300"
+
+const profileResponse = (
+  profile: unknown,
+  cacheControl = PROFILE_CACHE_CONTROL,
+) => {
+  const response = NextResponse.json({ profile })
+  response.headers.set("Cache-Control", cacheControl)
+  return response
 }
 
 // @todo hide borrower info if they only have a pending invite but
@@ -37,18 +32,19 @@ export async function GET(
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
   }
-  const { address } = params
-  if (address === mockProfile.address) {
-    return NextResponse.json({ profile: mockProfile })
+  const address = params.address.toLowerCase()
+  const fixture = getProfileFixture(address, chainId)
+  if (fixture) {
+    return profileResponse(fixture)
   }
 
   // TODO: Change when real API will be ready
   const profile = await getBorrowerProfile(address, chainId)
   if (!profile) {
-    return NextResponse.json({ profile: null })
+    return profileResponse(null, PROFILE_MISS_CACHE_CONTROL)
   }
 
-  return NextResponse.json({ profile })
+  return profileResponse(profile)
 }
 
 // DELETE /api/profiles/[borrower | all]?chainId=<chainId>

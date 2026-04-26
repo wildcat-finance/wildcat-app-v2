@@ -39,6 +39,7 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import { getDisplayLenderAprBips } from "@/utils/marketApr"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -86,7 +87,6 @@ export const LenderTerminatedMarketsTables = ({
         borrower: borrowerAddress,
         name,
         underlyingToken,
-        annualInterestBips,
         totalSupply,
         withdrawalBatchDuration,
         chainId,
@@ -111,7 +111,7 @@ export const LenderTerminatedMarketsTables = ({
         borrower: borrowerName,
         borrowerAddress,
         asset: underlyingToken.symbol,
-        apr: annualInterestBips,
+        apr: getDisplayLenderAprBips(market),
         withdrawalBatchDuration,
         loan: marketBalance,
         debt: totalSupply,

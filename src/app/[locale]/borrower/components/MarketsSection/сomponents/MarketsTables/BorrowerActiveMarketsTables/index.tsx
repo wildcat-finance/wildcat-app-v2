@@ -39,6 +39,7 @@ import {
   formatSecsToHours,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import { getDisplayLenderAprBips } from "@/utils/marketApr"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -93,7 +94,6 @@ export const BorrowerActiveMarketsTables = ({
         address,
         name,
         underlyingToken,
-        annualInterestBips,
         borrower: borrowerAddress,
         borrowableAssets,
         maxTotalSupply,
@@ -115,7 +115,7 @@ export const BorrowerActiveMarketsTables = ({
         name,
         borrowerAddress,
         asset: underlyingToken.symbol,
-        apr: annualInterestBips,
+        apr: getDisplayLenderAprBips(market),
         borrowable: borrowableAssets,
         debt: totalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),

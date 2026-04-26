@@ -25,6 +25,7 @@ import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
+import { getMarketsV2Safe } from "@/utils/marketV2Reads"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type LenderMarketsQueryProps =
@@ -171,13 +172,25 @@ export function useLendersMarkets(
           })
         : []),
       ...v2Chunks.map(async (accountsChunk) => {
-        const updates = await latestLens.getMarketsDataWithLenderStatus(
-          lender ?? zeroAddress,
-          accountsChunk.map((m) => m.market.address),
-        )
+        if (accountsChunk.length === 0) {
+          return
+        }
+        const marketAddresses = accountsChunk.map((m) => m.market.address)
+        const [updates, refreshedMarkets] = await Promise.all([
+          latestLens.getMarketsDataWithLenderStatus(
+            lender ?? zeroAddress,
+            marketAddresses,
+          ),
+          getMarketsV2Safe(
+            targetChainId,
+            marketAddresses,
+            signerOrProvider as SignerOrProvider,
+          ),
+        ])
         accountsChunk.forEach((account, i) => {
           const update = updates[i]
           account.market.updateWith(update.market)
+          Object.assign(account.market, refreshedMarkets[i])
           // If the lender account is not set, set the balances to 0 but still use
           // the credential, as that will tell us whether the market is open access.
           account.updateWith(

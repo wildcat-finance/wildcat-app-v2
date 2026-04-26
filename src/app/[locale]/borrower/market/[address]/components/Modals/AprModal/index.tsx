@@ -29,7 +29,7 @@ import {
   MARKET_PARAMS_DECIMALS,
   TOKEN_FORMAT_DECIMALS,
 } from "@/utils/formatters"
-import { isRevolvingMarket } from "@/utils/marketImplementation"
+import { getMarketAprDisplayBips } from "@/utils/marketApr"
 
 import { DifferenceChip } from "./components/DifferenceChip"
 import { AprModalProps } from "./interface"
@@ -86,7 +86,13 @@ function getMinimumAPR(market: Market) {
 export const AprModal = ({ marketAccount }: AprModalProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
-  const isRevolving = isRevolvingMarket(market)
+  const aprDisplay = getMarketAprDisplayBips(market)
+  const isRevolving = aprDisplay.configuredAprKind === "utilization"
+  const currentConfiguredAprBips = aprDisplay.configuredAprBips
+  const currentConfiguredAprDisplayValue = formatBps(
+    currentConfiguredAprBips,
+    MARKET_PARAMS_DECIMALS.annualInterestBips,
+  )
 
   const [apr, setApr] = useState("")
   const [aprPreview, setAprPreview] = useState<SetAprPreview>()
@@ -153,7 +159,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     const preview = marketAccount.previewSetAPR(parsedNewApr)
     setAprPreview(preview)
 
-    setAprFixReduction(isFixedTerm && parsedNewApr < market.annualInterestBips)
+    setAprFixReduction(isFixedTerm && parsedNewApr < currentConfiguredAprBips)
 
     if (value === "" || value === "0") {
       setAprError(undefined)
@@ -249,7 +255,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const needsReset =
     isExpiredTempRatio &&
     !!apr &&
-    parseFloat(apr) < market.annualInterestBips / 100
+    parseFloat(apr) < currentConfiguredAprBips / 100
 
   const showForm = !(
     isPending ||
@@ -265,7 +271,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const disableConfirm =
     apr === "" ||
     isAprLTZero ||
-    apr === formatBps(market.annualInterestBips) ||
+    apr === currentConfiguredAprDisplayValue ||
     !!aprError ||
     modal.approvedStep ||
     aprFixedReduction
@@ -369,10 +375,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
               <>
                 <ModalDataItem
                   title={currentAprLabel}
-                  value={`${formatBps(
-                    market.annualInterestBips,
-                    MARKET_PARAMS_DECIMALS.annualInterestBips,
-                  )}%`}
+                  value={`${currentConfiguredAprDisplayValue}%`}
                   containerSx={{
                     padding: "0 12px",
                     marginBottom: "14px",
@@ -383,10 +386,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                   decimalScale={2}
                   min={0}
                   max={100}
-                  label={formatBps(
-                    market.annualInterestBips,
-                    MARKET_PARAMS_DECIMALS.annualInterestBips,
-                  )}
+                  label={currentConfiguredAprDisplayValue}
                   size="medium"
                   sx={{
                     width: "100%",
@@ -524,10 +524,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 >
                   {apr && (
                     <DifferenceChip
-                      startValue={formatBps(
-                        market.annualInterestBips,
-                        MARKET_PARAMS_DECIMALS.annualInterestBips,
-                      )}
+                      startValue={currentConfiguredAprDisplayValue}
                       endValue={apr}
                       error={!!aprError}
                       type="percentage"

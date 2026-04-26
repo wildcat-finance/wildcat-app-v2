@@ -214,7 +214,7 @@ export default function CreateMarketPage() {
               ]
             : [],
         allowClosureBeforeTerm: !!marketParams.allowClosureBeforeTerm,
-        allowForceBuyBacks: !!marketParams.allowForceBuyBack,
+        allowForceBuyBacks: false,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         fixedTermEndTime: marketParams.fixedTermEndTime as any,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -46,6 +46,12 @@ const DISCOVERY_CHAIN_IDS: SupportedChainId[] = Object.keys(SubgraphUrls)
     (n): n is SupportedChainId => Number.isFinite(n) && isSupportedChainId(n),
   )
 
+const MARKET_DISCOVERY_CACHE_VERSION = "marketGet:v2"
+const MARKET_DISCOVERY_HIT_CACHE_CONTROL =
+  "public, s-maxage=86400, stale-while-revalidate=604800"
+const MARKET_DISCOVERY_MISS_CACHE_CONTROL =
+  "public, s-maxage=60, stale-while-revalidate=300"
+
 async function fetchMarketFromChain(
   addressLower: string,
   chainId: SupportedChainId,
@@ -95,11 +101,12 @@ const getCached = (addressLower: string, chainIdParam?: SupportedChainId) =>
       return findMarketAcrossChains(addressLower)
     },
     [
-      "marketGet",
+      MARKET_DISCOVERY_CACHE_VERSION,
       addressLower,
       chainIdParam ? String(chainIdParam) : "discover",
+      DISCOVERY_CHAIN_IDS.join(","),
     ],
-    { revalidate: 60 * 60 * 24 },
+    { revalidate: 60 },
   )()
 
 export async function GET(req: NextRequest) {
@@ -126,10 +133,11 @@ export async function GET(req: NextRequest) {
     { status: 200 },
   )
 
-  // CDN cache: 24h, stale 7d
   res.headers.set(
     "Cache-Control",
-    "public, s-maxage=86400, stale-while-revalidate=604800",
+    found
+      ? MARKET_DISCOVERY_HIT_CACHE_CONTROL
+      : MARKET_DISCOVERY_MISS_CACHE_CONTROL,
   )
   return res
 }

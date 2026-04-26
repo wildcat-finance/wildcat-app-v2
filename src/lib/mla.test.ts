@@ -36,10 +36,11 @@ const borrowerInfo: BasicBorrowerInfo = {
   name: "Borrower",
 }
 
-const getHooksFactoryAddressField = (
+const getMlaValues = (
   implementationType?: "legacy" | "revolving",
-) => {
-  const values = getFieldValuesForBorrower({
+  allowForceBuyBack = false,
+) =>
+  getFieldValuesForBorrower({
     market: {
       address: "0x0000000000000000000000000000000000000003",
       implementationType,
@@ -59,7 +60,7 @@ const getHooksFactoryAddressField = (
       reserveRatio: 1000,
       allowClosureBeforeTerm: undefined,
       allowTermReduction: undefined,
-      allowForceBuyBack: false,
+      allowForceBuyBack,
     },
     borrowerInfo,
     asset: token,
@@ -71,8 +72,9 @@ const getHooksFactoryAddressField = (
     },
   })
 
-  return values.get("hooksFactory.address")
-}
+const getHooksFactoryAddressField = (
+  implementationType?: "legacy" | "revolving",
+) => getMlaValues(implementationType).get("hooksFactory.address")
 
 describe("MLA field values", () => {
   it("defaults hooksFactory.address to the legacy factory", () => {
@@ -89,5 +91,17 @@ describe("MLA field values", () => {
         getDeploymentAddress(SupportedChainId.Sepolia, "HooksFactoryRevolving"),
       ),
     )
+  })
+
+  it("exposes an APR label for revolving MLA templates", () => {
+    expect(getMlaValues("revolving").get("market.aprLabel")).toBe(
+      "Utilization APR",
+    )
+  })
+
+  it("forces force-buyback MLA compatibility data to disabled", () => {
+    expect(
+      getMlaValues("revolving", true).get("market.allowForceBuyBack"),
+    ).toBe("No")
   })
 })
