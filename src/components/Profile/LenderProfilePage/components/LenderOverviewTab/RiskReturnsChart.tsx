@@ -9,8 +9,14 @@ import {
   LenderRiskReturnsPoint,
 } from "@/app/[locale]/lender/profile/hooks/types"
 import { useLenderRiskReturnsChart } from "@/app/[locale]/lender/profile/hooks/useLenderRiskReturnsChart"
-import wildcatLogoUrl from "@/assets/icons/logo_black.svg?url"
-import { EChart, EChartOption, formatChartDate } from "@/components/ECharts"
+import {
+  CHART_PALETTE,
+  EChart,
+  EChartOption,
+  formatAxisDate,
+  formatChartDate,
+  getChartWatermark,
+} from "@/components/ECharts"
 import { tooltipRow, tooltipShell } from "@/components/ECharts/formatters"
 import {
   formatAxisNumber,
@@ -18,6 +24,11 @@ import {
   formatUsd,
 } from "@/components/Profile/shared/analytics"
 import { AnalyticsChartCard } from "@/components/Profile/shared/AnalyticsChartCard"
+import {
+  ChartPeriod,
+  ChartPeriodSelector,
+  groupPeriodData,
+} from "@/components/Profile/shared/chartControls"
 import { COLORS } from "@/theme/colors"
 
 type RiskReturnsChartProps = {
@@ -31,28 +42,10 @@ type DelinquencyPeriod = {
   endTimestamp: number
 }
 
-const YOUR_ACTIVITY_COLOR = "#5C7DFF"
-const INTEREST_COLOR = "#6CBF63"
-const OTHER_WITHDRAWALS_COLOR = "#F2AEB8"
-const LENDER_WITHDRAWALS_COLOR = "#F1464B"
-const watermarkImage =
-  typeof wildcatLogoUrl === "string"
-    ? wildcatLogoUrl
-    : (wildcatLogoUrl as { src: string }).src
-
-const YIELD_WITHDRAWAL_WATERMARK: EChartOption["graphic"] = {
-  type: "image",
-  z: 0,
-  silent: true,
-  style: {
-    image: watermarkImage,
-    width: 260,
-    height: 87,
-    opacity: 0.05,
-  },
-  left: "center",
-  top: "42%",
-}
+const YOUR_ACTIVITY_COLOR = CHART_PALETTE.semantic.primary
+const INTEREST_COLOR = CHART_PALETTE.semantic.interest
+const OTHER_WITHDRAWALS_COLOR = CHART_PALETTE.semantic.withdrawalSoft
+const LENDER_WITHDRAWALS_COLOR = CHART_PALETTE.semantic.withdrawal
 
 const csvCell = (value: string | number | null | undefined) =>
   `"${String(value ?? "").replaceAll('"', '""')}"`
@@ -83,11 +76,6 @@ const buildCsv = (data: LenderRiskReturnsPoint[]) =>
     .map((row) => row.map(csvCell).join(","))
     .join("\n")
 
-const formatAxisDate = (timestampMs: number) => {
-  const date = new Date(timestampMs)
-  return `${date.getUTCMonth() + 1}/${date.getUTCDate()}`
-}
-
 const getMarketLabel = (position: LenderPositionRow) =>
   `${position.marketName} (${position.asset})`
 
@@ -99,7 +87,7 @@ const buildOption = ({
   delinquencyPeriods: DelinquencyPeriod[]
 }): EChartOption => ({
   animation: false,
-  graphic: YIELD_WITHDRAWAL_WATERMARK,
+  graphic: getChartWatermark(),
   grid: { left: 12, right: 56, top: 70, bottom: 64, containLabel: true },
   legend: {
     type: "scroll",
@@ -128,12 +116,12 @@ const buildOption = ({
     axisPointer: {
       type: "cross",
       lineStyle: {
-        color: COLORS.ultramarineBlue,
+        color: CHART_PALETTE.semantic.primary,
         width: 1,
         opacity: 0.7,
       },
       crossStyle: {
-        color: COLORS.ultramarineBlue,
+        color: CHART_PALETTE.semantic.primary,
         opacity: 0.7,
       },
     },
@@ -193,15 +181,15 @@ const buildOption = ({
       right: 12,
       bottom: 8,
       borderColor: COLORS.black01,
-      fillerColor: COLORS.blueRibbon01,
+      fillerColor: CHART_PALETTE.ui.zoomFill,
       backgroundColor: COLORS.blackRock006,
       dataBackground: {
         lineStyle: { color: COLORS.greySuit, opacity: 0.75 },
         areaStyle: { color: COLORS.greySuit, opacity: 0.18 },
       },
       selectedDataBackground: {
-        lineStyle: { color: COLORS.ultramarineBlue, opacity: 0.9 },
-        areaStyle: { color: COLORS.ultramarineBlue, opacity: 0.2 },
+        lineStyle: { color: CHART_PALETTE.semantic.primary, opacity: 0.9 },
+        areaStyle: { color: CHART_PALETTE.semantic.primary, opacity: 0.2 },
       },
       handleStyle: {
         borderColor: COLORS.blackRock,
@@ -220,7 +208,7 @@ const buildOption = ({
   ],
   xAxis: {
     type: "time",
-    boundaryGap: true,
+    boundaryGap: ["2%", "2%"],
     axisLine: { lineStyle: { color: COLORS.black01 } },
     axisTick: { show: false },
     axisLabel: {
@@ -240,14 +228,8 @@ const buildOption = ({
   yAxis: [
     {
       type: "value",
-      name: "Returns",
       axisLine: { lineStyle: { color: COLORS.black01 } },
       axisTick: { show: false },
-      nameTextStyle: {
-        color: COLORS.santasGrey,
-        fontFamily: "monospace",
-        fontSize: 10,
-      },
       axisLabel: {
         color: COLORS.santasGrey,
         fontFamily: "monospace",
@@ -264,15 +246,9 @@ const buildOption = ({
     },
     {
       type: "value",
-      name: "Exit pressure",
       inverse: true,
       axisLine: { show: false },
       axisTick: { show: false },
-      nameTextStyle: {
-        color: COLORS.santasGrey,
-        fontFamily: "monospace",
-        fontSize: 10,
-      },
       axisLabel: {
         color: COLORS.santasGrey,
         fontFamily: "monospace",
@@ -302,7 +278,7 @@ const buildOption = ({
           ? {
               silent: true,
               itemStyle: {
-                color: COLORS.carminePink,
+                color: CHART_PALETTE.semantic.danger,
                 opacity: 0.06,
               },
               data: delinquencyPeriods.map((period) => [
@@ -375,6 +351,7 @@ export const RiskReturnsChart = ({
     [positions],
   )
   const [selectedMarketId, setSelectedMarketId] = React.useState<string>("")
+  const [period, setPeriod] = React.useState<ChartPeriod>("D")
 
   React.useEffect(() => {
     if (marketOptions.length === 0) {
@@ -394,7 +371,24 @@ export const RiskReturnsChart = ({
     marketId: selectedMarketId || undefined,
     priceMap,
   })
-  const data = chartQuery.data?.points ?? []
+  const data = React.useMemo(
+    () =>
+      groupPeriodData(
+        chartQuery.data?.points ?? [],
+        period,
+        (point, timestamp) => ({ ...point, timestamp }),
+        (existing, point) => {
+          existing.cumulativeInterestUsd = point.cumulativeInterestUsd
+          existing.cumulativeNetDepositsUsd = point.cumulativeNetDepositsUsd
+          existing.depositsUsd += point.depositsUsd
+          existing.otherWithdrawalsUsd += point.otherWithdrawalsUsd
+          existing.lenderWithdrawalsUsd += point.lenderWithdrawalsUsd
+          existing.marketWithdrawalsUsd += point.marketWithdrawalsUsd
+          existing.lenderWithdrawalSharePct = point.lenderWithdrawalSharePct
+        },
+      ),
+    [chartQuery.data?.points, period],
+  )
   const option = React.useMemo(
     () =>
       buildOption({
@@ -439,24 +433,26 @@ export const RiskReturnsChart = ({
     }
 
     return (
-      <EChart
-        option={option}
-        ariaLabel={`Risk and returns for ${
-          selectedMarket?.marketName ?? "selected market"
-        }`}
-        showExportActions
-        exportButtonVariant="text"
-        csvContent={buildCsv(data)}
-        csvFileName={`lender-risk-returns-${selectedMarketId}.csv`}
-        imageFileName={`lender-risk-returns-${selectedMarketId}.png`}
-      />
+      <Box sx={{ height: "100%", marginX: "auto", width: "80%" }}>
+        <EChart
+          option={option}
+          ariaLabel={`Risk and returns for ${
+            selectedMarket?.marketName ?? "selected market"
+          }`}
+          showExportActions
+          exportButtonVariant="text"
+          csvContent={buildCsv(data)}
+          csvFileName={`lender-risk-returns-${selectedMarketId}-${period.toLowerCase()}.csv`}
+          imageFileName={`lender-risk-returns-${selectedMarketId}-${period.toLowerCase()}.png`}
+        />
+      </Box>
     )
   }
 
   return (
     <AnalyticsChartCard
       title="Yield vs Withdrawal pressure"
-      description="Interest accrued compared against withdrawal-request volume."
+      description="Interest earned alongside deposit activity and withdrawal pressure."
       cardHeight={360}
       dialogHeight={580}
       constrainWidth
@@ -472,6 +468,7 @@ export const RiskReturnsChart = ({
           >
             Market
           </Typography>
+          <ChartPeriodSelector value={period} onChange={setPeriod} />
           <Select
             size="small"
             value={selectedMarketId}

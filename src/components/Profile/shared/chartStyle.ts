@@ -2,29 +2,6 @@ import { SxProps, Theme } from "@mui/material"
 
 import { COLORS } from "@/theme/colors"
 
-export const CHART_COLORS = {
-  deposit: "#34d399",
-  withdrawalRequested: "#fca5a5",
-  withdrawalExecuted: "#dc2626",
-  baseInterest: "#3E68FF",
-  delinquencyFees: "#C24647",
-  protocolFees: "#8B8DA1",
-  debtSeries: [
-    "#3E68FF",
-    "#34d399",
-    "#D7A820",
-    "#C24647",
-    "#6688FF",
-    "#BEBECE",
-    "#F1464B",
-    "#4971FF",
-  ],
-  gridLine: COLORS.athensGrey,
-  axisText: COLORS.santasGrey,
-  tooltipBg: COLORS.blackRock,
-  tooltipBorder: COLORS.iron,
-}
-
 export const ChartCardStyle = {
   backgroundColor: COLORS.blackHaze,
   borderRadius: "12px",
@@ -49,9 +26,7 @@ export const ChartCardStyle = {
 
 export const ProfileChartContainerStyle = {
   width: "100%",
-  maxWidth: { xs: "100%", lg: "75%" },
-  marginLeft: "auto",
-  marginRight: "auto",
+  maxWidth: "100%",
 } satisfies SxProps<Theme>
 
 export const ChartHeaderStyle: SxProps<Theme> = {

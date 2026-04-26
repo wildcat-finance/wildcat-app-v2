@@ -58,7 +58,11 @@ export const formatPercent = (value: number | undefined, decimals = 2) =>
 
 export const formatShortDate = (timestamp: number) => {
   const date = new Date(timestamp * 1000)
-  return `${date.getUTCMonth() + 1}/${date.getUTCDate()}`
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  })
 }
 
 export const formatDate = (timestamp: number) =>

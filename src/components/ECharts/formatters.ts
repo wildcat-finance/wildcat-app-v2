@@ -27,7 +27,11 @@ export const formatChartDate = (timestampMs: number) => {
 
 export const formatAxisDate = (timestampMs: number) => {
   const date = new Date(timestampMs)
-  return `${date.getUTCMonth() + 1}/${date.getUTCDate()}`
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  })
 }
 
 export const escapeHtml = (value: string) =>

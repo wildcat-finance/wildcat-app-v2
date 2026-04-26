@@ -7,8 +7,6 @@ import {
   Chip,
   Skeleton,
   Tooltip as MuiTooltip,
-  ToggleButton,
-  ToggleButtonGroup,
   Typography,
 } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
@@ -26,6 +24,7 @@ import {
   useLenderDailyStats,
 } from "@/app/[locale]/lender/profile/hooks/useLenderDailyStats"
 import {
+  CHART_PALETTE,
   ChartTooltipFormatter,
   TimeSeriesChart,
   TimeSeriesConfig,
@@ -36,6 +35,11 @@ import { LinkGroup } from "@/components/LinkComponent"
 import { formatUsd } from "@/components/Profile/shared/analytics"
 import { AnalyticsChartCard } from "@/components/Profile/shared/AnalyticsChartCard"
 import { AnalyticsDataGrid } from "@/components/Profile/shared/AnalyticsDataGrid"
+import {
+  ChartPeriod,
+  ChartPeriodSelector,
+  groupPeriodData,
+} from "@/components/Profile/shared/chartControls"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -97,12 +101,6 @@ const getActivityTypePalette = (value: string) => {
   }
 }
 
-const DEPOSIT_COLOR = "#34d399"
-const WITHDRAWAL_COLOR = "#f87171"
-const NET_FLOW_COLOR = "#22d3ee"
-
-type CashFlowPeriod = "D" | "W" | "M" | "Q" | "Y" | "Cumulative"
-
 type CashFlowChartPoint = LenderDailyCashFlowPoint & {
   periodDeposits: number
   periodWithdrawalsRequested: number
@@ -110,58 +108,26 @@ type CashFlowChartPoint = LenderDailyCashFlowPoint & {
   periodInterestEarned: number
 }
 
-const CASH_FLOW_PERIODS: CashFlowPeriod[] = [
-  "D",
-  "W",
-  "M",
-  "Q",
-  "Y",
-  "Cumulative",
-]
-
 const CASH_FLOW_SERIES: TimeSeriesConfig<CashFlowChartPoint>[] = [
   {
     key: "cumDeposits",
     name: "Cumulative Deposits",
-    color: DEPOSIT_COLOR,
+    color: CHART_PALETTE.semantic.deposit,
     kind: "area",
   },
   {
     key: "cumWithdrawalsExecuted",
     name: "Cumulative Withdrawals",
-    color: WITHDRAWAL_COLOR,
+    color: CHART_PALETTE.semantic.withdrawal,
     kind: "area",
   },
   {
     key: "netFlowExecuted",
     name: "Net Flow",
-    color: NET_FLOW_COLOR,
+    color: CHART_PALETTE.semantic.netFlow,
     kind: "line",
   },
 ]
-
-const getUtcDate = (timestamp: number) => new Date(timestamp * 1000)
-
-const getPeriodStartTimestamp = (
-  timestamp: number,
-  period: Exclude<CashFlowPeriod, "D" | "Cumulative">,
-) => {
-  const date = getUtcDate(timestamp)
-  const year = date.getUTCFullYear()
-  const month = date.getUTCMonth()
-
-  if (period === "W") {
-    const start = new Date(
-      Date.UTC(year, month, date.getUTCDate() - ((date.getUTCDay() + 6) % 7)),
-    )
-    return Math.floor(start.getTime() / 1000)
-  }
-
-  if (period === "M") return Math.floor(Date.UTC(year, month, 1) / 1000)
-  if (period === "Q")
-    return Math.floor(Date.UTC(year, month - (month % 3), 1) / 1000)
-  return Math.floor(Date.UTC(year, 0, 1) / 1000)
-}
 
 const getCashFlowPointWithPeriodValues = (
   point: LenderDailyCashFlowPoint,
@@ -175,47 +141,38 @@ const getCashFlowPointWithPeriodValues = (
 
 const groupCashFlowData = (
   data: LenderDailyCashFlowPoint[],
-  period: CashFlowPeriod,
+  period: ChartPeriod,
 ): CashFlowChartPoint[] => {
   if (period === "D" || period === "Cumulative") {
     return data.map(getCashFlowPointWithPeriodValues)
   }
 
-  const grouped = new Map<number, CashFlowChartPoint>()
-
-  data.forEach((point) => {
-    const timestamp = getPeriodStartTimestamp(point.timestamp, period)
-    const existing = grouped.get(timestamp)
-
-    if (!existing) {
-      grouped.set(timestamp, {
-        ...point,
-        timestamp,
-        date: formatChartDate(timestamp * 1000),
-        dateShort: formatChartDate(timestamp * 1000),
-        periodDeposits: point.dayDeposits,
-        periodWithdrawalsRequested: point.dayWithdrawalsRequested,
-        periodWithdrawalsExecuted: point.dayWithdrawalsExecuted,
-        periodInterestEarned: point.dayInterestEarned,
-      })
-      return
-    }
-
-    existing.periodDeposits += point.dayDeposits
-    existing.periodWithdrawalsRequested += point.dayWithdrawalsRequested
-    existing.periodWithdrawalsExecuted += point.dayWithdrawalsExecuted
-    existing.periodInterestEarned += point.dayInterestEarned
-    existing.cumDeposits = point.cumDeposits
-    existing.cumWithdrawalsRequested = point.cumWithdrawalsRequested
-    existing.cumWithdrawalsExecuted = point.cumWithdrawalsExecuted
-    existing.cumInterestEarned = point.cumInterestEarned
-    existing.netFlowExecuted = point.netFlowExecuted
-    existing.netFlowRequested = point.netFlowRequested
-    existing.pendingBand = point.pendingBand
-  })
-
-  return Array.from(grouped.values()).sort(
-    (left, right) => left.timestamp - right.timestamp,
+  return groupPeriodData(
+    data,
+    period,
+    (point, timestamp) => ({
+      ...point,
+      timestamp,
+      date: formatChartDate(timestamp * 1000),
+      dateShort: formatChartDate(timestamp * 1000),
+      periodDeposits: point.dayDeposits,
+      periodWithdrawalsRequested: point.dayWithdrawalsRequested,
+      periodWithdrawalsExecuted: point.dayWithdrawalsExecuted,
+      periodInterestEarned: point.dayInterestEarned,
+    }),
+    (existing, point) => {
+      existing.periodDeposits += point.dayDeposits
+      existing.periodWithdrawalsRequested += point.dayWithdrawalsRequested
+      existing.periodWithdrawalsExecuted += point.dayWithdrawalsExecuted
+      existing.periodInterestEarned += point.dayInterestEarned
+      existing.cumDeposits = point.cumDeposits
+      existing.cumWithdrawalsRequested = point.cumWithdrawalsRequested
+      existing.cumWithdrawalsExecuted = point.cumWithdrawalsExecuted
+      existing.cumInterestEarned = point.cumInterestEarned
+      existing.netFlowExecuted = point.netFlowExecuted
+      existing.netFlowRequested = point.netFlowRequested
+      existing.pendingBand = point.pendingBand
+    },
   )
 }
 
@@ -250,7 +207,7 @@ const buildCashFlowCsv = (data: CashFlowChartPoint[]) =>
     .join("\n")
 
 const getCashFlowTooltip =
-  (period: CashFlowPeriod): ChartTooltipFormatter<CashFlowChartPoint> =>
+  (period: ChartPeriod): ChartTooltipFormatter<CashFlowChartPoint> =>
   (params, data) => {
     const items = Array.isArray(params) ? params : [params]
     const timestamp = Number(items[0]?.axisValue ?? 0) / 1000
@@ -260,32 +217,32 @@ const getCashFlowTooltip =
     const periodLabel = period === "Cumulative" ? "Daily" : period
     const rows = [
       tooltipRow({
-        color: DEPOSIT_COLOR,
+        color: CHART_PALETTE.semantic.deposit,
         label: `${periodLabel} deposits`,
         value: formatUsd(point.periodDeposits, { compact: true }),
       }),
       tooltipRow({
-        color: WITHDRAWAL_COLOR,
+        color: CHART_PALETTE.semantic.withdrawal,
         label: `${periodLabel} withdrawals`,
         value: formatUsd(point.periodWithdrawalsExecuted, { compact: true }),
       }),
       tooltipRow({
-        color: COLORS.galliano,
+        color: CHART_PALETTE.semantic.warning,
         label: "Requested withdrawals",
         value: formatUsd(point.periodWithdrawalsRequested, { compact: true }),
       }),
       tooltipRow({
-        color: DEPOSIT_COLOR,
+        color: CHART_PALETTE.semantic.deposit,
         label: "Cumulative deposits",
         value: formatUsd(point.cumDeposits, { compact: true }),
       }),
       tooltipRow({
-        color: WITHDRAWAL_COLOR,
+        color: CHART_PALETTE.semantic.withdrawal,
         label: "Cumulative withdrawals",
         value: formatUsd(point.cumWithdrawalsExecuted, { compact: true }),
       }),
       tooltipRow({
-        color: NET_FLOW_COLOR,
+        color: CHART_PALETTE.semantic.netFlow,
         label: "Net flow",
         value: formatUsd(point.netFlowExecuted, { compact: true }),
       }),
@@ -331,55 +288,12 @@ const formatAxisUsd = (v: number) => {
   return `$${v.toFixed(0)}`
 }
 
-const PeriodSelector = ({
-  value,
-  onChange,
-}: {
-  value: CashFlowPeriod
-  onChange: (value: CashFlowPeriod) => void
-}) => (
-  <ToggleButtonGroup
-    exclusive
-    size="small"
-    value={value}
-    onChange={(_, nextValue: CashFlowPeriod | null) => {
-      if (nextValue) onChange(nextValue)
-    }}
-    sx={{
-      "& .MuiToggleButton-root": {
-        borderColor: COLORS.athensGrey,
-        color: COLORS.santasGrey,
-        fontFamily: "inherit",
-        fontSize: 10,
-        lineHeight: 1,
-        minWidth: 30,
-        padding: "5px 7px",
-        textTransform: "none",
-      },
-      "& .Mui-selected": {
-        backgroundColor: `${COLORS.ultramarineBlue}14 !important`,
-        color: `${COLORS.ultramarineBlue} !important`,
-      },
-    }}
-  >
-    {CASH_FLOW_PERIODS.map((period) => (
-      <ToggleButton
-        key={period}
-        value={period}
-        aria-label={`${period} grouping`}
-      >
-        {period}
-      </ToggleButton>
-    ))}
-  </ToggleButtonGroup>
-)
-
 const CashFlowChart = ({
   data,
   period,
 }: {
   data: LenderDailyCashFlowPoint[]
-  period: CashFlowPeriod
+  period: ChartPeriod
 }) => {
   const groupedData = React.useMemo(
     () => groupCashFlowData(data, period),
@@ -410,7 +324,7 @@ export const ActivityCashFlowTab = ({
 }: ActivityCashFlowTabProps) => {
   const { getTxUrl } = useBlockExplorer()
   const [cashFlowPeriod, setCashFlowPeriod] =
-    React.useState<CashFlowPeriod>("Cumulative")
+    React.useState<ChartPeriod>("Cumulative")
 
   const activityQuery = useLenderActivity(
     lenderAddress,
@@ -612,9 +526,9 @@ export const ActivityCashFlowTab = ({
       return (
         <AnalyticsChartCard
           title="Cumulative Capital Flow"
-          description="Cumulative deposits vs withdrawals over time (USD)"
+          description="Deposits, executed withdrawals, and net flow in USD."
           actions={
-            <PeriodSelector
+            <ChartPeriodSelector
               value={cashFlowPeriod}
               onChange={setCashFlowPeriod}
             />
@@ -663,7 +577,7 @@ export const ActivityCashFlowTab = ({
           display="block"
           sx={{ marginBottom: "24px" }}
         >
-          Cumulative capital flow and transaction history
+          Deposits, withdrawals, and request batches for this wallet.
         </Typography>
 
         {renderCashFlow()}

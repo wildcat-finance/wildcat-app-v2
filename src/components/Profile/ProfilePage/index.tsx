@@ -14,6 +14,7 @@ import { isHinterlightSupported } from "@/lib/hinterlight"
 import { pageCalcHeights } from "@/utils/constants"
 import { trimAddress } from "@/utils/formatters"
 
+import { BorrowerChartsTab } from "./components/BorrowerChartsTab"
 import { OverviewTab } from "./components/OverviewTab"
 import { ProfilePageSkeleton } from "./components/PageSkeleton"
 import { WithdrawalsDelinquencyTab } from "./components/WithdrawalsDelinquencyTab"
@@ -58,7 +59,7 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
         gap: "24px",
       }}
     >
-      {currentTab === "overview" ? (
+      {currentTab === "overview" && (
         <OverviewTab
           profileAddress={profileAddress}
           type={type}
@@ -72,8 +73,21 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
           analyticsAvailable={analyticsAvailable}
           isMobile={isMobile}
         />
-      ) : (
+      )}
+
+      {currentTab === "delinquency" && (
         <WithdrawalsDelinquencyTab
+          borrowerAddress={profileAddress}
+          analytics={borrowerAnalyticsQuery.data}
+          isAnalyticsLoading={
+            analyticsAvailable && borrowerAnalyticsQuery.isLoading
+          }
+          analyticsAvailable={analyticsAvailable}
+        />
+      )}
+
+      {currentTab === "borrower-charts" && (
+        <BorrowerChartsTab
           borrowerAddress={profileAddress}
           analytics={borrowerAnalyticsQuery.data}
           isAnalyticsLoading={

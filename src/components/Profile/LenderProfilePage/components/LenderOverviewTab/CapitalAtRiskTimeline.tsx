@@ -2,12 +2,14 @@
 
 import * as React from "react"
 
-import { Skeleton } from "@mui/material"
+import { Box, Skeleton } from "@mui/material"
 
 import { LenderCapitalAtRiskPoint } from "@/app/[locale]/lender/profile/hooks/types"
 import {
+  CHART_PALETTE,
   EChart,
   EChartOption,
+  formatAxisDate,
   formatChartDate,
   getChartWatermark,
 } from "@/components/ECharts"
@@ -17,6 +19,11 @@ import {
   formatUsd,
 } from "@/components/Profile/shared/analytics"
 import { AnalyticsChartCard } from "@/components/Profile/shared/AnalyticsChartCard"
+import {
+  ChartPeriod,
+  ChartPeriodSelector,
+  groupPeriodData,
+} from "@/components/Profile/shared/chartControls"
 import { COLORS } from "@/theme/colors"
 
 type CapitalAtRiskTimelineProps = {
@@ -28,22 +35,22 @@ const RISK_SERIES = [
   {
     key: "healthyUsd",
     name: "Healthy",
-    color: "#A9DBA1",
+    color: CHART_PALETTE.risk.healthy,
   },
   {
     key: "graceUsd",
     name: "In grace",
-    color: "#EBC85F",
+    color: CHART_PALETTE.risk.grace,
   },
   {
     key: "penaltyUsd",
     name: "Penalty-accruing",
-    color: "#F2AEB8",
+    color: CHART_PALETTE.risk.penalty,
   },
   {
     key: "withdrawalQueueUsd",
     name: "Withdrawal queue",
-    color: COLORS.cornflowerBlue,
+    color: CHART_PALETTE.risk.withdrawalQueue,
   },
 ] as const
 
@@ -71,11 +78,6 @@ const buildCsv = (data: LenderCapitalAtRiskPoint[]) =>
   ]
     .map((row) => row.map(csvCell).join(","))
     .join("\n")
-
-const formatAxisDate = (timestampMs: number) => {
-  const date = new Date(timestampMs)
-  return `${date.getUTCMonth() + 1}/${date.getUTCDate()}`
-}
 
 const getValue = (value: unknown) => {
   if (Array.isArray(value)) return Number(value[1] ?? 0)
@@ -113,12 +115,12 @@ const buildOption = (data: LenderCapitalAtRiskPoint[]): EChartOption => ({
     axisPointer: {
       type: "cross",
       lineStyle: {
-        color: COLORS.ultramarineBlue,
+        color: CHART_PALETTE.semantic.primary,
         width: 1,
         opacity: 0.7,
       },
       crossStyle: {
-        color: COLORS.ultramarineBlue,
+        color: CHART_PALETTE.semantic.primary,
         opacity: 0.7,
       },
     },
@@ -129,7 +131,7 @@ const buildOption = (data: LenderCapitalAtRiskPoint[]): EChartOption => ({
         .filter((item) => Number.isFinite(getValue(item.value)))
         .map((item) =>
           tooltipRow({
-            color: String(item.color ?? COLORS.ultramarineBlue),
+            color: String(item.color ?? CHART_PALETTE.semantic.primary),
             label: String(item.seriesName ?? ""),
             value: formatUsd(getValue(item.value), { compact: true }),
           }),
@@ -174,15 +176,15 @@ const buildOption = (data: LenderCapitalAtRiskPoint[]): EChartOption => ({
       right: 12,
       bottom: 8,
       borderColor: COLORS.black01,
-      fillerColor: COLORS.blueRibbon01,
+      fillerColor: CHART_PALETTE.ui.zoomFill,
       backgroundColor: COLORS.blackRock006,
       dataBackground: {
         lineStyle: { color: COLORS.greySuit, opacity: 0.75 },
         areaStyle: { color: COLORS.greySuit, opacity: 0.18 },
       },
       selectedDataBackground: {
-        lineStyle: { color: COLORS.ultramarineBlue, opacity: 0.9 },
-        areaStyle: { color: COLORS.ultramarineBlue, opacity: 0.2 },
+        lineStyle: { color: CHART_PALETTE.semantic.primary, opacity: 0.9 },
+        areaStyle: { color: CHART_PALETTE.semantic.primary, opacity: 0.2 },
       },
       handleStyle: {
         borderColor: COLORS.blackRock,
@@ -201,7 +203,7 @@ const buildOption = (data: LenderCapitalAtRiskPoint[]): EChartOption => ({
   ],
   xAxis: {
     type: "time",
-    boundaryGap: false,
+    boundaryGap: ["0%", "0%"],
     axisLine: { lineStyle: { color: COLORS.black01 } },
     axisTick: { show: false },
     axisLabel: {
@@ -221,12 +223,6 @@ const buildOption = (data: LenderCapitalAtRiskPoint[]): EChartOption => ({
   yAxis: [
     {
       type: "value",
-      name: "Exposure",
-      nameTextStyle: {
-        color: COLORS.santasGrey,
-        fontFamily: "monospace",
-        fontSize: 10,
-      },
       axisLine: { lineStyle: { color: COLORS.black01 } },
       axisTick: { show: false },
       axisLabel: {
@@ -245,12 +241,6 @@ const buildOption = (data: LenderCapitalAtRiskPoint[]): EChartOption => ({
     },
     {
       type: "value",
-      name: "Fees",
-      nameTextStyle: {
-        color: COLORS.santasGrey,
-        fontFamily: "monospace",
-        fontSize: 10,
-      },
       axisLine: { show: false },
       axisTick: { show: false },
       axisLabel: {
@@ -291,12 +281,12 @@ const buildOption = (data: LenderCapitalAtRiskPoint[]): EChartOption => ({
       symbol: "none",
       smooth: false,
       lineStyle: {
-        color: COLORS.blackRock,
+        color: CHART_PALETTE.risk.penaltyFees,
         width: 1.2,
         type: "dashed",
         opacity: 0.78,
       },
-      itemStyle: { color: COLORS.blackRock },
+      itemStyle: { color: CHART_PALETTE.risk.penaltyFees },
       data: data.map((point) => [
         point.timestamp * 1000,
         point.cumulativeDelinquencyFeesEarnedUsd,
@@ -309,7 +299,25 @@ export const CapitalAtRiskTimeline = ({
   data,
   isLoading,
 }: CapitalAtRiskTimelineProps) => {
-  const option = React.useMemo(() => buildOption(data ?? []), [data])
+  const [period, setPeriod] = React.useState<ChartPeriod>("D")
+  const chartData = React.useMemo(
+    () =>
+      groupPeriodData(
+        data ?? [],
+        period,
+        (point, timestamp) => ({ ...point, timestamp }),
+        (existing, point) => {
+          existing.healthyUsd = point.healthyUsd
+          existing.graceUsd = point.graceUsd
+          existing.penaltyUsd = point.penaltyUsd
+          existing.withdrawalQueueUsd = point.withdrawalQueueUsd
+          existing.cumulativeDelinquencyFeesEarnedUsd =
+            point.cumulativeDelinquencyFeesEarnedUsd
+        },
+      ),
+    [data, period],
+  )
+  const option = React.useMemo(() => buildOption(chartData), [chartData])
 
   if (isLoading) {
     return (
@@ -326,21 +334,24 @@ export const CapitalAtRiskTimeline = ({
   return (
     <AnalyticsChartCard
       title="Capital-at-risk timeline"
-      description="Daily deployed USD split by market state, with queued withdrawals and cumulative penalty fees earned."
+      description="Exposure by market state, queued withdrawals, and penalty fees earned."
       cardHeight={340}
       dialogHeight={560}
       constrainWidth
+      actions={<ChartPeriodSelector value={period} onChange={setPeriod} />}
     >
       {() => (
-        <EChart
-          option={option}
-          ariaLabel="Lender capital at risk timeline"
-          showExportActions
-          exportButtonVariant="text"
-          csvContent={buildCsv(data)}
-          csvFileName="lender-capital-at-risk-timeline.csv"
-          imageFileName="lender-capital-at-risk-timeline.png"
-        />
+        <Box sx={{ height: "100%", marginX: "auto", width: "80%" }}>
+          <EChart
+            option={option}
+            ariaLabel="Lender capital at risk timeline"
+            showExportActions
+            exportButtonVariant="text"
+            csvContent={buildCsv(chartData)}
+            csvFileName={`lender-capital-at-risk-${period.toLowerCase()}.csv`}
+            imageFileName={`lender-capital-at-risk-${period.toLowerCase()}.png`}
+          />
+        </Box>
       )}
     </AnalyticsChartCard>
   )
