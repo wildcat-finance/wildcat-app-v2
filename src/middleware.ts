@@ -75,6 +75,10 @@ export async function middleware(request: NextRequest) {
     )
   }
 
+  if (request.nextUrl.pathname.startsWith("/embed")) {
+    return NextResponse.next()
+  }
+
   return i18nRouter(request, i18nConfig)
 }
 
