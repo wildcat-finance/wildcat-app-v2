@@ -1,12 +1,18 @@
 import { useEffect } from "react"
 
 import { useQuery } from "@tanstack/react-query"
-import { Market } from "@wildcatfi/wildcat-sdk"
+import {
+  isSupportedChainId,
+  Market,
+  MarketVersion,
+  type SignerOrProvider,
+} from "@wildcatfi/wildcat-sdk"
 import type { SubgraphGetMarketQuery } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { refreshMarketsV2LiveDataSafe } from "@/utils/marketV2Reads"
 
 export type UseMarketProps = {
   address: string | undefined
@@ -33,6 +39,29 @@ export async function fetchApiMarket(addressLower: string, chainId?: number) {
   const res = await fetch(url.toString(), { cache: "no-store" })
   if (!res.ok) throw new Error("Failed to fetch market via api")
   return (await res.json()) as ApiResponse
+}
+
+async function refreshMarketForDetail(
+  chainId: number,
+  market: Market,
+  signerOrProvider: SignerOrProvider,
+) {
+  if (market.version !== MarketVersion.V2 || !isSupportedChainId(chainId)) {
+    await market.update()
+    return market
+  }
+
+  try {
+    const [refreshedMarket] = await refreshMarketsV2LiveDataSafe(
+      chainId,
+      [market],
+      signerOrProvider,
+    )
+    return refreshedMarket ?? market
+  } catch (_) {
+    await market.update()
+    return market
+  }
 }
 
 export function useGetMarket({ address, chainId }: UseMarketProps) {
@@ -75,9 +104,8 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
         signerOrProvider,
         subgraphMarket,
       )
-      await market.update()
 
-      return market
+      return refreshMarketForDetail(effectiveChainId, market, signerOrProvider)
     },
     refetchOnMount: false,
     refetchOnWindowFocus: false,
