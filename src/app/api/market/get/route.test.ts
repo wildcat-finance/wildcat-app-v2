@@ -54,12 +54,22 @@ describe("/api/market/get", () => {
     expect(mockUnstableCache).toHaveBeenCalledWith(
       expect.any(Function),
       [
-        "marketGet:v2",
+        "marketGet:v3",
         "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90",
         "11155111",
         "11155111",
       ],
       { revalidate: 60 },
+    )
+    expect(mockQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: {},
+        variables: {
+          market: "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90",
+          shouldSkipRecords: true,
+        },
+        fetchPolicy: "network-only",
+      }),
     )
   })
 

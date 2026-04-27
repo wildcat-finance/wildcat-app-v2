@@ -46,7 +46,7 @@ const DISCOVERY_CHAIN_IDS: SupportedChainId[] = Object.keys(SubgraphUrls)
     (n): n is SupportedChainId => Number.isFinite(n) && isSupportedChainId(n),
   )
 
-const MARKET_DISCOVERY_CACHE_VERSION = "marketGet:v2"
+const MARKET_DISCOVERY_CACHE_VERSION = "marketGet:v3"
 const MARKET_DISCOVERY_HIT_CACHE_CONTROL =
   "public, s-maxage=86400, stale-while-revalidate=604800"
 const MARKET_DISCOVERY_MISS_CACHE_CONTROL =
@@ -62,7 +62,7 @@ async function fetchMarketFromChain(
     SubgraphGetMarketQueryVariables
   >({
     query: GetMarketDocument,
-    variables: { market: addressLower },
+    variables: { market: addressLower, shouldSkipRecords: true },
     fetchPolicy: "network-only",
   })
   return res.data.market ?? null
