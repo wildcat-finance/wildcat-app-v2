@@ -5,6 +5,7 @@ import { Market } from "@wildcatfi/wildcat-sdk"
 
 import {
   fetchMarketRecordsWindow,
+  getNextMarketRecordsWindowParam,
   getMarketRecordsQueryKey,
   MARKET_RECORDS_QUERY_STALE_TIME,
 } from "./useMarketRecords"
@@ -17,9 +18,15 @@ export function prefetchMarketRecords(
   queryClient: QueryClient,
   { market }: PrefetchMarketRecordsOptions,
 ) {
-  return queryClient.prefetchQuery({
+  return queryClient.prefetchInfiniteQuery({
     queryKey: getMarketRecordsQueryKey({ market }),
-    queryFn: () => fetchMarketRecordsWindow({ market }),
+    queryFn: ({ pageParam }) =>
+      fetchMarketRecordsWindow({
+        market,
+        endEventIndex: pageParam,
+      }),
+    initialPageParam: market.eventIndex,
+    getNextPageParam: getNextMarketRecordsWindowParam,
     staleTime: MARKET_RECORDS_QUERY_STALE_TIME,
   })
 }

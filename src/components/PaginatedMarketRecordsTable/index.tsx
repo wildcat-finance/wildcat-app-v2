@@ -55,7 +55,7 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
       address: market.address,
       chainId: market.chainId,
     },
-    !isLoading && Boolean(data?.records.length),
+    !isLoading && Boolean(data?.records?.length),
   )
   const options = MARKET_RECORD_FILTERS
 
@@ -83,7 +83,7 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
     selectedFilters.length < ALL_MARKET_RECORD_KINDS.length
 
   const [startEventIndex, endEventIndex] = useMemo(() => {
-    if (!data?.records.length) {
+    if (!data?.records?.length) {
       return [undefined, undefined]
     }
 
