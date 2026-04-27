@@ -16,6 +16,22 @@ type MarketDetailPerformanceLabel =
   | "history-first-row-ready"
 
 const MARKET_DETAIL_PERF_PREFIX = "wildcat:market-detail"
+const WILDCAT_PERF_HELPER_KEY = "__wildcatPerf"
+
+type WildcatMarketDetailMeasure = {
+  name: string
+  market: string
+  chainId: string
+  measure: string
+  durationMs: number
+  startMs: number
+}
+
+declare global {
+  interface Window {
+    __wildcatPerf?: () => WildcatMarketDetailMeasure[]
+  }
+}
 
 const getContextKey = ({ address, chainId }: MarketDetailPerformanceContext) =>
   [chainId ?? "unknown-chain", address?.toLowerCase() ?? "unknown-market"].join(
@@ -37,6 +53,36 @@ const isMarketDetailPerformanceEnabled = () => {
     hostname === "localhost" ||
     hostname.endsWith(".vercel.app")
   )
+}
+
+const getMarketDetailPerformanceMeasures = (): WildcatMarketDetailMeasure[] =>
+  window.performance
+    .getEntriesByType("measure")
+    .filter((entry) => entry.name.startsWith(MARKET_DETAIL_PERF_PREFIX))
+    .map((entry) => {
+      const [, , chainId, market, measure] = entry.name.split(":")
+      return {
+        name: entry.name,
+        market,
+        chainId,
+        measure,
+        durationMs: Math.round(entry.duration),
+        startMs: Math.round(entry.startTime),
+      }
+    })
+
+const installWildcatPerfHelper = () => {
+  if (!isMarketDetailPerformanceEnabled() || window[WILDCAT_PERF_HELPER_KEY]) {
+    return
+  }
+
+  window[WILDCAT_PERF_HELPER_KEY] = () => {
+    const measures = getMarketDetailPerformanceMeasures()
+    // Helper is invoked manually from DevTools when collecting preview metrics.
+    // eslint-disable-next-line no-console
+    console.table(measures)
+    return measures
+  }
 }
 
 const getMarkName = (
@@ -67,6 +113,7 @@ export const markMarketDetailPerformance = (
   context: MarketDetailPerformanceContext,
 ) => {
   if (!isMarketDetailPerformanceEnabled()) return
+  installWildcatPerfHelper()
 
   const markName = getMarkName(label, context)
   window.performance.mark(markName)
