@@ -1,49 +1,25 @@
 import * as React from "react"
 
 import { QueryClient, useQueryClient } from "@tanstack/react-query"
-import { Market, MarketRecordKind } from "@wildcatfi/wildcat-sdk"
+import { Market } from "@wildcatfi/wildcat-sdk"
 
 import {
-  ALL_MARKET_RECORD_KINDS,
-  DEFAULT_MARKET_RECORDS_PAGE,
-  DEFAULT_MARKET_RECORDS_PAGE_SIZE,
-} from "@/components/PaginatedMarketRecordsTable/constants"
-
-import {
-  fetchMarketRecordsPage,
+  fetchMarketRecordsWindow,
   getMarketRecordsQueryKey,
   MARKET_RECORDS_QUERY_STALE_TIME,
 } from "./useMarketRecords"
 
 type PrefetchMarketRecordsOptions = {
   market: Market
-  page?: number
-  pageSize?: number
-  kinds?: MarketRecordKind[]
-  search?: string
 }
 
 export function prefetchMarketRecords(
   queryClient: QueryClient,
-  {
-    market,
-    page = DEFAULT_MARKET_RECORDS_PAGE,
-    pageSize = DEFAULT_MARKET_RECORDS_PAGE_SIZE,
-    kinds = ALL_MARKET_RECORD_KINDS,
-    search = "",
-  }: PrefetchMarketRecordsOptions,
+  { market }: PrefetchMarketRecordsOptions,
 ) {
-  const query = {
-    market,
-    page,
-    pageSize,
-    kinds,
-    search,
-  }
-
   return queryClient.prefetchQuery({
-    queryKey: getMarketRecordsQueryKey(query),
-    queryFn: () => fetchMarketRecordsPage(query),
+    queryKey: getMarketRecordsQueryKey({ market }),
+    queryFn: () => fetchMarketRecordsWindow({ market }),
     staleTime: MARKET_RECORDS_QUERY_STALE_TIME,
   })
 }

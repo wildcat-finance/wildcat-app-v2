@@ -179,8 +179,6 @@ export function MarketRecordsTable({
   //   [page, pageSize],
   // )
 
-  console.log(`TOTAL ROWS: ${rowCount}`)
-
   if (isLoading) {
     return (
       <Box
@@ -208,13 +206,16 @@ export function MarketRecordsTable({
     )
   }
 
-  const rows = records?.map((r) => ({ id: r.transactionHash, ...r }))
+  const rows = records?.map((r) => ({
+    id: `${r.transactionHash}-${r.eventIndex}`,
+    ...r,
+  }))
 
-  if (rows?.length === 0) {
+  if (rows?.length === 0 && !rowCount) {
     return (
       <Box display="flex" flexDirection="column" marginTop="24px">
         <Typography variant="text3" color={COLORS.santasGrey}>
-          No unfiltered events
+          No matching recent events
         </Typography>
       </Box>
     )

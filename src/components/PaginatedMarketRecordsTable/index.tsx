@@ -74,7 +74,7 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
     selectedFilters.length < ALL_MARKET_RECORD_KINDS.length
 
   const [startEventIndex, endEventIndex] = useMemo(() => {
-    if (!data?.records.length || data.totalRecords === undefined) {
+    if (!data?.records.length) {
       return [undefined, undefined]
     }
 
@@ -262,7 +262,7 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
       >
         {startEventIndex !== undefined && (
           <Typography variant="text3">
-            Viewing records {startEventIndex} to {endEventIndex}
+            Showing recent records {startEventIndex} to {endEventIndex}
           </Typography>
         )}
         {/*      <div className="flex gap-x-4 items-center flex-row">
