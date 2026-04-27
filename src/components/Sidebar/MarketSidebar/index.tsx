@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
@@ -35,11 +35,17 @@ export const MarketSidebar = () => {
   const dispatch = useAppDispatch()
 
   const params = useParams<{ locale: string; address: string }>()
+  const searchParams = useSearchParams()
 
   const { address } = params
+  const marketChainIdRaw = parseInt(searchParams.get("chainId") ?? "", 10)
+  const marketChainId = Number.isFinite(marketChainIdRaw)
+    ? marketChainIdRaw
+    : undefined
 
   const { data: market } = useGetMarket({
     address,
+    chainId: marketChainId,
   })
   const { address: walletAddress } = useAccount()
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
@@ -60,7 +66,7 @@ export const MarketSidebar = () => {
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 
   const { isWrongNetwork, isSelectionMismatch } = useNetworkGate({
-    desiredChainId: market?.chainId,
+    desiredChainId: market?.chainId ?? marketChainId,
     includeAgreementStatus: false,
   })
   const isDifferentChain = isWrongNetwork || isSelectionMismatch
