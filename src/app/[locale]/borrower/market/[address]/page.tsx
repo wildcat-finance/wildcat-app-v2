@@ -13,6 +13,11 @@ import { WrapDebtToken } from "@/app/[locale]/borrower/market/[address]/componen
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { LeadBanner } from "@/components/LeadBanner"
+import {
+  AccountRowsSkeleton,
+  BorrowerTransactionsSkeleton,
+  ChartSectionSkeleton,
+} from "@/components/MarketDetailSkeletons"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
@@ -48,14 +53,6 @@ import {
   SkeletonContainer,
   SkeletonStyle,
 } from "./style"
-
-const AccountSectionSkeleton = () => (
-  <Box sx={SkeletonContainer} flexDirection="column" gap="20px">
-    <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
-    <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
-    <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
-  </Box>
-)
 
 export default function MarketDetails({
   params: { address },
@@ -322,9 +319,15 @@ export default function MarketDetails({
                   holdTheMarket={holdTheMarket}
                 />
               )}
-              {canInteract && !marketAccount && <AccountSectionSkeleton />}
+              {canInteract && !marketAccount && (
+                <BorrowerTransactionsSkeleton />
+              )}
               {canInteract && <Divider sx={{ margin: "32px 0" }} />}
-              <MarketStatusChart market={market} withdrawals={withdrawals} />
+              {isWithdrawalsLoading ? (
+                <ChartSectionSkeleton />
+              ) : (
+                <MarketStatusChart market={market} withdrawals={withdrawals} />
+              )}
             </Box>
           )}
           {/* <Slide */}
@@ -341,7 +344,11 @@ export default function MarketDetails({
           {/* </Slide> */}
           {checked === 2 && (
             <Box sx={SlideContentContainer} marginTop="12px">
-              <MarketStatusChart market={market} withdrawals={withdrawals} />
+              {isWithdrawalsLoading ? (
+                <ChartSectionSkeleton />
+              ) : (
+                <MarketStatusChart market={market} withdrawals={withdrawals} />
+              )}
               <Divider sx={{ margin: "32px 0 44px" }} />
               <MarketParameters
                 market={market}
@@ -375,14 +382,14 @@ export default function MarketDetails({
           {/* </Slide> */}
           {checked === 4 && (
             <Box sx={SlideContentContainer} marginTop="12px">
-              {marketAccount ? (
+              {marketAccount && !isWithdrawalsLoading ? (
                 <MarketWithdrawalRequests
                   marketAccount={marketAccount}
                   withdrawals={withdrawals}
                   isHoldingMarket={canInteract}
                 />
               ) : (
-                <AccountSectionSkeleton />
+                <AccountRowsSkeleton />
               )}
             </Box>
           )}
@@ -412,7 +419,7 @@ export default function MarketDetails({
           )}
           {checked === 6 && canInteract && !marketAccount && (
             <Box sx={SlideContentContainer} marginTop="12px">
-              <AccountSectionSkeleton />
+              <AccountRowsSkeleton />
             </Box>
           )}
           {checked === 7 && (
