@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query"
 
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import { QueryKeys } from "@/config/query-keys"
+import { fetchApiMarket, getMarketApiQueryKey } from "@/hooks/useGetMarket"
 import { fetchMarketSummary } from "@/hooks/useMarketSummary"
 
 const METADATA_STALE_TIME = 5 * 60 * 1000
@@ -70,6 +71,14 @@ export const usePrefetchMarketDetailMetadata = () => {
 
       const normalizedMarket = marketAddress?.toLowerCase()
       if (normalizedMarket) {
+        queryClient
+          .prefetchQuery({
+            queryKey: getMarketApiQueryKey(normalizedMarket, chainId),
+            queryFn: () => fetchApiMarket(normalizedMarket, chainId),
+            staleTime: METADATA_STALE_TIME,
+          })
+          .catch(() => undefined)
+
         queryClient
           .prefetchQuery({
             queryKey: QueryKeys.Markets.GET_MARKET_SUMMARY(

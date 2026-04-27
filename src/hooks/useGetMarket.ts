@@ -18,7 +18,12 @@ type ApiResponse = {
   market: NonNullable<SubgraphGetMarketQuery["market"]> | null
 }
 
-async function fetchApiMarket(addressLower: string, chainId?: number) {
+export const getMarketApiQueryKey = (
+  addressLower: string | undefined,
+  chainId?: number,
+) => ["market", "apiGet", addressLower, chainId ?? "discover"] as const
+
+export async function fetchApiMarket(addressLower: string, chainId?: number) {
   const url = new URL("/api/market/get", window.location.origin)
   url.searchParams.set("address", addressLower)
   if (typeof chainId === "number" && Number.isFinite(chainId)) {
@@ -34,7 +39,7 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
   const marketAddressLower = address?.toLowerCase()
 
   const api = useQuery({
-    queryKey: ["market", "apiGet", marketAddressLower, chainId ?? "discover"],
+    queryKey: getMarketApiQueryKey(marketAddressLower, chainId),
     enabled: !!marketAddressLower,
     queryFn: () => fetchApiMarket(marketAddressLower!, chainId),
     staleTime: 5 * 60 * 1000, // 5min
