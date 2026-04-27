@@ -89,6 +89,14 @@ const cspReportingHeaders = [
   },
 ]
 
+const embedHeaders = [
+  {
+    // Allow Webflow sites and Vercel preview deployments to embed /embed/* pages
+    key: 'Content-Security-Policy',
+    value: "frame-ancestors 'self' https://*.webflow.io https://webflow.com https://*.vercel.app;",
+  },
+]
+
 const manifestHeaders = [
   {
     key: 'Access-Control-Allow-Origin',
@@ -165,6 +173,12 @@ const nextConfig = {
         source:
             '/((?!api/|_next/static/|_next/image/|_next/data/|favicon.ico$|robots.txt$|sitemap.xml$|manifest.json$).*)',
         headers: cspReportingHeaders,
+      },
+
+      // /embed/* — allow Webflow and Vercel previews as frame-ancestors
+      {
+        source: '/embed/:path*',
+        headers: [...baseSecurityHeaders, ...embedHeaders],
       },
 
       // manifest.json — needs CORS + enforced CSP + also keep base + reporting
