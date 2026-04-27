@@ -6,7 +6,7 @@ import { ToggleButton, ToggleButtonGroup } from "@mui/material"
 
 import { COLORS } from "@/theme/colors"
 
-export type ChartPeriod = "D" | "W" | "M" | "Q" | "Y" | "Cumulative"
+export type ChartPeriod = "D" | "W" | "M" | "Q" | "Y" | "Cumulative" | "All"
 
 export const CHART_PERIODS: ChartPeriod[] = [
   "D",
@@ -20,9 +20,11 @@ export const CHART_PERIODS: ChartPeriod[] = [
 export const ChartPeriodSelector = ({
   value,
   onChange,
+  periods = CHART_PERIODS,
 }: {
   value: ChartPeriod
   onChange: (value: ChartPeriod) => void
+  periods?: ChartPeriod[]
 }) => (
   <ToggleButtonGroup
     exclusive
@@ -58,7 +60,7 @@ export const ChartPeriodSelector = ({
       },
     }}
   >
-    {CHART_PERIODS.map((period) => (
+    {periods.map((period) => (
       <ToggleButton
         key={period}
         value={period}
@@ -102,7 +104,7 @@ export const groupPeriodData = <
   create: (point: TInput, timestamp: number) => TOutput,
   merge: (target: TOutput, point: TInput) => void,
 ): TOutput[] => {
-  if (period === "D" || period === "Cumulative") {
+  if (period === "D" || period === "Cumulative" || period === "All") {
     return data.map((point) => create(point, point.timestamp))
   }
 

@@ -34,7 +34,14 @@ export const ChartHeaderStyle: SxProps<Theme> = {
   justifyContent: "space-between",
   alignItems: "center",
   gap: "12px",
-  flexWrap: "wrap",
+  flexWrap: "nowrap",
+  "& > *:first-of-type": {
+    minWidth: 0,
+    flex: "1 1 auto",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
 }
 
 export const ChartDescriptionStyle: SxProps<Theme> = {
@@ -44,22 +51,6 @@ export const ChartDescriptionStyle: SxProps<Theme> = {
   marginTop: "-2px",
   lineHeight: 1.45,
 }
-
-export const TimeRangeChipStyle = (isActive: boolean): SxProps<Theme> => ({
-  fontFamily: "monospace",
-  fontSize: "10px",
-  color: isActive ? COLORS.ultramarineBlue : COLORS.santasGrey,
-  backgroundColor: isActive ? COLORS.blueRibbon01 : "transparent",
-  padding: "3px 7px",
-  borderRadius: "4px",
-  cursor: "pointer",
-  border: "none",
-  minWidth: "auto",
-  lineHeight: 1.4,
-  "&:hover": {
-    backgroundColor: isActive ? COLORS.blueRibbon01 : COLORS.athensGrey,
-  },
-})
 
 export const ChartActionButtonStyle: SxProps<Theme> = {
   padding: "4px",
