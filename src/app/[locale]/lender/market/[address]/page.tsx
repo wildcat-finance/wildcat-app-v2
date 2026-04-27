@@ -25,6 +25,7 @@ import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecords
 import { useIdlePrefetchMarketRecords } from "@/components/PaginatedMarketRecordsTable/hooks/usePrefetchMarketRecords"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { useGetMarket } from "@/hooks/useGetMarket"
+import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -92,6 +93,20 @@ export default function LenderMarketDetails({
     address,
     chainId: marketChainId,
   })
+  const performanceContext = {
+    address: market?.address ?? address,
+    chainId: market?.chainId ?? marketChainId,
+    role: "lender" as const,
+  }
+  useMarketDetailPerformanceMark(
+    "route-mount",
+    {
+      address,
+      chainId: marketChainId,
+      role: "lender",
+    },
+    true,
+  )
   useIdlePrefetchMarketRecords(market)
 
   const { isWrongNetwork, isSelectionMismatch, selectedChainId } =
@@ -102,7 +117,18 @@ export default function LenderMarketDetails({
 
   const { data: marketAccount, isLoadingInitial: isMarketAccountLoading } =
     useLenderMarketAccount(market)
-  const { data: withdrawals } = useGetLenderWithdrawals(market)
+  const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
+    useGetLenderWithdrawals(market)
+  useMarketDetailPerformanceMark(
+    "account-ready",
+    performanceContext,
+    !!market && !isMarketAccountLoading,
+  )
+  useMarketDetailPerformanceMark(
+    "withdrawals-ready",
+    performanceContext,
+    !!market && !isWithdrawalsLoading,
+  )
   const { data: marketSummary, isLoading: isLoadingSummary } = useMarketSummary(
     address.toLowerCase(),
     market?.chainId ?? selectedChainId,

@@ -13,6 +13,7 @@ import { Market, MarketRecordKind } from "@wildcatfi/wildcat-sdk"
 
 import Filter from "@/assets/icons/filter_icon.svg"
 import { FilterTextField } from "@/components/FilterTextfield"
+import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
 import { COLORS } from "@/theme/colors"
 
 import {
@@ -48,6 +49,14 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
     kinds: selectedFilters as MarketRecordKind[],
     search,
   })
+  useMarketDetailPerformanceMark(
+    "history-first-row-ready",
+    {
+      address: market.address,
+      chainId: market.chainId,
+    },
+    !isLoading && Boolean(data?.records.length),
+  )
   const options = MARKET_RECORD_FILTERS
 
   const handleChange = (o: MarketRecordFilterOption, checked: boolean) => {

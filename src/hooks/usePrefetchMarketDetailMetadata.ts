@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import { QueryKeys } from "@/config/query-keys"
 import { fetchApiMarket, getMarketApiQueryKey } from "@/hooks/useGetMarket"
+import { markMarketDetailPerformance } from "@/hooks/useMarketDetailPerformance"
 import { fetchMarketSummary } from "@/hooks/useMarketSummary"
 
 const METADATA_STALE_TIME = 5 * 60 * 1000
@@ -114,6 +115,7 @@ export const useMarketRowPrefetchHandlers = <T extends MarketRowPrefetchTarget>(
   rows: readonly T[],
 ) => {
   const prefetchMarketDetailMetadata = usePrefetchMarketDetailMetadata()
+  const intentMarketKeyRef = React.useRef<string | undefined>(undefined)
   const rowByMarketAddress = React.useMemo(
     () => new Map(rows.map((row) => [row.id.toLowerCase(), row] as const)),
     [rows],
@@ -129,6 +131,17 @@ export const useMarketRowPrefetchHandlers = <T extends MarketRowPrefetchTarget>(
       const row = rowByMarketAddress.get(marketAddress)
       if (!row) {
         return
+      }
+
+      const intentMarketKey = `${
+        row.chainId ?? "unknown"
+      }:${row.id.toLowerCase()}`
+      if (intentMarketKeyRef.current !== intentMarketKey) {
+        intentMarketKeyRef.current = intentMarketKey
+        markMarketDetailPerformance("row-intent", {
+          address: row.id,
+          chainId: row.chainId,
+        })
       }
 
       prefetchMarketDetailMetadata({

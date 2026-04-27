@@ -12,6 +12,7 @@ import type { SubgraphGetMarketQuery } from "@wildcatfi/wildcat-sdk/dist/gql/gra
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
 import { refreshMarketsV2LiveDataSafe } from "@/utils/marketV2Reads"
 
 export type UseMarketProps = {
@@ -77,6 +78,16 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
 
   const effectiveChainId = api.data?.chainId ?? undefined
   const subgraphMarket = api.data?.market ?? null
+  const performanceContext = {
+    address: marketAddressLower,
+    chainId: effectiveChainId ?? chainId,
+  }
+
+  useMarketDetailPerformanceMark(
+    "api-market-ready",
+    performanceContext,
+    !!effectiveChainId && !!subgraphMarket,
+  )
 
   const { signer, provider } = useEthersProvider({
     chainId:
@@ -110,6 +121,12 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   })
+
+  useMarketDetailPerformanceMark(
+    "live-market-ready",
+    performanceContext,
+    !!query.data,
+  )
 
   useEffect(() => {
     if (

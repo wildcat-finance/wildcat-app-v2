@@ -19,6 +19,7 @@ import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecords
 import { useIdlePrefetchMarketRecords } from "@/components/PaginatedMarketRecordsTable/hooks/usePrefetchMarketRecords"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
+import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
@@ -79,9 +80,35 @@ export default function MarketDetails({
     address,
     chainId: marketChainId,
   })
+  const performanceContext = {
+    address: market?.address ?? address,
+    chainId: market?.chainId ?? marketChainId,
+    role: "borrower" as const,
+  }
+  useMarketDetailPerformanceMark(
+    "route-mount",
+    {
+      address,
+      chainId: marketChainId,
+      role: "borrower",
+    },
+    true,
+  )
   useIdlePrefetchMarketRecords(market)
-  const { data: withdrawals } = useGetWithdrawals(market)
-  const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
+  const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
+    useGetWithdrawals(market)
+  const { data: marketAccount, isLoadingInitial: isMarketAccountLoading } =
+    useGetMarketAccountForBorrowerLegacy(market)
+  useMarketDetailPerformanceMark(
+    "withdrawals-ready",
+    performanceContext,
+    !!market && !isWithdrawalsLoading,
+  )
+  useMarketDetailPerformanceMark(
+    "account-ready",
+    performanceContext,
+    !!market && !isMarketAccountLoading,
+  )
 
   const { isWrongNetwork, isSelectionMismatch } = useNetworkGate({
     desiredChainId: market?.chainId ?? marketChainId,
