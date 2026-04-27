@@ -9,6 +9,7 @@ export {
   formatUsdCompact,
 } from "./formatters"
 export { getChartWatermark } from "./options"
+export type { WatermarkPlacement } from "./options"
 export { CHART_PALETTE } from "./palette"
 export type {
   CategoryBarSeries,

@@ -98,20 +98,7 @@ export const LenderAnalyticsSummary = ({
             <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
               {item.label}
             </Typography>
-            {item.tooltip && (
-              <Tooltip title={item.tooltip} placement="top" arrow>
-                <Typography
-                  variant="text3"
-                  sx={{
-                    color: COLORS.santasGrey,
-                    cursor: "help",
-                    lineHeight: 1,
-                  }}
-                >
-                  &#9432;
-                </Typography>
-              </Tooltip>
-            )}
+            {item.tooltip && <TooltipButton value={item.tooltip} />}
           </Box>
           {isLoading ? (
             <Skeleton

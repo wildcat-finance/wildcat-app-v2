@@ -30,7 +30,7 @@ const watermarkImage =
     ? wildcatLogoUrl
     : (wildcatLogoUrl as { src: string }).src
 
-type WatermarkPlacement = "cartesian" | "dense" | "donut"
+export type WatermarkPlacement = "cartesian" | "dense" | "donut" | "compact"
 
 export const ECHART_COLORS = {
   axis: CHART_PALETTE.ui.axis,
@@ -38,6 +38,16 @@ export const ECHART_COLORS = {
   grid: CHART_PALETTE.ui.grid,
   tooltipBg: CHART_PALETTE.ui.tooltipBg,
   tooltipBorder: CHART_PALETTE.ui.tooltipBorder,
+}
+
+const WATERMARK_DIMENSIONS: Record<
+  WatermarkPlacement,
+  { width: number; height: number }
+> = {
+  cartesian: { width: 280, height: 93 },
+  dense: { width: 240, height: 80 },
+  donut: { width: 280, height: 93 },
+  compact: { width: 200, height: 66 },
 }
 
 export const getChartWatermark = (
@@ -48,8 +58,7 @@ export const getChartWatermark = (
   silent: true,
   style: {
     image: watermarkImage,
-    width: placement === "dense" ? 240 : 280,
-    height: placement === "dense" ? 80 : 93,
+    ...WATERMARK_DIMENSIONS[placement],
     opacity: 0.05,
   },
   left: "center",
@@ -120,10 +129,13 @@ export const getDataZoom = (enabled: boolean, axis = "x") => {
   ]
 }
 
-export const baseGrid = (hasDataZoom: boolean): EChartOption["grid"] => ({
+export const baseGrid = (
+  hasDataZoom: boolean,
+  hasLegend = true,
+): EChartOption["grid"] => ({
   left: 12,
   right: 16,
-  top: 36,
+  top: hasLegend ? 36 : 8,
   bottom: hasDataZoom ? 60 : 12,
   containLabel: true,
 })
@@ -174,6 +186,7 @@ const baseAxis = {
     color: ECHART_COLORS.axis,
     fontFamily,
     fontSize: 10,
+    hideOverlap: true,
   },
   splitLine: {
     lineStyle: {
@@ -227,6 +240,7 @@ export const buildTimeSeriesOption = <T extends object>({
   yAxisName,
   tooltipFormatter,
   markPoints = [],
+  watermarkPlacement = "cartesian",
 }: {
   data: T[]
   series: TimeSeriesConfig<T>[]
@@ -238,13 +252,14 @@ export const buildTimeSeriesOption = <T extends object>({
   yAxisName?: string
   tooltipFormatter?: ChartTooltipFormatter<T>
   markPoints?: ChartMarkPoint[]
+  watermarkPlacement?: WatermarkPlacement
 }): EChartOption => {
   const hasDataZoom = showDataZoom && data.length > 1
 
   return {
     animation: false,
-    graphic: getChartWatermark(),
-    grid: baseGrid(hasDataZoom),
+    graphic: getChartWatermark(watermarkPlacement),
+    grid: baseGrid(hasDataZoom, showLegend),
     tooltip: {
       ...baseTooltip,
       formatter: tooltipFormatter

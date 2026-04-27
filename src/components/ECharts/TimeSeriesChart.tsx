@@ -3,7 +3,7 @@
 import * as React from "react"
 
 import { EChart } from "./EChart"
-import { buildTimeSeriesOption } from "./options"
+import { WatermarkPlacement, buildTimeSeriesOption } from "./options"
 import {
   ChartMarkPoint,
   ChartTooltipFormatter,
@@ -24,6 +24,7 @@ type TimeSeriesChartProps<T extends object> = {
   yAxisName?: string
   tooltipFormatter?: ChartTooltipFormatter<T>
   markPoints?: ChartMarkPoint[]
+  watermarkPlacement?: WatermarkPlacement
   csvContent?: string
   csvFileName?: string
   imageFileName?: string
@@ -44,6 +45,7 @@ export const TimeSeriesChart = <T extends object>({
   yAxisName,
   tooltipFormatter,
   markPoints,
+  watermarkPlacement,
   csvContent,
   csvFileName,
   imageFileName,
@@ -63,6 +65,7 @@ export const TimeSeriesChart = <T extends object>({
         yAxisName,
         tooltipFormatter,
         markPoints,
+        watermarkPlacement,
       }),
     [
       data,
@@ -75,6 +78,7 @@ export const TimeSeriesChart = <T extends object>({
       yAxisName,
       tooltipFormatter,
       markPoints,
+      watermarkPlacement,
     ],
   )
 

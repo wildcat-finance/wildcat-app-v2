@@ -21,6 +21,7 @@ import {
 type AnalyticsChartCardProps = {
   title: string
   description?: string
+  descriptionPosition?: "top" | "bottom"
   actions?: React.ReactNode
   cardHeight?: number
   dialogHeight?: number
@@ -46,6 +47,7 @@ const CrossIcon = () => (
 export const AnalyticsChartCard = ({
   title,
   description,
+  descriptionPosition = "top",
   actions,
   cardHeight = 220,
   dialogHeight = 520,
@@ -62,6 +64,12 @@ export const AnalyticsChartCard = ({
     isMobile && typeof dialogHeight === "number"
       ? "calc(100dvh - 132px)"
       : dialogHeight
+
+  const descriptionNode = description ? (
+    <Typography variant="text4" sx={ChartDescriptionStyle}>
+      {description}
+    </Typography>
+  ) : null
 
   return (
     <>
@@ -99,15 +107,13 @@ export const AnalyticsChartCard = ({
           </Box>
         </Box>
 
-        {description && (
-          <Typography variant="text4" sx={ChartDescriptionStyle}>
-            {description}
-          </Typography>
-        )}
+        {descriptionPosition === "top" && descriptionNode}
 
         <Box sx={{ width: "100%", height: resolvedCardHeight }}>
           {children({ isExpanded: false })}
         </Box>
+
+        {descriptionPosition === "bottom" && descriptionNode}
       </Box>
 
       <Dialog
@@ -164,15 +170,13 @@ export const AnalyticsChartCard = ({
             </Box>
           </Box>
 
-          {description && (
-            <Typography variant="text4" sx={ChartDescriptionStyle}>
-              {description}
-            </Typography>
-          )}
+          {descriptionPosition === "top" && descriptionNode}
 
           <Box sx={{ width: "100%", height: resolvedDialogHeight }}>
             {children({ isExpanded: true })}
           </Box>
+
+          {descriptionPosition === "bottom" && descriptionNode}
         </Box>
       </Dialog>
     </>
