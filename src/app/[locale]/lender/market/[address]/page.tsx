@@ -22,6 +22,7 @@ import { Footer } from "@/components/Footer"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
+import { useIdlePrefetchMarketRecords } from "@/components/PaginatedMarketRecordsTable/hooks/usePrefetchMarketRecords"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketMla } from "@/hooks/useMarketMla"
@@ -91,6 +92,7 @@ export default function LenderMarketDetails({
     address,
     chainId: marketChainId,
   })
+  useIdlePrefetchMarketRecords(market)
 
   const { isWrongNetwork, isSelectionMismatch, selectedChainId } =
     useNetworkGate({

@@ -16,6 +16,7 @@ import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
+import { useIdlePrefetchMarketRecords } from "@/components/PaginatedMarketRecordsTable/hooks/usePrefetchMarketRecords"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
@@ -78,6 +79,7 @@ export default function MarketDetails({
     address,
     chainId: marketChainId,
   })
+  useIdlePrefetchMarketRecords(market)
   const { data: withdrawals } = useGetWithdrawals(market)
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
 

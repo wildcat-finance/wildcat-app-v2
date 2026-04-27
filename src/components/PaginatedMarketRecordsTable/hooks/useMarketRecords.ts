@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import {
   Market,
+  MarketRecord,
   MarketRecordKind,
   getMarketRecords,
   getSubgraphClient,
@@ -17,6 +18,70 @@ export type UseMarketRecordsProps = {
   search?: string
 }
 const SUBGRAPH_DEFAULT_END_EVENT_INDEX = 999_999_999
+export const MARKET_RECORDS_QUERY_STALE_TIME = 60 * 1000
+
+export type MarketRecordsPageResult = {
+  records: MarketRecord[]
+  totalRecords: number
+}
+
+export const getMarketRecordsQueryKey = ({
+  market,
+  page,
+  pageSize,
+  kinds,
+  search,
+}: UseMarketRecordsProps) =>
+  QueryKeys.Markets.GET_MARKET_RECORDS(
+    market.chainId,
+    market.address,
+    page,
+    pageSize,
+    kinds,
+    search ?? "",
+  )
+
+export async function fetchMarketRecordsPage({
+  market,
+  page,
+  pageSize,
+  kinds,
+  search,
+  targetChainId,
+}: UseMarketRecordsProps & {
+  targetChainId?: number
+}): Promise<MarketRecordsPageResult> {
+  const subgraphClient = getSubgraphClient(targetChainId ?? market.chainId)
+  const records = await getMarketRecords(subgraphClient, {
+    market,
+    fetchPolicy: "network-only",
+    endEventIndex: SUBGRAPH_DEFAULT_END_EVENT_INDEX,
+    limit: 500,
+    kinds: kinds?.length ? kinds : undefined,
+  })
+
+  records.sort((a, b) => b.eventIndex - a.eventIndex)
+
+  const q = search?.trim().toLowerCase()
+
+  const filtered = q
+    ? records.filter((r) => {
+        const haystack = [r.transactionHash, String(r.eventIndex)]
+          .filter(Boolean)
+          .map((x) => String(x).toLowerCase())
+
+        return haystack.some((s) => s.includes(q))
+      })
+    : records
+
+  const startIndex = page * pageSize
+  const endIndex = startIndex + pageSize
+
+  return {
+    records: filtered.slice(startIndex, endIndex),
+    totalRecords: filtered.length,
+  }
+}
 
 export function useMarketRecords({
   market,
@@ -27,51 +92,28 @@ export function useMarketRecords({
 }: UseMarketRecordsProps) {
   const { chainId } = useSelectedNetwork()
   const targetChainId = market?.chainId ?? chainId
-  const subgraphClient = getSubgraphClient(targetChainId)
 
-  const getMarketRecordsInternal = async () => {
-    const records = await getMarketRecords(subgraphClient, {
+  const getMarketRecordsInternal = async () =>
+    fetchMarketRecordsPage({
       market,
-      fetchPolicy: "network-only",
-      endEventIndex: SUBGRAPH_DEFAULT_END_EVENT_INDEX,
-      limit: 500,
-      kinds: kinds?.length ? kinds : undefined,
-    })
-
-    records.sort((a, b) => b.eventIndex - a.eventIndex)
-
-    const q = search?.trim().toLowerCase()
-
-    const filtered = q
-      ? records.filter((r) => {
-          const haystack = [r.transactionHash, String(r.eventIndex)]
-            .filter(Boolean)
-            .map((x) => String(x).toLowerCase())
-
-          return haystack.some((s) => s.includes(q))
-        })
-      : records
-
-    const startIndex = page * pageSize
-    const endIndex = startIndex + pageSize
-
-    return {
-      records: filtered.slice(startIndex, endIndex),
-      totalRecords: filtered.length,
-    }
-  }
-
-  const { data, isLoading, error, isError } = useQuery({
-    queryKey: QueryKeys.Markets.GET_MARKET_RECORDS(
-      market.chainId,
-      market.address,
       page,
       pageSize,
       kinds,
-      search ?? "",
-    ),
+      search,
+      targetChainId,
+    })
+
+  const { data, isLoading, error, isError } = useQuery({
+    queryKey: getMarketRecordsQueryKey({
+      market,
+      page,
+      pageSize,
+      kinds,
+      search,
+    }),
     queryFn: getMarketRecordsInternal,
     refetchOnMount: false,
+    staleTime: MARKET_RECORDS_QUERY_STALE_TIME,
     refetchInterval: 2 * 60 * 1000, // 2min
   })
 

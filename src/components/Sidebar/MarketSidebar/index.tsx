@@ -15,6 +15,7 @@ import SummaryIcon from "@/assets/icons/summary_icon.svg"
 import TokenWrapIcon from "@/assets/icons/tokenWrap_icon.svg"
 import WithdrawalAndRequestsIcon from "@/assets/icons/withdrawalAndRequests_icon.svg"
 import { BackButton } from "@/components/BackButton"
+import { usePrefetchMarketRecords } from "@/components/PaginatedMarketRecordsTable/hooks/usePrefetchMarketRecords"
 import {
   ContentContainer,
   MenuItemButton,
@@ -47,6 +48,7 @@ export const MarketSidebar = () => {
     address,
     chainId: marketChainId,
   })
+  const prefetchMarketHistory = usePrefetchMarketRecords(market)
   const { address: walletAddress } = useAccount()
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
 
@@ -303,6 +305,8 @@ export const MarketSidebar = () => {
                 ? COLORS.whiteSmoke
                 : "transparent",
             }}
+            onMouseEnter={prefetchMarketHistory}
+            onFocus={prefetchMarketHistory}
             onClick={() => {
               dispatch(setCheckBlock(7))
               dispatch(
