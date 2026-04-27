@@ -16,9 +16,15 @@ import { useGenerateBarData } from "./hooks/useGenerateBarData"
 import "./styles.css"
 import { MarketStatusChartProps } from "./interface"
 
-export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
+export const MarketStatusChart = ({
+  market,
+  withdrawals: providedWithdrawals,
+}: MarketStatusChartProps) => {
   const { t } = useTranslation()
-  const { data: withdrawals } = useGetWithdrawals(market)
+  const { data: fallbackWithdrawals } = useGetWithdrawals(
+    providedWithdrawals ? undefined : market,
+  )
+  const withdrawals = providedWithdrawals ?? fallbackWithdrawals
   const { barData: barRawData, breakdown } = useGenerateBarData(market)
   const isDelinquent = breakdown.status === "delinquent"
 

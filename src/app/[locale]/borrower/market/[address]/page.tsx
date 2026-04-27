@@ -47,6 +47,14 @@ import {
   SkeletonStyle,
 } from "./style"
 
+const AccountSectionSkeleton = () => (
+  <Box sx={SkeletonContainer} flexDirection="column" gap="20px">
+    <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+    <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+    <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+  </Box>
+)
+
 export default function MarketDetails({
   params: { address },
 }: {
@@ -92,7 +100,7 @@ export default function MarketDetails({
 
   const [prevURL, setPrevURL] = useState<string | null>(null)
   const { data: marketMla, isLoading: isLoadingMarketMla } = useMarketMla(
-    marketAccount?.market.address,
+    market?.address,
   )
 
   const {
@@ -170,11 +178,11 @@ export default function MarketDetails({
 
   const isLoadingMarket = isMarketLoading || apiLoading || isDiscoveringChainId
   useEffect(() => {
-    if (isLoadingMarket || !market || !marketAccount) return
+    if (isLoadingMarket || !market) return
     if (!canInteract && checked === 1) {
       dispatch(setCheckBlock(2))
     }
-  }, [canInteract, checked, dispatch, isLoadingMarket, market, marketAccount])
+  }, [canInteract, checked, dispatch, isLoadingMarket, market])
 
   if (apiError) {
     return (
@@ -188,7 +196,7 @@ export default function MarketDetails({
     )
   }
 
-  if (isLoadingMarket || !market || !marketAccount)
+  if (isLoadingMarket || !market)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>
@@ -241,7 +249,7 @@ export default function MarketDetails({
   return (
     <Box>
       <Box>
-        <MarketHeader marketAccount={marketAccount} />
+        <MarketHeader market={market} marketAccount={marketAccount} />
         {isDifferentChain && (
           <SwitchChainAlert desiredChainId={market?.chainId} />
         )}
@@ -277,7 +285,7 @@ export default function MarketDetails({
           {/* </Slide> */}
           {checked === 1 && (
             <Box sx={SlideContentContainer}>
-              {canInteract && (
+              {canInteract && marketAccount && (
                 <MarketTransactions
                   market={market}
                   marketAccount={marketAccount}
@@ -285,8 +293,9 @@ export default function MarketDetails({
                   holdTheMarket={holdTheMarket}
                 />
               )}
+              {canInteract && !marketAccount && <AccountSectionSkeleton />}
               {canInteract && <Divider sx={{ margin: "32px 0" }} />}
-              <MarketStatusChart market={market} />
+              <MarketStatusChart market={market} withdrawals={withdrawals} />
             </Box>
           )}
           {/* <Slide */}
@@ -303,7 +312,7 @@ export default function MarketDetails({
           {/* </Slide> */}
           {checked === 2 && (
             <Box sx={SlideContentContainer} marginTop="12px">
-              <MarketStatusChart market={market} />
+              <MarketStatusChart market={market} withdrawals={withdrawals} />
               <Divider sx={{ margin: "32px 0 44px" }} />
               <MarketParameters
                 market={market}
@@ -337,11 +346,15 @@ export default function MarketDetails({
           {/* </Slide> */}
           {checked === 4 && (
             <Box sx={SlideContentContainer} marginTop="12px">
-              <MarketWithdrawalRequests
-                marketAccount={marketAccount}
-                withdrawals={withdrawals}
-                isHoldingMarket={canInteract}
-              />
+              {marketAccount ? (
+                <MarketWithdrawalRequests
+                  marketAccount={marketAccount}
+                  withdrawals={withdrawals}
+                  isHoldingMarket={canInteract}
+                />
+              ) : (
+                <AccountSectionSkeleton />
+              )}
             </Box>
           )}
           {/* <Slide */}
@@ -363,9 +376,14 @@ export default function MarketDetails({
             </Box>
           )}
 
-          {checked === 6 && canInteract && (
+          {checked === 6 && canInteract && marketAccount && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketMLA marketAccount={marketAccount} />
+            </Box>
+          )}
+          {checked === 6 && canInteract && !marketAccount && (
+            <Box sx={SlideContentContainer} marginTop="12px">
+              <AccountSectionSkeleton />
             </Box>
           )}
           {checked === 7 && (

@@ -57,6 +57,14 @@ import { LenderStatus } from "./interface"
 import { SectionContainer, SkeletonContainer, SkeletonStyle } from "./style"
 import { getEffectiveLenderRole } from "./utils"
 
+const AccountSectionSkeleton = () => (
+  <Box sx={SkeletonContainer} flexDirection="column" gap="20px">
+    <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+    <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+    <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+  </Box>
+)
+
 export default function LenderMarketDetails({
   params: { address },
 }: {
@@ -77,6 +85,8 @@ export default function LenderMarketDetails({
     data: market,
     isLoading: isMarketLoading,
     apiError,
+    apiLoading,
+    isDiscoveringChainId,
   } = useGetMarket({
     address,
     chainId: marketChainId,
@@ -90,8 +100,7 @@ export default function LenderMarketDetails({
 
   const { data: marketAccount, isLoadingInitial: isMarketAccountLoading } =
     useLenderMarketAccount(market)
-  const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
-    useGetLenderWithdrawals(market)
+  const { data: withdrawals } = useGetLenderWithdrawals(market)
   const { data: marketSummary, isLoading: isLoadingSummary } = useMarketSummary(
     address.toLowerCase(),
     market?.chainId ?? selectedChainId,
@@ -102,13 +111,14 @@ export default function LenderMarketDetails({
 
   const isDifferentChain = isSelectionMismatch || isWrongNetwork
 
-  const authorizedInMarket =
+  const authorizedInMarket = Boolean(
     marketAccount &&
-    isConnected &&
-    !isWrongNetwork &&
-    [LenderStatus.DepositAndWithdraw, LenderStatus.WithdrawOnly].includes(
-      getEffectiveLenderRole(marketAccount),
-    )
+      isConnected &&
+      !isWrongNetwork &&
+      [LenderStatus.DepositAndWithdraw, LenderStatus.WithdrawOnly].includes(
+        getEffectiveLenderRole(marketAccount),
+      ),
+  )
 
   const {
     wrapperAddress,
@@ -126,11 +136,14 @@ export default function LenderMarketDetails({
     wrapperAddress,
   )
 
-  const isLoading =
-    isMarketLoading ||
-    isMarketAccountLoading ||
-    isWithdrawalsLoading ||
-    authorizedInMarket === undefined
+  const isLoadingMarket = isMarketLoading || apiLoading || isDiscoveringChainId
+  const isLoading = isLoadingMarket || !market
+  const isAuthorizationPending =
+    !!market &&
+    isConnected &&
+    !isWrongNetwork &&
+    !marketAccount &&
+    isMarketAccountLoading
 
   const currentSection = useAppSelector(
     (state) => state.lenderMarketRouting.currentSection,
@@ -141,6 +154,8 @@ export default function LenderMarketDetails({
   }, [isLoading])
 
   useEffect(() => {
+    if (isAuthorizationPending) return
+
     if (!authorizedInMarket) {
       dispatch(setIsLender(!!authorizedInMarket))
       dispatch(setSection(LenderMarketSections.STATUS))
@@ -148,7 +163,7 @@ export default function LenderMarketDetails({
       dispatch(setIsLender(authorizedInMarket))
       dispatch(setSection(LenderMarketSections.TRANSACTIONS))
     }
-  }, [authorizedInMarket])
+  }, [authorizedInMarket, dispatch, isAuthorizationPending])
 
   const ongoingCount = (
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
@@ -228,6 +243,17 @@ export default function LenderMarketDetails({
 
   if (!mounted) return null
 
+  if (apiError)
+    return (
+      <Box sx={{ padding: "52px 20px 0 44px" }}>
+        <Box sx={{ width: "69%" }}>
+          <Typography variant="title2">
+            Failed to load market data. Please try again later.
+          </Typography>
+        </Box>
+      </Box>
+    )
+
   if (isLoading && isMobile)
     return (
       <Box
@@ -288,18 +314,7 @@ export default function LenderMarketDetails({
       </Box>
     )
 
-  if (apiError)
-    return (
-      <Box sx={{ padding: "52px 20px 0 44px" }}>
-        <Box sx={{ width: "69%" }}>
-          <Typography variant="title2">
-            Failed to load market data. Please try again later.
-          </Typography>
-        </Box>
-      </Box>
-    )
-
-  if (!marketAccount || !market)
+  if (!market)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>
@@ -310,7 +325,7 @@ export default function LenderMarketDetails({
       </Box>
     )
 
-  if (isMobile && isMobileDepositOpen)
+  if (isMobile && isMobileDepositOpen && marketAccount)
     return (
       <DepositModal
         isMobileOpen={isMobileDepositOpen}
@@ -319,7 +334,7 @@ export default function LenderMarketDetails({
       />
     )
 
-  if (isMobile && isMobileWithdrawalOpen)
+  if (isMobile && isMobileWithdrawalOpen && marketAccount)
     return (
       <WithdrawModal
         marketAccount={marketAccount}
@@ -348,7 +363,7 @@ export default function LenderMarketDetails({
           setIsMobileDescriptionOpen={setIsMobileDescriptionOpen}
         />
 
-        {(authorizedInMarket || isDifferentChain) && (
+        {marketAccount && (authorizedInMarket || isDifferentChain) && (
           <MobileMarketActions
             marketAccount={marketAccount}
             withdrawals={withdrawals}
@@ -395,17 +410,22 @@ export default function LenderMarketDetails({
           }}
         >
           <MarketHeader
+            market={market}
             marketAccount={marketAccount}
             mla={mla}
             hasMarketDescription={hasMarketDescription}
           />
 
           <Box id="depositWithdraw">
-            <BarCharts
-              marketAccount={marketAccount}
-              withdrawals={withdrawals}
-              isLender={authorizedInMarket as boolean}
-            />
+            {marketAccount ? (
+              <BarCharts
+                marketAccount={marketAccount}
+                withdrawals={withdrawals}
+                isLender={authorizedInMarket}
+              />
+            ) : (
+              <AccountSectionSkeleton />
+            )}
           </Box>
 
           {hasMarketDescription && (
@@ -458,7 +478,7 @@ export default function LenderMarketDetails({
             />
           )}
 
-          {(authorizedInMarket || isDifferentChain) && (
+          {marketAccount && (authorizedInMarket || isDifferentChain) && (
             <MobileMarketActions
               marketAccount={marketAccount}
               withdrawals={withdrawals}
@@ -479,7 +499,7 @@ export default function LenderMarketDetails({
   return (
     <Box>
       <Box>
-        <MarketHeader marketAccount={marketAccount} />
+        <MarketHeader market={market} marketAccount={marketAccount} />
 
         {isDifferentChain && (
           <SwitchChainAlert desiredChainId={market?.chainId} />
@@ -488,28 +508,38 @@ export default function LenderMarketDetails({
         <Box sx={SectionContainer(theme, isDifferentChain)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (
             <Box>
-              {authorizedInMarket && !isDifferentChain && (
+              {authorizedInMarket && marketAccount && !isDifferentChain && (
                 <MarketActions
                   marketAccount={marketAccount}
                   withdrawals={withdrawals}
                 />
               )}
-              <CapacityBarChart
-                marketAccount={marketAccount}
-                legendType="big"
-                isLender={authorizedInMarket}
-              />
+              {marketAccount ? (
+                <CapacityBarChart
+                  marketAccount={marketAccount}
+                  legendType="big"
+                  isLender={authorizedInMarket}
+                />
+              ) : (
+                <AccountSectionSkeleton />
+              )}
             </Box>
           )}
 
           {currentSection === LenderMarketSections.STATUS && (
             <Box marginTop="12px">
-              <BarCharts
-                marketAccount={marketAccount}
-                withdrawals={withdrawals}
-                isLender={authorizedInMarket as boolean}
-              />
-              <Divider sx={{ margin: "40px 0 44px" }} />
+              {marketAccount ? (
+                <>
+                  <BarCharts
+                    marketAccount={marketAccount}
+                    withdrawals={withdrawals}
+                    isLender={authorizedInMarket}
+                  />
+                  <Divider sx={{ margin: "40px 0 44px" }} />
+                </>
+              ) : (
+                <AccountSectionSkeleton />
+              )}
               <MarketParameters
                 market={market}
                 viewerType="lender"
@@ -528,7 +558,7 @@ export default function LenderMarketDetails({
 
           {currentSection === LenderMarketSections.BORROWER_PROFILE && (
             <ProfileSection
-              profileAddress={marketAccount.market.borrower as `0x${string}`}
+              profileAddress={market.borrower as `0x${string}`}
               externalChainId={marketChainId}
             />
           )}
