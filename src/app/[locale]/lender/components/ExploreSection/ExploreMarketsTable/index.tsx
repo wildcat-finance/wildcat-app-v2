@@ -65,7 +65,7 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
-import { getMarketStatusChip } from "@/utils/marketStatus"
+import { getMarketStatusChip, isExploreVisible } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 const SORT_OPTIONS = [
@@ -196,7 +196,7 @@ export const ExploreMarketsTable = () => {
       assets,
       borrowers,
       withdrawalCycles,
-    ).filter((a) => !a.market.isClosed)
+    ).filter((a) => isExploreVisible(a.market))
 
     const onboardFiltered = filtered.filter((account) => {
       const isSelf =
