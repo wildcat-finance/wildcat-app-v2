@@ -435,6 +435,10 @@ export default function LenderMarketDetails({
             />
           </Box>
 
+          <Box id="marketHistory">
+            <PaginatedMarketRecordsTable market={market} />
+          </Box>
+
           <Box id="mla">
             <MobileMlaAlert
               mla={mla}
