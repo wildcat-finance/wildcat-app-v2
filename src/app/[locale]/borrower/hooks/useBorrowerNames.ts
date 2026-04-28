@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
 
+import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { trimAddress } from "@/utils/formatters"
-
-export const USE_REGISTERED_BORROWERS_KEY = "use-borrower-names"
 
 export type BorrowerWithName = {
   address: string
@@ -29,7 +28,7 @@ export const useBorrowerNames = () => {
   }
   const { data, ...result } = useQuery({
     enabled: true,
-    queryKey: [USE_REGISTERED_BORROWERS_KEY],
+    queryKey: QueryKeys.User.GET_BORROWER_NAMES(chainId),
     queryFn: getBorrowers,
     refetchOnMount: false,
     refetchInterval: 10_000,

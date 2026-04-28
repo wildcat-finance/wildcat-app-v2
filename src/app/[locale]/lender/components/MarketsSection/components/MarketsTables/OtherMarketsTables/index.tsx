@@ -13,7 +13,6 @@ import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
-import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import {
   clickableGridSx,
   rowLinkInteractiveSx,
@@ -58,6 +57,7 @@ import {
 
 export const OtherMarketsTables = ({
   marketAccounts,
+  borrowers,
   isLoading,
   filters,
 }: LenderOtherMarketsTableProps) => {
@@ -89,8 +89,6 @@ export const OtherMarketsTables = ({
       }
     }
   }, [dispatch, isMobile, scrollTargetId])
-
-  const { data: borrowers } = useBorrowerNames()
 
   const rows: GridRowsProp<LenderOtherMarketsTableModel> = marketAccounts.map(
     (account) => {
