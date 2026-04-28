@@ -15,7 +15,7 @@ import {
 import { BigNumber } from "ethers"
 import { useAccount } from "wagmi"
 
-import { POLLING_INTERVAL } from "@/config/polling"
+import { POLLING_INTERVALS } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 
@@ -103,8 +103,9 @@ export const useGetMarketLenders = (market?: Market) => {
       market?.address,
     ),
     queryFn: getMarketLenders,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
     enabled: address && market && !!targetChainId && !!subgraphClient,
+
     refetchOnMount: false,
   })
 }

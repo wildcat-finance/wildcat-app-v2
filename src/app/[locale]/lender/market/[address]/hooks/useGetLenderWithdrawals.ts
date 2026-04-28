@@ -17,11 +17,11 @@ import {
   SubgraphGetLenderWithdrawalsForMarketQuery,
   SubgraphGetLenderWithdrawalsForMarketQueryVariables,
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
-import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { useAccount } from "wagmi"
 
-import { POLLING_INTERVAL } from "@/config/polling"
+import { POLLING_INTERVALS } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
+import { logger } from "@/lib/logging/client"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type LenderWithdrawalsForMarketResult = {
@@ -135,7 +135,7 @@ export function useGetLenderWithdrawals(
       marketAddress,
     ),
     queryFn: queryLenderWithdrawals,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
     placeholderData: keepPreviousData,
     enabled: !!lender && !!market && !!targetChainId && !!subgraphClient,
     // refetchOnMount: false,

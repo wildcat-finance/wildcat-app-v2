@@ -21,6 +21,7 @@ import {
 import Icon from "@/assets/icons/search_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
+import { logger } from "@/lib/logging/client"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 
@@ -45,8 +46,7 @@ export const TableSelect = ({
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
 
-  console.log(`Table Select!`)
-  console.log(lenderMarkets)
+  logger.debug({ lenderAddress, lenderMarkets }, "Table select")
 
   // Getting active borrower markets from the store
   const activeBorrowerMarkets = useAppSelector(

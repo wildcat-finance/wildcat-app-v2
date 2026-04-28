@@ -1,9 +1,9 @@
-import { ChangeEvent, useEffect, useState } from "react"
+import { ChangeEvent, useEffect, useRef, useState } from "react"
 import * as React from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
-import { maxTokenAmount, minTokenAmount } from "@wildcatfi/wildcat-sdk"
-import humanizeDuration from "humanize-duration"
+import { context } from "@opentelemetry/api"
+import { minTokenAmount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
@@ -18,6 +18,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { createClientFlowSession } from "@/lib/telemetry/clientFlow"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { ForceBuyBackModalProps } from "./interface"
@@ -36,6 +37,7 @@ export const ForceBuyBackModal = ({
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
   const [txHash, setTxHash] = useState<string | undefined>()
+  const flowSessionRef = useRef(createClientFlowSession())
 
   const modal = useApprovalModal(
     setShowSuccessPopup,
@@ -47,7 +49,17 @@ export const ForceBuyBackModal = ({
   const { mutate, isSuccess, isError, isPending } = useForceBuyBack(
     marketAccount,
     setTxHash,
+    () => flowSessionRef.current.getParentContext(),
   )
+
+  const closeModal = (
+    outcome: "cancelled" | "error" | "success" = "cancelled",
+  ) => {
+    flowSessionRef.current.endFlowSpan(outcome, {
+      "flow.outcome": outcome,
+    })
+    modal.handleCloseModal()
+  }
 
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
@@ -55,11 +67,28 @@ export const ForceBuyBackModal = ({
   }
 
   const handleBorrow = () => {
+    flowSessionRef.current.startFlowSpan("force_buy_back.flow", {
+      "market.address": market.address,
+      "market.chain_id": market.chainId,
+      "token.address": market.underlyingToken.address,
+      "token.symbol": market.underlyingToken.symbol,
+      "token.amount": market.underlyingToken
+        .parseAmount(amount || "0")
+        .raw.toString(),
+      "lender.address": lender.address.toLowerCase(),
+    })
     modal.setFlowStep(ModalSteps.approved)
   }
 
   const handleConfirm = () => {
-    mutate({ amount, lender: lender.address })
+    const flowContext = flowSessionRef.current.getParentContext()
+    if (flowContext) {
+      context.with(flowContext, () =>
+        mutate({ amount, lender: lender.address }),
+      )
+    } else {
+      mutate({ amount, lender: lender.address })
+    }
   }
 
   const handleTryAgain = () => {
@@ -84,6 +113,9 @@ export const ForceBuyBackModal = ({
       setShowErrorPopup(true)
     }
     if (isSuccess) {
+      flowSessionRef.current.endFlowSpan("success", {
+        "flow.outcome": "success",
+      })
       setShowSuccessPopup(true)
     }
   }, [isError, isSuccess])
@@ -105,7 +137,7 @@ export const ForceBuyBackModal = ({
 
       <Dialog
         open={modal.isModalOpen}
-        onClose={isPending ? undefined : modal.handleCloseModal}
+        onClose={isPending ? undefined : () => closeModal("cancelled")}
         sx={TxModalDialog}
       >
         {showForm && (
@@ -114,7 +146,9 @@ export const ForceBuyBackModal = ({
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
-            crossOnClick={modal.hideCrossButton ? null : modal.handleCloseModal}
+            crossOnClick={
+              modal.hideCrossButton ? null : () => closeModal("cancelled")
+            }
           />
         )}
 
@@ -179,12 +213,12 @@ export const ForceBuyBackModal = ({
         {showErrorPopup && (
           <ErrorModal
             onTryAgain={handleTryAgain}
-            onClose={modal.handleCloseModal}
+            onClose={() => closeModal("error")}
             txHash={txHash}
           />
         )}
         {showSuccessPopup && (
-          <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
+          <SuccessModal onClose={() => closeModal("success")} txHash={txHash} />
         )}
 
         <TxModalFooter

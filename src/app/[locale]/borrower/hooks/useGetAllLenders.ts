@@ -8,7 +8,7 @@ import {
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { useAccount } from "wagmi"
 
-import { POLLING_INTERVAL } from "@/config/polling"
+import { POLLING_INTERVALS } from "@/config/polling"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import {
   SubgraphClientType,
@@ -108,7 +108,7 @@ export const useGetAllLenders = () => {
   return useQuery({
     queryKey: [GET_ALL_LENDERS, chainId],
     queryFn: () => getAllLenders(subgraphClient, address!),
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: POLLING_INTERVALS.default,
     enabled: address && !isWrongNetwork,
   })
 }

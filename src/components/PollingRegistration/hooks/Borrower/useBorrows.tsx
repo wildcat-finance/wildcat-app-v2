@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { BORROWS } from "@/graphql/queries"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { logger } from "@/lib/logging/client"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"
 import { formatTokenAmount } from "@/utils/formatters"
 import { getLastFetchedTimestamp } from "@/utils/timestamp"
@@ -24,7 +25,7 @@ export const useBorrows = (marketIds: string[], address?: `0x${string}`) => {
 
   useEffect(() => {
     if (data) {
-      console.dir(data)
+      logger.debug({ data }, "Borrow records result")
       data.borrows.forEach((borrow: TBorrow) => {
         dispatch(
           addNotification({
@@ -55,7 +56,7 @@ export const useBorrows = (marketIds: string[], address?: `0x${string}`) => {
 
   useEffect(() => {
     if (error) {
-      console.error("Error fetching borrows: ", error)
+      logger.error({ err: error }, "Error fetching borrows")
     }
   }, [error])
 

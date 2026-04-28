@@ -13,6 +13,7 @@ import { useSubmitUpdates } from "@/app/[locale]/borrower/policy/hooks/useSubmit
 import useTrackPolicyLendersChanges from "@/app/[locale]/borrower/policy/hooks/useTrackLendersChanges"
 import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
+import { logger } from "@/lib/logging/client"
 import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 
@@ -79,16 +80,15 @@ export const LendersTab = ({
     let actionIndex = 1
 
     if (newLenders.length) {
-      console.log(
-        // eslint-disable-next-line no-plusplus
-        `ACTION #${actionIndex++} - Add ${newLenders.length} new lenders`,
-      )
+      logger.info({ actionIndex, count: newLenders.length }, "Add new lenders")
+      actionIndex += 1
     }
     if (removedLenders.length) {
-      console.log(
-        // eslint-disable-next-line no-plusplus
-        `ACTION #${actionIndex++} - Remove ${removedLenders.length} lenders`,
+      logger.info(
+        { actionIndex, count: removedLenders.length },
+        "Remove lenders",
       )
+      actionIndex += 1
     }
     submitUpdates({
       addLenders: newLenders.map((l) => l.address),

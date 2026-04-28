@@ -1,6 +1,7 @@
 import React from "react"
 
 import { Box, Dialog, Typography } from "@mui/material"
+import { context } from "@opentelemetry/api"
 import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
@@ -8,6 +9,7 @@ import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/component
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { logger } from "@/lib/logging/client"
 import { COLORS } from "@/theme/colors"
 
 import { TerminateFlowProps } from "./interface"
@@ -25,10 +27,21 @@ export const TerminateFlow = ({
   errorPopup,
   successPopup,
   txHash,
+  ensureFlowContext,
+  endFlow,
 }: TerminateFlowProps) => {
   const { t } = useTranslation()
   const handleTerminateMarket = () => {
-    terminateFunc().catch((err) => console.log(err))
+    const flowContext = ensureFlowContext()
+    const runTerminate = () =>
+      terminateFunc().catch((err) =>
+        logger.error({ err }, "Failed to terminate market"),
+      )
+    if (flowContext) {
+      context.with(flowContext, runTerminate)
+    } else {
+      runTerminate()
+    }
   }
 
   const showForm = !(isTerminating || successPopup || errorPopup)
@@ -36,13 +49,19 @@ export const TerminateFlow = ({
   return (
     <Dialog
       open={isOpen}
-      onClose={onClose}
+      onClose={() => {
+        endFlow("cancelled")
+        onClose()
+      }}
       PaperProps={TerminateDialogContainer}
     >
       {showForm && (
         <TxModalHeader
           title="Terminate Market"
-          arrowOnClick={onClose}
+          arrowOnClick={() => {
+            endFlow("cancelled")
+            onClose()
+          }}
           crossOnClick={null}
         />
       )}
@@ -66,12 +85,21 @@ export const TerminateFlow = ({
 
       {isTerminating && <LoadingModal txHash={txHash} />}
       {successPopup && !isTerminating && (
-        <SuccessModal onClose={onClose} txHash={txHash} />
+        <SuccessModal
+          onClose={() => {
+            endFlow("success")
+            onClose()
+          }}
+          txHash={txHash}
+        />
       )}
       {errorPopup && !isTerminating && (
         <ErrorModal
           onTryAgain={handleTerminateMarket}
-          onClose={onClose}
+          onClose={() => {
+            endFlow("error")
+            onClose()
+          }}
           txHash={txHash}
         />
       )}

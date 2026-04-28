@@ -6,6 +6,8 @@ import SafeAppsSDK, {
 } from "@safe-global/safe-apps-sdk"
 import { useAccount, useConnectorClient } from "wagmi"
 
+import { logger } from "@/lib/logging/client"
+
 export type GnosisSafeHook = {
   isConnectedToSafe: boolean
   sdk?: SafeAppsSDK
@@ -30,7 +32,7 @@ export function useGnosisSafeSDK(): GnosisSafeHook {
     [isConnected, address],
   )
   useEffect(() => {
-    console.log(`useGnosisSafeSDK :: Connected to safe: ${isConnectedToSafe}`)
+    logger.info({ isConnectedToSafe }, "useGnosisSafeSDK :: Connected to safe")
     if (isConnectedToSafe && !sdk) {
       if (!connector) throw Error("No connector found")
       // TODO: check connector options in wagmi v2
@@ -45,8 +47,10 @@ export function useGnosisSafeSDK(): GnosisSafeHook {
       .getBySafeTxHash(safeTxHash)
       .then((resp) => resp.txHash ?? safeTxHash)
       .catch((err) => {
-        console.log(`useGnosisSafeSDK :: Error getting tx hash`)
-        console.log(err)
+        logger.error(
+          { err, safeTxHash },
+          "useGnosisSafeSDK :: Error getting tx hash",
+        )
         return safeTxHash
       })
   }

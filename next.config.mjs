@@ -115,6 +115,20 @@ const nextConfig = {
     // Fix pino-pretty and lokijs resolve
     config.externals.push('pino-pretty', 'lokijs', 'encoding')
 
+    // Silence webpack's "Critical dependency: require function is used in a
+    // way in which dependencies cannot be statically extracted" warning that
+    // bubbles up from @opentelemetry/instrumentation's node-platform code
+    // (it imports require-in-the-middle, which uses a dynamic require).
+    // Harmless in our setup: on the client build the package's `browser`
+    // field routes around the node platform entry, and on the server build
+    // the dynamic import in <OtelClient /> only fires inside useEffect, so
+    // the chunk is bundled but never executed server-side.
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings ?? []),
+      { module: /node_modules\/require-in-the-middle/ },
+      { module: /node_modules\/@opentelemetry\/instrumentation/ },
+    ]
+
     // Grab the existing rule that handles SVG imports
     const fileLoaderRule = config.module.rules.find((rule) =>
       rule.test?.test?.('.svg'),
@@ -180,6 +194,10 @@ const nextConfig = {
     fetches: {
       fullUrl: true,
     },
+  },
+
+  experimental: {
+    instrumentationHook: true,
   },
 
   images: {

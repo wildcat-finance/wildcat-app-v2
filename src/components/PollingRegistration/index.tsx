@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import { useDispatch } from "react-redux"
 import { useAccount } from "wagmi"
 
-// import { POLLING_INTERVAL } from "@/config/polling"
+// import { POLLING_INTERVALS } from "@/config/polling"
 // import { SubgraphClient } from "@/config/subgraph"
 // import { usePolling } from "@/hooks/usePolling"
 // import { clear } from "@/store/slices/notificationsSlice/notificationsSlice"
@@ -118,7 +118,7 @@ const PollingRegistration = () => {
 
   // usePolling({
   //   callback: fetch,
-  //   interval: POLLING_INTERVAL,
+  //   interval: POLLING_INTERVALS.default,
   // })
 
   // useEffect(() => {

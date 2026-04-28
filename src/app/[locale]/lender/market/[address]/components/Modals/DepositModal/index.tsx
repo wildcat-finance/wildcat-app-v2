@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
+import React, { ChangeEvent, useEffect, useMemo, useRef, useState } from "react"
 
 import {
   Box,
@@ -8,6 +8,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
+import { context } from "@opentelemetry/api"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
@@ -30,6 +31,7 @@ import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
+import { createClientFlowSession } from "@/lib/telemetry/clientFlow"
 import { COLORS } from "@/theme/colors"
 import { isUSDTLikeToken } from "@/utils/constants"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
@@ -55,6 +57,7 @@ export const DepositModal = ({
   const [depositError, setDepositError] = useState<string | undefined>()
 
   const { connected: isConnectedToSafe } = useSafeAppsSDK()
+  const flowSessionRef = useRef(createClientFlowSession())
 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
@@ -67,12 +70,15 @@ export const DepositModal = ({
     isSuccess: isDeposed,
     isError: isDepositError,
     reset: resetDeposit,
-  } = useDeposit(marketAccount, setTxHash)
+  } = useDeposit(marketAccount, setTxHash, () =>
+    flowSessionRef.current.getParentContext(),
+  )
 
   const { mutateAsync: approve, isPending: isApproving } = useApprove(
     market.underlyingToken,
     market,
     setTxHash,
+    () => flowSessionRef.current.getParentContext(),
   )
 
   const modal = useApprovalModal(
@@ -85,7 +91,7 @@ export const DepositModal = ({
   // user inputted amount
   const depositTokenAmount = useMemo(
     () => marketAccount.market.underlyingToken.parseAmount(amount || "0"),
-    [amount],
+    [amount, marketAccount.market.underlyingToken],
   )
   const minimumDeposit = market.hooksConfig?.minimumDeposit
 
@@ -115,41 +121,6 @@ export const DepositModal = ({
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
     setAmount(value)
-  }
-
-  const handleDeposit = () => {
-    setTxHash("")
-    deposit(depositTokenAmount)
-  }
-
-  const handleTryAgain = () => {
-    setTxHash("")
-    handleDeposit()
-  }
-
-  const handleApprove = () => {
-    setTxHash("")
-
-    if (!isAllowanceSufficient) {
-      if (
-        marketAccount.underlyingApproval.gt(0) &&
-        isUSDTLikeToken(market.underlyingToken.address)
-      ) {
-        approve(depositTokenAmount.token.getAmount(0)).then(() => {
-          approve(depositTokenAmount).then(() => {
-            if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
-              setAmount("")
-            }
-          })
-        })
-      } else {
-        approve(depositTokenAmount).then(() => {
-          if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
-            setAmount("")
-          }
-        })
-      }
-    }
   }
 
   const mustResetAllowance =
@@ -199,6 +170,82 @@ export const DepositModal = ({
     ? "Underlying token balance is zero"
     : "Market is at full capacity"
 
+  const ensureFlowContext = () =>
+    flowSessionRef.current.startFlowSpan(
+      "deposit.flow",
+      {
+        "market.address": market.address,
+        "market.chain_id": market.chainId,
+        "token.address": market.underlyingToken.address,
+        "token.symbol": market.underlyingToken.symbol,
+        "token.amount": depositTokenAmount.raw.toString(),
+        "safe.connected": isConnectedToSafe,
+      },
+      {
+        pageLink: true,
+      },
+    )
+
+  const endFlowSpan = (outcome: "success" | "error" | "cancelled") => {
+    flowSessionRef.current.endFlowSpan(outcome, {
+      "flow.outcome": outcome,
+      "token.amount": depositTokenAmount.raw.toString(),
+    })
+  }
+
+  const handleDeposit = () => {
+    setTxHash("")
+    const flowContext = ensureFlowContext()
+    if (flowContext) {
+      context.with(flowContext, () => deposit(depositTokenAmount))
+    } else {
+      deposit(depositTokenAmount)
+    }
+  }
+
+  const handleTryAgain = () => {
+    setTxHash("")
+    handleDeposit()
+  }
+
+  const handleApprove = () => {
+    setTxHash("")
+
+    if (!isAllowanceSufficient) {
+      const flowContext = ensureFlowContext()
+      if (
+        marketAccount.underlyingApproval.gt(0) &&
+        isUSDTLikeToken(market.underlyingToken.address)
+      ) {
+        const runApprovals = () =>
+          approve(depositTokenAmount.token.getAmount(0)).then(() => {
+            approve(depositTokenAmount).then(() => {
+              if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
+                setAmount("")
+              }
+            })
+          })
+        if (flowContext) {
+          context.with(flowContext, runApprovals)
+        } else {
+          runApprovals()
+        }
+      } else {
+        const runApproval = () =>
+          approve(depositTokenAmount).then(() => {
+            if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
+              setAmount("")
+            }
+          })
+        if (flowContext) {
+          context.with(flowContext, runApproval)
+        } else {
+          runApproval()
+        }
+      }
+    }
+  }
+
   useEffect(() => {
     if (amount === "" || amount === "0" || depositStep === "Ready") {
       setDepositError(undefined)
@@ -239,6 +286,7 @@ export const DepositModal = ({
       setShowErrorPopup(true)
     }
     if (isDeposed) {
+      endFlowSpan("success")
       setShowSuccessPopup(true)
     }
   }, [isDepositError, isDeposed])
@@ -255,9 +303,15 @@ export const DepositModal = ({
     setShowErrorPopup(false)
     resetDeposit()
     modal.handleCloseModal()
+    endFlowSpan("cancelled")
     if (setIsMobileOpen) {
       setIsMobileOpen(false)
     }
+  }
+
+  const handleCloseDesktopModal = () => {
+    modal.handleCloseModal()
+    endFlowSpan("cancelled")
   }
 
   const progressAmount = () => {
@@ -530,6 +584,7 @@ export const DepositModal = ({
                 setShowErrorPopup(false)
                 resetDeposit()
                 modal.handleCloseModal()
+                endFlowSpan("error")
                 if (setIsMobileOpen) setIsMobileOpen(false)
               }}
               txHash={txHash}
@@ -541,6 +596,7 @@ export const DepositModal = ({
                 setShowSuccessPopup(false)
                 resetDeposit()
                 modal.handleCloseModal()
+                endFlowSpan("success")
                 if (setIsMobileOpen) setIsMobileOpen(false)
               }}
               txHash={txHash}
@@ -588,7 +644,7 @@ export const DepositModal = ({
 
         <Dialog
           open={modal.isModalOpen}
-          onClose={isDepositing ? undefined : modal.handleCloseModal}
+          onClose={isDepositing ? undefined : handleCloseDesktopModal}
           sx={{
             "& .MuiDialog-paper": {
               height: "404px",
@@ -612,7 +668,7 @@ export const DepositModal = ({
                     : modal.handleClickBack
                 }
                 crossOnClick={
-                  modal.hideCrossButton ? null : modal.handleCloseModal
+                  modal.hideCrossButton ? null : handleCloseDesktopModal
                 }
               />
 
@@ -785,12 +841,19 @@ export const DepositModal = ({
                 setShowErrorPopup(false)
                 resetDeposit()
                 modal.handleCloseModal()
+                endFlowSpan("error")
               }}
               txHash={txHash}
             />
           )}
           {showSuccessPopup && (
-            <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
+            <SuccessModal
+              onClose={() => {
+                modal.handleCloseModal()
+                endFlowSpan("success")
+              }}
+              txHash={txHash}
+            />
           )}
 
           {txHash !== "" && showForm && (

@@ -1,5 +1,6 @@
 import { Dispatch } from "react"
 
+import { SpanStatusCode, context, trace } from "@opentelemetry/api"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import {
   BaseTransaction,
@@ -11,16 +12,38 @@ import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { logger } from "@/lib/logging/client"
+import {
+  getFlowIdFromContext,
+  recordSpanEnd,
+  recordSpanStart,
+} from "@/lib/telemetry/clientTracing"
+import { TelemetrySpanOutcome } from "@/lib/telemetry/types"
 import { isUSDTLikeToken } from "@/utils/constants"
+
+const getDataSize = (data?: string) => {
+  if (!data || !data.startsWith("0x")) return 0
+  return Math.max((data.length - 2) / 2, 0)
+}
+
+const summarizeTransactions = (transactions: BaseTransaction[]) =>
+  transactions.map((tx, index) => ({
+    index,
+    to: tx.to,
+    value: tx.value ?? "0",
+    dataSize: getDataSize(tx.data),
+  }))
 
 export const useDeposit = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
+  getParentContext?: () => ReturnType<typeof context.active> | null,
 ) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
   const { targetChainId } = useCurrentNetwork()
+  const tracer = trace.getTracer("wildcat-app-v2-web")
 
   const waitForTransaction = async (safeTxHash: string) => {
     if (!sdk) throw Error("No sdk found")
@@ -36,96 +59,211 @@ export const useDeposit = (
 
   return useMutation({
     mutationFn: async (tokenAmount: TokenAmount) => {
-      if (!marketAccount || !signer) throw Error()
-      if (marketAccount.market.chainId !== targetChainId) {
-        throw Error(
-          `Market chainId does not match target chainId:` +
-            ` Market ${marketAccount.market.chainId},` +
-            ` Target ${targetChainId}`,
-        )
-      }
+      const parentContext = getParentContext?.() ?? context.active()
+      const flowId = getFlowIdFromContext(parentContext)
+      return tracer.startActiveSpan(
+        "market.deposit",
+        {},
+        parentContext,
+        async (span) => {
+          let outcome: TelemetrySpanOutcome = "success"
+          try {
+            if (!marketAccount || !signer) throw Error()
+            if (marketAccount.market.chainId !== targetChainId) {
+              throw Error(
+                `Market chainId does not match target chainId:` +
+                  ` Market ${marketAccount.market.chainId},` +
+                  ` Target ${targetChainId}`,
+              )
+            }
 
-      const step = marketAccount.previewDeposit(tokenAmount)
+            const spanAttributes = {
+              "market.address": marketAccount.market.address,
+              "market.chain_id": marketAccount.market.chainId,
+              "token.address": tokenAmount.token.address,
+              "token.symbol": tokenAmount.token.symbol,
+              "token.amount": tokenAmount.raw.toString(),
+              "safe.connected": safeConnected,
+            }
+            recordSpanStart(span, "market.deposit", {
+              attributes: spanAttributes,
+              flowId,
+            })
 
-      const gnosisTransactions: BaseTransaction[] = []
+            const step = marketAccount.previewDeposit(tokenAmount)
 
-      if (step.status !== "Ready") {
-        if (safeConnected && step.status === "InsufficientAllowance") {
-          if (
-            marketAccount.underlyingApproval.gt(0) &&
-            isUSDTLikeToken(marketAccount.market.underlyingToken.address)
-          ) {
-            gnosisTransactions.push(
-              await marketAccount.populateApproveMarket(
-                tokenAmount.token.getAmount(0),
-              ),
-            )
-          }
-          gnosisTransactions.push(
-            await marketAccount.populateApproveMarket(tokenAmount),
-          )
-        } else {
-          throw Error(
-            `Should not be able to reach useDeposit when status not ready and not connected to safe`,
-          )
-        }
-      }
+            const gnosisTransactions: BaseTransaction[] = []
 
-      const deposit = async () => {
-        const checkTransaction = async (
-          safeTxHash: string,
-        ): Promise<Web3TransactionReceiptObject> =>
-          new Promise((resolve) => {
-            const doCheckTransaction = async () => {
-              const transactionBySafeHash =
-                await sdk.txs.getBySafeTxHash(safeTxHash)
-              if (transactionBySafeHash?.txHash) {
-                setTxHash(transactionBySafeHash.txHash)
-                const receipt = await waitForTransaction(safeTxHash)
-                console.log(
-                  `Got gnosis transaction receipt:\n\ttxHash: ${receipt.transactionHash}`,
+            if (step.status !== "Ready") {
+              if (safeConnected && step.status === "InsufficientAllowance") {
+                if (
+                  marketAccount.underlyingApproval.gt(0) &&
+                  isUSDTLikeToken(marketAccount.market.underlyingToken.address)
+                ) {
+                  gnosisTransactions.push(
+                    await marketAccount.populateApproveMarket(
+                      tokenAmount.token.getAmount(0),
+                    ),
+                  )
+                }
+                gnosisTransactions.push(
+                  await marketAccount.populateApproveMarket(tokenAmount),
                 )
-                resolve(receipt)
               } else {
-                setTimeout(doCheckTransaction, 1000)
+                throw Error(
+                  `Should not be able to reach useDeposit when status not ready and not connected to safe`,
+                )
               }
             }
-            doCheckTransaction()
-          })
-        if (gnosisTransactions.length) {
-          gnosisTransactions.push({
-            to: marketAccount.market.address,
-            data: marketAccount.market.contract.interface.encodeFunctionData(
-              "deposit",
-              [tokenAmount.raw],
-            ),
-            value: "0",
-          })
-          console.log(`Sending gnosis transactions...`)
-          console.log(gnosisTransactions)
-          const { safeTxHash } = await sdk.txs.send({
-            txs: gnosisTransactions,
-          })
-          console.log(`Got gnosis transaction:\n\tsafeTxHash: ${safeTxHash}`)
-          const receipt = await checkTransaction(safeTxHash)
-          console.log(
-            `Got gnosis transaction receipt:\n\ttxHash: ${receipt.transactionHash}`,
-          )
-          return receipt
-        }
 
-        const tx = await marketAccount.deposit(tokenAmount)
+            const depositContext = trace.setSpan(context.active(), span)
+            const deposit = async () => {
+              const checkTransaction = async (
+                safeTxHash: string,
+              ): Promise<Web3TransactionReceiptObject> =>
+                new Promise((resolve) => {
+                  const doCheckTransaction = async () => {
+                    const transactionBySafeHash =
+                      await sdk.txs.getBySafeTxHash(safeTxHash)
+                    if (transactionBySafeHash?.txHash) {
+                      setTxHash(transactionBySafeHash.txHash)
+                      const receipt = await waitForTransaction(safeTxHash)
+                      logger.info(
+                        { txHash: receipt.transactionHash, safeTxHash },
+                        "Got gnosis transaction receipt",
+                      )
+                      resolve(receipt)
+                    } else {
+                      setTimeout(doCheckTransaction, 1000)
+                    }
+                  }
+                  doCheckTransaction()
+                })
+              if (gnosisTransactions.length) {
+                return tracer.startActiveSpan(
+                  "market.deposit.safe",
+                  {},
+                  depositContext,
+                  async (safeSpan) => {
+                    let safeOutcome: TelemetrySpanOutcome = "success"
+                    recordSpanStart(safeSpan, "market.deposit.safe", {
+                      flowId,
+                    })
+                    try {
+                      gnosisTransactions.push({
+                        to: marketAccount.market.address,
+                        data: marketAccount.market.contract.interface.encodeFunctionData(
+                          "deposit",
+                          [tokenAmount.raw],
+                        ),
+                        value: "0",
+                      })
+                      logger.info(
+                        { market: marketAccount.market.address },
+                        "Sending gnosis transactions",
+                      )
+                      logger.debug(
+                        {
+                          transactionCount: gnosisTransactions.length,
+                          transactions:
+                            summarizeTransactions(gnosisTransactions),
+                        },
+                        "Gnosis transactions summary",
+                      )
+                      const { safeTxHash } = await sdk.txs.send({
+                        txs: gnosisTransactions,
+                      })
+                      safeSpan.setAttribute("safe.tx_hash", safeTxHash)
+                      logger.info({ safeTxHash }, "Got gnosis transaction")
+                      const receipt = await checkTransaction(safeTxHash)
+                      logger.info(
+                        { txHash: receipt.transactionHash, safeTxHash },
+                        "Got gnosis transaction receipt",
+                      )
+                      return receipt
+                    } catch (error) {
+                      safeOutcome = "error"
+                      safeSpan.recordException(error as Error)
+                      safeSpan.setStatus({
+                        code: SpanStatusCode.ERROR,
+                        message:
+                          error instanceof Error
+                            ? error.message
+                            : String(error),
+                      })
+                      throw error
+                    } finally {
+                      recordSpanEnd(
+                        safeSpan,
+                        "market.deposit.safe",
+                        safeOutcome,
+                        { flowId },
+                      )
+                      safeSpan.end()
+                    }
+                  },
+                )
+              }
 
-        if (!safeConnected) setTxHash(tx.hash)
+              return tracer.startActiveSpan(
+                "market.deposit.send",
+                {},
+                depositContext,
+                async (sendSpan) => {
+                  let sendOutcome: TelemetrySpanOutcome = "success"
+                  recordSpanStart(sendSpan, "market.deposit.send", { flowId })
+                  try {
+                    const tx = await marketAccount.deposit(tokenAmount)
+                    sendSpan.setAttribute("tx.hash", tx.hash)
 
-        if (safeConnected) {
-          return checkTransaction(tx.hash)
-        }
+                    if (!safeConnected) setTxHash(tx.hash)
 
-        return tx.wait()
-      }
+                    if (safeConnected) {
+                      return checkTransaction(tx.hash)
+                    }
 
-      await deposit()
+                    return tx.wait()
+                  } catch (error) {
+                    sendOutcome = "error"
+                    sendSpan.recordException(error as Error)
+                    sendSpan.setStatus({
+                      code: SpanStatusCode.ERROR,
+                      message:
+                        error instanceof Error ? error.message : String(error),
+                    })
+                    throw error
+                  } finally {
+                    recordSpanEnd(
+                      sendSpan,
+                      "market.deposit.send",
+                      sendOutcome,
+                      {
+                        flowId,
+                      },
+                    )
+                    sendSpan.end()
+                  }
+                },
+              )
+            }
+
+            await deposit()
+          } catch (error) {
+            outcome = "error"
+            span.recordException(error as Error)
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: error instanceof Error ? error.message : String(error),
+            })
+            throw error
+          } finally {
+            recordSpanEnd(span, "market.deposit", outcome, {
+              flowId,
+            })
+            span.end()
+          }
+        },
+      )
     },
     onSuccess() {
       client.invalidateQueries({
@@ -142,7 +280,10 @@ export const useDeposit = (
       })
     },
     onError(error) {
-      console.log(error)
+      logger.error(
+        { err: error, market: marketAccount.market.address },
+        "Failed to deposit",
+      )
     },
   })
 }

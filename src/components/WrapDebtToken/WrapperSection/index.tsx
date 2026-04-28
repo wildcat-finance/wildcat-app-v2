@@ -39,6 +39,8 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useWrapperAllowance } from "@/hooks/wrapper/useWrapperAllowance"
 import { useWrapperBalances } from "@/hooks/wrapper/useWrapperBalances"
 import { useWrapperLimits } from "@/hooks/wrapper/useWrapperLimits"
+import { logger } from "@/lib/logging/client"
+import { withClientSpan } from "@/lib/telemetry/clientTracing"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   setActiveTab,
@@ -468,55 +470,71 @@ export const WrapperSection = ({
         )
       }
 
-      if (safeConnected) {
-        if (!sdk) throw new Error("No Safe SDK")
-        const txs: BaseTransaction[] = []
-        if (
-          allowance &&
-          allowance.gt(0) &&
-          isUSDTLikeToken(wrapper.marketToken.address)
-        ) {
-          txs.push({
-            to: wrapper.marketToken.address,
-            data: wrapper.marketToken.contract.interface.encodeFunctionData(
-              "approve",
-              [wrapper.address, BigNumber.from(0)],
-            ),
-            value: "0",
-          })
-        }
-        txs.push({
-          to: wrapper.marketToken.address,
-          data: wrapper.marketToken.contract.interface.encodeFunctionData(
-            "approve",
-            [wrapper.address, approvalAmount.raw],
-          ),
-          value: "0",
-        })
-        const { safeTxHash } = await sdk.txs.send({ txs })
-        const hash = await waitForSafeTransaction(safeTxHash)
-        setTxHash(hash)
-        return hash
-      }
+      return withClientSpan(
+        "wrapper.approve",
+        async (span) => {
+          if (safeConnected) {
+            if (!sdk) throw new Error("No Safe SDK")
+            const txs: BaseTransaction[] = []
+            if (
+              allowance &&
+              allowance.gt(0) &&
+              isUSDTLikeToken(wrapper.marketToken.address)
+            ) {
+              txs.push({
+                to: wrapper.marketToken.address,
+                data: wrapper.marketToken.contract.interface.encodeFunctionData(
+                  "approve",
+                  [wrapper.address, BigNumber.from(0)],
+                ),
+                value: "0",
+              })
+            }
+            txs.push({
+              to: wrapper.marketToken.address,
+              data: wrapper.marketToken.contract.interface.encodeFunctionData(
+                "approve",
+                [wrapper.address, approvalAmount.raw],
+              ),
+              value: "0",
+            })
+            const { safeTxHash } = await sdk.txs.send({ txs })
+            span.setAttribute("safe.tx_hash", safeTxHash)
+            const hash = await waitForSafeTransaction(safeTxHash)
+            span.setAttribute("tx.hash", hash)
+            setTxHash(hash)
+            return hash
+          }
 
-      if (
-        allowance &&
-        allowance.gt(0) &&
-        isUSDTLikeToken(wrapper.marketToken.address)
-      ) {
-        const resetTx = await wrapper.marketToken.contract.approve(
-          wrapper.address,
-          0,
-        )
-        await resetTx.wait()
-      }
-      const tx = await wrapper.marketToken.contract.approve(
-        wrapper.address,
-        approvalAmount.raw,
+          if (
+            allowance &&
+            allowance.gt(0) &&
+            isUSDTLikeToken(wrapper.marketToken.address)
+          ) {
+            const resetTx = await wrapper.marketToken.contract.approve(
+              wrapper.address,
+              0,
+            )
+            await resetTx.wait()
+          }
+          const tx = await wrapper.marketToken.contract.approve(
+            wrapper.address,
+            approvalAmount.raw,
+          )
+          span.setAttribute("tx.hash", tx.hash)
+          setTxHash(tx.hash)
+          await tx.wait()
+          return tx.hash
+        },
+        {
+          attributes: {
+            "wrapper.address": wrapper.address,
+            "market.address": market?.address ?? "",
+            "market.chain_id": market?.chainId ?? targetChainId,
+            "safe.connected": safeConnected,
+          },
+        },
       )
-      setTxHash(tx.hash)
-      await tx.wait()
-      return tx.hash
     },
     onSuccess: () => {
       client.invalidateQueries({
@@ -526,6 +544,9 @@ export const WrapperSection = ({
           address,
         ),
       })
+    },
+    onError(error) {
+      logger.error({ err: error }, "Failed to approve wrapper")
     },
   })
 
@@ -558,73 +579,105 @@ export const WrapperSection = ({
       }
       if (!inputAmount) throw new Error("No input amount")
 
-      if (safeConnected) {
-        if (!sdk) throw new Error("No Safe SDK")
-        const txs: BaseTransaction[] = []
+      // eslint-disable-next-line no-nested-ternary
+      const operationType = isWrapTab
+        ? isAssetsInput
+          ? "deposit"
+          : "mint"
+        : isAssetsInput
+          ? "withdraw"
+          : "redeem"
 
-        if (needsApproval && approvalAmount) {
-          if (
-            allowance &&
-            allowance.gt(0) &&
-            isUSDTLikeToken(wrapper.marketToken.address)
-          ) {
-            txs.push({
-              to: wrapper.marketToken.address,
-              data: wrapper.marketToken.contract.interface.encodeFunctionData(
-                "approve",
-                [wrapper.address, BigNumber.from(0)],
-              ),
-              value: "0",
-            })
+      return withClientSpan(
+        "wrapper.submit",
+        async (span) => {
+          if (safeConnected) {
+            if (!sdk) throw new Error("No Safe SDK")
+            const txs: BaseTransaction[] = []
+
+            if (needsApproval && approvalAmount) {
+              if (
+                allowance &&
+                allowance.gt(0) &&
+                isUSDTLikeToken(wrapper.marketToken.address)
+              ) {
+                txs.push({
+                  to: wrapper.marketToken.address,
+                  data: wrapper.marketToken.contract.interface.encodeFunctionData(
+                    "approve",
+                    [wrapper.address, BigNumber.from(0)],
+                  ),
+                  value: "0",
+                })
+              }
+              txs.push({
+                to: wrapper.marketToken.address,
+                data: wrapper.marketToken.contract.interface.encodeFunctionData(
+                  "approve",
+                  [wrapper.address, approvalAmount.raw],
+                ),
+                value: "0",
+              })
+            }
+
+            if (isWrapTab && isAssetsInput) {
+              txs.push(wrapper.populateDeposit(inputAmount, address)) // market → share
+            } else if (isWrapTab && !isAssetsInput) {
+              txs.push(wrapper.populateMint(inputAmount, address)) // share → market (exact out)
+            } else if (!isWrapTab && isAssetsInput) {
+              txs.push(wrapper.populateWithdraw(inputAmount, address, address)) // market → share (exact out)
+            } else {
+              txs.push(wrapper.populateRedeem(inputAmount, address, address)) // share → market
+            }
+
+            const { safeTxHash } = await sdk.txs.send({ txs })
+            span.setAttribute("safe.tx_hash", safeTxHash)
+            const hash = await waitForSafeTransaction(safeTxHash)
+            span.setAttribute("tx.hash", hash)
+            setTxHash(hash)
+            return hash
           }
-          txs.push({
-            to: wrapper.marketToken.address,
-            data: wrapper.marketToken.contract.interface.encodeFunctionData(
-              "approve",
-              [wrapper.address, approvalAmount.raw],
-            ),
-            value: "0",
-          })
-        }
 
-        if (isWrapTab && isAssetsInput) {
-          txs.push(wrapper.populateDeposit(inputAmount, address)) // market → share
-        } else if (isWrapTab && !isAssetsInput) {
-          txs.push(wrapper.populateMint(inputAmount, address)) // share → market (exact out)
-        } else if (!isWrapTab && isAssetsInput) {
-          txs.push(wrapper.populateWithdraw(inputAmount, address, address)) // market → share (exact out)
-        } else {
-          txs.push(wrapper.populateRedeem(inputAmount, address, address)) // share → market
-        }
-
-        const { safeTxHash } = await sdk.txs.send({ txs })
-        const hash = await waitForSafeTransaction(safeTxHash)
-        setTxHash(hash)
-        return hash
-      }
-
-      if (isWrapTab && isAssetsInput) {
-        const tx = await wrapper.deposit(inputAmount, address)
-        setTxHash(tx.hash)
-        await tx.wait()
-        return tx.hash
-      }
-      if (isWrapTab && !isAssetsInput) {
-        const tx = await wrapper.mint(inputAmount, address)
-        setTxHash(tx.hash)
-        await tx.wait()
-        return tx.hash
-      }
-      if (!isWrapTab && isAssetsInput) {
-        const tx = await wrapper.withdraw(inputAmount, address, address)
-        setTxHash(tx.hash)
-        await tx.wait()
-        return tx.hash
-      }
-      const tx = await wrapper.redeem(inputAmount, address, address)
-      setTxHash(tx.hash)
-      await tx.wait()
-      return tx.hash
+          if (isWrapTab && isAssetsInput) {
+            const tx = await wrapper.deposit(inputAmount, address)
+            span.setAttribute("tx.hash", tx.hash)
+            setTxHash(tx.hash)
+            await tx.wait()
+            return tx.hash
+          }
+          if (isWrapTab && !isAssetsInput) {
+            const tx = await wrapper.mint(inputAmount, address)
+            span.setAttribute("tx.hash", tx.hash)
+            setTxHash(tx.hash)
+            await tx.wait()
+            return tx.hash
+          }
+          if (!isWrapTab && isAssetsInput) {
+            const tx = await wrapper.withdraw(inputAmount, address, address)
+            span.setAttribute("tx.hash", tx.hash)
+            setTxHash(tx.hash)
+            await tx.wait()
+            return tx.hash
+          }
+          const tx = await wrapper.redeem(inputAmount, address, address)
+          span.setAttribute("tx.hash", tx.hash)
+          setTxHash(tx.hash)
+          await tx.wait()
+          return tx.hash
+        },
+        {
+          attributes: {
+            "wrapper.address": wrapper.address,
+            "market.address": market.address,
+            "market.chain_id": market.chainId,
+            "safe.connected": safeConnected,
+            "operation.type": operationType,
+            "input.amount": inputAmount.raw.toString(),
+            "input.token": inputToken.symbol,
+            "output.token": outputToken.symbol,
+          },
+        },
+      )
     },
     onSuccess: () => {
       client.invalidateQueries({
@@ -660,6 +713,7 @@ export const WrapperSection = ({
       setShowSuccess(true)
     },
     onError: (error: Error) => {
+      logger.error({ err: error }, "Failed to submit wrapper transaction")
       setIsSubmitTransitioning(false)
       setSuccessSnapshot(null)
       setErrorMessage(error.message)
