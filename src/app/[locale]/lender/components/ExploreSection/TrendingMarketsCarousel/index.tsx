@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useCallback, useEffect, useMemo, useRef } from "react"
 import * as React from "react"
 
 import { Box, Skeleton, Typography } from "@mui/material"
@@ -102,10 +102,63 @@ type Slot = {
   formattedStat?: string
 }
 
+const useDragScroll = () => {
+  const ref = useRef<HTMLDivElement>(null)
+  const drag = useRef({ active: false, startX: 0, scrollLeft: 0 })
+
+  const onMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = ref.current
+    if (!el) return
+    drag.current = {
+      active: true,
+      startX: e.pageX - el.offsetLeft,
+      scrollLeft: el.scrollLeft,
+    }
+    el.style.cursor = "grabbing"
+    el.style.userSelect = "none"
+  }, [])
+
+  const onMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!drag.current.active || !ref.current) return
+    e.preventDefault()
+    const x = e.pageX - ref.current.offsetLeft
+    ref.current.scrollLeft = drag.current.scrollLeft - (x - drag.current.startX)
+  }, [])
+
+  const stopDrag = useCallback(() => {
+    drag.current.active = false
+    if (!ref.current) return
+    ref.current.style.cursor = "grab"
+    ref.current.style.userSelect = ""
+  }, [])
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return
+      e.preventDefault()
+      el.scrollLeft += e.deltaY
+    }
+    el.addEventListener("wheel", onWheel, { passive: false })
+    // eslint-disable-next-line consistent-return
+    return () => el.removeEventListener("wheel", onWheel)
+  }, [])
+
+  return {
+    ref,
+    onMouseDown,
+    onMouseMove,
+    onMouseUp: stopDrag,
+    onMouseLeave: stopDrag,
+  }
+}
+
 export const TrendingMarketsCarousel = () => {
   const { marketAccounts, borrowers, isLoadingInitial, isLoadingUpdate } =
     useLenderMarketsContext()
   const { data: recentDeposits } = useRecentDeposits()
+  const dragScroll = useDragScroll()
 
   const isLoading = isLoadingInitial || isLoadingUpdate
 
@@ -114,9 +167,6 @@ export const TrendingMarketsCarousel = () => {
       (a) => isExploreVisible(a.market) && a.market.maxTotalSupply.gt(0),
     )
     if (eligible.length === 0) return []
-
-    const broadStats = (account: MarketAccount) =>
-      recentDeposits.broad[account.market.address.toLowerCase()]
 
     const last7dStats = (account: MarketAccount) =>
       recentDeposits.last7d[account.market.address.toLowerCase()]
@@ -234,6 +284,11 @@ export const TrendingMarketsCarousel = () => {
         </Typography>
 
         <Box
+          ref={dragScroll.ref}
+          onMouseDown={dragScroll.onMouseDown}
+          onMouseMove={dragScroll.onMouseMove}
+          onMouseUp={dragScroll.onMouseUp}
+          onMouseLeave={dragScroll.onMouseLeave}
           sx={{
             display: "flex",
             gap: "2px",
@@ -241,6 +296,7 @@ export const TrendingMarketsCarousel = () => {
             "&::-webkit-scrollbar": { display: "none" },
             scrollbarWidth: "none",
             marginBottom: "8px",
+            cursor: "grab",
           }}
         >
           {isLoading
@@ -352,6 +408,11 @@ export const TrendingMarketsCarousel = () => {
       </Typography>
 
       <Box
+        ref={dragScroll.ref}
+        onMouseDown={dragScroll.onMouseDown}
+        onMouseMove={dragScroll.onMouseMove}
+        onMouseUp={dragScroll.onMouseUp}
+        onMouseLeave={dragScroll.onMouseLeave}
         sx={{
           display: "flex",
           gap: "6px",
@@ -359,6 +420,7 @@ export const TrendingMarketsCarousel = () => {
           padding: "20px 0 4px",
           "&::-webkit-scrollbar": { display: "none" },
           scrollbarWidth: "none",
+          cursor: "grab",
         }}
       >
         {isLoading
