@@ -4,7 +4,6 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 
 import { Box, Divider, Skeleton, Typography, useTheme } from "@mui/material"
-import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -35,7 +34,6 @@ import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
-import { useTokenWrapper } from "@/hooks/wrapper/useTokenWrapper"
 import { useWrapperForMarket } from "@/hooks/wrapper/useWrapperForMarket"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
@@ -146,20 +144,13 @@ export default function LenderMarketDetails({
   )
 
   const {
-    wrapperAddress,
+    wrapper,
     hasWrapper,
     hasFactory,
     isLoading: isWrapperLookupLoading,
-  } = useWrapperForMarket(market)
-
-  const {
-    data: wrapper,
-    isLoading: isWrapperLoading,
     isError: isWrapperError,
-  } = useTokenWrapper(
-    market?.chainId as SupportedChainId | undefined,
-    wrapperAddress,
-  )
+  } = useWrapperForMarket(market)
+  const isWrapperLoading = isWrapperLookupLoading
 
   const isLoadingMarket = isMarketLoading || apiLoading || isDiscoveringChainId
   const isLoading = isLoadingMarket || !market

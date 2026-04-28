@@ -1,17 +1,18 @@
 import { useQuery } from "@tanstack/react-query"
 import {
-  WrapperFactory,
   hasDeploymentAddress,
   SupportedChainId,
   Market,
+  TokenWrapper,
 } from "@wildcatfi/wildcat-sdk"
-import { zeroAddress } from "viem"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 type UseWrapperForMarketResult = {
+  wrapper: TokenWrapper | undefined
   wrapperAddress: string | undefined
   hasWrapper: boolean
   hasFactory: boolean
@@ -26,6 +27,7 @@ export const useWrapperForMarket = (
 ): UseWrapperForMarketResult => {
   const { provider, signer } = useEthersProvider({ chainId: market?.chainId })
   const signerOrProvider = signer ?? provider
+  const subgraphClient = useSubgraphClient()
 
   const chainId = market?.chainId as SupportedChainId | undefined
   const hasFactory =
@@ -40,20 +42,24 @@ export const useWrapperForMarket = (
     refetchInterval: POLLING_INTERVAL,
     queryFn: async () => {
       if (!market || !signerOrProvider || !chainId) throw new Error("No market")
-      return WrapperFactory.getWrapperForMarket(
+      return TokenWrapper.fromMarketWithSubgraph(subgraphClient, {
         chainId,
         signerOrProvider,
-        market.address,
-      )
+        market: market.address,
+        fetchPolicy: "cache-first",
+        fallbackToFactory: true,
+      })
     },
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   })
 
-  const wrapperAddress = query.data
-  const hasWrapper = !!wrapperAddress && wrapperAddress !== zeroAddress
+  const wrapper = query.data
+  const wrapperAddress = wrapper?.address
+  const hasWrapper = !!wrapper
 
   return {
+    wrapper,
     wrapperAddress,
     hasWrapper,
     hasFactory,
