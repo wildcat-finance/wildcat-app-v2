@@ -47,7 +47,7 @@ export const MarketTransactions = ({
   const disableBorrow =
     market.isClosed ||
     market?.isDelinquent ||
-    (marketAccount && marketAccount.market.borrowableAssets.raw.isZero())
+    (marketAccount && marketAccount.market.borrowableAssets.eq(0))
 
   const fixedTermHooksConfig = getFixedTermHooksConfig(market)
   const isFixedTerm = isFixedTermMarket(market)
@@ -65,7 +65,7 @@ export const MarketTransactions = ({
 
   const isTooSmallOutstandingDebt: boolean =
     market.outstandingDebt.lt(smallestTokenAmountValue) &&
-    !market.outstandingDebt.raw.isZero()
+    !market.outstandingDebt.eq(0)
 
   const ongoingWDs = withdrawals.activeWithdrawal?.requests.length ?? 0
 

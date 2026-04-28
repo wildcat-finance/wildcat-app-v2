@@ -13,11 +13,18 @@ import { WrapDebtToken } from "@/app/[locale]/borrower/market/[address]/componen
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { LeadBanner } from "@/components/LeadBanner"
+import {
+  AccountRowsSkeleton,
+  BorrowerTransactionsSkeleton,
+  ChartSectionSkeleton,
+} from "@/components/MarketDetailSkeletons"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
+import { useIdlePrefetchMarketRecords } from "@/components/PaginatedMarketRecordsTable/hooks/usePrefetchMarketRecords"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
+import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
@@ -70,8 +77,35 @@ export default function MarketDetails({
     address,
     chainId: marketChainId,
   })
-  const { data: withdrawals } = useGetWithdrawals(market)
-  const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
+  const performanceContext = {
+    address: market?.address ?? address,
+    chainId: market?.chainId ?? marketChainId,
+    role: "borrower" as const,
+  }
+  useMarketDetailPerformanceMark(
+    "route-mount",
+    {
+      address,
+      chainId: marketChainId,
+      role: "borrower",
+    },
+    true,
+  )
+  useIdlePrefetchMarketRecords(market)
+  const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
+    useGetWithdrawals(market)
+  const { data: marketAccount, isLoadingInitial: isMarketAccountLoading } =
+    useGetMarketAccountForBorrowerLegacy(market)
+  useMarketDetailPerformanceMark(
+    "withdrawals-ready",
+    performanceContext,
+    !!market && !isWithdrawalsLoading,
+  )
+  useMarketDetailPerformanceMark(
+    "account-ready",
+    performanceContext,
+    !!market && !isMarketAccountLoading,
+  )
 
   const { isWrongNetwork, isSelectionMismatch } = useNetworkGate({
     desiredChainId: market?.chainId ?? marketChainId,
@@ -92,7 +126,7 @@ export default function MarketDetails({
 
   const [prevURL, setPrevURL] = useState<string | null>(null)
   const { data: marketMla, isLoading: isLoadingMarketMla } = useMarketMla(
-    marketAccount?.market.address,
+    market?.address,
   )
 
   const {
@@ -170,11 +204,11 @@ export default function MarketDetails({
 
   const isLoadingMarket = isMarketLoading || apiLoading || isDiscoveringChainId
   useEffect(() => {
-    if (isLoadingMarket || !market || !marketAccount) return
+    if (isLoadingMarket || !market) return
     if (!canInteract && checked === 1) {
       dispatch(setCheckBlock(2))
     }
-  }, [canInteract, checked, dispatch, isLoadingMarket, market, marketAccount])
+  }, [canInteract, checked, dispatch, isLoadingMarket, market])
 
   if (apiError) {
     return (
@@ -188,7 +222,7 @@ export default function MarketDetails({
     )
   }
 
-  if (isLoadingMarket || !market || !marketAccount)
+  if (isLoadingMarket || !market)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>
@@ -241,7 +275,7 @@ export default function MarketDetails({
   return (
     <Box>
       <Box>
-        <MarketHeader marketAccount={marketAccount} />
+        <MarketHeader market={market} marketAccount={marketAccount} />
         {isDifferentChain && (
           <SwitchChainAlert desiredChainId={market?.chainId} />
         )}
@@ -277,7 +311,7 @@ export default function MarketDetails({
           {/* </Slide> */}
           {checked === 1 && (
             <Box sx={SlideContentContainer}>
-              {canInteract && (
+              {canInteract && marketAccount && (
                 <MarketTransactions
                   market={market}
                   marketAccount={marketAccount}
@@ -285,8 +319,15 @@ export default function MarketDetails({
                   holdTheMarket={holdTheMarket}
                 />
               )}
+              {canInteract && !marketAccount && (
+                <BorrowerTransactionsSkeleton />
+              )}
               {canInteract && <Divider sx={{ margin: "32px 0" }} />}
-              <MarketStatusChart market={market} />
+              {isWithdrawalsLoading ? (
+                <ChartSectionSkeleton />
+              ) : (
+                <MarketStatusChart market={market} withdrawals={withdrawals} />
+              )}
             </Box>
           )}
           {/* <Slide */}
@@ -303,7 +344,11 @@ export default function MarketDetails({
           {/* </Slide> */}
           {checked === 2 && (
             <Box sx={SlideContentContainer} marginTop="12px">
-              <MarketStatusChart market={market} />
+              {isWithdrawalsLoading ? (
+                <ChartSectionSkeleton />
+              ) : (
+                <MarketStatusChart market={market} withdrawals={withdrawals} />
+              )}
               <Divider sx={{ margin: "32px 0 44px" }} />
               <MarketParameters
                 market={market}
@@ -337,11 +382,15 @@ export default function MarketDetails({
           {/* </Slide> */}
           {checked === 4 && (
             <Box sx={SlideContentContainer} marginTop="12px">
-              <MarketWithdrawalRequests
-                marketAccount={marketAccount}
-                withdrawals={withdrawals}
-                isHoldingMarket={canInteract}
-              />
+              {marketAccount && !isWithdrawalsLoading ? (
+                <MarketWithdrawalRequests
+                  marketAccount={marketAccount}
+                  withdrawals={withdrawals}
+                  isHoldingMarket={canInteract}
+                />
+              ) : (
+                <AccountRowsSkeleton />
+              )}
             </Box>
           )}
           {/* <Slide */}
@@ -363,9 +412,14 @@ export default function MarketDetails({
             </Box>
           )}
 
-          {checked === 6 && canInteract && (
+          {checked === 6 && canInteract && marketAccount && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketMLA marketAccount={marketAccount} />
+            </Box>
+          )}
+          {checked === 6 && canInteract && !marketAccount && (
+            <Box sx={SlideContentContainer} marginTop="12px">
+              <AccountRowsSkeleton />
             </Box>
           )}
           {checked === 7 && (

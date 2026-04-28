@@ -19,7 +19,7 @@ export const useWrapperAllowance = (
     refetchInterval: POLLING_INTERVAL,
     queryFn: async () => {
       if (!wrapper || !account) throw new Error("Missing wrapper")
-      return wrapper.marketToken.contract.allowance(account, wrapper.address)
+      return wrapper.marketToken.allowance(account, wrapper.address)
     },
     refetchOnMount: false,
     refetchOnWindowFocus: false,

@@ -163,7 +163,7 @@ export const ClaimableTable = ({
   } = {}
 
   withdrawals.forEach((batch) => {
-    if (batch.availableWithdrawalAmount.raw.isZero()) {
+    if (batch.availableWithdrawalAmount.eq(0)) {
       return
     }
 

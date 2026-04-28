@@ -2,12 +2,18 @@ import { Dispatch } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { MarketAccount } from "@wildcatfi/wildcat-sdk"
-// eslint-disable-next-line camelcase
-import { WildcatMarketV2__factory } from "@wildcatfi/wildcat-sdk/dist/typechain"
+import {
+  MarketAccount,
+  prepareTransaction,
+  wildcatMarketV2Abi,
+} from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import {
+  toEthersTransactionRequest,
+  waitForSubmittedTransaction,
+} from "@/utils/transactions"
 
 export const useResetTempReserveRatio = (
   marketAccount: MarketAccount,
@@ -31,31 +37,29 @@ export const useResetTempReserveRatio = (
       }
 
       const { market } = marketAccount
-      // eslint-disable-next-line camelcase
-      const contract = WildcatMarketV2__factory.connect(market.address, signer)
 
       const resetRatio = async () => {
-        const tx = await contract.setAnnualInterestAndReserveRatioBips(
-          market.annualInterestBips,
-          market.reserveRatioBips,
+        const tx = prepareTransaction({
+          to: market.address,
+          abi: wildcatMarketV2Abi,
+          functionName: "setAnnualInterestAndReserveRatioBips",
+          args: [market.annualInterestBips, market.reserveRatioBips],
+        })
+        const { hash } = await signer.sendTransaction(
+          toEthersTransactionRequest(tx),
         )
 
-        if (!safeConnected) setTxHash(tx.hash)
+        if (!safeConnected) setTxHash(hash)
 
-        if (safeConnected) {
-          const checkTransaction = async () => {
-            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(tx.hash)
-            if (transactionBySafeHash?.txHash) {
-              setTxHash(transactionBySafeHash.txHash)
-            } else {
-              setTimeout(checkTransaction, 1000)
-            }
-          }
-
-          await checkTransaction()
-        }
-
-        return tx.wait()
+        const { hash: transactionHash, receipt } =
+          await waitForSubmittedTransaction({
+            provider: signer.provider,
+            hash,
+            safeConnected,
+            safeSdk: sdk,
+          })
+        setTxHash(transactionHash)
+        return receipt
       }
 
       await resetRatio()

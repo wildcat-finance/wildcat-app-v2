@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
+import { QueryKeys } from "@/config/query-keys"
 import { useAuthToken } from "@/hooks/useApiAuth"
 
 export const useUpdateMarketSummary = (market: string, chainId: number) => {
@@ -19,7 +20,16 @@ export const useUpdateMarketSummary = (market: string, chainId: number) => {
       }).then((res) => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["market-summary", market.toLowerCase()],
+        queryKey: QueryKeys.Markets.GET_MARKET_SUMMARY(
+          chainId,
+          market.toLowerCase(),
+        ),
+      })
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET_SUMMARY_EXISTS(
+          chainId,
+          market.toLowerCase(),
+        ),
       })
     },
   })

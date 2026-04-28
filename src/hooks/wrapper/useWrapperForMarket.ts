@@ -5,7 +5,7 @@ import {
   SupportedChainId,
   Market,
 } from "@wildcatfi/wildcat-sdk"
-import { constants } from "ethers"
+import { zeroAddress } from "viem"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
@@ -51,8 +51,7 @@ export const useWrapperForMarket = (
   })
 
   const wrapperAddress = query.data
-  const hasWrapper =
-    !!wrapperAddress && wrapperAddress !== constants.AddressZero
+  const hasWrapper = !!wrapperAddress && wrapperAddress !== zeroAddress
 
   return {
     wrapperAddress,

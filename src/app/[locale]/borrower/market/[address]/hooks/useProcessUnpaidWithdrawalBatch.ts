@@ -6,6 +6,7 @@ import { MarketAccount, Signer, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 import type { BorrowerWithdrawalsForMarketResult } from "./useGetWithdrawals"
 
@@ -37,26 +38,23 @@ export const useProcessUnpaidWithdrawalBatch = (
       }
 
       const processWithdrawalBatch = async () => {
-        const tx =
+        const hash =
           await marketAccount.market.repayAndProcessUnpaidWithdrawalBatches(
             tokenAmount,
             maxBatches,
           )
 
-        if (safeConnected) {
-          const checkTransaction = async () => {
-            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(tx.hash)
-            if (transactionBySafeHash?.txHash) {
-              setTxHash(transactionBySafeHash.txHash)
-            } else {
-              setTimeout(checkTransaction, 1000)
-            }
-          }
+        if (!safeConnected) setTxHash(hash)
 
-          await checkTransaction()
-        }
-
-        return tx.wait()
+        const { hash: transactionHash, receipt } =
+          await waitForSubmittedTransaction({
+            provider: marketAccount.market.signer.provider,
+            hash,
+            safeConnected,
+            safeSdk: sdk,
+          })
+        setTxHash(transactionHash)
+        return receipt
       }
 
       await processWithdrawalBatch()

@@ -14,9 +14,9 @@ import {
   TransferAccess,
   WithdrawalAccess,
 } from "@wildcatfi/wildcat-sdk"
-import { constants } from "ethers"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { zeroAddress } from "viem"
 import { useAccount } from "wagmi"
 
 import { PageContainer } from "@/app/[locale]/borrower/create-market/style"
@@ -214,14 +214,14 @@ export default function CreateMarketPage() {
               ]
             : [],
         allowClosureBeforeTerm: !!marketParams.allowClosureBeforeTerm,
-        allowForceBuyBacks: !!marketParams.allowForceBuyBack,
+        allowForceBuyBacks: false,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         fixedTermEndTime: marketParams.fixedTermEndTime as any,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         allowTermReduction: marketParams.allowTermReduction as any,
 
         newProviderInputs: [],
-        roleProviderFactory: constants.AddressZero,
+        roleProviderFactory: zeroAddress,
         minimumDeposit: marketParams.minimumDeposit,
         deployWrapper: marketParams.deployWrapper,
         ...(deployRouting.marketType === "revolving"

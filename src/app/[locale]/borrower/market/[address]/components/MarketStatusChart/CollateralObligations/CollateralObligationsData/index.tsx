@@ -1,6 +1,4 @@
 import { Box, Typography } from "@mui/material"
-import { TokenAmount } from "@wildcatfi/wildcat-sdk"
-import { BigNumber } from "ethers"
 import { useTranslation } from "react-i18next"
 
 import "./style.css"
@@ -33,8 +31,7 @@ export const CollateralObligationsData = ({
     : normalizedPendingWithdrawals
 
   const totalProtocolFeesAccrued =
-    market.lastAccruedProtocolFees ||
-    new TokenAmount(BigNumber.from(0), market.underlyingToken)
+    market.lastAccruedProtocolFees || market.underlyingToken.getAmount(0)
 
   return (
     <Box className="obligations__container">

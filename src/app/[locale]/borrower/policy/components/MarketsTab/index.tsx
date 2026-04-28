@@ -3,7 +3,6 @@ import * as React from "react"
 import { Box, Skeleton } from "@mui/material"
 import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid"
 import { Market, TokenAmount } from "@wildcatfi/wildcat-sdk"
-import { BigNumber } from "ethers"
 import Link from "next/link"
 
 import { MarketImplementationChip } from "@/components/@extended/MarketImplementationChip"
@@ -21,6 +20,7 @@ import {
   formatBps,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import { getDisplayLenderAprBips } from "@/utils/marketApr"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -218,7 +218,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
   ]
 
   const rows: GridRowsProp<MarketsTableModel> = markets.map((market) => {
-    const { address, name, underlyingToken, annualInterestBips } = market
+    const { address, name, underlyingToken } = market
     const { borrowed } = market.getTotalDebtBreakdown()
 
     const marketStatus = getMarketStatusChip(market)
@@ -233,10 +233,8 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       term,
       name,
       asset: underlyingToken.symbol,
-      apr: annualInterestBips,
-      debt: borrowed.raw.lt(0)
-        ? new TokenAmount(BigNumber.from(0), underlyingToken)
-        : borrowed,
+      apr: getDisplayLenderAprBips(market),
+      debt: borrowed.lt(0) ? underlyingToken.getAmount(0) : borrowed,
     }
   })
 

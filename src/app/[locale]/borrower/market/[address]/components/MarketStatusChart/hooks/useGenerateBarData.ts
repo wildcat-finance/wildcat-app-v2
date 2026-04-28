@@ -1,16 +1,11 @@
 import { Market, TokenAmount, TotalDebtBreakdown } from "@wildcatfi/wildcat-sdk"
-import { BigNumber } from "ethers"
-import { formatEther } from "ethers/lib/utils"
 
 import { MARKET_BAR_DATA } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart/constants"
 import { MarketBarChartItem } from "@/components/BarChart/BarItem/interface"
-
-const ONE_HUNDRED_E18 = BigNumber.from(10).pow(20)
+import { formatTokenAmountPercentage } from "@/utils/formatters"
 
 const getPercentageTokenAmount = (total: TokenAmount, amount: TokenAmount) =>
-  total.eq(0)
-    ? 0
-    : parseFloat(formatEther(amount.raw.mul(ONE_HUNDRED_E18).div(total.raw)))
+  formatTokenAmountPercentage(total, amount)
 
 const getTokenAmountPercentageWidth = (
   total: TokenAmount,
@@ -68,8 +63,8 @@ export const useGenerateBarData = (
   } else {
     setBarData("availableToBorrow", breakdown.borrowable)
     setBarData("collateralObligations", breakdown.collateralObligation)
-    const borrowed = breakdown.borrowed.raw.lt(0)
-      ? new TokenAmount(BigNumber.from(0), market.underlyingToken)
+    const borrowed = breakdown.borrowed.lt(0)
+      ? market.underlyingToken.getAmount(0)
       : breakdown.borrowed
     setBarData("borrowed", borrowed)
   }

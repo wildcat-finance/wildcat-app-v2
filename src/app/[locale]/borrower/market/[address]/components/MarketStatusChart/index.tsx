@@ -16,9 +16,15 @@ import { useGenerateBarData } from "./hooks/useGenerateBarData"
 import "./styles.css"
 import { MarketStatusChartProps } from "./interface"
 
-export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
+export const MarketStatusChart = ({
+  market,
+  withdrawals: providedWithdrawals,
+}: MarketStatusChartProps) => {
   const { t } = useTranslation()
-  const { data: withdrawals } = useGetWithdrawals(market)
+  const { data: fallbackWithdrawals } = useGetWithdrawals(
+    providedWithdrawals ? undefined : market,
+  )
+  const withdrawals = providedWithdrawals ?? fallbackWithdrawals
   const { barData: barRawData, breakdown } = useGenerateBarData(market)
   const isDelinquent = breakdown.status === "delinquent"
 
@@ -32,7 +38,7 @@ export const MarketStatusChart = ({ market }: MarketStatusChartProps) => {
   const bars = barOrders
     .filter((barId) => barRawData[barId] !== undefined)
     .map((barId) => barRawData[barId])
-    .filter((chartItem) => !chartItem.hide && !chartItem.value.raw.isZero())
+    .filter((chartItem) => !chartItem.hide && !chartItem.value.eq(0))
 
   const legendItems = legendItemsOrder
     .filter((barId) => barRawData[barId] !== undefined)

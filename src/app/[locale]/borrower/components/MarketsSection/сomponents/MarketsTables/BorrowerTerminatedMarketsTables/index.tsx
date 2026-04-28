@@ -21,6 +21,7 @@ import {
   getAdsTooltipComponent,
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
+import { useMarketRowPrefetchHandlers } from "@/hooks/usePrefetchMarketDetailMetadata"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
@@ -37,6 +38,7 @@ import {
   formatSecsToHours,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import { getDisplayLenderAprBips } from "@/utils/marketApr"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -50,6 +52,7 @@ export type BorrowerTerminatedMarketsTableModel = {
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
+  borrowerAddress: string
   asset: string
   apr: number
   debt: TokenAmount | undefined
@@ -92,7 +95,7 @@ export const BorrowerTerminatedMarketsTables = ({
         address,
         name,
         underlyingToken,
-        annualInterestBips,
+        borrower: borrowerAddress,
         borrowableAssets,
         totalSupply,
         withdrawalBatchDuration,
@@ -110,8 +113,9 @@ export const BorrowerTerminatedMarketsTables = ({
         status: marketStatus,
         term: marketType,
         name,
+        borrowerAddress,
         asset: underlyingToken.symbol,
-        apr: annualInterestBips,
+        apr: getDisplayLenderAprBips(market),
         borrowable: borrowableAssets,
         debt: totalSupply,
         withdrawalBatchDuration,
@@ -122,6 +126,9 @@ export const BorrowerTerminatedMarketsTables = ({
   const prevActive = rows.filter((market) => market.hasEverInteracted)
 
   const neverActive = rows.filter((market) => !market.hasEverInteracted)
+
+  const prevActivePrefetchHandlers = useMarketRowPrefetchHandlers(prevActive)
+  const neverActivePrefetchHandlers = useMarketRowPrefetchHandlers(neverActive)
 
   const columns: TypeSafeColDef<BorrowerTerminatedMarketsTableModel>[] = [
     {
@@ -379,13 +386,15 @@ export const BorrowerTerminatedMarketsTables = ({
           noMarketsTitle={t("dashboard.markets.noMarkets.closed.title")}
           noMarketsSubtitle={t("dashboard.markets.noMarkets.closed.subtitle")}
         >
-          <DataGrid
-            disableVirtualization
-            sx={DataGridSx}
-            rows={prevActive}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
+          <Box {...prevActivePrefetchHandlers}>
+            <DataGrid
+              disableVirtualization
+              sx={DataGridSx}
+              rows={prevActive}
+              columns={columns}
+              columnHeaderHeight={40}
+            />
+          </Box>
         </MarketsTableAccordion>
       </Box>
 
@@ -402,13 +411,15 @@ export const BorrowerTerminatedMarketsTables = ({
           noMarketsTitle={t("dashboard.markets.noMarkets.closed.title")}
           noMarketsSubtitle={t("dashboard.markets.noMarkets.closed.subtitle")}
         >
-          <DataGrid
-            disableVirtualization
-            sx={DataGridSx}
-            rows={neverActive}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
+          <Box {...neverActivePrefetchHandlers}>
+            <DataGrid
+              disableVirtualization
+              sx={DataGridSx}
+              rows={neverActive}
+              columns={columns}
+              columnHeaderHeight={40}
+            />
+          </Box>
         </MarketsTableAccordion>
       </Box>
     </Box>

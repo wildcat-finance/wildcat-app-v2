@@ -7,6 +7,7 @@ import { useAccount } from "wagmi"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useClaim = (
   market: Market,
@@ -34,27 +35,22 @@ export const useClaim = (
       if (!market || !claimableWithdrawals.length || !address) throw Error
 
       const claim = async () => {
-        const tx =
+        const hash =
           claimableWithdrawals.length === 1
             ? await market.executeWithdrawal(claimableWithdrawals[0])
             : await market.executeWithdrawals(claimableWithdrawals)
 
-        if (!safeConnected) setTxHash(tx.hash)
+        if (!safeConnected) setTxHash(hash)
 
-        if (safeConnected) {
-          const checkTransaction = async () => {
-            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(tx.hash)
-            if (transactionBySafeHash?.txHash) {
-              setTxHash(transactionBySafeHash.txHash)
-            } else {
-              setTimeout(checkTransaction, 1000)
-            }
-          }
-
-          await checkTransaction()
-        }
-
-        return tx.wait()
+        const { hash: transactionHash, receipt } =
+          await waitForSubmittedTransaction({
+            provider: market.signer.provider,
+            hash,
+            safeConnected,
+            safeSdk: sdk,
+          })
+        setTxHash(transactionHash)
+        return receipt
       }
 
       await claim()

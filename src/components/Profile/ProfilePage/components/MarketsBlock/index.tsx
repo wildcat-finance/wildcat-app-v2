@@ -21,6 +21,7 @@ import {
   formatSecsToHours,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import { getDisplayLenderAprBips } from "@/utils/marketApr"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -43,7 +44,6 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
         address,
         name,
         underlyingToken,
-        annualInterestBips,
         totalDebts,
         maxTotalSupply,
         totalSupply,
@@ -59,7 +59,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
         name,
         status: marketStatus,
         asset: underlyingToken.symbol,
-        apr: annualInterestBips,
+        apr: getDisplayLenderAprBips(market),
         term: getMarketTypeChip(market),
         debt: totalDebts,
         capacityLeft: maxTotalSupply.sub(totalSupply),

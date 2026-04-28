@@ -2,13 +2,12 @@
 
 import { createContext, useContext, useMemo } from "react"
 
-import { ApolloClient, NormalizedCacheObject } from "@apollo/client"
 import { getSubgraphClient } from "@wildcatfi/wildcat-sdk"
 
 import { NETWORKS } from "@/config/network"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
-export type SubgraphClientType = ApolloClient<NormalizedCacheObject>
+export type SubgraphClientType = ReturnType<typeof getSubgraphClient>
 
 const TargetNetworkEnv = process.env.NEXT_PUBLIC_TARGET_NETWORK
 
@@ -31,10 +30,7 @@ export const SubgraphProvider = ({
   // Reads target chain from react-redux
   const { chainId } = useSelectedNetwork()
   // Recreates the subgraph client when the target chain changes
-  const value = useMemo(() => {
-    console.log(`Recreating subgraph client for chain ${chainId}`)
-    return getSubgraphClient(chainId)
-  }, [chainId])
+  const value = useMemo(() => getSubgraphClient(chainId), [chainId])
   return (
     <SubgraphContext.Provider value={value} key={`subgraph-client-${chainId}`}>
       {children}

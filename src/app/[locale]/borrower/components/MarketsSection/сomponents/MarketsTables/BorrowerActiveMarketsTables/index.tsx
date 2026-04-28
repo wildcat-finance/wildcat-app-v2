@@ -22,6 +22,7 @@ import {
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
+import { useMarketRowPrefetchHandlers } from "@/hooks/usePrefetchMarketDetailMetadata"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
@@ -38,6 +39,7 @@ import {
   formatSecsToHours,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import { getDisplayLenderAprBips } from "@/utils/marketApr"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -49,6 +51,7 @@ export type BorrowerActiveMarketsTableModel = {
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
+  borrowerAddress: string
   apr: number
   asset: string
   capacityLeft: TokenAmount
@@ -91,7 +94,7 @@ export const BorrowerActiveMarketsTables = ({
         address,
         name,
         underlyingToken,
-        annualInterestBips,
+        borrower: borrowerAddress,
         borrowableAssets,
         maxTotalSupply,
         totalSupply,
@@ -110,8 +113,9 @@ export const BorrowerActiveMarketsTables = ({
         status: marketStatus,
         term: marketType,
         name,
+        borrowerAddress,
         asset: underlyingToken.symbol,
-        apr: annualInterestBips,
+        apr: getDisplayLenderAprBips(market),
         borrowable: borrowableAssets,
         debt: totalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
@@ -120,14 +124,18 @@ export const BorrowerActiveMarketsTables = ({
     })
 
   const depositedMarkets = rows.filter(
-    (market) => !market.borrowable.raw.isZero() || !market.debt?.raw.isZero(),
+    (market) => !market.borrowable.eq(0) || !market.debt?.eq(0),
   )
 
   const nonDepositedMarkets = rows.filter(
     (market) =>
-      market.borrowable.raw.isZero() &&
-      market.status.status === MarketStatus.HEALTHY,
+      market.borrowable.eq(0) && market.status.status === MarketStatus.HEALTHY,
   )
+
+  const depositedPrefetchHandlers =
+    useMarketRowPrefetchHandlers(depositedMarkets)
+  const nonDepositedPrefetchHandlers =
+    useMarketRowPrefetchHandlers(nonDepositedMarkets)
 
   const columns: TypeSafeColDef<BorrowerActiveMarketsTableModel>[] = [
     {
@@ -418,13 +426,15 @@ export const BorrowerActiveMarketsTables = ({
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
         >
-          <DataGrid
-            disableVirtualization
-            sx={DataGridSx}
-            rows={depositedMarkets}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
+          <Box {...depositedPrefetchHandlers}>
+            <DataGrid
+              disableVirtualization
+              sx={DataGridSx}
+              rows={depositedMarkets}
+              columns={columns}
+              columnHeaderHeight={40}
+            />
+          </Box>
         </MarketsTableAccordion>
       </Box>
 
@@ -443,14 +453,16 @@ export const BorrowerActiveMarketsTables = ({
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
         >
-          <DataGrid
-            disableVirtualization
-            sx={DataGridSx}
-            getRowHeight={() => "auto"}
-            rows={nonDepositedMarkets}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
+          <Box {...nonDepositedPrefetchHandlers}>
+            <DataGrid
+              disableVirtualization
+              sx={DataGridSx}
+              getRowHeight={() => "auto"}
+              rows={nonDepositedMarkets}
+              columns={columns}
+              columnHeaderHeight={40}
+            />
+          </Box>
         </MarketsTableAccordion>
       </Box>
     </Box>
