@@ -5,11 +5,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   MarketParameters,
   deployToken,
-  TokenAmount,
   Token,
   getNextTokenAddress,
   populateDeployToken,
-  PartialTransaction,
+  SafeTransactionInput,
+  toSafeTransactionInput,
   getMockArchControllerOwnerContract,
   getHooksFactoryContract,
   getHooksFactoryRevolvingContract,
@@ -24,9 +24,7 @@ import {
   OpenTermHooksTemplate,
   OpenTermMarketDeploymentArgs,
 } from "@wildcatfi/wildcat-sdk/dist/access"
-import { MarketDeployedEvent } from "@wildcatfi/wildcat-sdk/dist/typechain/HooksFactory"
-import { constants } from "ethers"
-import { parseUnits } from "ethers/lib/utils"
+import { decodeEventLog, parseAbiItem, zeroAddress, type Hex } from "viem"
 
 import { toastError, toastRequest, toastSuccess } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
@@ -58,6 +56,14 @@ export type DeployNewV2MarketParams = (
   mlaSignature: string
   deployWrapper?: boolean
 }
+
+type MarketDeployedEventArgs = {
+  market: string
+}
+
+const marketDeployedEventAbi = parseAbiItem(
+  "event MarketDeployed(address indexed hooksTemplate, address indexed market, string name, string symbol, address asset, uint256 maxTotalSupply, uint256 annualInterestBips, uint256 delinquencyFeeBips, uint256 withdrawalBatchDuration, uint256 reserveRatioBips, uint256 delinquencyGracePeriod, uint256 hooks)",
+)
 
 export const useDeployV2Market = () => {
   const signer = useEthersSigner()
@@ -163,7 +169,7 @@ export const useDeployV2Market = () => {
         const useGnosisMultiSend = isConnectedToSafe && isTestnet
 
         let asset: Token
-        const gnosisTransactions: PartialTransaction[] = []
+        const gnosisTransactions: SafeTransactionInput[] = []
         console.log(
           `useDeployMarket :: isTestnet: ${isTestnet} :: isConnectedToSafe: ${isConnectedToSafe} :: gnosisSafeSDK: ${!!gnosisSafeSDK}`,
         )
@@ -181,11 +187,13 @@ export const useDeployV2Market = () => {
               signer,
             )
             gnosisTransactions.push(
-              await populateDeployToken(
-                chainId,
-                signer,
-                assetData.name,
-                assetData.symbol,
+              toSafeTransactionInput(
+                await populateDeployToken(
+                  chainId,
+                  signer,
+                  assetData.name,
+                  assetData.symbol,
+                ),
               ),
             )
           } else {
@@ -195,7 +203,7 @@ export const useDeployV2Market = () => {
                 signer,
                 assetData.name,
                 assetData.symbol,
-              ).then((t) => t.token),
+              ).then((t) => t.result),
               getStepToastConfig(deploymentSteps, "mockToken", {
                 pending: "Deploying Mock Token..",
                 success: "Mock Token Deployed Successfully!",
@@ -207,11 +215,7 @@ export const useDeployV2Market = () => {
           asset = assetData
         }
 
-        const maxTotalSupply = new TokenAmount(
-          parseUnits(maxTotalSupplyNum.toString(), asset.decimals),
-          asset,
-        )
-
+        const maxTotalSupply = asset.parseAmount(maxTotalSupplyNum.toString())
         const minimumDeposit = asset.parseAmount(minimumDepositNum ?? 0)
 
         const borrowerAddress = hooksTemplate.signerAddress
@@ -373,19 +377,26 @@ export const useDeployV2Market = () => {
             error: "Market Deployment Failed.",
           }),
         )
-        const marketDeployedTopic =
-          hooksTemplate.contract.interface.getEventTopic("MarketDeployed")
 
-        const log = receipt.logs.find(
-          (l) => l.topics[0] === marketDeployedTopic,
-        )!
+        const event = receipt.logs
+          .map((log) => {
+            try {
+              return decodeEventLog({
+                abi: [marketDeployedEventAbi],
+                data: log.data as Hex,
+                topics: log.topics as [Hex, ...Hex[]],
+              })
+            } catch {
+              return undefined
+            }
+          })
+          .find((decoded) => decoded?.eventName === "MarketDeployed")
 
-        const event = hooksTemplate.contract.interface.decodeEventLog(
-          "MarketDeployed",
-          log.data,
-          log.topics,
-        ) as unknown as MarketDeployedEvent["args"]
-        marketAddress = event.market
+        if (!event) {
+          throw Error("MarketDeployed event not found")
+        }
+
+        marketAddress = (event.args as MarketDeployedEventArgs).market
         setDeployedMarket(marketAddress)
       }
 
@@ -404,7 +415,7 @@ export const useDeployV2Market = () => {
           marketAddress,
         )
 
-        if (existingWrapper === constants.AddressZero) {
+        if (existingWrapper === zeroAddress) {
           await toastRequest(
             (async () => {
               if (isConnectedToSafe) {
@@ -415,13 +426,13 @@ export const useDeployV2Market = () => {
                   marketAddress,
                 )
                 const { safeTxHash } = await gnosisSafeSDK.txs.send({
-                  txs: [tx],
+                  txs: [toSafeTransactionInput(tx)],
                 })
                 await waitForSafeTransaction(safeTxHash)
                 return safeTxHash
               }
 
-              const { wrapper } = await WrapperFactory.createWrapper(
+              const { result: wrapper } = await WrapperFactory.createWrapper(
                 chainId,
                 signer,
                 marketAddress,

@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 
 import { useSubscription } from "@apollo/client"
+import type { SubscriptionHookOptions } from "@apollo/client"
 import { useDispatch } from "react-redux"
 
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
@@ -24,7 +25,9 @@ const BorrowerRegistrationListener = () => {
   const { data, error } = useSubscription(
     BORROWER_REGISTRATION_CHANGE_SUBSCRIPTION,
     {
-      client: subgraphClient,
+      client: subgraphClient as unknown as NonNullable<
+        SubscriptionHookOptions["client"]
+      >,
       variables: {},
     },
   )

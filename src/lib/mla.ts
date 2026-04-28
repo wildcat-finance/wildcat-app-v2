@@ -4,21 +4,22 @@ import {
   TokenAmount,
   TransferAccess,
   getDeploymentAddress,
+  getHooksFactoryAddressForMarketType,
   HooksKind,
+  MarketType,
   WithdrawalAccess,
   Token,
 } from "@wildcatfi/wildcat-sdk"
-import { toUtf8Bytes } from "ethers/lib/utils"
 import humanizeDuration from "humanize-duration"
-import { getAddress, keccak256 } from "viem"
+import { getAddress, keccak256, stringToHex } from "viem"
 
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import { ACCEPT_MLA_MESSAGE } from "@/config/mla-acceptance"
 import { NETWORKS_BY_ID } from "@/config/network"
-import { dayjs } from "@/utils/dayjs"
 import { formatBps, formatUnixMsAsDate } from "@/utils/formatters"
+import { getMarketAprDisplayBips } from "@/utils/marketApr"
 
 type NetworkData = {
   chainId?: number
@@ -50,6 +51,7 @@ export type MlaBorrowerFields = {
   networkData: NetworkData
   market: {
     address: string
+    implementationType?: MarketType
     name: string
     symbol: string
     marketTerm: HooksKind
@@ -63,6 +65,7 @@ export type MlaBorrowerFields = {
     fixedTermEndTime: number | undefined
     /** APR in bips (format as %) */
     apr: number
+    aprLabel?: string
     /** Delinquency fee in bips (format as %) */
     delinquencyFee: number
     /** Reserve ratio in bips (format as %) */
@@ -119,6 +122,7 @@ export const MlaFieldValueKeys = [
   "lender.timeSignedMonthYear",
   "sla.timeUpdated",
   // bips (format as %)
+  "market.aprLabel",
   "market.apr",
   "market.delinquencyFee",
   "market.reserveRatio",
@@ -166,6 +170,7 @@ export type MlaFieldValueKey = (typeof MlaFieldValueKeys)[number]
 // | "lender.timeSignedMonthYear"
 // | "sla.timeUpdated"
 // // bips (format as %)
+// | "market.aprLabel"
 // | "market.apr"
 // | "market.delinquencyFee"
 // | "market.reserveRatio"
@@ -248,7 +253,8 @@ type BorrowerSignedMla = {
 }
 
 const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
-  const { underlyingToken: asset, hooksConfig, name, symbol, address } = market
+  const { hooksConfig, name, symbol, address } = market
+  const aprDisplay = getMarketAprDisplayBips(market)
   // Deposits are only open if `depositRequiresAccess` is defined and false
   const depositAccess =
     hooksConfig?.depositRequiresAccess === false
@@ -283,6 +289,7 @@ const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
   }
   return {
     address,
+    implementationType: market.marketType ?? "legacy",
     name,
     symbol,
     marketTerm: hooksConfig?.kind ?? HooksKind.OpenTerm,
@@ -297,7 +304,11 @@ const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
       hooksConfig?.kind === HooksKind.FixedTerm
         ? hooksConfig.fixedTermEndTime
         : undefined,
-    apr: market.annualInterestBips,
+    apr: aprDisplay.configuredAprBips,
+    aprLabel:
+      aprDisplay.configuredAprKind === "utilization"
+        ? "Utilization APR"
+        : "Base APR",
     delinquencyFee: market.delinquencyFeeBips,
     reserveRatio: market.reserveRatioBips,
     allowClosureBeforeTerm:
@@ -308,7 +319,7 @@ const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
       hooksConfig?.kind === HooksKind.FixedTerm
         ? hooksConfig.allowTermReduction
         : undefined,
-    allowForceBuyBack: hooksConfig?.allowForceBuyBacks,
+    allowForceBuyBack: false,
   }
 }
 
@@ -345,6 +356,7 @@ export function getFieldValuesForBorrower({
       jurisdictionObj?.subDivisionName || jurisdictionObj?.countryName
   }
   const networkInfo = NETWORKS_BY_ID[asset.chainId]
+  const implementationType = market.implementationType ?? "legacy"
 
   const entityKindText =
     entityKind !== undefined && jurisdictionObj
@@ -407,7 +419,12 @@ export function getFieldValuesForBorrower({
     ],
     [
       "hooksFactory.address",
-      formatAddress(getDeploymentAddress(networkInfo.chainId, "HooksFactory")),
+      formatAddress(
+        getHooksFactoryAddressForMarketType(
+          networkInfo.chainId,
+          implementationType,
+        ),
+      ),
     ],
     // token amount
     [
@@ -440,6 +457,13 @@ export function getFieldValuesForBorrower({
     // ["lender.timeSigned", formatDate(Date.now())],
     ["sla.timeUpdated", formatDate(lastSlaUpdateTime)],
     // bips (format as %)
+    [
+      "market.aprLabel",
+      market.aprLabel ??
+        (market.implementationType === "revolving"
+          ? "Utilization APR"
+          : "Base APR"),
+    ],
     ["market.apr", formatBips(market.apr)],
     ["market.delinquencyFee", formatBips(market.delinquencyFee)],
     ["market.reserveRatio", formatBips(market.reserveRatio)],
@@ -456,7 +480,7 @@ export function getFieldValuesForBorrower({
         ? formatBool(market.allowTermReduction)
         : "N/A",
     ],
-    ["market.allowForceBuyBack", formatBool(market.allowForceBuyBack) ?? "N/A"],
+    ["market.allowForceBuyBack", formatBool(false) ?? "N/A"],
   ])
   return allData
 }
@@ -519,7 +543,7 @@ export function fillInMlaTemplate(
   const message = ACCEPT_MLA_MESSAGE.replace(
     "{{market}}",
     formatAddress(marketAddress) as string,
-  ).replace("{{hash}}", keccak256(toUtf8Bytes(plaintext)))
+  ).replace("{{hash}}", keccak256(stringToHex(plaintext)))
   return {
     html,
     plaintext,
@@ -541,7 +565,7 @@ export function fillInMlaForLender(
   const message = ACCEPT_MLA_MESSAGE.replace(
     "{{market}}",
     formatAddress(marketAddress) as string,
-  ).replace("{{hash}}", keccak256(toUtf8Bytes(plaintext)))
+  ).replace("{{hash}}", keccak256(stringToHex(plaintext)))
 
   return { html, plaintext, message }
 }

@@ -2,17 +2,19 @@
 import { Dispatch } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import {
-  BaseTransaction,
-  Web3TransactionReceiptObject,
-} from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import {
+  MarketAccount,
+  SafeTransactionInput,
+  TokenAmount,
+  toSafeTransactionInput,
+} from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { isUSDTLikeToken } from "@/utils/constants"
+import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useRepay = (
   marketAccount: MarketAccount,
@@ -37,18 +39,6 @@ export const useRepay = (
     return projectedAssets.gte(withdrawalObligations)
   }
 
-  const waitForTransaction = async (safeTxHash: string) => {
-    if (!sdk) throw Error("No sdk found")
-    const { txHash } = await sdk.txs.getBySafeTxHash(safeTxHash)
-    if (!txHash) throw Error("No tx hash found")
-    return sdk.eth.getTransactionReceipt([txHash]).then((tx) => {
-      if (tx) {
-        tx.transactionHash = txHash
-      }
-      return tx
-    })
-  }
-
   return useMutation({
     mutationFn: async (amount: TokenAmount) => {
       if (!marketAccount || !signer) {
@@ -63,21 +53,25 @@ export const useRepay = (
       }
 
       const step = marketAccount.previewRepay(amount)
-      const gnosisTransactions: BaseTransaction[] = []
+      const gnosisTransactions: SafeTransactionInput[] = []
       if (step.status !== "Ready") {
         if (safeConnected && step.status === "InsufficientAllowance") {
           if (
-            marketAccount.underlyingApproval.gt(0) &&
+            marketAccount.underlyingApproval > BigInt(0) &&
             isUSDTLikeToken(marketAccount.market.underlyingToken.address)
           ) {
             gnosisTransactions.push(
-              await marketAccount.populateApproveMarket(
-                amount.token.getAmount(0),
+              toSafeTransactionInput(
+                await marketAccount.populateApproveMarket(
+                  amount.token.getAmount(0),
+                ),
               ),
             )
           }
           gnosisTransactions.push(
-            await marketAccount.populateApproveMarket(amount),
+            toSafeTransactionInput(
+              await marketAccount.populateApproveMarket(amount),
+            ),
           )
         } else {
           throw Error(
@@ -87,37 +81,19 @@ export const useRepay = (
       }
 
       const repay = async () => {
-        const checkTransaction = async (
-          safeTxHash: string,
-        ): Promise<Web3TransactionReceiptObject> =>
-          new Promise((resolve) => {
-            const doCheckTransaction = async () => {
-              const transactionBySafeHash =
-                await sdk.txs.getBySafeTxHash(safeTxHash)
-              if (transactionBySafeHash?.txHash) {
-                setTxHash(transactionBySafeHash.txHash)
-                const receipt = await waitForTransaction(safeTxHash)
-                console.log(
-                  `Got gnosis transaction receipt:\n\ttxHash: ${receipt.transactionHash}`,
-                )
-                resolve(receipt)
-              } else {
-                setTimeout(doCheckTransaction, 1000)
-              }
-            }
-            doCheckTransaction()
-          })
         const maxBatches =
           marketAccount.market.unpaidWithdrawalBatchExpiries.length
         const processUnpaidWithdrawals = shouldProcessUnpaidWithdrawals(amount)
         if (gnosisTransactions.length) {
           gnosisTransactions.push(
-            processUnpaidWithdrawals
-              ? await marketAccount.market.populateRepayAndProcessUnpaidWithdrawalBatches(
-                  amount,
-                  maxBatches,
-                )
-              : await marketAccount.populateRepay(amount.raw),
+            toSafeTransactionInput(
+              processUnpaidWithdrawals
+                ? await marketAccount.market.populateRepayAndProcessUnpaidWithdrawalBatches(
+                    amount,
+                    maxBatches,
+                  )
+                : await marketAccount.populateRepay(amount.raw),
+            ),
           )
           console.log(`Sending gnosis transactions...`)
           console.log(gnosisTransactions)
@@ -125,26 +101,37 @@ export const useRepay = (
             txs: gnosisTransactions,
           })
           console.log(`Got gnosis transaction:\n\tsafeTxHash: ${safeTxHash}`)
-          const receipt = await checkTransaction(safeTxHash)
+          const { hash: transactionHash, receipt } =
+            await waitForSubmittedTransaction({
+              provider: signer.provider,
+              hash: safeTxHash,
+              safeConnected: true,
+              safeSdk: sdk,
+            })
+          setTxHash(transactionHash)
           console.log(
-            `Got gnosis transaction receipt:\n\ttxHash: ${receipt.transactionHash}`,
+            `Got gnosis transaction receipt:\n\ttxHash: ${transactionHash}`,
           )
           return receipt
         }
-        const tx = processUnpaidWithdrawals
+        const hash = processUnpaidWithdrawals
           ? await marketAccount.market.repayAndProcessUnpaidWithdrawalBatches(
               amount,
               maxBatches,
             )
           : await marketAccount.repay(amount.raw)
 
-        if (!safeConnected) setTxHash(tx.hash)
+        if (!safeConnected) setTxHash(hash)
 
-        if (safeConnected) {
-          return checkTransaction(tx.hash)
-        }
-
-        return tx.wait()
+        const { hash: transactionHash, receipt } =
+          await waitForSubmittedTransaction({
+            provider: signer.provider,
+            hash,
+            safeConnected,
+            safeSdk: sdk,
+          })
+        setTxHash(transactionHash)
+        return receipt
       }
 
       await repay()

@@ -11,7 +11,6 @@ import {
   SupportedChainId,
   getSubgraphClient,
 } from "@wildcatfi/wildcat-sdk"
-import { BigNumber } from "ethers"
 import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
@@ -69,7 +68,7 @@ export const useGetMarketLenders = (market?: Market) => {
           new BasicLenderData({
             market,
             address: lender.address,
-            scaledBalance: BigNumber.from(0),
+            scaledBalance: BigInt(0),
             addedTimestamp: lender.addedTimestamp,
             credential: lender.credential,
             isAuthorizedOnController: lender.isAuthorizedOnController,

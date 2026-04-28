@@ -1,12 +1,19 @@
 import { useEffect } from "react"
 
 import { useQuery } from "@tanstack/react-query"
-import { Market } from "@wildcatfi/wildcat-sdk"
+import {
+  isSupportedChainId,
+  Market,
+  MarketVersion,
+  type SignerOrProvider,
+} from "@wildcatfi/wildcat-sdk"
 import type { SubgraphGetMarketQuery } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
+import { refreshMarketsV2LiveDataSafe } from "@/utils/marketV2Reads"
 
 export type UseMarketProps = {
   address: string | undefined
@@ -18,7 +25,12 @@ type ApiResponse = {
   market: NonNullable<SubgraphGetMarketQuery["market"]> | null
 }
 
-async function fetchApiMarket(addressLower: string, chainId?: number) {
+export const getMarketApiQueryKey = (
+  addressLower: string | undefined,
+  chainId?: number,
+) => ["market", "apiGet", addressLower, chainId ?? "discover"] as const
+
+export async function fetchApiMarket(addressLower: string, chainId?: number) {
   const url = new URL("/api/market/get", window.location.origin)
   url.searchParams.set("address", addressLower)
   if (typeof chainId === "number" && Number.isFinite(chainId)) {
@@ -30,11 +42,34 @@ async function fetchApiMarket(addressLower: string, chainId?: number) {
   return (await res.json()) as ApiResponse
 }
 
+async function refreshMarketForDetail(
+  chainId: number,
+  market: Market,
+  signerOrProvider: SignerOrProvider,
+) {
+  if (market.version !== MarketVersion.V2 || !isSupportedChainId(chainId)) {
+    await market.update()
+    return market
+  }
+
+  try {
+    const [refreshedMarket] = await refreshMarketsV2LiveDataSafe(
+      chainId,
+      [market],
+      signerOrProvider,
+    )
+    return refreshedMarket ?? market
+  } catch (_) {
+    await market.update()
+    return market
+  }
+}
+
 export function useGetMarket({ address, chainId }: UseMarketProps) {
   const marketAddressLower = address?.toLowerCase()
 
   const api = useQuery({
-    queryKey: ["market", "apiGet", marketAddressLower, chainId ?? "discover"],
+    queryKey: getMarketApiQueryKey(marketAddressLower, chainId),
     enabled: !!marketAddressLower,
     queryFn: () => fetchApiMarket(marketAddressLower!, chainId),
     staleTime: 5 * 60 * 1000, // 5min
@@ -43,6 +78,16 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
 
   const effectiveChainId = api.data?.chainId ?? undefined
   const subgraphMarket = api.data?.market ?? null
+  const performanceContext = {
+    address: marketAddressLower,
+    chainId: effectiveChainId ?? chainId,
+  }
+
+  useMarketDetailPerformanceMark(
+    "api-market-ready",
+    performanceContext,
+    !!effectiveChainId && !!subgraphMarket,
+  )
 
   const { signer, provider } = useEthersProvider({
     chainId:
@@ -70,13 +115,18 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
         signerOrProvider,
         subgraphMarket,
       )
-      await market.update()
 
-      return market
+      return refreshMarketForDetail(effectiveChainId, market, signerOrProvider)
     },
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   })
+
+  useMarketDetailPerformanceMark(
+    "live-market-ready",
+    performanceContext,
+    !!query.data,
+  )
 
   useEffect(() => {
     if (

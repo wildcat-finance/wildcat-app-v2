@@ -76,9 +76,6 @@ export const useGetOthersMarkets = (
   const { isWrongNetwork, provider, signer } = useEthersProvider()
 
   const signerOrProvider = signer ?? provider
-  console.log(
-    `logging from useMarketsForBorrower.ts: have provider: ${!!provider} | isWrongNetwork: ${isWrongNetwork}`,
-  )
 
   return useGetOthersMarketsQuery({
     provider: signerOrProvider,

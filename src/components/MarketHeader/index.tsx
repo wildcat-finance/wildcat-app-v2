@@ -11,7 +11,6 @@ import {
 import humanizeDuration from "humanize-duration"
 import Link from "next/link"
 
-import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { useGetBorrowerProfile } from "@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile"
 import Avatar from "@/assets/icons/avatar_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
@@ -31,6 +30,7 @@ import {
 } from "./style"
 
 export const MarketHeader = ({
+  market,
   marketAccount,
   mla,
   hasMarketDescription,
@@ -40,42 +40,36 @@ export const MarketHeader = ({
 
   const [remainingTime, setRemainingTime] = React.useState<string>("")
 
-  const { market } = marketAccount
-
-  const { data } = useGetWithdrawals(market)
-
-  const cycleStart = data.activeWithdrawal?.requests[0]?.blockTimestamp
-
   React.useEffect(() => {
-    const cycleEnd =
-      cycleStart !== undefined ? cycleStart + market.withdrawalBatchDuration : 0
+    const cycleEnd = market.pendingWithdrawalExpiry
 
-    if (cycleStart) {
-      const updateRemainingTime = () => {
-        const now = Math.floor(Date.now() / 1000)
-        const timeLeft = cycleEnd - now
-        if (timeLeft > 0) {
-          setRemainingTime(
-            humanizeDuration(timeLeft * 1000, {
-              round: true,
-              largest: 1,
-              units: ["h", "m", "s"],
-            }),
-          )
-        } else {
-          setRemainingTime("")
-        }
-      }
-
-      updateRemainingTime()
-
-      const intervalId = setInterval(updateRemainingTime, 1000)
-
-      return () => clearInterval(intervalId)
+    if (!cycleEnd) {
+      setRemainingTime("")
+      return undefined
     }
 
-    return undefined
-  }, [data, market.withdrawalBatchDuration, cycleStart])
+    const updateRemainingTime = () => {
+      const now = Math.floor(Date.now() / 1000)
+      const timeLeft = cycleEnd - now
+      if (timeLeft > 0) {
+        setRemainingTime(
+          humanizeDuration(timeLeft * 1000, {
+            round: true,
+            largest: 1,
+            units: ["h", "m", "s"],
+          }),
+        )
+      } else {
+        setRemainingTime("")
+      }
+    }
+
+    updateRemainingTime()
+
+    const intervalId = setInterval(updateRemainingTime, 1000)
+
+    return () => clearInterval(intervalId)
+  }, [market.pendingWithdrawalExpiry])
 
   const marketStatus = getMarketStatusChip(market)
   const shouldShowCycleChip =
@@ -152,7 +146,9 @@ export const MarketHeader = ({
               </Typography>
             </Box>
 
-            <MobileMoreButton marketAccount={marketAccount} />
+            {marketAccount && (
+              <MobileMoreButton marketAccount={marketAccount} />
+            )}
           </Box>
 
           <Link

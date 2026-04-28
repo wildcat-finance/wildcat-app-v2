@@ -24,13 +24,13 @@ export const useWrapperBalances = (
     refetchInterval: POLLING_INTERVAL,
     queryFn: async () => {
       if (!wrapper || !account) throw new Error("Missing wrapper")
-      const [marketBalanceRaw, shareBalanceRaw] = await Promise.all([
-        wrapper.marketToken.contract.balanceOf(account),
-        wrapper.shareToken.contract.balanceOf(account),
+      const [marketBalance, shareBalance] = await Promise.all([
+        wrapper.marketToken.balanceOf(account),
+        wrapper.shareToken.balanceOf(account),
       ])
       return {
-        marketBalance: wrapper.marketToken.getAmount(marketBalanceRaw),
-        shareBalance: wrapper.shareToken.getAmount(shareBalanceRaw),
+        marketBalance,
+        shareBalance,
       }
     },
     refetchOnMount: false,

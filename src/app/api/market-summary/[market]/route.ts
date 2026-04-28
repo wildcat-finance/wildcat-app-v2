@@ -1,8 +1,7 @@
-// eslint-disable-next-line camelcase
-import { WildcatMarket__factory } from "@wildcatfi/wildcat-sdk/dist/typechain"
+import { wildcatMarketAbi } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
+import { decodeFunctionResult, encodeFunctionData, type Hex } from "viem"
 
-import { TargetChainId } from "@/config/network"
 import { prisma } from "@/lib/db"
 import { getProviderForServer } from "@/lib/provider"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
@@ -10,6 +9,16 @@ import { getZodParseError } from "@/lib/zod-error"
 
 import { MarketSummary, MarketSummaryDTO } from "./dto"
 import { verifyApiToken } from "../../auth/verify-header"
+
+const SUMMARY_HIT_CACHE_CONTROL =
+  "public, s-maxage=300, stale-while-revalidate=3600"
+const SUMMARY_MISS_CACHE_CONTROL =
+  "public, s-maxage=60, stale-while-revalidate=300"
+
+const withCacheControl = (response: NextResponse, value: string) => {
+  response.headers.set("Cache-Control", value)
+  return response
+}
 
 export async function GET(
   request: NextRequest,
@@ -24,12 +33,15 @@ export async function GET(
     where: { marketAddress: market, chainId },
   })
   if (!marketDescription) {
-    return NextResponse.json(
-      { error: "Market description not found" },
-      { status: 404 },
+    return withCacheControl(
+      NextResponse.json({ description: "" }),
+      SUMMARY_MISS_CACHE_CONTROL,
     )
   }
-  return NextResponse.json({ description: marketDescription.description })
+  return withCacheControl(
+    NextResponse.json({ description: marketDescription.description }),
+    SUMMARY_HIT_CACHE_CONTROL,
+  )
 }
 
 export async function POST(
@@ -51,13 +63,19 @@ export async function POST(
     return getZodParseError(err)
   }
   const token = await verifyApiToken(request)
-  // eslint-disable-next-line camelcase
-  const borrower = await WildcatMarket__factory.connect(
-    parsedBody.marketAddress,
-    getProviderForServer(chainId),
-  )
-    .borrower()
-    .then((t) => t.toLowerCase())
+  const provider = getProviderForServer(chainId)
+  const borrowerResult = await provider.call({
+    to: parsedBody.marketAddress,
+    data: encodeFunctionData({
+      abi: wildcatMarketAbi,
+      functionName: "borrower",
+    }),
+  })
+  const borrower = decodeFunctionResult({
+    abi: wildcatMarketAbi,
+    functionName: "borrower",
+    data: borrowerResult as Hex,
+  }).toLowerCase()
 
   if (borrower !== token?.address.toLowerCase()) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -66,12 +84,12 @@ export async function POST(
   await prisma.marketDescription.upsert({
     where: {
       chainId_marketAddress: {
-        chainId: TargetChainId,
+        chainId,
         marketAddress: parsedBody.marketAddress,
       },
     },
     create: {
-      chainId: TargetChainId,
+      chainId,
       marketAddress: parsedBody.marketAddress,
       description: parsedBody.description,
     },
@@ -102,5 +120,10 @@ export async function HEAD(
   // Return 200 if the market description exists, 404 otherwise
   return new NextResponse(null, {
     status: marketDescriptionExists ? 200 : 404,
+    headers: {
+      "Cache-Control": marketDescriptionExists
+        ? SUMMARY_HIT_CACHE_CONTROL
+        : SUMMARY_MISS_CACHE_CONTROL,
+    },
   })
 }

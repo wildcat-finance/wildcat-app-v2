@@ -132,7 +132,7 @@ export const DepositModal = ({
 
     if (!isAllowanceSufficient) {
       if (
-        marketAccount.underlyingApproval.gt(0) &&
+        marketAccount.underlyingApproval > BigInt(0) &&
         isUSDTLikeToken(market.underlyingToken.address)
       ) {
         approve(depositTokenAmount.token.getAmount(0)).then(() => {
@@ -154,13 +154,13 @@ export const DepositModal = ({
 
   const mustResetAllowance =
     !isAllowanceSufficient &&
-    marketAccount.underlyingApproval.gt(0) &&
+    marketAccount.underlyingApproval > BigInt(0) &&
     isUSDTLikeToken(market.underlyingToken.address)
 
   const disableApprove =
     market.isClosed ||
-    depositTokenAmount.raw.isZero() ||
-    depositTokenAmount.raw.gt(market.maximumDeposit.raw) ||
+    depositTokenAmount.eq(0) ||
+    depositTokenAmount.gt(market.maximumDeposit) ||
     isAllowanceSufficient ||
     isApproving ||
     !Signer.isSigner(market.provider)
@@ -168,14 +168,14 @@ export const DepositModal = ({
   const disableDeposit =
     !!depositError ||
     market.isClosed ||
-    depositTokenAmount.raw.isZero() ||
-    depositTokenAmount.raw.gt(market.maximumDeposit.raw) ||
+    depositTokenAmount.eq(0) ||
+    depositTokenAmount.gt(market.maximumDeposit) ||
     (depositStep === "InsufficientAllowance" && !isConnectedToSafe) ||
     depositStep === "InsufficientBalance" ||
     isApproving
 
   const isApprovedButton =
-    isAllowanceSufficient && !depositTokenAmount.raw.isZero() && !isApproving
+    isAllowanceSufficient && !depositTokenAmount.eq(0) && !isApproving
 
   const isFixedTerm = market.isInFixedTerm
   const fixedTermMaturity =
@@ -193,7 +193,7 @@ export const DepositModal = ({
 
   const showForm = !(isDepositing || showSuccessPopup || showErrorPopup)
 
-  const underlyingBalanceIsZero = marketAccount.underlyingBalance.raw.isZero()
+  const underlyingBalanceIsZero = marketAccount.underlyingBalance.eq(0)
 
   const tooltip = underlyingBalanceIsZero
     ? "Underlying token balance is zero"
@@ -553,8 +553,7 @@ export const DepositModal = ({
   if (!isMobile)
     return (
       <>
-        {marketAccount.maximumDeposit.raw.isZero() ||
-        underlyingBalanceIsZero ? (
+        {marketAccount.maximumDeposit.eq(0) || underlyingBalanceIsZero ? (
           <Tooltip title={tooltip} placement="right">
             <Box sx={{ display: "flex" }}>
               <Button
@@ -563,8 +562,7 @@ export const DepositModal = ({
                 size="large"
                 sx={{ width: "152px" }}
                 disabled={
-                  marketAccount.maximumDeposit.raw.isZero() ||
-                  underlyingBalanceIsZero
+                  marketAccount.maximumDeposit.eq(0) || underlyingBalanceIsZero
                 }
               >
                 {t("lenderMarketDetails.transactions.deposit.button")}
@@ -578,8 +576,7 @@ export const DepositModal = ({
             size="large"
             sx={{ width: "152px" }}
             disabled={
-              marketAccount.maximumDeposit.raw.isZero() ||
-              underlyingBalanceIsZero
+              marketAccount.maximumDeposit.eq(0) || underlyingBalanceIsZero
             }
           >
             {t("lenderMarketDetails.transactions.deposit.button")}

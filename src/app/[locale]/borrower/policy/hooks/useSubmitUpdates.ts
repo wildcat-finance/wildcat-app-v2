@@ -12,6 +12,10 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetPolicyLendersState } from "@/store/slices/policyLendersSlice/policyLendersSlice"
+import {
+  sendTransactionAndWait,
+  toSafeTransactions,
+} from "@/utils/transactions"
 
 export type SubmitPolicyUpdatesInputs = {
   addLenders?: string[]
@@ -87,7 +91,9 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
 
       const send = async () => {
         if (isConnectedToSafe && isTestnet && txs.length > 1) {
-          const tx = await gnosisSafeSDK.txs.send({ txs })
+          const tx = await gnosisSafeSDK.txs.send({
+            txs: toSafeTransactions(txs),
+          })
           console.log("Transaction sent, result:", tx)
 
           const checkTransaction = async (): Promise<string> => {
@@ -122,13 +128,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
           // eslint-disable-next-line no-restricted-syntax
           for (const tx of txs) {
             // eslint-disable-next-line no-await-in-loop
-            await signer
-              .sendTransaction({
-                to: tx.to,
-                data: tx.data,
-                value: tx.value,
-              })
-              .then(({ wait }) => wait())
+            await sendTransactionAndWait(signer, tx)
           }
           return {
             status: "success",

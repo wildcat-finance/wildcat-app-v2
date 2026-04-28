@@ -3,14 +3,19 @@ import { Dispatch } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
-import { parseUnits } from "ethers/lib/utils"
+import {
+  MarketAccount,
+  MarketVersion,
+  prepareTransaction,
+  toSafeTransactionInput,
+  wildcatMarketAbi,
+  wildcatMarketV2Abi,
+} from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-
-import type { BorrowerWithdrawalsForMarketResult } from "../../../../borrower/market/[address]/hooks/useGetWithdrawals"
+import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useWithdraw = (
   marketAccount: MarketAccount,
@@ -20,7 +25,6 @@ export const useWithdraw = (
   const { address } = useAccount()
   const client = useQueryClient()
   const { targetChainId } = useCurrentNetwork()
-
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
   return useMutation({
@@ -36,34 +40,47 @@ export const useWithdraw = (
         )
       }
 
-      const tokenAmount = new TokenAmount(
-        parseUnits(amount, marketAccount.market.underlyingToken.decimals),
-        marketAccount.market.underlyingToken,
-      )
+      const tokenAmount = queueFullWithdrawal
+        ? marketAccount.marketBalance
+        : marketAccount.market.underlyingToken.parseAmount(amount)
 
       const withdraw = async () => {
+        if (safeConnected) {
+          if (!sdk) throw Error("No Safe SDK")
+
+          const tx =
+            queueFullWithdrawal &&
+            marketAccount.market.version === MarketVersion.V2
+              ? prepareTransaction({
+                  to: marketAccount.market.address,
+                  abi: wildcatMarketV2Abi,
+                  functionName: "queueFullWithdrawal",
+                })
+              : prepareTransaction({
+                  to: marketAccount.market.address,
+                  abi: wildcatMarketAbi,
+                  functionName: "queueWithdrawal",
+                  args: [tokenAmount.raw],
+                })
+          const { safeTxHash } = await sdk.txs.send({
+            txs: [toSafeTransactionInput(tx)],
+          })
+          const { hash, receipt } = await waitForSubmittedTransaction({
+            provider: marketAccount.market.signer.provider,
+            hash: safeTxHash,
+            safeConnected: true,
+            safeSdk: sdk,
+          })
+          setTxHash(hash)
+          return receipt
+        }
+
         const tx = queueFullWithdrawal
           ? await marketAccount.queueFullWithdrawal()
           : await marketAccount.queueWithdrawal(tokenAmount)
 
-        if (!safeConnected) setTxHash(tx.transaction.hash)
-
-        if (safeConnected) {
-          const checkTransaction = async () => {
-            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(
-              tx.transaction.hash,
-            )
-            if (transactionBySafeHash?.txHash) {
-              setTxHash(transactionBySafeHash.txHash)
-            } else {
-              setTimeout(checkTransaction, 1000)
-            }
-          }
-
-          await checkTransaction()
-        }
-
-        return tx.transaction.wait()
+        setTxHash(tx.hash)
+        return tx.receipt
       }
 
       await withdraw()

@@ -11,7 +11,6 @@ import {
 } from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
-import { BigNumber } from "ethers"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
@@ -85,7 +84,7 @@ export const RepayModal = ({
 
   const isTooSmallOutstandingDebt: boolean =
     market.outstandingDebt.lt(smallestTokenAmountValue) &&
-    !market.outstandingDebt.raw.isZero()
+    !market.outstandingDebt.eq(0)
 
   const handleClickTooSmallTextfield = () => {
     if (isTooSmallOutstandingDebt && maxRepayAmount) {
@@ -171,7 +170,7 @@ export const RepayModal = ({
     setTxHash("")
     if (!isAllowanceSufficient) {
       if (
-        marketAccount.underlyingApproval.gt(0) &&
+        marketAccount.underlyingApproval > BigInt(0) &&
         isUSDTLikeToken(market.underlyingToken.address)
       ) {
         approve(repayAmount.token.getAmount(0)).then(() => {
@@ -227,25 +226,25 @@ export const RepayModal = ({
 
   const mustResetAllowance =
     repayStep === "InsufficientAllowance" &&
-    marketAccount.underlyingApproval.gt(0) &&
+    marketAccount.underlyingApproval > BigInt(0) &&
     isUSDTLikeToken(market.underlyingToken.address)
 
   const disableApprove =
     market.isClosed ||
-    repayAmount.raw.isZero() ||
+    repayAmount.eq(0) ||
     repayStep === "Ready" ||
     isAllowanceSufficient ||
     isApproving
 
   const disableRepay =
     market.isClosed ||
-    repayAmount.raw.isZero() ||
+    repayAmount.eq(0) ||
     (repayStep === "InsufficientAllowance" && !isConnectedToSafe) ||
     repayStep === "InsufficientBalance" ||
     isApproving
 
   const isApprovedButton =
-    isAllowanceSufficient && !repayAmount.raw.isZero() && !isApproving
+    isAllowanceSufficient && !repayAmount.eq(0) && !isApproving
 
   const showForm = !(isRepaying || showSuccessPopup || showErrorPopup)
 
@@ -366,7 +365,7 @@ export const RepayModal = ({
   useEffect(() => {
     if (
       justApprovedAmount &&
-      marketAccount.underlyingApproval.gte(justApprovedAmount.raw)
+      marketAccount.underlyingApproval >= justApprovedAmount.raw
     ) {
       setJustApprovedAmount(undefined)
     }
@@ -482,10 +481,7 @@ export const RepayModal = ({
                           if (
                             repayTokenAmount.raw >= market.outstandingDebt.raw
                           ) {
-                            return new TokenAmount(
-                              BigNumber.from(0),
-                              market.underlyingToken,
-                            )
+                            return market.underlyingToken.getAmount(0)
                           }
                           return market.outstandingDebt.sub(
                             maxRepayAmount || repayTokenAmount,

@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 import AuthWrapper from "@/components/AuthWrapper"
 import { Markdown } from "@/components/Markdown"
 import { MarkdownEditor } from "@/components/MarkdownEditor"
+import { DescriptionSkeleton } from "@/components/MarketDetailSkeletons"
 import { COLORS } from "@/theme/colors"
 
 import { useUpdateMarketSummary } from "../../hooks/useUpdateMarketSummary"
@@ -96,11 +97,7 @@ export const BorrowerMarketSummary = ({
   const [open, setOpen] = useState(false)
 
   if (isLoading) {
-    return (
-      <Typography variant="text2" color={COLORS.santasGrey}>
-        {t("borrowerMarketDetails.description.states.loading")}
-      </Typography>
-    )
+    return <DescriptionSkeleton withHeader={isBorrower} />
   }
 
   if (

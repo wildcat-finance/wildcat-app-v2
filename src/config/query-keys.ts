@@ -1,6 +1,10 @@
 import { getAddress, isAddress } from "viem"
 
 const normalizeKeyPart = (value: unknown): unknown => {
+  if (typeof value === "bigint") {
+    return value.toString()
+  }
+
   if (typeof value === "string" && isAddress(value)) {
     try {
       return getAddress(value).toLowerCase()
@@ -82,7 +86,6 @@ const BORROWER_QUERY_KEYS = {
     chainId: number,
     borrowerAddress?: string,
     marketAddress?: string,
-    market?: unknown,
   ) =>
     k([
       "borrower",
@@ -90,7 +93,6 @@ const BORROWER_QUERY_KEYS = {
       chainId,
       borrowerAddress,
       marketAddress,
-      market,
     ]),
   // GET_BORROWER_PROFILE_KEY
   // @TODO this is a duplicate of GET_PROFILE - double check that the fact the function
@@ -334,6 +336,12 @@ const MARKET_QUERY_KEYS = {
   // GET_ALL_TOKENS_WITH_MARKETS_KEY
   GET_ALL_TOKENS_WITH_MARKETS: (chainId: number) =>
     k(["markets", "GET_ALL_TOKENS_WITH_MARKETS", chainId]),
+  // GET_MARKET_SUMMARY_KEY
+  GET_MARKET_SUMMARY: (chainId: number, marketAddress?: string) =>
+    k(["markets", "GET_MARKET_SUMMARY", chainId, marketAddress]),
+  // GET_MARKET_SUMMARY_EXISTS_KEY
+  GET_MARKET_SUMMARY_EXISTS: (chainId: number, marketAddress?: string) =>
+    k(["markets", "GET_MARKET_SUMMARY_EXISTS", chainId, marketAddress]),
   // GET_MARKET_ACCOUNT_KEY
   GET_MARKET_ACCOUNT: (chainId: number, marketAddress?: string) =>
     k(["markets", "GET_MARKET_ACCOUNT", chainId, marketAddress]),

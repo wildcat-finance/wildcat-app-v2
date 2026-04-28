@@ -24,5 +24,10 @@ export async function GET(request: NextRequest) {
     address,
     name: alias || name || undefined,
   }))
-  return NextResponse.json(names)
+  const response = NextResponse.json(names)
+  response.headers.set(
+    "Cache-Control",
+    "public, s-maxage=300, stale-while-revalidate=600",
+  )
+  return response
 }

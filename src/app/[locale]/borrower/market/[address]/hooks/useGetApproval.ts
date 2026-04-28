@@ -1,11 +1,12 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { Market, Token, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { Market, Signer, Token, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useApprove = (
   token: Token,
@@ -31,16 +32,16 @@ export const useApprove = (
       }
 
       const approve = async () => {
-        const tx = await token.contract.approve(
+        const hash = await token.approve(
           market.address.toLowerCase(),
-          tokenAmount.raw,
+          tokenAmount,
         )
 
-        if (!safeConnected && setTxHash) setTxHash(tx.hash)
+        if (!safeConnected && setTxHash) setTxHash(hash)
 
         if (safeConnected) {
           const checkTransaction = async () => {
-            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(tx.hash)
+            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(hash)
             if (transactionBySafeHash?.txHash) {
               if (setTxHash) setTxHash(transactionBySafeHash.txHash)
             } else {
@@ -51,7 +52,14 @@ export const useApprove = (
           await checkTransaction()
         }
 
-        return tx.wait()
+        return waitForSubmittedTransaction({
+          provider: Signer.isSigner(token.provider)
+            ? token.provider.provider
+            : token.provider,
+          hash,
+          safeConnected,
+          safeSdk: sdk,
+        })
       }
 
       await approve()

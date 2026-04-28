@@ -154,7 +154,6 @@ export const ConfirmationForm = ({
   const withdrawalRequiresAccess = getValues("withdrawalRequiresAccess")
   const transferRequiresAccess = getValues("transferRequiresAccess")
   const disableTransfers = getValues("disableTransfers")
-  const allowForceBuyBack = getValues("allowForceBuyBack")
 
   const selectedMla = getValues("mla")
   const mlaTemplateId =

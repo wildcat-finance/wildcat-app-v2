@@ -1,6 +1,6 @@
 import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
-import { keccak256, toUtf8Bytes } from "ethers/lib/utils"
 import { NextRequest, NextResponse } from "next/server"
+import { keccak256, stringToHex } from "viem"
 
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { prisma } from "@/lib/db"
@@ -12,7 +12,7 @@ import { formatUnixMsAsDate } from "@/utils/formatters"
 import { ServiceAgreementSignatureInputDTO } from "./dto"
 import { ServiceAgreementSignatureInput } from "./interface"
 
-const ServiceAgreementVersion = keccak256(toUtf8Bytes(AgreementText))
+const ServiceAgreementVersion = keccak256(stringToHex(AgreementText))
 
 export async function POST(request: NextRequest) {
   let body: ServiceAgreementSignatureInput

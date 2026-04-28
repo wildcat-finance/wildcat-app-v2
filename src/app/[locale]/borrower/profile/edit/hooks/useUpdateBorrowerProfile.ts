@@ -6,8 +6,6 @@ import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 
-import { USE_REGISTERED_BORROWERS_KEY } from "../../../hooks/useBorrowerNames"
-
 const hashData = async (data: object): Promise<string> => {
   const encoder = new TextEncoder()
   const encodedData = encoder.encode(JSON.stringify(data))
@@ -110,7 +108,7 @@ export const useUpdateBorrowerProfile = () => {
         ),
       })
       queryClient.invalidateQueries({
-        queryKey: [USE_REGISTERED_BORROWERS_KEY],
+        queryKey: QueryKeys.User.GET_BORROWER_NAMES(chainId),
       })
       if (token.isAdmin) {
         queryClient.invalidateQueries({

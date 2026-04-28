@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ethers } from "ethers"
 import { useForm } from "react-hook-form"
+import { isAddress } from "viem"
 import { z } from "zod"
 
 export const useAddLenderForm = (existingLenders: string[]) => {
@@ -18,10 +18,7 @@ export const useAddLenderForm = (existingLenders: string[]) => {
           ),
         "The lender with this address is already added. Use Edit Lender List page to edit",
       )
-      .refine(
-        (address) => ethers.utils.isAddress(address),
-        "Invalid blockchain address",
-      ),
+      .refine((address) => isAddress(address), "Invalid blockchain address"),
   })
 
   type AddLenderValidationSchemaType = z.infer<typeof addLenderValidationSchema>

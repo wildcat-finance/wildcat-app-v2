@@ -9,8 +9,9 @@ import {
   SupportedChainId,
   TokenWrapper,
   WrapperFactory,
+  toSafeTransactionInput,
 } from "@wildcatfi/wildcat-sdk"
-import { constants } from "ethers"
+import { zeroAddress } from "viem"
 
 import { toastRequest } from "@/components/Toasts"
 import { NoWrapperState } from "@/components/WrapDebtToken/NoWrapperState"
@@ -89,12 +90,14 @@ export const WrapDebtToken = ({
           signer,
           market.address,
         )
-        const { safeTxHash } = await sdk.txs.send({ txs: [tx] })
+        const { safeTxHash } = await sdk.txs.send({
+          txs: [toSafeTransactionInput(tx)],
+        })
         await waitForSafeTransaction(safeTxHash)
         return safeTxHash
       }
 
-      const { wrapper: createdWrapper } = await WrapperFactory.createWrapper(
+      const { result: createdWrapper } = await WrapperFactory.createWrapper(
         market.chainId as SupportedChainId,
         signer,
         market.address,
@@ -108,7 +111,7 @@ export const WrapDebtToken = ({
           market?.address,
         ),
       })
-      if (wrapperAddress && wrapperAddress !== constants.AddressZero) {
+      if (wrapperAddress && wrapperAddress !== zeroAddress) {
         client.invalidateQueries({
           queryKey: QueryKeys.Wrapper.GET_WRAPPER(
             market?.chainId ?? 0,

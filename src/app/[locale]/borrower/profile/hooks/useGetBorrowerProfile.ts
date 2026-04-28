@@ -30,7 +30,7 @@ const fetchBorrowerProfile = async (
   }
 
   const data = await response.json()
-  return data.profile as BorrowerProfile
+  return data.profile ? (data.profile as BorrowerProfile) : undefined
 }
 
 export const useGetBorrowerProfile = (

@@ -1,6 +1,6 @@
-import { toUtf8Bytes, keccak256 } from "ethers/lib/utils"
 import JSZip from "jszip"
 import { NextRequest, NextResponse } from "next/server"
+import { keccak256, stringToHex } from "viem"
 
 import { ACCEPT_MLA_MESSAGE } from "@/config/mla-acceptance"
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
@@ -112,7 +112,7 @@ export async function GET(
   const borrowerMessage = ACCEPT_MLA_MESSAGE.replace(
     "{{market}}",
     formatAddress(market) as string,
-  ).replace("{{hash}}", keccak256(toUtf8Bytes(mla.plaintext)))
+  ).replace("{{hash}}", keccak256(stringToHex(mla.plaintext)))
   const readme = getReadmeFile({
     market,
     borrowerMessage,

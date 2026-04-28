@@ -54,6 +54,10 @@ export function getFieldValuesForBorrowerFromForm(
       ? DepositAccess.Open
       : DepositAccess.RequiresCredential
   const annualInterestBips = Number(marketParams.annualInterestBips) * 100
+  const aprLabel =
+    marketParams.implementationType === "revolving"
+      ? "Utilization APR"
+      : "Base APR"
   const delinquencyFeeBips = Number(marketParams.delinquencyFeeBips) * 100
   const reserveRatioBips = Number(marketParams.reserveRatioBips) * 100
   const delinquencyGracePeriod =
@@ -65,6 +69,7 @@ export function getFieldValuesForBorrowerFromForm(
     market: {
       name: marketName,
       symbol: marketSymbol,
+      implementationType: marketParams.implementationType,
       marketTerm:
         marketParams.marketType === "standard"
           ? HooksKind.OpenTerm
@@ -80,8 +85,9 @@ export function getFieldValuesForBorrowerFromForm(
       fixedTermEndTime: marketParams.fixedTermEndTime,
       allowClosureBeforeTerm: !!marketParams.allowClosureBeforeTerm,
       allowTermReduction: !!marketParams.allowTermReduction,
-      allowForceBuyBack: !!marketParams.allowForceBuyBack,
+      allowForceBuyBack: false,
       apr: annualInterestBips,
+      aprLabel,
       delinquencyFee: delinquencyFeeBips,
       reserveRatio: reserveRatioBips,
     },

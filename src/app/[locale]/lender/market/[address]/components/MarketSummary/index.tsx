@@ -6,6 +6,7 @@ import { Box, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { Markdown } from "@/components/Markdown"
+import { DescriptionSkeleton } from "@/components/MarketDetailSkeletons"
 import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
@@ -30,11 +31,7 @@ export const MarketSummary = ({
   const isMobile = useMobileResolution()
 
   if (isLoading) {
-    return (
-      <Typography variant="text2" color={COLORS.santasGrey}>
-        {t("lenderMarketDetails.description.states.loading")}
-      </Typography>
-    )
+    return <DescriptionSkeleton />
   }
 
   if (!marketSummary?.description || marketSummary?.description === "") {

@@ -2,12 +2,9 @@
 //  * @jest-environment node
 //  */
 
-// // eslint-disable-next-line import/no-extraneous-dependencies
-// import { randomBytes } from "crypto"
-
-// import { Wallet } from "ethers"
 // import { RequestInit } from "next/dist/server/web/spec-extension/request"
 // import { NextRequest } from "next/server"
+// import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 // // import { Body, createMocks, createRequest } from "node-mocks-http"
 
 // import { TargetChainId } from "@/config/network"
@@ -60,7 +57,9 @@
 
 // describe("API", () => {
 //   const provider = getProviderForServer()
-//   const wallet = new Wallet(process.env.TEST_BORROWER_PRIVATE_KEY!, provider)
+//   const wallet = privateKeyToAccount(
+//     process.env.TEST_BORROWER_PRIVATE_KEY! as `0x${string}`,
+//   )
 
 //   const borrowerAddress = wallet.address as `0x${string}`
 
@@ -123,7 +122,7 @@
 
 //     test("[PUT] Fails if invitation does not exist", async () => {
 //       const dateSigned = new Date().toISOString()
-//       const wallet2 = Wallet.createRandom({ provider })
+//       const wallet2 = privateKeyToAccount(generatePrivateKey())
 //       const body: AcceptInvitationInput = {
 //         address: wallet2.address as `0x${string}`,
 //         name: invite.name,
@@ -145,12 +144,12 @@
 //         agreementText = `${agreementText}\n\nDate: ${dateSigned}`
 //       }
 //       agreementText = `${agreementText}\n\nOrganization Name: ${invite.name}`
-//       const wallet2 = Wallet.createRandom({ provider })
+//       const wallet2 = privateKeyToAccount(generatePrivateKey())
 //       const body: AcceptInvitationInput = {
 //         address: borrowerAddress,
 //         name: invite.name,
 //         dateSigned,
-//         signature: await wallet2.signMessage(agreementText),
+//         signature: await wallet2.signMessage({ message: agreementText }),
 //       }
 //       const req = mockPut(`/api/invite/${borrowerAddress}`, body)
 //       const response = await putBorrowerInvite(req)
@@ -169,7 +168,7 @@
 //         address: borrowerAddress,
 //         name: invite.name,
 //         dateSigned,
-//         signature: await wallet.signMessage(agreementText),
+//         signature: await wallet.signMessage({ message: agreementText }),
 //       }
 //       const req = mockPut(`/api/invite/${borrowerAddress}`, body)
 //       const response = await putBorrowerInvite(req)
