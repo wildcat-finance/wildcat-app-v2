@@ -15,6 +15,7 @@ import {
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
+import { isExploreVisible } from "@/utils/marketStatus"
 
 import { TrendingMarketCardApr } from "./TrendingMarketCardApr"
 import { TrendingMarketCardInflow } from "./TrendingMarketCardInflow"
@@ -110,7 +111,7 @@ export const TrendingMarketsCarousel = () => {
 
   const slots = useMemo<Slot[]>(() => {
     const eligible = marketAccounts.filter(
-      (a) => !a.market.isClosed && a.market.maxTotalSupply.gt(0),
+      (a) => isExploreVisible(a.market) && a.market.maxTotalSupply.gt(0),
     )
     if (eligible.length === 0) return []
 

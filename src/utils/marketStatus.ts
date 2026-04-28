@@ -20,6 +20,20 @@ export const getMarketStatus = (
   return MarketStatus.HEALTHY
 }
 
+export const EXPLORE_ALLOWED_STATUSES = [
+  MarketStatus.HEALTHY,
+  MarketStatus.DELINQUENT,
+]
+
+export const isExploreVisible = (market: Market): boolean =>
+  EXPLORE_ALLOWED_STATUSES.includes(
+    getMarketStatus(
+      market.isClosed,
+      market.isDelinquent || market.willBeDelinquent,
+      market.isIncurringPenalties,
+    ),
+  ) && market.maxTotalSupply.gt(market.totalSupply)
+
 export const getMarketStatusChip = (market: Market) => {
   const delinquencyPeriod =
     market.timeDelinquent > market.delinquencyGracePeriod

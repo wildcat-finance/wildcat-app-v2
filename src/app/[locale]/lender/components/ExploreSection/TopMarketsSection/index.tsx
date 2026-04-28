@@ -44,7 +44,7 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
-import { getMarketStatusChip } from "@/utils/marketStatus"
+import { getMarketStatusChip, isExploreVisible } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 const DATA_GRID_MIN_HEIGHT = "106px"
@@ -150,7 +150,7 @@ export const TopMarketsSection = () => {
   const isLoading = isLoadingInitial || isLoadingUpdate
 
   const sortedRows = useMemo((): GridRowsProp<LenderOtherMarketsTableModel> => {
-    const active = marketAccounts.filter((a) => !a.market.isClosed)
+    const active = marketAccounts.filter((a) => isExploreVisible(a.market))
 
     const sorted = [...active].sort((a, b) => {
       if (sortMode === "Highest Yield") {
