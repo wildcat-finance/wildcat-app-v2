@@ -1,94 +1,23 @@
-/* eslint-disable no-underscore-dangle */
 import * as React from "react"
 
-import { Box, Skeleton, Tooltip, Typography } from "@mui/material"
+import { Box, Button, Skeleton, Tooltip, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { MarketRecord } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { TableStyles } from "@/app/[locale]/borrower/edit-lenders-list/components/ConfirmLendersForm/style"
 import { useBorrowerNameOrAddress } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import { MobileMarketRecordItem } from "@/components/Mobile/MobileMarketRecordItem"
 import { TablePagination } from "@/components/TablePagination"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
-import {
-  formatTokenWithCommas,
-  timestampToDateFormatted,
-  trimAddress,
-} from "@/utils/formatters"
+import { timestampToDateFormatted, trimAddress } from "@/utils/formatters"
+import { getRecordText } from "@/utils/marketRecords"
+import { getPaginationRange } from "@/utils/pagination"
 
 import { MarketRecordsTableProps, TypeSafeColDef } from "./interface"
 import { LinkGroup } from "../LinkComponent"
-
-const formatAmountDisplay = (
-  tokenAmount: Parameters<typeof formatTokenWithCommas>[0],
-) => formatTokenWithCommas(tokenAmount, { withSymbol: true })
-
-const formatAmountRaw = (
-  tokenAmount: Parameters<typeof formatTokenWithCommas>[0],
-) => `${tokenAmount.format(tokenAmount.decimals)} ${tokenAmount.symbol}`
-
-const getRecordText = (
-  record: MarketRecord,
-  lenderNames: { [key: string]: string },
-  borrowerName: string,
-  raw = false,
-): string => {
-  const fmt = raw ? formatAmountRaw : formatAmountDisplay
-
-  if (record.__typename === "AnnualInterestBipsUpdated") {
-    return `Base APR changed from ${record.oldAnnualInterestBips / 100}% to ${
-      record.newAnnualInterestBips / 100
-    }%`
-  }
-  if (record.__typename === "Borrow") {
-    return `${borrowerName} borrowed ${fmt(record.amount)}`
-  }
-  if (record.__typename === "DebtRepaid") {
-    return `${borrowerName} repaid ${fmt(record.amount)}`
-  }
-  if (record.__typename === "Deposit") {
-    const lenderName = lenderNames[record.address.toLowerCase()]
-    const label = lenderName ?? trimAddress(record.address)
-    return `${label} loaned ${fmt(record.amount)}`
-  }
-  if (record.__typename === "DelinquencyStatusChanged") {
-    if (!record.isDelinquent) return `Market back in good standing`
-    const delinquentAmount = record.liquidityCoverageRequired.satsub(
-      record.totalAssets,
-    )
-    return `Market delinquent by ${fmt(delinquentAmount)}`
-  }
-  if (record.__typename === "FeesCollected") {
-    return `${fmt(record.amount)} collected in protocol fees`
-  }
-  if (record.__typename === "MarketClosed") {
-    return `Market closed`
-  }
-  if (record.__typename === "WithdrawalRequest") {
-    const lenderName = lenderNames[record.address.toLowerCase()]
-    const label = lenderName ?? trimAddress(record.address)
-    return `${label} requested a withdrawal of ${fmt(record.normalizedAmount)}`
-  }
-  if (record.__typename === "MaxTotalSupplyUpdated") {
-    const kind = record.newMaxTotalSupply.gt(record.oldMaxTotalSupply)
-      ? "increased"
-      : "reduced"
-    return `Market capacity ${kind} to ${fmt(record.newMaxTotalSupply)}`
-  }
-  if (record.__typename === "MinimumDepositUpdated") {
-    return `Minimum deposit updated to ${fmt(record.newMinimumDeposit)}`
-  }
-  if (record.__typename === "ProtocolFeeBipsUpdated") {
-    return `Protocol fee updated to ${record.newProtocolFeeBips / 100}%`
-  }
-  if (record.__typename === "FixedTermUpdated") {
-    const time = timestampToDateFormatted(record.newFixedTermEndTime)
-
-    return `Market maturity updated to ${time}`
-  }
-  return ""
-}
 
 export function MarketRecordsTable({
   market,
@@ -103,6 +32,7 @@ export function MarketRecordsTable({
   const { getTxUrl } = useBlockExplorer({ chainId: market.chainId })
   const name = useBorrowerNameOrAddress(market.borrower)
   const { t } = useTranslation()
+  const isMobile = useMobileResolution()
 
   const lendersName: { [key: string]: string } = JSON.parse(
     localStorage.getItem("lenders-name") || "{}",
@@ -179,28 +109,26 @@ export function MarketRecordsTable({
   //   [page, pageSize],
   // )
 
-  console.log(`TOTAL ROWS: ${rowCount}`)
-
   if (isLoading) {
     return (
       <Box
         display="flex"
         flexDirection="column"
-        padding="32px 16px"
+        padding={isMobile ? "8px 0" : "32px 16px"}
         rowGap="8px"
       >
         <Skeleton
-          height="52px"
+          height={isMobile ? "60px" : "52px"}
           width="100%"
           sx={{ bgcolor: COLORS.athensGrey }}
         />
         <Skeleton
-          height="52px"
+          height={isMobile ? "60px" : "52px"}
           width="100%"
           sx={{ bgcolor: COLORS.athensGrey }}
         />
         <Skeleton
-          height="52px"
+          height={isMobile ? "60px" : "52px"}
           width="100%"
           sx={{ bgcolor: COLORS.athensGrey }}
         />
@@ -212,10 +140,133 @@ export function MarketRecordsTable({
 
   if (rows?.length === 0) {
     return (
-      <Box display="flex" flexDirection="column" marginTop="24px">
-        <Typography variant="text3" color={COLORS.santasGrey}>
+      <Box
+        display="flex"
+        flexDirection="column"
+        marginTop={isMobile ? "8px" : "24px"}
+      >
+        <Typography
+          variant={isMobile ? "mobText3" : "text3"}
+          color={COLORS.santasGrey}
+        >
           No unfiltered events
         </Typography>
+      </Box>
+    )
+  }
+
+  if (isMobile) {
+    const totalPages = Math.max(1, Math.ceil((rowCount ?? 0) / pageSize))
+    const paginationItems = getPaginationRange(page, totalPages)
+
+    return (
+      <Box display="flex" flexDirection="column">
+        <Box>
+          {records?.map((r, index) => (
+            <MobileMarketRecordItem
+              key={r.transactionHash + r.eventIndex}
+              record={r}
+              lenderNames={lendersName}
+              borrowerName={name}
+              txUrl={getTxUrl(r.transactionHash)}
+              isLast={index === records.length - 1}
+            />
+          ))}
+        </Box>
+
+        {totalPages > 1 && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "12px 0 4px",
+            }}
+          >
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              onClick={() => setPage(Math.max(page - 1, 0))}
+              disabled={page === 0}
+              sx={{
+                minWidth: "fit-content",
+                padding: "6px 14px",
+                borderRadius: "8px",
+                "&.Mui-disabled": {
+                  backgroundColor: COLORS.whiteSmoke,
+                  color: COLORS.greySuit,
+                },
+              }}
+            >
+              Prev
+            </Button>
+
+            <Box sx={{ display: "flex", gap: "8px" }}>
+              {paginationItems.map((item, idx) => {
+                if (item === "...") {
+                  const prev = paginationItems[idx - 1]
+                  return (
+                    <Box
+                      key={`ellipsis-after-${prev}`}
+                      sx={{
+                        width: "24px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: COLORS.santasGrey,
+                        fontSize: "14px",
+                      }}
+                    >
+                      ...
+                    </Box>
+                  )
+                }
+
+                return (
+                  <Button
+                    key={item}
+                    onClick={() => setPage(item)}
+                    sx={{
+                      minWidth: "24px !important",
+                      width: "24px !important",
+                      padding: "2px !important",
+                      borderRadius: "8px",
+                      backgroundColor:
+                        item === page ? COLORS.whiteSmoke : "transparent",
+                      "&:hover": {
+                        backgroundColor: COLORS.whiteSmoke,
+                      },
+                    }}
+                  >
+                    <Typography variant="text3" color={COLORS.bunker}>
+                      {item + 1}
+                    </Typography>
+                  </Button>
+                )
+              })}
+            </Box>
+
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              onClick={() => setPage(Math.min(page + 1, totalPages - 1))}
+              disabled={page === totalPages - 1}
+              sx={{
+                minWidth: "fit-content",
+                padding: "6px 14px",
+                borderRadius: "8px",
+                "&.Mui-disabled": {
+                  backgroundColor: COLORS.whiteSmoke,
+                  color: COLORS.greySuit,
+                },
+              }}
+            >
+              Next
+            </Button>
+          </Box>
+        )}
       </Box>
     )
   }
