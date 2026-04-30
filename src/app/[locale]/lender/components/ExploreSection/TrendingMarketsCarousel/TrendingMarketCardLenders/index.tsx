@@ -96,7 +96,7 @@ export const TrendingMarketCardLenders = ({
           variant={isMobile ? "text3" : "mobText3"}
           sx={{ color: "#28CA7C", whiteSpace: "nowrap" }}
         >
-          {formatBps(apr)} APY
+          {formatBps(apr)}% APY
         </Typography>
       </Box>
       <Typography
@@ -179,7 +179,7 @@ export const TrendingMarketCardLenders = ({
           variant={isMobile ? "text4Highlighted" : "mobText4SemiBold"}
           sx={{ color: COLORS.white }}
         >
-          {formatBps(apr)} APY
+          {formatBps(apr)}% APY
         </Typography>
       </Box>
       <Typography
