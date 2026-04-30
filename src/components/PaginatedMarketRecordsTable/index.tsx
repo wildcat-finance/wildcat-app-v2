@@ -193,7 +193,7 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
           padding: "12px 16px",
         }}
       >
-        <Typography variant="mobH3">
+        <Typography variant="mobH3" marginTop="12px">
           {t("lenderMarketDetails.sidebar.marketHistory")}
         </Typography>
 
@@ -202,9 +202,11 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
             display: "flex",
             alignItems: "center",
             gap: "6px",
+            marginTop: "12px",
           }}
         >
           {filterButton}
+
           <Box sx={{ flex: 1 }}>
             <FilterTextField
               value={search}

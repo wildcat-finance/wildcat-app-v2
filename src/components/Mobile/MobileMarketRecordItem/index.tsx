@@ -44,7 +44,7 @@ export const MobileMarketRecordItem = ({
             gap: "8px",
           }}
         >
-          <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
+          <Typography variant="mobText4" sx={{ color: COLORS.santasGrey }}>
             {timestampToDateFormatted(record.blockTimestamp)}
           </Typography>
 
@@ -58,7 +58,7 @@ export const MobileMarketRecordItem = ({
               bgcolor: COLORS.whiteSmoke,
             }}
           >
-            <Typography variant="text4">
+            <Typography variant="mobText4">
               {trimAddress(record.transactionHash)}
             </Typography>
             <LinkGroup
