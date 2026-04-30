@@ -141,7 +141,7 @@ export const TrendingMarketCardInflow = ({
           variant={isMobile ? "text4Highlighted" : "mobText4SemiBold"}
           sx={{ color: COLORS.white }}
         >
-          {formatBps(apr)} APY
+          {formatBps(apr)}% APY
         </Typography>
       </Box>
       <Typography
