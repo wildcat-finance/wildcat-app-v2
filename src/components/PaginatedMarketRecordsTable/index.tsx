@@ -57,6 +57,10 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
   const [search, setSearch] = useState("")
 
   useEffect(() => {
+    setPageSize(isMobile ? 6 : 10)
+  }, [isMobile])
+
+  useEffect(() => {
     setPage(0)
   }, [selectedFilters])
 

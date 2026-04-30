@@ -132,83 +132,93 @@ export const MarketHeader = ({
               display: "flex",
               flexDirection: "row",
               justifyContent: "space-between",
+              alignItems: "flex-start",
               gap: "8px",
             }}
           >
-            <Box sx={{ display: "flex", gap: "4px" }}>
-              <Typography
-                variant="mobH2"
-                sx={{
-                  maxWidth: "280px",
-                  whiteSpace: "nowrap",
-                  textOverflow: "ellipsis",
-                  overflow: "hidden",
-                }}
-              >
-                {market.name}
-              </Typography>
-              <Typography variant="mobText4">
-                {market.underlyingToken.symbol}
-              </Typography>
-            </Box>
+            <Typography
+              variant="mobH3"
+              sx={{
+                flex: 1,
+                minWidth: 0,
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                wordBreak: "break-word",
+              }}
+            >
+              {market.name}
+            </Typography>
 
             <MobileMoreButton marketAccount={marketAccount} />
           </Box>
 
-          <Link
-            href={`${ROUTES.lender.profile}/${market.borrower}`}
-            style={{ display: "flex", textDecoration: "none" }}
+          <Box
+            sx={{
+              display: "flex",
+              gap: "8px",
+              alignItems: "center",
+              marginTop: "2px",
+            }}
           >
-            <Box
-              sx={{
-                display: "flex",
-                gap: "6px",
-                alignItems: "center",
-                padding: "2px 10px 2px 4px",
-                borderRadius: "12px",
-                bgcolor: COLORS.whiteSmoke,
-                marginTop: "2px",
-              }}
+            <Link
+              href={`${ROUTES.lender.profile}/${market.borrower}`}
+              style={{ display: "flex", textDecoration: "none" }}
             >
-              {profileData ? (
-                <Box
-                  sx={{
-                    width: "16px",
-                    height: "16px",
-                    borderRadius: "50%",
-                    bgcolor: "#4CA6D9",
-
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Typography
-                    variant="mobText4"
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: "6px",
+                  alignItems: "center",
+                  padding: "2px 10px 2px 4px",
+                  borderRadius: "12px",
+                  bgcolor: COLORS.whiteSmoke,
+                }}
+              >
+                {profileData ? (
+                  <Box
                     sx={{
-                      fontSize: "8px",
-                      lineHeight: "8px",
-                      color: COLORS.white,
+                      width: "16px",
+                      height: "16px",
+                      borderRadius: "50%",
+                      bgcolor: "#4CA6D9",
+
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    {String(getBorrowerName())[0]}
-                  </Typography>
-                </Box>
-              ) : (
-                <SvgIcon
-                  sx={{
-                    fontSize: "16px",
-                    "& circle": { fill: "#4CA6D9", opacity: 1 },
-                    "& path": { fill: COLORS.white },
-                  }}
-                >
-                  <Avatar />
-                </SvgIcon>
-              )}
+                    <Typography
+                      variant="mobText4"
+                      sx={{
+                        fontSize: "8px",
+                        lineHeight: "8px",
+                        color: COLORS.white,
+                      }}
+                    >
+                      {String(getBorrowerName())[0]}
+                    </Typography>
+                  </Box>
+                ) : (
+                  <SvgIcon
+                    sx={{
+                      fontSize: "16px",
+                      "& circle": { fill: "#4CA6D9", opacity: 1 },
+                      "& path": { fill: COLORS.white },
+                    }}
+                  >
+                    <Avatar />
+                  </SvgIcon>
+                )}
 
-              <Typography variant="mobText3">{getBorrowerName()}</Typography>
-            </Box>
-          </Link>
+                <Typography variant="mobText3">{getBorrowerName()}</Typography>
+              </Box>
+            </Link>
+            <Typography variant="mobText3" sx={{ color: COLORS.santasGrey }}>
+              {market.underlyingToken.symbol}
+            </Typography>
+          </Box>
         </Box>
 
         <Box
