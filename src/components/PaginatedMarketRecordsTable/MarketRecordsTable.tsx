@@ -8,7 +8,6 @@ import { useTranslation } from "react-i18next"
 import { TableStyles } from "@/app/[locale]/borrower/edit-lenders-list/components/ConfirmLendersForm/style"
 import { useBorrowerNameOrAddress } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MobileMarketRecordItem } from "@/components/Mobile/MobileMarketRecordItem"
-import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
 import { TablePagination } from "@/components/TablePagination"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -34,7 +33,6 @@ export function MarketRecordsTable({
   const name = useBorrowerNameOrAddress(market.borrower)
   const { t } = useTranslation()
   const isMobile = useMobileResolution()
-  const [isMobileOpen, setIsMobileOpen] = React.useState(false)
 
   const lendersName: { [key: string]: string } = JSON.parse(
     localStorage.getItem("lenders-name") || "{}",
@@ -142,25 +140,23 @@ export function MarketRecordsTable({
   if (isMobile) {
     const totalPages = Math.max(1, Math.ceil((rowCount ?? 0) / pageSize))
     const paginationItems = getPaginationRange(page, totalPages)
-    const visibleRecords = isMobileOpen ? records : records?.slice(0, 3)
-    const canExpand = (records?.length ?? 0) > 3 || totalPages > 1
 
     return (
       <Box display="flex" flexDirection="column">
         <Box>
-          {visibleRecords?.map((r, index) => (
+          {records?.map((r, index) => (
             <MobileMarketRecordItem
               key={r.transactionHash + r.eventIndex}
               record={r}
               lenderNames={lendersName}
               borrowerName={name}
               txUrl={getTxUrl(r.transactionHash)}
-              isLast={index === visibleRecords.length - 1}
+              isLast={index === (records?.length ?? 0) - 1}
             />
           ))}
         </Box>
 
-        {isMobileOpen && totalPages > 1 && (
+        {totalPages > 1 && (
           <Box
             sx={{
               display: "flex",
@@ -252,14 +248,6 @@ export function MarketRecordsTable({
               Next
             </Button>
           </Box>
-        )}
-
-        {canExpand && (
-          <SeeMoreButton
-            variant="accordion"
-            isOpen={isMobileOpen}
-            setIsOpen={setIsMobileOpen}
-          />
         )}
       </Box>
     )

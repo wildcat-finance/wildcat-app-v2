@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react"
 import * as React from "react"
 
 import {
@@ -12,8 +12,12 @@ import {
 import { Market, MarketRecordKind } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
+import { useBorrowerNameOrAddress } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import Filter from "@/assets/icons/filter_icon.svg"
 import { FilterTextField } from "@/components/FilterTextfield"
+import { MobileMarketRecordItem } from "@/components/Mobile/MobileMarketRecordItem"
+import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
+import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
@@ -46,9 +50,17 @@ const MarketRecordFilters: CheckboxOption<MarketRecordKind>[] = (
 
 const ALL_KINDS: MarketRecordKind[] = MarketRecordFilters.map((f) => f.value)
 
-export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
+export function PaginatedMarketRecordsTable({
+  market,
+  setIsOpen,
+}: {
+  market: Market
+  setIsOpen?: Dispatch<SetStateAction<boolean>>
+}) {
   const { t } = useTranslation()
   const isMobile = useMobileResolution()
+  const { getTxUrl } = useBlockExplorer({ chainId: market.chainId })
+  const borrowerName = useBorrowerNameOrAddress(market.borrower)
   const [page, setPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)
   const [selectedFilters, setSelectedFilters] = useState<MarketRecordKind[]>(
@@ -184,13 +196,17 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
     </Box>
   )
 
-  if (isMobile) {
+  if (isMobile && setIsOpen) {
+    const lendersName: { [key: string]: string } = JSON.parse(
+      localStorage.getItem("lenders-name") || "{}",
+    )
+    const previewRecords = data?.records?.slice(0, 3)
+
     return (
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: "12px",
           width: "100%",
           backgroundColor: COLORS.white,
           borderRadius: "14px",
@@ -201,12 +217,62 @@ export function PaginatedMarketRecordsTable({ market }: { market: Market }) {
           {t("lenderMarketDetails.sidebar.marketHistory")}
         </Typography>
 
+        <Box sx={{ marginTop: "8px" }}>
+          {isLoading ? (
+            <Box display="flex" flexDirection="column" rowGap="8px">
+              {[0, 1, 2].map((i) => (
+                <Box
+                  key={i}
+                  sx={{
+                    height: "60px",
+                    width: "100%",
+                    backgroundColor: COLORS.athensGrey,
+                    borderRadius: "8px",
+                  }}
+                />
+              ))}
+            </Box>
+          ) : (
+            previewRecords?.map((r, index) => (
+              <MobileMarketRecordItem
+                key={r.transactionHash + r.eventIndex}
+                record={r}
+                lenderNames={lendersName}
+                borrowerName={borrowerName}
+                txUrl={getTxUrl(r.transactionHash)}
+                isLast={index === (previewRecords?.length ?? 0) - 1}
+              />
+            ))
+          )}
+        </Box>
+
+        {(data?.records?.length ?? 0) > 0 && (
+          <SeeMoreButton
+            variant="modal"
+            setIsOpen={setIsOpen}
+            sx={{ marginTop: "16px" }}
+          />
+        )}
+      </Box>
+    )
+  }
+
+  if (isMobile) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+          width: "100%",
+          padding: "12px 16px",
+        }}
+      >
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             gap: "6px",
-            marginTop: "12px",
           }}
         >
           {filterButton}

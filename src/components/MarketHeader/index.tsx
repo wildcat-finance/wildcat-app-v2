@@ -215,9 +215,6 @@ export const MarketHeader = ({
                 <Typography variant="mobText3">{getBorrowerName()}</Typography>
               </Box>
             </Link>
-            <Typography variant="mobText3" sx={{ color: COLORS.santasGrey }}>
-              {market.underlyingToken.symbol}
-            </Typography>
           </Box>
         </Box>
 

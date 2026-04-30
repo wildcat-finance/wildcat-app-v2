@@ -15,6 +15,7 @@ import { MobileMlaAlert } from "@/app/[locale]/lender/market/[address]/component
 import { MobileMlaModal } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaModal/MobileMlaModal"
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
 import { MobileMarketDescriptionModal } from "@/app/[locale]/lender/market/[address]/components/Modals/MobileMarketDescriptionModal"
+import { MobileMarketHistoryModal } from "@/app/[locale]/lender/market/[address]/components/Modals/MobileMarketHistoryModal"
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
@@ -203,6 +204,7 @@ export default function LenderMarketDetails({
   const [isMobileMLAOpen, setIsMobileMLAOpen] = React.useState(false)
   const [isMobileDescriptionOpen, setIsMobileDescriptionOpen] =
     React.useState(false)
+  const [isMobileHistoryOpen, setIsMobileHistoryOpen] = React.useState(false)
   const isMobileWrapperSectionOpen = useAppSelector(
     (state) => state.wrapDebtTokenFlow.isMobileOpenedState,
   )
@@ -365,6 +367,31 @@ export default function LenderMarketDetails({
       </Box>
     )
 
+  if (isMobile && isMobileHistoryOpen)
+    return (
+      <Box>
+        <MobileMarketHistoryModal
+          market={market}
+          setIsMobileHistoryOpen={setIsMobileHistoryOpen}
+        />
+
+        {(authorizedInMarket || isDifferentChain) && (
+          <MobileMarketActions
+            marketAccount={marketAccount}
+            withdrawals={withdrawals}
+            isMobileDepositOpen={isMobileDepositOpen}
+            isMobileWithdrawalOpen={isMobileWithdrawalOpen}
+            setIsMobileDepositOpen={setIsMobileDepositOpen}
+            setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
+            isMLAOpen={isMobileMLAOpen}
+            setIsMLAOpen={setIsMobileMLAOpen}
+          />
+        )}
+
+        <Footer showFooter={false} />
+      </Box>
+    )
+
   if (isMobile && isMobileWrapperSectionOpen)
     return (
       <>
@@ -436,7 +463,10 @@ export default function LenderMarketDetails({
           </Box>
 
           <Box id="marketHistory">
-            <PaginatedMarketRecordsTable market={market} />
+            <PaginatedMarketRecordsTable
+              market={market}
+              setIsOpen={setIsMobileHistoryOpen}
+            />
           </Box>
 
           <Box id="mla">
