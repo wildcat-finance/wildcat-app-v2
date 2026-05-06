@@ -10,6 +10,7 @@
     "storybook:build": "storybook build",
     "lint:errors": "next lint --quiet",
     "lint": "next lint",
+    "test:scrollbars": "node scripts/check-dashboard-scrollbars.js",
     "test": "jest",
     "prepare": "husky"
   },

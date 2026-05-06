@@ -135,7 +135,7 @@ export default function BorrowerPage() {
     <Box
       sx={{
         padding: "32px 0 0",
-        overflow: "hidden",
+        overflowX: "clip",
       }}
     >
       {section === BorrowerDashboardSections.MARKETS && <MarketsSection />}

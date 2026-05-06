@@ -65,7 +65,7 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="//docs.google.com" />
         <link rel="preconnect" href="https://t.me" crossOrigin="anonymous" />
       </head>
-      <body className={inter.className} style={{ height: "100dvh" }}>
+      <body className={inter.className} style={{ minHeight: "100dvh" }}>
         <Toaster position="bottom-center" />
         <WagmiQueryProviders initialState={initialState}>
           <SafeProvider>

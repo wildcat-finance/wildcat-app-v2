@@ -22,10 +22,9 @@ import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
+import { setScrollTarget } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
-import { pageCalcHeights } from "@/utils/constants"
 import {
   buildMarketHref,
   formatBps,
@@ -293,10 +292,7 @@ export const BorrowerTerminatedMarketsTables = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: `calc(100vh - ${pageCalcHeights.dashboard})`,
         width: "100%",
-        overflow: "auto",
-        overflowY: "auto",
         gap: "16px",
         marginTop: "24px",
         paddingBottom: "26px",

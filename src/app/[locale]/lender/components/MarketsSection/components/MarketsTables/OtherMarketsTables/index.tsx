@@ -33,13 +33,12 @@ import { TablePagination } from "@/components/TablePagination"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
+import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import {
   statusComparator,
   tokenAmountComparator,
   typeComparator,
 } from "@/utils/comparators"
-import { pageCalcHeights } from "@/utils/constants"
 import {
   buildMarketHref,
   formatBps,
@@ -427,10 +426,7 @@ export const OtherMarketsTables = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: `calc(100vh - ${pageCalcHeights.dashboard})`,
         width: "100%",
-        overflow: "auto",
-        overflowY: "auto",
         gap: "16px",
         marginTop: "24px",
         paddingBottom: "26px",

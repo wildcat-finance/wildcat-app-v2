@@ -21,18 +21,21 @@ import { TelegramBanner } from "../TelegramBanner"
 export const Sidebar = () => {
   const pathname = usePathname()
   const theme = useTheme()
+  const isDashboardRoot =
+    pathname === ROUTES.lender.root || pathname === ROUTES.borrower.root
 
   return (
     <Box
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: "calc(100vh - 82px)",
+        height: isDashboardRoot ? "auto" : "calc(100vh - 82px)",
+        minHeight: isDashboardRoot ? "calc(100dvh - 82px)" : undefined,
         minWidth: "267px",
         width: "267px",
         borderRight: `1px solid ${COLORS.blackRock006}`,
-        overflow: "hidden",
-        overflowY: "auto",
+        overflow: isDashboardRoot ? "visible" : "hidden",
+        overflowY: isDashboardRoot ? "visible" : "auto",
         [theme.breakpoints.down("md")]: {
           display: "none",
         },

@@ -34,13 +34,13 @@ export const PageContainer = {
 }
 
 export const ContentContainer = {
-  height: "calc(100vh - 82px)",
+  minHeight: "calc(100dvh - 82px)",
   width: "100%",
   display: "flex",
   flexDirection: "row",
 
   "@media (max-width: 1000px)": {
-    height: "calc(100dvh - 68px)",
+    minHeight: "calc(100dvh - 68px)",
     paddingX: "4px",
     paddingBottom: "4px",
   },

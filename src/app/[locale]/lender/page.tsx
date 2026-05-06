@@ -13,7 +13,7 @@ export default function Lender() {
         display: "flex",
         flexDirection: "column",
         paddingTop: { xs: "0px", md: "32px" },
-        overflow: "hidden",
+        overflowX: "clip",
       }}
     >
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
