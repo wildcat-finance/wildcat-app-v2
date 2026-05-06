@@ -8,6 +8,7 @@ import { Market, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { buildMarketHref, formatBps, trimAddress } from "@/utils/formatters"
@@ -41,6 +42,7 @@ type MarketCardData = {
   badgeBgcolor: string
   badgeColor: string
   badgeText: string
+  isMobile?: boolean
 }
 
 const MarketCard = ({
@@ -56,43 +58,44 @@ const MarketCard = ({
   badgeBgcolor,
   badgeColor,
   badgeText,
+  isMobile,
 }: MarketCardData) => (
   <Box
     sx={{
       position: "relative",
-      pt: "44px",
+      // pt: "44px",
       height: "100%",
       display: "flex",
       flexDirection: "column",
     }}
   >
-    <Box
-      sx={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 1,
-        bgcolor: badgeBgcolor,
-        borderRadius: "20px",
-        px: "24px",
-        py: "8px",
-        display: "flex",
-        alignItems: "flex-start",
-      }}
-    >
-      <Typography
-        sx={{
-          color: badgeColor,
-          fontSize: "18px",
-          fontWeight: 500,
-          lineHeight: "32px",
-        }}
-      >
-        {badgeText}
-      </Typography>
-    </Box>
+    {/* <Box */}
+    {/*  sx={{ */}
+    {/*    position: "absolute", */}
+    {/*    top: 0, */}
+    {/*    left: 0, */}
+    {/*    right: 0, */}
+    {/*    bottom: 0, */}
+    {/*    zIndex: 1, */}
+    {/*    bgcolor: badgeBgcolor, */}
+    {/*    borderRadius: "20px", */}
+    {/*    px: "24px", */}
+    {/*    py: "8px", */}
+    {/*    display: "flex", */}
+    {/*    alignItems: "flex-start", */}
+    {/*  }} */}
+    {/* > */}
+    {/*  <Typography */}
+    {/*    sx={{ */}
+    {/*      color: badgeColor, */}
+    {/*      fontSize: "16px", */}
+    {/*      fontWeight: 500, */}
+    {/*      lineHeight: "32px", */}
+    {/*    }} */}
+    {/*  > */}
+    {/*    {badgeText} */}
+    {/*  </Typography> */}
+    {/* </Box> */}
 
     <Box
       sx={{
@@ -102,124 +105,125 @@ const MarketCard = ({
         bgcolor: COLORS.white,
         border: `1px solid ${COLORS.whiteLilac}`,
         borderRadius: "20px",
-        p: "24px",
+        p: isMobile ? "16px" : "24px",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
         gap: "8px",
       }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          pb: "20px",
-        }}
-      >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: "10px",
+          }}
+        >
           <Typography
             sx={{
-              fontSize: "24px",
-              fontWeight: 700,
-              lineHeight: "32px",
-              letterSpacing: "-0.48px",
+              fontSize: "18px",
+              fontWeight: 600,
+              lineHeight: isMobile ? "24px" : "28px",
+              letterSpacing: "0",
             }}
           >
             {name}
           </Typography>
 
-          {borrowerAddress && (
+          <Box sx={{ display: "flex", gap: "4px", flexShrink: 0 }}>
             <Box
               sx={{
-                width: "fit-content",
-                display: "flex",
-                p: "0 8px 0 4px",
-                borderRadius: "12px",
-                alignItems: "center",
-                gap: "6px",
                 bgcolor: COLORS.whiteSmoke,
+                borderRadius: "20px",
+                px: "8px",
+                py: "2px",
+                display: "flex",
+                alignItems: "center",
               }}
             >
-              <Box
-                sx={{
-                  width: "16px",
-                  height: "16px",
-                  borderRadius: "50%",
-                  bgcolor: "#4CA6D9",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flex: "0 0 auto",
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontSize: "8px",
-                    color: COLORS.white,
-                    textAlign: "center",
-                  }}
-                >
-                  {borrower?.startsWith("0") ? "W" : borrower?.trim()?.[0]}
-                </Typography>
-              </Box>
               <Typography
                 sx={{
-                  fontSize: "16px",
+                  color: COLORS.blackRock,
+                  fontSize: isMobile ? "14px" : "16px",
                   fontWeight: 500,
                   lineHeight: "24px",
                 }}
               >
-                {borrower}
+                {asset}
               </Typography>
             </Box>
-          )}
+            <Box
+              sx={{
+                bgcolor: COLORS.whiteSmoke,
+                borderRadius: "20px",
+                px: "8px",
+                py: "2px",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  color: COLORS.blackRock,
+                  fontSize: isMobile ? "14px" : "16px",
+                  fontWeight: 500,
+                  lineHeight: "24px",
+                }}
+              >
+                {formatBps(apr)}% APY
+              </Typography>
+            </Box>
+          </Box>
         </Box>
 
-        <Box sx={{ display: "flex", gap: "4px", flexShrink: 0, pt: "4px" }}>
+        {borrowerAddress && (
           <Box
             sx={{
-              bgcolor: COLORS.whiteSmoke,
-              borderRadius: "20px",
-              px: "8px",
-              py: "2px",
+              width: "fit-content",
               display: "flex",
-              alignItems: "center",
+              p: "0 8px 0 4px",
+              borderRadius: "12px",
+              alignItems: "flex-start",
+              gap: "6px",
+              bgcolor: COLORS.whiteSmoke,
             }}
           >
+            <Box
+              sx={{
+                width: "16px",
+                height: "16px",
+                borderRadius: "50%",
+                bgcolor: "#4CA6D9",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flex: "0 0 auto",
+                mt: "4px",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "8px",
+                  color: COLORS.white,
+                  textAlign: "center",
+                }}
+              >
+                {borrower?.startsWith("0") ? "W" : borrower?.trim()?.[0]}
+              </Typography>
+            </Box>
             <Typography
               sx={{
-                color: COLORS.blackRock,
-                fontSize: "16px",
+                fontSize: isMobile ? "14px" : "16px",
                 fontWeight: 500,
                 lineHeight: "24px",
               }}
             >
-              {asset}
+              {borrower}
             </Typography>
           </Box>
-          <Box
-            sx={{
-              bgcolor: COLORS.whiteSmoke,
-              borderRadius: "20px",
-              px: "8px",
-              py: "2px",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <Typography
-              sx={{
-                color: COLORS.blackRock,
-                fontSize: "16px",
-                fontWeight: 500,
-                lineHeight: "24px",
-              }}
-            >
-              {formatBps(apr)}% APY
-            </Typography>
-          </Box>
-        </Box>
+        )}
       </Box>
 
       <Box
@@ -227,14 +231,15 @@ const MarketCard = ({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          pt: "20px",
         }}
       >
         <Typography
           sx={{
             color: "#858593",
-            fontSize: "18px",
+            fontSize: isMobile ? "14px" : "16px",
             fontWeight: 500,
-            lineHeight: "32px",
+            lineHeight: "24px",
           }}
         >
           {formatCompact(totalSupply)} / {formatCompact(maxTotalSupply)}{" "}
@@ -243,7 +248,11 @@ const MarketCard = ({
 
         <Box
           component={Link}
-          href={buildMarketHref(id, chainId)}
+          href={buildMarketHref(
+            id,
+            chainId,
+            "https://app.wildcat.finance/lender",
+          )}
           sx={{
             bgcolor: "#121212",
             borderRadius: "12px",
@@ -257,7 +266,12 @@ const MarketCard = ({
         >
           <Typography
             variant="text1"
-            sx={{ color: COLORS.white, fontWeight: 600, whiteSpace: "nowrap" }}
+            sx={{
+              color: COLORS.white,
+              fontWeight: 600,
+              whiteSpace: "nowrap",
+              fontSize: isMobile ? "12px" : "16px",
+            }}
           >
             Go to market
           </Typography>
@@ -280,6 +294,7 @@ export const TopMarketsSectionNew = ({
   isLoading,
   badges,
 }: TopMarketsSectionNewProps) => {
+  const isMobile = useMobileResolution()
   const [sortMode, setSortMode] = useState<SortOption>("Highest Yield")
 
   const { topMarkets, defaultBadges } = useMemo(() => {
@@ -343,26 +358,6 @@ export const TopMarketsSectionNew = ({
 
   return (
     <Box sx={{ width: "100%", bgcolor: COLORS.white, py: "60px" }}>
-      <Box sx={{ textAlign: "center", mb: "40px" }}>
-        <Typography
-          variant="title3"
-          sx={{ color: "#4971FF", display: "block", mb: "8px" }}
-        >
-          Explore
-        </Typography>
-        <Typography
-          sx={{
-            fontSize: "54px",
-            fontWeight: 700,
-            lineHeight: "64px",
-            letterSpacing: "-1.08px",
-            color: COLORS.blackRock,
-          }}
-        >
-          Top Markets
-        </Typography>
-      </Box>
-
       <Box
         sx={{
           display: "flex",
@@ -371,7 +366,14 @@ export const TopMarketsSectionNew = ({
           mb: "53px",
         }}
       >
-        <Box sx={{ display: "flex", gap: "4px", alignItems: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            gap: "4px",
+            alignItems: "center",
+          }}
+        >
           {SORT_OPTIONS.map((option) => (
             <Box
               key={option}
@@ -418,11 +420,7 @@ export const TopMarketsSectionNew = ({
               >
                 <Skeleton
                   variant="rectangular"
-                  sx={{ height: "80px", borderRadius: "20px" }}
-                />
-                <Skeleton
-                  variant="rectangular"
-                  sx={{ height: "188px", borderRadius: "20px" }}
+                  sx={{ height: "214px", borderRadius: "20px" }}
                 />
               </Box>
             ))
@@ -431,13 +429,14 @@ export const TopMarketsSectionNew = ({
                 key={market.id}
                 {...market}
                 badgeText={displayBadges[index]}
+                isMobile={isMobile}
               />
             ))}
       </Box>
 
       <Box
         component={Link}
-        href={ROUTES.lender.allMarkets}
+        href="https://app.wildcat.finance/lender"
         sx={{
           mt: "24px",
           mx: "auto",
