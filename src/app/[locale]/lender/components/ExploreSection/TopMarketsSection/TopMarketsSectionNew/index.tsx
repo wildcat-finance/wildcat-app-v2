@@ -248,6 +248,7 @@ const MarketCard = ({
 
         <Box
           component={Link}
+          target="_blank"
           href={buildMarketHref(
             id,
             chainId,
@@ -435,6 +436,7 @@ export const TopMarketsSectionNew = ({
 
       <Box
         component={Link}
+        target="_blank"
         href="https://app.wildcat.finance/lender"
         sx={{
           mt: "24px",
