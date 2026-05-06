@@ -194,6 +194,7 @@ export default function LandingStatsEmbedPage() {
     const ro = new ResizeObserver(postHeight)
     ro.observe(container)
 
+    // eslint-disable-next-line consistent-return
     return () => ro.disconnect()
   }, [])
 
