@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useEffect } from "react"
 
 import { Alert, Box, Skeleton, Stack, Typography } from "@mui/material"
 
@@ -178,6 +178,25 @@ function formatCountDelta(n: number, period: string) {
 
 export default function LandingStatsEmbedPage() {
   const { data, isLoading, error } = useLandingStats()
+
+  useEffect(() => {
+    const postHeight = () => {
+      const height = document.documentElement.scrollHeight
+      window.parent.postMessage({ type: "iframe-height", height }, "*")
+    }
+
+    window.addEventListener("load", postHeight)
+
+    const ro = new ResizeObserver(postHeight)
+    ro.observe(document.body)
+
+    postHeight()
+
+    return () => {
+      window.removeEventListener("load", postHeight)
+      ro.disconnect()
+    }
+  }, [])
 
   if (error) {
     return (
