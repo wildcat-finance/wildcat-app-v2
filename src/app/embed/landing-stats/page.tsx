@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect } from "react"
+import React, { useEffect, useRef } from "react"
 
 import { Alert, Box, Skeleton, Stack, Typography } from "@mui/material"
 
@@ -178,24 +178,23 @@ function formatCountDelta(n: number, period: string) {
 
 export default function LandingStatsEmbedPage() {
   const { data, isLoading, error } = useLandingStats()
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const postHeight = () => {
-      const height = document.documentElement.scrollHeight
-      window.parent.postMessage({ type: "iframe-height", height }, "*")
-    }
+    const container = containerRef.current
+    if (!container) return
 
-    window.addEventListener("load", postHeight)
+    const postHeight = () => {
+      window.parent.postMessage(
+        { type: "iframe-height", height: container.offsetHeight },
+        "*",
+      )
+    }
 
     const ro = new ResizeObserver(postHeight)
-    ro.observe(document.body)
+    ro.observe(container)
 
-    postHeight()
-
-    return () => {
-      window.removeEventListener("load", postHeight)
-      ro.disconnect()
-    }
+    return () => ro.disconnect()
   }, [])
 
   if (error) {
@@ -265,6 +264,7 @@ export default function LandingStatsEmbedPage() {
 
   return (
     <Box
+      ref={containerRef}
       sx={{
         maxWidth: "1440px",
         mx: "auto",

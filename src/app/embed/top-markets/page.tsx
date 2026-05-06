@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 
 import { TopMarketsSectionNew } from "@/app/[locale]/lender/components/ExploreSection/TopMarketsSection/TopMarketsSectionNew"
 
@@ -8,31 +8,32 @@ import { useEmbedMarkets } from "../hooks/useEmbedMarkets"
 
 export default function TopMarketsEmbedPage() {
   const { markets, borrowers, isLoading } = useEmbedMarkets()
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const postHeight = () => {
-      const height = document.documentElement.scrollHeight
-      window.parent.postMessage({ type: "iframe-height", height }, "*")
-    }
+    const container = containerRef.current
+    if (!container) return
 
-    window.addEventListener("load", postHeight)
+    const postHeight = () => {
+      window.parent.postMessage(
+        { type: "iframe-height", height: container.offsetHeight },
+        "*",
+      )
+    }
 
     const ro = new ResizeObserver(postHeight)
-    ro.observe(document.body)
+    ro.observe(container)
 
-    postHeight()
-
-    return () => {
-      window.removeEventListener("load", postHeight)
-      ro.disconnect()
-    }
+    return () => ro.disconnect()
   }, [])
 
   return (
-    <TopMarketsSectionNew
-      markets={markets}
-      borrowers={borrowers}
-      isLoading={isLoading}
-    />
+    <div ref={containerRef}>
+      <TopMarketsSectionNew
+        markets={markets}
+        borrowers={borrowers}
+        isLoading={isLoading}
+      />
+    </div>
   )
 }
