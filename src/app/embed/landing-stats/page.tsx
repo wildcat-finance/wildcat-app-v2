@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef } from "react"
+import React from "react"
 
 import { Alert, Box, Skeleton, Stack, Typography } from "@mui/material"
 
@@ -15,6 +15,7 @@ import marketsMobSrc from "../assets/markets-mob_illus.svg?url"
 import marketsSrc from "../assets/markets_illus.svg?url"
 import tvlMobSrc from "../assets/tvl-mob_illus.svg?url"
 import tvlSrc from "../assets/tvl_illus.svg?url"
+import { useIframeHeight } from "../hooks/useIframeHeight"
 
 const COLORS = {
   cardBg: "#f8f8fa",
@@ -178,25 +179,7 @@ function formatCountDelta(n: number, period: string) {
 
 export default function LandingStatsEmbedPage() {
   const { data, isLoading, error } = useLandingStats()
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-
-    const postHeight = () => {
-      window.parent.postMessage(
-        { type: "iframe-height", height: container.offsetHeight },
-        "*",
-      )
-    }
-
-    const ro = new ResizeObserver(postHeight)
-    ro.observe(container)
-
-    // eslint-disable-next-line consistent-return
-    return () => ro.disconnect()
-  }, [])
+  const containerRef = useIframeHeight()
 
   if (error) {
     return (

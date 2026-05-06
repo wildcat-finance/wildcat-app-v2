@@ -391,7 +391,8 @@ export const TopMarketsSectionNew = ({
                 alignItems: "center",
                 justifyContent: "center",
                 px: "16px",
-                py: sortMode === option ? "8px" : "6px",
+                // eslint-disable-next-line no-nested-ternary
+                py: isMobile ? 0 : sortMode === option ? "8px" : "6px",
                 borderRadius: "20px",
                 bgcolor: sortMode === option ? "#4971FF" : "transparent",
                 cursor: "pointer",
@@ -400,6 +401,7 @@ export const TopMarketsSectionNew = ({
               <Typography
                 variant="text1"
                 sx={{
+                  fontSize: isMobile ? "12px" : "16px",
                   color: sortMode === option ? COLORS.white : COLORS.blackRock,
                   fontWeight: 600,
                   whiteSpace: "nowrap",
