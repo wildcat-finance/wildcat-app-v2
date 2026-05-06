@@ -12,6 +12,7 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { buildMarketHref, formatBps, trimAddress } from "@/utils/formatters"
+import { isExploreVisible } from "@/utils/marketStatus"
 
 const SORT_OPTIONS = ["Highest Yield", "Most Funded", "Most Liquid"] as const
 type SortOption = (typeof SORT_OPTIONS)[number]
@@ -252,7 +253,7 @@ const MarketCard = ({
           href={buildMarketHref(
             id,
             chainId,
-            "https://app.wildcat.finance/lender",
+            "https://app.wildcat.finance/lender/market",
           )}
           sx={{
             bgcolor: "#121212",
@@ -299,7 +300,7 @@ export const TopMarketsSectionNew = ({
   const [sortMode, setSortMode] = useState<SortOption>("Highest Yield")
 
   const { topMarkets, defaultBadges } = useMemo(() => {
-    const active = markets.filter((m) => !m.isClosed)
+    const active = markets.filter((m) => isExploreVisible(m))
 
     const sorted = [...active].sort((a, b) => {
       if (sortMode === "Highest Yield") {
