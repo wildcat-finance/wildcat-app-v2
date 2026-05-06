@@ -357,7 +357,7 @@ export const TopMarketsSectionNew = ({
   const displayBadges = badges ?? defaultBadges
 
   return (
-    <Box sx={{ width: "100%", bgcolor: COLORS.white, py: "60px" }}>
+    <Box sx={{ width: "100%", bgcolor: COLORS.white }}>
       <Box
         sx={{
           display: "flex",
