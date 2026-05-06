@@ -63,39 +63,39 @@ const MarketCard = ({
   <Box
     sx={{
       position: "relative",
-      // pt: "44px",
+      pt: "44px",
       height: "100%",
       display: "flex",
       flexDirection: "column",
     }}
   >
-    {/* <Box */}
-    {/*  sx={{ */}
-    {/*    position: "absolute", */}
-    {/*    top: 0, */}
-    {/*    left: 0, */}
-    {/*    right: 0, */}
-    {/*    bottom: 0, */}
-    {/*    zIndex: 1, */}
-    {/*    bgcolor: badgeBgcolor, */}
-    {/*    borderRadius: "20px", */}
-    {/*    px: "24px", */}
-    {/*    py: "8px", */}
-    {/*    display: "flex", */}
-    {/*    alignItems: "flex-start", */}
-    {/*  }} */}
-    {/* > */}
-    {/*  <Typography */}
-    {/*    sx={{ */}
-    {/*      color: badgeColor, */}
-    {/*      fontSize: "16px", */}
-    {/*      fontWeight: 500, */}
-    {/*      lineHeight: "32px", */}
-    {/*    }} */}
-    {/*  > */}
-    {/*    {badgeText} */}
-    {/*  </Typography> */}
-    {/* </Box> */}
+    <Box
+      sx={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 1,
+        bgcolor: badgeBgcolor,
+        borderRadius: "20px",
+        px: "24px",
+        py: "8px",
+        display: "flex",
+        alignItems: "flex-start",
+      }}
+    >
+      <Typography
+        sx={{
+          color: badgeColor,
+          fontSize: "16px",
+          fontWeight: 500,
+          lineHeight: "32px",
+        }}
+      >
+        {badgeText}
+      </Typography>
+    </Box>
 
     <Box
       sx={{
@@ -337,7 +337,15 @@ export const TopMarketsSectionNew = ({
         maxTotalSupply: market.maxTotalSupply,
         badgeBgcolor: BADGE_STYLES[index].bgcolor,
         badgeColor: BADGE_STYLES[index].color,
-        badgeText: "",
+        badgeText:
+          // eslint-disable-next-line no-nested-ternary
+          sortMode === "Highest Yield"
+            ? `Top ${index + 1}: ${formatBps(market.annualInterestBips)}% APY`
+            : sortMode === "Most Funded"
+              ? `Top ${index + 1}: ${formatCompact(market.totalSupply)} funded`
+              : `Top ${index + 1}: ${formatCompact(
+                  market.maxTotalSupply.sub(market.totalSupply),
+                )} available`,
       }
     })
 
@@ -420,17 +428,12 @@ export const TopMarketsSectionNew = ({
               >
                 <Skeleton
                   variant="rectangular"
-                  sx={{ height: "214px", borderRadius: "20px" }}
+                  sx={{ height: "258px", borderRadius: "20px" }}
                 />
               </Box>
             ))
-          : topMarkets.map((market, index) => (
-              <MarketCard
-                key={market.id}
-                {...market}
-                badgeText={displayBadges[index]}
-                isMobile={isMobile}
-              />
+          : topMarkets.map((market) => (
+              <MarketCard key={market.id} {...market} isMobile={isMobile} />
             ))}
       </Box>
 

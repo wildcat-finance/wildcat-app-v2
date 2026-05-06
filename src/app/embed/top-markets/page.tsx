@@ -29,7 +29,7 @@ export default function TopMarketsEmbedPage() {
   }, [])
 
   return (
-    <div ref={containerRef}>
+    <div ref={containerRef} style={{ paddingBottom: "24px" }}>
       <TopMarketsSectionNew
         markets={markets}
         borrowers={borrowers}
