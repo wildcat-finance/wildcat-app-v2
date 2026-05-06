@@ -369,7 +369,6 @@ export const TopMarketsSectionNew = ({
         <Box
           sx={{
             display: "flex",
-            flexDirection: isMobile ? "column" : "row",
             gap: "4px",
             alignItems: "center",
           }}
@@ -407,9 +406,9 @@ export const TopMarketsSectionNew = ({
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
           gap: "18px",
-          px: "80px",
+          px: { xs: "16px", md: "80px" },
         }}
       >
         {isLoading
