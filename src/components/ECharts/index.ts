@@ -2,6 +2,7 @@ export { CategoryBarChart } from "./CategoryBarChart"
 export { DonutChart } from "./DonutChart"
 export { EChart } from "./EChart"
 export { TimeSeriesChart } from "./TimeSeriesChart"
+export { TreemapChart } from "./TreemapChart"
 export {
   formatAxisDate,
   formatChartDate,
@@ -20,4 +21,5 @@ export type {
   DonutChartItem,
   EChartOption,
   TimeSeriesConfig,
+  TreemapChartItem,
 } from "./types"

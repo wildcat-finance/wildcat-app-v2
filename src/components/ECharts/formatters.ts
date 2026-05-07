@@ -34,8 +34,8 @@ export const formatAxisDate = (timestampMs: number) => {
   })
 }
 
-export const escapeHtml = (value: string) =>
-  value
+export const escapeHtml = (value: string | number | null | undefined) =>
+  String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")

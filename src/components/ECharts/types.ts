@@ -61,3 +61,16 @@ export type DonutChartItem = {
     value: string
   }>
 }
+
+export type TreemapChartItem = {
+  name: string
+  displayName: string
+  value: number
+  rawValue?: number
+  color?: string
+  tooltipRows?: Array<{
+    label: string
+    value: string
+    color?: string
+  }>
+}

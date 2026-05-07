@@ -2,7 +2,14 @@
 
 import * as React from "react"
 
-import { Box, Dialog, IconButton, Typography } from "@mui/material"
+import {
+  Box,
+  Dialog,
+  IconButton,
+  SxProps,
+  Theme,
+  Typography,
+} from "@mui/material"
 
 import Expand from "@/assets/icons/expand_icon.svg"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -26,6 +33,7 @@ type AnalyticsChartCardProps = {
   cardHeight?: number
   dialogHeight?: number
   constrainWidth?: boolean
+  cardSx?: SxProps<Theme>
   children: (args: { isExpanded: boolean }) => React.ReactNode
 }
 
@@ -52,6 +60,7 @@ export const AnalyticsChartCard = ({
   cardHeight = 220,
   dialogHeight = 520,
   constrainWidth = false,
+  cardSx,
   children,
 }: AnalyticsChartCardProps) => {
   const [isExpanded, setIsExpanded] = React.useState(false)
@@ -64,6 +73,10 @@ export const AnalyticsChartCard = ({
     isMobile && typeof dialogHeight === "number"
       ? "calc(100dvh - 132px)"
       : dialogHeight
+  const cardSxArray = React.useMemo(() => {
+    if (!cardSx) return []
+    return Array.isArray(cardSx) ? cardSx : [cardSx]
+  }, [cardSx])
 
   const descriptionNode = description ? (
     <Typography variant="text4" sx={ChartDescriptionStyle}>
@@ -80,10 +93,12 @@ export const AnalyticsChartCard = ({
                 ChartCardStyle,
                 ProfileChartContainerStyle,
                 { padding: { xs: "14px 12px 12px", md: "16px 20px 12px" } },
+                ...cardSxArray,
               ]
             : [
                 ChartCardStyle,
                 { padding: { xs: "14px 12px 12px", md: "16px 20px 12px" } },
+                ...cardSxArray,
               ]
         }
       >
@@ -95,7 +110,16 @@ export const AnalyticsChartCard = ({
             {title}
           </Typography>
 
-          <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: "6px",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              marginLeft: "auto",
+              flexShrink: 0,
+            }}
+          >
             {actions}
             <IconButton
               onClick={() => setIsExpanded(true)}
@@ -158,7 +182,16 @@ export const AnalyticsChartCard = ({
               {title}
             </Typography>
 
-            <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
+            <Box
+              sx={{
+                display: "flex",
+                gap: "6px",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                marginLeft: "auto",
+                flexShrink: 0,
+              }}
+            >
               {actions}
               <IconButton
                 onClick={() => setIsExpanded(false)}

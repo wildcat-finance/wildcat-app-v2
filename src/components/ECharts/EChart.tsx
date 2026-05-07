@@ -9,6 +9,7 @@ import {
   LineChart,
   PieChart,
   ScatterChart,
+  TreemapChart,
 } from "echarts/charts"
 import {
   DataZoomComponent,
@@ -35,6 +36,7 @@ echarts.use([
   LineChart,
   PieChart,
   ScatterChart,
+  TreemapChart,
   GridComponent,
   TooltipComponent,
   LegendComponent,
@@ -52,6 +54,8 @@ type EChartProps = {
   height?: number | string
   ariaLabel?: string
   onReady?: (instance: echarts.ECharts | null) => void
+  onOptionApplied?: (instance: echarts.ECharts) => void
+  lazyUpdate?: boolean
   showExportActions?: boolean
   exportButtonVariant?: "icon" | "text"
   csvContent?: string
@@ -112,6 +116,8 @@ export const EChart = ({
   height = "100%",
   ariaLabel,
   onReady,
+  onOptionApplied,
+  lazyUpdate = true,
   showExportActions = false,
   exportButtonVariant = "icon",
   csvContent,
@@ -178,9 +184,10 @@ export const EChart = ({
 
     instance.setOption(nextOption, {
       notMerge: true,
-      lazyUpdate: true,
+      lazyUpdate,
     })
-  }, [option])
+    onOptionApplied?.(instance)
+  }, [lazyUpdate, onOptionApplied, option])
 
   const download = React.useCallback((href: string, fileName: string) => {
     const link = document.createElement("a")

@@ -20,6 +20,7 @@ import {
   DonutChartItem,
   EChartOption,
   TimeSeriesConfig,
+  TreemapChartItem,
 } from "./types"
 
 type TooltipParam = Parameters<ChartTooltipFormatter>[0][number]
@@ -627,6 +628,84 @@ export const buildDonutOption = ({
         name: item.name,
         value: item.value,
         itemStyle: { color: item.color ?? colors[index % colors.length] },
+      })),
+    },
+  ],
+})
+
+export const buildTreemapOption = ({
+  data,
+}: {
+  data: TreemapChartItem[]
+}): EChartOption => ({
+  animation: false,
+  tooltip: {
+    ...baseTooltip,
+    trigger: "item",
+    formatter: (param: TooltipParam) => {
+      const item = param.data as TreemapChartItem | undefined
+      const rows = (item?.tooltipRows ?? [])
+        .map((row) =>
+          tooltipRow({
+            color: row.color ?? String(param.color ?? CHART_PALETTE.ui.axis),
+            label: row.label,
+            value: row.value,
+          }),
+        )
+        .join("")
+
+      return tooltipShell(item?.displayName ?? String(param.name ?? ""), rows)
+    },
+  },
+  series: [
+    {
+      type: "treemap",
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      roam: false,
+      nodeClick: false,
+      breadcrumb: { show: false },
+      sort: "desc",
+      visibleMin: 0,
+      childrenVisibleMin: 0,
+      itemStyle: {
+        borderColor: COLORS.white,
+        borderWidth: 3,
+        gapWidth: 3,
+      },
+      label: {
+        show: true,
+        align: "center",
+        verticalAlign: "middle",
+        color: COLORS.blackRock,
+        fontFamily: "inherit",
+        fontSize: 12,
+        fontWeight: 500,
+        lineHeight: 18,
+        overflow: "truncate",
+        ellipsis: "...",
+      },
+      upperLabel: {
+        show: false,
+      },
+      emphasis: {
+        scale: false,
+        itemStyle: {
+          borderColor: COLORS.white,
+          borderWidth: 3,
+        },
+        label: {
+          color: COLORS.blackRock,
+          fontWeight: 600,
+        },
+      },
+      data: data.map((item) => ({
+        ...item,
+        itemStyle: {
+          color: item.color ?? CHART_PALETTE.semantic.neutral,
+        },
       })),
     },
   ],
