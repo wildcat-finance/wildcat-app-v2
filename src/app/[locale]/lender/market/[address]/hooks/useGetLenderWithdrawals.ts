@@ -5,7 +5,7 @@ import { useMemo } from "react"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   Market,
-  getLensV2Contract,
+  getLatestLensContract,
   WithdrawalBatch,
   LenderWithdrawalStatus,
   TokenAmount,
@@ -156,7 +156,7 @@ export function useGetLenderWithdrawals(
   async function updateWithdrawals() {
     logger.debug(`Updating withdrawals...`)
     if (!lender || !market || !marketAddress) throw Error()
-    const lens = getLensV2Contract(market.chainId, market.provider)
+    const lens = getLatestLensContract(market.chainId, market.provider)
     const incompleteWithdrawals = [
       ...(withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []),
       ...(withdrawals.expiredPendingWithdrawals ?? []),

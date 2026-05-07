@@ -1,14 +1,9 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
-import {
-  DepositStatus,
-  MarketAccount,
-  MarketVersion,
-  TokenAmount,
-} from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -19,6 +14,7 @@ import {
 import { DataGridSx } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/style"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import { MarketImplementationChip } from "@/components/@extended/MarketImplementationChip"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import {
@@ -33,6 +29,7 @@ import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import {
+  implementationComparator,
   statusComparator,
   tokenAmountComparator,
   typeComparator,
@@ -45,12 +42,15 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import { isSelfOnboardMarketAccount } from "@/utils/marketCapabilities"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 export type OtherMarketsTableModel = {
   id: string
   chainId?: number
+  implementationType: ReturnType<typeof getMarketImplementationType>
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
@@ -122,11 +122,13 @@ export const OtherMarketsTables = ({
         : trimAddress(borrowerAddress)
 
       const marketStatus = getMarketStatusChip(market)
+      const implementationType = getMarketImplementationType(market)
       const marketType = getMarketTypeChip(market)
 
       return {
         id: address,
         chainId,
+        implementationType,
         status: marketStatus,
         term: marketType,
         name,
@@ -138,10 +140,7 @@ export const OtherMarketsTables = ({
         borrowable: borrowableAssets,
         debt: totalSupply,
         withdrawalBatchDuration,
-        isSelfOnboard:
-          !account.hasEverInteracted &&
-          market.version === MarketVersion.V2 &&
-          account.depositAvailability === DepositStatus.Ready,
+        isSelfOnboard: isSelfOnboardMarketAccount(account),
       }
     },
   )
@@ -229,6 +228,35 @@ export const OtherMarketsTables = ({
         >
           <Box width="120px">
             <MarketStatusChip status={params.value} />
+          </Box>
+        </Link>
+      ),
+    },
+    {
+      field: "implementationType",
+      headerName: t("dashboard.markets.tables.header.type"),
+      minWidth: 110,
+      flex: 1,
+      headerAlign: "left",
+      align: "left",
+      sortComparator: implementationComparator,
+      renderCell: (params) => (
+        <Link
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-start",
+          }}
+        >
+          <Box minWidth="120px">
+            <MarketImplementationChip
+              implementationType={params.value}
+              type="table"
+            />
           </Box>
         </Link>
       ),

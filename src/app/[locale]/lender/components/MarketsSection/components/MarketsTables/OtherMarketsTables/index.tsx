@@ -3,11 +3,7 @@ import * as React from "react"
 
 import { Box, Button, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
-import {
-  DepositStatus,
-  MarketVersion,
-  TokenAmount,
-} from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -18,6 +14,7 @@ import {
   rowLinkInteractiveSx,
   rowLinkStretchedSx,
 } from "@/app/[locale]/lender/components/MarketsSection/components/MarketsTables/style"
+import { MarketImplementationChip } from "@/components/@extended/MarketImplementationChip"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import {
@@ -35,6 +32,7 @@ import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import {
+  implementationComparator,
   statusComparator,
   tokenAmountComparator,
   typeComparator,
@@ -47,6 +45,8 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import { isSelfOnboardMarketAccount } from "@/utils/marketCapabilities"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -114,10 +114,12 @@ export const OtherMarketsTables = ({
         : trimAddress(borrowerAddress)
 
       const marketStatus = getMarketStatusChip(market)
+      const implementationType = getMarketImplementationType(market)
       const marketType = getMarketTypeChip(market)
 
       return {
         id: address,
+        implementationType,
         status: marketStatus,
         term: marketType,
         name,
@@ -128,10 +130,7 @@ export const OtherMarketsTables = ({
         withdrawalBatchDuration,
         debt: totalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
-        isSelfOnboard:
-          !account.hasEverInteracted &&
-          market.version === MarketVersion.V2 &&
-          account.depositAvailability === DepositStatus.Ready,
+        isSelfOnboard: isSelfOnboardMarketAccount(account),
         button: address,
         chainId,
       }
@@ -222,6 +221,30 @@ export const OtherMarketsTables = ({
         <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
           <Box width="120px">
             <MarketStatusChip status={params.value} />
+          </Box>
+        </Box>
+      ),
+    },
+    {
+      field: "implementationType",
+      headerName: t("dashboard.markets.tables.header.type"),
+      minWidth: 110,
+      flex: 1,
+      headerAlign: "left",
+      align: "left",
+      sortComparator: implementationComparator,
+      renderCell: (params) => (
+        <Box
+          sx={{
+            ...LinkCell,
+            justifyContent: "flex-start",
+          }}
+        >
+          <Box minWidth="120px">
+            <MarketImplementationChip
+              implementationType={params.value}
+              type="table"
+            />
           </Box>
         </Box>
       ),

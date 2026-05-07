@@ -15,6 +15,7 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { MarketImplementationChip } from "@/components/@extended/MarketImplementationChip"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { TablePagination } from "@/components/TablePagination"
@@ -23,6 +24,7 @@ import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 import {
+  implementationComparator,
   statusComparator,
   tokenAmountComparator,
   typeComparator,
@@ -34,6 +36,7 @@ import {
   trimAddress,
   buildMarketHref,
 } from "@/utils/formatters"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -111,8 +114,35 @@ export const OthersMarketsTable = ({
       ),
     },
     {
-      field: "marketType",
-      headerName: t("borrowerMarketList.table.header.marketType"),
+      field: "implementationType",
+      headerName: t("borrowerMarketList.table.header.type"),
+      maxWidth: 146,
+      minWidth: 120,
+      flex: 1.5,
+      headerAlign: "left",
+      align: "left",
+      sortComparator: implementationComparator,
+      renderCell: (params) => (
+        <Link
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
+          style={{ ...LinkCell, justifyContent: "flex-start" }}
+        >
+          <Box width={130}>
+            <MarketImplementationChip
+              implementationType={params.value}
+              type="table"
+            />
+          </Box>
+        </Link>
+      ),
+    },
+    {
+      field: "term",
+      headerName: t("borrowerMarketList.table.header.term"),
       maxWidth: 146,
       minWidth: 130,
       flex: 2,
@@ -357,13 +387,15 @@ export const OthersMarketsTable = ({
       ? borrower.alias || borrower.name
       : trimAddress(borrowerAddress)
     const marketStatus = getMarketStatusChip(market)
-    const marketType = getMarketTypeChip(market)
+    const implementationType = getMarketImplementationType(market)
+    const term = getMarketTypeChip(market)
 
     return {
       id: address,
       chainId,
+      implementationType,
       status: marketStatus,
-      marketType,
+      term,
       name,
       borrowerName,
       borrowerAddress,

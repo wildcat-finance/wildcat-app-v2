@@ -27,6 +27,17 @@ export const mockedMarketTypes = [
   },
 ]
 
+export const mockedImplementationTypes = [
+  {
+    label: "Standard",
+    value: "legacy",
+  },
+  {
+    label: "Revolving",
+    value: "revolving",
+  },
+]
+
 const mockedAccessControls = [
   {
     label: "Lender Self-Onboarding",
@@ -92,6 +103,13 @@ export const mockedMarketTypesOptions: ExtendedSelectOptionItem[] =
     id: marketType.value,
     label: marketType.label,
     value: marketType.value,
+  }))
+
+export const mockedImplementationTypesOptions: ExtendedSelectOptionItem[] =
+  mockedImplementationTypes.map((implementationType) => ({
+    id: implementationType.value,
+    label: implementationType.label,
+    value: implementationType.value,
   }))
 
 export const mockedAccessControlOptions: ExtendedSelectOptionItem[] =

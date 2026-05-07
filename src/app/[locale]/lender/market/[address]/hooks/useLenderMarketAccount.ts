@@ -5,10 +5,7 @@ import {
   Market,
   MarketAccount,
   SignerOrProvider,
-  getLensContract,
   getLenderAccountForMarket,
-  MarketVersion,
-  getLensV2Contract,
   getSubgraphClient,
 } from "@wildcatfi/wildcat-sdk"
 import { SubgraphGetMarketQueryVariables } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
@@ -74,28 +71,17 @@ export function useLenderMarketAccountQuery({
 
   async function updateMarketAccount() {
     if (!data || !provider || !market) throw Error()
-    if (data.market.version === MarketVersion.V1) {
-      const lens = getLensContract(market.chainId, provider)
-      const update = await lens.getMarketDataWithLenderStatus(
-        lenderAddress as string,
-        marketAddress as string,
-      )
-      data.updateWith(update.lenderStatus)
-      data.market.updateWith(update.market)
-    } else {
-      const lens = getLensV2Contract(market.chainId, provider)
-      const update = await lens.getMarketDataWithLenderStatus(
-        lenderAddress as string,
-        marketAddress as string,
-      )
-      data.updateWith(update.lenderStatus)
-      data.market.updateWith(update.market)
-    }
+    const updated = await MarketAccount.getMarketAccount(
+      market.chainId,
+      provider,
+      lenderAddress as string,
+      marketAddress as string,
+    )
     // @TODO Check chain id here
     if (market && market.provider !== provider) {
       market.provider = provider
     }
-    return data
+    return updated
   }
 
   const {

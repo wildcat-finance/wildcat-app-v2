@@ -5,7 +5,6 @@ import { MarketVersion, HooksKind } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
-import { useCopyToClipboard } from "react-use"
 
 import { getAdsMarketParameterComponent } from "@/components/AdsBanners/adsHelpers"
 import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
@@ -26,6 +25,11 @@ import {
   toTokenAmountProps,
   trimAddress,
 } from "@/utils/formatters"
+import {
+  getMarketImplementationConfig,
+  getMarketImplementationType,
+  isRevolvingMarket,
+} from "@/utils/marketImplementation"
 
 import { MarketParametersProps } from "./interface"
 import {
@@ -221,7 +225,7 @@ export const MarketParameters = ({
     }
     // If the market will continue to be delinquent after the next update:
     return t("borrowerMarketDetails.tooltip.delinquencyContinues")
-  }, [market])
+  }, [delinquencyGracePeriod, market, t, timeDelinquent])
 
   const totalInterestAccrued = market
     ? (
@@ -291,6 +295,10 @@ export const MarketParameters = ({
   })()
 
   const { hooksConfig } = market
+  const isRevolving = isRevolvingMarket(market)
+  const revolvingMetrics = market.currentRevolvingAprMetrics
+  const implementationType = getMarketImplementationType(market)
+  const implementationConfig = getMarketImplementationConfig(implementationType)
   const depositAccess =
     hooksConfig?.depositRequiresAccess === false ? "open" : "restricted"
 
@@ -356,6 +364,50 @@ export const MarketParameters = ({
       setIsMobileOpen(false)
     }
   }, [isMobile])
+
+  const configuredAprLabel = isRevolving
+    ? t("borrowerMarketDetails.parameters.utilizationAPR")
+    : t("borrowerMarketDetails.parameters.baseAPR")
+
+  const configuredAprTooltip = isRevolving
+    ? "The annual percentage rate charged on drawn capital in a revolving market. Undrawn deposited capital accrues the separate commitment APR instead."
+    : "The fixed annual percentage rate (excluding any protocol fees) that borrowers pay to lenders for assets within the market."
+
+  const protocolAprValue = isRevolving
+    ? revolvingMetrics?.protocolAprBips
+    : (market.protocolFeeBips * market.annualInterestBips) / 10000
+
+  const protocolAprTooltip = isRevolving
+    ? "An additional APR that accrues to the protocol as a percentage of the market's current blended lender APR: commitment APR plus the utilization-weighted utilization APR."
+    : "An additional APR that accrues to the protocol by slowly increasing required reserves. Derived by the fee configuration of the protocol as a percentage of the current base APR."
+
+  const effectiveLenderAprTooltip = isRevolving
+    ? "The current APR being paid to lenders across deposited capital: commitment APR on undrawn capital, plus utilization APR on drawn capital, plus penalty APR if applicable."
+    : "The current interest rate being paid to lenders: the base APR plus penalty APR if applicable."
+
+  const revolvingUtilizationTooltip = revolvingMetrics
+    ? `Current utilization: ${formatBps(
+        revolvingMetrics.utilizationBips,
+        MARKET_PARAMS_DECIMALS.reserveRatioBips,
+      )}% of deposited capital is drawn.`
+    : undefined
+
+  const protocolAprDisplayValue =
+    protocolAprValue === undefined
+      ? "..."
+      : `${formatBps(
+          protocolAprValue,
+          MARKET_PARAMS_DECIMALS.annualInterestBips,
+        )}%`
+
+  const effectiveLenderAprDisplayValue = `${formatRayAsPercentage(
+    market.effectiveLenderAPR,
+    MARKET_PARAMS_DECIMALS.annualInterestBips,
+  )}%`
+
+  const penaltyAprTooltipValue = market.isIncurringPenalties
+    ? `This market is incurring delinquency fees, leading to a total APR of ${effectiveLenderAprDisplayValue}. Penalties will continue to apply until the delinquency timer is below the grace period.`
+    : undefined
 
   return (
     <Box
@@ -476,6 +528,29 @@ export const MarketParameters = ({
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
                 title={t(
+                  "borrowerMarketDetails.parameters.marketImplementation.label",
+                )}
+                value={implementationConfig.label}
+              />
+              <Divider sx={{ margin: "12px 0 12px" }} />
+              {market.version === MarketVersion.V2 && market.hooksKind && (
+                <>
+                  <ParametersItem
+                    title={t(
+                      "borrowerMarketDetails.parameters.marketTerm.label",
+                    )}
+                    value={t(
+                      `borrowerMarketDetails.parameters.marketTerm.${market.hooksKind}.text`,
+                    )}
+                    valueTooltipText={t(
+                      `borrowerMarketDetails.parameters.marketTerm.${market.hooksKind}.tooltip`,
+                    )}
+                  />
+                  <Divider sx={{ margin: "12px 0 12px" }} />
+                </>
+              )}
+              <ParametersItem
+                title={t(
                   "borrowerMarketDetails.parameters.minimumDeposit.label",
                 )}
                 // value={t(
@@ -489,22 +564,6 @@ export const MarketParameters = ({
                       ),
                     })}
               />
-              {market.version === MarketVersion.V2 && (
-                <>
-                  <Divider sx={{ margin: "12px 0 12px" }} />
-                  <ParametersItem
-                    title={t(
-                      "borrowerMarketDetails.parameters.marketType.label",
-                    )}
-                    value={t(
-                      `borrowerMarketDetails.parameters.marketType.${market.hooksKind}.text`,
-                    )}
-                    valueTooltipText={t(
-                      `borrowerMarketDetails.parameters.marketType.${market.hooksKind}.tooltip`,
-                    )}
-                  />
-                </>
-              )}
               {market.hooksConfig?.kind === HooksKind.FixedTerm && (
                 <>
                   <Divider sx={{ margin: "12px 0 12px" }} />
@@ -647,14 +706,34 @@ export const MarketParameters = ({
             )}
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t("borrowerMarketDetails.parameters.baseAPR")}
+              title={configuredAprLabel}
               value={`${formatBps(
                 market.annualInterestBips,
                 MARKET_PARAMS_DECIMALS.annualInterestBips,
               )}%`}
-              tooltipText="The fixed annual percentage rate (excluding any protocol fees) that borrowers pay to lenders for assets within the market."
+              tooltipText={configuredAprTooltip}
+              valueTooltipText={
+                isRevolving ? revolvingUtilizationTooltip : undefined
+              }
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
+            {isRevolving && (
+              <>
+                <ParametersItem
+                  title={t("borrowerMarketDetails.parameters.commitmentAPR")}
+                  value={
+                    revolvingMetrics
+                      ? `${formatBps(
+                          revolvingMetrics.commitmentFeeBips,
+                          MARKET_PARAMS_DECIMALS.annualInterestBips,
+                        )}%`
+                      : "..."
+                  }
+                  tooltipText="The annual percentage rate charged on undrawn deposited capital in a revolving market."
+                />
+                <Divider sx={{ margin: "12px 0 12px" }} />
+              </>
+            )}
             {adsMarketParameter && (
               <>
                 {adsMarketParameter}
@@ -663,20 +742,14 @@ export const MarketParameters = ({
             )}
             <ParametersItem
               title={t("borrowerMarketDetails.parameters.protocolAPR")}
-              value={`${formatBps(
-                (market.protocolFeeBips * market.annualInterestBips) / 10000,
-                MARKET_PARAMS_DECIMALS.annualInterestBips,
-              )}%`}
-              tooltipText="An additional APR that accrues to the protocol by slowly increasing required reserves. Derived by the fee configuration of the protocol as a percentage of the current base APR."
+              value={protocolAprDisplayValue}
+              tooltipText={protocolAprTooltip}
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
               title={t("borrowerMarketDetails.parameters.effectiveAPR")}
-              value={`${formatRayAsPercentage(
-                market.effectiveLenderAPR,
-                MARKET_PARAMS_DECIMALS.annualInterestBips,
-              )}%`}
-              tooltipText="The current interest rate being paid to lenders: the base APR plus penalty APR if applicable."
+              value={effectiveLenderAprDisplayValue}
+              tooltipText={effectiveLenderAprTooltip}
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
@@ -687,14 +760,7 @@ export const MarketParameters = ({
               )}%`}
               tooltipText="An additional interest rate charged if the market remains delinquent—failing to maintain required reserves—after the grace period has elapsed."
               alarmState={market.isIncurringPenalties}
-              valueTooltipText={
-                market.isIncurringPenalties
-                  ? `This market is incurring delinquency fees, leading to a total APR of ${formatRayAsPercentage(
-                      market.effectiveLenderAPR,
-                      MARKET_PARAMS_DECIMALS.annualInterestBips,
-                    )}%. Penalties will continue to apply until the delinquency timer is below the grace period.`
-                  : undefined
-              }
+              valueTooltipText={penaltyAprTooltipValue}
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem

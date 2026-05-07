@@ -16,11 +16,13 @@ import {
 import { formatConstrainToNumber } from "@/utils/formatters"
 
 export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
+  implementationType: "legacy",
   marketType: "",
   maxTotalSupply: undefined,
   annualInterestBips: undefined,
   delinquencyFeeBips: undefined,
   reserveRatioBips: undefined,
+  commitmentFeePercent: undefined,
   minimumDeposit: undefined,
   delinquencyGracePeriod: undefined,
   withdrawalBatchDuration: undefined,

@@ -19,6 +19,7 @@ import JurisdictionsByCountry from "@/config/jurisdictions-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import {
   mockedAccessControlOptions,
+  mockedImplementationTypesOptions,
   mockedMarketTypesOptions,
   mockedNaturesOptions,
 } from "@/mocks/mocks"
@@ -128,6 +129,10 @@ export const ConfirmationForm = ({
 
   const [requestedSign, setRequestedSign] = useState<boolean>(false)
 
+  const implementationTypeValue = mockedImplementationTypesOptions.find(
+    (el) => el.value === getValues("implementationType"),
+  )?.label
+
   const marketTypeValue = mockedMarketTypesOptions.find(
     (el) => el.value === getValues("marketType"),
   )?.label
@@ -137,6 +142,12 @@ export const ConfirmationForm = ({
   )?.label
 
   const isFixedTerm = getValues("marketType") === "fixedTerm"
+  const isRevolving = getValues("implementationType") === "revolving"
+  const aprLabel = t(
+    isRevolving
+      ? "createNewMarket.financial.baseAPR.labelRevolving"
+      : "createNewMarket.financial.baseAPR.label",
+  )
   const isNewPolicy = getValues("policy") === "createNewPolicy"
   const policyNameValue = getValues("policyName") || "Unnamed Policy"
   const depositRequiresAccess = "Yes" // getValues("depositRequiresAccess")
@@ -206,6 +217,10 @@ export const ConfirmationForm = ({
         <ConfirmationFormItem
           label={t("createNewMarket.policy.name.label")}
           value={policyNameValue}
+        />
+        <ConfirmationFormItem
+          label={t("createNewMarket.policy.implementation.label")}
+          value={implementationTypeValue || ""}
         />
         <ConfirmationFormItem
           label={t("createNewMarket.policy.type.label")}
@@ -345,7 +360,7 @@ export const ConfirmationForm = ({
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.baseAPR.label")}
+          label={aprLabel}
           value={`${getValues("annualInterestBips")}%`}
         />
 
@@ -364,6 +379,13 @@ export const ConfirmationForm = ({
           label={t("createNewMarket.financial.ratio.label")}
           value={`${getValues("reserveRatioBips")}%`}
         />
+
+        {isRevolving && (
+          <ConfirmationFormItem
+            label={t("createNewMarket.policy.commitmentFee.label")}
+            value={`${getValues("commitmentFeePercent")}%`}
+          />
+        )}
 
         <ConfirmationFormItem
           label={t("createNewMarket.periods.grace.label")}

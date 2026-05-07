@@ -1,6 +1,6 @@
 import {
   getLensContract,
-  getLensV2Contract,
+  getLatestLensContract,
   hasDeploymentAddress,
   logger,
   Market,
@@ -20,7 +20,7 @@ export async function updateMarkets(
   const lens = hasV1Lens
     ? getLensContract(networkData.chainId, provider as SignerOrProvider)
     : undefined
-  const lensV2 = getLensV2Contract(
+  const latestLens = getLatestLensContract(
     networkData.chainId,
     provider as SignerOrProvider,
   )
@@ -69,7 +69,7 @@ export async function updateMarkets(
       : []),
     ...v2Chunks.map(async (marketsChunk) => {
       try {
-        const updates = await lensV2.getMarketsData(
+        const updates = await latestLens.getMarketsData(
           marketsChunk.map((m) => m.address),
         )
         marketsChunk.forEach((market, i) => {

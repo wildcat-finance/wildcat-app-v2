@@ -52,7 +52,7 @@ export type MlaBorrowerFields = {
     address: string
     name: string
     symbol: string
-    marketType: HooksKind
+    marketTerm: HooksKind
     depositAccess: DepositAccess
     transferAccess: TransferAccess
     withdrawalAccess: WithdrawalAccess
@@ -86,6 +86,8 @@ export const MlaFieldValueKeys = [
   "network.name",
   "asset.name",
   "asset.symbol",
+  // Compatibility note: this placeholder key is retained for existing stored
+  // MLA templates even though it represents term style, not implementation type.
   "market.marketType",
   "market.name",
   "market.symbol",
@@ -283,7 +285,7 @@ const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
     address,
     name,
     symbol,
-    marketType: hooksConfig?.kind ?? HooksKind.OpenTerm,
+    marketTerm: hooksConfig?.kind ?? HooksKind.OpenTerm,
     depositAccess,
     transferAccess,
     withdrawalAccess,
@@ -361,7 +363,7 @@ export function getFieldValuesForBorrower({
     [
       "market.marketType",
       formatString(
-        market.marketType === HooksKind.FixedTerm ? "Fixed Term" : "Open Term",
+        market.marketTerm === HooksKind.FixedTerm ? "Fixed Term" : "Open Term",
       ),
     ],
     ["market.name", formatString(market.name)],
@@ -430,7 +432,7 @@ export function getFieldValuesForBorrower({
     // date
     [
       "market.fixedTermEndTime",
-      market.marketType === HooksKind.FixedTerm
+      market.marketTerm === HooksKind.FixedTerm
         ? formatDate(market.fixedTermEndTime)
         : "N/A",
     ],
@@ -444,13 +446,13 @@ export function getFieldValuesForBorrower({
     // boolean (format as Yes, No, N/A)
     [
       "market.allowClosureBeforeTerm",
-      market.marketType === HooksKind.FixedTerm
+      market.marketTerm === HooksKind.FixedTerm
         ? formatBool(market.allowClosureBeforeTerm)
         : "N/A",
     ],
     [
       "market.allowTermReduction",
-      market.marketType === HooksKind.FixedTerm
+      market.marketTerm === HooksKind.FixedTerm
         ? formatBool(market.allowTermReduction)
         : "N/A",
     ],

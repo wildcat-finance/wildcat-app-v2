@@ -1,13 +1,11 @@
-import {
-  FixedTermHooksConfig,
-  HooksKind,
-  Market,
-  MarketVersion,
-} from "@wildcatfi/wildcat-sdk"
+import { FixedTermHooksConfig, HooksKind, Market } from "@wildcatfi/wildcat-sdk"
+
+import { isFixedTermMarket } from "@/utils/marketCapabilities"
 
 export const getMarketTypeChip = (market: Market) => {
-  const kind =
-    market.version === MarketVersion.V1 ? HooksKind.OpenTerm : market.hooksKind!
+  const kind = isFixedTermMarket(market)
+    ? HooksKind.FixedTerm
+    : HooksKind.OpenTerm
 
   if (kind === HooksKind.FixedTerm) {
     const hooksConfig = market.hooksConfig as FixedTermHooksConfig

@@ -3,9 +3,6 @@ import { useEffect } from "react"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   getLenderAccountForMarket,
-  getLensContract,
-  getLensV2Contract,
-  MarketVersion,
   Market,
   MarketAccount,
   getSubgraphClient,
@@ -81,28 +78,17 @@ export function useBorrowerMarketAccountQuery({
 
   async function updateMarketAccount() {
     if (!data || !provider || !market) throw Error()
-    if (data.market.version === MarketVersion.V1) {
-      const lens = getLensContract(market.chainId, provider)
-      const update = await lens.getMarketDataWithLenderStatus(
-        lenderAddress as string,
-        marketAddress as string,
-      )
-      data.updateWith(update.lenderStatus)
-      data.market.updateWith(update.market)
-    } else {
-      const lens = getLensV2Contract(market.chainId, provider)
-      const update = await lens.getMarketDataWithLenderStatus(
-        lenderAddress as string,
-        marketAddress as string,
-      )
-      data.updateWith(update.lenderStatus)
-      data.market.updateWith(update.market)
-    }
+    const updated = await MarketAccount.getMarketAccount(
+      market.chainId,
+      provider,
+      lenderAddress as string,
+      marketAddress as string,
+    )
 
     if (market && market.provider !== provider) {
       market.provider = provider
     }
-    return data
+    return updated
   }
 
   const {

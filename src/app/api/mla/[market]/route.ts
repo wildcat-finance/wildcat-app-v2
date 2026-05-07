@@ -1,5 +1,5 @@
 import {
-  getLensV2Contract,
+  getLatestLensContract,
   isSupportedChainId,
   Market,
 } from "@wildcatfi/wildcat-sdk"
@@ -100,8 +100,8 @@ export async function POST(
 
   const market = await Market.getMarket(chainId, marketAddress, provider).catch(
     async () => {
-      const lens = getLensV2Contract(chainId, provider)
-      return Market.fromMarketDataV2(
+      const lens = getLatestLensContract(chainId, provider)
+      return Market.fromUnifiedMarketData(
         chainId,
         provider,
         await lens.getMarketData(marketAddress),
