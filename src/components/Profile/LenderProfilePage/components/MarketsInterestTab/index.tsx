@@ -6,6 +6,10 @@ import { Box, Tooltip as MuiTooltip, Typography } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import Link from "next/link"
 
+import {
+  getBorrowerDisplayName,
+  useBorrowerNames,
+} from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { LenderPositionsData } from "@/app/[locale]/lender/profile/hooks/types"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { CHART_PALETTE, DonutChart, DonutChartItem } from "@/components/ECharts"
@@ -65,10 +69,24 @@ export const MarketsInterestTab = ({
   data,
   isLoading,
 }: MarketsInterestTabProps) => {
+  const { data: borrowers } = useBorrowerNames()
   const { chainId } = useSelectedNetwork()
   const { getAddressUrl } = useBlockExplorer()
   const positions = data?.positions ?? []
-  const interestRows = positions
+  const positionsWithBorrowerNames = React.useMemo(
+    () =>
+      positions.map((position) => ({
+        ...position,
+        borrowerName: getBorrowerDisplayName(position.borrower, borrowers),
+        borrowerDisplayName: getBorrowerDisplayName(
+          position.borrower,
+          borrowers,
+          "name",
+        ),
+      })),
+    [borrowers, positions],
+  )
+  const interestRows = positionsWithBorrowerNames
     .filter((position) => position.interestEarned > 0)
     .sort((left, right) => right.interestEarned - left.interestEarned)
 
@@ -100,6 +118,22 @@ export const MarketsInterestTab = ({
     [interestRows, totalInterest],
   )
 
+  const renderBorrowerCell: GridColDef["renderCell"] = ({ row, value }) => (
+    <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+      <MuiTooltip title={row.borrower} placement="top">
+        <Link href={buildBorrowerProfileHref(row.borrower, chainId)}>
+          <Typography component="span" variant="text3">
+            {value}
+          </Typography>
+        </Link>
+      </MuiTooltip>
+      <LinkGroup
+        linkValue={getAddressUrl(row.borrower)}
+        copyValue={row.borrower}
+      />
+    </Box>
+  )
+
   const interestColumns: GridColDef[] = [
     {
       field: "marketName",
@@ -115,6 +149,13 @@ export const MarketsInterestTab = ({
           </Typography>
         </Link>
       ),
+    },
+    {
+      field: "borrowerDisplayName",
+      headerName: "Borrower",
+      flex: 1.2,
+      minWidth: 240,
+      renderCell: renderBorrowerCell,
     },
     {
       field: "asset",
@@ -163,21 +204,11 @@ export const MarketsInterestTab = ({
       ),
     },
     {
-      field: "borrower",
+      field: "borrowerDisplayName",
       headerName: "Borrower",
-      minWidth: 150,
-      renderCell: ({ value }) => (
-        <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <MuiTooltip title={value} placement="top">
-            <Link href={buildBorrowerProfileHref(value, chainId)}>
-              <Typography component="span" variant="text3">
-                {trimAddress(value)}
-              </Typography>
-            </Link>
-          </MuiTooltip>
-          <LinkGroup linkValue={getAddressUrl(value)} copyValue={value} />
-        </Box>
-      ),
+      flex: 1.2,
+      minWidth: 240,
+      renderCell: renderBorrowerCell,
     },
     {
       field: "asset",
@@ -365,7 +396,7 @@ export const MarketsInterestTab = ({
           }))}
           columns={interestColumns}
           noRowsLabel="No interest earned yet."
-          minWidth={760}
+          minWidth={1000}
           maxHeight={560}
           renderMobileRow={(row) => (
             <MobileAnalyticsCard
@@ -377,7 +408,7 @@ export const MarketsInterestTab = ({
               title={row.marketName}
               titleSub={
                 <Typography variant="text4" color={COLORS.santasGrey}>
-                  {row.asset}
+                  {row.borrowerDisplayName} · {row.asset}
                 </Typography>
               }
               headlineValue={formatUsd(row.interestEarned, { compact: true })}
@@ -397,7 +428,7 @@ export const MarketsInterestTab = ({
       >
         <AnalyticsDataGrid
           loading={isLoading}
-          rows={positions}
+          rows={positionsWithBorrowerNames}
           columns={marketHistoryColumns}
           noRowsLabel="No market history found for this lender."
           minWidth={980}
@@ -412,7 +443,7 @@ export const MarketsInterestTab = ({
               title={row.marketName}
               titleSub={
                 <Typography variant="text4" color={COLORS.santasGrey}>
-                  {trimAddress(row.borrower)} · {row.asset} · since{" "}
+                  {row.borrowerDisplayName} · {row.asset} · since{" "}
                   {row.addedDate}
                 </Typography>
               }

@@ -6,7 +6,10 @@ import { Box, Tooltip, Typography } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import Link from "next/link"
 
-import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import {
+  getBorrowerDisplayName,
+  useBorrowerNames,
+} from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { LenderPositionsData } from "@/app/[locale]/lender/profile/hooks/types"
 import { useLenderActivity } from "@/app/[locale]/lender/profile/hooks/useLenderActivity"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
@@ -65,10 +68,12 @@ const RightTextCell = ({ children }: { children: React.ReactNode }) => (
 
 const ProfileAddressCell = ({
   address,
+  displayName,
   profileHref,
   explorerHref,
 }: {
   address: string
+  displayName?: string
   profileHref: string
   explorerHref: string
 }) => (
@@ -76,7 +81,7 @@ const ProfileAddressCell = ({
     <Tooltip title={address} placement="top">
       <Link href={profileHref}>
         <Typography component="span" variant="text3" color={COLORS.blackRock}>
-          {trimAddress(address)}
+          {displayName ?? trimAddress(address)}
         </Typography>
       </Link>
     </Tooltip>
@@ -100,14 +105,31 @@ export const LenderOverviewTab = ({
     data?.priceMap ?? {},
   )
   const positions = data?.positions ?? []
-  const activePositions = positions
+  const positionsWithBorrowerNames = React.useMemo(
+    () =>
+      positions.map((position) => ({
+        ...position,
+        borrowerName: getBorrowerDisplayName(position.borrower, borrowers),
+        borrowerDisplayName: getBorrowerDisplayName(
+          position.borrower,
+          borrowers,
+          "name",
+        ),
+      })),
+    [borrowers, positions],
+  )
+  const activePositions = positionsWithBorrowerNames
     .filter((position) => position.currentBalance > 0)
     .filter((position) => position.status !== "Closed")
     .sort((left, right) => right.currentBalance - left.currentBalance)
 
-  const borrowerExposureRows = React.useMemo(() => {
-    const totalBalance = activePositions.reduce(
-      (sum, position) => sum + position.currentBalance,
+  type PositionWithBorrowerName = (typeof positionsWithBorrowerNames)[number]
+  const buildBorrowerExposureRows = (
+    sourcePositions: PositionWithBorrowerName[],
+    getExposure: (position: PositionWithBorrowerName) => number,
+  ) => {
+    const totalExposure = sourcePositions.reduce(
+      (sum, position) => sum + getExposure(position),
       0,
     )
     const rows = new Map<
@@ -122,33 +144,49 @@ export const LenderOverviewTab = ({
       }
     >()
 
-    activePositions.forEach((position) => {
-      const match = borrowers?.find(
-        (b) => b.address.toLowerCase() === position.borrower.toLowerCase(),
-      )
-      const borrowerName =
-        match?.alias ?? match?.name ?? trimAddress(position.borrower)
+    sourcePositions.forEach((position) => {
+      const exposure = getExposure(position)
+      if (exposure <= 0) return
+
       const existing = rows.get(position.borrower) ?? {
         id: position.borrower,
         borrower: position.borrower,
-        borrowerName,
+        borrowerName: position.borrowerName,
         marketCount: 0,
         exposure: 0,
         share: 0,
       }
 
       existing.marketCount += 1
-      existing.exposure += position.currentBalance
+      existing.exposure += exposure
       rows.set(position.borrower, existing)
     })
 
     return Array.from(rows.values())
       .map((row) => ({
         ...row,
-        share: totalBalance > 0 ? (row.exposure / totalBalance) * 100 : 0,
+        share: totalExposure > 0 ? (row.exposure / totalExposure) * 100 : 0,
       }))
       .sort((left, right) => right.exposure - left.exposure)
-  }, [activePositions, borrowers])
+  }
+
+  const borrowerExposureRows = React.useMemo(
+    () =>
+      buildBorrowerExposureRows(
+        activePositions,
+        (position) => position.currentBalance,
+      ),
+    [activePositions],
+  )
+
+  const historicalBorrowerExposureRows = React.useMemo(
+    () =>
+      buildBorrowerExposureRows(
+        positionsWithBorrowerNames,
+        (position) => position.totalDeposited,
+      ),
+    [positionsWithBorrowerNames],
+  )
 
   const positionColumns: GridColDef[] = [
     {
@@ -167,22 +205,23 @@ export const LenderOverviewTab = ({
       ),
     },
     {
-      field: "borrower",
+      field: "borrowerDisplayName",
       headerName: "Borrower",
-      flex: 1,
-      minWidth: 150,
-      renderCell: ({ value }) => (
+      flex: 1.4,
+      minWidth: 240,
+      renderCell: ({ row, value }) => (
         <ProfileAddressCell
-          address={value}
-          profileHref={buildBorrowerProfileHref(value, chainId)}
-          explorerHref={getAddressUrl(value)}
+          address={row.borrower}
+          displayName={value}
+          profileHref={buildBorrowerProfileHref(row.borrower, chainId)}
+          explorerHref={getAddressUrl(row.borrower)}
         />
       ),
     },
     {
       field: "asset",
       headerName: "Asset",
-      minWidth: 110,
+      minWidth: 80,
       renderCell: ({ value }) => <TextCell>{value}</TextCell>,
     },
     {
@@ -314,10 +353,7 @@ export const LenderOverviewTab = ({
         isLoading={isLoading}
       />
 
-      <ProfileSectionPanel
-        title="Active positions"
-        count={activePositions.length}
-      >
+      <ProfileSectionPanel title="Active positions">
         <AnalyticsDataGrid
           loading={isLoading}
           rows={activePositions}
@@ -335,7 +371,7 @@ export const LenderOverviewTab = ({
               title={row.marketName}
               titleSub={
                 <Typography variant="text4" color={COLORS.santasGrey}>
-                  {trimAddress(row.borrower)} · {row.asset}
+                  {row.borrowerDisplayName} · {row.asset}
                 </Typography>
               }
               headerRight={
@@ -362,10 +398,7 @@ export const LenderOverviewTab = ({
         />
       </ProfileSectionPanel>
 
-      <ProfileSectionPanel
-        title="Borrower exposure"
-        count={borrowerExposureRows.length}
-      >
+      <ProfileSectionPanel title="Borrower exposure">
         <AnalyticsDataGrid
           loading={isLoading}
           rows={borrowerExposureRows}
@@ -390,6 +423,37 @@ export const LenderOverviewTab = ({
                   row.marketCount === 1 ? "" : "s"
                 }`,
                 label: `${formatPercent(row.share, 1)} of portfolio`,
+              }}
+            />
+          )}
+        />
+      </ProfileSectionPanel>
+
+      <ProfileSectionPanel title="Historical Borrower Exposure">
+        <AnalyticsDataGrid
+          loading={isLoading}
+          rows={historicalBorrowerExposureRows}
+          columns={borrowerExposureColumns}
+          noRowsLabel="No historical borrower exposure."
+          minWidth={700}
+          maxHeight={isMobile ? 520 : 560}
+          renderMobileRow={(row) => (
+            <MobileAnalyticsCard
+              href={buildBorrowerProfileHref(row.borrower, chainId)}
+              title={row.borrowerName}
+              titleSub={
+                <Typography variant="text4" color={COLORS.santasGrey}>
+                  {trimAddress(row.borrower)}
+                </Typography>
+              }
+              headlineValue={formatUsd(row.exposure, { compact: true })}
+              headlineLabel="Exposure"
+              progress={{
+                value: row.share,
+                leftLabel: `${row.marketCount} market${
+                  row.marketCount === 1 ? "" : "s"
+                }`,
+                label: `${formatPercent(row.share, 1)} of historical total`,
               }}
             />
           )}

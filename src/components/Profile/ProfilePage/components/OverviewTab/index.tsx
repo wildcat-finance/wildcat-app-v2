@@ -170,23 +170,13 @@ export const OverviewTab = ({
           padding: isMobile ? "16px" : "24px",
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "baseline",
-            gap: "8px",
-            marginBottom: "16px",
-          }}
+        <Typography
+          variant="title2"
+          display="block"
+          sx={{ marginBottom: "16px" }}
         >
-          <Typography variant="title2" display="block">
-            Active markets
-          </Typography>
-          {activeBorrowerMarkets.length > 0 && (
-            <Typography variant="text3" color={COLORS.santasGrey}>
-              · {activeBorrowerMarkets.length}
-            </Typography>
-          )}
-        </Box>
+          Active markets
+        </Typography>
         {activeBorrowerMarkets.length > 0 ? (
           <MarketsBlock markets={activeBorrowerMarkets} isLoading={false} />
         ) : (

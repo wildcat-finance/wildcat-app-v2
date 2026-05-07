@@ -10,18 +10,37 @@ export type BorrowerWithName = {
   alias?: string
 }
 
+const getValidBorrowerLabel = (value: string | undefined) => {
+  const trimmed = value?.trim()
+  return trimmed === "" ? undefined : trimmed
+}
+
+export const getBorrowerDisplayName = (
+  address: string,
+  borrowers: BorrowerWithName[] | undefined,
+  preferredLabel: "alias" | "name" = "alias",
+) => {
+  const borrower = borrowers?.find(
+    (b) => b.address.toLowerCase() === address.toLowerCase(),
+  )
+  const alias = getValidBorrowerLabel(borrower?.alias)
+  const name = getValidBorrowerLabel(borrower?.name)
+
+  return preferredLabel === "name"
+    ? name ?? alias ?? trimAddress(address)
+    : alias ?? name ?? trimAddress(address)
+}
+
 export const useBorrowerNames = () => {
   const { chainId } = useSelectedNetwork()
   const getBorrowers = async () => {
     const data = await fetch(`/api/borrower-names?chainId=${chainId}`)
       .then(async (res) => {
         const result = (await res.json()) as BorrowerWithName[]
-        console.log(`GOT ${result.length} BORROWERS`)
         return result
       })
       .catch((err) => {
         console.log(err)
-        console.log(`ERROR RETRIEVING BORROWERS`)
         return undefined
       })
     return data === undefined ? null : (data as BorrowerWithName[])
@@ -41,11 +60,5 @@ export const useBorrowerNames = () => {
 
 export const useBorrowerNameOrAddress = (address: string): string => {
   const borrowers = useBorrowerNames()
-  if (!borrowers.data) return trimAddress(address)
-
-  const borrower = borrowers.data.find(
-    (b) => b.address.toLowerCase() === address.toLowerCase(),
-  )
-
-  return borrower?.alias ?? borrower?.name ?? trimAddress(address)
+  return getBorrowerDisplayName(address, borrowers.data)
 }

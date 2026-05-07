@@ -9,7 +9,6 @@ import { COLORS } from "@/theme/colors"
 type ProfileSectionPanelProps = {
   title: string
   subtitle?: string
-  count?: number
   actions?: React.ReactNode
   children: React.ReactNode
 }
@@ -23,7 +22,6 @@ type ProfileSectionPanelProps = {
 export const ProfileSectionPanel = ({
   title,
   subtitle,
-  count,
   actions,
   children,
 }: ProfileSectionPanelProps) => (
@@ -44,23 +42,9 @@ export const ProfileSectionPanel = ({
         marginBottom: subtitle ? "6px" : { xs: "12px", md: "24px" },
       }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "baseline",
-          gap: "8px",
-          minWidth: 0,
-        }}
-      >
-        <Typography variant="title2" display="block">
-          {title}
-        </Typography>
-        {typeof count === "number" && count > 0 && (
-          <Typography variant="text3" color={COLORS.santasGrey}>
-            · {count}
-          </Typography>
-        )}
-      </Box>
+      <Typography variant="title2" display="block" sx={{ minWidth: 0 }}>
+        {title}
+      </Typography>
       {actions}
     </Box>
     {subtitle && (

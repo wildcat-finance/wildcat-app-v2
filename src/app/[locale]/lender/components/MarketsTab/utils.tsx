@@ -14,7 +14,10 @@ import { TFunction } from "i18next"
 import Link from "next/link"
 
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
-import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import {
+  BorrowerWithName,
+  getBorrowerDisplayName,
+} from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import {
   MarketsTableModel,
   TypeSafeColDef,
@@ -32,7 +35,6 @@ import {
   formatSecsToHours,
   formatTokenWithCommas,
   timestampToDateFormatted,
-  trimAddress,
 } from "@/utils/formatters"
 import {
   getMarketStatus,
@@ -499,12 +501,7 @@ export const getRows = (
       withdrawalBatchDuration,
     } = market
 
-    const borrower = borrowers?.find(
-      (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
-    )
-    const borrowerName = borrower
-      ? borrower.alias || borrower.name
-      : trimAddress(borrowerAddress)
+    const borrowerName = getBorrowerDisplayName(borrowerAddress, borrowers)
     const marketStatus = getMarketStatusChip(market)
 
     return {
