@@ -622,19 +622,19 @@ export default function LenderMarketDetails({
                   withdrawals={withdrawals}
                 />
               )}
+              <CapacityBarChart
+                marketAccount={marketAccount}
+                legendType="big"
+                isLender={authorizedInMarket}
+              />
               {hasLenderInteracted && (
-                <Box sx={{ marginBottom: "32px" }}>
+                <Box sx={{ marginTop: "32px" }}>
                   <LenderAnalyticsSummary
                     items={analyticsSummaryItems}
                     isLoading={analytics.isLoadingActiveLenders}
                   />
                 </Box>
               )}
-              <CapacityBarChart
-                marketAccount={marketAccount}
-                legendType="big"
-                isLender={authorizedInMarket}
-              />
               <Box sx={{ marginTop: "32px" }}>
                 <LenderFlowCharts
                   dailyFlows={dailyFlows}
