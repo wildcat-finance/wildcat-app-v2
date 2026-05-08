@@ -372,9 +372,12 @@ export const TopMarketsSectionNew = ({
       >
         <Box
           sx={{
+            width: "100%",
             display: "flex",
             gap: "4px",
+            justifyContent: isMobile ? "flex-start" : "center",
             alignItems: "center",
+            px: "16px",
           }}
         >
           {SORT_OPTIONS.map((option) => (
@@ -386,8 +389,7 @@ export const TopMarketsSectionNew = ({
                 alignItems: "center",
                 justifyContent: "center",
                 px: "16px",
-                // eslint-disable-next-line no-nested-ternary
-                py: isMobile ? 0 : sortMode === option ? "8px" : "6px",
+                py: isMobile ? "6px" : "8px",
                 borderRadius: "20px",
                 bgcolor: sortMode === option ? "#4971FF" : "transparent",
                 cursor: "pointer",
