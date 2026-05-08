@@ -4,7 +4,12 @@ import { useMemo, useState } from "react"
 import * as React from "react"
 
 import { Box, Skeleton, Typography } from "@mui/material"
-import { Market, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  MarketAccount,
+  MarketVersion,
+  TokenAmount,
+} from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
@@ -284,14 +289,14 @@ const MarketCard = ({
 )
 
 type TopMarketsSectionNewProps = {
-  markets: Market[]
+  accounts: MarketAccount[]
   borrowers: BorrowerWithName[] | undefined
   isLoading: boolean
   badges?: [string, string, string]
 }
 
 export const TopMarketsSectionNew = ({
-  markets,
+  accounts,
   borrowers,
   isLoading,
   badges,
@@ -300,23 +305,29 @@ export const TopMarketsSectionNew = ({
   const [sortMode, setSortMode] = useState<SortOption>("Highest Yield")
 
   const { topMarkets, defaultBadges } = useMemo(() => {
-    const active = markets.filter((m) => isExploreVisible(m))
+    const active = accounts.filter(
+      (a) =>
+        isExploreVisible(a.market) &&
+        a.market.version === MarketVersion.V2 &&
+        a.depositAvailability === DepositStatus.Ready,
+    )
 
     const sorted = [...active].sort((a, b) => {
       if (sortMode === "Highest Yield") {
-        return b.annualInterestBips - a.annualInterestBips
+        return b.market.annualInterestBips - a.market.annualInterestBips
       }
       if (sortMode === "Most Liquid") {
-        const capA = a.maxTotalSupply.sub(a.totalSupply)
-        const capB = b.maxTotalSupply.sub(b.totalSupply)
+        const capA = a.market.maxTotalSupply.sub(a.market.totalSupply)
+        const capB = b.market.maxTotalSupply.sub(b.market.totalSupply)
         return tokenAmountComparator(capB, capA)
       }
-      return tokenAmountComparator(b.totalSupply, a.totalSupply)
+      return tokenAmountComparator(b.market.totalSupply, a.market.totalSupply)
     })
 
     const top3 = sorted.slice(0, 3)
 
-    const cards: MarketCardData[] = top3.map((market, index) => {
+    const cards: MarketCardData[] = top3.map((account, index) => {
+      const { market } = account
       const borrowerProfile = (borrowers ?? []).find(
         (b) => b.address.toLowerCase() === market.borrower.toLowerCase(),
       )
@@ -348,7 +359,7 @@ export const TopMarketsSectionNew = ({
 
     const maxApr =
       active.length > 0
-        ? Math.max(...active.map((m) => m.annualInterestBips))
+        ? Math.max(...active.map((a) => a.market.annualInterestBips))
         : 0
 
     const computed: [string, string, string] = [
@@ -358,7 +369,7 @@ export const TopMarketsSectionNew = ({
     ]
 
     return { topMarkets: cards, defaultBadges: computed }
-  }, [markets, borrowers, sortMode])
+  }, [accounts, borrowers, sortMode])
 
   return (
     <Box sx={{ width: "100%", bgcolor: COLORS.white }}>

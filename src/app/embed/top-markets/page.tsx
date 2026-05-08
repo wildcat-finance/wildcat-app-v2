@@ -6,13 +6,13 @@ import { useEmbedMarkets } from "../hooks/useEmbedMarkets"
 import { useIframeHeight } from "../hooks/useIframeHeight"
 
 export default function TopMarketsEmbedPage() {
-  const { markets, borrowers, isLoading } = useEmbedMarkets()
+  const { accounts, borrowers, isLoading } = useEmbedMarkets()
   const containerRef = useIframeHeight()
 
   return (
     <div ref={containerRef} style={{ paddingBottom: "24px" }}>
       <TopMarketsSectionNew
-        markets={markets}
+        accounts={accounts}
         borrowers={borrowers}
         isLoading={isLoading}
       />
