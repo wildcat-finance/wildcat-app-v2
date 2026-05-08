@@ -9,8 +9,8 @@ import Link from "next/link"
 
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { tokenAmountComparator } from "@/utils/comparators"
 import { buildMarketHref, formatBps, trimAddress } from "@/utils/formatters"
 import { isExploreVisible } from "@/utils/marketStatus"
 
@@ -309,13 +309,9 @@ export const TopMarketsSectionNew = ({
       if (sortMode === "Most Liquid") {
         const capA = a.maxTotalSupply.sub(a.totalSupply)
         const capB = b.maxTotalSupply.sub(b.totalSupply)
-        if (capB.gt(capA)) return 1
-        if (capA.gt(capB)) return -1
-        return 0
+        return tokenAmountComparator(capB, capA)
       }
-      if (b.totalSupply.gt(a.totalSupply)) return 1
-      if (a.totalSupply.gt(b.totalSupply)) return -1
-      return 0
+      return tokenAmountComparator(b.totalSupply, a.totalSupply)
     })
 
     const top3 = sorted.slice(0, 3)

@@ -1,6 +1,6 @@
 "use client"
 
-import { TopMarketsSectionNew } from "@/app/[locale]/lender/components/ExploreSection/TopMarketsSection/TopMarketsSectionNew"
+import { TopMarketsSectionNew } from "@/app/embed/components/TopMarketsSectionNew"
 
 import { useEmbedMarkets } from "../hooks/useEmbedMarkets"
 import { useIframeHeight } from "../hooks/useIframeHeight"

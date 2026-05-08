@@ -25,14 +25,19 @@ const COLORS = {
   muted: "#858593",
 }
 
+// Card visuals switch from mobile to desktop at 1320px (independent of layout).
+const BP_DESKTOP_DESIGN = "@media (min-width: 1320px)"
+// Layout switches from single column to two columns at 1000px.
+const BP_TWO_COL = "@media (min-width: 1000px)"
+
 type ChartConfig = {
   desktopSrc: string
   mobileSrc: string
-  /** Left offset as % of card width (Figma desktop reference: 634px) */
-  leftPct: number
+  /** Width in px (Figma desktop reference: 634px card) */
+  widthPx: number
   topPx: number
-  /** Width as % of card width */
-  widthPct: number
+  /** Right offset in px (Figma desktop reference: 634px card) */
+  rightPx: number
   /** Top offset for mobile icon (Figma mobile reference: 124px card) */
   mobileTopPx: number
 }
@@ -51,25 +56,35 @@ function StatCard({ label, value, delta, subtitle, chart }: Cell) {
       sx={{
         bgcolor: COLORS.cardBg,
         borderRadius: "20px",
-        height: { xs: 124, md: 152 },
-        px: { xs: "20px", md: "24px" },
-        pt: { xs: "16px", md: "20px" },
-        pb: { xs: "16px", md: "22px" },
+        height: 124,
+        px: "20px",
+        pt: "16px",
+        pb: "16px",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
         overflow: "hidden",
         position: "relative",
+        [BP_DESKTOP_DESIGN]: {
+          height: 152,
+          px: "24px",
+          pt: "20px",
+          pb: "22px",
+        },
       }}
     >
       <Stack spacing={0}>
         <Typography
           sx={{
             fontWeight: 500,
-            fontSize: { xs: "16px", md: "18px" },
-            lineHeight: { xs: "28px", md: "32px" },
+            fontSize: "16px",
+            lineHeight: "28px",
             color: COLORS.text,
             whiteSpace: "nowrap",
+            [BP_DESKTOP_DESIGN]: {
+              fontSize: "18px",
+              lineHeight: "32px",
+            },
           }}
         >
           {label}
@@ -78,10 +93,14 @@ function StatCard({ label, value, delta, subtitle, chart }: Cell) {
           <Typography
             sx={{
               fontWeight: 500,
-              fontSize: { xs: "16px", md: "18px" },
-              lineHeight: { xs: "28px", md: "32px" },
+              fontSize: "16px",
+              lineHeight: "28px",
               color: COLORS.muted,
               whiteSpace: "nowrap",
+              [BP_DESKTOP_DESIGN]: {
+                fontSize: "18px",
+                lineHeight: "32px",
+              },
             }}
           >
             {subtitle}
@@ -92,10 +111,15 @@ function StatCard({ label, value, delta, subtitle, chart }: Cell) {
         <Typography
           sx={{
             fontWeight: 700,
-            fontSize: { xs: "24px", md: "32px" },
-            lineHeight: { xs: "32px", md: "44px" },
-            letterSpacing: { xs: "-0.48px", md: "-0.64px" },
+            fontSize: "24px",
+            lineHeight: "32px",
+            letterSpacing: "-0.48px",
             color: COLORS.text,
+            [BP_DESKTOP_DESIGN]: {
+              fontSize: "32px",
+              lineHeight: "44px",
+              letterSpacing: "-0.64px",
+            },
           }}
         >
           {value ?? ""}
@@ -113,10 +137,14 @@ function StatCard({ label, value, delta, subtitle, chart }: Cell) {
             <Typography
               sx={{
                 fontWeight: 500,
-                fontSize: { xs: "14px", md: "16px" },
-                lineHeight: { xs: "24px", md: "32px" },
+                fontSize: "14px",
+                lineHeight: "24px",
                 color: COLORS.accent,
                 whiteSpace: "nowrap",
+                [BP_DESKTOP_DESIGN]: {
+                  fontSize: "16px",
+                  lineHeight: "32px",
+                },
               }}
             >
               {delta}
@@ -126,32 +154,48 @@ function StatCard({ label, value, delta, subtitle, chart }: Cell) {
       </Stack>
       {chart && (
         <>
-          {/* Desktop illustration — percentage-based position, hidden on mobile */}
+          {/* Desktop illustration — anchored to right edge (Figma reference), fixed size */}
           <Box
-            component="img"
-            src={chart.desktopSrc}
-            alt=""
             sx={{
-              display: { xs: "none", md: "block" },
+              display: "none",
               position: "absolute",
-              left: `${chart.leftPct}%`,
               top: `${chart.topPx}px`,
-              width: `${chart.widthPct}%`,
-              height: "auto",
+              right: `${chart.rightPx}px`,
+              width: `${chart.widthPx}px`,
+              bottom: 0,
               pointerEvents: "none",
+              [BP_DESKTOP_DESIGN]: {
+                display: "block",
+              },
             }}
-          />
+          >
+            <Box
+              component="img"
+              src={chart.desktopSrc}
+              alt=""
+              sx={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                objectPosition: "left top",
+                display: "block",
+              }}
+            />
+          </Box>
           {/* Mobile illustration — small icon at top-right, hidden on desktop */}
           <Box
             component="img"
             src={chart.mobileSrc}
             alt=""
             sx={{
-              display: { xs: "block", md: "none" },
+              display: "block",
               position: "absolute",
               right: "20px",
               top: `${chart.mobileTopPx}px`,
               pointerEvents: "none",
+              [BP_DESKTOP_DESIGN]: {
+                display: "none",
+              },
             }}
           />
         </>
@@ -197,9 +241,9 @@ export default function LandingStatsEmbedPage() {
       chart: {
         desktopSrc: tvlSrc.src,
         mobileSrc: tvlMobSrc.src,
-        leftPct: 57.73, // 366 / 634
+        widthPx: 268,
         topPx: 20,
-        widthPct: 42.27, // 268 / 634
+        rightPx: 0,
         mobileTopPx: 16,
       },
     },
@@ -210,9 +254,9 @@ export default function LandingStatsEmbedPage() {
       chart: {
         desktopSrc: apySrc.src,
         mobileSrc: apyMobSrc.src,
-        leftPct: 55.21, // 350 / 634
+        widthPx: 284,
         topPx: 43,
-        widthPct: 44.79, // 284 / 634
+        rightPx: 0,
         mobileTopPx: 16,
       },
     },
@@ -225,9 +269,9 @@ export default function LandingStatsEmbedPage() {
       chart: {
         desktopSrc: feesSrc.src,
         mobileSrc: feesMobSrc.src,
-        leftPct: 57.1, // 362 / 634
+        widthPx: 244,
         topPx: 28,
-        widthPct: 38.49, // 244 / 634
+        rightPx: 28,
         mobileTopPx: 19,
       },
     },
@@ -238,9 +282,9 @@ export default function LandingStatsEmbedPage() {
       chart: {
         desktopSrc: marketsSrc.src,
         mobileSrc: marketsMobSrc.src,
-        leftPct: 64.67, // 410 / 634
+        widthPx: 200,
         topPx: 24,
-        widthPct: 31.55, // 200 / 634
+        rightPx: 24,
         mobileTopPx: 22,
       },
     },
@@ -250,12 +294,16 @@ export default function LandingStatsEmbedPage() {
     <Box
       ref={containerRef}
       sx={{
-        maxWidth: "1440px",
-        mx: "auto",
-        p: { xs: "20px", md: "12px" },
+        // maxWidth: "1440px",
+        // mx: "auto",
+        p: "20px",
         display: "grid",
-        gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+        gridTemplateColumns: "1fr",
         gap: "12px",
+        [BP_TWO_COL]: {
+          p: "12px",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+        },
       }}
     >
       {cells.map((c) =>
@@ -263,7 +311,11 @@ export default function LandingStatsEmbedPage() {
           <Skeleton
             key={c.label}
             variant="rounded"
-            sx={{ borderRadius: "20px", height: { xs: 124, md: 152 } }}
+            sx={{
+              borderRadius: "20px",
+              height: 124,
+              [BP_DESKTOP_DESIGN]: { height: 152 },
+            }}
           />
         ) : (
           <StatCard
