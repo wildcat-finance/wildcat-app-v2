@@ -12,6 +12,7 @@ export type ChartTooltipParam = {
   value?: unknown
   color?: string
   data?: unknown
+  dataIndex?: number
 }
 
 export type ChartTooltipFormatter<T extends object = object> = (
@@ -50,6 +51,11 @@ export type CategoryBarSeries<T extends object> = {
   color: string
   stack?: string
   colors?: (item: T, index: number) => string
+}
+
+export type CategoryBarValueLabel<T extends object> = {
+  key: keyof T & string
+  formatter?: (value: number, item: T) => string
 }
 
 export type DonutChartItem = {

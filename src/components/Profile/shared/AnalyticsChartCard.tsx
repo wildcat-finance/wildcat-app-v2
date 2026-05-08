@@ -30,7 +30,7 @@ type AnalyticsChartCardProps = {
   description?: string
   descriptionPosition?: "top" | "bottom"
   actions?: React.ReactNode
-  cardHeight?: number
+  cardHeight?: number | "auto"
   dialogHeight?: number
   constrainWidth?: boolean
   cardSx?: SxProps<Theme>

@@ -2,10 +2,13 @@
 
 import * as React from "react"
 
+import type { ECharts } from "echarts/core"
+
 import { EChart } from "./EChart"
 import { buildCategoryBarOption } from "./options"
 import {
   CategoryBarSeries,
+  CategoryBarValueLabel,
   ChartMarkLine,
   ChartTooltipFormatter,
   ChartValueFormatter,
@@ -23,16 +26,21 @@ type CategoryBarChartProps<T extends object> = {
   formatValue?: ChartValueFormatter
   yAxisWidth?: number
   showDataZoom?: boolean
+  showLegend?: boolean
+  showWatermark?: boolean
+  valueAxisVisible?: boolean
   barBorderRadius?: number | number[]
   categoryLabelFontFamily?: string
   tooltipFormatter?: ChartTooltipFormatter<T>
   visualMap?: EChartOption["visualMap"]
   markLine?: ChartMarkLine
+  valueLabel?: CategoryBarValueLabel<T>
   showExportActions?: boolean
   csvContent?: string
   csvFileName?: string
   imageFileName?: string
   exportButtonVariant?: "icon" | "text"
+  onReady?: (instance: ECharts | null) => void
 }
 
 export const CategoryBarChart = <T extends object>({
@@ -46,16 +54,21 @@ export const CategoryBarChart = <T extends object>({
   formatValue,
   yAxisWidth,
   showDataZoom,
+  showLegend,
+  showWatermark,
+  valueAxisVisible,
   barBorderRadius,
   categoryLabelFontFamily,
   tooltipFormatter,
   visualMap,
   markLine,
+  valueLabel,
   showExportActions,
   csvContent,
   csvFileName,
   imageFileName,
   exportButtonVariant,
+  onReady,
 }: CategoryBarChartProps<T>) => {
   const option = React.useMemo(
     () =>
@@ -68,11 +81,15 @@ export const CategoryBarChart = <T extends object>({
         formatValue,
         yAxisWidth,
         showDataZoom,
+        showLegend,
+        showWatermark,
+        valueAxisVisible,
         barBorderRadius,
         categoryLabelFontFamily,
         tooltipFormatter,
         visualMap,
         markLine,
+        valueLabel,
       }),
     [
       data,
@@ -83,11 +100,15 @@ export const CategoryBarChart = <T extends object>({
       formatValue,
       yAxisWidth,
       showDataZoom,
+      showLegend,
+      showWatermark,
+      valueAxisVisible,
       barBorderRadius,
       categoryLabelFontFamily,
       tooltipFormatter,
       visualMap,
       markLine,
+      valueLabel,
     ],
   )
 
@@ -101,6 +122,7 @@ export const CategoryBarChart = <T extends object>({
       csvFileName={csvFileName}
       imageFileName={imageFileName}
       exportButtonVariant={exportButtonVariant}
+      onReady={onReady}
     />
   )
 }

@@ -63,7 +63,7 @@ type EChartProps = {
   imageFileName?: string
 }
 
-const ExportButton = ({
+export const ExportButton = ({
   label,
   onClick,
   variant,

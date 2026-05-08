@@ -13,6 +13,7 @@ import {
 import { CHART_PALETTE } from "./palette"
 import {
   CategoryBarSeries,
+  CategoryBarValueLabel,
   ChartMarkLine,
   ChartMarkPoint,
   ChartTooltipFormatter,
@@ -26,7 +27,7 @@ import {
 type TooltipParam = Parameters<ChartTooltipFormatter>[0][number]
 
 const fontFamily = "monospace"
-const watermarkImage =
+export const WATERMARK_IMAGE =
   typeof wildcatLogoUrl === "string"
     ? wildcatLogoUrl
     : (wildcatLogoUrl as { src: string }).src
@@ -58,7 +59,7 @@ export const getChartWatermark = (
   z: 0,
   silent: true,
   style: {
-    image: watermarkImage,
+    image: WATERMARK_IMAGE,
     ...WATERMARK_DIMENSIONS[placement],
     opacity: 0.05,
   },
@@ -366,11 +367,15 @@ export const buildCategoryBarOption = <T extends object>({
   formatValue = formatCompactNumber,
   yAxisWidth,
   showDataZoom = false,
+  showLegend = true,
+  showWatermark = true,
+  valueAxisVisible = true,
   barBorderRadius,
   categoryLabelFontFamily,
   tooltipFormatter,
   visualMap,
   markLine,
+  valueLabel,
 }: {
   data: T[]
   categoryKey: keyof T & string
@@ -380,13 +385,47 @@ export const buildCategoryBarOption = <T extends object>({
   formatValue?: ChartValueFormatter
   yAxisWidth?: number
   showDataZoom?: boolean
+  showLegend?: boolean
+  showWatermark?: boolean
+  valueAxisVisible?: boolean
   barBorderRadius?: number | number[]
   categoryLabelFontFamily?: string
   tooltipFormatter?: ChartTooltipFormatter<T>
   visualMap?: EChartOption["visualMap"]
   markLine?: ChartMarkLine
+  valueLabel?: CategoryBarValueLabel<T>
 }): EChartOption => {
+  const legendVisible = showLegend && series.length > 1
   const hasDataZoom = showDataZoom && data.length > 1
+  const valueLabelAxis =
+    horizontal && valueLabel
+      ? {
+          ...baseAxis,
+          type: "category",
+          position: "right",
+          data: data.map((item) => String(item[categoryKey] ?? "")),
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: {
+            color: COLORS.blackRock,
+            fontFamily,
+            fontSize: 11,
+            fontWeight: 400,
+            interval: 0,
+            margin: 10,
+            formatter: (_value: string, index: number) => {
+              const row = data[index]
+              if (!row) return ""
+
+              const value = Number(row[valueLabel.key] ?? 0)
+              return valueLabel.formatter
+                ? valueLabel.formatter(value, row)
+                : formatValue(value)
+            },
+          },
+          splitLine: { show: false },
+        }
+      : undefined
   const categoryAxis = {
     ...baseAxis,
     type: "category",
@@ -403,8 +442,13 @@ export const buildCategoryBarOption = <T extends object>({
   const valueAxis = {
     ...baseAxis,
     type: "value",
+    axisLine: valueAxisVisible
+      ? baseAxis.axisLine
+      : { show: false, lineStyle: baseAxis.axisLine.lineStyle },
+    splitLine: valueAxisVisible ? baseAxis.splitLine : { show: false },
     axisLabel: {
       ...baseAxis.axisLabel,
+      show: valueAxisVisible,
       formatter: (value: number) => formatValue(value),
     },
   }
@@ -421,18 +465,31 @@ export const buildCategoryBarOption = <T extends object>({
     },
     {},
   )
+  let resolvedYAxis: EChartOption["yAxis"] = valueAxis
+  if (horizontal) {
+    resolvedYAxis = valueLabelAxis
+      ? [categoryAxis, valueLabelAxis]
+      : categoryAxis
+  }
 
   return {
     animation: false,
-    graphic: getChartWatermark(horizontal ? "dense" : "cartesian"),
+    graphic: showWatermark
+      ? getChartWatermark(horizontal ? "dense" : "cartesian")
+      : undefined,
     grid: {
       left: horizontal ? yAxisWidth ?? 150 : 12,
-      right: 16,
-      top: 32,
+      right: valueLabelAxis ? 74 : 16,
+      top: legendVisible ? 32 : 12,
       bottom: hasDataZoom ? 60 : 12,
       containLabel: !horizontal,
     },
-    legend: series.length > 1 ? baseLegend : undefined,
+    legend: legendVisible
+      ? {
+          ...baseLegend,
+          data: series.map((item) => item.name),
+        }
+      : undefined,
     tooltip: {
       ...baseTooltip,
       trigger: "axis",
@@ -460,7 +517,7 @@ export const buildCategoryBarOption = <T extends object>({
     visualMap,
     dataZoom: getDataZoom(hasDataZoom, horizontal ? "y" : "x"),
     xAxis: horizontal ? valueAxis : categoryAxis,
-    yAxis: horizontal ? categoryAxis : valueAxis,
+    yAxis: resolvedYAxis,
     series: [
       ...series.map((item) => ({
         name: item.name,
@@ -503,6 +560,44 @@ export const buildCategoryBarOption = <T extends object>({
                 disabled: true,
               },
               data: data.map(() => markLine.value),
+            },
+          ]
+        : []),
+      ...(valueLabel && !horizontal
+        ? [
+            {
+              name: "__value_label",
+              type: "bar",
+              barGap: "-100%",
+              barMaxWidth: 26,
+              silent: true,
+              tooltip: { show: false },
+              itemStyle: {
+                color: "rgba(0,0,0,0)",
+                borderColor: "rgba(0,0,0,0)",
+              },
+              emphasis: {
+                disabled: true,
+              },
+              label: {
+                show: true,
+                position: horizontal ? "right" : "top",
+                distance: 8,
+                color: COLORS.blackRock,
+                fontFamily,
+                fontSize: 11,
+                fontWeight: 600,
+                formatter: ({ dataIndex }: { dataIndex: number }) => {
+                  const row = data[dataIndex]
+                  if (!row) return ""
+
+                  const value = Number(row?.[valueLabel.key] ?? 0)
+                  return valueLabel.formatter
+                    ? valueLabel.formatter(value, row)
+                    : formatValue(value)
+                },
+              },
+              data: data.map((row) => Number(row[valueLabel.key] ?? 0)),
             },
           ]
         : []),

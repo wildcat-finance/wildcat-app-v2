@@ -59,6 +59,7 @@ import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { useLenderMarketAnalytics } from "./hooks/useLenderMarketAnalytics"
 import { useMarketDailyFlows } from "./hooks/useMarketDailyFlows"
+import { useMarketDelinquencyHistory } from "./hooks/useMarketDelinquencyHistory"
 import { LenderStatus } from "./interface"
 import { SectionContainer, SkeletonContainer, SkeletonStyle } from "./style"
 import { getEffectiveLenderRole } from "./utils"
@@ -104,6 +105,11 @@ export default function LenderMarketDetails({
     isLoading: isFlowsLoading,
     symbol,
   } = useMarketDailyFlows(market)
+  const {
+    delinquencyHistory,
+    isLoading: isDelinquencyLoading,
+    gracePeriodHours,
+  } = useMarketDelinquencyHistory(market)
 
   const hasLenderInteracted = !!marketAccount?.hasEverInteracted
 
@@ -593,8 +599,12 @@ export default function LenderMarketDetails({
 
           <Box sx={{ padding: "0 4px" }}>
             <LenderFlowCharts
+              market={market}
               dailyFlows={dailyFlows}
               isLoading={isFlowsLoading}
+              delinquencyHistory={delinquencyHistory}
+              isDelinquencyLoading={isDelinquencyLoading}
+              gracePeriodHours={gracePeriodHours}
               symbol={symbol}
             />
           </Box>
@@ -637,8 +647,12 @@ export default function LenderMarketDetails({
               )}
               <Box sx={{ marginTop: "32px" }}>
                 <LenderFlowCharts
+                  market={market}
                   dailyFlows={dailyFlows}
                   isLoading={isFlowsLoading}
+                  delinquencyHistory={delinquencyHistory}
+                  isDelinquencyLoading={isDelinquencyLoading}
+                  gracePeriodHours={gracePeriodHours}
                   symbol={symbol}
                 />
               </Box>

@@ -308,6 +308,18 @@ const LENDER_QUERY_KEYS = {
   // GET_MARKET_DAILY_FLOWS_KEY
   GET_MARKET_DAILY_FLOWS: (chainId: number, marketAddress?: string) =>
     k(["lender", "GET_MARKET_DAILY_FLOWS", chainId, marketAddress]),
+  GET_MARKET_DELINQUENCY_HISTORY: (
+    chainId: number,
+    marketAddress?: string,
+    gracePeriodSeconds?: number,
+  ) =>
+    k([
+      "lender",
+      "GET_MARKET_DELINQUENCY_HISTORY",
+      chainId,
+      marketAddress,
+      gracePeriodSeconds,
+    ]),
   GET_PROFILE_POSITIONS: (chainId: number, lenderAddress?: string) =>
     k(["lender", "GET_PROFILE_POSITIONS", chainId, lenderAddress]),
   GET_PROFILE_ACTIVITY: (

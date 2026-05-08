@@ -1144,6 +1144,7 @@
         "dailyFlowsDesc": "Deposits above axis; withdrawals below (requested vs executed)",
         "cumulativeNetFlow": "Cumulative Net Flow",
         "cumulativeNetFlowDesc": "Running total: deposits − withdrawals",
+        "delinquencyHistory": "Delinquency History",
         "expand": "Expand chart",
         "close": "Close"
       }
