@@ -37,6 +37,9 @@ export const analyticsDataGridSx = {
   ...TableStyles,
   border: "none",
   minWidth: "var(--analytics-table-min-width)",
+  "& .MuiDataGrid-topContainer, & .MuiDataGrid-container--top": {
+    backgroundColor: COLORS.white,
+  },
   "& .MuiDataGrid-columnHeaders": {
     backgroundColor: COLORS.white,
   },
@@ -67,6 +70,44 @@ export const analyticsDataGridSx = {
   },
   "& .MuiDataGrid-overlayWrapper": {
     minHeight: "160px !important",
+  },
+}
+
+export const autoHeightAnalyticsDataGridSx = {
+  ...analyticsDataGridSx,
+  overflow: "visible",
+  height: "auto !important",
+  maxWidth: "100%",
+  "& .MuiDataGrid-main": {
+    overflow: "visible",
+    height: "auto !important",
+    flex: "0 0 auto !important",
+  },
+  "& .MuiDataGrid-virtualScroller": {
+    overflow: "visible !important",
+    overflowX: "visible !important",
+    overflowY: "visible !important",
+    height: "auto !important",
+    flex: "0 0 auto !important",
+  },
+  "& .MuiDataGrid-virtualScrollerContent": {
+    height: "auto !important",
+  },
+  "& .MuiDataGrid-virtualScrollerRenderZone": {
+    position: "static !important" as const,
+    transform: "none !important",
+  },
+  "& .MuiDataGrid-scrollbar": {
+    display: "none",
+  },
+  "& .MuiDataGrid-scrollbarFiller": {
+    display: "none",
+  },
+  "& .MuiDataGrid-topContainer, & .MuiDataGrid-container--top": {
+    position: "sticky",
+    top: 0,
+    zIndex: 4,
+    backgroundColor: COLORS.white,
   },
 }
 
@@ -195,6 +236,7 @@ export const AnalyticsDataGrid = ({
 }: AnalyticsDataGridProps) => {
   const isMobile = useMobileResolution()
   const [page, setPage] = React.useState(0)
+  const hasBoundedHeight = maxHeight !== undefined
 
   // Reset to first page if the data set shrinks beneath the current page.
   const totalPages = Math.max(1, Math.ceil(rows.length / mobilePageSize))
@@ -269,13 +311,12 @@ export const AnalyticsDataGrid = ({
     >
       <Box
         sx={{
-          maxHeight,
-          overflowX: "auto",
-          overflowY: maxHeight ? "auto" : "visible",
+          overflowX: hasBoundedHeight ? "visible" : "auto",
+          overflowY: "visible",
         }}
       >
         <DataGrid
-          autoHeight
+          autoHeight={!hasBoundedHeight}
           getRowHeight={() => "auto"}
           hideFooter
           disableRowSelectionOnClick
@@ -283,7 +324,14 @@ export const AnalyticsDataGrid = ({
           loading={loading}
           rows={rows}
           columns={columns}
-          sx={analyticsDataGridSx}
+          sx={{
+            ...(hasBoundedHeight
+              ? analyticsDataGridSx
+              : autoHeightAnalyticsDataGridSx),
+            ...(hasBoundedHeight && {
+              height: maxHeight,
+            }),
+          }}
           localeText={{
             noRowsLabel,
           }}

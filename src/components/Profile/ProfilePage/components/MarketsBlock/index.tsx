@@ -10,7 +10,10 @@ import { useAccount } from "wagmi"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
-import { analyticsDataGridSx } from "@/components/Profile/shared/AnalyticsDataGrid"
+import {
+  analyticsDataGridSx,
+  autoHeightAnalyticsDataGridSx,
+} from "@/components/Profile/shared/AnalyticsDataGrid"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import {
@@ -255,16 +258,23 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     )
   }
 
+  const hasScrollableRows = rows.length > 7
+
   return (
     <Box marginTop="24px" marginBottom="20px">
       <DataGrid
-        autoHeight
+        autoHeight={!hasScrollableRows}
         getRowHeight={() => "auto"}
         hideFooter
         disableColumnMenu
         disableRowSelectionOnClick
         sx={{
-          ...analyticsDataGridSx,
+          ...(hasScrollableRows
+            ? analyticsDataGridSx
+            : autoHeightAnalyticsDataGridSx),
+          ...(hasScrollableRows && {
+            height: 560,
+          }),
           marginTop: "12px",
           minWidth: 980,
         }}
