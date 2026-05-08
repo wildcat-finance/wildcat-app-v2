@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.17.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.16.1...v2.17.0) (2026-05-01)
+
+
+### Features
+
+* **mobile-history:** mobile market history view  ([7c91811](https://github.com/wildcat-finance/wildcat-app-v2/commit/7c9181178fa56135bcde255f336dc0f8eac18457))
+
+
+### Bug Fixes
+
+* **borrower-names:** expand query key to include chain ([51a057e](https://github.com/wildcat-finance/wildcat-app-v2/commit/51a057e5f7135ec63476a1d1b395d20e79f3840e))
+
 ## [2.16.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.16.0...v2.16.1) (2026-04-24)
 
 
