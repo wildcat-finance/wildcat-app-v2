@@ -1301,6 +1301,8 @@ export const theme = createTheme({
           border: "none",
           boxShadow: "none",
           padding: 0,
+          minWidth: "0 !important",
+          width: "100%",
         },
       },
     },

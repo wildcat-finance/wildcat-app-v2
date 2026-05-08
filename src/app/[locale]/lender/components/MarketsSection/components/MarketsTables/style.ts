@@ -6,7 +6,7 @@ export const DataGridSx = {
   overflow: "visible",
   height: "auto !important",
   minHeight: DATA_GRID_MIN_HEIGHT,
-  maxWidth: "calc(100vw - 267px)",
+  maxWidth: "100%",
   padding: "0 16px",
   "& .MuiDataGrid-main": {
     overflow: "visible",
@@ -26,6 +26,12 @@ export const DataGridSx = {
   "& .MuiDataGrid-virtualScrollerRenderZone": {
     position: "static !important" as const,
     transform: "none !important",
+  },
+  "& .MuiDataGrid-scrollbar": {
+    display: "none",
+  },
+  "& .MuiDataGrid-scrollbarFiller": {
+    display: "none",
   },
   "& .MuiDataGrid-columnHeaders": {
     position: "sticky",

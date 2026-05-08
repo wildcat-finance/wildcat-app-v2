@@ -27,9 +27,10 @@ export const Sidebar = () => {
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: "calc(100vh - 82px)",
+        flex: "0 0 267px",
         minWidth: "267px",
         width: "267px",
+        minHeight: 0,
         borderRight: `1px solid ${COLORS.blackRock006}`,
         overflow: "hidden",
         overflowY: "auto",
