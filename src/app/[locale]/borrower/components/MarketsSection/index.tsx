@@ -359,12 +359,17 @@ export const MarketsSection = () => {
     <Box
       sx={{
         width: "100%",
+        flex: "1 1 0",
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
+          flexShrink: 0,
         }}
       >
         <Box

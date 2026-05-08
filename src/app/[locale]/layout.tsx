@@ -12,8 +12,10 @@ import { cookieToInitialState } from "wagmi"
 
 import {
   BackgroundContainer,
+  ContentArea,
   ContentContainer,
   PageContainer,
+  RootScaffold,
 } from "@/app/[locale]/layout-style"
 import initTranslations from "@/app/i18n"
 import Header from "@/components/Header"
@@ -80,21 +82,12 @@ export default async function RootLayout({
                     {/* <PollingRegistration /> */}
                     <ThemeRegistry>
                       <Box sx={BackgroundContainer} />
-                      <Box position="relative">
+                      <Box sx={RootScaffold}>
                         <Header />
                         <Box sx={PageContainer}>
                           <Box sx={ContentContainer}>
                             <Sidebar />
-                            <Box
-                              width="calc(100vw - 267px)"
-                              sx={{
-                                "@media (max-width: 1000px)": {
-                                  width: "100%",
-                                },
-                              }}
-                            >
-                              {children}
-                            </Box>
+                            <Box sx={ContentArea}>{children}</Box>
                             <Suspense>
                               <HotjarConsent />
                             </Suspense>
