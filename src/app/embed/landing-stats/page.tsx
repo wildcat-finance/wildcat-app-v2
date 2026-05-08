@@ -294,12 +294,12 @@ export default function LandingStatsEmbedPage() {
     <Box
       ref={containerRef}
       sx={{
-        px: "80px",
+        px: "20px",
         display: "grid",
         gridTemplateColumns: "1fr",
         gap: "12px",
         [BP_TWO_COL]: {
-          p: "12px",
+          p: "80px",
           gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
         },
       }}
