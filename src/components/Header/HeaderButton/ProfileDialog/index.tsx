@@ -8,9 +8,9 @@ import {
 } from "@mui/material"
 import Image from "next/image"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount, useDisconnect, useSwitchChain } from "wagmi"
-import { sepolia } from "wagmi/chains"
 
 import Avatar from "@/assets/icons/avatar_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
@@ -27,12 +27,12 @@ import { ProfileDialogProps } from "@/components/Header/HeaderButton/ProfileDial
 import { LinkGroup } from "@/components/LinkComponent"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-import { useGetController } from "@/hooks/useGetController"
 import { useGetIsRegisteredBorrower } from "@/hooks/useIsRegisteredBorrower"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
+import { isBorrowerContextPath } from "@/utils/profileRoutes"
 
 export const ProfileDialog = ({
   open,
@@ -44,6 +44,7 @@ export const ProfileDialog = ({
   const { t } = useTranslation()
 
   const { address, isConnected, connector } = useAccount()
+  const pathname = usePathname()
   const { disconnect } = useDisconnect()
   const { isWrongNetwork } = useCurrentNetwork()
   const selectedNetwork = useSelectedNetwork()
@@ -56,6 +57,12 @@ export const ProfileDialog = ({
   }
 
   const { data: isRegisteredBorrower } = useGetIsRegisteredBorrower()
+  const isBorrowerContext = isBorrowerContextPath(pathname, address)
+  const isLenderContext = !isBorrowerContext
+  const shouldShowProfileLink = isLenderContext || isRegisteredBorrower
+  const profileRoute = isLenderContext
+    ? ROUTES.lender.profile
+    : ROUTES.borrower.profile
 
   return (
     <Dialog open={open} onClose={handleClose} sx={DialogContainer}>
@@ -130,8 +137,8 @@ export const ProfileDialog = ({
         />
 
         <Box sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
-          {isRegisteredBorrower && (
-            <Link href={ROUTES.borrower.profile} onClick={handleClose}>
+          {shouldShowProfileLink && (
+            <Link href={profileRoute} onClick={handleClose}>
               <Button
                 variant="text"
                 fullWidth
@@ -155,7 +162,7 @@ export const ProfileDialog = ({
                   variant="text2"
                   sx={{ width: "100%", fontWeight: 600, textAlign: "left" }}
                 >
-                  View Profile
+                  View {isLenderContext ? "Lender" : "Borrower"} Profile
                 </Typography>
               </Button>
             </Link>

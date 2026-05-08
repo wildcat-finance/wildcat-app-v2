@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { getBorrowerDisplayName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import {
   clickableGridSx,
   rowLinkInteractiveSx,
@@ -19,16 +20,15 @@ import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import {
+  buildBorrowerProfileHref,
   buildMarketHref,
   formatSecsToHours,
   formatTokenWithCommas,
-  trimAddress,
 } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -82,12 +82,7 @@ export const LenderTerminatedMarketsTables = ({
         chainId,
       } = market
 
-      const borrower = borrowers?.find(
-        (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
-      )
-      const borrowerName = borrower
-        ? borrower.alias || borrower.name
-        : trimAddress(borrowerAddress)
+      const borrowerName = getBorrowerDisplayName(borrowerAddress, borrowers)
       const marketStatus = getMarketStatusChip(market)
       const marketType = getMarketTypeChip(market)
 
@@ -159,7 +154,10 @@ export const LenderTerminatedMarketsTables = ({
           {params.row.borrowerAddress ? (
             <Box
               component={Link}
-              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              href={buildBorrowerProfileHref(
+                params.row.borrowerAddress,
+                params.row.chainId,
+              )}
               prefetch={false}
               sx={{
                 ...rowLinkInteractiveSx,

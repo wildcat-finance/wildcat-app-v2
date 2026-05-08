@@ -5,10 +5,15 @@ import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
+import {
+  analyticsDataGridSx,
+  autoHeightAnalyticsDataGridSx,
+} from "@/components/Profile/shared/AnalyticsDataGrid"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import {
@@ -23,6 +28,7 @@ import {
 } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
+import { isBorrowerContextPath } from "@/utils/profileRoutes"
 
 import { MarketsBlockProps } from "./interface"
 import { LinkCell } from "./style"
@@ -32,7 +38,8 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
   const isMobile = useMobileResolution()
 
   const pathname = usePathname()
-  const marketLink = pathname.includes(ROUTES.borrower.profile)
+  const { address: connectedAddress } = useAccount()
+  const marketLink = isBorrowerContextPath(pathname, connectedAddress)
     ? ROUTES.borrower.market
     : ROUTES.lender.market
 
@@ -40,7 +47,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     .filter((market) => !market.isClosed)
     .map((market) => {
       const {
-        address,
+        address: marketAddress,
         name,
         underlyingToken,
         annualInterestBips,
@@ -52,9 +59,13 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       } = market
 
       const marketStatus = getMarketStatusChip(market)
+      const capRaw = maxTotalSupply.raw
+      const utilisation = capRaw.isZero()
+        ? 0
+        : totalSupply.raw.mul(10000).div(capRaw).toNumber() / 100
 
       return {
-        id: address,
+        id: marketAddress,
         chainId,
         name,
         status: marketStatus,
@@ -62,8 +73,12 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
         apr: annualInterestBips,
         term: getMarketTypeChip(market),
         debt: totalDebts,
+        capacity: maxTotalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
+        utilisation,
         withdrawalBatchDuration,
+        borrower: undefined,
+        borrowerAddress: undefined,
       }
     })
 
@@ -163,7 +178,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
             justifyContent: "flex-end",
           }}
         >
-          {params.value}
+          <Typography variant="text3">{params.value}</Typography>
         </Link>
       ),
     },
@@ -182,7 +197,9 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
             justifyContent: "flex-end",
           }}
         >
-          {formatSecsToHours(params.value, true)}
+          <Typography variant="text3">
+            {formatSecsToHours(params.value, true)}
+          </Typography>
         </Link>
       ),
     },
@@ -199,7 +216,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
           href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {`${params.value / 100}%`}
+          <Typography variant="text3">{`${params.value / 100}%`}</Typography>
         </Link>
       ),
     },
@@ -215,43 +232,51 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
           href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {params.value
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
+          <Typography variant="text3">
+            {params.value
+              ? formatTokenWithCommas(params.value, {
+                  withSymbol: false,
+                  fractionDigits: 2,
+                })
+              : "0"}
+          </Typography>
         </Link>
       ),
     },
   ]
 
   if (isMobile) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    return <MobileMarketList markets={rows} isLoading={isLoading} />
+    const uniqueAssets = new Set(rows.map((r) => r.asset)).size
+    return (
+      <MobileMarketList
+        markets={rows as Parameters<typeof MobileMarketList>[0]["markets"]}
+        isLoading={!!isLoading}
+        variant="borrower-context"
+        groupByAsset={uniqueAssets > 1}
+        enableToolbar
+      />
+    )
   }
 
+  const hasScrollableRows = rows.length > 7
+
   return (
-    <Box marginTop="32px" marginBottom="44px">
-      <Typography variant="title3">
-        {t("borrowerProfile.profile.activeMarkets.title")}
-      </Typography>
+    <Box marginTop="24px" marginBottom="20px">
       <DataGrid
+        autoHeight={!hasScrollableRows}
         getRowHeight={() => "auto"}
-        autoHeight
+        hideFooter
+        disableColumnMenu
+        disableRowSelectionOnClick
         sx={{
+          ...(hasScrollableRows
+            ? analyticsDataGridSx
+            : autoHeightAnalyticsDataGridSx),
+          ...(hasScrollableRows && {
+            height: 560,
+          }),
           marginTop: "12px",
-          "& .MuiDataGrid-columnHeader": { padding: 0 },
-          "& .MuiDataGrid-row": {
-            minHeight: "66px !important",
-            maxHeight: "66px !important",
-          },
-          "& .MuiDataGrid-cell": {
-            padding: "0px",
-            minHeight: "66px",
-            height: "auto",
-          },
+          minWidth: 980,
         }}
         rows={rows}
         columns={columns}
