@@ -294,9 +294,7 @@ export default function LandingStatsEmbedPage() {
     <Box
       ref={containerRef}
       sx={{
-        // maxWidth: "1440px",
-        // mx: "auto",
-        p: "20px",
+        px: "80px",
         display: "grid",
         gridTemplateColumns: "1fr",
         gap: "12px",

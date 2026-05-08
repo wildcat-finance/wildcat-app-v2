@@ -360,8 +360,6 @@ export const TopMarketsSectionNew = ({
     return { topMarkets: cards, defaultBadges: computed }
   }, [markets, borrowers, sortMode])
 
-  const displayBadges = badges ?? defaultBadges
-
   return (
     <Box sx={{ width: "100%", bgcolor: COLORS.white }}>
       <Box
