@@ -215,17 +215,12 @@ export const ExploreMarketsTable = () => {
       if (sortMode === "Most Liquid") {
         const capA = a.market.maxTotalSupply.sub(a.market.totalSupply)
         const capB = b.market.maxTotalSupply.sub(b.market.totalSupply)
-        if (capB.gt(capA)) return 1
-        if (capA.gt(capB)) return -1
-        return 0
+        return tokenAmountComparator(capB, capA)
       }
       if (sortMode === "Newest") {
         return 0
       }
-      // Most Funded
-      if (b.market.totalSupply.gt(a.market.totalSupply)) return 1
-      if (a.market.totalSupply.gt(b.market.totalSupply)) return -1
-      return 0
+      return tokenAmountComparator(b.market.totalSupply, a.market.totalSupply)
     })
 
     return sorted.slice(0, 5).map((account) => {
@@ -279,6 +274,7 @@ export const ExploreMarketsTable = () => {
     withdrawalCycles,
     showSelfOnboard,
     showOnboardByBorrower,
+    isLoadingUpdate,
   ])
 
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
