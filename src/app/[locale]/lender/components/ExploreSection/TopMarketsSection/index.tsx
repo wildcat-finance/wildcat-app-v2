@@ -37,6 +37,7 @@ import { RepeatingSkeletons } from "@/components/RepeatingSkeletons"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { tokenAmountComparator } from "@/utils/comparators"
 import {
   buildMarketHref,
   formatBps,
@@ -150,7 +151,13 @@ export const TopMarketsSection = () => {
   const isLoading = isLoadingInitial || isLoadingUpdate
 
   const sortedRows = useMemo((): GridRowsProp<LenderOtherMarketsTableModel> => {
-    const active = marketAccounts.filter((a) => isExploreVisible(a.market))
+    const active = marketAccounts.filter(
+      (a) =>
+        isExploreVisible(a.market) &&
+        !a.hasEverInteracted &&
+        a.market.version === MarketVersion.V2 &&
+        a.depositAvailability === DepositStatus.Ready,
+    )
 
     const sorted = [...active].sort((a, b) => {
       if (sortMode === "Highest Yield") {
@@ -161,9 +168,7 @@ export const TopMarketsSection = () => {
           a.market.withdrawalBatchDuration - b.market.withdrawalBatchDuration
         )
       }
-      if (b.market.totalSupply.gt(a.market.totalSupply)) return 1
-      if (a.market.totalSupply.gt(b.market.totalSupply)) return -1
-      return 0
+      return tokenAmountComparator(b.market.totalSupply, a.market.totalSupply)
     })
 
     return sorted.slice(0, 3).map((account) => {
@@ -207,7 +212,7 @@ export const TopMarketsSection = () => {
         chainId,
       }
     })
-  }, [marketAccounts, borrowers, sortMode])
+  }, [marketAccounts, borrowers, sortMode, isLoadingUpdate])
 
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
     {
