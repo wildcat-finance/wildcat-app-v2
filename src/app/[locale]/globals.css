@@ -385,3 +385,24 @@ select:-webkit-autofill:focus {
 :root[data-theme="dark"] .invert-on-dark {
   filter: invert(1) hue-rotate(180deg);
 }
+
+/* =========================================================================
+ * MUI X DataGrid v7 — CSS variable override
+ * ---------------------------------------------------------------------
+ * The DataGrid sets `--DataGrid-containerBackground` and
+ * `--DataGrid-pinnedBackground` from `theme.palette.background.default`
+ * at theme-construction time (see GridRootStyles.js:154-156). That value
+ * has to remain a real hex because MUI's JS color helpers (`alpha`,
+ * `blend` → `decomposeColor`) consume it for hover/selected blends and
+ * will throw `MUI: Unsupported var(...) color` if it's a CSS variable.
+ *
+ * To make those vars theme-aware *without* feeding `var()` into MUI's JS,
+ * we leave the JS-side hex alone and override the resulting CSS variables
+ * here, on the DataGrid root, with `!important`. The columnHeaders and
+ * pinned cells use these via `var(--DataGrid-*)`, so the rendered
+ * background tracks `data-theme` like everything else.
+ * ======================================================================= */
+.MuiDataGrid-root {
+  --DataGrid-containerBackground: var(--surface-card) !important;
+  --DataGrid-pinnedBackground: var(--surface-card) !important;
+}
