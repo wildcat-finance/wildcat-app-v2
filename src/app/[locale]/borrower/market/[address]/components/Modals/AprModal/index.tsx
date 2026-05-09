@@ -490,7 +490,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                       <SvgIcon
                         sx={{
                           fontSize: "16px",
-                          "& path": { fill: COLORS.white },
+                          "& path": { fill: COLORS.staticWhite },
                           mt: "1px",
                         }}
                       >

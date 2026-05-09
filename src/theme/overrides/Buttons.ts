@@ -1,319 +1,206 @@
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 
+const containedBase = {
+  fontWeight: 600,
+  color: TOKENS.actionPrimaryFg,
+  backgroundColor: TOKENS.actionPrimaryBg,
+
+  "&:hover": {
+    background: TOKENS.actionPrimaryBgHover,
+    color: TOKENS.actionPrimaryFg,
+    boxShadow: "none",
+  },
+
+  "&.Mui-disabled": {
+    color: TOKENS.actionPrimaryDisabledFg,
+    backgroundColor: TOKENS.actionPrimaryDisabledBg,
+  },
+}
+
 export const smallContainedButton = {
+  ...containedBase,
   fontSize: pxToRem(11),
   lineHeight: lh(16, 11),
-  fontWeight: 600,
-  color: COLORS.white,
-
   padding: "6px 12px",
   borderRadius: 8,
-  backgroundColor: COLORS.bunker,
-
-  "&:hover": {
-    background: COLORS.blackRock,
-    boxShadow: "none",
-  },
-
-  "&.Mui-disabled": {
-    color: COLORS.santasGrey,
-    backgroundColor: COLORS.athensGrey,
-  },
 }
 export const mediumContainedButton = {
+  ...containedBase,
   fontSize: pxToRem(13),
   lineHeight: lh(12, 13),
-  fontWeight: 600,
-  color: COLORS.white,
-
   padding: "12px",
   borderRadius: 10,
-  backgroundColor: COLORS.bunker,
-
-  "&:hover": {
-    background: COLORS.blackRock,
-    boxShadow: "none",
-  },
-
-  "&.Mui-disabled": {
-    color: COLORS.santasGrey,
-    backgroundColor: COLORS.athensGrey,
-  },
 }
 export const largeContainedButton = {
+  ...containedBase,
   fontSize: pxToRem(14),
   lineHeight: lh(20, 14),
-  fontWeight: 600,
-  color: COLORS.white,
-
   padding: "12px 20px",
   borderRadius: 12,
-  backgroundColor: COLORS.bunker,
+}
+
+const containedSecondaryBase = {
+  fontWeight: 600,
+  color: TOKENS.actionSecondaryFg,
+  backgroundColor: TOKENS.actionSecondaryBg,
 
   "&:hover": {
-    background: COLORS.blackRock,
+    background: TOKENS.actionSecondaryBgHover,
+    color: TOKENS.actionSecondaryFg,
     boxShadow: "none",
   },
 
   "&.Mui-disabled": {
-    color: COLORS.santasGrey,
-    backgroundColor: COLORS.athensGrey,
+    color: TOKENS.actionSecondaryDisabledFg,
+    backgroundColor: TOKENS.actionSecondaryDisabledBg,
   },
 }
 
 export const smallContainedSecondaryButton = {
+  ...containedSecondaryBase,
   fontSize: pxToRem(11),
   lineHeight: lh(16, 11),
-  fontWeight: 600,
-  color: COLORS.bunker,
-
   padding: "6px 12px",
   borderRadius: 8,
-  backgroundColor: COLORS.whiteSmoke,
-
-  "&:hover": {
-    background: COLORS.athensGrey,
-    boxShadow: "none",
-  },
-
-  "&.Mui-disabled": {
-    color: COLORS.santasGrey,
-    backgroundColor: COLORS.athensGrey,
-  },
 }
 export const mediumSecondaryContainedButton = {
+  ...containedSecondaryBase,
   fontSize: pxToRem(13),
   lineHeight: lh(12, 13),
-  fontWeight: 600,
-  color: COLORS.bunker,
-
   padding: "12px",
   borderRadius: 10,
-  backgroundColor: COLORS.whiteSmoke,
-
-  "&:hover": {
-    background: COLORS.athensGrey,
-    boxShadow: "none",
-  },
-
-  "&.Mui-disabled": {
-    color: COLORS.santasGrey,
-    backgroundColor: COLORS.athensGrey,
-  },
 }
 export const largeSecondaryContainedButton = {
+  ...containedSecondaryBase,
   fontSize: pxToRem(14),
   lineHeight: lh(20, 14),
-  fontWeight: 600,
-  color: COLORS.bunker,
-
   padding: "12px 20px",
   borderRadius: 12,
-  backgroundColor: COLORS.whiteSmoke,
+}
+
+const textBase = {
+  fontWeight: 600,
+  color: TOKENS.actionGhostFg,
+  background: "transparent",
 
   "&:hover": {
-    background: COLORS.athensGrey,
     boxShadow: "none",
+    backgroundColor: TOKENS.actionGhostHoverBg,
+    color: TOKENS.actionGhostFg,
   },
 
   "&.Mui-disabled": {
-    color: COLORS.santasGrey,
-    backgroundColor: COLORS.athensGrey,
+    opacity: 0.5,
+    color: TOKENS.textDisabled,
   },
 }
 
 export const smallTextButton = {
+  ...textBase,
   fontSize: pxToRem(11),
   lineHeight: lh(16, 11),
-  fontWeight: 600,
-  color: COLORS.bunker,
-
   padding: "6px 12px",
   borderRadius: 8,
-  background: "transparent",
-
-  "&:hover": {
-    boxShadow: "none",
-    backgroundColor: COLORS.hintOfRed,
-    color: COLORS.blackRock08,
-  },
-
-  "&.Mui-disabled": {
-    opacity: 0.6,
-  },
 }
 export const mediumTextButton = {
+  ...textBase,
   fontSize: pxToRem(13),
   lineHeight: lh(12, 13),
-  fontWeight: 600,
-  color: COLORS.bunker,
-
   padding: "12px",
   borderRadius: 10,
-  background: "transparent",
-
-  "&:hover": {
-    boxShadow: "none",
-    backgroundColor: COLORS.hintOfRed,
-    color: COLORS.blackRock08,
-  },
-
-  "&.Mui-disabled": {
-    opacity: 0.6,
-  },
 }
 export const largeTextButton = {
+  ...textBase,
   fontSize: pxToRem(14),
   lineHeight: lh(20, 14),
-  fontWeight: 600,
-  color: COLORS.bunker,
-
   padding: "12px 20px",
   borderRadius: 12,
-  background: "transparent",
+}
+
+const outlinedBase = {
+  fontWeight: 600,
+  color: TOKENS.textPrimary,
+  borderColor: TOKENS.borderFocus,
 
   "&:hover": {
+    borderColor: TOKENS.borderFocus,
+    background: TOKENS.actionGhostHoverBg,
+    color: TOKENS.textPrimary,
     boxShadow: "none",
-    backgroundColor: COLORS.hintOfRed,
-    color: COLORS.blackRock08,
   },
 
   "&.Mui-disabled": {
-    opacity: 0.6,
+    color: TOKENS.textDisabled,
+    borderColor: TOKENS.borderStrong,
+    background: "transparent",
   },
 }
 
 export const smallOutlinedButton = {
+  ...outlinedBase,
   fontSize: pxToRem(11),
   lineHeight: lh(16, 11),
-  fontWeight: 600,
-  color: COLORS.bunker,
-
   padding: "6px 12px",
   borderRadius: 8,
-  borderColor: COLORS.blackRock,
-
-  "&:hover": {
-    borderColor: COLORS.blackRock,
-    background: COLORS.blackRock03,
-    boxShadow: "none",
-  },
-
-  "&.Mui-disabled": {
-    color: COLORS.santasGrey,
-    borderColor: COLORS.iron,
-    background: "transparent",
-  },
 }
 export const mediumOutlinedButton = {
+  ...outlinedBase,
   fontSize: pxToRem(13),
   lineHeight: lh(12, 13),
-  fontWeight: 600,
-  color: COLORS.bunker,
-
   padding: "12px",
   borderRadius: 10,
-  borderColor: COLORS.blackRock,
-
-  "&:hover": {
-    borderColor: COLORS.blackRock,
-    background: COLORS.blackRock03,
-    boxShadow: "none",
-  },
-
-  "&.Mui-disabled": {
-    color: COLORS.santasGrey,
-    borderColor: COLORS.iron,
-    background: "transparent",
-  },
 }
 export const largeOutlinedButton = {
+  ...outlinedBase,
   fontSize: pxToRem(14),
   lineHeight: lh(20, 14),
-  fontWeight: 600,
-  color: COLORS.bunker,
-
   padding: "12px 20px",
   borderRadius: 12,
-  borderColor: COLORS.blackRock,
+}
+
+const outlinedSecondaryBase = {
+  fontWeight: 600,
+  color: TOKENS.textPrimary,
+  borderColor: TOKENS.borderDefault,
 
   "&:hover": {
-    borderColor: COLORS.blackRock,
-    background: COLORS.blackRock03,
+    borderColor: TOKENS.borderStrong,
+    background: TOKENS.actionGhostHoverBg,
+    color: TOKENS.textPrimary,
     boxShadow: "none",
   },
 
   "&.Mui-disabled": {
-    color: COLORS.santasGrey,
-    borderColor: COLORS.iron,
+    color: TOKENS.textDisabled,
+    borderColor: TOKENS.borderSubtle,
     background: "transparent",
   },
 }
 
 export const smallOutlinedSecondaryButton = {
+  ...outlinedSecondaryBase,
   fontSize: pxToRem(11),
   lineHeight: lh(16, 11),
-  fontWeight: 600,
-  color: COLORS.bunker,
-
   padding: "6px 12px",
   borderRadius: 8,
-  borderColor: COLORS.whiteLilac,
-
-  "&:hover": {
-    borderColor: COLORS.whiteLilac,
-    background: COLORS.blackRock03,
-    boxShadow: "none",
-  },
-
-  "&.Mui-disabled": {
-    color: COLORS.santasGrey,
-    borderColor: COLORS.whiteLilac,
-    background: "transparent",
-  },
 }
 export const mediumOutlinedSecondaryButton = {
+  ...outlinedSecondaryBase,
   fontSize: pxToRem(13),
   lineHeight: lh(12, 13),
-  fontWeight: 600,
-  color: COLORS.bunker,
-
   padding: "12px",
   borderRadius: 10,
-  borderColor: COLORS.whiteLilac,
-
-  "&:hover": {
-    borderColor: COLORS.whiteLilac,
-    background: COLORS.blackRock03,
-    boxShadow: "none",
-  },
-
-  "&.Mui-disabled": {
-    color: COLORS.santasGrey,
-    borderColor: COLORS.whiteLilac,
-    background: "transparent",
-  },
 }
 export const largeOutlinedSecondaryButton = {
+  ...outlinedSecondaryBase,
   fontSize: pxToRem(14),
   lineHeight: lh(20, 14),
-  fontWeight: 600,
-  color: COLORS.bunker,
-
   padding: "12px 20px",
   borderRadius: 12,
-  borderColor: COLORS.whiteLilac,
-
-  "&:hover": {
-    borderColor: COLORS.whiteLilac,
-    background: COLORS.blackRock03,
-    boxShadow: "none",
-  },
-
-  "&.Mui-disabled": {
-    color: COLORS.santasGrey,
-    borderColor: COLORS.whiteLilac,
-    background: "transparent",
-  },
 }
+
+// Re-export so the old `COLORS` import path still works for files that
+// reference the symbol. (Some older overrides import COLORS from this
+// module's neighbourhood.)
+export { COLORS }

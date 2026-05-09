@@ -1,6 +1,6 @@
 import { Theme, SxProps } from "@mui/material"
 
-import { COLORS } from "@/theme/colors"
+import { TOKENS } from "@/theme/colors"
 
 export const contentContainer = (theme: Theme): SxProps<Theme> => ({
   height: "82px",
@@ -15,7 +15,7 @@ export const contentContainer = (theme: Theme): SxProps<Theme> => ({
     width: "calc(100vw - 8px)",
 
     margin: "4px",
-    background: COLORS.white,
+    background: TOKENS.surfaceBase,
     borderRadius: "14px",
     height: "56px",
     padding: "0 12px 0 16px",

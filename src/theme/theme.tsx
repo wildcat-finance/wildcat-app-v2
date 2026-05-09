@@ -10,7 +10,7 @@ import AscIcon from "@/assets/icons/tableSort-ascSort_icon.svg"
 import DescIcon from "@/assets/icons/tableSort-descSort_icon.svg"
 import UnsortedIcon from "@/assets/icons/tableSort-unsorted_icon.svg"
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 import {
   largeContainedButton,
   largeOutlinedButton,
@@ -213,6 +213,17 @@ export const theme = createTheme({
   palette: PALETTE,
   typography: TYPOGRAPHY,
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        // CssBaseline normally paints body with palette.background.default.
+        // We let the BackgroundContainer (with the hero image / dark
+        // gradient) render through, so body must stay transparent and the
+        // canvas color lives on the html element via globals.css.
+        body: {
+          backgroundColor: "transparent",
+        },
+      },
+    },
     MuiInputBase: {
       styleOverrides: {
         input: {
@@ -395,11 +406,17 @@ export const theme = createTheme({
             padding: 2,
             "&.Mui-checked": {
               transform: "translateX(16px)",
-              color: COLORS.white,
+              color: COLORS.staticWhite,
               "& + .MuiSwitch-track": {
                 opacity: 1,
-                backgroundColor: COLORS.blueRibbon,
+                backgroundColor: TOKENS.brandPrimary,
               },
+              "& .MuiSwitch-thumb": {
+                backgroundColor: COLORS.staticWhite,
+              },
+            },
+            "&.Mui-disabled + .MuiSwitch-track": {
+              opacity: 0.5,
             },
           },
 
@@ -407,6 +424,8 @@ export const theme = createTheme({
             width: 16,
             height: 16,
             borderRadius: 8,
+            backgroundColor: COLORS.staticWhite,
+            boxShadow: "0 1px 3px 0 rgba(0,0,0,0.18)",
             transition: theme.transitions.create(["width"], {
               duration: 200,
             }),
@@ -415,7 +434,7 @@ export const theme = createTheme({
           "& .MuiSwitch-track": {
             borderRadius: 16 / 2,
             opacity: 1,
-            backgroundColor: COLORS.whiteLilac,
+            backgroundColor: TOKENS.borderDefault,
             boxSizing: "border-box",
           },
 
@@ -436,18 +455,19 @@ export const theme = createTheme({
             padding: "12px",
             border: "none",
             borderRadius: "8px",
+            boxShadow: TOKENS.shadowPopover,
 
             fontSize: pxToRem(11),
             lineHeight: lh(16, 11),
             fontWeight: 500,
             letterSpacing: "0.2px",
-            color: COLORS.white,
-            backgroundColor: COLORS.blackRock,
+            color: TOKENS.textOnInverse,
+            backgroundColor: TOKENS.surfaceInverse,
 
             "& .MuiTooltip-arrow": {
               height: "4px",
               width: "10px",
-              color: COLORS.blackRock,
+              color: TOKENS.surfaceInverse,
             },
           }),
           ...(ownerState.arrow === false &&
@@ -460,8 +480,8 @@ export const theme = createTheme({
               lineHeight: lh(16, 11),
               fontWeight: 500,
               letterSpacing: "0.2px",
-              color: COLORS.white,
-              backgroundColor: COLORS.bunker08,
+              color: TOKENS.textOnInverse,
+              backgroundColor: TOKENS.surfaceInverse,
 
               "&.MuiTooltip-tooltip": {
                 margin: "0px !important",
@@ -476,7 +496,7 @@ export const theme = createTheme({
         root: () => ({
           height: "1px",
           padding: "0px",
-          borderColor: COLORS.athensGrey,
+          borderColor: TOKENS.borderSubtle,
         }),
       },
     },
@@ -487,11 +507,11 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           "&.MuiRadio-root": {
-            border: `1px solid ${COLORS.iron}`,
+            border: `1px solid ${TOKENS.borderStrong}`,
             padding: "0px",
             transition: "border 0.2s",
             "&:hover": {
-              borderColor: COLORS.santasGrey,
+              borderColor: TOKENS.textTertiary,
             },
           },
         },
@@ -995,11 +1015,14 @@ export const theme = createTheme({
         root: {
           minWidth: "fit-content !important",
           boxSizing: "border-box",
-          border: `1px solid ${COLORS.athensGrey}`,
+          color: TOKENS.textPrimary,
+          backgroundColor: TOKENS.surfaceElevated,
+          border: `1px solid ${TOKENS.borderSubtle}`,
           padding: 8,
           borderRadius: "12px",
           marginTop: "2px",
-          boxShadow: "0 2px 10px 0 rgba(0, 0, 0, 0.05)",
+          boxShadow: TOKENS.shadowPopover,
+          backgroundImage: "none",
         },
       },
     },
@@ -1014,16 +1037,17 @@ export const theme = createTheme({
           fontSize: pxToRem(14),
           lineHeight: lh(20, 14),
           fontWeight: 500,
+          color: TOKENS.textPrimary,
           borderRadius: "8px",
           "&:hover": {
-            background: COLORS.hintOfRed,
+            background: TOKENS.actionGhostHoverBg,
           },
           "&.Mui-focusVisible": {
-            background: COLORS.hintOfRed,
+            background: TOKENS.actionGhostHoverBg,
           },
           "&.Mui-selected": {
             background: "transparent",
-            color: COLORS.santasGrey,
+            color: TOKENS.textTertiary,
             "&:hover": {
               background: "transparent",
               cursor: "pointer",
@@ -1090,7 +1114,7 @@ export const theme = createTheme({
     MuiTypography: {
       styleOverrides: {
         root: {
-          color: COLORS.bunker,
+          color: TOKENS.textPrimary,
           letterSpacing: 0,
         },
       },
@@ -1169,11 +1193,11 @@ export const theme = createTheme({
                 fontSize: pxToRem(13),
                 lineHeight: lh(20, 13),
                 fontWeight: 500,
-                color: COLORS.blackRock,
+                color: TOKENS.textPrimary,
 
                 "&.Mui-selected": {
-                  backgroundColor: COLORS.athensGrey,
-                  color: COLORS.santasGrey,
+                  backgroundColor: TOKENS.surfaceSoft,
+                  color: TOKENS.textTertiary,
                 },
               },
             },
@@ -1194,7 +1218,7 @@ export const theme = createTheme({
           },
 
           "& .MuiDataGrid-row:hover": {
-            backgroundColor: COLORS.alabaster05,
+            backgroundColor: TOKENS.surfaceSubtle,
           },
 
           "& .MuiDataGrid-iconButtonContainer": {
@@ -1210,10 +1234,38 @@ export const theme = createTheme({
             display: "none",
           },
 
-          "& .MuiDataGrid-columnHeaders": {
-            "& .MuiDataGrid-filler": {
-              display: "none",
-            },
+          // MUI X DataGrid v7 (MIT tier) bakes hardcoded background-color
+          // styles onto its internal containers (columnHeaders, columnHeaderRow,
+          // virtualScroller, filler, scrollbarFiller). We override them via
+          // attribute selectors with !important.
+          //
+          // The column header row is sticky-positioned, so it must stay OPAQUE
+          // — otherwise data rows scroll up under it and bleed through.
+          // It also sits 16px inside the DataGrid root (from MUI's default
+          // padding) while the accordion around it is surface-soft, so a darker
+          // bg created a visible inset rectangle. The fix: give the header an
+          // opaque surface-soft bg matching the accordion, so it reads as one
+          // continuous surface but blocks scroll bleed-through.
+          "& [class*='MuiDataGrid-columnHeaders']": {
+            backgroundColor: `${TOKENS.surfaceCard} !important`,
+            backgroundImage: "none",
+          },
+
+          "& [class*='MuiDataGrid-columnHeaderRow']": {
+            backgroundColor: `${TOKENS.surfaceCard} !important`,
+          },
+
+          "& [class*='MuiDataGrid-virtualScroller']": {
+            backgroundColor: "transparent !important",
+          },
+
+          "& [class*='MuiDataGrid-scrollbarFiller']": {
+            backgroundColor: "transparent !important",
+          },
+
+          "& [class*='MuiDataGrid-filler']": {
+            backgroundColor: "transparent !important",
+            display: "none",
           },
 
           "& .MuiDataGrid-columnHeader--alignRight": {
@@ -1227,7 +1279,7 @@ export const theme = createTheme({
 
           "& .MuiDataGrid-columnHeader": {
             padding: "0 16px",
-            borderBottom: `1px solid ${COLORS.athensGrey}`,
+            borderBottom: `1px solid ${TOKENS.borderSubtle}`,
 
             fontSize: pxToRem(11),
             lineHeight: lh(12, 11),
@@ -1245,12 +1297,12 @@ export const theme = createTheme({
             },
 
             "&.MuiDataGrid-columnHeader--sorted": {
-              color: `${COLORS.ultramarineBlue} !important`,
-              borderBottomColor: `${COLORS.ultramarineBlue} !important`,
+              color: `${TOKENS.brandPrimary} !important`,
+              borderBottomColor: `${TOKENS.brandPrimary} !important`,
 
               "& .MuiDataGrid-sortIcon": {
                 opacity: "inherit !important",
-                "& path": { fill: COLORS.ultramarineBlue },
+                "& path": { fill: TOKENS.brandPrimary },
               },
             },
           },
@@ -1265,7 +1317,7 @@ export const theme = createTheme({
             "&:last-child": {
               "& .MuiDataGrid-cell": {
                 borderBottom: "1px solid",
-                borderColor: COLORS.athensGrey,
+                borderColor: TOKENS.borderSubtle,
               },
             },
           },
@@ -1275,13 +1327,13 @@ export const theme = createTheme({
             alignItems: "center",
             height: "52px",
             padding: "0 16px",
-            borderColor: COLORS.athensGrey,
+            borderColor: TOKENS.borderSubtle,
 
             fontSize: pxToRem(13),
             lineHeight: lh(20, 13),
             fontWeight: 500,
             letterSpacing: 0,
-            color: COLORS.blackRock,
+            color: TOKENS.textPrimary,
 
             whiteSpace: "nowrap",
             textOverflow: "ellipsis",
@@ -1301,6 +1353,15 @@ export const theme = createTheme({
           border: "none",
           boxShadow: "none",
           padding: 0,
+          // Pin the accordion (Paper) bg to surface-card so the summary,
+          // body, and DataGrid header all share one continuous surface.
+          // surface-card is pure white in light mode (matches the legacy
+          // look) and a lifted grey in dark mode (gives the table its own
+          // distinct card surface above the page bg).
+          backgroundColor: TOKENS.surfaceCard,
+          "&::before": {
+            display: "none",
+          },
         },
       },
     },
@@ -1318,7 +1379,11 @@ export const theme = createTheme({
           minHeight: "0 !important",
           fontFamily: "inherit",
           letterSpacing: 0,
-          backgroundColor: COLORS.hintOfRed,
+          // Match the accordion body bg (surface-card) so the header strip
+          // and the data area read as a single unified card. Otherwise a
+          // bg-color step at the bottom of the summary creates a visible
+          // left-edge "gap" before the table content.
+          backgroundColor: TOKENS.surfaceCard,
 
           "& .MuiAccordionSummary-expandIconWrapper": {
             height: "16px",
@@ -1362,16 +1427,16 @@ export const theme = createTheme({
           lineHeight: lh(32, 20),
           fontWeight: 500,
           textTransform: "none",
-          color: COLORS.santasGrey,
+          color: TOKENS.textTertiary,
           letterSpacing: 0,
 
           borderBottom: "1px solid",
-          borderColor: COLORS.iron,
+          borderColor: TOKENS.borderStrong,
 
           padding: "0 0 4px",
 
           "&.Mui-selected": {
-            color: COLORS.blackRock,
+            color: TOKENS.textPrimary,
           },
 
           ...(ownerState.className === "contained" && {
@@ -1383,16 +1448,17 @@ export const theme = createTheme({
             lineHeight: lh(20, 13),
             fontWeight: 600,
             textTransform: "none",
-            color: COLORS.santasGrey,
+            color: TOKENS.textTertiary,
             letterSpacing: 0,
 
             padding: "6px 54.5px",
             borderBottom: "none",
 
             "&.Mui-selected": {
-              color: COLORS.blackRock,
-              backgroundColor: COLORS.white,
+              color: TOKENS.textPrimary,
+              backgroundColor: TOKENS.surfaceElevated,
               borderRadius: "8px",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
             },
           }),
         }),
@@ -1406,14 +1472,14 @@ export const theme = createTheme({
 
           "& .MuiTabs-indicator": {
             height: "1px",
-            backgroundColor: COLORS.blackRock,
+            backgroundColor: TOKENS.textPrimary,
           },
 
           ...(ownerState.className === "contained" && {
             height: "40px",
             minHeight: "40px",
             width: "fit-content",
-            backgroundColor: COLORS.whiteSmoke,
+            backgroundColor: TOKENS.surfaceSoft,
             borderRadius: "12px",
             padding: "4px",
 
@@ -1544,10 +1610,11 @@ export const theme = createTheme({
             maxHeight: "150px",
             width: "274px",
             gap: "6px 13px",
-            border: `1px solid ${COLORS.hintOfRed}`,
+            border: `1px solid ${TOKENS.borderSubtle}`,
             borderRadius: "8px",
             justifyContent: "space-between",
-            boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.05)",
+            boxShadow: TOKENS.shadowPopover,
+            backgroundColor: TOKENS.surfaceElevated,
           },
         },
       },

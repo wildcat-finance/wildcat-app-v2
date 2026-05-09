@@ -1,9 +1,387 @@
+/* =========================================================================
+ * Wildcat color system
+ * ---------------------------------------------------------------------
+ * Two layers of tokens:
+ *   1. Raw color tokens (existing names like --color-bunker, --color-white).
+ *      These power legacy COLORS.* references throughout the app. Their
+ *      *light* values are the original brand hexes; their *dark* values
+ *      are tuned so legacy usage (text, bg, borders) reads correctly when
+ *      flipped.
+ *   2. Semantic tokens (--surface-*, --text-*, --border-*, --action-*,
+ *      --status-*, --brand-*). New code should prefer these. They name
+ *      the *role* of a color so light/dark variants stay coordinated.
+ *
+ * Static colors (--static-white-*, --static-black-*) never invert; they
+ * are reserved for surfaces that are always dark/light regardless of mode
+ * (e.g. the hero strip behind the header, brand-color CTAs).
+ * ======================================================================= */
+
+:root {
+  /* ----- Raw brand palette (light mode values) ----- */
+  --color-black: #000000;
+  --color-black-01: #0000001a;
+  --color-black-07: #000000b2;
+  --color-bunker: #141414;
+  --color-bunker-08: #141414cc;
+  --color-cobalt-black: #1a1a1a;
+  --color-bunker-03: #1414144d;
+  --color-black-rock: #30313e;
+  --color-black-rock-006: #30313e0f;
+  --color-black-rock-03: #30313e08;
+  --color-black-rock-07: #30313eb2;
+  --color-black-rock-08: #30313ecc;
+  --color-matte-silver: #8b8da1;
+  --color-manate: #8a8c9f;
+  --color-santas-grey: #a0a0b0;
+  --color-grey-suit: #bebece;
+  --color-iron: #d6d6de;
+  --color-white-lilac: #e6e7eb;
+  --color-athens-grey: #eff0f4;
+  --color-white-smoke: #f4f4f8;
+  --color-black-haze: #f6f6f7;
+  --color-hint-of-red: #f9f9fa;
+  --color-alabaster: #fafafa;
+  --color-alabaster-05: #fafafa80;
+  --color-white: #ffffff;
+  --color-white-01: #ffffff1a;
+  --color-white-03: #ffffff4d;
+  --color-white-04: #ffffff66;
+  --color-white-06: #ffffff99;
+
+  --color-dull-red: #c24647;
+  --color-dull-red-08: #c24647cc;
+  --color-carmine-pink: #f1464b;
+  --color-wild-watermelon: #fa6f77;
+  --color-azalea: #f7bec1;
+  --color-cherub: #f7d7da;
+  --color-remy: #fdedf0;
+
+  --color-buttered-rum: #9e7a11;
+  --color-galliano: #d7a820;
+  --color-oasis: #fbedc3;
+
+  --color-ultramarine-blue: #3e68ff;
+  --color-blue-ribbon: #4971ff;
+  --color-blue-ribbon-01: #4971ff1a;
+  --color-cornflower-blue: #6688ff;
+  --color-hawkes-blue: #d2ddff;
+  --color-glitter: #e4ebfe;
+  --color-light-green: #e4f5e0;
+
+  /* ----- Static colors (theme-invariant) ----- */
+  --static-white: #ffffff;
+  --static-white-01: #ffffff1a;
+  --static-white-02: #ffffff33;
+  --static-white-03: #ffffff4d;
+  --static-white-04: #ffffff66;
+  --static-white-06: #ffffff99;
+  --static-white-08: #ffffffcc;
+  --static-black: #000000;
+  --static-black-01: #0000001a;
+  --static-black-04: #00000066;
+  --static-black-06: #00000099;
+
+  /* ----- Semantic surface tokens ----- */
+  /* Canvas: the deepest layer behind the header / outside the card */
+  --surface-canvas: #0a0c12;
+  --surface-canvas-image: url(/_next/static/media/overviewBG.d2b7d3ea.webp);
+  /* Surface: main page card / content body */
+  --surface-base: #ffffff;
+  /* Subtle: hover backgrounds, inset panels, table row hover */
+  --surface-subtle: #f9f9fa;
+  /* Soft: slightly more pronounced subtle (cards, panels, accordion summary) */
+  --surface-soft: #f4f4f8;
+  /* Elevated: modals, popovers, menus, tooltips-light */
+  --surface-elevated: #ffffff;
+  /* Card: accordions, table panels, inline cards. Theme-aware: pure white
+   * in light mode (no over-greyed cards) but lifted in dark mode so cards
+   * feel deliberately elevated above the page surface. */
+  --surface-card: #ffffff;
+  /* Inverse: tooltip / dark popover background */
+  --surface-inverse: #30313e;
+  /* Hero overlay: subtle accent over the hero image */
+  --surface-hero-overlay: transparent;
+
+  /* ----- Semantic text tokens ----- */
+  --text-primary: #141414;
+  --text-secondary: #6e7387;
+  --text-tertiary: #a0a0b0;
+  --text-disabled: #bebece;
+  --text-on-inverse: #ffffff;
+  --text-on-accent: #ffffff;
+  --text-link: #3e68ff;
+
+  /* ----- Semantic borders ----- */
+  --border-subtle: #eff0f4;
+  --border-default: #e6e7eb;
+  --border-strong: #d6d6de;
+  --border-focus: #30313e;
+
+  /* ----- Action: primary (high-emphasis CTA) ----- */
+  --action-primary-bg: #141414;
+  --action-primary-bg-hover: #30313e;
+  --action-primary-fg: #ffffff;
+  --action-primary-disabled-bg: #eff0f4;
+  --action-primary-disabled-fg: #a0a0b0;
+
+  /* ----- Action: secondary (medium-emphasis) ----- */
+  --action-secondary-bg: #f4f4f8;
+  --action-secondary-bg-hover: #eff0f4;
+  --action-secondary-fg: #141414;
+  --action-secondary-disabled-bg: #eff0f4;
+  --action-secondary-disabled-fg: #a0a0b0;
+
+  /* ----- Action: ghost / text button hover ----- */
+  --action-ghost-hover-bg: #f9f9fa;
+  --action-ghost-fg: #141414;
+
+  /* ----- Brand ----- */
+  --brand-primary: #3e68ff;
+  --brand-primary-hover: #2f57e6;
+  --brand-primary-subtle: #e4ebfe;
+  --brand-primary-on: #ffffff;
+
+  /* ----- Status ----- */
+  --status-success-fg: #19965a;
+  --status-success-bg: #d1fae6;
+  --status-success-dot: #28ca7c;
+  --status-warning-fg: #9e7a11;
+  --status-warning-bg: #fbedc3;
+  --status-warning-dot: #d7a820;
+  --status-error-fg: #c24647;
+  --status-error-bg: #fdedf0;
+  --status-error-dot: #f1464b;
+  --status-info-fg: #3e68ff;
+  --status-info-bg: #e4ebfe;
+  --status-info-dot: #4971ff;
+
+  /* ----- Banner / dark hero text (always reads on dark hero) ----- */
+  --hero-fg: #ffffff;
+  --hero-fg-muted: #ffffff99;
+  --hero-fg-dim: #ffffff66;
+  --hero-button-bg: #ffffff1a;
+  --hero-button-bg-hover: #ffffff33;
+  --hero-button-border: transparent;
+
+  /* ----- Skeleton / loading ----- */
+  --skeleton-bg: #eff0f4;
+  --skeleton-shimmer: #f9f9fa;
+
+  /* ----- Scrollbar ----- */
+  --scrollbar-thumb: #d6d6de;
+  --scrollbar-track: transparent;
+
+  /* ----- Misc ----- */
+  --shadow-popover: 0 4px 16px 0 rgba(20, 20, 20, 0.06),
+    0 1px 3px 0 rgba(20, 20, 20, 0.04);
+  --shadow-modal: 0 20px 48px 0 rgba(20, 20, 20, 0.12),
+    0 2px 8px 0 rgba(20, 20, 20, 0.08);
+  --shadow-card: 0 2px 10px 0 rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="dark"] {
+  /* ----- Raw brand palette (dark mode mappings) ----- */
+  /* Tokens that historically meant "primary text/foreground" flip light.
+   * The dark scale is a near-neutral charcoal with a touch of warm-grey
+   * (Linear / Vercel inspired) — less blue cast than the previous pass. */
+  --color-black: #ededee;
+  --color-black-01: #ffffff14;
+  --color-black-07: #ededeeb3;
+  --color-bunker: #ededee;
+  --color-bunker-08: #ededeed9;
+  --color-cobalt-black: #f5f5f6;
+  --color-bunker-03: #ededee4d;
+  --color-black-rock: #d3d3d6;
+  --color-black-rock-006: #d3d3d614;
+  --color-black-rock-03: #d3d3d629;
+  --color-black-rock-07: #d3d3d6b3;
+  --color-black-rock-08: #d3d3d6cc;
+  --color-matte-silver: #94959a;
+  --color-manate: #8c8d92;
+  --color-santas-grey: #82838a;
+  --color-grey-suit: #6a6b71;
+  --color-iron: #3b3c42;
+  --color-white-lilac: #2c2d33;
+  --color-athens-grey: #34353c;
+  --color-white-smoke: #26272c;
+  --color-black-haze: #1f2024;
+  --color-hint-of-red: #1c1d21;
+  --color-alabaster: #161719;
+  --color-alabaster-05: #16171980;
+  --color-white: #131418;
+  --color-white-01: #ffffff14;
+  --color-white-03: #ffffff33;
+  --color-white-04: #ffffff52;
+  --color-white-06: #ffffff80;
+
+  --color-dull-red: #e8797b;
+  --color-dull-red-08: #e8797bcc;
+  --color-carmine-pink: #ff7176;
+  --color-wild-watermelon: #ff898f;
+  --color-azalea: #5a262a;
+  --color-cherub: #4a1f23;
+  --color-remy: #2c1418;
+
+  --color-buttered-rum: #e8c25c;
+  --color-galliano: #efc94d;
+  --color-oasis: #3a2f12;
+
+  --color-ultramarine-blue: #7e9aff;
+  --color-blue-ribbon: #8ea7ff;
+  --color-blue-ribbon-01: #7e9aff26;
+  --color-cornflower-blue: #95adff;
+  --color-hawkes-blue: #2b3160;
+  --color-glitter: #25294e;
+  --color-light-green: #1d352a;
+
+  /* ----- Semantic surface tokens (dark) ----- */
+  /* Charcoal hierarchy: each step lifts ~6% L* to keep cards/popovers
+   * legibly distinct without ever feeling flat. */
+  --surface-canvas: #08090b;
+  --surface-canvas-image: none;
+  --surface-base: #131418;
+  --surface-subtle: #1a1b1f;
+  --surface-soft: #1f2024;
+  --surface-elevated: #25262b;
+  --surface-card: #1f2024;
+  --surface-inverse: #38393f;
+  --surface-hero-overlay: linear-gradient(
+    180deg,
+    rgba(10, 11, 14, 0.45) 0%,
+    rgba(8, 9, 11, 0.65) 100%
+  );
+
+  /* ----- Semantic text tokens ----- */
+  --text-primary: #ededee;
+  --text-secondary: #a8a9ad;
+  --text-tertiary: #82838a;
+  --text-disabled: #54555a;
+  --text-on-inverse: #ffffff;
+  --text-on-accent: #ffffff;
+  --text-link: #8ea7ff;
+
+  /* ----- Semantic borders ----- */
+  --border-subtle: #232429;
+  --border-default: #2c2d33;
+  --border-strong: #3b3c42;
+  --border-focus: #d3d3d6;
+
+  /* ----- Action: primary (light pill on dark canvas) ----- */
+  --action-primary-bg: #ededee;
+  --action-primary-bg-hover: #ffffff;
+  --action-primary-fg: #131418;
+  --action-primary-disabled-bg: #25262b;
+  --action-primary-disabled-fg: #6a6b71;
+
+  /* ----- Action: secondary ----- */
+  --action-secondary-bg: #25262b;
+  --action-secondary-bg-hover: #2f3036;
+  --action-secondary-fg: #ededee;
+  --action-secondary-disabled-bg: #1f2024;
+  --action-secondary-disabled-fg: #6a6b71;
+
+  /* ----- Action: ghost / text button hover ----- */
+  --action-ghost-hover-bg: #1f2024;
+  --action-ghost-fg: #ededee;
+
+  /* ----- Brand ----- */
+  --brand-primary: #7e9aff;
+  --brand-primary-hover: #95adff;
+  --brand-primary-subtle: #232a4d;
+  --brand-primary-on: #08090b;
+
+  /* ----- Status ----- */
+  --status-success-fg: #5fcd76;
+  --status-success-bg: #142e1c;
+  --status-success-dot: #28ca7c;
+  --status-warning-fg: #e3b950;
+  --status-warning-bg: #2c2410;
+  --status-warning-dot: #d7a820;
+  --status-error-fg: #e87779;
+  --status-error-bg: #2a131a;
+  --status-error-dot: #f1464b;
+  --status-info-fg: #8ea7ff;
+  --status-info-bg: #1a2238;
+  --status-info-dot: #4971ff;
+
+  /* ----- Banner / dark hero text (still reads on dark hero) ----- */
+  --hero-fg: #ffffff;
+  --hero-fg-muted: #ffffff99;
+  --hero-fg-dim: #ffffff66;
+  --hero-button-bg: #ffffff14;
+  --hero-button-bg-hover: #ffffff26;
+  --hero-button-border: #ffffff1a;
+
+  /* ----- Skeleton ----- */
+  --skeleton-bg: #25262b;
+  --skeleton-shimmer: #2f3036;
+
+  /* ----- Scrollbar ----- */
+  --scrollbar-thumb: #2c2d33;
+  --scrollbar-track: transparent;
+
+  /* ----- Shadows (deeper, less visible on dark) ----- */
+  --shadow-popover: 0 8px 24px 0 rgba(0, 0, 0, 0.5),
+    0 2px 4px 0 rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 24px 64px 0 rgba(0, 0, 0, 0.6),
+    0 4px 12px 0 rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 2px 10px 0 rgba(0, 0, 0, 0.35);
+}
+
 html {
-    width: 100vw;
+  width: 100vw;
+  background-color: var(--surface-canvas);
+  color: var(--text-primary);
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 body {
-    height: 100vh;
-    margin: 0;
-    padding: 0;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+/* Subtle styled scrollbar in dark mode for parity with the rest of the UI */
+:root[data-theme="dark"] *::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 6px;
+}
+
+:root[data-theme="dark"] *::-webkit-scrollbar-track {
+  background-color: var(--scrollbar-track);
+}
+
+:root[data-theme="dark"] * {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+/* When autofill kicks in, browsers paint the input's background; force the
+ * fill to match our surface tokens in both modes so it doesn't blast a
+ * white box into our dark inputs. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-primary);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface-base) inset;
+  caret-color: var(--text-primary);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Image inversions where assets are not theme-aware. Specific selectors
+ * neutralise the few static-light SVGs that need to read on dark canvas. */
+:root[data-theme="dark"] .invert-on-dark {
+  filter: invert(1) hue-rotate(180deg);
 }

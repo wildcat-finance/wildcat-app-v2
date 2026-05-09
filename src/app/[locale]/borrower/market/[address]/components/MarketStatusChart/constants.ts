@@ -6,7 +6,7 @@ export const MARKET_BAR_DATA = {
     label: "Available To Borrow",
     healthyBgColor: COLORS.blueRibbon,
     delinquentBgColor: "",
-    healthyTextColor: COLORS.white,
+    healthyTextColor: COLORS.staticWhite,
     delinquentTextColor: "",
   },
   borrowed: {
@@ -31,7 +31,7 @@ export const MARKET_BAR_DATA = {
     healthyBgColor: "",
     delinquentBgColor: COLORS.carminePink,
     healthyTextColor: "",
-    delinquentTextColor: COLORS.white,
+    delinquentTextColor: COLORS.staticWhite,
     hide: true,
     legendDotClassName: "delinquent_dot",
   },
@@ -41,7 +41,7 @@ export const MARKET_BAR_DATA = {
     healthyBgColor: "",
     delinquentBgColor: COLORS.azalea,
     healthyTextColor: "",
-    delinquentTextColor: "#BD1D22",
+    delinquentTextColor: COLORS.dullRed,
   },
 }
 export const MARKET_BAR_ORDER = {

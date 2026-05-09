@@ -1,5 +1,7 @@
 import { Box, Typography } from "@mui/material"
 
+import { TOKENS } from "@/theme/colors"
+
 export const AgreementText = () => (
   <Box
     sx={{
@@ -11,7 +13,7 @@ export const AgreementText = () => (
       rowGap: "20px",
       position: "relative",
       zIndex: 0,
-      color: "#383838",
+      color: TOKENS.textPrimary,
     }}
   >
     <Typography variant="text2"># 1. Introduction and Agreement</Typography>

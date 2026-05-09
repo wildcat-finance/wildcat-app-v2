@@ -57,7 +57,7 @@ export const HeaderNetworkButton = ({
                 variant="filled"
                 sx={{
                   backgroundColor: COLORS.white03,
-                  color: COLORS.white,
+                  color: COLORS.staticWhite,
                   height: "auto",
                 }}
               />

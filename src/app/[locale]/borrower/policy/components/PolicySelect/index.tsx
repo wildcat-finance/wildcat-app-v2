@@ -117,7 +117,7 @@ export const PolicySelect = ({
       onChange={handleChangePolicy}
       displayEmpty
       renderValue={() => (
-        <Typography variant="text3" color={COLORS.white}>
+        <Typography variant="text3" color={COLORS.staticWhite}>
           {selected.name}
         </Typography>
       )}
@@ -171,7 +171,7 @@ export const PolicySelect = ({
           value={policy.id}
           sx={MarketSelectMenuItemStyles}
         >
-          <Typography variant="text3" color={COLORS.white}>
+          <Typography variant="text3" color={COLORS.staticWhite}>
             {policy.name}
           </Typography>
         </MenuItem>

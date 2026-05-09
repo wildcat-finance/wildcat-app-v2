@@ -18,7 +18,7 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import TelegramIcon from "@/assets/icons/telegram_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 
 export const MobileMoreButton = ({
   marketAccount,
@@ -139,10 +139,10 @@ export const MobileMoreButton = ({
           size="medium"
           sx={{
             color: COLORS.ultramarineBlue,
-            bgcolor: "rgba(62,104,255,0.06)",
+            bgcolor: TOKENS.brandPrimarySubtle,
             textDecoration: "none",
             "&:hover": {
-              bgcolor: "rgba(62,104,255,0.06)",
+              bgcolor: TOKENS.brandPrimarySubtle,
             },
           }}
         >

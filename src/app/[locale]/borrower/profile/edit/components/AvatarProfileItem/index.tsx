@@ -82,7 +82,7 @@ export const AvatarProfileItem = ({
             )}
 
             {!avatar && (
-              <Typography variant="text4" color="#A0A0A0">
+              <Typography variant="text4" color="text.secondary">
                 {t("borrowerProfile.edit.public.avatar.generated")}
               </Typography>
             )}

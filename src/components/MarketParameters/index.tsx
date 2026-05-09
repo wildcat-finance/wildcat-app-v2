@@ -15,7 +15,7 @@ import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAdoptionData } from "@/hooks/wrapper/useAdoptionData"
 import { formatDate } from "@/lib/mla"
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 import {
   formatBps,
@@ -44,7 +44,7 @@ const WrapperChip = ({ hasWrapper }: { hasWrapper?: boolean }) => (
       gap: "3px",
       padding: "0 8px 0 5px",
       borderRadius: "12px",
-      backgroundColor: hasWrapper ? "#D1FAE6" : COLORS.remy,
+      backgroundColor: hasWrapper ? TOKENS.statusSuccessBg : COLORS.remy,
     }}
   >
     <Box
@@ -52,11 +52,16 @@ const WrapperChip = ({ hasWrapper }: { hasWrapper?: boolean }) => (
         width: "4px",
         height: "4px",
         borderRadius: "50%",
-        backgroundColor: hasWrapper ? "#28CA7C" : COLORS.wildWatermelon,
+        backgroundColor: hasWrapper
+          ? TOKENS.statusSuccessDot
+          : TOKENS.statusErrorDot,
       }}
     />
 
-    <Typography variant="text4" color={hasWrapper ? "#19965A" : COLORS.dullRed}>
+    <Typography
+      variant="text4"
+      color={hasWrapper ? TOKENS.statusSuccessFg : TOKENS.statusErrorFg}
+    >
       {hasWrapper ? "Active" : "Inactive"}
     </Typography>
   </Box>

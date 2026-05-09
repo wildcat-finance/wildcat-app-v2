@@ -1,4 +1,4 @@
-import { COLORS } from "@/theme/colors"
+import { TOKENS } from "@/theme/colors"
 
 export const ContentContainer = {
   minHeight: "43px",
@@ -18,5 +18,5 @@ export const DeployInfoSx = {
 export const DownloadIcon = {
   rotate: "270deg",
   marginLeft: "2px",
-  color: COLORS.blackRock,
+  color: TOKENS.textPrimary,
 }

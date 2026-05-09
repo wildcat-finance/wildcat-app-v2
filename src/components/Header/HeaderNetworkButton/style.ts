@@ -1,15 +1,16 @@
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 
 export const ConnectButton = {
   minHeight: "36px",
   alignItems: "center",
   columnGap: "8px",
-  color: "#FFFFFF",
-  backgroundColor: "#FFFFFF1A",
-  border: "none",
+  color: COLORS.staticWhite,
+  backgroundColor: TOKENS.heroButtonBg,
+  border: `1px solid ${TOKENS.heroButtonBorder}`,
   "&:hover": {
-    background: "#FFFFFF26",
-    color: COLORS.white,
+    background: TOKENS.heroButtonBgHover,
+    color: COLORS.staticWhite,
+    borderColor: TOKENS.heroButtonBorder,
     boxShadow: "none",
   },
 }

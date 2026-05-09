@@ -827,7 +827,7 @@ export const WrapperSection = ({
 
                           "&.Mui-checked": {
                             transform: "translateX(12.8px)",
-                            color: COLORS.white,
+                            color: COLORS.staticWhite,
 
                             "& + .MuiSwitch-track": {
                               opacity: 1,

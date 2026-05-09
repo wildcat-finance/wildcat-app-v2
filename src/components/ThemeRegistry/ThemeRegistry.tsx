@@ -6,6 +6,7 @@ import CssBaseline from "@mui/material/CssBaseline"
 import { ThemeProvider } from "@mui/material/styles"
 
 import { theme } from "@/theme/theme"
+import { ThemeModeProvider } from "@/theme/ThemeModeProvider"
 
 import NextAppDirEmotionCacheProvider from "./EmotionCache"
 
@@ -16,11 +17,13 @@ export default function ThemeRegistry({
 }) {
   return (
     <NextAppDirEmotionCacheProvider options={{ key: "mui" }}>
-      <ThemeProvider theme={theme}>
-        {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-        <CssBaseline />
-        {children}
-      </ThemeProvider>
+      <ThemeModeProvider>
+        <ThemeProvider theme={theme}>
+          {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+          <CssBaseline />
+          {children}
+        </ThemeProvider>
+      </ThemeModeProvider>
     </NextAppDirEmotionCacheProvider>
   )
 }

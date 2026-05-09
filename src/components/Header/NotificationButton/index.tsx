@@ -36,7 +36,7 @@ export const NotificationButton = () => {
         {hasUnread ? (
           <NotificationsUnread />
         ) : (
-          <NotificationsRead style={{ stroke: COLORS.white }} />
+          <NotificationsRead style={{ stroke: COLORS.staticWhite }} />
         )}
         {hasUnread && <Box sx={DotStyle} />}
       </Button>

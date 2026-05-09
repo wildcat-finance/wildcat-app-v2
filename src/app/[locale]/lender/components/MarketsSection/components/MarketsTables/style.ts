@@ -1,4 +1,4 @@
-import { COLORS } from "@/theme/colors"
+import { TOKENS } from "@/theme/colors"
 
 const DATA_GRID_MIN_HEIGHT = "106px"
 
@@ -27,11 +27,14 @@ export const DataGridSx = {
     position: "static !important" as const,
     transform: "none !important",
   },
+  // Sticky column header row must stay opaque so scrolling rows don't bleed
+  // through. surface-soft matches the accordion bg → unified card surface
+  // with no inset patch before the sidebar.
   "& .MuiDataGrid-columnHeaders": {
     position: "sticky",
     top: 0,
     zIndex: 2,
-    backgroundColor: COLORS.white,
+    backgroundColor: TOKENS.surfaceCard,
   },
   "& .MuiDataGrid-columnHeader": {
     padding: 0,

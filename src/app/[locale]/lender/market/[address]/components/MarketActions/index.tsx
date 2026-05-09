@@ -26,7 +26,7 @@ import {
   LenderMarketSections,
   setSection,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { MarketActionsProps } from "./interface"
@@ -194,7 +194,7 @@ export const MarketActions = ({
             color: COLORS.ultramarineBlue,
             textDecoration: "none",
             "&:hover": {
-              bgcolor: "rgba(62,104,255,0.06)",
+              bgcolor: TOKENS.brandPrimarySubtle,
               border: `1px solid ${COLORS.hawkesBlue}`,
             },
           }}

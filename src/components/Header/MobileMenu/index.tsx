@@ -30,6 +30,7 @@ import TelegramFlyIcon from "@/assets/icons/telegramFly_icon.svg"
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
 import bannerBg from "@/assets/pictures/telegram_banner_bg.svg?url"
 import { HeaderNetworkButton } from "@/components/Header/HeaderNetworkButton"
+import { ThemeModeToggle } from "@/components/Header/ThemeModeToggle"
 import {
   HelpMenuItemsList,
   TelegramHelpItem,
@@ -160,7 +161,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
             sx={{
               fontSize: !open ? "40px" : "30px",
               "& path": {
-                stroke: isMain && !open ? COLORS.black : COLORS.white,
+                stroke: isMain && !open ? COLORS.black : COLORS.staticWhite,
               },
             }}
           >
@@ -364,10 +365,10 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     borderRadius: "10px",
                     marginBottom: "12px",
                     backgroundColor: COLORS.ultramarineBlue,
-                    color: COLORS.white,
+                    color: COLORS.staticWhite,
                     "&:hover": {
                       backgroundColor: COLORS.blueRibbon,
-                      color: COLORS.white,
+                      color: COLORS.staticWhite,
                     },
                   }}
                 >
@@ -376,6 +377,10 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
               )}
 
               <Divider sx={{ borderColor: COLORS.whiteLilac, mb: "12px" }} />
+
+              <Box sx={{ marginBottom: "12px" }}>
+                <ThemeModeToggle variant="menu" />
+              </Box>
 
               {/* Telegram Banner */}
               <Box
@@ -400,7 +405,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                   aria-hidden="true"
                   sx={{
                     fontSize: "36px",
-                    "& path": { fill: COLORS.white },
+                    "& path": { fill: COLORS.staticWhite },
                   }}
                 >
                   <TelegramFlyIcon />
@@ -416,14 +421,14 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                   <Typography
                     variant="text2"
                     textAlign="center"
-                    color={COLORS.white}
+                    color={COLORS.staticWhite}
                   >
                     {t("telegramBanner.title")}
                   </Typography>
                   <Typography
                     variant="text4"
                     textAlign="center"
-                    color={COLORS.white}
+                    color={COLORS.staticWhite}
                     sx={{ opacity: 0.8 }}
                   >
                     {t("telegramBanner.subtitle")}
@@ -437,14 +442,14 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                   variant="contained"
                   size="small"
                   sx={{
-                    bgcolor: COLORS.white,
-                    color: COLORS.bunker,
+                    bgcolor: COLORS.staticWhite,
+                    color: "#141414",
                     fontWeight: 600,
                     fontSize: "12px",
                     borderRadius: "20px",
                     px: "16px",
                     py: "6px",
-                    "&:hover": { bgcolor: COLORS.whiteLilac },
+                    "&:hover": { bgcolor: "#E6E7EB", color: "#141414" },
                   }}
                 >
                   {t("telegramBanner.button")}

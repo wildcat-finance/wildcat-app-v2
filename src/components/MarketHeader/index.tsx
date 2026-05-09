@@ -194,7 +194,7 @@ export const MarketHeader = ({
                       sx={{
                         fontSize: "8px",
                         lineHeight: "8px",
-                        color: COLORS.white,
+                        color: COLORS.staticWhite,
                       }}
                     >
                       {String(getBorrowerName())[0]}
@@ -205,7 +205,7 @@ export const MarketHeader = ({
                     sx={{
                       fontSize: "16px",
                       "& circle": { fill: "#4CA6D9", opacity: 1 },
-                      "& path": { fill: COLORS.white },
+                      "& path": { fill: COLORS.staticWhite },
                     }}
                   >
                     <Avatar />

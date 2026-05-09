@@ -66,12 +66,12 @@ const MobileMarketTransactionItem = ({
       <Typography
         variant="mobH3"
         sx={{ fontSize: "18px", lineHeight: "24px" }}
-        color={COLORS.white}
+        color={COLORS.staticWhite}
       >
         {amount}
       </Typography>
       <Typography
-        color={COLORS.white}
+        color={COLORS.staticWhite}
         variant="mobText4"
         sx={{
           marginTop: "1px",
@@ -175,7 +175,7 @@ export const MobileMarketActions = ({
             sx={{
               display: "flex",
               padding: "12px",
-              backgroundColor: COLORS.bunker,
+              backgroundColor: "#141414",
               borderRadius: "14px",
               width: "100%",
             }}
@@ -210,7 +210,7 @@ export const MobileMarketActions = ({
             mlaRequiredAndUnsigned || isDifferentChain ? "column" : "row",
           gap: mlaRequiredAndUnsigned || isDifferentChain ? 0 : "8px",
           padding: "12px",
-          backgroundColor: COLORS.bunker,
+          backgroundColor: "#141414",
           borderRadius: "14px",
 
           width: "100%",
@@ -224,7 +224,7 @@ export const MobileMarketActions = ({
           <>
             <Typography
               variant="mobH3"
-              color={COLORS.white}
+              color={COLORS.staticWhite}
               textAlign="center"
               marginTop="12px"
             >

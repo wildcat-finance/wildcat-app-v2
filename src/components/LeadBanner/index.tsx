@@ -17,10 +17,10 @@ export const LeadBanner = ({
 }: BannerProps) => (
   <Box sx={MarketListAlertContainer}>
     <Box sx={TextContainer}>
-      <Typography variant="title2" sx={{ color: COLORS.white }}>
+      <Typography variant="title2" sx={{ color: COLORS.staticWhite }}>
         {title}
       </Typography>
-      <Typography variant="text2" sx={{ color: COLORS.white04 }}>
+      <Typography variant="text2" sx={{ color: COLORS.staticWhiteAlpha60 }}>
         {text}
       </Typography>
     </Box>

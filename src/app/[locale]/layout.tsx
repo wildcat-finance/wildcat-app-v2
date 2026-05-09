@@ -29,6 +29,7 @@ import { RedirectsProvider } from "@/providers/RedirectsProvider"
 import { SafeProvider } from "@/providers/SafeProvider"
 import { SubgraphProvider } from "@/providers/SubgraphProvider"
 import { WagmiQueryProviders } from "@/providers/WagmiQueryProviders"
+import { COLOR_MODE_STORAGE_KEY } from "@/theme/colorMode"
 
 import i18nConfig from "../../../i18nConfig"
 
@@ -38,6 +39,23 @@ const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
 })
+
+const colorModeScript = `
+(() => {
+  try {
+    const storageKey = "${COLOR_MODE_STORAGE_KEY}";
+    const storedMode = window.localStorage.getItem(storageKey);
+    const systemMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    const mode = storedMode === "light" || storedMode === "dark" ? storedMode : systemMode;
+
+    document.documentElement.dataset.theme = mode;
+    document.documentElement.style.colorScheme = mode;
+  } catch (error) {
+    document.documentElement.dataset.theme = "light";
+    document.documentElement.style.colorScheme = "light";
+  }
+})();
+`
 
 export const metadata: Metadata = {
   title: "Wildcat - Private Credit, On Your Terms",
@@ -58,8 +76,9 @@ export default async function RootLayout({
   const { resources } = await initTranslations(locale, i18nNamespaces)
 
   return (
-    <html lang={locale} dir={dir(locale)}>
+    <html lang={locale} dir={dir(locale)} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: colorModeScript }} />
         <link rel="dns-prefetch" href="//t.me" />
         <link rel="dns-prefetch" href="//docs.wildcat.finance" />
         <link rel="dns-prefetch" href="//docs.google.com" />

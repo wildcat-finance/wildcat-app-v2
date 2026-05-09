@@ -22,11 +22,12 @@ import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setTab } from "@/store/slices/borrowerOverviewSlice/borrowerOverviewSlice"
 import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 
 import { HeaderButton } from "./HeaderButton"
 import { HeaderNetworkButton } from "./HeaderNetworkButton"
 import { MobileMenu } from "./MobileMenu"
+import { ThemeModeToggle } from "./ThemeModeToggle"
 
 export default function Header() {
   const [mounted, setMounted] = useState(false)
@@ -94,7 +95,7 @@ export default function Header() {
             width: "100%",
             borderRadius: "14px",
             backgroundColor: {
-              xs: COLORS.white06,
+              xs: TOKENS.heroButtonBg,
               md: "transparent",
             },
           }}
@@ -131,7 +132,12 @@ export default function Header() {
             <Link href={ROUTES.lender.root} style={{ textDecoration: "none" }}>
               <Typography
                 variant="text2Highlighted"
-                sx={{ color: COLORS.white, cursor: "pointer" }}
+                sx={{
+                  color: COLORS.staticWhite,
+                  opacity: side === "lender" ? 1 : 0.6,
+                  transition: "opacity 0.2s",
+                  cursor: "pointer",
+                }}
               >
                 {t("header.role.lender")}
               </Typography>
@@ -141,14 +147,20 @@ export default function Header() {
                 "& .MuiSwitch-switchBase": {
                   "&.Mui-checked": {
                     "& + .MuiSwitch-track": {
-                      opacity: 0.3,
-                      backgroundColor: COLORS.white,
+                      opacity: 1,
+                      backgroundColor: COLORS.staticWhiteAlpha30,
                     },
+                  },
+                  "& .MuiSwitch-thumb": {
+                    backgroundColor: COLORS.staticWhite,
                   },
                 },
                 "& .MuiSwitch-track": {
-                  opacity: 0.3,
-                  backgroundColor: COLORS.white,
+                  opacity: 1,
+                  backgroundColor: COLORS.staticWhiteAlpha30,
+                },
+                "& .MuiSwitch-thumb": {
+                  backgroundColor: COLORS.staticWhite,
                 },
               }}
               onClick={handleToggleSide}
@@ -161,7 +173,12 @@ export default function Header() {
             >
               <Typography
                 variant="text2Highlighted"
-                sx={{ color: COLORS.white, cursor: "pointer" }}
+                sx={{
+                  color: COLORS.staticWhite,
+                  opacity: side === "borrower" ? 1 : 0.6,
+                  transition: "opacity 0.2s",
+                  cursor: "pointer",
+                }}
               >
                 {t("header.role.borrower")}
               </Typography>
@@ -171,6 +188,7 @@ export default function Header() {
         {/* <NotificationButton /> */}
         {!isMobile && (
           <div style={{ display: "flex", gap: "8px" }}>
+            <ThemeModeToggle />
             <HeaderNetworkButton />
             <HeaderButton />
           </div>

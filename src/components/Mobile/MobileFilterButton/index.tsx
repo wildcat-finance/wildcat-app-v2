@@ -15,7 +15,7 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import Filter from "@/assets/icons/filter_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 
 export type MobileFilterButtonProps = {
   assetsOptions: { id: string; name: string }[]
@@ -159,13 +159,13 @@ export const MobileFilterButton = ({
             width: "32px",
             height: "32px",
             borderRadius: "50%",
-            backgroundColor: isFiltered ? "#E4EBFEB2" : COLORS.blackHaze,
+            backgroundColor: isFiltered ? TOKENS.brandPrimarySubtle : COLORS.blackHaze,
             "& path": {
-              stroke: isFiltered ? COLORS.ultramarineBlue : "#8A8C9F",
+              stroke: isFiltered ? COLORS.ultramarineBlue : COLORS.matteSilver,
               transition: "stroke 0.2s",
             },
             "&:hover": {
-              backgroundColor: isFiltered ? "#E4EBFEB2" : `${COLORS.hintOfRed}`,
+              backgroundColor: isFiltered ? TOKENS.brandPrimarySubtle : `${COLORS.hintOfRed}`,
             },
           }}
         >

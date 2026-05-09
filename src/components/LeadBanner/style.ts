@@ -1,7 +1,9 @@
-// import Image from "@/assets/pictures/banner_bg.png"
 import Image from "@/assets/pictures/bannerBG.webp"
 import { COLORS } from "@/theme/colors"
 
+/* The lead banner is always a dark, brand-image background — its content
+ * sits on a deliberately dark photographic surface in both light and dark
+ * mode. Static colors keep it consistent regardless of theme. */
 export const MarketListAlertContainer = {
   width: "100%",
   height: "min-content",
@@ -12,7 +14,7 @@ export const MarketListAlertContainer = {
 
   padding: "28px 40px 32px 32px",
   borderRadius: "16px",
-  color: "white",
+  color: COLORS.staticWhite,
 
   backgroundImage: `url(${Image.src})`,
   backgroundPosition: "center",
@@ -29,11 +31,13 @@ export const TextContainer = {
 
 export const RequestButton = {
   width: "196px",
-  backgroundColor: COLORS.white,
-  color: COLORS.bunker,
+  backgroundColor: COLORS.staticWhite,
+  color: "#141414",
   border: "none",
+  fontWeight: 600,
   "&:hover": {
-    background: "#DEDEDE",
+    background: "#E6E7EB",
+    color: "#141414",
     boxShadow: "none",
   },
 }

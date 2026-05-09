@@ -667,8 +667,7 @@ export const MarketsSection = () => {
               >
                 <Typography
                   variant="text4"
-                  color={COLORS.white}
-                  sx={{ fontWeight: 600 }}
+                  sx={{ fontWeight: 600, color: "inherit" }}
                 >
                   {t("dashboard.markets.noMarkets.lenderAlert.button")}
                 </Typography>

@@ -1,4 +1,4 @@
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 
 export const MarketSelectStyles = {
@@ -20,12 +20,23 @@ export const MarketSelectStyles = {
   },
 }
 
+/* The MarketSelect/PolicySelect menus open from a heading that always sits
+ * on the dark hero strip — so the dropdown itself is intentionally a dark
+ * surface in both light and dark mode. We use a static dark color for
+ * the menu background and pure-white text for consistent presentation. */
 export const MarketSelectMenuStyles = {
   "& .MuiPaper-root": {
     width: "360px",
     fontFamily: "inherit",
     padding: "8px",
-    backgroundColor: COLORS.cobaltBlack,
+    backgroundColor: "#1a1a1a",
+    border: "1px solid rgba(255, 255, 255, 0.06)",
+    boxShadow: "0 12px 32px rgba(0, 0, 0, 0.4)",
+    backgroundImage: "none",
+    color: COLORS.staticWhite,
+  },
+  "& .MuiMenuItem-root .MuiTypography-root": {
+    color: COLORS.staticWhite,
   },
 }
 
@@ -33,27 +44,35 @@ export const SearchStyles = {
   marginBottom: "8px",
 
   "& .MuiInputBase-root": {
-    color: COLORS.white,
+    color: COLORS.staticWhite,
     border: "none",
-    borderBottom: `1px solid ${COLORS.white01}`,
+    borderBottom: "1px solid rgba(255, 255, 255, 0.10)",
     borderRadius: 0,
   },
 
+  "& .MuiInputBase-input": {
+    color: COLORS.staticWhite,
+    "&::placeholder": {
+      color: "rgba(255, 255, 255, 0.45)",
+      opacity: 1,
+    },
+  },
+
   "& .MuiFormLabel-root": {
-    color: COLORS.white03,
+    color: "rgba(255, 255, 255, 0.45)",
   },
 }
 
 export const MarketSelectMenuItemStyles = {
   "&:hover": {
-    background: COLORS.white01,
+    background: "rgba(255, 255, 255, 0.08)",
   },
   "&.Mui-focusVisible": {
-    background: COLORS.white01,
+    background: "rgba(255, 255, 255, 0.08)",
   },
   "&.Mui-selected": {
     background: "transparent",
-    color: COLORS.santasGrey,
+    color: "rgba(255, 255, 255, 0.55)",
     "&:hover": {
       background: "transparent",
       cursor: "pointer",

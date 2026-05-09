@@ -1,27 +1,29 @@
+import { COLORS } from "@/theme/colors"
+
 export const MARKET_BAR_DATA = {
   locked: {
     id: "locked",
     label: "Locked",
-    healthyBgColor: "#4971FF",
-    delinquentBgColor: "#F1464B",
-    healthyTextColor: "#FFFFFF",
-    delinquentTextColor: "#FFFFFF",
+    healthyBgColor: COLORS.blueRibbon,
+    delinquentBgColor: COLORS.carminePink,
+    healthyTextColor: COLORS.staticWhite,
+    delinquentTextColor: COLORS.staticWhite,
   },
   liquid: {
     id: "liquid",
     label: "Liquid",
-    healthyBgColor: "#E4EBFE",
-    delinquentBgColor: "#F7BEC1",
-    healthyTextColor: "#4971FF",
-    delinquentTextColor: "#BD1D22",
+    healthyBgColor: COLORS.glitter,
+    delinquentBgColor: COLORS.azalea,
+    healthyTextColor: COLORS.blueRibbon,
+    delinquentTextColor: COLORS.dullRed,
   },
   borrowed: {
     id: "borrowed",
     label: "Borrowed",
-    healthyBgColor: "#EFF0F4",
-    delinquentBgColor: "#EFF0F4",
-    healthyTextColor: "#4971FF",
-    delinquentTextColor: "#4971FF",
+    healthyBgColor: COLORS.athensGrey,
+    delinquentBgColor: COLORS.athensGrey,
+    healthyTextColor: COLORS.blueRibbon,
+    delinquentTextColor: COLORS.blueRibbon,
   },
 }
 

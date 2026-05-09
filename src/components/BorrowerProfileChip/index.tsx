@@ -31,7 +31,7 @@ export const BorrowerProfileChip = ({
           sx={{
             fontSize: "12px",
             "& circle": { fill: "#4CA6D9", opacity: 1 },
-            "& path": { fill: COLORS.white },
+            "& path": { fill: COLORS.staticWhite },
           }}
         >
           <Avatar />
@@ -54,7 +54,7 @@ export const BorrowerProfileChip = ({
             sx={{
               fontSize: "6px",
               lineHeight: "8px",
-              color: COLORS.white,
+              color: COLORS.staticWhite,
               textAlign: "center",
             }}
           >

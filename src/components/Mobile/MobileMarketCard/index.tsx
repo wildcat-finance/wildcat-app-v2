@@ -53,7 +53,7 @@ export const DepositArrow = () => (
     sx={{
       fontSize: "11px",
       transform: "rotate(180deg)",
-      "& path": { fill: COLORS.white },
+      "& path": { fill: COLORS.staticWhite },
     }}
   >
     <Arrow />
