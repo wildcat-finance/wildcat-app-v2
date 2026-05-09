@@ -42,7 +42,9 @@ export const ThemeModeToggle = ({
             : TOKENS.actionGhostHoverBg,
         },
         "&:focus-within": {
-          borderColor: isHeader ? COLORS.staticWhiteAlpha30 : TOKENS.brandPrimary,
+          borderColor: isHeader
+            ? COLORS.staticWhiteAlpha30
+            : TOKENS.brandPrimary,
         },
       }}
     >

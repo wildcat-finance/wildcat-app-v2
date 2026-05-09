@@ -159,13 +159,17 @@ export const MobileFilterButton = ({
             width: "32px",
             height: "32px",
             borderRadius: "50%",
-            backgroundColor: isFiltered ? TOKENS.brandPrimarySubtle : COLORS.blackHaze,
+            backgroundColor: isFiltered
+              ? TOKENS.brandPrimarySubtle
+              : COLORS.blackHaze,
             "& path": {
               stroke: isFiltered ? COLORS.ultramarineBlue : COLORS.matteSilver,
               transition: "stroke 0.2s",
             },
             "&:hover": {
-              backgroundColor: isFiltered ? TOKENS.brandPrimarySubtle : `${COLORS.hintOfRed}`,
+              backgroundColor: isFiltered
+                ? TOKENS.brandPrimarySubtle
+                : `${COLORS.hintOfRed}`,
             },
           }}
         >
