@@ -44,6 +44,9 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       )
     }
+    if (token.chainId !== parsedInput.chainId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
     adminForChain = await isAdminForChain(token, parsedInput.chainId)
     const requestedAddress = inputAddress?.toLowerCase()
     if (
