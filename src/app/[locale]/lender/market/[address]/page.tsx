@@ -205,7 +205,10 @@ export default function LenderMarketDetails({
 
   const isMobile = useMobileResolution()
 
-  const { data: mla, isLoading: mlaLoading } = useMarketMla(market?.address)
+  const { data: mla, isLoading: mlaLoading } = useMarketMla(
+    market?.address,
+    market?.chainId,
+  )
 
   const [isMobileDepositOpen, setIsMobileDepositOpen] = React.useState(false)
   const [isMobileWithdrawalOpen, setIsMobileWithdrawalOpen] =

@@ -226,6 +226,9 @@ export const useSignMla = (salt: string) => {
         console.log("missing required data")
         throw Error("Missing required data")
       }
+      if (signer.chainId !== chainId) {
+        throw Error("Wallet network does not match selected network")
+      }
 
       let message: string
       if (mlaTemplateId === undefined) {
@@ -244,7 +247,7 @@ export const useSignMla = (salt: string) => {
           borrowerProfile,
           asset,
           salt,
-          NETWORKS_BY_ID[signer.chainId as SupportedChainId],
+          NETWORKS_BY_ID[chainId as SupportedChainId],
         )
         message = mlaData.message
         console.log("message", message)

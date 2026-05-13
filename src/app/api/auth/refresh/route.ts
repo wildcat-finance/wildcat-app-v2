@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  const newToken = await createApiToken(token.address)
+  const newToken = await createApiToken(token.address, token.chainId)
   if (!newToken) {
     return NextResponse.json({ error: "Server error" }, { status: 500 })
   }

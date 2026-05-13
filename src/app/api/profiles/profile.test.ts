@@ -13,6 +13,7 @@ import { RequestInit } from "next/dist/server/web/spec-extension/request"
 import { NextRequest } from "next/server"
 // import { Body, createMocks, createRequest } from "node-mocks-http"
 
+import { getLoginSignatureMessage } from "@/config/api"
 import { TargetChainId, TargetNetwork } from "@/config/network"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { prisma } from "@/lib/db"
@@ -218,7 +219,7 @@ describe("API", () => {
   const privateKey = randomBytes(32)
   const adminPrivateKey = randomBytes(32)
 
-  const provider = getProviderForServer()
+  const provider = getProviderForServer(TargetChainId)
   const wallet = new Wallet(privateKey, provider)
   const adminWallet = new Wallet(adminPrivateKey, provider)
   const otherWallet = Wallet.createRandom({ provider })
@@ -235,26 +236,31 @@ describe("API", () => {
     if (isAdmin) {
       const isAlreadyAdmin = await prisma.adminAccount.findFirst({
         where: {
+          chainId: TargetChainId,
           address: walletToUse.address.toLowerCase(),
         },
       })
       if (!isAlreadyAdmin) {
         await prisma.adminAccount.create({
           data: {
+            chainId: TargetChainId,
             address: walletToUse.address.toLowerCase(),
           },
         })
       }
     }
-    const timeSigned = Date.now()
-    const LoginMessage = `Connect to wildcat.finance as account ${walletToUse.address.toLowerCase()}\nDate: ${dayjs(
+    const timeSigned = dayjs().unix()
+    const LoginMessage = getLoginSignatureMessage(
+      walletToUse.address,
       timeSigned,
-    ).format("MMMM DD, YYYY")}`
+      TargetChainId,
+    )
     const signature = await walletToUse.signMessage(LoginMessage)
     const req = mockPost("/api/auth/login", {
       address: walletToUse.address,
       signature,
       timeSigned,
+      chainId: TargetChainId,
     } as LoginInput)
     const response = await postLogin(req)
     expect(response.status).toEqual(200)
@@ -263,6 +269,7 @@ describe("API", () => {
   }
 
   const invite: BorrowerInvitationInput = {
+    chainId: TargetChainId,
     address: borrowerAddress,
     name: "Borrower 1",
   }
@@ -490,6 +497,7 @@ describe("API", () => {
       const wallet2 = Wallet.createRandom({ provider })
       const token = await getToken(wallet2, false)
       const body: AcceptInvitationInput = {
+        chainId: TargetChainId,
         address: wallet2.address as `0x${string}`,
         name: invite.name,
         timeSigned,
@@ -517,6 +525,7 @@ describe("API", () => {
       agreementText = `${agreementText}\n\nOrganization Name: ${invite.name}`
       const wallet2 = Wallet.createRandom({ provider })
       const body: AcceptInvitationInput = {
+        chainId: TargetChainId,
         address: borrowerAddress,
         name: invite.name,
         timeSigned,
@@ -541,6 +550,7 @@ describe("API", () => {
       }
       agreementText = `${agreementText}\n\nOrganization Name: ${invite.name}`
       const body: AcceptInvitationInput = {
+        chainId: TargetChainId,
         address: borrowerAddress,
         name: invite.name,
         timeSigned,
@@ -627,6 +637,7 @@ describe("API", () => {
       const req = mockPost(
         "/api/mla/templates",
         {
+          chainId: TargetChainId,
           borrowerFields,
           lenderFields,
           html: DefaultMlaHtml,
@@ -673,7 +684,11 @@ describe("API", () => {
     }
 
     async function resetMlaTemplate() {
-      const mlaTemplate = await prisma.mlaTemplate.findFirst()
+      const mlaTemplate = await prisma.mlaTemplate.findFirst({
+        where: {
+          chainId: TargetChainId,
+        },
+      })
       await prisma.mlaTemplate.update({
         where: {
           id: mlaTemplate?.id,
@@ -689,7 +704,11 @@ describe("API", () => {
       const marketAddress = "0xbab3e079d3f28a58a14e316dcb15a8b2cc25ca80"
       await clearMla(marketAddress)
       await resetMlaTemplate()
-      const mlaTemplate = await prisma.mlaTemplate.findFirst()
+      const mlaTemplate = await prisma.mlaTemplate.findFirst({
+        where: {
+          chainId: TargetChainId,
+        },
+      })
       if (!mlaTemplate) {
         throw new Error("No MLA template found")
       }
@@ -715,7 +734,7 @@ describe("API", () => {
 
       const values = getFieldValuesForBorrower({
         market,
-        borrowerInfo: borrowerProfile as BasicBorrowerInfo,
+        borrowerInfo: borrowerProfile as unknown as BasicBorrowerInfo,
         networkData: TargetNetwork,
         timeSigned,
         lastSlaUpdateTime: +lastSlaUpdateTime,
@@ -728,6 +747,7 @@ describe("API", () => {
       const signature = await realWallet.signMessage(filledTemplate.plaintext)
       const req = mockPost(`/api/mla/${market.address}`, {
         mlaTemplate: mlaTemplate.id,
+        chainId: TargetChainId,
         timeSigned,
         signature,
       })
@@ -743,7 +763,9 @@ describe("API", () => {
 
   describe("[GET] /api/mla/templates", () => {
     test("Get all MLA templates", async () => {
-      const response = await getMlaTemplates()
+      const response = await getMlaTemplates(
+        mockGet(`/api/mla/templates?chainId=${TargetChainId}`),
+      )
       expect(response.status).toBe(200)
       const results = (await response.json()) as MlaTemplate[]
       expect(

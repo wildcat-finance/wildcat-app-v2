@@ -122,9 +122,10 @@ export async function POST(
   }
 
   const mlaTemplate: MlaTemplate | undefined = await prisma.mlaTemplate
-    .findUnique({
+    .findFirst({
       where: {
         id: body.mlaTemplate,
+        chainId,
       },
     })
     .then((obj) => {
