@@ -8,8 +8,11 @@ export const MlaTemplateFieldDTO = z.object({
 })
 
 export const CreateMlaTemplateInputDTO = z.object({
+  chainId: z.number(),
   name: z.string(),
   description: z.string().optional(),
+  hide: z.boolean().optional(),
+  isDefault: z.boolean().optional(),
   html: z.string(),
   plaintext: z.string(),
   borrowerFields: z.array(MlaTemplateFieldDTO),

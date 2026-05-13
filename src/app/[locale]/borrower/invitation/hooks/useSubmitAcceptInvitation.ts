@@ -33,6 +33,7 @@ export const useSubmitAcceptInvitation = () => {
       if (!timeSigned) throw Error(`No time signed`)
       if (!token) throw Error(`No token`)
       if (!chainId) throw Error(`No chain ID selected`)
+      if (token.chainId !== chainId) throw Error(`Wrong-chain API token`)
 
       const sign = async () => {
         const dateSigned = formatUnixMsAsDate(timeSigned)

@@ -7,12 +7,20 @@ import {
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 import { BorrowerProfileForAdminView } from "./interface"
+import { isAdminForChain, verifyApiToken } from "../auth/verify-header"
 
 /// GET /api/profiles?chainId=<chainId>
 export async function GET(request: NextRequest) {
   const chainId = validateChainIdParam(request)
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
+  const token = await verifyApiToken(request)
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  if (!(await isAdminForChain(token, chainId))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   await tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered(chainId)
   const data = await prisma.borrower.findMany({

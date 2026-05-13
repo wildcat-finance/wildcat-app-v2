@@ -11,6 +11,7 @@ import { toastError, toastRequest } from "@/components/Toasts"
 import { getLoginSignatureMessage } from "@/config/api"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
+  getApiTokenKey,
   setApiToken,
   removeApiToken,
 } from "@/store/slices/apiTokensSlice/apiTokensSlice"
@@ -18,16 +19,20 @@ import { ApiToken } from "@/store/slices/apiTokensSlice/interface"
 import { dayjs } from "@/utils/dayjs"
 
 import { useEthersSigner } from "./useEthersSigner"
+import { useSelectedNetwork } from "./useSelectedNetwork"
 
-export const useRefreshApiToken = () => {
+export const useRefreshApiToken = (chainIdOverride?: number) => {
   const { address } = useAccount()
+  const selectedNetwork = useSelectedNetwork()
+  const chainId = chainIdOverride ?? selectedNetwork.chainId
   const dispatch = useAppDispatch()
-  const tokenKey = address?.toLowerCase() ?? ""
+  const tokenKey = address ? getApiTokenKey(address, chainId) : ""
   const token = useAppSelector((state) => state.apiTokens[tokenKey])
 
   return useMutation({
     mutationKey: ["refreshApiToken", tokenKey],
     mutationFn: async () => {
+      if (!token) throw Error(`No API token`)
       console.log(`Refreshing token (mutate)`)
       const response = await fetch("/api/auth/refresh", {
         method: "POST",
@@ -55,10 +60,12 @@ export const useRefreshApiToken = () => {
   })
 }
 
-export const useRemoveBadApiToken = () => {
+export const useRemoveBadApiToken = (chainIdOverride?: number) => {
   const dispatch = useAppDispatch()
   const { address } = useAccount()
-  const tokenKey = address?.toLowerCase() ?? ""
+  const selectedNetwork = useSelectedNetwork()
+  const chainId = chainIdOverride ?? selectedNetwork.chainId
+  const tokenKey = address ? getApiTokenKey(address, chainId) : ""
   return useMutation({
     mutationKey: ["removeBadApiToken", tokenKey],
     mutationFn: async () => {
@@ -68,13 +75,16 @@ export const useRemoveBadApiToken = () => {
   })
 }
 
-export const useAuthToken = () => {
+export const useAuthToken = (chainIdOverride?: number) => {
   const { address } = useAccount()
-  const tokenKey = address?.toLowerCase() ?? ""
+  const selectedNetwork = useSelectedNetwork()
+  const chainId = chainIdOverride ?? selectedNetwork.chainId
+  const tokenKey = address ? getApiTokenKey(address, chainId) : ""
   const token = useAppSelector((state) => state.apiTokens[tokenKey])
-  const { mutate: refreshToken, isPending: isRefreshing } = useRefreshApiToken()
+  const { mutate: refreshToken, isPending: isRefreshing } =
+    useRefreshApiToken(chainId)
   const { mutate: removeBadToken, isPending: isRemovingBadToken } =
-    useRemoveBadApiToken()
+    useRemoveBadApiToken(chainId)
   const isRefreshingAnywhere = useIsMutating({
     mutationKey: ["refreshApiToken", tokenKey],
   })
@@ -114,6 +124,7 @@ export const useAuthToken = () => {
 
 export const useLogin = () => {
   const dispatch = useAppDispatch()
+  const selectedNetwork = useSelectedNetwork()
 
   const { sdk, connected: safeConnected } = useSafeAppsSDK()
   const signer = useEthersSigner()
@@ -122,11 +133,18 @@ export const useLogin = () => {
     mutationFn: async (address: string) => {
       if (!signer) throw Error(`No signer`)
       if (!address) throw Error(`No address`)
+      if (signer.chainId !== selectedNetwork.chainId) {
+        throw Error(`Wallet network does not match selected network`)
+      }
       address = address.toLowerCase()
       const timeSigned = dayjs().unix()
 
       const sign = async () => {
-        const LoginMessage = getLoginSignatureMessage(address, timeSigned)
+        const LoginMessage = getLoginSignatureMessage(
+          address,
+          timeSigned,
+          selectedNetwork.chainId,
+        )
 
         if (sdk && safeConnected) {
           console.log(
@@ -174,12 +192,16 @@ export const useLogin = () => {
             signature: result.signature ?? "0x",
             timeSigned,
             address,
-            chainId: signer.chainId,
+            chainId: selectedNetwork.chainId,
           }),
         })
         if (response.status !== 200)
           throw Error(`Failed to log in! ${response.statusText}`)
-        return (await response.json()) as ApiToken
+        const token = (await response.json()) as ApiToken
+        if (token.chainId !== selectedNetwork.chainId) {
+          throw Error(`Login returned token for wrong chain`)
+        }
+        return token
       }
 
       const token = await toastRequest(submitLogin(), {

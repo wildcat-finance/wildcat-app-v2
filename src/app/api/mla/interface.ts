@@ -16,6 +16,7 @@ export interface SetMasterLoanAgreementInput {
 
 export interface MlaTemplateMetadata {
   id: number
+  chainId: number
   name: string
   description?: string
   hide?: boolean
@@ -24,6 +25,7 @@ export interface MlaTemplateMetadata {
 
 export interface MlaTemplate {
   id: number
+  chainId: number
   name: string
   description?: string
   hide?: boolean

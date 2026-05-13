@@ -6,14 +6,12 @@ import { LenderMlaSignatureInput } from "@/app/api/mla/lender-signature/interfac
 import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
 
 export const useSignLenderMLA = () => {
   const { sdk, connected: safeConnected } = useSafeAppsSDK()
   const signer = useEthersSigner()
   const client = useQueryClient()
-  const { chainId: targetChainId } = useSelectedNetwork()
 
   return useMutation({
     mutationFn: async ({
@@ -26,6 +24,9 @@ export const useSignLenderMLA = () => {
       timeSigned: number
     }) => {
       if (!signer) return
+      if (signer.chainId !== mla.chainId) {
+        throw Error("Wallet network does not match MLA chain")
+      }
       const values = getFieldValuesForLender(lenderAddress, timeSigned)
       const mlaData = fillInMlaForLender(mla, values, mla.market)
 
@@ -64,7 +65,7 @@ export const useSignLenderMLA = () => {
         const response = await fetch(`/api/mla/lender-signature`, {
           method: "POST",
           body: JSON.stringify({
-            chainId: signer.chainId,
+            chainId: mla.chainId,
             market: mla.market,
             address: lenderAddress,
             signature,
@@ -80,9 +81,12 @@ export const useSignLenderMLA = () => {
         pending: "Signing MLA...",
       })
     },
-    onSuccess() {
+    onSuccess(_, variables) {
       client.invalidateQueries({
-        queryKey: QueryKeys.Lender.GET_SIGNED_MLA(targetChainId),
+        queryKey: QueryKeys.Lender.GET_SIGNED_MLA(
+          variables?.mla.chainId ?? 0,
+          variables?.mla.market,
+        ),
       })
     },
   })
