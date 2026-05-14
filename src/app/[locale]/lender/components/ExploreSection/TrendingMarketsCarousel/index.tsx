@@ -14,14 +14,13 @@ import {
 } from "@/app/[locale]/lender/hooks/useRecentDeposits"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
-import { trimAddress } from "@/utils/formatters"
+import { formatBps, trimAddress } from "@/utils/formatters"
 import { isExploreVisible } from "@/utils/marketStatus"
 
-import { TrendingMarketCardApr } from "./TrendingMarketCardApr"
-import { TrendingMarketCardInflow } from "./TrendingMarketCardInflow"
-import { TrendingMarketCardInterestPaid } from "./TrendingMarketCardInterestPaid"
-import { TrendingMarketCardLenders } from "./TrendingMarketCardLenders"
-import { TrendingMarketCardTvl } from "./TrendingMarketCardTvl"
+import {
+  TrendingMarketCard,
+  TrendingMarketCardVariant,
+} from "./TrendingMarketCard"
 
 const SLOT_COUNT = 5
 
@@ -97,9 +96,10 @@ const pickTotalDepositedWinner = (eligible: MarketAccount[]) =>
 
 type Slot = {
   key: string
+  variant: TrendingMarketCardVariant
+  description: string
   account: MarketAccount
-  lenderCount: number
-  formattedStat?: string
+  value: string
 }
 
 const useDragScroll = () => {
@@ -168,9 +168,6 @@ export const TrendingMarketsCarousel = () => {
     )
     if (eligible.length === 0) return []
 
-    const last7dStats = (account: MarketAccount) =>
-      recentDeposits.last7d[account.market.address.toLowerCase()]
-
     const inflow7dWinner = pickInflowWinner(eligible, recentDeposits.last7d)
     const inflowLifetimeWinner = pickTotalDepositedWinner(eligible)
 
@@ -193,20 +190,6 @@ export const TrendingMarketsCarousel = () => {
       const big = account.market.totalSupply.raw.toBigInt()
       return big > ZERO ? big : undefined
     })
-
-    const makeSlot = (
-      key: string,
-      account: MarketAccount | undefined,
-      formattedStat?: string,
-    ): Slot | null => {
-      if (!account) return null
-      return {
-        key,
-        account,
-        lenderCount: last7dStats(account)?.uniqueLenders ?? 0,
-        formattedStat,
-      }
-    }
 
     const tvlInflowAccount = inflow7dWinner ?? inflowLifetimeWinner
     let tvlInflowStat: string | undefined
@@ -254,18 +237,91 @@ export const TrendingMarketsCarousel = () => {
       }
     }
 
+    const lendersAccount = lenders7dWinner ?? lendersBroadWinner
+    const lendersCount = lendersAccount
+      ? recentDeposits.last7d[lendersAccount.market.address.toLowerCase()]
+          ?.uniqueLenders ?? 0
+      : 0
+
+    const makeSlot = (
+      key: string,
+      variant: TrendingMarketCardVariant,
+      description: string,
+      account: MarketAccount | undefined,
+      value: string | undefined,
+    ): Slot | null => {
+      if (!account || !value) return null
+      return { key, variant, description, account, value }
+    }
+
     const built: (Slot | null)[] = [
-      makeSlot("tvlInflow", tvlInflowAccount, tvlInflowStat),
-      makeSlot("lenders", lenders7dWinner ?? lendersBroadWinner),
-      makeSlot("interestPaid", interestPaidWinner, interestPaidStat),
-      makeSlot("highestApr", aprWinner),
-      makeSlot("highestTvl", tvlWinner, tvlStat),
+      makeSlot(
+        "tvlInflow",
+        "trending",
+        "fresh capital this week",
+        tvlInflowAccount,
+        tvlInflowStat,
+      ),
+      makeSlot(
+        "lenders",
+        "popular",
+        "lenders joined this week",
+        lendersAccount,
+        lendersCount > 0 ? lendersCount.toString() : undefined,
+      ),
+      makeSlot(
+        "interestPaid",
+        "proven",
+        "paid in total to lenders, all time",
+        interestPaidWinner,
+        interestPaidStat,
+      ),
+      makeSlot(
+        "highestApr",
+        "hotRate",
+        "current APR, best in market",
+        aprWinner,
+        aprWinner
+          ? `${formatBps(aprWinner.market.annualInterestBips)}%`
+          : undefined,
+      ),
+      makeSlot(
+        "highestTvl",
+        "topFunded",
+        "total value locked",
+        tvlWinner,
+        tvlStat,
+      ),
     ]
 
     return built.filter((s): s is Slot => s !== null).slice(0, SLOT_COUNT)
   }, [marketAccounts, recentDeposits])
 
   const isMobile = useMobileResolution()
+
+  const renderCard = (slot: Slot) => {
+    const { market } = slot.account
+    const borrower = (borrowers ?? []).find(
+      (b) => b.address.toLowerCase() === market.borrower.toLowerCase(),
+    )
+    const borrowerName = borrower
+      ? borrower.alias || borrower.name || trimAddress(market.borrower)
+      : trimAddress(market.borrower)
+
+    return (
+      <TrendingMarketCard
+        variant={slot.variant}
+        value={slot.value}
+        description={slot.description}
+        marketAddress={market.address}
+        chainId={market.chainId}
+        borrowerName={borrowerName}
+        borrowerAddress={market.borrower.toLowerCase()}
+        asset={market.underlyingToken.symbol}
+        apr={market.annualInterestBips}
+      />
+    )
+  }
 
   if (isMobile)
     return (
@@ -291,7 +347,7 @@ export const TrendingMarketsCarousel = () => {
           onMouseLeave={dragScroll.onMouseLeave}
           sx={{
             display: "flex",
-            gap: "2px",
+            gap: "6px",
             overflowX: "auto",
             "&::-webkit-scrollbar": { display: "none" },
             scrollbarWidth: "none",
@@ -316,84 +372,22 @@ export const TrendingMarketsCarousel = () => {
                   />
                 ),
               )
-            : slots.map((slot, index) => {
-                const { market } = slot.account
-                const borrower = (borrowers ?? []).find(
-                  (b) =>
-                    b.address.toLowerCase() === market.borrower.toLowerCase(),
-                )
-                const borrowerName = borrower
-                  ? borrower.alias ||
-                    borrower.name ||
-                    trimAddress(market.borrower)
-                  : trimAddress(market.borrower)
-
-                const commonProps = {
-                  marketAddress: market.address,
-                  chainId: market.chainId,
-                  borrowerName,
-                  asset: market.underlyingToken.symbol,
-                  apr: market.annualInterestBips,
-                }
-
-                let card: React.ReactNode
-                switch (slot.key) {
-                  case "tvlInflow":
-                    card = (
-                      <TrendingMarketCardInflow
-                        {...commonProps}
-                        inflow={slot.formattedStat ?? "—"}
-                      />
-                    )
-                    break
-                  case "lenders":
-                    card = (
-                      <TrendingMarketCardLenders
-                        {...commonProps}
-                        lenderCount={slot.lenderCount}
-                      />
-                    )
-                    break
-                  case "interestPaid":
-                    card = (
-                      <TrendingMarketCardInterestPaid
-                        {...commonProps}
-                        interestPaid={slot.formattedStat ?? "—"}
-                      />
-                    )
-                    break
-                  case "highestApr":
-                    card = <TrendingMarketCardApr {...commonProps} />
-                    break
-                  case "highestTvl":
-                    card = (
-                      <TrendingMarketCardTvl
-                        {...commonProps}
-                        totalSupply={slot.formattedStat ?? "—"}
-                      />
-                    )
-                    break
-                  default:
-                    card = null
-                }
-
-                return (
-                  <Box
-                    key={slot.key}
-                    sx={{
-                      flexShrink: 0,
-                      display: "flex",
-                      width: "220px",
-                      ...(index === 0 && { marginLeft: "8px" }),
-                      ...(index === slots.length - 1 && {
-                        marginRight: "8px",
-                      }),
-                    }}
-                  >
-                    {card}
-                  </Box>
-                )
-              })}
+            : slots.map((slot, index) => (
+                <Box
+                  key={slot.key}
+                  sx={{
+                    flexShrink: 0,
+                    display: "flex",
+                    width: "220px",
+                    ...(index === 0 && { marginLeft: "8px" }),
+                    ...(index === slots.length - 1 && {
+                      marginRight: "8px",
+                    }),
+                  }}
+                >
+                  {renderCard(slot)}
+                </Box>
+              ))}
         </Box>
       </Box>
     )
@@ -428,7 +422,7 @@ export const TrendingMarketsCarousel = () => {
               (key, index) => (
                 <Skeleton
                   key={key}
-                  height="136px"
+                  height="172px"
                   width="304px"
                   sx={{
                     minWidth: "304px",
@@ -440,82 +434,19 @@ export const TrendingMarketsCarousel = () => {
                 />
               ),
             )
-          : slots.map((slot, index) => {
-              const { market } = slot.account
-              const borrower = (borrowers ?? []).find(
-                (b) =>
-                  b.address.toLowerCase() === market.borrower.toLowerCase(),
-              )
-              const borrowerName = borrower
-                ? borrower.alias ||
-                  borrower.name ||
-                  trimAddress(market.borrower)
-                : trimAddress(market.borrower)
-
-              const commonProps = {
-                marketAddress: market.address,
-                chainId: market.chainId,
-                borrowerName,
-                asset: market.underlyingToken.symbol,
-                apr: market.annualInterestBips,
-                isMobile,
-              }
-
-              let card: React.ReactNode
-              switch (slot.key) {
-                case "tvlInflow":
-                  card = (
-                    <TrendingMarketCardInflow
-                      {...commonProps}
-                      inflow={slot.formattedStat ?? "—"}
-                    />
-                  )
-                  break
-                case "lenders":
-                  card = (
-                    <TrendingMarketCardLenders
-                      {...commonProps}
-                      lenderCount={slot.lenderCount}
-                    />
-                  )
-                  break
-                case "interestPaid":
-                  card = (
-                    <TrendingMarketCardInterestPaid
-                      {...commonProps}
-                      interestPaid={slot.formattedStat ?? "—"}
-                    />
-                  )
-                  break
-                case "highestApr":
-                  card = <TrendingMarketCardApr {...commonProps} />
-                  break
-                case "highestTvl":
-                  card = (
-                    <TrendingMarketCardTvl
-                      {...commonProps}
-                      totalSupply={slot.formattedStat ?? "—"}
-                    />
-                  )
-                  break
-                default:
-                  card = null
-              }
-
-              return (
-                <Box
-                  key={slot.key}
-                  sx={{
-                    flexShrink: 0,
-                    width: "304px",
-                    ...(index === 0 && { marginLeft: "16px" }),
-                    ...(index === slots.length - 1 && { marginRight: "16px" }),
-                  }}
-                >
-                  {card}
-                </Box>
-              )
-            })}
+          : slots.map((slot, index) => (
+              <Box
+                key={slot.key}
+                sx={{
+                  flexShrink: 0,
+                  width: "304px",
+                  ...(index === 0 && { marginLeft: "16px" }),
+                  ...(index === slots.length - 1 && { marginRight: "16px" }),
+                }}
+              >
+                {renderCard(slot)}
+              </Box>
+            ))}
       </Box>
     </Box>
   )
