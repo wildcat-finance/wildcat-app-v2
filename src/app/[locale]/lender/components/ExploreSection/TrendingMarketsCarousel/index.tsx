@@ -20,7 +20,7 @@ import { isExploreVisible } from "@/utils/marketStatus"
 import {
   TrendingMarketCard,
   TrendingMarketCardVariant,
-} from "./TrendingMarketCard"
+} from "./TrendingMarketsCard"
 
 const SLOT_COUNT = 5
 
@@ -419,7 +419,7 @@ export const TrendingMarketsCarousel = () => {
                 (key, index) => (
                   <Skeleton
                     key={key}
-                    height="182px"
+                    height="214px"
                     width="220px"
                     sx={{
                       minWidth: "220px",
