@@ -154,6 +154,63 @@ const useDragScroll = () => {
   }
 }
 
+const PEEK_SESSION_KEY = "trending-markets-peek-shown"
+const PEEK_ENTER_DELAY_MS = 200
+const PEEK_HOLD_MS = 400
+const PEEK_DISTANCE_PX = 150
+
+const usePeekOnFirstVisit = (
+  ref: React.RefObject<HTMLDivElement | null>,
+  ready: boolean,
+) => {
+  useEffect(() => {
+    if (!ready) return undefined
+    if (typeof window === "undefined") return undefined
+    if (window.sessionStorage.getItem(PEEK_SESSION_KEY)) return undefined
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches)
+      return undefined
+
+    const el = ref.current
+    if (!el) return undefined
+    if (el.scrollWidth <= el.clientWidth) return undefined
+
+    window.sessionStorage.setItem(PEEK_SESSION_KEY, "1")
+
+    const peekDistance = Math.min(
+      PEEK_DISTANCE_PX,
+      el.scrollWidth - el.clientWidth,
+    )
+    let cancelled = false
+
+    const cancel = () => {
+      cancelled = true
+    }
+
+    const enterTimeout = window.setTimeout(() => {
+      if (cancelled) return
+      el.scrollTo({ left: peekDistance, behavior: "smooth" })
+    }, PEEK_ENTER_DELAY_MS)
+
+    const returnTimeout = window.setTimeout(() => {
+      if (cancelled) return
+      el.scrollTo({ left: 0, behavior: "smooth" })
+    }, PEEK_ENTER_DELAY_MS + PEEK_HOLD_MS)
+
+    el.addEventListener("pointerdown", cancel, { once: true })
+    el.addEventListener("wheel", cancel, { once: true, passive: true })
+    el.addEventListener("touchstart", cancel, { once: true, passive: true })
+
+    return () => {
+      cancel()
+      window.clearTimeout(enterTimeout)
+      window.clearTimeout(returnTimeout)
+      el.removeEventListener("pointerdown", cancel)
+      el.removeEventListener("wheel", cancel)
+      el.removeEventListener("touchstart", cancel)
+    }
+  }, [ref, ready])
+}
+
 export const TrendingMarketsCarousel = () => {
   const { marketAccounts, borrowers, isLoadingInitial, isLoadingUpdate } =
     useLenderMarketsContext()
@@ -299,6 +356,8 @@ export const TrendingMarketsCarousel = () => {
 
   const isMobile = useMobileResolution()
 
+  usePeekOnFirstVisit(dragScroll.ref, !isLoading && slots.length > 0)
+
   const renderCard = (slot: Slot) => {
     const { market } = slot.account
     const borrower = (borrowers ?? []).find(
@@ -422,7 +481,7 @@ export const TrendingMarketsCarousel = () => {
               (key, index) => (
                 <Skeleton
                   key={key}
-                  height="172px"
+                  height="214px"
                   width="304px"
                   sx={{
                     minWidth: "304px",
