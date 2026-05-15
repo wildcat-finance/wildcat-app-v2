@@ -236,7 +236,6 @@ export const AnalyticsDataGrid = ({
 }: AnalyticsDataGridProps) => {
   const isMobile = useMobileResolution()
   const [page, setPage] = React.useState(0)
-  const hasBoundedHeight = maxHeight !== undefined
 
   // Reset to first page if the data set shrinks beneath the current page.
   const totalPages = Math.max(1, Math.ceil(rows.length / mobilePageSize))
@@ -302,6 +301,10 @@ export const AnalyticsDataGrid = ({
     )
   }
 
+  // maxHeight is a cap, not a fixed height: the grid sizes to its content via
+  // autoHeight, and the wrapper provides a vertical scroll once that content
+  // exceeds maxHeight. Sticky-header styling in autoHeightAnalyticsDataGridSx
+  // makes the column row stay pinned during that scroll.
   return (
     <Box
       sx={{
@@ -311,12 +314,13 @@ export const AnalyticsDataGrid = ({
     >
       <Box
         sx={{
-          overflowX: hasBoundedHeight ? "visible" : "auto",
-          overflowY: "visible",
+          overflowX: "auto",
+          overflowY: maxHeight !== undefined ? "auto" : "visible",
+          maxHeight,
         }}
       >
         <DataGrid
-          autoHeight={!hasBoundedHeight}
+          autoHeight
           getRowHeight={() => "auto"}
           hideFooter
           disableRowSelectionOnClick
@@ -324,14 +328,7 @@ export const AnalyticsDataGrid = ({
           loading={loading}
           rows={rows}
           columns={columns}
-          sx={{
-            ...(hasBoundedHeight
-              ? analyticsDataGridSx
-              : autoHeightAnalyticsDataGridSx),
-            ...(hasBoundedHeight && {
-              height: maxHeight,
-            }),
-          }}
+          sx={autoHeightAnalyticsDataGridSx}
           localeText={{
             noRowsLabel,
           }}
