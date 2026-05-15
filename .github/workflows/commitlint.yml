@@ -31,6 +31,9 @@ jobs:
         env:
           HUSKY: '0'
 
+      - name: Check exact dependency versions
+        run: npm run check:exact-versions
+
       - name: Lint commits in PR
         if: ${{ github.event_name == 'pull_request' }}
         run: >
