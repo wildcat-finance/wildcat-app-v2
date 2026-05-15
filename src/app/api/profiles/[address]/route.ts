@@ -38,7 +38,7 @@ export async function GET(
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
   }
   const { address } = params
-  if (address === mockProfile.address) {
+  if (chainId === mockProfile.chainId && address === mockProfile.address) {
     return NextResponse.json({ profile: mockProfile })
   }
 

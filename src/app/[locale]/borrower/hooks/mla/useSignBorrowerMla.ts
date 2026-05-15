@@ -68,6 +68,9 @@ export const useSetMarketMLA = () => {
       timeSigned: number
     }) => {
       if (!signer) return
+      if (signer.chainId !== market.chainId) {
+        throw Error("Wallet network does not match market chain")
+      }
       const values = getFieldValuesForBorrower({
         market,
         borrowerInfo: profile,
