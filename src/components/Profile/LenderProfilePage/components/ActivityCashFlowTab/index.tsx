@@ -4,6 +4,7 @@ import * as React from "react"
 
 import {
   Box,
+  Button,
   Chip,
   Skeleton,
   Tooltip as MuiTooltip,
@@ -47,10 +48,13 @@ import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { buildMarketHref, trimAddress } from "@/utils/formatters"
 
+import { ExportLenderCsvModal } from "./ExportLenderCsvModal"
+
 type ActivityCashFlowTabProps = {
   lenderAddress: `0x${string}` | undefined
   positionsData?: LenderPositionsData
   isPositionsLoading: boolean
+  type: "internal" | "external"
 }
 
 const getBatchStatus = (batch: LenderBatchRow) => {
@@ -323,10 +327,16 @@ export const ActivityCashFlowTab = ({
   lenderAddress,
   positionsData,
   isPositionsLoading,
+  type,
 }: ActivityCashFlowTabProps) => {
   const { getTxUrl } = useBlockExplorer()
   const [cashFlowPeriod, setCashFlowPeriod] =
     React.useState<ChartPeriod>("Cumulative")
+  const [exportModalOpen, setExportModalOpen] = React.useState(false)
+  const canExport =
+    type === "internal" &&
+    lenderAddress !== undefined &&
+    (positionsData?.positions.length ?? 0) > 0
 
   const activityQuery = useLenderActivity(
     lenderAddress,
@@ -574,6 +584,17 @@ export const ActivityCashFlowTab = ({
       <ProfileSectionPanel
         title="Deposit & Withdrawal Activity"
         subtitle="Deposits, withdrawals, and request batches for this wallet."
+        actions={
+          canExport ? (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setExportModalOpen(true)}
+            >
+              Export CSV
+            </Button>
+          ) : undefined
+        }
       >
         {renderCashFlow()}
 
@@ -744,6 +765,15 @@ export const ActivityCashFlowTab = ({
           />
         </Box>
       </ProfileSectionPanel>
+
+      {canExport && lenderAddress !== undefined && (
+        <ExportLenderCsvModal
+          open={exportModalOpen}
+          onClose={() => setExportModalOpen(false)}
+          lenderAddress={lenderAddress}
+          positions={positionsData?.positions ?? []}
+        />
+      )}
     </Box>
   )
 }

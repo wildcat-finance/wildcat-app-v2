@@ -103,6 +103,7 @@ export const LenderProfilePage = ({
               lenderAddress={profileAddress}
               positionsData={positionsQuery.data}
               isPositionsLoading={positionsQuery.isLoading}
+              type={type}
             />
           )}
           {currentTab === "markets" && (
