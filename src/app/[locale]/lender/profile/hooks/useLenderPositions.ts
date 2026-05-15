@@ -16,6 +16,24 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { fetchHinterlightTokenUsdPrices } from "@/hooks/useTokenUsdPrices"
 import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
 
+const bigIntPow10 = (exp: number): bigint => {
+  let result = BigInt(1)
+  for (let i = 0; i < exp; i += 1) {
+    result *= BigInt(10)
+  }
+  return result
+}
+
+const formatRawToDecimalString = (raw: bigint, decimals: number): string => {
+  const negative = raw < BigInt(0)
+  const absolute = negative ? -raw : raw
+  const divisor = bigIntPow10(decimals)
+  const integerPart = absolute / divisor
+  const fractionalPart = absolute % divisor
+  const fractionalStr = fractionalPart.toString().padStart(decimals, "0")
+  return `${negative ? "-" : ""}${integerPart.toString()}.${fractionalStr}`
+}
+
 const GET_LENDER_PROFILE_POSITIONS = gql`
   query getLenderProfilePositions($address: String!, $statsId: ID!) {
     lenderStats(id: $statsId) {
@@ -212,11 +230,13 @@ export const useLenderPositions = (
         const totalDeposited =
           toHumanAmount(account.totalDeposited, account.market.asset.decimals) *
           price
+        const liveInterestRaw = getLiveInterestEarned(account)
         const interestEarned =
-          toHumanAmount(
-            getLiveInterestEarned(account),
-            account.market.asset.decimals,
-          ) * price
+          toHumanAmount(liveInterestRaw, account.market.asset.decimals) * price
+        const interestEarnedNative = formatRawToDecimalString(
+          liveInterestRaw,
+          account.market.asset.decimals,
+        )
         const totalSupply =
           toHumanAmount(
             normalizeScaledAmount(
@@ -237,10 +257,12 @@ export const useLenderPositions = (
           marketName: account.market.name,
           borrower: account.market.borrower,
           asset: account.market.asset.symbol,
+          assetDecimals: account.market.asset.decimals,
           currentBalance,
           currentTokenBalance,
           totalDeposited,
           interestEarned,
+          interestEarnedNative,
           apr: account.market.annualInterestBips / 100,
           utilization: capacity > 0 ? (totalSupply / capacity) * 100 : 0,
           status: getPositionStatus(
