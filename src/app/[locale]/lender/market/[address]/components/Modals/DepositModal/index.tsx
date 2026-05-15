@@ -284,7 +284,7 @@ export const DepositModal = ({
           }}
         >
           <TransactionHeader
-            label={t("lenderMarketDetails.transactions.deposit.modal.title")}
+            label={t("marketDetails.lender.modals.deposit.title")}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : handleModalArrowClick
             }
@@ -488,7 +488,7 @@ export const DepositModal = ({
           )}
 
           <TxModalFooter
-            mainBtnText={t("lenderMarketDetails.transactions.deposit.button")}
+            mainBtnText={t("marketDetails.lender.transactions.deposit.button")}
             secondBtnText={
               // eslint-disable-next-line no-nested-ternary
               isConnectedToSafe
@@ -567,7 +567,7 @@ export const DepositModal = ({
                   underlyingBalanceIsZero
                 }
               >
-                {t("lenderMarketDetails.transactions.deposit.button")}
+                {t("marketDetails.lender.transactions.deposit.button")}
               </Button>
             </Box>
           </Tooltip>
@@ -582,7 +582,7 @@ export const DepositModal = ({
               underlyingBalanceIsZero
             }
           >
-            {t("lenderMarketDetails.transactions.deposit.button")}
+            {t("marketDetails.lender.transactions.deposit.button")}
           </Button>
         )}
 
@@ -603,9 +603,7 @@ export const DepositModal = ({
           {showForm && (
             <>
               <TxModalHeader
-                title={t(
-                  "lenderMarketDetails.transactions.deposit.modal.title",
-                )}
+                title={t("marketDetails.lender.modals.deposit.title")}
                 arrowOnClick={
                   modal.hideArrowButton || !showForm
                     ? null
@@ -619,9 +617,7 @@ export const DepositModal = ({
               {modal.gettingValueStep && (
                 <Box width="100%" height="100%" padding="0 24px">
                   <ModalDataItem
-                    title={t(
-                      "lenderMarketDetails.transactions.deposit.modal.available",
-                    )}
+                    title={t("marketDetails.lender.modals.deposit.available")}
                     value={formatTokenWithCommas(marketAccount.maximumDeposit, {
                       withSymbol: true,
                     })}
@@ -802,7 +798,7 @@ export const DepositModal = ({
           )}
 
           <TxModalFooter
-            mainBtnText={t("lenderMarketDetails.transactions.deposit.button")}
+            mainBtnText={t("marketDetails.lender.transactions.deposit.button")}
             secondBtnText={
               // eslint-disable-next-line no-nested-ternary
               isConnectedToSafe

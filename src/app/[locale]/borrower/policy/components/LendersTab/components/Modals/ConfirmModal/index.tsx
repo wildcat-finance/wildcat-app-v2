@@ -79,7 +79,7 @@ export const ConfirmModal = ({
             >
               {lendersNames[params.row.address.toLowerCase()] ===
               ("" || undefined)
-                ? t("editLendersList.forms.edit.table.addName")
+                ? t("borrower.editLenders.addName")
                 : lendersNames[params.row.address.toLowerCase()]}
             </Typography>
           )}
@@ -159,7 +159,7 @@ export const ConfirmModal = ({
           fontWeight: 600,
         }}
       >
-        {t("editLendersList.forms.edit.submit")}
+        {t("common.buttons.submit")}
       </Button>
 
       <Dialog
@@ -202,9 +202,9 @@ export const ConfirmModal = ({
         >
           <Coins />
           <Typography variant="text3" color={COLORS.butteredRum}>
-            {t("editLendersList.forms.confirm.keepInMind")}{" "}
+            {t("borrower.editLenders.forms.confirm.keepInMind")}{" "}
             <span style={{ fontWeight: 700 }}>
-              {t("editLendersList.forms.confirm.payGas")}
+              {t("borrower.editLenders.forms.confirm.payGas")}
             </span>
           </Typography>
         </Box>

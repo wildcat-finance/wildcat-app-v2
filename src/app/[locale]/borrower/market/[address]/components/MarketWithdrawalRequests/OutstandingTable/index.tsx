@@ -61,7 +61,7 @@ export const OutstandingTable = ({
           marginBottom={isMobile ? "0px" : "10px"}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            {t("marketWithdrawalRequests.noOutstanding")}
+            {t("marketDetails.shared.withdrawalRequests.noOutstanding")}
           </Typography>
         </Box>
       )

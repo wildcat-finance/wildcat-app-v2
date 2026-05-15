@@ -348,10 +348,10 @@ export default function CreateMarketPage() {
 
                   <Box sx={DeployTypoBox}>
                     <Typography variant="title3">
-                      {t("createNewMarket.deploy.error.title")}
+                      {t("common.states.error")}
                     </Typography>
                     <Typography variant="text3" sx={DeploySubtitle}>
-                      {t("createNewMarket.deploy.error.message")}
+                      {t("borrower.createMarket.deploy.error.message")}
                     </Typography>
                   </Box>
                 </Box>
@@ -367,7 +367,7 @@ export default function CreateMarketPage() {
                       setFinalOpen(false)
                     }}
                   >
-                    {t("createNewMarket.deploy.error.buttons.back")}
+                    {t("borrower.createMarket.deploy.error.back")}
                   </Button>
                   <Button
                     variant="contained"
@@ -378,7 +378,7 @@ export default function CreateMarketPage() {
                       handleDeployMarket()
                     }}
                   >
-                    {t("createNewMarket.deploy.error.buttons.again")}
+                    {t("borrower.createMarket.deploy.error.again")}
                   </Button>
                 </Box>
               </Box>
@@ -402,10 +402,10 @@ export default function CreateMarketPage() {
 
                 <Box sx={DeployTypoBox}>
                   <Typography variant="title3">
-                    {t("createNewMarket.deploy.success.title")}
+                    {t("borrower.createMarket.deploy.success.title")}
                   </Typography>
                   <Typography variant="text3" sx={DeploySubtitle}>
-                    {t("createNewMarket.deploy.success.message")}
+                    {t("borrower.createMarket.deploy.success.message")}
                   </Typography>
                 </Box>
               </Box>
@@ -418,7 +418,7 @@ export default function CreateMarketPage() {
                     size="large"
                     fullWidth
                   >
-                    {t("createNewMarket.deploy.success.buttons.mla")}
+                    {t("borrower.createMarket.deploy.success.mla")}
                   </Button>
                 )}
                 <Button
@@ -427,7 +427,7 @@ export default function CreateMarketPage() {
                   size="large"
                   fullWidth
                 >
-                  {t("createNewMarket.deploy.success.buttons.markets")}
+                  {t("borrower.createMarket.deploy.success.markets")}
                 </Button>
               </Box>
             </Box>
@@ -439,10 +439,10 @@ export default function CreateMarketPage() {
 
               <Box sx={DeployTypoBox}>
                 <Typography variant="text1">
-                  {t("createNewMarket.deploy.loading.title")}
+                  {t("borrower.createMarket.deploy.loading.title")}
                 </Typography>
                 <Typography variant="text3" sx={DeploySubtitle}>
-                  {t("createNewMarket.deploy.loading.message")}
+                  {t("borrower.createMarket.deploy.loading.message")}
                 </Typography>
               </Box>
             </Box>

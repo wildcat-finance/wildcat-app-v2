@@ -256,7 +256,7 @@ export const getColumns = (
     },
     {
       field: "withdrawalBatchDuration",
-      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      headerName: t("marketList.shared.tables.header.withdrawal"),
       minWidth: 110,
       flex: 1,
       headerAlign: "right",

@@ -39,10 +39,10 @@ export const MobileMlaAlert = ({
   const buttonText =
     // eslint-disable-next-line no-nested-ternary
     mla === null
-      ? t("lenderMarketDetails.buttons.mlaNotSet")
+      ? t("marketDetails.lender.buttons.mlaNotSet")
       : mla && "noMLA" in mla
-        ? t("lenderMarketDetails.buttons.mlaRefused")
-        : t("lenderMarketDetails.buttons.viewMla")
+        ? t("marketDetails.lender.buttons.mlaRefused")
+        : t("marketDetails.lender.buttons.viewMla")
 
   if (!mlaRequiredAndUnsigned && !!signedMla)
     return (

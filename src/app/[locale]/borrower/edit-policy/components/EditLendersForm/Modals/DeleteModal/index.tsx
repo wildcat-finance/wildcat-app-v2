@@ -92,7 +92,7 @@ export const DeleteModal = ({
         </SvgIcon>
 
         <Typography variant="title3" sx={{ margin: "20px 0 8px" }}>
-          {t("editLendersList.modals.delete.title")} {lenderName}?
+          {t("borrower.editLenders.modals.delete.title")} {lenderName}?
         </Typography>
 
         <Typography
@@ -100,7 +100,7 @@ export const DeleteModal = ({
           color={COLORS.santasGrey}
           sx={{ width: "352px" }}
         >
-          {t("editLendersList.modals.delete.subtitle")}
+          {t("borrower.editLenders.modals.delete.subtitle")}
         </Typography>
       </Box>
 
@@ -112,7 +112,7 @@ export const DeleteModal = ({
           color="secondary"
           onClick={handleClose}
         >
-          {t("editLendersList.modals.delete.cancel")}
+          {t("common.buttons.cancel")}
         </Button>
 
         <Button
@@ -121,7 +121,7 @@ export const DeleteModal = ({
           variant="contained"
           onClick={handleDelete}
         >
-          {t("editLendersList.modals.delete.delete")}
+          {t("common.buttons.remove")}
         </Button>
       </Box>
     </Dialog>

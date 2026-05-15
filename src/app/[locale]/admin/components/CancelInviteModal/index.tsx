@@ -53,13 +53,13 @@ export const CancelInviteModal = ({
       {showConfirmation && (
         <>
           <TxModalHeader
-            title={t("admin.cancelInvite.title")}
+            title={t("admin.invites.cancelModal.title")}
             crossOnClick={onClose}
             arrowOnClick={onClose}
           >
             <Box sx={{ padding: "0 24px" }}>
               <Typography variant="text3" color={COLORS.santasGrey}>
-                {t("admin.cancelInvite.description", {
+                {t("admin.invites.cancelModal.description", {
                   name: borrowerName,
                   address,
                 })}
@@ -68,7 +68,7 @@ export const CancelInviteModal = ({
           </TxModalHeader>
 
           <TxModalFooter
-            mainBtnText={t("admin.cancelInvite.confirm")}
+            mainBtnText={t("admin.invites.cancelModal.confirm")}
             mainBtnOnClick={handleConfirm}
           />
         </>

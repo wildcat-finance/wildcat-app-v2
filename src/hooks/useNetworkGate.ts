@@ -104,18 +104,18 @@ export const useNetworkGate = ({
       return "/"
     }
 
-    if (
-      !isAgreementPath &&
-      isLenderPath(pathname) &&
-      !lenderMarketPath &&
-      address &&
-      !isAgreementSigned
-    ) {
-      if (isWrongNetwork) {
-        return "/"
-      }
-      return ROUTES.agreement
-    }
+    // if (
+    //   !isAgreementPath &&
+    //   isLenderPath(pathname) &&
+    //   !lenderMarketPath &&
+    //   address &&
+    //   !isAgreementSigned
+    // ) {
+    //   if (isWrongNetwork) {
+    //     return "/"
+    //   }
+    //   return ROUTES.agreement
+    // }
 
     return null
   }, [address, isAgreementSigned, isWrongNetwork, pathname])

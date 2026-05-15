@@ -115,7 +115,7 @@ export const MarketActions = ({
 
     if (!isOngoingWDsZero) {
       parts.push(
-        t("lenderMarketDetails.transactions.withdrawalsAlert.title.ongoing", {
+        t("marketDetails.lender.withdrawalsAlert.title.ongoing", {
           count: ongoingCount,
         }),
       )
@@ -123,18 +123,15 @@ export const MarketActions = ({
 
     if (!isOutstandingZero) {
       parts.push(
-        t(
-          "lenderMarketDetails.transactions.withdrawalsAlert.title.outstanding",
-          {
-            count: outstandingCount,
-          },
-        ),
+        t("marketDetails.lender.withdrawalsAlert.title.outstanding", {
+          count: outstandingCount,
+        }),
       )
     }
 
     if (!isClaimableZero) {
       parts.push(
-        t("lenderMarketDetails.transactions.withdrawalsAlert.title.claim", {
+        t("marketDetails.lender.withdrawalsAlert.title.claim", {
           claimableAmount: `${formatTokenWithCommas(
             withdrawals.totalClaimableAmount,
           )} ${market.underlyingToken.symbol}`,
@@ -143,12 +140,9 @@ export const MarketActions = ({
     }
 
     if (parts.length === 0) {
-      return t(
-        "lenderMarketDetails.transactions.withdrawalsAlert.title.noClaim",
-        {
-          claim: "nothing",
-        },
-      )
+      return t("marketDetails.lender.withdrawalsAlert.title.noClaim", {
+        claim: "nothing",
+      })
     }
 
     return parts.join(" · ")
@@ -173,7 +167,7 @@ export const MarketActions = ({
           onClick={() => handleAddToken()}
           disabled={isAddingToken && canAddToken}
         >
-          {t("lenderMarketDetails.buttons.addToken")}
+          {t("marketDetails.lender.buttons.addToken")}
         </Button>
 
         <LenderMlaModal mla={mla} isLoading={mlaLoading} />
@@ -210,7 +204,7 @@ export const MarketActions = ({
             <TelegramIcon />
           </SvgIcon>
 
-          {t("helpModal.items.telegram.botButton")}
+          {t("modals.shared.help.telegram.botButton")}
         </Button>
       </Box>
 
@@ -242,8 +236,8 @@ export const MarketActions = ({
           return (
             <Box sx={TransactionsContainer}>
               <TransactionBlock
-                title={t("lenderMarketDetails.transactions.deposit.title")}
-                tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
+                title={t("marketDetails.lender.transactions.deposit.title")}
+                tooltip={t("marketDetails.lender.transactions.deposit.tooltip")}
                 amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
                 asset={market.underlyingToken.symbol}
               >
@@ -252,8 +246,10 @@ export const MarketActions = ({
               </TransactionBlock>
 
               <TransactionBlock
-                title={t("lenderMarketDetails.transactions.withdraw.title")}
-                tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
+                title={t("marketDetails.lender.transactions.withdraw.title")}
+                tooltip={t(
+                  "marketDetails.lender.transactions.withdraw.tooltip",
+                )}
                 amount={
                   isTooSmallMarketBalance
                     ? `< 0.00001`
@@ -276,7 +272,7 @@ export const MarketActions = ({
         <Typography variant="title3">{getWithdrawalsStatus()}</Typography>
         {isClaimableZero && (
           <Typography variant="text3" color={COLORS.santasGrey} marginTop="8px">
-            {t("lenderMarketDetails.transactions.withdrawalsAlert.subtitle")}
+            {t("marketDetails.lender.withdrawalsAlert.subtitle")}
           </Typography>
         )}
 
@@ -297,9 +293,7 @@ export const MarketActions = ({
                 sx={{ width: "fit-content" }}
                 onClick={handleChangeSection}
               >
-                {t(
-                  "lenderMarketDetails.transactions.withdrawalsAlert.buttons.withdrawals",
-                )}
+                {t("marketDetails.lender.withdrawalsAlert.buttons.withdrawals")}
               </Button>
             )}
 

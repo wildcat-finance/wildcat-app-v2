@@ -116,7 +116,7 @@ export const MinimumDepositModal = ({
         {showForm && (
           <Box sx={{ width: "100%", height: "100%", padding: "12px 24px" }}>
             <ModalDataItem
-              title={t("borrowerMarketDetails.modals.capacity.current")}
+              title={t("marketDetails.borrower.modals.capacity.current")}
               value={`${formatTokenWithCommas(market.maxTotalSupply)} ${
                 market.underlyingToken.symbol
               }`}

@@ -208,7 +208,7 @@ export const BorrowerInvitesTable = () => {
             })
           }
         >
-          {t("admin.inviteBorrower.cancel")}
+          {t("common.buttons.cancel")}
         </Button>
       ),
     },

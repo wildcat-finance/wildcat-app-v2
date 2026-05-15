@@ -41,7 +41,9 @@
       }
     },
     "yesNo": {
-      "no": "No"
+      "na": "N/A",
+      "no": "No",
+      "yes": "Yes"
     },
     "placeholders": {
       "pleaseSelect": "Please Select",
@@ -238,6 +240,16 @@
           "terminated": "Your Terminated Markets"
         }
       },
+      "noMarkets": {
+        "active": {
+          "subtitle": "Create a new market, or check your terminated ones.",
+          "title": "No Active Markets."
+        },
+        "terminated": {
+          "subtitle": "Have you got any active markets?",
+          "title": "You don’t have any terminated markets"
+        }
+      },
       "noMarketsFilterEnding": "markets found.",
       "active": {
         "deposited": "Deposited",
@@ -261,6 +273,8 @@
       "lenderTitleButton": "+ Observe New Markets",
       "noMarkets": {
         "active": {
+          "borrowerSubtitle": "Create a new market, or check your terminated ones.",
+          "lenderSubtitle": "Join a suitable self-onboarding market, or reach out to a borrower (see their profile) for access to restricted ones.",
           "title": "No Active Markets."
         },
         "closed": {
@@ -318,7 +332,13 @@
         "noLendersTitle": "No Lenders",
         "notSigned": "Not Yet Signed",
         "tableHeaders": {
-          "balance": "Balance"
+          "accessExpiry": "Credential Expiry",
+          "accessLevel": "Access Level",
+          "balance": "Balance",
+          "dateAdded": "Date Added",
+          "name": "Name",
+          "signDate": "Sign Date",
+          "signedMLA": "Signed MLA"
         }
       },
       "buttons": {
@@ -337,13 +357,18 @@
           "alreadyUpdated": "Base APR Recently Adjusted",
           "approveNotified": "I understand that adjusting this APR impacts all lenders.",
           "aprAffects": "Effects Of APR Adjustment",
+          "collateralObligation": "Collateral Obligation",
           "confirmed": "Confirmed",
           "currentBaseApr": "Current Base APR",
+          "expiredTempRatioNotice": "The temporary reserve ratio has expired. You must reset it before lowering the APR.",
           "learnMore": "Learn More",
           "newBaseApr": "New Base APR",
+          "newCollateralObligation": "New Collateral Obligation",
           "newReservedRatio": "New Reserve Ratio",
           "reservedRatio": "Reserve Ratio",
-          "resetTempRatio": "Reset Temporary Reserve Ratio"
+          "resetTempRatio": "Reset Temporary Reserve Ratio",
+          "setTemporarily": "set temporarily until",
+          "willSetTemporarily": "Temporary reserve ratio in force until"
         },
         "borrow": {
           "afterTransaction": " after this transaction",
@@ -362,6 +387,7 @@
         "forceBuyBack": {
           "description": "Force buy back lender tokens at the current market rate. This action cannot be undone.",
           "from": "From",
+          "repurchaseAmount": "Repurchase Amount",
           "title": "Force Buy Back"
         },
         "loading": {
@@ -527,20 +553,25 @@
       },
       "modals": {
         "deposit": {
+          "available": "Available To Deposit",
           "title": "Deposit"
         },
         "withdraw": {
+          "available": "Available For Withdraw Requests",
           "title": "Withdraw"
         }
       },
       "withdrawalsAlert": {
         "buttons": {
-          "claim": "Claim Assets"
+          "claim": "Claim Assets",
+          "withdrawals": "Go to Withdrawals"
         },
         "subtitle": "No assets available to claim from this market.",
         "title": {
           "claim": "{{claimableAmount}} ready to claim",
-          "ongoing": "Ongoing withdrawals ({{count}})"
+          "noClaim": "You have nothing to claim right now.",
+          "ongoing": "Ongoing withdrawals ({{count}})",
+          "outstanding": "Outstanding withdrawals ({{count}})"
         }
       },
       "wrapDebtToken": {
@@ -565,24 +596,123 @@
     }
   },
   "marketParameters": {
+    "hooks": {
+      "hooksAddress": "Policy (Hook Instance) Address",
+      "title": "Market Hooks",
+      "useOnBorrow": "Hook on Borrow?",
+      "useOnCloseMarket": "Hook on Market Termination?",
+      "useOnDeposit": "Hook on Deposit?",
+      "useOnExecuteWithdrawal": "Hook on Claiming Assets?",
+      "useOnNukeFromOrbit": "Hook on Sanction Block?",
+      "useOnQueueWithdrawal": "Hook on Queuing Withdrawal?",
+      "useOnRepay": "Hook on Repayment?",
+      "useOnSetAnnualInterestAndReserveRatioBips": "Hook on APR/CRR Shift?",
+      "useOnSetMaxTotalSupply": "Hook on Max Capacity Shift?",
+      "useOnSetProtocolFeeBips": "Hook on Protocol Fee Shift?",
+      "useOnTransfer": "Hook on Token Transfer?"
+    },
     "baseAPR": "Base Lender APR",
+    "depositAccess": {
+      "label": "Deposit Access",
+      "open": {
+        "text": "Open Deposits",
+        "tooltip": "Anyone can lend to this market."
+      },
+      "restricted": {
+        "text": "Restricted",
+        "tooltip": "Lenders must meet specific criteria to lend to this market."
+      }
+    },
     "effectiveAPR": "Effective Lender APR",
     "marketAddress": "Market Address",
+    "marketEarlyClosure": {
+      "label": "Fixed Term Closure Permitted",
+      "na": {
+        "tooltip": "Market is Open Term, market can be terminated at any time."
+      },
+      "no": {
+        "tooltip": "Market can only be terminated after fixed duration maturity."
+      },
+      "yes": {
+        "tooltip": "Borrower can elect to terminate the market at any time."
+      }
+    },
     "marketExpiry": "Loan Maturity",
+    "marketMaturityReduction": {
+      "label": "Fixed Term Maturity Reduction Permitted",
+      "na": {
+        "tooltip": "No maturity to reduce in an Open Term setting."
+      },
+      "no": {
+        "tooltip": "Maturity cannot be shortened from current value."
+      },
+      "yes": {
+        "tooltip": "Borrower can elect to shorten Fixed Term duration."
+      }
+    },
     "marketTokenName": "Market Token",
     "marketTokenPrefix": "Market Token Symbol",
+    "marketType": {
+      "fixedTerm": {
+        "text": "Fixed Term",
+        "tooltip": "Withdrawal requests are possible only after a fixed maturity date."
+      },
+      "openTerm": {
+        "text": "Open Term",
+        "tooltip": "Withdrawal requests are possible at any time."
+      },
+      "label": "Market Type"
+    },
     "maxBorrowingCapacity": "Max. Borrowing Capacity",
     "maximumGracePeriod": "Maximum Grace Period",
+    "minimumDeposit": {
+      "label": "Minimum Deposit",
+      "none": "None"
+    },
     "minimumReserveRatio": "Minimum Reserve Ratio",
     "penaltyAPR": "Penalty APR",
     "protocolAPR": "Protocol Fee APR",
     "tempReserveRatio": {
+      "badgeLabel": "{{currentRatio}}% in force until {{expiry}}",
+      "bannerHeading": "Reserve ratio (temporary protection active).",
+      "borrowerActiveNotice": "Reserve ratio elevated from {{originalRatio}}% to {{currentRatio}}% until {{expiry}} after a recent APR reduction. You can reset it after that.",
+      "borrowerActiveTooltip": "You reduced APR recently. Reserve ratio is temporarily elevated to {{currentRatio}}% until {{expiry}}. After that you can reset it back to {{originalRatio}}%.",
+      "borrowerBannerBody": "Elevated from {{originalRatio}}% to {{currentRatio}}% until {{expiry}} after a recent APR reduction. You can reset it after that.",
+      "borrowerExpiredNotice": "Reserve ratio was temporarily elevated to {{currentRatio}}% but the protection period has expired. Reset it to restore the base ratio of {{originalRatio}}%.",
+      "borrowerExpiredTooltip": "The temporary reserve ratio of {{currentRatio}}% has expired. Open the APR modal to reset it back to {{originalRatio}}%.",
+      "lenderActiveTooltip": "Temporarily elevated to {{currentRatio}}% due to a recent APR reduction. After {{expiry}}, the borrower can reset it back to {{originalRatio}}%.",
+      "lenderBannerBody": "Elevated from {{originalRatio}}% to {{currentRatio}}% until {{expiry}} after a recent APR reduction. The borrower can reset it after that.",
+      "lenderExpiredTooltip": "This market has an expired temporary reserve ratio of {{currentRatio}}% which will revert to {{originalRatio}}% when the borrower next updates market parameters.",
       "title": "Reserve Ratio (temporary protection active)"
     },
     "totalInterestAccrued": "Total Interest Accrued",
     "transferAccess": {
-      "label": "Transfer Access"
+      "disabled": {
+        "text": "Disabled",
+        "tooltip": "The market token cannot be transferred."
+      },
+      "label": "Transfer Access",
+      "open": {
+        "text": "Open Transfers",
+        "tooltip": "The market token can be transferred to any non-sanctioned address."
+      },
+      "restricted": {
+        "text": "Restricted",
+        "tooltip": "The market token can only be transferred to addresses that meet specific criteria."
+      }
     },
+    "withdrawalAccess": {
+      "label": "Withdrawal Access",
+      "open": {
+        "text": "Open Withdrawals",
+        "tooltip": "Anyone can request withdrawals."
+      },
+      "restricted": {
+        "text": "Restricted",
+        "tooltip": "Lenders who have not directly deposited must meet specific criteria to withdraw."
+      }
+    },
+    "withdrawalCycleDuration": "Withdrawal Cycle Duration",
     "policyType": {
       "fixedTerm": "Fixed Term (withdrawals post-maturity)",
       "openTerm": "Open Term (no withdrawal constraints)"
@@ -603,6 +733,7 @@
       "form": {
         "address": {
           "helperText": "This address will not be private even prior to market deployment.",
+          "placeholder": "Enter Location",
           "title": "Entity Registered Address",
           "tooltip": ""
         },
@@ -620,8 +751,10 @@
         "privateTitle": "Borrower Legal Information",
         "additionalUrls": {
           "add": "Add URL",
+          "labelPlaceholder": "Label",
           "subtitle": "Additional links that lenders may find useful.",
-          "title": "Additional Links"
+          "title": "Additional Links",
+          "urlPlaceholder": "URL"
         },
         "alias": {
           "helperText": "This can only be changed by contacting support.",
@@ -640,6 +773,7 @@
           "title": "Country"
         },
         "description": {
+          "placeholder": "Description of your business operations, what you aim to borrow for, any external dashboards/information that lenders would find useful etc.",
           "title": "Description",
           "tooltip": ""
         },
@@ -657,6 +791,7 @@
           "noOptions": "No jurisdictions found"
         },
         "linkedin": {
+          "placeholder": "borrower_page",
           "title": "LinkedIn",
           "tooltip": "Enter a LinkedIn company page for the borrower (e.g. wildcat-labs), where applicable."
         },
@@ -668,15 +803,18 @@
         },
         "publicSubtitle": "Details Of Borrowing Entity",
         "telegram": {
+          "placeholder": "borrower_profile",
           "title": "Telegram",
           "tooltip": "Enter a Telegram username for the borrower (no @), where applicable."
         },
         "publicTitle": "Basic Profile Information",
         "twitter": {
+          "placeholder": "borrower_profile",
           "title": "Twitter/X",
           "tooltip": "Enter a Twitter/X username for the borrower (no @), where applicable."
         },
         "website": {
+          "placeholder": "borrower-profile.com",
           "title": "Website",
           "tooltip": ""
         }
@@ -719,6 +857,9 @@
       }
     },
     "createMarket": {
+      "policyName": {
+        "placeholder": "Enter Policy Name"
+      },
       "sidebar": {
         "back": "To Markets",
         "confirm": "Confirmation",
@@ -812,7 +953,19 @@
       "glossary": "Glossary",
       "lenderRestrictions": {
         "disableTransfers": {
+          "explainer": "Blocks the transfer of market tokens between participants, keeping them tied to their original holder.",
+          "glossary": "Disable Transfers stops the movement of tokens representing deposits or loans within the market. This ensures that tokens remain with their original holders and are not traded or moved between accounts, maintaining control and security. Transfers to the market starting withdrawal requests are not disabled.",
           "label": "Disable Transfers"
+        },
+        "restrictTransfers": {
+          "explainer": "Allows transfers of market tokens only to users who satisfy the market’s policy-defined access conditions, such as holding valid credentials or being on an approved list.",
+          "glossary": "Restrict Transfers ensures that market tokens can only be transferred between participants who meet the specific access requirements set by the market’s policy. These conditions may include holding approved deposit credentials or satisfying other borrower-defined qualifications. This restriction helps maintain compliance with the policy and supports secure market operations​​.",
+          "label": "Restrict Transfers"
+        },
+        "restrictWithdrawals": {
+          "explainer": "[RECOMMENDED] Restricts withdrawals to users who meet the defined market access criteria, such as holding valid credentials or being on an approved list of participants.",
+          "glossary": "Restricts the ability to withdraw funds to users who meet market access criteria. These criteria include possession of valid deposit credentials, approval through a role provider, or other borrower-defined conditions. By enforcing such restrictions, the market ensures only eligible participants can withdraw, maintaining order and compliance with its operational framework​.",
+          "label": "Restrict Withdrawals"
         },
         "title": "Lender Restrictions"
       },
@@ -862,6 +1015,7 @@
           "placeholder": "Choose Option"
         },
         "reduceExpiration": {
+          "explainer": "Allows you to reduce the maturity of a fixed term market.",
           "label": "Permit Maturity Reduction"
         },
         "title": "Market Policy",

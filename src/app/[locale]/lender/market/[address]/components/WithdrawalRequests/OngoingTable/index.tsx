@@ -89,7 +89,7 @@ export const OngoingTable = ({
     <DetailsAccordion
       isOpen={isOngoingOpen}
       setIsOpen={setIsOngoingOpen}
-      summaryText={t("lenderMarketDetails.requests.ongoing")}
+      summaryText={t("marketDetails.lender.requests.ongoing")}
       summarySx={{
         borderRadius: "0px",
         borderBottom: isOngoingOpen ? "none" : `1px solid`,

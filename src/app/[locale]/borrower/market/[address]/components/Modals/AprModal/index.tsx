@@ -317,7 +317,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
         onClick={modal.handleOpenModal}
         disabled={market.isClosed}
       >
-        {t("borrowerMarketDetails.modals.apr.adjustBase")}
+        {t("marketDetails.borrower.modals.apr.adjustBase")}
       </Button>
 
       <Dialog
@@ -327,7 +327,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
       >
         {showForm && (
           <TxModalHeader
-            title={t("borrowerMarketDetails.modals.apr.adjustBase")}
+            title={t("marketDetails.borrower.modals.apr.adjustBase")}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
@@ -335,7 +335,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
           >
             <Box sx={AprModalMessageBox}>
               <Typography variant="text3" color={COLORS.santasGrey}>
-                {t("borrowerMarketDetails.modals.apr.alreadyUpdated")}
+                {t("marketDetails.borrower.modals.apr.alreadyUpdated")}
               </Typography>
               <Link
                 href={EXTERNAL_LINKS.DOCS_REDUCING_APR}
@@ -343,7 +343,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 style={{ textDecoration: "none", display: "flex" }}
               >
                 <Typography variant="text3" color={COLORS.blueRibbon}>
-                  {t("borrowerMarketDetails.modals.apr.learnMore")}
+                  {t("marketDetails.borrower.modals.apr.learnMore")}
                 </Typography>
               </Link>
             </Box>
@@ -355,7 +355,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
             {modal.gettingValueStep && (
               <>
                 <ModalDataItem
-                  title={t("borrowerMarketDetails.modals.apr.currentBaseApr")}
+                  title={t("marketDetails.borrower.modals.apr.currentBaseApr")}
                   value={`${formatBps(
                     market.annualInterestBips,
                     MARKET_PARAMS_DECIMALS.annualInterestBips,
@@ -395,12 +395,12 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
                 <Box marginTop={aprError ? "44px" : "28px"} sx={AprAffectsBox}>
                   <Typography variant="text4" textTransform="uppercase">
-                    {t("borrowerMarketDetails.modals.apr.aprAffects")}
+                    {t("marketDetails.borrower.modals.apr.aprAffects")}
                   </Typography>
 
                   <ModalDataItem
                     title={t(
-                      "borrowerMarketDetails.modals.apr.collateralObligation",
+                      "marketDetails.borrower.modals.apr.collateralObligation",
                     )}
                     value={
                       newCollateralObligations ?? currentCollateralObligations
@@ -425,7 +425,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                   </ModalDataItem>
 
                   <ModalDataItem
-                    title={t("borrowerMarketDetails.modals.apr.reservedRatio")}
+                    title={t("marketDetails.borrower.modals.apr.reservedRatio")}
                     value={`${newReserveRatio ?? currentReserveRatio}%`}
                     valueColor={
                       !aprError &&
@@ -456,7 +456,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                       }}
                     >
                       {`${t(
-                        "borrowerMarketDetails.modals.apr.willSetTemporarily",
+                        "marketDetails.borrower.modals.apr.willSetTemporarily",
                       )} ${twoWeeksTime}`}
                     </Typography>
                   )}
@@ -471,7 +471,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                       }}
                     >
                       {`${t(
-                        "borrowerMarketDetails.modals.apr.setTemporarily",
+                        "marketDetails.borrower.modals.apr.setTemporarily",
                       )} ${reserveRatioExpiry}`}
                     </Typography>
                   )}
@@ -482,7 +482,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                     text={
                       <Typography variant="mobText3">
                         {t(
-                          "borrowerMarketDetails.modals.apr.expiredTempRatioNotice",
+                          "marketDetails.borrower.modals.apr.expiredTempRatioNotice",
                         )}
                       </Typography>
                     }
@@ -505,7 +505,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
             {modal.approvedStep && (
               <Box sx={AprModalConfirmedBox}>
                 <ModalDataItem
-                  title={t("borrowerMarketDetails.modals.apr.newBaseApr")}
+                  title={t("marketDetails.borrower.modals.apr.newBaseApr")}
                   value={`${apr}%`}
                   containerSx={{ marginBottom: "16px" }}
                 >
@@ -524,7 +524,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
                 <ModalDataItem
                   title={t(
-                    "borrowerMarketDetails.modals.apr.newCollateralObligation",
+                    "marketDetails.borrower.modals.apr.newCollateralObligation",
                   )}
                   value={
                     newCollateralObligations ?? currentCollateralObligations
@@ -549,7 +549,9 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 </ModalDataItem>
 
                 <ModalDataItem
-                  title={t("borrowerMarketDetails.modals.apr.newReservedRatio")}
+                  title={t(
+                    "marketDetails.borrower.modals.apr.newReservedRatio",
+                  )}
                   value={`${newReserveRatio ?? currentReserveRatio}%`}
                   valueColor={
                     !aprError &&
@@ -580,7 +582,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                     }}
                   >
                     {`${t(
-                      "borrowerMarketDetails.modals.apr.willSetTemporarily",
+                      "marketDetails.borrower.modals.apr.willSetTemporarily",
                     )} ${twoWeeksTime}`}
                   </Typography>
                 )}
@@ -596,13 +598,13 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                     }}
                   >
                     {`${t(
-                      "borrowerMarketDetails.modals.apr.setTemporarily",
+                      "marketDetails.borrower.modals.apr.setTemporarily",
                     )} ${reserveRatioExpiry}`}
                   </Typography>
                 )}
 
                 <FormControlLabel
-                  label={t("borrowerMarketDetails.modals.apr.approveNotified")}
+                  label={t("marketDetails.borrower.modals.apr.approveNotified")}
                   sx={AprModalFormLabel}
                   control={
                     <ExtendedCheckbox
@@ -650,15 +652,15 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
               mainBtnText={
                 // eslint-disable-next-line no-nested-ternary
                 needsReset
-                  ? t("borrowerMarketDetails.modals.apr.resetTempRatio")
+                  ? t("marketDetails.borrower.modals.apr.resetTempRatio")
                   : aprFixedReduction
                     ? "Forbidden [Fixed-Term]"
-                    : t("borrowerMarketDetails.modals.apr.adjust")
+                    : t("marketDetails.borrower.modals.apr.adjust")
               }
               secondBtnText={
                 modal.approvedStep
-                  ? t("borrowerMarketDetails.modals.apr.confirmed")
-                  : t("borrowerMarketDetails.modals.apr.confirm")
+                  ? t("marketDetails.borrower.modals.apr.confirmed")
+                  : t("common.buttons.confirm")
               }
               mainBtnOnClick={needsReset ? () => resetMutate() : handleAdjust}
               secondBtnOnClick={needsReset ? undefined : handleConfirm}

@@ -214,7 +214,7 @@ export function PaginatedMarketRecordsTable({
         }}
       >
         <Typography variant="mobH3" marginTop="12px">
-          {t("lenderMarketDetails.sidebar.marketHistory")}
+          {t("marketDetails.shared.sidebar.marketHistory")}
         </Typography>
 
         <Box sx={{ marginTop: "8px" }}>

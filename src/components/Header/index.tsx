@@ -133,7 +133,7 @@ export default function Header() {
                 variant="text2Highlighted"
                 sx={{ color: COLORS.white, cursor: "pointer" }}
               >
-                {t("header.role.lender")}
+                {t("common.fields.lender")}
               </Typography>
             </Link>
             <Switch

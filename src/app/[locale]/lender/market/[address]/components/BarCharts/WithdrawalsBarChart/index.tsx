@@ -62,7 +62,7 @@ export const WithdrawalsBarChart = ({
         >
           <Box sx={{ display: "flex", justifyContent: "space-between" }}>
             <Typography variant={isMobile ? "mobH3" : "title3"}>
-              {t("lenderMarketDetails.barchart.withdrawals.title")}
+              {t("marketDetails.lender.barchart.withdrawals.title")}
             </Typography>
 
             <Box

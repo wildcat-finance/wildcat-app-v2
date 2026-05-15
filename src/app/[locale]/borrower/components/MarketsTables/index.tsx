@@ -204,12 +204,10 @@ export const MarketsTables = ({
           <Box ref={activeMarketsRef}>
             <BorrowerMarketsTable
               type="active"
-              label={t("borrowerMarketList.table.title.active")}
-              noMarketsTitle={t(
-                "borrowerMarketList.table.noMarkets.active.title",
-              )}
+              label={t("marketList.borrower.table.title.active")}
+              noMarketsTitle={t("marketList.borrower.noMarkets.active.title")}
               noMarketsSubtitle={t(
-                "borrowerMarketList.table.noMarkets.active.subtitle",
+                "marketList.borrower.noMarkets.active.subtitle",
               )}
               tableData={activeBorrowerMarkets || []}
               isLoading={isBorrowerMarketsLoading}
@@ -223,12 +221,12 @@ export const MarketsTables = ({
           <Box marginTop="16px" ref={terminatedMarketsRef}>
             <BorrowerMarketsTable
               type="terminated"
-              label={t("borrowerMarketList.table.title.terminated")}
+              label={t("marketList.borrower.table.title.terminated")}
               noMarketsTitle={t(
-                "borrowerMarketList.table.noMarkets.terminated.title",
+                "marketList.borrower.noMarkets.terminated.title",
               )}
               noMarketsSubtitle={t(
-                "borrowerMarketList.table.noMarkets.terminated.subtitle",
+                "marketList.borrower.noMarkets.terminated.subtitle",
               )}
               tableData={terminatedBorrowerMarkets || []}
               isLoading={isBorrowerMarketsLoading}
@@ -251,7 +249,7 @@ export const MarketsTables = ({
           />
         ) : (
           <Typography variant="text3" marginLeft="16px">
-            {t("borrowerMarketList.table.noMarkets.wrongNetwork")}
+            {t("marketList.borrower.table.noMarkets.wrongNetwork")}
           </Typography>
         )}
       </Box>

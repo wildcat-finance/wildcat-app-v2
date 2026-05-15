@@ -39,8 +39,8 @@ export const MlaModal = ({
           (isLoading && "Loading MLA...") ||
           (!isLoading &&
             (mla === null
-              ? t("lenderMarketDetails.buttons.noMla")
-              : t("lenderMarketDetails.buttons.viewMla")))}
+              ? t("marketDetails.lender.buttons.noMla")
+              : t("marketDetails.lender.buttons.viewMla")))}
       </Button>
       <Modal
         open={isMlaOpen && !isClosed}
