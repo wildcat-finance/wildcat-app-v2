@@ -11,6 +11,7 @@
     "lint:errors": "next lint --quiet",
     "lint": "next lint",
     "test": "jest",
+    "check:exact-versions": "node scripts/check-exact-versions.mjs",
     "prepare": "husky"
   },
   "dependencies": {
