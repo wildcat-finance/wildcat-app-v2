@@ -23,6 +23,8 @@ export default async function initTranslations(
     )
   }
 
+  const isDev = process.env.NODE_ENV !== "production"
+
   await i18nInstance.init({
     lng: locale,
     resources,
@@ -32,6 +34,15 @@ export default async function initTranslations(
     fallbackNS: namespaces[0],
     ns: namespaces,
     preload: resources ? [] : i18nConfig.locales,
+    saveMissing: isDev,
+    missingKeyHandler: isDev
+      ? (lngs, ns, key) => {
+          if (typeof window !== "undefined") {
+            // eslint-disable-next-line no-console
+            console.warn(`[i18n] missing key: ${key}`)
+          }
+        }
+      : undefined,
   })
 
   return {
