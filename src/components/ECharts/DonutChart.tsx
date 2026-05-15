@@ -28,10 +28,30 @@ export const DonutChart = ({
   centerLabel,
   showLegend,
 }: DonutChartProps) => {
+  const formatValueRef = React.useRef(formatValue)
+  formatValueRef.current = formatValue
+  const stableFormatValue = React.useCallback<ChartValueFormatter>(
+    (value) => (formatValueRef.current ?? ((v: number) => String(v)))(value),
+    [],
+  )
+
+  const primary = centerLabel?.primary
+  const secondary = centerLabel?.secondary
+  const stableCenterLabel = React.useMemo(
+    () => (primary !== undefined ? { primary, secondary } : undefined),
+    [primary, secondary],
+  )
+
   const option = React.useMemo(
     () =>
-      buildDonutOption({ data, colors, formatValue, centerLabel, showLegend }),
-    [data, colors, formatValue, centerLabel, showLegend],
+      buildDonutOption({
+        data,
+        colors,
+        formatValue: stableFormatValue,
+        centerLabel: stableCenterLabel,
+        showLegend,
+      }),
+    [data, colors, stableFormatValue, stableCenterLabel, showLegend],
   )
 
   return <EChart option={option} height={height} ariaLabel={ariaLabel} />

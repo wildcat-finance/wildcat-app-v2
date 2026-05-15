@@ -1,5 +1,7 @@
 import { gql } from "@apollo/client"
 import { useQuery } from "@tanstack/react-query"
+import { rayMul } from "@wildcatfi/wildcat-sdk"
+import { BigNumber } from "ethers"
 
 import {
   LenderPositionRow,
@@ -106,33 +108,29 @@ const getPositionStatus = (
   return "Active"
 }
 
+// Mirrors @wildcatfi/wildcat-sdk MarketAccount.processInterestAccrued: takes the
+// subgraph-indexed totalInterestEarned and adds the accrual implied by the
+// market's current scaleFactor vs the lender's lastScaleFactor. Delegates the
+// scaleFactor multiplication to the SDK's rayMul so the math has one source of
+// truth (including HALF_RAY rounding, which the JS BigInt version omitted).
 const getLiveInterestEarned = (account: {
   scaledBalance: string
   totalInterestEarned: string
   lastScaleFactor: string
-  market: {
-    scaleFactor: string
-  }
-}) => {
-  const indexedInterest = BigInt(account.totalInterestEarned)
-  const scaledBalance = BigInt(account.scaledBalance)
-  const lastScaleFactor = BigInt(account.lastScaleFactor)
-  const currentScaleFactor = BigInt(account.market.scaleFactor)
+  market: { scaleFactor: string }
+}): string => {
+  const scaledBalance = BigNumber.from(account.scaledBalance)
+  const lastScaleFactor = BigNumber.from(account.lastScaleFactor)
+  const currentScaleFactor = BigNumber.from(account.market.scaleFactor)
+  const indexedInterest = BigNumber.from(account.totalInterestEarned)
 
-  if (scaledBalance === BigInt(0) || currentScaleFactor <= lastScaleFactor) {
-    return indexedInterest
+  if (scaledBalance.eq(0) || currentScaleFactor.lte(lastScaleFactor)) {
+    return indexedInterest.toString()
   }
 
-  const previousBalance = normalizeScaledAmount(
-    account.scaledBalance,
-    account.lastScaleFactor,
-  )
-  const currentBalance = normalizeScaledAmount(
-    account.scaledBalance,
-    account.market.scaleFactor,
-  )
-
-  return indexedInterest + (currentBalance - previousBalance)
+  const previousBalance = rayMul(scaledBalance, lastScaleFactor)
+  const currentBalance = rayMul(scaledBalance, currentScaleFactor)
+  return indexedInterest.add(currentBalance.sub(previousBalance)).toString()
 }
 
 const emptyPositions = (address: string): LenderPositionsData => ({
@@ -265,10 +263,17 @@ export const useLenderPositions = (
         0,
       )
 
+      // Aggregates use the subgraph's priced-at-time USD values so the header
+      // totals share the same price basis (totalDeposited had this behaviour
+      // already; totalInterestEarned used current price and could disagree on
+      // volatile assets). Per-row interest stays at current price because the
+      // subgraph does not expose per-LenderAccount USD aggregates.
       const totalDeposited = lenderStats
         ? Number(lenderStats.totalDepositedUSD)
         : clientTotalDeposited
-      const totalInterestEarned = clientInterestEarned
+      const totalInterestEarned = lenderStats
+        ? Number(lenderStats.totalInterestEarnedUSD)
+        : clientInterestEarned
 
       const firstSeenTimestamp =
         lenderStats?.firstSeenTimestamp ??

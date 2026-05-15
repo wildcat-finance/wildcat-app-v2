@@ -94,6 +94,8 @@ export const MarketsInterestTab = ({
     (sum, position) => sum + position.interestEarned,
     0,
   )
+  const displayTotalInterest =
+    data?.profile.totalInterestEarned ?? totalInterest
   const activePositionCount = data?.profile.activePositions ?? 0
   const interestDonutData = React.useMemo<DonutChartItem[]>(
     () =>
@@ -295,7 +297,7 @@ export const MarketsInterestTab = ({
               display="block"
               sx={{ lineHeight: 1.45 }}
             >
-              {formatUsd(totalInterest, { compact: true })} earned across{" "}
+              {formatUsd(displayTotalInterest, { compact: true })} earned across{" "}
               {interestRows.length} positions with realized interest.{" "}
               {activePositionCount} positions are still open with balance.
             </Typography>
@@ -315,7 +317,7 @@ export const MarketsInterestTab = ({
                   colors={PIE_COLORS}
                   formatValue={(value) => formatUsd(value)}
                   centerLabel={{
-                    primary: formatUsd(totalInterest, { compact: true }),
+                    primary: formatUsd(displayTotalInterest, { compact: true }),
                     secondary: "Total interest",
                   }}
                   ariaLabel="Interest earned by lender position"
