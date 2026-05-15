@@ -27,6 +27,11 @@ const bigIntPow10 = (exp: number): bigint => {
 const formatRawToDecimalString = (raw: bigint, decimals: number): string => {
   const negative = raw < BigInt(0)
   const absolute = negative ? -raw : raw
+
+  if (decimals === 0) {
+    return `${negative ? "-" : ""}${absolute.toString()}`
+  }
+
   const divisor = bigIntPow10(decimals)
   const integerPart = absolute / divisor
   const fractionalPart = absolute % divisor
