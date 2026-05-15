@@ -77,89 +77,92 @@ export const PoliciesSection = ({
         ),
     )
 
-  const columns: TypeSafeColDef<PolicyDataT>[] = [
-    {
-      field: "name",
-      headerName: "Policy Name",
-      flex: 1.5,
-      minWidth: 160,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => (
-        <Link
-          href={editPolicyLink(params.row.id)}
-          style={{ ...LinkCell, justifyContent: "flex-start" }}
-        >
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-            {params.value}
-          </span>
-        </Link>
-      ),
-    },
-    {
-      field: "type",
-      headerName: "Type",
-      flex: 1.5,
-      minWidth: 160,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => (
-        <Link
-          href={editPolicyLink(params.row.id)}
-          style={{ ...LinkCell, justifyContent: "flex-start" }}
-        >
-          <Typography variant="text3">
-            {params.row.type === HooksKind.OpenTerm
-              ? "Open Term"
-              : "Fixed Term"}
-          </Typography>
-        </Link>
-      ),
-    },
-    {
-      field: "accessRequirements",
-      headerName: "Access Requirements",
-      flex: 1.5,
-      minWidth: 160,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => (
-        <Link
-          href={editPolicyLink(params.row.id)}
-          style={{ ...LinkCell, justifyContent: "flex-start" }}
-        >
-          <Box width={130}>{params.value}</Box>
-        </Link>
-      ),
-    },
-    {
-      sortable: true,
-      field: "markets",
-      headerName: "Assigned to Markets",
-      minWidth: 176,
-      headerAlign: "left",
-      align: "left",
-      flex: 4,
-      renderCell: (params) => (
-        <Box
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "4px",
-            padding: "14px 0",
-          }}
-        >
-          {params.value.map((market: { name: string; address: string }) => (
-            <LendersMarketChip
-              marketName={market.name}
-              key={market.address}
-              width="fit-content"
-            />
-          ))}
-        </Box>
-      ),
-    },
-  ]
+  const columns: TypeSafeColDef<PolicyDataT>[] = React.useMemo(
+    () => [
+      {
+        field: "name",
+        headerName: t("borrower.policies.columns.name"),
+        flex: 1.5,
+        minWidth: 160,
+        headerAlign: "left",
+        align: "left",
+        renderCell: (params) => (
+          <Link
+            href={editPolicyLink(params.row.id)}
+            style={{ ...LinkCell, justifyContent: "flex-start" }}
+          >
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+              {params.value}
+            </span>
+          </Link>
+        ),
+      },
+      {
+        field: "type",
+        headerName: t("borrower.policies.columns.type"),
+        flex: 1.5,
+        minWidth: 160,
+        headerAlign: "left",
+        align: "left",
+        renderCell: (params) => (
+          <Link
+            href={editPolicyLink(params.row.id)}
+            style={{ ...LinkCell, justifyContent: "flex-start" }}
+          >
+            <Typography variant="text3">
+              {params.row.type === HooksKind.OpenTerm
+                ? t("marketParameters.marketType.openTerm.text")
+                : t("marketParameters.marketType.fixedTerm.text")}
+            </Typography>
+          </Link>
+        ),
+      },
+      {
+        field: "accessRequirements",
+        headerName: t("borrower.policies.columns.accessRequirements"),
+        flex: 1.5,
+        minWidth: 160,
+        headerAlign: "left",
+        align: "left",
+        renderCell: (params) => (
+          <Link
+            href={editPolicyLink(params.row.id)}
+            style={{ ...LinkCell, justifyContent: "flex-start" }}
+          >
+            <Box width={130}>{params.value}</Box>
+          </Link>
+        ),
+      },
+      {
+        sortable: true,
+        field: "markets",
+        headerName: t("borrower.policies.columns.markets"),
+        minWidth: 176,
+        headerAlign: "left",
+        align: "left",
+        flex: 4,
+        renderCell: (params) => (
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "4px",
+              padding: "14px 0",
+            }}
+          >
+            {params.value.map((market: { name: string; address: string }) => (
+              <LendersMarketChip
+                marketName={market.name}
+                key={market.address}
+                width="fit-content"
+              />
+            ))}
+          </Box>
+        ),
+      },
+    ],
+    [t],
+  )
 
   const marketsOptions = markets?.map((market) => ({
     id: market.address,
@@ -179,14 +182,16 @@ export const PoliciesSection = ({
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          <Typography variant="title2">Policies</Typography>
+          <Typography variant="title2">
+            {t("borrower.policies.title")}
+          </Typography>
           <Typography variant="text3" color={COLORS.santasGrey}>
-            Common agreement for several markets.{" "}
+            {t("borrower.policies.subtitle")}{" "}
             <Link
               href="https://docs.wildcat.finance/"
               style={{ color: COLORS.santasGrey }}
             >
-              Learn more
+              {t("common.links.learnMore")}
             </Link>
           </Typography>
         </Box>
@@ -204,11 +209,11 @@ export const PoliciesSection = ({
         <FilterTextField
           value={policyName}
           setValue={setPolicyName}
-          placeholder="Search by Name"
+          placeholder={t("common.placeholders.searchByName")}
         />
 
         <SmallFilterSelect
-          placeholder="Markets"
+          placeholder={t("common.placeholders.markets")}
           options={marketsOptions ?? []}
           selected={marketsFilter}
           setSelected={setMarketsFilter}
@@ -224,9 +229,11 @@ export const PoliciesSection = ({
           }}
         >
           <Box display="flex" columnGap="4px">
-            <Typography variant="text3">Policies</Typography>
+            <Typography variant="text3">
+              {t("borrower.policies.title")}
+            </Typography>
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {isPoliciesLoading ? "Are Loading..." : rows.length}
+              {isPoliciesLoading ? t("common.states.loading") : rows.length}
             </Typography>
           </Box>
         </Box>

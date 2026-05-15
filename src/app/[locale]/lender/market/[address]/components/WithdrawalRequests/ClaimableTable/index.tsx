@@ -222,7 +222,7 @@ export const ClaimableTable = ({
           marginBottom={isMobile ? "0px" : "10px"}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            No claimable withdrawals.
+            {t("marketDetails.lender.withdrawalRequests.noClaimable")}
           </Typography>
         </Box>
       )

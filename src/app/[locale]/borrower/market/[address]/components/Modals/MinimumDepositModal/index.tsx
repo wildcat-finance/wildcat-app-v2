@@ -97,7 +97,7 @@ export const MinimumDepositModal = ({
         onClick={modal.handleOpenModal}
         disabled={disableMinDeposit}
       >
-        Adjust Minimum Deposit
+        {t("marketDetails.borrower.modals.minimumDeposit.adjust")}
       </Button>
 
       <Dialog

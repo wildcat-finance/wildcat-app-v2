@@ -131,7 +131,7 @@ export function MarketRecordsTable({
           variant={isMobile ? "mobText3" : "text3"}
           color={COLORS.santasGrey}
         >
-          No unfiltered events
+          {t("marketDetails.shared.records.empty")}
         </Typography>
       </Box>
     )
@@ -181,7 +181,7 @@ export function MarketRecordsTable({
                 },
               }}
             >
-              Prev
+              {t("common.buttons.prev")}
             </Button>
 
             <Box sx={{ display: "flex", gap: "8px" }}>
@@ -245,7 +245,7 @@ export function MarketRecordsTable({
                 },
               }}
             >
-              Next
+              {t("common.buttons.next")}
             </Button>
           </Box>
         )}

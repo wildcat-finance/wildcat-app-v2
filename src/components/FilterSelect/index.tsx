@@ -202,7 +202,7 @@ export const FilterSelect = ({
             onChange={handleChangeName}
             fullWidth
             size="small"
-            placeholder="Search"
+            placeholder={t("common.placeholders.search")}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

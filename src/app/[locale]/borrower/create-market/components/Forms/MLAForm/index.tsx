@@ -51,7 +51,7 @@ export const MlaForm = ({ form }: MLAFormProps) => {
   const options = [
     {
       id: "noMLA",
-      label: "Don’t Use",
+      label: t("borrower.createMarket.mla.optionDontUse"),
       value: "noMLA",
     },
     ...(templates

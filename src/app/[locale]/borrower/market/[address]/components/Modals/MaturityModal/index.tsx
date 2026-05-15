@@ -172,7 +172,7 @@ export const MaturityModal = ({
         onClick={handleOpen}
         disabled={disableAdjustMaturity}
       >
-        Adjust Maturity
+        {t("marketDetails.borrower.modals.maturity.adjust")}
       </Button>
 
       <Dialog

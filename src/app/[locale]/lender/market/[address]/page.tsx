@@ -295,7 +295,7 @@ export default function LenderMarketDetails({
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>
           <Typography variant="title2">
-            Failed to load market data. Please try again later.
+            {t("marketDetails.lender.errors.failedToLoad")}
           </Typography>
         </Box>
       </Box>

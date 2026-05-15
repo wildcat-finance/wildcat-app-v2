@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { Box, Dialog, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
+import { useTranslation } from "react-i18next"
 
 import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import ConfettiPattern from "@/assets/icons/confetti_pattern.svg"
@@ -30,6 +31,7 @@ export const SuccessWrapperModal = ({
   finalAsset,
   txHash,
 }: SuccessWrapperModalProps) => {
+  const { t } = useTranslation()
   const { getTxUrl } = useBlockExplorer()
 
   if (initialAmount === undefined || finalAmount === undefined) return null
@@ -84,8 +86,19 @@ export const SuccessWrapperModal = ({
       </SvgIcon>
 
       <Typography variant="text1" sx={{ marginBottom: "8px" }}>
-        {initialAmount} {initialAsset} {isWrapping ? "wrapped" : "unwrapped"}{" "}
-        {isWrapping ? "in" : "to"} {finalAsset} {finalAmount}
+        {isWrapping
+          ? t("marketDetails.lender.wrapDebtToken.success.summaryWrap", {
+              initialAmount,
+              initialAsset,
+              finalAmount,
+              finalAsset,
+            })
+          : t("marketDetails.lender.wrapDebtToken.success.summaryUnwrap", {
+              initialAmount,
+              initialAsset,
+              finalAmount,
+              finalAsset,
+            })}
       </Typography>
 
       <Typography
@@ -93,7 +106,7 @@ export const SuccessWrapperModal = ({
         color={COLORS.manate}
         sx={{ marginBottom: "30px" }}
       >
-        You can close the modal window.
+        {t("marketDetails.lender.wrapDebtToken.success.closeHint")}
       </Typography>
 
       {txHash !== "" && txHash !== undefined && (

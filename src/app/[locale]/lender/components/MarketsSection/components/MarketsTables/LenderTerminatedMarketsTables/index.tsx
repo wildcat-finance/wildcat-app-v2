@@ -281,7 +281,7 @@ export const LenderTerminatedMarketsTables = ({
               color="secondary"
               disabled={!params.row.hasEverInteracted}
             >
-              Withdraw
+              {t("marketDetails.lender.transactions.withdraw.button")}
             </Button>
           </Box>
         </Box>

@@ -51,7 +51,7 @@ export const OutstandingTable = ({
           marginBottom={isMobile ? "0px" : "10px"}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            No withdrawal requests from previous cycles.
+            {t("marketDetails.lender.withdrawalRequests.noOutstanding")}
           </Typography>
         </Box>
       )

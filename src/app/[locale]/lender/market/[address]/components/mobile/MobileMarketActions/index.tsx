@@ -228,7 +228,7 @@ export const MobileMarketActions = ({
               textAlign="center"
               marginTop="12px"
             >
-              Master Loan Agreement
+              {t("marketDetails.shared.mla.title")}
             </Typography>
 
             <Box
@@ -247,7 +247,7 @@ export const MobileMarketActions = ({
                 <Clock />
               </SvgIcon>
               <Typography variant="mobText3" color={COLORS.white06}>
-                Waiting for sign
+                {t("marketDetails.lender.mla.waitingForSign")}
               </Typography>
             </Box>
 

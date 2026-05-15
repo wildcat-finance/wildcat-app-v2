@@ -104,7 +104,9 @@ export const TableSelect = ({
 
   return (
     <FormControl fullWidth>
-      <InputLabel sx={InputLabelStyle}>Add market</InputLabel>
+      <InputLabel sx={InputLabelStyle}>
+        {t("borrower.editPolicy.tableSelect.addMarket")}
+      </InputLabel>
 
       <Select
         value={lenderMarkets}

@@ -57,7 +57,7 @@ const SetMarketMLAForm = ({
   const options = [
     {
       id: "noMLA",
-      label: "Don’t Use",
+      label: t("marketDetails.shared.mla.template.optionDontUse"),
       value: "noMLA",
     },
     ...(templates?.map((template) => ({
@@ -76,7 +76,9 @@ const SetMarketMLAForm = ({
         sx={{ display: "flex", flexDirection: "row", gap: 2, width: "100%" }}
       >
         <FormControl sx={{ mb: 2, width: "200px" }}>
-          <InputLabel>Select MLA Template</InputLabel>
+          <InputLabel>
+            {t("marketDetails.shared.mla.template.label")}
+          </InputLabel>
           <Select
             value={selectedTemplateId || ""}
             onChange={(e) =>
@@ -144,11 +146,14 @@ const SetMarketMLAForm = ({
 }
 
 const NoExistingMla = ({ marketAccount }: { marketAccount: MarketAccount }) => {
+  const { t } = useTranslation()
   const { data: borrowerProfile } = useBorrowerProfileTmp(
     marketAccount.market.borrower,
   )
-  if (!borrowerProfile) return <Box>No Borrower Profile</Box>
-  if (!marketAccount.isBorrower) return <Box>No Market MLA</Box>
+  if (!borrowerProfile)
+    return <Box>{t("marketDetails.shared.mla.states.noBorrowerProfile")}</Box>
+  if (!marketAccount.isBorrower)
+    return <Box>{t("marketDetails.borrower.mla.states.noMarketMla")}</Box>
   return (
     <SetMarketMLAForm
       borrowerProfile={borrowerProfile as unknown as BasicBorrowerInfo}
@@ -183,17 +188,23 @@ export const MarketMLA = ({
 }: {
   marketAccount: MarketAccount
 }) => {
+  const { t } = useTranslation()
   const { data: borrowerProfile, isLoading: isLoadingBorrowerProfile } =
     useBorrowerProfileTmp(marketAccount.market.borrower)
   const { data: marketMla, isLoading: isLoadingMarketMla } = useMarketMla(
     marketAccount.market.address,
   )
   if (isLoadingMarketMla || isLoadingBorrowerProfile)
-    return <div>Loading...</div>
+    return <div>{t("common.states.loading")}</div>
 
-  if (!borrowerProfile) return <Box>No Borrower Profile</Box>
-  if (!marketAccount.isBorrower) return <Box>Wrong Borrower Address</Box>
-  if (marketMla && "noMLA" in marketMla) return <Box>Borrower Declined MLA</Box>
+  if (!borrowerProfile)
+    return <Box>{t("marketDetails.shared.mla.states.noBorrowerProfile")}</Box>
+  if (!marketAccount.isBorrower)
+    return (
+      <Box>{t("marketDetails.borrower.mla.states.wrongBorrowerAddress")}</Box>
+    )
+  if (marketMla && "noMLA" in marketMla)
+    return <Box>{t("marketDetails.shared.mla.states.borrowerDeclinedMla")}</Box>
   if (marketMla)
     return (
       <ShowExistingMla

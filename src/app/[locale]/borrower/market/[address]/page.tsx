@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { Box, Divider, Skeleton, Typography } from "@mui/material"
 import { MarketVersion, SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { useSearchParams } from "next/navigation"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart"
@@ -52,6 +53,7 @@ export default function MarketDetails({
 }: {
   params: { address: string }
 }) {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const searchParams = useSearchParams()
   const marketChainIdRaw = parseInt(searchParams.get("chainId") ?? "", 10)
@@ -181,7 +183,7 @@ export default function MarketDetails({
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>
           <Typography variant="title2">
-            Market not found or unable to load market data
+            {t("marketDetails.borrower.notFound")}
           </Typography>
         </Box>
       </Box>
@@ -228,9 +230,11 @@ export default function MarketDetails({
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>
           <LeadBanner
-            title="Select MLA Settings"
-            text="Your MLA selection was not successfully uploaded. Please try again."
-            buttonText="Go to MLA Settings"
+            title={t("marketDetails.borrower.modals.selectMlaSettings.title")}
+            text={t("marketDetails.borrower.modals.selectMlaSettings.text")}
+            buttonText={t(
+              "marketDetails.borrower.modals.selectMlaSettings.buttonText",
+            )}
             buttonLink={undefined}
             onClick={() => dispatch(setCheckBlock(5))}
           />

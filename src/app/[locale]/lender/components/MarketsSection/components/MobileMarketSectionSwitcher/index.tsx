@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect } from "react"
 
-import { Box, Button, Divider, IconButton, Typography } from "@mui/material"
+import { Box, Button, Divider, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -184,7 +184,7 @@ export const MobileMarketSectionHeader = ({
         }}
       >
         <Typography variant="mobH2" marginLeft="12px">
-          Markets
+          {t("marketList.shared.title")}
         </Typography>
 
         {children}
@@ -201,22 +201,19 @@ export const MobileMarketSectionHeader = ({
         }}
       >
         <MobileSwitcherButton
-          // label={t("marketList.borrower.active.title")}
-          label="Yours"
+          label={t("marketList.lender.tabs.yours")}
           amount={activeMarketsAmount}
           section={LenderMarketDashboardSections.ACTIVE}
         />
 
         <MobileSwitcherButton
-          // label={t("marketList.borrower.closed.title")}
-          label="Your Terminated"
+          label={t("marketList.lender.tabs.yourTerminated")}
           amount={closedMarketsAmount}
           section={LenderMarketDashboardSections.TERMINATED}
         />
 
         <MobileSwitcherButton
-          // label={t("marketList.shared.tables.other.title")}
-          label="Others"
+          label={t("marketList.lender.tabs.others")}
           amount={otherMarketsAmount}
           section={LenderMarketDashboardSections.OTHER}
         />
@@ -236,14 +233,14 @@ export const MobileMarketSectionHeader = ({
         {marketSection === LenderMarketDashboardSections.ACTIVE && (
           <>
             <MobileSwitcherButton
-              label="Active"
+              label={t("common.statuses.active")}
               target="deposited"
               amount={depositedAmount}
               type="secondary"
             />
 
             <MobileSwitcherButton
-              label="Non-Deposited"
+              label={t("marketList.borrower.active.nonDeposited")}
               target="non-deposited"
               amount={nonDepositedAmount}
               type="secondary"
@@ -254,14 +251,14 @@ export const MobileMarketSectionHeader = ({
         {marketSection === LenderMarketDashboardSections.TERMINATED && (
           <>
             <MobileSwitcherButton
-              label="Prev. Active"
+              label={t("marketList.lender.tabs.prevActive")}
               target="prev-active"
               amount={prevActiveAmount}
               type="secondary"
             />
 
             <MobileSwitcherButton
-              label="Never Active"
+              label={t("marketList.borrower.closed.neverActive")}
               target="never-active"
               amount={neverActiveAmount}
               type="secondary"
@@ -272,21 +269,21 @@ export const MobileMarketSectionHeader = ({
         {marketSection === LenderMarketDashboardSections.OTHER && (
           <>
             <MobileSwitcherButton
-              label="Self Onboarded"
+              label={t("marketList.lender.tabs.selfOnboarded")}
               target="self-onboard"
               amount={selfOnboardAmount}
               type="secondary"
             />
 
             <MobileSwitcherButton
-              label="Onboarded by Borrower"
+              label={t("marketList.lender.tabs.onboardedByBorrower")}
               target="manual"
               amount={manualAmount}
               type="secondary"
             />
 
             <MobileSwitcherButton
-              label="Terminated"
+              label={t("common.statuses.terminated")}
               target="other-terminated"
               amount={terminatedOtherAmount}
               type="secondary"

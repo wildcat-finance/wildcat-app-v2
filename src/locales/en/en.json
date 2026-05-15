@@ -12,7 +12,15 @@
       "search": "Search",
       "submit": "Submit",
       "remove": "Remove",
-      "clear": "Clear"
+      "clear": "Clear",
+      "close": "Close",
+      "viewProfile": "View Profile",
+      "max": "Max",
+      "reset": "Reset",
+      "apply": "Apply",
+      "prev": "Prev",
+      "seeMore": "See More",
+      "seeLess": "See Less"
     },
     "fields": {
       "walletAddress": "Wallet Address",
@@ -29,7 +37,11 @@
       "capacity": "Capacity",
       "amount": "Amount",
       "dateSubmitted": "Date Submitted",
-      "transactionId": "Transaction ID"
+      "transactionId": "Transaction ID",
+      "name": "Name",
+      "balance": "Balance",
+      "country": "Country",
+      "baseApr": "Base APR"
     },
     "states": {
       "error": "Oops! Something went wrong!",
@@ -38,7 +50,8 @@
       "time": {
         "oneYear": "one year",
         "twoYears": "two years"
-      }
+      },
+      "noWalletConnected": "No Wallet Connected"
     },
     "yesNo": {
       "na": "N/A",
@@ -48,7 +61,10 @@
     "placeholders": {
       "pleaseSelect": "Please Select",
       "range0to100": "0 - 100",
-      "searchByName": "Search By Name"
+      "searchByName": "Search By Name",
+      "markets": "Markets",
+      "lenders": "Lenders",
+      "search": "Search"
     },
     "units": {
       "percent": "%"
@@ -58,10 +74,24 @@
       "startDate": "Start Date"
     },
     "filters": {
-      "all": "All"
+      "all": "All",
+      "title": "Filters"
     },
     "links": {
-      "viewOnEtherscan": "View on Explorer"
+      "viewOnEtherscan": "View on Explorer",
+      "learnMore": "Learn more"
+    },
+    "statuses": {
+      "healthy": "Healthy",
+      "healthyTill": "Till {{date}}",
+      "healthyLeft": "{{duration}} left",
+      "penalty": "Penalty",
+      "pending": "Pending",
+      "terminated": "Terminated",
+      "active": "Active"
+    },
+    "badges": {
+      "new": "New"
     }
   },
   "header": {
@@ -96,11 +126,28 @@
       "button": "Subscribe",
       "subtitle": "Receive notifications for market events",
       "title": "Subscribe to our Telegram Bot"
+    },
+    "wallet": {
+      "connect": "Connect",
+      "switchAccount": "Switch Account",
+      "disconnect": "Disconnect",
+      "notLoggedIn": "NOT LOGGED IN",
+      "actions": "Wallet Actions",
+      "connectConsent": "By connecting your wallet, you consent to the <policyLink>Wildcat Privacy Policy</policyLink>."
+    },
+    "network": {
+      "switchPrompt": "Switch to {{name}} to explore the markets.",
+      "switchButton": "Switch Network",
+      "selectTitle": "Select Network"
     }
   },
   "footer": {
     "agreement": "Download Terms Of Use",
-    "rights": "Wildcat Foundation 2026"
+    "rights": "Wildcat Foundation 2026",
+    "cookiesSettings": "Cookies Settings",
+    "privacyPolicy": "Privacy Policy",
+    "version": "Version {{prefix}}...{{suffix}}",
+    "rightsReserved": "Wildcat © All Rights reserved. 2025"
   },
   "notifications": {
     "aprChange": {
@@ -170,6 +217,22 @@
     },
     "withdrawalSuccess": {
       "description": "Withdrawal cycle for <strong>{{marketName}}</strong> completed successfully."
+    },
+    "toasts": {
+      "pending": "Request is pending",
+      "success": "Request is successful 🎉",
+      "error": "Request failed 😢"
+    },
+    "cookieBanner": {
+      "prompt": "We use Matomo for anonymous analytics. Allow tracking?",
+      "allow": "Allow",
+      "decline": "Decline"
+    },
+    "hotjarConsent": {
+      "title": "Manage Tracking",
+      "prompt": "We use Hotjar for anonymous analytics. Allow tracking?",
+      "allow": "Allow",
+      "decline": "Decline"
     }
   },
   "modals": {
@@ -298,7 +361,8 @@
           "capacity": "Remaining",
           "loan": "Your Loan",
           "term": "Term",
-          "withdrawal": "Withdrawal"
+          "withdrawal": "Withdrawal",
+          "borrower": "Borrower"
         },
         "other": {
           "depositBTN": "Deposit",
@@ -309,12 +373,42 @@
           "title": "Other Markets"
         }
       },
-      "title": "Markets"
+      "title": "Markets",
+      "columns": {
+        "borrower": "Borrower"
+      },
+      "cards": {
+        "availableToLend": "available to lend",
+        "maticDeposited": "MATIC deposited",
+        "assetDeposited": "{{amount}} {{asset}} deposited",
+        "more": "More"
+      },
+      "empty": {
+        "noMarkets": "No Markets Here",
+        "changeFilters": "Change selected filters or check other sections"
+      }
     },
     "lender": {
       "sidebar": {
         "confirm": "Confirmation",
         "editingLenders": "Editing Lender List"
+      },
+      "noFilteredMarkets": "No {{filters}} markets available right now.",
+      "tabs": {
+        "yours": "Yours",
+        "yourTerminated": "Your Terminated",
+        "others": "Others",
+        "prevActive": "Prev. Active",
+        "selfOnboarded": "Self Onboarded",
+        "onboardedByBorrower": "Onboarded by Borrower"
+      },
+      "otherMarkets": {
+        "tabsAriaLabel": "Other Markets table tabs",
+        "noSelfOnboard": {
+          "title": "No Self-Onboard Markets Available",
+          "subtitle": "No self-onboarding markets are available right now."
+        },
+        "noFiltered": "There are no {{filters}} markets right now."
       }
     }
   },
@@ -339,6 +433,15 @@
           "name": "Name",
           "signDate": "Sign Date",
           "signedMLA": "Signed MLA"
+        },
+        "numberOfLenders": "Number of Lenders",
+        "lendersInMarket": "Lenders Currently in the Market",
+        "accessLevels": {
+          "deposit": "Deposit",
+          "withdraw": "Withdraw",
+          "blockedFromDeposits": "Blocked From Deposits",
+          "credentialExpired": "Credential Expired",
+          "providerRemoved": "Provider Removed"
         }
       },
       "buttons": {
@@ -402,7 +505,8 @@
           "interestRemaining": "Interest Remaining For",
           "repay": "Repay",
           "repaySum": "Amount To Repay",
-          "upTo": "Up to"
+          "upTo": "Up to",
+          "existingAllowanceWarning": "You have an existing allowance of {{amount}} for this market.<br/>{{symbol}} requires that allowances be reset to zero prior to being increased.<br/>You will be prompted to execute two approval transactions to first reset and then increase the allowance for this market."
         },
         "statement": {
           "download": "Download",
@@ -422,7 +526,19 @@
           "repayRemaining": "You need to repay all outstanding debt before/when terminating a market.",
           "terminateMarket": "Terminate Market",
           "total": "Total",
-          "totalAssets": "Total Assets In Market"
+          "totalAssets": "Total Assets In Market",
+          "insufficientBalance": "Insufficient balance to repay remaining debts."
+        },
+        "minimumDeposit": {
+          "adjust": "Adjust Minimum Deposit"
+        },
+        "maturity": {
+          "adjust": "Adjust Maturity"
+        },
+        "selectMlaSettings": {
+          "title": "Select MLA Settings",
+          "text": "Your MLA selection was not successfully uploaded. Please try again.",
+          "buttonText": "Go to MLA Settings"
         }
       },
       "sidebar": {
@@ -451,6 +567,13 @@
           "title": "To Be Repaid",
           "tooltip": "The sum of all borrowed funds plus accrued interest/fees that a borrower must return to the market."
         }
+      },
+      "notFound": "Market not found or unable to load market data",
+      "mla": {
+        "states": {
+          "noMarketMla": "No Market MLA",
+          "wrongBorrowerAddress": "Wrong Borrower Address"
+        }
       }
     },
     "shared": {
@@ -466,7 +589,11 @@
       },
       "header": {
         "ongoingCycle": "Ongoing Cycle",
-        "parameters": "Parameters"
+        "parameters": "Parameters",
+        "tabs": {
+          "status": "Status",
+          "withdrawalRequests": "Withdrawal Requests"
+        }
       },
       "mla": {
         "buttons": {
@@ -475,8 +602,20 @@
           "set": "Set MLA"
         },
         "template": {
-          "label": "Select MLA Template"
-        }
+          "label": "Select MLA Template",
+          "optionDontUse": "Don’t Use"
+        },
+        "states": {
+          "noBorrowerProfile": "No Borrower Profile",
+          "borrowerDeclinedMla": "Borrower Declined MLA"
+        },
+        "title": "Master Loan Agreement",
+        "loading": "Loading MLA...",
+        "iframeTitle": "Market Lending Agreement",
+        "signing": "Signing...",
+        "signMla": "Sign MLA",
+        "downloadPdf": "Download PDF",
+        "downloadSigned": "Download Signed MLA"
       },
       "sidebar": {
         "marketHistory": "Market History"
@@ -496,13 +635,31 @@
         "columns": {
           "event": "Event",
           "time": "Time"
-        }
+        },
+        "empty": "No unfiltered events",
+        "searchById": "Search by ID",
+        "viewingRange": "Viewing records {{start}} to {{end}}"
       },
       "withdrawalRequests": {
         "noOngoing": "No ongoing withdrawals in the current cycle.",
         "noOutstanding": "No outstanding withdrawals from previous cycles.",
         "openWithdrawals": "Open Withdrawals",
-        "total": "Total"
+        "total": "Total",
+        "noClaimable": "No claimable withdrawals."
+      },
+      "aprTooltip": {
+        "baseApr": "Base APR",
+        "baseAprDescription": "– the core lending rate earned from borrowers.",
+        "withdrawalAnytime": {
+          "title": "Request withdrawal at any time",
+          "subtitle": "Subject to each specific market withdrawal cycle duration"
+        },
+        "rewardsDescription": "– additional rewards (tokens or points) provided by the protocol or partners.",
+        "disclaimer": "Lenders may receive additional incentives distributed by external partners or protocol initiatives. These incentives are optional, variable, and not part of the core lending terms. Wildcat does not guarantee the program and accepts no liability."
+      },
+      "proposalBanner": {
+        "rewardsApr": "Rewards APR",
+        "rewardsAprTooltip": "Lenders may receive additional incentives distributed by external partners or protocol initiatives. These incentives are optional, variable, and not part of the core lending terms. Wildcat does not guarantee the program and accepts no liability."
       }
     },
     "lender": {
@@ -516,7 +673,8 @@
         "mlaNotSet": "Borrower Has Not Configured An MLA",
         "mlaRefused": "Borrower Declined to Set An MLA",
         "noMla": "No MLA available",
-        "viewMla": "View/Sign MLA"
+        "viewMla": "View/Sign MLA",
+        "addTokenManualHint": "To add debt token to wallet please copy the token address and add it manually."
       },
       "description": {
         "states": {
@@ -554,11 +712,21 @@
       "modals": {
         "deposit": {
           "available": "Available To Deposit",
-          "title": "Deposit"
+          "title": "Deposit",
+          "chooseAmount": "Choose amount of tokens",
+          "minimumDeposit": "Minimum deposit",
+          "availableToDeposit": "Available to deposit",
+          "alerts": {
+            "fixedTermLockedUntil": "This is a fixed-term market: funds are locked until <underline>{{date}}</underline> ",
+            "canRepayEarly": "The market can be repaid early to close",
+            "canShortenDuration": "The market's duration can be shorten",
+            "resetAllowance": "You have an existing allowance of {{allowance}} for this market.<break/>{{symbol}} requires that allowances be reset to zero prior to being increased.<break/>You will be prompted to execute two approval transactions to first reset and then increase the allowance for this market."
+          }
         },
         "withdraw": {
           "available": "Available For Withdraw Requests",
-          "title": "Withdraw"
+          "title": "Withdraw",
+          "availableToWithdraw": "Available to withdraw"
         }
       },
       "withdrawalsAlert": {
@@ -591,7 +759,64 @@
         "whoCanDeploy": {
           "answer": "Anyone can deploy the wrapper — not just the borrower.",
           "question": "Who can deploy the wrapper?"
+        },
+        "onlyAuthorized": "Only authorized lenders can access the wrapper.",
+        "unavailableOnChain": "Wrapper deployment is not available on this chain.",
+        "seeMore": "See more",
+        "seeLess": "See less",
+        "wrap": "Wrap",
+        "unwrap": "Unwrap",
+        "showInShares": "Show in Shares",
+        "estimatesNotice": "Estimates may change with the current conversion rate.",
+        "header": {
+          "contract": "Wrapper contract",
+          "wrapper": "Wrapper",
+          "addMarketToken": "+ Add market token",
+          "addWrappedToken": "+ Add wrapped token"
+        },
+        "banner": {
+          "marketTitle": "Market tokens",
+          "marketTooltip": "Balance of market (debt) tokens in your wallet.",
+          "wrappedTitle": "Wrapped tokens",
+          "wrappedTooltip": "Balance of wrapped (ERC-4626 share) tokens in your wallet.",
+          "holdingsValue": "Wrapped holdings value: ~ {{value}} {{symbol}}"
+        },
+        "error": {
+          "titleWrap": "Oops! Something goes wrong. Wrap Tokens again",
+          "titleUnwrap": "Oops! Something goes wrong. Unwrap Tokens again",
+          "defaultMessage": "Explanatory message about the problem."
+        },
+        "success": {
+          "summaryWrap": "{{initialAmount}} {{initialAsset}} wrapped in {{finalAsset}} {{finalAmount}}",
+          "summaryUnwrap": "{{initialAmount}} {{initialAsset}} unwrapped to {{finalAsset}} {{finalAmount}}",
+          "closeHint": "You can close the modal window."
         }
+      },
+      "mla": {
+        "loading": "Loading MLA Data...",
+        "signatureRequired": "Loan Agreement Signature Required",
+        "signaturePrompt": "You need to sign the MLA before you can access this market.",
+        "waitingForSign": "Waiting for sign",
+        "signedAt": "Signed: {{date}}",
+        "downloadPdf": "Download PDF",
+        "downloadSigned": "Download Signed MLA",
+        "signMla": "Sign MLA",
+        "signing": "Signing..."
+      },
+      "switchChain": {
+        "title": "Wrong Market Network",
+        "description": "Currently, you can only view general information about the market.<break/>To interact with it, please change the network to <emphasis>{{chainName}}</emphasis>.",
+        "switchNetwork": "Switch Network",
+        "switching": "Switching...",
+        "unknownNetwork": "Unknown Network"
+      },
+      "withdrawalRequests": {
+        "noClaimable": "No claimable withdrawals.",
+        "noOngoing": "No ongoing withdrawals.",
+        "noOutstanding": "No withdrawal requests from previous cycles."
+      },
+      "errors": {
+        "failedToLoad": "Failed to load market data. Please try again later."
       }
     }
   },
@@ -715,12 +940,15 @@
     "withdrawalCycleDuration": "Withdrawal Cycle Duration",
     "policyType": {
       "fixedTerm": "Fixed Term (withdrawals post-maturity)",
-      "openTerm": "Open Term (no withdrawal constraints)"
+      "openTerm": "Open Term (no withdrawal constraints)",
+      "manualApproval": "Manual Approval",
+      "selfOnboard": "Self-Onboard"
     },
     "roleProviders": {
       "defaultPullProvider": "Lender Self-Onboarding",
       "manualApproval": "Borrower Operated Allowlist"
-    }
+    },
+    "adoptionStatus": "Adoption Status"
   },
   "borrower": {
     "profile": {
@@ -728,7 +956,8 @@
         "buttons": {
           "back": "Back to",
           "login": "Sign a message before submitting changes to profile"
-        }
+        },
+        "jurisdictionTooltip": "Sub-division of country"
       },
       "form": {
         "address": {
@@ -975,7 +1204,8 @@
           "glossary": "A legally binding document that defines the terms, obligations, and penalties for borrowers and lenders in the market.",
           "label": "Master Loan Agreement"
         },
-        "title": "Loan Agreement"
+        "title": "Loan Agreement",
+        "optionDontUse": "Don’t Use"
       },
       "periods": {
         "grace": {
@@ -1030,6 +1260,9 @@
           "label": "Deploy wrapper contract for this market"
         },
         "title": "Wrapper Contract"
+      },
+      "policyOptions": {
+        "createNew": "Create New Policy"
       }
     },
     "editLenders": {
@@ -1063,7 +1296,14 @@
         "delete": {
           "subtitle": "By removing this lender from all markets, you will delete them from your policy.",
           "title": "Are you sure you want to remove"
+        },
+        "addLender": {
+          "title": "Add a new lender",
+          "enterName": "Enter name"
         }
+      },
+      "tableSelect": {
+        "addMarket": "Add market"
       }
     },
     "editPolicy": {
@@ -1095,6 +1335,81 @@
       "unnamedPolicy": {
         "label": "Unnamed Policy",
         "subtitle": "Please give a unique name to your policy."
+      },
+      "tableSelect": {
+        "addMarket": "Add market"
+      },
+      "modals": {
+        "addLender": {
+          "title": "Add a new lender",
+          "enterName": "Enter name"
+        }
+      }
+    },
+    "mobile": {
+      "title": "The Borrower UI is not configured for mobile, sorry!",
+      "subtitle": "Hop on a desktop or laptop instead: we are aiming to sort this out in time.",
+      "switchToLenders": "Switch to the Lenders"
+    },
+    "policies": {
+      "title": "Policies",
+      "subtitle": "Common agreement for several markets.",
+      "columns": {
+        "name": "Policy Name",
+        "type": "Type",
+        "accessRequirements": "Access Requirements",
+        "markets": "Assigned to Markets"
+      }
+    },
+    "lenders": {
+      "title": "Lenders",
+      "editButton": "Edit Lenders List",
+      "subtitle": "List of lenders that’s applied to your markets.",
+      "noMarketsYet": "No markets yet",
+      "addMarkets": "Add markets"
+    },
+    "invitation": {
+      "empty": {
+        "notFound": "No invitation found",
+        "signInPrompt": "Sign In with wallet to view invitation"
+      },
+      "signIn": "Sign In",
+      "acceptTitle": "Accept Invitation",
+      "fields": {
+        "organizationName": "Organization Name"
+      },
+      "buttons": {
+        "signAccept": "Sign & Accept",
+        "signing": "Signing..."
+      }
+    },
+    "policy": {
+      "header": {
+        "policyInfo": "Policy Info"
+      },
+      "modals": {
+        "confirm": {
+          "title": "Confirm <accent>{{policyName}}</accent> Lenders Edits",
+          "removed": "Removed"
+        },
+        "final": {
+          "error": {
+            "subtitle": "Can you reach out to us and tell us how you got here?",
+            "tryAgain": "Try Again"
+          },
+          "success": {
+            "title": "Lenders were edited!",
+            "subtitle": "Lenders were successfully edited: the rest is up to you!"
+          },
+          "loading": {
+            "title": "Wait a second...",
+            "subtitle": "Transaction in process."
+          }
+        },
+        "addLender": {
+          "title": "Add a new lender",
+          "enterName": "Enter name"
+        }
       }
     }
   },
@@ -1104,6 +1419,19 @@
         "confirm": "Cancel Invitation",
         "description": "Are you sure you want to cancel the invitation for {{name}} ({{address}})? This action cannot be undone.",
         "title": "Cancel Invitation"
+      },
+      "table": {
+        "columns": {
+          "name": "Borrower Name",
+          "alias": "Borrower Alias",
+          "invited": "Invited",
+          "registeredOnChain": "Registered On Chain",
+          "signed": "Signed"
+        }
+      },
+      "buttons": {
+        "register": "Register",
+        "registering": "Registering..."
       }
     },
     "editBorrower": {
@@ -1125,6 +1453,43 @@
         "title": "Invitation Sent"
       },
       "title": "Invite New Borrower"
+    },
+    "tabs": {
+      "pendingInvitations": "Pending Invitations",
+      "registeredBorrowers": "Registered Borrowers"
+    },
+    "borrowers": {
+      "table": {
+        "columns": {
+          "invitedAt": "Invited At",
+          "name": "Borrower Name",
+          "alias": "Borrower Alias",
+          "registeredOnChain": "Registered On Chain",
+          "signedAt": "Signed At"
+        }
+      },
+      "statuses": {
+        "pendingRegistration": "Pending Registration"
+      }
     }
+  },
+  "nav": {
+    "back": "Back",
+    "backToMarkets": "Back To Markets",
+    "help": "Help",
+    "editBorrowerProfile": "Edit Borrower Profile",
+    "borrowerProfile": "Borrower Profile"
+  },
+  "lender": {
+    "mlaTab": {
+      "signMessagePrompt": "Sign a message to view your signed MLAs",
+      "connectWalletPrompt": "Connect your wallet to continue",
+      "signMessage": "Sign Message"
+    }
+  },
+  "auth": {
+    "connectWalletPrompt": "Connect your wallet to continue",
+    "notAdmin": "You are not an admin",
+    "login": "Login"
   }
 }

@@ -183,7 +183,9 @@ export default function PolicyPage() {
         }}
       >
         <Box sx={{ display: "flex", gap: "6px", padding: "40px 24px 0" }}>
-          <Typography variant="title2">Policy Info</Typography>
+          <Typography variant="title2">
+            {t("borrower.policy.header.policyInfo")}
+          </Typography>
 
           <PolicySelect
             policies={policies}

@@ -315,12 +315,20 @@ export const ConfirmationForm = ({
 
             <ConfirmationFormItem
               label={t("borrower.createMarket.policy.earlyClose.label")}
-              value={getValues("allowClosureBeforeTerm") ? "Yes" : "No"}
+              value={
+                getValues("allowClosureBeforeTerm")
+                  ? t("common.yesNo.yes")
+                  : t("common.yesNo.no")
+              }
             />
 
             <ConfirmationFormItem
               label={t("borrower.createMarket.policy.reduceExpiration.label")}
-              value={getValues("allowTermReduction") ? "Yes" : "No"}
+              value={
+                getValues("allowTermReduction")
+                  ? t("common.yesNo.yes")
+                  : t("common.yesNo.no")
+              }
             />
           </Box>
 
@@ -395,7 +403,9 @@ export const ConfirmationForm = ({
         </Typography>
 
         <Typography variant="text2" sx={{ height: "20px" }}>
-          {getValues("deployWrapper") ? "Yes" : "No"}
+          {getValues("deployWrapper")
+            ? t("common.yesNo.yes")
+            : t("common.yesNo.no")}
         </Typography>
       </Box>
 
@@ -415,21 +425,31 @@ export const ConfirmationForm = ({
           label={t(
             "borrower.createMarket.lenderRestrictions.restrictWithdrawals.label",
           )}
-          value={withdrawalRequiresAccess ? "Yes" : "No"}
+          value={
+            withdrawalRequiresAccess
+              ? t("common.yesNo.yes")
+              : t("common.yesNo.no")
+          }
         />
 
         <ConfirmationFormItem
           label={t(
             "borrower.createMarket.lenderRestrictions.restrictTransfers.label",
           )}
-          value={transferRequiresAccess ? "Yes" : "No"}
+          value={
+            transferRequiresAccess
+              ? t("common.yesNo.yes")
+              : t("common.yesNo.no")
+          }
         />
 
         <ConfirmationFormItem
           label={t(
             "borrower.createMarket.lenderRestrictions.disableTransfers.label",
           )}
-          value={disableTransfers ? "Yes" : "No"}
+          value={
+            disableTransfers ? t("common.yesNo.yes") : t("common.yesNo.no")
+          }
         />
       </Box>
 

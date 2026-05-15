@@ -216,7 +216,7 @@ export const WithdrawModal = ({
             }}
           >
             <Typography variant="text2" lineHeight="24px">
-              Choose amount of tokens
+              {t("marketDetails.lender.modals.deposit.chooseAmount")}
             </Typography>
 
             <Typography
@@ -224,7 +224,7 @@ export const WithdrawModal = ({
               variant="text3"
               lineHeight="24px"
             >
-              Available to withdraw{" "}
+              {t("marketDetails.lender.modals.withdraw.availableToWithdraw")}{" "}
               <Typography
                 variant="text3"
                 lineHeight="24px"

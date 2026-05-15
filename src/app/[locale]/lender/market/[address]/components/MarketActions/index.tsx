@@ -213,21 +213,25 @@ export const MarketActions = ({
       <Box width="100%" display="flex" flexDirection="column">
         {(() => {
           if (mlaLoading || signedMlaLoading) {
-            return <Typography variant="title3">Loading MLA Data...</Typography>
+            return (
+              <Typography variant="title3">
+                {t("marketDetails.lender.mla.loading")}
+              </Typography>
+            )
           }
 
           if (mlaRequiredAndUnsigned) {
             return (
               <>
                 <Typography variant="title3" sx={{ marginBottom: "8px" }}>
-                  Loan Agreement Signature Required
+                  {t("marketDetails.lender.mla.signatureRequired")}
                 </Typography>
                 <Typography
                   variant="text3"
                   sx={{ marginBottom: isClaimableZero ? "0" : "24px" }}
                   color={COLORS.santasGrey}
                 >
-                  You need to sign the MLA before you can access this market.
+                  {t("marketDetails.lender.mla.signaturePrompt")}
                 </Typography>
               </>
             )

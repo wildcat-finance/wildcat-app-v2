@@ -342,7 +342,9 @@ export const RepayAndTerminateFlow = ({
                   paddingRight: "16px",
                 }}
               >
-                <Typography variant="text1">Balance</Typography>
+                <Typography variant="text1">
+                  {t("common.fields.balance")}
+                </Typography>
                 <Typography variant="text1" noWrap color={COLORS.blueRibbon}>
                   {formatTokenWithCommas(marketAccount.underlyingBalance, {
                     withSymbol: true,
@@ -351,7 +353,9 @@ export const RepayAndTerminateFlow = ({
               </Box>
 
               <Typography variant="text1">
-                Insufficient balance to repay remaining debts.
+                {t(
+                  "marketDetails.borrower.modals.terminate.insufficientBalance",
+                )}
               </Typography>
             </Box>
           )}

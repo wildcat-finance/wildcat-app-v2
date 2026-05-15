@@ -1,6 +1,7 @@
 import { Box, Chip } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import Image from "next/image"
+import { useTranslation } from "react-i18next"
 
 import Clock from "@/assets/icons/clock_icon.svg"
 import Fire from "@/assets/icons/fire_icon.png"
@@ -16,12 +17,13 @@ export const MarketStatusChip = ({
   withPeriod = true,
   status,
 }: MarketStatusChipProps) => {
+  const { t } = useTranslation()
   let chipConfig
 
   switch (status.status) {
     case "Penalty": {
       chipConfig = {
-        label: "Penalty",
+        label: t("common.statuses.penalty"),
         icon: "",
         backgroundColor: COLORS.cherub,
         fontColor: COLORS.dullRed,
@@ -30,7 +32,7 @@ export const MarketStatusChip = ({
     }
     case "Pending": {
       chipConfig = {
-        label: "Pending",
+        label: t("common.statuses.pending"),
         icon: <Clock />,
         backgroundColor: COLORS.oasis,
         fontColor: variant === "text" ? COLORS.galliano : COLORS.butteredRum,
@@ -39,7 +41,7 @@ export const MarketStatusChip = ({
     }
     case "Terminated": {
       chipConfig = {
-        label: "Terminated",
+        label: t("common.statuses.terminated"),
         icon: undefined,
         backgroundColor: COLORS.whiteSmoke,
         fontColor: COLORS.santasGrey,
@@ -48,7 +50,7 @@ export const MarketStatusChip = ({
     }
     default: {
       chipConfig = {
-        label: "Penalty",
+        label: t("common.statuses.penalty"),
         icon: "",
         backgroundColor: COLORS.cherub,
         fontColor: COLORS.dullRed,

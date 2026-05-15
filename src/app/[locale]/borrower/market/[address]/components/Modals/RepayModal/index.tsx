@@ -13,7 +13,7 @@ import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
 import humanizeDuration from "humanize-duration"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
@@ -593,17 +593,16 @@ export const RepayModal = ({
         {mustResetAllowance && (
           <Box width="100%" height="100%" padding="0 24px">
             <Typography variant="text3" color={COLORS.dullRed}>
-              You have an existing allowance of{" "}
-              {market.underlyingToken
-                .getAmount(marketAccount.underlyingApproval)
-                .format(market.underlyingToken.decimals, true)}{" "}
-              for this market.
-              <br />
-              {market.underlyingToken.symbol} requires that allowances be reset
-              to zero prior to being increased.
-              <br />
-              You will be prompted to execute two approval transactions to first
-              reset and then increase the allowance for this market.
+              <Trans
+                i18nKey="marketDetails.borrower.modals.repay.existingAllowanceWarning"
+                values={{
+                  amount: market.underlyingToken
+                    .getAmount(marketAccount.underlyingApproval)
+                    .format(market.underlyingToken.decimals, true),
+                  symbol: market.underlyingToken.symbol,
+                }}
+                components={{ br: <br /> }}
+              />
             </Typography>
           </Box>
         )}

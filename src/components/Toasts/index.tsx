@@ -1,4 +1,5 @@
 import { SvgIcon } from "@mui/material"
+import i18next from "i18next"
 import toast from "react-hot-toast"
 
 import Check from "@/assets/icons/check_icon.svg"
@@ -26,9 +27,9 @@ export const toastRequest = async <T,>(
   toast.promise(
     promiseFn,
     {
-      loading: config?.pending || "Request is pending",
-      success: config?.success || "Request is successful 🎉",
-      error: config?.error || "Request failed 😢",
+      loading: config?.pending || i18next.t("notifications.toasts.pending"),
+      success: config?.success || i18next.t("notifications.toasts.success"),
+      error: config?.error || i18next.t("notifications.toasts.error"),
     },
     {
       style: {

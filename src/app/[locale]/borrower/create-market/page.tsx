@@ -120,9 +120,9 @@ export default function CreateMarketPage() {
 
   const defaultPolicyOption = {
     id: "createNewPolicy",
-    label: "Create New Policy",
+    label: t("borrower.createMarket.policyOptions.createNew"),
     value: "createNewPolicy",
-  } as const
+  }
 
   const policyOptions = useMemo(
     () => [

@@ -29,7 +29,7 @@ export const WrongNetworkAlert = () => {
           color="#8A8C9F"
           sx={{ marginBottom: "24px" }}
         >
-          Switch to {name} to explore the markets.
+          {t("header.network.switchPrompt", { name })}
         </Typography>
 
         <Button
@@ -38,7 +38,7 @@ export const WrongNetworkAlert = () => {
           sx={ButtonStyle}
           onClick={handleSwitchChain}
         >
-          Switch Network
+          {t("header.network.switchButton")}
         </Button>
       </Box>
     </Box>

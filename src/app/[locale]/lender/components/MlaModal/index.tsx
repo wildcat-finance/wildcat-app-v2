@@ -36,7 +36,7 @@ export const MlaModal = ({
         sx={sx}
       >
         {buttonText ||
-          (isLoading && "Loading MLA...") ||
+          (isLoading && t("marketDetails.shared.mla.loading")) ||
           (!isLoading &&
             (mla === null
               ? t("marketDetails.lender.buttons.noMla")
@@ -74,7 +74,7 @@ export const MlaModal = ({
                 height: "100%",
                 border: "none",
               }}
-              title="Market Lending Agreement"
+              title={t("marketDetails.shared.mla.iframeTitle")}
             />
           </Box>
           <Box
@@ -86,7 +86,7 @@ export const MlaModal = ({
           >
             {isSigning ? (
               <Button variant="outlined" onClick={onSign}>
-                Signing...
+                {t("marketDetails.shared.mla.signing")}
               </Button>
             ) : (
               showSignButton && (
@@ -95,7 +95,7 @@ export const MlaModal = ({
                   onClick={onSign}
                   disabled={disableSignButton || isSigning}
                 >
-                  Sign MLA
+                  {t("marketDetails.shared.mla.signMla")}
                 </Button>
               )
             )}
@@ -104,7 +104,7 @@ export const MlaModal = ({
                 variant="outlined"
                 onClick={() => window.open(downloadPdfUrl, "_blank")}
               >
-                Download PDF
+                {t("marketDetails.shared.mla.downloadPdf")}
               </Button>
             )}
             {downloadSignedUrl && (
@@ -112,7 +112,7 @@ export const MlaModal = ({
                 variant="outlined"
                 onClick={() => window.open(downloadSignedUrl, "_blank")}
               >
-                Download Signed MLA
+                {t("marketDetails.shared.mla.downloadSigned")}
               </Button>
             )}
           </Box>

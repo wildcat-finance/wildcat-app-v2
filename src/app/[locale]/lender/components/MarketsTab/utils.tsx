@@ -164,7 +164,7 @@ export const getColumns = (
             padding: "0 12px",
           }}
         >
-          Borrower
+          {t("marketList.shared.columns.borrower")}
         </Typography>
       ),
       renderCell: (params) => (

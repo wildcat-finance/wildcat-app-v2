@@ -681,8 +681,8 @@ export default function EditProfileForm({
         {entityCategory !== "Decentralised Autonomous Organisation" && (
           <>
             <EditProfileItem
-              title="Country"
-              tooltip="Country"
+              title={t("common.fields.country")}
+              tooltip={t("common.fields.country")}
               oldLabel={CountriesList.find((c) => c.id === oldCountry)?.name}
               oldValue={oldCountry}
               form={privateForm}
@@ -705,8 +705,8 @@ export default function EditProfileForm({
 
             {subdivisions.length > 1 && (
               <EditProfileItem
-                title="Jurisdiction"
-                tooltip="Sub-division of country"
+                title={t("common.fields.jurisdiction")}
+                tooltip={t("borrower.profile.edit.jurisdictionTooltip")}
                 oldValue={
                   oldCountry === countryWatch
                     ? publicData?.jurisdiction

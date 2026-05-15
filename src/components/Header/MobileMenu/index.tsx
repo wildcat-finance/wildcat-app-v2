@@ -296,7 +296,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
 
                   <IconButton
                     onClick={handleToggleModal}
-                    aria-label="Close"
+                    aria-label={t("common.buttons.close")}
                     sx={{
                       flexShrink: 0,
                       width: "32px",
@@ -338,7 +338,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     }}
                     fullWidth
                   >
-                    Switch Account
+                    {t("header.wallet.switchAccount")}
                   </Button>
                   <Button
                     fullWidth
@@ -351,7 +351,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                       borderRadius: "10px",
                     }}
                   >
-                    Disconnect
+                    {t("header.wallet.disconnect")}
                   </Button>
                 </Box>
               ) : (
@@ -371,7 +371,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     },
                   }}
                 >
-                  Connect
+                  {t("header.wallet.connect")}
                 </Button>
               )}
 
@@ -468,7 +468,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                   }}
                 >
                   <Typography variant="text3" fontWeight={500}>
-                    Help
+                    {t("nav.help")}
                   </Typography>
                 </Box>
 
@@ -485,7 +485,9 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     "&:hover": { backgroundColor: COLORS.whiteSmoke },
                   }}
                 >
-                  <Typography variant="text3">Cookies Settings</Typography>
+                  <Typography variant="text3">
+                    {t("footer.cookiesSettings")}
+                  </Typography>
                   <SvgIcon
                     aria-hidden="true"
                     sx={{
@@ -515,7 +517,9 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     "&:hover": { backgroundColor: COLORS.whiteSmoke },
                   }}
                 >
-                  <Typography variant="text3">Privacy Policy</Typography>
+                  <Typography variant="text3">
+                    {t("footer.privacyPolicy")}
+                  </Typography>
                   <SvgIcon
                     aria-hidden="true"
                     sx={{
@@ -545,7 +549,9 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     "&:hover": { backgroundColor: COLORS.whiteSmoke },
                   }}
                 >
-                  <Typography variant="text3">Agreement</Typography>
+                  <Typography variant="text3">
+                    {t("footer.agreement")}
+                  </Typography>
                   <SvgIcon
                     aria-hidden="true"
                     sx={{
@@ -574,11 +580,14 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     color={COLORS.santasGrey}
                     textAlign="center"
                   >
-                    Wildcat &copy; All Rights reserved. 2025
+                    {t("footer.rights")}
                   </Typography>
                   {commitSha && (
                     <Typography variant="text4" color={COLORS.santasGrey}>
-                      Version {commitSha.slice(0, 4)}...{commitSha.slice(-4)}
+                      {t("footer.version", {
+                        prefix: commitSha.slice(0, 4),
+                        suffix: commitSha.slice(-4),
+                      })}
                     </Typography>
                   )}
                 </Box>
@@ -606,7 +615,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
               >
                 <IconButton
                   onClick={() => setPanel("main")}
-                  aria-label="Back"
+                  aria-label={t("common.buttons.back")}
                   sx={{
                     width: "32px",
                     height: "32px",
@@ -625,7 +634,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                 </IconButton>
                 <IconButton
                   onClick={handleToggleModal}
-                  aria-label="Close"
+                  aria-label={t("common.buttons.close")}
                   sx={{
                     width: "32px",
                     height: "32px",
@@ -684,11 +693,14 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                   color={COLORS.santasGrey}
                   textAlign="center"
                 >
-                  Wildcat &copy; All Rights reserved. 2025
+                  {t("footer.rightsReserved")}
                 </Typography>
                 {commitSha && (
                   <Typography variant="text4" color={COLORS.santasGrey}>
-                    Version {commitSha.slice(0, 4)}...{commitSha.slice(-4)}
+                    {t("footer.version", {
+                      prefix: commitSha.slice(0, 4),
+                      suffix: commitSha.slice(-4),
+                    })}
                   </Typography>
                 )}
               </Box>

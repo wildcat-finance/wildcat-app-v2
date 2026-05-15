@@ -155,7 +155,7 @@ export const AddModal = () => {
         }}
       >
         <TxModalHeader
-          title="Add a new lender"
+          title={t("borrower.editPolicy.modals.addLender.title")}
           crossOnClick={null}
           arrowOnClick={handleClose}
         />
@@ -173,7 +173,7 @@ export const AddModal = () => {
           <TextField
             fullWidth
             size="medium"
-            label="Wallet Address"
+            label={t("common.fields.walletAddress")}
             {...register("address")}
             error={!!errors.address}
           />
@@ -181,7 +181,11 @@ export const AddModal = () => {
           <TextField
             fullWidth
             size="medium"
-            label={isDisabled ? "" : "Enter name"}
+            label={
+              isDisabled
+                ? ""
+                : t("borrower.editPolicy.modals.addLender.enterName")
+            }
             {...register("name")}
             error={!!errors.name}
             disabled={isDisabled}

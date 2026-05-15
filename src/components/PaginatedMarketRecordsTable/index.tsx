@@ -364,7 +364,7 @@ export function PaginatedMarketRecordsTable({
             color="secondary"
             sx={{ width: "100%", marginTop: "12px" }}
           >
-            Reset
+            {t("common.buttons.reset")}
           </Button>
         </Popover>
 
@@ -461,14 +461,14 @@ export function PaginatedMarketRecordsTable({
           color="secondary"
           sx={{ width: "100%", marginTop: "12px" }}
         >
-          Reset
+          {t("common.buttons.reset")}
         </Button>
       </Popover>
 
       <FilterTextField
         value={search}
         setValue={setSearch}
-        placeholder="Search by ID"
+        placeholder={t("marketDetails.shared.records.searchById")}
         width="180px"
       />
 
@@ -493,7 +493,10 @@ export function PaginatedMarketRecordsTable({
       >
         {startEventIndex !== undefined && (
           <Typography variant="text3">
-            Viewing records {startEventIndex} to {endEventIndex}
+            {t("marketDetails.shared.records.viewingRange", {
+              start: startEventIndex,
+              end: endEventIndex,
+            })}
           </Typography>
         )}
         {/*      <div className="flex gap-x-4 items-center flex-row">

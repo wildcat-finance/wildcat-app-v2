@@ -139,7 +139,7 @@ export const MarketAuthorisedLenders = ({
             lender.addedTimestamp,
             DATE_FORMAT,
           ),
-          signedMLA: "Yes",
+          signedMLA: t("common.yesNo.yes"),
           signDate: timestampToDateFormatted(
             lender.addedTimestamp,
             DATE_FORMAT,
@@ -290,7 +290,11 @@ export const MarketAuthorisedLenders = ({
                 bgcolor: COLORS.blackHaze,
               }}
             >
-              <Typography variant="text4">Deposit</Typography>
+              <Typography variant="text4">
+                {t(
+                  "marketDetails.borrower.authorisedLenders.accessLevels.deposit",
+                )}
+              </Typography>
             </Box>
           )}
           {value === ("Deposit & Withdraw" || "Withdraw Only") && (
@@ -303,7 +307,11 @@ export const MarketAuthorisedLenders = ({
                 bgcolor: COLORS.blackHaze,
               }}
             >
-              <Typography variant="text4">Withdraw</Typography>
+              <Typography variant="text4">
+                {t(
+                  "marketDetails.borrower.authorisedLenders.accessLevels.withdraw",
+                )}
+              </Typography>
             </Box>
           )}
           {value === "Blocked From Deposits" && (
@@ -316,7 +324,11 @@ export const MarketAuthorisedLenders = ({
                 bgcolor: COLORS.blackHaze,
               }}
             >
-              <Typography variant="text4">Blocked From Deposits</Typography>
+              <Typography variant="text4">
+                {t(
+                  "marketDetails.borrower.authorisedLenders.accessLevels.blockedFromDeposits",
+                )}
+              </Typography>
             </Box>
           )}
           {value === "Credential Expired" && (
@@ -329,7 +341,11 @@ export const MarketAuthorisedLenders = ({
                 bgcolor: COLORS.blackHaze,
               }}
             >
-              <Typography variant="text4">Credential Expired</Typography>
+              <Typography variant="text4">
+                {t(
+                  "marketDetails.borrower.authorisedLenders.accessLevels.credentialExpired",
+                )}
+              </Typography>
             </Box>
           )}
           {value === "Provider Removed" && (
@@ -342,7 +358,11 @@ export const MarketAuthorisedLenders = ({
                 bgcolor: COLORS.blackHaze,
               }}
             >
-              <Typography variant="text4">Provider Removed</Typography>
+              <Typography variant="text4">
+                {t(
+                  "marketDetails.borrower.authorisedLenders.accessLevels.providerRemoved",
+                )}
+              </Typography>
             </Box>
           )}
         </Box>
@@ -540,14 +560,14 @@ export const MarketAuthorisedLenders = ({
           <Box sx={{ width: "100%", display: "flex", gap: "11px" }}>
             <Box sx={NumberOfLenders}>
               <Typography variant="text4" color={COLORS.santasGrey}>
-                Number of Lenders
+                {t("marketDetails.borrower.authorisedLenders.numberOfLenders")}
               </Typography>
               <Typography variant="text1">{authorizedRows.length}</Typography>
             </Box>
 
             <Box sx={NumberOfLenders}>
               <Typography variant="text4" color={COLORS.santasGrey}>
-                Lenders Currently in the Market
+                {t("marketDetails.borrower.authorisedLenders.lendersInMarket")}
               </Typography>
               <Typography variant="text1" color={COLORS.ultramarineBlue}>
                 {lendersInMarket}

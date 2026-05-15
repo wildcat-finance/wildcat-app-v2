@@ -150,7 +150,7 @@ export const OthersMarketsTable = ({
             padding: "0 12px",
           }}
         >
-          Borrower
+          {t("marketList.shared.tables.header.borrower")}
         </Typography>
       ),
       renderCell: (params) => (

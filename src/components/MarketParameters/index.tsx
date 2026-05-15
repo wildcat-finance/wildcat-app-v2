@@ -438,7 +438,7 @@ export const MarketParameters = ({
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
                   <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-                    Adoption Status
+                    {t("marketParameters.adoptionStatus")}
                   </Typography>
                   <TooltipButton value={adoptionStatsTooltip} />
                 </Box>

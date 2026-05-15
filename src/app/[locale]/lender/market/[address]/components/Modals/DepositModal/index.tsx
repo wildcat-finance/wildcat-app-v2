@@ -10,7 +10,7 @@ import {
 } from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
@@ -305,7 +305,7 @@ export const DepositModal = ({
             {modal.gettingValueStep && (
               <>
                 <Typography variant="text2" lineHeight="24px">
-                  Choose amount of tokens
+                  {t("marketDetails.lender.modals.deposit.chooseAmount")}
                 </Typography>
 
                 {minimumDeposit && (
@@ -314,7 +314,7 @@ export const DepositModal = ({
                     variant="text3"
                     lineHeight="24px"
                   >
-                    Minimum deposit{" "}
+                    {t("marketDetails.lender.modals.deposit.minimumDeposit")}{" "}
                     <Typography
                       variant="text3"
                       lineHeight="24px"
@@ -332,7 +332,7 @@ export const DepositModal = ({
                   variant="text3"
                   lineHeight="24px"
                 >
-                  Available to deposit{" "}
+                  {t("marketDetails.lender.modals.deposit.availableToDeposit")}{" "}
                   <Typography
                     variant="text3"
                     lineHeight="24px"
@@ -383,10 +383,15 @@ export const DepositModal = ({
                 <DepositAlert
                   text={
                     <Typography variant="mobText3">
-                      This is a fixed-term market: funds are locked until{" "}
-                      <span style={{ textDecoration: "underline" }}>
-                        {formatDate(fixedTermMaturity || 0)}
-                      </span>{" "}
+                      <Trans
+                        i18nKey="marketDetails.lender.modals.deposit.alerts.fixedTermLockedUntil"
+                        values={{ date: formatDate(fixedTermMaturity || 0) }}
+                        components={{
+                          underline: (
+                            <span style={{ textDecoration: "underline" }} />
+                          ),
+                        }}
+                      />
                     </Typography>
                   }
                   icon={
@@ -407,7 +412,9 @@ export const DepositModal = ({
                 <DepositAlert
                   text={
                     <Typography variant="mobText3">
-                      The market can be repaid early to close
+                      {t(
+                        "marketDetails.lender.modals.deposit.alerts.canRepayEarly",
+                      )}
                     </Typography>
                   }
                   icon={
@@ -428,7 +435,9 @@ export const DepositModal = ({
                 <DepositAlert
                   text={
                     <Typography variant="mobText3">
-                      The market’s duration can be shorten
+                      {t(
+                        "marketDetails.lender.modals.deposit.alerts.canShortenDuration",
+                      )}
                     </Typography>
                   }
                   icon={
@@ -449,18 +458,16 @@ export const DepositModal = ({
                 <DepositAlert
                   text={
                     <Typography variant="mobText3">
-                      You have an existing allowance of{" "}
-                      {market.underlyingToken
-                        .getAmount(marketAccount.underlyingApproval)
-                        .format(market.underlyingToken.decimals, true)}{" "}
-                      for this market.
-                      <br />
-                      {market.underlyingToken.symbol} requires that allowances
-                      be reset to zero prior to being increased.
-                      <br />
-                      You will be prompted to execute two approval transactions
-                      to first reset and then increase the allowance for this
-                      market.
+                      <Trans
+                        i18nKey="marketDetails.lender.modals.deposit.alerts.resetAllowance"
+                        values={{
+                          allowance: market.underlyingToken
+                            .getAmount(marketAccount.underlyingApproval)
+                            .format(market.underlyingToken.decimals, true),
+                          symbol: market.underlyingToken.symbol,
+                        }}
+                        components={{ break: <br /> }}
+                      />
                     </Typography>
                   }
                   icon={
@@ -494,8 +501,8 @@ export const DepositModal = ({
               isConnectedToSafe
                 ? undefined
                 : isApprovedButton
-                  ? "Approved"
-                  : "Approve"
+                  ? t("marketDetails.borrower.modals.repay.approved")
+                  : t("marketDetails.borrower.modals.repay.approve")
             }
             secondBtnIcon={isApprovedButton && !isConnectedToSafe}
             mainBtnOnClick={handleDeposit}
@@ -630,7 +637,7 @@ export const DepositModal = ({
 
                   {minimumDeposit && (
                     <ModalDataItem
-                      title="Minimum Deposit"
+                      title={t("marketParameters.minimumDeposit.label")}
                       value={formatTokenWithCommas(minimumDeposit, {
                         withSymbol: true,
                       })}
@@ -676,10 +683,15 @@ export const DepositModal = ({
                   <DepositAlert
                     text={
                       <Typography variant="mobText3">
-                        This is a fixed-term market: funds are locked until{" "}
-                        <span style={{ textDecoration: "underline" }}>
-                          {formatDate(fixedTermMaturity || 0)}
-                        </span>{" "}
+                        <Trans
+                          i18nKey="marketDetails.lender.modals.deposit.alerts.fixedTermLockedUntil"
+                          values={{ date: formatDate(fixedTermMaturity || 0) }}
+                          components={{
+                            underline: (
+                              <span style={{ textDecoration: "underline" }} />
+                            ),
+                          }}
+                        />
                       </Typography>
                     }
                     icon={
@@ -700,7 +712,9 @@ export const DepositModal = ({
                   <DepositAlert
                     text={
                       <Typography variant="mobText3">
-                        The market can be repaid early to close
+                        {t(
+                          "marketDetails.lender.modals.deposit.alerts.canRepayEarly",
+                        )}
                       </Typography>
                     }
                     icon={
@@ -721,7 +735,9 @@ export const DepositModal = ({
                   <DepositAlert
                     text={
                       <Typography variant="mobText3">
-                        The market’s duration can be shorten
+                        {t(
+                          "marketDetails.lender.modals.deposit.alerts.canShortenDuration",
+                        )}
                       </Typography>
                     }
                     icon={
@@ -742,18 +758,16 @@ export const DepositModal = ({
                   <DepositAlert
                     text={
                       <Typography variant="mobText3">
-                        You have an existing allowance of{" "}
-                        {market.underlyingToken
-                          .getAmount(marketAccount.underlyingApproval)
-                          .format(market.underlyingToken.decimals, true)}{" "}
-                        for this market.
-                        <br />
-                        {market.underlyingToken.symbol} requires that allowances
-                        be reset to zero prior to being increased.
-                        <br />
-                        You will be prompted to execute two approval
-                        transactions to first reset and then increase the
-                        allowance for this market.
+                        <Trans
+                          i18nKey="marketDetails.lender.modals.deposit.alerts.resetAllowance"
+                          values={{
+                            allowance: market.underlyingToken
+                              .getAmount(marketAccount.underlyingApproval)
+                              .format(market.underlyingToken.decimals, true),
+                            symbol: market.underlyingToken.symbol,
+                          }}
+                          components={{ break: <br /> }}
+                        />
                       </Typography>
                     }
                     icon={
@@ -804,8 +818,8 @@ export const DepositModal = ({
               isConnectedToSafe
                 ? undefined
                 : isApprovedButton
-                  ? "Approved"
-                  : "Approve"
+                  ? t("marketDetails.borrower.modals.repay.approved")
+                  : t("marketDetails.borrower.modals.repay.approve")
             }
             secondBtnIcon={isApprovedButton && !isConnectedToSafe}
             mainBtnOnClick={handleDeposit}
