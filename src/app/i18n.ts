@@ -34,6 +34,11 @@ export default async function initTranslations(
     fallbackNS: namespaces[0],
     ns: namespaces,
     preload: resources ? [] : i18nConfig.locales,
+    interpolation: {
+      // React/JSX already escapes rendered values to prevent XSS; i18next's
+      // own escape produces double-encoded output (e.g. `/` -> `&#x2F;`).
+      escapeValue: false,
+    },
     saveMissing: isDev,
     missingKeyHandler: isDev
       ? (lngs, ns, key) => {

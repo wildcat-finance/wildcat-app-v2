@@ -557,7 +557,8 @@
       "transactions": {
         "ongoingWDs": {
           "button": "Go to Withdrawals",
-          "title": "Ongoing withdrawal requests ({{count}})"
+          "title_one": "There are {{count}} active withdrawal request from lenders in this market.",
+          "title_other": "There are {{count}} active withdrawal requests from lenders in this market."
         },
         "toBorrow": {
           "title": "Available To Borrow",
@@ -738,8 +739,10 @@
         "title": {
           "claim": "{{claimableAmount}} ready to claim",
           "noClaim": "You have nothing to claim right now.",
-          "ongoing": "Ongoing withdrawals ({{count}})",
-          "outstanding": "Outstanding withdrawals ({{count}})"
+          "ongoing_one": "{{count}} withdrawal in progress",
+          "ongoing_other": "{{count}} withdrawals in progress",
+          "outstanding_one": "{{count}} withdrawal outstanding",
+          "outstanding_other": "{{count}} withdrawals outstanding"
         }
       },
       "wrapDebtToken": {
@@ -853,40 +856,46 @@
     "marketEarlyClosure": {
       "label": "Fixed Term Closure Permitted",
       "na": {
-        "tooltip": "Market is Open Term, market can be terminated at any time."
+        "tooltip": "Market is Open Term, market can be terminated at any time.",
+        "text": "N/A"
       },
       "no": {
-        "tooltip": "Market can only be terminated after fixed duration maturity."
+        "tooltip": "Market can only be terminated after fixed duration maturity.",
+        "text": "No"
       },
       "yes": {
-        "tooltip": "Borrower can elect to terminate the market at any time."
+        "tooltip": "Borrower can elect to terminate the market at any time.",
+        "text": "Yes"
       }
     },
     "marketExpiry": "Loan Maturity",
     "marketMaturityReduction": {
       "label": "Fixed Term Maturity Reduction Permitted",
       "na": {
-        "tooltip": "No maturity to reduce in an Open Term setting."
+        "tooltip": "No maturity to reduce in an Open Term setting.",
+        "text": "N/A"
       },
       "no": {
-        "tooltip": "Maturity cannot be shortened from current value."
+        "tooltip": "Maturity cannot be shortened from current value.",
+        "text": "No"
       },
       "yes": {
-        "tooltip": "Borrower can elect to shorten Fixed Term duration."
+        "tooltip": "Borrower can elect to shorten Fixed Term duration.",
+        "text": "Yes"
       }
     },
     "marketTokenName": "Market Token",
     "marketTokenPrefix": "Market Token Symbol",
     "marketType": {
-      "fixedTerm": {
+      "label": "Market Type",
+      "FixedTerm": {
         "text": "Fixed Term",
         "tooltip": "Withdrawal requests are possible only after a fixed maturity date."
       },
-      "openTerm": {
+      "OpenTerm": {
         "text": "Open Term",
         "tooltip": "Withdrawal requests are possible at any time."
-      },
-      "label": "Market Type"
+      }
     },
     "maxBorrowingCapacity": "Max. Borrowing Capacity",
     "maximumGracePeriod": "Maximum Grace Period",

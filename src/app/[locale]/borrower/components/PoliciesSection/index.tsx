@@ -111,8 +111,8 @@ export const PoliciesSection = ({
           >
             <Typography variant="text3">
               {params.row.type === HooksKind.OpenTerm
-                ? t("marketParameters.marketType.openTerm.text")
-                : t("marketParameters.marketType.fixedTerm.text")}
+                ? t("marketParameters.marketType.OpenTerm.text")
+                : t("marketParameters.marketType.FixedTerm.text")}
             </Typography>
           </Link>
         ),
