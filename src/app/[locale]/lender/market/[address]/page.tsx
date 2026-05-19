@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
+import { MobileLenderBanner } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileLenderBanner"
 import { MobileMarketActions } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMarketActions"
 import { MobileMlaAlert } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaAlert"
 import { MobileMlaModal } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaModal/MobileMlaModal"
@@ -20,8 +21,11 @@ import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
 import { Footer } from "@/components/Footer"
+import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWalletDialog"
+import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
+import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { useGetMarket } from "@/hooks/useGetMarket"
@@ -31,6 +35,7 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useTokenWrapper } from "@/hooks/wrapper/useTokenWrapper"
 import { useWrapperForMarket } from "@/hooks/wrapper/useWrapperForMarket"
+import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import {
@@ -55,7 +60,13 @@ import { WrapDebtToken } from "./components/WrapDebtToken"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
-import { SectionContainer, SkeletonContainer, SkeletonStyle } from "./style"
+import {
+  LenderBannerWrapper,
+  PageColumn,
+  SectionContainer,
+  SkeletonContainer,
+  SkeletonStyle,
+} from "./style"
 import { getEffectiveLenderRole } from "./utils"
 
 export default function LenderMarketDetails({
@@ -67,6 +78,10 @@ export default function LenderMarketDetails({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const { isConnected } = useAccount()
+
+  const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false)
+  const openConnectDialog = () => setIsConnectDialogOpen(true)
+  const closeConnectDialog = () => setIsConnectDialogOpen(false)
 
   const searchParams = useSearchParams()
   const marketChainIdRaw = parseInt(searchParams.get("chainId") ?? "", 10)
@@ -492,6 +507,31 @@ export default function LenderMarketDetails({
             />
           )}
 
+          {!isConnected && (
+            <MobileLenderBanner
+              title="Connect Your Wallet"
+              subtitle="Connect a wallet to deposit into this market, view your position, and manage withdrawals."
+              buttonText="Connect Wallet"
+              onButtonClick={openConnectDialog}
+            />
+          )}
+
+          {isConnected && !authorizedInMarket && (
+            <MobileLenderBanner
+              title="Lend through Wildcat"
+              subtitle="Interested in lending through Wildcat? Click in the link below to connect with this borrower!"
+              buttonText="Leave a Request"
+              href={`${ROUTES.lender.profile}/${market.borrower.toLowerCase()}`}
+            />
+          )}
+
+          {!isConnected && (
+            <MobileConnectWallet
+              open={isConnectDialogOpen}
+              handleClose={closeConnectDialog}
+            />
+          )}
+
           {(authorizedInMarket || isDifferentChain) && (
             <MobileMarketActions
               marketAccount={marketAccount}
@@ -511,15 +551,49 @@ export default function LenderMarketDetails({
     )
 
   return (
-    <Box>
-      <Box>
+    <Box sx={PageColumn}>
+      <Box sx={PageColumn}>
+        {!isConnected && (
+          <Box sx={LenderBannerWrapper}>
+            <LeadBanner
+              title="Connect Your Wallet"
+              subtitle="Connect a wallet to deposit into this market, view your position, and manage withdrawals."
+              buttonText="Connect Wallet"
+              buttonOnClick={openConnectDialog}
+            />
+          </Box>
+        )}
+
+        {isConnected && !authorizedInMarket && (
+          <Box sx={LenderBannerWrapper}>
+            <LeadBanner
+              title="Lend through Wildcat"
+              subtitle="Interested in lending through Wildcat? Click in the link below to connect with this borrower!"
+              buttonText="Leave a Request"
+              buttonLink={{
+                isExternal: false,
+                url: `${
+                  ROUTES.lender.profile
+                }/${market.borrower.toLowerCase()}`,
+              }}
+            />
+          </Box>
+        )}
+
+        {!isConnected && (
+          <ConnectWalletDialog
+            open={isConnectDialogOpen}
+            handleClose={closeConnectDialog}
+          />
+        )}
+
         <MarketHeader marketAccount={marketAccount} />
 
         {isDifferentChain && (
           <SwitchChainAlert desiredChainId={market?.chainId} />
         )}
 
-        <Box sx={SectionContainer(theme, isDifferentChain)}>
+        <Box sx={SectionContainer(theme)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (
             <Box>
               {authorizedInMarket && !isDifferentChain && (
