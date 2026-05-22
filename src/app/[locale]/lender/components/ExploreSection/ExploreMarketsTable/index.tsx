@@ -65,6 +65,7 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import { compareByHighestYield } from "@/utils/marketSort"
 import { getMarketStatusChip, isExploreVisible } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -210,7 +211,7 @@ export const ExploreMarketsTable = () => {
 
     const sorted = [...onboardFiltered].sort((a, b) => {
       if (sortMode === "Highest Yield") {
-        return b.market.annualInterestBips - a.market.annualInterestBips
+        return compareByHighestYield(a, b)
       }
       if (sortMode === "Most Liquid") {
         const capA = a.market.maxTotalSupply.sub(a.market.totalSupply)

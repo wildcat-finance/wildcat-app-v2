@@ -15,7 +15,8 @@ import {
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { formatBps, trimAddress } from "@/utils/formatters"
-import { isExploreVisible } from "@/utils/marketStatus"
+import { compareByCurrentAprBestInMarket } from "@/utils/marketSort"
+import { isExploreVisible, isMarketHealthy } from "@/utils/marketStatus"
 
 import {
   TrendingMarketCard,
@@ -238,10 +239,10 @@ export const TrendingMarketsCarousel = () => {
       return big > ZERO ? big : undefined
     })
 
-    const aprWinner = pickMax(
-      eligible,
-      (account) => account.market.annualInterestBips,
-    )
+    const healthyEligible = eligible.filter((a) => isMarketHealthy(a.market))
+    const aprWinner = [...healthyEligible].sort(
+      compareByCurrentAprBestInMarket,
+    )[0]
 
     const tvlWinner = pickMax(eligible, (account) => {
       const big = account.market.totalSupply.raw.toBigInt()

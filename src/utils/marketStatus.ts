@@ -34,6 +34,13 @@ export const isExploreVisible = (market: Market): boolean =>
     ),
   ) && market.maxTotalSupply.gt(market.totalSupply)
 
+export const isMarketHealthy = (market: Market): boolean =>
+  getMarketStatus(
+    market.isClosed,
+    market.isDelinquent || market.willBeDelinquent,
+    market.isIncurringPenalties,
+  ) === MarketStatus.HEALTHY
+
 export const getMarketStatusChip = (market: Market) => {
   const delinquencyPeriod =
     market.timeDelinquent > market.delinquencyGracePeriod
