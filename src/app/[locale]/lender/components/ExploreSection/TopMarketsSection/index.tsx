@@ -45,6 +45,10 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import {
+  compareByHighestYield,
+  compareByShortestWithdrawalCycle,
+} from "@/utils/marketSort"
 import { getMarketStatusChip, isExploreVisible } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -161,12 +165,10 @@ export const TopMarketsSection = () => {
 
     const sorted = [...active].sort((a, b) => {
       if (sortMode === "Highest Yield") {
-        return b.market.annualInterestBips - a.market.annualInterestBips
+        return compareByHighestYield(a, b)
       }
       if (sortMode === "Shortest Withdrawal Cycle") {
-        return (
-          a.market.withdrawalBatchDuration - b.market.withdrawalBatchDuration
-        )
+        return compareByShortestWithdrawalCycle(a, b)
       }
       return tokenAmountComparator(b.market.totalSupply, a.market.totalSupply)
     })
