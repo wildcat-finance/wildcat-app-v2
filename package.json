@@ -2,6 +2,11 @@
   "name": "wildcat-app-v2",
   "version": "2.17.0",
   "private": true,
+  "packageManager": "npm@11.12.0",
+  "engines": {
+    "node": ">=22.22.1 <23",
+    "npm": "11.12.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
