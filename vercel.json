@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "node scripts/check-exact-versions.mjs && npm ci --ignore-scripts --audit=false --fund=false",
+  "buildCommand": "npx --no -- puppeteer browsers install chrome && npm run build"
+}
