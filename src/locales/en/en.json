@@ -403,6 +403,10 @@
         "FixedTerm": {
           "text": "Fixed Term",
           "tooltip": "Withdrawal requests are possible only after a fixed maturity date."
+        },
+        "PeriodicTerm": {
+          "text": "Periodic Term",
+          "tooltip": "Withdrawal requests are possible during scheduled withdrawal windows."
         }
       },
       "marketExpiry": "Loan Maturity",
@@ -682,7 +686,8 @@
             "tooltip": "Select the nature of the market: open (lenders can make withdrawal requests at any time) or fixed (withdrawal requests only possible after a fixed maturity date).",
             "options": {
               "standard": "Open Term Loan",
-              "fixedTerm": "Fixed Term Loan"
+              "fixedTerm": "Fixed Term Loan",
+              "periodicTerm": "Periodic Term Loan"
             }
           },
           "marketAsset": {
@@ -843,7 +848,8 @@
   },
   "policyType": {
     "OpenTerm": "Open Term (no withdrawal constraints)",
-    "FixedTerm": "Fixed Term (withdrawals post-maturity)"
+    "FixedTerm": "Fixed Term (withdrawals post-maturity)",
+    "PeriodicTerm": "Periodic Term (scheduled withdrawal windows)"
   },
   "editPolicy": {
     "title": "Edit Policy",

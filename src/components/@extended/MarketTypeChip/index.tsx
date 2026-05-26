@@ -15,6 +15,13 @@ const ClockIcon = () => (
   </SvgIcon>
 )
 
+const MARKET_TYPE_LABELS: Record<HooksKind, string> = {
+  [HooksKind.OpenTerm]: "Open Term",
+  [HooksKind.FixedTerm]: "Fixed Term",
+  [HooksKind.PeriodicTerm]: "Periodic Term",
+  [HooksKind.Unknown]: "Unknown Term",
+}
+
 export const MarketTypeChip = ({
   type,
   kind,
@@ -28,7 +35,6 @@ export const MarketTypeChip = ({
     }).replace(/[^\d.]/g, ""),
   )
 
-  const isOpenTerm = kind === HooksKind.OpenTerm
   const suffix = fixedPeriod && fixedPeriod > 0 ? "left" : "ago"
   const chipTimeLabel =
     daysLeft > 7
@@ -38,6 +44,7 @@ export const MarketTypeChip = ({
           largest: 1,
         })} ${suffix}`
 
+  const isFixedTerm = kind === HooksKind.FixedTerm
   let additionalChipConfig
 
   if (daysLeft > 7) {
@@ -58,7 +65,7 @@ export const MarketTypeChip = ({
   if (type === "table")
     return (
       <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-        {!isOpenTerm && (
+        {isFixedTerm && (
           <SvgIcon
             sx={{
               fontSize: "11px",
@@ -71,7 +78,7 @@ export const MarketTypeChip = ({
         )}
 
         <Typography variant={isMobile ? "mobText4" : "text3"}>
-          {isOpenTerm ? "Open Term" : chipTimeLabel}
+          {isFixedTerm ? chipTimeLabel : MARKET_TYPE_LABELS[kind]}
         </Typography>
       </Box>
     )
@@ -80,7 +87,7 @@ export const MarketTypeChip = ({
     <Box sx={{ display: "flex", gap: "4px 2px", flexWrap: "wrap" }}>
       <Chip
         icon={<ClockIcon />}
-        label={kind === HooksKind.OpenTerm ? "Open Term" : "Fixed Term"}
+        label={MARKET_TYPE_LABELS[kind]}
         sx={{
           backgroundColor: COLORS.blackHaze,
           color:
@@ -88,7 +95,7 @@ export const MarketTypeChip = ({
         }}
       />
 
-      {fixedPeriod && (
+      {isFixedTerm && fixedPeriod !== undefined && (
         <Chip
           label={additionalChipConfig.label}
           // icon={additionalChipConfig.icon}

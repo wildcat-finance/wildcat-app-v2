@@ -5,6 +5,7 @@ import {
   FixedTermHooks,
   HooksInstance,
   OpenTermHooks,
+  PeriodicTermHooks,
 } from "@wildcatfi/wildcat-sdk/dist/access"
 
 import { toastRequest, ToastRequestConfig } from "@/components/Toasts"
@@ -66,7 +67,8 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         console.log(addLenders)
         if (
           policy instanceof OpenTermHooks ||
-          policy instanceof FixedTermHooks
+          policy instanceof FixedTermHooks ||
+          policy instanceof PeriodicTermHooks
         ) {
           console.log(`adding lenders to v2 policy`)
           const tx = policy.populateAddLenders(
@@ -101,7 +103,8 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         console.log(`policy address: ${policy.contract.address}`)
         if (
           policy instanceof OpenTermHooks ||
-          policy instanceof FixedTermHooks
+          policy instanceof FixedTermHooks ||
+          policy instanceof PeriodicTermHooks
         ) {
           const tx = policy.populateBlockLenders(removeLenders)
           txs.push({

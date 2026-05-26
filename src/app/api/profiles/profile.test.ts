@@ -13,6 +13,7 @@ import { RequestInit } from "next/dist/server/web/spec-extension/request"
 import { NextRequest } from "next/server"
 // import { Body, createMocks, createRequest } from "node-mocks-http"
 
+import { getLoginSignatureMessage } from "@/config/api"
 import { TargetChainId, TargetNetwork } from "@/config/network"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { prisma } from "@/lib/db"
@@ -59,14 +60,32 @@ import {
   GET as getMlaTemplates,
 } from "../mla/templates/route"
 
+const withDefaultChainId = (body: unknown) => {
+  if (body && typeof body === "object" && !Array.isArray(body)) {
+    return {
+      chainId: TargetChainId,
+      ...body,
+    }
+  }
+  return body
+}
+
+const withDefaultChainIdParam = (path: string) => {
+  const url = new URL(`http://localhost:3000${path}`)
+  if (!url.searchParams.has("chainId")) {
+    url.searchParams.set("chainId", `${TargetChainId}`)
+  }
+  return url
+}
+
 export const mockPut = (
   path: string,
   body: unknown = null,
   otherOptions: Omit<RequestInit, "body"> = {},
 ): NextRequest =>
-  new NextRequest(`http://localhost:3000${path}`, {
+  new NextRequest(withDefaultChainIdParam(path), {
     method: "PUT",
-    body: body ? JSON.stringify(body) : null,
+    body: body ? JSON.stringify(withDefaultChainId(body)) : null,
     ...otherOptions,
   })
 
@@ -74,7 +93,7 @@ export const mockHead = (
   path: string,
   otherOptions: RequestInit = {},
 ): NextRequest =>
-  new NextRequest(`http://localhost:3000${path}`, {
+  new NextRequest(withDefaultChainIdParam(path), {
     method: "HEAD",
     ...otherOptions,
   })
@@ -84,16 +103,16 @@ export const mockPost = (
   body: unknown = null,
   otherOptions: Omit<RequestInit, "body"> = {},
 ): NextRequest =>
-  new NextRequest(`http://localhost:3000${path}`, {
+  new NextRequest(withDefaultChainIdParam(path), {
     method: "POST",
-    body: body ? JSON.stringify(body) : null,
+    body: body ? JSON.stringify(withDefaultChainId(body)) : null,
     ...otherOptions,
   })
 export const mockGet = (
   path: string,
   otherOptions: RequestInit = {},
 ): NextRequest =>
-  new NextRequest(`http://localhost:3000${path}`, {
+  new NextRequest(withDefaultChainIdParam(path), {
     method: "GET",
     ...otherOptions,
   })
@@ -214,18 +233,18 @@ const lenderFields: MlaTemplateField[] = [
   { source: "lender.address", placeholder: "Insert Lender Address" },
 ]
 
+const nowSeconds = () => Math.floor(Date.now() / 1000)
+
+process.env.SECRET_KEY ??= "test-secret"
+
 describe("API", () => {
   const privateKey = randomBytes(32)
   const adminPrivateKey = randomBytes(32)
 
-  const provider = getProviderForServer()
+  const provider = getProviderForServer(TargetChainId)
   const wallet = new Wallet(privateKey, provider)
   const adminWallet = new Wallet(adminPrivateKey, provider)
   const otherWallet = Wallet.createRandom({ provider })
-  const realWallet = new Wallet(
-    process.env.TEST_BORROWER_PRIVATE_KEY as `0x${string}`,
-    provider,
-  )
   const borrowerAddress = wallet.address as `0x${string}`
   let adminToken: string = ""
   let borrowerToken: string = ""
@@ -246,15 +265,17 @@ describe("API", () => {
         })
       }
     }
-    const timeSigned = Date.now()
-    const LoginMessage = `Connect to wildcat.finance as account ${walletToUse.address.toLowerCase()}\nDate: ${dayjs(
+    const timeSigned = nowSeconds()
+    const LoginMessage = getLoginSignatureMessage(
+      walletToUse.address,
       timeSigned,
-    ).format("MMMM DD, YYYY")}`
+    )
     const signature = await walletToUse.signMessage(LoginMessage)
     const req = mockPost("/api/auth/login", {
       address: walletToUse.address,
       signature,
       timeSigned,
+      chainId: TargetChainId,
     } as LoginInput)
     const response = await postLogin(req)
     expect(response.status).toEqual(200)
@@ -291,7 +312,8 @@ describe("API", () => {
       const req = mockPost("/api/auth/login", {
         address: borrowerAddress,
         signature: "0x",
-        timeSigned: Date.now(),
+        timeSigned: nowSeconds(),
+        chainId: TargetChainId,
       })
       const response = await postLogin(req)
       expect(response.status).toBe(400)
@@ -299,15 +321,17 @@ describe("API", () => {
     })
 
     test("[POST] Succeeds with ECDSA signature", async () => {
-      const timeSigned = Date.now()
-      const LoginMessage = `Connect to wildcat.finance as account ${adminWallet.address.toLowerCase()}\nDate: ${dayjs(
+      const timeSigned = nowSeconds()
+      const LoginMessage = getLoginSignatureMessage(
+        adminWallet.address,
         timeSigned,
-      ).format("MMMM DD, YYYY")}`
+      )
       const signature = await adminWallet.signMessage(LoginMessage)
       const req = mockPost("/api/auth/login", {
         address: adminWallet.address,
         signature,
         timeSigned,
+        chainId: TargetChainId,
       } as LoginInput)
       const response = await postLogin(req)
       expect(response.status).toBe(200)
@@ -319,7 +343,11 @@ describe("API", () => {
   // describe("/api/invite", () => {
   describe("[POST] /api/invite", () => {
     test("[POST] Fails if not admin", async () => {
-      const req = mockPost("/api/invite", invite)
+      const req = mockPost("/api/invite", invite, {
+        headers: {
+          Authorization: `Bearer ${borrowerToken}`,
+        },
+      })
       const response = await postBorrowerInvite(req)
       expect(response.status).toBe(403)
       expect(await response.json()).toEqual({ error: "Forbidden" })
@@ -408,6 +436,7 @@ describe("API", () => {
           address: borrowerAddress.toLowerCase(),
           chainId: TargetChainId,
           name: "Borrower 1",
+          registeredOnChain: false,
           timeInvited: expect.any(String),
         },
       })
@@ -430,6 +459,7 @@ describe("API", () => {
           address: borrowerAddress.toLowerCase(),
           chainId: TargetChainId,
           name: "Borrower 1",
+          registeredOnChain: false,
           timeInvited: expect.any(String),
         },
       })
@@ -459,9 +489,9 @@ describe("API", () => {
       const response = await getBorrowerInvite(req, {
         params: { address: borrowerAddress },
       })
-      expect(response.status).toBe(401)
+      expect(response.status).toBe(403)
       expect(await response.json()).toEqual({
-        error: "Unauthorized",
+        error: "Forbidden",
       })
     })
   })
@@ -685,60 +715,72 @@ describe("API", () => {
         },
       })
     }
-    test("Create a new MLA for a given market", async () => {
-      const marketAddress = "0xbab3e079d3f28a58a14e316dcb15a8b2cc25ca80"
-      await clearMla(marketAddress)
-      await resetMlaTemplate()
-      const mlaTemplate = await prisma.mlaTemplate.findFirst()
-      if (!mlaTemplate) {
-        throw new Error("No MLA template found")
-      }
+    const testWithBorrowerKey = process.env.TEST_BORROWER_PRIVATE_KEY
+      ? test
+      : test.skip
 
-      const market = await Market.getMarket(
-        TargetChainId,
-        marketAddress,
-        provider,
-      ).catch(async () => {
-        const lens = getLensV2Contract(TargetChainId, provider)
-        return Market.fromMarketDataV2(
-          TargetChainId,
+    testWithBorrowerKey(
+      "Create a new MLA for a given market",
+      async () => {
+        const realWallet = new Wallet(
+          process.env.TEST_BORROWER_PRIVATE_KEY as `0x${string}`,
           provider,
-          await lens.getMarketData(marketAddress),
         )
-      })
-      const borrowerProfile = await prisma.borrower.findFirst({
-        where: {
-          address: realWallet.address.toLowerCase(),
-        },
-      })
-      const timeSigned = Date.now()
+        const marketAddress = "0xbab3e079d3f28a58a14e316dcb15a8b2cc25ca80"
+        await clearMla(marketAddress)
+        await resetMlaTemplate()
+        const mlaTemplate = await prisma.mlaTemplate.findFirst()
+        if (!mlaTemplate) {
+          throw new Error("No MLA template found")
+        }
 
-      const values = getFieldValuesForBorrower({
-        market,
-        borrowerInfo: borrowerProfile as BasicBorrowerInfo,
-        networkData: TargetNetwork,
-        timeSigned,
-        lastSlaUpdateTime: +lastSlaUpdateTime,
-        asset: market.underlyingToken,
-      })
-      const filledTemplate = fillInMlaTemplate(
-        mlaTemplate as unknown as MlaTemplate,
-        values,
-      )
-      const signature = await realWallet.signMessage(filledTemplate.plaintext)
-      const req = mockPost(`/api/mla/${market.address}`, {
-        mlaTemplate: mlaTemplate.id,
-        timeSigned,
-        signature,
-      })
-      const response = await postMla(req, {
-        params: { market: market.address },
-      })
-      expect(response.status).toBe(200)
-      expect(await response.json()).toEqual({
-        success: true,
-      })
-    }, 30_000)
+        const market = await Market.getMarket(
+          TargetChainId,
+          marketAddress,
+          provider,
+        ).catch(async () => {
+          const lens = getLensV2Contract(TargetChainId, provider)
+          return Market.fromMarketDataV2(
+            TargetChainId,
+            provider,
+            await lens.getMarketData(marketAddress),
+          )
+        })
+        const borrowerProfile = await prisma.borrower.findFirst({
+          where: {
+            address: realWallet.address.toLowerCase(),
+          },
+        })
+        const timeSigned = Date.now()
+
+        const values = getFieldValuesForBorrower({
+          market,
+          borrowerInfo: borrowerProfile as BasicBorrowerInfo,
+          networkData: TargetNetwork,
+          timeSigned,
+          lastSlaUpdateTime: +lastSlaUpdateTime,
+          asset: market.underlyingToken,
+        })
+        const filledTemplate = fillInMlaTemplate(
+          mlaTemplate as unknown as MlaTemplate,
+          values,
+        )
+        const signature = await realWallet.signMessage(filledTemplate.plaintext)
+        const req = mockPost(`/api/mla/${market.address}`, {
+          mlaTemplate: mlaTemplate.id,
+          timeSigned,
+          signature,
+        })
+        const response = await postMla(req, {
+          params: { market: market.address },
+        })
+        expect(response.status).toBe(200)
+        expect(await response.json()).toEqual({
+          success: true,
+        })
+      },
+      30_000,
+    )
   })
 
   describe("[GET] /api/mla/templates", () => {

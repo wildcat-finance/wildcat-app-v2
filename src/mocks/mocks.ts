@@ -16,14 +16,25 @@ const MOCK = [
   },
 ]
 
+export const createMarketTypeValues = {
+  standard: "standard",
+  fixedTerm: "fixedTerm",
+  periodicTerm: "periodicTerm",
+} as const
+
+export const mockedPeriodicMarketType = {
+  label: "Periodic Term Loan",
+  value: createMarketTypeValues.periodicTerm,
+}
+
 export const mockedMarketTypes = [
   {
     label: "Open Term Loan",
-    value: "standard",
+    value: createMarketTypeValues.standard,
   },
   {
     label: "Fixed Term Loan",
-    value: "fixedTerm",
+    value: createMarketTypeValues.fixedTerm,
   },
 ]
 
