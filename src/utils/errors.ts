@@ -53,7 +53,8 @@ export const SDK_ERRORS_MAPPING: SDKErrorsMapping = {
     InsufficientBalance:
       "You don't have enough of the market token in your wallet",
     MarketInClosedTerm: "Market is in closed term",
-    WithdrawalWindowClosed: "Withdrawal window is currently closed",
+    WithdrawalWindowClosed:
+      "Withdrawals are only available during this market's withdrawal window",
     RequiresAccess: "Lender lacks the necessary credentials to withdraw",
   },
 

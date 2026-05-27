@@ -1128,6 +1128,7 @@
         "button": "Deposit",
         "title": "Available To Deposit",
         "tooltip": "The amount of the underlying asset held by the address you are connected with.",
+        "periodicWindowNotice": "This is a periodic market: withdrawal requests are only available during scheduled withdrawal windows.",
         "modal": {
           "title": "Deposit",
           "available": "Available To Deposit",
@@ -1139,6 +1140,11 @@
         "buttonLocked": "Fixed Term",
         "title": "Available For Withdraw Requests",
         "tooltip": "The amount of underlying asset debt that the address you are connected with is able to request a withdrawal for. Note that if this market is still in a Fixed Term state (see maturity below), you are unable to make withdrawal requests.",
+        "periodicTooltip": "The amount of underlying asset debt that the connected address can request for withdrawal. Periodic markets accept withdrawal requests only during scheduled withdrawal windows.",
+        "periodicWindow": {
+          "closed": "Withdrawals are only available during this market's withdrawal window.",
+          "nextStart": "Next window starts: {{date}}"
+        },
         "modal": {
           "title": "Withdraw",
           "available": "Available For Withdraw Requests",

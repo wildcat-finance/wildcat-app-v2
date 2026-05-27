@@ -16,6 +16,10 @@ import { useMarketMla } from "@/hooks/useMarketMla"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
+import {
+  formatPeriodicWithdrawalWindowStart,
+  isPeriodicWithdrawalWindowClosed,
+} from "@/utils/periodicWithdrawalWindow"
 
 export type MobileMarketActionsProps = {
   marketAccount: MarketAccount
@@ -135,6 +139,33 @@ export const MobileMarketActions = ({
     market.hooksConfig?.kind === HooksKind.FixedTerm &&
     market.hooksConfig?.fixedTermEndTime !== undefined &&
     market.hooksConfig.fixedTermEndTime * 1000 >= Date.now()
+  const periodicWindowClosed = isPeriodicWithdrawalWindowClosed(market)
+  const nextPeriodicWindowStart = market.nextPeriodicWithdrawalWindowStart
+  let withdrawTooltip = t("lenderMarketDetails.transactions.withdraw.tooltip")
+
+  if (market.periodicHooksConfig) {
+    withdrawTooltip = t(
+      "lenderMarketDetails.transactions.withdraw.periodicTooltip",
+    )
+  }
+
+  if (periodicWindowClosed) {
+    const nextWindowStartText = nextPeriodicWindowStart
+      ? t(
+          "lenderMarketDetails.transactions.withdraw.periodicWindow.nextStart",
+          {
+            date: formatPeriodicWithdrawalWindowStart(nextPeriodicWindowStart),
+          },
+        )
+      : undefined
+
+    withdrawTooltip = [
+      t("lenderMarketDetails.transactions.withdraw.periodicWindow.closed"),
+      nextWindowStartText,
+    ]
+      .filter(Boolean)
+      .join(" ")
+  }
 
   const hideDeposit =
     market.isClosed ||
@@ -283,7 +314,7 @@ export const MobileMarketActions = ({
               <MobileMarketTransactionItem
                 // title={t("lenderMarketDetails.transactions.withdraw.title")}
                 title="Available To Withdraw"
-                tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
+                tooltip={withdrawTooltip}
                 amount={formatTokenWithCommas(marketAccount.marketBalance)}
                 asset={market.underlyingToken.symbol}
               />

@@ -24,6 +24,7 @@ import { TxModalDialog } from "@/app/[locale]/borrower/market/[address]/componen
 import { useWithdraw } from "@/app/[locale]/lender/market/[address]/hooks/useWithdraw"
 import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
 import { NumberTextField } from "@/components/NumberTextfield"
+import { PeriodicWithdrawalWindowNotice } from "@/components/PeriodicWithdrawalWindowNotice"
 import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
@@ -31,6 +32,7 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
+import { isPeriodicWithdrawalWindowClosed } from "@/utils/periodicWithdrawalWindow"
 
 import { WithdrawModalProps } from "./interface"
 
@@ -49,6 +51,7 @@ export const WithdrawModal = ({
     market.hooksConfig?.kind === HooksKind.FixedTerm &&
     market.hooksConfig?.fixedTermEndTime !== undefined &&
     market.hooksConfig.fixedTermEndTime * 1000 >= Date.now()
+  const periodicWindowClosed = isPeriodicWithdrawalWindowClosed(market)
 
   const [amount, setAmount] = useState("")
   const [maxAmount, setMaxAmount] = useState<TokenAmount>()
@@ -123,6 +126,7 @@ export const WithdrawModal = ({
 
   const disableWithdraw =
     !!error ||
+    periodicWindowClosed ||
     marketAccount.marketBalance.eq(0) ||
     withdrawAmount.gt(marketAccount.marketBalance) ||
     withdrawAmount.eq(0)
@@ -237,6 +241,11 @@ export const WithdrawModal = ({
                     }`}
               </Typography>
             </Typography>
+
+            <PeriodicWithdrawalWindowNotice
+              market={market}
+              sx={{ marginTop: "12px" }}
+            />
 
             <Box>
               <NumberTextField
@@ -371,6 +380,11 @@ export const WithdrawModal = ({
                   padding: "0 12px",
                   margin: "16px 0 20px",
                 }}
+              />
+
+              <PeriodicWithdrawalWindowNotice
+                market={market}
+                sx={{ marginBottom: "20px" }}
               />
 
               <Box>

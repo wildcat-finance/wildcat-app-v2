@@ -24,6 +24,7 @@ import { DepositAlert } from "@/components/DepositAlert"
 import { LinkGroup } from "@/components/LinkComponent"
 import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
 import { NumberTextField } from "@/components/NumberTextfield"
+import { PeriodicWithdrawalWindowNotice } from "@/components/PeriodicWithdrawalWindowNotice"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
@@ -445,6 +446,11 @@ export const DepositModal = ({
                 />
               )}
 
+              <PeriodicWithdrawalWindowNotice
+                market={market}
+                variant="deposit"
+              />
+
               {mustResetAllowance && (
                 <DepositAlert
                   text={
@@ -741,6 +747,11 @@ export const DepositModal = ({
                     }
                   />
                 )}
+
+                <PeriodicWithdrawalWindowNotice
+                  market={market}
+                  variant="deposit"
+                />
 
                 {mustResetAllowance && (
                   <DepositAlert
