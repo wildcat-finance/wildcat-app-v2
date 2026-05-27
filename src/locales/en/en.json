@@ -407,14 +407,40 @@
         "PeriodicTerm": {
           "text": "Periodic Term",
           "tooltip": "Withdrawal requests are possible during scheduled withdrawal windows."
+        },
+        "Unknown": {
+          "text": "Unknown",
+          "tooltip": "Market hook type could not be determined."
         }
       },
       "marketExpiry": "Loan Maturity",
+      "periodicTerm": {
+        "firstWindowStart": "First Withdrawal Window",
+        "periodDuration": "Withdrawal Period",
+        "withdrawalWindowDuration": "Withdrawal Window",
+        "currentWindowStart": "Current Window Start",
+        "nextWindowStart": "Next Withdrawal Window",
+        "windowStatus": {
+          "label": "Withdrawal Window Status",
+          "open": {
+            "text": "Open",
+            "tooltip": "Lenders can request withdrawals during the current scheduled withdrawal window."
+          },
+          "scheduled": {
+            "text": "Closed",
+            "tooltip": "Lenders can request withdrawals when the next scheduled withdrawal window opens."
+          },
+          "closed": {
+            "text": "Closed",
+            "tooltip": "The periodic term has been closed."
+          }
+        }
+      },
       "marketEarlyClosure": {
         "label": "Fixed Term Closure Permitted",
         "na": {
           "text": "N/A",
-          "tooltip": "Market is Open Term, market can be terminated at any time."
+          "tooltip": "This setting applies only to Fixed Term markets."
         },
         "no": {
           "text": "No",
@@ -429,7 +455,7 @@
         "label": "Fixed Term Maturity Reduction Permitted",
         "na": {
           "text": "N/A",
-          "tooltip": "No maturity to reduce in an Open Term setting."
+          "tooltip": "This setting applies only to Fixed Term markets."
         },
         "no": {
           "text": "No",
@@ -849,7 +875,8 @@
   "policyType": {
     "OpenTerm": "Open Term (no withdrawal constraints)",
     "FixedTerm": "Fixed Term (withdrawals post-maturity)",
-    "PeriodicTerm": "Periodic Term (scheduled withdrawal windows)"
+    "PeriodicTerm": "Periodic Term (scheduled withdrawal windows)",
+    "Unknown": "Unknown Term"
   },
   "editPolicy": {
     "title": "Edit Policy",

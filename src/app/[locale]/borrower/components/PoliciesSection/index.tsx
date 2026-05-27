@@ -37,7 +37,7 @@ export type TypeSafeColDef<T> = GridColDef & { field: keyof T }
 export type PolicyDataT = {
   id: string
   name: string
-  type: string
+  type: HooksKind
   accessRequirements: string
   markets: { name: string; address: string }[]
 }
@@ -109,9 +109,7 @@ export const PoliciesSection = ({
           style={{ ...LinkCell, justifyContent: "flex-start" }}
         >
           <Typography variant="text3">
-            {params.row.type === HooksKind.OpenTerm
-              ? "Open Term"
-              : "Fixed Term"}
+            {t(`policyType.${params.row.type}`)}
           </Typography>
         </Link>
       ),

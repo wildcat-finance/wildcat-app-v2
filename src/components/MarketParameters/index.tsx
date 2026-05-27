@@ -35,6 +35,16 @@ import {
 import { ParametersItem } from "../ParametersItem"
 import { TooltipButton } from "../TooltipButton"
 
+const DAY_SECONDS = 86_400
+
+const formatPeriodicDateTime = (timestamp: number) =>
+  dayjs.unix(timestamp).utc().format("D MMM YYYY, HH:mm [UTC]")
+
+const formatPeriodicDuration = (seconds: number) => {
+  const days = Number((seconds / DAY_SECONDS).toFixed(5))
+  return `${days} day${days === 1 ? "" : "s"}`
+}
+
 const WrapperChip = ({ hasWrapper }: { hasWrapper?: boolean }) => (
   <Box
     sx={{
@@ -290,7 +300,7 @@ export const MarketParameters = ({
     return undefined
   })()
 
-  const { hooksConfig } = market
+  const { hooksConfig, periodicHooksConfig } = market
   const depositAccess =
     hooksConfig?.depositRequiresAccess === false ? "open" : "restricted"
 
@@ -344,6 +354,15 @@ export const MarketParameters = ({
   } else {
     earlyMaturity = "no"
   }
+
+  const periodicWindowStatus = (() => {
+    if (!periodicHooksConfig) return undefined
+    if (periodicHooksConfig.periodicTermClosed) return "closed"
+    return market.isPeriodicWithdrawalWindowOpen ? "open" : "scheduled"
+  })()
+
+  const periodicWindowStartLabel =
+    periodicWindowStatus === "open" ? "currentWindowStart" : "nextWindowStart"
 
   const adsMarketParameter = getAdsMarketParameterComponent(market.address)
 
@@ -514,6 +533,66 @@ export const MarketParameters = ({
                       market.hooksConfig.fixedTermEndTime,
                     )} 00:00 UTC`}
                   />
+                </>
+              )}
+              {periodicHooksConfig && (
+                <>
+                  <Divider sx={{ margin: "12px 0 12px" }} />
+                  <ParametersItem
+                    title={t(
+                      "borrowerMarketDetails.parameters.periodicTerm.firstWindowStart",
+                    )}
+                    value={formatPeriodicDateTime(
+                      periodicHooksConfig.firstWithdrawalWindowStart,
+                    )}
+                  />
+                  <Divider sx={{ margin: "12px 0 12px" }} />
+                  <ParametersItem
+                    title={t(
+                      "borrowerMarketDetails.parameters.periodicTerm.periodDuration",
+                    )}
+                    value={formatPeriodicDuration(
+                      periodicHooksConfig.periodDuration,
+                    )}
+                  />
+                  <Divider sx={{ margin: "12px 0 12px" }} />
+                  <ParametersItem
+                    title={t(
+                      "borrowerMarketDetails.parameters.periodicTerm.withdrawalWindowDuration",
+                    )}
+                    value={formatPeriodicDuration(
+                      periodicHooksConfig.withdrawalWindowDuration,
+                    )}
+                  />
+                  {periodicWindowStatus && (
+                    <>
+                      <Divider sx={{ margin: "12px 0 12px" }} />
+                      <ParametersItem
+                        title={t(
+                          "borrowerMarketDetails.parameters.periodicTerm.windowStatus.label",
+                        )}
+                        value={t(
+                          `borrowerMarketDetails.parameters.periodicTerm.windowStatus.${periodicWindowStatus}.text`,
+                        )}
+                        valueTooltipText={t(
+                          `borrowerMarketDetails.parameters.periodicTerm.windowStatus.${periodicWindowStatus}.tooltip`,
+                        )}
+                      />
+                    </>
+                  )}
+                  {market.nextPeriodicWithdrawalWindowStart && (
+                    <>
+                      <Divider sx={{ margin: "12px 0 12px" }} />
+                      <ParametersItem
+                        title={t(
+                          `borrowerMarketDetails.parameters.periodicTerm.${periodicWindowStartLabel}`,
+                        )}
+                        value={formatPeriodicDateTime(
+                          market.nextPeriodicWithdrawalWindowStart,
+                        )}
+                      />
+                    </>
+                  )}
                 </>
               )}
               <Divider sx={{ margin: "12px 0 12px" }} />

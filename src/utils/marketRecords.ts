@@ -7,6 +7,9 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 
+const SECONDS_PER_DAY = 86_400
+const MAX_PERIODIC_TERM_DECIMALS = 5
+
 const formatAmountDisplay = (
   tokenAmount: Parameters<typeof formatTokenWithCommas>[0],
 ) => formatTokenWithCommas(tokenAmount, { withSymbol: true })
@@ -14,6 +17,26 @@ const formatAmountDisplay = (
 const formatAmountRaw = (
   tokenAmount: Parameters<typeof formatTokenWithCommas>[0],
 ) => `${tokenAmount.format(tokenAmount.decimals)} ${tokenAmount.symbol}`
+
+const formatDurationDays = (seconds: number) => {
+  const days = seconds / SECONDS_PER_DAY
+  const formatted = days.toLocaleString("en-US", {
+    maximumFractionDigits: MAX_PERIODIC_TERM_DECIMALS,
+  })
+
+  return `${formatted} day${days === 1 ? "" : "s"}`
+}
+
+const formatPeriodicTermChange = (
+  label: string,
+  oldValue: number,
+  newValue: number,
+  format: (value: number) => string,
+) => {
+  if (oldValue === newValue) return undefined
+
+  return `${label} ${format(oldValue)} -> ${format(newValue)}`
+}
 
 export const getRecordText = (
   record: MarketRecord,
@@ -73,6 +96,43 @@ export const getRecordText = (
     const time = timestampToDateFormatted(record.newFixedTermEndTime)
 
     return `Market maturity updated to ${time}`
+  }
+  if (record.__typename === "PeriodicTermUpdated") {
+    const changes = [
+      formatPeriodicTermChange(
+        "first window",
+        record.oldFirstWithdrawalWindowStart,
+        record.newFirstWithdrawalWindowStart,
+        timestampToDateFormatted,
+      ),
+      formatPeriodicTermChange(
+        "withdrawal period",
+        record.oldPeriodDuration,
+        record.newPeriodDuration,
+        formatDurationDays,
+      ),
+      formatPeriodicTermChange(
+        "withdrawal window",
+        record.oldWithdrawalWindowDuration,
+        record.newWithdrawalWindowDuration,
+        formatDurationDays,
+      ),
+    ].filter(Boolean)
+
+    return `Periodic withdrawal terms updated${
+      changes.length ? `: ${changes.join(", ")}` : ""
+    }`
+  }
+  if (record.__typename === "PeriodicTermClosed") {
+    return `Periodic term closed`
+  }
+  if (record.__typename === "AnnualInterestBipsReductionProposed") {
+    const start = timestampToDateFormatted(record.responseWindowStart)
+    const end = timestampToDateFormatted(record.responseWindowEnd)
+
+    return `Base APR reduction proposed to ${
+      record.annualInterestBips / 100
+    }%; lender response window ${start} to ${end}`
   }
   return ""
 }
