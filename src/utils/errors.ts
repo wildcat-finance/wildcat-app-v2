@@ -2,6 +2,7 @@ import type {
   DepositStatus,
   RepayStatus,
   CloseMarketStatus,
+  ProposeAnnualInterestBipsStatus,
   SetAprStatus,
   QueueWithdrawalStatus,
 } from "@wildcatfi/wildcat-sdk"
@@ -20,6 +21,9 @@ type CloseMarketErrorStatuses = {
 type SetAPRErrorStatuses = {
   [key in ExcludeReady<SetAprStatus>]: string | undefined
 }
+type ProposeAPRErrorStatuses = {
+  [key in ExcludeReady<ProposeAnnualInterestBipsStatus>]: string | undefined
+}
 type QueueWithdrawalStatuses = {
   [key in ExcludeReady<QueueWithdrawalStatus>]: string | undefined
 }
@@ -30,6 +34,7 @@ type SDKErrorsMapping = {
   repay: RepayErrorStatuses
   closeMarket: CloseMarketErrorStatuses
   setApr: SetAPRErrorStatuses
+  proposeApr: ProposeAPRErrorStatuses
 }
 
 export const SDK_ERRORS_MAPPING: SDKErrorsMapping = {
@@ -89,5 +94,16 @@ export const SDK_ERRORS_MAPPING: SDKErrorsMapping = {
     AprChangeNotReady: "APR change can not be executed yet",
     UnpaidWithdrawalsExist:
       "Pending withdrawals must be paid before this APR change",
+  },
+
+  proposeApr: {
+    NotBorrower: "Address attempting to propose APR is not the borrower",
+    NotV2Market: "APR proposals are only supported for V2 markets",
+    NotPeriodicTermMarket:
+      "APR reduction proposals are only supported for periodic markets",
+    InvalidApr: "APR must be between 0% and 100%",
+    NotReduction: "Periodic APR proposals must reduce the current APR",
+    WithdrawalWindowOpen:
+      "APR reductions can only be proposed outside withdrawal windows",
   },
 }

@@ -17,14 +17,17 @@ import {
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
+import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import {
   formatBps,
   formatTokenWithCommas,
   MARKET_PARAMS_DECIMALS,
 } from "@/utils/formatters"
+import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
 
 import { MarketTransactionsProps } from "./interface"
 import { MarketTxContainer, MarketTxUpperButtonsContainer } from "./style"
+import { useAdjustAPR } from "../../hooks/useAdjustApr"
 import { AprModal } from "../Modals/AprModal"
 import { BorrowModal } from "../Modals/BorrowModal"
 import { CapacityModal } from "../Modals/CapacityModal"
@@ -38,6 +41,9 @@ export const MarketTransactions = ({
 }: MarketTransactionsProps) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const [, setPendingAprTxHash] = React.useState<string | undefined>()
+  const { mutate: executePendingAprChange, isPending: isPendingAprExecution } =
+    useAdjustAPR(marketAccount, setPendingAprTxHash)
 
   const disableRepay = market.isClosed
   const disableBorrow =
@@ -96,6 +102,54 @@ export const MarketTransactions = ({
         .format("D MMM YYYY, HH:mm [UTC]")
     : undefined
 
+  const pendingPeriodicAprChange = getPendingPeriodicAprChange(market, nowSec)
+  const pendingAprExecutionPreview = pendingPeriodicAprChange
+    ? marketAccount.previewSetAPR(pendingPeriodicAprChange.proposedAprBips)
+    : undefined
+  const pendingAprExecutionError =
+    pendingAprExecutionPreview && pendingAprExecutionPreview.status !== "Ready"
+      ? SDK_ERRORS_MAPPING.setApr[pendingAprExecutionPreview.status]
+      : undefined
+  const currentAprFormatted = formatBps(
+    market.annualInterestBips,
+    MARKET_PARAMS_DECIMALS.annualInterestBips,
+  )
+  const pendingAprFormatted = pendingPeriodicAprChange
+    ? formatBps(
+        pendingPeriodicAprChange.proposedAprBips,
+        MARKET_PARAMS_DECIMALS.annualInterestBips,
+      )
+    : undefined
+  const pendingAprReadyAt = pendingPeriodicAprChange
+    ? dayjs
+        .unix(pendingPeriodicAprChange.responseWindowEnd)
+        .utc()
+        .format("D MMM YYYY, HH:mm [UTC]")
+    : undefined
+  const canExecutePendingApr =
+    !!pendingPeriodicAprChange?.isExecutable &&
+    pendingAprExecutionPreview?.status === "Ready"
+  const pendingAprNoticeKey = (() => {
+    if (!pendingPeriodicAprChange) return undefined
+    if (!pendingPeriodicAprChange.isExecutable) {
+      return "borrowerMarketDetails.parameters.pendingPeriodicApr.pendingNotice"
+    }
+    if (pendingAprExecutionError) {
+      return "borrowerMarketDetails.parameters.pendingPeriodicApr.blockedNotice"
+    }
+    return "borrowerMarketDetails.parameters.pendingPeriodicApr.readyNotice"
+  })()
+  const pendingAprNotice =
+    pendingAprNoticeKey && pendingAprFormatted && pendingAprReadyAt
+      ? t(pendingAprNoticeKey, {
+          currentApr: currentAprFormatted,
+          proposedApr: pendingAprFormatted,
+          readyAt: pendingAprReadyAt,
+          reason:
+            pendingAprExecutionError ?? pendingAprExecutionPreview?.status,
+        })
+      : undefined
+
   const handleClickWithdrawals = () => {
     dispatch(setCheckBlock(4))
     dispatch(
@@ -109,6 +163,15 @@ export const MarketTransactions = ({
         marketHistory: false,
       }),
     )
+  }
+
+  const handleExecutePendingAprChange = () => {
+    if (!pendingPeriodicAprChange) return
+
+    executePendingAprChange({
+      apr: pendingPeriodicAprChange.proposedAprBips / 100,
+      mode: "set",
+    })
   }
 
   return (
@@ -227,6 +290,46 @@ export const MarketTransactions = ({
               {t("borrowerMarketDetails.modals.apr.learnMore")}
             </Link>
           </Typography>
+        </Box>
+      )}
+
+      {holdTheMarket && pendingPeriodicAprChange && pendingAprNotice && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: { xs: "stretch", sm: "center" },
+            justifyContent: "space-between",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: "12px",
+            padding: "12px 16px",
+            borderRadius: "8px",
+            backgroundColor: COLORS.whiteSmoke,
+            border: `1px solid ${COLORS.iron}`,
+            mb: "24px",
+          }}
+        >
+          <Typography variant="text3" sx={{ color: COLORS.blackRock }}>
+            {pendingAprNotice}
+          </Typography>
+
+          {pendingPeriodicAprChange.isExecutable && (
+            <Button
+              variant="outlined"
+              color="secondary"
+              size="small"
+              disabled={!canExecutePendingApr || isPendingAprExecution}
+              onClick={handleExecutePendingAprChange}
+              sx={{ flexShrink: 0 }}
+            >
+              {isPendingAprExecution
+                ? t(
+                    "borrowerMarketDetails.parameters.pendingPeriodicApr.executing",
+                  )
+                : t(
+                    "borrowerMarketDetails.parameters.pendingPeriodicApr.execute",
+                  )}
+            </Button>
+          )}
         </Box>
       )}
 

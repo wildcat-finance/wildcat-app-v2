@@ -26,6 +26,7 @@ import {
   toTokenAmountProps,
   trimAddress,
 } from "@/utils/formatters"
+import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
 
 import { MarketParametersProps } from "./interface"
 import {
@@ -263,6 +264,10 @@ export const MarketParameters = ({
         .unix(market.temporaryReserveRatioExpiry)
         .utc()
         .format("D MMM YYYY, HH:mm [UTC]")
+    : undefined
+  const pendingPeriodicAprChange = getPendingPeriodicAprChange(market, nowSec)
+  const pendingPeriodicAprReadyAt = pendingPeriodicAprChange
+    ? formatPeriodicDateTime(pendingPeriodicAprChange.responseWindowEnd)
     : undefined
 
   const tempRatioI18nPrefix = viewerType === "borrower" ? "borrower" : "lender"
@@ -733,6 +738,54 @@ export const MarketParameters = ({
               )}%`}
               tooltipText="The fixed annual percentage rate (excluding any protocol fees) that borrowers pay to lenders for assets within the market."
             />
+            {pendingPeriodicAprChange && pendingPeriodicAprReadyAt && (
+              <>
+                <Divider sx={{ margin: "12px 0 12px" }} />
+                <ParametersItem
+                  title={t(
+                    "borrowerMarketDetails.parameters.pendingPeriodicApr.label",
+                  )}
+                  value={`${formatBps(
+                    pendingPeriodicAprChange.proposedAprBips,
+                    MARKET_PARAMS_DECIMALS.annualInterestBips,
+                  )}%`}
+                  tooltipText={t(
+                    "borrowerMarketDetails.parameters.pendingPeriodicApr.tooltip",
+                  )}
+                  valueTooltipText={
+                    pendingPeriodicAprChange.isExecutable
+                      ? t(
+                          "borrowerMarketDetails.parameters.pendingPeriodicApr.readyNotice",
+                          {
+                            currentApr: formatBps(
+                              market.annualInterestBips,
+                              MARKET_PARAMS_DECIMALS.annualInterestBips,
+                            ),
+                            proposedApr: formatBps(
+                              pendingPeriodicAprChange.proposedAprBips,
+                              MARKET_PARAMS_DECIMALS.annualInterestBips,
+                            ),
+                            readyAt: pendingPeriodicAprReadyAt,
+                          },
+                        )
+                      : t(
+                          "borrowerMarketDetails.parameters.pendingPeriodicApr.pendingNotice",
+                          {
+                            currentApr: formatBps(
+                              market.annualInterestBips,
+                              MARKET_PARAMS_DECIMALS.annualInterestBips,
+                            ),
+                            proposedApr: formatBps(
+                              pendingPeriodicAprChange.proposedAprBips,
+                              MARKET_PARAMS_DECIMALS.annualInterestBips,
+                            ),
+                            readyAt: pendingPeriodicAprReadyAt,
+                          },
+                        )
+                  }
+                />
+              </>
+            )}
             <Divider sx={{ margin: "12px 0 12px" }} />
             {adsMarketParameter && (
               <>
