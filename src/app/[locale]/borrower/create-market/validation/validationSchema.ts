@@ -101,7 +101,6 @@ export const baseMarketSchemaFields = {
   firstWithdrawalWindowStart: z.coerce.number().optional(),
   periodDuration: z.coerce.number().optional(),
   withdrawalWindowDuration: z.coerce.number().optional(),
-  allowForceBuyBack: z.boolean(),
   allowClosureBeforeTerm: z.boolean().optional(),
   allowTermReduction: z.boolean().optional(),
   disableTransfers: z.boolean(),
@@ -111,8 +110,17 @@ export const baseMarketSchemaFields = {
   deployWrapper: z.boolean().optional(),
 }
 
+const isPositiveNumber = (value: number | undefined): value is number =>
+  value !== undefined && Number.isFinite(value) && value > 0
+
 export const marketRefinementCallback = (
-  data: { marketType: string; fixedTermEndTime?: number },
+  data: {
+    marketType: string
+    fixedTermEndTime?: number
+    firstWithdrawalWindowStart?: number
+    periodDuration?: number
+    withdrawalWindowDuration?: number
+  },
   ctx: z.RefinementCtx,
 ) => {
   if (data.marketType === "fixedTerm") {
@@ -127,6 +135,54 @@ export const marketRefinementCallback = (
       ctx.addIssue({
         message: "Loan maturity date must be in the future",
         path: ["fixedTermEndTime"],
+        code: "custom",
+      })
+    }
+  }
+
+  if (data.marketType === "periodicTerm") {
+    const now = Math.floor(Date.now() / 1000)
+    const {
+      firstWithdrawalWindowStart,
+      periodDuration,
+      withdrawalWindowDuration,
+    } = data
+
+    if (!isPositiveNumber(firstWithdrawalWindowStart)) {
+      ctx.addIssue({
+        message: "First withdrawal window start must be set",
+        path: ["firstWithdrawalWindowStart"],
+        code: "custom",
+      })
+    } else if (firstWithdrawalWindowStart <= now) {
+      ctx.addIssue({
+        message: "First withdrawal window start must be in the future",
+        path: ["firstWithdrawalWindowStart"],
+        code: "custom",
+      })
+    }
+
+    if (!isPositiveNumber(periodDuration)) {
+      ctx.addIssue({
+        message: "Withdrawal period duration must be greater than zero",
+        path: ["periodDuration"],
+        code: "custom",
+      })
+    }
+
+    if (!isPositiveNumber(withdrawalWindowDuration)) {
+      ctx.addIssue({
+        message: "Withdrawal window duration must be greater than zero",
+        path: ["withdrawalWindowDuration"],
+        code: "custom",
+      })
+    } else if (
+      isPositiveNumber(periodDuration) &&
+      withdrawalWindowDuration > periodDuration
+    ) {
+      ctx.addIssue({
+        message: "Withdrawal window duration can not exceed period duration",
+        path: ["withdrawalWindowDuration"],
         code: "custom",
       })
     }

@@ -24,7 +24,7 @@ import {
   MlaTemplateField,
 } from "@/lib/mla"
 import { getProviderForServer } from "@/lib/provider"
-import { dayjs } from "@/utils/dayjs"
+import { formatUnixMsAsDate } from "@/utils/formatters"
 
 import { GET as getProfile, DELETE as deleteProfile } from "./[address]/route"
 import { GET as getAllProfiles } from "./route"
@@ -540,7 +540,7 @@ describe("API", () => {
     test("Fails if EOA signature is from other account", async () => {
       let agreementText = AgreementText
       const timeSigned = Date.now()
-      const dateSigned = dayjs(timeSigned).format("MMMM DD, YYYY")
+      const dateSigned = formatUnixMsAsDate(timeSigned)
       if (dateSigned) {
         agreementText = `${agreementText}\n\nDate: ${dateSigned}`
       }
@@ -565,7 +565,7 @@ describe("API", () => {
     test("Accepts EOA signature", async () => {
       let agreementText = AgreementText
       const timeSigned = Date.now()
-      const dateSigned = dayjs(timeSigned).format("MMMM DD, YYYY")
+      const dateSigned = formatUnixMsAsDate(timeSigned)
       if (dateSigned) {
         agreementText = `${agreementText}\n\nDate: ${dateSigned}`
       }

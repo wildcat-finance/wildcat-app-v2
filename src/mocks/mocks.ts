@@ -36,6 +36,7 @@ export const mockedMarketTypes = [
     label: "Fixed Term Loan",
     value: createMarketTypeValues.fixedTerm,
   },
+  mockedPeriodicMarketType,
 ]
 
 const mockedAccessControls = [

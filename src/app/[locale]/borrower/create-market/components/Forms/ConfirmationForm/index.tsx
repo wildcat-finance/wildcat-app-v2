@@ -31,6 +31,7 @@ import { COLORS } from "@/theme/colors"
 import { timestampToDateFormatted } from "@/utils/formatters"
 
 import { ConfirmationFormProps } from "./interface"
+import { PeriodicTermsConfirmation } from "./PeriodicTermsConfirmation"
 import { AlertContainer, DividerStyle, SubtitleStyle } from "./style"
 import { MarketValidationSchemaType } from "../../../validation/validationSchema"
 import { ConfirmationFormItem } from "../../ConfirmationFormItem"
@@ -143,13 +144,13 @@ export const ConfirmationForm = ({
   const withdrawalRequiresAccess = getValues("withdrawalRequiresAccess")
   const transferRequiresAccess = getValues("transferRequiresAccess")
   const disableTransfers = getValues("disableTransfers")
-  const allowForceBuyBack = getValues("allowForceBuyBack")
 
   const selectedMla = getValues("mla")
   const mlaTemplateId =
     selectedMla === "noMLA" ? undefined : Number(selectedMla)
   const isMLA = mlaTemplateId !== undefined
   const isReductionAllowed = getValues("allowTermReduction")
+  const isPeriodicTerm = getValues("marketType") === "periodicTerm"
 
   const jurisdiction = borrowerData?.jurisdiction
     ? Jurisdictions[borrowerData.jurisdiction as keyof typeof Jurisdictions]
@@ -327,6 +328,8 @@ export const ConfirmationForm = ({
           <Divider sx={DividerStyle} />
         </>
       )}
+
+      {isPeriodicTerm && <PeriodicTermsConfirmation form={form} />}
 
       <Typography variant="text4" sx={SubtitleStyle}>
         {t("createNewMarket.financial.title")}

@@ -42,6 +42,7 @@ import { lh, pxToRem } from "@/theme/units"
 import { dayjs } from "@/utils/dayjs"
 
 import { MarketPolicyFormProps } from "./interface"
+import { PeriodicTermsSection } from "./PeriodicTermsSection"
 
 const DateCalendarArrowLeft = () => (
   <SvgIcon
@@ -92,10 +93,14 @@ export const MarketPolicyForm = ({
   const marketTypeWatch = watch("marketType")
   const accessControlWatch = watch("accessControl")
   const fixedTermEndTimeWatch = watch("fixedTermEndTime")
+  const firstWithdrawalWindowStartWatch = watch("firstWithdrawalWindowStart")
+  const periodDurationWatch = watch("periodDuration")
+  const withdrawalWindowDurationWatch = watch("withdrawalWindowDuration")
   const allowClosureBeforeTermWatch = watch("allowClosureBeforeTerm")
   const allowTermReductionWatch = watch("allowTermReduction")
 
   const isFixedTerm = marketTypeWatch === "fixedTerm"
+  const isPeriodicTerm = marketTypeWatch === "periodicTerm"
 
   const disableFields = !(
     policyWatch === "createNewPolicy" || policyWatch === ""
@@ -124,7 +129,26 @@ export const MarketPolicyForm = ({
     !!fixedTermEndTimeWatch &&
     !errors.fixedTermEndTime
 
-  const isFormValid = isFixedTerm ? isFixedFormValid : isStandardFormValid
+  const isPeriodicFormValid =
+    !!policyWatch &&
+    policyWatch.trim() !== "" &&
+    !!policyNameWatch &&
+    policyNameWatch.trim() !== "" &&
+    !!marketTypeWatch &&
+    marketTypeWatch.trim() !== "" &&
+    !!accessControlWatch &&
+    accessControlWatch.trim() !== "" &&
+    !!firstWithdrawalWindowStartWatch &&
+    !!periodDurationWatch &&
+    !!withdrawalWindowDurationWatch &&
+    !errors.firstWithdrawalWindowStart &&
+    !errors.periodDuration &&
+    !errors.withdrawalWindowDuration
+
+  const isFormValid =
+    (isFixedTerm && isFixedFormValid) ||
+    (isPeriodicTerm && isPeriodicFormValid) ||
+    (!isFixedTerm && !isPeriodicTerm && isStandardFormValid)
 
   const handleNextClick = () => {
     dispatch(setCreatingStep(CreateMarketSteps.BASIC))
@@ -152,7 +176,7 @@ export const MarketPolicyForm = ({
 
       dispatch(setIsDisabled({ steps: allStepsToDisable, disabled: true }))
     }
-  }, [isFormValid, isFixedTerm])
+  }, [isFormValid, isFixedTerm, isPeriodicTerm])
 
   return (
     <Box sx={FormContainer}>
@@ -365,6 +389,8 @@ export const MarketPolicyForm = ({
           </Box>
         </>
       )}
+
+      {isPeriodicTerm && <PeriodicTermsSection form={form} />}
 
       <FormFooter
         backOnClick={handleBackClick}

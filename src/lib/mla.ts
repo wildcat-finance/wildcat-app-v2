@@ -17,7 +17,6 @@ import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import { ACCEPT_MLA_MESSAGE } from "@/config/mla-acceptance"
 import { NETWORKS_BY_ID } from "@/config/network"
-import { dayjs } from "@/utils/dayjs"
 import { formatBps, formatUnixMsAsDate } from "@/utils/formatters"
 
 type NetworkData = {
@@ -43,6 +42,13 @@ export const TransferAccessString = {
 export const WithdrawalAccessString = {
   [WithdrawalAccess.Open]: "Open",
   [WithdrawalAccess.RequiresCredential]: "Restricted",
+}
+
+export const MarketTypeString = {
+  [HooksKind.OpenTerm]: "Open Term",
+  [HooksKind.FixedTerm]: "Fixed Term",
+  [HooksKind.PeriodicTerm]: "Periodic Term",
+  [HooksKind.Unknown]: "Unknown",
 }
 
 export type MlaBorrowerFields = {
@@ -246,7 +252,7 @@ type BorrowerSignedMla = {
 }
 
 const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
-  const { underlyingToken: asset, hooksConfig, name, symbol, address } = market
+  const { hooksConfig, name, symbol, address } = market
   // Deposits are only open if `depositRequiresAccess` is defined and false
   const depositAccess =
     hooksConfig?.depositRequiresAccess === false
@@ -306,10 +312,7 @@ const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
       hooksConfig?.kind === HooksKind.FixedTerm
         ? hooksConfig.allowTermReduction
         : undefined,
-    allowForceBuyBack:
-      hooksConfig && "allowForceBuyBacks" in hooksConfig
-        ? hooksConfig.allowForceBuyBacks
-        : undefined,
+    allowForceBuyBack: undefined,
   }
 }
 
@@ -361,12 +364,7 @@ export function getFieldValuesForBorrower({
     ["network.name", formatString(networkData.name)],
     ["asset.name", formatString(asset.name)],
     ["asset.symbol", formatString(asset.symbol)],
-    [
-      "market.marketType",
-      formatString(
-        market.marketType === HooksKind.FixedTerm ? "Fixed Term" : "Open Term",
-      ),
-    ],
+    ["market.marketType", formatString(MarketTypeString[market.marketType])],
     ["market.name", formatString(market.name)],
     ["market.symbol", formatString(market.symbol)],
     ["borrower.name", formatString(borrowerInfo.name)],

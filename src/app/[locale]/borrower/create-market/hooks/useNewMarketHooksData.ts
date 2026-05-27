@@ -9,6 +9,19 @@ import {
 import { NewMarketFormType } from "./useNewMarketForm"
 import { useGetBorrowerHooksData } from "../../hooks/useGetBorrowerHooksData"
 
+const MARKET_TYPE_TO_HOOKS_KIND: Record<string, HooksKind | undefined> = {
+  standard: HooksKind.OpenTerm,
+  fixedTerm: HooksKind.FixedTerm,
+  periodicTerm: HooksKind.PeriodicTerm,
+}
+
+const HOOKS_KIND_TO_MARKET_TYPE: Record<HooksKind, string> = {
+  [HooksKind.OpenTerm]: "standard",
+  [HooksKind.FixedTerm]: "fixedTerm",
+  [HooksKind.PeriodicTerm]: "periodicTerm",
+  [HooksKind.Unknown]: "",
+}
+
 export function useNewMarketHooksData(form: NewMarketFormType) {
   const { data: hooksData, ...queryData } = useGetBorrowerHooksData()
   const [selectedHooksInstance, setSelectedHooksInstance] = useState<
@@ -22,17 +35,18 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
   const marketType = form.watch("marketType")
 
   useEffect(() => {
-    const selectedHooksKind =
-      marketType === "standard" ? HooksKind.OpenTerm : HooksKind.FixedTerm
+    const selectedHooksKind = MARKET_TYPE_TO_HOOKS_KIND[marketType]
     if (hooksData && policyValue) {
       const { hooksInstances, hooksTemplates } = hooksData
       if (policyValue === "createNewPolicy") {
-        const hooksTemplate = hooksTemplates.find(
-          (template) =>
-            template.kind === selectedHooksKind &&
-            template.hooksTemplate.toLowerCase() !==
-              "0x7e49CabA6FB53CDc70CD98829731A2b8d76dfc36".toLowerCase(),
-        )
+        const hooksTemplate = selectedHooksKind
+          ? hooksTemplates.find(
+              (template) =>
+                template.kind === selectedHooksKind &&
+                template.hooksTemplate.toLowerCase() !==
+                  "0x7e49CabA6FB53CDc70CD98829731A2b8d76dfc36".toLowerCase(),
+            )
+          : undefined
         setSelectedHooksInstance(undefined)
         setSelectedHooksTemplate(hooksTemplate)
       } else {
@@ -46,9 +60,7 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
         if (hooksInstance) {
           form.setValue(
             "marketType",
-            hooksInstance.kind === HooksKind.OpenTerm
-              ? "standard"
-              : "fixedTerm",
+            HOOKS_KIND_TO_MARKET_TYPE[hooksInstance.kind],
             {
               shouldValidate: true,
             },
@@ -77,8 +89,7 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
   return {
     selectedHooksInstance,
     selectedHooksTemplate,
-    hooksKind:
-      marketType === "standard" ? HooksKind.OpenTerm : HooksKind.FixedTerm,
+    hooksKind: MARKET_TYPE_TO_HOOKS_KIND[marketType] ?? HooksKind.Unknown,
     hooksInstances: hooksData?.hooksInstances ?? [],
     hooksTemplates: hooksData?.hooksTemplates ?? [],
     ...queryData,

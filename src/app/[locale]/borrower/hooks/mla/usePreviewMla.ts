@@ -27,6 +27,12 @@ import {
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
 
+const MARKET_TYPE_TO_HOOKS_KIND: Record<string, HooksKind> = {
+  standard: HooksKind.OpenTerm,
+  fixedTerm: HooksKind.FixedTerm,
+  periodicTerm: HooksKind.PeriodicTerm,
+}
+
 export function getFieldValuesForBorrowerFromForm(
   marketParams: MarketValidationSchemaType,
   borrowerInfo: BasicBorrowerInfo,
@@ -64,9 +70,7 @@ export function getFieldValuesForBorrowerFromForm(
       name: marketName,
       symbol: marketSymbol,
       marketType:
-        marketParams.marketType === "standard"
-          ? HooksKind.OpenTerm
-          : HooksKind.FixedTerm,
+        MARKET_TYPE_TO_HOOKS_KIND[marketParams.marketType] ?? HooksKind.Unknown,
       address: marketAddress,
       depositAccess,
       transferAccess,
@@ -78,7 +82,7 @@ export function getFieldValuesForBorrowerFromForm(
       fixedTermEndTime: marketParams.fixedTermEndTime,
       allowClosureBeforeTerm: !!marketParams.allowClosureBeforeTerm,
       allowTermReduction: !!marketParams.allowTermReduction,
-      allowForceBuyBack: !!marketParams.allowForceBuyBack,
+      allowForceBuyBack: undefined,
       apr: annualInterestBips,
       delinquencyFee: delinquencyFeeBips,
       reserveRatio: reserveRatioBips,

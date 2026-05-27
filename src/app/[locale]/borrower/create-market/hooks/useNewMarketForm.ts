@@ -30,7 +30,6 @@ export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   withdrawalWindowDuration: undefined,
   allowClosureBeforeTerm: false,
   allowTermReduction: false,
-  allowForceBuyBack: false,
   policy: "",
   policyName: "",
   accessControl: "",

@@ -683,7 +683,7 @@
             "title": "Market Type",
             "placeholder": "Please Select",
             "subtitle": "",
-            "tooltip": "Select the nature of the market: open (lenders can make withdrawal requests at any time) or fixed (withdrawal requests only possible after a fixed maturity date).",
+            "tooltip": "Select the nature of the market: open, fixed, or periodic withdrawal windows.",
             "options": {
               "standard": "Open Term Loan",
               "fixedTerm": "Fixed Term Loan",
@@ -1411,6 +1411,21 @@
       },
       "expiration": {
         "label": "Fixed Term Maturity Date [00:00 UTC]"
+      },
+      "periodic": {
+        "firstWindowStart": {
+          "label": "First Withdrawal Window [00:00 UTC]"
+        },
+        "periodDuration": {
+          "label": "Withdrawal Period",
+          "placeholder": "Input Period Duration",
+          "chip": "Days"
+        },
+        "withdrawalWindowDuration": {
+          "label": "Withdrawal Window",
+          "placeholder": "Input Window Duration",
+          "chip": "Days"
+        }
       },
       "earlyClose": {
         "label": "Permit Early Termination",
