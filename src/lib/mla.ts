@@ -306,7 +306,10 @@ const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
       hooksConfig?.kind === HooksKind.FixedTerm
         ? hooksConfig.allowTermReduction
         : undefined,
-    allowForceBuyBack: hooksConfig?.allowForceBuyBacks,
+    allowForceBuyBack:
+      hooksConfig && "allowForceBuyBacks" in hooksConfig
+        ? hooksConfig.allowForceBuyBacks
+        : undefined,
   }
 }
 
