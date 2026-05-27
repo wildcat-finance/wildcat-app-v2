@@ -1128,6 +1128,19 @@
           "claim": "Claim Assets",
           "withdrawals": "Go to Withdrawals"
         }
+      },
+      "calculator": {
+        "title": "Earnings Calculator",
+        "tooltip": "Estimate the interest a hypothetical deposit would earn at the current base lender APR. This calculator is informational and does not initiate a transaction.",
+        "subtitle": "Projected interest at the current Base Lender APR of {{apr}}%.",
+        "inputLabel": "Deposit amount",
+        "exceedsCapacity": "The market currently has {{remaining}} of remaining capacity and cannot accept the full amount.",
+        "disclaimer": "Estimates only. Actual returns may change with future APR adjustments or delinquency events.",
+        "periods": {
+          "thirtyDays": "30 days",
+          "ninetyDays": "90 days",
+          "oneYear": "1 year"
+        }
       }
     },
     "barchart": {

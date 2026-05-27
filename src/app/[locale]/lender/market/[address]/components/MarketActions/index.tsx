@@ -31,6 +31,7 @@ import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { MarketActionsProps } from "./interface"
 import { useFaucet } from "../../hooks/useFaucet"
+import { EarningsCalculator } from "../EarningsCalculator"
 
 const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
   const {
@@ -240,31 +241,41 @@ export const MarketActions = ({
           }
 
           return (
-            <Box sx={TransactionsContainer}>
-              <TransactionBlock
-                title={t("lenderMarketDetails.transactions.deposit.title")}
-                tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
-                amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
-                asset={market.underlyingToken.symbol}
-              >
-                {!showFaucet && <DepositModal marketAccount={marketAccount} />}
-                {showFaucet && <FaucetButton marketAccount={marketAccount} />}
-              </TransactionBlock>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <Box sx={TransactionsContainer}>
+                <TransactionBlock
+                  title={t("lenderMarketDetails.transactions.deposit.title")}
+                  tooltip={t(
+                    "lenderMarketDetails.transactions.deposit.tooltip",
+                  )}
+                  amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
+                  asset={market.underlyingToken.symbol}
+                >
+                  {!showFaucet && (
+                    <DepositModal marketAccount={marketAccount} />
+                  )}
+                  {showFaucet && <FaucetButton marketAccount={marketAccount} />}
+                </TransactionBlock>
 
-              <TransactionBlock
-                title={t("lenderMarketDetails.transactions.withdraw.title")}
-                tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
-                amount={
-                  isTooSmallMarketBalance
-                    ? `< 0.00001`
-                    : formatTokenWithCommas(marketAccount.marketBalance)
-                }
-                asset={market.underlyingToken.symbol}
-              >
-                {!hideWithdraw && (
-                  <WithdrawModal marketAccount={marketAccount} />
-                )}
-              </TransactionBlock>
+                <TransactionBlock
+                  title={t("lenderMarketDetails.transactions.withdraw.title")}
+                  tooltip={t(
+                    "lenderMarketDetails.transactions.withdraw.tooltip",
+                  )}
+                  amount={
+                    isTooSmallMarketBalance
+                      ? `< 0.00001`
+                      : formatTokenWithCommas(marketAccount.marketBalance)
+                  }
+                  asset={market.underlyingToken.symbol}
+                >
+                  {!hideWithdraw && (
+                    <WithdrawModal marketAccount={marketAccount} />
+                  )}
+                </TransactionBlock>
+              </Box>
+
+              <EarningsCalculator marketAccount={marketAccount} />
             </Box>
           )
         })()}
