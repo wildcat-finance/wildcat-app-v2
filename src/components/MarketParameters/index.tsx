@@ -259,7 +259,7 @@ export const MarketParameters = ({
   }
   let earlyClosure: "yes" | "no" | "na" = "no"
   if (hooksConfig) {
-    if (hooksConfig.kind === HooksKind.OpenTerm) {
+    if (hooksConfig.kind !== HooksKind.FixedTerm) {
       earlyClosure = "na"
     } else if (hooksConfig.allowClosureBeforeTerm) {
       earlyClosure = "yes"
@@ -271,7 +271,7 @@ export const MarketParameters = ({
   }
   let earlyMaturity: "yes" | "no" | "na" = "no"
   if (hooksConfig) {
-    if (hooksConfig.kind === HooksKind.OpenTerm) {
+    if (hooksConfig.kind !== HooksKind.FixedTerm) {
       earlyMaturity = "na"
     } else if (hooksConfig.allowTermReduction) {
       earlyMaturity = "yes"
