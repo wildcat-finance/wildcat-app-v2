@@ -64,6 +64,8 @@ export function getFieldValuesForBorrowerFromForm(
     Number(marketParams.delinquencyGracePeriod) * 60 * 60
   const withdrawalBatchDuration =
     Number(marketParams.withdrawalBatchDuration) * 60 * 60
+  const isFixedTerm = marketParams.marketType === "fixedTerm"
+  const isPeriodicTerm = marketParams.marketType === "periodicTerm"
 
   const params = {
     market: {
@@ -79,9 +81,23 @@ export function getFieldValuesForBorrowerFromForm(
       minimumDeposit: asset.parseAmount(marketParams.minimumDeposit ?? 0),
       delinquencyGracePeriod,
       withdrawalBatchDuration,
-      fixedTermEndTime: marketParams.fixedTermEndTime,
-      allowClosureBeforeTerm: !!marketParams.allowClosureBeforeTerm,
-      allowTermReduction: !!marketParams.allowTermReduction,
+      fixedTermEndTime: isFixedTerm ? marketParams.fixedTermEndTime : undefined,
+      firstWithdrawalWindowStart: isPeriodicTerm
+        ? marketParams.firstWithdrawalWindowStart
+        : undefined,
+      periodDuration: isPeriodicTerm ? marketParams.periodDuration : undefined,
+      withdrawalWindowDuration: isPeriodicTerm
+        ? marketParams.withdrawalWindowDuration
+        : undefined,
+      nextWithdrawalWindowStart: isPeriodicTerm
+        ? marketParams.firstWithdrawalWindowStart
+        : undefined,
+      allowClosureBeforeTerm: isFixedTerm
+        ? !!marketParams.allowClosureBeforeTerm
+        : undefined,
+      allowTermReduction: isFixedTerm
+        ? !!marketParams.allowTermReduction
+        : undefined,
       allowForceBuyBack: undefined,
       apr: annualInterestBips,
       delinquencyFee: delinquencyFeeBips,

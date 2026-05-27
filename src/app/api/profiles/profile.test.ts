@@ -180,6 +180,22 @@ const borrowerFields: MlaTemplateField[] = [
     placeholder: "Insert Fixed Term End Time",
   },
   {
+    source: "market.firstWithdrawalWindowStart",
+    placeholder: "Insert First Withdrawal Window Start",
+  },
+  {
+    source: "market.periodDuration",
+    placeholder: "Insert Withdrawal Period Duration",
+  },
+  {
+    source: "market.withdrawalWindowDuration",
+    placeholder: "Insert Withdrawal Window Duration",
+  },
+  {
+    source: "market.nextWithdrawalWindowStart",
+    placeholder: "Insert Next Withdrawal Window Start",
+  },
+  {
     source: "borrower.timeSigned",
     placeholder: "Insert Borrower Time Signed",
   },
