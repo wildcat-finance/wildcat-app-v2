@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 
 import { BorrowerProfileAnalytics } from "@/app/[locale]/borrower/profile/hooks/analytics/types"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
@@ -12,6 +12,7 @@ import { AnalyticsUnavailableNotice } from "@/components/Profile/shared/Analytic
 import { buildBorrowerSummaryItems } from "@/components/Profile/shared/borrowerSummaryItems"
 import { COLORS } from "@/theme/colors"
 
+import { ExportBorrowerCsvModal } from "./ExportBorrowerCsvModal"
 import { OverallBlock } from "../../../components/OverallBlock"
 import { MarketsBlock } from "../MarketsBlock"
 import { ProfileNamePageBlock } from "../ProfileNamePageBlock"
@@ -42,9 +43,19 @@ export const OverviewTab = ({
   isMobile,
 }: OverviewTabProps) => {
   const { data: profileData } = useGetBorrowerProfile(profileAddress, chainId)
-  const activeBorrowerMarkets = borrowerMarkets ?? []
+  const allBorrowerMarkets = borrowerMarkets ?? []
+  const activeBorrowerMarkets = allBorrowerMarkets.filter(
+    (market) => !market.isClosed,
+  )
 
   const summaryItems = buildBorrowerSummaryItems(analytics)
+
+  const [exportModalOpen, setExportModalOpen] = React.useState(false)
+  const canExport =
+    type === "internal" &&
+    profileAddress !== undefined &&
+    analyticsAvailable &&
+    allBorrowerMarkets.length > 0
 
   return (
     <Box
@@ -133,13 +144,29 @@ export const OverviewTab = ({
           padding: isMobile ? "16px" : "24px",
         }}
       >
-        <Typography
-          variant="title2"
-          display="block"
-          sx={{ marginBottom: "16px" }}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px",
+            marginBottom: "16px",
+            flexWrap: "wrap",
+          }}
         >
-          Active markets
-        </Typography>
+          <Typography variant="title2" display="block">
+            Active markets
+          </Typography>
+          {canExport && (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setExportModalOpen(true)}
+            >
+              Export CSV
+            </Button>
+          )}
+        </Box>
         {activeBorrowerMarkets.length > 0 ? (
           <MarketsBlock markets={activeBorrowerMarkets} isLoading={false} />
         ) : (
@@ -148,6 +175,18 @@ export const OverviewTab = ({
           </Typography>
         )}
       </Box>
+
+      {canExport && profileAddress !== undefined && (
+        <ExportBorrowerCsvModal
+          open={exportModalOpen}
+          onClose={() => setExportModalOpen(false)}
+          borrowerAddress={profileAddress}
+          markets={allBorrowerMarkets.map((market) => ({
+            marketId: market.address.toLowerCase(),
+            marketName: market.name,
+          }))}
+        />
+      )}
     </Box>
   )
 }

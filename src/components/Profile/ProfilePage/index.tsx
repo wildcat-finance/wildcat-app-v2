@@ -42,8 +42,6 @@ export const ProfilePage = ({
   const isMobile = useMobileResolution()
   const { currentTab } = useProfileTab(BORROWER_PROFILE_TABS, "overview")
 
-  const activeMarkets =
-    borrowerMarkets?.filter((market) => !market.isClosed) ?? []
   const marketsAmount = borrowerMarkets?.length ?? 0
   const accountName = profileData?.name ?? trimAddress(profileAddress ?? "")
 
@@ -83,7 +81,7 @@ export const ProfilePage = ({
           type={type}
           accountName={accountName}
           marketsAmount={marketsAmount}
-          borrowerMarkets={activeMarkets}
+          borrowerMarkets={borrowerMarkets ?? []}
           analytics={borrowerAnalyticsQuery.data}
           isAnalyticsLoading={
             analyticsAvailable && borrowerAnalyticsQuery.isLoading
