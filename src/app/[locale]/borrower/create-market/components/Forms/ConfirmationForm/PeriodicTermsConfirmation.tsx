@@ -1,7 +1,7 @@
 import { Box, Divider, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
-import { timestampToDateFormatted } from "@/utils/formatters"
+import { dayjs } from "@/utils/dayjs"
 
 import { ConfirmationFormProps } from "./interface"
 import { DividerStyle, SubtitleStyle } from "./style"
@@ -13,6 +13,9 @@ const DURATION_DECIMAL_SCALE = 5
 
 const formatDuration = (seconds: number, unitSeconds: number) =>
   `${Number((seconds / unitSeconds).toFixed(DURATION_DECIMAL_SCALE))}`
+
+const formatUtcTimestamp = (timestamp: number) =>
+  timestamp ? dayjs.unix(timestamp).utc().format("DD/MM/YYYY HH:mm [UTC]") : ""
 
 export const PeriodicTermsConfirmation = ({
   form,
@@ -34,12 +37,9 @@ export const PeriodicTermsConfirmation = ({
       >
         <ConfirmationFormItem
           label={t("createNewMarket.policy.periodic.firstWindowStart.label")}
-          value={
-            timestampToDateFormatted(
-              Number(getValues("firstWithdrawalWindowStart")),
-              "DD/MM/YYYY",
-            ) ?? ""
-          }
+          value={formatUtcTimestamp(
+            Number(getValues("firstWithdrawalWindowStart")),
+          )}
         />
 
         <ConfirmationFormItem

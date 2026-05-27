@@ -1,5 +1,5 @@
 import { Box, Divider, SvgIcon, TextField, Typography } from "@mui/material"
-import { DesktopDatePicker } from "@mui/x-date-pickers"
+import { DesktopDateTimePicker } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
 import { useTranslation } from "react-i18next"
@@ -56,8 +56,7 @@ export const PeriodicTermsSection = ({
   form,
 }: Pick<MarketPolicyFormProps, "form">) => {
   const { t } = useTranslation()
-  const today = dayjs.unix(Date.now() / 1_000).startOf("day")
-  const tomorrow = today.add(1, "day")
+  const now = dayjs.utc()
 
   const {
     setValue,
@@ -88,12 +87,12 @@ export const PeriodicTermsSection = ({
           label={t("createNewMarket.policy.periodic.firstWindowStart.label")}
         >
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DesktopDatePicker
-              label="e.g. 25/12/2024"
-              format="DD/MM/YYYY"
+            <DesktopDateTimePicker
+              label="e.g. 25/12/2024 14:30 UTC"
+              format="DD/MM/YYYY HH:mm"
               value={
                 firstWithdrawalWindowStartWatch
-                  ? dayjs.unix(firstWithdrawalWindowStartWatch)
+                  ? dayjs.unix(firstWithdrawalWindowStartWatch).utc()
                   : null
               }
               onChange={(v) => {
@@ -113,7 +112,10 @@ export const PeriodicTermsSection = ({
                   )
                 }
               }}
-              minDate={tomorrow}
+              minDateTime={now}
+              timezone="UTC"
+              ampm={false}
+              timeSteps={{ minutes: 1 }}
               slots={{
                 leftArrowIcon: DateCalendarArrowLeft,
                 rightArrowIcon: DateCalendarArrowRight,

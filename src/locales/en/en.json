@@ -1465,7 +1465,7 @@
       },
       "periodic": {
         "firstWindowStart": {
-          "label": "First Withdrawal Window [00:00 UTC]"
+          "label": "First Withdrawal Window [UTC]"
         },
         "periodDuration": {
           "label": "Withdrawal Period",

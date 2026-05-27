@@ -24,6 +24,7 @@ const HOOKS_KIND_TO_MARKET_TYPE: Record<HooksKind, string> = {
 
 export function useNewMarketHooksData(form: NewMarketFormType) {
   const { data: hooksData, ...queryData } = useGetBorrowerHooksData()
+  const { setValue } = form
   const [selectedHooksInstance, setSelectedHooksInstance] = useState<
     HooksInstance | undefined
   >(undefined)
@@ -58,33 +59,33 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
         setSelectedHooksTemplate(hooksInstance?.hooksTemplate)
 
         if (hooksInstance) {
-          form.setValue(
+          setValue(
             "marketType",
             HOOKS_KIND_TO_MARKET_TYPE[hooksInstance.kind],
             {
               shouldValidate: true,
             },
           )
-          form.setValue(
+          setValue(
             "accessControl",
             hooksInstance.roleProviders.length === 1
               ? "manualApproval"
               : "defaultPullProvider",
           )
-          form.setValue("policyName", hooksInstance.name)
+          setValue("policyName", hooksInstance.name)
         } else {
-          form.setValue("policyName", "")
+          setValue("policyName", "")
         }
       }
     }
-  }, [hooksData, policyValue])
+  }, [hooksData, marketType, policyValue, setValue])
 
   useEffect(() => {
     if (marketType === "fixedTerm") {
-      form.setValue("allowClosureBeforeTerm", undefined)
-      form.setValue("allowTermReduction", undefined)
+      setValue("allowClosureBeforeTerm", undefined)
+      setValue("allowTermReduction", undefined)
     }
-  }, [marketType, form.setValue])
+  }, [marketType, setValue])
 
   return {
     selectedHooksInstance,
