@@ -176,6 +176,14 @@ export const buildMarketHref = (
   return chainId ? `${base}?chainId=${chainId}` : base
 }
 
+export const buildBorrowerProfileHref = (
+  borrowerAddress: string,
+  chainId?: number,
+) => {
+  const base = `${ROUTES.profile.borrower}/${borrowerAddress}`
+  return chainId ? `${base}?chainId=${chainId}` : base
+}
+
 // <---- TOKEN PARAMETERS FORMATTERS ---->
 export const trimAddress = (
   address: string,

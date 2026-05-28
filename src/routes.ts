@@ -1,8 +1,12 @@
 const BORROWER_ROOT = "/borrower"
 const LENDER_ROOT = "/lender"
+const PROFILE_ROOT = "/profile"
 
 export const ROUTES = {
   agreement: "/agreement",
+  profile: {
+    borrower: `${PROFILE_ROOT}/borrower`,
+  },
   borrower: {
     root: BORROWER_ROOT,
     market: `${BORROWER_ROOT}/market`,

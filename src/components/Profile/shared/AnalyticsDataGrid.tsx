@@ -1,0 +1,342 @@
+"use client"
+
+import * as React from "react"
+
+import { Box, Button, Skeleton, Typography } from "@mui/material"
+import {
+  DataGrid,
+  GridColDef,
+  GridRowsProp,
+  GridValidRowModel,
+} from "@mui/x-data-grid"
+
+import { TableStyles } from "@/app/[locale]/borrower/edit-lenders-list/components/ConfirmLendersForm/style"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { COLORS } from "@/theme/colors"
+
+const DEFAULT_MOBILE_PAGE_SIZE = 10
+
+type AnalyticsDataGridProps = {
+  rows: GridRowsProp
+  columns: GridColDef[]
+  minWidth?: number
+  maxHeight?: number | string
+  noRowsLabel?: string
+  loading?: boolean
+  /**
+   * When provided AND viewport is mobile, the DataGrid is replaced with a
+   * vertically stacked list of cards. Receives each row and returns a custom
+   * card (typically a `MobileAnalyticsCard`).
+   */
+  renderMobileRow?: (row: GridValidRowModel) => React.ReactNode
+  /** Page size for the mobile card list. Defaults to 10. */
+  mobilePageSize?: number
+}
+
+export const analyticsDataGridSx = {
+  ...TableStyles,
+  border: "none",
+  minWidth: "var(--analytics-table-min-width)",
+  "& .MuiDataGrid-topContainer, & .MuiDataGrid-container--top": {
+    backgroundColor: COLORS.white,
+  },
+  "& .MuiDataGrid-columnHeaders": {
+    backgroundColor: COLORS.white,
+  },
+  "& .MuiDataGrid-columnHeaderTitle": {
+    color: COLORS.santasGrey,
+    fontWeight: 500,
+    letterSpacing: 0,
+  },
+  "& .MuiDataGrid-columnHeader .MuiDataGrid-columnHeaderTitleContainer": {
+    margin: "0 0 8px",
+  },
+  "& .MuiDataGrid-cell": {
+    color: COLORS.blackRock,
+  },
+  "& .MuiDataGrid-cell a": {
+    color: "inherit",
+    textDecoration: "none",
+  },
+  "& .MuiDataGrid-cell:focus, & .MuiDataGrid-columnHeader:focus": {
+    outline: "none",
+  },
+  "& .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus-within":
+    {
+      outline: "none",
+    },
+  "& .MuiDataGrid-footerContainer": {
+    display: "none",
+  },
+  "& .MuiDataGrid-overlayWrapper": {
+    minHeight: "160px !important",
+  },
+}
+
+export const autoHeightAnalyticsDataGridSx = {
+  ...analyticsDataGridSx,
+  overflow: "visible",
+  height: "auto !important",
+  maxWidth: "100%",
+  "& .MuiDataGrid-main": {
+    overflow: "visible",
+    height: "auto !important",
+    flex: "0 0 auto !important",
+  },
+  "& .MuiDataGrid-virtualScroller": {
+    overflow: "visible !important",
+    overflowX: "visible !important",
+    overflowY: "visible !important",
+    height: "auto !important",
+    flex: "0 0 auto !important",
+  },
+  "& .MuiDataGrid-virtualScrollerContent": {
+    height: "auto !important",
+  },
+  "& .MuiDataGrid-virtualScrollerRenderZone": {
+    position: "static !important" as const,
+    transform: "none !important",
+  },
+  "& .MuiDataGrid-scrollbar": {
+    display: "none",
+  },
+  "& .MuiDataGrid-scrollbarFiller": {
+    display: "none",
+  },
+  "& .MuiDataGrid-topContainer, & .MuiDataGrid-container--top": {
+    position: "sticky",
+    top: 0,
+    zIndex: 4,
+    backgroundColor: COLORS.white,
+  },
+}
+
+const buildPageRange = (page: number, total: number): (number | "...")[] => {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i)
+
+  const range: (number | "...")[] = [0]
+  if (page > 2) range.push("...")
+  for (
+    let i = Math.max(1, page - 1);
+    i <= Math.min(total - 2, page + 1);
+    // eslint-disable-next-line no-plusplus
+    i++
+  ) {
+    range.push(i)
+  }
+  if (page < total - 3) range.push("...")
+  range.push(total - 1)
+  return range
+}
+
+const MobilePagination = ({
+  page,
+  totalPages,
+  onChange,
+}: {
+  page: number
+  totalPages: number
+  onChange: (next: number) => void
+}) => {
+  const items = buildPageRange(page, totalPages)
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "12px 4px 4px",
+      }}
+    >
+      <Button
+        size="small"
+        variant="outlined"
+        color="secondary"
+        onClick={() => onChange(Math.max(0, page - 1))}
+        disabled={page === 0}
+        sx={{
+          minWidth: "fit-content",
+          padding: "6px 12px",
+          borderRadius: "8px",
+        }}
+      >
+        <Typography variant="text3">Prev</Typography>
+      </Button>
+      <Box sx={{ display: "flex", gap: "4px", alignItems: "center" }}>
+        {items.map((item, idx) =>
+          item === "..." ? (
+            <Typography
+              // eslint-disable-next-line react/no-array-index-key
+              key={`gap-${idx}`}
+              variant="text3"
+              sx={{
+                width: "20px",
+                textAlign: "center",
+                color: COLORS.santasGrey,
+              }}
+            >
+              …
+            </Typography>
+          ) : (
+            <Button
+              key={item}
+              onClick={() => onChange(item)}
+              sx={{
+                minWidth: "28px !important",
+                width: "28px",
+                height: "28px",
+                padding: 0,
+                borderRadius: "8px",
+                backgroundColor: item === page ? COLORS.glitter : "transparent",
+                color:
+                  item === page ? COLORS.ultramarineBlue : COLORS.blackRock,
+                "&:hover": {
+                  backgroundColor:
+                    item === page ? COLORS.glitter : COLORS.whiteSmoke,
+                },
+              }}
+            >
+              <Typography
+                variant={item === page ? "text3" : "text3"}
+                sx={{ fontWeight: item === page ? 600 : 500 }}
+              >
+                {item + 1}
+              </Typography>
+            </Button>
+          ),
+        )}
+      </Box>
+      <Button
+        size="small"
+        variant="outlined"
+        color="secondary"
+        onClick={() => onChange(Math.min(totalPages - 1, page + 1))}
+        disabled={page >= totalPages - 1}
+        sx={{
+          minWidth: "fit-content",
+          padding: "6px 12px",
+          borderRadius: "8px",
+        }}
+      >
+        <Typography variant="text3">Next</Typography>
+      </Button>
+    </Box>
+  )
+}
+
+export const AnalyticsDataGrid = ({
+  rows,
+  columns,
+  minWidth = 780,
+  maxHeight,
+  noRowsLabel = "No records found.",
+  loading,
+  renderMobileRow,
+  mobilePageSize = DEFAULT_MOBILE_PAGE_SIZE,
+}: AnalyticsDataGridProps) => {
+  const isMobile = useMobileResolution()
+  const [page, setPage] = React.useState(0)
+  const hasBoundedHeight = maxHeight !== undefined
+
+  // Reset to first page if the data set shrinks beneath the current page.
+  const totalPages = Math.max(1, Math.ceil(rows.length / mobilePageSize))
+  const safePage = Math.min(page, totalPages - 1)
+  React.useEffect(() => {
+    if (safePage !== page) setPage(safePage)
+  }, [safePage, page])
+
+  if (isMobile && renderMobileRow) {
+    if (loading) {
+      return (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {[0, 1, 2].map((i) => (
+            <Skeleton
+              key={i}
+              variant="rectangular"
+              sx={{ height: "96px", borderRadius: "12px" }}
+            />
+          ))}
+        </Box>
+      )
+    }
+
+    if (rows.length === 0) {
+      return (
+        <Box
+          sx={{
+            backgroundColor: COLORS.white,
+            border: `1px solid ${COLORS.athensGrey}`,
+            borderRadius: "12px",
+            padding: "24px 14px",
+            textAlign: "center",
+          }}
+        >
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            {noRowsLabel}
+          </Typography>
+        </Box>
+      )
+    }
+
+    const start = safePage * mobilePageSize
+    const slice = rows.slice(start, start + mobilePageSize)
+    const showPagination = rows.length > mobilePageSize
+
+    return (
+      <Box sx={{ display: "flex", flexDirection: "column" }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {slice.map((row) => (
+            <React.Fragment key={String(row.id ?? Math.random())}>
+              {renderMobileRow(row)}
+            </React.Fragment>
+          ))}
+        </Box>
+        {showPagination && (
+          <MobilePagination
+            page={safePage}
+            totalPages={totalPages}
+            onChange={setPage}
+          />
+        )}
+      </Box>
+    )
+  }
+
+  return (
+    <Box
+      sx={{
+        "--analytics-table-min-width": `${minWidth}px`,
+        backgroundColor: COLORS.white,
+      }}
+    >
+      <Box
+        sx={{
+          overflowX: hasBoundedHeight ? "visible" : "auto",
+          overflowY: "visible",
+        }}
+      >
+        <DataGrid
+          autoHeight={!hasBoundedHeight}
+          getRowHeight={() => "auto"}
+          hideFooter
+          disableRowSelectionOnClick
+          disableColumnMenu
+          loading={loading}
+          rows={rows}
+          columns={columns}
+          sx={{
+            ...(hasBoundedHeight
+              ? analyticsDataGridSx
+              : autoHeightAnalyticsDataGridSx),
+            ...(hasBoundedHeight && {
+              height: maxHeight,
+            }),
+          }}
+          localeText={{
+            noRowsLabel,
+          }}
+        />
+      </Box>
+    </Box>
+  )
+}

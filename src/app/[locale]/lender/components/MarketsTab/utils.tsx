@@ -14,7 +14,10 @@ import { TFunction } from "i18next"
 import Link from "next/link"
 
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
-import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import {
+  BorrowerWithName,
+  getBorrowerDisplayName,
+} from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import {
   MarketsTableModel,
   TypeSafeColDef,
@@ -27,11 +30,11 @@ import { lh, pxToRem } from "@/theme/units"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import {
+  buildBorrowerProfileHref,
   formatBps,
   formatSecsToHours,
   formatTokenWithCommas,
   timestampToDateFormatted,
-  trimAddress,
 } from "@/utils/formatters"
 import {
   getMarketStatus,
@@ -181,7 +184,10 @@ export const getColumns = (
           }}
         >
           <Link
-            href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+            href={buildBorrowerProfileHref(
+              params.row.borrowerAddress,
+              params.row.chainId,
+            )}
             style={{
               textDecoration: "none",
               width: "fit-content",
@@ -495,12 +501,7 @@ export const getRows = (
       withdrawalBatchDuration,
     } = market
 
-    const borrower = borrowers?.find(
-      (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
-    )
-    const borrowerName = borrower
-      ? borrower.alias || borrower.name
-      : trimAddress(borrowerAddress)
+    const borrowerName = getBorrowerDisplayName(borrowerAddress, borrowers)
     const marketStatus = getMarketStatusChip(market)
 
     return {
@@ -509,6 +510,7 @@ export const getRows = (
       name,
       borrowerName,
       borrowerAddress,
+      chainId: market.chainId,
       asset: underlyingToken.symbol,
       lenderAPR: annualInterestBips,
       crr: reserveRatioBips,
