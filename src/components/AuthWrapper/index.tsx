@@ -6,6 +6,7 @@ import { Button, Typography } from "@mui/material"
 import { useAccount } from "wagmi"
 
 import { useAuthToken, useLogin } from "@/hooks/useApiAuth"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
 export default function AuthWrapper({
   buttonText = "Login",
@@ -17,6 +18,7 @@ export default function AuthWrapper({
   requiresAdmin?: boolean
 }) {
   const { address } = useAccount()
+  const { chainId } = useSelectedNetwork()
   const token = useAuthToken()
   const { mutate: login } = useLogin()
   const [isMounted, setIsMounted] = useState(false)
@@ -43,7 +45,7 @@ export default function AuthWrapper({
     )
   }
   // If token, but not admin and requiresAdmin, give user error
-  if (requiresAdmin && !token.isAdmin) {
+  if (requiresAdmin && (!token.isAdmin || token.chainId !== chainId)) {
     return <Typography variant="h6">You are not an admin</Typography>
   }
   // If token, and is admin or doesn't require admin, render children

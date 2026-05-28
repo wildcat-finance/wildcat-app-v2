@@ -108,9 +108,9 @@ export async function getMlaFromForm(
   )
   const marketAddress = await hooksFactoryContract.computeMarketAddress(salt)
 
-  const mlaTemplate = await fetch(`/api/mla/templates/${mlaTemplateId}`).then(
-    (res) => res.json() as Promise<MlaTemplate>,
-  )
+  const mlaTemplate = await fetch(
+    `/api/mla/templates/${mlaTemplateId}?chainId=${networkData.chainId}`,
+  ).then((res) => res.json() as Promise<MlaTemplate>)
   const values = form.getValues()
   const borrowerValues = getFieldValuesForBorrowerFromForm(
     values,
@@ -212,7 +212,7 @@ export const usePreviewMla = (
       if (!mlaTemplateId) throw new Error("MLA template ID is required")
       if (!borrowerProfile) throw new Error("Borrower profile is required")
       const mlaTemplate = await fetch(
-        `/api/mla/templates/${mlaTemplateId}`,
+        `/api/mla/templates/${mlaTemplateId}?chainId=${selectedNetwork.chainId}`,
       ).then((res) => res.json() as Promise<MlaTemplate>)
       const borrowerValues = getFieldValuesForBorrower({
         market,

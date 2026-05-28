@@ -33,7 +33,11 @@ export async function POST(request: NextRequest) {
   if (timeSigned > unixTime || timeSigned < unixTime - MAX_SIGNATURE_AGE) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
-  const LoginMessage = getLoginSignatureMessage(address, timeSigned)
+  const LoginMessage = getLoginSignatureMessage(
+    address,
+    timeSigned,
+    body.chainId,
+  )
   const provider = getProviderForServer(body.chainId)
   const result = await verifyAndDescribeSignature({
     provider,
@@ -47,7 +51,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
 
-  const token = await createApiToken(address)
+  const token = await createApiToken(address, body.chainId)
 
   if (!token) {
     return NextResponse.json({ error: "Server error" }, { status: 500 })

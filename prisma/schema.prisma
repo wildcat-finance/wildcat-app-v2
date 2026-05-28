@@ -69,11 +69,16 @@ model RefusalToAssignMla {
 
 model AdminAccount {
   id      Int    @id @default(autoincrement())
+  chainId Int
   address String
+
+  @@unique([chainId, address])
 }
+
 
 model MlaTemplate {
   id             Int      @id @default(autoincrement())
+  chainId        Int
   name           String
   description    String?
   hide           Boolean? @default(false)
@@ -84,7 +89,10 @@ model MlaTemplate {
   lenderFields   Json
 
   mlas MasterLoanAgreement[] @relation("MlaTemplateToMasterLoanAgreement")
+
+  @@unique([chainId, id])
 }
+
 
 model MasterLoanAgreement {
   chainId        Int
@@ -98,7 +106,7 @@ model MasterLoanAgreement {
 
   borrowerProfile Borrower @relation("BorrowerToMasterLoanAgreement", fields: [chainId, borrower], references: [chainId, address])
 
-  template      MlaTemplate    @relation("MlaTemplateToMasterLoanAgreement", fields: [templateId], references: [id])
+  template      MlaTemplate    @relation("MlaTemplateToMasterLoanAgreement", fields: [chainId, templateId], references: [chainId, id])
   mlaSignatures MlaSignature[] @relation("MlaSignatureToMasterLoanAgreement")
 
   // market must be unique

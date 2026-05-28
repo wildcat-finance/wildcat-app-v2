@@ -147,7 +147,7 @@ export const MobileMarketActions = ({
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.raw.isZero()
 
-  const { data: mla } = useMarketMla(market.address)
+  const { data: mla } = useMarketMla(market.address, market.chainId)
   const mlaResponse = mla && "noMLA" in mla ? null : mla
   const { data: signedMla } = useGetSignedMla(mlaResponse)
   const mlaRequiredAndUnsigned =

@@ -6,13 +6,18 @@
 import { randomBytes } from "crypto"
 import { before } from "node:test"
 
-import { getLensV2Contract, Market } from "@wildcatfi/wildcat-sdk"
+import {
+  getLensV2Contract,
+  Market,
+  SupportedChainId,
+} from "@wildcatfi/wildcat-sdk"
 import { Wallet } from "ethers"
 import { NextApiRequest } from "next"
 import { RequestInit } from "next/dist/server/web/spec-extension/request"
 import { NextRequest } from "next/server"
 // import { Body, createMocks, createRequest } from "node-mocks-http"
 
+import { getLoginSignatureMessage } from "@/config/api"
 import { TargetChainId, TargetNetwork } from "@/config/network"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { prisma } from "@/lib/db"
@@ -97,6 +102,9 @@ export const mockGet = (
     method: "GET",
     ...otherOptions,
   })
+
+const withChainId = (path: string, chainId = TargetChainId) =>
+  `${path}${path.includes("?") ? "&" : "?"}chainId=${chainId}`
 
 const borrowerFields: MlaTemplateField[] = [
   // number
@@ -218,15 +226,21 @@ describe("API", () => {
   const privateKey = randomBytes(32)
   const adminPrivateKey = randomBytes(32)
 
-  const provider = getProviderForServer()
+  const provider = getProviderForServer(TargetChainId)
   const wallet = new Wallet(privateKey, provider)
   const adminWallet = new Wallet(adminPrivateKey, provider)
   const otherWallet = Wallet.createRandom({ provider })
-  const realWallet = new Wallet(
-    process.env.TEST_BORROWER_PRIVATE_KEY as `0x${string}`,
-    provider,
-  )
+  const realWalletPrivateKey = process.env.TEST_BORROWER_PRIVATE_KEY as
+    | `0x${string}`
+    | undefined
+  const realWallet = realWalletPrivateKey
+    ? new Wallet(realWalletPrivateKey, provider)
+    : undefined
   const borrowerAddress = wallet.address as `0x${string}`
+  const otherChainId =
+    TargetChainId === SupportedChainId.Mainnet
+      ? SupportedChainId.Sepolia
+      : SupportedChainId.Mainnet
   let adminToken: string = ""
   let borrowerToken: string = ""
   let otherToken: string = ""
@@ -235,26 +249,31 @@ describe("API", () => {
     if (isAdmin) {
       const isAlreadyAdmin = await prisma.adminAccount.findFirst({
         where: {
+          chainId: TargetChainId,
           address: walletToUse.address.toLowerCase(),
         },
       })
       if (!isAlreadyAdmin) {
         await prisma.adminAccount.create({
           data: {
+            chainId: TargetChainId,
             address: walletToUse.address.toLowerCase(),
           },
         })
       }
     }
-    const timeSigned = Date.now()
-    const LoginMessage = `Connect to wildcat.finance as account ${walletToUse.address.toLowerCase()}\nDate: ${dayjs(
+    const timeSigned = dayjs().unix()
+    const LoginMessage = getLoginSignatureMessage(
+      walletToUse.address,
       timeSigned,
-    ).format("MMMM DD, YYYY")}`
+      TargetChainId,
+    )
     const signature = await walletToUse.signMessage(LoginMessage)
     const req = mockPost("/api/auth/login", {
       address: walletToUse.address,
       signature,
       timeSigned,
+      chainId: TargetChainId,
     } as LoginInput)
     const response = await postLogin(req)
     expect(response.status).toEqual(200)
@@ -263,6 +282,7 @@ describe("API", () => {
   }
 
   const invite: BorrowerInvitationInput = {
+    chainId: TargetChainId,
     address: borrowerAddress,
     name: "Borrower 1",
   }
@@ -291,7 +311,8 @@ describe("API", () => {
       const req = mockPost("/api/auth/login", {
         address: borrowerAddress,
         signature: "0x",
-        timeSigned: Date.now(),
+        timeSigned: dayjs().unix(),
+        chainId: TargetChainId,
       })
       const response = await postLogin(req)
       expect(response.status).toBe(400)
@@ -299,15 +320,18 @@ describe("API", () => {
     })
 
     test("[POST] Succeeds with ECDSA signature", async () => {
-      const timeSigned = Date.now()
-      const LoginMessage = `Connect to wildcat.finance as account ${adminWallet.address.toLowerCase()}\nDate: ${dayjs(
+      const timeSigned = dayjs().unix()
+      const LoginMessage = getLoginSignatureMessage(
+        adminWallet.address,
         timeSigned,
-      ).format("MMMM DD, YYYY")}`
+        TargetChainId,
+      )
       const signature = await adminWallet.signMessage(LoginMessage)
       const req = mockPost("/api/auth/login", {
         address: adminWallet.address,
         signature,
         timeSigned,
+        chainId: TargetChainId,
       } as LoginInput)
       const response = await postLogin(req)
       expect(response.status).toBe(200)
@@ -319,7 +343,11 @@ describe("API", () => {
   // describe("/api/invite", () => {
   describe("[POST] /api/invite", () => {
     test("[POST] Fails if not admin", async () => {
-      const req = mockPost("/api/invite", invite)
+      const req = mockPost("/api/invite", invite, {
+        headers: {
+          Authorization: `Bearer ${borrowerToken}`,
+        },
+      })
       const response = await postBorrowerInvite(req)
       expect(response.status).toBe(403)
       expect(await response.json()).toEqual({ error: "Forbidden" })
@@ -338,7 +366,7 @@ describe("API", () => {
     })
 
     test("[POST] Creates profile with name", async () => {
-      const req = mockGet(`/api/profiles/${borrowerAddress}`)
+      const req = mockGet(withChainId(`/api/profiles/${borrowerAddress}`))
       const response = await getProfile(req, {
         params: { address: borrowerAddress },
       })
@@ -384,7 +412,7 @@ describe("API", () => {
 
   describe("[GET] /api/invite/[address]", () => {
     test("Fails if query unauthenticated", async () => {
-      const req = mockGet(`/api/invite/${borrowerAddress}`)
+      const req = mockGet(withChainId(`/api/invite/${borrowerAddress}`))
       const response = await getBorrowerInvite(req, {
         params: { address: borrowerAddress },
       })
@@ -392,7 +420,7 @@ describe("API", () => {
     })
 
     test("Succeeds if user is admin", async () => {
-      const req = mockGet(`/api/invite/${borrowerAddress}`, {
+      const req = mockGet(withChainId(`/api/invite/${borrowerAddress}`), {
         headers: {
           Authorization: `Bearer ${adminToken}`,
         },
@@ -408,13 +436,14 @@ describe("API", () => {
           address: borrowerAddress.toLowerCase(),
           chainId: TargetChainId,
           name: "Borrower 1",
+          registeredOnChain: false,
           timeInvited: expect.any(String),
         },
       })
     })
 
     test("Succeeds if user is invited borrower", async () => {
-      const req = mockGet(`/api/invite/${borrowerAddress}`, {
+      const req = mockGet(withChainId(`/api/invite/${borrowerAddress}`), {
         headers: {
           Authorization: `Bearer ${borrowerToken}`,
         },
@@ -430,13 +459,14 @@ describe("API", () => {
           address: borrowerAddress.toLowerCase(),
           chainId: TargetChainId,
           name: "Borrower 1",
+          registeredOnChain: false,
           timeInvited: expect.any(String),
         },
       })
     })
 
     test("Returns 404 if no invitation exists", async () => {
-      const req = mockGet(`/api/invite/${otherWallet.address}`, {
+      const req = mockGet(withChainId(`/api/invite/${otherWallet.address}`), {
         headers: {
           Authorization: `Bearer ${otherToken}`,
         },
@@ -450,8 +480,8 @@ describe("API", () => {
       })
     })
 
-    test("Returns 401 if token does not match address", async () => {
-      const req = mockGet(`/api/invite/${borrowerAddress}`, {
+    test("Returns 403 if token does not match address", async () => {
+      const req = mockGet(withChainId(`/api/invite/${borrowerAddress}`), {
         headers: {
           Authorization: `Bearer ${otherToken}`,
         },
@@ -459,16 +489,16 @@ describe("API", () => {
       const response = await getBorrowerInvite(req, {
         params: { address: borrowerAddress },
       })
-      expect(response.status).toBe(401)
+      expect(response.status).toBe(403)
       expect(await response.json()).toEqual({
-        error: "Unauthorized",
+        error: "Forbidden",
       })
     })
   })
 
   describe("[HEAD] /api/invite/[address]", () => {
     test("Returns 200 if invitation exists", async () => {
-      const req = mockHead(`/api/invite/${borrowerAddress}`)
+      const req = mockHead(withChainId(`/api/invite/${borrowerAddress}`))
       const response = await headBorrowerInvite(req, {
         params: { address: borrowerAddress },
       })
@@ -476,7 +506,7 @@ describe("API", () => {
     })
 
     test("Returns 404 if invitation does not exist", async () => {
-      const req = mockHead(`/api/invite/${borrowerAddress}`)
+      const req = mockHead(withChainId(`/api/invite/${borrowerAddress}`))
       const response = await headBorrowerInvite(req, {
         params: { address: otherWallet.address as `0x${string}` },
       })
@@ -490,6 +520,7 @@ describe("API", () => {
       const wallet2 = Wallet.createRandom({ provider })
       const token = await getToken(wallet2, false)
       const body: AcceptInvitationInput = {
+        chainId: TargetChainId,
         address: wallet2.address as `0x${string}`,
         name: invite.name,
         timeSigned,
@@ -517,6 +548,7 @@ describe("API", () => {
       agreementText = `${agreementText}\n\nOrganization Name: ${invite.name}`
       const wallet2 = Wallet.createRandom({ provider })
       const body: AcceptInvitationInput = {
+        chainId: TargetChainId,
         address: borrowerAddress,
         name: invite.name,
         timeSigned,
@@ -541,6 +573,7 @@ describe("API", () => {
       }
       agreementText = `${agreementText}\n\nOrganization Name: ${invite.name}`
       const body: AcceptInvitationInput = {
+        chainId: TargetChainId,
         address: borrowerAddress,
         name: invite.name,
         timeSigned,
@@ -561,7 +594,7 @@ describe("API", () => {
   describe("/api/profiles", () => {
     describe("[GET] /api/profiles/[address]", () => {
       test("Returns 404 if no profile exists", async () => {
-        const req = mockGet(`/api/profiles/${otherWallet.address}`)
+        const req = mockGet(withChainId(`/api/profiles/${otherWallet.address}`))
         const response = await getProfile(req, {
           params: { address: otherWallet.address as `0x${string}` },
         })
@@ -570,7 +603,7 @@ describe("API", () => {
       })
 
       test("Returns profile if exists", async () => {
-        const req = mockGet(`/api/profiles/${borrowerAddress}`)
+        const req = mockGet(withChainId(`/api/profiles/${borrowerAddress}`))
         const response = await getProfile(req, {
           params: { address: borrowerAddress },
         })
@@ -600,6 +633,7 @@ describe("API", () => {
         const req = mockPost(
           "/api/profiles/updates",
           {
+            chainId: TargetChainId,
             name: "Borrower 1",
           },
           {
@@ -614,6 +648,102 @@ describe("API", () => {
           error: `Borrower ${otherWallet.address.toLowerCase()} not found`,
         })
       })
+
+      test("Rejects borrower self-update with token from another chain", async () => {
+        await prisma.borrower.upsert({
+          where: {
+            chainId_address: {
+              chainId: otherChainId,
+              address: borrowerAddress.toLowerCase(),
+            },
+          },
+          create: {
+            chainId: otherChainId,
+            address: borrowerAddress.toLowerCase(),
+            name: "Other-chain borrower",
+            registeredOnChain: false,
+          },
+          update: {
+            name: "Other-chain borrower",
+          },
+        })
+        const updatesBefore = await prisma.borrowerProfileUpdateRequest.count({
+          where: {
+            chainId: otherChainId,
+            address: borrowerAddress.toLowerCase(),
+          },
+        })
+        const req = mockPost(
+          "/api/profiles/updates",
+          {
+            chainId: otherChainId,
+            name: "Cross-chain update",
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${borrowerToken}`,
+            },
+          },
+        )
+        const response = await postProfileUpdateRequest(req)
+        expect(response.status).toBe(403)
+        expect(await response.json()).toEqual({ error: "Forbidden" })
+        await expect(
+          prisma.borrowerProfileUpdateRequest.count({
+            where: {
+              chainId: otherChainId,
+              address: borrowerAddress.toLowerCase(),
+            },
+          }),
+        ).resolves.toBe(updatesBefore)
+        await expect(
+          prisma.borrower.findUnique({
+            where: {
+              chainId_address: {
+                chainId: otherChainId,
+                address: borrowerAddress.toLowerCase(),
+              },
+            },
+            select: {
+              name: true,
+            },
+          }),
+        ).resolves.toEqual({ name: "Other-chain borrower" })
+      })
+
+      test("Allows borrower self-update on token chain", async () => {
+        const req = mockPost(
+          "/api/profiles/updates",
+          {
+            chainId: TargetChainId,
+            description: "Updated borrower profile",
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${borrowerToken}`,
+            },
+          },
+        )
+        const response = await postProfileUpdateRequest(req)
+        expect(response.status).toBe(200)
+        expect(await response.json()).toEqual({
+          success: true,
+          updateId: expect.any(Number),
+        })
+        await expect(
+          prisma.borrower.findUnique({
+            where: {
+              chainId_address: {
+                chainId: TargetChainId,
+                address: borrowerAddress.toLowerCase(),
+              },
+            },
+            select: {
+              description: true,
+            },
+          }),
+        ).resolves.toEqual({ description: "Updated borrower profile" })
+      })
     })
   })
 
@@ -627,6 +757,7 @@ describe("API", () => {
       const req = mockPost(
         "/api/mla/templates",
         {
+          chainId: TargetChainId,
           borrowerFields,
           lenderFields,
           html: DefaultMlaHtml,
@@ -673,7 +804,11 @@ describe("API", () => {
     }
 
     async function resetMlaTemplate() {
-      const mlaTemplate = await prisma.mlaTemplate.findFirst()
+      const mlaTemplate = await prisma.mlaTemplate.findFirst({
+        where: {
+          chainId: TargetChainId,
+        },
+      })
       await prisma.mlaTemplate.update({
         where: {
           id: mlaTemplate?.id,
@@ -686,10 +821,20 @@ describe("API", () => {
       })
     }
     test("Create a new MLA for a given market", async () => {
+      if (!realWallet) {
+        console.log(
+          "Skipping MLA creation because TEST_BORROWER_PRIVATE_KEY is not set",
+        )
+        return
+      }
       const marketAddress = "0xbab3e079d3f28a58a14e316dcb15a8b2cc25ca80"
       await clearMla(marketAddress)
       await resetMlaTemplate()
-      const mlaTemplate = await prisma.mlaTemplate.findFirst()
+      const mlaTemplate = await prisma.mlaTemplate.findFirst({
+        where: {
+          chainId: TargetChainId,
+        },
+      })
       if (!mlaTemplate) {
         throw new Error("No MLA template found")
       }
@@ -706,16 +851,34 @@ describe("API", () => {
           await lens.getMarketData(marketAddress),
         )
       })
-      const borrowerProfile = await prisma.borrower.findFirst({
+      const borrowerProfile = await prisma.borrower.upsert({
         where: {
+          chainId_address: {
+            chainId: TargetChainId,
+            address: realWallet.address.toLowerCase(),
+          },
+        },
+        create: {
+          chainId: TargetChainId,
           address: realWallet.address.toLowerCase(),
+          name: "MLA Test Borrower",
+          jurisdiction: "United States",
+          entityKind: "LLC",
+          physicalAddress: "123 Test Street",
+          registeredOnChain: false,
+        },
+        update: {
+          name: "MLA Test Borrower",
+          jurisdiction: "United States",
+          entityKind: "LLC",
+          physicalAddress: "123 Test Street",
         },
       })
       const timeSigned = Date.now()
 
       const values = getFieldValuesForBorrower({
         market,
-        borrowerInfo: borrowerProfile as BasicBorrowerInfo,
+        borrowerInfo: borrowerProfile as unknown as BasicBorrowerInfo,
         networkData: TargetNetwork,
         timeSigned,
         lastSlaUpdateTime: +lastSlaUpdateTime,
@@ -728,6 +891,7 @@ describe("API", () => {
       const signature = await realWallet.signMessage(filledTemplate.plaintext)
       const req = mockPost(`/api/mla/${market.address}`, {
         mlaTemplate: mlaTemplate.id,
+        chainId: TargetChainId,
         timeSigned,
         signature,
       })
@@ -743,7 +907,9 @@ describe("API", () => {
 
   describe("[GET] /api/mla/templates", () => {
     test("Get all MLA templates", async () => {
-      const response = await getMlaTemplates()
+      const response = await getMlaTemplates(
+        mockGet(`/api/mla/templates?chainId=${TargetChainId}`),
+      )
       expect(response.status).toBe(200)
       const results = (await response.json()) as MlaTemplate[]
       expect(

@@ -5,10 +5,16 @@ import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
 import { QueryKeys } from "@/config/query-keys"
 
 import { useAuthToken } from "./useApiAuth"
+import { useSelectedNetwork } from "./useSelectedNetwork"
 
-export const useMarketMla = (marketAddress: string | undefined) => {
-  const { address, chainId } = useAccount()
-  const token = useAuthToken()
+export const useMarketMla = (
+  marketAddress: string | undefined,
+  marketChainId?: number,
+) => {
+  const { address } = useAccount()
+  const { chainId: selectedChainId } = useSelectedNetwork()
+  const chainId = marketChainId ?? selectedChainId
+  const token = useAuthToken(chainId)
   const chainKey = chainId ?? 0
   const getMarketMla = async () => {
     if (!marketAddress || !chainId) return undefined

@@ -410,7 +410,7 @@ export const useDeployV2Market = () => {
         if (mlaTemplateId === undefined) {
           console.log(`Declining MLA for market ${marketAddress.toLowerCase()}`)
           const response = await fetch(
-            `/api/mla/${marketAddress.toLowerCase()}/decline`,
+            `/api/mla/${marketAddress.toLowerCase()}/decline?chainId=${targetChainId}`,
             {
               method: "POST",
               body: JSON.stringify({
@@ -425,7 +425,7 @@ export const useDeployV2Market = () => {
         }
         console.log(`Submitting MLA for market ${marketAddress.toLowerCase()}`)
         const response = await fetch(
-          `/api/mla/${marketAddress.toLowerCase()}`,
+          `/api/mla/${marketAddress.toLowerCase()}?chainId=${targetChainId}`,
           {
             method: "POST",
             body: JSON.stringify({

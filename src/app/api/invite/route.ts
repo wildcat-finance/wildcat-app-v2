@@ -24,7 +24,7 @@ import {
   BorrowerInvitationForAdminView,
   BorrowerInvitationInput,
 } from "./interface"
-import { verifyApiToken } from "../auth/verify-header"
+import { isAdminForChain, verifyApiToken } from "../auth/verify-header"
 
 /// GET /api/invite
 /// Route to get borrower invitations.
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  if (!token.isAdmin) {
+  if (!(await isAdminForChain(token, chainId))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   /* const onlyPendingInvitations = request.nextUrl.searchParams.get(
@@ -63,9 +63,6 @@ export async function POST(request: NextRequest) {
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  if (!token.isAdmin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-  }
   let body: BorrowerInvitationInput
   try {
     const input = await request.json()
@@ -75,6 +72,9 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     return getZodParseError(error)
+  }
+  if (!(await isAdminForChain(token, body.chainId))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   const address = body.address.toLowerCase()
   const {
@@ -238,13 +238,13 @@ export async function DELETE(request: NextRequest) {
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  if (!token.isAdmin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-  }
   const address = request.nextUrl.searchParams.get("address")
   const chainId = validateChainIdParam(request)
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
+  if (!(await isAdminForChain(token, chainId))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   if (!address) {
     return NextResponse.json(
@@ -311,6 +311,9 @@ export async function PUT(request: NextRequest) {
     timeSigned,
     signature,
   } = body
+  if (token.chainId !== chainId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
   console.log({
     name,
     description,
