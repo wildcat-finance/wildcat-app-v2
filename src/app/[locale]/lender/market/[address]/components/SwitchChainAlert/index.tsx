@@ -1,6 +1,7 @@
 import React from "react"
 
 import { Box, Button, Typography } from "@mui/material"
+import { Trans, useTranslation } from "react-i18next"
 
 import { NETWORKS } from "@/config/network"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -18,6 +19,7 @@ import {
 const PrimaryNetworks = Object.values(NETWORKS)
 
 export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
+  const { t } = useTranslation()
   const { requestSwitchNetwork, isSwitching } = useNetworkGate({
     desiredChainId,
     includeAgreementStatus: false,
@@ -27,7 +29,7 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
 
   const desiredChainName =
     PrimaryNetworks.find((chain) => chain.chainId === desiredChainId)?.name ??
-    "Unknown Network"
+    t("marketDetails.lender.switchChain.unknownNetwork")
 
   const handleSwitchChain = () => {
     requestSwitchNetwork()
@@ -42,7 +44,7 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
           textAlign="center"
           marginTop="12px"
         >
-          Wrong Market Network
+          {t("marketDetails.lender.switchChain.title")}
         </Typography>
 
         <Box
@@ -60,13 +62,16 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
             color={COLORS.white06}
             textAlign="center"
           >
-            Currently, you can only view general information about the market.
-            <br />
-            To interact with it, please change the network to{" "}
-            <span style={{ fontWeight: 600, color: COLORS.white }}>
-              {desiredChainName}
-            </span>
-            .
+            <Trans
+              i18nKey="marketDetails.lender.switchChain.description"
+              values={{ chainName: desiredChainName }}
+              components={{
+                break: <br />,
+                emphasis: (
+                  <span style={{ fontWeight: 600, color: COLORS.white }} />
+                ),
+              }}
+            />
           </Typography>
         </Box>
 
@@ -85,7 +90,9 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
           onClick={handleSwitchChain}
           disabled={isSwitching}
         >
-          {isSwitching ? "Switching..." : "Switch Network"}
+          {isSwitching
+            ? t("marketDetails.lender.switchChain.switching")
+            : t("marketDetails.lender.switchChain.switchNetwork")}
         </Button>
       </>
     )
@@ -95,17 +102,20 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
       <Box sx={AlertContainer}>
         <Box sx={TypoContainer}>
           <Typography variant="text1" sx={{ marginBottom: "6px" }}>
-            Wrong Market Network
+            {t("marketDetails.lender.switchChain.title")}
           </Typography>
 
           <Typography variant="text3" color="#8A8C9F">
-            Currently, you can only view general information about the market.
-            <br />
-            To interact with it, please change the network to{" "}
-            <span style={{ fontWeight: 600, color: COLORS.bunker }}>
-              {desiredChainName}
-            </span>
-            .
+            <Trans
+              i18nKey="marketDetails.lender.switchChain.description"
+              values={{ chainName: desiredChainName }}
+              components={{
+                break: <br />,
+                emphasis: (
+                  <span style={{ fontWeight: 600, color: COLORS.bunker }} />
+                ),
+              }}
+            />
           </Typography>
         </Box>
 
@@ -116,7 +126,9 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
           onClick={handleSwitchChain}
           disabled={isSwitching}
         >
-          {isSwitching ? "Switching..." : "Switch Network"}
+          {isSwitching
+            ? t("marketDetails.lender.switchChain.switching")
+            : t("marketDetails.lender.switchChain.switchNetwork")}
         </Button>
       </Box>
     </Box>

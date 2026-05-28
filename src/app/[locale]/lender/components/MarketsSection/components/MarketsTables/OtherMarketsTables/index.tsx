@@ -153,7 +153,7 @@ export const OtherMarketsTables = ({
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
     {
       field: "name",
-      headerName: t("dashboard.markets.tables.header.name"),
+      headerName: t("common.fields.marketName"),
       flex: 2.5,
       minWidth: 200,
       headerAlign: "left",
@@ -211,7 +211,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "status",
-      headerName: t("dashboard.markets.tables.header.status"),
+      headerName: t("common.fields.status"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -227,7 +227,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "term",
-      headerName: t("dashboard.markets.tables.header.term"),
+      headerName: t("marketList.shared.tables.header.term"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -243,7 +243,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "apr",
-      headerName: t("dashboard.markets.tables.header.apr"),
+      headerName: t("common.fields.apr"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -280,7 +280,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "withdrawalBatchDuration",
-      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      headerName: t("marketList.shared.tables.header.withdrawal"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -293,7 +293,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "asset",
-      headerName: t("dashboard.markets.tables.header.asset"),
+      headerName: t("marketList.shared.tables.header.asset"),
       minWidth: 112,
       flex: 0.5,
       headerAlign: "right",
@@ -306,7 +306,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "capacityLeft",
-      headerName: t("dashboard.markets.tables.header.capacity"),
+      headerName: t("marketList.shared.tables.header.capacity"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -327,7 +327,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "debt",
-      headerName: t("dashboard.markets.tables.header.debt"),
+      headerName: t("common.fields.totalDebt"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -361,7 +361,7 @@ export const OtherMarketsTables = ({
               sx={{ ...rowLinkInteractiveSx, textDecoration: "none" }}
             >
               <Button size="small" variant="contained" color="secondary">
-                {t("dashboard.markets.tables.other.depositBTN")}
+                {t("marketList.shared.tables.other.depositBTN")}
               </Button>
             </Box>
           ) : (
@@ -372,7 +372,7 @@ export const OtherMarketsTables = ({
               sx={{ ...rowLinkInteractiveSx, textDecoration: "none" }}
             >
               <Button size="small" variant="contained" color="secondary">
-                {t("dashboard.markets.tables.other.requestBTN")}
+                {t("marketList.shared.tables.other.requestBTN")}
               </Button>
             </Box>
           )}
@@ -438,7 +438,7 @@ export const OtherMarketsTables = ({
     >
       <Box id="self-onboard" ref={selfOnboardRef}>
         <MarketsTableAccordion
-          label={t("dashboard.markets.tables.other.selfOnboard")}
+          label={t("marketList.shared.tables.other.selfOnboard")}
           marketsLength={selfOnboard.length}
           isLoading={isLoading}
           isOpen
@@ -474,7 +474,7 @@ export const OtherMarketsTables = ({
       </Box>
       <Box id="manual" ref={manualRef}>
         <MarketsTableAccordion
-          label={t("dashboard.markets.tables.other.manual")}
+          label={t("marketList.shared.tables.other.manual")}
           isLoading={isLoading}
           isOpen
           marketsLength={manual.length}
@@ -511,7 +511,7 @@ export const OtherMarketsTables = ({
 
       <Box id="other-terminated" ref={terminatedRef}>
         <MarketsTableAccordion
-          label={t("dashboard.markets.tables.other.terminated")}
+          label={t("marketList.shared.tables.other.terminated")}
           marketsLength={terminated.length}
           isLoading={isLoading}
           isOpen

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react"
 
 import { Box, Tab, Tabs, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
+import { useTranslation } from "react-i18next"
 
 import { MarketsTableAccordion } from "@/app/[locale]/lender/components/MarketsTab/MarketsTableAccordion"
 import { TablePagination } from "@/components/TablePagination"
@@ -18,6 +19,7 @@ export const OtherMarketsTable = ({
   assetFilter,
   nameFilter,
 }: OtherMarketsTableProps) => {
+  const { t } = useTranslation()
   const [tab, setTab] = useState<"all" | "selfOnboard">("selfOnboard")
   const [paginationModel, setPaginationModel] = React.useState({
     pageSize: 10,
@@ -36,6 +38,16 @@ export const OtherMarketsTable = ({
   const defaultFilters =
     assetFilter?.length === 0 && statusFilter?.length === 0 && nameFilter === ""
 
+  const statusTokens = (statusFilter ?? [])
+    .map((status) => ` ${status.toLowerCase()}`)
+    .join("")
+  const assetTokens = (assetFilter ?? [])
+    .map((asset) => ` ${asset.name}`)
+    .join("")
+  const filterSummary = `${statusTokens} ${nameFilter ?? ""} ${assetTokens}`
+    .replace(/\s+/g, " ")
+    .trim()
+
   useEffect(() => {
     setPaginationModel((prevState) => ({ ...prevState, page: 0 }))
   }, [assetFilter, statusFilter, nameFilter])
@@ -43,7 +55,7 @@ export const OtherMarketsTable = ({
   return (
     <MarketsTableAccordion
       type="other"
-      label="Other Markets"
+      label={t("marketList.shared.tables.other.title")}
       marketsLength={tableRows.length}
       isLoading={isLoading}
       isOpen
@@ -55,7 +67,7 @@ export const OtherMarketsTable = ({
         <Tabs
           value={tab}
           onChange={handleTabsChange}
-          aria-label="Other Markets table tabs"
+          aria-label={t("marketList.lender.otherMarkets.tabsAriaLabel")}
           sx={TabsStyles}
         >
           <Box
@@ -65,8 +77,12 @@ export const OtherMarketsTable = ({
               backgroundColor: COLORS.athensGrey,
             }}
           />
-          <Tab value="selfOnboard" label="Self-Onboard" sx={TabStyle} />
-          <Tab value="all" label="All" sx={TabStyle} />
+          <Tab
+            value="selfOnboard"
+            label={t("marketList.shared.tables.other.selfOnboard")}
+            sx={TabStyle}
+          />
+          <Tab value="all" label={t("common.filters.all")} sx={TabStyle} />
           <Box
             sx={{
               width: "100%",
@@ -100,10 +116,10 @@ export const OtherMarketsTable = ({
           height="270px"
         >
           <Typography variant="title3" color={COLORS.blackRock}>
-            No Self-Onboard Markets Available
+            {t("marketList.lender.otherMarkets.noSelfOnboard.title")}
           </Typography>
           <Typography variant="text3" color={COLORS.santasGrey}>
-            No self-onboarding markets are available right now.
+            {t("marketList.lender.otherMarkets.noSelfOnboard.subtitle")}
           </Typography>
         </Box>
       )}
@@ -129,13 +145,9 @@ export const OtherMarketsTable = ({
         !defaultFilters && (
           <Box display="flex" flexDirection="column" padding="24px 16px 12px">
             <Typography variant="text2" color={COLORS.santasGrey}>
-              There are no{" "}
-              {statusFilter?.length !== 0 &&
-                statusFilter?.map((status) => ` ${status.toLowerCase()}`)}{" "}
-              {nameFilter === "" ? "" : nameFilter}{" "}
-              {assetFilter?.length !== 0 &&
-                `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
-              markets right now.
+              {t("marketList.lender.otherMarkets.noFiltered", {
+                filters: filterSummary,
+              })}
             </Typography>
           </Box>
         )}

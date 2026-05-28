@@ -23,12 +23,12 @@ export const GlossarySidebar = ({
     case CreateMarketSteps.POLICY: {
       glossaryArray = [
         {
-          title: t("createNewMarket.policy.policy.label"),
-          description: t("createNewMarket.policy.policy.glossary"),
+          title: t("borrower.createMarket.policy.policy.label"),
+          description: t("borrower.createMarket.policy.policy.glossary"),
         },
         {
-          title: t("createNewMarket.policy.name.label"),
-          description: t("createNewMarket.policy.name.glossary"),
+          title: t("borrower.createMarket.policy.name.label"),
+          description: t("borrower.createMarket.policy.name.glossary"),
         },
       ]
       break
@@ -36,16 +36,16 @@ export const GlossarySidebar = ({
     case CreateMarketSteps.BASIC: {
       glossaryArray = [
         {
-          title: t("createNewMarket.basic.asset.label"),
-          description: t("createNewMarket.basic.asset.glossary"),
+          title: t("common.fields.underlyingAsset"),
+          description: t("borrower.createMarket.basic.asset.glossary"),
         },
         {
-          title: t("createNewMarket.basic.tokenName.label"),
-          description: t("createNewMarket.basic.tokenName.glossary"),
+          title: t("borrower.createMarket.basic.tokenName.label"),
+          description: t("borrower.createMarket.basic.tokenName.glossary"),
         },
         {
-          title: t("createNewMarket.basic.tokenSymbol.label"),
-          description: t("createNewMarket.basic.tokenSymbol.glossary"),
+          title: t("borrower.createMarket.basic.tokenSymbol.label"),
+          description: t("borrower.createMarket.basic.tokenSymbol.glossary"),
         },
       ]
       break
@@ -53,8 +53,8 @@ export const GlossarySidebar = ({
     case CreateMarketSteps.MLA: {
       glossaryArray = [
         {
-          title: t("createNewMarket.mla.mla.label"),
-          description: t("createNewMarket.mla.mla.glossary"),
+          title: t("borrower.createMarket.mla.mla.label"),
+          description: t("borrower.createMarket.mla.mla.glossary"),
         },
       ]
       break
@@ -62,32 +62,34 @@ export const GlossarySidebar = ({
     case CreateMarketSteps.FINANCIAL: {
       glossaryArray = [
         {
-          title: t("createNewMarket.financial.maxCapacity.label"),
-          description: t("createNewMarket.financial.maxCapacity.glossary"),
+          title: t("borrower.createMarket.financial.maxCapacity.label"),
+          description: t(
+            "borrower.createMarket.financial.maxCapacity.glossary",
+          ),
         },
         {
-          title: t("createNewMarket.financial.baseAPR.label"),
-          description: t("createNewMarket.financial.baseAPR.glossary"),
+          title: t("borrower.createMarket.financial.baseAPR.label"),
+          description: t("borrower.createMarket.financial.baseAPR.glossary"),
         },
         {
-          title: t("createNewMarket.financial.penaltyAPR.label"),
-          description: t("createNewMarket.financial.penaltyAPR.glossary"),
+          title: t("borrower.createMarket.financial.penaltyAPR.label"),
+          description: t("borrower.createMarket.financial.penaltyAPR.glossary"),
         },
         {
-          title: t("createNewMarket.financial.ratio.label"),
-          description: t("createNewMarket.financial.ratio.glossary"),
+          title: t("borrower.createMarket.financial.ratio.label"),
+          description: t("borrower.createMarket.financial.ratio.glossary"),
         },
         {
-          title: t("createNewMarket.periods.grace.label"),
-          description: t("createNewMarket.periods.grace.glossary"),
+          title: t("borrower.createMarket.periods.grace.label"),
+          description: t("borrower.createMarket.periods.grace.glossary"),
         },
         {
-          title: t("createNewMarket.periods.wdCycle.label"),
-          description: t("createNewMarket.periods.wdCycle.glossary"),
+          title: t("borrower.createMarket.periods.wdCycle.label"),
+          description: t("borrower.createMarket.periods.wdCycle.glossary"),
         },
         {
-          title: t("createNewMarket.financial.minDeposit.label"),
-          description: t("createNewMarket.financial.minDeposit.glossary"),
+          title: t("borrower.createMarket.financial.minDeposit.label"),
+          description: t("borrower.createMarket.financial.minDeposit.glossary"),
         },
       ]
       break
@@ -96,24 +98,26 @@ export const GlossarySidebar = ({
       glossaryArray = [
         {
           title: t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
+            "borrower.createMarket.lenderRestrictions.restrictWithdrawals.label",
           ),
           description: t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.glossary",
+            "borrower.createMarket.lenderRestrictions.restrictWithdrawals.glossary",
           ),
         },
         {
           title: t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.label",
+            "borrower.createMarket.lenderRestrictions.restrictTransfers.label",
           ),
           description: t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.glossary",
+            "borrower.createMarket.lenderRestrictions.restrictTransfers.glossary",
           ),
         },
         {
-          title: t("createNewMarket.lenderRestrictions.disableTransfers.label"),
+          title: t(
+            "borrower.createMarket.lenderRestrictions.disableTransfers.label",
+          ),
           description: t(
-            "createNewMarket.lenderRestrictions.disableTransfers.glossary",
+            "borrower.createMarket.lenderRestrictions.disableTransfers.glossary",
           ),
         },
       ]
@@ -122,12 +126,12 @@ export const GlossarySidebar = ({
     default: {
       glossaryArray = [
         {
-          title: t("createNewMarket.policy.policy.label"),
-          description: t("createNewMarket.policy.policy.glossary"),
+          title: t("borrower.createMarket.policy.policy.label"),
+          description: t("borrower.createMarket.policy.policy.glossary"),
         },
         {
-          title: t("createNewMarket.policy.name.label"),
-          description: t("createNewMarket.policy.name.glossary"),
+          title: t("borrower.createMarket.policy.name.label"),
+          description: t("borrower.createMarket.policy.name.glossary"),
         },
       ]
       break
@@ -151,7 +155,7 @@ export const GlossarySidebar = ({
       </SvgIcon>
 
       <Typography variant="text1" sx={{ margin: "12px 0 32px" }}>
-        {t("createNewMarket.glossary")}
+        {t("borrower.createMarket.glossary")}
       </Typography>
 
       {glossaryArray.map((block) => (

@@ -7,6 +7,7 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { COLORS } from "@/theme/colors"
 
@@ -29,8 +30,22 @@ export const MarketsTableAccordion = ({
 
   children,
 }: MarketsTableAccordionProps) => {
+  const { t } = useTranslation()
+
   const defaultFilters =
     assetFilter?.length === 0 && statusFilter?.length === 0 && nameFilter === ""
+
+  const statusTokens = (statusFilter ?? [])
+    .map((status) => ` ${status.toLowerCase()}`)
+    .join("")
+  const assetTokens = (assetFilter ?? [])
+    .map((asset) => ` ${asset.name}`)
+    .join("")
+  const filterSummary = `${type ?? ""}${statusTokens} ${
+    nameFilter ?? ""
+  } ${assetTokens}`
+    .replace(/\s+/g, " ")
+    .trim()
 
   return (
     <Accordion defaultExpanded={isOpen}>
@@ -38,7 +53,7 @@ export const MarketsTableAccordion = ({
         <Box display="flex" columnGap="4px">
           <Typography variant="text3">{label}</Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            {isLoading ? "Are Loading..." : marketsLength}
+            {isLoading ? t("common.states.loading") : marketsLength}
           </Typography>
         </Box>
       </AccordionSummary>
@@ -93,13 +108,9 @@ export const MarketsTableAccordion = ({
         !defaultFilters && (
           <Box display="flex" flexDirection="column" padding="24px 16px 12px">
             <Typography variant="text2" color={COLORS.santasGrey}>
-              No {type}{" "}
-              {statusFilter?.length !== 0 &&
-                statusFilter?.map((status) => ` ${status.toLowerCase()}`)}{" "}
-              {nameFilter === "" ? "" : nameFilter}{" "}
-              {assetFilter?.length !== 0 &&
-                `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
-              markets available right now.
+              {t("marketList.lender.noFilteredMarkets", {
+                filters: filterSummary,
+              })}
             </Typography>
           </Box>
         )}

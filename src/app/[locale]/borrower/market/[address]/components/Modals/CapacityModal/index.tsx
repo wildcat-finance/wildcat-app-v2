@@ -85,7 +85,7 @@ export const CapacityModal = ({
         onClick={modal.handleOpenModal}
         disabled={disableCapacity}
       >
-        {t("borrowerMarketDetails.buttons.capacity")}
+        {t("marketDetails.borrower.buttons.capacity")}
       </Button>
 
       <Dialog
@@ -108,7 +108,7 @@ export const CapacityModal = ({
           <Box width="100%" height="100%" padding="12px 24px">
             <Box sx={TxModalInfoItem} marginBottom="20px">
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                {t("borrowerMarketDetails.modals.capacity.current")}
+                {t("marketDetails.borrower.modals.capacity.current")}
               </Typography>
               <Typography variant="text3">{`${formatTokenWithCommas(
                 market.maxTotalSupply,

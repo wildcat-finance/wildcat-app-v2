@@ -10,6 +10,7 @@ import {
 } from "@mui/material"
 import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import { MarketWithdrawalRequetstCell } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/style"
@@ -32,6 +33,7 @@ export const LendersTable = ({
   isOpen,
   isLoading,
 }: LendersTableProps) => {
+  const { t } = useTranslation()
   const { getAddressUrl } = useBlockExplorer()
   const getEditLendersLink = (lenderAddress: string) =>
     `${ROUTES.borrower.lendersList}?lenderAddress=${encodeURIComponent(
@@ -50,84 +52,90 @@ export const LendersTable = ({
     markets: lender.markets,
   }))
 
-  const columns: TypeSafeColDef<LendersTableModal>[] = [
-    {
-      sortable: false,
-      field: "name",
-      disableColumnMenu: true,
-      headerName: "Name",
-      minWidth: 160,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => <LenderName address={params.row.address} />,
-      flex: 1,
-    },
-    {
-      sortable: false,
-      field: "address",
-      headerName: "Wallet Address",
-      minWidth: 176,
-      headerAlign: "left",
-      align: "left",
-      renderCell: ({ value }) => (
-        <Box sx={MarketWithdrawalRequetstCell}>
-          <Typography sx={{ minWidth: "80px" }} variant="text3">
-            {trimAddress(value)}
-          </Typography>
-
-          <LinkGroup linkValue={getAddressUrl(value)} copyValue={value} />
-        </Box>
-      ),
-      flex: 1,
-    },
-    {
-      sortable: true,
-      field: "markets",
-      headerName: "Assigned to Markets",
-      minWidth: 176,
-      headerAlign: "left",
-      align: "left",
-      flex: 4,
-      renderCell: (params) =>
-        !params.value.length ? (
-          <Box
-            sx={{
-              width: "100%",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Typography variant="text3" color={COLORS.santasGrey}>
-              No markets yet
+  const columns: TypeSafeColDef<LendersTableModal>[] = React.useMemo(
+    () => [
+      {
+        sortable: false,
+        field: "name",
+        disableColumnMenu: true,
+        headerName: t("common.fields.name"),
+        minWidth: 160,
+        headerAlign: "left",
+        align: "left",
+        renderCell: (params) => <LenderName address={params.row.address} />,
+        flex: 1,
+      },
+      {
+        sortable: false,
+        field: "address",
+        headerName: t("common.fields.walletAddress"),
+        minWidth: 176,
+        headerAlign: "left",
+        align: "left",
+        renderCell: ({ value }) => (
+          <Box sx={MarketWithdrawalRequetstCell}>
+            <Typography sx={{ minWidth: "80px" }} variant="text3">
+              {trimAddress(value)}
             </Typography>
 
-            <Link href={getEditLendersLink(params.row.address)}>
-              <Button
-                variant="text"
-                size="small"
-                sx={{ color: COLORS.ultramarineBlue }}
-              >
-                Add markets
-              </Button>
-            </Link>
-          </Box>
-        ) : (
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "4px",
-              padding: "14px 0",
-            }}
-          >
-            {params.value.map((market: { name: string; address: string }) => (
-              <LendersMarketChip marketName={market.name} width="fit-content" />
-            ))}
+            <LinkGroup linkValue={getAddressUrl(value)} copyValue={value} />
           </Box>
         ),
-    },
-  ]
+        flex: 1,
+      },
+      {
+        sortable: true,
+        field: "markets",
+        headerName: t("borrower.policies.columns.markets"),
+        minWidth: 176,
+        headerAlign: "left",
+        align: "left",
+        flex: 4,
+        renderCell: (params) =>
+          !params.value.length ? (
+            <Box
+              sx={{
+                width: "100%",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Typography variant="text3" color={COLORS.santasGrey}>
+                {t("borrower.lenders.noMarketsYet")}
+              </Typography>
+
+              <Link href={getEditLendersLink(params.row.address)}>
+                <Button
+                  variant="text"
+                  size="small"
+                  sx={{ color: COLORS.ultramarineBlue }}
+                >
+                  {t("borrower.lenders.addMarkets")}
+                </Button>
+              </Link>
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "4px",
+                padding: "14px 0",
+              }}
+            >
+              {params.value.map((market: { name: string; address: string }) => (
+                <LendersMarketChip
+                  marketName={market.name}
+                  width="fit-content"
+                />
+              ))}
+            </Box>
+          ),
+      },
+    ],
+    [t, getAddressUrl],
+  )
 
   return (
     <Accordion sx={{ width: "100%", minWidth: 0 }} defaultExpanded={isOpen}>
@@ -135,7 +143,7 @@ export const LendersTable = ({
         <Box display="flex" columnGap="4px">
           <Typography variant="text3">{label}</Typography>
           <Typography variant="text3" color={COLORS.santasGrey}>
-            {isLoading ? "are loading" : rows.length}
+            {isLoading ? t("common.states.loading") : rows.length}
           </Typography>
         </Box>
       </AccordionSummary>

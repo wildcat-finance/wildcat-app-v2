@@ -104,8 +104,8 @@ export default function PolicyPage() {
   const accessControl = data?.hooksInstance?.roleProviders.some(
     (p) => p.isPullProvider,
   )
-    ? t("roleProviders.defaultPullProvider")
-    : t("roleProviders.manualApproval")
+    ? t("marketParameters.roleProviders.defaultPullProvider")
+    : t("marketParameters.roleProviders.manualApproval")
 
   const [tab, setTab] = useState<PolicyTabs>(PolicyTabs.DETAILS)
 
@@ -183,7 +183,9 @@ export default function PolicyPage() {
         }}
       >
         <Box sx={{ display: "flex", gap: "6px", padding: "40px 24px 0" }}>
-          <Typography variant="title2">Policy Info</Typography>
+          <Typography variant="title2">
+            {t("borrower.policy.header.policyInfo")}
+          </Typography>
 
           <PolicySelect
             policies={policies}
@@ -232,8 +234,8 @@ export default function PolicyPage() {
               type={
                 (data?.hooksInstance?.kind ?? HooksKind.OpenTerm) ===
                 HooksKind.OpenTerm
-                  ? t("policyType.OpenTerm")
-                  : t("policyType.FixedTerm")
+                  ? t("marketParameters.policyType.openTerm")
+                  : t("marketParameters.policyType.fixedTerm")
               }
               access={accessControl}
               isLoading={isLoading}

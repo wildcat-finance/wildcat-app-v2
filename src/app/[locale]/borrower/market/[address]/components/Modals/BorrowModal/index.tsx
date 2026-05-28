@@ -128,7 +128,7 @@ export const BorrowModal = ({
         sx={{ width: "152px" }}
         disabled={disableBorrowBtn}
       >
-        {t("borrowerMarketDetails.modals.borrow.borrow")}
+        {t("marketDetails.borrower.modals.borrow.borrow")}
       </Button>
 
       <Dialog
@@ -151,7 +151,7 @@ export const BorrowModal = ({
             {modal.approvedStep && (
               <Box sx={TxModalInfoItem} marginBottom="8px">
                 <Typography variant="text3" sx={TxModalInfoTitle}>
-                  {t("borrowerMarketDetails.modals.borrow.borrowSum")}
+                  {t("marketDetails.borrower.modals.borrow.borrowSum")}
                 </Typography>
                 <Typography variant="text3">
                   {amount} {market.underlyingToken.symbol}
@@ -161,9 +161,9 @@ export const BorrowModal = ({
 
             <Box sx={TxModalInfoItem} marginBottom="8px">
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                {t("borrowerMarketDetails.modals.borrow.availableToBorrow")}
+                {t("marketDetails.borrower.modals.borrow.availableToBorrow")}
                 {modal.approvedStep &&
-                  t("borrowerMarketDetails.modals.borrow.afterTransaction")}
+                  t("marketDetails.borrower.modals.borrow.afterTransaction")}
               </Typography>
               <Typography variant="text3">
                 {formatTokenWithCommas(
@@ -182,9 +182,9 @@ export const BorrowModal = ({
               : !!remainingInterest) && (
               <Box sx={TxModalInfoItem} marginBottom="20px">
                 <Typography variant="text3" sx={TxModalInfoTitle}>
-                  {t("borrowerMarketDetails.modals.borrow.interestRemaining")}
+                  {t("marketDetails.borrower.modals.borrow.interestRemaining")}
                   {modal.approvedStep &&
-                    t("borrowerMarketDetails.modals.borrow.afterTransaction")}
+                    t("marketDetails.borrower.modals.borrow.afterTransaction")}
                 </Typography>
                 <Typography variant="text3">
                   {modal.approvedStep

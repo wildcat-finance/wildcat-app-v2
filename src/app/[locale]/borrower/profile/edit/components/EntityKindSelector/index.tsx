@@ -127,11 +127,11 @@ export const EntityKindSelector = ({
         disabled={disabled}
         PopperComponent={MyPopper}
         filterOptions={filterOptions}
-        noOptionsText={t("borrowerProfile.edit.public.entityKind.noOptions")}
+        noOptionsText={t("borrower.profile.form.entityKind.noOptions")}
         renderInput={(params) => (
           <TextField
             {...params}
-            label={t("borrowerProfile.edit.public.entityKind.title")}
+            label={t("borrower.profile.form.entityKind.title")}
             error={error}
             helperText={helperText}
           />

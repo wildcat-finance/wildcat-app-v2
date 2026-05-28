@@ -105,7 +105,7 @@ export const AddModal = ({ disabled }: { disabled: boolean }) => {
           fontWeight: 600,
         }}
       >
-        {t("editLendersList.modals.add.addLender")}
+        {t("borrower.editLenders.modals.add.addLender")}
       </Button>
 
       <Dialog
@@ -123,7 +123,7 @@ export const AddModal = ({ disabled }: { disabled: boolean }) => {
         }}
       >
         <TxModalHeader
-          title="Add a new lender"
+          title={t("borrower.policy.modals.addLender.title")}
           crossOnClick={null}
           arrowOnClick={handleClose}
         />
@@ -141,7 +141,7 @@ export const AddModal = ({ disabled }: { disabled: boolean }) => {
           <TextField
             fullWidth
             size="medium"
-            label="Wallet Address"
+            label={t("common.fields.walletAddress")}
             {...register("address")}
             error={!!errors.address}
           />
@@ -149,7 +149,9 @@ export const AddModal = ({ disabled }: { disabled: boolean }) => {
           <TextField
             fullWidth
             size="medium"
-            label={isDisabled ? "" : "Enter name"}
+            label={
+              isDisabled ? "" : t("borrower.policy.modals.addLender.enterName")
+            }
             {...register("name")}
             error={!!errors.name}
             disabled={isDisabled}
@@ -191,7 +193,7 @@ export const AddModal = ({ disabled }: { disabled: boolean }) => {
           type="submit"
           sx={{ margin: "24px 24px 0" }}
         >
-          {t("editLendersList.modals.add.add")}
+          {t("common.buttons.add")}
         </Button>
       </Dialog>
     </>

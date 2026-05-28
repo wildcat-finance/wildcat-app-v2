@@ -60,7 +60,7 @@ export const TelegramBanner = () => {
   return (
     <Box
       component="aside"
-      aria-label={t("telegramBanner.title")}
+      aria-label={t("header.telegramBanner.title")}
       sx={{
         mb: "10px",
         mx: "auto",
@@ -109,7 +109,7 @@ export const TelegramBanner = () => {
         }}
       >
         <Typography variant="text2" textAlign="center" color={COLORS.white}>
-          {t("telegramBanner.title")}
+          {t("header.telegramBanner.title")}
         </Typography>
 
         <Typography
@@ -118,7 +118,7 @@ export const TelegramBanner = () => {
           color={COLORS.white}
           sx={{ opacity: 0.8 }}
         >
-          {t("telegramBanner.subtitle")}
+          {t("header.telegramBanner.subtitle")}
         </Typography>
       </Box>
 
@@ -142,7 +142,7 @@ export const TelegramBanner = () => {
           },
         }}
       >
-        {t("telegramBanner.button")}
+        {t("header.telegramBanner.button")}
       </Button>
     </Box>
   )

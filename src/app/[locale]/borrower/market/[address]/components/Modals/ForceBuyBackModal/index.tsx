@@ -73,8 +73,13 @@ export const ForceBuyBackModal = ({
 
   const showForm = !(isPending || showSuccessPopup || showErrorPopup)
 
+  const allowForceBuyBacks =
+    market.hooksConfig && "allowForceBuyBacks" in market.hooksConfig
+      ? market.hooksConfig.allowForceBuyBacks
+      : false
+
   const disableForceBuyBack =
-    !market.hooksConfig?.allowForceBuyBacks ||
+    !allowForceBuyBacks ||
     market.willBeDelinquent ||
     market.isDelinquent ||
     buyBackAmount.gt(marketAccount.underlyingBalance)
@@ -100,7 +105,7 @@ export const ForceBuyBackModal = ({
         size="small"
         disabled={disableForceBuyBackButton}
       >
-        {t("borrowerMarketDetails.authorisedLenders.buttons.forceBuyBack")}
+        {t("marketDetails.borrower.authorisedLenders.buttons.forceBuyBack")}
       </Button>
 
       <Dialog
@@ -110,7 +115,7 @@ export const ForceBuyBackModal = ({
       >
         {showForm && (
           <TxModalHeader
-            title={t("borrowerMarketDetails.modals.forceBuyBack.title")}
+            title={t("marketDetails.borrower.modals.forceBuyBack.title")}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
@@ -124,7 +129,7 @@ export const ForceBuyBackModal = ({
               <Box sx={TxModalInfoItem} marginBottom="8px">
                 <Typography variant="text3" sx={TxModalInfoTitle}>
                   {t(
-                    "borrowerMarketDetails.modals.forceBuyBack.repurchaseAmount",
+                    "marketDetails.borrower.modals.forceBuyBack.repurchaseAmount",
                   )}
                 </Typography>
                 <Typography variant="text3">
@@ -135,7 +140,7 @@ export const ForceBuyBackModal = ({
 
             <Box sx={TxModalInfoItem} marginBottom="8px" flexDirection="column">
               <Typography variant="text3">
-                {t("borrowerMarketDetails.modals.forceBuyBack.from")}
+                {t("marketDetails.borrower.modals.forceBuyBack.from")}
               </Typography>
               <Typography variant="text3" sx={TxModalInfoTitle}>
                 {lenderName ?? lender.address}
@@ -144,7 +149,7 @@ export const ForceBuyBackModal = ({
 
             <Box sx={TxModalInfoItem} marginBottom="8px">
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                {t("borrowerMarketDetails.modals.forceBuyBack.description")}
+                {t("marketDetails.borrower.modals.forceBuyBack.description")}
               </Typography>
             </Box>
 

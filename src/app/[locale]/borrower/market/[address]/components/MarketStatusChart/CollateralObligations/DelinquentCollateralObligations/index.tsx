@@ -44,7 +44,7 @@ export const DelinquentCollateralObligations = ({
           variant="text3"
           className="barchart__legend-title-expandable"
         >
-          {t("borrowerMarketDetails.statusChart.collateralObligations")}
+          {t("marketDetails.shared.statusChart.collateralObligations")}
         </Typography>
         {expanded ? (
           <SvgIcon
@@ -65,7 +65,7 @@ export const DelinquentCollateralObligations = ({
         <Box sx={{ width: "100%" }}>
           <Box className="double-item__header">
             <Typography variant="text4">
-              {t("borrowerMarketDetails.statusChart.delinquentDebt")}
+              {t("marketDetails.shared.statusChart.delinquentDebt")}
             </Typography>
             <Box
               className="double-item__dot"
@@ -88,7 +88,7 @@ export const DelinquentCollateralObligations = ({
         <Box sx={{ width: "100%" }}>
           <Box className="double-item__header">
             <Typography variant="text4">
-              {t("borrowerMarketDetails.statusChart.currentReserves")}
+              {t("marketDetails.shared.statusChart.currentReserves")}
             </Typography>
             <Box
               className="double-item__dot"

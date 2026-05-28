@@ -151,7 +151,7 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
           value={lenderNameOrAddress}
           onChange={handleChangeLender}
           size="small"
-          placeholder="Search"
+          placeholder={t("common.placeholders.search")}
           sx={{
             width: "320px",
             marginRight: "6px",
@@ -215,7 +215,7 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
               fontWeight: 600,
             }}
           >
-            {t("editLendersList.forms.edit.submit")}
+            {t("common.buttons.submit")}
           </Button>
         </Box>
       </Box>
@@ -237,7 +237,7 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
             }}
           >
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {t("editLendersList.forms.edit.noLenders")}
+              {t("borrower.editLenders.forms.noLenders")}
             </Typography>
           </Box>
         </Box>

@@ -32,7 +32,7 @@ export const FormFooter = ({
         >
           <BackArrow />
         </SvgIcon>
-        {t("createNewMarket.buttons.back")}
+        {t("common.buttons.back")}
       </Button>
 
       <Button
@@ -42,7 +42,7 @@ export const FormFooter = ({
         disabled={disableNext}
         onClick={nextOnClick}
       >
-        {t("createNewMarket.buttons.next")}
+        {t("common.buttons.next")}
       </Button>
     </Box>
   )

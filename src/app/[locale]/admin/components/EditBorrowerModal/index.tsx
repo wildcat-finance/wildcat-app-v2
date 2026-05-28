@@ -44,7 +44,7 @@ export const EditBorrowerModal = ({ address }: { address: `0x${string}` }) => {
         color="primary"
         onClick={() => setIsOpen(true)}
       >
-        {t("admin.editBorrower.button")}
+        {t("common.buttons.edit")}
       </Button>
 
       <Dialog

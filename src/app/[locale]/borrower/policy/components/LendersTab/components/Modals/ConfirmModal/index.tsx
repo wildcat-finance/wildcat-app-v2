@@ -4,7 +4,7 @@ import { Dispatch, SetStateAction } from "react"
 import { Box, Button, Dialog, SvgIcon, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { UseMutateFunction } from "@tanstack/react-query"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import { AddedDot } from "@/app/[locale]/borrower/policy/components/LendersTab/components/EditLendersTable/style"
@@ -64,7 +64,7 @@ export const ConfirmModal = ({
   const columns: TypeSafeColDef<EditLendersTableModel>[] = [
     {
       field: "name",
-      headerName: "Name",
+      headerName: t("common.fields.name"),
       minWidth: 160,
       flex: 0.5,
       headerAlign: "left",
@@ -79,7 +79,7 @@ export const ConfirmModal = ({
             >
               {lendersNames[params.row.address.toLowerCase()] ===
               ("" || undefined)
-                ? t("editLendersList.forms.edit.table.addName")
+                ? t("borrower.editLenders.addName")
                 : lendersNames[params.row.address.toLowerCase()]}
             </Typography>
           )}
@@ -97,7 +97,7 @@ export const ConfirmModal = ({
     },
     {
       field: "address",
-      headerName: "Wallet Address",
+      headerName: t("common.fields.walletAddress"),
       minWidth: 160,
       flex: 1,
       headerAlign: "left",
@@ -137,7 +137,7 @@ export const ConfirmModal = ({
       renderCell: (params) => (
         <Typography variant="text3" color={COLORS.santasGrey}>
           {params.row.status === EditLenderFlowStatuses.DELETED
-            ? "Removed"
+            ? t("borrower.policy.modals.confirm.removed")
             : ""}
         </Typography>
       ),
@@ -159,7 +159,7 @@ export const ConfirmModal = ({
           fontWeight: 600,
         }}
       >
-        {t("editLendersList.forms.edit.submit")}
+        {t("common.buttons.submit")}
       </Button>
 
       <Dialog
@@ -181,11 +181,19 @@ export const ConfirmModal = ({
         }}
       >
         <Typography variant="title3">
-          Confirm{" "}
-          <Typography variant="title3" color={COLORS.ultramarineBlue}>
-            {policyName}
-          </Typography>{" "}
-          Lenders Edits
+          <Trans
+            i18nKey="borrower.policy.modals.confirm.title"
+            values={{ policyName }}
+            components={{
+              accent: (
+                <Typography
+                  variant="title3"
+                  component="span"
+                  color={COLORS.ultramarineBlue}
+                />
+              ),
+            }}
+          />
         </Typography>
 
         <Box
@@ -202,9 +210,9 @@ export const ConfirmModal = ({
         >
           <Coins />
           <Typography variant="text3" color={COLORS.butteredRum}>
-            {t("editLendersList.forms.confirm.keepInMind")}{" "}
+            {t("borrower.editLenders.forms.confirm.keepInMind")}{" "}
             <span style={{ fontWeight: 700 }}>
-              {t("editLendersList.forms.confirm.payGas")}
+              {t("borrower.editLenders.forms.confirm.payGas")}
             </span>
           </Typography>
         </Box>
@@ -259,7 +267,7 @@ export const ConfirmModal = ({
             <SvgIcon>
               <Arrow />
             </SvgIcon>
-            Back
+            {t("common.buttons.back")}
           </Button>
           <Button
             variant="contained"
@@ -267,7 +275,7 @@ export const ConfirmModal = ({
             onClick={handleClickSubmit}
             sx={{ width: "144px" }}
           >
-            Confirm
+            {t("common.buttons.confirm")}
           </Button>
         </Box>
       </Dialog>

@@ -312,7 +312,9 @@ export const TableSelect = ({
   return (
     <>
       <FormControl fullWidth>
-        <InputLabel sx={InputLabelStyle}>Add market</InputLabel>
+        <InputLabel sx={InputLabelStyle}>
+          {t("borrower.editLenders.tableSelect.addMarket")}
+        </InputLabel>
 
         <Select
           value={lenderMarkets}
@@ -369,7 +371,7 @@ export const TableSelect = ({
               onChange={handleChangeMarketName}
               fullWidth
               size="small"
-              placeholder="Search by Name"
+              placeholder={t("common.placeholders.searchByName")}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -435,7 +437,7 @@ export const TableSelect = ({
             color="secondary"
             sx={{ width: "100%", marginTop: "12px" }}
           >
-            {t("editLendersList.forms.edit.table.reset")}
+            {t("borrower.editLenders.reset")}
           </Button>
         </Select>
       </FormControl>

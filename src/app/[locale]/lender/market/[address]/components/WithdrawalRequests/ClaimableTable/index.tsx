@@ -222,7 +222,7 @@ export const ClaimableTable = ({
           marginBottom={isMobile ? "0px" : "10px"}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            No claimable withdrawals.
+            {t("marketDetails.lender.withdrawalRequests.noClaimable")}
           </Typography>
         </Box>
       )
@@ -273,7 +273,7 @@ export const ClaimableTable = ({
     <DetailsAccordion
       isOpen={isClaimableOpen}
       setIsOpen={setIsClaimableOpen}
-      summaryText={t("lenderMarketDetails.requests.claimable")}
+      summaryText={t("marketDetails.lender.requests.claimable")}
       summarySx={{
         borderRadius: "0px",
         borderBottom: isClaimableOpen ? "none" : `1px solid`,
