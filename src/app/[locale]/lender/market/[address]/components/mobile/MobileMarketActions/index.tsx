@@ -2,7 +2,12 @@ import { Dispatch, SetStateAction } from "react"
 import * as React from "react"
 
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
-import { DepositStatus, HooksKind, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  HooksKind,
+  MarketAccount,
+  QueueWithdrawalStatus,
+} from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
@@ -157,6 +162,10 @@ export const MobileMarketActions = ({
     setIsMLAOpen(!isMLAOpen)
   }
 
+  const disableWithdraw =
+    marketAccount.marketBalance.raw.isZero() ||
+    marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
+
   return (
     <Box
       sx={{
@@ -296,7 +305,7 @@ export const MobileMarketActions = ({
                 onClick={() =>
                   setIsMobileWithdrawalOpen(!isMobileWithdrawalOpen)
                 }
-                disabled={notMature}
+                disabled={notMature || disableWithdraw}
                 sx={{ padding: "10px 20px", marginTop: "16px" }}
               >
                 ↑{" "}
@@ -330,7 +339,9 @@ export const MobileMarketActions = ({
                   color="secondary"
                   size="large"
                   fullWidth
-                  disabled={marketAccount.maximumDeposit.raw.isZero()}
+                  disabled={
+                    marketAccount.maximumDeposit.raw.isZero() || market.isClosed
+                  }
                   sx={{ padding: "10px 20px", marginTop: "16px" }}
                 >
                   ↓ {t("lenderMarketDetails.transactions.deposit.button")}

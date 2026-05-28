@@ -247,7 +247,9 @@ export const MarketActions = ({
                 amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
                 asset={market.underlyingToken.symbol}
               >
-                {!showFaucet && <DepositModal marketAccount={marketAccount} />}
+                {!showFaucet && !hideDeposit && (
+                  <DepositModal marketAccount={marketAccount} />
+                )}
                 {showFaucet && <FaucetButton marketAccount={marketAccount} />}
               </TransactionBlock>
 
