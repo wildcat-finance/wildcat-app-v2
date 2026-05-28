@@ -5,8 +5,8 @@ import {
   NormalizedCacheObject,
 } from "@apollo/client"
 import { SubgraphUrls } from "@wildcatfi/wildcat-sdk"
+import { getMarketDocumentForChain } from "@wildcatfi/wildcat-sdk/dist/gql"
 import {
-  GetMarketDocument,
   SubgraphGetMarketQuery,
   SubgraphGetMarketQueryVariables,
 } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
@@ -55,7 +55,7 @@ async function fetchMarketFromChain(
     SubgraphGetMarketQuery,
     SubgraphGetMarketQueryVariables
   >({
-    query: GetMarketDocument,
+    query: getMarketDocumentForChain(chainId),
     variables: { market: addressLower },
     fetchPolicy: "network-only",
   })
