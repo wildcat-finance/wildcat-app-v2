@@ -429,9 +429,9 @@ export const TrendingMarketsCarousel = () => {
                   <Skeleton
                     key={key}
                     height="214px"
-                    width="220px"
+                    width="250px"
                     sx={{
-                      minWidth: "220px",
+                      minWidth: "250px",
                       borderRadius: "12px",
                       bgcolor: COLORS.athensGrey,
                       ...(index === 0 && { marginLeft: "8px" }),
@@ -446,7 +446,7 @@ export const TrendingMarketsCarousel = () => {
                   sx={{
                     flexShrink: 0,
                     display: "flex",
-                    width: "220px",
+                    width: "250px",
                     ...(index === 0 && { marginLeft: "8px" }),
                     ...(index === slots.length - 1 && {
                       marginRight: "8px",
