@@ -18,6 +18,7 @@ import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
+import { isFrontendVisibleMarket } from "@/utils/marketType"
 
 import { GetMarketsProps } from "./interface"
 
@@ -63,7 +64,11 @@ export function useGetBorrowerMarketsQuery({
   async function getBorrowerMarkets() {
     try {
       const subgraphMarkets = await queryBorrowerMarkets()
-      return updateMarkets(subgraphMarkets, provider, network)
+      return updateMarkets(
+        subgraphMarkets.filter(isFrontendVisibleMarket),
+        provider,
+        network,
+      )
     } catch (error) {
       console.log("Error fetching borrower markets", error)
       throw error

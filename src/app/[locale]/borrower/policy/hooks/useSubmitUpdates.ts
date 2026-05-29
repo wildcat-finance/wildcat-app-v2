@@ -5,6 +5,7 @@ import {
   FixedTermHooks,
   HooksInstance,
   OpenTermHooks,
+  PeriodicTermHooks,
 } from "@wildcatfi/wildcat-sdk/dist/access"
 
 import { QueryKeys } from "@/config/query-keys"
@@ -56,7 +57,9 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       if (addLenders?.length) {
         const tx =
           // eslint-disable-next-line no-nested-ternary
-          policy instanceof OpenTermHooks || policy instanceof FixedTermHooks
+          policy instanceof OpenTermHooks ||
+          policy instanceof FixedTermHooks ||
+          policy instanceof PeriodicTermHooks
             ? policy.populateAddLenders(
                 addLenders.map((lender) => ({ lender })),
               )
@@ -73,7 +76,9 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       if (removeLenders?.length) {
         const tx =
           // eslint-disable-next-line no-nested-ternary
-          policy instanceof OpenTermHooks || policy instanceof FixedTermHooks
+          policy instanceof OpenTermHooks ||
+          policy instanceof FixedTermHooks ||
+          policy instanceof PeriodicTermHooks
             ? policy.populateBlockLenders(removeLenders)
             : marketsToUpdate?.length
               ? policy.populateDeauthorizeLendersAndUpdateMarkets(

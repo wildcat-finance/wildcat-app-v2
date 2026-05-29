@@ -72,9 +72,13 @@ export const ForceBuyBackModal = ({
     : marketAccount.market.underlyingToken.parseAmount(0)
 
   const showForm = !(isPending || showSuccessPopup || showErrorPopup)
+  const allowForceBuyBacks =
+    market.hooksConfig && "allowForceBuyBacks" in market.hooksConfig
+      ? market.hooksConfig.allowForceBuyBacks
+      : false
 
   const disableForceBuyBack =
-    !market.hooksConfig?.allowForceBuyBacks ||
+    !allowForceBuyBacks ||
     market.willBeDelinquent ||
     market.isDelinquent ||
     buyBackAmount.gt(marketAccount.underlyingBalance)
