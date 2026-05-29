@@ -29,7 +29,7 @@ import {
 export type TrendingMarketCardVariant =
   | "trending"
   | "popular"
-  | "proven"
+  | "trackRecord"
   | "hotRate"
   | "topFunded"
 
@@ -39,7 +39,7 @@ const VARIANT_BADGE: Record<
 > = {
   trending: { label: "Trending", color: "#4971FF", Icon: TrendingIcon },
   popular: { label: "Popular", color: "#28CA7C", Icon: PopularIcon },
-  proven: { label: "Proven", color: "#B9A0FF", Icon: ProvenIcon },
+  trackRecord: { label: "Track Record", color: "#B9A0FF", Icon: ProvenIcon },
   hotRate: { label: "Hot Rate", color: "#F5651C", Icon: HotRateIcon },
   topFunded: { label: "Top Funded", color: "#7547F5", Icon: TopFundedIcon },
 }

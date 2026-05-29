@@ -343,7 +343,7 @@ export const TrendingMarketsCarousel = () => {
       ),
       makeSlot(
         "interestPaid",
-        "proven",
+        "trackRecord",
         "Paid In Total",
         "All Time",
         interestPaidWinner,
