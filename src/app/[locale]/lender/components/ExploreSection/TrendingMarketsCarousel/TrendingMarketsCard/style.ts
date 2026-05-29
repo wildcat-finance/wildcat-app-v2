@@ -2,9 +2,11 @@ import { COLORS } from "@/theme/colors"
 
 export const CardContainerStyle = {
   width: "100%",
+  minWidth: "250px",
   display: "flex",
   flexDirection: "column",
-  gap: "8px",
+  justifyContent: "space-between",
+  gap: "24px",
   padding: "12px",
   borderRadius: "12px",
   border: `1px solid ${COLORS.iron}`,
@@ -23,7 +25,7 @@ export const CardInfoContainerStyle = {
 export const CardValueContainerStyle = {
   display: "flex",
   flexDirection: "column",
-  gap: "12px",
+  gap: "20px",
   alignItems: "flex-start",
   minWidth: 0,
 }
@@ -34,7 +36,6 @@ export const CardValueStyle = {
   display: "flex",
   flexDirection: "column",
   alignItems: "flex-start",
-  paddingBottom: "8px",
   minWidth: 0,
 }
 

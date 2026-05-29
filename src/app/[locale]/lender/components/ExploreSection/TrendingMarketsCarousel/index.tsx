@@ -98,7 +98,8 @@ const pickTotalDepositedWinner = (eligible: MarketAccount[]) =>
 type Slot = {
   key: string
   variant: TrendingMarketCardVariant
-  description: string
+  title: string
+  period: string | undefined
   account: MarketAccount
   value: string
 }
@@ -304,49 +305,55 @@ export const TrendingMarketsCarousel = () => {
     const makeSlot = (
       key: string,
       variant: TrendingMarketCardVariant,
-      description: string,
+      title: string,
+      period: string | undefined,
       account: MarketAccount | undefined,
       value: string | undefined,
     ): Slot | null => {
       if (!account || !value) return null
-      return { key, variant, description, account, value }
+      return { key, variant, title, period, account, value }
     }
 
     const built: (Slot | null)[] = [
       makeSlot(
         "tvlInflow",
         "trending",
-        "fresh capital this week",
+        "Fresh Capital",
+        "This Week",
         tvlInflowAccount,
         tvlInflowStat,
       ),
       makeSlot(
         "lenders",
         "popular",
-        "lenders joined this week",
+        "Lenders Joined",
+        "This Week",
         lendersAccount,
         lendersCount > 0 ? lendersCount.toString() : undefined,
       ),
       makeSlot(
-        "interestPaid",
-        "proven",
-        "paid in total to lenders, all time",
-        interestPaidWinner,
-        interestPaidStat,
-      ),
-      makeSlot(
         "highestApr",
         "hotRate",
-        "current APR, best in market",
+        "Best In Market APR",
+        undefined,
         aprWinner,
         aprWinner
           ? `${formatBps(aprWinner.market.annualInterestBips)}%`
           : undefined,
       ),
       makeSlot(
+        "interestPaid",
+        "proven",
+        "Paid In Total",
+        "All Time",
+        interestPaidWinner,
+        interestPaidStat,
+      ),
+      makeSlot(
         "highestTvl",
         "topFunded",
-        "total value locked",
+        "Total Value Locked",
+        undefined,
         tvlWinner,
         tvlStat,
       ),
@@ -371,8 +378,9 @@ export const TrendingMarketsCarousel = () => {
     return (
       <TrendingMarketCard
         variant={slot.variant}
+        title={slot.title}
         value={slot.value}
-        description={slot.description}
+        period={slot.period}
         marketAddress={market.address}
         chainId={market.chainId}
         borrowerName={borrowerName}
