@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.17.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.17.0...v2.17.1) (2026-05-29)
+
+
+### Bug Fixes
+
+* hide periodic markets fron prod testnet ([7c8a0de](https://github.com/wildcat-finance/wildcat-app-v2/commit/7c8a0de3852d723d769906c096394030bd21e58d))
+* **layout:** contain market table scrollbars and width transitions ([d526eaa](https://github.com/wildcat-finance/wildcat-app-v2/commit/d526eaab7bd5e50235979409375ffd07307fbeb6))
+* **layout:** contain market table scrollbars and width transitions ([e7381e4](https://github.com/wildcat-finance/wildcat-app-v2/commit/e7381e4e0e5cbb693a9ab9241048c776119d2ba3))
+* **layout:** contain market table scrollbars and width transitions ([fb3650c](https://github.com/wildcat-finance/wildcat-app-v2/commit/fb3650ca9a035967543bc0a0835ec434d6153c69))
+* **mobile:** market header row clipping ([7bc6ce4](https://github.com/wildcat-finance/wildcat-app-v2/commit/7bc6ce4962e5f23f098fc71e34a4398ee1878066))
+* **mobile:** market header row clipping ([84dde2f](https://github.com/wildcat-finance/wildcat-app-v2/commit/84dde2f8e664fa304f06e3a8fe1d7d0878ce17c1))
+* sdk 3.1.4-beta (fix for periodic term hook existence) ([7c940f6](https://github.com/wildcat-finance/wildcat-app-v2/commit/7c940f6eed2d7f8fd6aad411f40b1045f0bae67a))
+
 ## [2.17.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.16.1...v2.17.0) (2026-05-01)
 
 
