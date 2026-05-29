@@ -11,6 +11,7 @@ import TrendingIcon from "@/assets/icons/trendingCard_icon.svg"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { lh, pxToRem } from "@/theme/units"
 import { buildMarketHref, formatBps } from "@/utils/formatters"
 
 import {
@@ -45,8 +46,9 @@ const VARIANT_BADGE: Record<
 
 type TrendingMarketCardProps = {
   variant: TrendingMarketCardVariant
+  title: string
   value: string
-  description: string
+  period?: string
   marketAddress: string
   chainId?: number
   borrowerName: string
@@ -57,8 +59,9 @@ type TrendingMarketCardProps = {
 
 export const TrendingMarketCard = ({
   variant,
+  title,
   value,
-  description,
+  period,
   marketAddress,
   chainId,
   borrowerName,
@@ -74,7 +77,17 @@ export const TrendingMarketCard = ({
       <Box sx={CardInfoContainerStyle}>
         <Box sx={CardValueContainerStyle}>
           <SvgIcon component={badge.Icon} inheritViewBox sx={CardIconStyle} />
+
           <Box sx={CardValueStyle}>
+            <Typography
+              sx={{
+                fontSize: pxToRem(16),
+                lineHeight: lh(26, 16),
+                fontWeight: 500,
+              }}
+            >
+              {title}
+            </Typography>
             <Typography
               variant={isMobile ? "mobH2" : "title2"}
               fontWeight={600}
@@ -82,13 +95,13 @@ export const TrendingMarketCard = ({
               {value}
             </Typography>
             <Typography
-              variant={isMobile ? "mobText3" : "text3"}
+              variant={isMobile ? "mobText4" : "text4"}
               sx={{
                 opacity: 0.7,
                 whiteSpace: "nowrap",
               }}
             >
-              {description}
+              {period ?? " "}
             </Typography>
           </Box>
         </Box>
