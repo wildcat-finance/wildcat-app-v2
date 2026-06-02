@@ -93,7 +93,8 @@ const embedHeaders = [
   {
     // Allow Webflow sites and Vercel preview deployments to embed /embed/* pages
     key: 'Content-Security-Policy',
-    value: "frame-ancestors 'self' https://*.webflow.io https://webflow.com https://*.vercel.app;",
+    value:
+      "frame-ancestors 'self' https://*.webflow.io https://webflow.com https://*.vercel.app https://wildcat.finance https://www.wildcat.finance;",
   },
 ]
 
