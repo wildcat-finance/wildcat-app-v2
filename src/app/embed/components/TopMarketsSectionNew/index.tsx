@@ -17,7 +17,11 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { tokenAmountComparator } from "@/utils/comparators"
 import { buildMarketHref, formatBps, trimAddress } from "@/utils/formatters"
-import { isExploreVisible } from "@/utils/marketStatus"
+import {
+  MarketStatus,
+  getMarketStatus,
+  isExploreVisible,
+} from "@/utils/marketStatus"
 
 const SORT_OPTIONS = ["Highest Yield", "Most Funded", "Most Liquid"] as const
 type SortOption = (typeof SORT_OPTIONS)[number]
@@ -304,12 +308,26 @@ export const TopMarketsSectionNew = ({
   const isMobile = useMobileResolution()
   const [sortMode, setSortMode] = useState<SortOption>("Highest Yield")
 
-  const { topMarkets, defaultBadges } = useMemo(() => {
+  const { topMarkets } = useMemo(() => {
+    const penalizedBorrowers = new Set(
+      accounts
+        .filter(
+          (a) =>
+            getMarketStatus(
+              a.market.isClosed,
+              a.market.isDelinquent || a.market.willBeDelinquent,
+              a.market.isIncurringPenalties,
+            ) === MarketStatus.PENALTY,
+        )
+        .map((a) => a.market.borrower.toLowerCase()),
+    )
+
     const active = accounts.filter(
       (a) =>
         isExploreVisible(a.market) &&
         a.market.version === MarketVersion.V2 &&
-        a.depositAvailability === DepositStatus.Ready,
+        a.depositAvailability === DepositStatus.Ready &&
+        !penalizedBorrowers.has(a.market.borrower.toLowerCase()),
     )
 
     const sorted = [...active].sort((a, b) => {
