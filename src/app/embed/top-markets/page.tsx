@@ -7,7 +7,7 @@ import { useIframeHeight } from "../hooks/useIframeHeight"
 
 export default function TopMarketsEmbedPage() {
   const { accounts, borrowers, isLoading } = useEmbedMarkets()
-  const containerRef = useIframeHeight()
+  const containerRef = useIframeHeight("top-markets")
 
   return (
     <div ref={containerRef} style={{ paddingBottom: "24px" }}>

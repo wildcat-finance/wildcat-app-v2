@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react"
 
-export function useIframeHeight<T extends HTMLElement = HTMLDivElement>() {
+export function useIframeHeight<T extends HTMLElement = HTMLDivElement>(
+  id?: string,
+) {
   const ref = useRef<T>(null)
 
   useEffect(() => {
@@ -10,7 +12,7 @@ export function useIframeHeight<T extends HTMLElement = HTMLDivElement>() {
     const send = () => {
       const h = el.offsetHeight
       if (h > 0)
-        window.parent.postMessage({ type: "iframe-height", height: h }, "*")
+        window.parent.postMessage({ type: "iframe-height", id, height: h }, "*")
     }
 
     const sendAfterPaint = () => requestAnimationFrame(send)
@@ -25,7 +27,7 @@ export function useIframeHeight<T extends HTMLElement = HTMLDivElement>() {
       ro.disconnect()
       window.removeEventListener("load", sendAfterPaint)
     }
-  }, [])
+  }, [id])
 
   return ref
 }

@@ -223,7 +223,7 @@ function formatCountDelta(n: number, period: string) {
 
 export default function LandingStatsEmbedPage() {
   const { data, isLoading, error } = useLandingStats()
-  const containerRef = useIframeHeight()
+  const containerRef = useIframeHeight("landing-stats")
 
   if (error) {
     return (
