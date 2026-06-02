@@ -16,7 +16,12 @@ import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { tokenAmountComparator } from "@/utils/comparators"
-import { buildMarketHref, formatBps, trimAddress } from "@/utils/formatters"
+import {
+  buildMarketHref,
+  formatBps,
+  formatSecsToHours,
+  trimAddress,
+} from "@/utils/formatters"
 import {
   MarketStatus,
   getMarketStatus,
@@ -369,9 +374,10 @@ export const TopMarketsSectionNew = ({
             ? `Top ${index + 1}: ${formatBps(market.annualInterestBips)}% APY`
             : sortMode === "Most Funded"
               ? `Top ${index + 1}: ${formatCompact(market.totalSupply)} funded`
-              : `Top ${index + 1}: ${formatCompact(
-                  market.maxTotalSupply.sub(market.totalSupply),
-                )} available`,
+              : `Top ${index + 1}: ${formatSecsToHours(
+                  market.withdrawalBatchDuration,
+                  true,
+                )} cycle`,
       }
     })
 
