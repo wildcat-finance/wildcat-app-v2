@@ -1,5 +1,7 @@
 import { HooksKind, Market, MarketVersion } from "@wildcatfi/wildcat-sdk"
 
+import { getPeriodicWindowTiming } from "@/utils/periodicWithdrawalWindow"
+
 export const getMarketTypeChip = (market: Market) => {
   const kind =
     market.version === MarketVersion.V1
@@ -24,6 +26,25 @@ export const getMarketTypeChip = (market: Market) => {
       kind: HooksKind.OpenTerm,
     } */
   }
+
+  if (kind === HooksKind.PeriodicTerm && market.periodicHooksConfig) {
+    const nowSec = Date.now() / 1000
+    const timing = getPeriodicWindowTiming(market, nowSec)
+    if (timing) {
+      return {
+        kind,
+        periodicWindow: {
+          isOpen: timing.isOpen,
+          isTermClosed: timing.isTermClosed,
+          msUntilBoundary:
+            timing.isOpen && timing.currentWindowEnd !== undefined
+              ? Math.max(0, (timing.currentWindowEnd - nowSec) * 1000)
+              : Math.max(0, (timing.nextWindowStart - nowSec) * 1000),
+        },
+      }
+    }
+  }
+
   return {
     kind,
   }

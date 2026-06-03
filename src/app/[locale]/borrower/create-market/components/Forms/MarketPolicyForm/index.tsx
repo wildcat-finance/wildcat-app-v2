@@ -283,13 +283,9 @@ export const MarketPolicyForm = ({
                         shouldValidate: true,
                       })
                     } else if (!v) {
-                      setValue(
-                        "fixedTermEndTime",
-                        undefined as unknown as number,
-                        {
-                          shouldTouch: true,
-                        },
-                      )
+                      setValue("fixedTermEndTime", undefined, {
+                        shouldTouch: true,
+                      })
                     }
                   }}
                   minDate={tomorrow}

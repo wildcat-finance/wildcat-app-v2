@@ -1,4 +1,12 @@
-import { Box, Divider, SvgIcon, TextField, Typography } from "@mui/material"
+import {
+  Box,
+  Divider,
+  SvgIcon,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from "@mui/material"
 import { DesktopDateTimePicker } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
@@ -15,21 +23,21 @@ import { MarketPolicyFormProps } from "./interface"
 import { SectionGrid } from "../style"
 
 const DAY_SECONDS = 86_400
-const DURATION_DECIMAL_SCALE = 5
+const HOUR_SECONDS = 3_600
+const DURATION_DECIMAL_SCALE = 2
 
 const durationInputToSeconds = (
   value: number | undefined,
   unitSeconds: number,
-) =>
-  value === undefined
-    ? (undefined as unknown as number)
-    : Math.round(value * unitSeconds)
+) => (value === undefined ? undefined : Math.round(value * unitSeconds))
 
 const secondsToDurationInput = (
   seconds: number | undefined,
   unitSeconds: number,
 ) =>
-  seconds ? Number((seconds / unitSeconds).toFixed(DURATION_DECIMAL_SCALE)) : ""
+  seconds === undefined
+    ? ""
+    : Number((seconds / unitSeconds).toFixed(DURATION_DECIMAL_SCALE))
 
 const DateCalendarArrowLeft = () => (
   <SvgIcon
@@ -56,7 +64,6 @@ export const PeriodicTermsSection = ({
   form,
 }: Pick<MarketPolicyFormProps, "form">) => {
   const { t } = useTranslation()
-  const now = dayjs.utc()
 
   const {
     setValue,
@@ -67,14 +74,50 @@ export const PeriodicTermsSection = ({
   const firstWithdrawalWindowStartWatch = watch("firstWithdrawalWindowStart")
   const periodDurationWatch = watch("periodDuration")
   const withdrawalWindowDurationWatch = watch("withdrawalWindowDuration")
+  const durationUnit = watch("periodicDurationUnit") ?? "Days"
+  const unitSeconds = durationUnit === "Days" ? DAY_SECONDS : HOUR_SECONDS
 
   return (
     <>
       <Divider sx={{ margin: "28px 0" }} />
 
-      <Typography variant="text3">
-        {t("createNewMarket.confirm.typeTerms")}
-      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Typography variant="text3">
+          {t("createNewMarket.policy.periodic.sectionTitle")}
+        </Typography>
+
+        <ToggleButtonGroup
+          exclusive
+          size="small"
+          value={durationUnit}
+          onChange={(_, next) => {
+            if (next) {
+              setValue("periodicDurationUnit", next, { shouldTouch: true })
+            }
+          }}
+          sx={{
+            "& .MuiToggleButton-root": {
+              textTransform: "none",
+              padding: "2px 12px",
+              border: `1px solid ${COLORS.whiteLilac}`,
+              color: COLORS.santasGrey,
+              "&.Mui-selected": {
+                backgroundColor: COLORS.whiteSmoke,
+                color: COLORS.blackRock,
+              },
+            },
+          }}
+        >
+          <ToggleButton value="Days">Days</ToggleButton>
+          <ToggleButton value="Hours">Hours</ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
       <Box
         sx={{
           ...SectionGrid,
@@ -85,10 +128,15 @@ export const PeriodicTermsSection = ({
       >
         <InputLabel
           label={t("createNewMarket.policy.periodic.firstWindowStart.label")}
+          tooltipText={t(
+            "createNewMarket.policy.periodic.firstWindowStart.glossary",
+          )}
         >
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DesktopDateTimePicker
-              label="e.g. 25/12/2024 14:30 UTC"
+              label={t(
+                "createNewMarket.policy.periodic.firstWindowStart.placeholder",
+              )}
               format="DD/MM/YYYY HH:mm"
               value={
                 firstWithdrawalWindowStartWatch
@@ -102,17 +150,12 @@ export const PeriodicTermsSection = ({
                     shouldValidate: true,
                   })
                 } else if (!v) {
-                  setValue(
-                    "firstWithdrawalWindowStart",
-                    undefined as unknown as number,
-                    {
-                      shouldTouch: true,
-                      shouldValidate: true,
-                    },
-                  )
+                  setValue("firstWithdrawalWindowStart", undefined, {
+                    shouldTouch: true,
+                    shouldValidate: true,
+                  })
                 }
               }}
-              minDateTime={now}
               timezone="UTC"
               ampm={false}
               timeSteps={{ minutes: 1 }}
@@ -176,31 +219,33 @@ export const PeriodicTermsSection = ({
                   },
                 },
               }}
-              disablePast
             />
           </LocalizationProvider>
         </InputLabel>
 
         <InputLabel
           label={t("createNewMarket.policy.periodic.periodDuration.label")}
+          tooltipText={t(
+            "createNewMarket.policy.periodic.periodDuration.glossary",
+          )}
         >
           <NumberTextField
             label={t(
               "createNewMarket.policy.periodic.periodDuration.placeholder",
             )}
-            value={secondsToDurationInput(periodDurationWatch, DAY_SECONDS)}
+            value={secondsToDurationInput(periodDurationWatch, unitSeconds)}
             error={Boolean(errors.periodDuration)}
             helperText={errors.periodDuration?.message}
             decimalScale={DURATION_DECIMAL_SCALE}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-                {t("createNewMarket.policy.periodic.periodDuration.chip")}
+                {durationUnit}
               </Typography>
             }
             onValueChange={(values) => {
               setValue(
                 "periodDuration",
-                durationInputToSeconds(values.floatValue, DAY_SECONDS),
+                durationInputToSeconds(values.floatValue, unitSeconds),
                 {
                   shouldTouch: true,
                   shouldValidate: true,
@@ -214,6 +259,9 @@ export const PeriodicTermsSection = ({
           label={t(
             "createNewMarket.policy.periodic.withdrawalWindowDuration.label",
           )}
+          tooltipText={t(
+            "createNewMarket.policy.periodic.withdrawalWindowDuration.glossary",
+          )}
         >
           <NumberTextField
             label={t(
@@ -221,22 +269,20 @@ export const PeriodicTermsSection = ({
             )}
             value={secondsToDurationInput(
               withdrawalWindowDurationWatch,
-              DAY_SECONDS,
+              unitSeconds,
             )}
             error={Boolean(errors.withdrawalWindowDuration)}
             helperText={errors.withdrawalWindowDuration?.message}
             decimalScale={DURATION_DECIMAL_SCALE}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-                {t(
-                  "createNewMarket.policy.periodic.withdrawalWindowDuration.chip",
-                )}
+                {durationUnit}
               </Typography>
             }
             onValueChange={(values) => {
               setValue(
                 "withdrawalWindowDuration",
-                durationInputToSeconds(values.floatValue, DAY_SECONDS),
+                durationInputToSeconds(values.floatValue, unitSeconds),
                 {
                   shouldTouch: true,
                   shouldValidate: true,

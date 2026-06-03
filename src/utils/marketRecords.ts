@@ -7,8 +7,8 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 
-const SECONDS_PER_DAY = 86_400
-const MAX_PERIODIC_TERM_DECIMALS = 5
+const SECONDS_PER_HOUR = 3_600
+const MAX_PERIODIC_TERM_DECIMALS = 2
 
 const formatAmountDisplay = (
   tokenAmount: Parameters<typeof formatTokenWithCommas>[0],
@@ -18,13 +18,13 @@ const formatAmountRaw = (
   tokenAmount: Parameters<typeof formatTokenWithCommas>[0],
 ) => `${tokenAmount.format(tokenAmount.decimals)} ${tokenAmount.symbol}`
 
-const formatDurationDays = (seconds: number) => {
-  const days = seconds / SECONDS_PER_DAY
-  const formatted = days.toLocaleString("en-US", {
+const formatDurationHours = (seconds: number) => {
+  const hours = seconds / SECONDS_PER_HOUR
+  const formatted = hours.toLocaleString("en-US", {
     maximumFractionDigits: MAX_PERIODIC_TERM_DECIMALS,
   })
 
-  return `${formatted} day${days === 1 ? "" : "s"}`
+  return `${formatted} hour${hours === 1 ? "" : "s"}`
 }
 
 const formatPeriodicTermChange = (
@@ -109,13 +109,13 @@ export const getRecordText = (
         "withdrawal period",
         record.oldPeriodDuration,
         record.newPeriodDuration,
-        formatDurationDays,
+        formatDurationHours,
       ),
       formatPeriodicTermChange(
         "withdrawal window",
         record.oldWithdrawalWindowDuration,
         record.newWithdrawalWindowDuration,
-        formatDurationDays,
+        formatDurationHours,
       ),
     ].filter(Boolean)
 

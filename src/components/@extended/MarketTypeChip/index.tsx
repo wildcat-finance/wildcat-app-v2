@@ -26,6 +26,7 @@ export const MarketTypeChip = ({
   type,
   kind,
   fixedPeriod,
+  periodicWindow,
   isMobile,
 }: MarketTypeChipProps) => {
   const daysLeft = Number(
@@ -45,6 +46,32 @@ export const MarketTypeChip = ({
         })} ${suffix}`
 
   const isFixedTerm = kind === HooksKind.FixedTerm
+  const isPeriodicTerm = kind === HooksKind.PeriodicTerm
+
+  let periodicChipConfig:
+    | { label: string; backgroundColor: string; color: string }
+    | undefined
+  if (isPeriodicTerm && periodicWindow && !periodicWindow.isTermClosed) {
+    periodicChipConfig = periodicWindow.isOpen
+      ? {
+          label: "Window open",
+          backgroundColor: COLORS.oasis,
+          color: COLORS.butteredRum,
+        }
+      : {
+          label: `Opens in ${humanizeDuration(periodicWindow.msUntilBoundary, {
+            round: true,
+            largest: 1,
+          })}`,
+          backgroundColor: COLORS.whiteSmoke,
+          color: COLORS.santasGrey,
+        }
+  }
+
+  const tableLabel = isFixedTerm
+    ? chipTimeLabel
+    : periodicChipConfig?.label ?? MARKET_TYPE_LABELS[kind]
+
   let additionalChipConfig
 
   if (daysLeft > 7) {
@@ -78,7 +105,7 @@ export const MarketTypeChip = ({
         )}
 
         <Typography variant={isMobile ? "mobText4" : "text3"}>
-          {isFixedTerm ? chipTimeLabel : MARKET_TYPE_LABELS[kind]}
+          {tableLabel}
         </Typography>
       </Box>
     )
@@ -103,6 +130,16 @@ export const MarketTypeChip = ({
             backgroundColor: COLORS.blackHaze,
             color: COLORS.blackRock,
             // columnGap: "4px",
+          }}
+        />
+      )}
+
+      {isPeriodicTerm && periodicChipConfig && (
+        <Chip
+          label={periodicChipConfig.label}
+          sx={{
+            backgroundColor: periodicChipConfig.backgroundColor,
+            color: periodicChipConfig.color,
           }}
         />
       )}

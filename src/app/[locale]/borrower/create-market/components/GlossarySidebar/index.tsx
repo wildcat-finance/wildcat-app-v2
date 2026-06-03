@@ -11,6 +11,7 @@ import { GlossaryContainer, GlossaryItem } from "./style"
 export const GlossarySidebar = ({
   step,
   hideGlossary,
+  marketType,
 }: GlossarySidebarProps) => {
   const { t } = useTranslation()
 
@@ -31,6 +32,45 @@ export const GlossarySidebar = ({
           description: t("createNewMarket.policy.name.glossary"),
         },
       ]
+      if (marketType === "periodicTerm") {
+        glossaryArray.push(
+          {
+            title: t("createNewMarket.policy.periodic.firstWindowStart.label"),
+            description: t(
+              "createNewMarket.policy.periodic.firstWindowStart.glossary",
+            ),
+          },
+          {
+            title: t("createNewMarket.policy.periodic.periodDuration.label"),
+            description: t(
+              "createNewMarket.policy.periodic.periodDuration.glossary",
+            ),
+          },
+          {
+            title: t(
+              "createNewMarket.policy.periodic.withdrawalWindowDuration.label",
+            ),
+            description: t(
+              "createNewMarket.policy.periodic.withdrawalWindowDuration.glossary",
+            ),
+          },
+        )
+      } else if (marketType === "fixedTerm") {
+        glossaryArray.push(
+          {
+            title: t("createNewMarket.policy.expiration.label"),
+            description: t("createNewMarket.policy.expiration.glossary"),
+          },
+          {
+            title: t("createNewMarket.policy.earlyClose.label"),
+            description: t("createNewMarket.policy.earlyClose.explainer"),
+          },
+          {
+            title: t("createNewMarket.policy.reduceExpiration.label"),
+            description: t("createNewMarket.policy.reduceExpiration.explainer"),
+          },
+        )
+      }
       break
     }
     case CreateMarketSteps.BASIC: {

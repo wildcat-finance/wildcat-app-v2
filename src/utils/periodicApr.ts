@@ -5,7 +5,13 @@ export type PendingPeriodicAprChange = {
   proposalTimestamp: number
   responseWindowStart: number
   responseWindowEnd: number
-  isExecutable: boolean
+  /**
+   * Whether the lender response window has fully elapsed. This is the time-only
+   * gate; it does NOT imply the change can be finalized on-chain — the contract
+   * also requires `scaledPendingWithdrawals == 0` (UnpaidWithdrawalsExist).
+   * Derive a true "can execute" from `marketAccount.previewSetAPR(...)`.
+   */
+  isResponseWindowElapsed: boolean
   isResponseWindowOpen: boolean
 }
 
@@ -21,7 +27,7 @@ export const getPendingPeriodicAprChange = (
     proposalTimestamp: config.pendingAprChangeProposalTimestamp,
     responseWindowStart: config.pendingAprChangeResponseWindowStart,
     responseWindowEnd: config.pendingAprChangeResponseWindowEnd,
-    isExecutable: nowSec >= config.pendingAprChangeResponseWindowEnd,
+    isResponseWindowElapsed: nowSec >= config.pendingAprChangeResponseWindowEnd,
     isResponseWindowOpen:
       nowSec >= config.pendingAprChangeResponseWindowStart &&
       nowSec < config.pendingAprChangeResponseWindowEnd,

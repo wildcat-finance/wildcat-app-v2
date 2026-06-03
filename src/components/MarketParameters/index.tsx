@@ -27,6 +27,7 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
+import { getPeriodicWindowTiming } from "@/utils/periodicWithdrawalWindow"
 
 import { MarketParametersProps } from "./interface"
 import {
@@ -36,14 +37,15 @@ import {
 import { ParametersItem } from "../ParametersItem"
 import { TooltipButton } from "../TooltipButton"
 
-const DAY_SECONDS = 86_400
+const HOUR_SECONDS = 3_600
+const PERIODIC_TERM_DECIMALS = 2
 
 const formatPeriodicDateTime = (timestamp: number) =>
   dayjs.unix(timestamp).utc().format("D MMM YYYY, HH:mm [UTC]")
 
 const formatPeriodicDuration = (seconds: number) => {
-  const days = Number((seconds / DAY_SECONDS).toFixed(5))
-  return `${days} day${days === 1 ? "" : "s"}`
+  const hours = Number((seconds / HOUR_SECONDS).toFixed(PERIODIC_TERM_DECIMALS))
+  return `${hours} hour${hours === 1 ? "" : "s"}`
 }
 
 const WrapperChip = ({ hasWrapper }: { hasWrapper?: boolean }) => (
@@ -369,6 +371,32 @@ export const MarketParameters = ({
   const periodicWindowStartLabel =
     periodicWindowStatus === "open" ? "currentWindowStart" : "nextWindowStart"
 
+  const periodicWindowTiming = getPeriodicWindowTiming(market, nowSec)
+  const periodicWindowCountdown = (() => {
+    if (!periodicWindowTiming || periodicWindowTiming.isTermClosed)
+      return undefined
+    if (periodicWindowTiming.isOpen && periodicWindowTiming.currentWindowEnd) {
+      return t(
+        "borrowerMarketDetails.parameters.periodicTerm.windowStatus.closesIn",
+        {
+          duration: humanizeDuration(
+            Math.max(0, periodicWindowTiming.currentWindowEnd - nowSec) * 1000,
+            { round: true, largest: 2 },
+          ),
+        },
+      )
+    }
+    return t(
+      "borrowerMarketDetails.parameters.periodicTerm.windowStatus.opensIn",
+      {
+        duration: humanizeDuration(
+          Math.max(0, periodicWindowTiming.nextWindowStart - nowSec) * 1000,
+          { round: true, largest: 2 },
+        ),
+      },
+    )
+  })()
+
   const adsMarketParameter = getAdsMarketParameterComponent(market.address)
 
   const [isMobileOpen, setIsMobileOpen] = React.useState(false)
@@ -550,6 +578,9 @@ export const MarketParameters = ({
                     value={formatPeriodicDateTime(
                       periodicHooksConfig.firstWithdrawalWindowStart,
                     )}
+                    tooltipText={t(
+                      "borrowerMarketDetails.parameters.periodicTerm.firstWindowStartTooltip",
+                    )}
                   />
                   <Divider sx={{ margin: "12px 0 12px" }} />
                   <ParametersItem
@@ -558,6 +589,9 @@ export const MarketParameters = ({
                     )}
                     value={formatPeriodicDuration(
                       periodicHooksConfig.periodDuration,
+                    )}
+                    tooltipText={t(
+                      "borrowerMarketDetails.parameters.periodicTerm.periodDurationTooltip",
                     )}
                   />
                   <Divider sx={{ margin: "12px 0 12px" }} />
@@ -568,6 +602,9 @@ export const MarketParameters = ({
                     value={formatPeriodicDuration(
                       periodicHooksConfig.withdrawalWindowDuration,
                     )}
+                    tooltipText={t(
+                      "borrowerMarketDetails.parameters.periodicTerm.withdrawalWindowDurationTooltip",
+                    )}
                   />
                   {periodicWindowStatus && (
                     <>
@@ -576,9 +613,15 @@ export const MarketParameters = ({
                         title={t(
                           "borrowerMarketDetails.parameters.periodicTerm.windowStatus.label",
                         )}
-                        value={t(
-                          `borrowerMarketDetails.parameters.periodicTerm.windowStatus.${periodicWindowStatus}.text`,
-                        )}
+                        value={
+                          periodicWindowCountdown
+                            ? `${t(
+                                `borrowerMarketDetails.parameters.periodicTerm.windowStatus.${periodicWindowStatus}.text`,
+                              )} — ${periodicWindowCountdown}`
+                            : t(
+                                `borrowerMarketDetails.parameters.periodicTerm.windowStatus.${periodicWindowStatus}.text`,
+                              )
+                        }
                         valueTooltipText={t(
                           `borrowerMarketDetails.parameters.periodicTerm.windowStatus.${periodicWindowStatus}.tooltip`,
                         )}
@@ -752,37 +795,20 @@ export const MarketParameters = ({
                   tooltipText={t(
                     "borrowerMarketDetails.parameters.pendingPeriodicApr.tooltip",
                   )}
-                  valueTooltipText={
-                    pendingPeriodicAprChange.isExecutable
-                      ? t(
-                          "borrowerMarketDetails.parameters.pendingPeriodicApr.readyNotice",
-                          {
-                            currentApr: formatBps(
-                              market.annualInterestBips,
-                              MARKET_PARAMS_DECIMALS.annualInterestBips,
-                            ),
-                            proposedApr: formatBps(
-                              pendingPeriodicAprChange.proposedAprBips,
-                              MARKET_PARAMS_DECIMALS.annualInterestBips,
-                            ),
-                            readyAt: pendingPeriodicAprReadyAt,
-                          },
-                        )
-                      : t(
-                          "borrowerMarketDetails.parameters.pendingPeriodicApr.pendingNotice",
-                          {
-                            currentApr: formatBps(
-                              market.annualInterestBips,
-                              MARKET_PARAMS_DECIMALS.annualInterestBips,
-                            ),
-                            proposedApr: formatBps(
-                              pendingPeriodicAprChange.proposedAprBips,
-                              MARKET_PARAMS_DECIMALS.annualInterestBips,
-                            ),
-                            readyAt: pendingPeriodicAprReadyAt,
-                          },
-                        )
-                  }
+                  valueTooltipText={t(
+                    "borrowerMarketDetails.parameters.pendingPeriodicApr.pendingNotice",
+                    {
+                      currentApr: formatBps(
+                        market.annualInterestBips,
+                        MARKET_PARAMS_DECIMALS.annualInterestBips,
+                      ),
+                      proposedApr: formatBps(
+                        pendingPeriodicAprChange.proposedAprBips,
+                        MARKET_PARAMS_DECIMALS.annualInterestBips,
+                      ),
+                      readyAt: pendingPeriodicAprReadyAt,
+                    },
+                  )}
                 />
               </>
             )}

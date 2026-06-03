@@ -28,6 +28,7 @@ export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   firstWithdrawalWindowStart: undefined,
   periodDuration: undefined,
   withdrawalWindowDuration: undefined,
+  periodicDurationUnit: "Days",
   allowClosureBeforeTerm: false,
   allowTermReduction: false,
   policy: "",

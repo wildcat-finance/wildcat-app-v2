@@ -9,7 +9,8 @@ import { ConfirmationFormItem } from "../../ConfirmationFormItem"
 import { SectionGrid } from "../style"
 
 const DAY_SECONDS = 86_400
-const DURATION_DECIMAL_SCALE = 5
+const HOUR_SECONDS = 3_600
+const DURATION_DECIMAL_SCALE = 2
 
 const formatDuration = (seconds: number, unitSeconds: number) =>
   `${Number((seconds / unitSeconds).toFixed(DURATION_DECIMAL_SCALE))}`
@@ -22,6 +23,8 @@ export const PeriodicTermsConfirmation = ({
 }: Pick<ConfirmationFormProps, "form">) => {
   const { t } = useTranslation()
   const { getValues } = form
+  const unit = getValues("periodicDurationUnit") ?? "Days"
+  const unitSeconds = unit === "Days" ? DAY_SECONDS : HOUR_SECONDS
 
   return (
     <>
@@ -46,10 +49,8 @@ export const PeriodicTermsConfirmation = ({
           label={t("createNewMarket.policy.periodic.periodDuration.label")}
           value={`${formatDuration(
             Number(getValues("periodDuration")),
-            DAY_SECONDS,
-          )} ${t(
-            "createNewMarket.policy.periodic.periodDuration.chip",
-          ).toLowerCase()}`}
+            unitSeconds,
+          )} ${unit.toLowerCase()}`}
         />
 
         <ConfirmationFormItem
@@ -58,10 +59,8 @@ export const PeriodicTermsConfirmation = ({
           )}
           value={`${formatDuration(
             Number(getValues("withdrawalWindowDuration")),
-            DAY_SECONDS,
-          )} ${t(
-            "createNewMarket.policy.periodic.withdrawalWindowDuration.chip",
-          ).toLowerCase()}`}
+            unitSeconds,
+          )} ${unit.toLowerCase()}`}
         />
       </Box>
 

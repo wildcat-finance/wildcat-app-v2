@@ -3,11 +3,15 @@ import {
   TransferAccess,
   WithdrawalAccess,
 } from "@wildcatfi/wildcat-sdk"
+import humanizeDuration from "humanize-duration"
 import { isAddress } from "viem"
 import { z } from "zod"
 
 import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
-import { getMaxFixedTermDays } from "@/config/market-duration"
+import {
+  getMaxFixedTermDays,
+  PERIODIC_TERM_LIMITS,
+} from "@/config/market-duration"
 import { dayjs } from "@/utils/dayjs"
 import { isLetterNumber, isLetterNumberSpace } from "@/utils/validations"
 
@@ -101,6 +105,8 @@ export const baseMarketSchemaFields = {
   firstWithdrawalWindowStart: z.coerce.number().optional(),
   periodDuration: z.coerce.number().optional(),
   withdrawalWindowDuration: z.coerce.number().optional(),
+  // Display-only unit for periodic duration inputs; not sent on-chain.
+  periodicDurationUnit: z.enum(["Days", "Hours"]).optional(),
   allowClosureBeforeTerm: z.boolean().optional(),
   allowTermReduction: z.boolean().optional(),
   disableTransfers: z.boolean(),
@@ -148,15 +154,29 @@ export const marketRefinementCallback = (
       withdrawalWindowDuration,
     } = data
 
+    const humanize = (seconds: number) =>
+      humanizeDuration(seconds * 1000, { round: true, largest: 2 })
+
     if (!isPositiveNumber(firstWithdrawalWindowStart)) {
       ctx.addIssue({
         message: "First withdrawal window start must be set",
         path: ["firstWithdrawalWindowStart"],
         code: "custom",
       })
-    } else if (firstWithdrawalWindowStart <= now) {
+    } else if (
+      // The contract (`PeriodicTermHooks._validatePeriodicTerm`) does NOT require
+      // the start to be in the future — it is only the recurring-schedule anchor,
+      // and a past anchor is projected forward to the next window. The only timing
+      // rule is that the next window lands within `MaximumInitialWithdrawalWindowDelay`.
+      // For a future anchor the next window IS the anchor, so this check matches the
+      // contract; for a past anchor it is always satisfied.
+      firstWithdrawalWindowStart >
+      now + PERIODIC_TERM_LIMITS.maxInitialDelaySeconds
+    ) {
       ctx.addIssue({
-        message: "First withdrawal window start must be in the future",
+        message: `First withdrawal window must start within ${humanize(
+          PERIODIC_TERM_LIMITS.maxInitialDelaySeconds,
+        )} from now`,
         path: ["firstWithdrawalWindowStart"],
         code: "custom",
       })
@@ -165,6 +185,22 @@ export const marketRefinementCallback = (
     if (!isPositiveNumber(periodDuration)) {
       ctx.addIssue({
         message: "Withdrawal period duration must be greater than zero",
+        path: ["periodDuration"],
+        code: "custom",
+      })
+    } else if (periodDuration < PERIODIC_TERM_LIMITS.minPeriodSeconds) {
+      ctx.addIssue({
+        message: `Withdrawal period must be at least ${humanize(
+          PERIODIC_TERM_LIMITS.minPeriodSeconds,
+        )}`,
+        path: ["periodDuration"],
+        code: "custom",
+      })
+    } else if (periodDuration > PERIODIC_TERM_LIMITS.maxPeriodSeconds) {
+      ctx.addIssue({
+        message: `Withdrawal period can not exceed ${humanize(
+          PERIODIC_TERM_LIMITS.maxPeriodSeconds,
+        )}`,
         path: ["periodDuration"],
         code: "custom",
       })
@@ -177,11 +213,21 @@ export const marketRefinementCallback = (
         code: "custom",
       })
     } else if (
-      isPositiveNumber(periodDuration) &&
-      withdrawalWindowDuration > periodDuration
+      withdrawalWindowDuration < PERIODIC_TERM_LIMITS.minWindowSeconds
     ) {
       ctx.addIssue({
-        message: "Withdrawal window duration can not exceed period duration",
+        message: `Withdrawal window must be at least ${humanize(
+          PERIODIC_TERM_LIMITS.minWindowSeconds,
+        )}`,
+        path: ["withdrawalWindowDuration"],
+        code: "custom",
+      })
+    } else if (
+      isPositiveNumber(periodDuration) &&
+      withdrawalWindowDuration >= periodDuration
+    ) {
+      ctx.addIssue({
+        message: "Withdrawal window must be shorter than the withdrawal period",
         path: ["withdrawalWindowDuration"],
         code: "custom",
       })

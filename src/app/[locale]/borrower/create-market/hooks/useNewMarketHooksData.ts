@@ -24,7 +24,7 @@ const HOOKS_KIND_TO_MARKET_TYPE: Record<HooksKind, string> = {
 
 export function useNewMarketHooksData(form: NewMarketFormType) {
   const { data: hooksData, ...queryData } = useGetBorrowerHooksData()
-  const { setValue } = form
+  const { getValues, setValue } = form
   const [selectedHooksInstance, setSelectedHooksInstance] = useState<
     HooksInstance | undefined
   >(undefined)
@@ -82,10 +82,27 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
 
   useEffect(() => {
     if (marketType === "fixedTerm") {
+      setValue(
+        "allowClosureBeforeTerm",
+        getValues("allowClosureBeforeTerm") ?? false,
+      )
+      setValue("allowTermReduction", getValues("allowTermReduction") ?? false)
+      setValue("firstWithdrawalWindowStart", undefined)
+      setValue("periodDuration", undefined)
+      setValue("withdrawalWindowDuration", undefined)
+    } else if (marketType === "periodicTerm") {
+      setValue("allowClosureBeforeTerm", undefined)
+      setValue("allowTermReduction", undefined)
+      setValue("fixedTermEndTime", undefined)
+    } else {
+      setValue("fixedTermEndTime", undefined)
+      setValue("firstWithdrawalWindowStart", undefined)
+      setValue("periodDuration", undefined)
+      setValue("withdrawalWindowDuration", undefined)
       setValue("allowClosureBeforeTerm", undefined)
       setValue("allowTermReduction", undefined)
     }
-  }, [marketType, setValue])
+  }, [getValues, marketType, setValue])
 
   return {
     selectedHooksInstance,

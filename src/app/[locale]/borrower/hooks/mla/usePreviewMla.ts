@@ -25,9 +25,13 @@ import {
 } from "@/lib/mla"
 
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
+import {
+  hoursInputToSeconds,
+  percentInputToBips,
+} from "../../create-market/utils/units"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
 
-const MARKET_TYPE_TO_HOOKS_KIND: Record<string, HooksKind> = {
+const MARKET_TYPE_TO_HOOKS_KIND: Record<string, HooksKind | undefined> = {
   standard: HooksKind.OpenTerm,
   fixedTerm: HooksKind.FixedTerm,
   periodicTerm: HooksKind.PeriodicTerm,
@@ -57,13 +61,15 @@ export function getFieldValuesForBorrowerFromForm(
     marketParams.depositRequiresAccess === false
       ? DepositAccess.Open
       : DepositAccess.RequiresCredential
-  const annualInterestBips = Number(marketParams.annualInterestBips) * 100
-  const delinquencyFeeBips = Number(marketParams.delinquencyFeeBips) * 100
-  const reserveRatioBips = Number(marketParams.reserveRatioBips) * 100
-  const delinquencyGracePeriod =
-    Number(marketParams.delinquencyGracePeriod) * 60 * 60
-  const withdrawalBatchDuration =
-    Number(marketParams.withdrawalBatchDuration) * 60 * 60
+  const annualInterestBips = percentInputToBips(marketParams.annualInterestBips)
+  const delinquencyFeeBips = percentInputToBips(marketParams.delinquencyFeeBips)
+  const reserveRatioBips = percentInputToBips(marketParams.reserveRatioBips)
+  const delinquencyGracePeriod = hoursInputToSeconds(
+    marketParams.delinquencyGracePeriod,
+  )
+  const withdrawalBatchDuration = hoursInputToSeconds(
+    marketParams.withdrawalBatchDuration,
+  )
   const isFixedTerm = marketParams.marketType === "fixedTerm"
   const isPeriodicTerm = marketParams.marketType === "periodicTerm"
 

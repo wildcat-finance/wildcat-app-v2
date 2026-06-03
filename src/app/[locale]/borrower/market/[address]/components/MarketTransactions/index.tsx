@@ -127,11 +127,11 @@ export const MarketTransactions = ({
         .format("D MMM YYYY, HH:mm [UTC]")
     : undefined
   const canExecutePendingApr =
-    !!pendingPeriodicAprChange?.isExecutable &&
+    !!pendingPeriodicAprChange?.isResponseWindowElapsed &&
     pendingAprExecutionPreview?.status === "Ready"
   const pendingAprNoticeKey = (() => {
     if (!pendingPeriodicAprChange) return undefined
-    if (!pendingPeriodicAprChange.isExecutable) {
+    if (!pendingPeriodicAprChange.isResponseWindowElapsed) {
       return "borrowerMarketDetails.parameters.pendingPeriodicApr.pendingNotice"
     }
     if (pendingAprExecutionError) {
@@ -140,7 +140,7 @@ export const MarketTransactions = ({
     return "borrowerMarketDetails.parameters.pendingPeriodicApr.readyNotice"
   })()
   const pendingAprNotice =
-    pendingAprNoticeKey && pendingAprFormatted && pendingAprReadyAt
+    pendingAprNoticeKey && pendingAprFormatted
       ? t(pendingAprNoticeKey, {
           currentApr: currentAprFormatted,
           proposedApr: pendingAprFormatted,
@@ -312,7 +312,7 @@ export const MarketTransactions = ({
             {pendingAprNotice}
           </Typography>
 
-          {pendingPeriodicAprChange.isExecutable && (
+          {pendingPeriodicAprChange.isResponseWindowElapsed && (
             <Button
               variant="outlined"
               color="secondary"

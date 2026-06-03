@@ -425,23 +425,28 @@
       "marketExpiry": "Loan Maturity",
       "periodicTerm": {
         "firstWindowStart": "First Withdrawal Window",
+        "firstWindowStartTooltip": "The exact UTC date and time of the first withdrawal window. Every later window recurs on this anchor.",
         "periodDuration": "Withdrawal Period",
+        "periodDurationTooltip": "How often a withdrawal window recurs — the gap from the start of one window to the start of the next. This is separate from the Withdrawal Cycle Duration, which controls how long a queued withdrawal batch stays open.",
         "withdrawalWindowDuration": "Withdrawal Window",
+        "withdrawalWindowDurationTooltip": "How long each withdrawal window stays open. Lenders can only queue withdrawals while a window is open. This is separate from the Withdrawal Cycle Duration, which controls how long a queued withdrawal batch stays open.",
         "currentWindowStart": "Current Window Start",
         "nextWindowStart": "Next Withdrawal Window",
         "windowStatus": {
           "label": "Withdrawal Window Status",
+          "closesIn": "closes in {{duration}}",
+          "opensIn": "opens in {{duration}}",
           "open": {
             "text": "Open",
             "tooltip": "Lenders can request withdrawals during the current scheduled withdrawal window."
           },
           "scheduled": {
-            "text": "Closed",
-            "tooltip": "Lenders can request withdrawals when the next scheduled withdrawal window opens."
+            "text": "Scheduled",
+            "tooltip": "The next scheduled withdrawal window has not opened yet. Lenders can request withdrawals once it opens."
           },
           "closed": {
-            "text": "Closed",
-            "tooltip": "The periodic term has been closed."
+            "text": "Ended",
+            "tooltip": "This periodic market has been closed; withdrawal requests are now open permanently."
           }
         }
       },
@@ -560,6 +565,8 @@
         "approveNotified": "I understand that adjusting this APR impacts all lenders.",
         "adjust": "Adjust",
         "proposeReduction": "Propose Reduction",
+        "proposeReductionTitle": "Propose APR Reduction",
+        "pendingProposalReplaceNotice": "A reduction to {{proposedApr}}% is already pending (lenders can respond until {{readyAt}}). Submitting a new proposal replaces it and restarts the response window.",
         "proposalAffects": "Effects Of APR Reduction Proposal",
         "periodicProposalNotice": "This proposes an APR reduction for lenders to review. The APR will not change until the lender response window has closed.",
         "proposalLoadingTitle": "Proposing APR Reduction...",
@@ -1161,7 +1168,7 @@
         "periodicTooltip": "The amount of underlying asset debt that the connected address can request for withdrawal. Periodic markets accept withdrawal requests only during scheduled withdrawal windows.",
         "periodicWindow": {
           "closed": "Withdrawals are only available during this market's withdrawal window.",
-          "nextStart": "Next window starts: {{date}}"
+          "nextStart": "Next window opens {{date}} ({{countdown}})"
         },
         "modal": {
           "title": "Withdraw",
@@ -1461,21 +1468,27 @@
         "glossary": "[TO FILL IN]"
       },
       "expiration": {
-        "label": "Fixed Term Maturity Date [00:00 UTC]"
+        "label": "Fixed Term Maturity Date [00:00 UTC]",
+        "glossary": "The date the fixed loan term ends. Lenders cannot queue withdrawals until this maturity date passes."
       },
       "periodic": {
+        "sectionTitle": "Withdrawal Schedule",
         "firstWindowStart": {
-          "label": "First Withdrawal Window [UTC]"
+          "label": "First Withdrawal Window [UTC]",
+          "placeholder": "e.g. 25/12/2024 14:30 UTC",
+          "glossary": "The exact UTC date and time of the first withdrawal window. Every later window recurs on this anchor."
         },
         "periodDuration": {
           "label": "Withdrawal Period",
           "placeholder": "Input Period Duration",
-          "chip": "Days"
+          "chip": "Hours",
+          "glossary": "How often a withdrawal window recurs — the gap from the start of one window to the start of the next. Must be longer than the withdrawal window."
         },
         "withdrawalWindowDuration": {
           "label": "Withdrawal Window",
           "placeholder": "Input Window Duration",
-          "chip": "Days"
+          "chip": "Hours",
+          "glossary": "How long each withdrawal window stays open. Lenders can only queue withdrawals while a window is open; it must be shorter than the withdrawal period."
         }
       },
       "earlyClose": {

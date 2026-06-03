@@ -244,7 +244,7 @@ export const WithdrawModal = ({
 
             <PeriodicWithdrawalWindowNotice
               market={market}
-              sx={{ marginTop: "12px" }}
+              sx={{ marginBottom: "20px" }}
             />
 
             <Box>

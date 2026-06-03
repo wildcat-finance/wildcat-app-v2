@@ -468,7 +468,12 @@ export default function CreateMarketPage() {
         </Dialog>
       </Box>
 
-      {currentNumber && <GlossarySidebar step={currentStep} />}
+      {currentNumber && (
+        <GlossarySidebar
+          step={currentStep}
+          marketType={newMarketForm.watch("marketType")}
+        />
+      )}
     </Box>
   )
 }

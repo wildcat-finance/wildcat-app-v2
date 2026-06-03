@@ -29,6 +29,7 @@ import {
   MARKET_PARAMS_DECIMALS,
   TOKEN_FORMAT_DECIMALS,
 } from "@/utils/formatters"
+import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
 
 import { DifferenceChip } from "./components/DifferenceChip"
 import { AprModalProps } from "./interface"
@@ -111,6 +112,9 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const isFixedTerm = market.isInFixedTerm
   const aprBips = parseAprBips(apr)
   const isPeriodicTerm = !!market.periodicHooksConfig
+  const existingPendingProposal = isPeriodicTerm
+    ? getPendingPeriodicAprChange(market)
+    : undefined
   const isPeriodicAprReduction =
     isPeriodicTerm &&
     aprBips !== undefined &&
@@ -211,7 +215,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   }
 
   const handleAdjust = () => {
-    mutate({ apr: parseFloat(apr), mode: aprChangeMode })
+    if (aprBips === undefined) return
+    mutate({ apr: aprBips / 100, mode: aprChangeMode })
   }
 
   const handleTryAgain = () => {
@@ -271,8 +276,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const needsReset =
     !isPeriodicAprReduction &&
     isExpiredTempRatio &&
-    !!apr &&
-    parseFloat(apr) < market.annualInterestBips / 100
+    aprBips !== undefined &&
+    aprBips < market.annualInterestBips
 
   const showForm = !(
     isPending ||
@@ -283,19 +288,22 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     showResetErrorPopup
   )
 
-  const isAprLTZero = parseFloat(apr) <= 0
+  const isAprNotPositive = aprBips === undefined || aprBips <= 0
+  const isAprUnchanged =
+    aprBips !== undefined && aprBips === market.annualInterestBips
 
   const disableConfirm =
     apr === "" ||
-    isAprLTZero ||
-    apr === formatBps(market.annualInterestBips) ||
+    isAprNotPositive ||
+    isAprUnchanged ||
     !!aprError ||
     modal.approvedStep ||
     aprFixedReduction
 
   const disableAdjust =
     apr === "" ||
-    apr === "0" ||
+    isAprNotPositive ||
+    isAprUnchanged ||
     !!aprError ||
     modal.gettingValueStep ||
     !notified ||
@@ -374,7 +382,11 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
       >
         {showForm && (
           <TxModalHeader
-            title={t("borrowerMarketDetails.modals.apr.adjustBase")}
+            title={
+              isPeriodicAprReduction
+                ? t("borrowerMarketDetails.modals.apr.proposeReductionTitle")
+                : t("borrowerMarketDetails.modals.apr.adjustBase")
+            }
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
@@ -401,6 +413,28 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
           <Box width="100%" height="100%" padding="12px 24px">
             {modal.gettingValueStep && (
               <>
+                {existingPendingProposal && (
+                  <Typography
+                    variant="text4"
+                    color={COLORS.santasGrey}
+                    sx={{ display: "block", marginBottom: "12px" }}
+                  >
+                    {t(
+                      "borrowerMarketDetails.modals.apr.pendingProposalReplaceNotice",
+                      {
+                        proposedApr: formatBps(
+                          existingPendingProposal.proposedAprBips,
+                          MARKET_PARAMS_DECIMALS.annualInterestBips,
+                        ),
+                        readyAt: dayjs
+                          .unix(existingPendingProposal.responseWindowEnd)
+                          .utc()
+                          .format("D MMM YYYY, HH:mm [UTC]"),
+                      },
+                    )}
+                  </Typography>
+                )}
+
                 <ModalDataItem
                   title={t("borrowerMarketDetails.modals.apr.currentBaseApr")}
                   value={`${formatBps(
@@ -452,7 +486,13 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                   </Typography>
                 )}
 
-                <Box marginTop={aprError ? "44px" : "28px"} sx={AprAffectsBox}>
+                <Box
+                  marginTop={aprError ? "44px" : "28px"}
+                  sx={{
+                    ...AprAffectsBox,
+                    display: isPeriodicAprReduction ? "none" : "flex",
+                  }}
+                >
                   <Typography variant="text4" textTransform="uppercase">
                     {isPeriodicAprReduction
                       ? t("borrowerMarketDetails.modals.apr.proposalAffects")
