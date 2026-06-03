@@ -16,7 +16,11 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { formatBps, trimAddress } from "@/utils/formatters"
 import { compareByCurrentAprBestInMarket } from "@/utils/marketSort"
-import { isExploreVisible, isMarketHealthy } from "@/utils/marketStatus"
+import {
+  getPenaltyBorrowers,
+  isExploreVisible,
+  isMarketHealthy,
+} from "@/utils/marketStatus"
 
 import {
   TrendingMarketCard,
@@ -222,8 +226,15 @@ export const TrendingMarketsCarousel = () => {
   const isLoading = isLoadingInitial || isLoadingUpdate
 
   const slots = useMemo<Slot[]>(() => {
+    const penaltyBorrowers = getPenaltyBorrowers(
+      marketAccounts.map((a) => a.market),
+    )
+
     const eligible = marketAccounts.filter(
-      (a) => isExploreVisible(a.market) && a.market.maxTotalSupply.gt(0),
+      (a) =>
+        isExploreVisible(a.market) &&
+        a.market.maxTotalSupply.gt(0) &&
+        !penaltyBorrowers.has(a.market.borrower.toLowerCase()),
     )
     if (eligible.length === 0) return []
 
