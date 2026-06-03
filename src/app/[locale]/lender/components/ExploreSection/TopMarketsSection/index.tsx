@@ -49,7 +49,11 @@ import {
   compareByHighestYield,
   compareByShortestWithdrawalCycle,
 } from "@/utils/marketSort"
-import { getMarketStatusChip, isExploreVisible } from "@/utils/marketStatus"
+import {
+  getMarketStatusChip,
+  getPenaltyBorrowers,
+  isExploreVisible,
+} from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 const DATA_GRID_MIN_HEIGHT = "106px"
@@ -155,12 +159,17 @@ export const TopMarketsSection = () => {
   const isLoading = isLoadingInitial || isLoadingUpdate
 
   const sortedRows = useMemo((): GridRowsProp<LenderOtherMarketsTableModel> => {
+    const penaltyBorrowers = getPenaltyBorrowers(
+      marketAccounts.map((a) => a.market),
+    )
+
     const active = marketAccounts.filter(
       (a) =>
         isExploreVisible(a.market) &&
         !a.hasEverInteracted &&
         a.market.version === MarketVersion.V2 &&
-        a.depositAvailability === DepositStatus.Ready,
+        a.depositAvailability === DepositStatus.Ready &&
+        !penaltyBorrowers.has(a.market.borrower.toLowerCase()),
     )
 
     const sorted = [...active].sort((a, b) => {
