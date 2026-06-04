@@ -525,7 +525,7 @@ export const TopMarketsSection = () => {
         sx={{
           display: "flex",
           alignItems: "center",
-          gap: "8px",
+          gap: "4px",
           marginBottom: "12px",
         }}
       >
