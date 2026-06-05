@@ -13,6 +13,8 @@ import {
   useRecentDeposits,
 } from "@/app/[locale]/lender/hooks/useRecentDeposits"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { fmtUSD, toHuman } from "@/lib/protocol-stats/format"
 import { COLORS } from "@/theme/colors"
 import { formatBps, trimAddress } from "@/utils/formatters"
 import { compareByCurrentAprBestInMarket } from "@/utils/marketSort"
@@ -26,6 +28,7 @@ import {
   TrendingMarketCard,
   TrendingMarketCardVariant,
 } from "./TrendingMarketsCard"
+import { useTrendingUsdPrices } from "./useTrendingUsdPrices"
 
 const SLOT_COUNT = 5
 
@@ -71,17 +74,6 @@ const pickMax = <T,>(
   return best
 }
 
-const pickInflowWinner = (
-  eligible: MarketAccount[],
-  bucket: RecentDepositsData,
-) =>
-  pickMax(eligible, (account) => {
-    const stats = bucket[account.market.address.toLowerCase()]
-    return stats && stats.totalAssetAmount > ZERO
-      ? stats.totalAssetAmount
-      : undefined
-  })
-
 const pickLendersWinner = (
   eligible: MarketAccount[],
   bucket: RecentDepositsData,
@@ -89,14 +81,6 @@ const pickLendersWinner = (
   pickMax(eligible, (account) => {
     const stats = bucket[account.market.address.toLowerCase()]
     return stats && stats.uniqueLenders > 0 ? stats.uniqueLenders : undefined
-  })
-
-const pickTotalDepositedWinner = (eligible: MarketAccount[]) =>
-  pickMax(eligible, (account) => {
-    const raw = account.market.totalDeposited?.raw
-    if (!raw) return undefined
-    const big = raw.toBigInt()
-    return big > ZERO ? big : undefined
   })
 
 type Slot = {
@@ -225,6 +209,20 @@ export const TrendingMarketsCarousel = () => {
 
   const isLoading = isLoadingInitial || isLoadingUpdate
 
+  const { chainId } = useSelectedNetwork()
+  const tokenAddresses = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          marketAccounts.map((a) =>
+            a.market.underlyingToken.address.toLowerCase(),
+          ),
+        ),
+      ),
+    [marketAccounts],
+  )
+  const { data: priceMap } = useTrendingUsdPrices(chainId, tokenAddresses)
+
   const slots = useMemo<Slot[]>(() => {
     const penaltyBorrowers = getPenaltyBorrowers(
       marketAccounts.map((a) => a.market),
@@ -238,8 +236,36 @@ export const TrendingMarketsCarousel = () => {
     )
     if (eligible.length === 0) return []
 
-    const inflow7dWinner = pickInflowWinner(eligible, recentDeposits.last7d)
-    const inflowLifetimeWinner = pickTotalDepositedWinner(eligible)
+    const toCardValue = (
+      raw: bigint,
+      decimals: number,
+      tokenAddress: string,
+    ): string => {
+      const price = priceMap?.[tokenAddress.toLowerCase()]
+      return price != null
+        ? fmtUSD(toHuman(raw, decimals) * price)
+        : formatTokenCompact(raw, decimals)
+    }
+
+    const marketUsdScore = (account: MarketAccount, raw: bigint): number => {
+      const { address, decimals } = account.market.underlyingToken
+      const human = toHuman(raw, decimals)
+      const price = priceMap?.[address.toLowerCase()]
+      return price != null ? human * price : human
+    }
+
+    const inflow7dWinner = pickMax(eligible, (account) => {
+      const stats = recentDeposits.last7d[account.market.address.toLowerCase()]
+      return stats && stats.totalAssetAmount > ZERO
+        ? marketUsdScore(account, stats.totalAssetAmount)
+        : undefined
+    })
+    const inflowLifetimeWinner = pickMax(eligible, (account) => {
+      const raw = account.market.totalDeposited?.raw
+      if (!raw) return undefined
+      const big = raw.toBigInt()
+      return big > ZERO ? marketUsdScore(account, big) : undefined
+    })
 
     const lenders7dWinner = pickLendersWinner(eligible, recentDeposits.last7d)
     const lendersBroadWinner = pickLendersWinner(eligible, recentDeposits.broad)
@@ -248,7 +274,7 @@ export const TrendingMarketsCarousel = () => {
       const raw = account.market.totalBaseInterestAccrued?.raw
       if (!raw) return undefined
       const big = raw.toBigInt()
-      return big > ZERO ? big : undefined
+      return big > ZERO ? marketUsdScore(account, big) : undefined
     })
 
     const healthyEligible = eligible.filter((a) => isMarketHealthy(a.market))
@@ -258,7 +284,7 @@ export const TrendingMarketsCarousel = () => {
 
     const tvlWinner = pickMax(eligible, (account) => {
       const big = account.market.totalSupply.raw.toBigInt()
-      return big > ZERO ? big : undefined
+      return big > ZERO ? marketUsdScore(account, big) : undefined
     })
 
     const tvlInflowAccount = inflow7dWinner ?? inflowLifetimeWinner
@@ -267,17 +293,19 @@ export const TrendingMarketsCarousel = () => {
       const addr = tvlInflowAccount.market.address.toLowerCase()
       const { decimals } = tvlInflowAccount.market.underlyingToken
       const stats7d = recentDeposits.last7d[addr]
+      const inflowTokenAddress = tvlInflowAccount.market.underlyingToken.address
       if (stats7d && stats7d.totalAssetAmount > ZERO) {
-        tvlInflowStat = `+${formatTokenCompact(
+        tvlInflowStat = `+${toCardValue(
           stats7d.totalAssetAmount,
           decimals,
+          inflowTokenAddress,
         )}`
       } else {
         const deposited = tvlInflowAccount.market.totalDeposited?.raw
         if (deposited) {
           const big = deposited.toBigInt()
           if (big > ZERO)
-            tvlInflowStat = `+${formatTokenCompact(big, decimals)}`
+            tvlInflowStat = `+${toCardValue(big, decimals, inflowTokenAddress)}`
         }
       }
     }
@@ -288,9 +316,10 @@ export const TrendingMarketsCarousel = () => {
       if (raw) {
         const big = raw.toBigInt()
         if (big > ZERO) {
-          interestPaidStat = formatTokenCompact(
+          interestPaidStat = toCardValue(
             big,
             interestPaidWinner.market.underlyingToken.decimals,
+            interestPaidWinner.market.underlyingToken.address,
           )
         }
       }
@@ -300,9 +329,10 @@ export const TrendingMarketsCarousel = () => {
     if (tvlWinner) {
       const big = tvlWinner.market.totalSupply.raw.toBigInt()
       if (big > ZERO) {
-        tvlStat = formatTokenCompact(
+        tvlStat = toCardValue(
           big,
           tvlWinner.market.underlyingToken.decimals,
+          tvlWinner.market.underlyingToken.address,
         )
       }
     }
@@ -371,7 +401,7 @@ export const TrendingMarketsCarousel = () => {
     ]
 
     return built.filter((s): s is Slot => s !== null).slice(0, SLOT_COUNT)
-  }, [marketAccounts, recentDeposits])
+  }, [marketAccounts, recentDeposits, priceMap, isLoadingUpdate])
 
   const isMobile = useMobileResolution()
 
