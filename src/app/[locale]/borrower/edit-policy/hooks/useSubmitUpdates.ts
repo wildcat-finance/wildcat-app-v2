@@ -1,11 +1,7 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketController, PartialTransaction } from "@wildcatfi/wildcat-sdk"
-import {
-  FixedTermHooks,
-  HooksInstance,
-  OpenTermHooks,
-} from "@wildcatfi/wildcat-sdk/dist/access"
+import type { HooksInstance } from "@wildcatfi/wildcat-sdk/dist/access"
 
 import { toastRequest, ToastRequestConfig } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
@@ -64,21 +60,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       if (addLenders && addLenders.length) {
         console.log(`adding lenders`)
         console.log(addLenders)
-        if (
-          policy instanceof OpenTermHooks ||
-          policy instanceof FixedTermHooks
-        ) {
-          console.log(`adding lenders to v2 policy`)
-          const tx = policy.populateAddLenders(
-            addLenders.map((lender) => ({ lender })),
-          )
-          txs.push({
-            ...tx,
-            pending: `Adding ${addLenders.length} lenders`,
-            success: `Added ${addLenders.length} lenders`,
-            error: `Failed to add ${addLenders.length} lenders`,
-          })
-        } else {
+        if (policy instanceof MarketController) {
           console.log(`adding lenders to v1 policy`)
           const tx = marketsToUpdate?.length
             ? policy.populateAuthorizeLendersAndUpdateMarkets(
@@ -92,6 +74,17 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
             success: `Added ${addLenders.length} lenders`,
             error: `Failed to add ${addLenders.length} lenders`,
           })
+        } else {
+          console.log(`adding lenders to v2 policy`)
+          const tx = policy.populateAddLenders(
+            addLenders.map((lender) => ({ lender })),
+          )
+          txs.push({
+            ...tx,
+            pending: `Adding ${addLenders.length} lenders`,
+            success: `Added ${addLenders.length} lenders`,
+            error: `Failed to add ${addLenders.length} lenders`,
+          })
         }
       }
       if (removeLenders && removeLenders.length) {
@@ -99,11 +92,13 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         console.log(removeLenders)
         console.log(`policy address: ${policy.address}`)
         console.log(`policy address: ${policy.contract.address}`)
-        if (
-          policy instanceof OpenTermHooks ||
-          policy instanceof FixedTermHooks
-        ) {
-          const tx = policy.populateBlockLenders(removeLenders)
+        if (policy instanceof MarketController) {
+          const tx = marketsToUpdate?.length
+            ? policy.populateDeauthorizeLendersAndUpdateMarkets(
+                removeLenders,
+                marketsToUpdate,
+              )
+            : policy.populateDeauthorizeLenders(removeLenders)
           txs.push({
             ...tx,
             pending: `Removing ${removeLenders.length} lenders`,
@@ -111,12 +106,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
             error: `Failed to remove ${removeLenders.length} lenders`,
           })
         } else {
-          const tx = marketsToUpdate?.length
-            ? policy.populateDeauthorizeLendersAndUpdateMarkets(
-                removeLenders,
-                marketsToUpdate,
-              )
-            : policy.populateDeauthorizeLenders(removeLenders)
+          const tx = policy.populateBlockLenders(removeLenders)
           txs.push({
             ...tx,
             pending: `Removing ${removeLenders.length} lenders`,

@@ -2,8 +2,7 @@ import { ChangeEvent, useEffect, useState } from "react"
 import * as React from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
-import { maxTokenAmount, minTokenAmount } from "@wildcatfi/wildcat-sdk"
-import humanizeDuration from "humanize-duration"
+import { HooksKind, minTokenAmount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
@@ -13,7 +12,6 @@ import {
   ModalSteps,
   useApprovalModal,
 } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
-import { useBorrow } from "@/app/[locale]/borrower/market/[address]/hooks/useBorrow"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
@@ -73,8 +71,14 @@ export const ForceBuyBackModal = ({
 
   const showForm = !(isPending || showSuccessPopup || showErrorPopup)
 
+  const forceBuyBacksEnabled =
+    market.hooksConfig?.kind === HooksKind.OpenTerm ||
+    market.hooksConfig?.kind === HooksKind.FixedTerm
+      ? market.hooksConfig.allowForceBuyBacks
+      : false
+
   const disableForceBuyBack =
-    !market.hooksConfig?.allowForceBuyBacks ||
+    !forceBuyBacksEnabled ||
     market.willBeDelinquent ||
     market.isDelinquent ||
     buyBackAmount.gt(marketAccount.underlyingBalance)

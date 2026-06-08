@@ -293,6 +293,8 @@ export const MarketParameters = ({
   })()
 
   const { hooksConfig } = market
+  const fixedTermHooksConfig =
+    hooksConfig?.kind === HooksKind.FixedTerm ? hooksConfig : undefined
   const depositAccess =
     hooksConfig?.depositRequiresAccess === false ? "open" : "restricted"
 
@@ -324,9 +326,9 @@ export const MarketParameters = ({
   }
   let earlyClosure: "yes" | "no" | "na" = "no"
   if (hooksConfig) {
-    if (hooksConfig.kind === HooksKind.OpenTerm) {
+    if (!fixedTermHooksConfig) {
       earlyClosure = "na"
-    } else if (hooksConfig.allowClosureBeforeTerm) {
+    } else if (fixedTermHooksConfig.allowClosureBeforeTerm) {
       earlyClosure = "yes"
     } else {
       earlyClosure = "no"
@@ -336,9 +338,9 @@ export const MarketParameters = ({
   }
   let earlyMaturity: "yes" | "no" | "na" = "no"
   if (hooksConfig) {
-    if (hooksConfig.kind === HooksKind.OpenTerm) {
+    if (!fixedTermHooksConfig) {
       earlyMaturity = "na"
-    } else if (hooksConfig.allowTermReduction) {
+    } else if (fixedTermHooksConfig.allowTermReduction) {
       earlyMaturity = "yes"
     } else {
       earlyMaturity = "no"
@@ -468,13 +470,13 @@ export const MarketParameters = ({
                   />
                 </>
               )}
-              {market.hooksConfig?.kind === HooksKind.FixedTerm && (
+              {fixedTermHooksConfig && (
                 <>
                   <Divider sx={{ margin: "12px 0 12px" }} />
                   <ParametersItem
                     title={t("borrowerMarketDetails.parameters.marketExpiry")}
                     value={`${formatDate(
-                      market.hooksConfig.fixedTermEndTime,
+                      fixedTermHooksConfig.fixedTermEndTime,
                     )} 00:00 UTC`}
                   />
                 </>

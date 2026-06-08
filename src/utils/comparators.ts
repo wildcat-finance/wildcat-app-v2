@@ -13,6 +13,7 @@ export const typeComparator = (
   const order: { [key in HooksKind]: number } = {
     [HooksKind.FixedTerm]: 0,
     [HooksKind.OpenTerm]: 1,
+    [HooksKind.PeriodicTerm]: 1,
     [HooksKind.Unknown]: 2,
   }
 

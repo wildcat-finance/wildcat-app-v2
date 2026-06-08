@@ -53,6 +53,8 @@ export const SDK_ERRORS_MAPPING: SDKErrorsMapping = {
     InsufficientBalance:
       "You don't have enough of the market token in your wallet",
     MarketInClosedTerm: "Market is in closed term",
+    WithdrawalWindowClosed:
+      "Withdrawal requests can only be made during an active withdrawal window",
     RequiresAccess: "Lender lacks the necessary credentials to withdraw",
   },
 
@@ -80,5 +82,12 @@ export const SDK_ERRORS_MAPPING: SDKErrorsMapping = {
       "Liquid reserves of the market insufficient for increased reserve ratio",
     DecreaseDuringFixedTerm:
       "Market is in fixed term, APR can only be increased",
+    AprReductionNotProposed:
+      "APR reductions must be proposed before they can be accepted",
+    AprChangeDoesNotMatchProposal:
+      "APR change does not match the active proposal",
+    AprChangeNotReady: "APR change is not ready",
+    UnpaidWithdrawalsExist:
+      "APR can not be changed while unpaid withdrawals exist",
   },
 }

@@ -1,11 +1,7 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketController, PartialTransaction } from "@wildcatfi/wildcat-sdk"
-import {
-  FixedTermHooks,
-  HooksInstance,
-  OpenTermHooks,
-} from "@wildcatfi/wildcat-sdk/dist/access"
+import type { HooksInstance } from "@wildcatfi/wildcat-sdk/dist/access"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -56,16 +52,16 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       if (addLenders?.length) {
         const tx =
           // eslint-disable-next-line no-nested-ternary
-          policy instanceof OpenTermHooks || policy instanceof FixedTermHooks
-            ? policy.populateAddLenders(
-                addLenders.map((lender) => ({ lender })),
-              )
-            : marketsToUpdate?.length
+          policy instanceof MarketController
+            ? marketsToUpdate?.length
               ? policy.populateAuthorizeLendersAndUpdateMarkets(
                   addLenders,
                   marketsToUpdate,
                 )
               : policy.populateAuthorizeLenders(addLenders)
+            : policy.populateAddLenders(
+                addLenders.map((lender) => ({ lender })),
+              )
 
         txs.push(tx)
       }
@@ -73,14 +69,14 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       if (removeLenders?.length) {
         const tx =
           // eslint-disable-next-line no-nested-ternary
-          policy instanceof OpenTermHooks || policy instanceof FixedTermHooks
-            ? policy.populateBlockLenders(removeLenders)
-            : marketsToUpdate?.length
+          policy instanceof MarketController
+            ? marketsToUpdate?.length
               ? policy.populateDeauthorizeLendersAndUpdateMarkets(
                   removeLenders,
                   marketsToUpdate,
                 )
               : policy.populateDeauthorizeLenders(removeLenders)
+            : policy.populateBlockLenders(removeLenders)
 
         txs.push(tx)
       }
