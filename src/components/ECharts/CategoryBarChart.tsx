@@ -70,6 +70,12 @@ export const CategoryBarChart = <T extends object>({
   exportButtonVariant,
   onReady,
 }: CategoryBarChartProps<T>) => {
+  const resetZoomKey = React.useMemo(() => {
+    const first = data[0]?.[categoryKey]
+    const last = data[data.length - 1]?.[categoryKey]
+    return `${categoryKey}:${data.length}:${String(first)}:${String(last)}`
+  }, [categoryKey, data])
+
   const option = React.useMemo(
     () =>
       buildCategoryBarOption({
@@ -117,6 +123,7 @@ export const CategoryBarChart = <T extends object>({
       option={option}
       height={height}
       ariaLabel={ariaLabel}
+      resetZoomKey={resetZoomKey}
       showExportActions={showExportActions}
       csvContent={csvContent}
       csvFileName={csvFileName}

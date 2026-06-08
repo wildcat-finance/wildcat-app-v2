@@ -24,6 +24,7 @@ import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
+import { METRIC_BASIS } from "@/components/Profile/shared/metricBasis"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
@@ -126,6 +127,7 @@ export default function LenderMarketDetails({
         value: formatTokenWithCommas(totalDeposited),
         symbol: assetSymbol,
         tooltip: t("lenderMarketDetails.analytics.lifetimeDepositedTooltip"),
+        description: METRIC_BASIS.liveToken,
         fullPrecisionValue: totalDeposited.format(
           totalDeposited.decimals,
           true,
@@ -136,6 +138,7 @@ export default function LenderMarketDetails({
         value: formatTokenWithCommas(totalInterestEarned),
         symbol: assetSymbol,
         tooltip: t("lenderMarketDetails.analytics.interestEarnedTooltip"),
+        description: METRIC_BASIS.liveToken,
         fullPrecisionValue: totalInterestEarned.format(
           totalInterestEarned.decimals,
           true,
@@ -148,6 +151,7 @@ export default function LenderMarketDetails({
         tooltip: t(
           "lenderMarketDetails.analytics.totalWithdrawalsExecutedTooltip",
         ),
+        description: METRIC_BASIS.liveToken,
         fullPrecisionValue: totalWithdrawalsExecuted.format(
           totalWithdrawalsExecuted.decimals,
           true,

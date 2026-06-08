@@ -13,14 +13,16 @@ import {
 import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
+import { fetchAllGraphqlPages } from "@/lib/paginated-query"
 
 const GET_LENDER_DEPOSITS = gql`
-  query getLenderDeposits($accountIds: [String!]!) {
+  query getLenderDeposits($accountIds: [String!]!, $first: Int!, $skip: Int!) {
     deposits(
       where: { account_in: $accountIds }
       orderBy: blockTimestamp
       orderDirection: desc
-      first: 500
+      first: $first
+      skip: $skip
     ) {
       market {
         id
@@ -37,12 +39,17 @@ const GET_LENDER_DEPOSITS = gql`
 `
 
 const GET_LENDER_WITHDRAWAL_REQUESTS = gql`
-  query getLenderWithdrawalRequests($accountIds: [String!]!) {
+  query getLenderWithdrawalRequests(
+    $accountIds: [String!]!
+    $first: Int!
+    $skip: Int!
+  ) {
     withdrawalRequests(
       where: { account_in: $accountIds }
       orderBy: blockTimestamp
       orderDirection: desc
-      first: 500
+      first: $first
+      skip: $skip
     ) {
       market {
         id
@@ -59,12 +66,17 @@ const GET_LENDER_WITHDRAWAL_REQUESTS = gql`
 `
 
 const GET_LENDER_WITHDRAWAL_EXECUTIONS = gql`
-  query getLenderWithdrawalExecutions($accountIds: [String!]!) {
+  query getLenderWithdrawalExecutions(
+    $accountIds: [String!]!
+    $first: Int!
+    $skip: Int!
+  ) {
     withdrawalExecutions(
       where: { account_in: $accountIds }
       orderBy: blockTimestamp
       orderDirection: desc
-      first: 500
+      first: $first
+      skip: $skip
     ) {
       account {
         market {
@@ -159,27 +171,42 @@ export const useLenderActivity = (
         (marketId) => `LENDER-${marketId.toLowerCase()}-${normalizedAddress}`,
       )
 
-      const [
-        depositsResult,
-        withdrawalRequestsResult,
-        withdrawalExecutionsResult,
-      ] = await Promise.all([
-        client.query<LenderDepositsQuery, AccountIdsVariables>({
-          query: GET_LENDER_DEPOSITS,
-          variables: { accountIds },
-        }),
-        client.query<LenderWithdrawalRequestsQuery, AccountIdsVariables>({
-          query: GET_LENDER_WITHDRAWAL_REQUESTS,
-          variables: { accountIds },
-        }),
-        client.query<LenderWithdrawalExecutionsQuery, AccountIdsVariables>({
-          query: GET_LENDER_WITHDRAWAL_EXECUTIONS,
-          variables: { accountIds },
-        }),
-      ])
+      const [deposits, withdrawalRequests, withdrawalExecutions] =
+        await Promise.all([
+          fetchAllGraphqlPages<
+            LenderDepositsQuery,
+            AccountIdsVariables,
+            LenderDepositsQuery["deposits"][number]
+          >({
+            client,
+            query: GET_LENDER_DEPOSITS,
+            variables: { accountIds },
+            getItems: (page) => page.deposits,
+          }),
+          fetchAllGraphqlPages<
+            LenderWithdrawalRequestsQuery,
+            AccountIdsVariables,
+            LenderWithdrawalRequestsQuery["withdrawalRequests"][number]
+          >({
+            client,
+            query: GET_LENDER_WITHDRAWAL_REQUESTS,
+            variables: { accountIds },
+            getItems: (page) => page.withdrawalRequests,
+          }),
+          fetchAllGraphqlPages<
+            LenderWithdrawalExecutionsQuery,
+            AccountIdsVariables,
+            LenderWithdrawalExecutionsQuery["withdrawalExecutions"][number]
+          >({
+            client,
+            query: GET_LENDER_WITHDRAWAL_EXECUTIONS,
+            variables: { accountIds },
+            getItems: (page) => page.withdrawalExecutions,
+          }),
+        ])
 
       const activity = [
-        ...depositsResult.data.deposits.map((deposit) => ({
+        ...deposits.map((deposit) => ({
           id: `${deposit.transactionHash}-deposit`,
           date: formatDate(deposit.blockTimestamp),
           timestamp: deposit.blockTimestamp,
@@ -191,7 +218,7 @@ export const useLenderActivity = (
             (priceMap[deposit.market.id] ?? 0),
           txHash: deposit.transactionHash,
         })),
-        ...withdrawalRequestsResult.data.withdrawalRequests.map((request) => ({
+        ...withdrawalRequests.map((request) => ({
           id: `${request.transactionHash}-request`,
           date: formatDate(request.blockTimestamp),
           timestamp: request.blockTimestamp,
@@ -205,22 +232,20 @@ export const useLenderActivity = (
             ) * (priceMap[request.market.id] ?? 0),
           txHash: request.transactionHash,
         })),
-        ...withdrawalExecutionsResult.data.withdrawalExecutions.map(
-          (execution) => ({
-            id: `${execution.transactionHash}-execution`,
-            date: formatDate(execution.blockTimestamp),
-            timestamp: execution.blockTimestamp,
-            market: execution.account.market.name,
-            marketId: execution.account.market.id,
-            type: "Withdrawal Execution" as const,
-            amountUsd:
-              toHumanAmount(
-                execution.normalizedAmount,
-                decimalsMap[execution.account.market.id] ?? 18,
-              ) * (priceMap[execution.account.market.id] ?? 0),
-            txHash: execution.transactionHash,
-          }),
-        ),
+        ...withdrawalExecutions.map((execution) => ({
+          id: `${execution.transactionHash}-execution`,
+          date: formatDate(execution.blockTimestamp),
+          timestamp: execution.blockTimestamp,
+          market: execution.account.market.name,
+          marketId: execution.account.market.id,
+          type: "Withdrawal Execution" as const,
+          amountUsd:
+            toHumanAmount(
+              execution.normalizedAmount,
+              decimalsMap[execution.account.market.id] ?? 18,
+            ) * (priceMap[execution.account.market.id] ?? 0),
+          txHash: execution.transactionHash,
+        })),
       ].sort((left, right) => right.timestamp - left.timestamp)
 
       const flowsByDay = new Map<
@@ -245,7 +270,7 @@ export const useLenderActivity = (
 
           if (entry.type === "Deposit") {
             existing.deposits += entry.amountUsd
-          } else {
+          } else if (entry.type === "Withdrawal Execution") {
             existing.withdrawals += entry.amountUsd
           }
 

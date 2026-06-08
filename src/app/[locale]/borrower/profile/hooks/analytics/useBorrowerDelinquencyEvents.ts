@@ -7,14 +7,20 @@ import { BorrowerDelinquencyEvent } from "@/app/[locale]/borrower/profile/hooks/
 import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
+import { fetchAllGraphqlPages } from "@/lib/paginated-query"
 
 const GET_BORROWER_DELINQUENCY_EVENTS = gql`
-  query getBorrowerDelinquencyEvents($marketIds: [String!]!) {
+  query getBorrowerDelinquencyEvents(
+    $marketIds: [String!]!
+    $first: Int!
+    $skip: Int!
+  ) {
     delinquencyStatusChangeds(
       where: { market_in: $marketIds }
       orderBy: blockTimestamp
       orderDirection: asc
-      first: 1000
+      first: $first
+      skip: $skip
     ) {
       market {
         id
@@ -59,19 +65,23 @@ export const useBorrowerDelinquencyEvents = (
     ),
     enabled: isHinterlightSupported(chainId) && normalizedMarketIds.length > 0,
     refetchOnMount: false,
+    refetchInterval: 60_000,
     staleTime: 60_000,
     queryFn: async () => {
       const client = getHinterlightClient(chainId)
       if (!client) throw new Error("Hinterlight not supported on this network")
 
-      const result = await client.query<
+      const delinquencyStatusChangeds = await fetchAllGraphqlPages<
         BorrowerDelinquencyEventsQuery,
-        BorrowerDelinquencyEventsVariables
+        BorrowerDelinquencyEventsVariables,
+        BorrowerDelinquencyEventsQuery["delinquencyStatusChangeds"][number]
       >({
+        client,
         query: GET_BORROWER_DELINQUENCY_EVENTS,
         variables: {
           marketIds: normalizedMarketIds,
         },
+        getItems: (page) => page.delinquencyStatusChangeds,
       })
 
       const eventsByMarket = new Map<
@@ -79,7 +89,7 @@ export const useBorrowerDelinquencyEvents = (
         BorrowerDelinquencyEventsQuery["delinquencyStatusChangeds"]
       >()
 
-      result.data.delinquencyStatusChangeds.forEach((event) => {
+      delinquencyStatusChangeds.forEach((event) => {
         const existing = eventsByMarket.get(event.market.id) ?? []
         existing.push(event)
         eventsByMarket.set(event.market.id, existing)

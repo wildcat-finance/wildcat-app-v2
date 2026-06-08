@@ -11,7 +11,7 @@ import type {
   WalletClient,
   PublicClient,
 } from "viem"
-import { useWalletClient, usePublicClient } from "wagmi"
+import { useAccount, useWalletClient, usePublicClient } from "wagmi"
 
 import { NetworkInfo, NETWORKS_BY_ID } from "@/config/network"
 import { useAppSelector } from "@/store/hooks"
@@ -107,6 +107,7 @@ export function useEthersProvider({
   const { chainId: targetChainId } = useAppSelector(
     (state) => state.selectedNetwork,
   )
+  const { address: connectedAddress } = useAccount()
 
   const effectiveChainId = chainId || targetChainId
 
@@ -126,11 +127,14 @@ export function useEthersProvider({
 
   const client = walletClientForChain ?? publicClient
 
-  return useMemo(
-    () =>
-      client?.chain
-        ? clientToWalletInfo(client, effectiveChainId)
-        : { targetChainId: effectiveChainId },
-    [client, effectiveChainId],
-  )
+  return useMemo(() => {
+    if (!client?.chain) return { targetChainId: effectiveChainId }
+    const info = clientToWalletInfo(client, effectiveChainId)
+    // When useWalletClient fails (e.g. mock connector), the public client
+    // fallback has no account. Use the connected address from useAccount().
+    if (!info.address && connectedAddress) {
+      return { ...info, address: connectedAddress }
+    }
+    return info
+  }, [client, effectiveChainId, connectedAddress])
 }

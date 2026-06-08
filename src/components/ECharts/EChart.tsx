@@ -61,6 +61,7 @@ type EChartProps = {
   csvContent?: string
   csvFileName?: string
   imageFileName?: string
+  resetZoomKey?: string | number
 }
 
 export const ExportButton = ({
@@ -123,9 +124,11 @@ export const EChart = ({
   csvContent,
   csvFileName = "chart.csv",
   imageFileName = "chart.png",
+  resetZoomKey,
 }: EChartProps) => {
   const ref = React.useRef<HTMLDivElement | null>(null)
   const instanceRef = React.useRef<echarts.ECharts | null>(null)
+  const previousResetZoomKeyRef = React.useRef<string | number | undefined>()
 
   React.useEffect(() => {
     const element = ref.current
@@ -167,7 +170,15 @@ export const EChart = ({
       dataZoom?: Array<Record<string, unknown>>
     }
 
-    if (Array.isArray(nextOption.dataZoom) && currentOption.dataZoom?.length) {
+    const preserveZoom =
+      resetZoomKey !== undefined &&
+      previousResetZoomKeyRef.current === resetZoomKey
+
+    if (
+      preserveZoom &&
+      Array.isArray(nextOption.dataZoom) &&
+      currentOption.dataZoom?.length
+    ) {
       nextOption.dataZoom = nextOption.dataZoom.map((zoom, index) => {
         const currentZoom = currentOption.dataZoom?.[index]
         if (!currentZoom) return zoom
@@ -186,8 +197,9 @@ export const EChart = ({
       notMerge: true,
       lazyUpdate,
     })
+    previousResetZoomKeyRef.current = resetZoomKey
     onOptionApplied?.(instance)
-  }, [lazyUpdate, onOptionApplied, option])
+  }, [lazyUpdate, onOptionApplied, option, resetZoomKey])
 
   const download = React.useCallback((href: string, fileName: string) => {
     const link = document.createElement("a")

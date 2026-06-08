@@ -297,6 +297,8 @@ export const MarketsInterestTab = ({
               display="block"
               sx={{ lineHeight: 1.45 }}
             >
+              Slices use current-price position estimates; the center total uses
+              historical USD when profile aggregates are available.{" "}
               {formatUsd(displayTotalInterest, { compact: true })} earned across{" "}
               {interestRows.length} positions with realized interest.{" "}
               {activePositionCount} positions are still open with balance.

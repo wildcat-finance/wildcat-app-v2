@@ -17,9 +17,15 @@ import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { fetchHinterlightTokenUsdPrices } from "@/hooks/useTokenUsdPrices"
 import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
+import { fetchAllGraphqlPages } from "@/lib/paginated-query"
 
 const GET_LENDER_PROFILE_POSITIONS = gql`
-  query getLenderProfilePositions($address: String!, $statsId: ID!) {
+  query getLenderProfilePositions(
+    $address: String!
+    $statsId: ID!
+    $first: Int!
+    $skip: Int!
+  ) {
     lenderStats(id: $statsId) {
       firstSeenTimestamp
       totalDepositedUSD
@@ -33,7 +39,8 @@ const GET_LENDER_PROFILE_POSITIONS = gql`
       where: { address: $address }
       orderBy: scaledBalance
       orderDirection: desc
-      first: 500
+      first: $first
+      skip: $skip
     ) {
       market {
         id
@@ -95,6 +102,11 @@ type LenderProfilePositionsQuery = {
     lastScaleFactor: string
     addedTimestamp: number
   }>
+}
+
+type LenderProfilePositionsVariables = {
+  address: string
+  statsId: string
 }
 
 const getPositionStatus = (
@@ -165,6 +177,7 @@ export const useLenderPositions = (
     ),
     enabled: !!normalizedAddress && isHinterlightSupported(chainId),
     refetchOnMount: false,
+    refetchInterval: 60_000,
     staleTime: 60_000,
     queryFn: async () => {
       if (!normalizedAddress) throw new Error("Missing lender address")
@@ -172,16 +185,28 @@ export const useLenderPositions = (
       const client = getHinterlightClient(chainId)
       if (!client) throw new Error("Hinterlight not supported on this network")
 
-      const result = await client.query<LenderProfilePositionsQuery>({
+      const pageState: {
+        lenderStats: LenderProfilePositionsQuery["lenderStats"]
+      } = { lenderStats: null }
+      const lenderAccounts = await fetchAllGraphqlPages<
+        LenderProfilePositionsQuery,
+        LenderProfilePositionsVariables,
+        LenderProfilePositionsQuery["lenderAccounts"][number]
+      >({
+        client,
         query: GET_LENDER_PROFILE_POSITIONS,
         variables: {
           address: normalizedAddress,
           statsId: `LENDER-STATS-${normalizedAddress}`,
         },
+        getItems: (page) => {
+          pageState.lenderStats ??= page.lenderStats
+          return page.lenderAccounts
+        },
       })
 
-      const { lenderAccounts, lenderStats } = result.data
       if (lenderAccounts.length === 0) return emptyPositions(normalizedAddress)
+      const { lenderStats } = pageState
 
       const tokenPrices = await fetchHinterlightTokenUsdPrices(
         chainId,

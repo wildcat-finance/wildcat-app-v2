@@ -11,9 +11,15 @@ import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { fetchHinterlightTokenUsdPrices } from "@/hooks/useTokenUsdPrices"
 import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
+import { fetchAllGraphqlPages } from "@/lib/paginated-query"
 
 const GET_BORROWER_PROFILE_ANALYTICS = gql`
-  query getBorrowerProfileAnalytics($borrower: String!, $statsId: ID!) {
+  query getBorrowerProfileAnalytics(
+    $borrower: String!
+    $statsId: ID!
+    $first: Int!
+    $skip: Int!
+  ) {
     borrowerStats(id: $statsId) {
       totalDepositedUSD
       totalBorrowedUSD
@@ -35,7 +41,8 @@ const GET_BORROWER_PROFILE_ANALYTICS = gql`
       where: { borrower: $borrower }
       orderBy: createdAt
       orderDirection: asc
-      first: 500
+      first: $first
+      skip: $skip
     ) {
       id
       name
@@ -89,6 +96,11 @@ type BorrowerProfileAnalyticsQuery = {
   }>
 }
 
+type BorrowerProfileAnalyticsVariables = {
+  borrower: string
+  statsId: string
+}
+
 const emptyAnalytics = (address: string): BorrowerProfileAnalytics => ({
   address,
   firstMarketCreated: "—",
@@ -123,6 +135,7 @@ export const useBorrowerAggregateStats = (
     ),
     enabled: !!normalizedAddress && isHinterlightSupported(chainId),
     refetchOnMount: false,
+    refetchInterval: 60_000,
     staleTime: 60_000,
     queryFn: async () => {
       if (!normalizedAddress) throw new Error("Missing borrower address")
@@ -130,16 +143,28 @@ export const useBorrowerAggregateStats = (
       const client = getHinterlightClient(chainId)
       if (!client) throw new Error("Hinterlight not supported on this network")
 
-      const result = await client.query<BorrowerProfileAnalyticsQuery>({
+      const pageState: {
+        borrowerStats: BorrowerProfileAnalyticsQuery["borrowerStats"]
+      } = { borrowerStats: null }
+      const markets = await fetchAllGraphqlPages<
+        BorrowerProfileAnalyticsQuery,
+        BorrowerProfileAnalyticsVariables,
+        BorrowerProfileAnalyticsQuery["markets"][number]
+      >({
+        client,
         query: GET_BORROWER_PROFILE_ANALYTICS,
         variables: {
           borrower: normalizedAddress,
           statsId: `BORROWER-STATS-${normalizedAddress}`,
         },
+        getItems: (page) => {
+          pageState.borrowerStats ??= page.borrowerStats
+          return page.markets
+        },
       })
 
-      const { markets, borrowerStats } = result.data
       if (markets.length === 0) return emptyAnalytics(normalizedAddress)
+      const { borrowerStats } = pageState
 
       const priceMap = await fetchHinterlightTokenUsdPrices(
         chainId,

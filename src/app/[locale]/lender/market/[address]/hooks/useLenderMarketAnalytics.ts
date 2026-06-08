@@ -5,16 +5,16 @@ import { useQuery } from "@tanstack/react-query"
 import { Market, TokenAmount, getSubgraphClient } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
+import { fetchAllGraphqlPages } from "@/lib/paginated-query"
 
 import { LenderWithdrawalsForMarketResult } from "./useGetLenderWithdrawals"
 
-const ACTIVE_LENDERS_LIMIT = 1000
-
 const GET_ACTIVE_LENDERS = gql`
-  query getActiveLenders($market: ID!, $first: Int!) {
+  query getActiveLenders($market: ID!, $first: Int!, $skip: Int!) {
     lenderAccounts(
       where: { market: $market, scaledBalance_gt: "0" }
       first: $first
+      skip: $skip
     ) {
       id
     }
@@ -27,7 +27,6 @@ type ActiveLendersQuery = {
 
 type ActiveLendersQueryVariables = {
   market: string
-  first: number
 }
 
 export type LenderMarketAnalytics = {
@@ -73,18 +72,18 @@ export function useLenderMarketAnalytics(
       queryFn: async () => {
         if (!marketAddress || !subgraphClient) throw new Error("Missing market")
 
-        const result = await subgraphClient.query<
+        const activeLenders = await fetchAllGraphqlPages<
           ActiveLendersQuery,
-          ActiveLendersQueryVariables
+          ActiveLendersQueryVariables,
+          ActiveLendersQuery["lenderAccounts"][number]
         >({
+          client: subgraphClient,
           query: GET_ACTIVE_LENDERS,
-          variables: {
-            market: marketAddress,
-            first: ACTIVE_LENDERS_LIMIT,
-          },
+          variables: { market: marketAddress },
+          getItems: (page) => page.lenderAccounts,
         })
 
-        return result.data.lenderAccounts.length
+        return activeLenders.length
       },
     })
 

@@ -11,14 +11,20 @@ import {
 import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
+import { fetchAllGraphqlPages } from "@/lib/paginated-query"
 
 const GET_LENDER_PROFILE_BATCHES = gql`
-  query getLenderProfileBatches($accountIds: [String!]!) {
+  query getLenderProfileBatches(
+    $accountIds: [String!]!
+    $first: Int!
+    $skip: Int!
+  ) {
     lenderWithdrawalStatuses(
       where: { account_in: $accountIds }
       orderBy: batch__expiry
       orderDirection: desc
-      first: 300
+      first: $first
+      skip: $skip
     ) {
       batch {
         id
@@ -100,17 +106,20 @@ export const useLenderBatches = (
         (marketId) => `LENDER-${marketId.toLowerCase()}-${normalizedAddress}`,
       )
 
-      const result = await client.query<
+      const lenderWithdrawalStatuses = await fetchAllGraphqlPages<
         LenderProfileBatchesQuery,
-        AccountIdsVariables
+        AccountIdsVariables,
+        LenderProfileBatchesQuery["lenderWithdrawalStatuses"][number]
       >({
+        client,
         query: GET_LENDER_PROFILE_BATCHES,
         variables: {
           accountIds,
         },
+        getItems: (page) => page.lenderWithdrawalStatuses,
       })
 
-      return result.data.lenderWithdrawalStatuses.map((status) => {
+      return lenderWithdrawalStatuses.map((status) => {
         const price = priceMap[status.account.market.id] ?? 0
         const requested =
           toHumanAmount(

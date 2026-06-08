@@ -453,18 +453,11 @@ export const buildCategoryBarOption = <T extends object>({
     },
   }
 
-  const valueRows = data.reduce<Record<string, Record<string, number>>>(
-    (acc, row) => {
-      acc[String(row[categoryKey] ?? "")] = series.reduce<
-        Record<string, number>
-      >((seriesAcc, item) => {
-        seriesAcc[item.name] = Number(row[item.key] ?? 0)
-        return seriesAcc
-      }, {})
-      return acc
-    },
-    {},
-  )
+  const getRowValues = (row: T | undefined) =>
+    series.reduce<Record<string, number>>((seriesAcc, item) => {
+      seriesAcc[item.name] = Number(row?.[item.key] ?? 0)
+      return seriesAcc
+    }, {})
   let resolvedYAxis: EChartOption["yAxis"] = valueAxis
   if (horizontal) {
     resolvedYAxis = valueLabelAxis
@@ -498,8 +491,16 @@ export const buildCategoryBarOption = <T extends object>({
         const items = Array.isArray(params) ? params : [params]
         if (tooltipFormatter) return tooltipFormatter(items, data)
 
-        const category = String(items[0]?.axisValue ?? items[0]?.name ?? "")
-        const values = valueRows[category] ?? {}
+        const dataIndex = items.find((item) => item.dataIndex !== undefined)
+          ?.dataIndex
+        const row =
+          typeof dataIndex === "number" && dataIndex >= 0
+            ? data[dataIndex]
+            : undefined
+        const category = String(
+          row?.[categoryKey] ?? items[0]?.axisValue ?? items[0]?.name ?? "",
+        )
+        const values = getRowValues(row)
         const rows = items
           .filter((item) => (values[item.seriesName ?? ""] ?? 0) !== 0)
           .map((item) =>

@@ -4,21 +4,29 @@ import { gql } from "@apollo/client"
 import { useQuery } from "@tanstack/react-query"
 
 import { BorrowerCureVelocityData } from "@/app/[locale]/borrower/profile/hooks/analytics/types"
-import { toHumanAmount } from "@/components/Profile/shared/analytics"
+import {
+  stableRecordKey,
+  toHumanAmount,
+} from "@/components/Profile/shared/analytics"
 import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
+import { fetchAllGraphqlPages } from "@/lib/paginated-query"
 
 const PAGE_SIZE = 1000
-const MAX_PROTOCOL_MEDIAN_EVENTS = 10_000
 
-const GET_BORROWER_CURE_VELOCITY = gql`
-  query getBorrowerCureVelocity($marketIds: [String!]!) {
+const GET_BORROWER_CURE_DELINQUENCY_EVENTS = gql`
+  query getBorrowerCureDelinquencyEvents(
+    $marketIds: [String!]!
+    $first: Int!
+    $skip: Int!
+  ) {
     delinquencyStatusChangeds(
       where: { market_in: $marketIds }
       orderBy: blockTimestamp
       orderDirection: asc
-      first: 1000
+      first: $first
+      skip: $skip
     ) {
       id
       isDelinquent
@@ -33,11 +41,21 @@ const GET_BORROWER_CURE_VELOCITY = gql`
         }
       }
     }
+  }
+`
+
+const GET_BORROWER_CURE_INTEREST_ACCRUALS = gql`
+  query getBorrowerCureInterestAccruals(
+    $marketIds: [String!]!
+    $first: Int!
+    $skip: Int!
+  ) {
     marketInterestAccrueds(
       where: { market_in: $marketIds }
       orderBy: fromTimestamp
       orderDirection: asc
-      first: 1000
+      first: $first
+      skip: $skip
     ) {
       market {
         id
@@ -98,8 +116,11 @@ type MarketInterestAccruedRaw = {
   delinquencyFeesAccrued: string
 }
 
-type BorrowerCureVelocityQuery = {
+type BorrowerCureEventsQuery = {
   delinquencyStatusChangeds: DelinquencyStatusChangedRaw[]
+}
+
+type BorrowerCureAccrualsQuery = {
   marketInterestAccrueds: MarketInterestAccruedRaw[]
 }
 
@@ -111,6 +132,10 @@ type ProtocolDelinquencyEventsQuery = {
       id: string
     }
   }>
+}
+
+type MarketIdsVariables = {
+  marketIds: string[]
 }
 
 const getMedian = (values: number[]) => {
@@ -154,8 +179,6 @@ const fetchProtocolDelinquencyEvents = async (
   skip = 0,
   events: ProtocolDelinquencyEventsQuery["delinquencyStatusChangeds"] = [],
 ): Promise<ProtocolDelinquencyEventsQuery["delinquencyStatusChangeds"]> => {
-  if (skip >= MAX_PROTOCOL_MEDIAN_EVENTS) return events
-
   const page = await client.query<ProtocolDelinquencyEventsQuery>({
     query: GET_PROTOCOL_DELINQUENCY_EVENTS,
     variables: { first: PAGE_SIZE, skip },
@@ -186,9 +209,9 @@ export const useBorrowerCureVelocity = ({
   const chainId = externalChainId ?? selectedChainId
   const normalizedAddress = borrowerAddress?.toLowerCase()
   const normalizedMarketIds = useMemo(() => [...marketIds].sort(), [marketIds])
-  const stablePriceMapKey = useMemo(() => JSON.stringify(priceMap), [priceMap])
+  const stablePriceMapKey = useMemo(() => stableRecordKey(priceMap), [priceMap])
   const stableGraceMapKey = useMemo(
-    () => JSON.stringify(gracePeriodMap),
+    () => stableRecordKey(gracePeriodMap),
     [gracePeriodMap],
   )
 
@@ -213,16 +236,36 @@ export const useBorrowerCureVelocity = ({
       const client = getHinterlightClient(chainId)
       if (!client) throw new Error("Hinterlight not supported on this network")
 
-      const [borrowerResult, protocolEvents] = await Promise.all([
-        client.query<BorrowerCureVelocityQuery>({
-          query: GET_BORROWER_CURE_VELOCITY,
+      const [
+        delinquencyStatusChangeds,
+        marketInterestAccrueds,
+        protocolEvents,
+      ] = await Promise.all([
+        fetchAllGraphqlPages<
+          BorrowerCureEventsQuery,
+          MarketIdsVariables,
+          DelinquencyStatusChangedRaw
+        >({
+          client,
+          query: GET_BORROWER_CURE_DELINQUENCY_EVENTS,
           variables: { marketIds: normalizedMarketIds },
+          getItems: (page) => page.delinquencyStatusChangeds,
+        }),
+        fetchAllGraphqlPages<
+          BorrowerCureAccrualsQuery,
+          MarketIdsVariables,
+          MarketInterestAccruedRaw
+        >({
+          client,
+          query: GET_BORROWER_CURE_INTEREST_ACCRUALS,
+          variables: { marketIds: normalizedMarketIds },
+          getItems: (page) => page.marketInterestAccrueds,
         }),
         fetchProtocolDelinquencyEvents(client),
       ])
 
       const accrualsByMarket = new Map<string, MarketInterestAccruedRaw[]>()
-      borrowerResult.data.marketInterestAccrueds.forEach((accrual) => {
+      marketInterestAccrueds.forEach((accrual) => {
         const existing = accrualsByMarket.get(accrual.market.id) ?? []
         existing.push(accrual)
         accrualsByMarket.set(accrual.market.id, existing)
@@ -231,7 +274,7 @@ export const useBorrowerCureVelocity = ({
       const openByMarket = new Map<string, DelinquencyStatusChangedRaw>()
       const points: BorrowerCureVelocityData["points"] = []
 
-      borrowerResult.data.delinquencyStatusChangeds.forEach((event) => {
+      delinquencyStatusChangeds.forEach((event) => {
         if (event.isDelinquent) {
           openByMarket.set(event.market.id, event)
           return

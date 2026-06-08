@@ -95,14 +95,14 @@ export const formatElapsed = (seconds: number) => {
   return `${Math.max(minutes, 0)}m`
 }
 
-export const relativeHoursUntil = (timestamp: number) => {
-  const deltaHours = Math.max(
-    0,
-    Math.round((timestamp - Date.now() / 1000) / 3600),
-  )
+export const relativeHoursUntilAt = (timestamp: number, nowSec: number) => {
+  const deltaHours = Math.max(0, Math.round((timestamp - nowSec) / 3600))
 
   return `${deltaHours}h`
 }
+
+export const relativeHoursUntil = (timestamp: number) =>
+  relativeHoursUntilAt(timestamp, Date.now() / 1000)
 
 export const filterByTimeRange = <
   T extends {
@@ -150,3 +150,10 @@ export const getTimeRangeTicks = <
 
   return ticks
 }
+
+export const stableRecordKey = (record: Record<string, unknown>) =>
+  JSON.stringify(
+    Object.keys(record)
+      .sort()
+      .map((key) => [key, record[key]]),
+  )

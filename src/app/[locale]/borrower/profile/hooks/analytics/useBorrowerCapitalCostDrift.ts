@@ -8,30 +8,47 @@ import {
   formatDateLabel,
   formatShortDate,
   normalizeScaledAmount,
+  stableRecordKey,
   toHumanAmount,
 } from "@/components/Profile/shared/analytics"
 import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
+import { fetchAllGraphqlPages } from "@/lib/paginated-query"
 
-const GET_BORROWER_CAPITAL_COST_DRIFT = gql`
-  query getBorrowerCapitalCostDrift($borrower: Bytes!, $marketIds: [String!]!) {
+const GET_BORROWER_CAPITAL_COST_DAILY_STATS = gql`
+  query getBorrowerCapitalCostDailyStats(
+    $borrower: Bytes!
+    $first: Int!
+    $skip: Int!
+  ) {
     borrowerDailyStats: borrowerDailyStats_collection(
       where: { borrower: $borrower }
       orderBy: startTimestamp
       orderDirection: asc
-      first: 1000
+      first: $first
+      skip: $skip
     ) {
       startTimestamp
       dayBaseInterestAccruedUSD
       dayDelinquencyFeesAccruedUSD
       dayProtocolFeesAccruedUSD
     }
+  }
+`
+
+const GET_BORROWER_CAPITAL_COST_MARKET_DAILY_STATS = gql`
+  query getBorrowerCapitalCostMarketDailyStats(
+    $marketIds: [String!]!
+    $first: Int!
+    $skip: Int!
+  ) {
     marketDailyStats: marketDailyStats_collection(
       where: { market_in: $marketIds }
       orderBy: startTimestamp
       orderDirection: asc
-      first: 1000
+      first: $first
+      skip: $skip
     ) {
       startTimestamp
       scaledTotalSupply
@@ -46,11 +63,21 @@ const GET_BORROWER_CAPITAL_COST_DRIFT = gql`
         }
       }
     }
+  }
+`
+
+const GET_BORROWER_CAPITAL_COST_APR_UPDATES = gql`
+  query getBorrowerCapitalCostAprUpdates(
+    $marketIds: [String!]!
+    $first: Int!
+    $skip: Int!
+  ) {
     annualInterestBipsUpdateds(
       where: { market_in: $marketIds }
       orderBy: blockTimestamp
       orderDirection: asc
-      first: 1000
+      first: $first
+      skip: $skip
     ) {
       market {
         id
@@ -93,10 +120,24 @@ type AnnualInterestBipsUpdatedRaw = {
   blockTimestamp: number
 }
 
-type BorrowerCapitalCostDriftQuery = {
+type BorrowerDailyStatsQuery = {
   borrowerDailyStats: BorrowerDailyStatsRaw[]
+}
+
+type BorrowerMarketDailyStatsQuery = {
   marketDailyStats: MarketDailyStatsRaw[]
+}
+
+type BorrowerAprUpdatesQuery = {
   annualInterestBipsUpdateds: AnnualInterestBipsUpdatedRaw[]
+}
+
+type BorrowerDailyStatsVariables = {
+  borrower: string
+}
+
+type BorrowerMarketVariables = {
+  marketIds: string[]
 }
 
 const getAprAtTimestamp = (
@@ -133,7 +174,7 @@ export const useBorrowerCapitalCostDrift = ({
   const chainId = externalChainId ?? selectedChainId
   const normalizedAddress = borrowerAddress?.toLowerCase()
   const normalizedMarketIds = useMemo(() => [...marketIds].sort(), [marketIds])
-  const stablePriceMapKey = useMemo(() => JSON.stringify(priceMap), [priceMap])
+  const stablePriceMapKey = useMemo(() => stableRecordKey(priceMap), [priceMap])
 
   return useQuery<BorrowerCapitalCostPoint[]>({
     queryKey: [
@@ -154,18 +195,44 @@ export const useBorrowerCapitalCostDrift = ({
       const client = getHinterlightClient(chainId)
       if (!client) throw new Error("Hinterlight not supported on this network")
 
-      const result = await client.query<BorrowerCapitalCostDriftQuery>({
-        query: GET_BORROWER_CAPITAL_COST_DRIFT,
-        variables: {
-          borrower: normalizedAddress,
-          marketIds: normalizedMarketIds,
-        },
-      })
+      const [borrowerDailyStats, marketDailyStats, annualInterestBipsUpdateds] =
+        await Promise.all([
+          fetchAllGraphqlPages<
+            BorrowerDailyStatsQuery,
+            BorrowerDailyStatsVariables,
+            BorrowerDailyStatsRaw
+          >({
+            client,
+            query: GET_BORROWER_CAPITAL_COST_DAILY_STATS,
+            variables: { borrower: normalizedAddress },
+            getItems: (page) => page.borrowerDailyStats,
+          }),
+          fetchAllGraphqlPages<
+            BorrowerMarketDailyStatsQuery,
+            BorrowerMarketVariables,
+            MarketDailyStatsRaw
+          >({
+            client,
+            query: GET_BORROWER_CAPITAL_COST_MARKET_DAILY_STATS,
+            variables: { marketIds: normalizedMarketIds },
+            getItems: (page) => page.marketDailyStats,
+          }),
+          fetchAllGraphqlPages<
+            BorrowerAprUpdatesQuery,
+            BorrowerMarketVariables,
+            AnnualInterestBipsUpdatedRaw
+          >({
+            client,
+            query: GET_BORROWER_CAPITAL_COST_APR_UPDATES,
+            variables: { marketIds: normalizedMarketIds },
+            getItems: (page) => page.annualInterestBipsUpdateds,
+          }),
+        ])
 
       const initialAprByMarket = new Map<string, number>()
       const debtByDay = new Map<number, Map<string, number>>()
 
-      result.data.marketDailyStats.forEach((entry) => {
+      marketDailyStats.forEach((entry) => {
         const marketId = entry.market.id
         initialAprByMarket.set(
           marketId,
@@ -186,7 +253,7 @@ export const useBorrowerCapitalCostDrift = ({
       })
 
       const updatesByMarket = new Map<string, AnnualInterestBipsUpdatedRaw[]>()
-      result.data.annualInterestBipsUpdateds.forEach((update) => {
+      annualInterestBipsUpdateds.forEach((update) => {
         const updates = updatesByMarket.get(update.market.id) ?? []
         updates.push(update)
         updatesByMarket.set(update.market.id, updates)
@@ -194,7 +261,7 @@ export const useBorrowerCapitalCostDrift = ({
 
       const lastDebtByMarket = new Map<string, number>()
 
-      return result.data.borrowerDailyStats.map((point) => {
+      return borrowerDailyStats.map((point) => {
         const dayDebt = debtByDay.get(point.startTimestamp)
         dayDebt?.forEach((debt, marketId) => {
           lastDebtByMarket.set(marketId, debt)

@@ -1,5 +1,6 @@
 import { BorrowerProfileAnalytics } from "@/app/[locale]/borrower/profile/hooks/analytics/types"
 import { formatPercent, formatUsd } from "@/components/Profile/shared/analytics"
+import { METRIC_BASIS } from "@/components/Profile/shared/metricBasis"
 
 export const buildBorrowerSummaryItems = (
   analytics: BorrowerProfileAnalytics | undefined,
@@ -7,7 +8,7 @@ export const buildBorrowerSummaryItems = (
   {
     label: "Total debt",
     value: formatUsd(analytics?.totalDebt ?? 0, { compact: true }),
-    tooltip: "Current debt across all active markets.",
+    tooltip: METRIC_BASIS.analyticsDebtUsd,
     fullPrecisionValue: formatUsd(analytics?.totalDebt ?? 0, {
       maximumFractionDigits: 2,
     }),
@@ -15,7 +16,7 @@ export const buildBorrowerSummaryItems = (
   {
     label: "Total capacity",
     value: formatUsd(analytics?.totalCapacity ?? 0, { compact: true }),
-    tooltip: "Aggregate max supply across active markets.",
+    tooltip: `Aggregate max supply across active markets. ${METRIC_BASIS.currentUsd}`,
     fullPrecisionValue: formatUsd(analytics?.totalCapacity ?? 0, {
       maximumFractionDigits: 2,
     }),
@@ -23,12 +24,13 @@ export const buildBorrowerSummaryItems = (
   {
     label: "Debt-weighted APR",
     value: formatPercent(analytics?.avgApr ?? 0),
-    tooltip: "Base APR weighted by each market's current debt.",
+    tooltip:
+      "Base APR weighted by each market's analytics USD debt snapshot; excludes protocol and penalty fees.",
   },
   {
     label: "Total borrowed",
     value: formatUsd(analytics?.totalBorrowed ?? 0, { compact: true }),
-    tooltip: "All-time borrowed volume.",
+    tooltip: `All-time borrowed volume. ${METRIC_BASIS.historicalUsd}`,
     fullPrecisionValue: formatUsd(analytics?.totalBorrowed ?? 0, {
       maximumFractionDigits: 2,
     }),
@@ -36,7 +38,7 @@ export const buildBorrowerSummaryItems = (
   {
     label: "Total repaid",
     value: formatUsd(analytics?.totalRepaid ?? 0, { compact: true }),
-    tooltip: "All-time repaid volume.",
+    tooltip: `All-time repaid volume. ${METRIC_BASIS.historicalUsd}`,
     fullPrecisionValue: formatUsd(analytics?.totalRepaid ?? 0, {
       maximumFractionDigits: 2,
     }),

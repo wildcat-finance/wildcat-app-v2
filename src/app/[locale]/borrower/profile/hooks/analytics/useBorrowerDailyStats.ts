@@ -8,14 +8,16 @@ import {
 } from "@/components/Profile/shared/analytics"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
+import { fetchAllGraphqlPages } from "@/lib/paginated-query"
 
 const GET_BORROWER_DAILY_STATS = gql`
-  query getBorrowerDailyStats($borrower: Bytes!) {
+  query getBorrowerDailyStats($borrower: Bytes!, $first: Int!, $skip: Int!) {
     borrowerDailyStats: borrowerDailyStats_collection(
       where: { borrower: $borrower }
       orderBy: startTimestamp
       orderDirection: asc
-      first: 1000
+      first: $first
+      skip: $skip
     ) {
       startTimestamp
       dayBaseInterestAccruedUSD
@@ -32,6 +34,10 @@ type BorrowerDailyStatsQuery = {
     dayDelinquencyFeesAccruedUSD: string
     dayProtocolFeesAccruedUSD: string
   }>
+}
+
+type BorrowerDailyStatsVariables = {
+  borrower: string
 }
 
 export const useBorrowerDailyStats = (
@@ -56,16 +62,22 @@ export const useBorrowerDailyStats = (
       const client = getHinterlightClient(chainId)
       if (!client) throw new Error("Hinterlight not supported on this network")
 
-      const result = await client.query<BorrowerDailyStatsQuery>({
+      const borrowerDailyStats = await fetchAllGraphqlPages<
+        BorrowerDailyStatsQuery,
+        BorrowerDailyStatsVariables,
+        BorrowerDailyStatsQuery["borrowerDailyStats"][number]
+      >({
+        client,
         query: GET_BORROWER_DAILY_STATS,
         variables: { borrower: normalizedAddress },
+        getItems: (page) => page.borrowerDailyStats,
       })
 
       let cumBase = 0
       let cumDelinq = 0
       let cumProtocol = 0
 
-      return result.data.borrowerDailyStats.map((point) => {
+      return borrowerDailyStats.map((point) => {
         cumBase += Number(point.dayBaseInterestAccruedUSD) || 0
         cumDelinq += Number(point.dayDelinquencyFeesAccruedUSD) || 0
         cumProtocol += Number(point.dayProtocolFeesAccruedUSD) || 0

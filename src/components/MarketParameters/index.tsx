@@ -12,6 +12,7 @@ import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { useNow } from "@/hooks/useNow"
 import { useAdoptionData } from "@/hooks/wrapper/useAdoptionData"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
@@ -149,6 +150,7 @@ export const MarketParameters = ({
   const { t } = useTranslation()
   const theme = useTheme()
   const isMobile = useMobileResolution()
+  const now = useNow()
   const { getAddressUrl, getTokenUrl } = useBlockExplorer({
     chainId: market.chainId,
   })
@@ -234,7 +236,7 @@ export const MarketParameters = ({
     market.temporaryReserveRatio &&
     market.reserveRatioBips !== market.originalReserveRatioBips
 
-  const nowSec = Date.now() / 1000
+  const nowSec = now / 1000
   const tempRatioExpired =
     tempRatiosDiffer && market.temporaryReserveRatioExpiry < nowSec
 

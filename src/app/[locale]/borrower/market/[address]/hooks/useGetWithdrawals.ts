@@ -17,6 +17,7 @@ import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
+import { cloneSdkObject } from "@/lib/sdk-object"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type BorrowerWithdrawalsForMarketResult = {
@@ -162,13 +163,16 @@ export function useGetWithdrawals(
     if (!address || !market || !targetChainId) throw Error()
     logger.debug(`Getting batch updates...`)
     const lens = getLensV2Contract(targetChainId, market.provider)
+    const incompleteBatches = withdrawals.incompleteBatches.map((batch) =>
+      cloneSdkObject(batch),
+    )
     const batchUpdates = await lens.getWithdrawalBatchesData(
       address,
-      withdrawals.incompleteBatches.map((x) => x.expiry),
+      incompleteBatches.map((x) => x.expiry),
     )
     // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < withdrawals.incompleteBatches.length; i++) {
-      const batch = withdrawals.incompleteBatches[i]
+    for (let i = 0; i < incompleteBatches.length; i++) {
+      const batch = incompleteBatches[i]
       const update = batchUpdates[i]
       logger.debug(
         `Batch last update: ${batch.lastUpdatedTimestamp} | Market last update: ${market.lastInterestAccruedTimestamp}`,
@@ -196,43 +200,8 @@ export function useGetWithdrawals(
         `New batch interest: ${batch.totalInterestEarned?.format(18, true)}`,
       )
     }
-    logger.debug(
-      `Got withdrawal batch updates: ${withdrawals.incompleteBatches.length}`,
-    )
-    const expiredWithdrawalsTotalOwed = (
-      withdrawals.expiredPendingWithdrawals as WithdrawalBatch[]
-    ).reduce(
-      (acc, batch) => acc.add(batch.normalizedAmountOwed),
-      market.underlyingToken.getAmount(0),
-    )
-    const activeWithdrawalsTotalOwed =
-      withdrawals.activeWithdrawal?.normalizedTotalAmount ??
-      market.underlyingToken.getAmount(0)
-
-    const batchesWithClaimableWithdrawals =
-      withdrawals.incompleteBatches.filter(
-        (batch) =>
-          batch.status > 1 &&
-          batch.withdrawals.some((w) => w.availableWithdrawalAmount.gt(0)),
-      )
-    const claimableWithdrawalsAmount = batchesWithClaimableWithdrawals.reduce(
-      (acc, batch) =>
-        acc.add(
-          batch.withdrawals.reduce(
-            (sum, w) => sum.add(w.availableWithdrawalAmount),
-            market.underlyingToken.getAmount(0),
-          ),
-        ),
-      market.underlyingToken.getAmount(0),
-    )
-
-    return {
-      ...withdrawals,
-      expiredWithdrawalsTotalOwed,
-      activeWithdrawalsTotalOwed,
-      batchesWithClaimableWithdrawals,
-      claimableWithdrawalsAmount,
-    }
+    logger.debug(`Got withdrawal batch updates: ${incompleteBatches.length}`)
+    return processIncompleteWithdrawals(market, incompleteBatches)
   }
 
   const updateQueryKeys = useMemo(
@@ -256,6 +225,7 @@ export function useGetWithdrawals(
     ),
     queryFn: getUpdatedBatches,
     placeholderData: keepPreviousData,
+    refetchInterval: POLLING_INTERVAL,
     enabled: !!data && !!targetChainId,
     refetchOnMount: false,
   })

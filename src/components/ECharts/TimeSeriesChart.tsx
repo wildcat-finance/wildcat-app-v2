@@ -52,6 +52,15 @@ export const TimeSeriesChart = <T extends object>({
   showExportActions,
   exportButtonVariant,
 }: TimeSeriesChartProps<T>) => {
+  const resolvedTimestampKey = timestampKey ?? "timestamp"
+  const resetZoomKey = React.useMemo(() => {
+    const first = data[0]?.[resolvedTimestampKey as keyof T]
+    const last = data[data.length - 1]?.[resolvedTimestampKey as keyof T]
+    return `${String(resolvedTimestampKey)}:${data.length}:${String(
+      first,
+    )}:${String(last)}`
+  }, [data, resolvedTimestampKey])
+
   const option = React.useMemo(
     () =>
       buildTimeSeriesOption({
@@ -87,6 +96,7 @@ export const TimeSeriesChart = <T extends object>({
       option={option}
       height={height}
       ariaLabel={ariaLabel}
+      resetZoomKey={resetZoomKey}
       showExportActions={showExportActions}
       csvContent={csvContent}
       csvFileName={csvFileName}

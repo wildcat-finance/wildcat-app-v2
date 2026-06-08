@@ -17,6 +17,7 @@ import {
   formatPercent,
   formatUsd,
 } from "@/components/Profile/shared/analytics"
+import { METRIC_BASIS } from "@/components/Profile/shared/metricBasis"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { COLORS } from "@/theme/colors"
 import { pxToRem } from "@/theme/units"
@@ -69,7 +70,7 @@ export const LenderOverviewHeader = ({
     {
       label: "Total balance",
       value: formatUsd(profileInfo?.totalBalance ?? 0, { compact: true }),
-      description: "current value across all markets",
+      description: METRIC_BASIS.currentUsd,
       fullPrecisionValue: formatUsd(profileInfo?.totalBalance ?? 0, {
         maximumFractionDigits: 2,
       }),
@@ -77,7 +78,7 @@ export const LenderOverviewHeader = ({
     {
       label: "Total deposited",
       value: formatUsd(profileInfo?.totalDeposited ?? 0, { compact: true }),
-      description: "all-time deposits",
+      description: METRIC_BASIS.historicalUsd,
       fullPrecisionValue: formatUsd(profileInfo?.totalDeposited ?? 0, {
         maximumFractionDigits: 2,
       }),
@@ -87,7 +88,7 @@ export const LenderOverviewHeader = ({
       value: formatUsd(profileInfo?.totalInterestEarned ?? 0, {
         compact: true,
       }),
-      description: "cumulative interest",
+      description: METRIC_BASIS.historicalUsd,
       fullPrecisionValue: formatUsd(profileInfo?.totalInterestEarned ?? 0, {
         maximumFractionDigits: 2,
       }),
@@ -95,7 +96,7 @@ export const LenderOverviewHeader = ({
     {
       label: "Effective yield",
       value: formatEffectiveYield(profileInfo?.effectiveYield),
-      description: "interest / total deposited",
+      description: "Historical USD interest / historical USD deposits",
       fullPrecisionValue:
         typeof profileInfo?.effectiveYield === "number" &&
         profileInfo.effectiveYield > 0

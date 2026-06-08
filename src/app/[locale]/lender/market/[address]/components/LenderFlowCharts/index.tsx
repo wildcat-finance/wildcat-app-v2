@@ -29,6 +29,7 @@ import {
 import { ChartDescriptionStyle } from "@/components/Profile/shared/chartStyle"
 import { TooltipButton } from "@/components/TooltipButton"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { useNow } from "@/hooks/useNow"
 import { COLORS } from "@/theme/colors"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 
@@ -737,15 +738,16 @@ export const LenderFlowCharts = ({
 }) => {
   const { t } = useTranslation()
   const isMobile = useMobileResolution()
+  const now = useNow()
   const [range, setRange] = useState<ChartPeriod>(DEFAULT_RANGE)
   const marketStatus = market ? getMarketStatusChip(market) : null
 
   const filtered = useMemo(() => {
     const lookback = RANGE_LOOKBACK_SECONDS[range]
     if (lookback == null) return dailyFlows
-    const cutoff = Math.floor(Date.now() / 1000) - lookback
+    const cutoff = Math.floor(now / 1000) - lookback
     return dailyFlows.filter((p) => p.timestamp >= cutoff)
-  }, [dailyFlows, range])
+  }, [dailyFlows, now, range])
 
   const flowsTooltip = useMemo(() => getFlowsTooltip(symbol), [symbol])
   const netFlowTooltip = useMemo(() => getNetFlowTooltip(symbol), [symbol])

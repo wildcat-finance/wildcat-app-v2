@@ -1,6 +1,6 @@
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   Market,
   MarketVersion,
@@ -12,6 +12,7 @@ import type { SubgraphGetMarketQuery } from "@wildcatfi/wildcat-sdk/dist/gql/gra
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { cloneSdkObject } from "@/lib/sdk-object"
 
 export type UseMarketProps = {
   address: string | undefined
@@ -36,6 +37,7 @@ async function fetchApiMarket(addressLower: string, chainId?: number) {
 }
 
 export function useGetMarket({ address, chainId }: UseMarketProps) {
+  const queryClient = useQueryClient()
   const marketAddressLower = address?.toLowerCase()
 
   const api = useQuery({
@@ -55,11 +57,14 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
   })
   const signerOrProvider = signer || provider
 
+  const marketQueryKey = useMemo(
+    () =>
+      QueryKeys.Markets.GET_MARKET(effectiveChainId ?? 0, marketAddressLower),
+    [effectiveChainId, marketAddressLower],
+  )
+
   const query = useQuery({
-    queryKey: QueryKeys.Markets.GET_MARKET(
-      effectiveChainId ?? 0,
-      marketAddressLower,
-    ),
+    queryKey: marketQueryKey,
     enabled:
       !!marketAddressLower &&
       !!effectiveChainId &&
@@ -86,7 +91,7 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
         market.updateWith(update)
       }
 
-      return market
+      return cloneSdkObject(market)
     },
     refetchOnMount: false,
     refetchOnWindowFocus: false,
@@ -98,9 +103,11 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
       signerOrProvider &&
       query.data.provider !== signerOrProvider
     ) {
-      query.data.provider = signerOrProvider
+      const nextMarket = cloneSdkObject(query.data)
+      nextMarket.provider = signerOrProvider
+      queryClient.setQueryData(marketQueryKey, nextMarket)
     }
-  }, [query.data, signerOrProvider])
+  }, [marketQueryKey, query.data, queryClient, signerOrProvider])
 
   return {
     ...query,

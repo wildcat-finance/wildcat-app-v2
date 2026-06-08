@@ -6,13 +6,14 @@ import { useQuery } from "@tanstack/react-query"
 import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
 
 const GET_TOKEN_USD_PRICES = gql`
-  query getTokenUsdPrices($addresses: [Bytes!]!) {
+  query getTokenUsdPrices($addresses: [Bytes!]!, $first: Int!, $skip: Int!) {
     tokens(where: { address_in: $addresses }) {
       address
       isUsdStablecoin
     }
     tokenDailyPrices(
-      first: 1000
+      first: $first
+      skip: $skip
       orderBy: timestamp
       orderDirection: desc
       where: { token_: { address_in: $addresses } }
@@ -38,6 +39,8 @@ type TokenUsdPricesQuery = {
   }>
 }
 
+const PRICE_PAGE_SIZE = 1000
+
 export const fetchHinterlightTokenUsdPrices = async (
   chainId: number,
   addresses: string[],
@@ -51,26 +54,41 @@ export const fetchHinterlightTokenUsdPrices = async (
     new Set(addresses.map((address) => address.toLowerCase())),
   )
 
-  const result = await client.query<TokenUsdPricesQuery>({
-    query: GET_TOKEN_USD_PRICES,
-    variables: { addresses: normalized },
-  })
-
   const prices: Record<string, number> = {}
 
-  result.data.tokens.forEach((token) => {
-    if (token.isUsdStablecoin) prices[token.address.toLowerCase()] = 1
-  })
+  const fetchPricePage = async (
+    skip: number,
+  ): Promise<Record<string, number>> => {
+    const result = await client.query<TokenUsdPricesQuery>({
+      query: GET_TOKEN_USD_PRICES,
+      variables: { addresses: normalized, first: PRICE_PAGE_SIZE, skip },
+    })
 
-  // tokenDailyPrices is sorted desc by timestamp; first hit per token wins.
-  result.data.tokenDailyPrices.forEach((point) => {
-    const address = point.token.address.toLowerCase()
-    if (prices[address] !== undefined) return
-    const value = Number(point.priceUSD)
-    if (Number.isFinite(value)) prices[address] = value
-  })
+    result.data.tokens.forEach((token) => {
+      if (token.isUsdStablecoin) prices[token.address.toLowerCase()] = 1
+    })
 
-  return prices
+    // tokenDailyPrices is sorted desc by timestamp; first hit per token wins.
+    result.data.tokenDailyPrices.forEach((point) => {
+      const address = point.token.address.toLowerCase()
+      if (prices[address] !== undefined) return
+      const value = Number(point.priceUSD)
+      if (Number.isFinite(value)) prices[address] = value
+    })
+
+    const hasEveryPrice = normalized.every(
+      (address) => prices[address] !== undefined,
+    )
+    if (
+      hasEveryPrice ||
+      result.data.tokenDailyPrices.length < PRICE_PAGE_SIZE
+    ) {
+      return prices
+    }
+    return fetchPricePage(skip + PRICE_PAGE_SIZE)
+  }
+
+  return fetchPricePage(0)
 }
 
 export const useTokenUsdPrices = (

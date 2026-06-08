@@ -161,8 +161,12 @@ const getDelinquencyTooltip: ChartTooltipFormatter<DelinquencyChartRow> = (
   params,
   data,
 ) => {
-  const category = String(params[0]?.axisValue ?? params[0]?.name ?? "")
-  const row = data.find((item) => item.name === category)
+  const dataIndex = params.find((param) => param.dataIndex !== undefined)
+    ?.dataIndex
+  const row =
+    typeof dataIndex === "number" && dataIndex >= 0
+      ? data[dataIndex]
+      : undefined
   if (!row) return ""
 
   return tooltipShell(
@@ -195,8 +199,12 @@ const getDelinquencyTooltip: ChartTooltipFormatter<DelinquencyChartRow> = (
 const getBatchTooltip =
   (mode: BatchChartMode): ChartTooltipFormatter<BatchChartRow> =>
   (params, data) => {
-    const category = String(params[0]?.axisValue ?? params[0]?.name ?? "")
-    const row = data.find((item) => item.chartLabel === category)
+    const dataIndex = params.find((param) => param.dataIndex !== undefined)
+      ?.dataIndex
+    const row =
+      typeof dataIndex === "number" && dataIndex >= 0
+        ? data[dataIndex]
+        : undefined
     if (!row) return ""
 
     return tooltipShell(

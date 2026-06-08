@@ -7,14 +7,16 @@ import {
 } from "@/components/Profile/shared/analytics"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
+import { fetchAllGraphqlPages } from "@/lib/paginated-query"
 
 const GET_LENDER_DAILY_STATS = gql`
-  query getLenderDailyStats($lender: Bytes!) {
+  query getLenderDailyStats($lender: Bytes!, $first: Int!, $skip: Int!) {
     lenderDailyStats: lenderDailyStats_collection(
       where: { lender: $lender }
       orderBy: startTimestamp
       orderDirection: asc
-      first: 1000
+      first: $first
+      skip: $skip
     ) {
       startTimestamp
       dayDepositedUSD
@@ -41,6 +43,10 @@ type LenderDailyStatsQuery = {
     totalWithdrawalsExecutedUSD: string
     totalInterestEarnedUSD: string
   }>
+}
+
+type LenderDailyStatsVariables = {
+  lender: string
 }
 
 export type LenderDailyCashFlowPoint = {
@@ -77,12 +83,18 @@ export const useLenderDailyStats = (
       const client = getHinterlightClient(chainId)
       if (!client) throw new Error("Hinterlight not supported on this network")
 
-      const result = await client.query<LenderDailyStatsQuery>({
+      const lenderDailyStats = await fetchAllGraphqlPages<
+        LenderDailyStatsQuery,
+        LenderDailyStatsVariables,
+        LenderDailyStatsQuery["lenderDailyStats"][number]
+      >({
+        client,
         query: GET_LENDER_DAILY_STATS,
         variables: { lender: normalizedAddress },
+        getItems: (page) => page.lenderDailyStats,
       })
 
-      return result.data.lenderDailyStats.map((point) => {
+      return lenderDailyStats.map((point) => {
         const cumDeposits = Number(point.totalDepositedUSD) || 0
         const cumWithdrawalsRequested =
           Number(point.totalWithdrawalsRequestedUSD) || 0

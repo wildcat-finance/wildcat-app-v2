@@ -528,7 +528,7 @@ export const ActivityCashFlowTab = ({
       return (
         <AnalyticsChartCard
           title="Cumulative Capital Flow"
-          description="Deposits, executed withdrawals, and net flow in USD."
+          description="Historical/indexed USD daily totals for deposits, executed withdrawals, and net flow."
           actions={
             <ChartPeriodSelector
               value={cashFlowPeriod}
@@ -573,7 +573,7 @@ export const ActivityCashFlowTab = ({
     >
       <ProfileSectionPanel
         title="Deposit & Withdrawal Activity"
-        subtitle="Deposits, withdrawals, and request batches for this wallet."
+        subtitle="Activity rows and batch amounts use latest available token prices unless an indexed USD daily total is shown."
       >
         {renderCashFlow()}
 
