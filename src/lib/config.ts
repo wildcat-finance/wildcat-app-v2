@@ -1,14 +1,37 @@
 import { AddEthereumChainParameter } from "viem"
 import { http, createConfig, createStorage, cookieStorage } from "wagmi"
 import { mainnet, sepolia } from "wagmi/chains"
-import { safe, walletConnect } from "wagmi/connectors"
+import { mock, safe, walletConnect } from "wagmi/connectors"
 
 import { plasmaMainnet } from "./chains/plasma-mainnet"
 import { plasmaTestnet } from "./chains/plasma-testnet"
 
 const DefaultNetwork = process.env.NEXT_PUBLIC_TARGET_NETWORK
+const MockWallet = process.env.NEXT_PUBLIC_MOCK_WALLET as
+  | `0x${string}`
+  | undefined
 
-const chains = [mainnet, sepolia, plasmaTestnet, plasmaMainnet]
+const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY
+
+// Override default RPC URLs so the mock connector's provider uses Alchemy
+// instead of the public endpoints (which have CORS issues)
+const sepoliaChain = {
+  ...sepolia,
+  rpcUrls: {
+    ...sepolia.rpcUrls,
+    default: { http: [`https://eth-sepolia.g.alchemy.com/v2/${alchemyKey}`] },
+  },
+} as const
+
+const mainnetChain = {
+  ...mainnet,
+  rpcUrls: {
+    ...mainnet.rpcUrls,
+    default: { http: [`https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}`] },
+  },
+} as const
+
+const chains = [mainnetChain, sepoliaChain, plasmaTestnet, plasmaMainnet]
 
 // Sort so that default network is first
 chains.sort((a, b) => {
@@ -26,16 +49,17 @@ export const config = createConfig({
   }),
   // multiInjectedProviderDiscovery: false,
   transports: {
-    [sepolia.id]: http(
-      `https://eth-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
+    [sepoliaChain.id]: http(
+      `https://eth-sepolia.g.alchemy.com/v2/${alchemyKey}`,
     ),
-    [mainnet.id]: http(
-      `https://eth-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
+    [mainnetChain.id]: http(
+      `https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}`,
     ),
     [plasmaTestnet.id]: http(`https://testnet-rpc.plasma.to`),
     [plasmaMainnet.id]: http(`https://rpc.plasma.to`),
   },
   connectors: [
+    ...(MockWallet ? [mock({ accounts: [MockWallet] })] : []),
     safe({
       allowedDomains: [/gnosis-safe.io$/, /app.safe.global$/],
       debug: false,

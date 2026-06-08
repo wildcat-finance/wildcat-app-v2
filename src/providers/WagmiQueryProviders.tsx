@@ -17,17 +17,24 @@ const queryClient = new QueryClient({
   },
 })
 
-const AUTO_CONNECTED_CONNECTOR_IDS = ["safe"]
+const AUTO_CONNECTED_CONNECTOR_IDS = [
+  ...(process.env.NEXT_PUBLIC_MOCK_WALLET ? ["mock"] : []),
+  "safe",
+]
 
 export function useAutoConnect() {
   const { connect, connectors } = useConnect()
 
   useEffect(() => {
-    AUTO_CONNECTED_CONNECTOR_IDS.forEach(async (connector) => {
-      const connectorInstance = connectors.find((c) => c.id === connector)
-      const isAuthorized = await connectorInstance?.isAuthorized()
+    AUTO_CONNECTED_CONNECTOR_IDS.forEach(async (connectorId) => {
+      const connectorInstance = connectors.find((c) => c.id === connectorId)
+      if (!connectorInstance) return
 
-      if (connectorInstance && isAuthorized) {
+      // Mock connector should always auto-connect, skip authorization check
+      const shouldConnect =
+        connectorId === "mock" || (await connectorInstance.isAuthorized())
+
+      if (shouldConnect) {
         connect({ connector: connectorInstance })
         connectors
           .filter((c) => !AUTO_CONNECTED_CONNECTOR_IDS.includes(c.id))
