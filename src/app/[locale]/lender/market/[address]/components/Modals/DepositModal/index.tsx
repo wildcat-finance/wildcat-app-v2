@@ -71,7 +71,7 @@ const BorrowerIdentityDisclosure = ({
     <Box
       sx={{
         width: "100%",
-        padding: { xs: "0 20px", md: "0 24px" },
+        padding: { xs: "4px 20px 0", md: "4px 36px 0" },
         marginTop: "auto",
         marginBottom: "12px",
         display: "flex",
@@ -684,12 +684,15 @@ export const DepositModal = ({
           onClose={isDepositing ? undefined : modal.handleCloseModal}
           sx={{
             "& .MuiDialog-paper": {
-              height: "404px",
+              height: "auto",
+              minHeight: "404px",
+              maxHeight: "none",
               width: "440px",
               border: "none",
               borderRadius: "20px",
               margin: 0,
               padding: "24px 0",
+              overflowY: "visible",
             },
           }}
         >
@@ -710,7 +713,7 @@ export const DepositModal = ({
               />
 
               {modal.gettingValueStep && (
-                <Box width="100%" height="100%" padding="0 24px">
+                <Box width="100%" padding="0 24px">
                   <ModalDataItem
                     title={t(
                       "lenderMarketDetails.transactions.deposit.modal.available",
