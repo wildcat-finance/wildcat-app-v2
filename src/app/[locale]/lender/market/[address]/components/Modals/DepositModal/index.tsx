@@ -71,7 +71,7 @@ const BorrowerIdentityDisclosure = ({
     <Box
       sx={{
         width: "100%",
-        padding: { xs: "0 20px", md: "0 36px" },
+        padding: { xs: "4px 20px 0", md: "4px 36px 0" },
         marginTop: "auto",
         marginBottom: "12px",
         display: "flex",
