@@ -28,6 +28,7 @@ import { useTranslation } from "react-i18next"
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
+import { useMarketsWithRecentInflow } from "@/app/[locale]/lender/hooks/useMarketsWithRecentInflow"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
@@ -165,8 +166,13 @@ export const ExploreMarketsTable = () => {
   const { marketAccounts, borrowers, isLoadingInitial, isLoadingUpdate } =
     useLenderMarketsContext()
   const { isTestnet } = useCurrentNetwork()
+  const {
+    qualifyingMarkets,
+    isLoading: isInflowLoading,
+    isError: isInflowError,
+  } = useMarketsWithRecentInflow()
 
-  const isLoading = isLoadingInitial || isLoadingUpdate
+  const isLoading = isLoadingInitial || isLoadingUpdate || isInflowLoading
 
   const [sortMode, setSortMode] = useState<SortOption>("Most Funded")
   const [search, setSearch] = useState("")
@@ -190,6 +196,7 @@ export const ExploreMarketsTable = () => {
   }, [tokensRaw, isTestnet])
 
   const rows = useMemo((): GridRowsProp<LenderOtherMarketsTableModel> => {
+    const gateActive = search.trim() === ""
     const filtered = filterMarketAccounts(
       marketAccounts,
       search,
@@ -197,7 +204,13 @@ export const ExploreMarketsTable = () => {
       assets,
       borrowers,
       withdrawalCycles,
-    ).filter((a) => isExploreVisible(a.market))
+    ).filter(
+      (a) =>
+        isExploreVisible(a.market) &&
+        (!gateActive ||
+          isInflowError ||
+          qualifyingMarkets.has(a.market.address.toLowerCase())),
+    )
 
     const onboardFiltered = filtered.filter((account) => {
       const isSelf =
@@ -276,6 +289,8 @@ export const ExploreMarketsTable = () => {
     showSelfOnboard,
     showOnboardByBorrower,
     isLoadingUpdate,
+    qualifyingMarkets,
+    isInflowError,
   ])
 
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
@@ -768,7 +783,7 @@ export const ExploreMarketsTable = () => {
           columns={columns}
           columnHeaderHeight={40}
           slots={{ row: MarketLinkRow }}
-          loading={isLoadingInitial || isLoadingUpdate}
+          loading={isLoading}
         />
       </MarketsTableWrapper>
 

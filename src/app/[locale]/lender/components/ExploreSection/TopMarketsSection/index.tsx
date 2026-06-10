@@ -23,6 +23,7 @@ import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSectio
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { TopMarketSectionSelect } from "@/app/[locale]/lender/components/ExploreSection/TopMarketsSection/TopMarketSectionSelect"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
+import { useMarketsWithRecentInflow } from "@/app/[locale]/lender/hooks/useMarketsWithRecentInflow"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import {
@@ -153,10 +154,15 @@ export const TopMarketsSection = () => {
   const { t } = useTranslation()
   const { marketAccounts, borrowers, isLoadingInitial, isLoadingUpdate } =
     useLenderMarketsContext()
+  const {
+    qualifyingMarkets,
+    isLoading: isInflowLoading,
+    isError: isInflowError,
+  } = useMarketsWithRecentInflow()
 
   const [sortMode, setSortMode] = useState(SORT_OPTIONS[0])
 
-  const isLoading = isLoadingInitial || isLoadingUpdate
+  const isLoading = isLoadingInitial || isLoadingUpdate || isInflowLoading
 
   const sortedRows = useMemo((): GridRowsProp<LenderOtherMarketsTableModel> => {
     const penaltyBorrowers = getPenaltyBorrowers(
@@ -169,7 +175,9 @@ export const TopMarketsSection = () => {
         !a.hasEverInteracted &&
         a.market.version === MarketVersion.V2 &&
         a.depositAvailability === DepositStatus.Ready &&
-        !penaltyBorrowers.has(a.market.borrower.toLowerCase()),
+        !penaltyBorrowers.has(a.market.borrower.toLowerCase()) &&
+        (isInflowError ||
+          qualifyingMarkets.has(a.market.address.toLowerCase())),
     )
 
     const sorted = [...active].sort((a, b) => {
@@ -223,7 +231,14 @@ export const TopMarketsSection = () => {
         chainId,
       }
     })
-  }, [marketAccounts, borrowers, sortMode, isLoadingUpdate])
+  }, [
+    marketAccounts,
+    borrowers,
+    sortMode,
+    isLoadingUpdate,
+    qualifyingMarkets,
+    isInflowError,
+  ])
 
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
     {
