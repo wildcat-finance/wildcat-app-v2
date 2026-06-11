@@ -1,4 +1,9 @@
-import { HooksKind, Market, MarketVersion } from "@wildcatfi/wildcat-sdk"
+import {
+  HooksKind,
+  Market,
+  MarketVersion,
+  SupportedChainId,
+} from "@wildcatfi/wildcat-sdk"
 
 import { getPeriodicWindowTiming } from "@/utils/periodicWithdrawalWindow"
 
@@ -50,8 +55,9 @@ export const getMarketTypeChip = (market: Market) => {
   }
 }
 
-// temporary: tolerate periodic market data without exposing periodic ux.
+// temporary: tolerate periodic market data without exposing periodic ux outside sepolia.
 export const isFrontendVisibleMarket = (market: Market) =>
+  market.chainId === SupportedChainId.Sepolia ||
   market.version !== MarketVersion.V2 ||
   (market.hooksKind !== HooksKind.PeriodicTerm &&
     market.hooksConfig?.kind !== HooksKind.PeriodicTerm)
