@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import { HooksKind } from "@wildcatfi/wildcat-sdk"
 import {
+  getDeployableHooksTemplateForKind,
   HooksInstance,
   HooksTemplate,
 } from "@wildcatfi/wildcat-sdk/dist/access"
@@ -41,12 +42,7 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
       const { hooksInstances, hooksTemplates } = hooksData
       if (policyValue === "createNewPolicy") {
         const hooksTemplate = selectedHooksKind
-          ? hooksTemplates.find(
-              (template) =>
-                template.kind === selectedHooksKind &&
-                template.hooksTemplate.toLowerCase() !==
-                  "0x7e49CabA6FB53CDc70CD98829731A2b8d76dfc36".toLowerCase(),
-            )
+          ? getDeployableHooksTemplateForKind(hooksTemplates, selectedHooksKind)
           : undefined
         setSelectedHooksInstance(undefined)
         setSelectedHooksTemplate(hooksTemplate)
