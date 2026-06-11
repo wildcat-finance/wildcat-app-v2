@@ -15,9 +15,9 @@ export const typeComparator = (
 ) => {
   const order: { [key in HooksKind]: number } = {
     [HooksKind.FixedTerm]: 0,
-    [HooksKind.PeriodicTerm]: 1,
-    [HooksKind.OpenTerm]: 2,
-    [HooksKind.Unknown]: 3,
+    [HooksKind.OpenTerm]: 1,
+    [HooksKind.Unknown]: 2,
+    [HooksKind.PeriodicTerm]: 3,
   }
 
   if (order[v1.kind] !== order[v2.kind]) {
