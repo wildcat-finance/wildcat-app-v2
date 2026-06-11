@@ -76,8 +76,8 @@
     }
   },
   "telegramBanner": {
-    "title": "Subscribe to our Telegram\u00a0Bot",
-    "subtitle": "Receive notifications for market\u00a0events",
+    "title": "Subscribe to our Telegram Bot",
+    "subtitle": "Receive notifications for market events",
     "button": "Subscribe"
   },
   "admin": {
@@ -395,7 +395,15 @@
         "readyNotice": "APR reduction from {{currentApr}}% to {{proposedApr}}% is ready to apply.",
         "blockedNotice": "APR reduction from {{currentApr}}% to {{proposedApr}}% is ready, but cannot be applied yet: {{reason}}",
         "execute": "Apply APR",
-        "executing": "Applying..."
+        "executing": "Applying...",
+        "settlementNotice": "APR reduction from {{currentApr}}% to {{proposedApr}}% is ready once withdrawals are settled. {{amount}} {{symbol}} is needed to settle withdrawal and reserve obligations.",
+        "settlementNoticeZero": "APR reduction from {{currentApr}}% to {{proposedApr}}% is ready once stale unpaid withdrawal batches are processed. No additional repayment is required.",
+        "settleAndApply": "Settle and Apply",
+        "processBatches": "Process Unpaid Batches",
+        "settling": "Settling...",
+        "cancelProposalWarning": "Increasing the APR will cancel your pending reduction proposal to {{proposedApr}}%.",
+        "settlementNoticeMultiPass": "APR reduction from {{currentApr}}% to {{proposedApr}}% requires processing {{totalBatches}} unpaid withdrawal batches (up to {{perPass}} per transaction). No additional repayment is required.",
+        "processBatchesProgress": "Process Unpaid Batches ({{perPass}} of {{total}})"
       },
       "penaltyAPR": "Penalty APR",
       "protocolAPR": "Protocol Fee APR",
@@ -1528,7 +1536,6 @@
         "label": "Deploy wrapper contract for this market",
         "explainer": "If you don’t deploy now, anyone can deploy later. Deploying now makes the wrapper ready for lenders immediately."
       }
-
     },
     "mla": {
       "title": "Loan Agreement",

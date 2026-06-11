@@ -28,6 +28,10 @@ import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
 import { MarketTransactionsProps } from "./interface"
 import { MarketTxContainer, MarketTxUpperButtonsContainer } from "./style"
 import { useAdjustAPR } from "../../hooks/useAdjustApr"
+import {
+  usePeriodicAprSettlementQuote,
+  useSettleAndApplyPendingApr,
+} from "../../hooks/useSettleAndApplyPendingApr"
 import { AprModal } from "../Modals/AprModal"
 import { BorrowModal } from "../Modals/BorrowModal"
 import { CapacityModal } from "../Modals/CapacityModal"
@@ -44,6 +48,10 @@ export const MarketTransactions = ({
   const [, setPendingAprTxHash] = React.useState<string | undefined>()
   const { mutate: executePendingAprChange, isPending: isPendingAprExecution } =
     useAdjustAPR(marketAccount, setPendingAprTxHash)
+  const {
+    mutate: settleAndApplyPendingApr,
+    isPending: isPendingAprSettlement,
+  } = useSettleAndApplyPendingApr(marketAccount, setPendingAprTxHash)
 
   const disableRepay = market.isClosed
   const disableBorrow =
@@ -110,6 +118,20 @@ export const MarketTransactions = ({
     pendingAprExecutionPreview && pendingAprExecutionPreview.status !== "Ready"
       ? SDK_ERRORS_MAPPING.setApr[pendingAprExecutionPreview.status]
       : undefined
+  // Settlement (repayAndProcessUnpaidWithdrawalBatches) can clear both of these
+  // blockers; fetch a live quote to size and enable the settle action.
+  const pendingAprBlockedBySettleable =
+    !!pendingPeriodicAprChange?.isResponseWindowElapsed &&
+    (pendingAprExecutionPreview?.status === "UnpaidWithdrawalsExist" ||
+      pendingAprExecutionPreview?.status === "InsufficientReserves")
+  const { data: pendingAprSettlementQuote } = usePeriodicAprSettlementQuote(
+    marketAccount,
+    pendingPeriodicAprChange?.proposedAprBips,
+    pendingAprBlockedBySettleable,
+  )
+  const pendingAprNeedsSettlement =
+    pendingAprBlockedBySettleable &&
+    pendingAprSettlementQuote?.status === "NeedsSettlement"
   const currentAprFormatted = formatBps(
     market.annualInterestBips,
     MARKET_PARAMS_DECIMALS.annualInterestBips,
@@ -134,6 +156,14 @@ export const MarketTransactions = ({
     if (!pendingPeriodicAprChange.isResponseWindowElapsed) {
       return "borrowerMarketDetails.parameters.pendingPeriodicApr.pendingNotice"
     }
+    if (pendingAprNeedsSettlement) {
+      if (pendingAprSettlementQuote?.needsRepayment) {
+        return "borrowerMarketDetails.parameters.pendingPeriodicApr.settlementNotice"
+      }
+      return (pendingAprSettlementQuote?.remainingBatchesAfterThisPass ?? 0) > 0
+        ? "borrowerMarketDetails.parameters.pendingPeriodicApr.settlementNoticeMultiPass"
+        : "borrowerMarketDetails.parameters.pendingPeriodicApr.settlementNoticeZero"
+    }
     if (pendingAprExecutionError) {
       return "borrowerMarketDetails.parameters.pendingPeriodicApr.blockedNotice"
     }
@@ -147,6 +177,12 @@ export const MarketTransactions = ({
           readyAt: pendingAprReadyAt,
           reason:
             pendingAprExecutionError ?? pendingAprExecutionPreview?.status,
+          amount: pendingAprSettlementQuote
+            ? formatTokenWithCommas(pendingAprSettlementQuote.amountToSettle)
+            : undefined,
+          symbol: market.underlyingToken.symbol,
+          totalBatches: pendingAprSettlementQuote?.unpaidBatchCount,
+          perPass: pendingAprSettlementQuote?.maxBatches,
         })
       : undefined
 
@@ -171,6 +207,15 @@ export const MarketTransactions = ({
     executePendingAprChange({
       apr: pendingPeriodicAprChange.proposedAprBips / 100,
       mode: "set",
+    })
+  }
+
+  const handleSettleAndApplyPendingApr = () => {
+    if (!pendingPeriodicAprChange || !pendingAprSettlementQuote) return
+
+    settleAndApplyPendingApr({
+      proposedAprBips: pendingPeriodicAprChange.proposedAprBips,
+      quote: pendingAprSettlementQuote,
     })
   }
 
@@ -312,24 +357,61 @@ export const MarketTransactions = ({
             {pendingAprNotice}
           </Typography>
 
-          {pendingPeriodicAprChange.isResponseWindowElapsed && (
-            <Button
-              variant="outlined"
-              color="secondary"
-              size="small"
-              disabled={!canExecutePendingApr || isPendingAprExecution}
-              onClick={handleExecutePendingAprChange}
-              sx={{ flexShrink: 0 }}
-            >
-              {isPendingAprExecution
-                ? t(
-                    "borrowerMarketDetails.parameters.pendingPeriodicApr.executing",
-                  )
-                : t(
-                    "borrowerMarketDetails.parameters.pendingPeriodicApr.execute",
-                  )}
-            </Button>
-          )}
+          {pendingPeriodicAprChange.isResponseWindowElapsed &&
+            (pendingAprNeedsSettlement ? (
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="small"
+                disabled={isPendingAprSettlement}
+                onClick={handleSettleAndApplyPendingApr}
+                sx={{ flexShrink: 0 }}
+              >
+                {(() => {
+                  if (isPendingAprSettlement) {
+                    return t(
+                      "borrowerMarketDetails.parameters.pendingPeriodicApr.settling",
+                    )
+                  }
+                  if (
+                    (pendingAprSettlementQuote?.remainingBatchesAfterThisPass ??
+                      0) > 0
+                  ) {
+                    return t(
+                      "borrowerMarketDetails.parameters.pendingPeriodicApr.processBatchesProgress",
+                      {
+                        perPass: pendingAprSettlementQuote?.maxBatches,
+                        total: pendingAprSettlementQuote?.unpaidBatchCount,
+                      },
+                    )
+                  }
+                  return pendingAprSettlementQuote?.needsRepayment
+                    ? t(
+                        "borrowerMarketDetails.parameters.pendingPeriodicApr.settleAndApply",
+                      )
+                    : t(
+                        "borrowerMarketDetails.parameters.pendingPeriodicApr.processBatches",
+                      )
+                })()}
+              </Button>
+            ) : (
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="small"
+                disabled={!canExecutePendingApr || isPendingAprExecution}
+                onClick={handleExecutePendingAprChange}
+                sx={{ flexShrink: 0 }}
+              >
+                {isPendingAprExecution
+                  ? t(
+                      "borrowerMarketDetails.parameters.pendingPeriodicApr.executing",
+                    )
+                  : t(
+                      "borrowerMarketDetails.parameters.pendingPeriodicApr.execute",
+                    )}
+              </Button>
+            ))}
         </Box>
       )}
 

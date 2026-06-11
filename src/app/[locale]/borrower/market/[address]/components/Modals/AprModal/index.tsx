@@ -486,6 +486,27 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                   </Typography>
                 )}
 
+                {aprPreview?.status === "Ready" &&
+                  aprPreview.willCancelPendingProposal &&
+                  existingPendingProposal &&
+                  !aprError && (
+                    <Typography
+                      variant="text4"
+                      color={COLORS.butteredRum}
+                      sx={{ display: "block", marginTop: "12px" }}
+                    >
+                      {t(
+                        "borrowerMarketDetails.parameters.pendingPeriodicApr.cancelProposalWarning",
+                        {
+                          proposedApr: formatBps(
+                            existingPendingProposal.proposedAprBips,
+                            MARKET_PARAMS_DECIMALS.annualInterestBips,
+                          ),
+                        },
+                      )}
+                    </Typography>
+                  )}
+
                 <Box
                   marginTop={aprError ? "44px" : "28px"}
                   sx={{
