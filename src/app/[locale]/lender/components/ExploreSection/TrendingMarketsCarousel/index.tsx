@@ -8,6 +8,7 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { formatUnits } from "viem"
 
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
+import { useMarketsWithRecentInflow } from "@/app/[locale]/lender/hooks/useMarketsWithRecentInflow"
 import {
   RecentDepositsData,
   useRecentDeposits,
@@ -205,9 +206,14 @@ export const TrendingMarketsCarousel = () => {
   const { marketAccounts, borrowers, isLoadingInitial, isLoadingUpdate } =
     useLenderMarketsContext()
   const { data: recentDeposits } = useRecentDeposits()
+  const {
+    qualifyingMarkets,
+    isLoading: isInflowLoading,
+    isError: isInflowError,
+  } = useMarketsWithRecentInflow()
   const dragScroll = useDragScroll()
 
-  const isLoading = isLoadingInitial || isLoadingUpdate
+  const isLoading = isLoadingInitial || isLoadingUpdate || isInflowLoading
 
   const { chainId } = useSelectedNetwork()
   const tokenAddresses = useMemo(
@@ -232,7 +238,9 @@ export const TrendingMarketsCarousel = () => {
       (a) =>
         isExploreVisible(a.market) &&
         a.market.maxTotalSupply.gt(0) &&
-        !penaltyBorrowers.has(a.market.borrower.toLowerCase()),
+        !penaltyBorrowers.has(a.market.borrower.toLowerCase()) &&
+        (isInflowError ||
+          qualifyingMarkets.has(a.market.address.toLowerCase())),
     )
     if (eligible.length === 0) return []
 
@@ -401,7 +409,14 @@ export const TrendingMarketsCarousel = () => {
     ]
 
     return built.filter((s): s is Slot => s !== null).slice(0, SLOT_COUNT)
-  }, [marketAccounts, recentDeposits, priceMap, isLoadingUpdate])
+  }, [
+    marketAccounts,
+    recentDeposits,
+    priceMap,
+    isLoadingUpdate,
+    qualifyingMarkets,
+    isInflowError,
+  ])
 
   const isMobile = useMobileResolution()
 

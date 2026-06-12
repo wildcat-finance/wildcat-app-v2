@@ -16,6 +16,7 @@ import {
   GridRowProps,
   GridRenderCellParams,
   GridRowsProp,
+  GridSortModel,
 } from "@mui/x-data-grid"
 import {
   DepositStatus,
@@ -67,13 +68,18 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 import { compareByHighestYield } from "@/utils/marketSort"
-import { getMarketStatusChip, isExploreVisible } from "@/utils/marketStatus"
+import {
+  getMarketStatusChip,
+  getPenaltyBorrowers,
+  isExploreVisible,
+  MarketStatus,
+} from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 const SORT_OPTIONS = [
   "Most Funded",
   "Highest Yield",
-  "Most Liquid",
+  "Remaining Capacity",
   "Newest",
 ] as const
 
@@ -85,6 +91,12 @@ const withdrawalCycleOptions = [
   { id: "259201-604800", name: "3 - 7 days" },
   { id: "604801-Infinity", name: "7+ days" },
 ]
+
+const statusFilterOptions = marketStatusesMock.filter(
+  (option) => option.id !== MarketStatus.PENALTY,
+)
+
+const EXPLORE_PAGE_SIZE = 5
 
 const DATA_GRID_MIN_HEIGHT = "106px"
 
@@ -175,6 +187,12 @@ export const ExploreMarketsTable = () => {
   const isLoading = isLoadingInitial || isLoadingUpdate || isInflowLoading
 
   const [sortMode, setSortMode] = useState<SortOption>("Most Funded")
+  const [sortModel, setSortModel] = useState<GridSortModel>([])
+
+  const handleSortModeChange = (option: SortOption) => {
+    setSortMode(option)
+    setSortModel([])
+  }
   const [search, setSearch] = useState("")
   const [assets, setAssets] = useState<MarketsFilterSelectItem[]>([])
   const [statuses, setStatuses] = useState<MarketsFilterSelectItem[]>([])
@@ -197,6 +215,9 @@ export const ExploreMarketsTable = () => {
 
   const rows = useMemo((): GridRowsProp<LenderOtherMarketsTableModel> => {
     const gateActive = search.trim() === ""
+    const penaltyBorrowers = getPenaltyBorrowers(
+      marketAccounts.map((a) => a.market),
+    )
     const filtered = filterMarketAccounts(
       marketAccounts,
       search,
@@ -204,15 +225,19 @@ export const ExploreMarketsTable = () => {
       assets,
       borrowers,
       withdrawalCycles,
-    ).filter(
-      (a) =>
+    ).filter((a) => {
+      if (!gateActive) return !a.market.isClosed
+      return (
         isExploreVisible(a.market) &&
-        (!gateActive ||
-          isInflowError ||
-          qualifyingMarkets.has(a.market.address.toLowerCase())),
-    )
+        (isInflowError ||
+          qualifyingMarkets.has(a.market.address.toLowerCase())) &&
+        !penaltyBorrowers.has(a.market.borrower.toLowerCase())
+      )
+    })
 
     const onboardFiltered = filtered.filter((account) => {
+      if (!gateActive) return true
+
       const isSelf =
         !account.hasEverInteracted &&
         account.market.version === MarketVersion.V2 &&
@@ -226,18 +251,21 @@ export const ExploreMarketsTable = () => {
       if (sortMode === "Highest Yield") {
         return compareByHighestYield(a, b)
       }
-      if (sortMode === "Most Liquid") {
+      if (sortMode === "Remaining Capacity") {
         const capA = a.market.maxTotalSupply.sub(a.market.totalSupply)
         const capB = b.market.maxTotalSupply.sub(b.market.totalSupply)
         return tokenAmountComparator(capB, capA)
       }
       if (sortMode === "Newest") {
-        return 0
+        return (
+          (b.market.deployedEvent?.blockTimestamp ?? 0) -
+          (a.market.deployedEvent?.blockTimestamp ?? 0)
+        )
       }
       return tokenAmountComparator(b.market.totalSupply, a.market.totalSupply)
     })
 
-    return sorted.slice(0, 5).map((account) => {
+    return sorted.map((account) => {
       const { market } = account
       const {
         address,
@@ -540,7 +568,7 @@ export const ExploreMarketsTable = () => {
               SORT_OPTIONS.map((option) => (
                 <Box
                   key={option}
-                  onClick={() => setSortMode(option)}
+                  onClick={() => handleSortModeChange(option)}
                   sx={{
                     display: "flex",
                     alignItems: "center",
@@ -578,7 +606,7 @@ export const ExploreMarketsTable = () => {
                   name: token.symbol,
                 })) ?? []
               }
-              statusesOptions={marketStatusesMock}
+              statusesOptions={statusFilterOptions}
               withdrawalCycleOptions={withdrawalCycleOptions}
               marketAssets={assets}
               marketStatuses={statuses}
@@ -614,13 +642,15 @@ export const ExploreMarketsTable = () => {
             }}
           />
         ) : (
-          rows.map((marketItem, index) => (
-            <ExploreMarketCard
-              key={marketItem.id}
-              marketItem={marketItem}
-              isLast={index === rows.length - 1}
-            />
-          ))
+          rows
+            .slice(0, EXPLORE_PAGE_SIZE)
+            .map((marketItem, index, visibleRows) => (
+              <ExploreMarketCard
+                key={marketItem.id}
+                marketItem={marketItem}
+                isLast={index === visibleRows.length - 1}
+              />
+            ))
         )}
 
         <Box sx={{ padding: "10px 8px 4px" }}>
@@ -666,7 +696,7 @@ export const ExploreMarketsTable = () => {
               <Button
                 key={option}
                 variant="text"
-                onClick={() => setSortMode(option)}
+                onClick={() => handleSortModeChange(option)}
                 sx={{
                   fontWeight: sortMode === option ? 600 : 500,
                   backgroundColor:
@@ -702,7 +732,7 @@ export const ExploreMarketsTable = () => {
 
           <MarketsFilterSelect
             placeholder={t("dashboard.markets.filters.statuses")}
-            options={marketStatusesMock}
+            options={statusFilterOptions}
             selected={statuses}
             setSelected={setStatuses}
           />
@@ -784,6 +814,13 @@ export const ExploreMarketsTable = () => {
           columnHeaderHeight={40}
           slots={{ row: MarketLinkRow }}
           loading={isLoading}
+          sortModel={sortModel}
+          onSortModelChange={setSortModel}
+          pageSizeOptions={[EXPLORE_PAGE_SIZE]}
+          initialState={{
+            pagination: { paginationModel: { pageSize: EXPLORE_PAGE_SIZE } },
+          }}
+          hideFooter
         />
       </MarketsTableWrapper>
 
