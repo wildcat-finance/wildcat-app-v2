@@ -2,10 +2,16 @@ import { Box, Chip, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import { HooksKind } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
+import { useTranslation } from "react-i18next"
 
 import Clock from "@/assets/icons/clock_icon.svg"
+import { useLiveNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { COLORS } from "@/theme/colors"
 import { remainingMillisecondsToDate } from "@/utils/formatters"
+import {
+  formatCompactDuration,
+  getPeriodicScheduleTiming,
+} from "@/utils/periodicWithdrawalWindow"
 
 import { MarketTypeChipProps } from "./interface"
 
@@ -19,8 +25,11 @@ export const MarketTypeChip = ({
   type,
   kind,
   fixedPeriod,
+  periodicWindow,
   isMobile,
 }: MarketTypeChipProps) => {
+  const { t } = useTranslation()
+
   const daysLeft = Number(
     humanizeDuration(Math.abs(fixedPeriod || 0), {
       round: false,
@@ -28,7 +37,6 @@ export const MarketTypeChip = ({
     }).replace(/[^\d.]/g, ""),
   )
 
-  const isOpenTerm = kind === HooksKind.OpenTerm
   const suffix = fixedPeriod && fixedPeriod > 0 ? "left" : "ago"
   const chipTimeLabel =
     daysLeft > 7
@@ -37,6 +45,38 @@ export const MarketTypeChip = ({
           round: true,
           largest: 1,
         })} ${suffix}`
+
+  const isFixedTerm = kind === HooksKind.FixedTerm
+  const isPeriodicTerm = kind === HooksKind.PeriodicTerm
+
+  const hasLivePeriodicWindow =
+    isPeriodicTerm && !!periodicWindow && !periodicWindow.isTermClosed
+  const nowSec = useLiveNowSeconds(hasLivePeriodicWindow)
+
+  let periodicChipConfig:
+    | { label: string; backgroundColor: string; color: string }
+    | undefined
+  if (hasLivePeriodicWindow && periodicWindow) {
+    const timing = getPeriodicScheduleTiming(periodicWindow, nowSec)
+    periodicChipConfig = timing.isOpen
+      ? {
+          label: t("marketTypeChip.windowOpen"),
+          backgroundColor: COLORS.oasis,
+          color: COLORS.butteredRum,
+        }
+      : {
+          // Compact ("5m") — verbose units overflow the table type column.
+          label: t("marketTypeChip.windowOpensIn", {
+            duration: formatCompactDuration(timing.nextWindowStart - nowSec, 1),
+          }),
+          backgroundColor: COLORS.whiteSmoke,
+          color: COLORS.santasGrey,
+        }
+  }
+
+  const tableLabel = isFixedTerm
+    ? chipTimeLabel
+    : periodicChipConfig?.label ?? t(`marketTypeChip.kind.${kind}`)
 
   let additionalChipConfig
 
@@ -58,7 +98,7 @@ export const MarketTypeChip = ({
   if (type === "table")
     return (
       <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-        {!isOpenTerm && (
+        {isFixedTerm && (
           <SvgIcon
             sx={{
               fontSize: "11px",
@@ -71,7 +111,7 @@ export const MarketTypeChip = ({
         )}
 
         <Typography variant={isMobile ? "mobText4" : "text3"}>
-          {isOpenTerm ? "Open Term" : chipTimeLabel}
+          {tableLabel}
         </Typography>
       </Box>
     )
@@ -80,7 +120,7 @@ export const MarketTypeChip = ({
     <Box sx={{ display: "flex", gap: "4px 2px", flexWrap: "wrap" }}>
       <Chip
         icon={<ClockIcon />}
-        label={kind === HooksKind.OpenTerm ? "Open Term" : "Fixed Term"}
+        label={t(`marketTypeChip.kind.${kind}`)}
         sx={{
           backgroundColor: COLORS.blackHaze,
           color:
@@ -88,7 +128,7 @@ export const MarketTypeChip = ({
         }}
       />
 
-      {fixedPeriod && (
+      {isFixedTerm && fixedPeriod !== undefined && (
         <Chip
           label={additionalChipConfig.label}
           // icon={additionalChipConfig.icon}
@@ -96,6 +136,16 @@ export const MarketTypeChip = ({
             backgroundColor: COLORS.blackHaze,
             color: COLORS.blackRock,
             // columnGap: "4px",
+          }}
+        />
+      )}
+
+      {isPeriodicTerm && periodicChipConfig && (
+        <Chip
+          label={periodicChipConfig.label}
+          sx={{
+            backgroundColor: periodicChipConfig.backgroundColor,
+            color: periodicChipConfig.color,
           }}
         />
       )}

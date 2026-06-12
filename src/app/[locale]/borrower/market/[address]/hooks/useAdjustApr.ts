@@ -7,6 +7,20 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 
+export type AdjustAprMode = "set" | "propose"
+
+export type AdjustAprInput =
+  | number
+  | {
+      apr: number
+      mode?: AdjustAprMode
+    }
+
+const normalizeAdjustAprInput = (input: AdjustAprInput) =>
+  typeof input === "number"
+    ? { apr: input, mode: "set" as const }
+    : { apr: input.apr, mode: input.mode ?? "set" }
+
 export const useAdjustAPR = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
@@ -16,7 +30,7 @@ export const useAdjustAPR = (
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
   return useMutation({
-    mutationFn: async (amount: number) => {
+    mutationFn: async (input: AdjustAprInput) => {
       if (!marketAccount || !signer) {
         return
       }
@@ -28,8 +42,13 @@ export const useAdjustAPR = (
         )
       }
 
-      const setApr = async () => {
-        const tx = await marketAccount.setAnnualInterestBips(amount * 100)
+      const submitAprChange = async () => {
+        const { apr, mode } = normalizeAdjustAprInput(input)
+        const aprBips = Math.round(apr * 100)
+        const tx =
+          mode === "propose"
+            ? await marketAccount.proposeAnnualInterestBips(aprBips)
+            : await marketAccount.setAnnualInterestBips(aprBips)
 
         if (!safeConnected) setTxHash(tx.hash)
 
@@ -49,7 +68,7 @@ export const useAdjustAPR = (
         return tx.wait()
       }
 
-      await setApr()
+      await submitAprChange()
     },
     onSuccess() {
       client.invalidateQueries({

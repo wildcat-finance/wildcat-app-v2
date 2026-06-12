@@ -3,6 +3,7 @@ import * as React from "react"
 
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
 import { DepositStatus, HooksKind, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
@@ -12,10 +13,16 @@ import { useFaucet } from "@/app/[locale]/lender/market/[address]/hooks/useFauce
 import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
 import Clock from "@/assets/icons/clock_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
+import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
+import {
+  formatPeriodicWithdrawalWindowStart,
+  getPeriodicWindowTiming,
+  isPeriodicWithdrawalWindowClosed,
+} from "@/utils/periodicWithdrawalWindow"
 
 export type MobileMarketActionsProps = {
   marketAccount: MarketAccount
@@ -135,6 +142,42 @@ export const MobileMarketActions = ({
     market.hooksConfig?.kind === HooksKind.FixedTerm &&
     market.hooksConfig?.fixedTermEndTime !== undefined &&
     market.hooksConfig.fixedTermEndTime * 1000 >= Date.now()
+  const nowSec = useLivePeriodicNowSeconds(market)
+  const periodicWindowClosed = isPeriodicWithdrawalWindowClosed(market, nowSec)
+  const periodicTiming = getPeriodicWindowTiming(market, nowSec)
+  const nextPeriodicWindowStart =
+    periodicTiming && !periodicTiming.isTermClosed
+      ? periodicTiming.nextWindowStart
+      : undefined
+  let withdrawTooltip = t("lenderMarketDetails.transactions.withdraw.tooltip")
+
+  if (market.periodicHooksConfig) {
+    withdrawTooltip = t(
+      "lenderMarketDetails.transactions.withdraw.periodicTooltip",
+    )
+  }
+
+  if (periodicWindowClosed) {
+    const nextWindowStartText = nextPeriodicWindowStart
+      ? t(
+          "lenderMarketDetails.transactions.withdraw.periodicWindow.nextStart",
+          {
+            date: formatPeriodicWithdrawalWindowStart(nextPeriodicWindowStart),
+            countdown: humanizeDuration(
+              Math.max(0, nextPeriodicWindowStart - nowSec) * 1000,
+              { round: true, largest: 2 },
+            ),
+          },
+        )
+      : undefined
+
+    withdrawTooltip = [
+      t("lenderMarketDetails.transactions.withdraw.periodicWindow.closed"),
+      nextWindowStartText,
+    ]
+      .filter(Boolean)
+      .join(" ")
+  }
 
   const hideDeposit =
     market.isClosed ||
@@ -283,7 +326,7 @@ export const MobileMarketActions = ({
               <MobileMarketTransactionItem
                 // title={t("lenderMarketDetails.transactions.withdraw.title")}
                 title="Available To Withdraw"
-                tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
+                tooltip={withdrawTooltip}
                 amount={formatTokenWithCommas(marketAccount.marketBalance)}
                 asset={market.underlyingToken.symbol}
               />

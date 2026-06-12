@@ -280,9 +280,7 @@ export default function EditPolicyPage() {
           </Box>
           <Box>
             <Typography variant="text1">
-              {hooksKind === HooksKind.OpenTerm
-                ? t("policyType.OpenTerm")
-                : t("policyType.FixedTerm")}
+              {t(`policyType.${hooksKind ?? HooksKind.OpenTerm}`)}
             </Typography>
           </Box>
         </Box>

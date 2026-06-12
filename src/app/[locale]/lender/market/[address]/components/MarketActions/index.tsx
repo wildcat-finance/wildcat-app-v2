@@ -17,8 +17,10 @@ import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import TelegramIcon from "@/assets/icons/telegram_icon.svg"
+import { PeriodicWithdrawalWindowNotice } from "@/components/PeriodicWithdrawalWindowNotice"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
+import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useAppDispatch } from "@/store/hooks"
@@ -28,6 +30,7 @@ import {
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
+import { isPeriodicWithdrawalWindowClosed } from "@/utils/periodicWithdrawalWindow"
 
 import { MarketActionsProps } from "./interface"
 import { useFaucet } from "../../hooks/useFaucet"
@@ -84,6 +87,12 @@ export const MarketActions = ({
     isTestnet &&
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.raw.isZero()
+
+  // `withdrawalAvailability` hides the withdraw button while the periodic
+  // window is closed; the tick re-evaluates it so the button reappears the
+  // moment a window opens, and the notice below explains the gap meanwhile.
+  const nowSec = useLivePeriodicNowSeconds(market)
+  const periodicWindowClosed = isPeriodicWithdrawalWindowClosed(market, nowSec)
 
   const hideWithdraw =
     marketAccount.marketBalance.raw.isZero() ||
@@ -240,32 +249,50 @@ export const MarketActions = ({
           }
 
           return (
-            <Box sx={TransactionsContainer}>
-              <TransactionBlock
-                title={t("lenderMarketDetails.transactions.deposit.title")}
-                tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
-                amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
-                asset={market.underlyingToken.symbol}
-              >
-                {!showFaucet && <DepositModal marketAccount={marketAccount} />}
-                {showFaucet && <FaucetButton marketAccount={marketAccount} />}
-              </TransactionBlock>
+            <>
+              <Box sx={TransactionsContainer}>
+                <TransactionBlock
+                  title={t("lenderMarketDetails.transactions.deposit.title")}
+                  tooltip={t(
+                    "lenderMarketDetails.transactions.deposit.tooltip",
+                  )}
+                  amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
+                  asset={market.underlyingToken.symbol}
+                >
+                  {!showFaucet && (
+                    <DepositModal marketAccount={marketAccount} />
+                  )}
+                  {showFaucet && <FaucetButton marketAccount={marketAccount} />}
+                </TransactionBlock>
 
-              <TransactionBlock
-                title={t("lenderMarketDetails.transactions.withdraw.title")}
-                tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
-                amount={
-                  isTooSmallMarketBalance
-                    ? `< 0.00001`
-                    : formatTokenWithCommas(marketAccount.marketBalance)
-                }
-                asset={market.underlyingToken.symbol}
-              >
-                {!hideWithdraw && (
-                  <WithdrawModal marketAccount={marketAccount} />
+                <TransactionBlock
+                  title={t("lenderMarketDetails.transactions.withdraw.title")}
+                  tooltip={t(
+                    market.periodicHooksConfig
+                      ? "lenderMarketDetails.transactions.withdraw.periodicTooltip"
+                      : "lenderMarketDetails.transactions.withdraw.tooltip",
+                  )}
+                  amount={
+                    isTooSmallMarketBalance
+                      ? `< 0.00001`
+                      : formatTokenWithCommas(marketAccount.marketBalance)
+                  }
+                  asset={market.underlyingToken.symbol}
+                >
+                  {!hideWithdraw && (
+                    <WithdrawModal marketAccount={marketAccount} />
+                  )}
+                </TransactionBlock>
+              </Box>
+
+              {periodicWindowClosed &&
+                !marketAccount.marketBalance.raw.isZero() && (
+                  <PeriodicWithdrawalWindowNotice
+                    market={market}
+                    sx={{ marginTop: "12px" }}
+                  />
                 )}
-              </TransactionBlock>
-            </Box>
+            </>
           )
         })()}
       </Box>

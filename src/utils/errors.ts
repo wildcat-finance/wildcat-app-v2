@@ -2,6 +2,7 @@ import type {
   DepositStatus,
   RepayStatus,
   CloseMarketStatus,
+  ProposeAnnualInterestBipsStatus,
   SetAprStatus,
   QueueWithdrawalStatus,
 } from "@wildcatfi/wildcat-sdk"
@@ -20,6 +21,9 @@ type CloseMarketErrorStatuses = {
 type SetAPRErrorStatuses = {
   [key in ExcludeReady<SetAprStatus>]: string | undefined
 }
+type ProposeAPRErrorStatuses = {
+  [key in ExcludeReady<ProposeAnnualInterestBipsStatus>]: string | undefined
+}
 type QueueWithdrawalStatuses = {
   [key in ExcludeReady<QueueWithdrawalStatus>]: string | undefined
 }
@@ -30,6 +34,7 @@ type SDKErrorsMapping = {
   repay: RepayErrorStatuses
   closeMarket: CloseMarketErrorStatuses
   setApr: SetAPRErrorStatuses
+  proposeApr: ProposeAPRErrorStatuses
 }
 
 export const SDK_ERRORS_MAPPING: SDKErrorsMapping = {
@@ -53,7 +58,8 @@ export const SDK_ERRORS_MAPPING: SDKErrorsMapping = {
     InsufficientBalance:
       "You don't have enough of the market token in your wallet",
     MarketInClosedTerm: "Market is in closed term",
-    WithdrawalWindowClosed: "Market is not in a withdrawal window",
+    WithdrawalWindowClosed:
+      "Withdrawals are only available during this market's withdrawal window",
     RequiresAccess: "Lender lacks the necessary credentials to withdraw",
   },
 
@@ -81,9 +87,25 @@ export const SDK_ERRORS_MAPPING: SDKErrorsMapping = {
       "Liquid reserves of the market insufficient for increased reserve ratio",
     DecreaseDuringFixedTerm:
       "Market is in fixed term, APR can only be increased",
-    AprReductionNotProposed: "APR reduction has not been proposed",
-    AprChangeDoesNotMatchProposal: "APR change does not match proposal",
-    AprChangeNotReady: "APR change is not ready",
-    UnpaidWithdrawalsExist: "There are unpaid withdrawal batches",
+    AprReductionNotProposed:
+      "APR reduction must be proposed before it can be executed",
+    AprChangeDoesNotMatchProposal:
+      "APR change does not match the pending proposal",
+    AprChangeNotReady: "APR change can not be executed yet",
+    AprChangeExpired:
+      "The APR reduction proposal has expired and must be re-proposed",
+    UnpaidWithdrawalsExist:
+      "Pending withdrawals must be paid before this APR change",
+  },
+
+  proposeApr: {
+    NotBorrower: "Address attempting to propose APR is not the borrower",
+    NotV2Market: "APR proposals are only supported for V2 markets",
+    NotPeriodicTermMarket:
+      "APR reduction proposals are only supported for periodic markets",
+    InvalidApr: "APR must be between 0% and 100%",
+    NotReduction: "Periodic APR proposals must reduce the current APR",
+    WithdrawalWindowOpen:
+      "APR reductions can only be proposed outside withdrawal windows",
   },
 }

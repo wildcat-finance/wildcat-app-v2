@@ -76,8 +76,8 @@
     }
   },
   "telegramBanner": {
-    "title": "Subscribe to our Telegram\u00a0Bot",
-    "subtitle": "Receive notifications for market\u00a0events",
+    "title": "Subscribe to our Telegram Bot",
+    "subtitle": "Receive notifications for market events",
     "button": "Subscribe"
   },
   "admin": {
@@ -388,6 +388,26 @@
         "borrowerExpiredNotice": "Reserve ratio was temporarily elevated to {{currentRatio}}% but the protection period has expired. Reset it to restore the base ratio of {{originalRatio}}%."
       },
       "baseAPR": "Base Lender APR",
+      "pendingPeriodicApr": {
+        "label": "Pending Base APR",
+        "tooltip": "A periodic APR reduction has been proposed and can be applied after the lender response window closes.",
+        "bannerTitle": "Pending base APR reduction: {{currentApr}}% → {{proposedApr}}%",
+        "appliedNotice": "The base APR is now {{currentApr}}%.",
+        "appliedNoticeTitle": "Base APR change applied",
+        "pendingNotice": "Lenders can respond until {{readyAt}}. The reduction can be applied once the response window closes.",
+        "readyNotice": "The lender response window has closed — the reduction is ready to apply.",
+        "blockedNotice": "The response window has closed, but the reduction cannot be applied yet: {{reason}}",
+        "execute": "Apply APR",
+        "executing": "Applying...",
+        "settlementNotice": "{{amount}} {{symbol}} is needed to settle withdrawal and reserve obligations before the reduction can be applied.",
+        "settlementNoticeZero": "Stale unpaid withdrawal batches must be processed before the reduction can be applied. No additional repayment is required.",
+        "settleAndApply": "Settle and Apply",
+        "processBatches": "Process Unpaid Batches",
+        "settling": "Settling...",
+        "cancelProposalWarning": "Increasing the APR will cancel your pending reduction proposal to {{proposedApr}}%.",
+        "settlementNoticeMultiPass": "{{totalBatches}} unpaid withdrawal batches must be processed (up to {{perPass}} per transaction) before the reduction can be applied. No additional repayment is required.",
+        "processBatchesProgress": "Process Unpaid Batches ({{perPass}} of {{total}})"
+      },
       "penaltyAPR": "Penalty APR",
       "protocolAPR": "Protocol Fee APR",
       "effectiveAPR": "Effective Lender APR",
@@ -403,14 +423,49 @@
         "FixedTerm": {
           "text": "Fixed Term",
           "tooltip": "Withdrawal requests are possible only after a fixed maturity date."
+        },
+        "PeriodicTerm": {
+          "text": "Periodic Term",
+          "tooltip": "Withdrawal requests are possible during scheduled withdrawal windows."
+        },
+        "Unknown": {
+          "text": "Unknown",
+          "tooltip": "Market hook type could not be determined."
         }
       },
       "marketExpiry": "Loan Maturity",
+      "periodicTerm": {
+        "firstWindowStart": "First Withdrawal Window",
+        "firstWindowStartTooltip": "The exact UTC date and time of the first withdrawal window. Every later window recurs on this anchor.",
+        "periodDuration": "Withdrawal Period",
+        "periodDurationTooltip": "How often a withdrawal window recurs — the gap from the start of one window to the start of the next. This is separate from the Withdrawal Cycle Duration, which controls how long a queued withdrawal batch stays open.",
+        "withdrawalWindowDuration": "Withdrawal Window",
+        "withdrawalWindowDurationTooltip": "How long each withdrawal window stays open. Lenders can only queue withdrawals while a window is open. This is separate from the Withdrawal Cycle Duration, which controls how long a queued withdrawal batch stays open.",
+        "currentWindowStart": "Current Window Start",
+        "nextWindowStart": "Next Withdrawal Window",
+        "windowStatus": {
+          "label": "Window Status",
+          "closesIn": "{{duration}} left",
+          "opensIn": "in {{duration}}",
+          "open": {
+            "text": "Open",
+            "tooltip": "Lenders can request withdrawals during the current scheduled withdrawal window."
+          },
+          "scheduled": {
+            "text": "Scheduled",
+            "tooltip": "The next scheduled withdrawal window has not opened yet. Lenders can request withdrawals once it opens."
+          },
+          "closed": {
+            "text": "Ended",
+            "tooltip": "This periodic market has been closed; withdrawal requests are now open permanently."
+          }
+        }
+      },
       "marketEarlyClosure": {
         "label": "Fixed Term Closure Permitted",
         "na": {
           "text": "N/A",
-          "tooltip": "Market is Open Term, market can be terminated at any time."
+          "tooltip": "This setting applies only to Fixed Term markets."
         },
         "no": {
           "text": "No",
@@ -425,7 +480,7 @@
         "label": "Fixed Term Maturity Reduction Permitted",
         "na": {
           "text": "N/A",
-          "tooltip": "No maturity to reduce in an Open Term setting."
+          "tooltip": "This setting applies only to Fixed Term markets."
         },
         "no": {
           "text": "No",
@@ -520,6 +575,17 @@
         "newReservedRatio": "New Reserve Ratio",
         "approveNotified": "I understand that adjusting this APR impacts all lenders.",
         "adjust": "Adjust",
+        "proposeReduction": "Propose Reduction",
+        "proposeReductionTitle": "Propose APR Reduction",
+        "pendingProposalReplaceNotice": "A reduction to {{proposedApr}}% is already pending (lenders can respond until {{readyAt}}). Submitting a new proposal replaces it and restarts the response window.",
+        "proposalAffects": "Effects Of APR Reduction Proposal",
+        "periodicProposalNotice": "This proposes an APR reduction for lenders to review. The APR will not change until the lender response window has closed.",
+        "proposalLoadingTitle": "Proposing APR Reduction...",
+        "proposalLoadingSubtitle": "Submitting proposal transaction...",
+        "proposalSuccessTitle": "APR Reduction Proposed",
+        "proposalSuccessSubtitle": "The APR can be updated after the lender response window closes.",
+        "proposalErrorTitle": "APR Reduction Proposal Failed",
+        "proposalErrorSubtitle": "The proposal transaction did not complete. Check your wallet and try again.",
         "confirmed": "Confirmed",
         "confirm": "Confirm",
         "expiredTempRatioNotice": "The temporary reserve ratio has expired. You must reset it before lowering the APR.",
@@ -679,10 +745,11 @@
             "title": "Market Type",
             "placeholder": "Please Select",
             "subtitle": "",
-            "tooltip": "Select the nature of the market: open (lenders can make withdrawal requests at any time) or fixed (withdrawal requests only possible after a fixed maturity date).",
+            "tooltip": "Select the nature of the market: open, fixed, or periodic withdrawal windows.",
             "options": {
               "standard": "Open Term Loan",
-              "fixedTerm": "Fixed Term Loan"
+              "fixedTerm": "Fixed Term Loan",
+              "periodicTerm": "Periodic Term Loan"
             }
           },
           "marketAsset": {
@@ -843,7 +910,9 @@
   },
   "policyType": {
     "OpenTerm": "Open Term (no withdrawal constraints)",
-    "FixedTerm": "Fixed Term (withdrawals post-maturity)"
+    "FixedTerm": "Fixed Term (withdrawals post-maturity)",
+    "PeriodicTerm": "Periodic Term (scheduled withdrawal windows)",
+    "Unknown": "Unknown Term"
   },
   "editPolicy": {
     "title": "Edit Policy",
@@ -1095,6 +1164,7 @@
         "button": "Deposit",
         "title": "Available To Deposit",
         "tooltip": "The amount of the underlying asset held by the address you are connected with.",
+        "periodicWindowNotice": "This is a periodic market: withdrawal requests are only available during scheduled withdrawal windows.",
         "modal": {
           "title": "Deposit",
           "available": "Available To Deposit",
@@ -1106,6 +1176,11 @@
         "buttonLocked": "Fixed Term",
         "title": "Available For Withdraw Requests",
         "tooltip": "The amount of underlying asset debt that the address you are connected with is able to request a withdrawal for. Note that if this market is still in a Fixed Term state (see maturity below), you are unable to make withdrawal requests.",
+        "periodicTooltip": "The amount of underlying asset debt that the connected address can request for withdrawal. Periodic markets accept withdrawal requests only during scheduled withdrawal windows.",
+        "periodicWindow": {
+          "closed": "Withdrawals are only available during this market's withdrawal window.",
+          "nextStart": "Next window opens {{date}} ({{countdown}})"
+        },
         "modal": {
           "title": "Withdraw",
           "available": "Available For Withdraw Requests",
@@ -1160,6 +1235,20 @@
         "loading": "Loading market description...",
         "noDescription": "No market description found."
       }
+    },
+    "pendingAprReduction": {
+      "proposed": {
+        "title": "Base APR reduction proposed: {{currentApr}}% → {{proposedApr}}%",
+        "body": "You can request a withdrawal during the response window ({{windowStart}} – {{windowEnd}}) before the change can take effect."
+      },
+      "exitNow": {
+        "title": "Base APR drops from {{currentApr}}% to {{proposedApr}}% after this window",
+        "body": "Request a withdrawal before {{windowEnd}} ({{countdown}} left) if you do not wish to lend at the reduced rate."
+      },
+      "elapsed": {
+        "title": "Base APR reduction pending: {{currentApr}}% → {{proposedApr}}%",
+        "body": "The lender response window has passed; the borrower can apply the reduction at any time."
+      }
     }
   },
   "marketRecords": {
@@ -1170,6 +1259,16 @@
         "event": "Event"
       }
     }
+  },
+  "marketTypeChip": {
+    "kind": {
+      "OpenTerm": "Open Term",
+      "FixedTerm": "Fixed Term",
+      "PeriodicTerm": "Periodic Term",
+      "Unknown": "Unknown Term"
+    },
+    "windowOpen": "Window open",
+    "windowOpensIn": "Opens in {{duration}}"
   },
   "agreement": {
     "signButton": {
@@ -1404,7 +1503,28 @@
         "glossary": "[TO FILL IN]"
       },
       "expiration": {
-        "label": "Fixed Term Maturity Date [00:00 UTC]"
+        "label": "Fixed Term Maturity Date [00:00 UTC]",
+        "glossary": "The date the fixed loan term ends. Lenders cannot queue withdrawals until this maturity date passes."
+      },
+      "periodic": {
+        "sectionTitle": "Withdrawal Schedule",
+        "firstWindowStart": {
+          "label": "First Withdrawal Window [UTC]",
+          "placeholder": "e.g. 25/12/2024 14:30 UTC",
+          "glossary": "The exact UTC date and time of the first withdrawal window. Every later window recurs on this anchor."
+        },
+        "periodDuration": {
+          "label": "Withdrawal Period",
+          "placeholder": "Input Period Duration",
+          "chip": "Hours",
+          "glossary": "How often a withdrawal window recurs — the gap from the start of one window to the start of the next. Must be longer than the withdrawal window."
+        },
+        "withdrawalWindowDuration": {
+          "label": "Withdrawal Window",
+          "placeholder": "Input Window Duration",
+          "chip": "Hours",
+          "glossary": "How long each withdrawal window stays open. Lenders can only queue withdrawals while a window is open; it must be shorter than the withdrawal period."
+        }
       },
       "earlyClose": {
         "label": "Permit Early Termination",
@@ -1443,7 +1563,6 @@
         "label": "Deploy wrapper contract for this market",
         "explainer": "If you don’t deploy now, anyone can deploy later. Deploying now makes the wrapper ready for lenders immediately."
       }
-
     },
     "mla": {
       "title": "Loan Agreement",

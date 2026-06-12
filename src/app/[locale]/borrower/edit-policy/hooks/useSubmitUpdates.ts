@@ -56,7 +56,6 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         return
       }
 
-      const gnosisTransactions: PartialTransaction[] = []
       console.log(
         `useDeployMarket :: isTestnet: ${isTestnet} :: isConnectedToSafe: ${isConnectedToSafe} :: gnosisSafeSDK: ${!!gnosisSafeSDK}`,
       )
@@ -140,7 +139,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       }
 
       if (useGnosisMultiSend) {
-        const tx = gnosisSafeSDK.txs.send({ txs: gnosisTransactions })
+        const tx = gnosisSafeSDK.txs.send({ txs })
         await toastRequest(tx, {
           pending: "Submitting gnosis transaction batch to update lenders...",
           success: "Lenders updated!",

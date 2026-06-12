@@ -12,6 +12,7 @@ import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAdoptionData } from "@/hooks/wrapper/useAdoptionData"
 import { formatDate } from "@/lib/mla"
@@ -26,6 +27,11 @@ import {
   toTokenAmountProps,
   trimAddress,
 } from "@/utils/formatters"
+import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
+import {
+  formatCompactDuration,
+  getPeriodicWindowTiming,
+} from "@/utils/periodicWithdrawalWindow"
 
 import { MarketParametersProps } from "./interface"
 import {
@@ -34,6 +40,12 @@ import {
 } from "./style"
 import { ParametersItem } from "../ParametersItem"
 import { TooltipButton } from "../TooltipButton"
+
+const formatPeriodicDateTime = (timestamp: number) =>
+  dayjs.unix(timestamp).utc().format("D MMM YYYY, HH:mm [UTC]")
+
+const formatPeriodicDuration = (seconds: number) =>
+  humanizeDuration(seconds * 1000, { round: true, largest: 2 })
 
 const WrapperChip = ({ hasWrapper }: { hasWrapper?: boolean }) => (
   <Box
@@ -234,7 +246,9 @@ export const MarketParameters = ({
     market.temporaryReserveRatio &&
     market.reserveRatioBips !== market.originalReserveRatioBips
 
-  const nowSec = Date.now() / 1000
+  // Ticks every second while the market has an active periodic schedule so
+  // the window status, countdowns and pending-APR state flip live.
+  const nowSec = useLivePeriodicNowSeconds(market)
   const tempRatioExpired =
     tempRatiosDiffer && market.temporaryReserveRatioExpiry < nowSec
 
@@ -253,6 +267,10 @@ export const MarketParameters = ({
         .unix(market.temporaryReserveRatioExpiry)
         .utc()
         .format("D MMM YYYY, HH:mm [UTC]")
+    : undefined
+  const pendingPeriodicAprChange = getPendingPeriodicAprChange(market, nowSec)
+  const pendingPeriodicAprReadyAt = pendingPeriodicAprChange
+    ? formatPeriodicDateTime(pendingPeriodicAprChange.responseWindowEnd)
     : undefined
 
   const tempRatioI18nPrefix = viewerType === "borrower" ? "borrower" : "lender"
@@ -290,7 +308,7 @@ export const MarketParameters = ({
     return undefined
   })()
 
-  const { hooksConfig } = market
+  const { hooksConfig, periodicHooksConfig } = market
   const depositAccess =
     hooksConfig?.depositRequiresAccess === false ? "open" : "restricted"
 
@@ -344,6 +362,59 @@ export const MarketParameters = ({
   } else {
     earlyMaturity = "no"
   }
+
+  // All periodic state below derives from the same ticked `nowSec` so the
+  // status, labels and timestamps can never disagree mid-boundary.
+  const periodicWindowTiming = getPeriodicWindowTiming(market, nowSec)
+
+  const periodicWindowStatus = (() => {
+    if (!periodicHooksConfig) return undefined
+    if (periodicHooksConfig.periodicTermClosed) return "closed"
+    return periodicWindowTiming?.isOpen ? "open" : "scheduled"
+  })()
+
+  const periodicWindowStartLabel =
+    periodicWindowStatus === "open" ? "currentWindowStart" : "nextWindowStart"
+
+  const periodicWindowStartTimestamp = (() => {
+    if (!periodicWindowTiming || periodicWindowTiming.isTermClosed)
+      return undefined
+    if (
+      periodicWindowTiming.isOpen &&
+      periodicWindowTiming.currentWindowEnd !== undefined &&
+      periodicHooksConfig
+    ) {
+      return (
+        periodicWindowTiming.currentWindowEnd -
+        periodicHooksConfig.withdrawalWindowDuration
+      )
+    }
+    return periodicWindowTiming.nextWindowStart
+  })()
+  // Compact form ("2m 37s") — the parameters value column ellipsizes past
+  // ~26 characters, which the verbose humanized form always exceeds.
+  const periodicWindowCountdown = (() => {
+    if (!periodicWindowTiming || periodicWindowTiming.isTermClosed)
+      return undefined
+    if (periodicWindowTiming.isOpen && periodicWindowTiming.currentWindowEnd) {
+      return t(
+        "borrowerMarketDetails.parameters.periodicTerm.windowStatus.closesIn",
+        {
+          duration: formatCompactDuration(
+            periodicWindowTiming.currentWindowEnd - nowSec,
+          ),
+        },
+      )
+    }
+    return t(
+      "borrowerMarketDetails.parameters.periodicTerm.windowStatus.opensIn",
+      {
+        duration: formatCompactDuration(
+          periodicWindowTiming.nextWindowStart - nowSec,
+        ),
+      },
+    )
+  })()
 
   const adsMarketParameter = getAdsMarketParameterComponent(market.address)
 
@@ -516,6 +587,81 @@ export const MarketParameters = ({
                   />
                 </>
               )}
+              {periodicHooksConfig && (
+                <>
+                  <Divider sx={{ margin: "12px 0 12px" }} />
+                  <ParametersItem
+                    title={t(
+                      "borrowerMarketDetails.parameters.periodicTerm.firstWindowStart",
+                    )}
+                    value={formatPeriodicDateTime(
+                      periodicHooksConfig.firstWithdrawalWindowStart,
+                    )}
+                    tooltipText={t(
+                      "borrowerMarketDetails.parameters.periodicTerm.firstWindowStartTooltip",
+                    )}
+                  />
+                  <Divider sx={{ margin: "12px 0 12px" }} />
+                  <ParametersItem
+                    title={t(
+                      "borrowerMarketDetails.parameters.periodicTerm.periodDuration",
+                    )}
+                    value={formatPeriodicDuration(
+                      periodicHooksConfig.periodDuration,
+                    )}
+                    tooltipText={t(
+                      "borrowerMarketDetails.parameters.periodicTerm.periodDurationTooltip",
+                    )}
+                  />
+                  <Divider sx={{ margin: "12px 0 12px" }} />
+                  <ParametersItem
+                    title={t(
+                      "borrowerMarketDetails.parameters.periodicTerm.withdrawalWindowDuration",
+                    )}
+                    value={formatPeriodicDuration(
+                      periodicHooksConfig.withdrawalWindowDuration,
+                    )}
+                    tooltipText={t(
+                      "borrowerMarketDetails.parameters.periodicTerm.withdrawalWindowDurationTooltip",
+                    )}
+                  />
+                  {periodicWindowStatus && (
+                    <>
+                      <Divider sx={{ margin: "12px 0 12px" }} />
+                      <ParametersItem
+                        title={t(
+                          "borrowerMarketDetails.parameters.periodicTerm.windowStatus.label",
+                        )}
+                        value={
+                          periodicWindowCountdown
+                            ? `${t(
+                                `borrowerMarketDetails.parameters.periodicTerm.windowStatus.${periodicWindowStatus}.text`,
+                              )} · ${periodicWindowCountdown}`
+                            : t(
+                                `borrowerMarketDetails.parameters.periodicTerm.windowStatus.${periodicWindowStatus}.text`,
+                              )
+                        }
+                        valueTooltipText={t(
+                          `borrowerMarketDetails.parameters.periodicTerm.windowStatus.${periodicWindowStatus}.tooltip`,
+                        )}
+                      />
+                    </>
+                  )}
+                  {periodicWindowStartTimestamp !== undefined && (
+                    <>
+                      <Divider sx={{ margin: "12px 0 12px" }} />
+                      <ParametersItem
+                        title={t(
+                          `borrowerMarketDetails.parameters.periodicTerm.${periodicWindowStartLabel}`,
+                        )}
+                        value={formatPeriodicDateTime(
+                          periodicWindowStartTimestamp,
+                        )}
+                      />
+                    </>
+                  )}
+                </>
+              )}
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
                 title={t(
@@ -654,6 +800,37 @@ export const MarketParameters = ({
               )}%`}
               tooltipText="The fixed annual percentage rate (excluding any protocol fees) that borrowers pay to lenders for assets within the market."
             />
+            {pendingPeriodicAprChange && pendingPeriodicAprReadyAt && (
+              <>
+                <Divider sx={{ margin: "12px 0 12px" }} />
+                <ParametersItem
+                  title={t(
+                    "borrowerMarketDetails.parameters.pendingPeriodicApr.label",
+                  )}
+                  value={`${formatBps(
+                    pendingPeriodicAprChange.proposedAprBips,
+                    MARKET_PARAMS_DECIMALS.annualInterestBips,
+                  )}%`}
+                  tooltipText={t(
+                    "borrowerMarketDetails.parameters.pendingPeriodicApr.tooltip",
+                  )}
+                  valueTooltipText={t(
+                    "borrowerMarketDetails.parameters.pendingPeriodicApr.pendingNotice",
+                    {
+                      currentApr: formatBps(
+                        market.annualInterestBips,
+                        MARKET_PARAMS_DECIMALS.annualInterestBips,
+                      ),
+                      proposedApr: formatBps(
+                        pendingPeriodicAprChange.proposedAprBips,
+                        MARKET_PARAMS_DECIMALS.annualInterestBips,
+                      ),
+                      readyAt: pendingPeriodicAprReadyAt,
+                    },
+                  )}
+                />
+              </>
+            )}
             <Divider sx={{ margin: "12px 0 12px" }} />
             {adsMarketParameter && (
               <>

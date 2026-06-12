@@ -1,5 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import { MarketRecord } from "@wildcatfi/wildcat-sdk"
+import humanizeDuration from "humanize-duration"
 
 import {
   formatTokenWithCommas,
@@ -14,6 +15,20 @@ const formatAmountDisplay = (
 const formatAmountRaw = (
   tokenAmount: Parameters<typeof formatTokenWithCommas>[0],
 ) => `${tokenAmount.format(tokenAmount.decimals)} ${tokenAmount.symbol}`
+
+const formatPeriodicDuration = (seconds: number) =>
+  humanizeDuration(seconds * 1000, { round: true, largest: 2 })
+
+const formatPeriodicTermChange = (
+  label: string,
+  oldValue: number,
+  newValue: number,
+  format: (value: number) => string,
+) => {
+  if (oldValue === newValue) return undefined
+
+  return `${label} ${format(oldValue)} -> ${format(newValue)}`
+}
 
 export const getRecordText = (
   record: MarketRecord,
@@ -73,6 +88,43 @@ export const getRecordText = (
     const time = timestampToDateFormatted(record.newFixedTermEndTime)
 
     return `Market maturity updated to ${time}`
+  }
+  if (record.__typename === "PeriodicTermUpdated") {
+    const changes = [
+      formatPeriodicTermChange(
+        "first window",
+        record.oldFirstWithdrawalWindowStart,
+        record.newFirstWithdrawalWindowStart,
+        timestampToDateFormatted,
+      ),
+      formatPeriodicTermChange(
+        "withdrawal period",
+        record.oldPeriodDuration,
+        record.newPeriodDuration,
+        formatPeriodicDuration,
+      ),
+      formatPeriodicTermChange(
+        "withdrawal window",
+        record.oldWithdrawalWindowDuration,
+        record.newWithdrawalWindowDuration,
+        formatPeriodicDuration,
+      ),
+    ].filter(Boolean)
+
+    return `Periodic withdrawal terms updated${
+      changes.length ? `: ${changes.join(", ")}` : ""
+    }`
+  }
+  if (record.__typename === "PeriodicTermClosed") {
+    return `Periodic term closed`
+  }
+  if (record.__typename === "AnnualInterestBipsReductionProposed") {
+    const start = timestampToDateFormatted(record.responseWindowStart)
+    const end = timestampToDateFormatted(record.responseWindowEnd)
+
+    return `Base APR reduction proposed to ${
+      record.annualInterestBips / 100
+    }%; lender response window ${start} to ${end}`
   }
   return ""
 }

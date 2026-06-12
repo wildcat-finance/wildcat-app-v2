@@ -29,6 +29,7 @@ import {
   MARKET_PARAMS_DECIMALS,
   TOKEN_FORMAT_DECIMALS,
 } from "@/utils/formatters"
+import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
 
 import { DifferenceChip } from "./components/DifferenceChip"
 import { AprModalProps } from "./interface"
@@ -40,7 +41,7 @@ import {
   AprModalFormLabel,
   AprModalMessageBox,
 } from "./style"
-import { useAdjustAPR } from "../../../hooks/useAdjustApr"
+import { type AdjustAprMode, useAdjustAPR } from "../../../hooks/useAdjustApr"
 import { useResetTempReserveRatio } from "../../../hooks/useResetTempReserveRatio"
 import { ModalDataItem } from "../components/ModalDataItem"
 import { ErrorModal } from "../FinalModals/ErrorModal"
@@ -83,6 +84,11 @@ function getMinimumAPR(market: Market) {
   return originalAnnualInterestBips - maximumReduction
 }
 
+const parseAprBips = (value: string) => {
+  const parsed = parseFloat(value)
+  return Number.isFinite(parsed) ? Math.round(parsed * 100) : undefined
+}
+
 export const AprModal = ({ marketAccount }: AprModalProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
@@ -104,6 +110,18 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const [resetTxHash, setResetTxHash] = useState<string | undefined>()
 
   const isFixedTerm = market.isInFixedTerm
+  const aprBips = parseAprBips(apr)
+  const isPeriodicTerm = !!market.periodicHooksConfig
+  const existingPendingProposal = isPeriodicTerm
+    ? getPendingPeriodicAprChange(market)
+    : undefined
+  const isPeriodicAprReduction =
+    isPeriodicTerm &&
+    aprBips !== undefined &&
+    aprBips < market.annualInterestBips
+  const aprChangeMode: AdjustAprMode = isPeriodicAprReduction
+    ? "propose"
+    : "set"
 
   const modal = useApprovalModal(
     setShowSuccessPopup,
@@ -127,6 +145,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const handleClose = () => {
     modal.handleCloseModal()
     setAprPreview(undefined)
+    setAprError(undefined)
+    setAprFixReduction(false)
     setShowResetErrorPopup(false)
     setShowResetSuccessPopup(false)
   }
@@ -134,18 +154,35 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const handleAprChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
     setApr(value)
-
-    // If status is not `Ready`, show error message
-    const parsedNewApr = parseFloat(value) * 100
-    const preview = marketAccount.previewSetAPR(parsedNewApr)
-    setAprPreview(preview)
-
-    setAprFixReduction(isFixedTerm && parsedNewApr < market.annualInterestBips)
+    setAprPreview(undefined)
+    setAprFixReduction(false)
 
     if (value === "" || value === "0") {
       setAprError(undefined)
       return
     }
+
+    const parsedNewApr = parseAprBips(value)
+    if (parsedNewApr === undefined) {
+      setAprError(SDK_ERRORS_MAPPING.setApr.InvalidApr)
+      return
+    }
+
+    if (isPeriodicTerm && parsedNewApr < market.annualInterestBips) {
+      const preview =
+        marketAccount.previewProposeAnnualInterestBips(parsedNewApr)
+      if (preview.status !== "Ready") {
+        setAprError(SDK_ERRORS_MAPPING.proposeApr[preview.status])
+        return
+      }
+
+      setAprError(undefined)
+      return
+    }
+
+    const preview = marketAccount.previewSetAPR(parsedNewApr)
+    setAprPreview(preview)
+    setAprFixReduction(isFixedTerm && parsedNewApr < market.annualInterestBips)
 
     if (preview.status === "InsufficientReserves") {
       setAprError(
@@ -159,6 +196,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
     if (preview.status !== "Ready") {
       setAprError(SDK_ERRORS_MAPPING.setApr[preview.status])
+      return
     }
 
     setAprError(undefined)
@@ -177,7 +215,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   }
 
   const handleAdjust = () => {
-    mutate(parseFloat(apr))
+    if (aprBips === undefined) return
+    mutate({ apr: aprBips / 100, mode: aprChangeMode })
   }
 
   const handleTryAgain = () => {
@@ -185,9 +224,10 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     setShowErrorPopup(false)
   }
 
-  const minimumApr = market.outstandingTotalSupply.eq(0)
-    ? ""
-    : `min - ${formatBps(getMinimumAPR(market))}%`
+  const minimumApr = (() => {
+    if (isPeriodicTerm || market.outstandingTotalSupply.eq(0)) return ""
+    return `min - ${formatBps(getMinimumAPR(market))}%`
+  })()
 
   const getNewCollateralObligations = () => {
     if (aprPreview) {
@@ -234,9 +274,10 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     market.temporaryReserveRatio && market.temporaryReserveRatioExpiry < nowSec
 
   const needsReset =
+    !isPeriodicAprReduction &&
     isExpiredTempRatio &&
-    !!apr &&
-    parseFloat(apr) < market.annualInterestBips / 100
+    aprBips !== undefined &&
+    aprBips < market.annualInterestBips
 
   const showForm = !(
     isPending ||
@@ -247,19 +288,22 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     showResetErrorPopup
   )
 
-  const isAprLTZero = parseFloat(apr) <= 0
+  const isAprNotPositive = aprBips === undefined || aprBips <= 0
+  const isAprUnchanged =
+    aprBips !== undefined && aprBips === market.annualInterestBips
 
   const disableConfirm =
     apr === "" ||
-    isAprLTZero ||
-    apr === formatBps(market.annualInterestBips) ||
+    isAprNotPositive ||
+    isAprUnchanged ||
     !!aprError ||
     modal.approvedStep ||
     aprFixedReduction
 
   const disableAdjust =
     apr === "" ||
-    apr === "0" ||
+    isAprNotPositive ||
+    isAprUnchanged ||
     !!aprError ||
     modal.gettingValueStep ||
     !notified ||
@@ -273,14 +317,25 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
   const showRatioTimer =
     !!apr &&
+    !isPeriodicAprReduction &&
     !aprError &&
     newReserveRatio !== currentReserveRatio &&
     !isResetToOriginalRatio
 
   const tempReserveRatio =
+    !isPeriodicAprReduction &&
     market.temporaryReserveRatio &&
     !showRatioTimer &&
     formatBps(market.originalReserveRatioBips) !== newReserveRatio
+
+  const getMainButtonText = () => {
+    if (needsReset) return t("borrowerMarketDetails.modals.apr.resetTempRatio")
+    if (aprFixedReduction) return "Forbidden [Fixed-Term]"
+    if (isPeriodicAprReduction) {
+      return t("borrowerMarketDetails.modals.apr.proposeReduction")
+    }
+    return t("borrowerMarketDetails.modals.apr.adjust")
+  }
 
   useEffect(() => {
     if (isError) {
@@ -327,7 +382,11 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
       >
         {showForm && (
           <TxModalHeader
-            title={t("borrowerMarketDetails.modals.apr.adjustBase")}
+            title={
+              isPeriodicAprReduction
+                ? t("borrowerMarketDetails.modals.apr.proposeReductionTitle")
+                : t("borrowerMarketDetails.modals.apr.adjustBase")
+            }
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
@@ -354,6 +413,28 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
           <Box width="100%" height="100%" padding="12px 24px">
             {modal.gettingValueStep && (
               <>
+                {existingPendingProposal && (
+                  <Typography
+                    variant="text4"
+                    color={COLORS.santasGrey}
+                    sx={{ display: "block", marginBottom: "12px" }}
+                  >
+                    {t(
+                      "borrowerMarketDetails.modals.apr.pendingProposalReplaceNotice",
+                      {
+                        proposedApr: formatBps(
+                          existingPendingProposal.proposedAprBips,
+                          MARKET_PARAMS_DECIMALS.annualInterestBips,
+                        ),
+                        readyAt: dayjs
+                          .unix(existingPendingProposal.responseWindowEnd)
+                          .utc()
+                          .format("D MMM YYYY, HH:mm [UTC]"),
+                      },
+                    )}
+                  </Typography>
+                )}
+
                 <ModalDataItem
                   title={t("borrowerMarketDetails.modals.apr.currentBaseApr")}
                   value={`${formatBps(
@@ -393,89 +474,130 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                   }
                 />
 
-                <Box marginTop={aprError ? "44px" : "28px"} sx={AprAffectsBox}>
-                  <Typography variant="text4" textTransform="uppercase">
-                    {t("borrowerMarketDetails.modals.apr.aprAffects")}
+                {isPeriodicAprReduction && !aprError && (
+                  <Typography
+                    variant="text4"
+                    color={COLORS.santasGrey}
+                    sx={{ display: "block", marginTop: "12px" }}
+                  >
+                    {t(
+                      "borrowerMarketDetails.modals.apr.periodicProposalNotice",
+                    )}
                   </Typography>
+                )}
 
-                  <ModalDataItem
-                    title={t(
-                      "borrowerMarketDetails.modals.apr.collateralObligation",
-                    )}
-                    value={
-                      newCollateralObligations ?? currentCollateralObligations
-                    }
-                    valueColor={
-                      !aprError &&
-                      newCollateralObligations &&
-                      newCollateralObligations !== currentCollateralObligations
-                        ? COLORS.bunker
-                        : COLORS.santasGrey
-                    }
-                    containerSx={{ marginBottom: "12px", marginTop: "12px" }}
-                  >
-                    {newCollateralObligations && (
-                      <DifferenceChip
-                        startValue={currentCollateralObligations}
-                        endValue={newCollateralObligations}
-                        error={!!aprError}
-                        type="percentage"
-                      />
-                    )}
-                  </ModalDataItem>
-
-                  <ModalDataItem
-                    title={t("borrowerMarketDetails.modals.apr.reservedRatio")}
-                    value={`${newReserveRatio ?? currentReserveRatio}%`}
-                    valueColor={
-                      !aprError &&
-                      newReserveRatio &&
-                      newReserveRatio !== currentReserveRatio
-                        ? COLORS.bunker
-                        : COLORS.santasGrey
-                    }
-                  >
-                    {newReserveRatio && (
-                      <DifferenceChip
-                        startValue={currentReserveRatio}
-                        endValue={newReserveRatio}
-                        error={!!aprError}
-                        type="difference"
-                      />
-                    )}
-                  </ModalDataItem>
-
-                  {showRatioTimer && (
+                {aprPreview?.status === "Ready" &&
+                  aprPreview.willCancelPendingProposal &&
+                  existingPendingProposal &&
+                  !aprError && (
                     <Typography
                       variant="text4"
-                      color={COLORS.santasGrey}
-                      sx={{
-                        marginLeft: "auto",
-                        marginTop: "4px",
-                        marginBottom: "4px",
-                      }}
+                      color={COLORS.butteredRum}
+                      sx={{ display: "block", marginTop: "12px" }}
                     >
-                      {`${t(
-                        "borrowerMarketDetails.modals.apr.willSetTemporarily",
-                      )} ${twoWeeksTime}`}
+                      {t(
+                        "borrowerMarketDetails.parameters.pendingPeriodicApr.cancelProposalWarning",
+                        {
+                          proposedApr: formatBps(
+                            existingPendingProposal.proposedAprBips,
+                            MARKET_PARAMS_DECIMALS.annualInterestBips,
+                          ),
+                        },
+                      )}
                     </Typography>
                   )}
 
-                  {tempReserveRatio && (
-                    <Typography
-                      variant="text4"
-                      color={COLORS.santasGrey}
-                      sx={{
-                        marginLeft: "auto",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      {`${t(
-                        "borrowerMarketDetails.modals.apr.setTemporarily",
-                      )} ${reserveRatioExpiry}`}
+                {!isPeriodicAprReduction && (
+                  <Box
+                    marginTop={aprError ? "44px" : "28px"}
+                    sx={AprAffectsBox}
+                  >
+                    <Typography variant="text4" textTransform="uppercase">
+                      {t("borrowerMarketDetails.modals.apr.aprAffects")}
                     </Typography>
-                  )}
-                </Box>
+
+                    <ModalDataItem
+                      title={t(
+                        "borrowerMarketDetails.modals.apr.collateralObligation",
+                      )}
+                      value={
+                        newCollateralObligations ?? currentCollateralObligations
+                      }
+                      valueColor={
+                        !aprError &&
+                        newCollateralObligations &&
+                        newCollateralObligations !==
+                          currentCollateralObligations
+                          ? COLORS.bunker
+                          : COLORS.santasGrey
+                      }
+                      containerSx={{ marginBottom: "12px", marginTop: "12px" }}
+                    >
+                      {newCollateralObligations && (
+                        <DifferenceChip
+                          startValue={currentCollateralObligations}
+                          endValue={newCollateralObligations}
+                          error={!!aprError}
+                          type="percentage"
+                        />
+                      )}
+                    </ModalDataItem>
+
+                    <ModalDataItem
+                      title={t(
+                        "borrowerMarketDetails.modals.apr.reservedRatio",
+                      )}
+                      value={`${newReserveRatio ?? currentReserveRatio}%`}
+                      valueColor={
+                        !aprError &&
+                        newReserveRatio &&
+                        newReserveRatio !== currentReserveRatio
+                          ? COLORS.bunker
+                          : COLORS.santasGrey
+                      }
+                    >
+                      {newReserveRatio && (
+                        <DifferenceChip
+                          startValue={currentReserveRatio}
+                          endValue={newReserveRatio}
+                          error={!!aprError}
+                          type="difference"
+                        />
+                      )}
+                    </ModalDataItem>
+
+                    {showRatioTimer && (
+                      <Typography
+                        variant="text4"
+                        color={COLORS.santasGrey}
+                        sx={{
+                          marginLeft: "auto",
+                          marginTop: "4px",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        {`${t(
+                          "borrowerMarketDetails.modals.apr.willSetTemporarily",
+                        )} ${twoWeeksTime}`}
+                      </Typography>
+                    )}
+
+                    {tempReserveRatio && (
+                      <Typography
+                        variant="text4"
+                        color={COLORS.santasGrey}
+                        sx={{
+                          marginLeft: "auto",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        {`${t(
+                          "borrowerMarketDetails.modals.apr.setTemporarily",
+                        )} ${reserveRatioExpiry}`}
+                      </Typography>
+                    )}
+                  </Box>
+                )}
 
                 {needsReset && (
                   <DepositAlert
@@ -601,6 +723,21 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                   </Typography>
                 )}
 
+                {isPeriodicAprReduction && (
+                  <Typography
+                    variant="text4"
+                    color={COLORS.santasGrey}
+                    sx={{
+                      marginTop: "12px",
+                      padding: "0 12px",
+                    }}
+                  >
+                    {t(
+                      "borrowerMarketDetails.modals.apr.periodicProposalNotice",
+                    )}
+                  </Typography>
+                )}
+
                 <FormControlLabel
                   label={t("borrowerMarketDetails.modals.apr.approveNotified")}
                   sx={AprModalFormLabel}
@@ -618,13 +755,37 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
           </Box>
         )}
 
-        {isPending && <LoadingModal txHash={txHash} />}
+        {isPending && (
+          <LoadingModal
+            txHash={txHash}
+            title={
+              isPeriodicAprReduction
+                ? t("borrowerMarketDetails.modals.apr.proposalLoadingTitle")
+                : undefined
+            }
+            subtitle={
+              isPeriodicAprReduction
+                ? t("borrowerMarketDetails.modals.apr.proposalLoadingSubtitle")
+                : undefined
+            }
+          />
+        )}
         {isResetPending && <LoadingModal txHash={resetTxHash} />}
         {showErrorPopup && (
           <ErrorModal
             onTryAgain={handleTryAgain}
             onClose={modal.handleCloseModal}
             txHash={txHash}
+            title={
+              isPeriodicAprReduction
+                ? t("borrowerMarketDetails.modals.apr.proposalErrorTitle")
+                : undefined
+            }
+            subtitle={
+              isPeriodicAprReduction
+                ? t("borrowerMarketDetails.modals.apr.proposalErrorSubtitle")
+                : undefined
+            }
           />
         )}
         {showResetErrorPopup && (
@@ -638,7 +799,20 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
           />
         )}
         {showSuccessPopup && (
-          <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
+          <SuccessModal
+            onClose={modal.handleCloseModal}
+            txHash={txHash}
+            title={
+              isPeriodicAprReduction
+                ? t("borrowerMarketDetails.modals.apr.proposalSuccessTitle")
+                : undefined
+            }
+            subtitle={
+              isPeriodicAprReduction
+                ? t("borrowerMarketDetails.modals.apr.proposalSuccessSubtitle")
+                : undefined
+            }
+          />
         )}
         {showResetSuccessPopup && (
           <SuccessModal onClose={handleClose} txHash={resetTxHash} />
@@ -647,14 +821,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
         {showForm && (
           <Box sx={{ width: "100%", display: "flex", marginTop: "auto" }}>
             <TxModalFooter
-              mainBtnText={
-                // eslint-disable-next-line no-nested-ternary
-                needsReset
-                  ? t("borrowerMarketDetails.modals.apr.resetTempRatio")
-                  : aprFixedReduction
-                    ? "Forbidden [Fixed-Term]"
-                    : t("borrowerMarketDetails.modals.apr.adjust")
-              }
+              mainBtnText={getMainButtonText()}
               secondBtnText={
                 modal.approvedStep
                   ? t("borrowerMarketDetails.modals.apr.confirmed")

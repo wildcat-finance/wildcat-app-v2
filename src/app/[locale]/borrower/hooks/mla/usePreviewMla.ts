@@ -25,7 +25,17 @@ import {
 } from "@/lib/mla"
 
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
+import {
+  hoursInputToSeconds,
+  percentInputToBips,
+} from "../../create-market/utils/units"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
+
+const MARKET_TYPE_TO_HOOKS_KIND: Record<string, HooksKind | undefined> = {
+  standard: HooksKind.OpenTerm,
+  fixedTerm: HooksKind.FixedTerm,
+  periodicTerm: HooksKind.PeriodicTerm,
+}
 
 export function getFieldValuesForBorrowerFromForm(
   marketParams: MarketValidationSchemaType,
@@ -51,22 +61,24 @@ export function getFieldValuesForBorrowerFromForm(
     marketParams.depositRequiresAccess === false
       ? DepositAccess.Open
       : DepositAccess.RequiresCredential
-  const annualInterestBips = Number(marketParams.annualInterestBips) * 100
-  const delinquencyFeeBips = Number(marketParams.delinquencyFeeBips) * 100
-  const reserveRatioBips = Number(marketParams.reserveRatioBips) * 100
-  const delinquencyGracePeriod =
-    Number(marketParams.delinquencyGracePeriod) * 60 * 60
-  const withdrawalBatchDuration =
-    Number(marketParams.withdrawalBatchDuration) * 60 * 60
+  const annualInterestBips = percentInputToBips(marketParams.annualInterestBips)
+  const delinquencyFeeBips = percentInputToBips(marketParams.delinquencyFeeBips)
+  const reserveRatioBips = percentInputToBips(marketParams.reserveRatioBips)
+  const delinquencyGracePeriod = hoursInputToSeconds(
+    marketParams.delinquencyGracePeriod,
+  )
+  const withdrawalBatchDuration = hoursInputToSeconds(
+    marketParams.withdrawalBatchDuration,
+  )
+  const isFixedTerm = marketParams.marketType === "fixedTerm"
+  const isPeriodicTerm = marketParams.marketType === "periodicTerm"
 
   const params = {
     market: {
       name: marketName,
       symbol: marketSymbol,
       marketType:
-        marketParams.marketType === "standard"
-          ? HooksKind.OpenTerm
-          : HooksKind.FixedTerm,
+        MARKET_TYPE_TO_HOOKS_KIND[marketParams.marketType] ?? HooksKind.Unknown,
       address: marketAddress,
       depositAccess,
       transferAccess,
@@ -75,10 +87,24 @@ export function getFieldValuesForBorrowerFromForm(
       minimumDeposit: asset.parseAmount(marketParams.minimumDeposit ?? 0),
       delinquencyGracePeriod,
       withdrawalBatchDuration,
-      fixedTermEndTime: marketParams.fixedTermEndTime,
-      allowClosureBeforeTerm: !!marketParams.allowClosureBeforeTerm,
-      allowTermReduction: !!marketParams.allowTermReduction,
-      allowForceBuyBack: !!marketParams.allowForceBuyBack,
+      fixedTermEndTime: isFixedTerm ? marketParams.fixedTermEndTime : undefined,
+      firstWithdrawalWindowStart: isPeriodicTerm
+        ? marketParams.firstWithdrawalWindowStart
+        : undefined,
+      periodDuration: isPeriodicTerm ? marketParams.periodDuration : undefined,
+      withdrawalWindowDuration: isPeriodicTerm
+        ? marketParams.withdrawalWindowDuration
+        : undefined,
+      nextWithdrawalWindowStart: isPeriodicTerm
+        ? marketParams.firstWithdrawalWindowStart
+        : undefined,
+      allowClosureBeforeTerm: isFixedTerm
+        ? !!marketParams.allowClosureBeforeTerm
+        : undefined,
+      allowTermReduction: isFixedTerm
+        ? !!marketParams.allowTermReduction
+        : undefined,
+      allowForceBuyBack: undefined,
       apr: annualInterestBips,
       delinquencyFee: delinquencyFeeBips,
       reserveRatio: reserveRatioBips,

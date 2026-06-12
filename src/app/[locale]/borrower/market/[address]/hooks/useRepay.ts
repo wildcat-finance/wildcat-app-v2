@@ -7,7 +7,11 @@ import {
   Web3TransactionReceiptObject,
 } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import {
+  MarketAccount,
+  MAX_UNPAID_BATCHES_PER_SETTLEMENT_TX,
+  TokenAmount,
+} from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -96,8 +100,10 @@ export const useRepay = (
             }
             doCheckTransaction()
           })
-        const maxBatches =
-          marketAccount.market.unpaidWithdrawalBatchExpiries.length
+        // Per-tx cap rather than the snapshot batch count: headroom is a no-op
+        // on-chain (the loop stops at the actual queue length) and a snapshot
+        // can go stale (or be empty on data sources blind to the stored FIFO).
+        const maxBatches = MAX_UNPAID_BATCHES_PER_SETTLEMENT_TX
         if (gnosisTransactions.length) {
           gnosisTransactions.push(
             await marketAccount.market.populateRepayAndProcessUnpaidWithdrawalBatches(

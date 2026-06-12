@@ -22,6 +22,8 @@ import {
   FixedTermMarketDeploymentArgs,
   OpenTermHooksTemplate,
   OpenTermMarketDeploymentArgs,
+  PeriodicTermHooksTemplate,
+  PeriodicTermMarketDeploymentArgs,
 } from "@wildcatfi/wildcat-sdk/dist/access"
 import { MarketDeployedEvent } from "@wildcatfi/wildcat-sdk/dist/typechain/HooksFactory"
 import { constants } from "ethers"
@@ -50,6 +52,15 @@ export type DeployNewV2MarketParams = (
       minimumDeposit?: number
       assetData: MarketParameters["asset"]
       hooksTemplate: OpenTermHooksTemplate
+    })
+  | (Omit<
+      PeriodicTermMarketDeploymentArgs,
+      "maxTotalSupply" | "minimumDeposit" | "asset"
+    > & {
+      maxTotalSupply: number
+      minimumDeposit?: number
+      assetData: MarketParameters["asset"]
+      hooksTemplate: PeriodicTermHooksTemplate
     })
 ) & {
   timeSigned: number

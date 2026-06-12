@@ -3,13 +3,19 @@ import {
   TransferAccess,
   WithdrawalAccess,
 } from "@wildcatfi/wildcat-sdk"
+import humanizeDuration from "humanize-duration"
 import { isAddress } from "viem"
 import { z } from "zod"
 
 import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
-import { getMaxFixedTermDays } from "@/config/market-duration"
+import {
+  getMaxFixedTermDays,
+  PERIODIC_TERM_LIMITS,
+} from "@/config/market-duration"
 import { dayjs } from "@/utils/dayjs"
 import { isLetterNumber, isLetterNumberSpace } from "@/utils/validations"
+
+import { PERIODIC_DURATION_UNITS } from "../utils/units"
 
 const DepositAccessOptions = ["Open", "RequiresCredential"] as const
 
@@ -98,7 +104,11 @@ export const baseMarketSchemaFields = {
   policyName: z.string(),
   // fixedTermEndTime validation is added dynamically based on network
   fixedTermEndTime: z.coerce.number().optional(),
-  allowForceBuyBack: z.boolean(),
+  firstWithdrawalWindowStart: z.coerce.number().optional(),
+  periodDuration: z.coerce.number().optional(),
+  withdrawalWindowDuration: z.coerce.number().optional(),
+  // Display-only unit for periodic duration inputs; not sent on-chain.
+  periodicDurationUnit: z.enum(PERIODIC_DURATION_UNITS).optional(),
   allowClosureBeforeTerm: z.boolean().optional(),
   allowTermReduction: z.boolean().optional(),
   disableTransfers: z.boolean(),
@@ -108,8 +118,17 @@ export const baseMarketSchemaFields = {
   deployWrapper: z.boolean().optional(),
 }
 
+const isPositiveNumber = (value: number | undefined): value is number =>
+  value !== undefined && Number.isFinite(value) && value > 0
+
 export const marketRefinementCallback = (
-  data: { marketType: string; fixedTermEndTime?: number },
+  data: {
+    marketType: string
+    fixedTermEndTime?: number
+    firstWithdrawalWindowStart?: number
+    periodDuration?: number
+    withdrawalWindowDuration?: number
+  },
   ctx: z.RefinementCtx,
 ) => {
   if (data.marketType === "fixedTerm") {
@@ -124,6 +143,94 @@ export const marketRefinementCallback = (
       ctx.addIssue({
         message: "Loan maturity date must be in the future",
         path: ["fixedTermEndTime"],
+        code: "custom",
+      })
+    }
+  }
+
+  if (data.marketType === "periodicTerm") {
+    const now = Math.floor(Date.now() / 1000)
+    const {
+      firstWithdrawalWindowStart,
+      periodDuration,
+      withdrawalWindowDuration,
+    } = data
+
+    const humanize = (seconds: number) =>
+      humanizeDuration(seconds * 1000, { round: true, largest: 2 })
+
+    if (!isPositiveNumber(firstWithdrawalWindowStart)) {
+      ctx.addIssue({
+        message: "First withdrawal window start must be set",
+        path: ["firstWithdrawalWindowStart"],
+        code: "custom",
+      })
+    } else if (
+      // The contract (`PeriodicTermHooks._validatePeriodicTerm`) does NOT require
+      // the start to be in the future — it is only the recurring-schedule anchor,
+      // and a past anchor is projected forward to the next window. The only timing
+      // rule is that the next window lands within `MaximumInitialWithdrawalWindowDelay`.
+      // For a future anchor the next window IS the anchor, so this check matches the
+      // contract; for a past anchor it is always satisfied.
+      firstWithdrawalWindowStart >
+      now + PERIODIC_TERM_LIMITS.maxInitialDelaySeconds
+    ) {
+      ctx.addIssue({
+        message: `First withdrawal window must start within ${humanize(
+          PERIODIC_TERM_LIMITS.maxInitialDelaySeconds,
+        )} from now`,
+        path: ["firstWithdrawalWindowStart"],
+        code: "custom",
+      })
+    }
+
+    if (!isPositiveNumber(periodDuration)) {
+      ctx.addIssue({
+        message: "Withdrawal period duration must be greater than zero",
+        path: ["periodDuration"],
+        code: "custom",
+      })
+    } else if (periodDuration < PERIODIC_TERM_LIMITS.minPeriodSeconds) {
+      ctx.addIssue({
+        message: `Withdrawal period must be at least ${humanize(
+          PERIODIC_TERM_LIMITS.minPeriodSeconds,
+        )}`,
+        path: ["periodDuration"],
+        code: "custom",
+      })
+    } else if (periodDuration > PERIODIC_TERM_LIMITS.maxPeriodSeconds) {
+      ctx.addIssue({
+        message: `Withdrawal period can not exceed ${humanize(
+          PERIODIC_TERM_LIMITS.maxPeriodSeconds,
+        )}`,
+        path: ["periodDuration"],
+        code: "custom",
+      })
+    }
+
+    if (!isPositiveNumber(withdrawalWindowDuration)) {
+      ctx.addIssue({
+        message: "Withdrawal window duration must be greater than zero",
+        path: ["withdrawalWindowDuration"],
+        code: "custom",
+      })
+    } else if (
+      withdrawalWindowDuration < PERIODIC_TERM_LIMITS.minWindowSeconds
+    ) {
+      ctx.addIssue({
+        message: `Withdrawal window must be at least ${humanize(
+          PERIODIC_TERM_LIMITS.minWindowSeconds,
+        )}`,
+        path: ["withdrawalWindowDuration"],
+        code: "custom",
+      })
+    } else if (
+      isPositiveNumber(periodDuration) &&
+      withdrawalWindowDuration >= periodDuration
+    ) {
+      ctx.addIssue({
+        message: "Withdrawal window must be shorter than the withdrawal period",
+        path: ["withdrawalWindowDuration"],
         code: "custom",
       })
     }
