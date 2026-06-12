@@ -23,6 +23,7 @@ import { Footer } from "@/components/Footer"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
+import { PendingAprReductionBanner } from "@/components/PendingAprReductionBanner"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketMla } from "@/hooks/useMarketMla"
@@ -427,6 +428,11 @@ export default function LenderMarketDetails({
             hasMarketDescription={hasMarketDescription}
           />
 
+          <PendingAprReductionBanner
+            market={market}
+            sx={{ margin: "8px 0 4px" }}
+          />
+
           <Box id="depositWithdraw">
             <BarCharts
               marketAccount={marketAccount}
@@ -520,6 +526,11 @@ export default function LenderMarketDetails({
         )}
 
         <Box sx={SectionContainer(theme, isDifferentChain)}>
+          <PendingAprReductionBanner
+            market={market}
+            sx={{ margin: "16px 0 24px" }}
+          />
+
           {currentSection === LenderMarketSections.TRANSACTIONS && (
             <Box>
               {authorizedInMarket && !isDifferentChain && (

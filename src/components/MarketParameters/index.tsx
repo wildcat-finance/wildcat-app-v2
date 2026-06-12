@@ -12,6 +12,7 @@ import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAdoptionData } from "@/hooks/wrapper/useAdoptionData"
 import { formatDate } from "@/lib/mla"
@@ -27,7 +28,10 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
-import { getPeriodicWindowTiming } from "@/utils/periodicWithdrawalWindow"
+import {
+  formatCompactDuration,
+  getPeriodicWindowTiming,
+} from "@/utils/periodicWithdrawalWindow"
 
 import { MarketParametersProps } from "./interface"
 import {
@@ -37,16 +41,11 @@ import {
 import { ParametersItem } from "../ParametersItem"
 import { TooltipButton } from "../TooltipButton"
 
-const HOUR_SECONDS = 3_600
-const PERIODIC_TERM_DECIMALS = 2
-
 const formatPeriodicDateTime = (timestamp: number) =>
   dayjs.unix(timestamp).utc().format("D MMM YYYY, HH:mm [UTC]")
 
-const formatPeriodicDuration = (seconds: number) => {
-  const hours = Number((seconds / HOUR_SECONDS).toFixed(PERIODIC_TERM_DECIMALS))
-  return `${hours} hour${hours === 1 ? "" : "s"}`
-}
+const formatPeriodicDuration = (seconds: number) =>
+  humanizeDuration(seconds * 1000, { round: true, largest: 2 })
 
 const WrapperChip = ({ hasWrapper }: { hasWrapper?: boolean }) => (
   <Box
@@ -247,7 +246,9 @@ export const MarketParameters = ({
     market.temporaryReserveRatio &&
     market.reserveRatioBips !== market.originalReserveRatioBips
 
-  const nowSec = Date.now() / 1000
+  // Ticks every second while the market has an active periodic schedule so
+  // the window status, countdowns and pending-APR state flip live.
+  const nowSec = useLivePeriodicNowSeconds(market)
   const tempRatioExpired =
     tempRatiosDiffer && market.temporaryReserveRatioExpiry < nowSec
 
@@ -362,16 +363,36 @@ export const MarketParameters = ({
     earlyMaturity = "no"
   }
 
+  // All periodic state below derives from the same ticked `nowSec` so the
+  // status, labels and timestamps can never disagree mid-boundary.
+  const periodicWindowTiming = getPeriodicWindowTiming(market, nowSec)
+
   const periodicWindowStatus = (() => {
     if (!periodicHooksConfig) return undefined
     if (periodicHooksConfig.periodicTermClosed) return "closed"
-    return market.isPeriodicWithdrawalWindowOpen ? "open" : "scheduled"
+    return periodicWindowTiming?.isOpen ? "open" : "scheduled"
   })()
 
   const periodicWindowStartLabel =
     periodicWindowStatus === "open" ? "currentWindowStart" : "nextWindowStart"
 
-  const periodicWindowTiming = getPeriodicWindowTiming(market, nowSec)
+  const periodicWindowStartTimestamp = (() => {
+    if (!periodicWindowTiming || periodicWindowTiming.isTermClosed)
+      return undefined
+    if (
+      periodicWindowTiming.isOpen &&
+      periodicWindowTiming.currentWindowEnd !== undefined &&
+      periodicHooksConfig
+    ) {
+      return (
+        periodicWindowTiming.currentWindowEnd -
+        periodicHooksConfig.withdrawalWindowDuration
+      )
+    }
+    return periodicWindowTiming.nextWindowStart
+  })()
+  // Compact form ("2m 37s") — the parameters value column ellipsizes past
+  // ~26 characters, which the verbose humanized form always exceeds.
   const periodicWindowCountdown = (() => {
     if (!periodicWindowTiming || periodicWindowTiming.isTermClosed)
       return undefined
@@ -379,9 +400,8 @@ export const MarketParameters = ({
       return t(
         "borrowerMarketDetails.parameters.periodicTerm.windowStatus.closesIn",
         {
-          duration: humanizeDuration(
-            Math.max(0, periodicWindowTiming.currentWindowEnd - nowSec) * 1000,
-            { round: true, largest: 2 },
+          duration: formatCompactDuration(
+            periodicWindowTiming.currentWindowEnd - nowSec,
           ),
         },
       )
@@ -389,9 +409,8 @@ export const MarketParameters = ({
     return t(
       "borrowerMarketDetails.parameters.periodicTerm.windowStatus.opensIn",
       {
-        duration: humanizeDuration(
-          Math.max(0, periodicWindowTiming.nextWindowStart - nowSec) * 1000,
-          { round: true, largest: 2 },
+        duration: formatCompactDuration(
+          periodicWindowTiming.nextWindowStart - nowSec,
         ),
       },
     )
@@ -617,7 +636,7 @@ export const MarketParameters = ({
                           periodicWindowCountdown
                             ? `${t(
                                 `borrowerMarketDetails.parameters.periodicTerm.windowStatus.${periodicWindowStatus}.text`,
-                              )} — ${periodicWindowCountdown}`
+                              )} · ${periodicWindowCountdown}`
                             : t(
                                 `borrowerMarketDetails.parameters.periodicTerm.windowStatus.${periodicWindowStatus}.text`,
                               )
@@ -628,7 +647,7 @@ export const MarketParameters = ({
                       />
                     </>
                   )}
-                  {market.nextPeriodicWithdrawalWindowStart && (
+                  {periodicWindowStartTimestamp !== undefined && (
                     <>
                       <Divider sx={{ margin: "12px 0 12px" }} />
                       <ParametersItem
@@ -636,7 +655,7 @@ export const MarketParameters = ({
                           `borrowerMarketDetails.parameters.periodicTerm.${periodicWindowStartLabel}`,
                         )}
                         value={formatPeriodicDateTime(
-                          market.nextPeriodicWithdrawalWindowStart,
+                          periodicWindowStartTimestamp,
                         )}
                       />
                     </>

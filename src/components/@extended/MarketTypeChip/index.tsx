@@ -2,10 +2,16 @@ import { Box, Chip, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import { HooksKind } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
+import { useTranslation } from "react-i18next"
 
 import Clock from "@/assets/icons/clock_icon.svg"
+import { useLiveNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { COLORS } from "@/theme/colors"
 import { remainingMillisecondsToDate } from "@/utils/formatters"
+import {
+  formatCompactDuration,
+  getPeriodicScheduleTiming,
+} from "@/utils/periodicWithdrawalWindow"
 
 import { MarketTypeChipProps } from "./interface"
 
@@ -15,13 +21,6 @@ const ClockIcon = () => (
   </SvgIcon>
 )
 
-const MARKET_TYPE_LABELS: Record<HooksKind, string> = {
-  [HooksKind.OpenTerm]: "Open Term",
-  [HooksKind.FixedTerm]: "Fixed Term",
-  [HooksKind.PeriodicTerm]: "Periodic Term",
-  [HooksKind.Unknown]: "Unknown Term",
-}
-
 export const MarketTypeChip = ({
   type,
   kind,
@@ -29,6 +28,8 @@ export const MarketTypeChip = ({
   periodicWindow,
   isMobile,
 }: MarketTypeChipProps) => {
+  const { t } = useTranslation()
+
   const daysLeft = Number(
     humanizeDuration(Math.abs(fixedPeriod || 0), {
       round: false,
@@ -48,21 +49,26 @@ export const MarketTypeChip = ({
   const isFixedTerm = kind === HooksKind.FixedTerm
   const isPeriodicTerm = kind === HooksKind.PeriodicTerm
 
+  const hasLivePeriodicWindow =
+    isPeriodicTerm && !!periodicWindow && !periodicWindow.isTermClosed
+  const nowSec = useLiveNowSeconds(hasLivePeriodicWindow)
+
   let periodicChipConfig:
     | { label: string; backgroundColor: string; color: string }
     | undefined
-  if (isPeriodicTerm && periodicWindow && !periodicWindow.isTermClosed) {
-    periodicChipConfig = periodicWindow.isOpen
+  if (hasLivePeriodicWindow && periodicWindow) {
+    const timing = getPeriodicScheduleTiming(periodicWindow, nowSec)
+    periodicChipConfig = timing.isOpen
       ? {
-          label: "Window open",
+          label: t("marketTypeChip.windowOpen"),
           backgroundColor: COLORS.oasis,
           color: COLORS.butteredRum,
         }
       : {
-          label: `Opens in ${humanizeDuration(periodicWindow.msUntilBoundary, {
-            round: true,
-            largest: 1,
-          })}`,
+          // Compact ("5m") — verbose units overflow the table type column.
+          label: t("marketTypeChip.windowOpensIn", {
+            duration: formatCompactDuration(timing.nextWindowStart - nowSec, 1),
+          }),
           backgroundColor: COLORS.whiteSmoke,
           color: COLORS.santasGrey,
         }
@@ -70,7 +76,7 @@ export const MarketTypeChip = ({
 
   const tableLabel = isFixedTerm
     ? chipTimeLabel
-    : periodicChipConfig?.label ?? MARKET_TYPE_LABELS[kind]
+    : periodicChipConfig?.label ?? t(`marketTypeChip.kind.${kind}`)
 
   let additionalChipConfig
 
@@ -114,7 +120,7 @@ export const MarketTypeChip = ({
     <Box sx={{ display: "flex", gap: "4px 2px", flexWrap: "wrap" }}>
       <Chip
         icon={<ClockIcon />}
-        label={MARKET_TYPE_LABELS[kind]}
+        label={t(`marketTypeChip.kind.${kind}`)}
         sx={{
           backgroundColor: COLORS.blackHaze,
           color:

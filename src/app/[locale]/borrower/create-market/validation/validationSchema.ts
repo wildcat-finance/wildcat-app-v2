@@ -15,6 +15,8 @@ import {
 import { dayjs } from "@/utils/dayjs"
 import { isLetterNumber, isLetterNumberSpace } from "@/utils/validations"
 
+import { PERIODIC_DURATION_UNITS } from "../utils/units"
+
 const DepositAccessOptions = ["Open", "RequiresCredential"] as const
 
 const WithdrawalAccessOptions = ["Open", "RequiresCredential"] as const
@@ -106,7 +108,7 @@ export const baseMarketSchemaFields = {
   periodDuration: z.coerce.number().optional(),
   withdrawalWindowDuration: z.coerce.number().optional(),
   // Display-only unit for periodic duration inputs; not sent on-chain.
-  periodicDurationUnit: z.enum(["Days", "Hours"]).optional(),
+  periodicDurationUnit: z.enum(PERIODIC_DURATION_UNITS).optional(),
   allowClosureBeforeTerm: z.boolean().optional(),
   allowTermReduction: z.boolean().optional(),
   disableTransfers: z.boolean(),

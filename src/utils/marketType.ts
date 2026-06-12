@@ -5,8 +5,6 @@ import {
   SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
 
-import { getPeriodicWindowTiming } from "@/utils/periodicWithdrawalWindow"
-
 export const getMarketTypeChip = (market: Market) => {
   const kind =
     market.version === MarketVersion.V1
@@ -33,18 +31,17 @@ export const getMarketTypeChip = (market: Market) => {
   }
 
   if (kind === HooksKind.PeriodicTerm && market.periodicHooksConfig) {
-    const nowSec = Date.now() / 1000
-    const timing = getPeriodicWindowTiming(market, nowSec)
-    if (timing) {
+    const config = market.periodicHooksConfig
+    if (config.periodDuration) {
+      // Pass the raw schedule so the chip can tick its own countdown and flip
+      // open/closed live across window boundaries.
       return {
         kind,
         periodicWindow: {
-          isOpen: timing.isOpen,
-          isTermClosed: timing.isTermClosed,
-          msUntilBoundary:
-            timing.isOpen && timing.currentWindowEnd !== undefined
-              ? Math.max(0, (timing.currentWindowEnd - nowSec) * 1000)
-              : Math.max(0, (timing.nextWindowStart - nowSec) * 1000),
+          isTermClosed: config.periodicTermClosed || market.isClosed,
+          firstWithdrawalWindowStart: config.firstWithdrawalWindowStart,
+          periodDuration: config.periodDuration,
+          withdrawalWindowDuration: config.withdrawalWindowDuration,
         },
       }
     }

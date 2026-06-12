@@ -20,10 +20,12 @@ import { lh, pxToRem } from "@/theme/units"
 import { dayjs } from "@/utils/dayjs"
 
 import { MarketPolicyFormProps } from "./interface"
+import {
+  PERIODIC_DURATION_UNIT_SECONDS,
+  PERIODIC_DURATION_UNITS,
+} from "../../../utils/units"
 import { SectionGrid } from "../style"
 
-const DAY_SECONDS = 86_400
-const HOUR_SECONDS = 3_600
 const DURATION_DECIMAL_SCALE = 2
 
 const durationInputToSeconds = (
@@ -75,7 +77,7 @@ export const PeriodicTermsSection = ({
   const periodDurationWatch = watch("periodDuration")
   const withdrawalWindowDurationWatch = watch("withdrawalWindowDuration")
   const durationUnit = watch("periodicDurationUnit") ?? "Days"
-  const unitSeconds = durationUnit === "Days" ? DAY_SECONDS : HOUR_SECONDS
+  const unitSeconds = PERIODIC_DURATION_UNIT_SECONDS[durationUnit]
 
   return (
     <>
@@ -114,8 +116,11 @@ export const PeriodicTermsSection = ({
             },
           }}
         >
-          <ToggleButton value="Days">Days</ToggleButton>
-          <ToggleButton value="Hours">Hours</ToggleButton>
+          {PERIODIC_DURATION_UNITS.map((unit) => (
+            <ToggleButton key={unit} value={unit}>
+              {unit}
+            </ToggleButton>
+          ))}
         </ToggleButtonGroup>
       </Box>
       <Box

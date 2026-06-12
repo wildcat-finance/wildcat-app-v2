@@ -5,11 +5,10 @@ import { dayjs } from "@/utils/dayjs"
 
 import { ConfirmationFormProps } from "./interface"
 import { DividerStyle, SubtitleStyle } from "./style"
+import { PERIODIC_DURATION_UNIT_SECONDS } from "../../../utils/units"
 import { ConfirmationFormItem } from "../../ConfirmationFormItem"
 import { SectionGrid } from "../style"
 
-const DAY_SECONDS = 86_400
-const HOUR_SECONDS = 3_600
 const DURATION_DECIMAL_SCALE = 2
 
 const formatDuration = (seconds: number, unitSeconds: number) =>
@@ -24,7 +23,7 @@ export const PeriodicTermsConfirmation = ({
   const { t } = useTranslation()
   const { getValues } = form
   const unit = getValues("periodicDurationUnit") ?? "Days"
-  const unitSeconds = unit === "Days" ? DAY_SECONDS : HOUR_SECONDS
+  const unitSeconds = PERIODIC_DURATION_UNIT_SECONDS[unit]
 
   return (
     <>

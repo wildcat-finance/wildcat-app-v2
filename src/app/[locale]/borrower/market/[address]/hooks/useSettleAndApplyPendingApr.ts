@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { Dispatch } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
@@ -128,7 +127,6 @@ export const useSettleAndApplyPendingApr = (
             )
           }
         }
-        console.log(`Sending periodic APR plan step: ${planned.description}`)
         const tx = await signer.sendTransaction({
           to: planned.tx.to,
           data: planned.tx.data,

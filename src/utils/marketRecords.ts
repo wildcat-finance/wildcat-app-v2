@@ -1,14 +1,12 @@
 /* eslint-disable no-underscore-dangle */
 import { MarketRecord } from "@wildcatfi/wildcat-sdk"
+import humanizeDuration from "humanize-duration"
 
 import {
   formatTokenWithCommas,
   timestampToDateFormatted,
   trimAddress,
 } from "@/utils/formatters"
-
-const SECONDS_PER_HOUR = 3_600
-const MAX_PERIODIC_TERM_DECIMALS = 2
 
 const formatAmountDisplay = (
   tokenAmount: Parameters<typeof formatTokenWithCommas>[0],
@@ -18,14 +16,8 @@ const formatAmountRaw = (
   tokenAmount: Parameters<typeof formatTokenWithCommas>[0],
 ) => `${tokenAmount.format(tokenAmount.decimals)} ${tokenAmount.symbol}`
 
-const formatDurationHours = (seconds: number) => {
-  const hours = seconds / SECONDS_PER_HOUR
-  const formatted = hours.toLocaleString("en-US", {
-    maximumFractionDigits: MAX_PERIODIC_TERM_DECIMALS,
-  })
-
-  return `${formatted} hour${hours === 1 ? "" : "s"}`
-}
+const formatPeriodicDuration = (seconds: number) =>
+  humanizeDuration(seconds * 1000, { round: true, largest: 2 })
 
 const formatPeriodicTermChange = (
   label: string,
@@ -109,13 +101,13 @@ export const getRecordText = (
         "withdrawal period",
         record.oldPeriodDuration,
         record.newPeriodDuration,
-        formatDurationHours,
+        formatPeriodicDuration,
       ),
       formatPeriodicTermChange(
         "withdrawal window",
         record.oldWithdrawalWindowDuration,
         record.newWithdrawalWindowDuration,
-        formatDurationHours,
+        formatPeriodicDuration,
       ),
     ].filter(Boolean)
 

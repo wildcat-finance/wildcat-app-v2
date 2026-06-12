@@ -28,6 +28,7 @@ import { PeriodicWithdrawalWindowNotice } from "@/components/PeriodicWithdrawalW
 import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
@@ -51,7 +52,10 @@ export const WithdrawModal = ({
     market.hooksConfig?.kind === HooksKind.FixedTerm &&
     market.hooksConfig?.fixedTermEndTime !== undefined &&
     market.hooksConfig.fixedTermEndTime * 1000 >= Date.now()
-  const periodicWindowClosed = isPeriodicWithdrawalWindowClosed(market)
+  // Ticks while the periodic schedule is live so the disabled state flips the
+  // moment a window opens or closes, even with the modal already open.
+  const nowSec = useLivePeriodicNowSeconds(market)
+  const periodicWindowClosed = isPeriodicWithdrawalWindowClosed(market, nowSec)
 
   const [amount, setAmount] = useState("")
   const [maxAmount, setMaxAmount] = useState<TokenAmount>()

@@ -391,18 +391,21 @@
       "pendingPeriodicApr": {
         "label": "Pending Base APR",
         "tooltip": "A periodic APR reduction has been proposed and can be applied after the lender response window closes.",
-        "pendingNotice": "APR reduction from {{currentApr}}% to {{proposedApr}}% is pending. Lenders can respond until {{readyAt}}.",
-        "readyNotice": "APR reduction from {{currentApr}}% to {{proposedApr}}% is ready to apply.",
-        "blockedNotice": "APR reduction from {{currentApr}}% to {{proposedApr}}% is ready, but cannot be applied yet: {{reason}}",
+        "bannerTitle": "Pending base APR reduction: {{currentApr}}% → {{proposedApr}}%",
+        "appliedNotice": "The base APR is now {{currentApr}}%.",
+        "appliedNoticeTitle": "Base APR change applied",
+        "pendingNotice": "Lenders can respond until {{readyAt}}. The reduction can be applied once the response window closes.",
+        "readyNotice": "The lender response window has closed — the reduction is ready to apply.",
+        "blockedNotice": "The response window has closed, but the reduction cannot be applied yet: {{reason}}",
         "execute": "Apply APR",
         "executing": "Applying...",
-        "settlementNotice": "APR reduction from {{currentApr}}% to {{proposedApr}}% is ready once withdrawals are settled. {{amount}} {{symbol}} is needed to settle withdrawal and reserve obligations.",
-        "settlementNoticeZero": "APR reduction from {{currentApr}}% to {{proposedApr}}% is ready once stale unpaid withdrawal batches are processed. No additional repayment is required.",
+        "settlementNotice": "{{amount}} {{symbol}} is needed to settle withdrawal and reserve obligations before the reduction can be applied.",
+        "settlementNoticeZero": "Stale unpaid withdrawal batches must be processed before the reduction can be applied. No additional repayment is required.",
         "settleAndApply": "Settle and Apply",
         "processBatches": "Process Unpaid Batches",
         "settling": "Settling...",
         "cancelProposalWarning": "Increasing the APR will cancel your pending reduction proposal to {{proposedApr}}%.",
-        "settlementNoticeMultiPass": "APR reduction from {{currentApr}}% to {{proposedApr}}% requires processing {{totalBatches}} unpaid withdrawal batches (up to {{perPass}} per transaction). No additional repayment is required.",
+        "settlementNoticeMultiPass": "{{totalBatches}} unpaid withdrawal batches must be processed (up to {{perPass}} per transaction) before the reduction can be applied. No additional repayment is required.",
         "processBatchesProgress": "Process Unpaid Batches ({{perPass}} of {{total}})"
       },
       "penaltyAPR": "Penalty APR",
@@ -441,9 +444,9 @@
         "currentWindowStart": "Current Window Start",
         "nextWindowStart": "Next Withdrawal Window",
         "windowStatus": {
-          "label": "Withdrawal Window Status",
-          "closesIn": "closes in {{duration}}",
-          "opensIn": "opens in {{duration}}",
+          "label": "Window Status",
+          "closesIn": "{{duration}} left",
+          "opensIn": "in {{duration}}",
           "open": {
             "text": "Open",
             "tooltip": "Lenders can request withdrawals during the current scheduled withdrawal window."
@@ -1232,6 +1235,20 @@
         "loading": "Loading market description...",
         "noDescription": "No market description found."
       }
+    },
+    "pendingAprReduction": {
+      "proposed": {
+        "title": "Base APR reduction proposed: {{currentApr}}% → {{proposedApr}}%",
+        "body": "You can request a withdrawal during the response window ({{windowStart}} – {{windowEnd}}) before the change can take effect."
+      },
+      "exitNow": {
+        "title": "Base APR drops from {{currentApr}}% to {{proposedApr}}% after this window",
+        "body": "Request a withdrawal before {{windowEnd}} ({{countdown}} left) if you do not wish to lend at the reduced rate."
+      },
+      "elapsed": {
+        "title": "Base APR reduction pending: {{currentApr}}% → {{proposedApr}}%",
+        "body": "The lender response window has passed; the borrower can apply the reduction at any time."
+      }
     }
   },
   "marketRecords": {
@@ -1242,6 +1259,16 @@
         "event": "Event"
       }
     }
+  },
+  "marketTypeChip": {
+    "kind": {
+      "OpenTerm": "Open Term",
+      "FixedTerm": "Fixed Term",
+      "PeriodicTerm": "Periodic Term",
+      "Unknown": "Unknown Term"
+    },
+    "windowOpen": "Window open",
+    "windowOpensIn": "Opens in {{duration}}"
   },
   "agreement": {
     "signButton": {

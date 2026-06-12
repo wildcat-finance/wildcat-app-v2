@@ -5,9 +5,11 @@ import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
 import Clock from "@/assets/icons/clock_icon.svg"
+import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { COLORS } from "@/theme/colors"
 import {
   formatPeriodicWithdrawalWindowStart,
+  getPeriodicWindowTiming,
   isPeriodicWithdrawalWindowClosed,
 } from "@/utils/periodicWithdrawalWindow"
 
@@ -22,19 +24,24 @@ export const PeriodicWithdrawalWindowNotice = ({
 }) => {
   const { t } = useTranslation()
   const isPeriodicTerm = !!market.periodicHooksConfig
-  const isWindowClosed = isPeriodicWithdrawalWindowClosed(market)
+  // Ticks while the schedule is live: the countdown counts down for real and
+  // the closed-variant notice disappears the moment the window opens.
+  const nowSec = useLivePeriodicNowSeconds(market)
+  const isWindowClosed = isPeriodicWithdrawalWindowClosed(market, nowSec)
 
   if (!isPeriodicTerm || (variant === "closed" && !isWindowClosed)) {
     return null
   }
 
-  const nextWindowStart = market.nextPeriodicWithdrawalWindowStart
+  const timing = getPeriodicWindowTiming(market, nowSec)
+  const nextWindowStart =
+    timing && !timing.isTermClosed ? timing.nextWindowStart : undefined
   const opensInCountdown =
     nextWindowStart !== undefined
-      ? humanizeDuration(
-          Math.max(0, nextWindowStart - Date.now() / 1000) * 1000,
-          { round: true, largest: 2 },
-        )
+      ? humanizeDuration(Math.max(0, nextWindowStart - nowSec) * 1000, {
+          round: true,
+          largest: 2,
+        })
       : undefined
   const noticeText =
     variant === "deposit"

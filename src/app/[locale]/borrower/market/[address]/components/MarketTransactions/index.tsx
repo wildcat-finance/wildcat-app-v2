@@ -8,8 +8,10 @@ import { useTranslation } from "react-i18next"
 import { MaturityModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MaturityModal"
 import { MinimumDepositModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MinimumDepositModal"
 import TelegramIcon from "@/assets/icons/telegram_icon.svg"
+import { PeriodicNoticeBanner } from "@/components/PeriodicNoticeBanner"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
+import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { useAppDispatch } from "@/store/hooks"
 import {
   setCheckBlock,
@@ -46,12 +48,23 @@ export const MarketTransactions = ({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const [, setPendingAprTxHash] = React.useState<string | undefined>()
-  const { mutate: executePendingAprChange, isPending: isPendingAprExecution } =
-    useAdjustAPR(marketAccount, setPendingAprTxHash)
+  const {
+    mutate: executePendingAprChange,
+    isPending: isPendingAprExecution,
+    isSuccess: isAprExecutionSuccess,
+  } = useAdjustAPR(marketAccount, setPendingAprTxHash)
   const {
     mutate: settleAndApplyPendingApr,
     isPending: isPendingAprSettlement,
+    isSuccess: isAprSettlementSuccess,
   } = useSettleAndApplyPendingApr(marketAccount, setPendingAprTxHash)
+  // Session-scoped dismissals: the pending banner re-appears when its state
+  // changes (key includes the notice kind) or on a fresh proposal.
+  const [dismissedAprNoticeKey, setDismissedAprNoticeKey] = React.useState<
+    string | null
+  >(null)
+  const [isAppliedNoticeDismissed, setIsAppliedNoticeDismissed] =
+    React.useState(false)
 
   const disableRepay = market.isClosed
   const disableBorrow =
@@ -89,7 +102,9 @@ export const MarketTransactions = ({
     market.temporaryReserveRatio &&
     market.reserveRatioBips !== market.originalReserveRatioBips
 
-  const nowSec = Date.now() / 1000
+  // Ticks while the periodic schedule is live so the pending-APR banner
+  // (response-window elapsed, Execute enablement) flips without a refetch.
+  const nowSec = useLivePeriodicNowSeconds(market)
   const tempRatioExpired =
     tempRatiosDiffer && market.temporaryReserveRatioExpiry < nowSec
 
@@ -185,6 +200,18 @@ export const MarketTransactions = ({
           perPass: pendingAprSettlementQuote?.maxBatches,
         })
       : undefined
+  const aprNoticeDismissKey =
+    pendingPeriodicAprChange && pendingAprNoticeKey
+      ? `${pendingPeriodicAprChange.proposalTimestamp}:${pendingAprNoticeKey}`
+      : null
+  // After applying (directly or via settlement) the proposal disappears from
+  // `getPendingPeriodicAprChange`; confirm the outcome instead of leaving a
+  // gap where the banner silently vanished.
+  const showAppliedAprNotice =
+    holdTheMarket &&
+    !pendingPeriodicAprChange &&
+    (isAprExecutionSuccess || isAprSettlementSuccess) &&
+    !isAppliedNoticeDismissed
 
   const handleClickWithdrawals = () => {
     dispatch(setCheckBlock(4))
@@ -338,81 +365,93 @@ export const MarketTransactions = ({
         </Box>
       )}
 
-      {holdTheMarket && pendingPeriodicAprChange && pendingAprNotice && (
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: { xs: "stretch", sm: "center" },
-            justifyContent: "space-between",
-            flexDirection: { xs: "column", sm: "row" },
-            gap: "12px",
-            padding: "12px 16px",
-            borderRadius: "8px",
-            backgroundColor: COLORS.whiteSmoke,
-            border: `1px solid ${COLORS.iron}`,
-            mb: "24px",
-          }}
-        >
-          <Typography variant="text3" sx={{ color: COLORS.blackRock }}>
-            {pendingAprNotice}
-          </Typography>
-
-          {pendingPeriodicAprChange.isResponseWindowElapsed &&
-            (pendingAprNeedsSettlement ? (
-              <Button
-                variant="outlined"
-                color="secondary"
-                size="small"
-                disabled={isPendingAprSettlement}
-                onClick={handleSettleAndApplyPendingApr}
-                sx={{ flexShrink: 0 }}
-              >
-                {(() => {
-                  if (isPendingAprSettlement) {
-                    return t(
-                      "borrowerMarketDetails.parameters.pendingPeriodicApr.settling",
-                    )
-                  }
-                  if (
-                    (pendingAprSettlementQuote?.remainingBatchesAfterThisPass ??
-                      0) > 0
-                  ) {
-                    return t(
-                      "borrowerMarketDetails.parameters.pendingPeriodicApr.processBatchesProgress",
-                      {
-                        perPass: pendingAprSettlementQuote?.maxBatches,
-                        total: pendingAprSettlementQuote?.unpaidBatchCount,
-                      },
-                    )
-                  }
-                  return pendingAprSettlementQuote?.needsRepayment
+      {holdTheMarket &&
+        pendingPeriodicAprChange &&
+        pendingAprNotice &&
+        dismissedAprNoticeKey !== aprNoticeDismissKey && (
+          <PeriodicNoticeBanner
+            tone="info"
+            title={t(
+              "borrowerMarketDetails.parameters.pendingPeriodicApr.bannerTitle",
+              {
+                currentApr: currentAprFormatted,
+                proposedApr: pendingAprFormatted,
+              },
+            )}
+            body={pendingAprNotice}
+            onClose={() => setDismissedAprNoticeKey(aprNoticeDismissKey)}
+            sx={{ mb: "24px" }}
+            action={
+              pendingPeriodicAprChange.isResponseWindowElapsed &&
+              (pendingAprNeedsSettlement ? (
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  size="small"
+                  disabled={isPendingAprSettlement}
+                  onClick={handleSettleAndApplyPendingApr}
+                >
+                  {(() => {
+                    if (isPendingAprSettlement) {
+                      return t(
+                        "borrowerMarketDetails.parameters.pendingPeriodicApr.settling",
+                      )
+                    }
+                    if (
+                      (pendingAprSettlementQuote?.remainingBatchesAfterThisPass ??
+                        0) > 0
+                    ) {
+                      return t(
+                        "borrowerMarketDetails.parameters.pendingPeriodicApr.processBatchesProgress",
+                        {
+                          perPass: pendingAprSettlementQuote?.maxBatches,
+                          total: pendingAprSettlementQuote?.unpaidBatchCount,
+                        },
+                      )
+                    }
+                    return pendingAprSettlementQuote?.needsRepayment
+                      ? t(
+                          "borrowerMarketDetails.parameters.pendingPeriodicApr.settleAndApply",
+                        )
+                      : t(
+                          "borrowerMarketDetails.parameters.pendingPeriodicApr.processBatches",
+                        )
+                  })()}
+                </Button>
+              ) : (
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  size="small"
+                  disabled={!canExecutePendingApr || isPendingAprExecution}
+                  onClick={handleExecutePendingAprChange}
+                >
+                  {isPendingAprExecution
                     ? t(
-                        "borrowerMarketDetails.parameters.pendingPeriodicApr.settleAndApply",
+                        "borrowerMarketDetails.parameters.pendingPeriodicApr.executing",
                       )
                     : t(
-                        "borrowerMarketDetails.parameters.pendingPeriodicApr.processBatches",
-                      )
-                })()}
-              </Button>
-            ) : (
-              <Button
-                variant="outlined"
-                color="secondary"
-                size="small"
-                disabled={!canExecutePendingApr || isPendingAprExecution}
-                onClick={handleExecutePendingAprChange}
-                sx={{ flexShrink: 0 }}
-              >
-                {isPendingAprExecution
-                  ? t(
-                      "borrowerMarketDetails.parameters.pendingPeriodicApr.executing",
-                    )
-                  : t(
-                      "borrowerMarketDetails.parameters.pendingPeriodicApr.execute",
-                    )}
-              </Button>
-            ))}
-        </Box>
+                        "borrowerMarketDetails.parameters.pendingPeriodicApr.execute",
+                      )}
+                </Button>
+              ))
+            }
+          />
+        )}
+
+      {showAppliedAprNotice && (
+        <PeriodicNoticeBanner
+          tone="success"
+          title={t(
+            "borrowerMarketDetails.parameters.pendingPeriodicApr.appliedNoticeTitle",
+          )}
+          body={t(
+            "borrowerMarketDetails.parameters.pendingPeriodicApr.appliedNotice",
+            { currentApr: currentAprFormatted },
+          )}
+          onClose={() => setIsAppliedNoticeDismissed(true)}
+          sx={{ mb: "24px" }}
+        />
       )}
 
       <Box sx={MarketTxContainer}>
