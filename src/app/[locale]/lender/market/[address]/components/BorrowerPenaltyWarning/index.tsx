@@ -19,6 +19,7 @@ export const BorrowerPenaltyWarning = ({
     <Box
       sx={{
         width: "100%",
+        boxSizing: "border-box",
         border: `1px solid ${COLORS.cherub}`,
         borderRadius: isModal ? "8px" : { xs: "14px", md: "12px" },
         backgroundColor: COLORS.remy,
@@ -32,6 +33,8 @@ export const BorrowerPenaltyWarning = ({
           fontWeight: 600,
           lineHeight: isMobile ? "18px" : "20px",
           overflowWrap: "anywhere",
+          whiteSpace: "normal",
+          wordBreak: "break-word",
         }}
       >
         {t("lenderMarketDetails.borrowerPenaltyWarning")}
@@ -44,6 +47,7 @@ export const BorrowerPenaltyWarning = ({
       <Box
         sx={{
           width: "100%",
+          boxSizing: "border-box",
           padding: { xs: "0 20px", md: "0 36px" },
           marginBottom: "12px",
         }}
@@ -57,6 +61,7 @@ export const BorrowerPenaltyWarning = ({
     <Box
       sx={{
         width: "100%",
+        boxSizing: "border-box",
         padding: { xs: "4px 0 0", md: "0 32.3% 12px 44px" },
       }}
     >
