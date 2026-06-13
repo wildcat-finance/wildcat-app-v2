@@ -51,7 +51,10 @@ export const useBorrowerPenaltyWarning = (market: Market | undefined) => {
         chainId,
         signerOrProvider: signerOrProvider as SignerOrProvider,
         fetchPolicy: "network-only",
-        marketFilter: combineFilters(EXCLUDED_MARKETS_FILTER),
+        marketFilter: combineFilters([
+          { borrower: borrowerAddress },
+          ...EXCLUDED_MARKETS_FILTER,
+        ]),
         shouldSkipRecords: true,
       })
       const updatedMarkets = await updateMarkets(
