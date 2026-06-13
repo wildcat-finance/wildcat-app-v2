@@ -34,6 +34,7 @@ export const BorrowerPenaltyWarning = ({
         sx={{
           fontWeight: 600,
           lineHeight: isMobile ? "18px" : "20px",
+          display: "block",
           maxWidth: "100%",
           minWidth: 0,
           overflowWrap: "anywhere",
@@ -50,12 +51,11 @@ export const BorrowerPenaltyWarning = ({
     return (
       <Box
         sx={{
-          width: "100%",
-          maxWidth: "100%",
+          width: { xs: "calc(100% - 40px)", md: "368px" },
+          maxWidth: { xs: "calc(100% - 40px)", md: "368px" },
           minWidth: 0,
           boxSizing: "border-box",
-          padding: { xs: "0 20px", md: "0 36px" },
-          marginBottom: "12px",
+          margin: { xs: "0 20px 12px", md: "0 36px 12px" },
         }}
       >
         {warning}

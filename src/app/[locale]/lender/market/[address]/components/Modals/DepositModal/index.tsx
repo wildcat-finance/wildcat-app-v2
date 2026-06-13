@@ -688,8 +688,9 @@ export const DepositModal = ({
         <Dialog
           open={modal.isModalOpen}
           onClose={isDepositing ? undefined : modal.handleCloseModal}
-          sx={{
-            "& .MuiDialog-paper": {
+          maxWidth={false}
+          PaperProps={{
+            sx: {
               height: "auto",
               minHeight: "404px",
               maxHeight: "none",
@@ -701,6 +702,7 @@ export const DepositModal = ({
               borderRadius: "20px",
               margin: 0,
               padding: "24px 0",
+              overflowX: "hidden",
               overflowY: "visible",
             },
           }}
