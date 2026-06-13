@@ -1055,6 +1055,7 @@
   },
   "lenderMarketDetails": {
     "noDataAvailable": "No Data Available",
+    "borrowerPenaltyWarning": "INFO: AT LEAST ONE MARKET DEPLOYED BY THIS BORROWER HAS NOT HONOURED WITHDRAWAL REQUESTS FOR AT LEAST THIRTY DAYS PAST ITS GRACE PERIOD",
     "sidebar": {
       "actions": "Deposit & Withdraw",
       "status": "Status and Details",

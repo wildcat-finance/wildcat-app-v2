@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
+import { BorrowerPenaltyWarning } from "@/app/[locale]/lender/market/[address]/components/BorrowerPenaltyWarning"
 import { MobileMarketActions } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMarketActions"
 import { MobileMlaAlert } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaAlert"
 import { MobileMlaModal } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaModal/MobileMlaModal"
@@ -52,6 +53,7 @@ import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
 import { MarketActions } from "./components/MarketActions"
 import { MarketSummary } from "./components/MarketSummary"
 import { WrapDebtToken } from "./components/WrapDebtToken"
+import { useBorrowerPenaltyWarning } from "./hooks/useBorrowerPenaltyWarning"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
@@ -97,6 +99,8 @@ export default function LenderMarketDetails({
     address.toLowerCase(),
     market?.chainId ?? selectedChainId,
   )
+  const { shouldWarn: showBorrowerPenaltyWarning } =
+    useBorrowerPenaltyWarning(market)
 
   const hasMarketDescription =
     !!marketSummary && marketSummary?.description !== ""
@@ -318,6 +322,7 @@ export default function LenderMarketDetails({
         isMobileOpen={isMobileDepositOpen}
         setIsMobileOpen={setIsMobileDepositOpen}
         marketAccount={marketAccount}
+        showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
       />
     )
 
@@ -427,6 +432,8 @@ export default function LenderMarketDetails({
             hasMarketDescription={hasMarketDescription}
           />
 
+          {showBorrowerPenaltyWarning && <BorrowerPenaltyWarning />}
+
           <Box id="depositWithdraw">
             <BarCharts
               marketAccount={marketAccount}
@@ -519,6 +526,8 @@ export default function LenderMarketDetails({
           <SwitchChainAlert desiredChainId={market?.chainId} />
         )}
 
+        {showBorrowerPenaltyWarning && <BorrowerPenaltyWarning />}
+
         <Box sx={SectionContainer(theme, isDifferentChain)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (
             <Box>
@@ -526,6 +535,7 @@ export default function LenderMarketDetails({
                 <MarketActions
                   marketAccount={marketAccount}
                   withdrawals={withdrawals}
+                  showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
                 />
               )}
               <CapacityBarChart

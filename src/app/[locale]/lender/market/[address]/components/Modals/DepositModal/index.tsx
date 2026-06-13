@@ -18,6 +18,7 @@ import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/component
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { useApprovalModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
 import { useApprove } from "@/app/[locale]/borrower/market/[address]/hooks/useGetApproval"
+import { BorrowerPenaltyWarning } from "@/app/[locale]/lender/market/[address]/components/BorrowerPenaltyWarning"
 import { useGetBorrowerProfile } from "@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile"
 import Alert from "@/assets/icons/circledAlert_icon.svg"
 import Clock from "@/assets/icons/clock_icon.svg"
@@ -112,6 +113,7 @@ export const DepositModal = ({
   marketAccount,
   isMobileOpen,
   setIsMobileOpen,
+  showBorrowerPenaltyWarning,
 }: DepositModalProps) => {
   const isMobile = useMobileResolution()
 
@@ -580,6 +582,10 @@ export const DepositModal = ({
             />
           )}
 
+          {showForm && showBorrowerPenaltyWarning && (
+            <BorrowerPenaltyWarning variant="modal" />
+          )}
+
           <TxModalFooter
             mainBtnText={t("lenderMarketDetails.transactions.deposit.button")}
             secondBtnText={
@@ -902,6 +908,10 @@ export const DepositModal = ({
               legalName={borrowerLegalName}
               alias={displayedBorrowerAlias}
             />
+          )}
+
+          {showForm && showBorrowerPenaltyWarning && (
+            <BorrowerPenaltyWarning variant="modal" />
           )}
 
           <TxModalFooter
