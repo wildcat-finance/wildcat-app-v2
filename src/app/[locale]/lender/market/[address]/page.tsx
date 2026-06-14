@@ -57,7 +57,12 @@ import { useBorrowerPenaltyWarning } from "./hooks/useBorrowerPenaltyWarning"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
-import { SectionContainer, SkeletonContainer, SkeletonStyle } from "./style"
+import {
+  MarketContentColumn,
+  SectionContainer,
+  SkeletonContainer,
+  SkeletonStyle,
+} from "./style"
 import { getEffectiveLenderRole } from "./utils"
 
 export default function LenderMarketDetails({
@@ -519,16 +524,16 @@ export default function LenderMarketDetails({
 
   return (
     <Box>
-      <Box>
-        <MarketHeader marketAccount={marketAccount} />
+      <MarketHeader marketAccount={marketAccount} />
 
-        {isDifferentChain && (
-          <SwitchChainAlert desiredChainId={market?.chainId} />
-        )}
+      {isDifferentChain && (
+        <SwitchChainAlert desiredChainId={market?.chainId} />
+      )}
 
+      <Box sx={MarketContentColumn(theme, isDifferentChain)}>
         {showBorrowerPenaltyWarning && <BorrowerPenaltyWarning />}
 
-        <Box sx={SectionContainer(theme, isDifferentChain)}>
+        <Box sx={SectionContainer(theme)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (
             <Box>
               {authorizedInMarket && !isDifferentChain && (

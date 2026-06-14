@@ -1055,7 +1055,7 @@
   },
   "lenderMarketDetails": {
     "noDataAvailable": "No Data Available",
-    "borrowerPenaltyWarning": "INFO: AT LEAST ONE MARKET DEPLOYED BY THIS BORROWER HAS NOT HONOURED WITHDRAWAL REQUESTS FOR AT LEAST THIRTY DAYS PAST ITS GRACE PERIOD",
+    "borrowerPenaltyWarning": "INFO: AT LEAST ONE MARKET DEPLOYED BY THIS BORROWER HAS NOT HONOURED WITHDRAWAL REQUESTS FOR AT LEAST THIRTY DAYS PAST THEIR SELF-IMPOSED GRACE PERIOD.",
     "sidebar": {
       "actions": "Deposit & Withdraw",
       "status": "Status and Details",
@@ -1444,7 +1444,6 @@
         "label": "Deploy wrapper contract for this market",
         "explainer": "If you don’t deploy now, anyone can deploy later. Deploying now makes the wrapper ready for lenders immediately."
       }
-
     },
     "mla": {
       "title": "Loan Agreement",
