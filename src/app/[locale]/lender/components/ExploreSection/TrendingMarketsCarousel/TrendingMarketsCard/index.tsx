@@ -164,7 +164,7 @@ export const TrendingMarketCard = ({
               color={COLORS.white}
               sx={{ whiteSpace: "nowrap" }}
             >
-              {formatBps(apr)}% APY
+              {formatBps(apr)}% APR
             </Typography>
           </Box>
           <Typography
