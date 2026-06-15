@@ -79,7 +79,7 @@ import { getMarketTypeChip } from "@/utils/marketType"
 const SORT_OPTIONS = [
   "Most Funded",
   "Highest Yield",
-  "Remaining Capacity",
+  "Most Liquid",
   "Newest",
 ] as const
 
@@ -178,11 +178,8 @@ export const ExploreMarketsTable = () => {
   const { marketAccounts, borrowers, isLoadingInitial, isLoadingUpdate } =
     useLenderMarketsContext()
   const { isTestnet } = useCurrentNetwork()
-  const {
-    qualifyingMarkets,
-    isLoading: isInflowLoading,
-    isError: isInflowError,
-  } = useMarketsWithRecentInflow()
+  const { isMarketQualifying, isLoading: isInflowLoading } =
+    useMarketsWithRecentInflow()
 
   const isLoading = isLoadingInitial || isLoadingUpdate || isInflowLoading
 
@@ -229,8 +226,7 @@ export const ExploreMarketsTable = () => {
       if (!gateActive) return !a.market.isClosed
       return (
         isExploreVisible(a.market) &&
-        (isInflowError ||
-          qualifyingMarkets.has(a.market.address.toLowerCase())) &&
+        isMarketQualifying(a) &&
         !penaltyBorrowers.has(a.market.borrower.toLowerCase())
       )
     })
@@ -251,7 +247,7 @@ export const ExploreMarketsTable = () => {
       if (sortMode === "Highest Yield") {
         return compareByHighestYield(a, b)
       }
-      if (sortMode === "Remaining Capacity") {
+      if (sortMode === "Most Liquid") {
         const capA = a.market.maxTotalSupply.sub(a.market.totalSupply)
         const capB = b.market.maxTotalSupply.sub(b.market.totalSupply)
         return tokenAmountComparator(capB, capA)
@@ -317,8 +313,7 @@ export const ExploreMarketsTable = () => {
     showSelfOnboard,
     showOnboardByBorrower,
     isLoadingUpdate,
-    qualifyingMarkets,
-    isInflowError,
+    isMarketQualifying,
   ])
 
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [

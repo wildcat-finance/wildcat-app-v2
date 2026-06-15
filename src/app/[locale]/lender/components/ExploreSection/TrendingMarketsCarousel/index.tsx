@@ -206,11 +206,8 @@ export const TrendingMarketsCarousel = () => {
   const { marketAccounts, borrowers, isLoadingInitial, isLoadingUpdate } =
     useLenderMarketsContext()
   const { data: recentDeposits } = useRecentDeposits()
-  const {
-    qualifyingMarkets,
-    isLoading: isInflowLoading,
-    isError: isInflowError,
-  } = useMarketsWithRecentInflow()
+  const { isMarketQualifying, isLoading: isInflowLoading } =
+    useMarketsWithRecentInflow()
   const dragScroll = useDragScroll()
 
   const isLoading = isLoadingInitial || isLoadingUpdate || isInflowLoading
@@ -239,8 +236,7 @@ export const TrendingMarketsCarousel = () => {
         isExploreVisible(a.market) &&
         a.market.maxTotalSupply.gt(0) &&
         !penaltyBorrowers.has(a.market.borrower.toLowerCase()) &&
-        (isInflowError ||
-          qualifyingMarkets.has(a.market.address.toLowerCase())),
+        isMarketQualifying(a),
     )
     if (eligible.length === 0) return []
 
@@ -414,8 +410,7 @@ export const TrendingMarketsCarousel = () => {
     recentDeposits,
     priceMap,
     isLoadingUpdate,
-    qualifyingMarkets,
-    isInflowError,
+    isMarketQualifying,
   ])
 
   const isMobile = useMobileResolution()

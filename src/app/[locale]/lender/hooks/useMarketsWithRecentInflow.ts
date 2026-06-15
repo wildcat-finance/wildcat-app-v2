@@ -1,8 +1,9 @@
 "use client"
 
-import { useMemo } from "react"
+import { useCallback, useMemo } from "react"
 
 import { useQuery } from "@tanstack/react-query"
+import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { RECENT_DEPOSITS } from "@/graphql/queries"
@@ -18,13 +19,18 @@ type RecentInflowNode = {
   market: { id: string }
 }
 
+type InflowWindow = {
+  markets: Set<string>
+  windowStart: number
+}
+
 export const useMarketsWithRecentInflow = () => {
   const subgraphClient = useSubgraphClient()
   const { targetChainId, isTestnet } = useCurrentNetwork()
 
   const { data, isLoading, isError } = useQuery({
     queryKey: QueryKeys.Lender.GET_MARKETS_WITH_RECENT_INFLOW(targetChainId),
-    queryFn: async (): Promise<Set<string>> => {
+    queryFn: async (): Promise<InflowWindow> => {
       const windowDays = isTestnet ? TESTNET_WINDOW_DAYS : MAINNET_WINDOW_DAYS
       const windowStart =
         Math.floor(Date.now() / 1000) - windowDays * DAY_SECONDS
@@ -40,18 +46,29 @@ export const useMarketsWithRecentInflow = () => {
         fetchPolicy: "network-only",
       })
 
-      return new Set(
-        response.deposits.map((deposit) => deposit.market.id.toLowerCase()),
-      )
+      return {
+        markets: new Set(
+          response.deposits.map((deposit) => deposit.market.id.toLowerCase()),
+        ),
+        windowStart,
+      }
     },
     staleTime: 60_000,
   })
 
-  const empty = useMemo(() => new Set<string>(), [])
+  const empty = useMemo<InflowWindow>(
+    () => ({ markets: new Set<string>(), windowStart: 0 }),
+    [],
+  )
+  const { markets, windowStart } = data ?? empty
 
-  return {
-    qualifyingMarkets: data ?? empty,
-    isLoading,
-    isError,
-  }
+  const isMarketQualifying = useCallback(
+    (account: MarketAccount): boolean =>
+      isError ||
+      markets.has(account.market.address.toLowerCase()) ||
+      (account.market.deployedEvent?.blockTimestamp ?? 0) >= windowStart,
+    [markets, windowStart, isError],
+  )
+
+  return { isMarketQualifying, isLoading, isError }
 }
