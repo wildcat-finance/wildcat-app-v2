@@ -154,11 +154,8 @@ export const TopMarketsSection = () => {
   const { t } = useTranslation()
   const { marketAccounts, borrowers, isLoadingInitial, isLoadingUpdate } =
     useLenderMarketsContext()
-  const {
-    qualifyingMarkets,
-    isLoading: isInflowLoading,
-    isError: isInflowError,
-  } = useMarketsWithRecentInflow()
+  const { isMarketQualifying, isLoading: isInflowLoading } =
+    useMarketsWithRecentInflow()
 
   const [sortMode, setSortMode] = useState(SORT_OPTIONS[0])
 
@@ -176,8 +173,7 @@ export const TopMarketsSection = () => {
         a.market.version === MarketVersion.V2 &&
         a.depositAvailability === DepositStatus.Ready &&
         !penaltyBorrowers.has(a.market.borrower.toLowerCase()) &&
-        (isInflowError ||
-          qualifyingMarkets.has(a.market.address.toLowerCase())),
+        isMarketQualifying(a),
     )
 
     const sorted = [...active].sort((a, b) => {
@@ -231,14 +227,7 @@ export const TopMarketsSection = () => {
         chainId,
       }
     })
-  }, [
-    marketAccounts,
-    borrowers,
-    sortMode,
-    isLoadingUpdate,
-    qualifyingMarkets,
-    isInflowError,
-  ])
+  }, [marketAccounts, borrowers, sortMode, isLoadingUpdate, isMarketQualifying])
 
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
     {
