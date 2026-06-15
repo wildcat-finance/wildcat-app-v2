@@ -288,6 +288,8 @@ const LENDER_QUERY_KEYS = {
     marketAddress?: string,
     lenderAddress?: string,
   ) => k(["lender", "GET_SIGNED_MLA", chainId, marketAddress, lenderAddress]),
+  GET_BORROWER_PENALTY_WARNING: (chainId: number, borrowerAddress?: string) =>
+    k(["lender", "GET_BORROWER_PENALTY_WARNING", chainId, borrowerAddress]),
 } as const
 
 const WRAPPER_QUERY_KEYS = {
