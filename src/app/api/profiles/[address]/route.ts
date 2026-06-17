@@ -71,19 +71,30 @@ export async function DELETE(
   ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
-  const borrower = address
+  const borrower = address === "all" ? address : address?.toLowerCase()
   if (!borrower) {
     return NextResponse.json(
       { success: false, message: "No Borrower Provided" },
       { status: 400 },
     )
   }
-  const result = await prisma.borrower.deleteMany({
-    where: {
-      chainId,
-      ...(borrower !== "all" && { address: borrower }),
-    },
-  })
+  // ToU acceptances die with the borrower rows (replaces the old table's
+  // onDelete cascade).
+  const [result] = await prisma.$transaction([
+    prisma.borrower.deleteMany({
+      where: {
+        chainId,
+        ...(borrower !== "all" && { address: borrower }),
+      },
+    }),
+    prisma.serviceAgreementSignature.deleteMany({
+      where: {
+        chainId,
+        party: "Borrower",
+        ...(borrower !== "all" && { address: borrower }),
+      },
+    }),
+  ])
   return NextResponse.json({ success: true, deleted: result.count })
 }
 

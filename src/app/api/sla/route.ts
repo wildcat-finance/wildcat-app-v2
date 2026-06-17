@@ -1,18 +1,17 @@
 import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
-import { keccak256, toUtf8Bytes } from "ethers/lib/utils"
 import { NextRequest, NextResponse } from "next/server"
 
-import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { prisma } from "@/lib/db"
-import { getProviderForServer } from "@/lib/provider"
-import { verifySignature } from "@/lib/signatures"
+import {
+  getCurrentServiceAgreement,
+  requireLegacyWrapperHash,
+  saveServiceAgreementSignature,
+  verifyServiceAgreementSignature,
+} from "@/lib/serviceAgreement"
 import { getZodParseError } from "@/lib/zod-error"
-import { formatUnixMsAsDate } from "@/utils/formatters"
 
 import { ServiceAgreementSignatureInputDTO } from "./dto"
 import { ServiceAgreementSignatureInput } from "./interface"
-
-const ServiceAgreementVersion = keccak256(toUtf8Bytes(AgreementText))
 
 export async function POST(request: NextRequest) {
   let body: ServiceAgreementSignatureInput
@@ -28,28 +27,39 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     return getZodParseError(error)
   }
-  const { signature, timeSigned } = body
+  const { chainId, signature, timeSigned } = body
   const address = body.address.toLowerCase()
-  const dateSigned = formatUnixMsAsDate(timeSigned)
-  const agreementText = `${AgreementText}\n\nDate: ${dateSigned}`
-  const provider = getProviderForServer(body.chainId)
-  const result = await verifySignature({
-    provider,
-    signature,
-    message: agreementText,
+  const agreement = await getCurrentServiceAgreement()
+  const verified = await verifyServiceAgreementSignature({
+    agreement,
+    chainId,
     address,
-    allowSingleSafeOwner: false,
+    party: "Lender",
+    signature,
+    timeSigned,
   })
-  if (!result) {
+  if (!verified) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
-  await prisma.lenderServiceAgreementSignature.create({
-    data: {
-      chainId: body.chainId,
+  // New table first, old table second (compatibility dual-write, removed in
+  // Release 2). Both writes are idempotent.
+  await saveServiceAgreementSignature(verified)
+  const serviceAgreementHash = requireLegacyWrapperHash(agreement)
+  await prisma.lenderServiceAgreementSignature.upsert({
+    where: {
+      chainId_signer_serviceAgreementHash: {
+        chainId,
+        signer: address,
+        serviceAgreementHash,
+      },
+    },
+    update: {},
+    create: {
+      chainId,
       signer: address,
       signature,
-      timeSigned: new Date(timeSigned).toISOString(),
-      serviceAgreementHash: ServiceAgreementVersion,
+      timeSigned: new Date(timeSigned),
+      serviceAgreementHash,
     },
   })
   return NextResponse.json({ success: true })

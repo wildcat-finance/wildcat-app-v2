@@ -25,14 +25,10 @@ ADD COLUMN "chainId" INTEGER;
 DELETE FROM "AdminAccount";
 
 INSERT INTO "AdminAccount" ("chainId", "address") VALUES
-  (1, '0x240334405021f4242d57a3785df39edc23e1b607'),
-  (1, '0x0326bfaf89c759251916fa1c1c97f2f3378047c6'),
-  (11155111, '0xa26845d12314c581f18d1ba36fd3b8feb7b3a1c4'),
-  (11155111, '0xca732651410e915090d7a7d889a1e44ef4575fce'),
-  (9745, '0x240334405021f4242d57a3785df39edc23e1b607'),
-  (9745, '0x0326bfaf89c759251916fa1c1c97f2f3378047c6'),
-  (9746, '0xa26845d12314c581f18d1ba36fd3b8feb7b3a1c4'),
-  (9746, '0xca732651410e915090d7a7d889a1e44ef4575fce');
+  (1, '0xc15be5214978d1fc509ecdd4f9d5bc067c94d9ae'),
+  (11155111, '0xf01d00e06efe26272caf01c79c71a46a8ff22601'),
+  (9745, '0xc15be5214978d1fc509ecdd4f9d5bc067c94d9ae'),
+  (9746, '0xf01d00e06efe26272caf01c79c71a46a8ff22601');
 
 -- Existing template 1 is old hidden Sepolia template.
 UPDATE "MlaTemplate"

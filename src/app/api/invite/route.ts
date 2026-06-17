@@ -2,10 +2,8 @@ import {
   getArchControllerContract,
   isSupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
-import { keccak256, toUtf8Bytes } from "ethers/lib/utils"
 import { NextRequest, NextResponse } from "next/server"
 
-import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import {
   findBorrowersWithPendingInvitations,
   findBorrowerWithPendingInvitation,
@@ -13,10 +11,15 @@ import {
   tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered,
 } from "@/lib/db"
 import { getProviderForServer } from "@/lib/provider"
-import { verifySignature } from "@/lib/signatures"
+import { tryResolveRegisteredBy } from "@/lib/registrar"
+import {
+  getCurrentServiceAgreement,
+  requireLegacyWrapperHash,
+  saveServiceAgreementSignature,
+  verifyServiceAgreementSignature,
+} from "@/lib/serviceAgreement"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 import { getZodParseError } from "@/lib/zod-error"
-import { formatUnixMsAsDate } from "@/utils/formatters"
 
 import { AcceptInvitationInputDTO, BorrowerInvitationInputDTO } from "./dto"
 import {
@@ -102,6 +105,9 @@ export async function POST(request: NextRequest) {
   if (!existingBorrower) {
     const isRegisteredBorrower =
       await archController.isRegisteredBorrower(address)
+    const registeredBy = isRegisteredBorrower
+      ? await tryResolveRegisteredBy(chainId, address, provider)
+      : undefined
     await prisma.borrower.create({
       data: {
         chainId,
@@ -115,6 +121,7 @@ export async function POST(request: NextRequest) {
         jurisdiction,
         physicalAddress,
         registeredOnChain: isRegisteredBorrower,
+        ...(registeredBy ? { registeredBy } : {}),
         invitation: {
           create: {
             inviter,
@@ -252,25 +259,39 @@ export async function DELETE(request: NextRequest) {
       { status: 400 },
     )
   }
-  const borrower = await findBorrowerWithPendingInvitation(address, chainId)
+  const borrowerAddress = address.toLowerCase()
+  const borrower = await findBorrowerWithPendingInvitation(
+    borrowerAddress,
+    chainId,
+  )
   await prisma.borrowerInvitation.delete({
     where: {
       chainId_address: {
         chainId,
-        address,
+        address: borrowerAddress,
       },
     },
   })
   if (borrower) {
-    // Delete borrower as well as invitation
-    await prisma.borrower.delete({
-      where: {
-        chainId_address: {
+    // Delete borrower as well as invitation. ToU acceptances die with the
+    // borrower row (replaces the old table's onDelete cascade).
+    await prisma.$transaction([
+      prisma.serviceAgreementSignature.deleteMany({
+        where: {
           chainId,
-          address,
+          address: borrowerAddress,
+          party: "Borrower",
         },
-      },
-    })
+      }),
+      prisma.borrower.delete({
+        where: {
+          chainId_address: {
+            chainId,
+            address: borrowerAddress,
+          },
+        },
+      }),
+    ])
   }
   return NextResponse.json({ success: true })
 }
@@ -337,22 +358,17 @@ export async function PUT(request: NextRequest) {
       { status: 404 },
     )
   }
-  let agreementText = AgreementText
-  if (timeSigned) {
-    const dateSigned = formatUnixMsAsDate(timeSigned)
-    agreementText = `${agreementText}\n\nDate: ${dateSigned}`
-  }
-  agreementText = `${agreementText}\n\nOrganization Name: ${name}`
-  const provider = getProviderForServer(chainId)
-
-  const result = await verifySignature({
-    provider,
-    signature,
-    message: agreementText,
+  const agreement = await getCurrentServiceAgreement()
+  const verified = await verifyServiceAgreementSignature({
+    agreement,
+    chainId,
     address,
-    allowSingleSafeOwner: false,
+    party: "Borrower",
+    signature,
+    timeSigned,
+    organizationName: name,
   })
-  if (!result) {
+  if (!verified) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
   console.log(`--- accept invite ---`)
@@ -397,14 +413,25 @@ export async function PUT(request: NextRequest) {
       },
     })
   }
-  await prisma.borrowerServiceAgreementSignature.create({
-    data: {
+  // New table first, old table second (compatibility dual-write, removed in
+  // Release 2). Both writes are idempotent.
+  await saveServiceAgreementSignature(verified)
+  const serviceAgreementHash = requireLegacyWrapperHash(agreement)
+  await prisma.borrowerServiceAgreementSignature.upsert({
+    where: {
+      chainId_address: {
+        chainId,
+        address,
+      },
+    },
+    update: {},
+    create: {
       chainId,
       address,
       signature,
       timeSigned: new Date(timeSigned),
       borrowerName: name,
-      serviceAgreementHash: keccak256(toUtf8Bytes(AgreementText)),
+      serviceAgreementHash,
     },
   })
   return NextResponse.json({ success: true })

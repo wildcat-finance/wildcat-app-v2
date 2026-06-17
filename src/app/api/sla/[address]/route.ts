@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { prisma } from "@/lib/db"
+import { hasSignedServiceAgreement, prisma } from "@/lib/db"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 /// GET /api/sla/[address]?chainId=<chainId>
@@ -13,14 +13,8 @@ export async function GET(
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
   }
   const address = params.address.toLowerCase()
-  const signature = await prisma.lenderServiceAgreementSignature.findFirst({
-    where: {
-      signer: address.toLowerCase(),
-      chainId,
-    },
-  })
-
-  return NextResponse.json({ isSigned: !!signature })
+  const isSigned = await hasSignedServiceAgreement(chainId, address)
+  return NextResponse.json({ isSigned })
 }
 
 /// DELETE /api/sla/[address]?chainId=<chainId>
@@ -36,9 +30,18 @@ export async function DELETE(
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
   }
   const address = params.address.toLowerCase()
+  // Clear the lender's signed status from both tables during the compatibility
+  // window; the old-table delete is removed in Release 2.
+  await prisma.serviceAgreementSignature.deleteMany({
+    where: {
+      chainId,
+      address,
+      party: "Lender",
+    },
+  })
   await prisma.lenderServiceAgreementSignature.deleteMany({
     where: {
-      signer: address.toLowerCase(),
+      signer: address,
       chainId,
     },
   })

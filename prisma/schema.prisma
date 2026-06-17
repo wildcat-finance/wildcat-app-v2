@@ -25,6 +25,11 @@ enum SignatureKind {
   EIP1271
 }
 
+enum ServiceAgreementParty {
+  Borrower
+  Lender
+}
+
 // @todo - need to make the borrower/lender signatures distinct as the borrower
 // can technically also be a lender, but that would use a different message
 
@@ -136,6 +141,50 @@ model BorrowerServiceAgreementSignature {
   @@id([chainId, address])
 }
 
+// One immutable ToU version. Global, not chain-scoped.
+model ServiceAgreement {
+  id                  Int      @id @default(autoincrement())
+  version             String
+  plaintext           String
+  html                String
+  plaintextSha256     String   @unique // bare lowercase SHA-256 hex of plaintext
+  legacyWrapperHash   String?  @unique // 0x-prefixed keccak256 of the signed wrapper
+  acknowledgementText String   // exact wrapper body, no Date / Organization Name lines
+  effectiveDate       DateTime
+  isCurrent           Boolean  @default(false)
+  createdAt           DateTime @default(now())
+
+  signatures ServiceAgreementSignature[]
+}
+
+// One ToU acceptance. Chain-scoped, serves both parties.
+// No FK to Borrower: borrower deletion must delete these rows explicitly.
+model ServiceAgreementSignature {
+  id                 Int                   @id @default(autoincrement())
+  chainId            Int
+  address            String
+  // If the signature is from a single owner of a gnosis safe, this is the address of the
+  // owner that made the signature; otherwise, it's the same as `address`
+  signer             String
+  party              ServiceAgreementParty
+  serviceAgreementId Int
+  signature          String
+  // NULL for backfilled legacy rows; always set for new rows
+  kind               SignatureKind?
+  // The block number at which the signature was verified - only relevant for non-EOA signatures
+  blockNumber        Int?
+  timeSigned         DateTime
+  organizationName   String?
+  // Exact signed message for new rows; reconstructed (or NULL) for legacy rows
+  signedMessage      String?
+  createdAt          DateTime              @default(now())
+
+  serviceAgreement ServiceAgreement @relation(fields: [serviceAgreementId], references: [id])
+
+  @@unique([chainId, address, party, serviceAgreementId])
+  @@index([serviceAgreementId])
+}
+
 model BorrowerInvitation {
   id              Int      @id @default(autoincrement())
   chainId         Int
@@ -176,6 +225,9 @@ model Borrower {
   entityKind        String?
   additionalUrls    Json?
   registeredOnChain Boolean
+  // Raw `from` of the tx that emitted BorrowerAdded; may be a Safe executor/relayer.
+  // NULL = not yet resolved.
+  registeredBy      String?
 
   invitation                BorrowerInvitation?                @relation("BorrowerToInvitation")
   serviceAgreementSignature BorrowerServiceAgreementSignature? @relation("BorrowerToServiceAgreementSignature")

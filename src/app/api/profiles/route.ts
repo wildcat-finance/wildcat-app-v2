@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import {
+  getBorrowerAcceptanceTimes,
   prisma,
   tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered,
 } from "@/lib/db"
@@ -27,9 +28,6 @@ export async function GET(request: NextRequest) {
     where: {
       chainId,
       registeredOnChain: true,
-      NOT: {
-        serviceAgreementSignature: null,
-      },
     },
     include: {
       invitation: {
@@ -37,36 +35,37 @@ export async function GET(request: NextRequest) {
           timeInvited: true,
         },
       },
-      serviceAgreementSignature: {
-        select: {
-          timeSigned: true,
-        },
-      },
     },
   })
-  const allProfiles = data.map(
-    (borrower) =>
-      ({
-        address: borrower.address,
-        chainId: borrower.chainId,
-        name: borrower.name || undefined,
-        description: borrower.description || undefined,
-        founded: borrower.founded || undefined,
-        headquarters: borrower.headquarters || undefined,
-        website: borrower.website || undefined,
-        twitter: borrower.twitter || undefined,
-        telegram: borrower.telegram || undefined,
-        linkedin: borrower.linkedin || undefined,
-        email: borrower.email || undefined,
-        registeredOnChain: borrower.registeredOnChain,
-        entityKind: borrower.entityKind || undefined,
-        jurisdiction: borrower.jurisdiction || undefined,
-        physicalAddress: borrower.physicalAddress || undefined,
-        timeInvited: borrower.invitation?.timeInvited || undefined,
-        timeSigned: borrower.serviceAgreementSignature?.timeSigned || undefined,
-        additionalUrls: borrower.additionalUrls || undefined,
-      }) as BorrowerProfileForAdminView,
+  const acceptanceTimes = await getBorrowerAcceptanceTimes(
+    chainId,
+    data.map(({ address }) => address),
   )
+  const allProfiles = data
+    .filter((borrower) => acceptanceTimes.has(borrower.address))
+    .map(
+      (borrower) =>
+        ({
+          address: borrower.address,
+          chainId: borrower.chainId,
+          name: borrower.name || undefined,
+          description: borrower.description || undefined,
+          founded: borrower.founded || undefined,
+          headquarters: borrower.headquarters || undefined,
+          website: borrower.website || undefined,
+          twitter: borrower.twitter || undefined,
+          telegram: borrower.telegram || undefined,
+          linkedin: borrower.linkedin || undefined,
+          email: borrower.email || undefined,
+          registeredOnChain: borrower.registeredOnChain,
+          entityKind: borrower.entityKind || undefined,
+          jurisdiction: borrower.jurisdiction || undefined,
+          physicalAddress: borrower.physicalAddress || undefined,
+          timeInvited: borrower.invitation?.timeInvited || undefined,
+          timeSigned: acceptanceTimes.get(borrower.address),
+          additionalUrls: borrower.additionalUrls || undefined,
+        }) as BorrowerProfileForAdminView,
+    )
 
   return NextResponse.json(allProfiles)
 }
