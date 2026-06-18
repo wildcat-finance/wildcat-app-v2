@@ -24,6 +24,7 @@ export type LenderPositionRow = {
   apr: number
   utilization: number
   status: "Active" | "Delinquent" | "Penalty" | "Closed"
+  termEndTime: number
   addedDate: string
 }
 
@@ -95,4 +96,17 @@ export type LenderRiskReturnsPoint = {
   lenderWithdrawalsUsd: number
   marketWithdrawalsUsd: number
   lenderWithdrawalSharePct: number
+}
+
+export type LenderInterestBreakdownEntry = {
+  baseUsd: number
+  penaltyUsd: number
+  totalInterestUsd: number
+  inHandUsd: number
+  inProtocolUsd: number
+}
+
+export type LenderInterestBreakdown = {
+  portfolio: LenderInterestBreakdownEntry
+  byMarket: Record<string, LenderInterestBreakdownEntry>
 }

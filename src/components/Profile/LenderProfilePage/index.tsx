@@ -75,7 +75,7 @@ export const LenderProfilePage = ({
         width: "100%",
         height: isMobile ? "auto" : `calc(100vh - ${pageCalcHeights.page})`,
         overflowY: isMobile ? "visible" : "auto",
-        padding: isMobile ? "0" : "44px 44px 24px 44px",
+        padding: isMobile ? "0" : "32px 20px 0 16px",
         display: "flex",
         flexDirection: "column",
         gap: "24px",

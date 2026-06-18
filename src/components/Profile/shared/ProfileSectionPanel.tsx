@@ -42,7 +42,7 @@ export const ProfileSectionPanel = ({
         marginBottom: subtitle ? "6px" : { xs: "12px", md: "24px" },
       }}
     >
-      <Typography variant="title2" display="block" sx={{ minWidth: 0 }}>
+      <Typography variant="title3" display="block" sx={{ minWidth: 0 }}>
         {title}
       </Typography>
       {actions}

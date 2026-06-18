@@ -53,6 +53,9 @@ const GET_LENDER_PROFILE_POSITIONS = gql`
         isDelinquent
         isIncurringPenalties
         isClosed
+        hooksConfig {
+          fixedTermEndTime
+        }
         asset {
           address
           symbol
@@ -90,6 +93,9 @@ type LenderProfilePositionsQuery = {
       isDelinquent: boolean
       isIncurringPenalties: boolean
       isClosed: boolean
+      hooksConfig: {
+        fixedTermEndTime: number
+      } | null
       asset: {
         address: string
         symbol: string
@@ -271,6 +277,7 @@ export const useLenderPositions = (
             account.market.isIncurringPenalties,
             account.market.isDelinquent,
           ),
+          termEndTime: account.market.hooksConfig?.fixedTermEndTime ?? 0,
           addedDate: formatDate(account.addedTimestamp),
         }
       })
