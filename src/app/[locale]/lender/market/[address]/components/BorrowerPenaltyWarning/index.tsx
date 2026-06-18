@@ -1,6 +1,7 @@
-import { Box, Typography } from "@mui/material"
+import { Box, SvgIcon, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
+import Alert from "@/assets/icons/circledAlertRed_icon.svg"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
@@ -15,65 +16,39 @@ export const BorrowerPenaltyWarning = ({
   const isMobile = useMobileResolution()
   const isModal = variant === "modal"
 
-  const warning = (
+  const warningBanner = (
     <Box
       sx={{
-        width: "100%",
-        maxWidth: "100%",
-        minWidth: 0,
-        boxSizing: "border-box",
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "10px",
+        padding: "12px",
+        borderRadius: isMobile && !isModal ? "14px" : "8px",
         border: `1px solid ${COLORS.cherub}`,
-        borderRadius: isModal ? "8px" : { xs: "14px", md: "12px" },
         backgroundColor: COLORS.remy,
-        padding: isModal ? "10px 12px" : { xs: "12px 16px", md: "12px 16px" },
       }}
     >
-      <Typography
-        variant={isMobile ? "mobText3" : "text3"}
-        color={COLORS.dullRed}
-        sx={{
-          fontWeight: 600,
-          lineHeight: isMobile ? "18px" : "20px",
-          display: "block",
-          maxWidth: "100%",
-          minWidth: 0,
-          overflowWrap: "anywhere",
-          whiteSpace: "normal",
-          wordBreak: "break-word",
-        }}
-      >
+      <SvgIcon sx={{ fontSize: "16px" }}>
+        <Alert />
+      </SvgIcon>
+
+      <Typography variant="text3" color={COLORS.dullRed}>
         {t("lenderMarketDetails.borrowerPenaltyWarning")}
       </Typography>
     </Box>
   )
 
   if (isModal) {
-    return (
-      <Box
-        sx={{
-          width: { xs: "calc(100% - 40px)", md: "368px" },
-          maxWidth: { xs: "calc(100% - 40px)", md: "368px" },
-          minWidth: 0,
-          boxSizing: "border-box",
-          margin: { xs: "0 20px 12px", md: "0 36px 12px" },
-        }}
-      >
-        {warning}
-      </Box>
-    )
+    return <Box paddingX={isMobile ? "20px" : "24px"}>{warningBanner}</Box>
   }
 
   return (
     <Box
       sx={{
-        width: "100%",
-        maxWidth: "100%",
-        minWidth: 0,
-        boxSizing: "border-box",
-        padding: { xs: "4px 0 0", md: "0 32.3% 12px 44px" },
+        padding: { xs: "0", md: "0 32.3% 12px 44px" },
       }}
     >
-      {warning}
+      {warningBanner}
     </Box>
   )
 }

@@ -1055,7 +1055,7 @@
   },
   "lenderMarketDetails": {
     "noDataAvailable": "No Data Available",
-    "borrowerPenaltyWarning": "INFO: AT LEAST ONE MARKET DEPLOYED BY THIS BORROWER HAS NOT HONOURED WITHDRAWAL REQUESTS FOR AT LEAST THIRTY DAYS PAST THEIR SELF-IMPOSED GRACE PERIOD.",
+    "borrowerPenaltyWarning": "At least one market deployed by this borrower has not honoured withdrawal requests at least thirty days past their self-imposed grace period.",
     "sidebar": {
       "actions": "Deposit & Withdraw",
       "status": "Status and Details",
@@ -1098,8 +1098,28 @@
         "tooltip": "The amount of the underlying asset held by the address you are connected with.",
         "modal": {
           "title": "Deposit",
-          "available": "Available To Deposit",
-          "confirm": "Deposit Amount"
+          "available": "Available to deposit",
+          "minimumDeposit": "Minimum deposit",
+          "depositSum": "Deposit Sum",
+          "confirm": "Deposit Amount",
+          "youDepositTo": "You deposit to",
+          "gate": {
+            "heading": "Before you start depositing this market",
+            "tooltip": "This borrower has previously failed to honour withdrawal requests beyond their self-imposed grace period. Confirm you understand the risk before proceeding.",
+            "checkbox": "I agree to deposit with a full understanding of the consequences",
+            "button": "Deposit Anyway"
+          },
+          "projection": {
+            "title": "Earning Calculator",
+            "tooltip": "Estimated interest your deposit would earn at the current base lender APR. Informational only — does not initiate a transaction.",
+            "subtitle": "Projected interest at the current Base Lender APR of",
+            "disclaimer": "Estimates only. Actual returns may change with future APR adjustments or delinquency events",
+            "periods": {
+              "thirtyDays": "In 30 days",
+              "ninetyDays": "In 90 days",
+              "oneYear": "In 1 year"
+            }
+          }
         }
       },
       "withdraw": {
