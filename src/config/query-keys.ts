@@ -197,6 +197,12 @@ const USER_QUERY_KEYS = {
     k(["user", "GET_BORROWER_NAMES", chainId]),
 } as const
 
+const SERVICE_AGREEMENT_QUERY_KEYS = {
+  // GET_SERVICE_AGREEMENT_STATUS_KEY
+  GET_STATUS: (chainId: number, address?: string) =>
+    k(["service-agreement", "GET_STATUS", chainId, address]),
+} as const
+
 const TOKEN_QUERY_KEYS = {
   // TOKEN_METADATA_KEY
   TOKEN_METADATA: (chainId: number, tokenAddress?: string) =>
@@ -389,4 +395,5 @@ export const QueryKeys = {
   Lender: LENDER_QUERY_KEYS,
   Wrapper: WRAPPER_QUERY_KEYS,
   Markets: MARKET_QUERY_KEYS,
+  ServiceAgreement: SERVICE_AGREEMENT_QUERY_KEYS,
 } as const

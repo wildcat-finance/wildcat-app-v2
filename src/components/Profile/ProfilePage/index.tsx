@@ -16,6 +16,7 @@ import { ProfileNamePageBlock } from "./components/ProfileNamePageBlock"
 import { ProfilePageProps } from "./interface"
 import { PageContentContainer, MobileContentContainer } from "./style"
 import { OverallBlock } from "../components/OverallBlock"
+import { ToUStatusBlock } from "../components/ToUStatusBlock"
 
 export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
   const { data: profileData, isLoading: isProfileLoading } =
@@ -70,7 +71,10 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
         )}
 
         {section === "info" && (
-          <OverallBlock {...profileData} marketsAmount={marketsAmount} />
+          <>
+            <OverallBlock {...profileData} marketsAmount={marketsAmount} />
+            <ToUStatusBlock address={profileAddress} />
+          </>
         )}
 
         <Box sx={{ marginTop: "auto" }}>
@@ -92,6 +96,10 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
       <Divider sx={{ marginY: "32px" }} />
 
       <OverallBlock {...profileData} marketsAmount={marketsAmount} isPage />
+
+      <Divider sx={{ marginY: "32px" }} />
+
+      <ToUStatusBlock address={profileAddress} isPage />
 
       {marketsAmount !== 0 && (
         <MarketsBlock markets={activeMarkets} isLoading={isLoading} />

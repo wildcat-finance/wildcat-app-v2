@@ -20,11 +20,30 @@ export const ParametersItem = ({
   valueComponent,
   tooltipText,
   valueTooltipText,
+  valueTitle,
   alarmState,
   copy,
   link,
 }: ParametersItemProps) => {
   const isMobile = useMobileResolution()
+
+  const valueTypography = (
+    <Typography
+      variant={isMobile ? "mobText3" : "text3"}
+      align="right"
+      color={alarmState ? COLORS.dullRed : COLORS.blackRock}
+      sx={{
+        maxWidth: "185px",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {value}
+    </Typography>
+  )
+  const valueHoverTitle =
+    valueTitle ?? (value.toString().length > 26 ? value.toString() : undefined)
 
   return (
     <Box sx={ParametersItemContainer}>
@@ -39,36 +58,12 @@ export const ParametersItem = ({
       </Box>
 
       <Box sx={ParametersItemValueContainer}>
-        {value.toString().length > 26 ? (
-          <Tooltip title={value} placement="right">
-            <Typography
-              variant={isMobile ? "mobText3" : "text3"}
-              align="right"
-              color={alarmState ? COLORS.dullRed : COLORS.blackRock}
-              sx={{
-                maxWidth: "185px",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {value}
-            </Typography>
+        {valueHoverTitle ? (
+          <Tooltip title={valueHoverTitle} placement="right">
+            {valueTypography}
           </Tooltip>
         ) : (
-          <Typography
-            variant={isMobile ? "mobText3" : "text3"}
-            align="right"
-            color={alarmState ? COLORS.dullRed : COLORS.blackRock}
-            sx={{
-              maxWidth: "185px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {value}
-          </Typography>
+          valueTypography
         )}
 
         {valueComponent}

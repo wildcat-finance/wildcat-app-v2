@@ -1,4 +1,4 @@
--- Service Agreement / ToU versioning: new schema, three seeded versions, and
+-- Service Agreement / ToU versioning: new schema, four seeded versions, and
 -- the legacy signature backfill. Old tables are kept for the compatibility
 -- window and dropped in a later migration.
 --
@@ -69,6 +69,29 @@ ALTER TABLE "ServiceAgreementSignature" ADD CONSTRAINT "ServiceAgreementSignatur
 CREATE UNIQUE INDEX "ServiceAgreement_one_current"
 ON "ServiceAgreement"("isCurrent")
 WHERE "isCurrent" = true;
+
+-- Seed legacy-service-agreement-2023-12-18
+INSERT INTO "ServiceAgreement" (
+  "version",
+  "plaintext",
+  "html",
+  "plaintextSha256",
+  "legacyWrapperHash",
+  "acknowledgementText",
+  "effectiveDate",
+  "isCurrent"
+) VALUES (
+  'legacy-service-agreement-2023-12-18',
+  $sa_seed$Legacy$sa_seed$,
+  $sa_seed$Legacy$sa_seed$,
+  '48a56e9e278b17a98fbf18af466487ebc66e61884ebdbd1bd75e977e44905a3d',
+  '0x4e2e0273a055b964580bedbbfbf8b966f6ecf179ad02d29d893007c9f420b323',
+  $sa_seed$I agree to the Wildcat Service Agreement located at https://docs.wildcat.finance/legal/wildcat-service-agreement, last updated on 18 December, 2023.
+
+Hash of agreement text: 48a56e9e278b17a98fbf18af466487ebc66e61884ebdbd1bd75e977e44905a3d$sa_seed$,
+  TIMESTAMP '2023-12-18 00:00:00',
+  false
+);
 
 -- Seed terms-of-use-2025-01-17-prelive-1028
 INSERT INTO "ServiceAgreement" (
@@ -1808,6 +1831,8 @@ Hash of agreement text: 711a9e6707e6cf85166786461a0a45aa3b926b22b414abe8dfcc6c1a
 );
 
 -- Guard (step 7): every seeded plaintext hashes to its declared plaintextSha256.
+-- The legacy 48a56e9e version is exempt: it has no source plaintext and stores
+-- the "Legacy" placeholder.
 DO $$
 DECLARE
   bad_id integer;
@@ -1816,6 +1841,7 @@ BEGIN
   INTO bad_id
   FROM "ServiceAgreement"
   WHERE encode(sha256(convert_to("plaintext", 'UTF8')), 'hex') <> "plaintextSha256"
+    AND "plaintextSha256" <> '48a56e9e278b17a98fbf18af466487ebc66e61884ebdbd1bd75e977e44905a3d'
   LIMIT 1;
 
   IF bad_id IS NOT NULL THEN
@@ -1823,80 +1849,30 @@ BEGIN
   END IF;
 END $$;
 
--- Guard (step 8): the orphaned 48a56e9e wrapper rows are exactly the known
--- 40 Sepolia rows (39 lender, 1 borrower).
-DO $$
-DECLARE
-  orphan_total integer;
-  orphan_lenders integer;
-  orphan_borrowers integer;
-  orphan_other_chains integer;
-BEGIN
-  SELECT count(*)
-  INTO orphan_lenders
-  FROM "LenderServiceAgreementSignature"
-  WHERE "serviceAgreementHash" = '0x4e2e0273a055b964580bedbbfbf8b966f6ecf179ad02d29d893007c9f420b323';
-
-  SELECT count(*)
-  INTO orphan_borrowers
-  FROM "BorrowerServiceAgreementSignature"
-  WHERE "serviceAgreementHash" = '0x4e2e0273a055b964580bedbbfbf8b966f6ecf179ad02d29d893007c9f420b323';
-
-  SELECT count(*)
-  INTO orphan_other_chains
-  FROM (
-    SELECT "chainId"
-    FROM "LenderServiceAgreementSignature"
-    WHERE "serviceAgreementHash" = '0x4e2e0273a055b964580bedbbfbf8b966f6ecf179ad02d29d893007c9f420b323'
-
-    UNION ALL
-
-    SELECT "chainId"
-    FROM "BorrowerServiceAgreementSignature"
-    WHERE "serviceAgreementHash" = '0x4e2e0273a055b964580bedbbfbf8b966f6ecf179ad02d29d893007c9f420b323'
-  ) orphaned
-  WHERE "chainId" <> 11155111;
-
-  orphan_total := orphan_lenders + orphan_borrowers;
-
-  IF orphan_total <> 40 OR orphan_lenders <> 39 OR orphan_borrowers <> 1 OR orphan_other_chains <> 0 THEN
-    RAISE EXCEPTION
-      'Unexpected orphaned 48a56e9e row shape: total %, lenders %, borrowers %, other chains %',
-      orphan_total,
-      orphan_lenders,
-      orphan_borrowers,
-      orphan_other_chains;
-  END IF;
-END $$;
-
--- Guard (step 9): every legacy hash maps to a seeded version, except the
--- approved orphaned 48a56e9e wrapper on Sepolia.
+-- Guard (step 8): every legacy hash maps to a seeded version. All four wrappers
+-- (including 48a56e9e) are now seeded, so any unmapped hash is unexpected.
 DO $$
 BEGIN
   IF EXISTS (
     SELECT 1
     FROM (
-      SELECT "chainId", "serviceAgreementHash"
+      SELECT "serviceAgreementHash"
       FROM "LenderServiceAgreementSignature"
 
       UNION
 
-      SELECT "chainId", "serviceAgreementHash"
+      SELECT "serviceAgreementHash"
       FROM "BorrowerServiceAgreementSignature"
     ) h
     LEFT JOIN "ServiceAgreement" sa
       ON sa."legacyWrapperHash" = h."serviceAgreementHash"
     WHERE sa.id IS NULL
-      AND NOT (
-        h."chainId" = 11155111
-        AND h."serviceAgreementHash" = '0x4e2e0273a055b964580bedbbfbf8b966f6ecf179ad02d29d893007c9f420b323'
-      )
   ) THEN
-    RAISE EXCEPTION 'Unmapped legacy serviceAgreementHash outside approved orphaned 48a56e9e wrapper';
+    RAISE EXCEPTION 'Unmapped legacy serviceAgreementHash - seed the missing version first';
   END IF;
 END $$;
 
--- Backfill (step 10): lender signatures for mapped hashes only.
+-- Backfill (step 9): lender signatures, joined to their seeded version.
 INSERT INTO "ServiceAgreementSignature" (
   "chainId",
   "address",
@@ -1929,7 +1905,7 @@ JOIN "ServiceAgreement" sa
   ON sa."legacyWrapperHash" = l."serviceAgreementHash"
 ON CONFLICT ("chainId", "address", "party", "serviceAgreementId") DO NOTHING;
 
--- Backfill (step 11): borrower signatures for mapped hashes only.
+-- Backfill (step 10): borrower signatures, joined to their seeded version.
 INSERT INTO "ServiceAgreementSignature" (
   "chainId",
   "address",
@@ -1966,12 +1942,11 @@ JOIN "ServiceAgreement" sa
   ON sa."legacyWrapperHash" = b."serviceAgreementHash"
 ON CONFLICT ("chainId", "address", "party", "serviceAgreementId") DO NOTHING;
 
--- Guard (step 12): every migratable old row landed in the new table.
+-- Guard (step 11): every old row landed in the new table. Every wrapper is now
+-- seeded, so nothing is ignored: new_total must equal old_total.
 DO $$
 DECLARE
   old_total integer;
-  ignored_total integer;
-  old_migratable integer;
   new_total integer;
 BEGIN
   SELECT
@@ -1979,25 +1954,14 @@ BEGIN
     + (SELECT count(*) FROM "BorrowerServiceAgreementSignature")
   INTO old_total;
 
-  SELECT
-    (SELECT count(*) FROM "LenderServiceAgreementSignature"
-      WHERE "serviceAgreementHash" = '0x4e2e0273a055b964580bedbbfbf8b966f6ecf179ad02d29d893007c9f420b323')
-    + (SELECT count(*) FROM "BorrowerServiceAgreementSignature"
-      WHERE "serviceAgreementHash" = '0x4e2e0273a055b964580bedbbfbf8b966f6ecf179ad02d29d893007c9f420b323')
-  INTO ignored_total;
-
-  old_migratable := old_total - ignored_total;
-
   SELECT count(*)
   INTO new_total
   FROM "ServiceAgreementSignature";
 
-  IF new_total < old_migratable THEN
+  IF new_total < old_total THEN
     RAISE EXCEPTION
-      'ServiceAgreementSignature backfill incomplete: old %, ignored %, migratable %, new %',
+      'ServiceAgreementSignature backfill incomplete: old %, new %',
       old_total,
-      ignored_total,
-      old_migratable,
       new_total;
   END IF;
 END $$;

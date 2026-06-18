@@ -1,6 +1,7 @@
 import {
   ServiceAgreement,
   ServiceAgreementParty,
+  ServiceAgreementSignature,
   SignatureKind,
 } from "@prisma/client"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
@@ -140,5 +141,25 @@ export async function saveServiceAgreementSignature(
     },
     update: {},
     create: data,
+  })
+}
+
+export type BorrowerAcceptance = ServiceAgreementSignature & {
+  serviceAgreement: ServiceAgreement
+}
+
+/// The borrower's most recently accepted version on this chain, with the version
+/// joined in. Ordered by ServiceAgreement.id DESC (newest version), never by
+/// effectiveDate (two 2025-01-17 artifacts exist). Reads the new table only -
+/// the backfill made it complete for borrowers and the dual-write keeps it so.
+/// Accounts with only the ignored 48a56e9e wrapper have no row here, as intended.
+export async function getLatestBorrowerAcceptance(
+  chainId: SupportedChainId,
+  address: string,
+): Promise<BorrowerAcceptance | null> {
+  return prisma.serviceAgreementSignature.findFirst({
+    where: { chainId, address: address.toLowerCase(), party: "Borrower" },
+    orderBy: { serviceAgreementId: "desc" },
+    include: { serviceAgreement: true },
   })
 }
