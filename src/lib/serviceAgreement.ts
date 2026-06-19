@@ -10,27 +10,9 @@ import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { prisma } from "@/lib/db"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
-import { formatUnixMsAsDate } from "@/utils/formatters"
+import { buildServiceAgreementMessage } from "@/utils/serviceAgreementMessage"
 
-/// The exact text a user signs: the version's acknowledgement wrapper, the date
-/// line, and (borrowers only) the organization name line.
-export const buildServiceAgreementMessage = ({
-  acknowledgementText,
-  timeSigned,
-  organizationName,
-}: {
-  acknowledgementText: string
-  timeSigned: number
-  organizationName?: string
-}): string => {
-  let message = `${acknowledgementText}\n\nDate: ${formatUnixMsAsDate(
-    timeSigned,
-  )}`
-  if (organizationName) {
-    message = `${message}\n\nOrganization Name: ${organizationName}`
-  }
-  return message
-}
+export { buildServiceAgreementMessage }
 
 // ServiceAgreement without the heavy plaintext/html columns - all the signing
 // and status paths need. The certificate path uses the full row instead.
@@ -53,6 +35,35 @@ export async function getCurrentServiceAgreement(): Promise<ServiceAgreementMeta
   const agreement = await prisma.serviceAgreement.findFirst({
     where: { isCurrent: true },
     select: SERVICE_AGREEMENT_META_SELECT,
+  })
+  if (!agreement) {
+    throw new Error(
+      "No current ServiceAgreement - has the versioning migration been applied?",
+    )
+  }
+  return agreement
+}
+
+const CURRENT_SERVICE_AGREEMENT_SELECT = {
+  id: true,
+  version: true,
+  plaintext: true,
+  html: true,
+  plaintextSha256: true,
+  legacyWrapperHash: true,
+  acknowledgementText: true,
+  effectiveDate: true,
+  isCurrent: true,
+} satisfies Prisma.ServiceAgreementSelect
+
+export type CurrentServiceAgreement = Prisma.ServiceAgreementGetPayload<{
+  select: typeof CURRENT_SERVICE_AGREEMENT_SELECT
+}>
+
+export async function getCurrentServiceAgreementContent(): Promise<CurrentServiceAgreement> {
+  const agreement = await prisma.serviceAgreement.findFirst({
+    where: { isCurrent: true },
+    select: CURRENT_SERVICE_AGREEMENT_SELECT,
   })
   if (!agreement) {
     throw new Error(

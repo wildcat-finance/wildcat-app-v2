@@ -19,7 +19,6 @@ import { NextRequest } from "next/server"
 
 import { getLoginSignatureMessage } from "@/config/api"
 import { TargetChainId, TargetNetwork } from "@/config/network"
-import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { prisma } from "@/lib/db"
 import {
   BasicBorrowerInfo,
@@ -28,6 +27,10 @@ import {
   MlaTemplateField,
 } from "@/lib/mla"
 import { getProviderForServer } from "@/lib/provider"
+import {
+  buildServiceAgreementMessage,
+  getCurrentServiceAgreement,
+} from "@/lib/serviceAgreement"
 import { dayjs } from "@/utils/dayjs"
 
 import { GET as getProfile, DELETE as deleteProfile } from "./[address]/route"
@@ -539,13 +542,13 @@ describe("API", () => {
     })
 
     test("Fails if EOA signature is from other account", async () => {
-      let agreementText = AgreementText
       const timeSigned = Date.now()
-      const dateSigned = dayjs(timeSigned).format("MMMM DD, YYYY")
-      if (dateSigned) {
-        agreementText = `${agreementText}\n\nDate: ${dateSigned}`
-      }
-      agreementText = `${agreementText}\n\nOrganization Name: ${invite.name}`
+      const agreement = await getCurrentServiceAgreement()
+      const agreementText = buildServiceAgreementMessage({
+        acknowledgementText: agreement.acknowledgementText,
+        timeSigned,
+        organizationName: invite.name,
+      })
       const wallet2 = Wallet.createRandom({ provider })
       const body: AcceptInvitationInput = {
         chainId: TargetChainId,
@@ -565,13 +568,13 @@ describe("API", () => {
     })
 
     test("Accepts EOA signature", async () => {
-      let agreementText = AgreementText
       const timeSigned = Date.now()
-      const dateSigned = dayjs(timeSigned).format("MMMM DD, YYYY")
-      if (dateSigned) {
-        agreementText = `${agreementText}\n\nDate: ${dateSigned}`
-      }
-      agreementText = `${agreementText}\n\nOrganization Name: ${invite.name}`
+      const agreement = await getCurrentServiceAgreement()
+      const agreementText = buildServiceAgreementMessage({
+        acknowledgementText: agreement.acknowledgementText,
+        timeSigned,
+        organizationName: invite.name,
+      })
       const body: AcceptInvitationInput = {
         chainId: TargetChainId,
         address: borrowerAddress,

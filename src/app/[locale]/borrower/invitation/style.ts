@@ -11,11 +11,15 @@ export const InvitationPageContainer = {
   alignItems: "center",
   boxSizing: "border-box",
   backgroundColor: COLORS.white,
-  padding: "34px 24px 0",
+  padding: "24px 24px 0",
 
   "@media (max-width: 1000px)": {
     padding: "16px 12px 0",
     borderRadius: "14px",
+  },
+
+  "@media (max-height: 900px) and (min-width: 1001px)": {
+    paddingTop: "18px",
   },
 }
 
@@ -27,21 +31,20 @@ export const InvitationContent = {
   minHeight: 0,
   display: "flex",
   flexDirection: "column",
-  gap: "18px",
+  gap: "14px",
   boxSizing: "border-box",
 }
 
 export const InvitationHeader = {
+  flexShrink: 0,
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-}
+  marginBottom: "6px",
 
-export const InvitationDivider = {
-  width: "100%",
-  height: "1px",
-  backgroundColor: COLORS.whiteLilac,
-  margin: "4px 0 20px",
+  "@media (max-height: 900px) and (min-width: 1001px)": {
+    marginBottom: "2px",
+  },
 }
 
 export const BorrowerNameField = {
@@ -56,7 +59,7 @@ export const BorrowerNameLabel = {
 
 export const BorrowerNameInput = {
   width: "100%",
-  height: "48px",
+  height: "44px",
   boxSizing: "border-box",
   padding: "0 18px",
   border: `1px solid ${COLORS.whiteLilac}`,
@@ -76,8 +79,8 @@ export const BorrowerNameInput = {
 
   "& .MuiInputBase-input": {
     padding: 0,
-    fontSize: "18px",
-    lineHeight: "28px",
+    fontSize: "17px",
+    lineHeight: "26px",
     fontWeight: 500,
   },
 }
@@ -85,7 +88,7 @@ export const BorrowerNameInput = {
 export const BorrowerNameNote = {
   maxWidth: "820px",
   color: COLORS.santasGrey,
-  margin: "-2px 0 12px",
+  margin: "-4px 0 4px",
 
   "& strong": {
     color: COLORS.blackRock,
@@ -94,8 +97,8 @@ export const BorrowerNameNote = {
 }
 
 export const TermsPanel = {
-  flex: "1 1 auto",
-  minHeight: "280px",
+  flex: "1 1 360px",
+  minHeight: 0,
   minWidth: 0,
   display: "flex",
   flexDirection: "column",
@@ -110,7 +113,7 @@ export const TermsHeader = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  padding: "13px 18px",
+  padding: "11px 18px",
   borderBottom: `1px solid ${COLORS.athensGrey}`,
 
   "@media (max-width: 1000px)": {
@@ -130,28 +133,12 @@ export const TermsTitle = {
   },
 }
 
-export const TermsVersionChip = {
-  height: "22px",
-  display: "inline-flex",
-  alignItems: "center",
-  padding: "0 8px",
-  borderRadius: "999px",
-  backgroundColor: COLORS.blackRock006,
-  color: COLORS.blackRock,
-  fontSize: "11px",
-  lineHeight: "16px",
-  fontWeight: 600,
-  letterSpacing: "0.2px",
-  transform: "translateY(-1px)",
-  whiteSpace: "nowrap",
-}
-
 export const TermsBody = {
   flex: "1 1 auto",
   minHeight: 0,
   minWidth: 0,
   position: "relative",
-  padding: "18px 8px 18px 18px",
+  padding: "14px 8px 14px 18px",
 
   "&::after": {
     content: '""',
@@ -182,6 +169,7 @@ export const AgreementTextScroll = {
   overflowY: "auto",
   rowGap: "16px",
   paddingRight: "12px",
+  paddingBottom: "44px",
   overscrollBehavior: "contain",
   scrollbarColor: `${COLORS.greySuit} transparent`,
   scrollbarWidth: "thin",
@@ -216,8 +204,8 @@ export const InvitationActions = {
   display: "flex",
   justifyContent: "center",
   boxSizing: "border-box",
-  padding: "16px 0 24px",
-  marginTop: "16px",
+  padding: "14px 0 20px",
+  marginTop: "12px",
   borderTop: `1px solid ${COLORS.athensGrey}`,
   backgroundColor: COLORS.white,
 

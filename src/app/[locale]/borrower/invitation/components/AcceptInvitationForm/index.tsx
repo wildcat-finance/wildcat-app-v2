@@ -7,9 +7,9 @@ import Link from "next/link"
 import { Trans } from "react-i18next"
 
 import { AgreementText } from "@/app/[locale]/agreement/components/AgreementText"
-import { useGetServiceAgreementStatus } from "@/app/[locale]/borrower/hooks/useGetServiceAgreementStatus"
 import { BorrowerInvitation } from "@/app/api/invite/interface"
-import { formatServiceAgreementVersionLabel } from "@/utils/serviceAgreementVersions"
+import { ServiceAgreementVersionChip } from "@/components/ServiceAgreementVersionChip"
+import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 
 import { useSubmitAcceptInvitation } from "../../hooks/useSubmitAcceptInvitation"
 import {
@@ -22,34 +22,40 @@ import {
   InvitationActions,
   InvitationActionsInner,
   InvitationContent,
-  InvitationDivider,
   InvitationHeader,
   InvitationPageContainer,
   TermsBody,
   TermsHeader,
   TermsPanel,
   TermsTitle,
-  TermsVersionChip,
 } from "../../style"
 
 export const AcceptInvitationForm = ({
   invitation,
   address,
+  previewMode = false,
 }: {
   invitation: BorrowerInvitation
   address: string
+  previewMode?: boolean
 }) => {
   const [name, setName] = useState(invitation.name || "")
   const submitMutation = useSubmitAcceptInvitation()
   const [timeSigned, setTimeSigned] = useState<number>()
-  const { data: serviceAgreementStatus } = useGetServiceAgreementStatus(address)
-  const currentAgreementVersion = serviceAgreementStatus?.current.version
+  const { data: currentAgreement, isLoading: isAgreementLoading } =
+    useCurrentServiceAgreement()
+  const currentAgreementVersion = currentAgreement?.version
 
   useEffect(() => {
     setTimeSigned(Date.now())
   }, [])
 
   const handleSubmit = () => {
+    if (previewMode) {
+      console.info("Borrower invitation preview: submission skipped.")
+      return
+    }
+
     submitMutation.mutate({
       address,
       name,
@@ -61,11 +67,10 @@ export const AcceptInvitationForm = ({
     <Box sx={InvitationPageContainer}>
       <Box sx={InvitationContent}>
         <Box sx={InvitationHeader}>
-          <Typography variant="title1Highlighted">
+          <Typography variant="title2" fontWeight={600} textAlign="center">
             Accept Borrower Invitation
           </Typography>
         </Box>
-        <Box sx={InvitationDivider} />
 
         <Box sx={BorrowerNameField}>
           <Typography
@@ -94,15 +99,15 @@ export const AcceptInvitationForm = ({
               <Typography variant="title3" fontWeight={600} textAlign="center">
                 <Trans i18nKey="agreement.page.title" />
               </Typography>
-              {currentAgreementVersion && (
-                <Box sx={TermsVersionChip}>
-                  {formatServiceAgreementVersionLabel(currentAgreementVersion)}
-                </Box>
-              )}
+              <ServiceAgreementVersionChip version={currentAgreementVersion} />
             </Box>
           </Box>
           <Box sx={TermsBody}>
-            <AgreementText sx={AgreementTextScroll} />
+            <AgreementText
+              markdown={currentAgreement?.plaintext}
+              isLoading={isAgreementLoading}
+              sx={AgreementTextScroll}
+            />
           </Box>
         </Box>
       </Box>
@@ -111,7 +116,7 @@ export const AcceptInvitationForm = ({
         <Box sx={InvitationActionsInner}>
           <Button
             component={Link}
-            href="/pdf/Wildcat_Terms_of_Use.pdf"
+            href="/api/service-agreement/current/download"
             target="_blank"
             download
             variant="contained"
@@ -126,10 +131,18 @@ export const AcceptInvitationForm = ({
             variant="contained"
             size="large"
             onClick={handleSubmit}
-            disabled={!name || submitMutation.isPending}
+            disabled={
+              !name ||
+              !timeSigned ||
+              !currentAgreement ||
+              (!previewMode &&
+                (submitMutation.isPending || submitMutation.isAgreementLoading))
+            }
             sx={ActionButton}
           >
-            {submitMutation.isPending ? "Signing..." : "Sign & Accept"}
+            {!previewMode && submitMutation.isPending
+              ? "Signing..."
+              : "Sign & Accept"}
           </Button>
         </Box>
       </Box>

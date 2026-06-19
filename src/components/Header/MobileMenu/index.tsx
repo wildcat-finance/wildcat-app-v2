@@ -531,7 +531,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
 
                 <Box
                   component={Link}
-                  href="/pdf/Wildcat_Terms_of_Use.pdf"
+                  href="/api/service-agreement/current/download"
                   target="_blank"
                   rel="noopener noreferrer"
                   sx={{

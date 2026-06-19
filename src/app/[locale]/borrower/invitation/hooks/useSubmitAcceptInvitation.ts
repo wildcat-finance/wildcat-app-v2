@@ -4,12 +4,12 @@ import { useRouter } from "next/navigation"
 
 import { SignAgreementProps } from "@/app/[locale]/agreement/hooks/useSignAgreement"
 import { toastRequest } from "@/components/Toasts"
-import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
+import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
-import { formatUnixMsAsDate } from "@/utils/formatters"
+import { buildServiceAgreementMessage } from "@/utils/serviceAgreementMessage"
 
 import {
   USE_BORROWER_INVITE_EXISTS_KEY,
@@ -24,8 +24,9 @@ export const useSubmitAcceptInvitation = () => {
   const token = useAuthToken()
   const { chainId } = useSelectedNetwork()
   const { mutate: removeBadToken } = useRemoveBadApiToken()
+  const currentAgreement = useCurrentServiceAgreement()
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async ({ address, name, timeSigned }: SignAgreementProps) => {
       if (!signer) throw Error(`No signer`)
       if (!address) throw Error(`No address`)
@@ -37,14 +38,14 @@ export const useSubmitAcceptInvitation = () => {
         throw Error(`Wallet network does not match selected network`)
       }
       if (token.chainId !== chainId) throw Error(`Wrong-chain API token`)
+      if (!currentAgreement.data) throw Error(`Current Terms of Use not loaded`)
 
       const sign = async () => {
-        const dateSigned = formatUnixMsAsDate(timeSigned)
-        let agreementText = AgreementText
-        if (dateSigned) {
-          agreementText = `${agreementText}\n\nDate: ${dateSigned}`
-        }
-        agreementText = `${agreementText}\n\nOrganization Name: ${name}`
+        const agreementText = buildServiceAgreementMessage({
+          acknowledgementText: currentAgreement.data.acknowledgementText,
+          timeSigned,
+          organizationName: name,
+        })
         if (sdk && safeConnected) {
           await sdk.eth.setSafeSettings([
             {
@@ -128,4 +129,9 @@ export const useSubmitAcceptInvitation = () => {
       console.log(error)
     },
   })
+
+  return {
+    ...mutation,
+    isAgreementLoading: currentAgreement.isLoading,
+  }
 }

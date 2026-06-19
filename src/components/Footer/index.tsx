@@ -155,7 +155,7 @@ export const Footer = ({
             </Button>
 
             <Link
-              href="/pdf/Wildcat_Terms_of_Use.pdf"
+              href="/api/service-agreement/current/download"
               target="_blank"
               style={{
                 display: "flex",

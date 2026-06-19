@@ -198,6 +198,8 @@ const USER_QUERY_KEYS = {
 } as const
 
 const SERVICE_AGREEMENT_QUERY_KEYS = {
+  // GET_CURRENT_SERVICE_AGREEMENT_KEY
+  GET_CURRENT: () => k(["service-agreement", "GET_CURRENT"]),
   // GET_SERVICE_AGREEMENT_STATUS_KEY
   GET_STATUS: (chainId: number, address?: string) =>
     k(["service-agreement", "GET_STATUS", chainId, address]),

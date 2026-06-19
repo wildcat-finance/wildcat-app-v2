@@ -1,9 +1,11 @@
 /**
  * @jest-environment node
  */
-import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { buildServiceAgreementMessage } from "@/lib/serviceAgreement"
 import { formatUnixMsAsDate } from "@/utils/formatters"
+
+const AgreementText =
+  "I agree to the Wildcat Terms of Use located at https://docs.wildcat.finance/legal/wildcat-terms-of-use, last updated on 12 February, 2025.\n\nHash of agreement text: 711a9e6707e6cf85166786461a0a45aa3b926b22b414abe8dfcc6c1afef020d1"
 
 // The builder must be byte-identical to the inline constructions it replaced
 // (pre-Release-1 src/app/api/sla/route.ts and src/app/api/invite/route.ts):
