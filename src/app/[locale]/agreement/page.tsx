@@ -56,7 +56,8 @@ export default function Agreement() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: "8px",
+            columnGap: "14px",
+            rowGap: "8px",
             marginBottom: "24px",
             [theme.breakpoints.down("md")]: {
               flexWrap: "wrap",

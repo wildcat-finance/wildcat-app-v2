@@ -1,6 +1,7 @@
 import { Box, Skeleton, SxProps, Theme, Typography } from "@mui/material"
 
 import { Markdown } from "@/components/Markdown"
+import { COLORS } from "@/theme/colors"
 
 const AgreementTextFrameSx = {
   width: "100%",
@@ -74,6 +75,25 @@ export const AgreementText = ({
             md: "112px",
           },
           overflowWrap: "anywhere",
+          scrollbarColor: `${COLORS.greySuit} transparent`,
+          scrollbarWidth: "thin",
+
+          "&::-webkit-scrollbar": {
+            width: "10px",
+            backgroundColor: "transparent",
+          },
+          "&::-webkit-scrollbar-track": {
+            backgroundColor: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: COLORS.greySuit,
+            borderRadius: "999px",
+            border: "2px solid transparent",
+            backgroundClip: "content-box",
+          },
+          "&::-webkit-scrollbar-thumb:hover": {
+            backgroundColor: COLORS.santasGrey,
+          },
 
           "& .prose-rendered": {
             width: "100%",

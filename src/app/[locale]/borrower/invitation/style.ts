@@ -125,7 +125,8 @@ export const TermsTitle = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  gap: "8px",
+  columnGap: "14px",
+  rowGap: "8px",
   minWidth: 0,
 
   "@media (max-width: 1000px)": {

@@ -33,11 +33,9 @@ import {
 export const AcceptInvitationForm = ({
   invitation,
   address,
-  previewMode = false,
 }: {
   invitation: BorrowerInvitation
   address: string
-  previewMode?: boolean
 }) => {
   const [name, setName] = useState(invitation.name || "")
   const submitMutation = useSubmitAcceptInvitation()
@@ -51,11 +49,6 @@ export const AcceptInvitationForm = ({
   }, [])
 
   const handleSubmit = () => {
-    if (previewMode) {
-      console.info("Borrower invitation preview: submission skipped.")
-      return
-    }
-
     submitMutation.mutate({
       address,
       name,
@@ -135,14 +128,12 @@ export const AcceptInvitationForm = ({
               !name ||
               !timeSigned ||
               !currentAgreement ||
-              (!previewMode &&
-                (submitMutation.isPending || submitMutation.isAgreementLoading))
+              submitMutation.isPending ||
+              submitMutation.isAgreementLoading
             }
             sx={ActionButton}
           >
-            {!previewMode && submitMutation.isPending
-              ? "Signing..."
-              : "Sign & Accept"}
+            {submitMutation.isPending ? "Signing..." : "Sign & Accept"}
           </Button>
         </Box>
       </Box>
