@@ -2,17 +2,35 @@
 
 import { useEffect, useState } from "react"
 
-import { Box, Button, TextField, Typography } from "@mui/material"
+import { Box, Button, InputBase, Typography } from "@mui/material"
 import Link from "next/link"
 import { Trans } from "react-i18next"
-import { useAccount } from "wagmi"
 
 import { AgreementText } from "@/app/[locale]/agreement/components/AgreementText"
+import { useGetServiceAgreementStatus } from "@/app/[locale]/borrower/hooks/useGetServiceAgreementStatus"
 import { BorrowerInvitation } from "@/app/api/invite/interface"
+import { formatServiceAgreementVersionLabel } from "@/utils/serviceAgreementVersions"
 
-import { useBorrowerInvitation } from "../../../hooks/useBorrowerInvitation"
 import { useSubmitAcceptInvitation } from "../../hooks/useSubmitAcceptInvitation"
-// import { useBorrowerInvitation } from "@/hooks/useBorrowerInvitation"
+import {
+  ActionButton,
+  AgreementTextScroll,
+  BorrowerNameField,
+  BorrowerNameInput,
+  BorrowerNameLabel,
+  BorrowerNameNote,
+  InvitationActions,
+  InvitationActionsInner,
+  InvitationContent,
+  InvitationDivider,
+  InvitationHeader,
+  InvitationPageContainer,
+  TermsBody,
+  TermsHeader,
+  TermsPanel,
+  TermsTitle,
+  TermsVersionChip,
+} from "../../style"
 
 export const AcceptInvitationForm = ({
   invitation,
@@ -24,6 +42,8 @@ export const AcceptInvitationForm = ({
   const [name, setName] = useState(invitation.name || "")
   const submitMutation = useSubmitAcceptInvitation()
   const [timeSigned, setTimeSigned] = useState<number>()
+  const { data: serviceAgreementStatus } = useGetServiceAgreementStatus(address)
+  const currentAgreementVersion = serviceAgreementStatus?.current.version
 
   useEffect(() => {
     setTimeSigned(Date.now())
@@ -38,84 +58,80 @@ export const AcceptInvitationForm = ({
   }
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 3,
-        alignItems: "center",
-        width: "100%",
-      }}
-    >
-      {/* <Box sx={{ bgcolor: "background.paper", p: 3, borderRadius: 1 }}>
-        <AgreementText />
-      </Box> */}
+    <Box sx={InvitationPageContainer}>
+      <Box sx={InvitationContent}>
+        <Box sx={InvitationHeader}>
+          <Typography variant="title1Highlighted">
+            Accept Borrower Invitation
+          </Typography>
+        </Box>
+        <Box sx={InvitationDivider} />
 
-      <Box
-        sx={{
-          maxWidth: "690px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Typography variant="h4">Accept Invitation</Typography>
-
-        <TextField
-          label="Organization Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          fullWidth
-        />
-        <Typography variant="title2" fontWeight={600} marginBottom="24px">
-          <Trans i18nKey="agreement.page.title" />
+        <Box sx={BorrowerNameField}>
+          <Typography
+            variant="text2Highlighted"
+            fontWeight={600}
+            sx={BorrowerNameLabel}
+          >
+            Borrower name
+          </Typography>
+          <InputBase
+            inputProps={{ "aria-label": "Borrower name" }}
+            sx={BorrowerNameInput}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </Box>
+        <Typography variant="text3" sx={BorrowerNameNote}>
+          This name is appended to the signed Terms of Use acknowledgement and
+          recorded as the <strong>borrower organization</strong> accepting the
+          invitation.
         </Typography>
 
-        <AgreementText />
-
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: "0",
-            height: "256px",
-            width: "690px",
-            backgroundImage:
-              "linear-gradient(3deg, #FFFFFF 40%, #FFFFFF00 73%)",
-            pointerEvents: "none",
-          }}
-        />
+        <Box sx={TermsPanel}>
+          <Box sx={TermsHeader}>
+            <Box sx={TermsTitle}>
+              <Typography variant="title3" fontWeight={600} textAlign="center">
+                <Trans i18nKey="agreement.page.title" />
+              </Typography>
+              {currentAgreementVersion && (
+                <Box sx={TermsVersionChip}>
+                  {formatServiceAgreementVersionLabel(currentAgreementVersion)}
+                </Box>
+              )}
+            </Box>
+          </Box>
+          <Box sx={TermsBody}>
+            <AgreementText sx={AgreementTextScroll} />
+          </Box>
+        </Box>
       </Box>
 
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: "0",
-          width: "100%",
-          justifyContent: "center",
-          paddingBottom: "44px",
-          display: "flex",
-          gap: "16px",
-        }}
-      >
-        <Button
-          variant="contained"
-          onClick={handleSubmit}
-          disabled={!name || submitMutation.isPending}
-        >
-          {submitMutation.isPending ? "Signing..." : "Sign & Accept"}
-        </Button>
-
-        <Link href="/pdf/Wildcat_Terms_of_Use.pdf" target="_blank" download>
+      <Box sx={InvitationActions}>
+        <Box sx={InvitationActionsInner}>
           <Button
+            component={Link}
+            href="/pdf/Wildcat_Terms_of_Use.pdf"
+            target="_blank"
+            download
             variant="contained"
             color="secondary"
             size="large"
-            sx={{ width: "168.63px", height: "44px" }}
+            sx={ActionButton}
           >
             <Trans i18nKey="agreement.page.download" />
           </Button>
-        </Link>
+
+          <Button
+            variant="contained"
+            size="large"
+            onClick={handleSubmit}
+            disabled={!name || submitMutation.isPending}
+            sx={ActionButton}
+          >
+            {submitMutation.isPending ? "Signing..." : "Sign & Accept"}
+          </Button>
+        </Box>
       </Box>
     </Box>
   )

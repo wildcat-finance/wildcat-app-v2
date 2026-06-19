@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import {
   getCurrentServiceAgreement,
-  getLatestBorrowerAcceptance,
+  getLatestBorrowerAcceptanceStatus,
 } from "@/lib/serviceAgreement"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
@@ -22,7 +22,7 @@ export async function GET(
   const address = params.address.toLowerCase()
   const [current, acceptance] = await Promise.all([
     getCurrentServiceAgreement(),
-    getLatestBorrowerAcceptance(chainId, address),
+    getLatestBorrowerAcceptanceStatus(chainId, address),
   ])
   const response: ServiceAgreementStatusResponse = {
     current: {

@@ -1,4 +1,5 @@
 import {
+  Prisma,
   ServiceAgreement,
   ServiceAgreementParty,
   ServiceAgreementSignature,
@@ -31,10 +32,27 @@ export const buildServiceAgreementMessage = ({
   return message
 }
 
-export async function getCurrentServiceAgreement(): Promise<ServiceAgreement> {
+// ServiceAgreement without the heavy plaintext/html columns - all the signing
+// and status paths need. The certificate path uses the full row instead.
+const SERVICE_AGREEMENT_META_SELECT = {
+  id: true,
+  version: true,
+  plaintextSha256: true,
+  legacyWrapperHash: true,
+  acknowledgementText: true,
+  effectiveDate: true,
+  isCurrent: true,
+} satisfies Prisma.ServiceAgreementSelect
+
+export type ServiceAgreementMeta = Prisma.ServiceAgreementGetPayload<{
+  select: typeof SERVICE_AGREEMENT_META_SELECT
+}>
+
+export async function getCurrentServiceAgreement(): Promise<ServiceAgreementMeta> {
   // The ServiceAgreement_one_current partial unique index guarantees at most one.
   const agreement = await prisma.serviceAgreement.findFirst({
     where: { isCurrent: true },
+    select: SERVICE_AGREEMENT_META_SELECT,
   })
   if (!agreement) {
     throw new Error(
@@ -48,7 +66,9 @@ export async function getCurrentServiceAgreement(): Promise<ServiceAgreement> {
 /// seeded versions is stored as legacyWrapperHash. A version without it cannot
 /// be represented in the old tables - publishing is frozen until the dual-write
 /// is removed (Release 2), so this failing loudly means that freeze was broken.
-export function requireLegacyWrapperHash(agreement: ServiceAgreement): string {
+export function requireLegacyWrapperHash(
+  agreement: ServiceAgreementMeta,
+): string {
   if (!agreement.legacyWrapperHash) {
     throw new Error(
       `ServiceAgreement ${agreement.id} (${agreement.version}) has no ` +
@@ -84,7 +104,7 @@ export async function verifyServiceAgreementSignature({
   timeSigned,
   organizationName,
 }: {
-  agreement: ServiceAgreement
+  agreement: ServiceAgreementMeta
   chainId: SupportedChainId
   address: string
   party: ServiceAgreementParty
@@ -161,5 +181,32 @@ export async function getLatestBorrowerAcceptance(
     where: { chainId, address: address.toLowerCase(), party: "Borrower" },
     orderBy: { serviceAgreementId: "desc" },
     include: { serviceAgreement: true },
+  })
+}
+
+// Light projection for the status panel - excludes the version's plaintext/html.
+const BORROWER_ACCEPTANCE_STATUS_SELECT = {
+  organizationName: true,
+  timeSigned: true,
+  serviceAgreement: {
+    select: { version: true, plaintextSha256: true, legacyWrapperHash: true },
+  },
+} satisfies Prisma.ServiceAgreementSignatureSelect
+
+export type BorrowerAcceptanceStatus =
+  Prisma.ServiceAgreementSignatureGetPayload<{
+    select: typeof BORROWER_ACCEPTANCE_STATUS_SELECT
+  }>
+
+/// Same lookup as getLatestBorrowerAcceptance but selects only the fields the
+/// status panel renders (no plaintext/html). Used by the status endpoint.
+export async function getLatestBorrowerAcceptanceStatus(
+  chainId: SupportedChainId,
+  address: string,
+): Promise<BorrowerAcceptanceStatus | null> {
+  return prisma.serviceAgreementSignature.findFirst({
+    where: { chainId, address: address.toLowerCase(), party: "Borrower" },
+    orderBy: { serviceAgreementId: "desc" },
+    select: BORROWER_ACCEPTANCE_STATUS_SELECT,
   })
 }

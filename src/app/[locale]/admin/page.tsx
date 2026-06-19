@@ -21,7 +21,7 @@ const AdminPage = () => {
   const [activeSection, setActiveSection] = useState("invitations")
 
   return (
-    <AuthWrapper requiresAdmin>
+    <AuthWrapper requiresAdmin title="Admin Panel">
       <Box sx={AdminPageContainer}>
         <AdminSectionSwitcher
           activeSection={activeSection}

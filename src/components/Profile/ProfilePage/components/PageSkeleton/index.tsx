@@ -239,6 +239,35 @@ export const ProfilePageSkeleton = ({
           </Box>
         </Box>
 
+        <Divider sx={{ marginY: "32px" }} />
+
+        <Box>
+          <Typography variant="title3">
+            {t("borrowerProfile.profile.touStatus.title")}
+          </Typography>
+
+          <Box sx={{ marginTop: "24px" }}>
+            <Box>
+              <ParametersItemSkeleton />
+              <Divider sx={InfoDivider} />
+            </Box>
+            <Box>
+              <ParametersItemSkeleton />
+              <Divider sx={InfoDivider} />
+            </Box>
+            <ParametersItemSkeleton />
+          </Box>
+
+          <Skeleton
+            sx={{
+              height: "33px",
+              width: "210px",
+              borderRadius: "8px",
+              marginTop: "16px",
+            }}
+          />
+        </Box>
+
         <Box sx={MarketsSectionSkeletonContainer}>
           <Typography variant="title3">
             {t("borrowerProfile.profile.activeMarkets.title")}

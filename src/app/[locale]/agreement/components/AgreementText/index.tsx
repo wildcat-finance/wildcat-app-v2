@@ -1,18 +1,21 @@
-import { Box, Typography } from "@mui/material"
+import { Box, SxProps, Theme, Typography } from "@mui/material"
 
-export const AgreementText = () => (
+export const AgreementText = ({ sx }: { sx?: SxProps<Theme> }) => (
   <Box
-    sx={{
-      maxHeight: "calc(100vh - 230px)",
+    sx={[
+      {
+        maxHeight: "calc(100vh - 230px)",
 
-      overflow: "scroll",
-      display: "flex",
-      flexDirection: "column",
-      rowGap: "20px",
-      position: "relative",
-      zIndex: 0,
-      color: "#383838",
-    }}
+        overflow: "scroll",
+        display: "flex",
+        flexDirection: "column",
+        rowGap: "20px",
+        position: "relative",
+        zIndex: 0,
+        color: "#383838",
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
   >
     <Typography variant="text2"># 1. Introduction and Agreement</Typography>
 
