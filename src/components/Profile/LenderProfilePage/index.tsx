@@ -2,6 +2,7 @@
 
 import { Box } from "@mui/material"
 
+import { LenderProfileOverviewTab } from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab"
 import { useLenderPositions } from "@/app/[locale]/lender/profile/hooks/useLenderPositions"
 import { Footer } from "@/components/Footer"
 import { ProfilePageSkeleton } from "@/components/Profile/ProfilePage/components/PageSkeleton"
@@ -75,12 +76,12 @@ export const LenderProfilePage = ({
         width: "100%",
         height: isMobile ? "auto" : `calc(100vh - ${pageCalcHeights.page})`,
         overflowY: isMobile ? "visible" : "auto",
-        padding: isMobile ? "0" : "44px 44px 24px 44px",
+        padding: isMobile ? "0" : "32px 16px",
         display: "flex",
         flexDirection: "column",
         gap: "24px",
         ...(isMobile && {
-          gap: "2px",
+          gap: "4px",
           padding: "2px",
         }),
       }}
@@ -92,10 +93,15 @@ export const LenderProfilePage = ({
       {analyticsAvailable ? (
         <>
           {currentTab === "overview" && (
-            <LenderOverviewTab
+            // <LenderOverviewTab
+            //   lenderAddress={profileAddress}
+            //   data={positionsQuery.data}
+            //   isLoading={positionsQuery.isLoading}
+            // />
+
+            <LenderProfileOverviewTab
               lenderAddress={profileAddress}
-              data={positionsQuery.data}
-              isLoading={positionsQuery.isLoading}
+              lenderData={positionsQuery.data}
             />
           )}
           {currentTab === "activity" && (
