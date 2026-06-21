@@ -24,6 +24,8 @@ export type LenderPositionRow = {
   apr: number
   utilization: number
   status: "Active" | "Delinquent" | "Penalty" | "Closed"
+  // Fixed-term maturity in unix seconds; 0 means an open-term market.
+  termEndTime: number
   addedDate: string
 }
 
@@ -95,4 +97,17 @@ export type LenderRiskReturnsPoint = {
   lenderWithdrawalsUsd: number
   marketWithdrawalsUsd: number
   lenderWithdrawalSharePct: number
+}
+
+export type LenderInterestBreakdownEntry = {
+  baseUsd: number
+  penaltyUsd: number
+  totalInterestUsd: number
+  inHandUsd: number
+  inProtocolUsd: number
+}
+
+export type LenderInterestBreakdown = {
+  portfolio: LenderInterestBreakdownEntry
+  byMarket: Record<string, LenderInterestBreakdownEntry>
 }
