@@ -2,6 +2,7 @@
 
 import { Box } from "@mui/material"
 
+import { LenderProfileActivityTab } from "@/app/[locale]/lender/profile/components/LenderProfileActivityTab"
 import { LenderProfileCapitalTab } from "@/app/[locale]/lender/profile/components/LenderProfileCapitalTab"
 import { LenderProfileOverviewTab } from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab"
 import { useLenderPositions } from "@/app/[locale]/lender/profile/hooks/useLenderPositions"
@@ -19,7 +20,6 @@ import { isHinterlightSupported } from "@/lib/hinterlight"
 import { COLORS } from "@/theme/colors"
 import { pageCalcHeights } from "@/utils/constants"
 
-import { ActivityCashFlowTab } from "./components/ActivityCashFlowTab"
 import { MarketsInterestTab } from "./components/MarketsInterestTab"
 import { TempTestChartsTab } from "./components/TempTestChartsTab"
 
@@ -105,10 +105,9 @@ export const LenderProfilePage = ({
             />
           )}
           {currentTab === "activity" && (
-            <ActivityCashFlowTab
+            <LenderProfileActivityTab
               lenderAddress={profileAddress}
-              positionsData={positionsQuery.data}
-              isPositionsLoading={positionsQuery.isLoading}
+              lenderData={positionsQuery.data}
             />
           )}
           {currentTab === "markets" && (

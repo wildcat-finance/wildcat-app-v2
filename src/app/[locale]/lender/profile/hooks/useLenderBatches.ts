@@ -31,6 +31,10 @@ const GET_LENDER_PROFILE_BATCHES = gql`
         expiry
         isClosed
         isExpired
+        creation {
+          blockTimestamp
+          transactionHash
+        }
       }
       account {
         market {
@@ -55,6 +59,10 @@ type LenderProfileBatchesQuery = {
       expiry: string
       isClosed: boolean
       isExpired: boolean
+      creation: {
+        blockTimestamp: number
+        transactionHash: string
+      }
     }
     account: {
       market: {
@@ -143,6 +151,10 @@ export const useLenderBatches = (
           isClosed: status.batch.isClosed,
           isExpired: status.batch.isExpired,
           expiry: formatDate(Number(status.batch.expiry)),
+          // Batch creation (on-chain) — used for sorting/time-filtering and the
+          // Tx column links to the creation transaction.
+          createdAt: status.batch.creation.blockTimestamp,
+          txHash: status.batch.creation.transactionHash,
         }
       })
     },

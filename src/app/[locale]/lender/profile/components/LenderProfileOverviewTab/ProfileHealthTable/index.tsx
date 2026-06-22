@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, SvgIcon, Typography } from "@mui/material"
 import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
 import { HooksKind } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
@@ -10,6 +10,10 @@ import {
   useBorrowerNames,
 } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { useLenderInterestBreakdown } from "@/app/[locale]/lender/profile/hooks/useLenderInterestBreakdown"
+import HealthyIcon from "@/assets/icons/chipBlueCheck_icon.svg"
+import PendingIcon from "@/assets/icons/chipEmptyGrey_icon.svg"
+import TerminatedIcon from "@/assets/icons/chipGreyCross_icon.svg"
+import PenaltyIcon from "@/assets/icons/chipYellowAlert_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import {
@@ -47,6 +51,17 @@ const STATUS_CHIPS: MarketStatus[] = [
   MarketStatus.PENALTY,
   MarketStatus.TERMINATED,
 ]
+
+// Pre-colored chip icon per status (rendered via `component`, keeping own fills).
+const STATUS_ICONS: Record<
+  MarketStatus,
+  React.FC<React.SVGProps<SVGElement>>
+> = {
+  [MarketStatus.HEALTHY]: HealthyIcon,
+  [MarketStatus.DELINQUENT]: PendingIcon,
+  [MarketStatus.PENALTY]: PenaltyIcon,
+  [MarketStatus.TERMINATED]: TerminatedIcon,
+}
 
 export const ProfileHealthTable = ({
   lenderAddress,
@@ -330,7 +345,10 @@ export const ProfileHealthTable = ({
             onClick={() => toggleStatus(status)}
             sx={profileHealthChipSx(statusFilter.includes(status))}
           >
-            {/* place for icons here */}
+            <SvgIcon
+              component={STATUS_ICONS[status]}
+              sx={{ fontSize: "16px" }}
+            />
 
             <Typography variant="text4Highlighted">{status}</Typography>
 

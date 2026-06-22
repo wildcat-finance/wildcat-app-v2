@@ -73,6 +73,9 @@ export type LenderBatchRow = {
   isClosed: boolean
   isExpired: boolean
   expiry: string
+  // Batch creation time (unix seconds) and the creation transaction hash.
+  createdAt: number
+  txHash: string
 }
 
 export type LenderCapitalAtRiskPoint = {
