@@ -17,7 +17,7 @@ import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { formatPercent, formatUsd } from "@/components/Profile/shared/analytics"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { COLORS } from "@/theme/colors"
-import { buildBorrowerProfileHref, buildMarketHref } from "@/utils/formatters"
+import { buildBorrowerProfileHref } from "@/utils/formatters"
 
 import {
   BorrowerExposureRow,
@@ -27,9 +27,14 @@ import {
   TypeSafeColDef,
 } from "./interface"
 
-// Portfolio-share cell: a proportional bar + %, turning amber with a warning
-// badge once the borrower crosses the concentration-risk threshold.
-const ConcentrationCell = ({ share }: { share: number }) => {
+// Shared mini-bar geometry — kept identical to MarketYieldTable so the share
+// bars look the same across the two tables.
+const MINI_BAR_HEIGHT = "4px"
+
+// Graphic half of "Portfolio share": a single proportional bar, amber once the
+// borrower crosses the concentration-risk threshold. Fixed width, right-aligned
+// so every row's bar sits at the same x — separate from the numbers, no float.
+const ShareBar = ({ share }: { share: number }) => {
   const flagged = share > CONCENTRATION_THRESHOLD
   const barColor = flagged ? COLORS.lemonPie : COLORS.ultramarineBlue
 
@@ -37,20 +42,15 @@ const ConcentrationCell = ({ share }: { share: number }) => {
     <Box
       sx={{
         display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: "20px",
+        justifyContent: "flex-end",
         width: "100%",
-        maxWidth: "260px",
-        pl: "24px",
       }}
     >
       <Box
         sx={{
-          flex: "1 1 auto",
-          minWidth: "60px",
-          maxWidth: "160px",
-          height: "4px",
+          width: "100%",
+          maxWidth: "50%",
+          height: MINI_BAR_HEIGHT,
           borderRadius: "3px",
           backgroundColor: COLORS.athensGrey,
           overflow: "hidden",
@@ -64,10 +64,36 @@ const ConcentrationCell = ({ share }: { share: number }) => {
           }}
         />
       </Box>
+    </Box>
+  )
+}
 
-      <Box sx={{ display: "flex", alignItems: "center", gap: "7px" }}>
-        <Typography variant="text3">{formatPercent(share, 1)}</Typography>
+// Numeric half of "Portfolio share": the %, with a fixed-width badge slot so the
+// number never shifts between flagged and unflagged rows. Left-aligned so it
+// sits directly after the bar.
+const ShareValue = ({ share }: { share: number }) => {
+  const flagged = share > CONCENTRATION_THRESHOLD
 
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        gap: "7px",
+        width: "100%",
+      }}
+    >
+      <Typography variant="text3">{formatPercent(share, 1)}</Typography>
+
+      <Box
+        sx={{
+          flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         {flagged && (
           <Tooltip title={CONCENTRATION_COPY} placement="top" arrow>
             <Box
@@ -80,7 +106,6 @@ const ConcentrationCell = ({ share }: { share: number }) => {
                 width: "14px",
                 height: "14px",
                 borderRadius: "50%",
-                backgroundColor: "transparent",
                 border: `1px solid ${COLORS.lemonPie}`,
                 color: COLORS.lemonPie,
                 fontSize: "10px",
@@ -128,6 +153,7 @@ export const BorrowerExposureTable = ({
         marketCount: 0,
         exposure: 0,
         share: 0,
+        shareBar: 0,
         button: "View",
       }
 
@@ -137,10 +163,12 @@ export const BorrowerExposureTable = ({
     })
 
     return Array.from(byBorrower.values())
-      .map((row) => ({
-        ...row,
-        share: totalExposure > 0 ? (row.exposure / totalExposure) * 100 : 0,
-      }))
+      .map((row) => {
+        const share =
+          totalExposure > 0 ? (row.exposure / totalExposure) * 100 : 0
+
+        return { ...row, share, shareBar: share }
+      })
       .sort((left, right) => right.exposure - left.exposure)
   }, [lenderData?.positions, borrowers])
 
@@ -172,7 +200,7 @@ export const BorrowerExposureTable = ({
       field: "marketCount",
       headerName: "Markets",
       minWidth: 110,
-      flex: 1,
+      flex: 1.5,
       align: "right",
       headerAlign: "right",
     },
@@ -180,26 +208,40 @@ export const BorrowerExposureTable = ({
       field: "exposure",
       headerName: "Exposure",
       minWidth: 140,
-      flex: 1,
+      flex: 1.5,
       align: "right",
       headerAlign: "right",
       renderCell: ({ value }) => formatUsd(value as number, { compact: true }),
     },
     {
-      field: "share",
-      headerName: "Portfolio share",
-      flex: 2,
-      minWidth: 240,
+      // Graphic column for portfolio share — render-only, no header.
+      field: "shareBar",
+      headerName: "",
+      flex: 3,
+      minWidth: 120,
       align: "right",
       headerAlign: "right",
       sortable: false,
-      renderCell: ({ value }) => <ConcentrationCell share={value as number} />,
+      renderCell: ({ value }) => <ShareBar share={value as number} />,
+    },
+    {
+      // Numeric column for portfolio share — carries the header. Left-aligned so
+      // the % sits right after the bar.
+      field: "share",
+      headerName: "Portfolio share",
+      flex: 0.1,
+      minWidth: 80,
+      align: "right",
+      headerAlign: "right",
+      sortable: false,
+      renderCell: ({ value }) => <ShareValue share={value as number} />,
     },
     {
       field: "button",
       sortable: false,
       headerName: "",
       minWidth: 140,
+      flex: 0.5,
       align: "right",
       headerAlign: "right",
       renderCell: (params) => (

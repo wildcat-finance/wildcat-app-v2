@@ -2,6 +2,7 @@
 
 import { Box } from "@mui/material"
 
+import { LenderProfileCapitalTab } from "@/app/[locale]/lender/profile/components/LenderProfileCapitalTab"
 import { LenderProfileOverviewTab } from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab"
 import { useLenderPositions } from "@/app/[locale]/lender/profile/hooks/useLenderPositions"
 import { Footer } from "@/components/Footer"
@@ -19,7 +20,6 @@ import { COLORS } from "@/theme/colors"
 import { pageCalcHeights } from "@/utils/constants"
 
 import { ActivityCashFlowTab } from "./components/ActivityCashFlowTab"
-import { LenderOverviewTab } from "./components/LenderOverviewTab"
 import { MarketsInterestTab } from "./components/MarketsInterestTab"
 import { TempTestChartsTab } from "./components/TempTestChartsTab"
 
@@ -93,13 +93,13 @@ export const LenderProfilePage = ({
       {analyticsAvailable ? (
         <>
           {currentTab === "overview" && (
-            // <LenderOverviewTab
-            //   lenderAddress={profileAddress}
-            //   data={positionsQuery.data}
-            //   isLoading={positionsQuery.isLoading}
-            // />
-
             <LenderProfileOverviewTab
+              lenderAddress={profileAddress}
+              lenderData={positionsQuery.data}
+            />
+          )}
+          {currentTab === "capital" && (
+            <LenderProfileCapitalTab
               lenderAddress={profileAddress}
               lenderData={positionsQuery.data}
             />

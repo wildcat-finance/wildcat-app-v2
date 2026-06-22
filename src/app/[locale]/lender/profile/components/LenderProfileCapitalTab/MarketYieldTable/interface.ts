@@ -2,7 +2,8 @@ import { GridColDef } from "@mui/x-data-grid"
 
 import { LenderPositionsData } from "@/app/[locale]/lender/profile/hooks/types"
 
-export type BorrowerExposureTableProps = {
+export type MarketYieldTableProps = {
+  lenderAddress?: `0x${string}`
   lenderData?: LenderPositionsData
 }
 
@@ -10,14 +11,17 @@ export type BorrowerExposureTableProps = {
 // row so columns stay in sync with rows.
 export type TypeSafeColDef<T> = GridColDef & { field: keyof T }
 
-// One aggregated row per borrower: how much of the lender's active portfolio is
-// exposed to that borrower, across how many markets.
-export type BorrowerExposureRow = {
+// One row per market the lender holds a position in: how much interest it
+// earned, split into base vs penalty, and its share of the lender's portfolio.
+export type MarketYieldRow = {
   id: string
+  marketId: string
+  name: string
   borrower: string
   borrowerName: string | undefined
-  marketCount: number
-  exposure: number
+  interest: number
+  baseUsd: number
+  penaltyUsd: number
   share: number
   // Render-only duplicate of `share` so the proportional bar can live in its own
   // column (separate from the numeric %), keeping bars aligned across rows.
@@ -25,8 +29,8 @@ export type BorrowerExposureRow = {
   button: string
 }
 
-// Single-borrower exposure above this share of the portfolio is flagged as
+// A single market above this share of the portfolio is flagged as
 // concentration risk.
 export const CONCENTRATION_THRESHOLD = 50
 export const CONCENTRATION_COPY =
-  "Position size above 50% of portfolio in a single borrower is flagged as concentration risk."
+  "Position above 50% of portfolio in a single market is flagged as concentration risk."
