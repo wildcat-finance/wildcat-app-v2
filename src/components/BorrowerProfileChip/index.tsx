@@ -23,7 +23,6 @@ export const BorrowerProfileChip = ({
         padding: "2px 8px 2px 6px",
         borderRadius: "12px",
         bgcolor: COLORS.whiteSmoke,
-        marginTop: "2px",
       }}
     >
       {borrower && borrower.startsWith("0") ? (

@@ -4,6 +4,7 @@ import { Box } from "@mui/material"
 
 import { LenderProfileActivityTab } from "@/app/[locale]/lender/profile/components/LenderProfileActivityTab"
 import { LenderProfileCapitalTab } from "@/app/[locale]/lender/profile/components/LenderProfileCapitalTab"
+import { LenderProfileMarketsTab } from "@/app/[locale]/lender/profile/components/LenderProfileMarketsTab"
 import { LenderProfileOverviewTab } from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab"
 import { useLenderPositions } from "@/app/[locale]/lender/profile/hooks/useLenderPositions"
 import { Footer } from "@/components/Footer"
@@ -20,7 +21,6 @@ import { isHinterlightSupported } from "@/lib/hinterlight"
 import { COLORS } from "@/theme/colors"
 import { pageCalcHeights } from "@/utils/constants"
 
-import { MarketsInterestTab } from "./components/MarketsInterestTab"
 import { TempTestChartsTab } from "./components/TempTestChartsTab"
 
 type LenderProfilePageProps = {
@@ -111,18 +111,18 @@ export const LenderProfilePage = ({
             />
           )}
           {currentTab === "markets" && (
-            <MarketsInterestTab
-              data={positionsQuery.data}
-              isLoading={positionsQuery.isLoading}
-            />
-          )}
-          {currentTab === "lender-charts" && (
-            <TempTestChartsTab
+            <LenderProfileMarketsTab
               lenderAddress={profileAddress}
-              data={positionsQuery.data}
-              isLoading={positionsQuery.isLoading}
+              lenderData={positionsQuery.data}
             />
           )}
+          {/* {currentTab === "lender-charts" && ( */}
+          {/*  <TempTestChartsTab */}
+          {/*    lenderAddress={profileAddress} */}
+          {/*    data={positionsQuery.data} */}
+          {/*    isLoading={positionsQuery.isLoading} */}
+          {/*  /> */}
+          {/* )} */}
         </>
       ) : (
         <AnalyticsUnavailableNotice

@@ -12,12 +12,8 @@ export type ProfileTabDef<T extends string> = {
   description: string
 }
 
-export type LenderProfileTab =
-  | "overview"
-  | "capital"
-  | "activity"
-  | "markets"
-  | "lender-charts"
+export type LenderProfileTab = "overview" | "capital" | "activity" | "markets"
+// | "lender-charts"
 export type BorrowerProfileTab = "overview" | "delinquency" | "borrower-charts"
 
 export const LENDER_PROFILE_TABS: ProfileTabDef<LenderProfileTab>[] = [
@@ -41,11 +37,11 @@ export const LENDER_PROFILE_TABS: ProfileTabDef<LenderProfileTab>[] = [
     label: "Markets",
     description: "All market history and return attribution.",
   },
-  {
-    value: "lender-charts",
-    label: "[preview] lender charts",
-    description: "Yield, withdrawal pressure, and capital-at-risk history.",
-  },
+  // {
+  //   value: "lender-charts",
+  //   label: "[preview] lender charts",
+  //   description: "Yield, withdrawal pressure, and capital-at-risk history.",
+  // },
 ]
 
 export const BORROWER_PROFILE_TABS: ProfileTabDef<BorrowerProfileTab>[] = [
