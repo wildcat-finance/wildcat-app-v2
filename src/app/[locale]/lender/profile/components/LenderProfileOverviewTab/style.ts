@@ -14,7 +14,7 @@ export const LenderProfileOverviewSection = {
   backgroundColor: { xs: COLORS.white, md: "transparent" },
 }
 
-export const ProfileHealthTitleContainer = {
+export const ProfileOverviewTitleContainer = {
   display: "flex",
   flexDirection: "column",
   gap: { xs: 0, md: "4px" },

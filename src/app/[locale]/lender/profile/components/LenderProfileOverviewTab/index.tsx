@@ -1,10 +1,11 @@
 import { Box, Typography } from "@mui/material"
 
+import { BorrowerExposureTable } from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/BorrowerExposureTable"
 import { ProfileHealthTable } from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/ProfileHealthTable"
 import {
   LenderProfileOverviewContainer,
   LenderProfileOverviewSection,
-  ProfileHealthTitleContainer,
+  ProfileOverviewTitleContainer,
 } from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/style"
 import { LenderPositionsData } from "@/app/[locale]/lender/profile/hooks/types"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -39,7 +40,7 @@ export const LenderProfileOverviewTab = ({
       </Box>
 
       <Box sx={LenderProfileOverviewSection}>
-        <Box sx={ProfileHealthTitleContainer}>
+        <Box sx={ProfileOverviewTitleContainer}>
           <Typography variant={isMobile ? "mobH3" : "title3"}>
             Portfolio health
           </Typography>
@@ -57,6 +58,24 @@ export const LenderProfileOverviewTab = ({
           lenderAddress={lenderAddress}
           lenderData={lenderData}
         />
+      </Box>
+
+      <Box sx={LenderProfileOverviewSection}>
+        <Box sx={ProfileOverviewTitleContainer}>
+          <Typography variant={isMobile ? "mobH3" : "title3"}>
+            Borrower exposure
+          </Typography>
+
+          <Typography
+            variant={isMobile ? "mobText2" : "text2"}
+            sx={{ opacity: 0.7 }}
+          >
+            Position size above 50% of portfolio in a single borrower is flagged
+            as concentration risk.
+          </Typography>
+        </Box>
+
+        <BorrowerExposureTable lenderData={lenderData} />
       </Box>
     </Box>
   )
