@@ -3,10 +3,10 @@ import { Box, Typography } from "@mui/material"
 import { BorrowerExposureTable } from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/BorrowerExposureTable"
 import { ProfileHealthTable } from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/ProfileHealthTable"
 import {
-  LenderProfileOverviewContainer,
-  LenderProfileOverviewSection,
-  ProfileOverviewTitleContainer,
-} from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/style"
+  LenderProfilePageContainer,
+  LenderProfilePageSection,
+  LenderProfilePageTitleContainer,
+} from "@/app/[locale]/lender/profile/components/style"
 import { LenderPositionsData } from "@/app/[locale]/lender/profile/hooks/types"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 
@@ -24,8 +24,8 @@ export const LenderProfileOverviewTab = ({
   const isMobile = useMobileResolution()
 
   return (
-    <Box sx={LenderProfileOverviewContainer}>
-      <Box sx={LenderProfileOverviewSection}>
+    <Box sx={LenderProfilePageContainer}>
+      <Box sx={LenderProfilePageSection}>
         <Typography
           variant={isMobile ? "mobH3" : "title3"}
           sx={{ marginBottom: { xs: "4px", md: "20px" } }}
@@ -39,8 +39,8 @@ export const LenderProfileOverviewTab = ({
         />
       </Box>
 
-      <Box sx={LenderProfileOverviewSection}>
-        <Box sx={ProfileOverviewTitleContainer}>
+      <Box sx={LenderProfilePageSection}>
+        <Box sx={LenderProfilePageTitleContainer}>
           <Typography variant={isMobile ? "mobH3" : "title3"}>
             Portfolio health
           </Typography>
@@ -60,8 +60,8 @@ export const LenderProfileOverviewTab = ({
         />
       </Box>
 
-      <Box sx={LenderProfileOverviewSection}>
-        <Box sx={ProfileOverviewTitleContainer}>
+      <Box sx={LenderProfilePageSection}>
+        <Box sx={LenderProfilePageTitleContainer}>
           <Typography variant={isMobile ? "mobH3" : "title3"}>
             Borrower exposure
           </Typography>

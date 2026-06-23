@@ -9,11 +9,11 @@ import {
   useBorrowerNames,
 } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import {
-  ProfileHealthClickableGridSx,
-  ProfileHealthLinkCell,
-  ProfileHealthRowLinkInteractiveSx,
-  ProfileHealthRowLinkStretchedSx,
-} from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/ProfileHealthTable/style"
+  LenderProfileClickableGridSx,
+  LenderProfileLinkCell,
+  LenderProfileRowLinkInteractiveSx,
+  LenderProfileRowLinkStretchedSx,
+} from "@/app/[locale]/lender/profile/components/style"
 import { useLenderInterestBreakdown } from "@/app/[locale]/lender/profile/hooks/useLenderInterestBreakdown"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { formatPercent, formatUsd } from "@/components/Profile/shared/analytics"
@@ -264,7 +264,7 @@ export const MarketYieldTable = ({
       renderCell: ({ row }) => (
         <Box
           sx={{
-            ...ProfileHealthLinkCell,
+            ...LenderProfileLinkCell,
             justifyContent: "center",
             flexDirection: "column",
             alignItems: "flex-start",
@@ -279,7 +279,7 @@ export const MarketYieldTable = ({
               undefined,
               ROUTES.lender.market,
             )}
-            sx={ProfileHealthRowLinkStretchedSx}
+            sx={LenderProfileRowLinkStretchedSx}
           >
             <Typography
               variant="text3"
@@ -302,7 +302,7 @@ export const MarketYieldTable = ({
               href={buildBorrowerProfileHref(row.borrower, chainId)}
               prefetch={false}
               sx={{
-                ...ProfileHealthRowLinkInteractiveSx,
+                ...LenderProfileRowLinkInteractiveSx,
                 display: "flex",
                 textDecoration: "none",
               }}
@@ -402,7 +402,7 @@ export const MarketYieldTable = ({
           component={Link}
           href={buildMarketHref(row.marketId, undefined, ROUTES.lender.market)}
           sx={{
-            ...ProfileHealthRowLinkInteractiveSx,
+            ...LenderProfileRowLinkInteractiveSx,
             display: "flex",
             textDecoration: "none",
           }}
@@ -416,7 +416,7 @@ export const MarketYieldTable = ({
   return (
     <DataGrid
       disableVirtualization
-      sx={ProfileHealthClickableGridSx}
+      sx={LenderProfileClickableGridSx}
       rowHeight={66}
       rows={rows}
       columns={columns}

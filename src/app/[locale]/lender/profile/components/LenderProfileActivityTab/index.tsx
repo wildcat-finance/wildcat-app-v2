@@ -3,10 +3,10 @@ import { Box, Typography } from "@mui/material"
 import { BatchesAndTransactionsSection } from "@/app/[locale]/lender/profile/components/LenderProfileActivityTab/BatchesAndTransactionsSection"
 import { ExportBanner } from "@/app/[locale]/lender/profile/components/LenderProfileActivityTab/ExportBanner"
 import {
-  LenderProfileOverviewContainer,
-  LenderProfileOverviewSection,
-  ProfileOverviewTitleContainer,
-} from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/style"
+  LenderProfilePageContainer,
+  LenderProfilePageSection,
+  LenderProfilePageTitleContainer,
+} from "@/app/[locale]/lender/profile/components/style"
 import { LenderPositionsData } from "@/app/[locale]/lender/profile/hooks/types"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 
@@ -22,9 +22,9 @@ export const LenderProfileActivityTab = ({
   const isMobile = useMobileResolution()
 
   return (
-    <Box sx={LenderProfileOverviewContainer}>
-      <Box sx={LenderProfileOverviewSection}>
-        <Box sx={ProfileOverviewTitleContainer}>
+    <Box sx={LenderProfilePageContainer}>
+      <Box sx={LenderProfilePageSection}>
+        <Box sx={LenderProfilePageTitleContainer}>
           <Typography variant={isMobile ? "mobH3" : "title3"}>
             Activity & History
           </Typography>
@@ -45,7 +45,7 @@ export const LenderProfileActivityTab = ({
         {/* place for the graph */}
       </Box>
 
-      <Box sx={LenderProfileOverviewSection}>
+      <Box sx={LenderProfilePageSection}>
         <BatchesAndTransactionsSection
           lenderAddress={lenderAddress}
           lenderData={lenderData}

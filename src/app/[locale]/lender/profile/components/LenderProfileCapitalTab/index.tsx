@@ -3,10 +3,10 @@ import { Box, Typography } from "@mui/material"
 import { CapitalGrowthGraph } from "@/app/[locale]/lender/profile/components/LenderProfileCapitalTab/CapitalGrowthGraph"
 import { MarketYieldTable } from "@/app/[locale]/lender/profile/components/LenderProfileCapitalTab/MarketYieldTable"
 import {
-  LenderProfileOverviewContainer,
-  LenderProfileOverviewSection,
-  ProfileOverviewTitleContainer,
-} from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/style"
+  LenderProfilePageContainer,
+  LenderProfilePageSection,
+  LenderProfilePageTitleContainer,
+} from "@/app/[locale]/lender/profile/components/style"
 import { LenderPositionsData } from "@/app/[locale]/lender/profile/hooks/types"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 
@@ -22,9 +22,9 @@ export const LenderProfileCapitalTab = ({
   const isMobile = useMobileResolution()
 
   return (
-    <Box sx={LenderProfileOverviewContainer}>
-      <Box sx={LenderProfileOverviewSection}>
-        <Box sx={ProfileOverviewTitleContainer}>
+    <Box sx={LenderProfilePageContainer}>
+      <Box sx={LenderProfilePageSection}>
+        <Box sx={LenderProfilePageTitleContainer}>
           <Typography variant={isMobile ? "mobH3" : "title3"}>
             Capital growth
           </Typography>
@@ -43,7 +43,7 @@ export const LenderProfileCapitalTab = ({
         />
       </Box>
 
-      <Box sx={LenderProfileOverviewSection}>
+      <Box sx={LenderProfilePageSection}>
         <Typography
           variant={isMobile ? "mobH3" : "title3"}
           sx={{ marginBottom: { xs: "4px", md: "20px" } }}

@@ -9,9 +9,9 @@ import {
   useBorrowerNames,
 } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import {
-  ProfileHealthClickableGridSx,
-  ProfileHealthRowLinkStretchedSx,
-} from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/ProfileHealthTable/style"
+  LenderProfileClickableGridSx,
+  LenderProfileRowLinkStretchedSx,
+} from "@/app/[locale]/lender/profile/components/style"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { formatPercent, formatUsd } from "@/components/Profile/shared/analytics"
 import { TablePagination } from "@/components/TablePagination"
@@ -190,7 +190,7 @@ export const BorrowerExposureTable = ({
           href={buildBorrowerProfileHref(row.borrower, chainId)}
           prefetch={false}
           sx={{
-            ...ProfileHealthRowLinkStretchedSx,
+            ...LenderProfileRowLinkStretchedSx,
             display: "flex",
             alignItems: "center",
             textDecoration: "none",
@@ -266,7 +266,7 @@ export const BorrowerExposureTable = ({
   return (
     <DataGrid
       disableVirtualization
-      sx={ProfileHealthClickableGridSx}
+      sx={LenderProfileClickableGridSx}
       rowHeight={66}
       rows={rows}
       columns={columns}

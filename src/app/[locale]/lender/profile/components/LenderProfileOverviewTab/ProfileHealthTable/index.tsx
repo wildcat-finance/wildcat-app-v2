@@ -9,6 +9,12 @@ import {
   getBorrowerDisplayName,
   useBorrowerNames,
 } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import {
+  LenderProfileClickableGridSx,
+  LenderProfileLinkCell,
+  LenderProfileRowLinkInteractiveSx,
+  LenderProfileRowLinkStretchedSx,
+} from "@/app/[locale]/lender/profile/components/style"
 import { useLenderInterestBreakdown } from "@/app/[locale]/lender/profile/hooks/useLenderInterestBreakdown"
 import HealthyIcon from "@/assets/icons/chipBlueCheck_icon.svg"
 import PendingIcon from "@/assets/icons/chipEmptyGrey_icon.svg"
@@ -36,14 +42,7 @@ import {
   statusAndTermComparator,
   TypeSafeColDef,
 } from "./interface"
-import {
-  profileHealthChipSx,
-  ProfileHealthChipsRowSx,
-  ProfileHealthClickableGridSx,
-  ProfileHealthLinkCell,
-  ProfileHealthRowLinkStretchedSx,
-  ProfileHealthRowLinkInteractiveSx,
-} from "./style"
+import { profileHealthChipSx, ProfileHealthChipsRowSx } from "./style"
 
 const STATUS_CHIPS: MarketStatus[] = [
   MarketStatus.HEALTHY,
@@ -161,7 +160,7 @@ export const ProfileHealthTable = ({
       renderCell: (params) => (
         <Box
           sx={{
-            ...ProfileHealthLinkCell,
+            ...LenderProfileLinkCell,
             paddingRight: "16px",
             justifyContent: "center",
             flexDirection: "column",
@@ -177,7 +176,7 @@ export const ProfileHealthTable = ({
               undefined,
               ROUTES.lender.market,
             )}
-            sx={ProfileHealthRowLinkStretchedSx}
+            sx={LenderProfileRowLinkStretchedSx}
           >
             <Typography
               variant="text3"
@@ -203,7 +202,7 @@ export const ProfileHealthTable = ({
               )}
               prefetch={false}
               sx={{
-                ...ProfileHealthRowLinkInteractiveSx,
+                ...LenderProfileRowLinkInteractiveSx,
                 display: "flex",
                 textDecoration: "none",
               }}
@@ -307,7 +306,7 @@ export const ProfileHealthTable = ({
             href={buildMarketHref(params.row.id, undefined)}
             tabIndex={-1}
             sx={{
-              ...ProfileHealthRowLinkInteractiveSx,
+              ...LenderProfileRowLinkInteractiveSx,
               textDecoration: "none",
               color: "inherit",
             }}
@@ -370,7 +369,7 @@ export const ProfileHealthTable = ({
 
       <DataGrid
         disableVirtualization
-        sx={ProfileHealthClickableGridSx}
+        sx={LenderProfileClickableGridSx}
         rowHeight={66}
         rows={filteredRows}
         columns={columns}

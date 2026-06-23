@@ -11,10 +11,10 @@ import {
 } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { getPositionMarketStatus } from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/ProfileHealthTable/interface"
 import {
-  LenderProfileOverviewContainer,
-  LenderProfileOverviewSection,
-  ProfileOverviewTitleContainer,
-} from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/style"
+  LenderProfilePageContainer,
+  LenderProfilePageSection,
+  LenderProfilePageTitleContainer,
+} from "@/app/[locale]/lender/profile/components/style"
 import { LenderPositionsData } from "@/app/[locale]/lender/profile/hooks/types"
 import { useLenderInterestBreakdown } from "@/app/[locale]/lender/profile/hooks/useLenderInterestBreakdown"
 import { FilterTextField } from "@/components/FilterTextfield"
@@ -133,9 +133,9 @@ export const LenderProfileMarketsTab = ({
   }, [cards, statusFilter, assetFilter, search])
 
   return (
-    <Box sx={LenderProfileOverviewContainer}>
-      <Box sx={LenderProfileOverviewSection}>
-        <Box sx={ProfileOverviewTitleContainer}>
+    <Box sx={LenderProfilePageContainer}>
+      <Box sx={LenderProfilePageSection}>
+        <Box sx={LenderProfilePageTitleContainer}>
           <Typography variant={isMobile ? "mobH3" : "title3"}>
             Markets
           </Typography>

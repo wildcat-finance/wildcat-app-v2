@@ -5,11 +5,11 @@ import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
 import Link from "next/link"
 
 import {
-  ProfileHealthClickableGridSx,
-  ProfileHealthLinkCell,
-  ProfileHealthRowLinkInteractiveSx,
-  ProfileHealthRowLinkStretchedSx,
-} from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/ProfileHealthTable/style"
+  LenderProfileClickableGridSx,
+  LenderProfileLinkCell,
+  LenderProfileRowLinkInteractiveSx,
+  LenderProfileRowLinkStretchedSx,
+} from "@/app/[locale]/lender/profile/components/style"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { LinkGroup } from "@/components/LinkComponent"
 import { formatUsd } from "@/components/Profile/shared/analytics"
@@ -68,7 +68,7 @@ export const BatchesTable = ({ rows }: BatchesTableProps) => {
       renderCell: ({ row }) => (
         <Box
           sx={{
-            ...ProfileHealthLinkCell,
+            ...LenderProfileLinkCell,
             paddingRight: "16px",
             justifyContent: "center",
             flexDirection: "column",
@@ -84,7 +84,7 @@ export const BatchesTable = ({ rows }: BatchesTableProps) => {
               undefined,
               ROUTES.lender.market,
             )}
-            sx={ProfileHealthRowLinkStretchedSx}
+            sx={LenderProfileRowLinkStretchedSx}
           >
             <Typography
               variant="text3"
@@ -107,7 +107,7 @@ export const BatchesTable = ({ rows }: BatchesTableProps) => {
               href={buildBorrowerProfileHref(row.borrower, chainId)}
               prefetch={false}
               sx={{
-                ...ProfileHealthRowLinkInteractiveSx,
+                ...LenderProfileRowLinkInteractiveSx,
                 display: "flex",
                 textDecoration: "none",
               }}
@@ -168,7 +168,7 @@ export const BatchesTable = ({ rows }: BatchesTableProps) => {
       renderCell: ({ value }) => (
         <Box
           sx={{
-            ...ProfileHealthRowLinkInteractiveSx,
+            ...LenderProfileRowLinkInteractiveSx,
             display: "flex",
             alignItems: "center",
             gap: "4px",
@@ -201,7 +201,7 @@ export const BatchesTable = ({ rows }: BatchesTableProps) => {
   return (
     <DataGrid
       disableVirtualization
-      sx={ProfileHealthClickableGridSx}
+      sx={LenderProfileClickableGridSx}
       rowHeight={66}
       rows={rows}
       columns={columns}

@@ -5,11 +5,11 @@ import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
 import Link from "next/link"
 
 import {
-  ProfileHealthClickableGridSx,
-  ProfileHealthLinkCell,
-  ProfileHealthRowLinkInteractiveSx,
-  ProfileHealthRowLinkStretchedSx,
-} from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/ProfileHealthTable/style"
+  LenderProfileClickableGridSx,
+  LenderProfileLinkCell,
+  LenderProfileRowLinkInteractiveSx,
+  LenderProfileRowLinkStretchedSx,
+} from "@/app/[locale]/lender/profile/components/style"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { LinkGroup } from "@/components/LinkComponent"
 import { formatUsd } from "@/components/Profile/shared/analytics"
@@ -128,7 +128,7 @@ export const TransactionsTable = ({ rows }: TransactionsTableProps) => {
       renderCell: ({ row }) => (
         <Box
           sx={{
-            ...ProfileHealthLinkCell,
+            ...LenderProfileLinkCell,
             paddingRight: "16px",
             justifyContent: "center",
             flexDirection: "column",
@@ -144,7 +144,7 @@ export const TransactionsTable = ({ rows }: TransactionsTableProps) => {
               undefined,
               ROUTES.lender.market,
             )}
-            sx={ProfileHealthRowLinkStretchedSx}
+            sx={LenderProfileRowLinkStretchedSx}
           >
             <Typography
               variant="text3"
@@ -167,7 +167,7 @@ export const TransactionsTable = ({ rows }: TransactionsTableProps) => {
               href={buildBorrowerProfileHref(row.borrower, chainId)}
               prefetch={false}
               sx={{
-                ...ProfileHealthRowLinkInteractiveSx,
+                ...LenderProfileRowLinkInteractiveSx,
                 display: "flex",
                 textDecoration: "none",
               }}
@@ -234,7 +234,7 @@ export const TransactionsTable = ({ rows }: TransactionsTableProps) => {
       renderCell: ({ value }) => (
         <Box
           sx={{
-            ...ProfileHealthRowLinkInteractiveSx,
+            ...LenderProfileRowLinkInteractiveSx,
             display: "flex",
             alignItems: "center",
             gap: "4px",
@@ -255,7 +255,7 @@ export const TransactionsTable = ({ rows }: TransactionsTableProps) => {
   return (
     <DataGrid
       disableVirtualization
-      sx={ProfileHealthClickableGridSx}
+      sx={LenderProfileClickableGridSx}
       rowHeight={66}
       rows={rows}
       columns={columns}
