@@ -5,7 +5,6 @@ import React, { useEffect, useState } from "react"
 import { Box, Skeleton } from "@mui/material"
 
 import { ExploreMarketsTable } from "@/app/[locale]/lender/components/ExploreSection/ExploreMarketsTable"
-import { TopMarketsSection } from "@/app/[locale]/lender/components/ExploreSection/TopMarketsSection"
 import { TrendingMarketsCarousel } from "@/app/[locale]/lender/components/ExploreSection/TrendingMarketsCarousel"
 import { COLORS } from "@/theme/colors"
 
@@ -16,14 +15,6 @@ export const ExploreSection = () => {
   if (!mounted)
     return (
       <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-        <Skeleton
-          sx={{
-            width: "100%",
-            height: "370px",
-            borderRadius: "14px",
-            backgroundColor: { xs: COLORS.white06, md: "transparent" },
-          }}
-        />
         <Skeleton
           sx={{
             width: "100%",
@@ -58,7 +49,6 @@ export const ExploreSection = () => {
           gap: { xs: "4px", md: "32px" },
         }}
       >
-        <TopMarketsSection />
         <TrendingMarketsCarousel />
         <ExploreMarketsTable />
       </Box>

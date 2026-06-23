@@ -512,7 +512,7 @@ export const TrendingMarketsCarousel = () => {
     )
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box sx={{ width: "100%", marginTop: "30px" }}>
       <Typography
         variant="title3"
         sx={{ color: COLORS.blackRock, paddingLeft: "16px" }}
