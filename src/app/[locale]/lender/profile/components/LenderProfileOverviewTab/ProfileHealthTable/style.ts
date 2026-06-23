@@ -25,16 +25,6 @@ export const profileHealthChipSx = (selected: boolean) => ({
   },
 })
 
-// Bounded scroll container that CLIPS the grid (which itself is overflow:visible
-// + auto-height). This is what makes the sticky header work like the markets
-// tables: rows scrolled above the pinned header are clipped instead of showing
-// through. Offset in the calc is the space above the table (top bar, Overview,
-// title, chips) — tune if the layout changes.
-export const ProfileHealthTableScrollSx = {
-  overflowY: "auto" as const,
-  maxHeight: "calc(100vh - 300px)",
-}
-
 const DATA_GRID_MIN_HEIGHT = "106px"
 
 export const ProfileHealthDataGridSx = {
@@ -67,11 +57,10 @@ export const ProfileHealthDataGridSx = {
   "& .MuiDataGrid-scrollbarFiller": {
     display: "none",
   },
-  "& .MuiDataGrid-columnHeaders": {
-    position: "sticky",
-    top: 0,
-    zIndex: 2,
-    backgroundColor: COLORS.white,
+  // MUI X v7 wraps the column headers in a `position: sticky` topContainer —
+  // override it so the header scrolls with the page instead of pinning.
+  "& .MuiDataGrid-topContainer": {
+    position: "relative" as const,
   },
   "& .MuiDataGrid-columnHeader": {
     padding: 0,

@@ -1,3 +1,5 @@
+import * as React from "react"
+
 import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
 import Link from "next/link"
@@ -7,11 +9,11 @@ import {
   ProfileHealthLinkCell,
   ProfileHealthRowLinkInteractiveSx,
   ProfileHealthRowLinkStretchedSx,
-  ProfileHealthTableScrollSx,
 } from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/ProfileHealthTable/style"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { LinkGroup } from "@/components/LinkComponent"
 import { formatUsd } from "@/components/Profile/shared/analytics"
+import { TablePagination } from "@/components/TablePagination"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
@@ -45,6 +47,15 @@ const AmountCell = ({ value }: { value: number }) => (
 export const BatchesTable = ({ rows }: BatchesTableProps) => {
   const { chainId } = useSelectedNetwork()
   const { getTxUrl } = useBlockExplorer()
+  const [paginationModel, setPaginationModel] = React.useState({
+    pageSize: 10,
+    page: 0,
+  })
+
+  // Rows are filtered upstream; reset to the first page when they change.
+  React.useEffect(() => {
+    setPaginationModel((prev) => ({ ...prev, page: 0 }))
+  }, [rows])
 
   const columns: TypeSafeColDef<BatchTableRow>[] = [
     {
@@ -188,15 +199,17 @@ export const BatchesTable = ({ rows }: BatchesTableProps) => {
   ]
 
   return (
-    <Box sx={ProfileHealthTableScrollSx}>
-      <DataGrid
-        disableVirtualization
-        sx={ProfileHealthClickableGridSx}
-        rowHeight={66}
-        rows={rows}
-        columns={columns}
-        columnHeaderHeight={40}
-      />
-    </Box>
+    <DataGrid
+      disableVirtualization
+      sx={ProfileHealthClickableGridSx}
+      rowHeight={66}
+      rows={rows}
+      columns={columns}
+      columnHeaderHeight={40}
+      paginationModel={paginationModel}
+      onPaginationModelChange={setPaginationModel}
+      slots={{ pagination: TablePagination }}
+      hideFooter={false}
+    />
   )
 }

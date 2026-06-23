@@ -13,11 +13,11 @@ import {
   ProfileHealthLinkCell,
   ProfileHealthRowLinkInteractiveSx,
   ProfileHealthRowLinkStretchedSx,
-  ProfileHealthTableScrollSx,
 } from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/ProfileHealthTable/style"
 import { useLenderInterestBreakdown } from "@/app/[locale]/lender/profile/hooks/useLenderInterestBreakdown"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { formatPercent, formatUsd } from "@/components/Profile/shared/analytics"
+import { TablePagination } from "@/components/TablePagination"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -204,6 +204,10 @@ export const MarketYieldTable = ({
 }: MarketYieldTableProps) => {
   const { data: borrowers } = useBorrowerNames()
   const { chainId } = useSelectedNetwork()
+  const [paginationModel, setPaginationModel] = React.useState({
+    pageSize: 10,
+    page: 0,
+  })
   const { data: interestBreakdown } = useLenderInterestBreakdown({
     lenderAddress,
     marketIds: lenderData?.marketIds ?? [],
@@ -410,15 +414,17 @@ export const MarketYieldTable = ({
   ]
 
   return (
-    <Box sx={ProfileHealthTableScrollSx}>
-      <DataGrid
-        disableVirtualization
-        sx={ProfileHealthClickableGridSx}
-        rowHeight={66}
-        rows={rows}
-        columns={columns}
-        columnHeaderHeight={40}
-      />
-    </Box>
+    <DataGrid
+      disableVirtualization
+      sx={ProfileHealthClickableGridSx}
+      rowHeight={66}
+      rows={rows}
+      columns={columns}
+      columnHeaderHeight={40}
+      paginationModel={paginationModel}
+      onPaginationModelChange={setPaginationModel}
+      slots={{ pagination: TablePagination }}
+      hideFooter={false}
+    />
   )
 }

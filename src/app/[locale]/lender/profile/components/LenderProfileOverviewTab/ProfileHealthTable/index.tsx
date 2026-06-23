@@ -23,6 +23,7 @@ import {
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { formatPercent, formatUsd } from "@/components/Profile/shared/analytics"
+import { TablePagination } from "@/components/TablePagination"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { buildBorrowerProfileHref, buildMarketHref } from "@/utils/formatters"
@@ -42,7 +43,6 @@ import {
   ProfileHealthLinkCell,
   ProfileHealthRowLinkStretchedSx,
   ProfileHealthRowLinkInteractiveSx,
-  ProfileHealthTableScrollSx,
 } from "./style"
 
 const STATUS_CHIPS: MarketStatus[] = [
@@ -113,6 +113,15 @@ export const ProfileHealthTable = ({
   )
 
   const [statusFilter, setStatusFilter] = React.useState<MarketStatus[]>([])
+  const [paginationModel, setPaginationModel] = React.useState({
+    pageSize: 10,
+    page: 0,
+  })
+
+  // Reset to the first page whenever the status filter changes.
+  React.useEffect(() => {
+    setPaginationModel((prev) => ({ ...prev, page: 0 }))
+  }, [statusFilter])
 
   const statusCounts = React.useMemo(
     () =>
@@ -359,16 +368,18 @@ export const ProfileHealthTable = ({
         ))}
       </Box>
 
-      <Box sx={ProfileHealthTableScrollSx}>
-        <DataGrid
-          disableVirtualization
-          sx={ProfileHealthClickableGridSx}
-          rowHeight={66}
-          rows={filteredRows}
-          columns={columns}
-          columnHeaderHeight={40}
-        />
-      </Box>
+      <DataGrid
+        disableVirtualization
+        sx={ProfileHealthClickableGridSx}
+        rowHeight={66}
+        rows={filteredRows}
+        columns={columns}
+        columnHeaderHeight={40}
+        paginationModel={paginationModel}
+        onPaginationModelChange={setPaginationModel}
+        slots={{ pagination: TablePagination }}
+        hideFooter={false}
+      />
     </Box>
   )
 }

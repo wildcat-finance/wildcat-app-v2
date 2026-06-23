@@ -11,10 +11,10 @@ import {
 import {
   ProfileHealthClickableGridSx,
   ProfileHealthRowLinkStretchedSx,
-  ProfileHealthTableScrollSx,
 } from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/ProfileHealthTable/style"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { formatPercent, formatUsd } from "@/components/Profile/shared/analytics"
+import { TablePagination } from "@/components/TablePagination"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { COLORS } from "@/theme/colors"
 import { buildBorrowerProfileHref } from "@/utils/formatters"
@@ -128,6 +128,10 @@ export const BorrowerExposureTable = ({
 }: BorrowerExposureTableProps) => {
   const { data: borrowers } = useBorrowerNames()
   const { chainId } = useSelectedNetwork()
+  const [paginationModel, setPaginationModel] = React.useState({
+    pageSize: 10,
+    page: 0,
+  })
 
   // Aggregate active positions by borrower → exposure (USD), market count and
   // share of the lender's active portfolio.
@@ -260,15 +264,17 @@ export const BorrowerExposureTable = ({
   ]
 
   return (
-    <Box sx={ProfileHealthTableScrollSx}>
-      <DataGrid
-        disableVirtualization
-        sx={ProfileHealthClickableGridSx}
-        rowHeight={66}
-        rows={rows}
-        columns={columns}
-        columnHeaderHeight={40}
-      />
-    </Box>
+    <DataGrid
+      disableVirtualization
+      sx={ProfileHealthClickableGridSx}
+      rowHeight={66}
+      rows={rows}
+      columns={columns}
+      columnHeaderHeight={40}
+      paginationModel={paginationModel}
+      onPaginationModelChange={setPaginationModel}
+      slots={{ pagination: TablePagination }}
+      hideFooter={false}
+    />
   )
 }

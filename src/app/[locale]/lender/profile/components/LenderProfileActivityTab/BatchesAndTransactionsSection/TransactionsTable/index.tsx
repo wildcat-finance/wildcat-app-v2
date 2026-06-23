@@ -1,4 +1,4 @@
-import { ReactNode } from "react"
+import { useEffect, useState } from "react"
 
 import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
@@ -9,11 +9,11 @@ import {
   ProfileHealthLinkCell,
   ProfileHealthRowLinkInteractiveSx,
   ProfileHealthRowLinkStretchedSx,
-  ProfileHealthTableScrollSx,
 } from "@/app/[locale]/lender/profile/components/LenderProfileOverviewTab/ProfileHealthTable/style"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { LinkGroup } from "@/components/LinkComponent"
 import { formatUsd } from "@/components/Profile/shared/analytics"
+import { TablePagination } from "@/components/TablePagination"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
@@ -107,6 +107,15 @@ const UsdCell = ({ value }: { value: number }) => (
 export const TransactionsTable = ({ rows }: TransactionsTableProps) => {
   const { chainId } = useSelectedNetwork()
   const { getTxUrl } = useBlockExplorer()
+  const [paginationModel, setPaginationModel] = useState({
+    pageSize: 10,
+    page: 0,
+  })
+
+  // Rows are filtered upstream; reset to the first page when they change.
+  useEffect(() => {
+    setPaginationModel((prev) => ({ ...prev, page: 0 }))
+  }, [rows])
 
   const columns: TypeSafeColDef<TransactionTableRow>[] = [
     {
@@ -244,15 +253,17 @@ export const TransactionsTable = ({ rows }: TransactionsTableProps) => {
   ]
 
   return (
-    <Box sx={ProfileHealthTableScrollSx}>
-      <DataGrid
-        disableVirtualization
-        sx={ProfileHealthClickableGridSx}
-        rowHeight={66}
-        rows={rows}
-        columns={columns}
-        columnHeaderHeight={40}
-      />
-    </Box>
+    <DataGrid
+      disableVirtualization
+      sx={ProfileHealthClickableGridSx}
+      rowHeight={66}
+      rows={rows}
+      columns={columns}
+      columnHeaderHeight={40}
+      paginationModel={paginationModel}
+      onPaginationModelChange={setPaginationModel}
+      slots={{ pagination: TablePagination }}
+      hideFooter={false}
+    />
   )
 }
