@@ -69,7 +69,33 @@ model RefusalToAssignMla {
   blockNumber Int?
   kind        SignatureKind
 
+  acknowledgements NonMlaAcknowledgement[] @relation("RefusalToAssignMlaToNonMlaAcknowledgement")
+
   @@id([chainId, market])
+}
+
+model NonMlaAcknowledgement {
+  chainId                    Int
+  // The market address
+  market                     String
+  // The lender address
+  address                    String
+  // If the signature is from a single owner of a gnosis safe, this is the address of the
+  // owner that made the signature; otherwise, it's the same as `address`
+  signer                     String
+  signature                  String
+  kind                       SignatureKind
+  // The block number at which the signature was verified - only relevant for non-EOA signatures
+  blockNumber                Int?
+  acknowledgementTextVersion String
+  acknowledgementText        String
+  timeSigned                 DateTime
+  createdAt                  DateTime      @default(now())
+
+  refusal RefusalToAssignMla @relation("RefusalToAssignMlaToNonMlaAcknowledgement", fields: [chainId, market], references: [chainId, market], onDelete: Cascade)
+
+  @@id([chainId, market, address, acknowledgementTextVersion])
+  @@index([chainId, address])
 }
 
 model AdminAccount {

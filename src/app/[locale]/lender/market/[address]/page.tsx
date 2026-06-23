@@ -17,6 +17,7 @@ import { MobileMlaModal } from "@/app/[locale]/lender/market/[address]/component
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
 import { MobileMarketDescriptionModal } from "@/app/[locale]/lender/market/[address]/components/Modals/MobileMarketDescriptionModal"
 import { MobileMarketHistoryModal } from "@/app/[locale]/lender/market/[address]/components/Modals/MobileMarketHistoryModal"
+import { NonMlaAcknowledgementModal } from "@/app/[locale]/lender/market/[address]/components/Modals/NonMlaAcknowledgementModal"
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
@@ -211,6 +212,7 @@ export default function LenderMarketDetails({
   )
 
   const [isMobileDepositOpen, setIsMobileDepositOpen] = React.useState(false)
+  const [isMobileAckOpen, setIsMobileAckOpen] = React.useState(false)
   const [isMobileWithdrawalOpen, setIsMobileWithdrawalOpen] =
     React.useState(false)
   const [isMobileMLAOpen, setIsMobileMLAOpen] = React.useState(false)
@@ -324,6 +326,20 @@ export default function LenderMarketDetails({
       </Box>
     )
 
+  if (isMobile && isMobileAckOpen)
+    return (
+      <NonMlaAcknowledgementModal
+        open
+        marketAddress={market.address}
+        chainId={market.chainId}
+        onClose={() => setIsMobileAckOpen(false)}
+        onAcknowledged={() => {
+          setIsMobileAckOpen(false)
+          setIsMobileDepositOpen(true)
+        }}
+      />
+    )
+
   if (isMobile && isMobileDepositOpen)
     return (
       <DepositModal
@@ -367,9 +383,9 @@ export default function LenderMarketDetails({
           <MobileMarketActions
             marketAccount={marketAccount}
             withdrawals={withdrawals}
-            isMobileDepositOpen={isMobileDepositOpen}
             isMobileWithdrawalOpen={isMobileWithdrawalOpen}
             setIsMobileDepositOpen={setIsMobileDepositOpen}
+            setIsMobileAckOpen={setIsMobileAckOpen}
             setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
             isMLAOpen={isMobileMLAOpen}
             setIsMLAOpen={setIsMobileMLAOpen}
@@ -392,9 +408,9 @@ export default function LenderMarketDetails({
           <MobileMarketActions
             marketAccount={marketAccount}
             withdrawals={withdrawals}
-            isMobileDepositOpen={isMobileDepositOpen}
             isMobileWithdrawalOpen={isMobileWithdrawalOpen}
             setIsMobileDepositOpen={setIsMobileDepositOpen}
+            setIsMobileAckOpen={setIsMobileAckOpen}
             setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
             isMLAOpen={isMobileMLAOpen}
             setIsMLAOpen={setIsMobileMLAOpen}
@@ -511,9 +527,9 @@ export default function LenderMarketDetails({
             <MobileMarketActions
               marketAccount={marketAccount}
               withdrawals={withdrawals}
-              isMobileDepositOpen={isMobileDepositOpen}
               isMobileWithdrawalOpen={isMobileWithdrawalOpen}
               setIsMobileDepositOpen={setIsMobileDepositOpen}
+              setIsMobileAckOpen={setIsMobileAckOpen}
               setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
               isMLAOpen={isMobileMLAOpen}
               setIsMLAOpen={setIsMobileMLAOpen}
