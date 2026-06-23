@@ -18,6 +18,8 @@ import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/component
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { useApprovalModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
 import { useApprove } from "@/app/[locale]/borrower/market/[address]/hooks/useGetApproval"
+import { BorrowerPenaltyWarning } from "@/app/[locale]/lender/market/[address]/components/BorrowerPenaltyWarning"
+import { useGetBorrowerProfile } from "@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile"
 import Alert from "@/assets/icons/circledAlert_icon.svg"
 import Clock from "@/assets/icons/clock_icon.svg"
 import { DepositAlert } from "@/components/DepositAlert"
@@ -38,10 +40,80 @@ import { formatTokenWithCommas } from "@/utils/formatters"
 import { DepositModalProps } from "./interface"
 import { useDeposit } from "../../../hooks/useDeposit"
 
+type BorrowerIdentityDisclosureProps = {
+  legalName: string | undefined
+  alias: string | undefined
+}
+
+const BorrowerIdentityDisclosure = ({
+  legalName,
+  alias,
+}: BorrowerIdentityDisclosureProps) => {
+  const { t } = useTranslation()
+
+  if (!legalName) return null
+
+  const items = [
+    {
+      label: t("borrowerProfile.profile.overallInfo.name"),
+      value: legalName,
+    },
+    ...(alias
+      ? [
+          {
+            label: t("borrowerProfile.profile.overallInfo.alias"),
+            value: alias,
+          },
+        ]
+      : []),
+  ]
+
+  return (
+    <Box
+      sx={{
+        width: "100%",
+        padding: { xs: "4px 20px 0", md: "4px 36px 0" },
+        marginTop: "auto",
+        marginBottom: "12px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px",
+      }}
+    >
+      {items.map(({ label, value }) => (
+        <Box
+          key={label}
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "12px",
+          }}
+        >
+          <Typography
+            variant="text3"
+            color={COLORS.santasGrey}
+            sx={{ flexShrink: 0 }}
+          >
+            {label}:
+          </Typography>
+          <Typography
+            variant="text3"
+            sx={{ textAlign: "right", overflowWrap: "anywhere" }}
+          >
+            {value}
+          </Typography>
+        </Box>
+      ))}
+    </Box>
+  )
+}
+
 export const DepositModal = ({
   marketAccount,
   isMobileOpen,
   setIsMobileOpen,
+  showBorrowerPenaltyWarning,
 }: DepositModalProps) => {
   const isMobile = useMobileResolution()
 
@@ -49,6 +121,20 @@ export const DepositModal = ({
   const { getTxUrl } = useBlockExplorer()
 
   const { market } = marketAccount
+
+  const { data: borrowerProfile } = useGetBorrowerProfile(
+    market.chainId,
+    market.borrower as `0x${string}`,
+  )
+
+  const borrowerLegalName = borrowerProfile?.name?.trim()
+  const borrowerAlias = borrowerProfile?.alias?.trim()
+  const displayedBorrowerAlias =
+    borrowerLegalName &&
+    borrowerAlias &&
+    borrowerAlias.toLowerCase() !== borrowerLegalName.toLowerCase()
+      ? borrowerAlias
+      : undefined
 
   const [amount, setAmount] = useState("")
 
@@ -158,6 +244,7 @@ export const DepositModal = ({
     isUSDTLikeToken(market.underlyingToken.address)
 
   const disableApprove =
+    !borrowerLegalName ||
     market.isClosed ||
     depositTokenAmount.raw.isZero() ||
     depositTokenAmount.raw.gt(market.maximumDeposit.raw) ||
@@ -166,6 +253,7 @@ export const DepositModal = ({
     !Signer.isSigner(market.provider)
 
   const disableDeposit =
+    !borrowerLegalName ||
     !!depositError ||
     market.isClosed ||
     depositTokenAmount.raw.isZero() ||
@@ -487,6 +575,17 @@ export const DepositModal = ({
             />
           )}
 
+          {showForm && (
+            <BorrowerIdentityDisclosure
+              legalName={borrowerLegalName}
+              alias={displayedBorrowerAlias}
+            />
+          )}
+
+          {showForm && showBorrowerPenaltyWarning && (
+            <BorrowerPenaltyWarning variant="modal" />
+          )}
+
           <TxModalFooter
             mainBtnText={t("lenderMarketDetails.transactions.deposit.button")}
             secondBtnText={
@@ -589,14 +688,22 @@ export const DepositModal = ({
         <Dialog
           open={modal.isModalOpen}
           onClose={isDepositing ? undefined : modal.handleCloseModal}
-          sx={{
-            "& .MuiDialog-paper": {
-              height: "404px",
+          maxWidth={false}
+          PaperProps={{
+            sx: {
+              height: "auto",
+              minHeight: "404px",
+              maxHeight: "none",
+              minWidth: "440px",
               width: "440px",
+              maxWidth: "440px",
+              boxSizing: "border-box",
               border: "none",
               borderRadius: "20px",
               margin: 0,
               padding: "24px 0",
+              overflowX: "hidden",
+              overflowY: "visible",
             },
           }}
         >
@@ -617,7 +724,7 @@ export const DepositModal = ({
               />
 
               {modal.gettingValueStep && (
-                <Box width="100%" height="100%" padding="0 24px">
+                <Box width="100%" padding="0 24px">
                   <ModalDataItem
                     title={t(
                       "lenderMarketDetails.transactions.deposit.modal.available",
@@ -799,6 +906,17 @@ export const DepositModal = ({
               linkValue={getTxUrl(txHash as string)}
               groupSX={{ padding: "8px", marginBottom: "8px" }}
             />
+          )}
+
+          {showForm && (
+            <BorrowerIdentityDisclosure
+              legalName={borrowerLegalName}
+              alias={displayedBorrowerAlias}
+            />
+          )}
+
+          {showForm && showBorrowerPenaltyWarning && (
+            <BorrowerPenaltyWarning variant="modal" />
           )}
 
           <TxModalFooter
