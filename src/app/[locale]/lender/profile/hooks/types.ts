@@ -17,10 +17,13 @@ export type LenderPositionRow = {
   marketName: string
   borrower: string
   asset: string
+  assetDecimals: number
   currentBalance: number
   currentTokenBalance: number
   totalDeposited: number
   interestEarned: number
+  // Lifetime interest in native token units (raw decimal string), for CSV export.
+  interestEarnedNative: string
   apr: number
   utilization: number
   status: "Active" | "Delinquent" | "Penalty" | "Closed"

@@ -18,6 +18,7 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { fetchHinterlightTokenUsdPrices } from "@/hooks/useTokenUsdPrices"
 import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
 import { fetchAllGraphqlPages } from "@/lib/paginated-query"
+import { formatBigIntDecimal } from "@/utils/csvExport"
 
 const GET_LENDER_PROFILE_POSITIONS = gql`
   query getLenderProfilePositions(
@@ -241,11 +242,13 @@ export const useLenderPositions = (
         const totalDeposited =
           toHumanAmount(account.totalDeposited, account.market.asset.decimals) *
           price
+        const liveInterestRaw = getLiveInterestEarned(account)
         const interestEarned =
-          toHumanAmount(
-            getLiveInterestEarned(account),
-            account.market.asset.decimals,
-          ) * price
+          toHumanAmount(liveInterestRaw, account.market.asset.decimals) * price
+        const interestEarnedNative = formatBigIntDecimal(
+          liveInterestRaw,
+          account.market.asset.decimals,
+        )
         const totalSupply =
           toHumanAmount(
             normalizeScaledAmount(
@@ -266,10 +269,12 @@ export const useLenderPositions = (
           marketName: account.market.name,
           borrower: account.market.borrower,
           asset: account.market.asset.symbol,
+          assetDecimals: account.market.asset.decimals,
           currentBalance,
           currentTokenBalance,
           totalDeposited,
           interestEarned,
+          interestEarnedNative,
           apr: account.market.annualInterestBips / 100,
           utilization: capacity > 0 ? (totalSupply / capacity) * 100 : 0,
           status: getPositionStatus(

@@ -37,7 +37,10 @@ export const LenderProfileActivityTab = ({
           </Typography>
         </Box>
 
-        <ExportBanner />
+        <ExportBanner
+          lenderAddress={lenderAddress}
+          positions={lenderData?.positions ?? []}
+        />
 
         {/* place for the graph */}
       </Box>
