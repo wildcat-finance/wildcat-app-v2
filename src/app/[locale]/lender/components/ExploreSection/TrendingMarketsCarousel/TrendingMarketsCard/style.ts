@@ -2,35 +2,45 @@ import { COLORS } from "@/theme/colors"
 
 export const CardContainerStyle = {
   width: "100%",
-  minWidth: "250px",
+  minWidth: "222px",
+  height: "100%",
   display: "flex",
   flexDirection: "column",
-  justifyContent: "space-between",
-  gap: "24px",
-  padding: "12px",
+  gap: "4px",
+  padding: "8px 10px 10px",
   borderRadius: "12px",
   border: `1px solid ${COLORS.iron}`,
   backgroundColor: COLORS.white,
   overflow: "hidden",
 }
 
-export const CardInfoContainerStyle = {
+// Top row: variant badge (left) + variant category icon (right)
+export const CardHeaderStyle = {
   width: "100%",
   display: "flex",
-  alignItems: "flex-start",
+  alignItems: "center",
   justifyContent: "space-between",
-  gap: "8px",
 }
 
-export const CardValueContainerStyle = {
+export const CardBadgeStyle = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "1px 6px",
+  borderRadius: "12px",
+  flexShrink: 0,
+}
+
+export const CardIconStyle = { width: "24px", height: "24px", flexShrink: 0 }
+
+// Body: title / value / period
+export const CardBodyStyle = {
+  width: "100%",
   display: "flex",
   flexDirection: "column",
-  gap: "20px",
-  alignItems: "flex-start",
-  minWidth: 0,
+  gap: "4px",
+  padding: "12px 0 8px",
 }
-
-export const CardIconStyle = { width: "28px", height: "28px", flexShrink: 0 }
 
 export const CardValueStyle = {
   display: "flex",
@@ -39,31 +49,30 @@ export const CardValueStyle = {
   minWidth: 0,
 }
 
-export const CardBadgeStyle = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "0 6px",
-  borderRadius: "12px",
-  flexShrink: 0,
-}
-
-export const LinksContainerStyle = {
+// Footer: divider on top, then borrower/asset row + CTA button
+export const CardFooterStyle = {
   width: "100%",
   display: "flex",
   flexDirection: "column",
   gap: "4px",
+  paddingTop: "8px",
+  borderTop: `1px solid ${COLORS.whiteLilac}`,
 }
 
-export const BorrowersContainerStyle = {
+export const BorrowerAssetRowStyle = {
   width: "100%",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
   gap: "8px",
-  padding: "8px 12px",
-  borderRadius: "10px",
-  backgroundColor: COLORS.whiteSmoke,
+  padding: "6px 8px 6px 0",
+}
+
+export const BorrowerLinkStyle = {
+  display: "flex",
+  width: "fit-content",
+  minWidth: 0,
+  overflow: "hidden",
   textDecoration: "none",
 }
 
@@ -72,8 +81,8 @@ export const MarketContainerStyle = {
   alignItems: "center",
   justifyContent: "space-between",
   width: "100%",
-  padding: "10px 12px",
-  borderRadius: "8px",
+  padding: "8px 12px",
+  borderRadius: "10px",
   backgroundColor: COLORS.bunker,
   textDecoration: "none",
 }
