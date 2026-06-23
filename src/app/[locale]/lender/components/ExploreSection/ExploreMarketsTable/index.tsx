@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import * as React from "react"
 
 import {
@@ -97,6 +97,13 @@ const statusFilterOptions = marketStatusesMock.filter(
 )
 
 const EXPLORE_PAGE_SIZE = 5
+
+// Desktop: the table shows as many rows as fit the viewport (grid + the button
+// below it), recomputed on resize. These mirror the DataGrid row/header sizes.
+const GRID_ROW_HEIGHT = 66
+const GRID_HEADER_HEIGHT = 40
+const GRID_RESERVED_BELOW = 64 // "Explore All Markets" button + margin + buffer
+const MIN_VISIBLE_ROWS = 3
 
 const DATA_GRID_MIN_HEIGHT = "106px"
 
@@ -198,6 +205,36 @@ export const ExploreMarketsTable = () => {
   >([])
   const [showSelfOnboard, setShowSelfOnboard] = useState(true)
   const [showOnboardByBorrower, setShowOnboardByBorrower] = useState(false)
+
+  const gridWrapRef = useRef<HTMLDivElement>(null)
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: EXPLORE_PAGE_SIZE,
+  })
+
+  // Desktop: fit the row count to the viewport so the table + button sit on one
+  // screen without page scroll. Recomputes on mount, when data finishes loading
+  // (layout above the grid settles), and on window resize.
+  useEffect(() => {
+    if (isMobile) return undefined
+    const recompute = () => {
+      const el = gridWrapRef.current
+      if (!el || typeof window === "undefined") return
+      const { top } = el.getBoundingClientRect()
+      const available =
+        window.innerHeight - top - GRID_HEADER_HEIGHT - GRID_RESERVED_BELOW
+      const next = Math.max(
+        MIN_VISIBLE_ROWS,
+        Math.floor(available / GRID_ROW_HEIGHT),
+      )
+      setPaginationModel((m) =>
+        m.pageSize === next ? m : { page: 0, pageSize: next },
+      )
+    }
+    recompute()
+    window.addEventListener("resize", recompute)
+    return () => window.removeEventListener("resize", recompute)
+  }, [isMobile, isLoading])
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
   const tokens = useMemo(() => {
@@ -792,32 +829,33 @@ export const ExploreMarketsTable = () => {
         />
       </Box>
 
-      <MarketsTableWrapper
-        marketsLength={rows.length}
-        rowsLength={5}
-        isLoading={isLoading}
-        noMarketsTitle="No Markets Available"
-        noMarketsSubtitle="There are no markets to display at the moment."
-        highlightNoMarketsBanner
-      >
-        <DataGrid
-          disableVirtualization
-          sx={DataGridSx}
-          rowHeight={66}
-          rows={rows}
-          columns={columns}
-          columnHeaderHeight={40}
-          slots={{ row: MarketLinkRow }}
-          loading={isLoading}
-          sortModel={sortModel}
-          onSortModelChange={setSortModel}
-          pageSizeOptions={[EXPLORE_PAGE_SIZE]}
-          initialState={{
-            pagination: { paginationModel: { pageSize: EXPLORE_PAGE_SIZE } },
-          }}
-          hideFooter
-        />
-      </MarketsTableWrapper>
+      <Box ref={gridWrapRef}>
+        <MarketsTableWrapper
+          marketsLength={rows.length}
+          rowsLength={paginationModel.pageSize}
+          isLoading={isLoading}
+          noMarketsTitle="No Markets Available"
+          noMarketsSubtitle="There are no markets to display at the moment."
+          highlightNoMarketsBanner
+        >
+          <DataGrid
+            disableVirtualization
+            sx={DataGridSx}
+            rowHeight={GRID_ROW_HEIGHT}
+            rows={rows}
+            columns={columns}
+            columnHeaderHeight={GRID_HEADER_HEIGHT}
+            slots={{ row: MarketLinkRow }}
+            loading={isLoading}
+            sortModel={sortModel}
+            onSortModelChange={setSortModel}
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            pageSizeOptions={[paginationModel.pageSize]}
+            hideFooter
+          />
+        </MarketsTableWrapper>
+      </Box>
 
       <Box
         sx={{ display: "flex", justifyContent: "center", marginTop: "18px" }}
