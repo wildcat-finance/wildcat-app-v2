@@ -479,10 +479,10 @@ export const TrendingMarketsCarousel = () => {
                 (key, index) => (
                   <Skeleton
                     key={key}
-                    height="214px"
-                    width="250px"
+                    height="217px"
                     sx={{
-                      minWidth: "250px",
+                      flex: "1 0 222px",
+                      minWidth: "222px",
                       borderRadius: "12px",
                       bgcolor: COLORS.athensGrey,
                       ...(index === 0 && { marginLeft: "8px" }),
@@ -495,9 +495,9 @@ export const TrendingMarketsCarousel = () => {
                 <Box
                   key={slot.key}
                   sx={{
-                    flexShrink: 0,
+                    flex: "1 0 222px",
+                    minWidth: "222px",
                     display: "flex",
-                    width: "250px",
                     ...(index === 0 && { marginLeft: "8px" }),
                     ...(index === slots.length - 1 && {
                       marginRight: "8px",
@@ -541,10 +541,10 @@ export const TrendingMarketsCarousel = () => {
               (key, index) => (
                 <Skeleton
                   key={key}
-                  height="214px"
-                  width="304px"
+                  height="217px"
                   sx={{
-                    minWidth: "304px",
+                    flex: "1 0 222px",
+                    minWidth: "222px",
                     borderRadius: "12px",
                     bgcolor: COLORS.athensGrey,
                     ...(index === 0 && { marginLeft: "16px" }),
@@ -557,8 +557,9 @@ export const TrendingMarketsCarousel = () => {
               <Box
                 key={slot.key}
                 sx={{
-                  flexShrink: 0,
-                  width: "304px",
+                  flex: "1 0 222px",
+                  minWidth: "222px",
+                  display: "flex",
                   ...(index === 0 && { marginLeft: "16px" }),
                   ...(index === slots.length - 1 && { marginRight: "16px" }),
                 }}
