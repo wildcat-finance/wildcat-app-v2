@@ -95,9 +95,9 @@ const BorrowerIdentityDisclosure = ({
             key={label}
             sx={{
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "flex-start",
-              gap: "12px",
+              flexWrap: "wrap",
+              gap: "4px",
             }}
           >
             <Typography
@@ -105,7 +105,7 @@ const BorrowerIdentityDisclosure = ({
               color={COLORS.blackRock}
               sx={{ opacity: 0.8 }}
             >
-              {label}
+              {`${label}:`}
             </Typography>
 
             <Typography variant={isMobile ? "mobText3" : "text3"}>
