@@ -95,7 +95,14 @@ export const NonMlaAcknowledgementModal = ({
         borderRadius: "12px",
         padding: "16px",
         backgroundColor: COLORS.alabaster,
-        maxHeight: isMobile ? "calc(100vh - 280px)" : "360px",
+        ...(isMobile
+          ? {
+              flex: 1,
+              minHeight: 0,
+            }
+          : {
+              maxHeight: "360px",
+            }),
         overflowY: "auto",
         overscrollBehavior: "contain",
       }}
@@ -131,6 +138,8 @@ export const NonMlaAcknowledgementModal = ({
           flex: 1,
           width: "100%",
           height: "100%",
+          minHeight: 0,
+          marginTop: "4px",
           backgroundColor: COLORS.white,
           borderRadius: "14px",
           paddingBottom: "12px",
@@ -144,12 +153,14 @@ export const NonMlaAcknowledgementModal = ({
 
         <Box
           sx={{
-            padding: "32px 20px 0",
+            padding: "0 20px 12px",
             width: "100%",
-            height: "100%",
+            flex: 1,
+            minHeight: 0,
             display: "flex",
             flexDirection: "column",
             gap: "16px",
+            overflow: "hidden",
           }}
         >
           <Typography variant="mobText3" color={COLORS.santasGrey}>
@@ -164,6 +175,7 @@ export const NonMlaAcknowledgementModal = ({
             display: "flex",
             flexDirection: "column",
             gap: "8px",
+            flexShrink: 0,
             padding: "0 20px",
           }}
         >
