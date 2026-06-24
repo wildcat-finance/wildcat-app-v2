@@ -1,12 +1,15 @@
 import { useMemo } from "react"
 
 import { Box, Button, Dialog, Typography, useTheme } from "@mui/material"
+import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { useSignNonMlaAcknowledgement } from "@/app/[locale]/lender/hooks/useNonMlaAcknowledgement"
+import { useGetBorrowerProfile } from "@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile"
 import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
 import { TxModalFooterContainer } from "@/components/TxModalComponents/TxModalFooter/style"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { NETWORKS_BY_ID } from "@/config/network"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { buildNonMlaAcknowledgementText } from "@/utils/nonMlaAcknowledgementMessage"
@@ -14,6 +17,8 @@ import { buildNonMlaAcknowledgementText } from "@/utils/nonMlaAcknowledgementMes
 export type NonMlaAcknowledgementModalProps = {
   open: boolean
   marketAddress: string
+  marketName: string
+  borrowerAddress: string
   chainId: number
   onClose: () => void
   onAcknowledged: () => void
@@ -22,6 +27,8 @@ export type NonMlaAcknowledgementModalProps = {
 export const NonMlaAcknowledgementModal = ({
   open,
   marketAddress,
+  marketName,
+  borrowerAddress,
   chainId,
   onClose,
   onAcknowledged,
@@ -31,28 +38,47 @@ export const NonMlaAcknowledgementModal = ({
   const { address } = useAccount()
   const { mutate: signAcknowledgement, isPending } =
     useSignNonMlaAcknowledgement()
+  const { data: borrowerProfile, isLoading: isBorrowerProfileLoading } =
+    useGetBorrowerProfile(
+      chainId as SupportedChainId,
+      borrowerAddress.toLowerCase() as `0x${string}`,
+    )
 
-  // The signed message is always the canonical single-line string rebuilt
-  // inside useSignNonMlaAcknowledgement. Here we only split it for display so
-  // the long market address can sit on its own line and wrap.
-  const normalizedMarket = marketAddress.toLowerCase()
-  const [textBeforeMarket, textAfterMarket] = useMemo(() => {
-    const fullText = buildNonMlaAcknowledgementText({
-      market: marketAddress,
+  const borrowerLegalName = borrowerProfile?.name
+  const borrowerAlias = borrowerProfile?.alias || "N/A"
+  const networkName = NETWORKS_BY_ID[chainId as SupportedChainId]?.name
+  const canSign =
+    !!address && !!borrowerLegalName && !!networkName && !isPending
+
+  const acknowledgementText = useMemo(() => {
+    if (!borrowerLegalName || !networkName) return ""
+    return buildNonMlaAcknowledgementText({
+      marketAddress,
+      marketName,
+      borrowerLegalName,
+      borrowerAlias,
+      networkName,
       chainId,
     })
-    const parts = fullText.split(normalizedMarket)
-    return parts.length === 2
-      ? [parts[0].trimEnd(), parts[1].trimStart()]
-      : [fullText, ""]
-  }, [chainId, marketAddress, normalizedMarket])
+  }, [
+    borrowerAlias,
+    borrowerLegalName,
+    chainId,
+    marketAddress,
+    marketName,
+    networkName,
+  ])
 
   const handleSign = () => {
-    if (!address) return
+    if (!address || !borrowerLegalName || !networkName || isPending) return
     signAcknowledgement(
       {
         lenderAddress: address,
         marketAddress,
+        marketName,
+        borrowerLegalName,
+        borrowerAlias,
+        networkName,
         chainId,
         timeSigned: Date.now(),
       },
@@ -69,23 +95,24 @@ export const NonMlaAcknowledgementModal = ({
         borderRadius: "12px",
         padding: "16px",
         backgroundColor: COLORS.alabaster,
+        maxHeight: isMobile ? "calc(100vh - 280px)" : "360px",
+        overflowY: "auto",
+        overscrollBehavior: "contain",
       }}
     >
       <Typography variant={isMobile ? "mobText2" : "text2"}>
-        {textBeforeMarket}
         <Box
           component="span"
           sx={{
-            display: "block",
-            margin: "8px 0",
-            fontFamily: "monospace",
-            wordBreak: "break-all",
-            color: COLORS.blackRock,
+            whiteSpace: "pre-line",
+            overflowWrap: "anywhere",
           }}
         >
-          {normalizedMarket}
+          {acknowledgementText ||
+            (isBorrowerProfileLoading
+              ? "Loading acknowledgement..."
+              : "Borrower profile is unavailable.")}
         </Box>
-        {textAfterMarket}
       </Typography>
     </Box>
   )
@@ -155,7 +182,7 @@ export const NonMlaAcknowledgementModal = ({
             variant="contained"
             size="large"
             onClick={handleSign}
-            disabled={!address || isPending}
+            disabled={!canSign}
             fullWidth
           >
             {isPending ? "Signing..." : "Acknowledge"}
@@ -226,7 +253,7 @@ export const NonMlaAcknowledgementModal = ({
           variant="contained"
           size="large"
           onClick={handleSign}
-          disabled={!address || isPending}
+          disabled={!canSign}
           fullWidth
         >
           {isPending ? "Signing..." : "Acknowledge"}

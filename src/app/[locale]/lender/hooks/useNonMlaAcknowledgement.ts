@@ -57,11 +57,19 @@ export const useSignNonMlaAcknowledgement = () => {
     mutationFn: async ({
       lenderAddress,
       marketAddress,
+      marketName,
+      borrowerLegalName,
+      borrowerAlias,
+      networkName,
       chainId,
       timeSigned,
     }: {
       lenderAddress: string
       marketAddress: string
+      marketName: string
+      borrowerLegalName: string
+      borrowerAlias?: string
+      networkName: string
       chainId: number
       timeSigned: number
     }) => {
@@ -71,7 +79,11 @@ export const useSignNonMlaAcknowledgement = () => {
       }
 
       const acknowledgementText = buildNonMlaAcknowledgementText({
-        market: marketAddress,
+        marketAddress,
+        marketName,
+        borrowerLegalName,
+        borrowerAlias,
+        networkName,
         chainId,
       })
 

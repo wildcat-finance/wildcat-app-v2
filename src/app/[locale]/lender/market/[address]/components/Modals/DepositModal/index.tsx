@@ -450,6 +450,8 @@ export const DepositModal = ({
     <NonMlaAcknowledgementModal
       open={isNonMlaAcknowledgementOpen}
       marketAddress={market.address}
+      marketName={market.name}
+      borrowerAddress={market.borrower}
       chainId={market.chainId}
       onClose={() => {
         setIsNonMlaAcknowledgementOpen(false)

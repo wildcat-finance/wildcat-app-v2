@@ -1,8 +1,14 @@
 import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
+import { WildcatMarket__factory as WildcatMarketFactory } from "@wildcatfi/wildcat-sdk/dist/typechain"
 import { NextRequest, NextResponse } from "next/server"
 
+import { NETWORKS_BY_ID } from "@/config/network"
 import { NON_MLA_ACKNOWLEDGEMENT_TEXT_VERSION } from "@/config/non-mla-acknowledgement"
-import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
+import {
+  getBorrowerProfile,
+  getSignedMasterLoanAgreement,
+  prisma,
+} from "@/lib/db"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
@@ -96,12 +102,35 @@ export async function POST(
     )
   }
 
+  const borrowerProfile = await getBorrowerProfile(refusal.address, chainId)
+  if (!borrowerProfile?.name) {
+    return NextResponse.json(
+      { error: "Borrower profile not found" },
+      { status: 400 },
+    )
+  }
+
+  const networkName = NETWORKS_BY_ID[chainId]?.name
+  if (!networkName) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
+
+  const provider = getProviderForServer(chainId)
+  const marketName = await WildcatMarketFactory.connect(
+    marketAddress,
+    provider,
+  ).name()
+
   const acknowledgementText = buildNonMlaAcknowledgementText({
-    market: marketAddress,
+    marketAddress,
+    marketName,
+    borrowerLegalName: borrowerProfile.name,
+    borrowerAlias: borrowerProfile.alias,
+    networkName,
     chainId,
   })
   const verifiedSignature = await verifyAndDescribeSignature({
-    provider: getProviderForServer(chainId),
+    provider,
     address: lenderAddress,
     message: acknowledgementText,
     signature,

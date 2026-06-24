@@ -331,6 +331,8 @@ export default function LenderMarketDetails({
       <NonMlaAcknowledgementModal
         open
         marketAddress={market.address}
+        marketName={market.name}
+        borrowerAddress={market.borrower}
         chainId={market.chainId}
         onClose={() => setIsMobileAckOpen(false)}
         onAcknowledged={() => {
