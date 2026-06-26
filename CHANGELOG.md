@@ -1,5 +1,33 @@
 # Changelog
 
+## [2.18.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.17.0...v2.18.0) (2026-06-26)
+
+
+### Features
+
+* **calculator:** add earnings calculator to desktop ([c9705b2](https://github.com/wildcat-finance/wildcat-app-v2/commit/c9705b20a1d6357bf302d5c11e12839ad4c86011))
+* **calculator:** add earnings calculator to desktop  ([e98451a](https://github.com/wildcat-finance/wildcat-app-v2/commit/e98451a082382a662c57ba569d83ad5019603f32))
+* **naming:** add legal name to deposit modal ([214680c](https://github.com/wildcat-finance/wildcat-app-v2/commit/214680c6906f0dbc39ef4b52fe60591a476c5a5a))
+* **naming:** add legal name to deposit modal ([3167f58](https://github.com/wildcat-finance/wildcat-app-v2/commit/3167f584031bb8fa3756e5cfc78a78848d56d583))
+* warnings ([8a9a77f](https://github.com/wildcat-finance/wildcat-app-v2/commit/8a9a77f839e164224906ceeff6f13224f298225e))
+
+
+### Bug Fixes
+
+* border-box ([5a0900c](https://github.com/wildcat-finance/wildcat-app-v2/commit/5a0900c7c8b9233c98b633b0922d389057423a84))
+* copy, header height management ([f02ed64](https://github.com/wildcat-finance/wildcat-app-v2/commit/f02ed6421a362f9ce440a5e4cb292584003d6e86))
+* css is dumb ([02142a3](https://github.com/wildcat-finance/wildcat-app-v2/commit/02142a39b59f67180c4c510ac08e83cabee8b3cb))
+* filter variable overwrite ([85dc404](https://github.com/wildcat-finance/wildcat-app-v2/commit/85dc404d7502e4a632e3c80d4213a3b28eafcf2e))
+* hide periodic markets fron prod testnet ([7c8a0de](https://github.com/wildcat-finance/wildcat-app-v2/commit/7c8a0de3852d723d769906c096394030bd21e58d))
+* **layout:** contain market table scrollbars and width transitions ([d526eaa](https://github.com/wildcat-finance/wildcat-app-v2/commit/d526eaab7bd5e50235979409375ffd07307fbeb6))
+* **layout:** contain market table scrollbars and width transitions ([e7381e4](https://github.com/wildcat-finance/wildcat-app-v2/commit/e7381e4e0e5cbb693a9ab9241048c776119d2ba3))
+* **layout:** contain market table scrollbars and width transitions ([fb3650c](https://github.com/wildcat-finance/wildcat-app-v2/commit/fb3650ca9a035967543bc0a0835ec434d6153c69))
+* max-width ([81e0a50](https://github.com/wildcat-finance/wildcat-app-v2/commit/81e0a506289939ff94dccf1b8f62346f9674c507))
+* **mobile:** market header row clipping ([7bc6ce4](https://github.com/wildcat-finance/wildcat-app-v2/commit/7bc6ce4962e5f23f098fc71e34a4398ee1878066))
+* **mobile:** market header row clipping ([84dde2f](https://github.com/wildcat-finance/wildcat-app-v2/commit/84dde2f8e664fa304f06e3a8fe1d7d0878ce17c1))
+* **modal:** legal name offset vertical scrollbar and whitespace ([43b3bc0](https://github.com/wildcat-finance/wildcat-app-v2/commit/43b3bc07322e0be69e89a25699449b67c1231f45))
+* sdk 3.1.4-beta (fix for periodic term hook existence) ([7c940f6](https://github.com/wildcat-finance/wildcat-app-v2/commit/7c940f6eed2d7f8fd6aad411f40b1045f0bae67a))
+
 ## [2.17.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.16.1...v2.17.0) (2026-05-01)
 
 
