@@ -116,10 +116,15 @@ export async function POST(
   }
 
   const provider = getProviderForServer(chainId)
-  const marketName = await WildcatMarketFactory.connect(
-    marketAddress,
-    provider,
-  ).name()
+  let marketName: string
+  try {
+    marketName = await WildcatMarketFactory.connect(
+      marketAddress,
+      provider,
+    ).name()
+  } catch {
+    return NextResponse.json({ error: "Invalid market" }, { status: 400 })
+  }
 
   const acknowledgementText = buildNonMlaAcknowledgementText({
     marketAddress,
