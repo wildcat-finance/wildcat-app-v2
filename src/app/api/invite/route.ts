@@ -335,18 +335,20 @@ export async function PUT(request: NextRequest) {
   if (token.chainId !== chainId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
-  console.log({
-    name,
-    description,
-    entityKind,
-    founded,
-    headquarters,
-    jurisdiction,
-    physicalAddress,
-    timeSigned,
-    signature,
-    address,
-  })
+  // Do not enable this in production: it exposes borrower profile fields and
+  // raw signatures in server logs.
+  // console.log({
+  //   name,
+  //   description,
+  //   entityKind,
+  //   founded,
+  //   headquarters,
+  //   jurisdiction,
+  //   physicalAddress,
+  //   timeSigned,
+  //   signature,
+  //   address,
+  // })
 
   const borrowerInvitation = await findBorrowerWithPendingInvitation(
     address,
@@ -372,21 +374,23 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
   const serviceAgreementHash = requireLegacyWrapperHash(agreement)
-  console.log(`--- accept invite ---`)
-  console.log("borrower", JSON.stringify(borrowerInvitation, null, 2))
-  console.log(
-    JSON.stringify(
-      {
-        network: chainId,
-        signature,
-        address,
-        name,
-        timeSigned,
-      },
-      null,
-      2,
-    ),
-  )
+  // Do not enable this in production: it exposes borrower invitation details
+  // and raw signatures in server logs.
+  // console.log(`--- accept invite ---`)
+  // console.log("borrower", JSON.stringify(borrowerInvitation, null, 2))
+  // console.log(
+  //   JSON.stringify(
+  //     {
+  //       network: chainId,
+  //       signature,
+  //       address,
+  //       name,
+  //       timeSigned,
+  //     },
+  //     null,
+  //     2,
+  //   ),
+  // )
   if (
     borrowerInvitation.name !== name ||
     borrowerInvitation.description !== description ||
