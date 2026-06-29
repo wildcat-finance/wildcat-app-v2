@@ -371,6 +371,7 @@ export async function PUT(request: NextRequest) {
   if (!verified) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
+  const serviceAgreementHash = requireLegacyWrapperHash(agreement)
   console.log(`--- accept invite ---`)
   console.log("borrower", JSON.stringify(borrowerInvitation, null, 2))
   console.log(
@@ -416,7 +417,6 @@ export async function PUT(request: NextRequest) {
   // New table first, old table second (compatibility dual-write, removed in
   // Release 2). Both writes are idempotent.
   await saveServiceAgreementSignature(verified)
-  const serviceAgreementHash = requireLegacyWrapperHash(agreement)
   await prisma.borrowerServiceAgreementSignature.upsert({
     where: {
       chainId_address: {
