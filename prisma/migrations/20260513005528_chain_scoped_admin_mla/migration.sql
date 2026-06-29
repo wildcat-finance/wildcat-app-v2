@@ -1,8 +1,10 @@
 /*
   Chain-scopes admin accounts and MLA templates.
 
-  AdminAccount backfill intentionally removes old test-artifact global admin rows
-  and replaces them with the reviewed chain-scoped admin manifest.
+  AdminAccount backfill intentionally discards all existing legacy/global admin
+  rows because the deployed table contains known-bad historical data. Do not
+  preserve unknown rows here: the reviewed chain-scoped manifest below is the
+  intended replacement authority set.
 
   MlaTemplate backfill keeps:
   - template 1 as Sepolia-only old hidden template;
@@ -21,7 +23,9 @@ ADD COLUMN "chainId" INTEGER;
 ALTER TABLE "MlaTemplate"
 ADD COLUMN "chainId" INTEGER;
 
--- Replace global admin rows with reviewed chain-scoped rows.
+-- Intentionally wipe known-bad legacy/global admin rows and replace them with
+-- the reviewed chain-scoped manifest. This is a destructive data correction,
+-- not a generic backfill that should preserve unknown admin rows.
 DELETE FROM "AdminAccount";
 
 INSERT INTO "AdminAccount" ("chainId", "address") VALUES
