@@ -16,6 +16,7 @@ import { ProfileNamePageBlock } from "./components/ProfileNamePageBlock"
 import { ProfilePageProps } from "./interface"
 import { PageContentContainer, MobileContentContainer } from "./style"
 import { OverallBlock } from "../components/OverallBlock"
+import { BorrowerProfileVerificationDisclosure } from "../components/VerificationDisclosure"
 
 export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
   const { data: profileData, isLoading: isProfileLoading } =
@@ -46,11 +47,11 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
   if (isLoading)
     return <ProfilePageSkeleton isExternal={isExternal} isMobile={isMobile} />
 
-  console.log(accountName)
-
   if (isMobile)
     return (
       <Box sx={MobileContentContainer}>
+        <BorrowerProfileVerificationDisclosure showNote={false} />
+
         <MobileNamePageBlockWrapper
           section={section}
           setSection={setSection}
@@ -70,7 +71,13 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
         )}
 
         {section === "info" && (
-          <OverallBlock {...profileData} marketsAmount={marketsAmount} />
+          <>
+            <OverallBlock {...profileData} marketsAmount={marketsAmount} />
+            <BorrowerProfileVerificationDisclosure
+              variant="inline"
+              showModal={false}
+            />
+          </>
         )}
 
         <Box sx={{ marginTop: "auto" }}>
@@ -81,6 +88,8 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
 
   return (
     <Box sx={PageContentContainer}>
+      <BorrowerProfileVerificationDisclosure />
+
       <ProfileNamePageBlock
         {...profileData}
         name={accountName}

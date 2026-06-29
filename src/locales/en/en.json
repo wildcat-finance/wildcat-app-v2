@@ -1257,6 +1257,33 @@
           "tooltip": "The number of markets owned by this borrower in which a penalty fee has applied for more than 90 days."
         }
       },
+      "verification": {
+        "title": "Profile Verification",
+        "noteIntro": "Wildcat verifies a defined subset of this profile from KYB checks completed during borrower onboarding. The rest is supplied by the borrower.",
+        "verifiedHeading": "Verified by Wildcat",
+        "unverifiedHeading": "Not verified",
+        "noEndorsement": "Borrower-supplied fields are shown for information only. Wildcat makes no claim as to their accuracy and does not endorse linked destinations.",
+        "detailsLink": "View more details",
+        "modalTitle": "How Wildcat verifies this profile",
+        "modalIntro": "To help you assess this borrower, Wildcat verifies a defined subset of profile data drawn from KYB checks completed during onboarding. Everything else on the profile is supplied by the borrower and is not verified by Wildcat.",
+        "modalNoEndorsement": "Wildcat makes no claim as to the accuracy of unverified fields and does not endorse any linked destinations. Verify independently before depositing.",
+        "acknowledge": "I understand",
+        "fields": {
+          "verified": {
+            "legalName": "Legal Name",
+            "borrowerAddress": "Borrower Ethereum Address",
+            "headquarters": "Headquarters",
+            "entityLegalForm": "Entity Legal Form",
+            "founded": "Founded (Year)"
+          },
+          "unverified": {
+            "alias": "Alias / trading name",
+            "profileDescription": "Profile description",
+            "outgoingLinks": "Outgoing links (contact, social channels)",
+            "marketDescription": "Market descriptions"
+          }
+        }
+      },
       "emptyStates": {
         "external": {
           "noMarkets": "Borrower has no active markets."
