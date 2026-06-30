@@ -89,7 +89,7 @@ model NonMlaAcknowledgement {
   blockNumber                Int?
   acknowledgementTextVersion String
   acknowledgementText        String
-  timeSigned                 DateTime
+  timeSigned                 DateTime      @default(now())
   createdAt                  DateTime      @default(now())
 
   refusal RefusalToAssignMla @relation("RefusalToAssignMlaToNonMlaAcknowledgement", fields: [chainId, market], references: [chainId, market], onDelete: Cascade)

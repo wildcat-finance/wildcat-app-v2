@@ -80,7 +80,6 @@ export const NonMlaAcknowledgementModal = ({
         borrowerAlias,
         networkName,
         chainId,
-        timeSigned: Date.now(),
       },
       {
         onSuccess: onAcknowledged,

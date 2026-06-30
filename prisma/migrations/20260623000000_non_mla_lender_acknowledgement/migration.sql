@@ -11,7 +11,7 @@ CREATE TABLE "NonMlaAcknowledgement" (
     "blockNumber" INTEGER,
     "acknowledgementTextVersion" TEXT NOT NULL,
     "acknowledgementText" TEXT NOT NULL,
-    "timeSigned" TIMESTAMP(3) NOT NULL,
+    "timeSigned" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "NonMlaAcknowledgement_pkey" PRIMARY KEY ("chainId", "market", "address", "acknowledgementTextVersion")

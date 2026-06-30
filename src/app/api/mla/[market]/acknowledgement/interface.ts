@@ -6,7 +6,6 @@ export interface NonMlaAcknowledgementInput {
   chainId: SupportedChainId
   address: string
   signature: string
-  timeSigned: number
 }
 
 export type NonMlaAcknowledgementResponse = {

@@ -82,7 +82,7 @@ export async function POST(
 
   const marketAddress = params.market.toLowerCase()
   const lenderAddress = body.address.toLowerCase()
-  const { chainId, signature, timeSigned } = body
+  const { chainId, signature } = body
 
   const mla = await getSignedMasterLoanAgreement(marketAddress, chainId)
   if (mla) {
@@ -144,7 +144,7 @@ export async function POST(
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
 
-  await prisma.nonMlaAcknowledgement.upsert({
+  const acknowledgement = await prisma.nonMlaAcknowledgement.upsert({
     where: {
       chainId_market_address_acknowledgementTextVersion: {
         chainId,
@@ -170,11 +170,14 @@ export async function POST(
       kind: verifiedSignature.kind,
       acknowledgementTextVersion: NON_MLA_ACKNOWLEDGEMENT_TEXT_VERSION,
       acknowledgementText,
-      timeSigned: new Date(timeSigned).toISOString(),
     },
   })
 
-  return NextResponse.json({ success: true })
+  const { blockNumber, ...rest } = acknowledgement
+  return NextResponse.json({
+    ...rest,
+    blockNumber: blockNumber || undefined,
+  } as NonMlaAcknowledgementResponse)
 }
 
 export const dynamic = "force-dynamic"

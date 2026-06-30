@@ -2,12 +2,8 @@ import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAccount } from "wagmi"
 
-import {
-  NonMlaAcknowledgementInput,
-  NonMlaAcknowledgementResponse,
-} from "@/app/api/mla/[market]/acknowledgement/interface"
+import { NonMlaAcknowledgementResponse } from "@/app/api/mla/[market]/acknowledgement/interface"
 import { toastRequest } from "@/components/Toasts"
-import { NON_MLA_ACKNOWLEDGEMENT_TEXT_VERSION } from "@/config/non-mla-acknowledgement"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { buildNonMlaAcknowledgementText } from "@/utils/nonMlaAcknowledgementMessage"
@@ -62,7 +58,6 @@ export const useSignNonMlaAcknowledgement = () => {
       borrowerAlias,
       networkName,
       chainId,
-      timeSigned,
     }: {
       lenderAddress: string
       marketAddress: string
@@ -71,7 +66,6 @@ export const useSignNonMlaAcknowledgement = () => {
       borrowerAlias?: string
       networkName: string
       chainId: number
-      timeSigned: number
     }) => {
       if (!signer) throw Error("No signer")
       if (signer.chainId !== chainId) {
@@ -127,35 +121,27 @@ export const useSignNonMlaAcknowledgement = () => {
               chainId,
               address: lenderAddress,
               signature: signature ?? "0x",
-              timeSigned,
-            } as NonMlaAcknowledgementInput),
+            }),
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
         )
         if (response.status !== 200) {
           throw Error("Failed to submit non-MLA acknowledgement")
         }
+        const acknowledgement =
+          (await response.json()) as NonMlaAcknowledgementResponse
 
-        // Optimistically mark the acknowledgement as present so consumers that
-        // re-check on the next render (e.g. the mobile deposit flow handing off
-        // from this modal) see it immediately, before the invalidation refetch
-        // below resolves. The refetch then replaces this with the server record.
+        // Cache the server row immediately so handoffs from this modal can
+        // proceed before the invalidation refetch resolves.
         client.setQueryData<NonMlaAcknowledgementResponse>(
           QueryKeys.Lender.GET_NON_MLA_ACKNOWLEDGEMENT(
             chainId,
             marketAddress,
             lenderAddress,
           ),
-          {
-            kind: safeConnected ? "GnosisSignature" : "ECDSA",
-            address: lenderAddress.toLowerCase(),
-            signer: lenderAddress.toLowerCase(),
-            signature: signature ?? "0x",
-            chainId,
-            market: marketAddress.toLowerCase(),
-            acknowledgementTextVersion: NON_MLA_ACKNOWLEDGEMENT_TEXT_VERSION,
-            acknowledgementText,
-            timeSigned: new Date(timeSigned),
-          },
+          acknowledgement,
         )
         return true
       }
