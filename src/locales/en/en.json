@@ -1257,6 +1257,14 @@
           "tooltip": "The number of markets owned by this borrower in which a penalty fee has applied for more than 90 days."
         }
       },
+      "touStatus": {
+        "title": "Terms of Use",
+        "acceptedVersion": "Accepted Version",
+        "acceptedOn": "Accepted On (UTC)",
+        "currentVersion": "Current Live Version",
+        "notAccepted": "Not accepted",
+        "download": "Download Acceptance Certificate"
+      },
       "emptyStates": {
         "external": {
           "noMarkets": "Borrower has no active markets."

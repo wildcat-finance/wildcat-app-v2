@@ -5,6 +5,7 @@ import { Box, Button, SvgIcon, Typography } from "@mui/material"
 import { DepositStatus, HooksKind, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
+import { useGetNonMlaAcknowledgement } from "@/app/[locale]/lender/hooks/useNonMlaAcknowledgement"
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
@@ -20,9 +21,9 @@ import { formatTokenWithCommas } from "@/utils/formatters"
 export type MobileMarketActionsProps = {
   marketAccount: MarketAccount
   withdrawals: LenderWithdrawalsForMarketResult
-  isMobileDepositOpen: boolean
   isMobileWithdrawalOpen: boolean
   setIsMobileDepositOpen: Dispatch<SetStateAction<boolean>>
+  setIsMobileAckOpen: Dispatch<SetStateAction<boolean>>
   setIsMobileWithdrawalOpen: Dispatch<SetStateAction<boolean>>
   isMLAOpen: boolean
   setIsMLAOpen: Dispatch<SetStateAction<boolean>>
@@ -115,9 +116,9 @@ export const MobileMarketActions = ({
   marketAccount,
   withdrawals,
   isMobileWithdrawalOpen,
-  isMobileDepositOpen,
   setIsMobileWithdrawalOpen,
   setIsMobileDepositOpen,
+  setIsMobileAckOpen,
   isMLAOpen,
   setIsMLAOpen,
 }: MobileMarketActionsProps) => {
@@ -147,15 +148,91 @@ export const MobileMarketActions = ({
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.raw.isZero()
 
-  const { data: mla } = useMarketMla(market.address)
+  const { data: mla, isLoading: mlaLoading } = useMarketMla(
+    market.address,
+    market.chainId,
+  )
   const mlaResponse = mla && "noMLA" in mla ? null : mla
   const { data: signedMla } = useGetSignedMla(mlaResponse)
   const mlaRequiredAndUnsigned =
     signedMla === null && !!mla && !("noMLA" in mla)
+  const requiresNonMlaAcknowledgement = !!mla && "noMLA" in mla
+  const {
+    data: nonMlaAcknowledgement,
+    isLoading: isNonMlaAcknowledgementLoading,
+  } = useGetNonMlaAcknowledgement({
+    marketAddress: market.address,
+    chainId: market.chainId,
+    enabled: requiresNonMlaAcknowledgement,
+  })
+  const [depositOpenRequested, setDepositOpenRequested] = React.useState(false)
 
   const handleClickToggleMLA = () => {
     setIsMLAOpen(!isMLAOpen)
   }
+
+  const handleClickDeposit = () => {
+    if (mlaLoading || mla === undefined) {
+      setDepositOpenRequested(true)
+      return
+    }
+
+    if (!requiresNonMlaAcknowledgement) {
+      setIsMobileDepositOpen(true)
+      return
+    }
+
+    if (isNonMlaAcknowledgementLoading || nonMlaAcknowledgement === undefined) {
+      setDepositOpenRequested(true)
+      return
+    }
+
+    if (nonMlaAcknowledgement) {
+      setIsMobileDepositOpen(true)
+      return
+    }
+
+    setIsMobileAckOpen(true)
+  }
+
+  React.useEffect(() => {
+    if (!depositOpenRequested || mlaLoading || mla === undefined) {
+      return
+    }
+
+    if (mlaRequiredAndUnsigned) {
+      setDepositOpenRequested(false)
+      return
+    }
+
+    if (!requiresNonMlaAcknowledgement) {
+      setDepositOpenRequested(false)
+      setIsMobileDepositOpen(true)
+      return
+    }
+
+    if (isNonMlaAcknowledgementLoading || nonMlaAcknowledgement === undefined) {
+      return
+    }
+
+    setDepositOpenRequested(false)
+    if (nonMlaAcknowledgement) {
+      setIsMobileDepositOpen(true)
+      return
+    }
+
+    setIsMobileAckOpen(true)
+  }, [
+    depositOpenRequested,
+    mlaLoading,
+    mla,
+    mlaRequiredAndUnsigned,
+    requiresNonMlaAcknowledgement,
+    isNonMlaAcknowledgementLoading,
+    nonMlaAcknowledgement,
+    setIsMobileDepositOpen,
+    setIsMobileAckOpen,
+  ])
 
   return (
     <Box
@@ -325,7 +402,7 @@ export const MobileMarketActions = ({
                 <MobileFaucetButton marketAccount={marketAccount} />
               ) : (
                 <Button
-                  onClick={() => setIsMobileDepositOpen(!isMobileDepositOpen)}
+                  onClick={handleClickDeposit}
                   variant="contained"
                   color="secondary"
                   size="large"

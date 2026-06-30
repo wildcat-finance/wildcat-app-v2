@@ -11,12 +11,16 @@ const persistConfig = {
 
 const initialState: ApiTokensType = {}
 
+export const getApiTokenKey = (address: string, chainId: number) =>
+  `${address.toLowerCase()}_${chainId}`
+
 const apiTokensSlice = createSlice({
   name: "apiTokens",
   initialState,
   reducers: {
     setApiToken: (state, action: PayloadAction<ApiToken>) => {
-      state[action.payload.address.toLowerCase()] = action.payload
+      state[getApiTokenKey(action.payload.address, action.payload.chainId)] =
+        action.payload
     },
     removeApiToken: (state, action: PayloadAction<string>) => {
       delete state[action.payload]

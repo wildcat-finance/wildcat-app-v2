@@ -3,11 +3,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 
 import { toastError, toastRequest } from "@/components/Toasts"
-import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
+import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { SLA_STATUS_QUERY_KEY } from "@/hooks/useNetworkGate"
 import { HAS_SIGNED_SLA_KEY } from "@/providers/RedirectsProvider/hooks/useHasSignedSla"
-import { formatUnixMsAsDate } from "@/utils/formatters"
+import { buildServiceAgreementMessage } from "@/utils/serviceAgreementMessage"
 
 import { SignatureSubmissionProps } from "./interface"
 
@@ -39,19 +39,21 @@ export const useSignAgreement = () => {
   const signer = useEthersSigner()
   const router = useRouter()
   const client = useQueryClient()
+  const currentAgreement = useCurrentServiceAgreement()
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async ({ address, name, timeSigned }: SignAgreementProps) => {
       if (!signer) throw Error(`No signer`)
       if (!address) throw Error(`No address`)
       if (!name) throw Error(`No organization name`)
+      if (!timeSigned) throw Error(`No time signed`)
+      if (!currentAgreement.data) throw Error(`Current Terms of Use not loaded`)
 
       const sign = async () => {
-        let agreementText = AgreementText
-        if (timeSigned) {
-          const dateSigned = formatUnixMsAsDate(timeSigned)
-          agreementText = `${agreementText}\n\nDate: ${dateSigned}`
-        }
+        const agreementText = buildServiceAgreementMessage({
+          acknowledgementText: currentAgreement.data.acknowledgementText,
+          timeSigned,
+        })
 
         if (sdk && safeConnected) {
           const settings = {
@@ -127,4 +129,9 @@ export const useSignAgreement = () => {
       console.log(error)
     },
   })
+
+  return {
+    ...mutation,
+    isAgreementLoading: currentAgreement.isLoading,
+  }
 }

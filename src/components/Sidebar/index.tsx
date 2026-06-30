@@ -21,6 +21,9 @@ import { TelegramBanner } from "../TelegramBanner"
 export const Sidebar = () => {
   const pathname = usePathname()
   const theme = useTheme()
+  const isAgreementPath = pathname.endsWith(ROUTES.agreement)
+
+  if (isAgreementPath) return null
 
   return (
     <Box

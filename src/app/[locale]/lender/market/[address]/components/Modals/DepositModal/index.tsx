@@ -19,6 +19,7 @@ import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/component
 import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { useApprovalModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
 import { useApprove } from "@/app/[locale]/borrower/market/[address]/hooks/useGetApproval"
+import { useGetNonMlaAcknowledgement } from "@/app/[locale]/lender/hooks/useNonMlaAcknowledgement"
 import { BorrowerPenaltyWarning } from "@/app/[locale]/lender/market/[address]/components/BorrowerPenaltyWarning"
 import { useGetBorrowerProfile } from "@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile"
 import Alert from "@/assets/icons/circledAlert_icon.svg"
@@ -33,6 +34,7 @@ import { TooltipButton } from "@/components/TooltipButton"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
@@ -44,6 +46,7 @@ import { EarningsProjection } from "./EarningsProjection"
 import { DepositModalProps } from "./interface"
 import { useDepositGate } from "./useDepositGate"
 import { useDeposit } from "../../../hooks/useDeposit"
+import { NonMlaAcknowledgementModal } from "../NonMlaAcknowledgementModal"
 
 type BorrowerIdentityDisclosureProps = {
   legalName: string | undefined
@@ -182,6 +185,23 @@ export const DepositModal = ({
     isModalOpen: modal.isModalOpen || !!isMobileOpen,
   })
 
+  const { data: mla, isLoading: isMlaLoading } = useMarketMla(
+    market.address,
+    market.chainId,
+  )
+  const requiresNonMlaAcknowledgement = !!mla && "noMLA" in mla
+  const {
+    data: nonMlaAcknowledgement,
+    isLoading: isNonMlaAcknowledgementLoading,
+  } = useGetNonMlaAcknowledgement({
+    marketAddress: market.address,
+    chainId: market.chainId,
+    enabled: requiresNonMlaAcknowledgement,
+  })
+  const [isNonMlaAcknowledgementOpen, setIsNonMlaAcknowledgementOpen] =
+    useState(false)
+  const [depositOpenRequested, setDepositOpenRequested] = useState(false)
+
   // user inputted amount
   const depositTokenAmount = useMemo(
     () => marketAccount.market.underlyingToken.parseAmount(amount || "0"),
@@ -250,6 +270,30 @@ export const DepositModal = ({
         })
       }
     }
+  }
+
+  const handleOpenDepositModal = () => {
+    if (isMlaLoading || mla === undefined) {
+      setDepositOpenRequested(true)
+      return
+    }
+
+    if (!requiresNonMlaAcknowledgement) {
+      modal.handleOpenModal()
+      return
+    }
+
+    if (isNonMlaAcknowledgementLoading || nonMlaAcknowledgement === undefined) {
+      setDepositOpenRequested(true)
+      return
+    }
+
+    if (nonMlaAcknowledgement) {
+      modal.handleOpenModal()
+      return
+    }
+
+    setIsNonMlaAcknowledgementOpen(true)
   }
 
   const mustResetAllowance =
@@ -331,10 +375,42 @@ export const DepositModal = ({
 
   useEffect(() => {
     if (isMobileOpen) {
-      modal.handleOpenModal()
+      handleOpenDepositModal()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobileOpen])
+
+  useEffect(() => {
+    if (!depositOpenRequested || isMlaLoading || mla === undefined) {
+      return
+    }
+
+    if (!requiresNonMlaAcknowledgement) {
+      setDepositOpenRequested(false)
+      modal.handleOpenModal()
+      return
+    }
+
+    if (isNonMlaAcknowledgementLoading || nonMlaAcknowledgement === undefined) {
+      return
+    }
+
+    setDepositOpenRequested(false)
+    if (nonMlaAcknowledgement) {
+      modal.handleOpenModal()
+      return
+    }
+
+    setIsNonMlaAcknowledgementOpen(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    depositOpenRequested,
+    isMlaLoading,
+    mla,
+    requiresNonMlaAcknowledgement,
+    isNonMlaAcknowledgementLoading,
+    nonMlaAcknowledgement,
+  ])
 
   useEffect(() => {
     if (isDepositError) {
@@ -369,6 +445,25 @@ export const DepositModal = ({
 
     return 0
   }
+
+  const acknowledgementModal = (
+    <NonMlaAcknowledgementModal
+      open={isNonMlaAcknowledgementOpen}
+      marketAddress={market.address}
+      marketName={market.name}
+      borrowerAddress={market.borrower}
+      chainId={market.chainId}
+      onClose={() => {
+        setIsNonMlaAcknowledgementOpen(false)
+        setDepositOpenRequested(false)
+        if (setIsMobileOpen) setIsMobileOpen(false)
+      }}
+      onAcknowledged={() => {
+        setIsNonMlaAcknowledgementOpen(false)
+        modal.handleOpenModal()
+      }}
+    />
+  )
 
   if (isMobile && isMobileOpen)
     return (
@@ -726,6 +821,7 @@ export const DepositModal = ({
             />
           )}
         </Dialog>
+        {acknowledgementModal}
       </>
     )
 
@@ -737,7 +833,7 @@ export const DepositModal = ({
           <Tooltip title={tooltip} placement="right">
             <Box sx={{ display: "flex" }}>
               <Button
-                onClick={modal.handleOpenModal}
+                onClick={handleOpenDepositModal}
                 variant="contained"
                 size="large"
                 sx={{ width: "152px" }}
@@ -752,7 +848,7 @@ export const DepositModal = ({
           </Tooltip>
         ) : (
           <Button
-            onClick={modal.handleOpenModal}
+            onClick={handleOpenDepositModal}
             variant="contained"
             size="large"
             sx={{ width: "152px" }}
@@ -1179,6 +1275,7 @@ export const DepositModal = ({
             </Box>
           )}
         </Dialog>
+        {acknowledgementModal}
       </>
     )
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Box, Divider } from "@mui/material"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
+import { useGetServiceAgreementStatus } from "@/app/[locale]/borrower/hooks/useGetServiceAgreementStatus"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { Footer } from "@/components/Footer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -16,6 +17,7 @@ import { ProfileNamePageBlock } from "./components/ProfileNamePageBlock"
 import { ProfilePageProps } from "./interface"
 import { PageContentContainer, MobileContentContainer } from "./style"
 import { OverallBlock } from "../components/OverallBlock"
+import { ToUStatusBlock } from "../components/ToUStatusBlock"
 
 export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
   const { data: profileData, isLoading: isProfileLoading } =
@@ -23,6 +25,11 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
 
   const { data: borrowerMarkets, isLoading: isMarketsLoading } =
     useGetBorrowerMarkets(profileAddress)
+
+  // Fired here (not inside ToUStatusBlock) so the request runs in parallel with
+  // the profile/markets fetches instead of starting after the page's load gate.
+  const { data: touStatus, isLoading: isTouStatusLoading } =
+    useGetServiceAgreementStatus(profileAddress)
 
   const isMobile = useMobileResolution()
 
@@ -70,7 +77,14 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
         )}
 
         {section === "info" && (
-          <OverallBlock {...profileData} marketsAmount={marketsAmount} />
+          <>
+            <OverallBlock {...profileData} marketsAmount={marketsAmount} />
+            <ToUStatusBlock
+              address={profileAddress}
+              status={touStatus}
+              isLoading={isTouStatusLoading}
+            />
+          </>
         )}
 
         <Box sx={{ marginTop: "auto" }}>
@@ -92,6 +106,15 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
       <Divider sx={{ marginY: "32px" }} />
 
       <OverallBlock {...profileData} marketsAmount={marketsAmount} isPage />
+
+      <Divider sx={{ marginY: "32px" }} />
+
+      <ToUStatusBlock
+        address={profileAddress}
+        status={touStatus}
+        isLoading={isTouStatusLoading}
+        isPage
+      />
 
       {marketsAmount !== 0 && (
         <MarketsBlock markets={activeMarkets} isLoading={isLoading} />

@@ -5,7 +5,7 @@ import { BorrowerProfile } from "@/app/api/profiles/interface"
 import { getBorrowerProfile, prisma } from "@/lib/db"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
-import { verifyApiToken } from "../../auth/verify-header"
+import { isAdminForChain, verifyApiToken } from "../../auth/verify-header"
 
 const mockProfile: BorrowerProfile = {
   address: "0x1717503EE3f56e644cf8b1058e3F83F03a71b2E1",
@@ -38,7 +38,7 @@ export async function GET(
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
   }
   const { address } = params
-  if (address === mockProfile.address) {
+  if (chainId === mockProfile.chainId && address === mockProfile.address) {
     return NextResponse.json({ profile: mockProfile })
   }
 
@@ -65,22 +65,36 @@ export async function DELETE(
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  if (!token.isAdmin || chainId !== SupportedChainId.Sepolia) {
+  if (
+    chainId !== SupportedChainId.Sepolia ||
+    !(await isAdminForChain(token, chainId))
+  ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
-  const borrower = address
+  const borrower = address === "all" ? address : address?.toLowerCase()
   if (!borrower) {
     return NextResponse.json(
       { success: false, message: "No Borrower Provided" },
       { status: 400 },
     )
   }
-  const result = await prisma.borrower.deleteMany({
-    where: {
-      chainId,
-      ...(borrower !== "all" && { address: borrower }),
-    },
-  })
+  // ToU acceptances die with the borrower rows (replaces the old table's
+  // onDelete cascade).
+  const [result] = await prisma.$transaction([
+    prisma.borrower.deleteMany({
+      where: {
+        chainId,
+        ...(borrower !== "all" && { address: borrower }),
+      },
+    }),
+    prisma.serviceAgreementSignature.deleteMany({
+      where: {
+        chainId,
+        party: "Borrower",
+        ...(borrower !== "all" && { address: borrower }),
+      },
+    }),
+  ])
   return NextResponse.json({ success: true, deleted: result.count })
 }
 

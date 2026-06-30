@@ -25,6 +25,11 @@ enum SignatureKind {
   EIP1271
 }
 
+enum ServiceAgreementParty {
+  Borrower
+  Lender
+}
+
 // @todo - need to make the borrower/lender signatures distinct as the borrower
 // can technically also be a lender, but that would use a different message
 
@@ -64,16 +69,47 @@ model RefusalToAssignMla {
   blockNumber Int?
   kind        SignatureKind
 
+  acknowledgements NonMlaAcknowledgement[] @relation("RefusalToAssignMlaToNonMlaAcknowledgement")
+
   @@id([chainId, market])
+}
+
+model NonMlaAcknowledgement {
+  chainId                    Int
+  // The market address
+  market                     String
+  // The lender address
+  address                    String
+  // If the signature is from a single owner of a gnosis safe, this is the address of the
+  // owner that made the signature; otherwise, it's the same as `address`
+  signer                     String
+  signature                  String
+  kind                       SignatureKind
+  // The block number at which the signature was verified - only relevant for non-EOA signatures
+  blockNumber                Int?
+  acknowledgementTextVersion String
+  acknowledgementText        String
+  timeSigned                 DateTime      @default(now())
+  createdAt                  DateTime      @default(now())
+
+  refusal RefusalToAssignMla @relation("RefusalToAssignMlaToNonMlaAcknowledgement", fields: [chainId, market], references: [chainId, market], onDelete: Cascade)
+
+  @@id([chainId, market, address, acknowledgementTextVersion])
+  @@index([chainId, address])
 }
 
 model AdminAccount {
   id      Int    @id @default(autoincrement())
+  chainId Int
   address String
+
+  @@unique([chainId, address])
 }
+
 
 model MlaTemplate {
   id             Int      @id @default(autoincrement())
+  chainId        Int
   name           String
   description    String?
   hide           Boolean? @default(false)
@@ -84,7 +120,10 @@ model MlaTemplate {
   lenderFields   Json
 
   mlas MasterLoanAgreement[] @relation("MlaTemplateToMasterLoanAgreement")
+
+  @@unique([chainId, id])
 }
+
 
 model MasterLoanAgreement {
   chainId        Int
@@ -98,7 +137,7 @@ model MasterLoanAgreement {
 
   borrowerProfile Borrower @relation("BorrowerToMasterLoanAgreement", fields: [chainId, borrower], references: [chainId, address])
 
-  template      MlaTemplate    @relation("MlaTemplateToMasterLoanAgreement", fields: [templateId], references: [id])
+  template      MlaTemplate    @relation("MlaTemplateToMasterLoanAgreement", fields: [chainId, templateId], references: [chainId, id])
   mlaSignatures MlaSignature[] @relation("MlaSignatureToMasterLoanAgreement")
 
   // market must be unique
@@ -126,6 +165,50 @@ model BorrowerServiceAgreementSignature {
   borrower Borrower @relation("BorrowerToServiceAgreementSignature", fields: [chainId, address], references: [chainId, address], onDelete: Cascade)
 
   @@id([chainId, address])
+}
+
+// One immutable ToU version. Global, not chain-scoped.
+model ServiceAgreement {
+  id                  Int      @id @default(autoincrement())
+  version             String
+  plaintext           String
+  html                String
+  plaintextSha256     String   @unique // bare lowercase SHA-256 hex of plaintext
+  legacyWrapperHash   String?  @unique // 0x-prefixed keccak256 of the signed wrapper
+  acknowledgementText String   // exact wrapper body, no Date / Organization Name lines
+  effectiveDate       DateTime
+  isCurrent           Boolean  @default(false)
+  createdAt           DateTime @default(now())
+
+  signatures ServiceAgreementSignature[]
+}
+
+// One ToU acceptance. Chain-scoped, serves both parties.
+// No FK to Borrower: borrower deletion must delete these rows explicitly.
+model ServiceAgreementSignature {
+  id                 Int                   @id @default(autoincrement())
+  chainId            Int
+  address            String
+  // If the signature is from a single owner of a gnosis safe, this is the address of the
+  // owner that made the signature; otherwise, it's the same as `address`
+  signer             String
+  party              ServiceAgreementParty
+  serviceAgreementId Int
+  signature          String
+  // NULL for backfilled legacy rows; always set for new rows
+  kind               SignatureKind?
+  // The block number at which the signature was verified - only relevant for non-EOA signatures
+  blockNumber        Int?
+  timeSigned         DateTime
+  organizationName   String?
+  // Exact signed message for new rows; reconstructed (or NULL) for legacy rows
+  signedMessage      String?
+  createdAt          DateTime              @default(now())
+
+  serviceAgreement ServiceAgreement @relation(fields: [serviceAgreementId], references: [id])
+
+  @@unique([chainId, address, party, serviceAgreementId])
+  @@index([serviceAgreementId])
 }
 
 model BorrowerInvitation {
@@ -168,6 +251,9 @@ model Borrower {
   entityKind        String?
   additionalUrls    Json?
   registeredOnChain Boolean
+  // Raw `from` of the tx that emitted BorrowerAdded; may be a Safe executor/relayer.
+  // NULL = not yet resolved.
+  registeredBy      String?
 
   invitation                BorrowerInvitation?                @relation("BorrowerToInvitation")
   serviceAgreementSignature BorrowerServiceAgreementSignature? @relation("BorrowerToServiceAgreementSignature")

@@ -63,7 +63,10 @@ export const MarketActions = ({
   const { market } = marketAccount
   const { isTestnet } = useSelectedNetwork()
 
-  const { data: mla, isLoading: mlaLoading } = useMarketMla(market.address)
+  const { data: mla, isLoading: mlaLoading } = useMarketMla(
+    market.address,
+    market.chainId,
+  )
 
   const { canAddToken, handleAddToken, isAddingToken } = useAddToken(
     market?.marketToken,
