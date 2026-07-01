@@ -29,7 +29,6 @@ export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   fixedTermEndTime: undefined,
   allowClosureBeforeTerm: false,
   allowTermReduction: false,
-  allowForceBuyBack: false,
   policy: "",
   policyName: "",
   accessControl: "",

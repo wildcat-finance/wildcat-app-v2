@@ -21,7 +21,6 @@ const baseData = {
   policy: "createNewPolicy",
   policyName: "Test Policy",
   fixedTermEndTime: undefined,
-  allowForceBuyBack: false,
   allowClosureBeforeTerm: false,
   allowTermReduction: false,
   disableTransfers: false,

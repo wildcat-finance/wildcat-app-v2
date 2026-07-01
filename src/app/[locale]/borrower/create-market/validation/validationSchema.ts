@@ -106,7 +106,6 @@ export const baseMarketSchemaFields = {
   policyName: z.string(),
   // fixedTermEndTime validation is added dynamically based on network
   fixedTermEndTime: z.coerce.number().optional(),
-  allowForceBuyBack: z.boolean(),
   allowClosureBeforeTerm: z.boolean().optional(),
   allowTermReduction: z.boolean().optional(),
   disableTransfers: z.boolean(),
