@@ -33,6 +33,7 @@ import {
   timestampToDateFormatted,
   trimAddress,
 } from "@/utils/formatters"
+import { getDisplayLenderAprBips } from "@/utils/marketApr"
 import {
   getMarketStatus,
   getMarketStatusChip,
@@ -487,7 +488,6 @@ export const getRows = (
       borrower: borrowerAddress,
       name,
       underlyingToken,
-      annualInterestBips,
       reserveRatioBips,
       maxTotalSupply,
       maximumDeposit,
@@ -510,7 +510,7 @@ export const getRows = (
       borrowerName,
       borrowerAddress,
       asset: underlyingToken.symbol,
-      lenderAPR: annualInterestBips,
+      lenderAPR: getDisplayLenderAprBips(market),
       crr: reserveRatioBips,
       maxCapacity: maxTotalSupply,
       withdrawalBatchDuration,

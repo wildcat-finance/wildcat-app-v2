@@ -77,24 +77,24 @@ export const MarketActions = ({
 
   const hideDeposit =
     market.isClosed ||
-    marketAccount.maximumDeposit.raw.isZero() ||
+    marketAccount.maximumDeposit.eq(0) ||
     marketAccount.depositAvailability !== DepositStatus.Ready
 
   const showFaucet =
     hideDeposit &&
     isTestnet &&
     market.underlyingToken.isMock &&
-    marketAccount.underlyingBalance.raw.isZero()
+    marketAccount.underlyingBalance.eq(0)
 
   const hideWithdraw =
-    marketAccount.marketBalance.raw.isZero() ||
+    marketAccount.marketBalance.eq(0) ||
     marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
 
   const ongoingCount = (
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
   ).flatMap((b) => b.requests).length
 
-  const isClaimableZero = withdrawals.totalClaimableAmount.raw.isZero()
+  const isClaimableZero = withdrawals.totalClaimableAmount.eq(0)
 
   const isOngoingWDsZero = ongoingCount === 0
 
@@ -161,7 +161,7 @@ export const MarketActions = ({
 
   const isTooSmallMarketBalance: boolean =
     marketAccount.marketBalance.lt(smallestTokenAmountValue) &&
-    !marketAccount.marketBalance.raw.isZero()
+    !marketAccount.marketBalance.eq(0)
 
   return (
     <>

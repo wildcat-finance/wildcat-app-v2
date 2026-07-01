@@ -18,7 +18,6 @@ import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 import {
   formatBps,
-  formatRayAsPercentage,
   formatSecsToHours,
   formatTokenWithCommas,
   MARKET_PARAMS_DECIMALS,
@@ -26,9 +25,12 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 import {
+  getConfiguredAprLabelKey,
+  getMarketAprDisplayBips,
+} from "@/utils/marketApr"
+import {
   getMarketImplementationConfig,
   getMarketImplementationType,
-  isRevolvingMarket,
 } from "@/utils/marketImplementation"
 
 import { MarketParametersProps } from "./interface"
@@ -295,8 +297,8 @@ export const MarketParameters = ({
   })()
 
   const { hooksConfig } = market
-  const isRevolving = isRevolvingMarket(market)
-  const revolvingMetrics = market.currentRevolvingAprMetrics
+  const aprDisplay = getMarketAprDisplayBips(market)
+  const { isRevolving } = aprDisplay
   const implementationType = getMarketImplementationType(market)
   const implementationConfig = getMarketImplementationConfig(implementationType)
   const depositAccess =
@@ -365,17 +367,11 @@ export const MarketParameters = ({
     }
   }, [isMobile])
 
-  const configuredAprLabel = isRevolving
-    ? t("borrowerMarketDetails.parameters.utilizationAPR")
-    : t("borrowerMarketDetails.parameters.baseAPR")
+  const configuredAprLabel = t(getConfiguredAprLabelKey(market))
 
   const configuredAprTooltip = isRevolving
     ? "The annual percentage rate charged on drawn capital in a revolving market. Undrawn deposited capital accrues the separate commitment APR instead."
     : "The fixed annual percentage rate (excluding any protocol fees) that borrowers pay to lenders for assets within the market."
-
-  const protocolAprValue = isRevolving
-    ? revolvingMetrics?.protocolAprBips
-    : (market.protocolFeeBips * market.annualInterestBips) / 10000
 
   const protocolAprTooltip = isRevolving
     ? "An additional APR that accrues to the protocol as a percentage of the market's current blended lender APR: commitment APR plus the utilization-weighted utilization APR."
@@ -385,23 +381,26 @@ export const MarketParameters = ({
     ? "The current APR being paid to lenders across deposited capital: commitment APR on undrawn capital, plus utilization APR on drawn capital, plus penalty APR if applicable."
     : "The current interest rate being paid to lenders: the base APR plus penalty APR if applicable."
 
-  const revolvingUtilizationTooltip = revolvingMetrics
-    ? `Current utilization: ${formatBps(
-        revolvingMetrics.utilizationBips,
-        MARKET_PARAMS_DECIMALS.reserveRatioBips,
-      )}% of deposited capital is drawn.`
-    : undefined
+  const revolvingUtilizationTooltip =
+    aprDisplay.utilizationBips !== undefined
+      ? `Current utilization: ${formatBps(
+          aprDisplay.utilizationBips,
+          MARKET_PARAMS_DECIMALS.reserveRatioBips,
+        )}% of deposited capital is drawn.`
+      : undefined
 
-  const protocolAprDisplayValue =
-    protocolAprValue === undefined
-      ? "..."
-      : `${formatBps(
-          protocolAprValue,
-          MARKET_PARAMS_DECIMALS.annualInterestBips,
-        )}%`
+  const configuredAprDisplayValue = `${formatBps(
+    aprDisplay.configuredAprBips,
+    MARKET_PARAMS_DECIMALS.annualInterestBips,
+  )}%`
 
-  const effectiveLenderAprDisplayValue = `${formatRayAsPercentage(
-    market.effectiveLenderAPR,
+  const protocolAprDisplayValue = `${formatBps(
+    aprDisplay.currentProtocolAprBips,
+    MARKET_PARAMS_DECIMALS.annualInterestBips,
+  )}%`
+
+  const effectiveLenderAprDisplayValue = `${formatBps(
+    aprDisplay.currentEffectiveLenderAprBips,
     MARKET_PARAMS_DECIMALS.annualInterestBips,
   )}%`
 
@@ -707,10 +706,7 @@ export const MarketParameters = ({
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
               title={configuredAprLabel}
-              value={`${formatBps(
-                market.annualInterestBips,
-                MARKET_PARAMS_DECIMALS.annualInterestBips,
-              )}%`}
+              value={configuredAprDisplayValue}
               tooltipText={configuredAprTooltip}
               valueTooltipText={
                 isRevolving ? revolvingUtilizationTooltip : undefined
@@ -722,9 +718,9 @@ export const MarketParameters = ({
                 <ParametersItem
                   title={t("borrowerMarketDetails.parameters.commitmentAPR")}
                   value={
-                    revolvingMetrics
+                    aprDisplay.commitmentAprBips !== undefined
                       ? `${formatBps(
-                          revolvingMetrics.commitmentFeeBips,
+                          aprDisplay.commitmentAprBips,
                           MARKET_PARAMS_DECIMALS.annualInterestBips,
                         )}%`
                       : "..."

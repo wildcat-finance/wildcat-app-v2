@@ -28,6 +28,7 @@ import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { TablePagination } from "@/components/TablePagination"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { useMarketRowPrefetchHandlers } from "@/hooks/usePrefetchMarketDetailMetadata"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
@@ -44,6 +45,7 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import { getDisplayLenderAprBips } from "@/utils/marketApr"
 import { isSelfOnboardMarketAccount } from "@/utils/marketCapabilities"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
@@ -98,7 +100,6 @@ export const OtherMarketsTables = ({
         name,
         borrower: borrowerAddress,
         underlyingToken,
-        annualInterestBips,
         maxTotalSupply,
         totalSupply,
         withdrawalBatchDuration,
@@ -125,7 +126,7 @@ export const OtherMarketsTables = ({
         borrower: borrowerName,
         borrowerAddress,
         asset: underlyingToken.symbol,
-        apr: annualInterestBips,
+        apr: getDisplayLenderAprBips(market),
         withdrawalBatchDuration,
         debt: totalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
@@ -148,6 +149,9 @@ export const OtherMarketsTables = ({
 
   const selfOnboard = activeRows.filter((market) => market.isSelfOnboard)
   const manual = activeRows.filter((market) => !market.isSelfOnboard)
+  const selfOnboardPrefetchHandlers = useMarketRowPrefetchHandlers(selfOnboard)
+  const manualPrefetchHandlers = useMarketRowPrefetchHandlers(manual)
+  const terminatedPrefetchHandlers = useMarketRowPrefetchHandlers(terminated)
 
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
     {
@@ -480,18 +484,20 @@ export const OtherMarketsTables = ({
               ))}
             </Box>
           ) : (
-            <DataGrid
-              disableVirtualization
-              sx={clickableGridSx}
-              rowHeight={66}
-              rows={selfOnboard}
-              columns={columns}
-              columnHeaderHeight={40}
-              paginationModel={selfOnboardPaginationModel}
-              onPaginationModelChange={setSelfOnboardPaginationModel}
-              slots={{ pagination: TablePagination }}
-              hideFooter={false}
-            />
+            <Box {...selfOnboardPrefetchHandlers}>
+              <DataGrid
+                disableVirtualization
+                sx={clickableGridSx}
+                rowHeight={66}
+                rows={selfOnboard}
+                columns={columns}
+                columnHeaderHeight={40}
+                paginationModel={selfOnboardPaginationModel}
+                onPaginationModelChange={setSelfOnboardPaginationModel}
+                slots={{ pagination: TablePagination }}
+                hideFooter={false}
+              />
+            </Box>
           )}
         </MarketsTableAccordion>
       </Box>
@@ -516,18 +522,20 @@ export const OtherMarketsTables = ({
               ))}
             </Box>
           ) : (
-            <DataGrid
-              disableVirtualization
-              sx={clickableGridSx}
-              rowHeight={66}
-              rows={manual}
-              columns={columns}
-              columnHeaderHeight={40}
-              paginationModel={manualPaginationModel}
-              onPaginationModelChange={setManualPaginationModel}
-              slots={{ pagination: TablePagination }}
-              hideFooter={false}
-            />
+            <Box {...manualPrefetchHandlers}>
+              <DataGrid
+                disableVirtualization
+                sx={clickableGridSx}
+                rowHeight={66}
+                rows={manual}
+                columns={columns}
+                columnHeaderHeight={40}
+                paginationModel={manualPaginationModel}
+                onPaginationModelChange={setManualPaginationModel}
+                slots={{ pagination: TablePagination }}
+                hideFooter={false}
+              />
+            </Box>
           )}
         </MarketsTableAccordion>
       </Box>
@@ -543,18 +551,20 @@ export const OtherMarketsTables = ({
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
         >
-          <DataGrid
-            disableVirtualization
-            sx={clickableGridSx}
-            rowHeight={66}
-            rows={terminated}
-            columns={columns}
-            columnHeaderHeight={40}
-            paginationModel={terminatedPaginationModel}
-            onPaginationModelChange={setTerminatedPaginationModel}
-            slots={{ pagination: TablePagination }}
-            hideFooter={false}
-          />
+          <Box {...terminatedPrefetchHandlers}>
+            <DataGrid
+              disableVirtualization
+              sx={clickableGridSx}
+              rowHeight={66}
+              rows={terminated}
+              columns={columns}
+              columnHeaderHeight={40}
+              paginationModel={terminatedPaginationModel}
+              onPaginationModelChange={setTerminatedPaginationModel}
+              slots={{ pagination: TablePagination }}
+              hideFooter={false}
+            />
+          </Box>
         </MarketsTableAccordion>
       </Box>
     </Box>

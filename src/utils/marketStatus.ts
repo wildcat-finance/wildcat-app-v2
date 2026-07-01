@@ -35,7 +35,7 @@ export const getMarketStatusChip = (market: Market) => {
     ),
     healthyPeriod:
       market.totalDebts.gt(0) &&
-      market.effectiveBorrowerAPR.gt(0) &&
+      market.effectiveBorrowerAPR > BigInt(0) &&
       market.reserveRatioBips !== 0 &&
       market.secondsBeforeDelinquency > 0 &&
       market.secondsBeforeDelinquency < Number.MAX_SAFE_INTEGER

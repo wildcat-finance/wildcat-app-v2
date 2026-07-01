@@ -41,11 +41,10 @@ export const useAdoptionData = (
       if (!wrapper) throw new Error("Missing wrapper")
       // borrower
       if (viewerType === "borrower") {
-        const [totalSupplyRaw, totalAssets] = await Promise.all([
-          wrapper.marketToken.contract.totalSupply(),
+        const [totalSupply, totalAssets] = await Promise.all([
+          wrapper.marketToken.totalSupply(),
           wrapper.totalAssets(), // returns TokenAmount in market-token terms
         ])
-        const totalSupply = wrapper.marketToken.getAmount(totalSupplyRaw)
         const unwrapped = totalSupply.sub(totalAssets)
         const unwrappedFloat = parseFloat(
           unwrapped.format(unwrapped.token.decimals),
@@ -65,15 +64,12 @@ export const useAdoptionData = (
       // lender
       if (!account) throw new Error("Missing account")
 
-      const [marketBalanceRaw, shareBalanceRaw] = await Promise.all([
-        wrapper.marketToken.contract.balanceOf(account),
-        wrapper.shareToken.contract.balanceOf(account),
+      const [marketBalance, shareBalance] = await Promise.all([
+        wrapper.marketToken.balanceOf(account),
+        wrapper.shareToken.balanceOf(account),
       ])
 
-      const marketBalance = wrapper.marketToken.getAmount(marketBalanceRaw)
-      const shareBalance = wrapper.shareToken.getAmount(shareBalanceRaw)
-
-      const sharesAsAssets = shareBalanceRaw.gt(0)
+      const sharesAsAssets = shareBalance.gt(0)
         ? await wrapper.convertToAssets(shareBalance)
         : wrapper.marketToken.getAmount(0)
 

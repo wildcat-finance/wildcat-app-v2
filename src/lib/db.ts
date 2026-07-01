@@ -1,14 +1,10 @@
 import { PrismaClient } from "@prisma/client"
 import {
+  checkRegisteredBorrowers as checkRegisteredBorrowersOnChain,
   getArchControllerContract,
-  getDeploymentAddress,
   MakeOptional,
-  SignerOrProvider,
   SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
-// eslint-disable-next-line camelcase
-import { CheckBorrowersRegistered__factory } from "@wildcatfi/wildcat-sdk/dist/typechain"
-import { defaultAbiCoder } from "ethers/lib/utils"
 
 import { BorrowerInvitation } from "@/app/api/invite/interface"
 import {
@@ -89,24 +85,6 @@ export async function findBorrowerWithPendingInvitation(
   }
 }
 
-async function checkRegisteredBorrowers(
-  provider: SignerOrProvider,
-  chainId: SupportedChainId,
-  borrowers: string[],
-): Promise<boolean[]> {
-  // eslint-disable-next-line camelcase
-  const bytecode = CheckBorrowersRegistered__factory.bytecode.concat(
-    defaultAbiCoder
-      .encode(
-        ["address", "address[]"],
-        [getDeploymentAddress(chainId, "WildcatArchController"), borrowers],
-      )
-      .slice(2),
-  )
-  const result = await provider.call({ data: bytecode })
-  return defaultAbiCoder.decode(["bool[]"], result)[0]
-}
-
 export async function findBorrowersWithPendingInvitations(
   chainId: SupportedChainId,
 ): Promise<BorrowerInvitation[]> {
@@ -174,7 +152,7 @@ export async function tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered(
   console.log(
     `Found ${borrowerAddresses.length} borrowers with pending invitations`,
   )
-  const registeredBorrowers = await checkRegisteredBorrowers(
+  const registeredBorrowers = await checkRegisteredBorrowersOnChain(
     getProviderForServer(chainId),
     chainId,
     borrowerAddresses,

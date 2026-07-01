@@ -16,22 +16,21 @@ export const useBorrowerNames = () => {
     const data = await fetch(`/api/borrower-names?chainId=${chainId}`)
       .then(async (res) => {
         const result = (await res.json()) as BorrowerWithName[]
-        console.log(`GOT ${result.length} BORROWERS`)
         return result
       })
       .catch((err) => {
         console.log(err)
-        console.log(`ERROR RETRIEVING BORROWERS`)
+        console.log("ERROR RETRIEVING BORROWERS")
         return undefined
       })
     return data === undefined ? null : (data as BorrowerWithName[])
   }
   const { data, ...result } = useQuery({
-    enabled: true,
+    enabled: !!chainId,
     queryKey: QueryKeys.User.GET_BORROWER_NAMES(chainId),
     queryFn: getBorrowers,
     refetchOnMount: false,
-    refetchInterval: 10_000,
+    staleTime: 5 * 60 * 1000,
   })
   return {
     data: data === null ? undefined : data,

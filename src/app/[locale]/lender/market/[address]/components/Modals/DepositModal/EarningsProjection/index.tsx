@@ -4,7 +4,6 @@ import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
 import { Token, TokenAmount } from "@wildcatfi/wildcat-sdk"
-import { BigNumber } from "ethers"
 import { useTranslation } from "react-i18next"
 
 import { TooltipButton } from "@/components/TooltipButton"
@@ -42,9 +41,9 @@ export const EarningsProjection = ({
 
   const projections = PERIODS.map(({ key, days }) => {
     const interestRaw = depositAmount.raw
-      .mul(BigNumber.from(annualInterestBips))
-      .mul(BigNumber.from(days))
-      .div(BigNumber.from(BPS_DENOMINATOR * DAYS_PER_YEAR))
+      .mul(BigInt(annualInterestBips))
+      .mul(BigInt(days))
+      .div(BigInt(BPS_DENOMINATOR * DAYS_PER_YEAR))
     return { key, interest: underlyingToken.getAmount(interestRaw) }
   })
 

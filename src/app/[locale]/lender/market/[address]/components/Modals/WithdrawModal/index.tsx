@@ -101,7 +101,7 @@ export const WithdrawModal = ({
 
   const isTooSmallMarketBalance: boolean =
     marketAccount.marketBalance.lt(smallestTokenAmountValue) &&
-    !marketAccount.marketBalance.raw.isZero()
+    !marketAccount.marketBalance.eq(0)
 
   const underlyingWithdrawAmount = useMemo(
     () =>

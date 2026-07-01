@@ -18,7 +18,6 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
-import { isFrontendVisibleMarket } from "@/utils/marketType"
 
 import { GetMarketsProps } from "./interface"
 
@@ -53,11 +52,7 @@ export function useGetOthersMarketsQuery({
 
   async function getAllMarkets() {
     const subgraphMarkets = await queryAllMarkets()
-    return updateMarkets(
-      subgraphMarkets.filter(isFrontendVisibleMarket),
-      provider,
-      network,
-    )
+    return updateMarkets(subgraphMarkets, provider, network)
   }
 
   return useQuery({
@@ -81,9 +76,6 @@ export const useGetOthersMarkets = (
   const { isWrongNetwork, provider, signer } = useEthersProvider()
 
   const signerOrProvider = signer ?? provider
-  console.log(
-    `logging from useMarketsForBorrower.ts: have provider: ${!!provider} | isWrongNetwork: ${isWrongNetwork}`,
-  )
 
   return useGetOthersMarketsQuery({
     provider: signerOrProvider,

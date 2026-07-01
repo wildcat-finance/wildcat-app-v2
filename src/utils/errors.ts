@@ -86,6 +86,7 @@ export const SDK_ERRORS_MAPPING: SDKErrorsMapping = {
     AprChangeDoesNotMatchProposal:
       "APR change does not match the pending proposal",
     AprChangeNotReady: "APR change is not ready to be applied",
+    AprChangeExpired: "APR reduction proposal has expired",
     UnpaidWithdrawalsExist:
       "Unpaid withdrawals must be processed before reducing APR",
   },

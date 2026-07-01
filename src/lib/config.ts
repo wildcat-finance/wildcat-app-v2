@@ -1,7 +1,5 @@
-import { AddEthereumChainParameter } from "viem"
 import { http, createConfig, createStorage, cookieStorage } from "wagmi"
 import { mainnet, sepolia } from "wagmi/chains"
-import { safe, walletConnect } from "wagmi/connectors"
 
 import { plasmaMainnet } from "./chains/plasma-mainnet"
 import { plasmaTestnet } from "./chains/plasma-testnet"
@@ -17,9 +15,11 @@ chains.sort((a, b) => {
   return 0
 })
 
-export const config = createConfig({
+const configuredChains = [chains[0], chains[1], chains[2], chains[3]] as const
+
+export const wagmiBaseConfig = {
   // Explicit to avoid issues with readonly array
-  chains: [chains[0], chains[1], chains[2], chains[3]],
+  chains: configuredChains,
   ssr: true,
   storage: createStorage({
     storage: cookieStorage,
@@ -35,24 +35,6 @@ export const config = createConfig({
     [plasmaTestnet.id]: http(`https://testnet-rpc.plasma.to`),
     [plasmaMainnet.id]: http(`https://rpc.plasma.to`),
   },
-  connectors: [
-    safe({
-      allowedDomains: [/gnosis-safe.io$/, /app.safe.global$/],
-      debug: false,
-    }),
-    /* coinbaseWallet({
-      appName: "Wildcat",
-      appLogoUrl: "https://avatars.githubusercontent.com/u/113041915?s=200&v=4",
-    }),
-    */
-    walletConnect({
-      metadata: {
-        description: "An undercollateralised credit facility protocol.",
-        name: "Wildcat",
-        url: "https://app.wildcat.finance",
-        icons: ["https://avatars.githubusercontent.com/u/113041915?s=200&v=4"],
-      },
-      projectId: "b129ed6623af640bbab035d6b906dfd6",
-    }),
-  ],
-})
+} as const
+
+export const config = createConfig(wagmiBaseConfig)

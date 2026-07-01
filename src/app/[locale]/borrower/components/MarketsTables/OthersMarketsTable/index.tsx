@@ -36,6 +36,7 @@ import {
   trimAddress,
   buildMarketHref,
 } from "@/utils/formatters"
+import { getDisplayLenderAprBips } from "@/utils/marketApr"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -372,7 +373,6 @@ export const OthersMarketsTable = ({
       borrower: borrowerAddress,
       name,
       underlyingToken,
-      annualInterestBips,
       reserveRatioBips,
       maxTotalSupply,
       borrowableAssets,
@@ -400,7 +400,7 @@ export const OthersMarketsTable = ({
       borrowerName,
       borrowerAddress,
       asset: underlyingToken.symbol,
-      lenderAPR: annualInterestBips,
+      lenderAPR: getDisplayLenderAprBips(market),
       crr: reserveRatioBips,
       maxCapacity: maxTotalSupply,
       borrowable: borrowableAssets,

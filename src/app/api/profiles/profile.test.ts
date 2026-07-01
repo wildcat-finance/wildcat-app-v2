@@ -7,12 +7,14 @@ import { randomBytes } from "crypto"
 import { before } from "node:test"
 
 import { getLensV2Contract, Market } from "@wildcatfi/wildcat-sdk"
-import { Wallet } from "ethers"
 import { NextApiRequest } from "next"
 import { RequestInit } from "next/dist/server/web/spec-extension/request"
 import { NextRequest } from "next/server"
+import { bytesToHex, type Hex } from "viem"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 // import { Body, createMocks, createRequest } from "node-mocks-http"
 
+import { getLoginSignatureMessage } from "@/config/api"
 import { TargetChainId, TargetNetwork } from "@/config/network"
 import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { prisma } from "@/lib/db"
@@ -70,11 +72,14 @@ export const mockPut = (
     ...otherOptions,
   })
 
+const withChainIdParam = (path: string) =>
+  `${path}${path.includes("?") ? "&" : "?"}chainId=${TargetChainId}`
+
 export const mockHead = (
   path: string,
   otherOptions: RequestInit = {},
 ): NextRequest =>
-  new NextRequest(`http://localhost:3000${path}`, {
+  new NextRequest(`http://localhost:3000${withChainIdParam(path)}`, {
     method: "HEAD",
     ...otherOptions,
   })
@@ -93,7 +98,7 @@ export const mockGet = (
   path: string,
   otherOptions: RequestInit = {},
 ): NextRequest =>
-  new NextRequest(`http://localhost:3000${path}`, {
+  new NextRequest(`http://localhost:3000${withChainIdParam(path)}`, {
     method: "GET",
     ...otherOptions,
   })
@@ -219,42 +224,64 @@ describe("API", () => {
   const adminPrivateKey = randomBytes(32)
 
   const provider = getProviderForServer()
-  const wallet = new Wallet(privateKey, provider)
-  const adminWallet = new Wallet(adminPrivateKey, provider)
-  const otherWallet = Wallet.createRandom({ provider })
-  const realWallet = new Wallet(
-    process.env.TEST_BORROWER_PRIVATE_KEY as `0x${string}`,
-    provider,
-  )
+  const wallet = privateKeyToAccount(bytesToHex(privateKey))
+  const adminWallet = privateKeyToAccount(bytesToHex(adminPrivateKey))
+  const otherWallet = privateKeyToAccount(generatePrivateKey())
+  const realWalletPrivateKey = process.env.TEST_BORROWER_PRIVATE_KEY as
+    | Hex
+    | undefined
   const borrowerAddress = wallet.address as `0x${string}`
   let adminToken: string = ""
   let borrowerToken: string = ""
   let otherToken: string = ""
 
-  async function getToken(walletToUse: Wallet, isAdmin: boolean) {
-    if (isAdmin) {
+  async function deleteAdminAccount(address: string) {
+    const normalizedAddress = address.toLowerCase()
+    await prisma.$executeRaw`
+      DELETE FROM "AdminAccount"
+      WHERE "address" = ${normalizedAddress}
+    `
+  }
+
+  async function ensureAdminAccount(address: string) {
+    const normalizedAddress = address.toLowerCase()
+    try {
+      await deleteAdminAccount(normalizedAddress)
+      await prisma.$executeRaw`
+        INSERT INTO "AdminAccount" ("address", "chainId")
+        VALUES (${normalizedAddress}, ${TargetChainId})
+      `
+    } catch {
       const isAlreadyAdmin = await prisma.adminAccount.findFirst({
         where: {
-          address: walletToUse.address.toLowerCase(),
+          address: normalizedAddress,
         },
       })
       if (!isAlreadyAdmin) {
         await prisma.adminAccount.create({
           data: {
-            address: walletToUse.address.toLowerCase(),
+            address: normalizedAddress,
           },
         })
       }
     }
-    const timeSigned = Date.now()
-    const LoginMessage = `Connect to wildcat.finance as account ${walletToUse.address.toLowerCase()}\nDate: ${dayjs(
+  }
+
+  async function getToken(walletToUse: typeof wallet, isAdmin: boolean) {
+    if (isAdmin) {
+      await ensureAdminAccount(walletToUse.address)
+    }
+    const timeSigned = dayjs().unix()
+    const LoginMessage = getLoginSignatureMessage(
+      walletToUse.address,
       timeSigned,
-    ).format("MMMM DD, YYYY")}`
-    const signature = await walletToUse.signMessage(LoginMessage)
+    )
+    const signature = await walletToUse.signMessage({ message: LoginMessage })
     const req = mockPost("/api/auth/login", {
       address: walletToUse.address,
       signature,
       timeSigned,
+      chainId: TargetChainId,
     } as LoginInput)
     const response = await postLogin(req)
     expect(response.status).toEqual(200)
@@ -263,6 +290,7 @@ describe("API", () => {
   }
 
   const invite: BorrowerInvitationInput = {
+    chainId: TargetChainId,
     address: borrowerAddress,
     name: "Borrower 1",
   }
@@ -278,6 +306,10 @@ describe("API", () => {
     })
   }, 10_000)
 
+  afterAll(async () => {
+    await deleteAdminAccount(adminWallet.address)
+  })
+
   describe("/api/auth/login", () => {
     test("[POST] Fails if no signature", async () => {
       const req = mockPost("/api/auth/login", {
@@ -291,7 +323,8 @@ describe("API", () => {
       const req = mockPost("/api/auth/login", {
         address: borrowerAddress,
         signature: "0x",
-        timeSigned: Date.now(),
+        timeSigned: dayjs().unix(),
+        chainId: TargetChainId,
       })
       const response = await postLogin(req)
       expect(response.status).toBe(400)
@@ -299,15 +332,19 @@ describe("API", () => {
     })
 
     test("[POST] Succeeds with ECDSA signature", async () => {
-      const timeSigned = Date.now()
-      const LoginMessage = `Connect to wildcat.finance as account ${adminWallet.address.toLowerCase()}\nDate: ${dayjs(
+      const timeSigned = dayjs().unix()
+      const LoginMessage = getLoginSignatureMessage(
+        adminWallet.address,
         timeSigned,
-      ).format("MMMM DD, YYYY")}`
-      const signature = await adminWallet.signMessage(LoginMessage)
+      )
+      const signature = await adminWallet.signMessage({
+        message: LoginMessage,
+      })
       const req = mockPost("/api/auth/login", {
         address: adminWallet.address,
         signature,
         timeSigned,
+        chainId: TargetChainId,
       } as LoginInput)
       const response = await postLogin(req)
       expect(response.status).toBe(200)
@@ -319,7 +356,11 @@ describe("API", () => {
   // describe("/api/invite", () => {
   describe("[POST] /api/invite", () => {
     test("[POST] Fails if not admin", async () => {
-      const req = mockPost("/api/invite", invite)
+      const req = mockPost("/api/invite", invite, {
+        headers: {
+          Authorization: `Bearer ${borrowerToken}`,
+        },
+      })
       const response = await postBorrowerInvite(req)
       expect(response.status).toBe(403)
       expect(await response.json()).toEqual({ error: "Forbidden" })
@@ -408,6 +449,7 @@ describe("API", () => {
           address: borrowerAddress.toLowerCase(),
           chainId: TargetChainId,
           name: "Borrower 1",
+          registeredOnChain: false,
           timeInvited: expect.any(String),
         },
       })
@@ -430,6 +472,7 @@ describe("API", () => {
           address: borrowerAddress.toLowerCase(),
           chainId: TargetChainId,
           name: "Borrower 1",
+          registeredOnChain: false,
           timeInvited: expect.any(String),
         },
       })
@@ -459,9 +502,9 @@ describe("API", () => {
       const response = await getBorrowerInvite(req, {
         params: { address: borrowerAddress },
       })
-      expect(response.status).toBe(401)
+      expect(response.status).toBe(403)
       expect(await response.json()).toEqual({
-        error: "Unauthorized",
+        error: "Forbidden",
       })
     })
   })
@@ -487,9 +530,10 @@ describe("API", () => {
   describe("[PUT] /api/invite/[address]", () => {
     test("Fails if invitation does not exist", async () => {
       const timeSigned = Date.now()
-      const wallet2 = Wallet.createRandom({ provider })
+      const wallet2 = privateKeyToAccount(generatePrivateKey())
       const token = await getToken(wallet2, false)
       const body: AcceptInvitationInput = {
+        chainId: TargetChainId,
         address: wallet2.address as `0x${string}`,
         name: invite.name,
         timeSigned,
@@ -515,12 +559,13 @@ describe("API", () => {
         agreementText = `${agreementText}\n\nDate: ${dateSigned}`
       }
       agreementText = `${agreementText}\n\nOrganization Name: ${invite.name}`
-      const wallet2 = Wallet.createRandom({ provider })
+      const wallet2 = privateKeyToAccount(generatePrivateKey())
       const body: AcceptInvitationInput = {
+        chainId: TargetChainId,
         address: borrowerAddress,
         name: invite.name,
         timeSigned,
-        signature: await wallet2.signMessage(agreementText),
+        signature: await wallet2.signMessage({ message: agreementText }),
       }
       const req = mockPut(`/api/invite/${wallet2.address}`, body, {
         headers: {
@@ -541,10 +586,11 @@ describe("API", () => {
       }
       agreementText = `${agreementText}\n\nOrganization Name: ${invite.name}`
       const body: AcceptInvitationInput = {
+        chainId: TargetChainId,
         address: borrowerAddress,
         name: invite.name,
         timeSigned,
-        signature: await wallet.signMessage(agreementText),
+        signature: await wallet.signMessage({ message: agreementText }),
       }
       const req = mockPut(`/api/invite/${borrowerAddress}`, body, {
         headers: {
@@ -560,12 +606,12 @@ describe("API", () => {
 
   describe("/api/profiles", () => {
     describe("[GET] /api/profiles/[address]", () => {
-      test("Returns 404 if no profile exists", async () => {
+      test("Returns an empty profile response if no profile exists", async () => {
         const req = mockGet(`/api/profiles/${otherWallet.address}`)
         const response = await getProfile(req, {
           params: { address: otherWallet.address as `0x${string}` },
         })
-        expect(response.status).toBe(404)
+        expect(response.status).toBe(200)
         expect(await response.json()).toEqual({ profile: null })
       })
 
@@ -600,6 +646,7 @@ describe("API", () => {
         const req = mockPost(
           "/api/profiles/updates",
           {
+            chainId: TargetChainId,
             name: "Borrower 1",
           },
           {
@@ -645,101 +692,106 @@ describe("API", () => {
       console.log("Created MLA template")
     })
   })
+  ;(realWalletPrivateKey ? describe : describe.skip)(
+    "[POST] /api/mla/[market]",
+    () => {
+      async function clearMla(marketAddress: string) {
+        marketAddress = marketAddress.toLowerCase()
+        if (
+          (await prisma.mlaSignature.count({
+            where: {
+              chainId: TargetChainId,
+              market: marketAddress,
+            },
+          })) > 0
+        ) {
+          await prisma.mlaSignature.deleteMany({
+            where: {
+              chainId: TargetChainId,
+              market: marketAddress,
+            },
+          })
+          await prisma.masterLoanAgreement.deleteMany({
+            where: {
+              chainId: TargetChainId,
+              market: marketAddress,
+            },
+          })
+        }
+      }
 
-  describe("[POST] /api/mla/[market]", () => {
-    async function clearMla(marketAddress: string) {
-      marketAddress = marketAddress.toLowerCase()
-      if (
-        (await prisma.mlaSignature.count({
+      async function resetMlaTemplate() {
+        const mlaTemplate = await prisma.mlaTemplate.findFirst()
+        await prisma.mlaTemplate.update({
           where: {
-            chainId: TargetChainId,
-            market: marketAddress,
+            id: mlaTemplate?.id,
           },
-        })) > 0
-      ) {
-        await prisma.mlaSignature.deleteMany({
-          where: {
-            chainId: TargetChainId,
-            market: marketAddress,
-          },
-        })
-        await prisma.masterLoanAgreement.deleteMany({
-          where: {
-            chainId: TargetChainId,
-            market: marketAddress,
+          data: {
+            html: DefaultMlaHtml,
+            borrowerFields,
+            lenderFields,
           },
         })
       }
-    }
+      test("Create a new MLA for a given market", async () => {
+        const realWallet = privateKeyToAccount(realWalletPrivateKey as Hex)
+        const marketAddress = "0xbab3e079d3f28a58a14e316dcb15a8b2cc25ca80"
+        await clearMla(marketAddress)
+        await resetMlaTemplate()
+        const mlaTemplate = await prisma.mlaTemplate.findFirst()
+        if (!mlaTemplate) {
+          throw new Error("No MLA template found")
+        }
 
-    async function resetMlaTemplate() {
-      const mlaTemplate = await prisma.mlaTemplate.findFirst()
-      await prisma.mlaTemplate.update({
-        where: {
-          id: mlaTemplate?.id,
-        },
-        data: {
-          html: DefaultMlaHtml,
-          borrowerFields,
-          lenderFields,
-        },
-      })
-    }
-    test("Create a new MLA for a given market", async () => {
-      const marketAddress = "0xbab3e079d3f28a58a14e316dcb15a8b2cc25ca80"
-      await clearMla(marketAddress)
-      await resetMlaTemplate()
-      const mlaTemplate = await prisma.mlaTemplate.findFirst()
-      if (!mlaTemplate) {
-        throw new Error("No MLA template found")
-      }
-
-      const market = await Market.getMarket(
-        TargetChainId,
-        marketAddress,
-        provider,
-      ).catch(async () => {
-        const lens = getLensV2Contract(TargetChainId, provider)
-        return Market.fromMarketDataV2(
+        const market = await Market.getMarket(
           TargetChainId,
+          marketAddress,
           provider,
-          await lens.getMarketData(marketAddress),
-        )
-      })
-      const borrowerProfile = await prisma.borrower.findFirst({
-        where: {
-          address: realWallet.address.toLowerCase(),
-        },
-      })
-      const timeSigned = Date.now()
+        ).catch(async () => {
+          const lens = getLensV2Contract(TargetChainId, provider)
+          return Market.fromMarketDataV2(
+            TargetChainId,
+            provider,
+            await lens.getMarketData(marketAddress),
+          )
+        })
+        const borrowerProfile = await prisma.borrower.findFirst({
+          where: {
+            address: realWallet.address.toLowerCase(),
+          },
+        })
+        const timeSigned = Date.now()
 
-      const values = getFieldValuesForBorrower({
-        market,
-        borrowerInfo: borrowerProfile as BasicBorrowerInfo,
-        networkData: TargetNetwork,
-        timeSigned,
-        lastSlaUpdateTime: +lastSlaUpdateTime,
-        asset: market.underlyingToken,
-      })
-      const filledTemplate = fillInMlaTemplate(
-        mlaTemplate as unknown as MlaTemplate,
-        values,
-      )
-      const signature = await realWallet.signMessage(filledTemplate.plaintext)
-      const req = mockPost(`/api/mla/${market.address}`, {
-        mlaTemplate: mlaTemplate.id,
-        timeSigned,
-        signature,
-      })
-      const response = await postMla(req, {
-        params: { market: market.address },
-      })
-      expect(response.status).toBe(200)
-      expect(await response.json()).toEqual({
-        success: true,
-      })
-    }, 30_000)
-  })
+        const values = getFieldValuesForBorrower({
+          market,
+          borrowerInfo: borrowerProfile as BasicBorrowerInfo,
+          networkData: TargetNetwork,
+          timeSigned,
+          lastSlaUpdateTime: +lastSlaUpdateTime,
+          asset: market.underlyingToken,
+        })
+        const filledTemplate = fillInMlaTemplate(
+          mlaTemplate as unknown as MlaTemplate,
+          values,
+        )
+        const signature = await realWallet.signMessage({
+          message: filledTemplate.plaintext,
+        })
+        const req = mockPost(`/api/mla/${market.address}`, {
+          mlaTemplate: mlaTemplate.id,
+          timeSigned,
+          signature,
+        })
+        const response = await postMla(req, {
+          params: { market: market.address },
+        })
+        expect(response.status).toBe(200)
+        expect(await response.json()).toEqual({
+          success: true,
+        })
+      }, 30_000)
+    },
+  )
 
   describe("[GET] /api/mla/templates", () => {
     test("Get all MLA templates", async () => {

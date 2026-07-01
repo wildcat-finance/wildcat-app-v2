@@ -14,7 +14,6 @@ import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
-import { isFrontendVisibleMarket } from "@/utils/marketType"
 
 import { shouldMarketTriggerBorrowerPenaltyWarning } from "../utils"
 
@@ -58,7 +57,7 @@ export const useBorrowerPenaltyWarning = (market: Market | undefined) => {
         shouldSkipRecords: true,
       })
       const updatedMarkets = await updateMarkets(
-        borrowerMarkets.filter(isFrontendVisibleMarket),
+        borrowerMarkets,
         signerOrProvider,
         network,
       )

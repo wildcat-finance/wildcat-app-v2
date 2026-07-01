@@ -73,7 +73,7 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
           color="secondary"
           size="large"
           fullWidth
-          disabled={withdrawals.totalClaimableAmount.raw.isZero() || !signer}
+          disabled={withdrawals.totalClaimableAmount.eq(0) || !signer}
           sx={{ padding: "10px 20px", width: "fit-content" }}
         >
           {t("lenderMarketDetails.transactions.withdrawalsAlert.buttons.claim")}

@@ -1,15 +1,11 @@
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
-import { BigNumber } from "ethers"
-import { formatEther } from "ethers/lib/utils"
 
 import { MARKET_BAR_DATA } from "@/app/[locale]/lender/market/[address]/components/BarCharts/CapacityBarChart/constants"
 import { MarketBarChartItem } from "@/components/BarChart/BarItem/interface"
+import { formatTokenAmountPercentage } from "@/utils/formatters"
 
-const ONE_HUNDRED_E18 = BigNumber.from(10).pow(20)
 const getPercentageTokenAmount = (total: TokenAmount, amount: TokenAmount) =>
-  total.eq(0)
-    ? 0
-    : parseFloat(formatEther(amount.raw.mul(ONE_HUNDRED_E18).div(total.raw)))
+  formatTokenAmountPercentage(total, amount)
 
 const getTokenAmountPercentageWidth = (
   total: TokenAmount,

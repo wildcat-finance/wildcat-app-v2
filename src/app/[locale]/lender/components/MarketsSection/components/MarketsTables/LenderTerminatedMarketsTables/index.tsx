@@ -21,6 +21,7 @@ import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { useMarketRowPrefetchHandlers } from "@/hooks/usePrefetchMarketDetailMetadata"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
@@ -37,6 +38,7 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import { getDisplayLenderAprBips } from "@/utils/marketApr"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -84,7 +86,6 @@ export const LenderTerminatedMarketsTables = ({
         borrower: borrowerAddress,
         name,
         underlyingToken,
-        annualInterestBips,
         totalSupply,
         withdrawalBatchDuration,
         chainId,
@@ -109,7 +110,7 @@ export const LenderTerminatedMarketsTables = ({
         borrower: borrowerName,
         borrowerAddress,
         asset: underlyingToken.symbol,
-        apr: annualInterestBips,
+        apr: getDisplayLenderAprBips(market),
         withdrawalBatchDuration,
         loan: marketBalance,
         debt: totalSupply,
@@ -121,6 +122,9 @@ export const LenderTerminatedMarketsTables = ({
   const prevActive = rows.filter((market) => market.hasEverInteracted)
 
   const neverActive = rows.filter((market) => !market.hasEverInteracted)
+
+  const prevActivePrefetchHandlers = useMarketRowPrefetchHandlers(prevActive)
+  const neverActivePrefetchHandlers = useMarketRowPrefetchHandlers(neverActive)
 
   const columns: TypeSafeColDef<LenderTerminatedMarketsTableModel>[] = [
     {
@@ -389,14 +393,16 @@ export const LenderTerminatedMarketsTables = ({
           noMarketsTitle={t("dashboard.markets.noMarkets.closed.title")}
           noMarketsSubtitle={t("dashboard.markets.noMarkets.closed.subtitle")}
         >
-          <DataGrid
-            disableVirtualization
-            sx={clickableGridSx}
-            rowHeight={66}
-            rows={prevActive}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
+          <Box {...prevActivePrefetchHandlers}>
+            <DataGrid
+              disableVirtualization
+              sx={clickableGridSx}
+              rowHeight={66}
+              rows={prevActive}
+              columns={columns}
+              columnHeaderHeight={40}
+            />
+          </Box>
         </MarketsTableAccordion>
       </Box>
 
@@ -413,14 +419,16 @@ export const LenderTerminatedMarketsTables = ({
           noMarketsTitle={t("dashboard.markets.noMarkets.closed.title")}
           noMarketsSubtitle={t("dashboard.markets.noMarkets.closed.subtitle")}
         >
-          <DataGrid
-            disableVirtualization
-            sx={clickableGridSx}
-            rowHeight={66}
-            rows={neverActive}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
+          <Box {...neverActivePrefetchHandlers}>
+            <DataGrid
+              disableVirtualization
+              sx={clickableGridSx}
+              rowHeight={66}
+              rows={neverActive}
+              columns={columns}
+              columnHeaderHeight={40}
+            />
+          </Box>
         </MarketsTableAccordion>
       </Box>
     </Box>

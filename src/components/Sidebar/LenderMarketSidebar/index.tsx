@@ -8,6 +8,7 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
+import { useParams, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import BorrowAndRepayIcon from "@/assets/icons/borrowAndRepay_icon.svg"
@@ -18,7 +19,9 @@ import SummaryIcon from "@/assets/icons/summary_icon.svg"
 import TokenWrapIcon from "@/assets/icons/tokenWrap_icon.svg"
 import WithdrawalAndRequestsIcon from "@/assets/icons/withdrawalAndRequests_icon.svg"
 import { BackButton } from "@/components/BackButton"
+import { usePrefetchMarketRecords } from "@/components/PaginatedMarketRecordsTable/hooks/usePrefetchMarketRecords"
 import { MenuItemButton } from "@/components/Sidebar/MarketSidebar/style"
+import { useGetMarket } from "@/hooks/useGetMarket"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
@@ -31,6 +34,18 @@ export const LenderMarketSidebar = () => {
   const { t } = useTranslation()
 
   const dispatch = useAppDispatch()
+  const params = useParams<{ locale: string; address: string }>()
+  const searchParams = useSearchParams()
+
+  const marketChainIdRaw = parseInt(searchParams.get("chainId") ?? "", 10)
+  const marketChainId = Number.isFinite(marketChainIdRaw)
+    ? marketChainIdRaw
+    : undefined
+  const { data: market } = useGetMarket({
+    address: params.address,
+    chainId: marketChainId,
+  })
+  const prefetchMarketHistory = usePrefetchMarketRecords(market)
 
   const currentSection = useAppSelector(
     (state) => state.lenderMarketRouting.currentSection,
@@ -224,6 +239,8 @@ export const LenderMarketSidebar = () => {
             <Button
               variant="text"
               size="medium"
+              onMouseEnter={prefetchMarketHistory}
+              onFocus={prefetchMarketHistory}
               onClick={() =>
                 handleChangeSection(LenderMarketSections.MARKET_HISTORY)
               }

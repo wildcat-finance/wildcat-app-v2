@@ -18,37 +18,19 @@ import { FilterTextField } from "@/components/FilterTextfield"
 import { MobileMarketRecordItem } from "@/components/Mobile/MobileMarketRecordItem"
 import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
+import {
+  ALL_MARKET_RECORD_KINDS,
+  DEFAULT_MARKET_RECORDS_PAGE_SIZE,
+  MARKET_RECORD_FILTERS,
+  MarketRecordFilterOption,
+} from "./constants"
 import { useMarketRecords } from "./hooks/useMarketRecords"
 import { MarketRecordsTable } from "./MarketRecordsTable"
 import ExtendedCheckbox from "../@extended/ExtendedСheckbox"
-
-type CheckboxOption<T> = {
-  id: string
-  value: T
-  label: string
-}
-
-const MarketRecordFilters: CheckboxOption<MarketRecordKind>[] = (
-  [
-    ["AnnualInterestBipsUpdated", "APR Change"],
-    ["Borrow", "Borrow"],
-    ["DebtRepaid", "Repayment"],
-    ["DelinquencyStatusChanged", "Delinquency"],
-    ["Deposit", "Deposit"],
-    ["FeesCollected", "Fees"],
-    ["FixedTermUpdated", "Fixed Term"],
-    ["MarketClosed", "Market Closed"],
-    ["MaxTotalSupplyUpdated", "Capacity Change"],
-    ["MinimumDepositUpdated", "Minimum Deposit Updated"],
-    ["ProtocolFeeBipsUpdated", "Protocol Fee Change"],
-    ["WithdrawalRequest", "Withdrawal"],
-  ] as [MarketRecordKind, string][]
-).map(([value, label]) => ({ id: `check-filter-${value}`, value, label }))
-
-const ALL_KINDS: MarketRecordKind[] = MarketRecordFilters.map((f) => f.value)
 
 export function PaginatedMarketRecordsTable({
   market,
@@ -62,9 +44,9 @@ export function PaginatedMarketRecordsTable({
   const { getTxUrl } = useBlockExplorer({ chainId: market.chainId })
   const borrowerName = useBorrowerNameOrAddress(market.borrower)
   const [page, setPage] = useState(0)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(DEFAULT_MARKET_RECORDS_PAGE_SIZE)
   const [selectedFilters, setSelectedFilters] = useState<MarketRecordKind[]>(
-    MarketRecordFilters.map((f) => f.value),
+    ALL_MARKET_RECORD_KINDS,
   )
   const [search, setSearch] = useState("")
 
@@ -87,12 +69,17 @@ export function PaginatedMarketRecordsTable({
     kinds: selectedFilters as MarketRecordKind[],
     search,
   })
-  const options = MarketRecordFilters
+  useMarketDetailPerformanceMark(
+    "history-first-row-ready",
+    {
+      address: market.address,
+      chainId: market.chainId,
+    },
+    !isLoading && Boolean(data?.records?.length),
+  )
+  const options = MARKET_RECORD_FILTERS
 
-  const handleChange = (
-    o: CheckboxOption<MarketRecordKind>,
-    checked: boolean,
-  ) => {
+  const handleChange = (o: MarketRecordFilterOption, checked: boolean) => {
     const otherSelectedFilters = selectedFilters.filter((f) => f !== o.value)
 
     if (checked) {
@@ -103,19 +90,20 @@ export function PaginatedMarketRecordsTable({
   }
 
   const handleClear = () => {
-    setSelectedFilters(ALL_KINDS)
+    setSelectedFilters(ALL_MARKET_RECORD_KINDS)
   }
 
   const handleToggleAll = (checked: boolean) => {
-    setSelectedFilters(checked ? ALL_KINDS : [])
+    setSelectedFilters(checked ? ALL_MARKET_RECORD_KINDS : [])
   }
 
-  const allSelected = selectedFilters.length === ALL_KINDS.length
+  const allSelected = selectedFilters.length === ALL_MARKET_RECORD_KINDS.length
   const isIndeterminate =
-    selectedFilters.length > 0 && selectedFilters.length < ALL_KINDS.length
+    selectedFilters.length > 0 &&
+    selectedFilters.length < ALL_MARKET_RECORD_KINDS.length
 
   const [startEventIndex, endEventIndex] = useMemo(() => {
-    if (!data?.records.length || data.totalRecords === undefined) {
+    if (!data?.records?.length) {
       return [undefined, undefined]
     }
 
@@ -493,7 +481,7 @@ export function PaginatedMarketRecordsTable({
       >
         {startEventIndex !== undefined && (
           <Typography variant="text3">
-            Viewing records {startEventIndex} to {endEventIndex}
+            Showing recent records {startEventIndex} to {endEventIndex}
           </Typography>
         )}
         {/*      <div className="flex gap-x-4 items-center flex-row">

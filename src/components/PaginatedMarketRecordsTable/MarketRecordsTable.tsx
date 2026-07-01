@@ -118,9 +118,12 @@ export function MarketRecordsTable({
     )
   }
 
-  const rows = records?.map((r) => ({ id: r.transactionHash, ...r }))
+  const rows = records?.map((r) => ({
+    id: `${r.transactionHash}-${r.eventIndex}`,
+    ...r,
+  }))
 
-  if (rows?.length === 0) {
+  if (rows?.length === 0 && !rowCount) {
     return (
       <Box
         display="flex"
@@ -131,7 +134,7 @@ export function MarketRecordsTable({
           variant={isMobile ? "mobText3" : "text3"}
           color={COLORS.santasGrey}
         >
-          No unfiltered events
+          No matching recent events
         </Typography>
       </Box>
     )

@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
@@ -15,6 +15,7 @@ import SummaryIcon from "@/assets/icons/summary_icon.svg"
 import TokenWrapIcon from "@/assets/icons/tokenWrap_icon.svg"
 import WithdrawalAndRequestsIcon from "@/assets/icons/withdrawalAndRequests_icon.svg"
 import { BackButton } from "@/components/BackButton"
+import { usePrefetchMarketRecords } from "@/components/PaginatedMarketRecordsTable/hooks/usePrefetchMarketRecords"
 import {
   ContentContainer,
   MenuItemButton,
@@ -35,12 +36,19 @@ export const MarketSidebar = () => {
   const dispatch = useAppDispatch()
 
   const params = useParams<{ locale: string; address: string }>()
+  const searchParams = useSearchParams()
 
   const { address } = params
+  const marketChainIdRaw = parseInt(searchParams.get("chainId") ?? "", 10)
+  const marketChainId = Number.isFinite(marketChainIdRaw)
+    ? marketChainIdRaw
+    : undefined
 
   const { data: market } = useGetMarket({
     address,
+    chainId: marketChainId,
   })
+  const prefetchMarketHistory = usePrefetchMarketRecords(market)
   const { address: walletAddress } = useAccount()
   const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
 
@@ -60,7 +68,7 @@ export const MarketSidebar = () => {
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
 
   const { isWrongNetwork, isSelectionMismatch } = useNetworkGate({
-    desiredChainId: market?.chainId,
+    desiredChainId: market?.chainId ?? marketChainId,
     includeAgreementStatus: false,
   })
   const isDifferentChain = isWrongNetwork || isSelectionMismatch
@@ -297,6 +305,8 @@ export const MarketSidebar = () => {
                 ? COLORS.whiteSmoke
                 : "transparent",
             }}
+            onMouseEnter={prefetchMarketHistory}
+            onFocus={prefetchMarketHistory}
             onClick={() => {
               dispatch(setCheckBlock(7))
               dispatch(
