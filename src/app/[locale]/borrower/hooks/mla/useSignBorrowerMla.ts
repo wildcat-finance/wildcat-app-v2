@@ -1,7 +1,12 @@
 /* eslint-disable no-console */
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Market, SupportedChainId, Token } from "@wildcatfi/wildcat-sdk"
+import {
+  Market,
+  MarketType,
+  SupportedChainId,
+  Token,
+} from "@wildcatfi/wildcat-sdk"
 import { UseFormReturn } from "react-hook-form"
 
 import { lastSlaUpdateTime, MlaTemplate } from "@/app/api/mla/interface"
@@ -22,7 +27,7 @@ import {
   getFieldValuesForBorrower,
 } from "@/lib/mla"
 
-import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
+import { calculateMarketAddress } from "./useCalculateMarketAddress"
 import { getMlaFromForm } from "./usePreviewMla"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
 
@@ -208,8 +213,6 @@ export const useSignMla = (salt: string) => {
   const client = useQueryClient()
   const { chainId } = useSelectedNetwork()
 
-  const { data: marketAddress } = useCalculateMarketAddress(salt)
-
   return useMutation({
     mutationFn: async ({
       form,
@@ -221,6 +224,15 @@ export const useSignMla = (salt: string) => {
       const selectedMla = form.getValues("mla")
       const mlaTemplateId =
         selectedMla === "noMLA" ? undefined : Number(selectedMla)
+      const marketType = form.getValues("implementationType") as MarketType
+      const marketAddress = signer
+        ? await calculateMarketAddress({
+            chainId: signer.chainId,
+            provider: signer,
+            salt,
+            marketType,
+          })
+        : undefined
       console.log("mlaTemplateId", mlaTemplateId)
       if (!signer || !marketAddress || !borrowerProfile || !asset) {
         console.log("missing required data")
@@ -244,6 +256,7 @@ export const useSignMla = (salt: string) => {
           borrowerProfile,
           asset,
           salt,
+          marketType,
           NETWORKS_BY_ID[signer.chainId as SupportedChainId],
         )
         message = mlaData.message
@@ -289,7 +302,16 @@ export const useSignMla = (salt: string) => {
       })
       return result
     },
-    onSuccess() {
+    async onSuccess(_, variables) {
+      if (!signer) return
+      const marketAddress = await calculateMarketAddress({
+        chainId: signer.chainId,
+        provider: signer,
+        salt,
+        marketType: variables.form.getValues(
+          "implementationType",
+        ) as MarketType,
+      })
       client.invalidateQueries({
         queryKey: QueryKeys.Borrower.PREVIEW_MLA.FROM_FORM(
           chainId,

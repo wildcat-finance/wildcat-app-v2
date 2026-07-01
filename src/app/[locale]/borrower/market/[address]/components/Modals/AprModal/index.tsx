@@ -29,6 +29,7 @@ import {
   MARKET_PARAMS_DECIMALS,
   TOKEN_FORMAT_DECIMALS,
 } from "@/utils/formatters"
+import { isRevolvingMarket } from "@/utils/marketImplementation"
 
 import { DifferenceChip } from "./components/DifferenceChip"
 import { AprModalProps } from "./interface"
@@ -86,6 +87,7 @@ function getMinimumAPR(market: Market) {
 export const AprModal = ({ marketAccount }: AprModalProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
+  const isRevolving = isRevolvingMarket(market)
 
   const [apr, setApr] = useState("")
   const [aprPreview, setAprPreview] = useState<SetAprPreview>()
@@ -104,6 +106,18 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const [resetTxHash, setResetTxHash] = useState<string | undefined>()
 
   const isFixedTerm = market.isInFixedTerm
+  const adjustAprLabel = isRevolving
+    ? t("borrowerMarketDetails.modals.apr.adjustUtilization")
+    : t("borrowerMarketDetails.modals.apr.adjustBase")
+  const alreadyUpdatedLabel = isRevolving
+    ? t("borrowerMarketDetails.modals.apr.alreadyUpdatedUtilization")
+    : t("borrowerMarketDetails.modals.apr.alreadyUpdated")
+  const currentAprLabel = isRevolving
+    ? t("borrowerMarketDetails.modals.apr.currentUtilizationApr")
+    : t("borrowerMarketDetails.modals.apr.currentBaseApr")
+  const newAprLabel = isRevolving
+    ? t("borrowerMarketDetails.modals.apr.newUtilizationApr")
+    : t("borrowerMarketDetails.modals.apr.newBaseApr")
 
   const modal = useApprovalModal(
     setShowSuccessPopup,
@@ -317,7 +331,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
         onClick={modal.handleOpenModal}
         disabled={market.isClosed}
       >
-        {t("borrowerMarketDetails.modals.apr.adjustBase")}
+        {adjustAprLabel}
       </Button>
 
       <Dialog
@@ -327,7 +341,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
       >
         {showForm && (
           <TxModalHeader
-            title={t("borrowerMarketDetails.modals.apr.adjustBase")}
+            title={adjustAprLabel}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
@@ -335,7 +349,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
           >
             <Box sx={AprModalMessageBox}>
               <Typography variant="text3" color={COLORS.santasGrey}>
-                {t("borrowerMarketDetails.modals.apr.alreadyUpdated")}
+                {alreadyUpdatedLabel}
               </Typography>
               <Link
                 href={EXTERNAL_LINKS.DOCS_REDUCING_APR}
@@ -355,7 +369,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
             {modal.gettingValueStep && (
               <>
                 <ModalDataItem
-                  title={t("borrowerMarketDetails.modals.apr.currentBaseApr")}
+                  title={currentAprLabel}
                   value={`${formatBps(
                     market.annualInterestBips,
                     MARKET_PARAMS_DECIMALS.annualInterestBips,
@@ -505,7 +519,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
             {modal.approvedStep && (
               <Box sx={AprModalConfirmedBox}>
                 <ModalDataItem
-                  title={t("borrowerMarketDetails.modals.apr.newBaseApr")}
+                  title={newAprLabel}
                   value={`${apr}%`}
                   containerSx={{ marginBottom: "16px" }}
                 >

@@ -6,6 +6,7 @@ const reportingEndpoints = `${CSP_REPORT_GROUP}="/api/csp-report"`
 
 const vercelEnv = process.env.VERCEL_ENV
 const isProduction = vercelEnv === 'production'
+const tokenImagesHostname = process.env.NEXT_PUBLIC_TOKENS_IMG_HOSTNAME
 
 const connectSrc = [
   'https://eth-sepolia.g.alchemy.com',
@@ -184,12 +185,16 @@ const nextConfig = {
 
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        pathname: '/**',
-        hostname: process.env.NEXT_PUBLIC_TOKENS_IMG_HOSTNAME,
-        port: '',
-      },
+      ...(tokenImagesHostname
+        ? [
+          {
+            protocol: 'https',
+            pathname: '/**',
+            hostname: tokenImagesHostname,
+            port: '',
+          },
+        ]
+        : []),
       // Sepolia tokens
       {
         protocol: 'https',

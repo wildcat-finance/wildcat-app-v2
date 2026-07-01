@@ -6,16 +6,22 @@ import { Market, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
 import Link from "next/link"
 
+import { MarketImplementationChip } from "@/components/@extended/MarketImplementationChip"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import { capacityComparator, statusComparator } from "@/utils/comparators"
+import {
+  implementationComparator,
+  statusComparator,
+  typeComparator,
+} from "@/utils/comparators"
 import {
   buildMarketHref,
   formatBps,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -29,8 +35,9 @@ export type MarketsTabProps = {
 export type MarketsTableModel = {
   id: string
   chainId?: number
+  implementationType: ReturnType<typeof getMarketImplementationType>
   status: ReturnType<typeof getMarketStatusChip>
-  type: ReturnType<typeof getMarketTypeChip>
+  term: ReturnType<typeof getMarketTypeChip>
   name: string
   asset: string
   apr: number
@@ -66,13 +73,42 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       ),
     },
     {
-      field: "type",
+      field: "implementationType",
+      headerName: "Type",
+      minWidth: 130,
+      flex: 0.8,
+      headerAlign: "left",
+      align: "left",
+      sortComparator: implementationComparator,
+      renderCell: (params) => (
+        <Link
+          href={buildMarketHref(
+            params.row.id,
+            params.row.chainId,
+            ROUTES.borrower.market,
+          )}
+          style={{
+            ...LinkCell,
+            justifyContent: "flex-start",
+          }}
+        >
+          <Box minWidth="120px">
+            <MarketImplementationChip
+              implementationType={params.value}
+              type="table"
+            />
+          </Box>
+        </Link>
+      ),
+    },
+    {
+      field: "term",
       headerName: "Term",
       minWidth: 170,
       flex: 1,
       headerAlign: "left",
       align: "left",
-      sortComparator: capacityComparator,
+      sortComparator: typeComparator,
       renderCell: (params) => (
         <Link
           href={buildMarketHref(
@@ -186,13 +222,15 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
     const { borrowed } = market.getTotalDebtBreakdown()
 
     const marketStatus = getMarketStatusChip(market)
-    const marketType = getMarketTypeChip(market)
+    const implementationType = getMarketImplementationType(market)
+    const term = getMarketTypeChip(market)
 
     return {
       id: address,
       chainId: market.chainId,
+      implementationType,
       status: marketStatus,
-      type: marketType,
+      term,
       name,
       asset: underlyingToken.symbol,
       apr: annualInterestBips,

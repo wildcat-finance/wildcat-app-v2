@@ -1,17 +1,13 @@
 import { useQuery } from "@tanstack/react-query"
 import {
-  getLensV2Contract,
+  getBorrowerHooksData,
+  MarketController,
   SignerOrProvider,
   SupportedChainId,
-  GetAllHooksDataForBorrowerResult,
+  BorrowerHooksDataResult,
   getController,
   getAllHooksDataForBorrower,
 } from "@wildcatfi/wildcat-sdk"
-import {
-  HooksInstance,
-  hooksInstanceFromLens,
-  hooksTemplateFromLens,
-} from "@wildcatfi/wildcat-sdk/dist/access"
 import { useAccount } from "wagmi"
 
 import { NETWORKS_BY_ID } from "@/config/network"
@@ -29,6 +25,10 @@ export type GetBorrowerHooksDataProps = {
   enabled: boolean
 }
 
+type BorrowerHooksDataQueryResult = BorrowerHooksDataResult & {
+  controller?: MarketController
+}
+
 export function useGetBorrowerHooksDataQuery({
   provider,
   enabled,
@@ -36,62 +36,28 @@ export function useGetBorrowerHooksDataQuery({
 }: GetBorrowerHooksDataProps) {
   const { address } = useAccount()
 
-  async function getBorrowerHooksData(): Promise<GetAllHooksDataForBorrowerResult> {
+  async function getBorrowerHooksDataQueryFn(): Promise<BorrowerHooksDataQueryResult> {
     const chain = chainId! as SupportedChainId
     const signerOrProvider = provider! as SignerOrProvider
     const supportsV1 =
       NETWORKS_BY_ID[chainId as SupportedChainId].hasV1Deployment
     const borrower = address as string
-    const lens = getLensV2Contract(chain, signerOrProvider)
-    const [{ isRegisteredBorrower, ...result }, controller] = await Promise.all(
-      [
-        lens.getHooksDataForBorrower(borrower),
-        supportsV1
-          ? getController(chain, signerOrProvider, borrower)
-          : undefined,
-      ],
-    )
-    console.log("result", result)
-    const hooksTemplates = result.hooksTemplates.map((t) =>
-      hooksTemplateFromLens(
-        chain,
-        signerOrProvider,
-        t,
-        borrower,
-        isRegisteredBorrower,
-      ),
-    )
-    console.log(
-      "hooksTemplatess",
-      result.hooksInstances.map((i) => i.kind),
-    )
-    let hooksInstances: HooksInstance[] = []
-    try {
-      hooksInstances = result.hooksInstances.map((i) =>
-        hooksInstanceFromLens(
-          chain,
-          signerOrProvider,
-          i,
-          borrower,
-          isRegisteredBorrower,
-        ),
-      )
-    } catch (err) {
-      console.log(`Error getting hooks instances: ${err}`)
-      throw err
-    }
+    const [result, controller] = await Promise.all([
+      getBorrowerHooksData(chain, signerOrProvider, borrower),
+      supportsV1 ? getController(chain, signerOrProvider, borrower) : undefined,
+    ])
 
     return {
-      hooksInstances,
-      hooksTemplates,
-      isRegisteredBorrower,
+      hooksInstances: result.hooksInstances,
+      hooksTemplates: result.hooksTemplates,
+      isRegisteredBorrower: result.isRegisteredBorrower,
       controller: controller?.isDeployed ? controller : undefined,
     }
   }
 
   return useQuery({
     queryKey: [GET_BORROWER_HOOKS_DATA, address, chainId],
-    queryFn: getBorrowerHooksData,
+    queryFn: getBorrowerHooksDataQueryFn,
     refetchInterval: POLLING_INTERVAL,
     enabled,
     refetchOnMount: false,
@@ -118,7 +84,7 @@ export function useGetBorrowerHooksDataWithSubgraphQuery({
 }: GetBorrowerHooksDataProps) {
   const { address } = useAccount()
   const subgraphClient = useSubgraphClient()
-  async function getBorrowerHooksData() {
+  async function getBorrowerHooksDataWithSubgraph() {
     const result = await getAllHooksDataForBorrower(subgraphClient, {
       borrower: address as string,
       chainId: chainId as SupportedChainId,
@@ -130,7 +96,7 @@ export function useGetBorrowerHooksDataWithSubgraphQuery({
 
   return useQuery({
     queryKey: [GET_BORROWER_HOOKS_DATA_WITH_SUBGRAPH, address, chainId],
-    queryFn: getBorrowerHooksData,
+    queryFn: getBorrowerHooksDataWithSubgraph,
     enabled: !!address && !!chainId && enabled,
     refetchInterval: POLLING_INTERVAL,
     refetchOnMount: false,

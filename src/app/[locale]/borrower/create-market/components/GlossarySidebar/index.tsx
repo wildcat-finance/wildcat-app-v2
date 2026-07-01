@@ -11,6 +11,7 @@ import { GlossaryContainer, GlossaryItem } from "./style"
 export const GlossarySidebar = ({
   step,
   hideGlossary,
+  isRevolving,
 }: GlossarySidebarProps) => {
   const { t } = useTranslation()
 
@@ -66,8 +67,16 @@ export const GlossarySidebar = ({
           description: t("createNewMarket.financial.maxCapacity.glossary"),
         },
         {
-          title: t("createNewMarket.financial.baseAPR.label"),
-          description: t("createNewMarket.financial.baseAPR.glossary"),
+          title: t(
+            isRevolving
+              ? "createNewMarket.financial.baseAPR.labelRevolving"
+              : "createNewMarket.financial.baseAPR.label",
+          ),
+          description: t(
+            isRevolving
+              ? "createNewMarket.financial.baseAPR.glossaryRevolving"
+              : "createNewMarket.financial.baseAPR.glossary",
+          ),
         },
         {
           title: t("createNewMarket.financial.penaltyAPR.label"),
@@ -77,6 +86,16 @@ export const GlossarySidebar = ({
           title: t("createNewMarket.financial.ratio.label"),
           description: t("createNewMarket.financial.ratio.glossary"),
         },
+        ...(isRevolving
+          ? [
+              {
+                title: t("createNewMarket.financial.commitmentFee.label"),
+                description: t(
+                  "createNewMarket.financial.commitmentFee.glossary",
+                ),
+              },
+            ]
+          : []),
         {
           title: t("createNewMarket.periods.grace.label"),
           description: t("createNewMarket.periods.grace.glossary"),

@@ -1,12 +1,7 @@
 import { useEffect } from "react"
 
 import { useQuery } from "@tanstack/react-query"
-import {
-  Market,
-  MarketVersion,
-  getLensContract,
-  getLensV2Contract,
-} from "@wildcatfi/wildcat-sdk"
+import { Market } from "@wildcatfi/wildcat-sdk"
 import type { SubgraphGetMarketQuery } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 
 import { POLLING_INTERVAL } from "@/config/polling"
@@ -75,16 +70,7 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
         signerOrProvider,
         subgraphMarket,
       )
-
-      if (market.version === MarketVersion.V1) {
-        const lens = getLensContract(effectiveChainId, signerOrProvider)
-        const update = await lens.getMarketData(market.address)
-        market.updateWith(update)
-      } else {
-        const lens = getLensV2Contract(effectiveChainId, signerOrProvider)
-        const update = await lens.getMarketData(market.address)
-        market.updateWith(update)
-      }
+      await market.update()
 
       return market
     },

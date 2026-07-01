@@ -72,7 +72,7 @@ export const DetailsTab = ({
       <>
         <DetailsTabItem label="Policy Name" value={name} />
         <DetailsTabItem label="Access Requirements" value={access} />
-        <DetailsTabItem label="Market Type" value={type} />
+        <DetailsTabItem label="Market Term" value={type} />
       </>
     )}
   </Box>

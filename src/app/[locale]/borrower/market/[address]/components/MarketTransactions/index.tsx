@@ -1,7 +1,6 @@
 import * as React from "react"
 
 import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
-import { HooksKind, MarketVersion } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -22,6 +21,11 @@ import {
   formatTokenWithCommas,
   MARKET_PARAMS_DECIMALS,
 } from "@/utils/formatters"
+import {
+  getFixedTermHooksConfig,
+  isFixedTermMarket,
+  isHooksManagedMarket,
+} from "@/utils/marketCapabilities"
 
 import { MarketTransactionsProps } from "./interface"
 import { MarketTxContainer, MarketTxUpperButtonsContainer } from "./style"
@@ -45,19 +49,15 @@ export const MarketTransactions = ({
     market?.isDelinquent ||
     (marketAccount && marketAccount.market.borrowableAssets.raw.isZero())
 
-  const isFixedTerm =
-    (market.version === MarketVersion.V1
-      ? HooksKind.OpenTerm
-      : market.hooksKind!) === HooksKind.FixedTerm
+  const fixedTermHooksConfig = getFixedTermHooksConfig(market)
+  const isFixedTerm = isFixedTermMarket(market)
 
   const isAllowTermReduction =
-    market.hooksConfig?.kind === HooksKind.FixedTerm
-      ? market.hooksConfig.allowTermReduction && market.isInFixedTerm
-      : undefined
+    fixedTermHooksConfig?.allowTermReduction && market.isInFixedTerm
 
   const allowSetMinDeposit =
-    market.version === MarketVersion.V2 &&
-    market.hooksConfig?.flags.useOnDeposit
+    isHooksManagedMarket(market) &&
+    (market.hooksConfig?.flags.useOnDeposit ?? false)
 
   const smallestTokenAmountValue = market.underlyingToken.parseAmount(
     "0.00001".replace(/,/g, ""),
