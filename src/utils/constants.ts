@@ -1,44 +1,44 @@
 /* eslint-disable camelcase */
 
-"use client";
+"use client"
 
-import { SubgraphMarket_Filter } from "@wildcatfi/wildcat-sdk";
+import { SubgraphMarket_Filter } from "@wildcatfi/wildcat-sdk"
 
 export const TOKENS_ADDRESSES = {
   WETH: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-};
+}
 
-export const TIMESTAMP_KEY = "lastFetchedTimestamp";
+export const TIMESTAMP_KEY = "lastFetchedTimestamp"
 
 // Show if on development or if host is secretsite.wildcat.finance
 export const shouldShowExcludedMarkets =
   process.env.NODE_ENV === "development" ||
   (typeof window !== "undefined" &&
-    window.location.host === "secretsite.wildcat.finance");
+    window.location.host === "secretsite.wildcat.finance")
 
 export const EXCLUDED_MARKETS = shouldShowExcludedMarkets
   ? []
   : [
       "0xd6440bd3c97e8bfbdc311cbbb50ada03ade4810a",
       "0xfe7cf5680d2e59500f3938c2539fda4754876f94",
-    ];
+    ]
 
 export const EXCLUDED_BORROWERS = shouldShowExcludedMarkets
   ? []
-  : ["0x569e7cb1a1c839133012de4adee8361389b0113b"];
+  : ["0x569e7cb1a1c839133012de4adee8361389b0113b"]
 
 // Temporary manual frontend action disable for borrowers going through default handling.
 // "0xDeFd11f619847a3a737be1Df7f3F80A7A05Fb8bc" is dev borrower address for testing
 export const MANUALLY_DISABLED_MARKET_ACTION_BORROWERS = [
   "0xDeFd11f619847a3a737be1Df7f3F80A7A05Fb8bc",
   "0x40a42340c7829d1b31eed3860928b4862715e5de",
-];
+]
 
 export const hasManuallyDisabledMarketActions = (borrowerAddress?: string) =>
   !!borrowerAddress &&
   MANUALLY_DISABLED_MARKET_ACTION_BORROWERS.includes(
     borrowerAddress.toLowerCase(),
-  );
+  )
 
 export const EXCLUDED_MARKETS_FILTER: SubgraphMarket_Filter[] =
   shouldShowExcludedMarkets
@@ -48,18 +48,18 @@ export const EXCLUDED_MARKETS_FILTER: SubgraphMarket_Filter[] =
           borrower_not_in: EXCLUDED_BORROWERS,
         },
         { id_not_in: EXCLUDED_MARKETS },
-      ];
+      ]
 
 export const pageCalcHeights = {
   dashboard: "320px",
   page: "82px",
   market: "194px",
-};
+}
 
 export const USDT_LIKE_TOKENS = [
   "0xdac17f958d2ee523a2206206994597c13d831ec7",
   "0x90ecd2b85fe8cda3080d502ee7c56979a9bfa4d0",
-];
+]
 
 export const isUSDTLikeToken = (address: string) =>
-  USDT_LIKE_TOKENS.includes(address.toLowerCase());
+  USDT_LIKE_TOKENS.includes(address.toLowerCase())
