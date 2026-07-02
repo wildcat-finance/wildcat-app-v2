@@ -226,6 +226,17 @@ export const TrendingMarketsCarousel = () => {
   )
   const { data: priceMap } = useTrendingUsdPrices(chainId, tokenAddresses)
 
+  // USD display when a price is known, compact token amount otherwise
+  const toCardValue = useCallback(
+    (raw: bigint, decimals: number, tokenAddress: string): string => {
+      const price = priceMap?.[tokenAddress.toLowerCase()]
+      return price != null
+        ? fmtUSD(toHuman(raw, decimals) * price)
+        : formatTokenCompact(raw, decimals)
+    },
+    [priceMap],
+  )
+
   const slots = useMemo<Slot[]>(() => {
     const penaltyBorrowers = getPenaltyBorrowers(
       marketAccounts.map((a) => a.market),
@@ -240,14 +251,16 @@ export const TrendingMarketsCarousel = () => {
     )
     if (eligible.length === 0) return []
 
-    const toCardValue = (
+    // Same as toCardValue but without the $ sign (target design shows the
+    // Fresh Capital stat as a bare number, e.g. "+4.2M")
+    const toCardNumber = (
       raw: bigint,
       decimals: number,
       tokenAddress: string,
     ): string => {
       const price = priceMap?.[tokenAddress.toLowerCase()]
       return price != null
-        ? fmtUSD(toHuman(raw, decimals) * price)
+        ? compactFormat(toHuman(raw, decimals) * price)
         : formatTokenCompact(raw, decimals)
     }
 
@@ -299,7 +312,7 @@ export const TrendingMarketsCarousel = () => {
       const stats7d = recentDeposits.last7d[addr]
       const inflowTokenAddress = tvlInflowAccount.market.underlyingToken.address
       if (stats7d && stats7d.totalAssetAmount > ZERO) {
-        tvlInflowStat = `+${toCardValue(
+        tvlInflowStat = `+${toCardNumber(
           stats7d.totalAssetAmount,
           decimals,
           inflowTokenAddress,
@@ -309,7 +322,11 @@ export const TrendingMarketsCarousel = () => {
         if (deposited) {
           const big = deposited.toBigInt()
           if (big > ZERO)
-            tvlInflowStat = `+${toCardValue(big, decimals, inflowTokenAddress)}`
+            tvlInflowStat = `+${toCardNumber(
+              big,
+              decimals,
+              inflowTokenAddress,
+            )}`
         }
       }
     }
@@ -409,6 +426,7 @@ export const TrendingMarketsCarousel = () => {
     marketAccounts,
     recentDeposits,
     priceMap,
+    toCardValue,
     isLoadingUpdate,
     isMarketQualifying,
   ])
@@ -426,6 +444,14 @@ export const TrendingMarketsCarousel = () => {
       ? borrower.alias || borrower.name || trimAddress(market.borrower)
       : trimAddress(market.borrower)
 
+    const { address: tokenAddress, decimals } = market.underlyingToken
+    const suppliedRaw = market.totalSupply.raw.toBigInt()
+    const capacityRaw = market.maxTotalSupply.raw.toBigInt()
+    const suppliedPct =
+      capacityRaw > ZERO
+        ? Number((suppliedRaw * BigInt(10000)) / capacityRaw) / 100
+        : 0
+
     return (
       <TrendingMarketCard
         variant={slot.variant}
@@ -438,6 +464,9 @@ export const TrendingMarketsCarousel = () => {
         borrowerAddress={market.borrower.toLowerCase()}
         asset={market.underlyingToken.symbol}
         apr={market.annualInterestBips}
+        supplied={toCardValue(suppliedRaw, decimals, tokenAddress)}
+        capacity={toCardValue(capacityRaw, decimals, tokenAddress)}
+        suppliedPct={suppliedPct}
       />
     )
   }

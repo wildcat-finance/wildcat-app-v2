@@ -6,32 +6,32 @@ export const CardContainerStyle = {
   height: "100%",
   display: "flex",
   flexDirection: "column",
-  gap: "4px",
-  padding: "8px 10px 10px",
   borderRadius: "12px",
   border: `1px solid ${COLORS.iron}`,
   backgroundColor: COLORS.white,
   overflow: "hidden",
 }
 
-// Top row: variant badge (left) + variant category icon (right)
+// Full-width tinted band: variant badge (left) + variant category icon (right)
 export const CardHeaderStyle = {
   width: "100%",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-}
-
-export const CardBadgeStyle = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "1px 6px",
-  borderRadius: "12px",
-  flexShrink: 0,
+  padding: "8px 10px",
 }
 
 export const CardIconStyle = { width: "24px", height: "24px", flexShrink: 0 }
+
+// Everything under the tinted band
+export const CardContentStyle = {
+  width: "100%",
+  flexGrow: 1,
+  display: "flex",
+  flexDirection: "column",
+  gap: "4px",
+  padding: "4px 10px 10px",
+}
 
 // Body: title / value / period
 export const CardBodyStyle = {
@@ -39,7 +39,7 @@ export const CardBodyStyle = {
   display: "flex",
   flexDirection: "column",
   gap: "4px",
-  padding: "12px 0 8px",
+  padding: "8px 0",
 }
 
 export const CardValueStyle = {
@@ -49,23 +49,25 @@ export const CardValueStyle = {
   minWidth: 0,
 }
 
-// Footer: divider on top, then borrower/asset row + CTA button
+// Footer: market info block + CTA button
 export const CardFooterStyle = {
+  width: "100%",
+  marginTop: "auto",
+  display: "flex",
+  flexDirection: "column",
+  gap: "6px",
+  paddingTop: "8px",
+}
+
+// Grey block: borrower chip, asset + APR, supply progress, supplied caption
+export const MarketInfoBoxStyle = {
   width: "100%",
   display: "flex",
   flexDirection: "column",
-  gap: "4px",
-  paddingTop: "8px",
-  borderTop: `1px solid ${COLORS.whiteLilac}`,
-}
-
-export const BorrowerAssetRowStyle = {
-  width: "100%",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "8px",
-  padding: "6px 8px 6px 0",
+  gap: "6px",
+  padding: "8px",
+  borderRadius: "10px",
+  backgroundColor: COLORS.hintOfRed,
 }
 
 export const BorrowerLinkStyle = {
@@ -74,6 +76,21 @@ export const BorrowerLinkStyle = {
   minWidth: 0,
   overflow: "hidden",
   textDecoration: "none",
+}
+
+// Bar colors sampled from target.png (converted to sRGB)
+export const SupplyProgressTrackStyle = {
+  width: "100%",
+  height: "4px",
+  borderRadius: "2px",
+  backgroundColor: COLORS.iron,
+  overflow: "hidden",
+}
+
+export const SupplyProgressFillStyle = {
+  height: "100%",
+  borderRadius: "inherit",
+  backgroundColor: "#555988",
 }
 
 export const MarketContainerStyle = {

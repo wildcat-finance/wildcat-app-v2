@@ -144,63 +144,58 @@ export default function Header() {
           {!isMobile && (
             <Box
               sx={{
-                position: "relative",
-                height: "fit-content",
                 display: "flex",
                 flexDirection: "row",
                 alignItems: "center",
-                gap: "2px",
-                padding: "4px 8px 4px 12px",
-                borderRadius: "14px",
-                backgroundColor: COLORS.white01,
-                "&::before": {
-                  content: '""',
-                  position: "absolute",
-                  inset: 0,
-                  borderRadius: "inherit",
-                  padding: "1px",
-                  background:
-                    "linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(153, 153, 153, 0))",
-                  WebkitMask:
-                    "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                  WebkitMaskComposite: "xor",
-                  maskComposite: "exclude",
-                  pointerEvents: "none",
-                },
+                gap: "8px",
+                paddingLeft: "8px",
               }}
             >
+              <Typography variant="text3" fontWeight={500} color={COLORS.white}>
+                Total Value Locked
+              </Typography>
               <Box
                 sx={{
-                  width: "4px",
-                  height: "4px",
-                  borderRadius: "50%",
-                  backgroundColor: COLORS.athensGrey,
+                  position: "relative",
+                  height: "fit-content",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "3px 10px",
+                  borderRadius: "14px",
+                  backgroundColor: COLORS.white01,
+                  "&::before": {
+                    content: '""',
+                    position: "absolute",
+                    inset: 0,
+                    borderRadius: "inherit",
+                    padding: "1px",
+                    background:
+                      "linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(153, 153, 153, 0))",
+                    WebkitMask:
+                      "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                    WebkitMaskComposite: "xor",
+                    maskComposite: "exclude",
+                    pointerEvents: "none",
+                  },
                 }}
-              />
-              <Typography
-                variant="text3"
-                fontWeight={500}
-                color={COLORS.white}
-                sx={{ padding: "0 4px" }}
               >
-                TVL
-              </Typography>
-              {showTvlSkeleton ? (
-                <Skeleton
-                  variant="text"
-                  width={56}
-                  height={20}
-                  sx={{ bgcolor: COLORS.white01, borderRadius: "14px" }}
-                />
-              ) : (
-                <Typography
-                  variant="text3"
-                  fontWeight={600}
-                  color={COLORS.white}
-                >
-                  {protocolStats ? fmtUSD(protocolStats.tvl) : "—"}
-                </Typography>
-              )}
+                {showTvlSkeleton ? (
+                  <Skeleton
+                    variant="text"
+                    width={56}
+                    height={20}
+                    sx={{ bgcolor: COLORS.white01, borderRadius: "14px" }}
+                  />
+                ) : (
+                  <Typography
+                    variant="text3"
+                    fontWeight={600}
+                    color={COLORS.white}
+                  >
+                    {protocolStats ? fmtUSD(protocolStats.tvl) : "—"}
+                  </Typography>
+                )}
+              </Box>
             </Box>
           )}
         </Box>
