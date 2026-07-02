@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useMemo, useState } from "react"
 import * as React from "react"
 
 import {
@@ -8,6 +8,7 @@ import {
   Button,
   FormControlLabel,
   Skeleton,
+  SvgIcon,
   Typography,
 } from "@mui/material"
 import {
@@ -30,6 +31,7 @@ import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSectio
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 import { useMarketsWithRecentInflow } from "@/app/[locale]/lender/hooks/useMarketsWithRecentInflow"
+import ArrowRightIcon from "@/assets/icons/arrowRight_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
@@ -39,7 +41,6 @@ import {
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
-import { FilterTextField } from "@/components/FilterTextfield"
 import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
 import { MarketsTableWrapper } from "@/components/MarketsTableWrapper"
@@ -98,12 +99,10 @@ const statusFilterOptions = marketStatusesMock.filter(
 
 const EXPLORE_PAGE_SIZE = 5
 
-// Desktop: the table shows as many rows as fit the viewport (grid + the button
-// below it), recomputed on resize. These mirror the DataGrid row/header sizes.
 const GRID_ROW_HEIGHT = 66
 const GRID_HEADER_HEIGHT = 40
-const GRID_RESERVED_BELOW = 64 // "Explore All Markets" button + margin + buffer
-const MIN_VISIBLE_ROWS = 3
+
+const PAGINATION_MODEL = { page: 0, pageSize: EXPLORE_PAGE_SIZE }
 
 const DATA_GRID_MIN_HEIGHT = "106px"
 
@@ -205,36 +204,6 @@ export const ExploreMarketsTable = () => {
   >([])
   const [showSelfOnboard, setShowSelfOnboard] = useState(true)
   const [showOnboardByBorrower, setShowOnboardByBorrower] = useState(false)
-
-  const gridWrapRef = useRef<HTMLDivElement>(null)
-  const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: EXPLORE_PAGE_SIZE,
-  })
-
-  // Desktop: fit the row count to the viewport so the table + button sit on one
-  // screen without page scroll. Recomputes on mount, when data finishes loading
-  // (layout above the grid settles), and on window resize.
-  useEffect(() => {
-    if (isMobile) return undefined
-    const recompute = () => {
-      const el = gridWrapRef.current
-      if (!el || typeof window === "undefined") return
-      const { top } = el.getBoundingClientRect()
-      const available =
-        window.innerHeight - top - GRID_HEADER_HEIGHT - GRID_RESERVED_BELOW
-      const next = Math.max(
-        MIN_VISIBLE_ROWS,
-        Math.floor(available / GRID_ROW_HEIGHT),
-      )
-      setPaginationModel((m) =>
-        m.pageSize === next ? m : { page: 0, pageSize: next },
-      )
-    }
-    recompute()
-    window.addEventListener("resize", recompute)
-    return () => window.removeEventListener("resize", recompute)
-  }, [isMobile, isLoading])
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
   const tokens = useMemo(() => {
@@ -356,7 +325,7 @@ export const ExploreMarketsTable = () => {
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
     {
       field: "name",
-      headerName: t("dashboard.markets.tables.header.name"),
+      headerName: "Market",
       flex: 2.5,
       minWidth: 200,
       headerAlign: "left",
@@ -486,44 +455,81 @@ export const ExploreMarketsTable = () => {
       ),
     },
     {
-      field: "capacityLeft",
-      headerName: t("dashboard.markets.tables.header.capacity"),
-      minWidth: 100,
-      flex: 1,
+      field: "debt",
+      headerName: "Total Debt / Remaining",
+      minWidth: 200,
+      flex: 1.5,
       headerAlign: "right",
       align: "right",
       sortComparator: tokenAmountComparator,
       renderCell: (
         params: GridRenderCellParams<LenderOtherMarketsTableModel, TokenAmount>,
-      ) => (
-        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-          {params.value && params.value.gt(0)
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
-        </Box>
-      ),
-    },
-    {
-      field: "debt",
-      headerName: t("dashboard.markets.tables.header.debt"),
-      minWidth: 100,
-      flex: 1,
-      headerAlign: "right",
-      align: "right",
-      sortComparator: tokenAmountComparator,
-      renderCell: (params) => (
-        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-          {params.value
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
-        </Box>
-      ),
+      ) => {
+        const { capacityLeft } = params.row
+        const debtRaw = params.value ? params.value.raw.toBigInt() : BigInt(0)
+        // capacityLeft can go negative when a borrower shrinks capacity below
+        // the current supply, so clamp the fill to 0-100%
+        const totalRaw = debtRaw + capacityLeft.raw.toBigInt()
+        const debtPct =
+          totalRaw > BigInt(0)
+            ? Math.min(100, Number((debtRaw * BigInt(10000)) / totalRaw) / 100)
+            : 0
+
+        return (
+          <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+            {/* Shifted down by half the caption height so the bar sits on the
+                row centerline with the figures below it, per the design */}
+            <Box
+              sx={{
+                position: "relative",
+                top: "11px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                gap: "6px",
+              }}
+            >
+              <Box
+                sx={{
+                  width: "120px",
+                  maxWidth: "100%",
+                  height: "4px",
+                  borderRadius: "2px",
+                  backgroundColor: COLORS.whiteLilac,
+                  overflow: "hidden",
+                }}
+              >
+                <Box
+                  sx={{
+                    height: "100%",
+                    width: `${debtPct}%`,
+                    borderRadius: "inherit",
+                    backgroundColor: COLORS.blackRock,
+                  }}
+                />
+              </Box>
+              <Typography
+                variant="text4"
+                sx={{ color: "#595A65", whiteSpace: "nowrap" }}
+              >
+                {params.value
+                  ? formatTokenWithCommas(params.value, {
+                      withSymbol: false,
+                      fractionDigits: 2,
+                    })
+                  : "0"}{" "}
+                /{" "}
+                {capacityLeft.gt(0)
+                  ? formatTokenWithCommas(capacityLeft, {
+                      withSymbol: false,
+                      fractionDigits: 2,
+                    })
+                  : "0"}
+              </Typography>
+            </Box>
+          </Box>
+        )
+      },
     },
     {
       sortable: false,
@@ -541,6 +547,13 @@ export const ExploreMarketsTable = () => {
               variant="contained"
               color="secondary"
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              endIcon={
+                <SvgIcon
+                  component={ArrowRightIcon}
+                  inheritViewBox
+                  sx={{ fontSize: "11px" }}
+                />
+              }
             >
               {t("dashboard.markets.tables.other.depositBTN")}
             </Button>
@@ -694,7 +707,7 @@ export const ExploreMarketsTable = () => {
             size="small"
             fullWidth
           >
-            Explore All Markets
+            Go to All Markets
           </Button>
         </Box>
       </Box>
@@ -702,43 +715,16 @@ export const ExploreMarketsTable = () => {
 
   return (
     <Box sx={{ width: "100%", padding: "0 16px 28px" }}>
-      <Box
+      <Typography
+        variant="title3"
         sx={{
-          width: "fit-content",
-          display: "flex",
-          gap: "4px",
-          margin: "16px 0 18px",
+          display: "block",
+          color: COLORS.blackRock,
+          marginTop: "16px",
         }}
       >
-        {isLoading
-          ? Array.from({ length: 4 }, (_, i) => `skeleton-row-${i}`).map(
-              (key) => (
-                <Skeleton
-                  key={key}
-                  height="36px"
-                  width="106px"
-                  sx={{
-                    borderRadius: "10px",
-                    bgcolor: COLORS.athensGrey,
-                  }}
-                />
-              ),
-            )
-          : SORT_OPTIONS.map((option) => (
-              <Button
-                key={option}
-                variant="text"
-                onClick={() => handleSortModeChange(option)}
-                sx={{
-                  fontWeight: sortMode === option ? 600 : 500,
-                  backgroundColor:
-                    sortMode === option ? COLORS.whiteSmoke : "transparent",
-                }}
-              >
-                {option}
-              </Button>
-            ))}
-      </Box>
+        Top Markets
+      </Typography>
 
       <Box
         sx={{
@@ -746,36 +732,42 @@ export const ExploreMarketsTable = () => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: "12px",
+          margin: "16px 0 18px",
         }}
       >
+        <Box sx={{ display: "flex", gap: "4px" }}>
+          {isLoading
+            ? Array.from({ length: 4 }, (_, i) => `skeleton-row-${i}`).map(
+                (key) => (
+                  <Skeleton
+                    key={key}
+                    height="36px"
+                    width="106px"
+                    sx={{
+                      borderRadius: "20px",
+                      bgcolor: COLORS.athensGrey,
+                    }}
+                  />
+                ),
+              )
+            : SORT_OPTIONS.map((option) => (
+                <Button
+                  key={option}
+                  variant="text"
+                  onClick={() => handleSortModeChange(option)}
+                  sx={{
+                    borderRadius: "20px",
+                    fontWeight: sortMode === option ? 600 : 500,
+                    backgroundColor:
+                      sortMode === option ? COLORS.whiteSmoke : "transparent",
+                  }}
+                >
+                  {option}
+                </Button>
+              ))}
+        </Box>
+
         <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
-          <MarketsFilterSelect
-            placeholder={t("dashboard.markets.filters.assets")}
-            options={
-              tokens?.map((token) => ({
-                id: token.address,
-                name: token.symbol,
-              })) ?? []
-            }
-            selected={assets}
-            setSelected={setAssets}
-          />
-
-          <MarketsFilterSelect
-            placeholder={t("dashboard.markets.filters.statuses")}
-            options={statusFilterOptions}
-            selected={statuses}
-            setSelected={setStatuses}
-          />
-
-          <MarketsFilterSelect
-            placeholder="Withdrawal Cycle"
-            options={withdrawalCycleOptions}
-            selected={withdrawalCycles}
-            setSelected={setWithdrawalCycles}
-          />
-
           <FormControlLabel
             label="Self-Onboard"
             control={
@@ -790,10 +782,11 @@ export const ExploreMarketsTable = () => {
               />
             }
             sx={{
-              marginLeft: "18px",
+              marginRight: "6px",
               "& .MuiTypography-root": {
                 fontSize: pxToRem(13),
                 lineHeight: lh(20, 13),
+                whiteSpace: "nowrap",
               },
             }}
           />
@@ -812,50 +805,60 @@ export const ExploreMarketsTable = () => {
               />
             }
             sx={{
-              marginLeft: "18px",
+              marginRight: "12px",
               "& .MuiTypography-root": {
                 fontSize: pxToRem(13),
                 lineHeight: lh(20, 13),
+                whiteSpace: "nowrap",
               },
             }}
           />
-        </Box>
 
-        <FilterTextField
-          value={search}
-          setValue={setSearch}
-          placeholder={t("dashboard.markets.filters.name")}
-          width="264px"
-        />
-      </Box>
-
-      <Box ref={gridWrapRef}>
-        <MarketsTableWrapper
-          marketsLength={rows.length}
-          rowsLength={paginationModel.pageSize}
-          isLoading={isLoading}
-          noMarketsTitle="No Markets Available"
-          noMarketsSubtitle="There are no markets to display at the moment."
-          highlightNoMarketsBanner
-        >
-          <DataGrid
-            disableVirtualization
-            sx={DataGridSx}
-            rowHeight={GRID_ROW_HEIGHT}
-            rows={rows}
-            columns={columns}
-            columnHeaderHeight={GRID_HEADER_HEIGHT}
-            slots={{ row: MarketLinkRow }}
-            loading={isLoading}
-            sortModel={sortModel}
-            onSortModelChange={setSortModel}
-            paginationModel={paginationModel}
-            onPaginationModelChange={setPaginationModel}
-            pageSizeOptions={[paginationModel.pageSize]}
-            hideFooter
+          <MarketsFilterSelect
+            placeholder={t("dashboard.markets.filters.assets")}
+            options={
+              tokens?.map((token) => ({
+                id: token.address,
+                name: token.symbol,
+              })) ?? []
+            }
+            selected={assets}
+            setSelected={setAssets}
           />
-        </MarketsTableWrapper>
+
+          <MarketsFilterSelect
+            placeholder="Withdrawal Cycle"
+            options={withdrawalCycleOptions}
+            selected={withdrawalCycles}
+            setSelected={setWithdrawalCycles}
+          />
+        </Box>
       </Box>
+
+      <MarketsTableWrapper
+        marketsLength={rows.length}
+        rowsLength={EXPLORE_PAGE_SIZE}
+        isLoading={isLoading}
+        noMarketsTitle="No Markets Available"
+        noMarketsSubtitle="There are no markets to display at the moment."
+        highlightNoMarketsBanner
+      >
+        <DataGrid
+          disableVirtualization
+          sx={DataGridSx}
+          rowHeight={GRID_ROW_HEIGHT}
+          rows={rows}
+          columns={columns}
+          columnHeaderHeight={GRID_HEADER_HEIGHT}
+          slots={{ row: MarketLinkRow }}
+          loading={isLoading}
+          sortModel={sortModel}
+          onSortModelChange={setSortModel}
+          paginationModel={PAGINATION_MODEL}
+          pageSizeOptions={[EXPLORE_PAGE_SIZE]}
+          hideFooter
+        />
+      </MarketsTableWrapper>
 
       <Box
         sx={{ display: "flex", justifyContent: "center", marginTop: "18px" }}
@@ -877,7 +880,7 @@ export const ExploreMarketsTable = () => {
             variant="contained"
             color="secondary"
           >
-            Explore All Markets
+            Go to All Markets
           </Button>
         )}
       </Box>
