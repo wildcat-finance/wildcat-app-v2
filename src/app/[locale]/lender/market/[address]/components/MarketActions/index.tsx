@@ -9,8 +9,8 @@ import {
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
-import { LenderMlaModal } from "@/app/[locale]/lender/components/LenderMlaModal"
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
+import { LenderMlaModal } from "@/app/[locale]/lender/market/[address]/components/MarketActions/LenderMlaModal"
 import { TransactionsContainer } from "@/app/[locale]/lender/market/[address]/components/MarketActions/styles"
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"

@@ -19,6 +19,9 @@ export const ROUTES = {
   },
   lender: {
     root: LENDER_ROOT,
+    explore: LENDER_ROOT,
+    myMarkets: `${LENDER_ROOT}/my-markets`,
+    allMarkets: `${LENDER_ROOT}/all-markets`,
     market: `${LENDER_ROOT}/market`,
     profile: `${LENDER_ROOT}/profile`,
   },

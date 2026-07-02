@@ -18,6 +18,8 @@ import Logo from "@/assets/icons/logo_white.svg"
 import MobileLogo from "@/assets/icons/noNameLogo_icon.svg"
 import { contentContainer, NavContainer } from "@/components/Header/style"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { fmtUSD } from "@/lib/protocol-stats/format"
+import { useProtocolStats } from "@/lib/protocol-stats/useProtocolStats"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setTab } from "@/store/slices/borrowerOverviewSlice/borrowerOverviewSlice"
@@ -74,6 +76,9 @@ export default function Header() {
     [side],
   )
 
+  const { data: protocolStats, isLoading: isTvlLoading } = useProtocolStats()
+  const showTvlSkeleton = isTvlLoading && !protocolStats
+
   if (!mounted)
     return (
       <Box
@@ -109,24 +114,92 @@ export default function Header() {
       )}
 
       <Box sx={contentContainer(theme)}>
-        <Link
-          onClick={handleResetTab}
-          href={homeUrl}
-          style={{
-            height: isMobile ? "32px" : "50px",
-            flexShrink: 0,
+        <Box
+          sx={{
             display: "flex",
+            flexDirection: "row",
             alignItems: "center",
-            ...(isMobile && { width: "fit-content", overflow: "hidden" }),
+            gap: "4px",
           }}
         >
-          {isMobile && (
-            <SvgIcon sx={{ fontSize: "32px" }}>
-              <MobileLogo />
-            </SvgIcon>
+          <Link
+            onClick={handleResetTab}
+            href={homeUrl}
+            style={{
+              height: isMobile ? "32px" : "50px",
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              ...(isMobile && { width: "fit-content", overflow: "hidden" }),
+            }}
+          >
+            {isMobile && (
+              <SvgIcon sx={{ fontSize: "32px" }}>
+                <MobileLogo />
+              </SvgIcon>
+            )}
+            {!isMobile && <Logo />}
+          </Link>
+
+          {!isMobile && (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: "8px",
+                paddingLeft: "8px",
+              }}
+            >
+              <Typography variant="text3" fontWeight={500} color={COLORS.white}>
+                Total Value Locked
+              </Typography>
+              <Box
+                sx={{
+                  position: "relative",
+                  height: "fit-content",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "3px 10px",
+                  borderRadius: "14px",
+                  backgroundColor: COLORS.white01,
+                  "&::before": {
+                    content: '""',
+                    position: "absolute",
+                    inset: 0,
+                    borderRadius: "inherit",
+                    padding: "1px",
+                    background:
+                      "linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(153, 153, 153, 0))",
+                    WebkitMask:
+                      "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                    WebkitMaskComposite: "xor",
+                    maskComposite: "exclude",
+                    pointerEvents: "none",
+                  },
+                }}
+              >
+                {showTvlSkeleton ? (
+                  <Skeleton
+                    variant="text"
+                    width={56}
+                    height={20}
+                    sx={{ bgcolor: COLORS.white01, borderRadius: "14px" }}
+                  />
+                ) : (
+                  <Typography
+                    variant="text3"
+                    fontWeight={600}
+                    color={COLORS.white}
+                  >
+                    {protocolStats ? fmtUSD(protocolStats.tvl) : "—"}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
           )}
-          {!isMobile && <Logo />}
-        </Link>
+        </Box>
+
         {!isMobile && (
           <Box sx={NavContainer}>
             {/* Lender on the left */}

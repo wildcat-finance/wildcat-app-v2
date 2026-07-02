@@ -17,13 +17,13 @@ export const BorrowerProfileChip = ({
     <Box
       sx={{
         width: "fit-content",
+        minWidth: 0,
         display: "flex",
         gap: "6px",
         alignItems: "center",
         padding: "2px 8px 2px 6px",
         borderRadius: "12px",
         bgcolor: COLORS.whiteSmoke,
-        marginTop: "2px",
       }}
     >
       {borrower && borrower.startsWith("0") ? (
@@ -66,6 +66,7 @@ export const BorrowerProfileChip = ({
       <Typography
         variant={isMobile ? "mobText4" : "text4"}
         sx={{
+          minWidth: 0,
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
