@@ -36,7 +36,10 @@ import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
-import { isUSDTLikeToken } from "@/utils/constants"
+import {
+  hasManuallyDisabledMarketActions,
+  isUSDTLikeToken,
+} from "@/utils/constants"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
@@ -211,6 +214,9 @@ export const DepositModal = ({
   const depositStep = getDepositStatus().status
 
   const isAllowanceSufficient = marketAccount.isApprovedFor(depositTokenAmount)
+  const marketActionsManuallyDisabled = hasManuallyDisabledMarketActions(
+    market.borrower,
+  )
 
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
@@ -218,6 +224,8 @@ export const DepositModal = ({
   }
 
   const handleDeposit = () => {
+    if (marketActionsManuallyDisabled) return
+
     setTxHash("")
     deposit(depositTokenAmount)
   }
@@ -228,6 +236,8 @@ export const DepositModal = ({
   }
 
   const handleApprove = () => {
+    if (marketActionsManuallyDisabled) return
+
     setTxHash("")
 
     if (!isAllowanceSufficient) {
@@ -258,6 +268,7 @@ export const DepositModal = ({
     isUSDTLikeToken(market.underlyingToken.address)
 
   const disableApprove =
+    marketActionsManuallyDisabled ||
     !borrowerLegalName ||
     market.isClosed ||
     depositTokenAmount.raw.isZero() ||
@@ -267,6 +278,7 @@ export const DepositModal = ({
     !Signer.isSigner(market.provider)
 
   const disableDeposit =
+    marketActionsManuallyDisabled ||
     !borrowerLegalName ||
     !!depositError ||
     market.isClosed ||
@@ -742,6 +754,7 @@ export const DepositModal = ({
                 size="large"
                 sx={{ width: "152px" }}
                 disabled={
+                  marketActionsManuallyDisabled ||
                   marketAccount.maximumDeposit.raw.isZero() ||
                   underlyingBalanceIsZero
                 }
@@ -757,6 +770,7 @@ export const DepositModal = ({
             size="large"
             sx={{ width: "152px" }}
             disabled={
+              marketActionsManuallyDisabled ||
               marketAccount.maximumDeposit.raw.isZero() ||
               underlyingBalanceIsZero
             }
